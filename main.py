@@ -55,7 +55,7 @@ class MainWindow(qt.QMainWindow):
         dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | QtCore.Qt.BottomDockWidgetArea)
         dock.setFeatures(qt.QDockWidget.DockWidgetMovable)
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
-        
+    
         
         # show now
         self.show()
