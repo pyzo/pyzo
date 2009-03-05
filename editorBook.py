@@ -163,3 +163,4 @@ if __name__ == "__main__":
     app = QtGui.QApplication([])
     win = EditorBook(None)
     win.show()
+    app.exec_()
