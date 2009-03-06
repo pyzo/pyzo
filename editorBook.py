@@ -131,9 +131,9 @@ class FileListCtrl(qt.QWidget):
         for s in tmp:
             label = Label(self)
             if y>30:
-                label.reset(Label.TYPE_FILE, s,self.tr("tooltip"),indent=10)
+                label.reset(Label.TYPE_FILE, s,"tt: "+s,indent=10)
             else:
-                label.reset(Label.TYPE_FILE, s,self.tr("tooltip"))
+                label.reset(Label.TYPE_FILE, s,"tt: "+s+"(indented)")
             label.move(label.x(),y)
             y+=15
 #         for s in tmp:

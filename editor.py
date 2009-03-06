@@ -16,7 +16,7 @@ class InteractiveAPI(sci.QsciAPIs):
         
         self.add("foo(lala)")
         self.add("bar")
-        self.prepare()
+        #self.prepare()
 
 
 class IepTextCtrl(sci.QsciScintilla):
@@ -67,39 +67,29 @@ class IepTextCtrl(sci.QsciScintilla):
            
         # In QT, the vertical scroller is always shown        
         
-#         # autocomplete settings...
-#         self.AutoCompSetAutoHide(1) # we'll hide it as well, but we can miss it
-#         self.AutoCompSetCancelAtStart(True) # when BSpace before start, cancel
-#         self.AutoCompSetChooseSingle(False)
-#         self.AutoCompSetDropRestOfWord(False) # ?
-#         self.AutoCompSetFillUps("") # only enter and tab
-#         self.AutoCompSetIgnoreCase(True) # important to be True      
-#         self.AutoCompSetSeparator(ord(' ')) # this is default
-#         self.AutoCompStops(' .,;:([)]}\'"\\<>%^&+-=*/|`')
-        
         # set brace matchin on
         self.setBraceMatching(self.SloppyBraceMatch)
         
         # calltips, I dont know what this exactly does
         self.setCallTipsStyle(self.CallTipsNoContext)
         
-        # set lexer and attach custom API
-        lexer = sci.QsciLexerPython()
-        self.setLexer(lexer) 
-        lexer.setAPIs(InteractiveAPI(lexer))
-        
         # autocompletion setting
         self.setAutoCompletionThreshold(1) # 0 means disabled
         self.setAutoCompletionReplaceWord(False)
         self.setAutoCompletionShowSingle(False)
-        self.setAutoCompletionCaseSensitivity(False) # but is overriden in lexer
+        #self.setAutoCompletionCaseSensitivity(False) # but is overriden in lexer
         # there are more settings, but these are all overriden by the lexer
         
+        # set lexer and attach custom API
+        self._lexer = lexer = sci.QsciLexerPython()
+        self.setLexer(lexer) 
+        lexer.setAPIs(InteractiveAPI(lexer))
+        
         # do autocomple automagically
-        self.setAutoCompletionSource(self.AcsAPIs)
+        #self.setAutoCompletionSource(self.AcsAPIs)
         # or determine when this happens... 
         # (so I can determine when to call callTip)
-        #self.connect(self, QtCore.SIGNAL('textChanged()'), self.someMethod)
+        self.connect(self, QtCore.SIGNAL('textChanged()'), self.onTextChanged)
         
         # calltip colours...
         self.setCallTipsBackgroundColor(qt.QColor('#FFFFB8'))
@@ -110,13 +100,61 @@ class IepTextCtrl(sci.QsciScintilla):
         self.setSelectionBackgroundColor(qt.QColor('#333366'))
         self.setSelectionForegroundColor(qt.QColor('#CCCCCC'))
     
-    def lala(self):
-        self.callTip()
-        self.autoCompleteFromAll()
+    def onTextChanged(self):        
+        self.autoCompleteFromAPIs()        
+        #self.callTip()
         
+    def getCurrentPos(self):
+        """ Get the position (as an int) of the cursor. 
+        getCursorPosition() returns a (line, index) tuple.
+        """        
+        return self.SendScintilla(self.SCI_GETCURRENTPOS)
+        
+    def styleAt(self, pos):
+        """ Get the style at the given position."""
+        return self.SendScintilla(self.SCI_GETSTYLEAT,pos)
+        
+    def charAt(self,pos):
+        char = self.SendScintilla(self.SCI_GETCHARAT, pos)
+        if char == 0:
+            return ""
+            elif char < 0:
+                return chr(char + 256)
+            else:
+                return chr(char)
+    
+    def positionFromLineIndex(self, line, index):
+        """ Method to convert line and index to an absolute position.
+        """
+        pos = self.SendScintilla(QsciScintilla.SCI_POSITIONFROMLINE, line)
+        # Allow for multi-byte characters
+        for i in range(index):
+        pos = self.SendScintilla(QsciScintilla.SCI_POSITIONAFTER, pos)
+        return pos
+        
+    def Introspect_isValidPython(self):
+        """ Check if the code at the cursor is valid python:
+        - the active lexer is the python lexer
+        - the style at the cursor is "default"
+        """
+        
+        # only complete if lexer is python
+        if ~isinstance(self.lexer(), sci.QsciLexerPython):
+            return False
+        
+        # the style must be "default"
+        curstyle = self.styleAt(self.getCurrentPos())
+        if curstyle not in [self._lexer.Default, self._lexer.Operator]:
+            return False
+        
+        # all good
+        return True  
+
+
 if __name__=="__main__":
     app = QtGui.QApplication([])
     win = IepTextCtrl(None)
     win.show()
+    app.exec_()
     
     
