@@ -102,7 +102,7 @@ class MainWindow(qt.QWidget):
         self.model.appendRow( qt.QStandardItem("and more"))  
         self.tw.fillList()
         
-qt.QApplication.setDesktopSettingsAware(False)
+#qt.QApplication.setDesktopSettingsAware(False)
 app = qt.QApplication([])
 app.setStyle("cleanlooks")
 win = MainWindow()
@@ -110,7 +110,13 @@ win.BuildTree()
 app.exec_()
 
 # ON LINUX (KUBUNTU)
-# when setDesktopSettingsAware to False, the style is very similar to plastique
-# bar is then half-visible (no matter the style). In windows style the windows do look different.
-# In plastique and windows style, bar is just completely visible.
+# When not using setStyle nor setDesktop***, the hide button is too small and the 
+# widgets overlap. 
+# When setDesktopSettingsAware to False, the style is very similar to plastique. bar 
+# is then half-visible (no matter the style). In windows style the widgets do look "windows".
+# In plastique, cleanlooks and windows style (setDesktop*** not used), bar is just 
+# completely visible, and the buttons look good. I guess I need to let the user chose
+# between these three styles. I like cleanlooks a lot!
 
+# ON WINDOWS 
+# setDesktopSettingsAware made my app not want to startup for the editorBook test.
