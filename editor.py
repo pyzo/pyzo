@@ -19,6 +19,16 @@ class InteractiveAPI(sci.QsciAPIs):
         #self.prepare()
 
 
+class KeyEvent:
+    """ A simple class for easier key events. """
+    def __init__(self, key):
+        self.key = key
+        try:
+            self.char = chr(key)        
+        except ValueError:
+            self.char = ""
+            
+
 class IepTextCtrl(sci.QsciScintilla):
     """ The base text control class.
     Inherited by the shell class and the IEP editor.
@@ -109,6 +119,19 @@ class IepTextCtrl(sci.QsciScintilla):
         getCursorPosition() returns a (line, index) tuple.
         """        
         return self.SendScintilla(self.SCI_GETCURRENTPOS)
+    
+    def setCurrentPos(self, pos):
+        """ Set the position of the cursor. """
+        self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
+        
+    def getAnchor(self):
+        """ Get the anchor (as int) of the cursor. If this is
+        different than the position, than text is selected."""
+        return self.SendScintilla(self.SCI_GETANCHOR)
+        
+    def setAnchor(self, pos):
+        """ Set the position of the anchor. """
+        self.SendScintilla(self.SCI_SETANCHOR, pos)
         
     def styleAt(self, pos):
         """ Get the style at the given position."""
@@ -118,10 +141,10 @@ class IepTextCtrl(sci.QsciScintilla):
         char = self.SendScintilla(self.SCI_GETCHARAT, pos)
         if char == 0:
             return ""
-            elif char < 0:
-                return chr(char + 256)
-            else:
-                return chr(char)
+        elif char < 0:
+            return chr(char + 256)
+        else:
+            return chr(char)
     
     def positionFromLineIndex(self, line, index):
         """ Method to convert line and index to an absolute position.
@@ -129,7 +152,7 @@ class IepTextCtrl(sci.QsciScintilla):
         pos = self.SendScintilla(QsciScintilla.SCI_POSITIONFROMLINE, line)
         # Allow for multi-byte characters
         for i in range(index):
-        pos = self.SendScintilla(QsciScintilla.SCI_POSITIONAFTER, pos)
+            pos = self.SendScintilla(QsciScintilla.SCI_POSITIONAFTER, pos)
         return pos
         
     def Introspect_isValidPython(self):
@@ -150,6 +173,22 @@ class IepTextCtrl(sci.QsciScintilla):
         # all good
         return True  
 
+    def keyPressEvent(self, event):
+        # create simple keyevent class
+        keyevent = KeyEvent( event.key() )
+        # set modifiers
+        modifiers = event.modifiers()
+        keyevent.controldown = modifiers & QtCore.Qt.ControlModifier
+        keyevent.altdown = modifiers & QtCore.Qt.AltModifier
+        keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
+        # dispatch event
+        skip = self.keyPressEvent2( keyevent )
+        if skip:
+            sci.QsciScintilla.keyPressEvent(self, event)
+    
+    def keyPressEvent2(self, keyevent):
+        """ A slightly easier keypress event. """
+        pass
 
 if __name__=="__main__":
     app = QtGui.QApplication([])
