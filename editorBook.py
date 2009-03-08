@@ -160,7 +160,9 @@ class EditorBook(qt.QWidget):
     
     
 if __name__ == "__main__":
+	#qt.QApplication.setDesktopSettingsAware(False)
     app = QtGui.QApplication([])
+    app.setStyle("plastique")
     win = EditorBook(None)
     win.show()
     app.exec_()
