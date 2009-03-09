@@ -182,8 +182,8 @@ class IepTextCtrl(sci.QsciScintilla):
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
         # dispatch event
-        skip = self.keyPressEvent2( keyevent )
-        if skip:
+        handled = self.keyPressEvent2( keyevent )
+        if not handled:
             sci.QsciScintilla.keyPressEvent(self, event)
     
     def keyPressEvent2(self, keyevent):

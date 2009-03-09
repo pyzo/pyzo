@@ -48,7 +48,8 @@ class IepShell(IepTextCtrl):
         self._historyIndex = -1
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
-        
+    
+    
     def keyPressEvent2(self, keyevent):
         e = keyevent
         qc = QtCore.Qt
@@ -67,7 +68,7 @@ class IepShell(IepTextCtrl):
                 
         if e.key in [qc.Key_Return, qc.Key_Enter]:            
             # enter: execute line
-                        
+            
             # first cancel autocomp and calltip
             if self.isListActive():
                 self.cancelList()
@@ -79,7 +80,7 @@ class IepShell(IepTextCtrl):
             
             # process
             self.processLine()
-            
+        
         elif e.controldown and e.key == qc.Key_Cancel:
             # todo: ok, is this the break key?
             print "I can interrupt the process here!"
@@ -93,7 +94,7 @@ class IepShell(IepTextCtrl):
                     self.cut()
                 else:
                     self.copy()
-            
+        
         elif e.controldown and e.char == 'C':
             # If text is selected, copy it, otherwise...
             # INTERRUPT process 
@@ -127,24 +128,23 @@ class IepShell(IepTextCtrl):
         elif e.key == qc.Key_Home:
             # Home goes to the prompt.
             home = self._promptPosEnd
-            if self.getCurrentPos() != self.getAnchor() and e.shiftdown:
+            if e.shiftdown:
                 self.setCurrentPos(home)
             else:
                 self.setCurrentPos(home)
                 self.setAnchor(home)
             self.ensureCursorVisible()
-
+        
         elif e.key == qc.Key_Insert:
             # Don't toggle between insert mode and overwrite mode.
             pass
-
-        elif e.key in [qc.Key_Back, qc.Key_Left]:
+        
+        elif e.key in [qc.Key_Backspace, qc.Key_Left]:
             # do not backspace past prompt
             # nor with arrow key
             home = self._promptPosEnd
             if self.getCurrentPos() > home:
-                return True
-                # todo: skip ?
+                return False # process normally
         
         else:
             if not e.controldown:
@@ -157,9 +157,11 @@ class IepShell(IepTextCtrl):
                     self.ensureCursorVisible()                
             
             # act normal
-            return True
+            return False
             # todo: skip here? where elso should I skip?
-    
+        
+        # Stop handling by default
+        return True
     
     
     def clearCommand(self):
@@ -170,12 +172,14 @@ class IepShell(IepTextCtrl):
     def processLine(self):
         """ Process the current line, actived when user presses enter.
         """
+        # this is a stupid simulation version
         print ":",
         self.append("\n>>> ")
         l = len(self.text())
         self._promptPosStart = l - 4
         self._promptPosEnd = l
-            
+        self.setCurrentPos(l)
+        self.setAnchor(l)
 
 if __name__=="__main__":
     app = QtGui.QApplication([])
