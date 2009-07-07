@@ -104,7 +104,7 @@ class MainWindow(qt.QWidget):
         
 #qt.QApplication.setDesktopSettingsAware(False)
 app = qt.QApplication([])
-app.setStyle("cleanlooks")
+app.setStyle("cleanlooks") # cleanlooks, plastique, windows
 win = MainWindow()
 win.BuildTree()
 app.exec_()
