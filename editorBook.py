@@ -69,7 +69,7 @@ class Item(qt.QLabel):
         self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
         self._frameWidth = self.frameWidth() + 3 # correction        
         
-        self.updateStyle()
+        
     
     
     def setIndent(self, indent):
@@ -118,12 +118,13 @@ class ProjectItem(Item):
         """ Update the style. Automatically detects whether the mouse
         is over the label. Depending on the type and whether the file is
         selected, sets its appearance and redraw! """
-        if self.underMouse():
+        if self._collapsed:#self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Plain)
             self.move(self._indent,self._y)
         else:
             self.setFrameStyle(0)
-            self.move(self._frameWidth+self._indent,self._y)
+            #self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Plain)
+            self.move(self._indent,self._y)
     
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -157,6 +158,9 @@ class FileItem(Item):
         self._name = os.path.split(filename)[1]
         self.setText(self._name)
         self.setToolTip('file: '+ filename)
+        
+        # set style
+        self.setAutoFillBackground(True)
         
         # update
         self.updateStyle()
@@ -294,6 +298,7 @@ class FileListCtrl(qt.QWidget):
             
             # is the item a file?
             if isinstance(theitem, FileItem):
+                theitem.raise_() # make it the front-most item
                 theitem._yStart = theitem._y
                 self._draggedItem = theitem
     
@@ -304,13 +309,6 @@ class FileListCtrl(qt.QWidget):
         diffY = event.globalY() - self._dragStartPos.y()
         self._draggedItem._y = self._draggedItem._yStart+ diffY
         
-        # get index in list
-        try:
-            i = self._items.index(self._draggedItem)
-        except ValueError:
-            print "ERROR: dragging item not in list!"
-            i=-100
-        
         # determine if we should swap items
         i_to_put = None
         y2 = self._itemSpacing/2
@@ -319,9 +317,7 @@ class FileListCtrl(qt.QWidget):
             if item is self._draggedItem:
                 continue
             dy = item._y - self._draggedItem._y
-            if item.isVisible() and abs(dy) < y2:
-                if isinstance(item, ProjectItem) and item._collapsed:
-                    continue                    
+            if item.isVisible() and abs(dy) < y2:                    
                 if dy < 0 and self._draggedItem._y < item._y + y2:
                     i_to_put = i
                 if dy > 0 and self._draggedItem._y > item._y - y2:
@@ -339,13 +335,10 @@ class FileListCtrl(qt.QWidget):
                 # somewhere in between
                 for i in range(i_to_put-1,-1,-1):
                     item = self._items[i]
-                    if isinstance(item, ProjectItem):
+                    if isinstance(item, ProjectItem) and item._collapsed:
                         continue
                     if self._items[i].isVisible():
-                        if i == i_to_put:
-                            self._items.insert(i, self._draggedItem)
-                        else:
-                            self._items.insert(i+1, self._draggedItem)
+                        self._items.insert(i+1, self._draggedItem)
                         break
                 else:
                     # at the beginning
