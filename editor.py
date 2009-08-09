@@ -6,6 +6,8 @@ import iep
 import time
 import os
 
+import ssdf
+
 from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 
@@ -13,8 +15,8 @@ qt = QtGui
 
 
 # todo: faces depend on platform
-FACES = { 'times' : 'Times New Roman',  'mono' : 'Courier New',
-              'helv' : 'Arial',  'other' : 'Comic Sans MS' }
+FACES = { 'serif' : 'Times New Roman',  'mono' : 'Courier New',
+              'sans' : 'Arial',  'other' : 'Comic Sans MS' }
 
 class StyleManager(QtCore.QObject):
     """ Singleton class for managing the styles of the text control. """
@@ -22,11 +24,13 @@ class StyleManager(QtCore.QObject):
     #styleUpdate = QtCore.pyqtSignal()
     
     def __init__(self):
-        self._s = None
+        self._styles = None
         self.loadStyles()
     
     
     def loadStyles(self, filename='styles.ssdf'):
+        """ Load the stylefile. """
+        
         # check file
         if not os.path.isfile(filename):
             filename = os.path.join( os.path.dirname(__file__), filename )
@@ -35,102 +39,148 @@ class StyleManager(QtCore.QObject):
             return
         # load file
         import ssdf
-        self._s = ssdf.load(filename)
+        self._styles = ssdf.load(filename)
+        self.buildStyleTree()
         #styleUpdate.emit()
+    
     
     def buildStyleTree(self):
         """ Using the load ssdf file, build a tree such that
         the styles can be applied to the editors easily. """
         
-        if self._s is None:
+        # a stylefile is an ssdf file which contains styling information
+        # for several style types.
+        # Each style is identified with a stylename and consists of a 
+        # lexer, keywords, extension, several substyle strings (one for 
+        # each substylenr) and can be based on any other style. 
+        # All styles are automtically based on the style named default.
+        
+        if self._styles is None:
             return
         
         # do for each defined style
-        for stylename in self._s:
+        for styleName in self._styles:
             
             # get style attributes
-            styles = s[styleName]
+            style = self._styles[styleName]
             
             # make sure lexer and keywords are present
-            if not 'lexer' in styles:
-                styles.lexer = ''
+            if not 'lexer' in style:
+                style.lexer = ''            
             # set keywords
-            if not 'keywords' in styles:
-                styles.keywords = ''
+            if not 'keywords' in style:
+                style.keywords = ''            
+            # make based on correct            
+            if not 'basedon' in style:
+                style.basedon = ''
+            # extensions
+            if not 'ext' in style:
+                style.ext = ''
         
-        # check out the styling
-        for styleNr in styles:
-            if not (styleNr.startswith('s') and len(styleNr) == 4):
-                continue
-            
-            # get element string that contains several style attributes
-            # We will extract these attributes and organise them nicely
-            # in a dict.
-            style = styles[styleNr]
-            styleDict = ssdf.new()
-            
-            i=0
-            while True:
-                i = 
-            
-            
-            # extract different portions
-        
+            # check out the substyle strings (which are of the form 'sxxx')
+            for styleNr in style:
+                if not (styleNr.startswith('s') and len(styleNr) == 4):
+                    continue
+                
+                # get substyle number to tell scintilla
+                nr = int(styleNr[1:])
+                
+                # Get string that contains several substyle attributes.
+                # We will extract these attributes and organise them nicely
+                # in a dict. 
+                subStyleString = style[styleNr].lower()
+                subStyleString = subStyleString.split(' # ')[0] # remove comments
+                subStyleString = subStyleString.replace(',', ' ')
+                subStyleString = subStyleString.replace(';', ' ')
+                
+                # split in parts
+                subStyleStrings = subStyleString.split(' ')
+                
+                # store results in here
+                subStyle = style[styleNr] = ssdf.new()
+                
+                # analyze
+                for s in subStyleStrings:
+        #                 self._setStyleElement(subStyle, 'bold', s)
+        #                 self._setStyleElement(subStyle, 'italic', s)
+        #                 self._setStyleElement(subStyle, 'underline', s)
+                    if s.startswith('bold'):
+                        subStyle['bold'] = 1
+                    if s.startswith('italic'):
+                        subStyle['italic'] = 1
+                    if s.startswith('underline'):
+                        subStyle['underline'] = 1
+                    if s.startswith('fore:'):
+                        tmp = s[len('fore:'):]
+                        subStyle['fore'] = qt.QColor(tmp)
+                    if s.startswith('back:'):
+                        tmp = s[len('back:'):]
+                        subStyle['back'] = qt.QColor(tmp)
+                    if s.startswith('face:'):
+                        tmp = s[len('face:'):]
+                        subStyle['face'] = tmp % FACES
+                    if s.startswith('size:'):
+                        tmp = s[len('size:'):]
+                        subStyle['size'] = int(tmp)
+                
+                print subStyle
+    
+    def _setStyleElement(self, styleDict, styleElementName, styleString):
+        """ Check if the string styleElementName is present in styleString.
+        If so, make styleDict[styleElementName] True. Othersise False.
+        """
+        if styleString.count(styleElementName):
+            styleDict[styleElementName] = True
+        else:
+            styleDict[styleElementName] = False
+    
     
     def applyStyle(self, editor, styleName):
-        s = self._s
-        if s is None:
+        """ Apply a style. """
+        # todo: also allow setting using extension
+        # todo: process basedon first
+        if self._styles is None:
             return
         
-        if not hasattr(s, styleName):
+        if not hasattr(self._styles, styleName):
             print "Unknown style %s" % styleName
             return
         
         print "applying style,", styleName
         
         # get style attributes
-        atts = s[styleName]
+        style = self._styles[styleName]
         
-        # set lexer 
-        if 'lexer' in atts:
-            editor.SendScintilla(editor.SCI_SETLEXERLANGUAGE, atts['lexer'])
-            #editor.SendScintilla(editor.SCI_SETLEXER, editor.SCLEX_PYTHON)
-        # set keywords
-        if 'keywords' in atts:
-            editor.SendScintilla(editor.SCI_SETKEYWORDS, atts['keywords'])
+        # set basic stuff first
+        editor.SendScintilla(editor.SCI_SETLEXERLANGUAGE, style['lexer'])
+        editor.SendScintilla(editor.SCI_SETKEYWORDS, style['keywords'])
         
-        # set other stuff
-        for attName in atts:
-            att = atts[attName]
-            if not (attName.startswith('s') and len(attName) == 4):
+        # define dict
+        subStyleStuff = {   'face': editor.SCI_STYLESETFONT,
+                            'fore': editor.SCI_STYLESETFORE,
+                            'back': editor.SCI_STYLESETBACK,
+                            'size': editor.SCI_STYLESETSIZE,
+                            'bold': editor.SCI_STYLESETBOLD,
+                            'italic': editor.SCI_STYLESETITALIC,
+                            'underline': editor.SCI_STYLESETUNDERLINE}
+        
+        # check out the substyle strings (which are of the form 'sxxx')
+        for styleNr in style:
+            if not (styleNr.startswith('s') and len(styleNr) == 4):
                 continue
-            # extract style number
-            nr = int(attName[1:])
-            print 'style', attName, nr
-            # extract different portions
             
-            # bold
-            if att.count('bold'):
-                editor.SendScintilla(editor.SCI_STYLESETBOLD, nr, 1)
-            # foreground color
-            i = att.find('fore:')
-            if i>=0:
-                i += len('fore:')
-                clr = qt.QColor( att[i:i+7] )
-                editor.SendScintilla(editor.SCI_STYLESETFORE, nr, clr )
-            # font name
-            i = att.find('face:')
-            if i>= 0:
-                i += len('face:')
-                I = [att.find(c,i) for c in ' ,;\n\r' if att.find(c,i) > 0]
-                i2 = int(min(I))
-                if not I: i2 = -1 # up to last char
-                facename = att[i:i2] % FACES
-                #print "FACE",facename
-                editor.SendScintilla(editor.SCI_STYLESETFONT, nr, facename )
-            # font size
-            i = att.find('size:')
+            # get substyle number to tell scintilla
+            nr = int(styleNr[1:])
+            # get dict
+            subStyle = style[styleNr]
             
+            # set substyle attributes
+            for key in subStyleStuff:
+                scintillaCommand = subStyleStuff[key]
+                if key in subStyle:
+                    value = subStyle[key]
+                    editor.SendScintilla(scintillaCommand, nr, value)
+
     
 styleManager = StyleManager()
 
