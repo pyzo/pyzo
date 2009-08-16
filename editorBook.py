@@ -1,9 +1,12 @@
 """ EditorBook class (implemented in qt)
 """
 
+import os, sys, time
+
 from PyQt4 import QtCore, QtGui
 qt = QtGui
-import os
+
+from editor import IepEditor
 
 barwidth = 120
 
@@ -34,7 +37,7 @@ def normalizePath(path):
         parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
     
     for part in parts:
-        # print fullpath,part
+        # print( fullpath,part)
         options = [x for x in os.listdir(fullpath) if x.lower()==part]
         if len(options) > 1:
             raise Exception("Ambiguous path names!")
@@ -68,8 +71,7 @@ class Item(qt.QLabel):
         self.setLineWidth(1)
         self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
         self._frameWidth = self.frameWidth() + 3 # correction        
-        
-        
+
     
     
     def setIndent(self, indent):
@@ -203,7 +205,9 @@ class FileListCtrl(qt.QWidget):
     def __init__(self, parent):
         qt.QWidget.__init__(self,parent)
         
-        self.resize(barwidth,300)
+        #self.barwidth,300)
+        self.setMinimumWidth(barwidth)
+        self.setMaximumWidth(barwidth)
         
         # create list of items
         self._items = []
@@ -247,9 +251,9 @@ class FileListCtrl(qt.QWidget):
                     ncollapsed += 1
                     continue                
                 elif project:
-                    item._indent = 10
+                    item.setIndent(10)
                 else:
-                    item._indent = 1
+                    item.setIndent(1)
             else:
                 continue
             
@@ -360,7 +364,7 @@ class FileListCtrl(qt.QWidget):
     
     
     def openFile(self):
-        print "open file"
+        print("open file")
         
        
     def dragEnterEvent(self, event):
@@ -379,7 +383,7 @@ class FileListCtrl(qt.QWidget):
                 pass
         #path = str( qurl.path()[1:] )
         
-        #print "you dropped something!", qurls, qurls[-1]
+        #print("you dropped something!", qurls, qurls[-1])
     
     
     def loadFile(self, filename, projectname=None):
@@ -404,7 +408,7 @@ class FileListCtrl(qt.QWidget):
         
         # if the path does not exist, stop        
         if not os.path.isdir(path):
-            print "ERROR loading dir: the specified directory does not exist!"
+            print("ERROR loading dir: the specified directory does not exist!")
             return
         
         # normalize path name and get extensions
@@ -416,13 +420,13 @@ class FileListCtrl(qt.QWidget):
         # stop if already a project with that name
         for item in self._items:            
             if isinstance(item,ProjectItem) and item._name == projectname:
-                print "Cannot load dir: a project with that name "\
-                    "already exists!"                    
+                print("Cannot load dir: a project with that name "\
+                    "already exists!" )                  
                 return
                 
         # create project at the end
         self._items.append(ProjectItem(self, projectname))
-        #print "Creating project: %s" % (projectname)
+        #print("Creating project: %s" % (projectname))
         
         window = None
         
@@ -441,19 +445,31 @@ class FileListCtrl(qt.QWidget):
         return window
     
 
-class EditorBook(qt.QWidget):
+class EditorBook(QtGui.QWidget):
     
     def __init__(self, parent):
         qt.QWidget.__init__(self,parent)
         
-        self.list = FileListCtrl(self)
+        # create widgets
+        self._list = FileListCtrl(self)
+        editor = IepEditor(self)
+        editor.setStyle('.py')
+        
+        # create box layout control and add widgets
+        self._boxLayout = QtGui.QHBoxLayout(self)
+        self._boxLayout.addWidget(self._list, 0)
+        self._boxLayout.addWidget(editor, 1)
+        
+        # make the box layout the layout manager
+        self.setLayout(self._boxLayout)
+        
         #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
     
     
 if __name__ == "__main__":
     #qt.QApplication.setDesktopSettingsAware(False)
     app = QtGui.QApplication([])
-    app.setStyle("plastique")
+    app.setStyle("cleanlooks") # plastique, windows
     win = EditorBook(None)
     win.show()
     app.exec_()
