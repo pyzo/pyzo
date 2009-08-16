@@ -27,12 +27,12 @@ modules.
 
 import os, os.path
 
-# import strux or the suplied copy if not available
+# import ssdf or the suplied copy if not available
 try:
-    import strux
+    import ssdf
 except ImportError:
     # if strux not available, use the copy we included with IEP
-    import a_copy_of_strux as strux
+    import ssdf_copy as ssdf
 
 # get the path where IEP is located
 path = __file__
@@ -42,21 +42,23 @@ path = os.path.dirname( os.path.abspath(path) )
 ## the configuration stuff...
 
 # create strux in module namespace
-config = strux.new()
+config = ssdf.new()
 
 def loadConfig():
     """Load configurations, create if doesn't exist!"""
-    filename = os.path.join(path,"config.xml")
+    filename = os.path.join(path,"config.ssdf")
     if os.path.isfile(filename):
         # load file        
-        config.Load(os.path.join(path,"config.xml"))
+        tmp = ssdf.load(os.path.join(path,"config.ssdf"))
+        for key in tmp:
+            config[key] = tmp[key]
     else:
         # create file
         config.Clear()
-        
+        # todo: if not available produce new file also for styles and keymaps
         config.editorState = ''
         
-        config.layout = strux.Strux()
+        config.layout = ssdf.new()
         config.layout.left = 110
         config.layout.top = 50
         config.layout.heigth = 700
@@ -68,7 +70,7 @@ def loadConfig():
         config.layout.pluginsLocation = "right"
         config.layout.shellsLocation = "bottom"
         
-        config.plugins = strux.Strux()
+        config.plugins = ssdf.new()
         config.plugins.top = []
         config.plugins.bottom = []
         
