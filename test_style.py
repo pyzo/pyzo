@@ -44,7 +44,6 @@ class TestWidget(qt.QWidget):
         findPrev.setToolTip("shift-F3")
         findNext.setToolTip("F3 (ctrl-F3 to set searchstring)")
         
-        
     def fillList(self):
         self.model.appendRow( qt.QStandardItem("hallo"))
         self.model.appendRow( qt.QStandardItem("what"))
