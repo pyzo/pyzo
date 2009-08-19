@@ -1,13 +1,13 @@
 """ EditorBook class (implemented in qt)
 """
 
-import os, sys, time
+import os, sys, time, gc
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui
 
 from editor import IepEditor
-
+from baseTextCtrl import styleManager
 barwidth = 120
 
 
@@ -49,6 +49,29 @@ def normalizePath(path):
     return fullpath[:-len(sep)]
 
 
+def determineLineEnding(text):
+    """get the line ending style used in the text.
+    \n, \r, \r\n,
+    The EOLmode is determined by counting the occurances of each
+    line ending...    
+    """
+    # test line ending by counting the occurances of each
+    c_win = text.count("\r\n")
+    c_mac = text.count("\r") - c_win
+    c_lin = text.count("\n") - c_win
+    
+    # set the appropriate style
+    if c_win > c_mac and c_win > c_lin:
+        mode = '\r\n'
+    elif c_mac > c_win and c_mac > c_lin:            
+        mode = '\r'
+    else:
+        mode = '\n'
+    
+    # return
+    return mode
+
+
 class Item(qt.QLabel):
     """ Base Item class, items for a list of files and projects.
     Some of the styling is implemented here. An item instance 
@@ -86,11 +109,7 @@ class Item(qt.QLabel):
         self.updateStyle()
     def leaveEvent(self, event):        
         self.updateStyle()
-
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            x, y = event.globalX(), event.globalY()
-            self.parent()._dragStartPos = QtCore.QPoint(x,y)
+    
     def mouseMoveEvent(self, event):
         self.parent().mouseMoveEvent(event)
     def mouseReleaseEvent(self, event):
@@ -136,42 +155,63 @@ class ProjectItem(Item):
 
 class FileItem(Item):
     """ An item representing a file. This class does the loading 
-    and saving of that file. """
+    and saving of that file, but without any checks, that is up to
+    the editorbook. """
     
-    def __init__(self, parent, filename):
+    def __init__(self, parent, filename=None):
         Item.__init__(self, parent)
         
-        # check
-        if not os.path.isfile(filename):
-            raise IOError("File does not exist '%s'." % filename)
+        # get editorbook
+        editorBook = parent.parent()
         
-        # load file
-#         f = open(filename, 'rb')
-#         bb = f.read()
-#         f.close()
-#         
-#         # convert to text
-#         text = bb.decode('UTF-8')
-        # todo: newlines and tabs etc
-        #self._editor = scintilla()
+        # init stuff
+        self._lineEndings = '\n' # line ending on disk (internally all's \n)
+        self._name = '' # the displayed name
+        self._filename = '' # the full path to the file on disk
+        self._editor = None # wait with creating it untill we loaded the file
         
-        # set name and tooltip
-        self._filename = filename
-        self._name = os.path.split(filename)[1]
-        self.setText(self._name)
-        self.setToolTip('file: '+ filename)
+        if filename:
+            # check
+            if not os.path.isfile(filename):
+                raise IOError("File does not exist '%s'." % filename)
+            
+            # load file
+            with open(filename, 'rb') as f:
+                bb = f.read()
+                f.close()
+            
+            # convert to text
+            text = bb.decode('UTF-8')
+            
+            # process line endings
+            self._lineEndings = determineLineEnding(text)
+            text = text.replace('\r\n','\n').replace('\r','\n')
+            
+            # create edior and set text
+            self._editor = editorBook.createEditor()
+            self._editor.setText(text)
+            self._editor.makeDirty(False)
+            self._editor.dirtyChange.connect(self.parent().updateMe)
+            
+            # set name and tooltip
+            self._filename = filename
+            self._name = os.path.split(filename)[1]
+            self.setText(self._name)
+            self.setToolTip('file: '+ filename)
+        else:
+            # create editor
+            self._editor = editorBook.createEditor()
+            # set name and tooltip
+            self._filename = None
+            self._name = '*<TMP>'  
+            self.setText(self._name)          
+            self.setToolTip('file: None')
         
         # set style
         self.setAutoFillBackground(True)
         
         # update
         self.updateStyle()
-    
-    
-    def makeDirty(self, dirty):        
-        """ Indicate that the file is dirty """
-        self.setText( "*"+self.text() )
-        self.setStyleSheet("QLabel { color:#603000 }")
     
     
     def makeMain(self, main):
@@ -186,6 +226,13 @@ class FileItem(Item):
         """ Update the style. Automatically detects whether the mouse
         is over the label. Depending on the type and whether the file is
         selected, sets its appearance and redraw! """
+        if self._editor._dirty:
+            self.setText( "*"+self._name )
+            self.setStyleSheet("QLabel { color:#603000 }")
+        else:
+            self.setText( self._name )
+            self.setStyleSheet("")
+        #
         if self is self.parent()._currentItem:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
             self.move(self._indent ,self._y)
@@ -195,7 +242,75 @@ class FileItem(Item):
         else:
             self.setFrameStyle(0)
             self.move(self._frameWidth+self._indent,self._y)
-
+    
+    
+    def mousePressEvent(self, event):
+        
+        # select this item! 
+        self.parent().setCurrentItem(self)
+        
+        if event.button() == QtCore.Qt.LeftButton:
+            # change stuff at parent to get the dragging right
+            x, y = event.globalX(), event.globalY()
+            self.parent()._dragStartPos = QtCore.QPoint(x,y)
+        
+        elif event.button() == QtCore.Qt.RightButton:
+            # popup menu
+            menu = QtGui.QMenu(self)
+            menu.addAction('save file', self.receiver)
+            menu.addAction('save file as', self.receiver)
+            menu.popup(event.globalPos())
+    
+    def receiver(self, event=None):
+        print( "woohaa", event)
+        
+    def mouseDoubleClickEvent(self, event):
+        #self.parent().parent().saveFile(self)
+        self.parent().parent().closeFile(self)
+    
+    
+    def save(self, filename):
+        """ Save the file. No checking is done. """
+        
+        # get text and convert line endings
+        text = self._editor.getText()
+        text = text.replace('\n', self._lineEndings)
+        
+        # make bytes
+        bb = text.encode('UTF-8')
+        
+        # store
+        f = open(filename, 'wb')
+        try:
+            f.write(bb)
+        finally:
+            f.close()
+        
+        # update stats
+        self._filename = normalizePath(filename)
+        self._name = os.path.split(filename)[1]
+        self.setText(self._name)
+        self.setToolTip('file: '+ filename)
+        self._editor.makeDirty(False)
+    
+    
+    def close(self):
+        """ Destroy myself. """        
+        # hide
+        self.hide()
+        self._editor.hide()        
+        # clear from parent        
+        for items in [self.parent()._items, self.parent()._itemHistory]:
+            while self in items:  
+                items.remove(self)
+        # select other editor (also removes from editorbook's boxlayout)
+        if self.parent()._currentItem is self:
+            self.parent().setCurrentItem(None, False)        
+        # destroy...
+        self._editor.destroy()
+        self.destroy()
+        gc.collect()
+    
 
 class FileListCtrl(qt.QWidget):
     """ Control that displays a list of files using Labels.
@@ -210,8 +325,9 @@ class FileListCtrl(qt.QWidget):
         self.setMaximumWidth(barwidth)
         
         # create list of items
-        self._items = []
+        self._items = []        
         self._currentItem = None
+        self._itemHistory = []
         self._itemSpacing = 15
         
         # enable dragging/dropping
@@ -219,12 +335,7 @@ class FileListCtrl(qt.QWidget):
         self._draggedItem = None
         self._dragStartPos = QtCore.QPoint(0,0)
         
-        # put some files in 
-        self.loadFile(r'C:\projects\PYTHON\iep2\iep.py')
-        self.loadFile(r'C:\projects\PYTHON\iep2\shell.py')
-        self.loadDir(r'C:\projects\PYTHON\tools')
-        self.loadDir(r'C:\projects\PYTHON\tools\visvis')
-        self.updateMe()
+        #self.updateMe()
     
     
     def updateMe(self):
@@ -249,11 +360,12 @@ class FileListCtrl(qt.QWidget):
                 if project and project._collapsed:
                     item.hide()
                     ncollapsed += 1
-                    continue                
+                    continue
                 elif project:
                     item.setIndent(10)
                 else:
                     item.setIndent(1)
+                    
             else:
                 continue
             
@@ -265,13 +377,47 @@ class FileListCtrl(qt.QWidget):
         # handle last collapsed project
         if project and project._collapsed:
             project.setText('- %s (%i)' % (project._name, ncollapsed))
-                    
+        
         # update screen
         #self.update()
     
     
-    def mousePressEvent(self, event):
-        pass
+    def setCurrentItem(self, item, remember=True):
+        """ Make the given item current. 
+        If item is None, select previous item. 
+        If remember, store the current item in the history. """
+        
+        if item is self._currentItem:
+            return # no need to change
+        
+        if item is None:
+            # make an old item history
+            if self._itemHistory:
+                item = self._itemHistory[0]
+        
+        if item is None:
+            # just select first one then ...
+            if self._items:
+                item = self._items[0]
+        
+        if item and isinstance(item, FileItem):
+            # store old item
+            if remember:
+                while self._currentItem in self._itemHistory:
+                    self._itemHistory.remove(self._currentItem)
+                self._itemHistory.insert(0,self._currentItem)
+                self._itemHistory[10:] = []
+            # make the item current and show...
+            self._currentItem = item
+            self.parent().showEditor(self._currentItem._editor)
+        else:
+            # no files present
+            self._currentItem = None
+            self.parent().showEditor(None)
+        
+        # finish
+        self.updateMe()
+    
     
     def mouseReleaseEvent(self, event):
         # stop dragging
@@ -361,16 +507,126 @@ class FileListCtrl(qt.QWidget):
         self._draggedItem.updateStyle()
         self._draggedItem.show()
         self.update()
-    
-    
-    def openFile(self):
-        print("open file")
+   
+   
+    def appendFile(self, filename=None, projectname=None):
+        """ Create file item. """
         
-       
+        # if project name was given
+        i_insert = 0        
+        insertInThisProject = True
+        i = 0
+        for i in range(len(self._items)):
+            item = self._items[i]
+            if isinstance(item,ProjectItem):                
+                if insertInThisProject:
+                    i_insert = i
+                if projectname and item._name == projectname:
+                    # yuppy, rember to insert at right before the next project
+                    insertInThisProject = True
+                else:
+                    insertInThisProject = False
+        
+        # finish
+        if insertInThisProject:
+            i_insert = len(self._items)
+        
+        # create item
+        item = FileItem(self, filename)
+        self._items.insert(i_insert,item)
+        
+        # update
+        self.updateMe()
+    
+    
+    def appendProject(self, projectname):
+        """ Create project Item. 
+        Return True if all went well."""
+        
+        # stop if already a project with that name
+        for item in self._items:            
+            if isinstance(item,ProjectItem) and item._name == projectname:
+                print("Cannot load dir: a project with that name "\
+                    "already exists!" )                  
+                return False
+                
+        # create project at the end
+        self._items.append(ProjectItem(self, projectname))
+        #print("Creating project: %s" % (projectname))
+        return True
+    
+
+class EditorBook(QtGui.QWidget):
+    
+    def __init__(self, parent):
+        qt.QWidget.__init__(self,parent)
+        
+        # keep a booking of opened directories
+        self._lastpath = ''
+        
+        # create widgets
+        self._list = FileListCtrl(self)
+        self._panel = QtGui.QFrame(self)
+        
+        # create box layout control and add widgets
+        self._boxLayout = QtGui.QHBoxLayout(self)
+        self._boxLayout.addWidget(self._list, 0)
+        self._boxLayout.addWidget(self._panel, 1)
+        
+        # make the box layout the layout manager
+        self.setLayout(self._boxLayout)
+        
+        #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
+        
+        # put some files in 
+        self.loadFile(r'C:\projects\PYTHON\iep2\iep.py')
+        self.loadFile(r'C:\projects\PYTHON\iep2\shell.py')
+        self.loadFile(r'C:\projects\PYTHON\test.py')
+        self.loadDir(r'C:\projects\PYTHON\tools')
+        self.loadDir(r'C:\projects\PYTHON\tools\visvis')
+        self.newFile('tools')
+        #self.openDir()
+    
+    def createEditor(self):
+        """ Create and return an editor instance. """
+        editor = IepEditor(self)
+        editor.hide()
+        self._boxLayout.addWidget(editor, 1)
+        return editor
+    
+    
+    def showEditor(self, editor=None):
+        """ Show the given editor. """
+        
+        # clear all but the left list
+        while self._boxLayout.count() > 1:
+            thing = self._boxLayout.takeAt(self._boxLayout.count()-1)
+            thing.widget().hide()
+        
+        # show new thing
+        if editor is None:
+            editor = self._panel
+        self._boxLayout.addWidget(editor,1)
+        editor.show()
+    
+    
+    def getCurrentItem(self):
+        """ Get the currently active file item. """
+        return self._list._currentItem
+    
+    def getCurrentEditor(self):
+        """ Get the currently active editor. """
+        item = self._list._currentItem
+        if item:
+            return item._editor
+    
+    
+    ## methods for managing files 
+    
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
-    
+        
     def dropEvent(self, event):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
@@ -381,22 +637,75 @@ class FileListCtrl(qt.QWidget):
                 self.loadDir(path)
             else:
                 pass
-        #path = str( qurl.path()[1:] )
+    
+    
+    def newFile(self, projectname=None):
+        """ Create a new (unsaved) file. """
+        self._list.appendFile(None, projectname)
+    
+    
+    def openFile(self, projectname=None):
+        """ Create a dialog for the user to select a file. """
         
-        #print("you dropped something!", qurls, qurls[-1])
+        # determine start dir
+        item = self.getCurrentItem()
+        if item and item._filename:
+            startdir = os.path.split(item._filename)[0]
+        else:
+            startdir = self._lastpath            
+        if not os.path.isdir(startdir):
+            startdir = ''
+        
+        # show dialog
+        msg = "Select one or more files to open"
+        filter = "Python (*.py *.pyw);;Pyrex (*.pyi,*.pyx);;All (*.*)"
+        filenames = QtGui.QFileDialog.getOpenFileNames(self,
+            msg, startdir, filter)
+        
+        # were some selected?
+        if not filenames:
+            return
+        
+        # load
+        for filename in filenames:
+            self.loadFile(filename, projectname)
+    
+    
+    def openDir(self):
+        """ Create a dialog for the user to select a directory. """
+        
+        # determine start dir
+        item = self.getCurrentItem()
+        if item and item._filename:
+            startdir = os.path.split(item._filename)[0]
+        else:
+            startdir = self._lastpath            
+        if not os.path.isdir(startdir):
+            startdir = ''
+        
+        # show dialog
+        msg = "Select a directory to open"
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, msg, startdir)
+        
+        # was a dir selected?
+        if not dirname:
+            return
+        
+        # load
+        self.loadDir(dirname)
     
     
     def loadFile(self, filename, projectname=None):
         """ Load the specified file. """
+        
         # get real path name
         filename = normalizePath(filename)
         
-        # create item
-        item = FileItem(self, filename)
-        self._items.append(item)
+        # store the path
+        self._lastpath = os.path.dirname(filename)
         
-        # update
-        self.updateMe()
+        # create item
+        self._list.appendFile(filename, projectname)
     
     
     def loadDir(self, path, extensions="py,pyw"):
@@ -415,23 +724,17 @@ class FileListCtrl(qt.QWidget):
         path = normalizePath(path)
         extensions = ["."+a.lstrip(".").strip() for a in extensions.split(",")]
         
-        # get dirname -> is projectname 
+        # create project
         projectname = str( os.path.basename(path) )
-        # stop if already a project with that name
-        for item in self._items:            
-            if isinstance(item,ProjectItem) and item._name == projectname:
-                print("Cannot load dir: a project with that name "\
-                    "already exists!" )                  
-                return
-                
-        # create project at the end
-        self._items.append(ProjectItem(self, projectname))
-        #print("Creating project: %s" % (projectname))
+        ok = self._list.appendProject(projectname)
+        if not ok:
+            return
         
+        # init window
         window = None
         
         # open all qualified files...
-        self.setUpdatesEnabled(False)
+        self._list.setUpdatesEnabled(False)
         try:
             filelist = os.listdir(path)
             for filename in filelist:
@@ -440,36 +743,112 @@ class FileListCtrl(qt.QWidget):
                 if str(ext) in extensions:
                     window = self.loadFile(filename,projectname)
         finally:
-            self.setUpdatesEnabled(True)
-            self.updateMe()
+            self._list.setUpdatesEnabled(True)
+            self._list.updateMe()
+        
+        # return lastopened window
         return window
     
+    
+    def saveFileAs(self, item=None):
+        """ Create a dialog for the user to select a file. """
+        
+        # get item
+        if item is None:
+            item = self.getCurrentItem()
+        if item is None:
+            return
+        
+        # get startdir
+        if item._filename:
+            startdir = os.path.dirname(item._filename)
+        else:
+            startdir = self._lastpath            
+        if not os.path.isdir(startdir):
+            startdir = ''
+        
+        # show dialog
+        msg = "Select the file to save to"
+        filter = "Python (*.py *.pyw);;Pyrex (*.pyi,*.pyx);;All (*.*)"
+        filename = QtGui.QFileDialog.getSaveFileName(self,
+            msg, startdir, filter)
+        
+        # proceed
+        self.saveFile(item, filename)
+    
+    
+    def saveFile(self, item=None, filename=None):
+        
+        # get item
+        if item is None:
+            item = self.getCurrentItem()
+        if item is None:
+            return
+        
+        # get filename
+        if filename is None:
+            filename = item._filename
+        if not filename:
+            self.saveFileAs(item)
+            return
+        
+        # let the item do the low level stuff...
+        try:
+            item.save(filename)
+        except IOError as err:
+            print("Could not save file:",err)
+            return
+        
+        # notify
+        tmp = {'\n':'LF', '\r':'CR', '\r\n':'CRLF'}[item._lineEndings]
+        print("saved file: {} ({})".format(filename, tmp))
+        
+        # special case, we edited the style file!
+        if item._filename == styleManager._filename:
+            # reload styles
+            styleManager.loadStyles()
+            # editors are send a signal by the style manager
+    
+    
+    def closeFile(self, item=None):
+        """ Close the selected (or current) item. 
+        Returns True if all went well, False if the user pressed cancel
+        when asked to save an modified file. """
+        
+        # get item
+        if item is None:
+            item = self.getCurrentItem()
+        if item is None or not isinstance(item, FileItem):
+            return
+        
+        # should we ask to save the file?
+        if item._editor._dirty:
+            
+            # setup dialog
+            dlg = QtGui.QMessageBox(self)
+            dlg.setText("Closing file:\n{}".format(item._filename))
+            dlg.setInformativeText("Save modified file?")
+            tmp = QtGui.QMessageBox
+            dlg.setStandardButtons(tmp.Save| tmp.Discard | tmp.Cancel)
+            dlg.setDefaultButton(tmp.Cancel)
+            
+            # get result and act
+            result = dlg.exec_() 
+            if result == tmp.Save:
+                self.saveFile(item)
+            elif result == tmp.Cancel:
+                return False
+        
+        # ok, close...
+        item.close()
+        self._list.updateMe()
+        return True
+        
 
-class EditorBook(QtGui.QWidget):
-    
-    def __init__(self, parent):
-        qt.QWidget.__init__(self,parent)
-        
-        # create widgets
-        self._list = FileListCtrl(self)
-        editor = IepEditor(self)
-        editor.setStyle('.py')
-        
-        # create box layout control and add widgets
-        self._boxLayout = QtGui.QHBoxLayout(self)
-        self._boxLayout.addWidget(self._list, 0)
-        self._boxLayout.addWidget(editor, 1)
-        
-        # make the box layout the layout manager
-        self.setLayout(self._boxLayout)
-        
-        #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
-    
-    
 if __name__ == "__main__":
     #qt.QApplication.setDesktopSettingsAware(False)
     app = QtGui.QApplication([])
-    app.setStyle("cleanlooks") # plastique, windows
+    app.setStyle("windows") # plastique, windows, cleanlooks
     win = EditorBook(None)
     win.show()
     app.exec_()
