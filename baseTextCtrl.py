@@ -29,12 +29,18 @@ class StyleManager(QtCore.QObject):
     
     def __init__(self):
         QtCore.QObject.__init__(self)
+        self._filename = os.path.join(iep.path, 'styles.ssdf')
         self._styles = None
-        self.loadStyles()
+        self.loadStyles()    
     
-    
-    def loadStyles(self, filename='styles.ssdf'):
+    def loadStyles(self, filename=None):
         """ Load the stylefile. """
+        
+        # get filena,me
+        if not filename:
+            filename = self._filename
+        else:
+            self._filename = filename
         
         # check file
         if not os.path.isfile(filename):
@@ -253,6 +259,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     because every sendscintilla method that should return a string
     does not work, so there is no way to get text.
     """
+    dirtyChange = QtCore.pyqtSignal()
     
     def __init__(self, parent):
         Qsci.QsciScintillaBase.__init__(self,parent)
@@ -311,9 +318,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
         self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
         self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
-       
-        self.connect(self, QtCore.SIGNAL('SCN_SAVEPOINTLEFT()'), 
-            self.onTextChanged)
+        
+        # to see whether the doc has been changed
+        self._dirty = False
+        SIGNAL = QtCore.SIGNAL
+        self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
         
         # calltip colours...
         self.SendScintilla(self.SCI_CALLTIPSETBACK, qt.QColor('#FFFFB8'))
@@ -412,10 +421,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Callbacks
     
-    def onTextChanged(self):        
-        print("yeah")
-        #self.autoCompleteFromAPIs()        
-        #self.callTip()
+    def makeDirty(self, value=True): 
+        """ Handler of the callback for SAVEPOINTLEFT,
+        and used as a way to tell scintilla we just saved. """
+        self._dirty = value
+        if not value:
+            self.SendScintilla(self.SCI_SETSAVEPOINT)
+        self.dirtyChange.emit()
     
     
     def keyPressEvent(self, event):
@@ -463,6 +475,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 styleOk = False
             # auto indent!
             linenr,index = self.getCursorPosition()
+            text = self.getLine(linenr)
+            if not text:
+                return False
             text = removeComment( self.getLine(linenr) )
             ind = len(text) - len(text.lstrip())
             ind = int(round(ind/indentWidth))
