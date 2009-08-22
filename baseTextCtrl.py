@@ -22,6 +22,45 @@ else:
     FACES = {'serif': 'Times', 'mono': 'Courier', 'sans': 'Helvetica'}
 
 
+def normalizePath(path):
+    """ Normalize the path given. 
+    All slashes will be made the same (and doubles removed)
+    The real case as stored on the file system is recovered.
+    """
+    
+    # normalize
+    path = os.path.abspath(path)  # make sure it is defined from the drive up
+    path = os.path.normpath(path).lower() # make all os.sep (slashes \\ on win)
+    
+    # split in parts
+    parts = path.split(os.sep)
+    sep = '/'
+    
+    # make a start
+    drive, tmp = os.path.splitdrive(path)
+    if drive:
+        # windows
+        fullpath = drive.upper() + sep
+        parts = parts[1:]
+    else:
+        # posix/mac
+        fullpath = sep + parts[1] + sep
+        parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
+    
+    for part in parts:
+        # print( fullpath,part)
+        options = [x for x in os.listdir(fullpath) if x.lower()==part]
+        if len(options) > 1:
+            raise Exception("Ambiguous path names!")
+        elif len(options) < 1:
+            raise IOError("Invalid path!")
+        fullpath += options[0] + sep
+    
+    # remove last sep
+    return fullpath[:-len(sep)]
+
+
+
 class StyleManager(QtCore.QObject):
     """ Singleton class for managing the styles of the text control. """
     
@@ -30,6 +69,7 @@ class StyleManager(QtCore.QObject):
     def __init__(self):
         QtCore.QObject.__init__(self)
         self._filename = os.path.join(iep.path, 'styles.ssdf')
+        self._filename = normalizePath(self._filename)
         self._styles = None
         self.loadStyles()    
     
@@ -40,7 +80,7 @@ class StyleManager(QtCore.QObject):
         if not filename:
             filename = self._filename
         else:
-            self._filename = filename
+            self._filename = normalizePath(filename)
         
         # check file
         if not os.path.isfile(filename):
@@ -148,8 +188,9 @@ class StyleManager(QtCore.QObject):
                 if ext in exts:
                     break
             else:
-                print("Unknown extension %s" % ext)
-                return
+                tmp = "Unknown extension {}, applying default style."
+                print(tmp.format(ext))
+                styleName = ''
         
         # first set default style to everything.
         self._applyStyle(editor,'default')
@@ -174,7 +215,7 @@ class StyleManager(QtCore.QObject):
             self._applyStyle(editor, style.basedon)
         
         # start ...
-        print("applying style,", styleName)
+        #print("applying style,", styleName)
         
         # set basic stuff first
         if 'lexer' in style:
@@ -259,8 +300,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     because every sendscintilla method that should return a string
     does not work, so there is no way to get text.
     """
-    dirtyChange = QtCore.pyqtSignal()
-    
+        
     def __init__(self, parent):
         Qsci.QsciScintillaBase.__init__(self,parent)
         
@@ -305,6 +345,16 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_SETBACKSPACEUNINDENTS, True)
         self.SendScintilla(self.SCI_SETTABINDENTS, True)
         
+#         # clear some command keys
+#         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T'), ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T'), ctrl+shift)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U'), ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U'), ctrl+shift)
+        
         # In QT, the vertical scroller is always shown        
         
         # set brace matchin on
@@ -318,11 +368,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
         self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
         self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
-        
-        # to see whether the doc has been changed
-        self._dirty = False
-        SIGNAL = QtCore.SIGNAL
-        self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
         
         # calltip colours...
         self.SendScintilla(self.SCI_CALLTIPSETBACK, qt.QColor('#FFFFB8'))
@@ -420,14 +465,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         return True  
     
     ## Callbacks
-    
-    def makeDirty(self, value=True): 
-        """ Handler of the callback for SAVEPOINTLEFT,
-        and used as a way to tell scintilla we just saved. """
-        self._dirty = value
-        if not value:
-            self.SendScintilla(self.SCI_SETSAVEPOINT)
-        self.dirtyChange.emit()
     
     
     def keyPressEvent(self, event):
