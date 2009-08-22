@@ -6,70 +6,10 @@ import os, sys, time, gc
 from PyQt4 import QtCore, QtGui
 qt = QtGui
 
-from editor import IepEditor
+from editor import createEditor
 from baseTextCtrl import styleManager
 barwidth = 120
 
-
-def normalizePath(path):
-    """ Normalize the path given. 
-    All slashes will be made the same (and doubles removed)
-    The real case as stored on the file system is recovered.
-    """
-    
-    # normalize
-    path = os.path.abspath(path)  # make sure it is defined from the drive up
-    path = os.path.normpath(path).lower() # make all os.sep (slashes \\ on win)
-    
-    # split in parts
-    parts = path.split(os.sep)
-    sep = '/'
-    
-    # make a start
-    drive, tmp = os.path.splitdrive(path)
-    if drive:
-        # windows
-        fullpath = drive.upper() + sep
-        parts = parts[1:]
-    else:
-        # posix/mac
-        fullpath = sep + parts[1] + sep
-        parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
-    
-    for part in parts:
-        # print( fullpath,part)
-        options = [x for x in os.listdir(fullpath) if x.lower()==part]
-        if len(options) > 1:
-            raise Exception("Ambiguous path names!")
-        elif len(options) < 1:
-            raise Exception("Invalid path!")
-        fullpath += options[0] + sep
-    
-    # remove last sep
-    return fullpath[:-len(sep)]
-
-
-def determineLineEnding(text):
-    """get the line ending style used in the text.
-    \n, \r, \r\n,
-    The EOLmode is determined by counting the occurances of each
-    line ending...    
-    """
-    # test line ending by counting the occurances of each
-    c_win = text.count("\r\n")
-    c_mac = text.count("\r") - c_win
-    c_lin = text.count("\n") - c_win
-    
-    # set the appropriate style
-    if c_win > c_mac and c_win > c_lin:
-        mode = '\r\n'
-    elif c_mac > c_win and c_mac > c_lin:            
-        mode = '\r'
-    else:
-        mode = '\n'
-    
-    # return
-    return mode
 
 
 class Item(qt.QLabel):
@@ -82,25 +22,28 @@ class Item(qt.QLabel):
     def __init__(self, parent):
         qt.QLabel.__init__(self,parent)
        
-        # init name
-        self._name = ''
+        # indicate height and spacing
+        self._itemHeight = 15
+        self._itemSpacing = 0
         
         # set indent and size        
         self._indent = 1
         self._y = 1
-        self.resize(barwidth-self._indent, self.parent()._itemSpacing)
+        self.resize(barwidth-self._indent, self._itemHeight)
         
         # test framewidths when raised
         self.setLineWidth(1)
         self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
         self._frameWidth = self.frameWidth() + 3 # correction        
-
     
     
     def setIndent(self, indent):
         """ Set the indentation of the item. """
         self._indent = indent
-        self.resize(barwidth-self._indent, self.parent()._itemSpacing)
+        self.resize(barwidth-self._indent, self._itemHeight)
+    
+    def updateTexts(self):
+        raise NotImplemented()
         
     def updateStyle(self):
         raise NotImplemented()
@@ -122,17 +65,32 @@ class ProjectItem(Item):
     def __init__(self, parent, name):
         Item.__init__(self, parent)
         
+        # projects have more spacing
+        self._itemSpacing = 2
+        
         # set name and tooltip
         self._name = name
-        self.setText(name)
-        self.setToolTip('project: '+ name)
+        
+        # each project can have one main file
+        self._mainfile = ''
         
         # collapsed?
         self._collapsed = False
+        self._ncollapsed = 0
         
         # update
         self.setStyleSheet("ProjectItem { font:bold; background:#999; }")
+        self.updateTexts()
         self.updateStyle()
+    
+    
+    def updateTexts(self):
+        """ Update the text and tooltip """        
+        if self._collapsed:
+            self.setText('- {} ({})'.format(self._name, self._ncollapsed))
+        else:
+            self.setText('+ {}'.format(self._name))
+        self.setToolTip('project: '+ self._name)
     
     
     def updateStyle(self):
@@ -148,9 +106,93 @@ class ProjectItem(Item):
             self.move(self._indent,self._y)
     
     def mousePressEvent(self, event):
+        """ Collapse/expand item, or show context menu. """
+        
         if event.button() == QtCore.Qt.LeftButton:
+            # collapse/expand
             self._collapsed = not self._collapsed
             self.parent().updateMe()
+        
+        elif event.button() == QtCore.Qt.RightButton:
+            # popup menu
+            menu = QtGui.QMenu(self)
+            menu.addAction('New file (in project)', self.context_new)
+            menu.addAction('Open file (in project)', self.context_open)
+            menu.addSeparator()       
+            menu.addAction('Rename project', self.context_rename)
+            menu.addAction('Remove project', self.context_remove)
+            menu.addSeparator()
+            menu.addAction('Move project up', self.context_up)
+            menu.addAction('Move project down', self.context_down)
+            menu.popup(event.globalPos())
+    
+    def context_new(self, event=None):
+        self.parent().parent().newFile(self._name)
+    def context_open(self, event=None):
+        self.parent().parent().openFile(self._name)
+    def context_rename(self, event=None):
+        title = "Project name"
+        label = "Give the new project name"
+        name, ok = QtGui.QInputDialog.getText(self, title, label)
+        if ok and name:
+            self._name = name
+            self.updateTexts()
+    def context_remove(self, event=None):
+        self.parent().removeProject(self)
+    def context_up(self, event=None):
+        self.upDownHelper(-1)            
+    def context_down(self, event=None):
+        self.upDownHelper(1)
+    
+    def upDownHelper(self, direction):
+        """" move project up (-1) or down (+1)
+        """
+        projectBefore, projectAfter, itemsToMove = None, None, []
+        phase = 0
+        for item in self.parent()._items:
+            if phase == 0:
+                if item is self:
+                    phase = 1
+                elif isinstance(item, ProjectItem):
+                    projectBefore = item
+            elif phase == 1:
+                if isinstance(item, ProjectItem):                    
+                    phase = 2
+                else:
+                    itemsToMove.append(item)
+            elif phase == 2:
+                if isinstance(item, ProjectItem):
+                    projectAfter = item
+                    break
+        
+        if direction<0 and not projectBefore:
+            return # no need, already at top
+        
+        # finish up list of items to move and get parent list object
+        itemsToMove.reverse()
+        itemsToMove.append(self)        
+        items = self.parent()._items
+        
+        # remove all items from the list 
+        for item in itemsToMove:
+            while item in items:
+                items.remove(item)
+        
+        # determine index to insert
+        if direction < 0:
+            i = items.index(projectBefore)
+        elif direction > 0:
+            if projectAfter:
+                i = items.index(projectAfter)
+            else:
+                i = len(items) # put at the end
+        
+        # insert them again at the new position
+        for item in itemsToMove:
+            items.insert(i, item)
+        
+        # update
+        self.parent().updateMe()
 
 
 class FileItem(Item):
@@ -158,81 +200,56 @@ class FileItem(Item):
     and saving of that file, but without any checks, that is up to
     the editorbook. """
     
-    def __init__(self, parent, filename=None):
+    def __init__(self, parent, editor):
         Item.__init__(self, parent)
         
         # get editorbook
         editorBook = parent.parent()
         
-        # init stuff
-        self._lineEndings = '\n' # line ending on disk (internally all's \n)
-        self._name = '' # the displayed name
-        self._filename = '' # the full path to the file on disk
-        self._editor = None # wait with creating it untill we loaded the file
+        # set editor
+        #if isinstance(editor, ??) (why should we care?)
+        self._editor = editor
         
-        if filename:
-            # check
-            if not os.path.isfile(filename):
-                raise IOError("File does not exist '%s'." % filename)
-            
-            # load file
-            with open(filename, 'rb') as f:
-                bb = f.read()
-                f.close()
-            
-            # convert to text
-            text = bb.decode('UTF-8')
-            
-            # process line endings
-            self._lineEndings = determineLineEnding(text)
-            text = text.replace('\r\n','\n').replace('\r','\n')
-            
-            # create edior and set text
-            self._editor = editorBook.createEditor()
-            self._editor.setText(text)
-            self._editor.makeDirty(False)
-            self._editor.dirtyChange.connect(self.parent().updateMe)
-            
-            # set name and tooltip
-            self._filename = filename
-            self._name = os.path.split(filename)[1]
-            self.setText(self._name)
-            self.setToolTip('file: '+ filename)
-        else:
-            # create editor
-            self._editor = editorBook.createEditor()
-            # set name and tooltip
-            self._filename = None
-            self._name = '*<TMP>'  
-            self.setText(self._name)          
-            self.setToolTip('file: None')
+        # to keep name and tooltip up to date
+        editor.somethingChanged.connect(self.updateTexts)
+        
+        # each file item can belong to a project, or to the root project (None)
+        self._project = None
         
         # set style
         self.setAutoFillBackground(True)
         
         # update
+        self.updateTexts()
         self.updateStyle()
     
     
-    def makeMain(self, main):
-        """ Make the file appear as a main file """
-        if main:       
-            self.setStyleSheet("QLabel { font:bold ; color:blue }")
-        else:
-            self.setStyleSheet("QLabel { font: ; color: }")
+    def updateTexts(self):
+        """ Updates the text of the label and tooltip. Called when 
+        the editor's dirty status changed or when saved as another file. 
+        """
+        # get texts
+        name = self._editor._name
+        filename = self._editor._filename
+        style = ''
+        # prepare texts
+        if self._editor._dirty:
+            name = '*' + name
+            style += "color:#603000;"
+        if self._project and self._project._mainfile == self._editor._filename:
+            style += 'font-weight:bold;'
+        if not filename: 
+            filename = 'None'
+        # set texts
+        self.setText( name )
+        self.setStyleSheet("QLabel{" + style + "}")
+        self.setToolTip('file: '+ filename)
     
     
     def updateStyle(self):
-        """ Update the style. Automatically detects whether the mouse
-        is over the label. Depending on the type and whether the file is
-        selected, sets its appearance and redraw! """
-        if self._editor._dirty:
-            self.setText( "*"+self._name )
-            self.setStyleSheet("QLabel { color:#603000 }")
-        else:
-            self.setText( self._name )
-            self.setStyleSheet("")
-        #
+        """ Update the style. To indicate selected file or hoovering over one.
+        Need to update position, because the frame width is different for
+        the different scenarios."""
         if self is self.parent()._currentItem:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
             self.move(self._indent ,self._y)
@@ -244,7 +261,13 @@ class FileItem(Item):
             self.move(self._frameWidth+self._indent,self._y)
     
     
+    def mouseDoubleClickEvent(self, event):
+        self.parent().parent().saveFile(self._editor)
+        #self.parent().parent().closeFile(self._editor)
+    
+    
     def mousePressEvent(self, event):
+        """ Item selected. """
         
         # select this item! 
         self.parent().setCurrentItem(self)
@@ -257,59 +280,25 @@ class FileItem(Item):
         elif event.button() == QtCore.Qt.RightButton:
             # popup menu
             menu = QtGui.QMenu(self)
-            menu.addAction('save file', self.receiver)
-            menu.addAction('save file as', self.receiver)
+            menu.addAction('Save file', self.context_save)
+            menu.addAction('Save file as', self.context_saveAs)
+            menu.addAction('Close file', self.context_close)
+            menu.addAction('Make main file', self.context_makeMain)
             menu.popup(event.globalPos())
     
-    def receiver(self, event=None):
-        print( "woohaa", event)
-        
-    def mouseDoubleClickEvent(self, event):
-        #self.parent().parent().saveFile(self)
-        self.parent().parent().closeFile(self)
+    def context_save(self, event=None):
+        self.parent().parent().saveFile(self._editor)
+    def context_saveAs(self, event=None):
+        self.parent().parent().saveFileAs(self._editor)
+    def context_close(self, event=None):
+        self.parent().parent().closeFile(self._editor)
+    def context_makeMain(self, event=None):
+        if self._project:
+            self._project._mainfile = self._editor._filename
+        for item in self.parent()._items:
+            if isinstance(item, FileItem):
+                item.updateTexts()
     
-    
-    def save(self, filename):
-        """ Save the file. No checking is done. """
-        
-        # get text and convert line endings
-        text = self._editor.getText()
-        text = text.replace('\n', self._lineEndings)
-        
-        # make bytes
-        bb = text.encode('UTF-8')
-        
-        # store
-        f = open(filename, 'wb')
-        try:
-            f.write(bb)
-        finally:
-            f.close()
-        
-        # update stats
-        self._filename = normalizePath(filename)
-        self._name = os.path.split(filename)[1]
-        self.setText(self._name)
-        self.setToolTip('file: '+ filename)
-        self._editor.makeDirty(False)
-    
-    
-    def close(self):
-        """ Destroy myself. """        
-        # hide
-        self.hide()
-        self._editor.hide()        
-        # clear from parent        
-        for items in [self.parent()._items, self.parent()._itemHistory]:
-            while self in items:  
-                items.remove(self)
-        # select other editor (also removes from editorbook's boxlayout)
-        if self.parent()._currentItem is self:
-            self.parent().setCurrentItem(None, False)        
-        # destroy...
-        self._editor.destroy()
-        self.destroy()
-        gc.collect()
     
 
 class FileListCtrl(qt.QWidget):
@@ -328,7 +317,6 @@ class FileListCtrl(qt.QWidget):
         self._items = []        
         self._currentItem = None
         self._itemHistory = []
-        self._itemSpacing = 15
         
         # enable dragging/dropping
         self.setAcceptDrops(True)
@@ -342,21 +330,20 @@ class FileListCtrl(qt.QWidget):
         
         project = None
         ncollapsed = 0
+        itemsToUpdate = []
         
         y = 10  # initial y position
+        spacing = 0
         for item in self._items:            
-            item._y = y
             if isinstance(item, ProjectItem):
                 # handle previous collapsed project?
                 if project and project._collapsed:
-                    project.setText('- %s (%i)' % (project._name, ncollapsed))
+                    project._ncollapsed = ncollapsed
                 project = item
                 if project._collapsed:
                     ncollapsed = 0
-                    # give text at the end
-                else:
-                    item.setText('+ '+item._name)
             elif isinstance(item, FileItem):
+                item._project = project
                 if project and project._collapsed:
                     item.hide()
                     ncollapsed += 1
@@ -365,20 +352,29 @@ class FileListCtrl(qt.QWidget):
                     item.setIndent(10)
                 else:
                     item.setIndent(1)
-                    
             else:
                 continue
             
-            # update item
-            y += self._itemSpacing # next item
-            item.updateStyle()
-            item.show()
+            # add spacing to y and update item's position
+            y = y + max(spacing, item._itemSpacing)
+            item._y = y
+            
+            # list item
+            itemsToUpdate.append(item)
+            
+            # next item
+            y += item._itemHeight
+            spacing = item._itemSpacing 
         
         # handle last collapsed project
         if project and project._collapsed:
-            project.setText('- %s (%i)' % (project._name, ncollapsed))
+            project._ncollapsed = ncollapsed
         
-        # update screen
+        # update
+        for item in itemsToUpdate:
+            item.updateTexts()
+            item.updateStyle()
+            item.show()
         #self.update()
     
     
@@ -421,8 +417,10 @@ class FileListCtrl(qt.QWidget):
     
     def mouseReleaseEvent(self, event):
         # stop dragging
-        self._draggedItem = None
+        self._draggedItem = None        
+        # update
         self.updateMe()
+    
     
     def mouseMoveEvent(self, event):
         # check for mouse and moved enough
@@ -461,7 +459,7 @@ class FileListCtrl(qt.QWidget):
         
         # determine if we should swap items
         i_to_put = None
-        y2 = self._itemSpacing/2
+        y2 = self._draggedItem._itemHeight/2
         for i in range(len(self._items)):
             item = self._items[i]
             if item is self._draggedItem:
@@ -509,7 +507,34 @@ class FileListCtrl(qt.QWidget):
         self.update()
    
    
-    def appendFile(self, filename=None, projectname=None):
+    def mousePressEvent(self, event):
+        """ Context menu """        
+        if event.button() == QtCore.Qt.RightButton:
+            # popup menu
+            menu = QtGui.QMenu(self)
+            menu.addAction('New file', self.context_newFile)
+            menu.addAction('Open file', self.context_openFile)
+            menu.addSeparator()   
+            menu.addAction('Create new project', self.context_newProject)
+            menu.addAction('Open dir as project', self.context_openProject)
+            menu.popup(event.globalPos())
+    
+    def context_newFile(self, event=None):
+        self.parent().newFile()
+    def context_openFile(self, event=None):
+        self.parent().openFile()
+    def context_newProject(self, event=None):
+        title = "Create new project"
+        label = "Give the new project's name"
+        name, ok = QtGui.QInputDialog.getText(self, title, label)
+        if ok and name:
+            self.appendProject(name)
+        self.updateMe()
+    def context_openProject(self, event=None):
+        self.parent().openDir()
+    
+    
+    def appendFile(self, editor, projectname=None):
         """ Create file item. """
         
         # if project name was given
@@ -532,8 +557,12 @@ class FileListCtrl(qt.QWidget):
             i_insert = len(self._items)
         
         # create item
-        item = FileItem(self, filename)
+        item = FileItem(self, editor)
         self._items.insert(i_insert,item)
+        
+        # make it current
+        self._currentItem = item
+        self.parent().showEditor(editor)
         
         # update
         self.updateMe()
@@ -554,6 +583,82 @@ class FileListCtrl(qt.QWidget):
         self._items.append(ProjectItem(self, projectname))
         #print("Creating project: %s" % (projectname))
         return True
+    
+    
+    def removeFile(self, editor):
+        """ Remove file item from the list. """
+        
+        # get item corresonding to that editor
+        for item in self._items:
+            if isinstance(item, FileItem) and item._editor is editor:
+                break
+        else:
+            tmp = editor._name
+            print("Could not remove listItem for file '{}'.".format(tmp))
+            return
+        
+        # clear from lists        
+        for items in [self._items, self._itemHistory]:
+            while item in items:  
+                items.remove(item)
+        # select other editor (also removes from editorbook's boxlayout)
+        if self._currentItem is item:
+            self.setCurrentItem(None, False)        
+        
+        # destroy...   
+        item.hide()
+        editor.hide()     
+        item.destroy()
+        editor.destroy()
+        gc.collect()
+        
+        # update
+        self.updateMe()
+    
+    
+    def removeProject(self, project):
+        """ Remove a project.
+        project should be a ProjectItem instance or the name of the project. 
+        """
+        
+        # get project
+        if isinstance(project, str):
+            for item in self._items:
+                if isinstance(item, ProjectItem) and item._name == project:
+                    project = item
+                    break
+            else:
+                print("Cannot remove project: no project with that name.")
+                return
+        
+        # get list of files to remove first
+        itemsToRemove = []
+        phase = 0
+        for item in self._items:
+            if phase == 0:
+                if item is project:
+                    phase = 1
+            elif phase == 1:
+                if isinstance(item, ProjectItem):
+                    break
+                else:
+                    itemsToRemove.append(item)
+        
+        # remove these items.
+        for item in itemsToRemove:
+            ok = self.parent().closeFile(item._editor)
+            if not ok:
+                break
+        else:
+            # we get here if the user did not press cancel
+            # remove project item
+            while project in self._items:
+                self._items.remove(project)
+            project.hide()
+            project.destroy()
+        
+        # update
+        self.updateMe()
     
 
 class EditorBook(QtGui.QWidget):
@@ -610,16 +715,13 @@ class EditorBook(QtGui.QWidget):
         editor.show()
     
     
-    def getCurrentItem(self):
-        """ Get the currently active file item. """
-        return self._list._currentItem
-    
     def getCurrentEditor(self):
         """ Get the currently active editor. """
         item = self._list._currentItem
         if item:
             return item._editor
-    
+        else:
+            return None
     
     ## methods for managing files 
     
@@ -641,16 +743,21 @@ class EditorBook(QtGui.QWidget):
     
     def newFile(self, projectname=None):
         """ Create a new (unsaved) file. """
-        self._list.appendFile(None, projectname)
+        
+        # create editor
+        editor = createEditor(self, None)
+        
+        # add to list
+        self._list.appendFile(editor, projectname)
     
     
     def openFile(self, projectname=None):
         """ Create a dialog for the user to select a file. """
         
         # determine start dir
-        item = self.getCurrentItem()
-        if item and item._filename:
-            startdir = os.path.split(item._filename)[0]
+        editor = self.getCurrentEditor()
+        if editor and editor._filename:
+            startdir = os.path.split(editor._filename)[0]
         else:
             startdir = self._lastpath            
         if not os.path.isdir(startdir):
@@ -675,9 +782,9 @@ class EditorBook(QtGui.QWidget):
         """ Create a dialog for the user to select a directory. """
         
         # determine start dir
-        item = self.getCurrentItem()
-        if item and item._filename:
-            startdir = os.path.split(item._filename)[0]
+        editor = self.getCurrentEditor()
+        if editor and editor._filename:
+            startdir = os.path.split(editor._filename)[0]
         else:
             startdir = self._lastpath            
         if not os.path.isdir(startdir):
@@ -698,14 +805,18 @@ class EditorBook(QtGui.QWidget):
     def loadFile(self, filename, projectname=None):
         """ Load the specified file. """
         
-        # get real path name
-        filename = normalizePath(filename)
+        # create editor
+        try:
+            editor = createEditor(self, filename)
+        except Exception as err:
+            print("Error loading file: ", err)
+            return
+        
+        # create list item
+        self._list.appendFile(editor, projectname)
         
         # store the path
-        self._lastpath = os.path.dirname(filename)
-        
-        # create item
-        self._list.appendFile(filename, projectname)
+        self._lastpath = os.path.dirname(editor._filename)
     
     
     def loadDir(self, path, extensions="py,pyw"):
@@ -715,16 +826,16 @@ class EditorBook(QtGui.QWidget):
         to accept...        
         """
         
-        # if the path does not exist, stop        
+        # if the path does not exist, stop     
+        path = os.path.abspath(path)   
         if not os.path.isdir(path):
             print("ERROR loading dir: the specified directory does not exist!")
             return
         
-        # normalize path name and get extensions
-        path = normalizePath(path)
+        # get extensions
         extensions = ["."+a.lstrip(".").strip() for a in extensions.split(",")]
         
-        # create project
+        # create project        
         projectname = str( os.path.basename(path) )
         ok = self._list.appendProject(projectname)
         if not ok:
@@ -750,18 +861,18 @@ class EditorBook(QtGui.QWidget):
         return window
     
     
-    def saveFileAs(self, item=None):
+    def saveFileAs(self, editor=None):
         """ Create a dialog for the user to select a file. """
         
-        # get item
-        if item is None:
-            item = self.getCurrentItem()
-        if item is None:
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        if editor is None:
             return
         
         # get startdir
-        if item._filename:
-            startdir = os.path.dirname(item._filename)
+        if editor._filename:
+            startdir = os.path.dirname(editor._filename)
         else:
             startdir = self._lastpath            
         if not os.path.isdir(startdir):
@@ -774,59 +885,62 @@ class EditorBook(QtGui.QWidget):
             msg, startdir, filter)
         
         # proceed
-        self.saveFile(item, filename)
+        self.saveFile(editor, filename)
     
     
-    def saveFile(self, item=None, filename=None):
+    def saveFile(self, editor=None, filename=None):
         
-        # get item
-        if item is None:
-            item = self.getCurrentItem()
-        if item is None:
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        if editor is None:
             return
         
         # get filename
         if filename is None:
-            filename = item._filename
+            filename = editor._filename
         if not filename:
-            self.saveFileAs(item)
+            self.saveFileAs(editor)
             return
         
-        # let the item do the low level stuff...
+        # let the editor do the low level stuff...
         try:
-            item.save(filename)
-        except IOError as err:
-            print("Could not save file:",err)
+            editor.save(filename)
+        except Exception as err:
+            print("Error saving file:",err)
             return
+        
+        # get actual normalized filename
+        filename = editor._filename
         
         # notify
-        tmp = {'\n':'LF', '\r':'CR', '\r\n':'CRLF'}[item._lineEndings]
+        tmp = {'\n':'LF', '\r':'CR', '\r\n':'CRLF'}[editor._lineEndings]
         print("saved file: {} ({})".format(filename, tmp))
         
         # special case, we edited the style file!
-        if item._filename == styleManager._filename:
+        if filename == styleManager._filename:
             # reload styles
             styleManager.loadStyles()
             # editors are send a signal by the style manager
     
     
-    def closeFile(self, item=None):
-        """ Close the selected (or current) item. 
+    def closeFile(self, editor=None):
+        """ Close the selected (or current) editor. 
         Returns True if all went well, False if the user pressed cancel
         when asked to save an modified file. """
         
-        # get item
-        if item is None:
-            item = self.getCurrentItem()
-        if item is None or not isinstance(item, FileItem):
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        if editor is None:
             return
         
         # should we ask to save the file?
-        if item._editor._dirty:
+        if editor._dirty:
             
             # setup dialog
             dlg = QtGui.QMessageBox(self)
-            dlg.setText("Closing file:\n{}".format(item._filename))
+            dlg.setText("Closing file:\n{}".format(editor._filename))
             dlg.setInformativeText("Save modified file?")
             tmp = QtGui.QMessageBox
             dlg.setStandardButtons(tmp.Save| tmp.Discard | tmp.Cancel)
@@ -835,13 +949,12 @@ class EditorBook(QtGui.QWidget):
             # get result and act
             result = dlg.exec_() 
             if result == tmp.Save:
-                self.saveFile(item)
+                self.saveFile(editor)
             elif result == tmp.Cancel:
                 return False
         
         # ok, close...
-        item.close()
-        self._list.updateMe()
+        self._list.removeFile(editor)
         return True
         
 
