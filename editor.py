@@ -10,7 +10,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 qt = QtGui
 
-from baseTextCtrl import BaseTextCtrl, normalizePath
+from baseTextCtrl import BaseTextCtrl
 
 
 def determineLineEnding(text):
@@ -54,7 +54,6 @@ def createEditor(parent, filename=None):
         # check and normalize
         if not os.path.isfile(filename):
             raise IOError("File does not exist '%s'." % filename)
-        filename = normalizePath(filename)
         
         # load file (as bytes)
         with open(filename, 'rb') as f:
@@ -80,8 +79,10 @@ def createEditor(parent, filename=None):
         editor._name = os.path.split(filename)[1]
         editor._lineEndings = lineEndings
     
-    # clear undo history
+    # clear undo history and modify time
     editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
+    if editor._filename:
+        editor._modifyTime = os.path.getmtime(editor._filename)
     
     # set style
     ext = os.path.splitext(editor._filename)[1]
@@ -104,11 +105,50 @@ class IepEditor(BaseTextCtrl):
         self._name = '<TMP>'
         self._lineEndings = '\n'
         
+        # modification time to test file change 
+        self._modifyTime = 0
+        
         # to see whether the doc has been changed
         self._dirty = False
         SIGNAL = QtCore.SIGNAL
         self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
         self.connect(self, SIGNAL('SCN_SAVEPOINTREACHED()'), self.makeDirtyNot)
+    
+    
+    def focusInEvent(self, event):
+        """ Test whether the file has been changed 'behind our back'
+        """
+        # act normally to the focus event
+        BaseTextCtrl.focusInEvent(self, event)
+        
+        # get the path
+        path = self._filename
+        if not os.path.isfile(path):
+            # file is deleted from the outside
+            return
+        
+        # test the modification time...
+        mtime = os.path.getmtime(path)
+        if mtime != self._modifyTime:
+            
+            # ask user
+            dlg = QtGui.QMessageBox(self)
+            dlg.setText("File has been modified outside of the editor:\n"+
+                        self._filename)
+            dlg.setInformativeText("Do you want to reload?")
+            t=dlg.addButton("Reload", QtGui.QMessageBox.AcceptRole) #0
+            dlg.addButton("Keep this version", QtGui.QMessageBox.RejectRole) #1
+            dlg.setDefaultButton(t)
+            
+            # whatever the result, we will reset the modified time
+            self._modifyTime = os.path.getmtime(path)
+            
+            # get result and act
+            result = dlg.exec_()            
+            if result == QtGui.QMessageBox.AcceptRole:
+                self.reload()
+            else:
+                pass # when cancelled or explicitly said, do nothing
     
     
     def makeDirty(self, value=True): 
@@ -118,6 +158,7 @@ class IepEditor(BaseTextCtrl):
         if not value:
             self.SendScintilla(self.SCI_SETSAVEPOINT)
         self.somethingChanged.emit()
+    
     
     def makeDirtyNot(self): 
         """ This is the handler for SAVEPOINTREACHED. If we would let
@@ -152,14 +193,43 @@ class IepEditor(BaseTextCtrl):
             f.close()
         
         # update stats
-        self._filename = normalizePath(filename)
+        self._filename = filename
         self._name = os.path.split(filename)[1]        
         self.makeDirty(False)
+        self._modifyTime = os.path.getmtime(filename)
         
         # allow item to update its texts (no need: makeDirty call does this)
         #self.somethingChanged.emit()
 
 
+    def reload(self):
+        """ Reload text using the self._filename. 
+        We do not have a load method; let's first try to load the file
+        and only when we succeed create an editor to show it in...
+        This method is only for reloading in case the file was changed
+        outside of the editor. """
+        
+        # we can only load if the filename is known
+        if not self._filename:
+            return
+        filename = self._filename
+        
+        # load file (as bytes)
+        with open(filename, 'rb') as f:
+            bb = f.read()
+        
+        # convert to text
+        text = bb.decode('UTF-8')
+        
+        # process line endings
+        self._lineEndings = determineLineEnding(text)
+        text = text.replace('\r\n','\n').replace('\r','\n')
+        
+        # set text
+        self.setText(text)
+        self.makeDirty(False)
+    
+    
 if __name__=="__main__":
     app = QtGui.QApplication([])
     win = IepEditor(None)
