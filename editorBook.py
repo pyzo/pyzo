@@ -7,6 +7,7 @@ from PyQt4 import QtCore, QtGui
 qt = QtGui
 
 from editor import createEditor
+from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
 barwidth = 120
 
@@ -411,8 +412,10 @@ class FileListCtrl(qt.QWidget):
             self._currentItem = None
             self.parent().showEditor(None)
         
-        # finish
+        # finish and focus
         self.updateMe()
+        if self._currentItem:
+            self._currentItem._editor.setFocus()
     
     
     def mouseReleaseEvent(self, event):
@@ -805,6 +808,21 @@ class EditorBook(QtGui.QWidget):
     def loadFile(self, filename, projectname=None):
         """ Load the specified file. """
         
+        # normalize path
+        filename = normalizePath(filename)
+        
+        # if the file is already open...
+        for item in self._list._items:
+            if isinstance(item, FileItem):
+                if item._editor._filename == filename:
+                    break
+        else:
+            item = None
+        if item:
+            self._list.setCurrentItem(item)
+            print("File already open: '{}'".format(filename))
+            return
+        
         # create editor
         try:
             editor = createEditor(self, filename)
@@ -903,6 +921,9 @@ class EditorBook(QtGui.QWidget):
             self.saveFileAs(editor)
             return
         
+        # normalize
+        filename = normalizePath(filename)
+        
         # let the editor do the low level stuff...
         try:
             editor.save(filename)
@@ -938,9 +959,14 @@ class EditorBook(QtGui.QWidget):
         # should we ask to save the file?
         if editor._dirty:
             
+            # get filename
+            filename = editor._filename
+            if not filename:
+                filename = '<TMP>'
+            
             # setup dialog
             dlg = QtGui.QMessageBox(self)
-            dlg.setText("Closing file:\n{}".format(editor._filename))
+            dlg.setText("Closing file:\n{}".format(filename))
             dlg.setInformativeText("Save modified file?")
             tmp = QtGui.QMessageBox
             dlg.setStandardButtons(tmp.Save| tmp.Discard | tmp.Cancel)
@@ -950,7 +976,9 @@ class EditorBook(QtGui.QWidget):
             result = dlg.exec_() 
             if result == tmp.Save:
                 self.saveFile(editor)
-            elif result == tmp.Cancel:
+            elif result == tmp.Discard:
+                pass # do not save
+            else: # cancel
                 return False
         
         # ok, close...
