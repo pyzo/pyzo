@@ -11,10 +11,12 @@ $Rev: 946 $
 
 """
 
-print "Importing iep.main ..."
+print("Importing iep.main ...")
 
 import os, sys
 import iep
+from editorBook import EditorBook
+
 from PyQt4 import QtCore, QtGui
 qt = QtGui
 
@@ -40,15 +42,29 @@ class MainWindow(qt.QMainWindow):
         # create splitter
         #self.splitter0 = qt.QSplitter(self)
         
-        but = qt.QPushButton("asd")
-        self.setCentralWidget(but)
+        # set central widget
+        iep.editors = EditorBook(self)
+        self.setCentralWidget(iep.editors)
+        
+        # create menu
+        status = self.statusBar()
         menu = self.menuBar()
         fmenu = menu.addMenu("File")
-        ds, cb = "Close and restrat IEP, mainly for testing", self.m_restart
+        ds, cb = "Create new file", self.m_new
+        fmenu.addAction( self.createAction("New file", ds, "Ctrl+N", cb ))
+        ds, cb = "Close the currently selected file", self.m_close
+        fmenu.addAction( self.createAction("Close file", ds, "Ctrl+W", cb ))
+        ds, cb = "Close and restart IEP", self.m_restart
         fmenu.addAction( self.createAction("Restart IEP", ds, "", cb ))
         ds, cb = "Exit from IEP", self.m_exit
         fmenu.addAction( self.createAction("Exit IEP", ds, "Alt+F4", cb ) )
         menu.addMenu("Session")
+        
+        menu.triggered.connect(self.onTrigger)
+#         item = ("New File",
+#             "Create a new file",
+#             key,
+#             callback)
         
         # test dock widgets
         dock = qt.QDockWidget("Find in files", self)
@@ -59,14 +75,22 @@ class MainWindow(qt.QMainWindow):
         
         # show now
         self.show()
+    
+    def onTrigger(self, action):
+        print('trigger:', action.text())
         
+    def m_new(self):
+        iep.editors.newFile()
+    def m_close(self):
+        iep.editors.closeFile()
         
     def m_exit(self):
         """ Close IEP """
         self.close()
         
-    def m_restart(self):
+    def m_restart(self, event):
         """ Restart IEP """
+        print('event:',event)
         self.close()
         
         # put a space in front of all args
@@ -83,7 +107,8 @@ class MainWindow(qt.QMainWindow):
         act.setShortcut(shortcut)
         act.setStatusTip(descr)
         if cb is not None:
-            self.connect(act, QtCore.SIGNAL('triggered()'), cb)
+            act.triggered.connect(cb)
+            #self.connect(act, QtCore.SIGNAL('triggered()'), cb)
         return act
 
 

@@ -77,7 +77,7 @@ def loadConfig():
         
 def saveConfig():
     """Store configurations"""
-    config.Save(os.path.join(path,"config.xml"))
+    ssdf.save( os.path.join(path,"config.xml"), config )
 
 # load on import
 loadConfig()
