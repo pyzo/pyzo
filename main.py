@@ -16,6 +16,7 @@ print("Importing iep.main ...")
 import os, sys
 import iep
 from editorBook import EditorBook
+from menu import MenuHelper
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui
@@ -49,16 +50,19 @@ class MainWindow(qt.QMainWindow):
         # create menu
         status = self.statusBar()
         menu = self.menuBar()
-        fmenu = menu.addMenu("File")
-        ds, cb = "Create new file", self.m_new
-        fmenu.addAction( self.createAction("New file", ds, "Ctrl+N", cb ))
-        ds, cb = "Close the currently selected file", self.m_close
-        fmenu.addAction( self.createAction("Close file", ds, "Ctrl+W", cb ))
-        ds, cb = "Close and restart IEP", self.m_restart
-        fmenu.addAction( self.createAction("Restart IEP", ds, "", cb ))
-        ds, cb = "Exit from IEP", self.m_exit
-        fmenu.addAction( self.createAction("Exit IEP", ds, "Alt+F4", cb ) )
-        menu.addMenu("Session")
+        
+        MenuHelper(self.menuBar())
+
+#         fmenu = menu.addMenu("File")
+#         ds, cb = "Create new file", self.m_new
+#         fmenu.addAction( self.createAction("New file", ds, "Ctrl+N", cb ))
+#         ds, cb = "Close the currently selected file", self.m_close
+#         fmenu.addAction( self.createAction("Close file", ds, "Ctrl+W", cb ))
+#         ds, cb = "Close and restart IEP", self.m_restart
+#         fmenu.addAction( self.createAction("Restart IEP", ds, "", cb ))
+#         ds, cb = "Exit from IEP", self.m_exit
+#         fmenu.addAction( self.createAction("Exit IEP", ds, "Alt+F4", cb ) )
+#         menu.addMenu("Session")
         
         menu.triggered.connect(self.onTrigger)
 #         item = ("New File",
