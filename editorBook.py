@@ -726,6 +726,11 @@ class EditorBook(QtGui.QWidget):
         else:
             return None
     
+    def __iter__(self):
+        tmp = self._list._items
+        tmp = [item._editor for item in tmp if isinstance(item,FileItem)]
+        return tmp.__iter__()
+    
     ## methods for managing files 
     
     def dragEnterEvent(self, event):
