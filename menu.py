@@ -1,4 +1,6 @@
 
+import os, sys
+
 from PyQt4 import QtCore, QtGui
 qt = QtGui
 
@@ -188,7 +190,7 @@ class MI:
 #     
 #     ##
 
-class MenuBase(qt.QMenu):
+class BaseMenu(qt.QMenu):
     
     def showEvent(self, event):
         
@@ -196,19 +198,121 @@ class MenuBase(qt.QMenu):
         self.clear()
         
         # insert items to show
-        for item in self.contentFunc():
-            item = item.createRealMenuItem(self)
-            if isinstance(item, qt.QMenu):
-                self.addMenu(item)
-            elif isinstance(item, qt.QAction):
-                self.addAction(item)
-            else:
-                self.addSeperator()
+        self.fill()
         
         # call base show callback
         qt.QMenu.showEvent(self, event)
     
+    def addItem(self, item):
+        """ Add a MI instance. """
+        # produce real menu items
+        if isinstance(item, MI):
+            item = item.createRealMenuItem(self)
+        else:
+            item = None
+        # append
+        if isinstance(item, qt.QMenu):
+            self.addMenu(item)
+        elif isinstance(item, qt.QAction):
+            self.addAction(item)
+        else:
+            self.addSeparator()
     
+    def fill(self):
+        raise NotImplementedError()
+    
+
+class FileMenu(BaseMenu):
+    def fill(self):
+        addItem = self.addItem
+        
+        des = self.fun_new.__doc__
+        addItem( MI(self.fun_new, None, 'New File', des) )
+        
+        des = self.fun_open.__doc__
+        addItem( MI(self.fun_open, None, 'Open File', des) )
+        
+        addItem(None)
+        
+        des = self.fun_restart.__doc__
+        addItem( MI(self.fun_restart, None, 'Restart IEP', des) )
+        
+        des = self.fun_close.__doc__
+        addItem( MI(self.fun_close, None, 'Exit IEP', des) )
+    
+    
+    def fun_new(self, value):
+        """ Create a new (or temporary) file. """
+        iep.editors.newFile()
+        print('yeah')
+    
+    def fun_open(self, value):
+        """ Open an existing file. """
+        iep.editors.openFile()
+    
+    def fun_close(self, value):
+        """ Close the application. """
+        iep.main.close()
+    
+    def fun_restart(self, value):
+        """ Restart the application. """
+        # close first
+        self.fun_close(None)
+        
+        # put a space in front of all args
+        args = []
+        for i in sys.argv:
+            args.append(" "+i)
+        
+        # replace the process!                
+        os.execv(sys.executable, args)
+
+
+class EditMenu(BaseMenu):
+    def fill(self):
+        addItem = self.addItem
+        
+        des = self.fun_cut.__doc__
+        addItem( MI(self.fun_cut, None, 'Cut', des) )
+        
+        des = self.fun_copy.__doc__
+        addItem( MI(self.fun_copy, None, 'Copy', des) )
+        
+        des = self.fun_paste.__doc__
+        addItem( MI(self.fun_paste, None, 'Paste', des) )
+        
+    
+    def fun_cut(self, value):
+        """ Cut the text/object. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'cut'):
+            widget.cut()
+        
+    def fun_copy(self, value):
+        """ Copy the text/object. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'copy'):
+            widget.copy()
+    
+    def fun_paste(self, value):
+        """ Paste the text/object. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'paste'):
+            widget.paste()
+    
+    def fun_selectAll(self, value):
+        """ Open an existing file. """
+        iep.editors.openFile()
+    
+    def fun_undo(self, value):
+        """ Open an existing file. """
+        iep.editors.openFile()
+    
+    def fun_redo(self, value):
+        """ Open an existing file. """
+        iep.editors.openFile()
+
+
 class MenuHelper:
     
     def __init__(self, menubar):
@@ -223,23 +327,29 @@ class MenuHelper:
 #         menus.append( menubar.addMenu("Help") )
         
         
-        for menuName in menus:
-            menu = MenuBase(menuName, menubar)
-            menu.contentFunc = self.file
+#         for menuName in menus:
+#             menu = BaseMenu(menuName, menubar)
+#             menu.contentFunc = self.file
+#             menubar.addMenu(menu)
+        menus = [('File', FileMenu), ('Edit', EditMenu)]
+        
+        for menuName, menuClass in menus:
+            menu = menuClass(menuName, menubar)
             menubar.addMenu(menu)
+            
         
-        menubar.triggered.connect(self.onTrigger)
+#         menubar.addMenu( FileMenu("File", menubar) )
+#         menubar.addMenu( EditMenu("Edit", menubar) )
+        
+        menubar.triggered.connect(self.onTrigger)        
 #         menubar.hovered.connect(self.onHover)
-        
+    
     def onTrigger(self, action):
         print('trigger:', action.text())
         action.func(action.text())
     
     def onHover(self, action):
         print('hover:', action.text())
-    
-    def onBeforeShow(self):
-        print('beforeshow')
     
     
     def file(self):
@@ -272,13 +382,4 @@ class MenuHelper:
     def pluginsCb(self, pluginName):
         pass
     
-    
-    ## response for File menu
-    
-    def file_new(self, value):
-        iep.editors.newFile()
-    
-    def file_open(self, value):
-        iep.editors.openFile()
-        
     

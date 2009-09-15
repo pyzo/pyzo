@@ -28,6 +28,9 @@ class MainWindow(qt.QMainWindow):
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
         
+        # store myself
+        iep.main = self
+        
         # set layout as it was the previous time
         pos = iep.config.layout
         self.move(pos.left, pos.top)
@@ -47,28 +50,10 @@ class MainWindow(qt.QMainWindow):
         iep.editors = EditorBook(self)
         self.setCentralWidget(iep.editors)
         
-        # create menu
+        # create statusbar en menu 
+        # (keep a ref to the menuhelper so it is not destroyed)
         status = self.statusBar()
-        menu = self.menuBar()
-        
-        MenuHelper(self.menuBar())
-
-#         fmenu = menu.addMenu("File")
-#         ds, cb = "Create new file", self.m_new
-#         fmenu.addAction( self.createAction("New file", ds, "Ctrl+N", cb ))
-#         ds, cb = "Close the currently selected file", self.m_close
-#         fmenu.addAction( self.createAction("Close file", ds, "Ctrl+W", cb ))
-#         ds, cb = "Close and restart IEP", self.m_restart
-#         fmenu.addAction( self.createAction("Restart IEP", ds, "", cb ))
-#         ds, cb = "Exit from IEP", self.m_exit
-#         fmenu.addAction( self.createAction("Exit IEP", ds, "Alt+F4", cb ) )
-#         menu.addMenu("Session")
-        
-        menu.triggered.connect(self.onTrigger)
-#         item = ("New File",
-#             "Create a new file",
-#             key,
-#             callback)
+        self._menuhelper = MenuHelper(self.menuBar())
         
         # test dock widgets
         dock = qt.QDockWidget("Find in files", self)
@@ -82,39 +67,7 @@ class MainWindow(qt.QMainWindow):
     
     def onTrigger(self, action):
         print('trigger:', action.text())
-        
-    def m_new(self):
-        iep.editors.newFile()
-    def m_close(self):
-        iep.editors.closeFile()
-        
-    def m_exit(self):
-        """ Close IEP """
-        self.close()
-        
-    def m_restart(self, event):
-        """ Restart IEP """
-        print('event:',event)
-        self.close()
-        
-        # put a space in front of all args
-        args = []
-        for i in sys.argv:
-            args.append(" "+i)
-        # replace the process!                
-        os.execv(sys.executable, args)
     
-    
-    def createAction(self, name, descr, shortcut, cb):
-        """ Create an action object, with the specified stuff. """
-        act = qt.QAction(name,self)
-        act.setShortcut(shortcut)
-        act.setStatusTip(descr)
-        if cb is not None:
-            act.triggered.connect(cb)
-            #self.connect(act, QtCore.SIGNAL('triggered()'), cb)
-        return act
-
 
     def closeEvent(self, event):
         """ Override close event handler. """
