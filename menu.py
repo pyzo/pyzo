@@ -14,15 +14,17 @@ class MI:
     - a boolean - values is True or False, indicating the currents state
     - a choice - values is a list of Strings, ending with the current
     
-    if tip is None, it will use func.__doc__
+    - func.__doc__ is used as statustip
+    - if isChoice, func(None) should give the 'values' property.
     """
-    def __init__(self, text, func, values=None, tip=None ):
-        if tip is None:
-            tip = func.__doc__
-        self.func = func
+    def __init__(self, text, func, isChoice=False):        
         self.text = text
-        self.tip = tip
-        self.values = values
+        self.func = func
+        self.tip = func.__doc__
+        if isChoice:
+            self.values = func(None)
+        else:
+            self.values = None
 
 
     def createRealMenuItem(self, menu):
@@ -33,8 +35,8 @@ class MI:
         if self.values is None:
             action = qt.QAction(menu)
             action.func = self.func
-            action.value = None
-        elif self.values in [False, True, 0, 1]:
+            action.value = True
+        elif self.values in [True, False, 0, 1]:
             action = qt.QAction(menu)
             action.func = self.func
             action.value = not self.values
@@ -43,23 +45,33 @@ class MI:
         elif isinstance(self.values, list):
             action = qt.QMenu(menu)
             for value in self.values[:-1]:
-                sub = qt.Qaction(menu)
-                sub.setText(value)
+                sub = qt.QAction(menu)
+                sub.setText(str(value))
                 sub.setStatusTip(self.tip)
                 sub.func = self.func
                 sub.value = value
+                sub.setCheckable(True)
+                if value == self.values[-1]:
+                    sub.setChecked(True)
                 action.addAction(sub)
         else:
             print(self.values)
             raise Exception('Dont know what to do')
-        action.setText(self.text)
+        
+        if hasattr(action,'setText'):
+            action.setText(self.text)
+        else:
+            action.setTitle(self.text)
         action.setStatusTip(self.tip)
         return action
 
 
 class BaseMenu(qt.QMenu):
+    """ Base class for the menus File, Edit, Settings, etc. """
     
     def showEvent(self, event):
+        """ Called right before menu is shown. The menu should update
+        its contents before actually showing. """
         
         # clear
         self.clear()
@@ -72,6 +84,7 @@ class BaseMenu(qt.QMenu):
     
     def addItem(self, item):
         """ Add a MI instance. """
+        
         # produce real menu items
         if isinstance(item, MI):
             item = item.createRealMenuItem(self)
@@ -86,6 +99,7 @@ class BaseMenu(qt.QMenu):
             self.addSeparator()
     
     def fill(self):
+        """ Update the contents. """
         raise NotImplementedError()
     
 
@@ -93,11 +107,14 @@ class FileMenu(BaseMenu):
     def fill(self):
         addItem = self.addItem
         
-        addItem( MI('New File', self.fun_new, None) )
-        addItem( MI('Open File', self.fun_open, None) )        
+        addItem( MI('New file', self.fun_new) )
+        addItem( MI('Open file', self.fun_open) )
+        addItem( MI('Save file', self.fun_save) )
+        addItem( MI('Save file as ...', self.fun_saveAs) )
+        addItem( MI('Close file', self.fun_closeFile) )
         addItem(None)
-        addItem( MI('Restart IEP', self.fun_restart, None) )
-        addItem( MI('Close IEP', self.fun_close, None) )
+        addItem( MI('Restart IEP', self.fun_restart) )
+        addItem( MI('Close IEP', self.fun_close) )
     
     
     def fun_new(self, value):
@@ -107,6 +124,18 @@ class FileMenu(BaseMenu):
     def fun_open(self, value):
         """ Open an existing file. """
         iep.editors.openFile()
+    
+    def fun_save(self, value):
+        """ Save the current file. """
+        iep.editors.saveFile()
+    
+    def fun_saveAs(self, value):
+        """ Save the current file under another name. """
+        iep.editors.saveFileAs()
+    
+    def fun_closeFile(self, value):
+        """ Close the current file. """
+        iep.editors.closeFile()
     
     def fun_close(self, value):
         """ Close the application. """
@@ -130,9 +159,9 @@ class EditMenu(BaseMenu):
     def fill(self):
         addItem = self.addItem
         
-        addItem( MI('Cut', self.fun_cut, None) )
-        addItem( MI('Copy', self.fun_copy, None) )
-        addItem( MI('Paste', self.fun_paste, None) )
+        addItem( MI('Cut', self.fun_cut) )
+        addItem( MI('Copy', self.fun_copy) )
+        addItem( MI('Paste', self.fun_paste) )
         
     
     def fun_cut(self, value):
@@ -170,23 +199,41 @@ class SettingsMenu(BaseMenu):
     def fill(self):
         addItem = self.addItem
         
-        value = iep.config.showWhiteSpace
-        addItem( MI('Show whitespace', self.fun_whitespace, value) )
-        value = iep.config.wrapText
-        addItem( MI('Wrap text', self.fun_wrap, value) )
+        addItem( MI('Show whitespace', self.fun_whitespace, True) )
+        addItem( MI('Wrap text', self.fun_wrap, True) )
+        addItem( MI('Edge column', self.fun_edgecolumn, True) )
+        addItem( None )
+        addItem( MI('Change key mappings', self.fun_keymap) )
     
     def fun_whitespace(self, value):
         """ Show tabs and spaces in the editor. """
+        if value is None:
+            return bool(iep.config.showWhiteSpace)
         iep.config.showWhiteSpace = value
         for editor in iep.editors:
             editor.setViewWhiteSpace(value)
     
     def fun_wrap(self, value):
         """ Wrap long lines in the editor. """
+        if value is None:
+            return bool(iep.config.wrapText)
         iep.config.wrapText = value
         for editor in iep.editors:
             editor.setWrapMode(int(value))
     
+    def fun_edgecolumn(self, value):
+        """ The position of the edge column indicator. """
+        if value is None:
+            return [60, 65, 70, 75, 76, 77, 78,79,80, iep.config.edgeColumn]
+        iep.config.edgeColumn = value
+        for editor in iep.editors:
+            editor.setEdgeColumn(value)
+    
+    def fun_keymap(self, value):
+        """ Change the keymappings for the menu. """
+        dialog = KeymappingDialog()
+        dialog.exec_()
+        
 class MenuHelper:
     
     def __init__(self, menubar):
@@ -241,4 +288,74 @@ class MenuHelper:
     def pluginsCb(self, pluginName):
         pass
     
+
+class KeyMapModel(QtCore.QAbstractItemModel):
+    def __init__(self, *args):
+        QtCore.QAbstractListModel.__init__(self,*args)
+        self._list = ['hai', 'nou', 'omg']
     
+    def data(self, index, role):
+        if index.isValid() and role==0: # displayrole 
+            if index.column()==0:
+                return self._list[ index.row() ]
+            else:
+                return '<edit>'
+    
+    def rowCount(self, parent):
+        return len(self._list)
+    
+    def columnCount(self, parent):
+        return 2
+    
+    def headerData(self, section, orientation, role):
+        if role == 0:# and orientation==1:
+            return 'lala' + str(section)
+    
+    def parent(self, index):
+        return QtCore.QModelIndex()
+    
+    def hasChildren(self, index):
+        # no items have parents (except the root item)
+        if index.row()<0:
+            return True
+        return False 
+    
+    def index(self, row, column, parent):
+        return self.createIndex(row, column, None)
+    
+    def flags(self, index):
+        base = QtCore.QAbstractItemModel
+        if index.isValid() and index.column()==1:
+            return base.flags(self, index) | QtCore.Qt.ItemIsEditable
+        else:
+            return base.flags(self, index)
+    
+    def setData(self, index, value, role):
+        if index.isValid() and role==QtCore.Qt.EditRole:
+            self._list[index.row()] = value
+            return True
+        else:
+            return False
+    
+class KeymappingDialog(QtGui.QDialog):
+    def __init__(self, *args):
+        QtGui.QDialog.__init__(self, *args)
+        
+        # set title
+        self.setWindowTitle('IEP keyboard mappings')
+        
+        # set size
+        size = 400,400
+        self.resize(*size)
+        self.setMaximumSize(*size)
+        self.setMinimumSize(*size)
+        
+        self.model = KeyMapModel()
+        self.tab = QtGui.QTabWidget(self)
+        self.tab.resize(*size)
+        for name in ['File', 'Edit', 'Settings']:
+            w = QtGui.QTreeView(self.tab)
+            w.setModel(self.model)
+            self.tab.addTab(w, name)
+        
+        
