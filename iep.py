@@ -41,43 +41,54 @@ path = os.path.dirname( os.path.abspath(path) )
 
 ## the configuration stuff...
 
-# create strux in module namespace
+defaultConfigString = """
+qtstyle = $plastique
+showWhiteSpace = 0
+edgeColumn = 80
+editorState = $
+showIndentGuides = 1
+wrapText = 0
+indentWidth = 4
+plugins = dict:
+  top = list:
+  bottom = list:
+layout = dict:
+  splitter2 = 400
+  splitter0 = 600
+  splitter1 = 400
+  heigth = 700
+  top = 42
+  width = 900
+  maximized = 0
+  left = 181
+"""
+
+# create ssdf in module namespace
 config = ssdf.new()
+defaultConfig = ssdf.loads(defaultConfigString)
+
 
 def loadConfig():
     """Load configurations, create if doesn't exist!"""
+    
+    # init
     filename = os.path.join(path,"config.ssdf")
+    ssdf.clear(config)
+    
+    # load file if we can
     if os.path.isfile(filename):
-        # load file        
         tmp = ssdf.load(os.path.join(path,"config.ssdf"))
         for key in tmp:
             config[key] = tmp[key]
-    else:
-        # create file
-        config.Clear()
-        # todo: if not available produce new file also for styles and keymaps
-        config.editorState = ''
-        
-        config.layout = ssdf.new()
-        config.layout.left = 110
-        config.layout.top = 50
-        config.layout.heigth = 700
-        config.layout.width = 900
-        config.layout.maximized = 0
-        config.layout.splitter0 = 600
-        config.layout.splitter1 = 400
-        config.layout.splitter2 = 400          
-        config.layout.pluginsLocation = "right"
-        config.layout.shellsLocation = "bottom"
-        
-        config.plugins = ssdf.new()
-        config.plugins.top = []
-        config.plugins.bottom = []
-        
-        
+    
+    # fill in missing values
+    for key in defaultConfig:
+        if key not in config:
+            config[key] = defaultConfig[key]
+    
 def saveConfig():
     """Store configurations"""
-    ssdf.save( os.path.join(path,"config.xml"), config )
+    ssdf.save( os.path.join(path,"config.ssdf"), config )
 
 # load on import
 loadConfig()
@@ -91,6 +102,7 @@ def startIep():
     from main import MainWindow
     from PyQt4 import QtCore, QtGui
     app = QtGui.QApplication([])
+    app.setStyle(config.qtstyle)
     frame=MainWindow()
     app.exec_()
     

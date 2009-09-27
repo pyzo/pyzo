@@ -40,8 +40,8 @@ class MainWindow(qt.QMainWindow):
         
         # set label and icon
         self.setWindowTitle("IEP")
-        icon = qt.QIcon('iep.ico')
-        self.setWindowIcon(icon)
+        iep.icon = qt.QIcon('iep.ico')
+        self.setWindowIcon(iep.icon)
         
         # create splitter
         #self.splitter0 = qt.QSplitter(self)
@@ -87,12 +87,8 @@ class MainWindow(qt.QMainWindow):
         
         # proceed with closing...
         event.accept()
-        
-    
-app = QtGui.QApplication([])
-w = MainWindow()
-app.exec_()
 
-# if __name__ == "__main__":    
-#     iep.startIep()
+
+if __name__ == "__main__":    
+    iep.startIep()
     
