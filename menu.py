@@ -1,5 +1,6 @@
 
 import os, sys
+import unicodedata
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui
@@ -64,10 +65,24 @@ class MI:
             action.setTitle(self.text)
         action.setStatusTip(self.tip)
         return action
-
+    
 
 class BaseMenu(qt.QMenu):
     """ Base class for the menus File, Edit, Settings, etc. """
+    
+    def __init__(self, menuname, parent):
+        QtGui.QMenu.__init__(self, menuname, parent)
+        
+        # keep a list at the menubar. We could use weakrefs, but the
+        # menu's in the menubar are never destroyed, so don't bother
+        if isinstance(parent, QtGui.QMenuBar):
+            if not hasattr(parent, '_menus'):
+                parent._menus = []
+            parent._menus.append(self)
+        
+        # also keep a list of items here
+        self._actions = []
+        self._menuname = menuname
     
     def showEvent(self, event):
         """ Called right before menu is shown. The menu should update
@@ -75,6 +90,7 @@ class BaseMenu(qt.QMenu):
         
         # clear
         self.clear()
+        self._actions[:] = []
         
         # insert items to show
         self.fill()
@@ -87,16 +103,25 @@ class BaseMenu(qt.QMenu):
         
         # produce real menu items
         if isinstance(item, MI):
-            item = item.createRealMenuItem(self)
+            realitem = item.createRealMenuItem(self)
         else:
-            item = None
+            realitem = None
         # append
-        if isinstance(item, qt.QMenu):
-            self.addMenu(item)
-        elif isinstance(item, qt.QAction):
-            self.addAction(item)
+        if isinstance(realitem, qt.QMenu):
+            self.addMenu(realitem)
+        elif isinstance(realitem, qt.QAction):
+            self.addAction(realitem)
         else:
             self.addSeparator()
+        
+        # keep a list of the virtual actions so the keymap dialog 
+        # knows the structure of the menu.
+        if isinstance(item, MI):
+            if isinstance(item.values, list):
+                for value in item.values:                
+                    self._actions.append(item.text+' -> '+str(value))
+            else:
+                self._actions.append(item.text)
     
     def fill(self):
         """ Update the contents. """
@@ -199,11 +224,22 @@ class SettingsMenu(BaseMenu):
     def fill(self):
         addItem = self.addItem
         
+        addItem( MI('QT style', self.fun_qtstyle, True) )
+        
         addItem( MI('Show whitespace', self.fun_whitespace, True) )
         addItem( MI('Wrap text', self.fun_wrap, True) )
         addItem( MI('Edge column', self.fun_edgecolumn, True) )
         addItem( None )
         addItem( MI('Change key mappings', self.fun_keymap) )
+    
+    def fun_qtstyle(self, value):
+        """ Chose the QT style to use. """
+        if value is None:
+            tmp = [i for i in QtGui.QStyleFactory.keys()]
+            tmp.append(iep.config.qtstyle)
+            return tmp
+        iep.config.qtstyle = value
+        QtGui.qApp.setStyle(value)
     
     def fun_whitespace(self, value):
         """ Show tabs and spaces in the editor. """
@@ -294,6 +330,10 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         QtCore.QAbstractListModel.__init__(self,*args)
         self._list = ['hai', 'nou', 'omg']
     
+    def fill(self, menu):
+        menu.fill()
+        self._list = [i for i in menu._actions]
+    
     def data(self, index, role):
         if index.isValid() and role==0: # displayrole 
             if index.column()==0:
@@ -336,6 +376,46 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             return True
         else:
             return False
+
+k = QtCore.Qt
+keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape', 
+    k.Key_Tab:'Tab', k.Key_Backspace:'Backspace', k.Key_Pause:'Pause', 
+    k.Key_F1:'F1', k.Key_F2:'F2', k.Key_F3:'F3', k.Key_F4:'F4', k.Key_F5:'F5',
+    k.Key_F6:'F6', k.Key_F7:'F7', k.Key_F8:'F8', k.Key_F9:'F9', 
+    k.Key_F10:'F10', k.Key_F11:'F11', k.Key_F12:'F12', k.Key_Space:'Space',
+    k.Key_Delete:'Delete', k.Key_Insert:'Insert', k.Key_Home:'Home', 
+    k.Key_End:'End', k.Key_PageUp:'PageUp', k.Key_PageDown:'PageDown',
+    k.Key_Left:'Left', k.Key_Up:'Up', k.Key_Right:'Right', k.Key_Down:'Down' }
+
+
+class KeyMapLineEdit(QtGui.QLineEdit):
+    
+    def __init__(self, *args, **kwargs):
+        QtGui.QLineEdit.__init__(self, *args, **kwargs)
+        self.setText('<enter key combination>')
+    
+    def focusInEvent(self, event):
+        self.clear()
+        QtGui.QLineEdit.focusInEvent(self, event)
+    
+    def keyPressEvent(self, event):
+        #text = event.text()
+        key = event.key()
+        try:
+            text = chr(event.nativeVirtualKey()).upper()
+        except Exception:
+            pass        
+        if key in keymap:
+            text = keymap[key]
+        if text:
+            if QtGui.qApp.keyboardModifiers() & k.AltModifier:
+                text  = 'Alt+' + text
+            if QtGui.qApp.keyboardModifiers() & k.ShiftModifier:
+                text  = 'Shift+' + text
+            if QtGui.qApp.keyboardModifiers() & k.ControlModifier:
+                text  = 'Control+' + text
+            self.setText(text)
+
     
 class KeymappingDialog(QtGui.QDialog):
     def __init__(self, *args):
@@ -343,19 +423,35 @@ class KeymappingDialog(QtGui.QDialog):
         
         # set title
         self.setWindowTitle('IEP keyboard mappings')
+        self.setWindowIcon(iep.icon)
         
         # set size
         size = 400,400
-        self.resize(*size)
-        self.setMaximumSize(*size)
-        self.setMinimumSize(*size)
+        offset = 35
+        size2 = size[0], size[1]+offset
+        self.resize(*size2)
+        self.setMaximumSize(*size2)
+        self.setMinimumSize(*size2)
         
-        self.model = KeyMapModel()
         self.tab = QtGui.QTabWidget(self)
         self.tab.resize(*size)
-        for name in ['File', 'Edit', 'Settings']:
-            w = QtGui.QTreeView(self.tab)
-            w.setModel(self.model)
-            self.tab.addTab(w, name)
+        self.tab.move(0,offset)
         
+        # fill tab
+        self._models = []
+        for menu in iep.main.menuBar()._menus:
+            w = QtGui.QTreeView(self.tab)
+            tmp = KeyMapModel()
+            tmp.fill(menu)
+            self._models.append(tmp)
+            w.setModel(tmp)
+            self.tab.addTab(w, menu._menuname)
+        
+        
+        self._editBox = KeyMapLineEdit(self)
+        self._but = QtGui.QPushButton('Apply key combination', self)
+        self._editBox.move(10,5)
+        self._editBox.resize(180,25)
+        self._but.move(200,5)
+        self._but.resize(140,25)
         

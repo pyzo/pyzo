@@ -907,8 +907,11 @@ class EditorBook(QtGui.QWidget):
         filename = QtGui.QFileDialog.getSaveFileName(self,
             msg, startdir, filter)
         
-        # proceed
-        self.saveFile(editor, filename)
+        # proceed or cancel
+        if filename:
+            self.saveFile(editor, filename)
+        else:
+            pass
     
     
     def saveFile(self, editor=None, filename=None):
