@@ -48,6 +48,7 @@ edgeColumn = 80
 editorState = $
 showIndentGuides = 1
 wrapText = 0
+shortcuts = dict:
 indentWidth = 4
 plugins = dict:
   top = list:

@@ -67,6 +67,40 @@ class MI:
         return action
     
 
+class SimpleStructuredItem:
+    def __init__(self, parent=None, value=''):
+        self.parent = parent
+        self.value = value
+        self.children = []
+    def append(self, value):
+        tmp = SimpleStructuredItem(self, value)
+        self.children.append( tmp )
+        return tmp
+    def clear(self):
+        self.children[:] = []
+    def getRow(self):
+        if self.parent is None:
+            return -1
+        else:
+            L = self.parent.children
+            if not self in L:
+                return -1
+            return L.index(self)
+    def getFullName(self):
+        item = self
+        text = self.value
+        while item.parent:
+            item = item.parent
+            text = item.value + '__' + text
+        text = text.replace(' ', '_').replace('.', '').lower()
+        return text
+    def getShortcut(self):
+        name = self.getFullName()
+        tmp = ''
+        if name in iep.config.shortcuts:
+            tmp = iep.config.shortcuts[name]
+        return tmp
+
 class BaseMenu(qt.QMenu):
     """ Base class for the menus File, Edit, Settings, etc. """
     
@@ -81,16 +115,12 @@ class BaseMenu(qt.QMenu):
             parent._menus.append(self)
         
         # also keep a list of items here
-        self._actions = []
+        self._actions = SimpleStructuredItem()
         self._menuname = menuname
     
     def showEvent(self, event):
         """ Called right before menu is shown. The menu should update
         its contents before actually showing. """
-        
-        # clear
-        self.clear()
-        self._actions[:] = []
         
         # insert items to show
         self.fill()
@@ -118,18 +148,22 @@ class BaseMenu(qt.QMenu):
         # knows the structure of the menu.
         if isinstance(item, MI):
             if isinstance(item.values, list):
+                tmp = self._actions.append(item.text)
                 for value in item.values:                
-                    self._actions.append(item.text+' -> '+str(value))
+                    tmp.append(str(value))
             else:
                 self._actions.append(item.text)
     
     def fill(self):
         """ Update the contents. """
-        raise NotImplementedError()
+        # clear first
+        self.clear()
+        self._actions.clear()
     
 
 class FileMenu(BaseMenu):
     def fill(self):
+        BaseMenu.fill(self)
         addItem = self.addItem
         
         addItem( MI('New file', self.fun_new) )
@@ -182,6 +216,7 @@ class FileMenu(BaseMenu):
 
 class EditMenu(BaseMenu):
     def fill(self):
+        BaseMenu.fill(self)
         addItem = self.addItem
         
         addItem( MI('Cut', self.fun_cut) )
@@ -222,6 +257,7 @@ class EditMenu(BaseMenu):
 
 class SettingsMenu(BaseMenu):
     def fill(self):
+        BaseMenu.fill(self)
         addItem = self.addItem
         
         addItem( MI('QT style', self.fun_qtstyle, True) )
@@ -328,21 +364,34 @@ class MenuHelper:
 class KeyMapModel(QtCore.QAbstractItemModel):
     def __init__(self, *args):
         QtCore.QAbstractListModel.__init__(self,*args)
-        self._list = ['hai', 'nou', 'omg']
+        self._root = None
     
     def fill(self, menu):
         menu.fill()
-        self._list = [i for i in menu._actions]
+        self._root = menu._actions
     
     def data(self, index, role):
-        if index.isValid() and role==0: # displayrole 
-            if index.column()==0:
-                return self._list[ index.row() ]
-            else:
-                return '<edit>'
+        if not index.isValid() or role!=0:
+            return None
+        
+        item = index.internalPointer()
+        pindex = index.parent()
+        
+        if index.column()==0:
+            return item.value
+        elif item.children:
+            return ""
+        else:
+            text =  item.getShortcut()
+            if not text:
+                text = "<no shortcut>"
+            return text
     
     def rowCount(self, parent):
-        return len(self._list)
+        if parent.isValid():
+            return len(parent.internalPointer().children)
+        else:
+            return len(self._root.children)
     
     def columnCount(self, parent):
         return 2
@@ -352,30 +401,50 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             return 'lala' + str(section)
     
     def parent(self, index):
-        return QtCore.QModelIndex()
+        if not index.isValid():
+            return QtCore.QModelIndex()
+        item = index.internalPointer()
+        if item.parent is self._root:
+            return QtCore.QModelIndex()
+        else:
+            return self.createIndex(item.parent.getRow(), 0, item.parent)
     
     def hasChildren(self, index):
         # no items have parents (except the root item)
+        
         if index.row()<0:
             return True
-        return False 
+        else:
+            return len(index.internalPointer().children)
     
     def index(self, row, column, parent):
-        return self.createIndex(row, column, None)
+        if not self.hasIndex(row, column, parent):
+            return QtCore.QModelIndex()
+        # establish parent
+        if parent.isValid():
+            parentItem = parent.internalPointer()
+        else:
+            parentItem = self._root
+        # produce index
+        childItem = parentItem.children[row]
+        return self.createIndex(row, column, childItem)
+        # This is the trick. The internal pointer is the way to establish
+        # correspondence between ModelIndex and underlying data.
     
     def flags(self, index):
         base = QtCore.QAbstractItemModel
-        if index.isValid() and index.column()==1:
+        item = index.internalPointer()
+        if index.isValid() and index.column()==1 and not item.children:
             return base.flags(self, index) | QtCore.Qt.ItemIsEditable
         else:
             return base.flags(self, index)
     
     def setData(self, index, value, role):
         if index.isValid() and role==QtCore.Qt.EditRole:
-            self._list[index.row()] = value
-            return True
-        else:
-            return False
+            item = index.internalPointer()
+            item.value += value
+        return True
+
 
 k = QtCore.Qt
 keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape', 
@@ -392,7 +461,7 @@ class KeyMapLineEdit(QtGui.QLineEdit):
     
     def __init__(self, *args, **kwargs):
         QtGui.QLineEdit.__init__(self, *args, **kwargs)
-        self.setText('<enter key combination>')
+        self.setText('<enter key combination here>')
     
     def focusInEvent(self, event):
         self.clear()
@@ -433,25 +502,61 @@ class KeymappingDialog(QtGui.QDialog):
         self.setMaximumSize(*size2)
         self.setMinimumSize(*size2)
         
+        self._selectedIndex = None
+        
         self.tab = QtGui.QTabWidget(self)
         self.tab.resize(*size)
         self.tab.move(0,offset)
         
         # fill tab
         self._models = []
+        self._trees = []
         for menu in iep.main.menuBar()._menus:
             w = QtGui.QTreeView(self.tab)
             tmp = KeyMapModel()
             tmp.fill(menu)
             self._models.append(tmp)
+            self._trees.append(w)
             w.setModel(tmp)
             self.tab.addTab(w, menu._menuname)
-        
+            w.clicked.connect(self.onClickSelect)
         
         self._editBox = KeyMapLineEdit(self)
-        self._but = QtGui.QPushButton('Apply key combination', self)
+        self._but1 = QtGui.QPushButton('Apply key combination', self)
+        self._but2 = QtGui.QPushButton('Clear', self)
         self._editBox.move(10,5)
         self._editBox.resize(180,25)
-        self._but.move(200,5)
-        self._but.resize(140,25)
+        self._but1.move(200,5)
+        self._but1.resize(140,25)
+        self._but2.move(350,5)
+        self._but2.resize(40,25)
+        
+        self.tab.currentChanged.connect(self.onTabSelect)
+        self._but1.clicked.connect(self.onClickApply)
+    
+    def onTabSelect(self):
+        self._selectedIndex = None
+        self._editBox.setText('')
+        
+    def onClickSelect(self, index):
+        item = index.internalPointer()
+        self._editBox.setText( item.getShortcut() )
+        self._selectedIndex = index
+    
+    def onClickApply(self):
+        if self._selectedIndex is None:
+            return
+        index = self._selectedIndex
+        item = index.internalPointer()
+        name = item.getFullName()
+        key = self._editBox.text()
+        if key.startswith("<"):
+            key = ''
+        if key:
+            iep.config.shortcuts[name] = key
+            print(name, key)
+        index.model().dataChanged.emit(index,index)
+        #for tree in self._trees:
+        #    tree.update()
+            
         
