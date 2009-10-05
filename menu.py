@@ -46,7 +46,7 @@ class MI:
         elif isinstance(self.values, list):
             action = qt.QMenu(menu)
             for value in self.values[:-1]:
-                sub = qt.QAction(menu)
+                sub = qt.QAction(action)
                 sub.setText(str(value))
                 sub.setStatusTip(self.tip)
                 sub.func = self.func
@@ -65,41 +65,7 @@ class MI:
             action.setTitle(self.text)
         action.setStatusTip(self.tip)
         return action
-    
 
-class SimpleStructuredItem:
-    def __init__(self, parent=None, value=''):
-        self.parent = parent
-        self.value = value
-        self.children = []
-    def append(self, value):
-        tmp = SimpleStructuredItem(self, value)
-        self.children.append( tmp )
-        return tmp
-    def clear(self):
-        self.children[:] = []
-    def getRow(self):
-        if self.parent is None:
-            return -1
-        else:
-            L = self.parent.children
-            if not self in L:
-                return -1
-            return L.index(self)
-    def getFullName(self):
-        item = self
-        text = self.value
-        while item.parent:
-            item = item.parent
-            text = item.value + '__' + text
-        text = text.replace(' ', '_').replace('.', '').lower()
-        return text
-    def getShortcut(self):
-        name = self.getFullName()
-        tmp = ''
-        if name in iep.config.shortcuts:
-            tmp = iep.config.shortcuts[name]
-        return tmp
 
 class BaseMenu(qt.QMenu):
     """ Base class for the menus File, Edit, Settings, etc. """
@@ -113,10 +79,6 @@ class BaseMenu(qt.QMenu):
             if not hasattr(parent, '_menus'):
                 parent._menus = []
             parent._menus.append(self)
-        
-        # also keep a list of items here
-        self._actions = SimpleStructuredItem()
-        self._menuname = menuname
     
     def showEvent(self, event):
         """ Called right before menu is shown. The menu should update
@@ -143,22 +105,11 @@ class BaseMenu(qt.QMenu):
             self.addAction(realitem)
         else:
             self.addSeparator()
-        
-        # keep a list of the virtual actions so the keymap dialog 
-        # knows the structure of the menu.
-        if isinstance(item, MI):
-            if isinstance(item.values, list):
-                tmp = self._actions.append(item.text)
-                for value in item.values:                
-                    tmp.append(str(value))
-            else:
-                self._actions.append(item.text)
     
     def fill(self):
         """ Update the contents. """
         # clear first
         self.clear()
-        self._actions.clear()
     
 
 class FileMenu(BaseMenu):
@@ -296,7 +247,7 @@ class SettingsMenu(BaseMenu):
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """
         if value is None:
-            return [60, 65, 70, 75, 76, 77, 78,79,80, iep.config.edgeColumn]
+            return [60, 65, 70, 75, 76, 77, 78,79,80,-1, iep.config.edgeColumn]
         iep.config.edgeColumn = value
         for editor in iep.editors:
             editor.setEdgeColumn(value)
@@ -361,40 +312,80 @@ class MenuHelper:
         pass
     
 
+def getFullName(action):
+    """ Get the full name of the action. 
+    This is the key in the iep.config.shortcuts dict
+    """
+    item = action
+    text = action.text()
+    if not text:
+        text = ''
+    while isinstance(item.parent(), QtGui.QMenu):
+        item = item.parent()
+        try:
+            text = item.title() + '__' + text
+        except Exception:
+            print(text, item.title())
+    text = text.replace(' ', '_').replace('.', '').lower()
+    return text
+
+def getShortcut( fullName):
+    """ Given the full name or an action, get the shortcut
+    from the iep.config.shortcuts dict. The shortcut can consist
+    of two parts, separated by a comma. """
+    if isinstance(fullName, QtGui.QAction):
+        fullName = getFullName(fullName)
+    tmp = ''
+    if fullName in iep.config.shortcuts:
+        tmp = iep.config.shortcuts[fullName]
+    return tmp
+    
 class KeyMapModel(QtCore.QAbstractItemModel):
     def __init__(self, *args):
         QtCore.QAbstractListModel.__init__(self,*args)
         self._root = None
     
-    def fill(self, menu):
+    def setRootMenu(self, menu):
+        """ Call this after starting. """
         menu.fill()
-        self._root = menu._actions
+        self._root = menu
+    
     
     def data(self, index, role):
         if not index.isValid() or role!=0:
             return None
         
+        # get menu or action item
         item = index.internalPointer()
-        pindex = index.parent()
         
-        if index.column()==0:
-            return item.value
-        elif item.children:
-            return ""
+        # get text and shortcuts
+        key1, key2 = '', ''
+        if isinstance(item, QtGui.QMenu):
+            value = item.title()
         else:
-            text =  item.getShortcut()
-            if not text:
-                text = "<no shortcut>"
-            return text
+            value = item.text()
+            if not value:
+                value = '-'*10
+            elif index.column()>0:
+                shortcut = getShortcut(item)
+                if not shortcut:
+                    key1, key2 = '-','-'
+                if ',' in shortcut:
+                    key1, key2 = tuple(shortcut.split(','))
+                else:
+                    key1, key2 = shortcut, '-'
+        # return
+        return {0:value,1:key1,2:key2}[index.column()]
     
     def rowCount(self, parent):
         if parent.isValid():
-            return len(parent.internalPointer().children)
+            menu = parent.internalPointer()
+            return len(menu.actions())
         else:
-            return len(self._root.children)
+            return len(self._root.actions())
     
     def columnCount(self, parent):
-        return 2
+        return 3
     
     def headerData(self, section, orientation, role):
         if role == 0:# and orientation==1:
@@ -404,10 +395,15 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QModelIndex()
         item = index.internalPointer()
-        if item.parent is self._root:
+        pitem = item.parent()
+        if pitem is self._root:
             return QtCore.QModelIndex()
         else:
-            return self.createIndex(item.parent.getRow(), 0, item.parent)
+            L = pitem.parent().actions()
+            row = 0
+            if pitem in L:
+                row = L.index(pitem)
+            return self.createIndex(row, 0, pitem)
     
     def hasChildren(self, index):
         # no items have parents (except the root item)
@@ -415,35 +411,37 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         if index.row()<0:
             return True
         else:
-            return len(index.internalPointer().children)
+            return isinstance(index.internalPointer(), QtGui.QMenu)
     
     def index(self, row, column, parent):
-        if not self.hasIndex(row, column, parent):
-            return QtCore.QModelIndex()
+#         if not self.hasIndex(row, column, parent):
+#             return QtCore.QModelIndex()
         # establish parent
-        if parent.isValid():
-            parentItem = parent.internalPointer()
+        if not parent.isValid():
+            parentMenu = self._root
         else:
-            parentItem = self._root
-        # produce index
-        childItem = parentItem.children[row]
-        return self.createIndex(row, column, childItem)
+            parentMenu = parent.internalPointer()
+        # produce index and make menu if the action represents a menu
+        childAction = parentMenu.actions()[row]
+        if childAction.menu():
+            childAction = childAction.menu()        
+        return self.createIndex(row, column, childAction)
         # This is the trick. The internal pointer is the way to establish
         # correspondence between ModelIndex and underlying data.
     
-    def flags(self, index):
-        base = QtCore.QAbstractItemModel
-        item = index.internalPointer()
-        if index.isValid() and index.column()==1 and not item.children:
-            return base.flags(self, index) | QtCore.Qt.ItemIsEditable
-        else:
-            return base.flags(self, index)
-    
-    def setData(self, index, value, role):
-        if index.isValid() and role==QtCore.Qt.EditRole:
-            item = index.internalPointer()
-            item.value += value
-        return True
+#     def flags(self, index):
+#         base = QtCore.QAbstractItemModel
+#         item = index.internalPointer()
+#         if index.isValid() and index.column()==1 and not item.children:
+#             return base.flags(self, index) | QtCore.Qt.ItemIsEditable
+#         else:
+#             return base.flags(self, index)
+#     
+#     def setData(self, index, value, role):
+#         if index.isValid() and role==QtCore.Qt.EditRole:
+#             item = index.internalPointer()
+#             item.value += value
+#         return True
 
 
 k = QtCore.Qt
@@ -458,6 +456,8 @@ keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape',
 
 
 class KeyMapLineEdit(QtGui.QLineEdit):
+    
+    textUpdate = QtCore.pyqtSignal()
     
     def __init__(self, *args, **kwargs):
         QtGui.QLineEdit.__init__(self, *args, **kwargs)
@@ -484,14 +484,81 @@ class KeyMapLineEdit(QtGui.QLineEdit):
             if QtGui.qApp.keyboardModifiers() & k.ControlModifier:
                 text  = 'Control+' + text
             self.setText(text)
+        
+        # notify listeners
+        self.textUpdate.emit()
 
+
+class KeyMapEditDialog(QtGui.QDialog):
+    """ The prompt that is shown when double clicking 
+    a keymap in the tree. """
+    def __init__(self, *args):
+        QtGui.QDialog.__init__(self, *args)
+        
+        # set title
+        self.setWindowTitle('IEP - Edit shortcut mapping')
+        self.setWindowIcon(iep.icon)
+        
+        # set size
+        size = 300,120
+        offset = 35
+        size2 = size[0], size[1]+offset
+        self.resize(*size2)
+        self.setMaximumSize(*size2)
+        self.setMinimumSize(*size2)
+        
+        self._label = QtGui.QLabel("", self)
+        self._label.resize(size[0]-20, 60)
+        self._label.move(10,2)
+        
+        self._line = KeyMapLineEdit('', self)
+        self._line.resize(size[0]-80, 20)
+        self._line.move(10,70)
+        
+        self._clear = QtGui.QPushButton("Clear", self)
+        self._clear.resize(50, 20)
+        self._clear.move(size[0]-60,70)
+        
+        self._apply = QtGui.QPushButton("Apply", self)
+        self._apply.resize(50, 20)
+        self._apply.move(size[0]-110,100)
+        
+        self._cancel = QtGui.QPushButton("Cancel", self)
+        self._cancel.resize(50, 20)
+        self._cancel.move(size[0]-60,100)
+        
+        # callbacks
+        self._clear.clicked.connect(self.onClear)
+        self._line.textUpdate.connect(self.onEdit)
+        
+    def setFullName(self, fullname):
+        tmp = fullname.replace('__',' -> ').replace('_', ' ')
+        self._intro = "Set the shortcut for:\n" + tmp
+        self._label.setText(self._intro)
+        
+    def onClear(self):
+        self._line.clear()
+        self._line.setFocus()
     
+    def onEdit(self):
+        # test if already in use
+        shortcut = self._line.text()
+        for key in iep.config.shortcuts:
+            if iep.config.shortcuts[key].count(fullname):
+                tmp = fullname.replace('__',' -> ').replace('_', ' ')
+                tmp = "WARNING: shortcut already in use for:/n" + tmp
+                self._label.setText(self._intro + '\n\n' + tmp)
+                break
+        else:
+            self._label.setText(self._intro)
+        
+
 class KeymappingDialog(QtGui.QDialog):
     def __init__(self, *args):
         QtGui.QDialog.__init__(self, *args)
         
         # set title
-        self.setWindowTitle('IEP keyboard mappings')
+        self.setWindowTitle('IEP - Shortcut mappings')
         self.setWindowIcon(iep.icon)
         
         # set size
@@ -514,12 +581,13 @@ class KeymappingDialog(QtGui.QDialog):
         for menu in iep.main.menuBar()._menus:
             w = QtGui.QTreeView(self.tab)
             tmp = KeyMapModel()
-            tmp.fill(menu)
+            tmp.setRootMenu(menu)
             self._models.append(tmp)
             self._trees.append(w)
             w.setModel(tmp)
-            self.tab.addTab(w, menu._menuname)
+            self.tab.addTab(w, menu.title())
             w.clicked.connect(self.onClickSelect)
+            w.doubleClicked.connect(self.onDoubleClick)
         
         self._editBox = KeyMapLineEdit(self)
         self._but1 = QtGui.QPushButton('Apply key combination', self)
@@ -532,31 +600,37 @@ class KeymappingDialog(QtGui.QDialog):
         self._but2.resize(40,25)
         
         self.tab.currentChanged.connect(self.onTabSelect)
-        self._but1.clicked.connect(self.onClickApply)
+        #self._but1.clicked.connect(self.onClickApply)
     
     def onTabSelect(self):
         self._selectedIndex = None
         self._editBox.setText('')
         
     def onClickSelect(self, index):
-        item = index.internalPointer()
-        self._editBox.setText( item.getShortcut() )
-        self._selectedIndex = index
+        pass
+        #item = index.internalPointer()
+        #self._editBox.setText( item.getShortcut() )
+        #self._selectedIndex = index
     
-    def onClickApply(self):
-        if self._selectedIndex is None:
-            return
-        index = self._selectedIndex
-        item = index.internalPointer()
-        name = item.getFullName()
-        key = self._editBox.text()
-        if key.startswith("<"):
-            key = ''
-        if key:
-            iep.config.shortcuts[name] = key
-            print(name, key)
-        index.model().dataChanged.emit(index,index)
-        #for tree in self._trees:
-        #    tree.update()
-            
+    def onDoubleClick(self, index):
+        dlg = KeyMapEditDialog(self)
+        dlg.setFullName( getFullName(index.internalPointer()) )
+        dlg.exec_()
+        
+#     def onClickApply(self):
+#         if self._selectedIndex is None:
+#             return
+#         index = self._selectedIndex
+#         item = index.internalPointer()
+#         name = item.getFullName()
+#         key = self._editBox.text()
+#         if key.startswith("<"):
+#             key = ''
+#         if key:
+#             iep.config.shortcuts[name] = key
+#             print(name, key)
+#         index.model().dataChanged.emit(index,index)
+#         #for tree in self._trees:
+#         #    tree.update()
+#             
         
