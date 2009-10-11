@@ -220,6 +220,14 @@ class EditMenu(BaseMenu):
         """ Open an existing file. """
         iep.editors.openFile()
 
+    def fun_lineEndings(self, value):
+        pass
+        
+    def fun_indentation(self, value):
+        pass
+    
+    def fun_style(self, value):
+        pass
 
 class SettingsMenu(BaseMenu):
     def fill(self):
@@ -231,6 +239,8 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Show whitespace', self.fun_whitespace, True) )
         addItem( MI('Wrap text', self.fun_wrap, True) )
         addItem( MI('Edge column', self.fun_edgecolumn, True) )
+        addItem( MI('Default indentation', self.fun_indentation, True) )
+        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
         addItem( MI('Change key mappings', self.fun_keymap) )
     
@@ -266,6 +276,37 @@ class SettingsMenu(BaseMenu):
         iep.config.edgeColumn = value
         for editor in iep.editors:
             editor.setEdgeColumn(value)
+    
+    def fun_indentation(self, value):
+        """ The indentation used in new files. """
+        if value is None:
+            current = iep.config.indentation
+            options = [-1,2,3,4,5,6,7,8,9,10, current]
+            for i in range(len(options)):
+                if options[i] < 0:
+                    options[i] = 'Use tabs'
+                else:
+                    options[i] = '{} spaces'.format(options[i])            
+            return options
+        
+        # parse value
+        try:
+            val = int(value[:2])
+        except ValueError:
+            val = -1
+        
+        # store
+        iep.config.indentation = val
+    
+    def fun_tabWidth(self, value):
+        """ The amount of space of a tab (but only if tabs are used). """
+        if value is None:
+            return [2,3,4,5,6,7,8,9,10, iep.config.tabWidth]
+        
+        # store and apply
+        iep.config.tabWidth = value
+        for editor in iep.editors:
+            editor.setTabWidth(value)
     
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """
