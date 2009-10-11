@@ -319,12 +319,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
         self.setEdgeColumn(iep.config.edgeColumn)
         # indentation        
-        self.setIndentationWidth(iep.config.indentWidth)        
+        self.setIndentation(iep.config.indentation)
+        self.setTabWidth(iep.config.tabWidth)  
         self.setIndentationGuides(iep.config.showIndentGuides)
         self.setViewWhiteSpace(iep.config.showWhiteSpace)
-        # line numbers        
-        self.SendScintilla(self.SCI_SETMARGINWIDTHN, 1, 30)
-        self.SendScintilla(self.SCI_SETMARGINTYPEN, 1, self.SC_MARGIN_NUMBER)
         # wrapping
         if iep.config.wrapText:
             self.setWrapMode(1)
@@ -335,12 +333,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # line endings
         self.setEolMode(self.SC_EOL_LF) # lf is default
         
-        # todo: tabs
-        self.SendScintilla(self.SCI_SETUSETABS, False)
-        
-        # things I'm pretty sure about...        
+        # things we fix
         #
         
+        # line numbers        
+        self.SendScintilla(self.SCI_SETMARGINWIDTHN, 1, 30)
+        self.SendScintilla(self.SCI_SETMARGINTYPEN, 1, self.SC_MARGIN_NUMBER)
         # tab stuff        
         self.SendScintilla(self.SCI_SETBACKSPACEUNINDENTS, True)
         self.SendScintilla(self.SCI_SETTABINDENTS, True)
@@ -382,13 +380,30 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     ## Methods that (closely) wrap a call using SendScintilla
     # and that are not implemented by QScintilla
     
-    def setIndentationWidth(self, width):
-        """ Set the indentation width and tab width simultaniously. """
-        self.SendScintilla(self.SCI_SETINDENT, width)
+    def setIndentation(self, value):
+        """ Set the used indentation. If a number larger than 0,
+        tabs are disabled and the number is the amount of spaces for
+        an indent. If the number is negative, tabs are used for 
+        indentation. """
+        if value < 0:
+            self.SendScintilla(self.SCI_SETUSETABS, True)
+            self.SendScintilla(self.SCI_SETINDENT, 0)
+        else:
+            self.SendScintilla(self.SCI_SETUSETABS, False)
+            self.SendScintilla(self.SCI_SETINDENT, value)
+    
+    def getIndentation(self):
+        if self.SendScintilla(self.SCI_GETUSETABS):
+            return -1
+        else:
+            return self.SendScintilla(self.SCI_GETINDENT)
+    
+    def setTabWidth(self, width):
+        """ Set the tab width """
         self.SendScintilla(self.SCI_SETTABWIDTH, width)    
     
-    def getIndentationWidth(self):
-        return self.SendScintilla(self.SCI_GETINDENT)
+    def getTabWidth(self):
+        return self.SendScintilla(self.SCI_GETTABWIDTH)
     
     def setViewWhiteSpace(self, value):
         """ Set the white space visibility, can be True or False, 
@@ -499,7 +514,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         self.SendScintilla(self.SCI_CALLTIPSHOW, "hallo")
         
-        indentWidth = self.getIndentationWidth()
+        indentWidth = self.getIndentation()
+        indent = ' '
+        if indentWidth<0:
+            indentWidth = 1
+            indent = '\t'
         
         if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             # auto indentation

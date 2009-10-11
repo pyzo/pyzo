@@ -36,6 +36,68 @@ def determineLineEnding(text):
     return mode
 
 
+def determineIndentation(text):
+    """ Get the indentation used in this document.
+    The text is analyzed to find the most used 
+    indentations.
+    The result is -1 if tab indents are most common.
+    A positive result means spaces are used; the amount
+    signifies the amount of spaces per indentation.
+    """
+    
+    # create dictionary of indents, -1 means a tab
+    indents = {}   
+    indents[-1] = 0
+    
+    lines = text.splitlines()
+    lines.insert(0,"") # so the lines start at 1
+    for i in range( len(lines) ):
+        line = lines[i]
+        linelen = len(line)
+        
+        # remove indentation
+        tmp = line.lstrip()
+        indent = len(line) - len(tmp)
+        line = tmp.rstrip()
+        
+        if line.startswith('#'):
+            continue        
+        else:
+            # remove everything after the #
+            line = line.split("#",1)[0].rstrip()        
+        if not line:
+            # continue of no line left
+            continue
+        
+        # a colon means there will be an indent
+        # check the next line (or the one thereafter)
+        # and calculate the indentation difference with THIS line.
+        if line.endswith(":"):
+            if len(lines) > i+2:
+                line2 = lines[i+1]
+                tmp = line2.lstrip()
+                if not tmp:
+                    line2 = lines[i+2] 
+                    tmp = line2.lstrip()
+                if tmp:
+                    ind2 = len(line2)-len(tmp)
+                    ind3 = ind2 - indent
+                    if line2.startswith("\t"):
+                       indents[-1] += 1
+                    elif ind3>0:
+                        if not ind3 in indents:
+                            indents[ind3] = 1
+                        indents[ind3] += 1    
+    
+    # find which was the most common tab width.
+    indent, maxvotes = 0,0
+    for nspaces in indents:
+        if indents[nspaces] > maxvotes:
+            indent, maxvotes = nspaces, indents[nspaces]            
+    #print "found tabwidth %i" % indent
+    return indent
+
+
 def createEditor(parent, filename=None):
     """ Tries to load the file given by the filename and
     if succesful, creates an editor instance to put it in, 
@@ -78,6 +140,10 @@ def createEditor(parent, filename=None):
         editor._filename = filename
         editor._name = os.path.split(filename)[1]
         editor._lineEndings = lineEndings
+        
+        # process indentation
+        indentWidth = determineIndentation(text)
+        editor.setIndentation(indentWidth)
     
     # clear undo history and modify time
     editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
