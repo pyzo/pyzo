@@ -15,7 +15,7 @@ print("Importing iep.main ...")
 
 import os, sys
 import iep
-from editorBook import EditorBook
+from editorStack import EditorStack
 from menu import MenuHelper
 
 from PyQt4 import QtCore, QtGui
@@ -47,7 +47,7 @@ class MainWindow(qt.QMainWindow):
         #self.splitter0 = qt.QSplitter(self)
         
         # set central widget
-        iep.editors = EditorBook(self)
+        iep.editors = EditorStack(self)
         self.setCentralWidget(iep.editors)
         
         # create statusbar en menu 
