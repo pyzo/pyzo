@@ -1,4 +1,4 @@
-""" EditorBook class (implemented in qt)
+""" EditorStack class (implemented in qt)
 """
 
 import os, sys, time, gc
@@ -199,13 +199,13 @@ class ProjectItem(Item):
 class FileItem(Item):
     """ An item representing a file. This class does the loading 
     and saving of that file, but without any checks, that is up to
-    the editorbook. """
+    the editorStack. """
     
     def __init__(self, parent, editor):
         Item.__init__(self, parent)
         
-        # get editorbook
-        editorBook = parent.parent()
+        # get editorStack
+        editorStack = parent.parent()
         
         # set editor
         #if isinstance(editor, ??) (why should we care?)
@@ -604,7 +604,7 @@ class FileListCtrl(qt.QWidget):
         for items in [self._items, self._itemHistory]:
             while item in items:  
                 items.remove(item)
-        # select other editor (also removes from editorbook's boxlayout)
+        # select other editor (also removes from editorStack's boxlayout)
         if self._currentItem is item:
             self.setCurrentItem(None, False)        
         
@@ -664,7 +664,7 @@ class FileListCtrl(qt.QWidget):
         self.updateMe()
     
 
-class EditorBook(QtGui.QWidget):
+class EditorStack(QtGui.QWidget):
     
     def __init__(self, parent):
         qt.QWidget.__init__(self,parent)
@@ -674,12 +674,12 @@ class EditorBook(QtGui.QWidget):
         
         # create widgets
         self._list = FileListCtrl(self)
-        self._panel = QtGui.QFrame(self)
+        self._stack = QtGui.QStackedWidget(self)
         
         # create box layout control and add widgets
         self._boxLayout = QtGui.QHBoxLayout(self)
         self._boxLayout.addWidget(self._list, 0)
-        self._boxLayout.addWidget(self._panel, 1)
+        self._boxLayout.addWidget(self._stack, 1)
         
         # make the box layout the layout manager
         self.setLayout(self._boxLayout)
@@ -695,27 +695,34 @@ class EditorBook(QtGui.QWidget):
         self.newFile('tools')
         #self.openDir()
     
-    def createEditor(self):
-        """ Create and return an editor instance. """
-        editor = IepEditor(self)
-        editor.hide()
-        self._boxLayout.addWidget(editor, 1)
-        return editor
-    
     
     def showEditor(self, editor=None):
-        """ Show the given editor. """
+        """ Show the given editor. 
+        This also performs a check on the contents of the stack, 
+        cleaning up editors that weren't cleaned up properly. (this
+        is not supposed to happen, but if it ever does, it will be
+        nicely removed here.)"""
         
-        # clear all but the left list
-        while self._boxLayout.count() > 1:
-            thing = self._boxLayout.takeAt(self._boxLayout.count()-1)
-            thing.widget().hide()
+        # always do a check here ...
+        tmp = self._list._items
+        tmp = [item._editor for item in tmp if isinstance(item,FileItem)]
+        foundIt = False
+        for i in range(self._stack.count()):
+            widget = self._stack.widget(i)
+            if widget not in tmp:
+                print('removing stuck widget:', widget)
+                self._stack.removeWidget(widget)
+                widget.hide()
+                widget.destroy()
+            if widget is editor:
+                foundIt = True
         
-        # show new thing
-        if editor is None:
-            editor = self._panel
-        self._boxLayout.addWidget(editor,1)
-        editor.show()
+        if editor:            
+            # if not already in stack, add it now
+            if not foundIt:
+                self._stack.addWidget(editor)            
+            # make current
+            self._stack.setCurrentWidget(editor)
     
     
     def getCurrentEditor(self):
@@ -990,7 +997,8 @@ class EditorBook(QtGui.QWidget):
                 return False
         
         # ok, close...
-        self._list.removeFile(editor)
+        self._stack.removeWidget(editor)
+        self._list.removeFile(editor)        
         return True
         
 
@@ -998,6 +1006,6 @@ if __name__ == "__main__":
     #qt.QApplication.setDesktopSettingsAware(False)
     app = QtGui.QApplication([])
     app.setStyle("windows") # plastique, windows, cleanlooks
-    win = EditorBook(None)
+    win = EditorStack(None)
     win.show()
     app.exec_()

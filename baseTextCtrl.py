@@ -343,6 +343,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_SETBACKSPACEUNINDENTS, True)
         self.SendScintilla(self.SCI_SETTABINDENTS, True)
         
+        # clear all command keys
+        self.SendScintilla(self.SCI_CLEARALLCMDKEYS)
+        
 #         # clear some command keys
 #         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
@@ -538,9 +541,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             ind = len(text) - len(text.lstrip())
             ind = int(round(ind/indentWidth))
             if styleOk and len(text)>0 and text[-1] == ':':
-                text2insert = "\n"+" "*((ind+1)*indentWidth)                
+                text2insert = "\n"+indent*((ind+1)*indentWidth)                
             else:                
-                text2insert = "\n"+" "*(ind*indentWidth)            
+                text2insert = "\n"+indent*(ind*indentWidth)            
             self.insertAt(text2insert, linenr, index)
             pos = self.getCurrentPos()
             self.setCurrentPos( pos + len(text2insert) )

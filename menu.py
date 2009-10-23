@@ -209,16 +209,22 @@ class EditMenu(BaseMenu):
             widget.paste()
     
     def fun_selectAll(self, value):
-        """ Open an existing file. """
-        iep.editors.openFile()
+        """ Select the whole text. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'selectAll'):
+            widget.selectAll()
     
     def fun_undo(self, value):
-        """ Open an existing file. """
-        iep.editors.openFile()
+        """ Undo the last action. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'undo'):
+            widget.undo()
     
     def fun_redo(self, value):
-        """ Open an existing file. """
-        iep.editors.openFile()
+        """ Redo the last undone action """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'redo'):
+            widget.redo()
 
     def fun_lineEndings(self, value):
         pass
@@ -257,6 +263,9 @@ class SettingsMenu(BaseMenu):
         """ Show tabs and spaces in the editor. """
         if value is None:
             return bool(iep.config.showWhiteSpace)
+        # for the sortcuts to work
+        value = not bool( iep.config.showWhiteSpace ) 
+        # apply
         iep.config.showWhiteSpace = value
         for editor in iep.editors:
             editor.setViewWhiteSpace(value)
@@ -265,6 +274,7 @@ class SettingsMenu(BaseMenu):
         """ Wrap long lines in the editor. """
         if value is None:
             return bool(iep.config.wrapText)
+        value = not bool( iep.config.wrapText ) 
         iep.config.wrapText = value
         for editor in iep.editors:
             editor.setWrapMode(int(value))
@@ -334,8 +344,11 @@ class MenuHelper:
         # menubar.hovered.connect(self.onHover)
     
     def onTrigger(self, action):
-        print('trigger:', action.text())
-        action.func(action.value)
+        if hasattr(action,'func'):
+            print('trigger:', action.text())
+            action.func(action.value)
+        else:
+            pass # the user clicked the file, edit, menus themselves.
     
     def onHover(self, action):
         print('hover:', action.text())
