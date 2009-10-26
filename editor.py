@@ -296,6 +296,49 @@ class IepEditor(BaseTextCtrl):
         self.makeDirty(False)
     
     
+    def commentCode(self):
+        # get locations of the selected text (but whole lines only)
+        pos = self.GetCurrentPos()
+        anch = self.GetAnchor()
+        line1 = self.LineFromPosition(pos)
+        line2 = self.LineFromPosition(anch)
+        line1,line2 = min(line1,line2), max(line1,line2)+1
+        
+        # comment all lines
+        for linenr in range(line1,line2):            
+            pos2 = self.PositionFromLine(linenr)
+            self.SetTargetStart(pos2)
+            self.SetTargetEnd(pos2)
+            self.ReplaceTarget("# ")
+        
+    
+    def uncommentCode(self):
+        
+        # get locations of the selected text (but whole lines only)
+        pos = self.GetCurrentPos()
+        anch = self.GetAnchor()
+        line1 = self.LineFromPosition(pos)
+        line2 = self.LineFromPosition(anch)
+        line1,line2 = min(line1,line2), max(line1,line2)+1
+        
+        # comment all lines
+        for linenr in range(line1,line2):            
+            pos2 = self.PositionFromLine(linenr)              
+            linetext = self.GetLine(linenr)
+            i = linetext.find("#")
+            c = linetext[:i].count(" ") # only spaces before comment
+            if i>=0 and i==c:
+                self.SetTargetStart(pos2+i)
+                if i < len(linetext)-1 and linetext[i+1]==" ":
+                    self.SetTargetEnd(pos2+i+2) # remove "# "
+                else:
+                    self.SetTargetEnd(pos2+i+1) # remove "#"
+                self.ReplaceTarget("")
+
+
+    
+    
+    
 if __name__=="__main__":
     app = QtGui.QApplication([])
     win = IepEditor(None)

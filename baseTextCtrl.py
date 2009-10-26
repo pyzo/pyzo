@@ -53,7 +53,7 @@ def normalizePath(path):
         if len(options) > 1:
             raise Exception("Ambiguous path names!")
         elif len(options) < 1:
-            raise IOError("Invalid path!")
+            raise IOError("Invalid path: "+fullpath+part)
         fullpath += options[0] + sep
     
     # remove last sep
@@ -69,6 +69,8 @@ class StyleManager(QtCore.QObject):
     def __init__(self):
         QtCore.QObject.__init__(self)
         self._filename = os.path.join(iep.path, 'styles.ssdf')
+        if not os.path.isfile(self._filename):
+            raise RuntimeError("The stylefile does not exist: "+self._filename)
         self._filename = normalizePath(self._filename)
         self._styles = None
         self.loadStyles()    
@@ -325,7 +327,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.setViewWhiteSpace(iep.config.showWhiteSpace)
         # wrapping
         if iep.config.wrapText:
-            self.setWrapMode(1)
+            self.setWrapMode(2) # 0:None, 1:Word, 2:Character 
         else:
             self.setWrapMode(0)
         self.SendScintilla(self.SCI_SETWRAPVISUALFLAGS, 
@@ -344,17 +346,26 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_SETTABINDENTS, True)
         
         # clear all command keys
-        self.SendScintilla(self.SCI_CLEARALLCMDKEYS)
+        # self.SendScintilla(self.SCI_CLEARALLCMDKEYS)
+        # No, that even removes the arrow keys and suchs
         
-#         # clear some command keys
-#         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
+        # clear some command keys
+        ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
+        # these we all map via the edit menu
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('X')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('C')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('V')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Z')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Y')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('A')+ ctrl)
+#         # these are mostly not used ...
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T'), ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T'), ctrl+shift)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U'), ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U'), ctrl+shift)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
         
         # In QT, the vertical scroller is always shown        
         
@@ -497,6 +508,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         handled = self.keyPressEvent2( keyevent )
         if not handled:
             Qsci.QsciScintillaBase.keyPressEvent(self, event)
+    
     
     def keyPressEvent2(self, event):
         """ A slightly easier keypress event. 
