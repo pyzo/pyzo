@@ -4,6 +4,7 @@ classes. Implements styling, introspection and a bit of other stuff that
 is common for both shells and editors.
 """
 
+    
 import iep
 import os, sys, time
 import ssdf
@@ -317,6 +318,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # things I might want to make optional/settable
         #
         
+        # use unicode
+        self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
+        #self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) # does not seem to do anything
+        
         # edge indicator        
         self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
         self.setEdgeColumn(iep.config.edgeColumn)
@@ -508,7 +513,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         handled = self.keyPressEvent2( keyevent )
         if not handled:
             Qsci.QsciScintillaBase.keyPressEvent(self, event)
-    
+        
+        # todo: I need these commands to deal with encoding
+        i0 = self.getCurrentPos()
+        i1 = self.SendScintilla(self.SCI_POSITIONBEFORE, i0)
+        i2 = self.SendScintilla(self.SCI_POSITIONAFTER, i0)
+        print(i1, i0, i2) 
     
     def keyPressEvent2(self, event):
         """ A slightly easier keypress event. 
@@ -606,10 +616,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     ## Public methods
     
     def setText(self, value):
+        value = value.encode('utf-8')
         self.SendScintilla(self.SCI_SETTEXT, value)
     
     def getText(self):
-        return self.text()
+        # todo: note that I just as well might give the undecoded bytes!
+        value = self.text()
+        return value.decode('utf-8')
     
     def setStyle(self, styleName=None):
         # remember style or use remebered style
@@ -627,6 +640,7 @@ if __name__=="__main__":
     win.setStyle('.py')
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
+    tmp += "a\u20acb\n"
     win.setText(tmp)    
     win.show()
     styleManager.loadStyles() # this is not required (but do now for testing)
