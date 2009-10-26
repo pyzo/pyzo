@@ -204,9 +204,6 @@ class FileItem(Item):
     def __init__(self, parent, editor):
         Item.__init__(self, parent)
         
-        # get editorStack
-        editorStack = parent.parent()
-        
         # set editor
         #if isinstance(editor, ??) (why should we care?)
         self._editor = editor
@@ -662,7 +659,7 @@ class FileListCtrl(qt.QWidget):
         
         # update
         self.updateMe()
-    
+
 
 class EditorStack(QtGui.QWidget):
     
@@ -719,7 +716,7 @@ class EditorStack(QtGui.QWidget):
         
         if editor:            
             # if not already in stack, add it now
-            if not foundIt:
+            if True:#not foundIt:
                 self._stack.addWidget(editor)            
             # make current
             self._stack.setCurrentWidget(editor)

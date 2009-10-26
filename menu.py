@@ -188,7 +188,14 @@ class EditMenu(BaseMenu):
         addItem( MI('Cut', self.fun_cut) )
         addItem( MI('Copy', self.fun_copy) )
         addItem( MI('Paste', self.fun_paste) )
-        
+        addItem( MI('Select all', self.fun_selectAll) )
+        addItem( None )
+        addItem( MI('Comment lines', self.fun_comment) )
+        addItem( MI('Uncomment lines', self.fun_uncomment) )
+        addItem( None )
+        addItem( MI('Undo', self.fun_undo) )
+        addItem( MI('Redo', self.fun_redo) )
+    
     
     def fun_cut(self, value):
         """ Cut the text/object. """
@@ -225,7 +232,20 @@ class EditMenu(BaseMenu):
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'redo'):
             widget.redo()
-
+    
+    def fun_comment(self, value):
+        """ Comment the selected lines. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'commentCode'):
+            widget.commentCode()
+    
+    def fun_uncomment(self, value):
+        """ Uncomment the selected lines. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'uncommentCode'):
+            widget.uncommentCode()
+    
+    
     def fun_lineEndings(self, value):
         pass
         
@@ -248,7 +268,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Default indentation', self.fun_indentation, True) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
-        addItem( MI('Change key mappings', self.fun_keymap) )
+        addItem( MI('Change key mappings ...', self.fun_keymap) )
     
     def fun_qtstyle(self, value):
         """ Chose the QT style to use. """
@@ -271,7 +291,7 @@ class SettingsMenu(BaseMenu):
             editor.setViewWhiteSpace(value)
     
     def fun_wrap(self, value):
-        """ Wrap long lines in the editor. """
+        """ Wrap long lines (decreases performance for large files). """
         if value is None:
             return bool(iep.config.wrapText)
         value = not bool( iep.config.wrapText ) 
