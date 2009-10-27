@@ -448,8 +448,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ Get the current line (as a string) and the 
         position of the cursor in it. """
         linenr, index = self.getCursorPosition()
-        line = self.getLine(linenr)
-        return line, index
+        line = self.getLine(linenr).decode('utf-8')
+        return line.decode, index
     
     def getAnchor(self):
         """ Get the anchor (as int) of the cursor. If this is
@@ -459,6 +459,29 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def setAnchor(self, pos):
         """ Set the position of the anchor. """
         self.SendScintilla(self.SCI_SETANCHOR, pos)
+    
+    def lineFromPosition(self, pos):
+        """ Get the line number, given the position. """
+        return self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
+    
+    def positionFromLine(self, linenr):
+        """ Get the position, given the line number. """
+        return self.SendScintilla(self.SCI_POSITIONFROMLINE , linenr)
+    
+    
+    def setTargetStart(self, pos):
+        """ Set the start of selection target. """
+        self.SendScintilla(self.SCI_SETTARGETSTART, pos)
+    
+    def setTargetEnd(self, pos):
+        """ Set the end of selection target. """
+        self.SendScintilla(self.SCI_SETTARGETEND, pos)
+    
+    def replaceTarget(self, value):
+        """ Set the start of selection. """
+        value = value.encode('utf-8')
+        self.SendScintilla(self.SCI_REPLACETARGET, len(value), value)
+    
     
     def styleAt(self, pos):
         """ Get the style at the given position."""
@@ -518,7 +541,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         i0 = self.getCurrentPos()
         i1 = self.SendScintilla(self.SCI_POSITIONBEFORE, i0)
         i2 = self.SendScintilla(self.SCI_POSITIONAFTER, i0)
-        print(i1, i0, i2) 
+        #print(i1, i0, i2) 
     
     def keyPressEvent2(self, event):
         """ A slightly easier keypress event. 
@@ -615,14 +638,22 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Public methods
     
+    # todo: note that I just as well might give the undecoded bytes!
+    
+    def setBytes(self, value):
+        self.SendScintilla(self.SCI_SETTEXT, value)
+    
+    def getBytes(self):
+        return self.text()
+    
     def setText(self, value):
         value = value.encode('utf-8')
         self.SendScintilla(self.SCI_SETTEXT, value)
     
-    def getText(self):
-        # todo: note that I just as well might give the undecoded bytes!
+    def getText(self):       
         value = self.text()
         return value.decode('utf-8')
+    
     
     def setStyle(self, styleName=None):
         # remember style or use remebered style

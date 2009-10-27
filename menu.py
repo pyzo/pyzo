@@ -185,16 +185,18 @@ class EditMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
+        addItem( MI('Undo', self.fun_undo) )
+        addItem( MI('Redo', self.fun_redo) )
+        addItem( None )
         addItem( MI('Cut', self.fun_cut) )
         addItem( MI('Copy', self.fun_copy) )
         addItem( MI('Paste', self.fun_paste) )
+        addItem( None )
         addItem( MI('Select all', self.fun_selectAll) )
         addItem( None )
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
-        addItem( MI('Undo', self.fun_undo) )
-        addItem( MI('Redo', self.fun_redo) )
     
     
     def fun_cut(self, value):
