@@ -463,7 +463,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ Get the current line (as a string) and the 
         position of the cursor in it. """
         linenr, index = self.getCursorPosition()
-        line = self.getLine(linenr).decode('utf-8')
+        line = self.getLine(linenr) #.decode('utf-8')
         return line, index
     
     def getAnchor(self):

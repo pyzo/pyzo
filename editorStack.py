@@ -661,6 +661,229 @@ class FileListCtrl(qt.QWidget):
         self.updateMe()
 
 
+class FindReplaceWidget(QtGui.QWidget):
+    """ A widget to find and replace text. """
+    def __init__(self, *args):
+        QtGui.QWidget.__init__(self, *args)
+        
+        # width hint
+        ww = barwidth//2 - 2
+        
+        # create widgets
+        
+        yy = 0
+        stext = qt.QLabel("Find / Replace", self)
+        stext.setFont( qt.QFont('helvetica',8,qt.QFont.Bold) ) 
+        stext.move(5,yy)
+        
+        hidebut = qt.QPushButton("hide", self)
+        hidebut.setFont( qt.QFont('helvetica',7) )
+        hidebut.setToolTip("Escape")
+        hidebut.setGeometry(barwidth-25,yy,24,16)
+        
+        yy+=18
+        caseCheck = qt.QCheckBox("Match case", self)
+        caseCheck.move(2,yy)
+        
+        yy += 20
+        findText = qt.QLineEdit(self)
+        findText.setGeometry(2,yy,barwidth-2,20)
+        yy += 22
+        findPrev = qt.QPushButton("Previous", self) 
+        findPrev.setGeometry(2,yy, ww,20)
+        findNext = qt.QPushButton("Next", self)
+        findNext.setGeometry(ww+3,yy, ww,20)
+        
+        yy += 25
+        replaceText = qt.QLineEdit(self)
+        replaceText.setGeometry(2,yy,barwidth-2,20)
+        yy += 22
+        replaceAll = qt.QPushButton("Replace all", self) 
+        replaceAll.setGeometry(2,yy, ww,20)
+        replace = qt.QPushButton("Replace", self)
+        replace.setGeometry(ww+3,yy,ww,20)
+        
+        # set size        
+        yy += 20
+        self.setMinimumHeight(yy)
+        self.setMaximumHeight(yy)
+        
+        # store fields that I need access to
+        self._findText = findText
+        self._replaceText = replaceText
+        
+        # create callbacks
+        hidebut.clicked.connect(self.hideMe)
+        findNext.clicked.connect(self.findNext)
+    
+    def hideMe(self):
+        """ Hide the find/replace widget. """
+        self.hide()
+        es = self.parent() # editor stack
+        es._boxLayout.update()
+        editor = es.getCurrentEditor()
+        if editor:
+            editor.setFocus()
+    
+    def keyPressEvent(self, event):
+        """ To capture escape. """
+        
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.hideMe()
+            event.ignore()
+        else:
+            event.accept()
+    
+    
+    def showMe(self,event=None):
+        """ Use this rather than show(). It will check if anything is 
+        selected in the current editor, and if so, will set that as the
+        initial search string
+        """
+        # show
+        self.show()
+        #self.parent()._boxLayout.update()        
+        
+        # get needle
+        editor = self.parent().getCurrentEditor()
+        if editor:
+            needle = editor.getSelectedText().decode('utf-8')
+            if needle:
+                self._findText.setText( needle )
+        # select the find-text
+        self.selectFindText()
+        
+        
+    def notifyPassBeginEnd(self):
+        self.setStyleSheet("QWidget { background:#f00; }")
+        # how to call later?
+    
+    def selectFindText(self):
+        """ Select the textcontrol for the find needle,
+        and the text in it """
+        # select text
+        self._findText.selectAll()
+        # focus
+        self._findText.setFocus()
+    
+    def findNext(self, event=None):
+        self.find()
+        #self._findText.setFocus()
+    
+    def findPrevious(self, event=None):
+        self.find(True)
+        # self._findText.setFocus()
+    
+    def find(self, backwards=False):
+        editor = self.book.GetCurrentEditor()
+        if not editor:
+            return        
+        
+        # matchCase
+        matchCase = self.caseCheck.GetValue()
+                
+        # focus
+        self.SelectFindText()
+        
+        # get text to find
+        needle = self.findText.GetValue()
+        if not matchCase:
+            needle = needle.lower()
+                    
+        if needle:
+            # prepare
+            text = editor.GetText()
+            if not matchCase:
+                text = text.lower()            
+            start = editor.GetCurrentPos()
+            end = editor.GetTextLength()                
+            # find
+            if backwards:
+                start, end = 0, start - 1
+                pos = text.rfind(needle, start, end)
+            else:
+                pos = text.find(needle, start, end)
+                
+            # result?
+            if not pos>=0:
+                self.NotifyPassBeginEnd()
+                # try running from start/end
+                if backwards:
+                    start, end = start + 1, editor.GetTextLength()
+                    pos = text.rfind(needle, start, end)
+                else:
+                    start, end = 0, start-1
+                    pos = text.find(needle, start, end)
+                    
+            # result?
+            if pos>=0:                    
+                editor.SetAnchor(pos)
+                editor.SetCurrentPos( pos + len(needle) )
+                editor.EnsureCaretVisible()
+                
+    
+    def replaceThis(self,event=None):
+        
+        # matchCase
+        matchCase = self.caseCheck.GetValue()
+        
+        # get needle
+        needle = self.findText.GetValue()        
+        if not matchCase:
+            needle = needle.lower()
+            
+        # get replacement
+        replacement = self.replaceText.GetValue()
+                    
+        # get text to replace
+        editor = self.book.GetCurrentEditor()
+        if editor:
+            original = editor.GetSelectedText()            
+            if not matchCase:
+                original = original.lower()
+            
+            # replace
+            if original and original == needle:
+                editor.ReplaceSelection( replacement )
+                
+            # next!
+            self.Find()
+    
+    def replaceAll(self,event=None):
+        # matchCase
+        matchCase = self.caseCheck.GetValue()
+        
+        # get needle
+        needle = self.findText.GetValue()        
+        if not matchCase:
+            needle = needle.lower()
+            
+        # get replacement
+        replacement = self.replaceText.GetValue()
+        
+        # get text to replace
+        editor = self.book.GetCurrentEditor()
+        if editor:
+            # get text from editor
+            text2 = text = editor.GetText()            
+            if not matchCase:
+                text2 = text2.lower()
+                
+            # replace untill done
+            pos = 0
+            while not pos<0:
+                pos = text2.find(needle, pos)
+                if pos >= 0:
+                    endpos = pos + len(needle)
+                    # replace both text and searchtext!
+                    text = text[:pos] + replacement + text[endpos:]
+                    text2 = text2[:pos] + replacement + text2[endpos:]
+                    pos = len(replacement)             
+            
+            # finish up
+            editor.SetText(text)   
+    
+    
 class EditorStack(QtGui.QWidget):
     
     def __init__(self, parent):
@@ -671,14 +894,22 @@ class EditorStack(QtGui.QWidget):
         
         # create widgets
         self._list = FileListCtrl(self)
+        self._findReplace = FindReplaceWidget(self)
         self._stack = QtGui.QStackedWidget(self)
         
         # create box layout control and add widgets
         self._boxLayout = QtGui.QHBoxLayout(self)
-        self._boxLayout.addWidget(self._list, 0)
+        self._boxLayout2 = QtGui.QVBoxLayout()        
+        # fill layouts
+        self._boxLayout2.addWidget(self._list, 1)
+        self._boxLayout2.addWidget(self._findReplace, 0)
+        self._boxLayout.addLayout(self._boxLayout2, 0)
         self._boxLayout.addWidget(self._stack, 1)
+        # spacing of widgets
+        self._boxLayout.setSpacing(2)
+        self._boxLayout2.setSpacing(0)
         
-        # make the box layout the layout manager
+        # make the horizontal box layout the layout manager
         self.setLayout(self._boxLayout)
         
         #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
