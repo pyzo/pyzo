@@ -11,7 +11,7 @@ from PyQt4 import Qsci
 qt = QtGui
 
 from baseTextCtrl import BaseTextCtrl
-
+import iep
 
 def determineLineEnding(text):
     """get the line ending style used in the text.
@@ -151,8 +151,12 @@ def createEditor(parent, filename=None):
         editor._modifyTime = os.path.getmtime(editor._filename)
     
     # set style
-    ext = os.path.splitext(editor._filename)[1]
-    editor.setStyle(ext)
+    if editor._filename:
+        ext = os.path.splitext(editor._filename)[1]
+        editor.setStyle(ext)
+    else:
+        editor.setStyle(iep.config.defaultStyle)
+    
     
     # return
     return editor
@@ -169,7 +173,8 @@ class IepEditor(BaseTextCtrl):
         # init some stuff
         self._filename = ''
         self._name = '<TMP>'
-        self._lineEndings = '\n'
+        tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
+        self._lineEndings = tmp[iep.config.defaultLineEndings]
         
         # modification time to test file change 
         self._modifyTime = 0
