@@ -197,6 +197,11 @@ class EditMenu(BaseMenu):
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
+        addItem( MI('Find or replace', self.fun_findReplace) )
+        addItem( MI('Find selection', self.fun_findSelection) )
+        addItem( MI('Find next', self.fun_findNext) )
+        addItem( MI('Find previous', self.fun_findPrevious) )
+        addItem( None )
         addItem( MI('Style', self.fun_style, True) )
         addItem( MI('Indentation', self.fun_indentation, True) )
         addItem( MI('Line endings', self.fun_lineEndings, True) )        
@@ -312,7 +317,16 @@ class EditMenu(BaseMenu):
         """ Set the encoding of the file (only UTF-8). """
         if value is None:
             return ['UTF-8', 'UTF-8']
-
+    
+    
+    def fun_findReplace(self, value):
+        pass
+    def fun_findSelection(self, value):
+        pass
+    def fun_findNext(self, value):
+        pass
+    def fun_findPrevious(self, value):
+        pass
     
 class SettingsMenu(BaseMenu):
     def fill(self):
