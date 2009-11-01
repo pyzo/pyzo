@@ -97,6 +97,8 @@ class StyleManager(QtCore.QObject):
         self.buildStyleTree()
         self.styleUpdate.emit()
     
+    def getStyleNames(self):
+        return [name for name in self._styles]
     
     def buildStyleTree(self):
         """ Using the load ssdf file, build a tree such that
@@ -174,6 +176,7 @@ class StyleManager(QtCore.QObject):
         """ Apply the specified style to the specified editor. 
         The stylename can be the name of the style, or the extension
         of the file to be styled (indicated by starting with a dot '.')
+        The actual stylename is returned.
         """
         
         # make lower case
@@ -202,7 +205,9 @@ class StyleManager(QtCore.QObject):
         # go ...
         if styleName: # else it is plain ...
             self._applyStyle(editor, styleName)
-    
+        
+        # return actual stylename
+        return styleName
     
     def _applyStyle(self, editor, styleName):
         """ Actually apply style """
@@ -254,6 +259,7 @@ class StyleManager(QtCore.QObject):
 
     
 styleManager = StyleManager()
+iep.styleManager = styleManager
 
 # todo: i think this can go
 class InteractiveAPI(Qsci.QsciAPIs):
@@ -282,8 +288,13 @@ def removeComment(text):
     """Remove comments from a one-line comment,
     but if the text is just spaces, leave it alone.
     """
+    
+    # Bytes and bytearray objects, being "strings of bytes", have all 
+    # methods found on strings, with the exception of encode(), format() 
+    # and isidentifier(), which do not make sense with these types.
+    
     # remove everything after first #    
-    i = text.find('#')
+    i = text.find(b'#')
     if i>0:
         text = text[:i] 
     text2 = text.rstrip() # remove lose spaces
@@ -320,13 +331,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # use unicode
         self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
-        #self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) # does not seem to do anything
+        self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) # does not seem to do anything
         
         # edge indicator        
         self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
         self.setEdgeColumn(iep.config.edgeColumn)
         # indentation        
-        self.setIndentation(iep.config.indentation)
+        self.setIndentation(iep.config.defaultIndentation)
         self.setTabWidth(iep.config.tabWidth)  
         self.setIndentationGuides(iep.config.showIndentGuides)
         self.setViewWhiteSpace(iep.config.showWhiteSpace)
@@ -441,15 +452,19 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
     
     def getLine(self, linenr):
-        """ Get the text on the given line number. """
-        return self.text(linenr)
+        """ Get the bytes on the given line number. """
+        len = self.SendScintilla(self.SCI_LINELENGTH)+1
+        bb = QtCore.QByteArray(len,'0')
+        N = self.SendScintilla(self.SCI_GETLINE, len, bb)
+        return bytes(bb)[:-1]
+    # todo: when to return bytes and when a string?
     
     def getCurLine(self):
         """ Get the current line (as a string) and the 
         position of the cursor in it. """
         linenr, index = self.getCursorPosition()
         line = self.getLine(linenr).decode('utf-8')
-        return line.decode, index
+        return line, index
     
     def getAnchor(self):
         """ Get the anchor (as int) of the cursor. If this is
@@ -582,7 +597,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             text = self.getLine(linenr)
             if not text:
                 return False
-            text = removeComment( self.getLine(linenr) )
+            line = self.getLine(linenr)
+            print(type(line))
+            text = removeComment( line )
             ind = len(text) - len(text.lstrip())
             ind = int(round(ind/indentWidth))
             if styleOk and len(text)>0 and text[-1] == ':':
@@ -641,29 +658,40 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     # todo: note that I just as well might give the undecoded bytes!
     
     def setBytes(self, value):
+        """ Set the text as utf-8 encoded bytes. """
         self.SendScintilla(self.SCI_SETTEXT, value)
     
     def getBytes(self):
-        return self.text()
+        """ Get the text as bytes (utf-8 encoded). This is how
+        the data is stored internally. """
+        len = self.SendScintilla(self.SCI_GETLENGTH)+1
+        bb = QtCore.QByteArray(len,'0')
+        N = self.SendScintilla(self.SCI_GETTEXT, len, bb)
+        return bytes(bb)[:-1]
     
     def setText(self, value):
-        value = value.encode('utf-8')
-        self.SendScintilla(self.SCI_SETTEXT, value)
+        """ Set the text as a unicode string. """
+        bb = value.encode('utf-8')
+        self.SendScintilla(self.SCI_SETTEXT, bb)
     
-    def getText(self):       
-        value = self.text()
-        return value.decode('utf-8')
-    
+    def getText(self):
+        """ Get the text as a unicode string. """
+        value = self.getBytes().decode('utf-8')
+        # print (value) printing can give an error because the console font
+        # may not have all unicode characters
+        return value
     
     def setStyle(self, styleName=None):
         # remember style or use remebered style
         if styleName is None:
-            styleName = self._styleName
-        else:
-            self._styleName = styleName
-        # apply
-        styleManager.applyStyle(self,styleName)
-
+            styleName = self._styleName        
+        # apply and remember
+        self._styleName = styleManager.applyStyle(self,styleName)
+    
+    def getStyleName(self):
+        """ Get the name of the currently applied style. """
+        return self._styleName
+    
 
 if __name__=="__main__":
     app = QtGui.QApplication([])

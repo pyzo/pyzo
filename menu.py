@@ -197,6 +197,10 @@ class EditMenu(BaseMenu):
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
+        addItem( MI('Style', self.fun_style, True) )
+        addItem( MI('Indentation', self.fun_indentation, True) )
+        addItem( MI('Line endings', self.fun_lineEndings, True) )        
+        addItem( MI('File encoding', self.fun_encoding, True) )
     
     
     def fun_cut(self, value):
@@ -247,29 +251,84 @@ class EditMenu(BaseMenu):
         if hasattr(widget,'uncommentCode'):
             widget.uncommentCode()
     
-    
     def fun_lineEndings(self, value):
-        pass
+        """ The line ending character used for the current file. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
         
+        if value is None:                        
+            le = {'\n':'LF', '\r':'CR', '\r\n':'CRLF'}[editor._lineEndings]
+            return ['LF', 'CR', 'CRLF', le]
+        else:
+            tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
+            editor._lineEndings = tmp[value]
+    
     def fun_indentation(self, value):
-        pass
+        """ The indentation style used for the current file. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            current = editor.getIndentation()
+            options = [-1,2,3,4,5,6,7,8,9,10, current]
+            for i in range(len(options)):
+                if options[i] < 0:
+                    options[i] = 'Use tabs'
+                else:
+                    options[i] = '{} spaces'.format(options[i])            
+            return options
+        
+        # parse value
+        try:
+            val = int(value[:2])
+        except ValueError:
+            val = -1
+        # apply
+        editor.setIndentation(val)
     
     def fun_style(self, value):
-        pass
+        """ The styling used for the current style. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            current = editor.getStyleName()
+            if not current:
+                current = 'default'
+            options = iep.styleManager.getStyleNames()
+            options.append(current)
+            return options
+        else:
+            editor.setStyle(value)
+    
+    
+    def fun_encoding(self, value):
+        """ Set the encoding of the file (only UTF-8). """
+        if value is None:
+            return ['UTF-8', 'UTF-8']
 
+    
 class SettingsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('QT style', self.fun_qtstyle, True) )
-        
         addItem( MI('Show whitespace', self.fun_whitespace, True) )
         addItem( MI('Wrap text', self.fun_wrap, True) )
         addItem( MI('Edge column', self.fun_edgecolumn, True) )
-        addItem( MI('Default indentation', self.fun_indentation, True) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
+        addItem( MI('Default style', self.fun_defaultStyle, True) )
+        addItem( MI('Default indentation', self.fun_defaultIndentation, True) )
+        addItem( MI('Default line endings', self.fun_defaultLineEndings, True) )
+        addItem( None )
+        addItem( MI('QT style', self.fun_qtstyle, True) )
         addItem( MI('Change key mappings ...', self.fun_keymap) )
     
     def fun_qtstyle(self, value):
@@ -309,10 +368,21 @@ class SettingsMenu(BaseMenu):
         for editor in iep.editors:
             editor.setEdgeColumn(value)
     
-    def fun_indentation(self, value):
+    def fun_defaultStyle(self, value):
+        """ The style used in new files. """
+        if value is None:
+            current = iep.config.defaultStyle
+            options = iep.styleManager.getStyleNames()
+            options.append(current)
+            return options
+        else:
+            # store
+            iep.config.defaultStyle = value
+    
+    def fun_defaultIndentation(self, value):
         """ The indentation used in new files. """
         if value is None:
-            current = iep.config.indentation
+            current = iep.config.defaultIndentation
             options = [-1,2,3,4,5,6,7,8,9,10, current]
             for i in range(len(options)):
                 if options[i] < 0:
@@ -325,10 +395,18 @@ class SettingsMenu(BaseMenu):
         try:
             val = int(value[:2])
         except ValueError:
-            val = -1
-        
+            val = -1        
         # store
-        iep.config.indentation = val
+        iep.config.defaultIndentation = val
+    
+    def fun_defaultLineEndings(self, value):
+        """ The line endings used in new files. """
+        if value is None:
+            current = iep.config.defaultLineEndings
+            return ['LF', 'CR', 'CRLF', current]
+        else:
+            # store
+            iep.config.defaultLineEndings = value
     
     def fun_tabWidth(self, value):
         """ The amount of space of a tab (but only if tabs are used). """
