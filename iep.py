@@ -52,6 +52,7 @@ shortcuts = dict:
 defaultStyle = $python
 defaultIndentation = 4
 defaultLineEndings = $LF
+doBraceMatch = 1
 tabWidth = 4
 plugins = dict:
   top = list:

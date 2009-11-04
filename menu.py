@@ -336,6 +336,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Show whitespace', self.fun_whitespace, True) )
         addItem( MI('Wrap text', self.fun_wrap, True) )
         addItem( MI('Edge column', self.fun_edgecolumn, True) )
+        addItem( MI('Match braces', self.fun_braceMatch, True) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, True) )
@@ -432,11 +433,27 @@ class SettingsMenu(BaseMenu):
         for editor in iep.editors:
             editor.setTabWidth(value)
     
+    
+    def fun_braceMatch(self, value):
+        """ Indicate matching braces and when no matching brace is found. """
+        if value is None:
+            return bool(iep.config.doBraceMatch)
+        else:
+            # get new value
+            value = not bool(iep.config.doBraceMatch)
+            # apply
+            iep.config.doBraceMatch = value
+            value = {True:2,False:0}[value]
+            for editor in iep.editors:
+                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                editor.setBraceMatching(value)
+    
+    
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """
         dialog = KeymappingDialog()
         dialog.exec_()
-
+    
 
 class MenuHelper:
     """ The helper class for the menus.
