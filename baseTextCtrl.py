@@ -218,9 +218,15 @@ class StyleManager(QtCore.QObject):
             return
         style = self._styles[styleName]
         
-        # apply style on which it is based.
+        # Apply style on which it is based. A style is always based
+        # on default. Although we already applied the default style after
+        # which we did the styleclearall to set all stuff to the default,
+        # we need to apply it again in order for the bracematching style
+        # to be applied for example.
         if style.basedon:
             self._applyStyle(editor, style.basedon)
+        elif styleName!='default':
+            self._applyStyle(editor, 'default')
         
         # start ...
         #print("applying style,", styleName)
@@ -249,14 +255,13 @@ class StyleManager(QtCore.QObject):
             nr = int(styleNr[1:])
             # get dict
             subStyle = style[styleNr]
-            
             # set substyle attributes
             for key in subStyleStuff:
                 scintillaCommand = subStyleStuff[key]
                 if key in subStyle:
                     value = subStyle[key]
                     editor.SendScintilla(scintillaCommand, nr, value)
-
+        
     
 styleManager = StyleManager()
 iep.styleManager = styleManager
@@ -351,6 +356,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # line endings
         self.setEolMode(self.SC_EOL_LF) # lf is default
         
+        # brace matching
+        if iep.config.doBraceMatch:
+            self.setBraceMatching(2)
+        else:
+            self.setBraceMatching(0)
+        #self.cursorPositionChanged.connect(self.doBraceMatch)
+        
         # things we fix
         #
         
@@ -409,6 +421,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Methods that (closely) wrap a call using SendScintilla
     # and that are not implemented by QScintilla
+    
+    def getTextLength(self):
+        return self.SendScintilla(self.SCI_GETLENGTH)
     
     def setIndentation(self, value):
         """ Set the used indentation. If a number larger than 0,
@@ -517,6 +532,40 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     
     ## Other methods
+    
+    def doBraceMatch(self,event=None):
+        """ Match braces and highlight accordingly.
+        Called on EVT_STC_UPDATEUI.        
+        """
+       
+        if not iep.config.doBraceMatch:
+            return
+        
+        # get location of current brace and the match
+        i1 = self.getCurrentPos()        
+        
+        # get char at the cursor        
+        chara, charb = 'a', 'b'
+        if i1>0 and i1 < self.getTextLength():
+            chara = self.charAt(i1-1)
+            charb = self.charAt(i1)
+        
+        # do we have a brace right before or after the cursor?
+        if charb in '()[]{}':
+            i1 = i1
+        elif chara in '()[]{}':
+            i1 = i1-1
+        else:
+            self.SendScintilla(self.SCI_BRACEBADLIGHT, -1)
+            return
+        
+        # match brace
+        i2 = self.SendScintilla(self.SCI_BRACEMATCH, i1) 
+        if i2<0:
+            self.SendScintilla(self.SCI_BRACEBADLIGHT,i1)
+        else:        
+            self.SendScintilla(self.SCI_BRACEHIGHLIGHT, i1, i2)
+    
     
     def Introspect_isValidPython(self):
         """ Check if the code at the cursor is valid python:
