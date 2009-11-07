@@ -3,6 +3,7 @@ import os, sys
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
+from PyQt4 import Qsci
 qt = QtGui
 
 import iep
@@ -197,6 +198,8 @@ class EditMenu(BaseMenu):
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
+        addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
+        addItem( None )
         addItem( MI('Find or replace', self.fun_findReplace) )
         addItem( MI('Find selection', self.fun_findSelection) )
         addItem( MI('Find next', self.fun_findNext) )
@@ -318,15 +321,23 @@ class EditMenu(BaseMenu):
         if value is None:
             return ['UTF-8', 'UTF-8']
     
+    def fun_moveToMatchingBrace(self, value):
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'moveToMatchingBrace'):
+            widget.moveToMatchingBrace()
     
     def fun_findReplace(self, value):
-        pass
+        iep.editors._findReplace.startFind()
+    
     def fun_findSelection(self, value):
-        pass
+        iep.editors._findReplace.startFind()
+        iep.editors._findReplace.findNext()
+    
     def fun_findNext(self, value):
-        pass
+        iep.editors._findReplace.findNext()
+        
     def fun_findPrevious(self, value):
-        pass
+        iep.editors._findReplace.findPrevious()
     
 class SettingsMenu(BaseMenu):
     def fill(self):
@@ -337,6 +348,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Wrap text', self.fun_wrap, True) )
         addItem( MI('Edge column', self.fun_edgecolumn, True) )
         addItem( MI('Match braces', self.fun_braceMatch, True) )
+        addItem( MI('Enable code folding', self.fun_codeFolding, True) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, True) )
@@ -344,6 +356,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Default line endings', self.fun_defaultLineEndings, True) )
         addItem( None )
         addItem( MI('QT style', self.fun_qtstyle, True) )
+        addItem( MI('Edit styles ...', self.fun_editStyles) )
         addItem( MI('Change key mappings ...', self.fun_keymap) )
     
     def fun_qtstyle(self, value):
@@ -423,6 +436,18 @@ class SettingsMenu(BaseMenu):
             # store
             iep.config.defaultLineEndings = value
     
+    def fun_codeFolding(self, value):
+        """ Enable folding (hiding) pieces of code. """
+        if value is None:
+            return bool(iep.config.codeFolding)
+        else:
+            value = not iep.config.codeFolding
+            iep.config.codeFolding = value
+            scin = Qsci.QsciScintilla
+            tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
+            for editor in iep.editors:                
+                editor.setFolding(tmp)
+    
     def fun_tabWidth(self, value):
         """ The amount of space of a tab (but only if tabs are used). """
         if value is None:
@@ -430,6 +455,7 @@ class SettingsMenu(BaseMenu):
         
         # store and apply
         iep.config.tabWidth = value
+        qsc
         for editor in iep.editors:
             editor.setTabWidth(value)
     
@@ -453,6 +479,10 @@ class SettingsMenu(BaseMenu):
         """ Change the keymappings for the menu. """
         dialog = KeymappingDialog()
         dialog.exec_()
+    
+    def fun_editStyles(self, value):
+        """ Edit the style file. """
+        iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
     
 
 class MenuHelper:
@@ -652,28 +682,50 @@ class KeyMapLineEdit(QtGui.QLineEdit):
     def __init__(self, *args, **kwargs):
         QtGui.QLineEdit.__init__(self, *args, **kwargs)
         self.setText('<enter key combination here>')
+        
+        # keep a list of native keys, so that we can capture for example
+        # "shift+]". If we would use text(), we can only capture "shift+}"
+        # which is not a valid shortcut.
+        self._nativeKeys = {}
     
     def focusInEvent(self, event):
         #self.clear()
         QtGui.QLineEdit.focusInEvent(self, event)
     
     def keyPressEvent(self, event):
-        #text = event.text()
+        
+        # get key codes
         key = event.key()
-        try:
-            text = chr(event.nativeVirtualKey()).upper()
-        except Exception:
-            pass        
+        nativekey = event.nativeVirtualKey()
+        
+        # try to get text
+        if nativekey < 128:
+            text = chr(nativekey).upper()
+        elif key<128:
+            text = chr(key).upper()
+        else:
+            text = ''
+        
+        # do we know this specic key or this native key?
         if key in keymap:
             text = keymap[key]
+        elif nativekey in self._nativeKeys:
+            text = self._nativeKeys[nativekey]
+        
+        # apply!
         if text:
+            storeNativeKey, text0 = True, text       
             if QtGui.qApp.keyboardModifiers() & k.AltModifier:
                 text  = 'Alt+' + text
             if QtGui.qApp.keyboardModifiers() & k.ShiftModifier:
                 text  = 'Shift+' + text
+                storeNativeKey = False
             if QtGui.qApp.keyboardModifiers() & k.ControlModifier:
-                text  = 'Ctrl+' + text
+                text  = 'Ctrl+' + text            
             self.setText(text)
+            if storeNativeKey and nativekey:
+                # store native key if shift was not pressed.
+                self._nativeKeys[nativekey] = text0
         
         # notify listeners
         self.textUpdate.emit()
@@ -761,8 +813,14 @@ class KeyMapEditDialog(QtGui.QDialog):
         self._line.setFocus()
     
     def onEdit(self):
-        # test if already in use
+        """ Test if already in use. """
+        
+        # init
         shortcut = self._line.text()
+        if not shortcut:
+            self._label.setText(self._intro)
+            return
+        
         for key in iep.config.shortcuts:
             # get shortcut and test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)

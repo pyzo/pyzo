@@ -661,60 +661,62 @@ class FileListCtrl(qt.QWidget):
         self.updateMe()
 
 
-class FindReplaceWidget(QtGui.QWidget):
+class FindReplaceWidget(QtGui.QFrame):
     """ A widget to find and replace text. """
     def __init__(self, *args):
         QtGui.QWidget.__init__(self, *args)
         
         # width hint
-        ww = barwidth//2 - 2
+        ww = barwidth//2 - 1
         
         # create widgets
         
         yy = 0
-        stext = qt.QLabel("Find / Replace", self)
-        stext.setFont( qt.QFont('helvetica',8,qt.QFont.Bold) ) 
-        stext.move(5,yy)
+        self._stext = qt.QLabel("Find / Replace", self)
+        self._stext.setFont( qt.QFont('helvetica',8,qt.QFont.Bold) ) 
+        self._stext.move(5,yy)
         
-        hidebut = qt.QPushButton("hide", self)
-        hidebut.setFont( qt.QFont('helvetica',7) )
-        hidebut.setToolTip("Escape")
-        hidebut.setGeometry(barwidth-25,yy,24,16)
+        self._hidebut = qt.QPushButton("hide", self)
+        self._hidebut.setFont( qt.QFont('helvetica',7) )
+        self._hidebut.setToolTip("Escape")
+        self._hidebut.setGeometry(barwidth-25,yy,24,16)
         
         yy+=18
-        caseCheck = qt.QCheckBox("Match case", self)
-        caseCheck.move(2,yy)
+        self._caseCheck = qt.QCheckBox("Match case", self)
+        self._caseCheck.move(1,yy)
         
         yy += 20
-        findText = qt.QLineEdit(self)
-        findText.setGeometry(2,yy,barwidth-2,20)
+        self._findText = qt.QLineEdit(self)
+        self._findText.setGeometry(1,yy,barwidth-2,20)
         yy += 22
-        findPrev = qt.QPushButton("Previous", self) 
-        findPrev.setGeometry(2,yy, ww,20)
-        findNext = qt.QPushButton("Next", self)
-        findNext.setGeometry(ww+3,yy, ww,20)
+        self._findPrev = qt.QPushButton("Previous", self) 
+        self._findPrev.setGeometry(1,yy, ww,20)
+        self._findNext = qt.QPushButton("Next", self)
+        self._findNext.setGeometry(ww+1,yy, ww,20)
         
         yy += 25
-        replaceText = qt.QLineEdit(self)
-        replaceText.setGeometry(2,yy,barwidth-2,20)
+        self._replaceText = qt.QLineEdit(self)
+        self._replaceText.setGeometry(1,yy,barwidth-2,20)
         yy += 22
-        replaceAll = qt.QPushButton("Replace all", self) 
-        replaceAll.setGeometry(2,yy, ww,20)
-        replace = qt.QPushButton("Replace", self)
-        replace.setGeometry(ww+3,yy,ww,20)
+        self._replaceAll = qt.QPushButton("Replace all", self) 
+        self._replaceAll.setGeometry(1,yy, ww,20)
+        self._replace = qt.QPushButton("Replace", self)
+        self._replace.setGeometry(ww+1,yy,ww,20)
         
         # set size        
-        yy += 20
+        yy += 21
         self.setMinimumHeight(yy)
         self.setMaximumHeight(yy)
         
-        # store fields that I need access to
-        self._findText = findText
-        self._replaceText = replaceText
+        # create timer object
+        self._timer = QtCore.QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect( self.resetAppearance )
         
         # create callbacks
-        hidebut.clicked.connect(self.hideMe)
-        findNext.clicked.connect(self.findNext)
+        self._hidebut.clicked.connect(self.hideMe)
+        self._findNext.clicked.connect(self.findNext)
+        
     
     def hideMe(self):
         """ Hide the find/replace widget. """
@@ -735,7 +737,7 @@ class FindReplaceWidget(QtGui.QWidget):
             event.accept()
     
     
-    def showMe(self,event=None):
+    def startFind(self,event=None):
         """ Use this rather than show(). It will check if anything is 
         selected in the current editor, and if so, will set that as the
         initial search string
@@ -747,16 +749,19 @@ class FindReplaceWidget(QtGui.QWidget):
         # get needle
         editor = self.parent().getCurrentEditor()
         if editor:
-            needle = editor.getSelectedText().decode('utf-8')
+            needle = editor.selectedText() # is utf-8 proof
             if needle:
-                self._findText.setText( needle )
+                self._findText.setText( needle ) #
         # select the find-text
         self.selectFindText()
         
         
     def notifyPassBeginEnd(self):
-        self.setStyleSheet("QWidget { background:#f00; }")
-        # how to call later?
+        self.setStyleSheet("QFrame { background:#f00; }")
+        self._timer.start(300)
+    
+    def resetAppearance(self):
+        self.setStyleSheet("QFrame {}")
     
     def selectFindText(self):
         """ Select the textcontrol for the find needle,
@@ -771,56 +776,54 @@ class FindReplaceWidget(QtGui.QWidget):
         #self._findText.setFocus()
     
     def findPrevious(self, event=None):
-        self.find(True)
+        self.find(False)
         # self._findText.setFocus()
     
-    def find(self, backwards=False):
-        editor = self.book.GetCurrentEditor()
+    def find(self, forward=True):
+        """ The main find method. """
+        
+        # get editor
+        editor = self.parent().getCurrentEditor()
         if not editor:
             return        
         
         # matchCase
-        matchCase = self.caseCheck.GetValue()
-                
+        matchCase = self._caseCheck.isChecked()
+        
         # focus
-        self.SelectFindText()
+        self.selectFindText()
         
         # get text to find
-        needle = self.findText.GetValue()
+        needle = self._findText.text()
         if not matchCase:
             needle = needle.lower()
-                    
-        if needle:
-            # prepare
-            text = editor.GetText()
-            if not matchCase:
-                text = text.lower()            
-            start = editor.GetCurrentPos()
-            end = editor.GetTextLength()                
-            # find
-            if backwards:
-                start, end = 0, start - 1
-                pos = text.rfind(needle, start, end)
+        
+        # estblish start position
+        pos1 = editor.getCurrentPos()
+        pos2 = editor.getAnchor()
+        if forward:
+            pos = max([pos1,pos2])
+        else:
+            pos = min([pos1,pos2])
+        line = editor.lineFromPosition(pos)
+        index = pos-editor.positionFromLine(line)
+        
+        # use Qscintilla's implementation
+        ok = editor.findFirst(needle, False, matchCase, False, False, 
+                            forward, line, index, True)
+        
+        # wrap and notify
+        if not ok:
+            self.notifyPassBeginEnd()
+            if forward:
+                line, index = 0,0
             else:
-                pos = text.find(needle, start, end)
-                
-            # result?
-            if not pos>=0:
-                self.NotifyPassBeginEnd()
-                # try running from start/end
-                if backwards:
-                    start, end = start + 1, editor.GetTextLength()
-                    pos = text.rfind(needle, start, end)
-                else:
-                    start, end = 0, start-1
-                    pos = text.find(needle, start, end)
-                    
-            # result?
-            if pos>=0:                    
-                editor.SetAnchor(pos)
-                editor.SetCurrentPos( pos + len(needle) )
-                editor.EnsureCaretVisible()
-                
+                pos = editor.getTextLength()
+                line = editor.lineFromPosition(pos)
+                index = pos-editor.positionFromLine(line)
+            editor.findFirst(needle, False, matchCase, False, False, 
+                                forward, line, index, True)
+    
     
     def replaceThis(self,event=None):
         
@@ -862,7 +865,7 @@ class FindReplaceWidget(QtGui.QWidget):
         replacement = self.replaceText.GetValue()
         
         # get text to replace
-        editor = self.book.GetCurrentEditor()
+        editor = self.parent().getCurrentEditor()
         if editor:
             # get text from editor
             text2 = text = editor.GetText()            
