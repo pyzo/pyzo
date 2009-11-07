@@ -54,6 +54,7 @@ defaultIndentation = 4
 defaultLineEndings = $LF
 doBraceMatch = 1
 tabWidth = 4
+codeFolding = 1
 plugins = dict:
   top = list:
   bottom = list:

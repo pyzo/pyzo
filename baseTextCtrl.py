@@ -198,7 +198,13 @@ class StyleManager(QtCore.QObject):
                 print(tmp.format(ext))
                 styleName = ''
         
-        # first set default style to everything.
+#         # clear all styling information to reset styling
+#         editor.SendScintilla(editor.SCI_CLEARDOCUMENTSTYLE)
+        
+        # First set default style to everything. The StyleClearAll command
+        # makes that all styles are initialized as style 032. So it would
+        # be more beautiful to look up that style and only apply that. But
+        # it should always be defined in 'default', so this will work ...
         self._applyStyle(editor,'default')
         editor.SendScintilla(editor.SCI_STYLECLEARALL)
         
@@ -206,7 +212,10 @@ class StyleManager(QtCore.QObject):
         if styleName: # else it is plain ...
             self._applyStyle(editor, styleName)
         
-        # return actual stylename
+        # force scintilla to update the whole document
+        editor.SendScintilla(editor.SCI_STARTSTYLING, 0, 32)
+        
+        # return actual stylename        
         return styleName
     
     def _applyStyle(self, editor, styleName):
@@ -219,10 +228,7 @@ class StyleManager(QtCore.QObject):
         style = self._styles[styleName]
         
         # Apply style on which it is based. A style is always based
-        # on default. Although we already applied the default style after
-        # which we did the styleclearall to set all stuff to the default,
-        # we need to apply it again in order for the bracematching style
-        # to be applied for example.
+        # on default. 
         if style.basedon:
             self._applyStyle(editor, style.basedon)
         elif styleName!='default':
@@ -235,6 +241,9 @@ class StyleManager(QtCore.QObject):
         if 'lexer' in style:
             editor.SendScintilla(editor.SCI_SETLEXERLANGUAGE, style.lexer)
         if 'keywords' in style:
+#             tmp = editor.SendScintilla(editor.SCI_GETLEXER)
+#             editor.SendScintilla(editor.SCI_SETLEXER, 0)            
+#             editor.SendScintilla(editor.SCI_SETLEXER, tmp)
             editor.SendScintilla(editor.SCI_SETKEYWORDS, style.keywords)
         
         # define dict
@@ -362,6 +371,23 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         else:
             self.setBraceMatching(0)
         #self.cursorPositionChanged.connect(self.doBraceMatch)
+        
+        # when pasting text, convert endings
+        self.SendScintilla(self.SCI_SETPASTECONVERTENDINGS, True)
+        
+        # HOME and END goto the start/end of the visible line, and also
+        # for shift-home, shift end (selecting the text)
+        shift, home, end = self.SCMOD_SHIFT<<16, self.SCK_HOME, self.SCK_END
+        tmp1, tmp2 = self.SCI_HOMEDISPLAY, self.SCI_HOMEDISPLAYEXTEND
+        self.SendScintilla(self.SCI_ASSIGNCMDKEY, home, tmp1)
+        self.SendScintilla(self.SCI_ASSIGNCMDKEY, home+shift, tmp2)
+        tmp1, tmp2 = self.SCI_LINEENDDISPLAY, self.SCI_LINEENDDISPLAYEXTEND
+        self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
+        self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)
+        
+        # folding
+        tmp = {False:self.NoFoldStyle, True:self.BoxedTreeFoldStyle}
+        self.setFolding( tmp[bool(iep.config.codeFolding)] )
         
         # things we fix
         #
