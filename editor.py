@@ -250,7 +250,7 @@ class IepEditor(BaseTextCtrl):
             raise ValueError("No filename specified, and no filename known.")
         
         # get text and convert line endings
-        text = self.getText()
+        text = self.getString()
         text = text.replace('\n', self._lineEndings)
         
         # make bytes
@@ -297,13 +297,13 @@ class IepEditor(BaseTextCtrl):
         text = text.replace('\r\n','\n').replace('\r','\n')
         
         # set text
-        self.setText(text)
+        self.setString(text)
         self.makeDirty(False)
     
     
     def commentCode(self):
         # get locations of the selected text (but whole lines only)
-        pos = self.getCurrentPos()
+        pos = self.getPosition()
         anch = self.getAnchor()
         line1 = self.lineFromPosition(pos)
         line2 = self.lineFromPosition(anch)
@@ -314,22 +314,22 @@ class IepEditor(BaseTextCtrl):
             pos2 = self.positionFromLine(linenr)
             self.setTargetStart(pos2)
             self.setTargetEnd(pos2)
-            self.replaceTarget("# ")
+            self.replaceTargetBytes("# ")
     
     
     def uncommentCode(self):
         
         # get locations of the selected text (but whole lines only)
-        pos = self.getCurrentPos()
+        pos = self.getPosition()
         anch = self.getAnchor()
-        line1 = self.lineFromPosition(pos)
-        line2 = self.lineFromPosition(anch)
+        line1 = self.getLineFromPosition(pos)
+        line2 = self.getLineFromPosition(anch)
         line1,line2 = min(line1,line2), max(line1,line2)+1
         
         # comment all lines
         for linenr in range(line1,line2):            
-            pos2 = self.positionFromLine(linenr)              
-            linetext = self.getLine(linenr)
+            pos2 = self.getPositionFromLine(linenr)              
+            linetext = self.getLineBytes(linenr)
             i = linetext.find("#")
             c = linetext[:i].count(" ") # only spaces before comment
             if i>=0 and i==c:
@@ -338,7 +338,7 @@ class IepEditor(BaseTextCtrl):
                     self.setTargetEnd(pos2+i+2) # remove "# "
                 else:
                     self.setTargetEnd(pos2+i+1) # remove "#"
-                self.replaceTarget("")
+                self.replaceTargetBytes("")
 
 
     
