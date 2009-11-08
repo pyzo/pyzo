@@ -324,9 +324,20 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     Inherited by the shell class and the IEP editor.
     The class implements autocompletion, calltips, and auto-help,
     as well as styling and stuff like autoindentation.
-    Inherits from QsciScintilla, cannot inherit from QsciScintillaBase
-    because every sendscintilla method that should return a string
-    does not work, so there is no way to get text.
+    
+    Inherits from QsciScintilla. I tried to clean up the rather dirty api
+    by using more sensible names. Hereby I apply the following rules:
+    - if you set something, the method starts with "set"
+    - if you get something, the method starts with "get"
+    - a position is the integer position fron the start of the document
+    - a linenr is the number of a line, an index the position on that line
+    - all the above indices apply to the bytes (encoded utf-8) in which the
+      text is stored. If you have unicode text, they do not apply!
+    - the method name mentions explicityly what you get. getBytes() returns the
+      bytes of the document, getString() gets the unicode string that it 
+      represents. If a method name mentions "text", it is an original 
+      Qscintilla method and can be either of these (best don't use that).
+    
     """
         
     def __init__(self, parent):
@@ -343,9 +354,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # things I might want to make optional/settable
         #
         
-        # use unicode
+        # use unicode, the second line does not seem to do anything
         self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
-        self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) # does not seem to do anything
+        self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) 
         
         # edge indicator        
         self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
@@ -444,12 +455,173 @@ class BaseTextCtrl(Qsci.QsciScintilla):
 #         self.SendScintilla(self.SCI_SETSELFORE, qt.QColor('#CCCCCC'))
 #         self.SendScintilla(self.SCI_SETSELBACK, qt.QColor('#333366'))
     
+        # init document, otherwise (for some reason) it is not well
+        # displayed.
+        self.setBytes(b'\n')
     
-    ## Methods that (closely) wrap a call using SendScintilla
-    # and that are not implemented by QScintilla
+    ## getting and setting text
     
-    def getTextLength(self):
+    
+    def getBytesLength(self):
+        """ Get the length of the (encoded) text. 
+        (__len__() does the same)
+        """
         return self.SendScintilla(self.SCI_GETLENGTH)
+    
+    def __len__(self):
+        return self.SendScintilla(self.SCI_GETLENGTH)
+    
+    
+    def setBytes(self, value):
+        """ Set the text as utf-8 encoded bytes. """
+        self.SendScintilla(self.SCI_SETTEXT, value)
+    
+    def setString(self, value):
+        """ Set the text as a unicode string. """
+        bb = value.encode('utf-8')
+        self.SendScintilla(self.SCI_SETTEXT, bb)
+    
+    
+    def getBytes(self):
+        """ Get the text as bytes (utf-8 encoded). This is how
+        the data is stored internally. """
+        # +1 because Null character needs to fit in too
+        len = self.SendScintilla(self.SCI_GETLENGTH)+1
+        bb = QtCore.QByteArray(len,'0')
+        N = self.SendScintilla(self.SCI_GETTEXT, len, bb)
+        return bytes(bb)[:-1] # remove NULL character
+    
+    def getString(self):
+        """ Get the text as a unicode string. """
+        return self.getBytes().decode('utf-8')
+    
+    
+    def getLineBytes(self, linenr):
+        """ Get the bytes of the given line. """
+        # +1 because Null character needs to fit in too
+        len = self.SendScintilla(self.SCI_LINELENGTH, linenr)+1
+        bb = QtCore.QByteArray(len,'0')
+        N = self.SendScintilla(self.SCI_GETLINE, linenr, bb)
+        return bytes(bb)[:-1] # remove NULL character
+    
+    def getLineString(self, linenr):
+        """ Get the string of the given line. """
+        return self.getLineBytes(linenr).decode('utf-8')
+    
+    
+    def getSelectedBytes(self):
+        """ Get the bytes that are currently selected. """
+        # +1 because Null character needs to fit in too
+        len = self.SendScintilla(self.SCI_GETSELTEXT, 0, 0)+1
+        bb = QtCore.QByteArray(len,'0')
+        N = self.SendScintilla(0, self.SCI_GETSELTEXT, bb)
+        return bytes(bb)[:-1] # remove NULL character
+    
+    def getSelectedString(self):
+        """ Get the string that represents the currently selected text. """
+        return self.getSelectedBytes().decode('utf-8')
+    
+    
+    def getStyleAt(self, pos):
+        """ Get the style at the given position."""
+        return self.SendScintilla(self.SCI_GETSTYLEAT,pos)
+    
+    def getCharAt(self,pos):
+        """ Get the character at the current position. """
+        char = self.SendScintilla(self.SCI_GETCHARAT, pos)
+        if char == 0:
+            return ""
+        elif char < 0:
+            return chr(char + 256)
+        else:
+            return chr(char)
+    
+    
+    def insertBytes(self, pos, value):
+        """ insert the given bytes at the given position. """
+        self.SendScintilla(self.SCI_INSERTTEXT, pos, value)
+    
+    def insertString(self, pos, value):
+        """ insert the given bytes at the given position. """
+        value = value.encode('utf-8')
+        self.SendScintilla(self.SCI_INSERTTEXT, pos, value)
+    
+    # todo: test the get string methods
+    # todo: no names should override the qscintilla method!
+    
+    ## Positional methods
+    
+    def setPosition(self, pos):
+        """ Set the position of the cursor. """
+        self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
+    
+    def setAnchor(self, pos):
+        """ Set the position of the anchor. """
+        self.SendScintilla(self.SCI_SETANCHOR, pos)
+    
+    def setPositionAndAnchor(self, pos):
+        """ Set both position and anchor to the same position. """
+        self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
+        self.SendScintilla(self.SCI_SETANCHOR, pos)
+    
+    def getPosition(self):
+        """ Get the current position of the cursor. """
+        return self.SendScintilla(self.SCI_GETCURRENTPOS)
+    
+    def getAnchor(self):
+        """ Get the anchor (as int) of the cursor. If this is
+        different than the position, text is selected."""
+        return self.SendScintilla(self.SCI_GETANCHOR)
+    
+    
+    def getLinenrAndIndex(self, pos=None):
+        """ Get the linenr and index of the given position,
+        or the current position if pos is None. """
+        if pos is None:
+            pos = self.SendScintilla(self.SCI_GETCURRENTPOS)
+        linenr = self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
+        index = pos - self.SendScintilla(self.SCI_POSITIONFROMLINE, linenr)
+        return linenr, index
+    
+    def getLinenrFromPosition(self, pos=None):
+        """ Get the linenr, given the position (or the
+        current position if pos is None). """
+        if pos is None:
+            pos = self.SendScintilla(self.SCI_GETCURRENTPOS)
+        return self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
+    
+    def getPositionFromLinenr(self, linenr):
+        """ Get the position, given the line number. """
+        return self.SendScintilla(self.SCI_POSITIONFROMLINE , linenr)
+    
+    
+    def setTargetStart(self, pos):
+        """ Set the start of selection target. 
+        The target is used in various task and can be seen
+        as a selection that is not shown to the user. """
+        self.SendScintilla(self.SCI_SETTARGETSTART, pos)
+    
+    def setTargetEnd(self, pos):
+        """ Set the end of selection target. 
+        The target is used in various task and can be seen
+        as a selection that is not shown to the user. """
+        self.SendScintilla(self.SCI_SETTARGETEND, pos)
+    
+    def replaceTargetBytes(self, value):
+        """ replace the target with the selected bytes. 
+        The target is used in various task and can be seen
+        as a selection that is not shown to the user. """        
+        self.SendScintilla(self.SCI_REPLACETARGET, len(value), value)
+    
+    def replaceTargetString(self, value):
+        """ replace the target with the selected string. 
+        The target is used in various task and can be seen
+        as a selection that is not shown to the user. """        
+        value = value.encode('utf-8')
+        self.SendScintilla(self.SCI_REPLACETARGET, len(value), value)
+    
+    
+    ## Settings methods
     
     def setIndentation(self, value):
         """ Set the used indentation. If a number larger than 0,
@@ -464,17 +636,21 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.SendScintilla(self.SCI_SETINDENT, value)
     
     def getIndentation(self):
+        """ Get the used indentation. See setIndentation for details. """
         if self.SendScintilla(self.SCI_GETUSETABS):
             return -1
         else:
             return self.SendScintilla(self.SCI_GETINDENT)
     
+    
     def setTabWidth(self, width):
-        """ Set the tab width """
+        """ Set the tab width. """
         self.SendScintilla(self.SCI_SETTABWIDTH, width)    
     
     def getTabWidth(self):
+        """ Get the tab width. """
         return self.SendScintilla(self.SCI_GETTABWIDTH)
+    
     
     def setViewWhiteSpace(self, value):
         """ Set the white space visibility, can be True or False, 
@@ -482,83 +658,70 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         value = int(value)
         self.SendScintilla(self.SCI_SETVIEWWS, value)
     
-    def getCurrentPos(self):
-        """ Get the position (as an int) of the cursor. 
-        getCursorPosition() returns a (linenr, index) tuple.
-        """        
-        return self.SendScintilla(self.SCI_GETCURRENTPOS)
-    
-    def setCurrentPos(self, pos):
-        """ Set the position of the cursor. """
-        self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
-    
-    def getLine(self, linenr):
-        """ Get the bytes on the given line number. """
-        len = self.SendScintilla(self.SCI_LINELENGTH)+1
-        bb = QtCore.QByteArray(len,'0')
-        N = self.SendScintilla(self.SCI_GETLINE, len, bb)
-        return bytes(bb)[:-1]
-    # todo: when to return bytes and when a string?
-    
-    def getCurLine(self):
-        """ Get the current line (as a string) and the 
-        position of the cursor in it. """
-        linenr, index = self.getCursorPosition()
-        line = self.getLine(linenr) #.decode('utf-8')
-        return line, index
-    
-    def getAnchor(self):
-        """ Get the anchor (as int) of the cursor. If this is
-        different than the position, than text is selected."""
-        return self.SendScintilla(self.SCI_GETANCHOR)
-    
-    def setAnchor(self, pos):
-        """ Set the position of the anchor. """
-        self.SendScintilla(self.SCI_SETANCHOR, pos)
-    
-    def lineFromPosition(self, pos):
-        """ Get the line number, given the position. """
-        return self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
-    
-    def positionFromLine(self, linenr):
-        """ Get the position, given the line number. """
-        return self.SendScintilla(self.SCI_POSITIONFROMLINE , linenr)
+    def getViewWhiteSpace(self):
+        """ Get the white space visibility, can be 0, 1 or 2, 
+        where 2 means show after indentation. """
+        return self.SendScintilla(self.SCI_GETVIEWWS)
     
     
-    def setTargetStart(self, pos):
-        """ Set the start of selection target. """
-        self.SendScintilla(self.SCI_SETTARGETSTART, pos)
+#     def setWrapMode(self, value):
+#         """ Set the wrapmode of the editor. 
+#         0: no wrap, 1: wrap word, 2: wrap character.
+#         1 is not recommended since it is very slow. """
+#         self.SendScintilla(self.SCI_SETWRAPMODE, value)
+#     
+#     def getWrapMode(self, value):
+#         """ Get the wrapmode of the editor. 
+#         0: no wrap, 1: wrap word, 2: wrap character.
+#         1 is not recommended since it is very slow. """
+#         return self.SendScintilla(self.SCI_GETWRAPMODE)
+#     
+#     
+#     def setEdgeColumn(self, value):
+#         """ Set the position of the edge column of the editor. """
+#         self.SendScintilla(self.SCI_SETEDGECOLUMN, value)
+#     
+#     def getEdgeColumn(self):
+#         """ Get the position of the edge column of the editor. """
+#         return self.SendScintilla(self.SCI_GETEDGECOLUMN)
+#     
+#     
+#     def setIndentationGuides(self, value):
+#         """ Set whether or not to show indentation guides. """
+#         self.SendScintilla(self.SCI_SETINDENTATIONGUIDES, value)
+#     
+#     def getIndentationGuides(self):
+#         """ Get whether or not to show indentation guides."""
+#         return self.SendScintilla(self.SCI_GETINDENTATIONGUIDES)
+#     
+#     
+#     def setEolMode(self, value):
+#         """ Set The line ending mode to apply. """
+#         self.SendScintilla(self.SCI_SETEOLMODE, value)
+#     
+#     def getEolMode(self):
+#         """ Get The line ending mode to apply. """
+#         return self.SendScintilla(self.SCI_GETEOLMODE)
     
-    def setTargetEnd(self, pos):
-        """ Set the end of selection target. """
-        self.SendScintilla(self.SCI_SETTARGETEND, pos)
     
-    def replaceTarget(self, value):
-        """ Set the start of selection. """
-        value = value.encode('utf-8')
-        self.SendScintilla(self.SCI_REPLACETARGET, len(value), value)
+    def setStyle(self, styleName=None):
+        """ Set the styling used, or the extension of the file. """
+        # remember style or use remebered style
+        if styleName is None:
+            styleName = self._styleName        
+        # apply and remember
+        self._styleName = styleManager.applyStyle(self,styleName)
     
-    
-    def styleAt(self, pos):
-        """ Get the style at the given position."""
-        return self.SendScintilla(self.SCI_GETSTYLEAT,pos)
-        
-    def charAt(self,pos):
-        """ Get the characted at the current position. """
-        char = self.SendScintilla(self.SCI_GETCHARAT, pos)
-        if char == 0:
-            return ""
-        elif char < 0:
-            return chr(char + 256)
-        else:
-            return chr(char)
-    
-    def autoCompActive(self):         
-        return self.SendScintilla(self.SCI_AUTOCACTIVE)
+    def getStyleName(self):
+        """ Get the name of the currently applied style. """
+        return self._styleName
     
     
-    ## Other methods
     
+    
+    ## Autocompletion and other introspection methods
+    
+    # the method below is not used because Qscintilla has it build in
     def doBraceMatch(self,event=None):
         """ Match braces and highlight accordingly.
         Called on EVT_STC_UPDATEUI.        
@@ -572,9 +735,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # get char at the cursor        
         chara, charb = 'a', 'b'
-        if i1>0 and i1 < self.getTextLength():
-            chara = self.charAt(i1-1)
-            charb = self.charAt(i1)
+        if i1>0 and i1 < len(self):
+            chara = self.getCharAt(i1-1)
+            charb = self.getCharAt(i1)
         
         # do we have a brace right before or after the cursor?
         if charb in '()[]{}':
@@ -593,23 +756,28 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.SendScintilla(self.SCI_BRACEHIGHLIGHT, i1, i2)
     
     
-    def Introspect_isValidPython(self):
+    def autoCompActive(self):         
+        return self.SendScintilla(self.SCI_AUTOCACTIVE)
+    
+    
+    def introspect_isValidPython(self):
         """ Check if the code at the cursor is valid python:
         - the active lexer is the python lexer
         - the style at the cursor is "default"
         """
         
         # only complete if lexer is python
-        if ~isinstance(self.lexer(), Qsci.QsciLexerPython):
+        if ~isinstance(self.getLexer(), Qsci.QsciLexerPython):
             return False
         
         # the style must be "default"
-        curstyle = self.styleAt(self.getCurrentPos())
+        curstyle = self.getStyleAt(self.getCurrentPos())
         if curstyle not in [self._lexer.Default, self._lexer.Operator]:
             return False
         
         # all good
         return True  
+    
     
     ## Callbacks
     
@@ -628,9 +796,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
         # todo: I need these commands to deal with encoding
-        i0 = self.getCurrentPos()
-        i1 = self.SendScintilla(self.SCI_POSITIONBEFORE, i0)
-        i2 = self.SendScintilla(self.SCI_POSITIONAFTER, i0)
+        #i0 = self.getCurrentPos()
+        #i1 = self.SendScintilla(self.SCI_POSITIONBEFORE, i0)
+        #i2 = self.SendScintilla(self.SCI_POSITIONAFTER, i0)
         #print(i1, i0, i2) 
     
     def keyPressEvent2(self, event):
@@ -662,18 +830,17 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # auto indentation
             
             # check if style is ok...
-            curstyle = self.styleAt(self.getCurrentPos())
+            pos = self.getPosition()
+            curstyle = self.getStyleAt(self.getPosition())
             if curstyle in [0,10]: # default, operator
                 styleOk = True
             else:
                 styleOk = False
             # auto indent!
-            linenr,index = self.getCursorPosition()
-            text = self.getLine(linenr)
-            if not text:
+            linenr,index = self.getLinenrAndIndex()
+            line = self.getLineBytes(linenr)
+            if not line:
                 return False
-            line = self.getLine(linenr)
-            print(type(line))
             text = removeComment( line )
             ind = len(text) - len(text.lstrip())
             ind = int(round(ind/indentWidth))
@@ -681,10 +848,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 text2insert = "\n"+indent*((ind+1)*indentWidth)                
             else:                
                 text2insert = "\n"+indent*(ind*indentWidth)            
-            self.insertAt(text2insert, linenr, index)
-            pos = self.getCurrentPos()
-            self.setCurrentPos( pos + len(text2insert) )
-            self.setAnchor( pos + len(text2insert) )
+            self.insertBytes(pos, text2insert)
+            pos = self.getPosition()
+            self.setPositionAndAnchor( pos + len(text2insert) )
             return True
             #self.StopIntrospecting()
         
@@ -732,40 +898,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     # todo: note that I just as well might give the undecoded bytes!
     
-    def setBytes(self, value):
-        """ Set the text as utf-8 encoded bytes. """
-        self.SendScintilla(self.SCI_SETTEXT, value)
-    
-    def getBytes(self):
-        """ Get the text as bytes (utf-8 encoded). This is how
-        the data is stored internally. """
-        len = self.SendScintilla(self.SCI_GETLENGTH)+1
-        bb = QtCore.QByteArray(len,'0')
-        N = self.SendScintilla(self.SCI_GETTEXT, len, bb)
-        return bytes(bb)[:-1]
-    
-    def setText(self, value):
-        """ Set the text as a unicode string. """
-        bb = value.encode('utf-8')
-        self.SendScintilla(self.SCI_SETTEXT, bb)
-    
-    def getText(self):
-        """ Get the text as a unicode string. """
-        value = self.getBytes().decode('utf-8')
-        # print (value) printing can give an error because the console font
-        # may not have all unicode characters
-        return value
-    
-    def setStyle(self, styleName=None):
-        # remember style or use remebered style
-        if styleName is None:
-            styleName = self._styleName        
-        # apply and remember
-        self._styleName = styleManager.applyStyle(self,styleName)
-    
-    def getStyleName(self):
-        """ Get the name of the currently applied style. """
-        return self._styleName
     
 
 if __name__=="__main__":

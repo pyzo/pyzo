@@ -380,13 +380,13 @@ class SettingsMenu(BaseMenu):
             editor.setViewWhiteSpace(value)
     
     def fun_wrap(self, value):
-        """ Wrap long lines (decreases performance for large files). """
+        """ Wrap long lines. """
         if value is None:
             return bool(iep.config.wrapText)
         value = not bool( iep.config.wrapText ) 
         iep.config.wrapText = value
         for editor in iep.editors:
-            editor.setWrapMode(int(value))
+            editor.setWrapMode(int(value)*2)
     
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """

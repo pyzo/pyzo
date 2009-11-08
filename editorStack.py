@@ -716,6 +716,9 @@ class FindReplaceWidget(QtGui.QFrame):
         # create callbacks
         self._hidebut.clicked.connect(self.hideMe)
         self._findNext.clicked.connect(self.findNext)
+        self._findPrev.clicked.connect(self.findPrevious)
+        self._replace.clicked.connect(self.replaceOne)
+        self._replaceAll.clicked.connect(self.replaceAll)
         
     
     def hideMe(self):
@@ -749,9 +752,9 @@ class FindReplaceWidget(QtGui.QFrame):
         # get needle
         editor = self.parent().getCurrentEditor()
         if editor:
-            needle = editor.selectedText() # is utf-8 proof
+            needle = editor.getSelectedString()
             if needle:
-                self._findText.setText( needle ) #
+                self._findText.setText( needle )
         # select the find-text
         self.selectFindText()
         
@@ -780,7 +783,8 @@ class FindReplaceWidget(QtGui.QFrame):
         # self._findText.setFocus()
     
     def find(self, forward=True):
-        """ The main find method. """
+        """ The main find method.
+        Returns True if a match was found. """
         
         # get editor
         editor = self.parent().getCurrentEditor()
@@ -799,14 +803,14 @@ class FindReplaceWidget(QtGui.QFrame):
             needle = needle.lower()
         
         # estblish start position
-        pos1 = editor.getCurrentPos()
+        pos1 = editor.getPosition()
         pos2 = editor.getAnchor()
         if forward:
             pos = max([pos1,pos2])
         else:
             pos = min([pos1,pos2])
-        line = editor.lineFromPosition(pos)
-        index = pos-editor.positionFromLine(line)
+        line = editor.getLineFromPosition(pos)
+        index = pos-editor.getPositionFromLine(line)
         
         # use Qscintilla's implementation
         ok = editor.findFirst(needle, False, matchCase, False, False, 
@@ -818,73 +822,71 @@ class FindReplaceWidget(QtGui.QFrame):
             if forward:
                 line, index = 0,0
             else:
-                pos = editor.getTextLength()
-                line = editor.lineFromPosition(pos)
-                index = pos-editor.positionFromLine(line)
-            editor.findFirst(needle, False, matchCase, False, False, 
+                pos = len(editor)
+                line = editor.getLineFromPosition(pos)
+                index = pos-editor.getPositionFromLine(line)
+            ok = editor.findFirst(needle, False, matchCase, False, False, 
                                 forward, line, index, True)
+        
+        # done
+        return ok
     
     
-    def replaceThis(self,event=None):
+    def replaceOne(self,event=None):
+        """ If the currently selected text matches the find string,
+        replaces that text. Then it finds and selects the next match.
+        Returns True if a next match was found.
+        """
+        
+        # get editor
+        editor = self.parent().getCurrentEditor()
+        if not editor:
+            return        
         
         # matchCase
-        matchCase = self.caseCheck.GetValue()
+        matchCase = self._caseCheck.isChecked()
         
-        # get needle
-        needle = self.findText.GetValue()        
+        # get text to find
+        needle = self._findText.text()
         if not matchCase:
             needle = needle.lower()
-            
+        
         # get replacement
-        replacement = self.replaceText.GetValue()
-                    
-        # get text to replace
-        editor = self.book.GetCurrentEditor()
-        if editor:
-            original = editor.GetSelectedText()            
-            if not matchCase:
-                original = original.lower()
-            
-            # replace
-            if original and original == needle:
-                editor.ReplaceSelection( replacement )
-                
-            # next!
-            self.Find()
+        replacement = self._replaceText.text()
+        
+        # get original text
+        original = editor.getSelectedString()
+        if not original:
+            original = ''
+        if not matchCase:
+            original = original.lower()
+        
+        # replace
+        if original and original == needle:
+            editor.replace( replacement )
+        
+        # next!
+        return self.find()
+    
     
     def replaceAll(self,event=None):
-        # matchCase
-        matchCase = self.caseCheck.GetValue()
         
-        # get needle
-        needle = self.findText.GetValue()        
-        if not matchCase:
-            needle = needle.lower()
-            
-        # get replacement
-        replacement = self.replaceText.GetValue()
-        
-        # get text to replace
+        # get editor
         editor = self.parent().getCurrentEditor()
-        if editor:
-            # get text from editor
-            text2 = text = editor.GetText()            
-            if not matchCase:
-                text2 = text2.lower()
-                
-            # replace untill done
-            pos = 0
-            while not pos<0:
-                pos = text2.find(needle, pos)
-                if pos >= 0:
-                    endpos = pos + len(needle)
-                    # replace both text and searchtext!
-                    text = text[:pos] + replacement + text[endpos:]
-                    text2 = text2[:pos] + replacement + text2[endpos:]
-                    pos = len(replacement)             
-            
-            # finish up
-            editor.SetText(text)   
+        if not editor:
+            return 
+        
+        # get current position
+        line, index = editor.getLineAndIndex()
+        
+        # replace all
+        editor.setPosition(0)
+        while self.replaceOne():
+            pass
+        
+        # reset position
+        pos = editor.getPositionFromLine(line)
+        editor.setPositionAndAnchor(pos+index)
     
     
 class EditorStack(QtGui.QWidget):
@@ -934,26 +936,38 @@ class EditorStack(QtGui.QWidget):
         is not supposed to happen, but if it ever does, it will be
         nicely removed here.)"""
         
-        # always do a check here ...
-        tmp = self._list._items
-        tmp = [item._editor for item in tmp if isinstance(item,FileItem)]
-        foundIt = False
-        for i in range(self._stack.count()):
-            widget = self._stack.widget(i)
-            if widget not in tmp:
-                print('removing stuck widget:', widget)
-                self._stack.removeWidget(widget)
-                widget.hide()
-                widget.destroy()
-            if widget is editor:
-                foundIt = True
+#         # always do a check here ...
+#         tmp = self._list._items
+#         tmp = [item._editor for item in tmp if isinstance(item,FileItem)]
+#         foundIt = False
+#         for i in range(self._stack.count()):
+#             widget = self._stack.widget(i)
+#             if widget not in tmp:
+#                 print('removing stuck widget:', widget)
+#                 self._stack.removeWidget(widget)
+#                 widget.hide()
+#                 widget.destroy()
+#             if widget is editor:
+#                 foundIt = True
+#         
+#         if editor:            
+#             # if not already in stack, add it now
+#             if True:#not foundIt:
+#                 self._stack.addWidget(editor)            
+#             # make current
+#             self._stack.setCurrentWidget(editor)
         
-        if editor:            
-            # if not already in stack, add it now
-            if True:#not foundIt:
-                self._stack.addWidget(editor)            
-            # make current
-            self._stack.setCurrentWidget(editor)
+        # remove all from stack
+        while self._stack.count():
+            widget = self._stack.widget(0)
+            widget.hide()
+            self._stack.removeWidget(widget)
+        
+        # add the one!
+        if editor:
+            self._stack.addWidget(editor)
+            editor.show()
+        
     
     
     def getCurrentEditor(self):
