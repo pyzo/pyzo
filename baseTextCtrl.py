@@ -13,6 +13,8 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 qt = QtGui
 
+# get config
+config = iep.config.editor
 
 # define fontnames
 if 'win' in sys.platform:
@@ -360,14 +362,14 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # edge indicator        
         self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
-        self.setEdgeColumn(iep.config.edgeColumn)
+        self.setEdgeColumn(config.edgeColumn)
         # indentation        
-        self.setIndentation(iep.config.defaultIndentation)
-        self.setTabWidth(iep.config.tabWidth)  
-        self.setIndentationGuides(iep.config.showIndentGuides)
-        self.setViewWhiteSpace(iep.config.showWhiteSpace)
+        self.setIndentation(config.defaultIndentation)
+        self.setTabWidth(config.tabWidth)  
+        self.setIndentationGuides(config.showIndentGuides)
+        self.setViewWhiteSpace(config.showWhiteSpace)
         # wrapping
-        if iep.config.wrapText:
+        if config.wrapText:
             self.setWrapMode(2) # 0:None, 1:Word, 2:Character 
         else:
             self.setWrapMode(0)
@@ -377,7 +379,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.setEolMode(self.SC_EOL_LF) # lf is default
         
         # brace matching
-        if iep.config.doBraceMatch:
+        if config.doBraceMatch:
             self.setBraceMatching(2)
         else:
             self.setBraceMatching(0)
@@ -388,17 +390,18 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # HOME and END goto the start/end of the visible line, and also
         # for shift-home, shift end (selecting the text)
-        shift, home, end = self.SCMOD_SHIFT<<16, self.SCK_HOME, self.SCK_END
-        tmp1, tmp2 = self.SCI_HOMEDISPLAY, self.SCI_HOMEDISPLAYEXTEND
-        self.SendScintilla(self.SCI_ASSIGNCMDKEY, home, tmp1)
-        self.SendScintilla(self.SCI_ASSIGNCMDKEY, home+shift, tmp2)
-        tmp1, tmp2 = self.SCI_LINEENDDISPLAY, self.SCI_LINEENDDISPLAYEXTEND
-        self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
-        self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)
+        if config.homeAndEndWorkOnDisplayedLine:
+            shift,home,end = self.SCMOD_SHIFT<<16, self.SCK_HOME, self.SCK_END
+            tmp1, tmp2 = self.SCI_HOMEDISPLAY, self.SCI_HOMEDISPLAYEXTEND
+            self.SendScintilla(self.SCI_ASSIGNCMDKEY, home, tmp1)
+            self.SendScintilla(self.SCI_ASSIGNCMDKEY, home+shift, tmp2)
+            tmp1, tmp2 = self.SCI_LINEENDDISPLAY, self.SCI_LINEENDDISPLAYEXTEND
+            self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
+            self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)
         
         # folding
         tmp = {False:self.NoFoldStyle, True:self.BoxedTreeFoldStyle}
-        self.setFolding( tmp[bool(iep.config.codeFolding)] )
+        self.setFolding( tmp[bool(config.codeFolding)] )
         
         # things we fix
         #
@@ -512,9 +515,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def getSelectedBytes(self):
         """ Get the bytes that are currently selected. """
         # +1 because Null character needs to fit in too
-        len = self.SendScintilla(self.SCI_GETSELTEXT, 0, 0)+1
+        len = self.SendScintilla(self.SCI_GETSELTEXT, 0, 0) # not +1
         bb = QtCore.QByteArray(len,'0')
-        N = self.SendScintilla(0, self.SCI_GETSELTEXT, bb)
+        N = self.SendScintilla(self.SCI_GETSELTEXT, 0, bb)
         return bytes(bb)[:-1] # remove NULL character
     
     def getSelectedString(self):
@@ -663,6 +666,26 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         where 2 means show after indentation. """
         return self.SendScintilla(self.SCI_GETVIEWWS)
     
+    def setViewEOL(self, value):
+        """ Set the line ending visibility, can be True or False. """
+        value = int(value)
+        self.SendScintilla(self.SCI_SETVIEWEOL, value)
+    
+    def getViewEOL(self):
+        """ Get the line ending visibility. """
+        return self.SendScintilla(self.SCI_GETVIEWEOL)
+    
+    def setViewWrapSymbols(self, value):
+        """ Set the wrap symbols visibility, can be True or False,
+        or 0,1 or 2, for off, show-at-end, show-at-start, respectively. """
+        value = int(value)
+        self.SendScintilla(self.SCI_SETWRAPVISUALFLAGS, value)
+    
+    def getViewWrapSymbols(self):
+        """ Get the wrap symbols visibility. Is 0,1 or 2, 
+        for off, show-at-end, show-at-start, respectively. """
+        return self.SendScintilla(self.SCI_GETWRAPVISUALFLAGS)
+        
     
 #     def setWrapMode(self, value):
 #         """ Set the wrapmode of the editor. 
@@ -721,39 +744,39 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Autocompletion and other introspection methods
     
-    # the method below is not used because Qscintilla has it build in
-    def doBraceMatch(self,event=None):
-        """ Match braces and highlight accordingly.
-        Called on EVT_STC_UPDATEUI.        
-        """
-       
-        if not iep.config.doBraceMatch:
-            return
-        
-        # get location of current brace and the match
-        i1 = self.getCurrentPos()        
-        
-        # get char at the cursor        
-        chara, charb = 'a', 'b'
-        if i1>0 and i1 < len(self):
-            chara = self.getCharAt(i1-1)
-            charb = self.getCharAt(i1)
-        
-        # do we have a brace right before or after the cursor?
-        if charb in '()[]{}':
-            i1 = i1
-        elif chara in '()[]{}':
-            i1 = i1-1
-        else:
-            self.SendScintilla(self.SCI_BRACEBADLIGHT, -1)
-            return
-        
-        # match brace
-        i2 = self.SendScintilla(self.SCI_BRACEMATCH, i1) 
-        if i2<0:
-            self.SendScintilla(self.SCI_BRACEBADLIGHT,i1)
-        else:        
-            self.SendScintilla(self.SCI_BRACEHIGHLIGHT, i1, i2)
+#     # the method below is not used because Qscintilla has it build in
+#     def doBraceMatch(self,event=None):
+#         """ Match braces and highlight accordingly.
+#         Called on EVT_STC_UPDATEUI.        
+#         """
+#        
+#         if not config.doBraceMatch:
+#             return
+#         
+#         # get location of current brace and the match
+#         i1 = self.getCurrentPos()        
+#         
+#         # get char at the cursor        
+#         chara, charb = 'a', 'b'
+#         if i1>0 and i1 < len(self):
+#             chara = self.getCharAt(i1-1)
+#             charb = self.getCharAt(i1)
+#         
+#         # do we have a brace right before or after the cursor?
+#         if charb in '()[]{}':
+#             i1 = i1
+#         elif chara in '()[]{}':
+#             i1 = i1-1
+#         else:
+#             self.SendScintilla(self.SCI_BRACEBADLIGHT, -1)
+#             return
+#         
+#         # match brace
+#         i2 = self.SendScintilla(self.SCI_BRACEMATCH, i1) 
+#         if i2<0:
+#             self.SendScintilla(self.SCI_BRACEBADLIGHT,i1)
+#         else:        
+#             self.SendScintilla(self.SCI_BRACEHIGHLIGHT, i1, i2)
     
     
     def autoCompActive(self):         
@@ -821,10 +844,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_CALLTIPSHOW, "hallo")
         
         indentWidth = self.getIndentation()
-        indent = ' '
+        indent = b' '
         if indentWidth<0:
             indentWidth = 1
-            indent = '\t'
+            indent = b'\t'
         
         if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             # auto indentation
@@ -844,10 +867,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             text = removeComment( line )
             ind = len(text) - len(text.lstrip())
             ind = int(round(ind/indentWidth))
-            if styleOk and len(text)>0 and text[-1] == ':':
-                text2insert = "\n"+indent*((ind+1)*indentWidth)                
+            if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
+                text2insert = b"\n"+indent*((ind+1)*indentWidth)
             else:                
-                text2insert = "\n"+indent*(ind*indentWidth)            
+                text2insert = b"\n"+indent*(ind*indentWidth)
             self.insertBytes(pos, text2insert)
             pos = self.getPosition()
             self.setPositionAndAnchor( pos + len(text2insert) )

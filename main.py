@@ -82,6 +82,11 @@ class MainWindow(qt.QMainWindow):
         pos.left, pos.top = self.x(), self.y()
         pos.width, pos.heigth = self.width(), self.height()
         
+        # store editorStack settings
+        fr = iep.editors._findReplace
+        iep.config.find_matchCase = fr._caseCheck.isChecked()
+        iep.config.find_regExp = fr._regExp.isChecked()
+        
         # store config
         iep.saveConfig()
         

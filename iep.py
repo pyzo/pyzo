@@ -43,18 +43,48 @@ path = os.path.dirname( os.path.abspath(path) )
 
 defaultConfigString = """
 qtstyle = $plastique
-showWhiteSpace = 0
-edgeColumn = 80
 editorState = $
-showIndentGuides = 1
-wrapText = 0
+editorStackBarWidth = 180
+find_matchCase = 1
+find_regExp = 1
+editor = dict:
+  showWhiteSpace = 0
+  showWrapSymbols = 0
+  showLineEndings = 0
+  edgeColumn = 80  
+  showIndentGuides = 1
+  wrapText = 0  
+  defaultStyle = $python
+  defaultIndentation = 4
+  defaultLineEndings = $LF
+  doBraceMatch = 1
+  tabWidth = 4
+  codeFolding = 0
+  # advanced settings
+  homeAndEndWorkOnDisplayedLine = 1
 shortcuts = dict:
-defaultStyle = $python
-defaultIndentation = 4
-defaultLineEndings = $LF
-doBraceMatch = 1
-tabWidth = 4
-codeFolding = 1
+edit__paste = $Ctrl+V,
+  edit__select_all = $Ctrl+A,
+  settings__wrap_text = $Alt+T,
+  edit__move_to_matching_brace = $Ctrl+],
+  settings__qt_style__cleanlooks = $Ctrl+F12,
+  edit__find_next = $F3,
+  edit__find_or_replace = $Ctrl+F,
+  edit__find_previous = $Shift+F3,
+  file__new_file = $Ctrl+N,
+  edit__copy = $Ctrl+C,
+  edit__redo = $Ctrl+Y,
+  settings__show_whitespace = $Alt+W,
+  edit__undo = $Ctrl+Z,
+  settings__qt_style__plastique = $Ctrl+F11,
+  file__close_file = $Ctrl+W,
+  edit__uncomment_lines = $Ctrl+T,
+  settings__qt_style__windows = $Ctrl+F10,
+  file__save_file = $Ctrl+S,
+  edit__find_selection = $Ctrl+F3,
+  edit__comment_lines = $Ctrl+R,
+  edit__cut = $Ctrl+X,
+  file__open_file = $Ctrl+O,
 plugins = dict:
   top = list:
   bottom = list:
@@ -87,7 +117,14 @@ def loadConfig():
         for key in tmp:
             config[key] = tmp[key]
     
-    # fill in missing values
+    # fill editor keys
+    if 'editor' not in config:
+        config['editor'] = ssdf.new()
+    for key in defaultConfig.editor:
+        if key not in config.editor:
+            config.editor[key] = defaultConfig.editor[key]
+            
+    # fill in other missing values
     for key in defaultConfig:
         if key not in config:
             config[key] = defaultConfig[key]
