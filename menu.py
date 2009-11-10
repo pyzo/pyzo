@@ -139,6 +139,11 @@ class FileMenu(BaseMenu):
         addItem( MI('Save file as ...', self.fun_saveAs) )
         addItem( MI('Close file', self.fun_closeFile) )
         addItem(None)
+        addItem( MI('Style', self.fun_style, True) )
+        addItem( MI('Indentation', self.fun_indentation, True) )
+        addItem( MI('Line endings', self.fun_lineEndings, True) )        
+        addItem( MI('File encoding', self.fun_encoding, True) )
+        addItem(None)
         addItem( MI('Restart IEP', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
     
@@ -163,101 +168,6 @@ class FileMenu(BaseMenu):
         """ Close the current file. """
         iep.editors.closeFile()
     
-    def fun_close(self, value):
-        """ Close the application. """
-        iep.main.close()
-    
-    def fun_restart(self, value):
-        """ Restart the application. """
-        # close first
-        self.fun_close(None)
-        
-        # put a space in front of all args
-        args = []
-        for i in sys.argv:
-            args.append(" "+i)
-        
-        # replace the process!                
-        os.execv(sys.executable, args)
-
-
-class EditMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Undo', self.fun_undo) )
-        addItem( MI('Redo', self.fun_redo) )
-        addItem( None )
-        addItem( MI('Cut', self.fun_cut) )
-        addItem( MI('Copy', self.fun_copy) )
-        addItem( MI('Paste', self.fun_paste) )
-        addItem( None )
-        addItem( MI('Select all', self.fun_selectAll) )
-        addItem( None )
-        addItem( MI('Comment lines', self.fun_comment) )
-        addItem( MI('Uncomment lines', self.fun_uncomment) )
-        addItem( None )
-        addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
-        addItem( None )
-        addItem( MI('Find or replace', self.fun_findReplace) )
-        addItem( MI('Find selection', self.fun_findSelection) )
-        addItem( MI('Find next', self.fun_findNext) )
-        addItem( MI('Find previous', self.fun_findPrevious) )
-        addItem( None )
-        addItem( MI('Style', self.fun_style, True) )
-        addItem( MI('Indentation', self.fun_indentation, True) )
-        addItem( MI('Line endings', self.fun_lineEndings, True) )        
-        addItem( MI('File encoding', self.fun_encoding, True) )
-    
-    
-    def fun_cut(self, value):
-        """ Cut the text/object. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'cut'):
-            widget.cut()
-        
-    def fun_copy(self, value):
-        """ Copy the text/object. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'copy'):
-            widget.copy()
-    
-    def fun_paste(self, value):
-        """ Paste the text/object. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'paste'):
-            widget.paste()
-    
-    def fun_selectAll(self, value):
-        """ Select the whole text. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'selectAll'):
-            widget.selectAll()
-    
-    def fun_undo(self, value):
-        """ Undo the last action. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'undo'):
-            widget.undo()
-    
-    def fun_redo(self, value):
-        """ Redo the last undone action """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'redo'):
-            widget.redo()
-    
-    def fun_comment(self, value):
-        """ Comment the selected lines. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'commentCode'):
-            widget.commentCode()
-    
-    def fun_uncomment(self, value):
-        """ Uncomment the selected lines. """
-        widget = QtGui.qApp.focusWidget()
-        if hasattr(widget,'uncommentCode'):
-            widget.uncommentCode()
     
     def fun_lineEndings(self, value):
         """ The line ending character used for the current file. """
@@ -315,11 +225,106 @@ class EditMenu(BaseMenu):
         else:
             editor.setStyle(value)
     
-    
     def fun_encoding(self, value):
         """ Set the encoding of the file (only UTF-8). """
         if value is None:
             return ['UTF-8', 'UTF-8']
+    
+    
+    def fun_close(self, value):
+        """ Close the application. """
+        iep.main.close()
+    
+    def fun_restart(self, value):
+        """ Restart the application. """
+        # close first
+        self.fun_close(None)
+        
+        # put a space in front of all args
+        args = []
+        for i in sys.argv:
+            args.append(" "+i)
+        
+        # replace the process!                
+        os.execv(sys.executable, args)
+
+
+class EditMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Undo', self.fun_undo) )
+        addItem( MI('Redo', self.fun_redo) )
+        addItem( None )
+        addItem( MI('Cut', self.fun_cut) )
+        addItem( MI('Copy', self.fun_copy) )
+        addItem( MI('Paste', self.fun_paste) )
+        addItem( None )
+        addItem( MI('Select all', self.fun_selectAll) )
+        addItem( None )
+        addItem( MI('Comment lines', self.fun_comment) )
+        addItem( MI('Uncomment lines', self.fun_uncomment) )
+        addItem( None )
+        addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
+        addItem( None )
+        addItem( MI('Find or replace', self.fun_findReplace) )
+        addItem( MI('Find selection', self.fun_findSelection) )
+        addItem( MI('Find next', self.fun_findNext) )
+        addItem( MI('Find previous', self.fun_findPrevious) )
+    
+    
+    
+    def fun_cut(self, value):
+        """ Cut the text/object. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'cut'):
+            widget.cut()
+        
+    def fun_copy(self, value):
+        """ Copy the text/object. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'copy'):
+            widget.copy()
+    
+    def fun_paste(self, value):
+        """ Paste the text/object. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'paste'):
+            widget.paste()
+    
+    def fun_selectAll(self, value):
+        """ Select the whole text. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'selectAll'):
+            widget.selectAll()
+    
+    def fun_undo(self, value):
+        """ Undo the last action. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'undo'):
+            widget.undo()
+    
+    def fun_redo(self, value):
+        """ Redo the last undone action """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'redo'):
+            widget.redo()
+    
+    def fun_comment(self, value):
+        """ Comment the selected lines. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'commentCode'):
+            widget.commentCode()
+    
+    def fun_uncomment(self, value):
+        """ Uncomment the selected lines. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'uncommentCode'):
+            widget.uncommentCode()
+            linenr, index = widget.getLinenrAndIndex()
+            print(b'"'+widget.getLineBytes(linenr)+b'"')
+            print('"'+widget.getLineString(linenr)+'"')
     
     def fun_moveToMatchingBrace(self, value):
         widget = QtGui.qApp.focusWidget()
@@ -338,16 +343,103 @@ class EditMenu(BaseMenu):
         
     def fun_findPrevious(self, value):
         iep.editors._findReplace.findPrevious()
+
+class ViewMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Wrap text', self.fun_wrap, True) )
+        addItem( MI('Edge column', self.fun_edgecolumn, True) )
+        addItem( MI('Indentation guides', self.fun_indentGuides, True) )
+        addItem( MI('Match braces', self.fun_braceMatch, True) )
+        addItem( None )
+        addItem( MI('Show whitespace', self.fun_showWhiteSpace, True) )
+        addItem( MI('Show line endings', self.fun_showLineEndings, True) )
+        addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, True) )
     
+    
+    def fun_wrap(self, value):
+        """ Wrap long lines. """
+        if value is None:
+            return bool(iep.config.editor.wrapText)
+        value = not bool( iep.config.editor.wrapText ) 
+        iep.config.editor.wrapText = value
+        for editor in iep.editors:
+            editor.setWrapMode(int(value)*2)
+    
+    def fun_edgecolumn(self, value):
+        """ The position of the edge column indicator. """
+        if value is None:
+            return [60, 65, 70, 75, 76, 77, 78,79,80,-1, iep.config.editor.edgeColumn]
+        iep.config.editor.edgeColumn = value
+        for editor in iep.editors:
+            editor.setEdgeColumn(value)
+    
+    def fun_indentGuides(self, value):
+        """ Show vertical lines at each indentation level. """
+        if value is None:
+            return bool(iep.config.editor.showIndentGuides)
+        else:
+            value = not bool( iep.config.editor.showIndentGuides ) 
+            iep.config.editor.showIndentGuides = value
+            for editor in iep.editors:
+                editor.setIndentationGuides(value)
+    
+    def fun_braceMatch(self, value):
+        """ Indicate matching braces and when no matching brace is found. """
+        if value is None:
+            return bool(iep.config.editor.doBraceMatch)
+        else:
+            # get new value
+            value = not bool(iep.config.editor.doBraceMatch)
+            # apply
+            iep.config.editor.doBraceMatch = value
+            value = {True:2,False:0}[value]
+            for editor in iep.editors:
+                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                editor.setBraceMatching(value)
+
+    
+    def fun_showWhiteSpace(self, value):
+        """ Show tabs and spaces in the editor. """
+        if value is None:
+            return bool(iep.config.editor.showWhiteSpace)
+        # for the sortcuts to work
+        value = not bool( iep.config.editor.showWhiteSpace ) 
+        # apply
+        iep.config.editor.showWhiteSpace = value
+        for editor in iep.editors:
+            editor.setViewWhiteSpace(value)
+    
+    def fun_showLineEndings(self, value):
+        """ Show line endings in the editor. """
+        if value is None:
+            return bool(iep.config.editor.showLineEndings)
+        # for the sortcuts to work
+        value = not bool( iep.config.editor.showLineEndings ) 
+        # apply
+        iep.config.editor.showLineEndings = value
+        for editor in iep.editors:
+            editor.setViewEOL(value)
+    
+    def fun_showWrapSymbols(self, value):
+        """ Show wrap symbols in the editor. """
+        if value is None:
+            return bool(iep.config.editor.showWrapSymbols)
+        # for the sortcuts to work
+        value = not bool( iep.config.editor.showWrapSymbols ) 
+        # apply
+        iep.config.editor.showWrapSymbols = value
+        for editor in iep.editors:
+            editor.setViewWrapSymbols(int(value)*1)
+
+
 class SettingsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Show whitespace', self.fun_whitespace, True) )
-        addItem( MI('Wrap text', self.fun_wrap, True) )
-        addItem( MI('Edge column', self.fun_edgecolumn, True) )
-        addItem( MI('Match braces', self.fun_braceMatch, True) )
         addItem( MI('Enable code folding', self.fun_codeFolding, True) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
@@ -368,49 +460,21 @@ class SettingsMenu(BaseMenu):
         iep.config.qtstyle = value
         QtGui.qApp.setStyle(value)
     
-    def fun_whitespace(self, value):
-        """ Show tabs and spaces in the editor. """
-        if value is None:
-            return bool(iep.config.showWhiteSpace)
-        # for the sortcuts to work
-        value = not bool( iep.config.showWhiteSpace ) 
-        # apply
-        iep.config.showWhiteSpace = value
-        for editor in iep.editors:
-            editor.setViewWhiteSpace(value)
-    
-    def fun_wrap(self, value):
-        """ Wrap long lines. """
-        if value is None:
-            return bool(iep.config.wrapText)
-        value = not bool( iep.config.wrapText ) 
-        iep.config.wrapText = value
-        for editor in iep.editors:
-            editor.setWrapMode(int(value)*2)
-    
-    def fun_edgecolumn(self, value):
-        """ The position of the edge column indicator. """
-        if value is None:
-            return [60, 65, 70, 75, 76, 77, 78,79,80,-1, iep.config.edgeColumn]
-        iep.config.edgeColumn = value
-        for editor in iep.editors:
-            editor.setEdgeColumn(value)
-    
     def fun_defaultStyle(self, value):
         """ The style used in new files. """
         if value is None:
-            current = iep.config.defaultStyle
+            current = iep.config.editor.defaultStyle
             options = iep.styleManager.getStyleNames()
             options.append(current)
             return options
         else:
             # store
-            iep.config.defaultStyle = value
+            iep.config.editor.defaultStyle = value
     
     def fun_defaultIndentation(self, value):
         """ The indentation used in new files. """
         if value is None:
-            current = iep.config.defaultIndentation
+            current = iep.config.editor.defaultIndentation
             options = [-1,2,3,4,5,6,7,8,9,10, current]
             for i in range(len(options)):
                 if options[i] < 0:
@@ -425,24 +489,24 @@ class SettingsMenu(BaseMenu):
         except ValueError:
             val = -1        
         # store
-        iep.config.defaultIndentation = val
+        iep.config.editor.defaultIndentation = val
     
     def fun_defaultLineEndings(self, value):
         """ The line endings used in new files. """
         if value is None:
-            current = iep.config.defaultLineEndings
+            current = iep.config.editor.defaultLineEndings
             return ['LF', 'CR', 'CRLF', current]
         else:
             # store
-            iep.config.defaultLineEndings = value
+            iep.config.editor.defaultLineEndings = value
     
     def fun_codeFolding(self, value):
         """ Enable folding (hiding) pieces of code. """
         if value is None:
-            return bool(iep.config.codeFolding)
+            return bool(iep.config.editor.codeFolding)
         else:
-            value = not iep.config.codeFolding
-            iep.config.codeFolding = value
+            value = not iep.config.editor.codeFolding
+            iep.config.editor.codeFolding = value
             scin = Qsci.QsciScintilla
             tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
             for editor in iep.editors:                
@@ -451,29 +515,12 @@ class SettingsMenu(BaseMenu):
     def fun_tabWidth(self, value):
         """ The amount of space of a tab (but only if tabs are used). """
         if value is None:
-            return [2,3,4,5,6,7,8,9,10, iep.config.tabWidth]
+            return [2,3,4,5,6,7,8,9,10, iep.config.editor.tabWidth]
         
         # store and apply
-        iep.config.tabWidth = value
-        qsc
+        iep.config.editor.tabWidth = value
         for editor in iep.editors:
             editor.setTabWidth(value)
-    
-    
-    def fun_braceMatch(self, value):
-        """ Indicate matching braces and when no matching brace is found. """
-        if value is None:
-            return bool(iep.config.doBraceMatch)
-        else:
-            # get new value
-            value = not bool(iep.config.doBraceMatch)
-            # apply
-            iep.config.doBraceMatch = value
-            value = {True:2,False:0}[value]
-            for editor in iep.editors:
-                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
-                editor.setBraceMatching(value)
-    
     
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """
@@ -482,8 +529,16 @@ class SettingsMenu(BaseMenu):
     
     def fun_editStyles(self, value):
         """ Edit the style file. """
+        text = """ 
+        The syntax styling can be changed by editing the style sheet, 
+        which will be opened after you press OK. The changes will be 
+        applied as soon as you'll save the file. """   
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("Edit syntax styling")
+        m.setText(text)
+        m.exec_()
         iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
-    
+        
 
 class MenuHelper:
     """ The helper class for the menus.
@@ -494,6 +549,7 @@ class MenuHelper:
         
         menus = [   ('File', FileMenu), 
                     ('Edit', EditMenu), 
+                    ('View', ViewMenu),
                     ('Settings', SettingsMenu)]
         
         for menuName, menuClass in menus:

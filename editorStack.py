@@ -6,10 +6,12 @@ import os, sys, time, gc
 from PyQt4 import QtCore, QtGui
 qt = QtGui
 
+import iep
 from editor import createEditor
 from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
-barwidth = 120
+
+barwidth = iep.config.editorStackBarWidth
 
 
 
@@ -681,23 +683,26 @@ class FindReplaceWidget(QtGui.QFrame):
         self._hidebut.setToolTip("Escape")
         self._hidebut.setGeometry(barwidth-25,yy,24,16)
         
-        yy+=18
+        yy+=16
         self._caseCheck = qt.QCheckBox("Match case", self)
         self._caseCheck.move(1,yy)
+        yy+=16
+        self._regExp = qt.QCheckBox("RegExp", self)
+        self._regExp.move(1,yy)
         
-        yy += 20
+        yy += 18
         self._findText = qt.QLineEdit(self)
         self._findText.setGeometry(1,yy,barwidth-2,20)
-        yy += 22
+        yy += 20
         self._findPrev = qt.QPushButton("Previous", self) 
         self._findPrev.setGeometry(1,yy, ww,20)
         self._findNext = qt.QPushButton("Next", self)
         self._findNext.setGeometry(ww+1,yy, ww,20)
         
-        yy += 25
+        yy += 22
         self._replaceText = qt.QLineEdit(self)
         self._replaceText.setGeometry(1,yy,barwidth-2,20)
-        yy += 22
+        yy += 20
         self._replaceAll = qt.QPushButton("Replace all", self) 
         self._replaceAll.setGeometry(1,yy, ww,20)
         self._replace = qt.QPushButton("Replace", self)
@@ -713,13 +718,23 @@ class FindReplaceWidget(QtGui.QFrame):
         self._timer.setSingleShot(True)
         self._timer.timeout.connect( self.resetAppearance )
         
+        # init case and regexp
+        self._caseCheck.setChecked( bool(iep.config.find_matchCase) )
+        self._regExp.setChecked( bool(iep.config.find_regExp) )
+        
         # create callbacks
         self._hidebut.clicked.connect(self.hideMe)
         self._findNext.clicked.connect(self.findNext)
         self._findPrev.clicked.connect(self.findPrevious)
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
-        
+    
+    def closeEvent(self, event):
+        iep.config.find_matchCase = 0#self._caseCheck.isChecked()
+        iep.config.find_regExp = self._regExp.isChecked()
+        print('aaa'*20)
+        # proceed normally
+        QtGui.QFrame.closeEvent(self, event)
     
     def hideMe(self):
         """ Hide the find/replace widget. """
@@ -791,8 +806,10 @@ class FindReplaceWidget(QtGui.QFrame):
         if not editor:
             return        
         
-        # matchCase
+        # matchCase and regExp
         matchCase = self._caseCheck.isChecked()
+        regExp = self._regExp.isChecked()
+        wholeWord = False
         
         # focus
         self.selectFindText()
@@ -809,11 +826,11 @@ class FindReplaceWidget(QtGui.QFrame):
             pos = max([pos1,pos2])
         else:
             pos = min([pos1,pos2])
-        line = editor.getLineFromPosition(pos)
-        index = pos-editor.getPositionFromLine(line)
+        line = editor.getLinenrFromPosition(pos)
+        index = pos-editor.getPositionFromLinenr(line)
         
         # use Qscintilla's implementation
-        ok = editor.findFirst(needle, False, matchCase, False, False, 
+        ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
                             forward, line, index, True)
         
         # wrap and notify
@@ -823,9 +840,9 @@ class FindReplaceWidget(QtGui.QFrame):
                 line, index = 0,0
             else:
                 pos = len(editor)
-                line = editor.getLineFromPosition(pos)
-                index = pos-editor.getPositionFromLine(line)
-            ok = editor.findFirst(needle, False, matchCase, False, False, 
+                line = editor.getLinenrFromPosition(pos)
+                index = pos-editor.getPositionFromLinenr(line)
+            ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
                                 forward, line, index, True)
         
         # done
