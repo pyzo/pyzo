@@ -167,7 +167,7 @@ class StyleManager(QtCore.QObject):
                         subStyle['back'] = qt.QColor(tmp)
                     if s.startswith('face:'):
                         tmp = s[len('face:'):]
-                        subStyle['face'] = tmp % FACES
+                        subStyle['face'] = tmp.format(**FACES)
                     if s.startswith('size:'):
                         tmp = s[len('size:'):]
                         subStyle['size'] = int(tmp)

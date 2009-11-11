@@ -27,7 +27,7 @@ class Item(qt.QLabel):
        
         # indicate height and spacing
         self._itemHeight = 15
-        self._itemSpacing = 0
+        self._itemSpacing = iep.config.editorStackBarSpacing
         
         # set indent and size        
         self._indent = 1
@@ -69,7 +69,7 @@ class ProjectItem(Item):
         Item.__init__(self, parent)
         
         # projects have more spacing
-        self._itemSpacing = 2
+        self._itemSpacing = 2 + iep.config.editorStackBarSpacing
         
         # set name and tooltip
         self._name = name
@@ -301,17 +301,30 @@ class FileItem(Item):
     
     
 
-class FileListCtrl(qt.QWidget):
+class FileListCtrl(QtGui.QFrame):
     """ Control that displays a list of files using Labels.
     """
     # - make buttons if not all labels fit
     # - when removing a file, go to previously selected
     def __init__(self, parent):
         qt.QWidget.__init__(self,parent)
+#         self.setFrameStyle(QtGui.QFrame.Box)
         
-        #self.barwidth,300)
+        # store editorstack
+        self._editorStack = parent
+        
+        # set width
         self.setMinimumWidth(barwidth)
         self.setMaximumWidth(barwidth)
+        
+        # create scrollbar to scroll
+        self._scroller = QtGui.QScrollBar(self)
+        self._scroller.setOrientation(QtCore.Qt.Horizontal)
+        self._scroller.resize(barwidth, 16)
+        self._scroller.move(0,0)
+        self._scroller.setRange(-17,200)
+        self._scroller.setSingleStep(10)
+        self._scroller.valueChanged.connect(self.updateMe)
         
         # create list of items
         self._items = []        
@@ -323,16 +336,16 @@ class FileListCtrl(qt.QWidget):
         self._draggedItem = None
         self._dragStartPos = QtCore.QPoint(0,0)
         
-        #self.updateMe()
+        self.updateMe()
     
     
     def updateMe(self):
-        
         project = None
         ncollapsed = 0
         itemsToUpdate = []
         
-        y = 10  # initial y position
+        offset = -self._scroller.value()
+        y = offset  # initial y position
         spacing = 0
         for item in self._items:            
             if isinstance(item, ProjectItem):
@@ -370,6 +383,12 @@ class FileListCtrl(qt.QWidget):
         if project and project._collapsed:
             project._ncollapsed = ncollapsed
         
+        # update scroller
+        h = y-offset
+        self._scroller.setRange(-17, h-self.height()+10)
+        self._scroller.setPageStep(self.height())
+        self._scroller.raise_()
+        
         # update
         for item in itemsToUpdate:
             item.updateTexts()
@@ -405,11 +424,11 @@ class FileListCtrl(qt.QWidget):
                 self._itemHistory[10:] = []
             # make the item current and show...
             self._currentItem = item
-            self.parent().showEditor(self._currentItem._editor)
+            self._editorStack.showEditor(self._currentItem._editor)
         else:
             # no files present
             self._currentItem = None
-            self.parent().showEditor(None)
+            self._editorStack.showEditor(None)
         
         # finish and focus
         self.updateMe()
@@ -522,9 +541,9 @@ class FileListCtrl(qt.QWidget):
             menu.popup(event.globalPos())
     
     def context_newFile(self, event=None):
-        self.parent().newFile()
+        self._editorStack.newFile()
     def context_openFile(self, event=None):
-        self.parent().openFile()
+        self._editorStack.openFile()
     def context_newProject(self, event=None):
         title = "Create new project"
         label = "Give the new project's name"
@@ -533,7 +552,7 @@ class FileListCtrl(qt.QWidget):
             self.appendProject(name)
         self.updateMe()
     def context_openProject(self, event=None):
-        self.parent().openDir()
+        self._editorStack.openDir()
     
     
     def appendFile(self, editor, projectname=None):
@@ -564,7 +583,7 @@ class FileListCtrl(qt.QWidget):
         
         # make it current
         self._currentItem = item
-        self.parent().showEditor(editor)
+        self._editorStack.showEditor(editor)
         
         # update
         self.updateMe()
@@ -648,7 +667,7 @@ class FileListCtrl(qt.QWidget):
         
         # remove these items.
         for item in itemsToRemove:
-            ok = self.parent().closeFile(item._editor)
+            ok = self._editorStack.closeFile(item._editor)
             if not ok:
                 break
         else:
@@ -740,7 +759,8 @@ class FindReplaceWidget(QtGui.QFrame):
         """ Hide the find/replace widget. """
         self.hide()
         es = self.parent() # editor stack
-        es._boxLayout.update()
+        es._boxLayout.activate()
+        es._list.updateMe()
         editor = es.getCurrentEditor()
         if editor:
             editor.setFocus()
@@ -762,7 +782,9 @@ class FindReplaceWidget(QtGui.QFrame):
         """
         # show
         self.show()
-        #self.parent()._boxLayout.update()        
+        es = self.parent()
+        es._boxLayout.activate()        
+        es._list.updateMe()
         
         # get needle
         editor = self.parent().getCurrentEditor()
@@ -915,7 +937,7 @@ class EditorStack(QtGui.QWidget):
         self._lastpath = ''
         
         # create widgets
-        self._list = FileListCtrl(self)
+        self._list = FileListCtrl(self)        
         self._findReplace = FindReplaceWidget(self)
         self._stack = QtGui.QStackedWidget(self)
         
@@ -923,6 +945,7 @@ class EditorStack(QtGui.QWidget):
         self._boxLayout = QtGui.QHBoxLayout(self)
         self._boxLayout2 = QtGui.QVBoxLayout()        
         # fill layouts
+        #self._boxLayout2.addWidget(self._list, 1)
         self._boxLayout2.addWidget(self._list, 1)
         self._boxLayout2.addWidget(self._findReplace, 0)
         self._boxLayout.addLayout(self._boxLayout2, 0)

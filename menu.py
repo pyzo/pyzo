@@ -323,8 +323,8 @@ class EditMenu(BaseMenu):
         if hasattr(widget,'uncommentCode'):
             widget.uncommentCode()
             linenr, index = widget.getLinenrAndIndex()
-            print(b'"'+widget.getLineBytes(linenr)+b'"')
-            print('"'+widget.getLineString(linenr)+'"')
+            #print(b'"'+widget.getLineBytes(linenr)+b'"')
+            #print('"'+widget.getLineString(linenr)+'"')
     
     def fun_moveToMatchingBrace(self, value):
         widget = QtGui.qApp.focusWidget()
@@ -344,15 +344,17 @@ class EditMenu(BaseMenu):
     def fun_findPrevious(self, value):
         iep.editors._findReplace.findPrevious()
 
+
 class ViewMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
         
         addItem( MI('Wrap text', self.fun_wrap, True) )
-        addItem( MI('Edge column', self.fun_edgecolumn, True) )
-        addItem( MI('Indentation guides', self.fun_indentGuides, True) )
         addItem( MI('Match braces', self.fun_braceMatch, True) )
+        addItem( MI('Indentation guides', self.fun_indentGuides, True) )
+        addItem( MI('Edge column', self.fun_edgecolumn, True) )
+        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
         addItem( MI('Show whitespace', self.fun_showWhiteSpace, True) )
         addItem( MI('Show line endings', self.fun_showLineEndings, True) )
@@ -433,6 +435,16 @@ class ViewMenu(BaseMenu):
         iep.config.editor.showWrapSymbols = value
         for editor in iep.editors:
             editor.setViewWrapSymbols(int(value)*1)
+    
+    def fun_tabWidth(self, value):
+        """ The amount of space of a tab (but only if tabs are used). """
+        if value is None:
+            return [2,3,4,5,6,7,8,9,10, iep.config.editor.tabWidth]
+        
+        # store and apply
+        iep.config.editor.tabWidth = value
+        for editor in iep.editors:
+            editor.setTabWidth(value)
 
 
 class SettingsMenu(BaseMenu):
@@ -441,7 +453,6 @@ class SettingsMenu(BaseMenu):
         addItem = self.addItem
         
         addItem( MI('Enable code folding', self.fun_codeFolding, True) )
-        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, True) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, True) )
@@ -511,16 +522,6 @@ class SettingsMenu(BaseMenu):
             tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
             for editor in iep.editors:                
                 editor.setFolding(tmp)
-    
-    def fun_tabWidth(self, value):
-        """ The amount of space of a tab (but only if tabs are used). """
-        if value is None:
-            return [2,3,4,5,6,7,8,9,10, iep.config.editor.tabWidth]
-        
-        # store and apply
-        iep.config.editor.tabWidth = value
-        for editor in iep.editors:
-            editor.setTabWidth(value)
     
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """

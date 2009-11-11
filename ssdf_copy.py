@@ -12,19 +12,23 @@ such data structures. This module can be used in both python 2.x
 and 3.x. If numpy is not installed, it can be used, but arrays 
 cannot be read or written.
 
-Elements in a data structure can be:
+Elements in a data structure can be one of seven different data 
+elements, of which the first two are a container element (which 
+can be nested):
     - a dictionary (a ssdf.Struct object in python)
-    - a list
+    - a list (of elements with no name)
     - (unicode) string
     - float scalar
     - int scalar
     - (numpy) array of any type and shape
-    - None (Null)
+    - Null (None)
+
 
 Usage
 =====
-ssdf.new() to create a new  Struct object
-ssdf.load(path) to load structured data from a file 
+s = ssdf.new() to create a new  Struct object
+s = ssdf.load(path) to load structured data from a file 
+s = ssdf.Struct(some_object) to create a structure from some object
 ssdf.save(path,s) to save structured data to a file
 (use ssdf.saves(s) and ssdf.loads(text) to save/load a string)
 
@@ -59,6 +63,7 @@ files = dict:
 import os, sys
 import base64
 import zlib
+import re
 
 # try importing numpy
 try:
@@ -68,11 +73,15 @@ except ImportError:
    
 # if version 2...
 if sys.version_info[0] <= 2:
-    bytes = str
-    str = unicode
+    try:
+        assert simplestr        
+    except NameError:
+        simplestr = str
+        bytes = str
+        str = unicode
 else:
     basestring = str
-
+    simplestr = str
 
 ## The class
 
@@ -170,6 +179,10 @@ class Struct(object):
         return self.__dict__.__iter__()
    
     
+    def __delitem__(self, key):
+        return self.__dict__.__delitem__(key)
+    
+    
     def __len__(self):
         """ Return amount of fields in the Struct object. """
         return len(self.__dict__)
@@ -201,6 +214,25 @@ class Struct(object):
                     valuestr = "a %s with length %i" % (typestr, len(value))
             s += tmp.rjust(c+1) + ": %s\n" % (valuestr)
         return s
+    
+    
+    ## a few methods that are usefull. 
+    # I don't think this is pretty
+#     def ssdfSave(self, path, appName='ssdf.py', newline='\n'):
+#         """ Save this struct object to a file.         
+#         """
+#         save(path, self, appName, newline)
+#     
+#     
+#     def ssdfClear(self):
+#         """ Clear all the fields of this struct object. """
+#         clear(self)
+#     
+#     
+#     def ssdfCopy(self):
+#         """ Get a copy of this ssdf object. 
+#         Same as ssdf.Struct(struct_object). """
+#         return Struct(self)
 
 
 def new():
@@ -234,7 +266,7 @@ def save(path, struct_object, appName='ssdf.py', newline='\n'):
     byts = text.encode('UTF-8')
     
     # store...
-    fid = open(path,'w')
+    fid = open(path,'wb')
     try:
         fid.write( byts )
     except Exception:
@@ -262,7 +294,34 @@ def load(path):
     # parse!
     text = byts.decode('UTF-8')
     return loads(text)
+
+
+def update(path, struct_object, appName='ssdf.py', newline='\n'):
+    """ Update an existing ssdf file, inserting and replacing any 
+    new values in the existing structure. """
     
+    # load existing struct
+    s = load(path)
+    
+    # insert stuff
+    def insert(ob1,ob2):
+        for name in ob2:
+            if ( name in ob1 and isinstance(ob1[name],Struct) and 
+                                 isinstance(ob2[name],Struct) ):
+                insert(ob1[name], ob2[name])
+            else:
+                ob1[name] = ob2[name]
+    insert(s, struct_object)
+    
+    # save
+    save(path, s, appName, newline)
+
+
+def copy(struct_object):
+    """ Get a copy of an ssdf object. 
+    Same as ssdf.Struct(struct_object).
+    """
+    return Struct(struct_object)
 
 
 ## STEP 2: text <--> structured lines
@@ -301,7 +360,7 @@ def _pack(lineObject):
 def loads(text):    
     """ Load Struct object from a string.  """
     
-    base = _LineObject("dict:",-2, -1)
+    base = _LineObject(-2, "", "dict:", -1)
     tree = [base]
     
     # pre process
@@ -313,15 +372,26 @@ def loads(text):
     for linenr in range(len(lines)):
         line = lines[linenr]
         line2 = line.lstrip()
-        line3 = line2.rstrip()
         
         # skip comments and empty lines        
-        if len(line3)==0 or line3[0] == '#':        
+        if len(line2)==0 or line2[0] == '#':        
             continue
         
-        # produce value
+        # find the indentation
         indent = len(line) - len(line2)
-        new = _LineObject(line2, indent, linenr+1)
+        
+        # split name and value using a regular expression
+        m = re.search("^\w+? *?=", line2)
+        if m:
+            i = m.end(0)
+            name = line2[:i-1].strip()
+            value = line2[i:].lstrip()
+        else:
+            name = ''
+            value = line2
+        
+        # produce line object
+        new = _LineObject(indent, name, value, linenr+1)
         
         # select leaf in tree
         while not indent > tree[-1].indent:
@@ -341,9 +411,10 @@ def loads(text):
 
 
 class _LineObject:
-    def __init__(self, line='', indent=-2, linenr=-1):
-        self.line = line
+    def __init__(self, indent=-2, name='', value='', linenr=-1):        
         self.indent = indent
+        self.name = name
+        self.value = value # as a string
         self.linenr = linenr
         self.children = []
     
@@ -390,12 +461,17 @@ def _toString(name, value, indent):
             lineObject.children.append(tmp)                
     
     # base types
-    elif isinstance(value,basestring):        
-        #lineObject.line += "'%s'" % _stringEncode(value)
+    elif isinstance(value,basestring):                
+        # value = value.replace('\r\n','\n').replace('\r','\n')
+        # value = value.replace('\\', '\\\\') # if \n happens to occur
+        # value = value.replace('\n','\\n')
+        # lineObject.line += "$" + value
         value = value.replace('\r\n','\n').replace('\r','\n')
         value = value.replace('\\', '\\\\') # if \n happens to occur
         value = value.replace('\n','\\n')
-        lineObject.line += "$" + value
+        value = value.replace("'", "\\'")
+        lineObject.line += "'" + value + "'"
+        
     elif isinstance(value, bool):
         lineObject.line += '%i' % int(value)    
     elif isinstance(value,int):
@@ -452,26 +528,21 @@ def _toString(name, value, indent):
 
 
 def _fromString(lineObject):
+    """ Parse the element from the single string. 
+    A line looks like this:
+    [whitespace][name][][=][][value][][comment]
+    where [] represents optional whitespace and the name
+    must consist of only proper characters.
+    """
     
-    # init (the line should be the whole line)
-    line = lineObject.line
+    # init (the line should be the whole line)    
     indent = lineObject.indent
+    name = lineObject.name
+    line = lineObject.value
     linenr = lineObject.linenr
     
-    # get name
-    iq = line.find("$") # string
-    ie = line.find("=") # equal
-    ia = line.find('array') # array def
-    if ia>=0 and ia < ie:
-        ie = -1
-    if iq>=0 and iq < ie:
-        ie = -1
-    if ie<0:
-        name = ""
-        line = line.lstrip()
-    else:
-        name = line[:ie].strip()
-        line = line[ie+1:].lstrip()
+    # the variable line is the part from the '=' (and lstripped)
+    # note that there can still be a comment on the line!
     
     # parse value
     
@@ -505,9 +576,29 @@ def _fromString(lineObject):
         return name, value
     
     elif line[0] == "$":
-        # string
+        # old string syntax
         line = line[1:].replace('\\\\','0x07') # temp
         line = line.replace('\\n','\n')
+        line = line.replace('0x07','\\')
+        return name, line
+    
+    elif line[0] == "'":
+        # string
+        
+        # encode double slasges
+        line = line.replace('\\\\','0x07') # temp
+        
+        # find string using a regular expression
+        m = re.search("'.*?[^.\\\\]'|''", line)
+        if not m:
+            print("SSDF Warning: string not ended correctly on line %i."%linenr)
+            return name, None
+        else:
+            line = m.group(0)[1:-1]
+        
+        # decode stuff
+        line = line.replace('\\n','\n')
+        line = line.replace("\\'","'")
         line = line.replace('0x07','\\')
         return name, line
     
@@ -530,8 +621,9 @@ def _fromString(lineObject):
             print("SSDF Warning: invalid array shape on line %i."%linenr)
             return name, None
         
-        # determine datatype
-        dtypestr = str(word3)
+        # determine datatype 
+        # must use 1byte/char string in Py2.x, or numpy wont understand )
+        dtypestr = simplestr(word3)
         if dtypestr not in ['uint8', 'int8', 'uint16', 'int16', 
                             'uint32', 'int32', 'float32', 'float64']:
             print("SSDF Warning: invalid array data type on line %i."%linenr)
@@ -541,11 +633,11 @@ def _fromString(lineObject):
         if np is None:
             return name, UnloadedArray(tuple(shape), dtypestr)
         
-        # get data
-        
+        # get data           
         tmp = word4.split(",")
         if len(tmp) > 1:
-            # stored in ascii                        
+            # stored in ascii
+            #dtypestr='float64'
             value = np.zeros((len(tmp),),dtype=dtypestr)
             for i in range(len(tmp)):
                 try:                    
@@ -575,6 +667,11 @@ def _fromString(lineObject):
     
     else:
         # try making int or float
+        
+        # first remove any comments
+        i = line.find('#')
+        if i>0:
+            line = line[:i].strip()
         
         # first float
         try:
@@ -648,7 +745,7 @@ if __name__ == '__main__':
     a.bb.eq = 3==3
     a.cc = [1,2,'dasf',Struct()]
     a.dd = np.array([1,2,4,8.1,1])
-    a.ee = np.random.normal(size=(20,20))
+    #a.ee = np.random.normal(size=(20,20))
     
     text =  saves(a)
     #print text
