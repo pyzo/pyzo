@@ -457,7 +457,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # selection colours...
 #         self.SendScintilla(self.SCI_SETSELFORE, qt.QColor('#CCCCCC'))
 #         self.SendScintilla(self.SCI_SETSELBACK, qt.QColor('#333366'))
-    
+        
+        # set zooming
+        self.zoomTo(config.zoom)
+        
         # init document, otherwise (for some reason) it is not well
         # displayed.
         self.setBytes(b'\n')

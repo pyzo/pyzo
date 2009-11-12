@@ -52,6 +52,7 @@ editor = dict:
   showWhiteSpace = 0
   showWrapSymbols = 0
   showLineEndings = 0
+  zoom = 0
   edgeColumn = 80  
   showIndentGuides = 1
   wrapText = 0  
