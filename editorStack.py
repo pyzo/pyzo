@@ -308,7 +308,6 @@ class FileListCtrl(QtGui.QFrame):
     # - when removing a file, go to previously selected
     def __init__(self, parent):
         qt.QWidget.__init__(self,parent)
-#         self.setFrameStyle(QtGui.QFrame.Box)
         
         # store editorstack
         self._editorStack = parent
@@ -317,14 +316,23 @@ class FileListCtrl(QtGui.QFrame):
         self.setMinimumWidth(barwidth)
         self.setMaximumWidth(barwidth)
         
+        # set label
+        self._label = QtGui.QLabel(" File list", self)
+        self._label.setFont( qt.QFont('helvetica',8,qt.QFont.Bold) ) 
+        self._label.resize(barwidth, 15)
+        self._label.move(0,0)
+        #self._label.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
+        self._label.setAutoFillBackground(True)
+        #self._label.setBackgroundRole(QtGui.QPalette.color('#999'))
+        self._label.setStyleSheet("QLabel { font:bold; background:#999; }")
+        
         # create scrollbar to scroll
         self._scroller = QtGui.QScrollBar(self)
         self._scroller.setOrientation(QtCore.Qt.Horizontal)
-        self._scroller.resize(barwidth, 16)
-        self._scroller.move(0,0)
-        self._scroller.setRange(-17,200)
+        self._scroller.resize(barwidth, 15)
+        self._scroller.setRange(0,200)
         self._scroller.setSingleStep(10)
-        self._scroller.valueChanged.connect(self.updateMe)
+        self._scroller.setValue(0)
         
         # create list of items
         self._items = []        
@@ -336,15 +344,23 @@ class FileListCtrl(QtGui.QFrame):
         self._draggedItem = None
         self._dragStartPos = QtCore.QPoint(0,0)
         
-        self.updateMe()
+        # set callbacks
+        self._scroller.valueChanged.connect(self.updateMe)
+        
+        #self.updateMe()
     
+    def resizeEvent(self, event):
+        QtGui.QFrame.resizeEvent(self, event)
+        self.updateMe()
     
     def updateMe(self):
         project = None
         ncollapsed = 0
         itemsToUpdate = []
         
-        offset = -self._scroller.value()
+        h1 = self._label.height() + 2
+        
+        offset = h1-self._scroller.value()
         y = offset  # initial y position
         spacing = 0
         for item in self._items:            
@@ -385,9 +401,15 @@ class FileListCtrl(QtGui.QFrame):
         
         # update scroller
         h = y-offset
-        self._scroller.setRange(-17, h-self.height()+10)
+        h0 = self.height()
+        h1 = self._label.height()
+        h2 = self._scroller.height()
+        self._scroller.setRange(0, h-h0+h1+h2 + 10)
         self._scroller.setPageStep(self.height())
+        self._scroller.move(0,h0-h2)
         self._scroller.raise_()
+        # and label
+        self._label.raise_()
         
         # update
         for item in itemsToUpdate:
@@ -692,7 +714,7 @@ class FindReplaceWidget(QtGui.QFrame):
         
         # create widgets
         
-        yy = 0
+        yy = 2
         self._stext = qt.QLabel("Find / Replace", self)
         self._stext.setFont( qt.QFont('helvetica',8,qt.QFont.Bold) ) 
         self._stext.move(5,yy)
@@ -717,6 +739,7 @@ class FindReplaceWidget(QtGui.QFrame):
         self._findPrev.setGeometry(1,yy, ww,20)
         self._findNext = qt.QPushButton("Next", self)
         self._findNext.setGeometry(ww+1,yy, ww,20)
+        self._findNext.setDefault(True)
         
         yy += 22
         self._replaceText = qt.QLineEdit(self)
@@ -742,6 +765,7 @@ class FindReplaceWidget(QtGui.QFrame):
         self._regExp.setChecked( bool(iep.config.find_regExp) )
         
         # create callbacks
+        self._findText.returnPressed.connect(self.findNext)
         self._hidebut.clicked.connect(self.hideMe)
         self._findNext.clicked.connect(self.findNext)
         self._findPrev.clicked.connect(self.findPrevious)
@@ -759,8 +783,8 @@ class FindReplaceWidget(QtGui.QFrame):
         """ Hide the find/replace widget. """
         self.hide()
         es = self.parent() # editor stack
-        es._boxLayout.activate()
-        es._list.updateMe()
+        #es._boxLayout.activate()
+        #es._list.updateMe()
         editor = es.getCurrentEditor()
         if editor:
             editor.setFocus()
@@ -783,8 +807,8 @@ class FindReplaceWidget(QtGui.QFrame):
         # show
         self.show()
         es = self.parent()
-        es._boxLayout.activate()        
-        es._list.updateMe()
+        #es._boxLayout.activate()        
+        #es._list.updateMe()
         
         # get needle
         editor = self.parent().getCurrentEditor()

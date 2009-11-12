@@ -327,6 +327,7 @@ class EditMenu(BaseMenu):
             #print('"'+widget.getLineString(linenr)+'"')
     
     def fun_moveToMatchingBrace(self, value):
+        """ Move the cursor to the brace matching the current brace. """
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'moveToMatchingBrace'):
             widget.moveToMatchingBrace()
@@ -351,7 +352,6 @@ class ViewMenu(BaseMenu):
         addItem = self.addItem
         
         addItem( MI('Wrap text', self.fun_wrap, True) )
-        addItem( MI('Match braces', self.fun_braceMatch, True) )
         addItem( MI('Indentation guides', self.fun_indentGuides, True) )
         addItem( MI('Edge column', self.fun_edgecolumn, True) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
@@ -359,7 +359,8 @@ class ViewMenu(BaseMenu):
         addItem( MI('Show whitespace', self.fun_showWhiteSpace, True) )
         addItem( MI('Show line endings', self.fun_showLineEndings, True) )
         addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, True) )
-    
+        addItem( None )
+        addItem( MI('Zooming', self.fun_zooming, True) )
     
     def fun_wrap(self, value):
         """ Wrap long lines. """
@@ -387,21 +388,6 @@ class ViewMenu(BaseMenu):
             iep.config.editor.showIndentGuides = value
             for editor in iep.editors:
                 editor.setIndentationGuides(value)
-    
-    def fun_braceMatch(self, value):
-        """ Indicate matching braces and when no matching brace is found. """
-        if value is None:
-            return bool(iep.config.editor.doBraceMatch)
-        else:
-            # get new value
-            value = not bool(iep.config.editor.doBraceMatch)
-            # apply
-            iep.config.editor.doBraceMatch = value
-            value = {True:2,False:0}[value]
-            for editor in iep.editors:
-                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
-                editor.setBraceMatching(value)
-
     
     def fun_showWhiteSpace(self, value):
         """ Show tabs and spaces in the editor. """
@@ -445,7 +431,21 @@ class ViewMenu(BaseMenu):
         iep.config.editor.tabWidth = value
         for editor in iep.editors:
             editor.setTabWidth(value)
-
+    
+    def fun_zooming(self, value):
+        """ Zoom in or out, or reset zooming. """
+        if value is None:
+            return ["Zoom in", "Zoom out", 'Zoom reset', 'this wont match']
+        else:
+            if "in" in value:
+                iep.config.editor.zoom += 1
+            elif "out" in value:
+                iep.config.editor.zoom -= 1
+            else:
+                iep.config.editor.zoom = 0
+            for editor in iep.editors:
+                editor.zoomTo(iep.config.editor.zoom)
+    
 
 class SettingsMenu(BaseMenu):
     def fill(self):
@@ -453,6 +453,7 @@ class SettingsMenu(BaseMenu):
         addItem = self.addItem
         
         addItem( MI('Enable code folding', self.fun_codeFolding, True) )
+        addItem( MI('Match braces', self.fun_braceMatch, True) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, True) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, True) )
@@ -522,6 +523,20 @@ class SettingsMenu(BaseMenu):
             tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
             for editor in iep.editors:                
                 editor.setFolding(tmp)
+    
+    def fun_braceMatch(self, value):
+        """ Indicate matching braces and when no matching brace is found. """
+        if value is None:
+            return bool(iep.config.editor.doBraceMatch)
+        else:
+            # get new value
+            value = not bool(iep.config.editor.doBraceMatch)
+            # apply
+            iep.config.editor.doBraceMatch = value
+            value = {True:2,False:0}[value]
+            for editor in iep.editors:
+                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                editor.setBraceMatching(value)
     
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """
