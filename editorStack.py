@@ -407,7 +407,12 @@ class FileListCtrl(QtGui.QFrame):
         self._scroller.setRange(0, h-h0+h1+h2 + 10)
         self._scroller.setPageStep(self.height())
         self._scroller.move(0,h0-h2)
-        self._scroller.raise_()
+        if self._scroller.maximum()==0:
+            self._scroller.hide()
+        else:
+            self._scroller.show()
+            self._scroller.raise_()
+        
         # and label
         self._label.raise_()
         
@@ -456,6 +461,11 @@ class FileListCtrl(QtGui.QFrame):
         self.updateMe()
         if self._currentItem:
             self._currentItem._editor.setFocus()
+    
+    
+    def selectPreviousItem(self):
+        """ Select the previously selected item. """
+        self.setCurrentItem(None)
     
     
     def mouseReleaseEvent(self, event):
@@ -578,7 +588,8 @@ class FileListCtrl(QtGui.QFrame):
     
     
     def appendFile(self, editor, projectname=None):
-        """ Create file item. """
+        """ Create file item. 
+        Returns the created file item on success."""
         
         # if project name was given
         i_insert = 0        
@@ -604,28 +615,27 @@ class FileListCtrl(QtGui.QFrame):
         self._items.insert(i_insert,item)
         
         # make it current
-        self._currentItem = item
-        self._editorStack.showEditor(editor)
+        self.setCurrentItem(item)
         
-        # update
-        self.updateMe()
+        return item
     
     
     def appendProject(self, projectname):
         """ Create project Item. 
-        Return True if all went well."""
+        Return the project item if all went well."""
         
         # stop if already a project with that name
         for item in self._items:            
             if isinstance(item,ProjectItem) and item._name == projectname:
                 print("Cannot load dir: a project with that name "\
                     "already exists!" )                  
-                return False
+                return None
                 
         # create project at the end
-        self._items.append(ProjectItem(self, projectname))
+        item = ProjectItem(self, projectname)
+        self._items.append(item)
         #print("Creating project: %s" % (projectname))
-        return True
+        return item
     
     
     def removeFile(self, editor):
@@ -983,14 +993,9 @@ class EditorStack(QtGui.QWidget):
         
         #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
         
-        # put some files in 
-        self.loadFile(r'C:\projects\PYTHON\iep2\iep.py')
-        self.loadFile(r'C:\projects\PYTHON\iep2\shell.py')
-        self.loadFile(r'C:\projects\PYTHON\test.py')
-        self.loadDir(r'C:\projects\PYTHON\tools')
-        self.loadDir(r'C:\projects\PYTHON\tools\visvis')
-        self.newFile('tools')
-        #self.openDir()
+        # put the last opened files in 
+        if iep.config.editorState:
+            self.setCurrentState(iep.config.editorState)
     
     
     def showEditor(self, editor=None):
@@ -999,27 +1004,6 @@ class EditorStack(QtGui.QWidget):
         cleaning up editors that weren't cleaned up properly. (this
         is not supposed to happen, but if it ever does, it will be
         nicely removed here.)"""
-        
-#         # always do a check here ...
-#         tmp = self._list._items
-#         tmp = [item._editor for item in tmp if isinstance(item,FileItem)]
-#         foundIt = False
-#         for i in range(self._stack.count()):
-#             widget = self._stack.widget(i)
-#             if widget not in tmp:
-#                 print('removing stuck widget:', widget)
-#                 self._stack.removeWidget(widget)
-#                 widget.hide()
-#                 widget.destroy()
-#             if widget is editor:
-#                 foundIt = True
-#         
-#         if editor:            
-#             # if not already in stack, add it now
-#             if True:#not foundIt:
-#                 self._stack.addWidget(editor)            
-#             # make current
-#             self._stack.setCurrentWidget(editor)
         
         # remove all from stack
         while self._stack.count():
@@ -1031,8 +1015,6 @@ class EditorStack(QtGui.QWidget):
         if editor:
             self._stack.addWidget(editor)
             editor.show()
-        
-    
     
     def getCurrentEditor(self):
         """ Get the currently active editor. """
@@ -1127,7 +1109,9 @@ class EditorStack(QtGui.QWidget):
     
     
     def loadFile(self, filename, projectname=None):
-        """ Load the specified file. """
+        """ Load the specified file. 
+        On success returns the item of the file, also if it was
+        already open."""
         
         # normalize path
         filename = normalizePath(filename)
@@ -1142,20 +1126,22 @@ class EditorStack(QtGui.QWidget):
         if item:
             self._list.setCurrentItem(item)
             print("File already open: '{}'".format(filename))
-            return
+            return item
         
         # create editor
         try:
             editor = createEditor(self, filename)
         except Exception as err:
             print("Error loading file: ", err)
-            return
+            return None
         
         # create list item
-        self._list.appendFile(editor, projectname)
+        item = self._list.appendFile(editor, projectname)
         
         # store the path
         self._lastpath = os.path.dirname(editor._filename)
+        
+        return item
     
     
     def loadDir(self, path, extensions="py,pyw"):
@@ -1181,7 +1167,7 @@ class EditorStack(QtGui.QWidget):
             return
         
         # init window
-        window = None
+        item = None
         
         # open all qualified files...
         self._list.setUpdatesEnabled(False)
@@ -1191,13 +1177,13 @@ class EditorStack(QtGui.QWidget):
                 filename = os.path.join(path,filename)
                 ext = os.path.splitext(filename)[1]            
                 if str(ext) in extensions:
-                    window = self.loadFile(filename,projectname)
+                    item = self.loadFile(filename,projectname)
         finally:
             self._list.setUpdatesEnabled(True)
             self._list.updateMe()
         
         # return lastopened window
-        return window
+        return item
     
     
     def saveFileAs(self, editor=None):
@@ -1269,16 +1255,14 @@ class EditorStack(QtGui.QWidget):
             # editors are send a signal by the style manager
     
     
-    def closeFile(self, editor=None):
-        """ Close the selected (or current) editor. 
-        Returns True if all went well, False if the user pressed cancel
-        when asked to save an modified file. """
-        
-        # get editor
-        if editor is None:
-            editor = self.getCurrentEditor()
-        if editor is None:
-            return
+    def askToSaveFileIfDirty(self, editor):
+        """ If the given file is not saved, pop up a dialog
+        where the user can save the file. 
+        Returns 1 if file need not be saved.
+        Returns 2 if file was saved.
+        Returns 3 if user discarded changes.
+        Returns 0 if cancelled.
+        """
         
         # should we ask to save the file?
         if editor._dirty:
@@ -1300,16 +1284,131 @@ class EditorStack(QtGui.QWidget):
             result = dlg.exec_() 
             if result == tmp.Save:
                 self.saveFile(editor)
+                return 2
             elif result == tmp.Discard:
-                pass # do not save
+                return 3
             else: # cancel
-                return False
+                return 0
+        
+        return 1
+    
+    
+    def closeFile(self, editor=None):
+        """ Close the selected (or current) editor. 
+        Returns same result as askToSaveFileIfDirty() """
+        
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        if editor is None:
+            return
+        
+        result = self.askToSaveFileIfDirty(editor)
         
         # ok, close...
-        self._stack.removeWidget(editor)
-        self._list.removeFile(editor)        
-        return True
+        if result:
+            self._stack.removeWidget(editor)
+            self._list.removeFile(editor)
+        return result
+    
+    
+    def getCurrentState(self):
+        """ Get the state as it currently is as a string.
+        The state entails all open files and their structure in the
+        projects. The being collapsed of projects and their main files.
+        The position of the cursor in the editors.
+        """
         
+        collapsed = {True:'+', False:'-'}
+        
+        # get items
+        state = []
+        for item in self._list._items:
+            info = ''
+            if isinstance(item, ProjectItem):
+                info = collapsed[item._collapsed]+item._name, item._mainfile
+            elif isinstance(item, FileItem):
+                ed = item._editor
+                if ed._filename:
+                    info = ed._filename, str(ed.getPosition())
+            if info:
+                state.append( '>'.join(info) )
+        
+        # get history
+        history = [item for item in self._list._itemHistory]
+        history.reverse()
+        history.append(self._list._currentItem)
+        for item in history:
+            if isinstance(item, FileItem):
+                ed = item._editor
+                if ed._filename:
+                    state.append( 'hist>'+ed._filename )
+        
+        return ",".join(state)
+    
+    
+    def setCurrentState(self,state):
+        """ Set the state of the editor in terms of opened files.
+        The input should be a string as returned by 
+        .GetCurrentState().
+        """
+        
+        # make list
+        state = state.split(",")
+        currentProject = ''
+        fileItems = {}
+        
+        for item in state:
+            parts = item.split('>')
+            if item[0] in '+-':
+                # a project item
+                tmp = self._list.appendProject(parts[0][1:])
+                tmp._collapsed = item[0]=='+'
+                tmp._mainfile = parts[1]
+                currentProject = tmp._name
+            elif item.startswith('hist'):
+                # select item (to make the history right)
+                if parts[1] in fileItems:
+                    self._list.setCurrentItem( fileItems[parts[1]] )
+            elif parts[0]:
+                # a file item
+                tmp = self.loadFile(parts[0], currentProject)
+                ed = tmp._editor
+                # set position and make sure it is visible
+                pos = int(parts[1])
+                linenr = ed.getLinenrFromPosition(pos)
+                ed.setPositionAndAnchor(pos)
+                ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
+                fileItems[parts[0]] = tmp
+    
+    
+    def closeAll(self):
+        """ Close all files (well technically, we don't really close them,
+        so that they are all stil there when the user presses cancel).
+        Returns False if the user pressed cancel when asked for
+        saving an unsaved file. 
+        """
+        
+        # try closing all editors.
+        for editor in self:
+            result = self.askToSaveFileIfDirty(editor)
+            if not result:
+                return False
+        
+        # we're good to go closing
+        return True
+    
+    
+    def storeSettings(self):
+        """ Go finish up, save settings, store files, etc. 
+        """
+        
+        # store settings
+        fr = self._findReplace
+        iep.config.find_matchCase = fr._caseCheck.isChecked()
+        iep.config.find_regExp = fr._regExp.isChecked()
+        iep.config.editorState = self.getCurrentState()
+    
 
 if __name__ == "__main__":
     #qt.QApplication.setDesktopSettingsAware(False)

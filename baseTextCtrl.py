@@ -24,6 +24,14 @@ elif 'mac' in sys.platform:
 else:
     FACES = {'serif': 'Times', 'mono': 'Courier', 'sans': 'Helvetica'}
 
+# define style stuff
+subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT,
+                    'fore': Qsci.QsciScintillaBase.SCI_STYLESETFORE,
+                    'back': Qsci.QsciScintillaBase.SCI_STYLESETBACK,
+                    'size': Qsci.QsciScintillaBase.SCI_STYLESETSIZE,
+                    'bold': Qsci.QsciScintillaBase.SCI_STYLESETBOLD,
+                    'italic': Qsci.QsciScintillaBase.SCI_STYLESETITALIC,
+                    'underline': Qsci.QsciScintillaBase.SCI_STYLESETUNDERLINE}
 
 def normalizePath(path):
     """ Normalize the path given. 
@@ -128,6 +136,8 @@ class StyleManager(QtCore.QObject):
                 style.basedon = ''
             if not 'ext' in style:
                 style.ext = ''
+            # dont do lexer or keywords, because they can be overridden to be
+            # empty!
             
             # check out the substyle strings (which are of the form 'sxxx')
             for styleNr in style:
@@ -174,6 +184,63 @@ class StyleManager(QtCore.QObject):
                 #print(subStyle)
     
     
+    def applyStyleNumber(self, editor, nr, subStyle):
+        """ Apply a certain a numbered style to the given editor. """
+        
+        # special case first
+        if nr > 255:
+            
+            def tryApplyColor(command, extraArg=None, key=None):
+                if key in subStyle:
+                    c = qt.QColor(subStyle[key])
+                    if extraArg is not None:
+                        editor.SendScintilla(command, extraArg, c)
+                    else:
+                        editor.SendScintilla(command, c)
+            
+            if nr == 301:  # highlighting current line
+                tryApplyColor(editor.SCI_SETCARETFORE, None, 'fore')
+                tryApplyColor(editor.SCI_SETCARETLINEBACK, None, 'back')
+            elif nr == 302:  # selection colors...
+                tryApplyColor(editor.SCI_SETSELFORE, 1, 'fore')
+                tryApplyColor(editor.SCI_SETSELBACK, 1, 'back')
+            elif nr == 303:  # calltip colors
+                tryApplyColor(editor.SCI_CALLTIPSETFORE, None, 'fore')
+                tryApplyColor(editor.SCI_CALLTIPSETBACK, None, 'back')
+                tryApplyColor(editor.SCI_CALLTIPSETFOREHLT, None, 'forehlt')
+        
+        else:
+        
+            for key in subStyleStuff:
+                scintillaCommand = subStyleStuff[key]
+                if key in subStyle:
+                    value = subStyle[key]
+                    editor.SendScintilla(scintillaCommand, nr, value)
+        
+    
+    def collectStyle(self, styleStruct, styleName):
+        """ Collect the styleStruct, taking style inheritance
+        into account. 
+        """
+        
+        # get the style (but check if exists first)
+        if not styleName in self._styles:
+            print("Unknown style %s" % styleName)
+            return
+        style = self._styles[styleName]
+        
+        # First collect style on which it is based. 
+        # A style is always based on default. 
+        if style.basedon:
+            self.collectStyle(styleStruct, style.basedon)
+        elif styleName!='default':
+            self.collectStyle(styleStruct, 'default')
+        
+        # collect all fields
+        for field in style:
+            styleStruct[field] = style[field]
+    
+    
     def applyStyle(self, editor, styleName):
         """ Apply the specified style to the specified editor. 
         The stylename can be the name of the style, or the extension
@@ -200,25 +267,47 @@ class StyleManager(QtCore.QObject):
                 print(tmp.format(ext))
                 styleName = ''
         
-#         # clear all styling information to reset styling
-#         editor.SendScintilla(editor.SCI_CLEARDOCUMENTSTYLE)
+        # get style struct
+        styleStruct = ssdf.new()
+        self.collectStyle(styleStruct, styleName)
         
-        # First set default style to everything. The StyleClearAll command
-        # makes that all styles are initialized as style 032. So it would
-        # be more beautiful to look up that style and only apply that. But
-        # it should always be defined in 'default', so this will work ...
-        self._applyStyle(editor,'default')
-        editor.SendScintilla(editor.SCI_STYLECLEARALL)
+        # clear all formatting
+        editor.SendScintilla(editor.SCI_CLEARDOCUMENTSTYLE)
         
-        # go ...
         if styleName: # else it is plain ...
-            self._applyStyle(editor, styleName)
+            
+            # short for sendscintilla
+            send = editor.SendScintilla
+            
+            # First set default style to everything. The StyleClearAll command
+            # makes that all styles are initialized as style 032. So it would
+            # be more beautiful to look up that style and only apply that. But
+            # it should always be defined in 'default', so this will work ...
+            if 's032' in styleStruct:
+                self.applyStyleNumber(editor, 32, styleStruct['s032'])
+            send(editor.SCI_STYLECLEARALL)
+            
+            # set basic stuff first
+            if 'lexer' in styleStruct:
+                send(editor.SCI_SETLEXERLANGUAGE, styleStruct.lexer)
+            if 'keywords' in styleStruct:
+                send(editor.SCI_SETKEYWORDS, styleStruct.keywords)
+            
+            # check out the substyle strings (which are of the form 'sxxx')
+            for styleNr in styleStruct:
+                if not (styleNr.startswith('s') and len(styleNr) == 4):
+                    continue
+                # get substyle number to tell scintilla
+                nr = int(styleNr[1:])
+                # set substyle attributes
+                self.applyStyleNumber(editor, nr, styleStruct[styleNr])
         
         # force scintilla to update the whole document
         editor.SendScintilla(editor.SCI_STARTSTYLING, 0, 32)
         
         # return actual stylename        
         return styleName
+    
     
     def _applyStyle(self, editor, styleName):
         """ Actually apply style """
@@ -248,46 +337,21 @@ class StyleManager(QtCore.QObject):
 #             editor.SendScintilla(editor.SCI_SETLEXER, tmp)
             editor.SendScintilla(editor.SCI_SETKEYWORDS, style.keywords)
         
-        # define dict
-        subStyleStuff = {   'face': editor.SCI_STYLESETFONT,
-                            'fore': editor.SCI_STYLESETFORE,
-                            'back': editor.SCI_STYLESETBACK,
-                            'size': editor.SCI_STYLESETSIZE,
-                            'bold': editor.SCI_STYLESETBOLD,
-                            'italic': editor.SCI_STYLESETITALIC,
-                            'underline': editor.SCI_STYLESETUNDERLINE}
+        
         
         # check out the substyle strings (which are of the form 'sxxx')
         for styleNr in style:
             if not (styleNr.startswith('s') and len(styleNr) == 4):
                 continue
-            
             # get substyle number to tell scintilla
             nr = int(styleNr[1:])
-            # get dict
-            subStyle = style[styleNr]
             # set substyle attributes
-            for key in subStyleStuff:
-                scintillaCommand = subStyleStuff[key]
-                if key in subStyle:
-                    value = subStyle[key]
-                    editor.SendScintilla(scintillaCommand, nr, value)
+            applyStyleNumber(editor, nr, style[styleNr])
+    
         
     
 styleManager = StyleManager()
 iep.styleManager = styleManager
-
-# todo: i think this can go
-class InteractiveAPI(Qsci.QsciAPIs):
-    """ API that will query introspection information
-    from the current session.
-    """
-    def __init__(self, lexer):
-        Qsci.QsciAPIs.__init__(self, lexer)
-        
-        self.add("foo(lala)")
-        self.add("bar")
-        #self.prepare()
 
 
 class KeyEvent:
@@ -353,40 +417,37 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Inherited classes may override some of these settings. Indentation
         # guides are not nice in shells for instance...
         
-        # things I might want to make optional/settable
-        #
+        self.setViewWhiteSpace(config.showWhiteSpace)
+        self.setViewWrapSymbols(config.showWrapSymbols)
+        self.setViewEOL(config.showLineEndings)
+        
+        self.setWrapMode( int(config.wrapText)*2 )
+        self.setHighlightCurrentLine(config.highlightCurrentLine)
+        self.zoomTo(config.zoom)
+        self.setIndentationGuides(config.showIndentGuides)        
+        
+        self.setEdgeColumn(config.edgeColumn)
+        self.setIndentation(config.defaultIndentation)
+        self.setTabWidth(config.tabWidth)  
+        
+        self.setBraceMatching(int(config.doBraceMatch)*2)
+        self.setFolding( int(config.codeFolding)*5 )
+        
         
         # use unicode, the second line does not seem to do anything
         self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
         self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) 
-        
-        # edge indicator        
+        # type of edge indicator        
         self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
-        self.setEdgeColumn(config.edgeColumn)
-        # indentation        
-        self.setIndentation(config.defaultIndentation)
-        self.setTabWidth(config.tabWidth)  
-        self.setIndentationGuides(config.showIndentGuides)
-        self.setViewWhiteSpace(config.showWhiteSpace)
-        # wrapping
-        if config.wrapText:
-            self.setWrapMode(2) # 0:None, 1:Word, 2:Character 
-        else:
-            self.setWrapMode(0)
-        self.SendScintilla(self.SCI_SETWRAPVISUALFLAGS, 
-            self.SC_WRAPVISUALFLAG_NONE)
-        # line endings
-        self.setEolMode(self.SC_EOL_LF) # lf is default
-        
-        # brace matching
-        if config.doBraceMatch:
-            self.setBraceMatching(2)
-        else:
-            self.setBraceMatching(0)
-        #self.cursorPositionChanged.connect(self.doBraceMatch)
-        
-        # when pasting text, convert endings
+        # tab stuff        
+        self.SendScintilla(self.SCI_SETBACKSPACEUNINDENTS, True)
+        self.SendScintilla(self.SCI_SETTABINDENTS, True)
+        # line endings inside scintilla always \n
+        self.setEolMode(self.SC_EOL_LF)
         self.SendScintilla(self.SCI_SETPASTECONVERTENDINGS, True)
+        # line numbers in margin      
+        self.SendScintilla(self.SCI_SETMARGINWIDTHN, 1, 30)
+        self.SendScintilla(self.SCI_SETMARGINTYPEN, 1, self.SC_MARGIN_NUMBER)
         
         # HOME and END goto the start/end of the visible line, and also
         # for shift-home, shift end (selecting the text)
@@ -399,25 +460,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)
         
-        # folding
-        tmp = {False:self.NoFoldStyle, True:self.BoxedTreeFoldStyle}
-        self.setFolding( tmp[bool(config.codeFolding)] )
-        
-        # things we fix
-        #
-        
-        # line numbers        
-        self.SendScintilla(self.SCI_SETMARGINWIDTHN, 1, 30)
-        self.SendScintilla(self.SCI_SETMARGINTYPEN, 1, self.SC_MARGIN_NUMBER)
-        # tab stuff        
-        self.SendScintilla(self.SCI_SETBACKSPACEUNINDENTS, True)
-        self.SendScintilla(self.SCI_SETTABINDENTS, True)
-        
-        # clear all command keys
-        # self.SendScintilla(self.SCI_CLEARALLCMDKEYS)
-        # No, that even removes the arrow keys and suchs
-        
-        # clear some command keys
+        # Clear some command keys.
+        # Do not clear all command keys; 
+        # that even removes the arrow keys and such.
         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
         # these we all map via the edit menu
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('X')+ ctrl)
@@ -426,7 +471,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Z')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Y')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('A')+ ctrl)
-#         # these are mostly not used ...
+#         # these are mostly not used ... but we might just leave them ...
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
@@ -434,11 +479,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
-        
-        # In QT, the vertical scroller is always shown        
-        
-        # set brace matchin on
-        #self.setBraceMatching(self.SloppyBraceMatch)
         
         # calltips, I dont know what this exactly does
         #self.setCallTipsStyle(self.CallTipsNoContext)
@@ -448,18 +488,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
         self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
         self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
-        
-        # calltip colours...
-        self.SendScintilla(self.SCI_CALLTIPSETBACK, qt.QColor('#FFFFB8'))
-        self.SendScintilla(self.SCI_CALLTIPSETFORE, qt.QColor('#404040'))
-        self.SendScintilla(self.SCI_CALLTIPSETFOREHLT, qt.QColor('#0000FF'))
-        
-        # selection colours...
-#         self.SendScintilla(self.SCI_SETSELFORE, qt.QColor('#CCCCCC'))
-#         self.SendScintilla(self.SCI_SETSELBACK, qt.QColor('#333366'))
-        
-        # set zooming
-        self.zoomTo(config.zoom)
         
         # init document, otherwise (for some reason) it is not well
         # displayed.
@@ -689,6 +717,17 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         for off, show-at-end, show-at-start, respectively. """
         return self.SendScintilla(self.SCI_GETWRAPVISUALFLAGS)
         
+    def setHighlightCurrentLine(self, value):
+        """ Set whether or not to highlight the line containing the caret.
+        Call SCI_SETCARETLINEBACK(int color) to set the color
+        """
+        self.SendScintilla(self.SCI_SETCARETLINEVISIBLE, bool(value))
+    
+    def getHighlightCurrentLine(self):
+        """ Get whether or not to highlight the line containing the caret.
+        Call SCI_SETCARETLINEBACK(int color) to set the color
+        """
+        return self.SendScintilla(self.SCI_GETCARETLINEVISIBLE)
     
 #     def setWrapMode(self, value):
 #         """ Set the wrapmode of the editor. 
@@ -855,30 +894,31 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             # auto indentation
             
-            # check if style is ok...
-            pos = self.getPosition()
-            curstyle = self.getStyleAt(self.getPosition())
-            if curstyle in [0,10]: # default, operator
-                styleOk = True
-            else:
-                styleOk = False
-            # auto indent!
-            linenr,index = self.getLinenrAndIndex()
-            line = self.getLineBytes(linenr)
-            if not line:
-                return False
-            text = removeComment( line )
-            ind = len(text) - len(text.lstrip())
-            ind = int(round(ind/indentWidth))
-            if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
-                text2insert = b"\n"+indent*((ind+1)*indentWidth)
-            else:                
-                text2insert = b"\n"+indent*(ind*indentWidth)
-            self.insertBytes(pos, text2insert)
-            pos = self.getPosition()
-            self.setPositionAndAnchor( pos + len(text2insert) )
-            return True
-            #self.StopIntrospecting()
+            if iep.config.editor.autoIndent:                
+                # check if style is ok...
+                pos = self.getPosition()
+                curstyle = self.getStyleAt(self.getPosition())
+                if curstyle in [0,10]: # default, operator
+                    styleOk = True
+                else:
+                    styleOk = False
+                # auto indent!
+                linenr,index = self.getLinenrAndIndex()
+                line = self.getLineBytes(linenr)
+                if not line:
+                    return False
+                text = removeComment( line )
+                ind = len(text) - len(text.lstrip())
+                ind = int(round(ind/indentWidth))
+                if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
+                    text2insert = b"\n"+indent*((ind+1)*indentWidth)
+                else:                
+                    text2insert = b"\n"+indent*(ind*indentWidth)
+                self.insertBytes(pos, text2insert)
+                pos = self.getPosition()
+                self.setPositionAndAnchor( pos + len(text2insert) )
+                return True
+                #self.StopIntrospecting()
         
         if event.key == QtCore.Qt.Key_Escape:
             # clear signature of current object 

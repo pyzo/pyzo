@@ -14,9 +14,12 @@ $Rev: 946 $
 print("Importing iep.main ...")
 
 import os, sys
+import ssdf
+
 import iep
 from editorStack import EditorStack
 from menu import MenuHelper
+
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui
@@ -69,8 +72,11 @@ class MainWindow(qt.QMainWindow):
         print('trigger:', action.text())
     
 
-    def closeEvent(self, event):
-        """ Override close event handler. """
+    def saveConfig(self):
+        """ Save all configureations to file. """ 
+        
+        # store editorStack settings
+        iep.editors.storeSettings()
         
         # store splitter layout
         pos = iep.config.layout
@@ -82,18 +88,39 @@ class MainWindow(qt.QMainWindow):
         pos.left, pos.top = self.x(), self.y()
         pos.width, pos.heigth = self.width(), self.height()
         
-        # store editorStack settings
-        fr = iep.editors._findReplace
-        iep.config.find_matchCase = fr._caseCheck.isChecked()
-        iep.config.find_regExp = fr._regExp.isChecked()
-        
         # store config
-        iep.saveConfig()
+        ssdf.save( os.path.join(iep.path,"config.ssdf"), iep.config )
+    
+    
+    def closeEvent(self, event):
+        """ Override close event handler. """
+        
+        if not hasattr(self, '_restarting') or not self._restarting:
+            self.saveConfig()
         
         # proceed with closing...
-        event.accept()
+        self._restarting = False
+        result = iep.editors.closeAll()
+        if not result:
+            event.ignore()
+        else:
+            event.accept()
 
 
+    def restart(self):
+        """ Restart IEP without saving changes. """
+        self._restarting = True
+        self.close()
+        
+        # put a space in front of all args
+        args = []
+        for i in sys.argv:
+            args.append(" "+i)
+        
+        # replace the process!                
+        os.execv(sys.executable, args)
+    
+    
 if __name__ == "__main__":    
     iep.startIep()
     
