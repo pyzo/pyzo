@@ -42,9 +42,9 @@ path = os.path.dirname( os.path.abspath(path) )
 ## the configuration stuff...
 
 defaultConfigString = """
-qtstyle = $plastique
-editorState = $
-editorStackBarWidth = 180
+qtstyle = 'cleanlooks'
+editorState = ''
+editorStackBarWidth = 128
 editorStackBarSpacing = 0
 find_matchCase = 1
 find_regExp = 1
@@ -53,9 +53,11 @@ editor = dict:
   showWrapSymbols = 0
   showLineEndings = 0
   zoom = 0
+  autoIndent = 1
+  highlightCurrentLine = 1
   edgeColumn = 80  
   showIndentGuides = 1
-  wrapText = 0  
+  wrapText = 1
   defaultStyle = 'python'
   defaultIndentation = 4
   defaultLineEndings = 'LF'
@@ -66,6 +68,7 @@ editor = dict:
   homeAndEndWorkOnDisplayedLine = 1
 shortcuts = dict:
   edit__paste = 'Ctrl+V,'
+  view__zooming__zoom_in = 'Ctrl+=,'
   edit__select_all = 'Ctrl+A,'
   edit__move_to_matching_brace = 'Ctrl+],'
   settings__qt_style__cleanlooks = 'Ctrl+F12,'
@@ -74,19 +77,22 @@ shortcuts = dict:
   edit__find_previous = 'Shift+F3,'
   file__new_file = 'Ctrl+N,'
   edit__copy = 'Ctrl+C,'
+  view__zooming__zoom_out = 'Ctrl+-,'
   settings__enable_code_folding = 'Alt+F,'
   edit__redo = 'Ctrl+Y,'
-  edit__undo = 'Ctrl+Z,'
+  view__select_previous_file = 'Ctrl+Tab,'
   settings__qt_style__plastique = 'Ctrl+F11,'
   file__close_file = 'Ctrl+W,'
   view__wrap_text = 'Alt+W,'
   edit__uncomment_lines = 'Ctrl+T,'
+  file__open_file = 'Ctrl+O,'
   settings__qt_style__windows = 'Ctrl+F10,'
   file__save_file = 'Ctrl+S,'
   edit__find_selection = 'Ctrl+F3,'
+  edit__undo = 'Ctrl+Z,'
   edit__comment_lines = 'Ctrl+R,'
   edit__cut = 'Ctrl+X,'
-  file__open_file = 'Ctrl+O,'
+  view__zooming__zoom_reset = 'Ctrl+\\,'
 plugins = dict:
   top = list:
   bottom = list:
@@ -130,10 +136,11 @@ def loadConfig():
     for key in defaultConfig:
         if key not in config:
             config[key] = defaultConfig[key]
-    
-def saveConfig():
-    """Store configurations"""
-    ssdf.save( os.path.join(path,"config.ssdf"), config )
+
+# Use the version in main.py instead
+# def saveConfig():
+#     """Store configurations"""
+#     ssdf.save( os.path.join(path,"config.ssdf"), config )
 
 # load on import
 loadConfig()

@@ -12,13 +12,19 @@
 # The lists of ext and keywords are space-separated.
 # When basedon is not specified, it is based on default.
 #
+# There are a few special style numbers used by IEP, of which a fore and a back
+# can be specified (other attributes are ignored):
+# - s301: the caret and current line background colors
+# - s302: the selection colors
+# - s303: the calltip colors
+#
 # With this setup you can easily make your own styles. Just look at the
 # examples in this file... All stylenames should be lowercase.
 #
-# When specifying a font, you can use "face:{mono}" where mono may also
+# When specifying a font, you can use "face:{mono}" where 'mono' may also
 # be 'serif' or 'sans'. A suitable font is selected based on the used OS.
 #
-# Heres a list of all posible lexers that StyledTextCtl knows:
+# Here's a list of all posible lexers that StyledTextCtl knows:
 # ada asp ave baan batch bullant conf cpp diff eiffel eiffelkw 
 # errorlist hypertext latex lisp lua makefi le matlab nncrontab 
 # pascal perl php props python ruby sql tcl vb vbscript xml
@@ -28,13 +34,15 @@
 default = dict:
     s032 = 'face:{mono},size:9,back:#FFFFFF' # STC_STYLE_DEFAULT
     #s032 = 'face:consolas,size:10,back:#FFFFFF' # STC_STYLE_DEFAULT
-    s033 = 'back:#C0C0C0,face:{serif},size:7' # STC_STYLE_LINENUMBER
+    s033 = 'back:#C0C0C0,face:{sans},size:7' # STC_STYLE_LINENUMBER
     s034 = 'bold,back:#AAFFAA' # STC_STYLE_BRACELIGHT
     s035 = 'bold,back:#FFAAAA' # STC_STYLE_BRACEBAD
     s036 = 'face:{mono}' # STC_STYLE_CONTROLCHAR
     s037 = '' # STC_STYLE_INDENTGUIDE
     s038 = '' # STC_STYLE_CALLTIP
-
+	s301 = 'fore:#000,back:#FFA' # caret and current line background
+	s302 = 'fore:#CCCCCC,back:#333366' # selection
+	s303 = 'fore:#404040,back:#FFFFB8,forehlt:#0000FF' # calltip
 
 # PYTHON
 python = dict:

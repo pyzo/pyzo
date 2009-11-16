@@ -1,5 +1,5 @@
 
-import os, sys
+import os, sys, re
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
@@ -144,7 +144,7 @@ class FileMenu(BaseMenu):
         addItem( MI('Line endings', self.fun_lineEndings, True) )        
         addItem( MI('File encoding', self.fun_encoding, True) )
         addItem(None)
-        addItem( MI('Restart IEP', self.fun_restart) )
+        addItem( MI('Restart IEP (not saving changes)', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
     
     
@@ -235,18 +235,12 @@ class FileMenu(BaseMenu):
         """ Close the application. """
         iep.main.close()
     
+    
     def fun_restart(self, value):
-        """ Restart the application. """
-        # close first
-        self.fun_close(None)
+        """ Restart the application, without saving any changes"""
+        iep.main.restart()
         
-        # put a space in front of all args
-        args = []
-        for i in sys.argv:
-            args.append(" "+i)
         
-        # replace the process!                
-        os.execv(sys.executable, args)
 
 
 class EditMenu(BaseMenu):
@@ -360,7 +354,10 @@ class ViewMenu(BaseMenu):
         addItem( MI('Show line endings', self.fun_showLineEndings, True) )
         addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, True) )
         addItem( None )
+        addItem( MI('Select previous file', self.fun_selectPrevious) )
+        addItem( MI('Highlight current line', self.fun_lineHighlight, True) )
         addItem( MI('Zooming', self.fun_zooming, True) )
+    
     
     def fun_wrap(self, value):
         """ Wrap long lines. """
@@ -432,6 +429,10 @@ class ViewMenu(BaseMenu):
         for editor in iep.editors:
             editor.setTabWidth(value)
     
+    def fun_selectPrevious(self, value):
+       iep.editors._list.selectPreviousItem() 
+    
+    
     def fun_zooming(self, value):
         """ Zoom in or out, or reset zooming. """
         if value is None:
@@ -446,6 +447,16 @@ class ViewMenu(BaseMenu):
             for editor in iep.editors:
                 editor.zoomTo(iep.config.editor.zoom)
     
+    def fun_lineHighlight(self, value):
+        """ Whether the line containing the cursor should be highlighted. """
+        if value is None:
+            return bool(iep.config.editor.highlightCurrentLine)
+        else:
+            value = not bool(iep.config.editor.highlightCurrentLine)
+            iep.config.editor.highlightCurrentLine = value
+            for editor in iep.editors:
+                editor.setHighlightCurrentLine(value)
+
 
 class SettingsMenu(BaseMenu):
     def fill(self):
@@ -454,14 +465,17 @@ class SettingsMenu(BaseMenu):
         
         addItem( MI('Enable code folding', self.fun_codeFolding, True) )
         addItem( MI('Match braces', self.fun_braceMatch, True) )
+        addItem( MI('Automatically indent', self.fun_autoIndent, True) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, True) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, True) )
         addItem( MI('Default line endings', self.fun_defaultLineEndings, True) )
         addItem( None )
         addItem( MI('QT style', self.fun_qtstyle, True) )
-        addItem( MI('Edit styles ...', self.fun_editStyles) )
+        addItem( MI('Edit syntax styles ...', self.fun_editStyles) )        
         addItem( MI('Change key mappings ...', self.fun_keymap) )
+        addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
+        addItem( MI('Save settings now', self.fun_saveSettings) )
     
     def fun_qtstyle(self, value):
         """ Chose the QT style to use. """
@@ -538,6 +552,14 @@ class SettingsMenu(BaseMenu):
                 editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
                 editor.setBraceMatching(value)
     
+    def fun_autoIndent(self, value):
+        """ Enable auto-indentation (python style only). """
+        if value is None:
+            return bool(iep.config.editor.autoIndent)
+        else:
+            value = not bool(iep.config.editor.autoIndent)
+            iep.config.editor.autoIndent = value
+    
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """
         dialog = KeymappingDialog()
@@ -552,10 +574,34 @@ class SettingsMenu(BaseMenu):
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Edit syntax styling")
         m.setText(text)
+        m.setIcon(m.Information)
         m.exec_()
         iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
-        
-
+    
+    def fun_advancedSettings(self, value):
+        """ Edit the style file. """
+        text = """ 
+        Some extra settings can be changed by editing the config file. 
+        IEP automatically saves the settings to that file when exiting, so 
+        to apply the settings, save the file and use File -> Restart IEP.
+        """
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("Advanced settings")
+        m.setText(text)
+        m.setIcon(m.Information)
+        m.exec_()
+        iep.editors.loadFile(os.path.join(iep.path,'config.ssdf'))
+    
+    def fun_saveSettings(self, value):
+        """ Iep saves the settings when exiting, but you can also save now. """
+        iep.main.saveConfig()
+        widget = QtGui.qApp.focusWidget()
+        # set focus away and back, if the open file is config.ssdf, 
+        # a file-changed message will appear
+        iep.editors._findReplace._findText.setFocus()
+        widget.setFocus()
+    
+    
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.
@@ -602,8 +648,12 @@ def getFullName(action):
             text = item.title() + '__' + text
         except Exception:
             print('error getting name',text, item.title())
-    text = text.replace(' ', '_').replace('.', '').lower()
-    return text
+    # replace invalid chars
+    text = text.replace(' ', '_')
+    if text[0] in '0123456789':
+        text = "_"+text
+    text = re.sub('[^a-zA-z_0-9]','',text,999)
+    return text.lower()
 
 
 def getShortcut( fullName):
