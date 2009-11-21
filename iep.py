@@ -25,7 +25,7 @@ modules.
 
 """
 
-import os, os.path
+import sys, os
 
 # import ssdf or the suplied copy if not available
 try:
@@ -34,9 +34,70 @@ except ImportError:
     # if strux not available, use the copy we included with IEP
     import ssdf_copy as ssdf
 
+
+## Some functions...
+
+def isFrozen():
+    """ Find out whether this is a frozen application
+    (using bbfreeze or py2exe) by finding out what was
+    the executable name to start the application.
+    """
+    import os
+    ex = os.path.split(sys.executable)[1]
+    ex = os.path.splitext(ex)[0]
+    if ex.lower() == 'python':
+        return False
+    else:
+        return True
+
+
+def getResourceDir():
+    """ Get the directory to the resources. """
+    if isFrozen():
+        path =  os.path.abspath( os.path.dirname(sys.executable) )
+    else:
+        path = os.path.abspath( os.path.dirname(__file__) )
+    return path
+
 # get the path where IEP is located
-path = __file__
-path = os.path.dirname( os.path.abspath(path) )
+path = getResourceDir()
+
+def startIep():
+    """ RUN IEP 
+    """        
+    from main import MainWindow
+    from PyQt4 import QtCore, QtGui
+    app = QtGui.QApplication([])
+    app.setStyle(config.qtstyle)
+    frame=MainWindow()
+    app.exec_()
+    
+    
+def normalizeLineEndings(text):
+    """ normalize text, following Python styles.
+    Convert all line endings to the \\n (LF) style.    
+    """ 
+    # line endings
+    text = text.replace("\r\n","\n")
+    text = text.replace("\r","\n")    
+    # done
+    return text
+
+
+def GetMainFrame(window):
+    """ Get the main frame, giving a window that's in it.
+    Can be used by windows to find the main frame, and
+    via it, can interact with other windows.
+    """
+    try:
+        while True:
+            parent = window.parent()
+            if parent is None:
+                return window
+            else:
+                window = parent
+    except:    
+        raise Exception("Cannot find the main window!")
 
 
 ## the configuration stuff...
@@ -71,7 +132,7 @@ shortcuts = dict:
   view__zooming__zoom_in = 'Ctrl+=,'
   edit__select_all = 'Ctrl+A,'
   edit__move_to_matching_brace = 'Ctrl+],'
-  settings__qt_style__cleanlooks = 'Ctrl+F12,'
+  settings__qt_theme__cleanlooks = 'Ctrl+F12,'
   edit__find_next = 'F3,'
   edit__find_or_replace = 'Ctrl+F,'
   edit__find_previous = 'Shift+F3,'
@@ -81,12 +142,12 @@ shortcuts = dict:
   settings__enable_code_folding = 'Alt+F,'
   edit__redo = 'Ctrl+Y,'
   view__select_previous_file = 'Ctrl+Tab,'
-  settings__qt_style__plastique = 'Ctrl+F11,'
+  settings__qt_theme__plastique = 'Ctrl+F11,'
   file__close_file = 'Ctrl+W,'
   view__wrap_text = 'Alt+W,'
   edit__uncomment_lines = 'Ctrl+T,'
   file__open_file = 'Ctrl+O,'
-  settings__qt_style__windows = 'Ctrl+F10,'
+  settings__qt_theme__windows = 'Ctrl+F10,'
   file__save_file = 'Ctrl+S,'
   edit__find_selection = 'Ctrl+F3,'
   edit__undo = 'Ctrl+Z,'
@@ -137,55 +198,16 @@ def loadConfig():
         if key not in config:
             config[key] = defaultConfig[key]
 
-# Use the version in main.py instead
-# def saveConfig():
-#     """Store configurations"""
-#     ssdf.save( os.path.join(path,"config.ssdf"), config )
+def saveConfig():
+    """Store configurations"""
+    #ssdf.save( os.path.join(path,"config.ssdf"), config )
+    tmp="This function must be overridden to update the config before saving."
+    raise NotImplemented(tmp)
 
 # load on import
 loadConfig()
 
 
-## Some functions...
-
-def startIep():
-    """ RUN IEP 
-    """        
-    from main import MainWindow
-    from PyQt4 import QtCore, QtGui
-    app = QtGui.QApplication([])
-    app.setStyle(config.qtstyle)
-    frame=MainWindow()
-    app.exec_()
-    
-    
-def normalizeLineEndings(text):
-    """ normalize text, following Python styles.
-    Convert all line endings to the \\n (LF) style.    
-    """ 
-    # line endings
-    text = text.replace("\r\n","\n")
-    text = text.replace("\r","\n")    
-    # done
-    return text
-
-
-def GetMainFrame(window):
-    """ Get the main frame, giving a window that's in it.
-    Can be used by windows to find the main frame, and
-    via it, can interact with other windows.
-    """
-    try:
-        while True:
-            parent = window.parent()
-            if parent is None:
-                return window
-            else:
-                window = parent
-    except:    
-        raise Exception("Cannot find the main window!")
-
-    
 if __name__ == "__main__":
     startIep()
     

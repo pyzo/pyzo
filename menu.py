@@ -144,7 +144,7 @@ class FileMenu(BaseMenu):
         addItem( MI('Line endings', self.fun_lineEndings, True) )        
         addItem( MI('File encoding', self.fun_encoding, True) )
         addItem(None)
-        addItem( MI('Restart IEP (not saving changes)', self.fun_restart) )
+        addItem( MI('Restart IEP (not saving settings)', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
     
     
@@ -471,7 +471,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Default indentation', self.fun_defaultIndentation, True) )
         addItem( MI('Default line endings', self.fun_defaultLineEndings, True) )
         addItem( None )
-        addItem( MI('QT style', self.fun_qtstyle, True) )
+        addItem( MI('QT theme', self.fun_qtstyle, True) )
         addItem( MI('Edit syntax styles ...', self.fun_editStyles) )        
         addItem( MI('Change key mappings ...', self.fun_keymap) )
         addItem( MI('Advanced settings ...', self.fun_advancedSettings) )

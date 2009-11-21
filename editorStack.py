@@ -895,7 +895,7 @@ class FindReplaceWidget(QtGui.QFrame):
             if forward:
                 line, index = 0,0
             else:
-                pos = len(editor)
+                pos = editor.length()
                 line = editor.getLinenrFromPosition(pos)
                 index = pos-editor.getPositionFromLinenr(line)
             ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
@@ -1012,7 +1012,7 @@ class EditorStack(QtGui.QWidget):
             self._stack.removeWidget(widget)
         
         # add the one!
-        if editor:
+        if editor is not None:
             self._stack.addWidget(editor)
             editor.show()
     
@@ -1133,7 +1133,7 @@ class EditorStack(QtGui.QWidget):
             editor = createEditor(self, filename)
         except Exception as err:
             print("Error loading file: ", err)
-            return None
+            raise
         
         # create list item
         item = self._list.appendFile(editor, projectname)
@@ -1373,13 +1373,14 @@ class EditorStack(QtGui.QWidget):
             elif parts[0]:
                 # a file item
                 tmp = self.loadFile(parts[0], currentProject)
-                ed = tmp._editor
-                # set position and make sure it is visible
-                pos = int(parts[1])
-                linenr = ed.getLinenrFromPosition(pos)
-                ed.setPositionAndAnchor(pos)
-                ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
-                fileItems[parts[0]] = tmp
+                if tmp:
+                    ed = tmp._editor
+                    # set position and make sure it is visible
+                    pos = int(parts[1])
+                    linenr = ed.getLinenrFromPosition(pos)
+                    ed.setPositionAndAnchor(pos)
+                    ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
+                    fileItems[parts[0]] = tmp
     
     
     def closeAll(self):

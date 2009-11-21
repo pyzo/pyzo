@@ -41,9 +41,15 @@ class MainWindow(qt.QMainWindow):
         if pos.maximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
+        # construct icon
+        tmp = os.path.join(iep.path,'')
+        iep.icon = qt.QIcon()
+        iep.icon.addFile(tmp+'icon16.png', QtCore.QSize(16,16), 0, 0)
+        iep.icon.addFile(tmp+'icon32.png', QtCore.QSize(32,32), 0, 0)
+        iep.icon.addFile(tmp+'icon48.png', QtCore.QSize(48,48), 0, 0)
+        
         # set label and icon
         self.setWindowTitle("IEP")
-        iep.icon = qt.QIcon('iep.ico')
         self.setWindowIcon(iep.icon)
         
         # create splitter
