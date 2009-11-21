@@ -307,48 +307,7 @@ class StyleManager(QtCore.QObject):
         
         # return actual stylename        
         return styleName
-    
-    
-    def _applyStyle(self, editor, styleName):
-        """ Actually apply style """
-        
-        # get the style (but check if exists first)
-        if not styleName in self._styles:
-            print("Unknown style %s" % styleName)
-            return
-        style = self._styles[styleName]
-        
-        # Apply style on which it is based. A style is always based
-        # on default. 
-        if style.basedon:
-            self._applyStyle(editor, style.basedon)
-        elif styleName!='default':
-            self._applyStyle(editor, 'default')
-        
-        # start ...
-        #print("applying style,", styleName)
-        
-        # set basic stuff first
-        if 'lexer' in style:
-            editor.SendScintilla(editor.SCI_SETLEXERLANGUAGE, style.lexer)
-        if 'keywords' in style:
-#             tmp = editor.SendScintilla(editor.SCI_GETLEXER)
-#             editor.SendScintilla(editor.SCI_SETLEXER, 0)            
-#             editor.SendScintilla(editor.SCI_SETLEXER, tmp)
-            editor.SendScintilla(editor.SCI_SETKEYWORDS, style.keywords)
-        
-        
-        
-        # check out the substyle strings (which are of the form 'sxxx')
-        for styleNr in style:
-            if not (styleNr.startswith('s') and len(styleNr) == 4):
-                continue
-            # get substyle number to tell scintilla
-            nr = int(styleNr[1:])
-            # set substyle attributes
-            applyStyleNumber(editor, nr, style[styleNr])
-    
-        
+
     
 styleManager = StyleManager()
 iep.styleManager = styleManager
@@ -433,7 +392,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.setBraceMatching(int(config.doBraceMatch)*2)
         self.setFolding( int(config.codeFolding)*5 )
         
-        
         # use unicode, the second line does not seem to do anything
         self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
         self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) 
@@ -488,22 +446,35 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
         self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
         self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
+    
+    
+    
+    def SendScintilla(self, *args):
+        """ Overloaded method that transforms any string arguments to
+        bytes arguments. 
+        This is required in PyQt4 4.6.2, but not in earlier versions.
+        """
+        # copy args, transforming strings to bytes
+        args2 = []
+        for arg in args:
+            if isinstance(arg, str):
+                args2.append( arg.encode('utf-8') )
+            else:
+                args2.append( arg )
         
-        # init document, otherwise (for some reason) it is not well
-        # displayed.
-        self.setBytes(b'\n')
+        # send it
+        args = tuple( args2 )
+        return Qsci.QsciScintillaBase.SendScintilla(self, *args)
+    
     
     ## getting and setting text
     
     
     def getBytesLength(self):
         """ Get the length of the (encoded) text. 
-        (__len__() does the same)
+        .length() does the same)
         """
-        return self.SendScintilla(self.SCI_GETLENGTH)
-    
-    def __len__(self):
-        return self.SendScintilla(self.SCI_GETLENGTH)
+        return self.length()
     
     
     def setBytes(self, value):
@@ -528,7 +499,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def getString(self):
         """ Get the text as a unicode string. """
         return self.getBytes().decode('utf-8')
-    
     
     def getLineBytes(self, linenr):
         """ Get the bytes of the given line. """
@@ -800,7 +770,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
 #         
 #         # get char at the cursor        
 #         chara, charb = 'a', 'b'
-#         if i1>0 and i1 < len(self):
+#         if i1>0 and i1 < self.length():
 #             chara = self.getCharAt(i1-1)
 #             charb = self.getCharAt(i1)
 #         
