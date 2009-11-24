@@ -37,6 +37,7 @@ def normalizePath(path):
     """ Normalize the path given. 
     All slashes will be made the same (and doubles removed)
     The real case as stored on the file system is recovered.
+    Returns None on error.
     """
     
     # normalize
@@ -62,9 +63,11 @@ def normalizePath(path):
         # print( fullpath,part)
         options = [x for x in os.listdir(fullpath) if x.lower()==part]
         if len(options) > 1:
-            raise Exception("Ambiguous path names!")
+            print("Error normalizing path: Ambiguous path names!")
+            return None
         elif len(options) < 1:
-            raise IOError("Invalid path: "+fullpath+part)
+            print("Invalid path: "+fullpath+part)
+            return None
         fullpath += options[0] + sep
     
     # remove last sep

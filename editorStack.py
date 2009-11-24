@@ -38,7 +38,20 @@ class Item(qt.QLabel):
         self.setLineWidth(1)
         self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
         self._frameWidth = self.frameWidth() + 3 # correction        
+        
+        self.setAcceptDrops(True)
+        
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
     
+    def dropEvent(self, event):
+        """ Drop files in the list. """
+        # let the editorstack do the work.
+        if isinstance(self, FileItem):
+            iep.editors.dropEvent(event, self._project)
+        else:
+            iep.editors.dropEvent(event, self)
     
     def setIndent(self, indent):
         """ Set the indentation of the item. """
@@ -1035,12 +1048,15 @@ class EditorStack(QtGui.QWidget):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         
-    def dropEvent(self, event):
+    def dropEvent(self, event, project):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
             path = str( qurl.path()[1:] )
             if os.path.isfile(path):
-                self.loadFile(path)
+                if project:
+                    self.loadFile(path, project._name)
+                else:
+                    self.loadFile(path)
             elif os.path.isdir(path):
                 self.loadDir(path)
             else:
@@ -1115,6 +1131,8 @@ class EditorStack(QtGui.QWidget):
         
         # normalize path
         filename = normalizePath(filename)
+        if not filename:
+            return None
         
         # if the file is already open...
         for item in self._list._items:
@@ -1230,9 +1248,6 @@ class EditorStack(QtGui.QWidget):
         if not filename:
             self.saveFileAs(editor)
             return
-        
-        # normalize
-        filename = normalizePath(filename)
         
         # let the editor do the low level stuff...
         try:

@@ -179,6 +179,9 @@ class IepEditor(BaseTextCtrl):
         # modification time to test file change 
         self._modifyTime = 0
         
+        # to be able to accept drops
+        self.setAcceptDrops(True)
+        
         # to see whether the doc has been changed
         self._dirty = False
         SIGNAL = QtCore.SIGNAL
@@ -238,6 +241,35 @@ class IepEditor(BaseTextCtrl):
         """
         self._dirty = False
         self.somethingChanged.emit()
+    
+    
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+            print("drag")
+    
+    def dropEvent(self, event):
+        """ Drop files in the list. """
+        # let the editorstack do the work.
+        iep.editors.dropEvent(event)
+        print("drop")
+    
+    
+    def showEvent(self, event=None):
+        """ Capture show event to change title. """
+        
+        # get root widget
+        ob = self
+        while ob.parent():
+            ob = ob.parent()
+        
+        # compose title
+        title = self._name
+        if self._filename:
+            title += " ({})".format(self._filename)
+        title += ' Interactive Editor for Python'
+        # set title
+        ob.setWindowTitle(title)
     
     
     def save(self, filename=None):
