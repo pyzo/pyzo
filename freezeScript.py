@@ -1,5 +1,5 @@
 """ FREEZING WITH CX_FREEZE
-This script can be run as a script (no need to do distutils stuff...
+This script can be run as a script (no need to do distutils stuff...)
 """
 
 import sys, os, shutil
@@ -7,9 +7,9 @@ from cx_Freeze import Executable, Freezer, setup
 
 # define app name and such
 name = "iep"
-baseDir = 'c:/projects/python/apps/'
-srcDir = 'c:/projects/python/iep2/'
-distDir = baseDir+name+'/'
+baseDir = ''
+srcDir = ''
+distDir = baseDir+'frozen/'
 scriptFile = srcDir + 'iep.pyw'
 iconFile = srcDir + 'icon.ico'
 
@@ -39,8 +39,6 @@ includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 'PyQt4.Qsci'] # for qt to work
 # the "None object has no atribute modules" error message
 # The statement should be added right before "sys.modules[__name__] = m".
 
-# go there and enable importing from current directory
-os.chdir('c:/projects/python/iep2/')
 sys.path.append('')
 
 ex = Executable(    scriptFile, 
@@ -55,7 +53,7 @@ f = Freezer(    {ex:True},
                 targetDir = distDir,
 #                 copyDependentFiles = True,
 #                 appendScriptToExe=True,
-                optimizeFlag=2, 
+#                 optimizeFlag=1, 
                 compress=False,
                 silent=True,
             )

@@ -39,8 +39,10 @@ class Item(qt.QLabel):
         self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
         self._frameWidth = self.frameWidth() + 3 # correction        
         
+        # To accept dropping
         self.setAcceptDrops(True)
-        
+    
+    
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -48,10 +50,8 @@ class Item(qt.QLabel):
     def dropEvent(self, event):
         """ Drop files in the list. """
         # let the editorstack do the work.
-        if isinstance(self, FileItem):
-            iep.editors.dropEvent(event, self._project)
-        else:
-            iep.editors.dropEvent(event, self)
+        event._y = self._y + event.pos().y()
+        self.parent().dropEvent(event)
     
     def setIndent(self, indent):
         """ Set the indentation of the item. """
@@ -263,8 +263,10 @@ class FileItem(Item):
         """ Update the style. To indicate selected file or hoovering over one.
         Need to update position, because the frame width is different for
         the different scenarios."""
+        
         if self is self.parent()._currentItem:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
+            self.setStyleSheet("QLabel{ background:#DED;}")
             self.move(self._indent ,self._y)
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
@@ -354,13 +356,16 @@ class FileListCtrl(QtGui.QFrame):
         
         # enable dragging/dropping
         self.setAcceptDrops(True)
+        # for dragging file items
         self._draggedItem = None
         self._dragStartPos = QtCore.QPoint(0,0)
+        # for dropping files
+        self._droppedIndex = 0
+        self._droppedTime = time.time()-1.0
         
         # set callbacks
         self._scroller.valueChanged.connect(self.updateMe)
-        
-        #self.updateMe()
+    
     
     def resizeEvent(self, event):
         QtGui.QFrame.resizeEvent(self, event)
@@ -517,9 +522,50 @@ class FileListCtrl(QtGui.QFrame):
                 self._draggedItem = theitem
     
     
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+    
+    def dropEvent(self, event):
+        """ Drop files/directories in the list. """
+        
+        # get y position
+        if hasattr(event, '_y'):
+            yd = event._y
+        else:
+            yd = event.pos().y()
+        
+        # determine where to place the item
+        i_to_put = None
+        for i in range(len(self._items)):
+            item = self._items[i]
+            y = item._y + item._itemHeight + item._itemSpacing
+            if item.isVisible() and y > yd:
+                i_to_put = i
+                break
+        
+        # post process
+        if i_to_put is None:
+            # put at the end
+            i_to_put = len(self._items)
+        elif isinstance(self._items[i_to_put], ProjectItem):
+            # if a project item, insert as first item in that project.
+            if i_to_put < len(self._items) -1:
+                i_to_put += 1
+        
+        # make the item be inserted here
+        self._droppedIndex = i_to_put
+        self._droppedTime = time.time()
+        
+        # let the editorstack do the loading,
+        # which calls our appendFile, where we can put it in the
+        # right place.
+        self._editorStack.dropEvent(event)
+    
+    
     def _doDrag(self, event):
         
-        # determine new pisition
+        # determine new position
         diffY = event.globalY() - self._dragStartPos.y()
         self._draggedItem._y = self._draggedItem._yStart+ diffY
         
@@ -614,7 +660,7 @@ class FileListCtrl(QtGui.QFrame):
                 if insertInThisProject:
                     i_insert = i
                 if projectname and item._name == projectname:
-                    # yuppy, rember to insert at right before the next project
+                    # yuppy, remember to insert at right before the next project
                     insertInThisProject = True
                 else:
                     insertInThisProject = False
@@ -622,6 +668,11 @@ class FileListCtrl(QtGui.QFrame):
         # finish
         if insertInThisProject:
             i_insert = len(self._items)
+        
+        # or should we put it at the dropped position?
+        if time.time() - self._droppedTime < 0.25:
+            i_insert = self._droppedIndex
+            self._droppedTime = time.time() # when multiple files are inserted
         
         # create item
         item = FileItem(self, editor)
@@ -643,7 +694,10 @@ class FileListCtrl(QtGui.QFrame):
                 print("Cannot load dir: a project with that name "\
                     "already exists!" )                  
                 return None
-                
+        
+        # disable the insert location for dropping
+        self._droppedTime = time.time()-1.0
+        
         # create project at the end
         item = ProjectItem(self, projectname)
         self._items.append(item)
@@ -1048,15 +1102,12 @@ class EditorStack(QtGui.QWidget):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         
-    def dropEvent(self, event, project):
+    def dropEvent(self, event):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
             path = str( qurl.path()[1:] )
             if os.path.isfile(path):
-                if project:
-                    self.loadFile(path, project._name)
-                else:
-                    self.loadFile(path)
+                self.loadFile(path)
             elif os.path.isdir(path):
                 self.loadDir(path)
             else:
@@ -1162,7 +1213,7 @@ class EditorStack(QtGui.QWidget):
         return item
     
     
-    def loadDir(self, path, extensions="py,pyw"):
+    def loadDir(self, path):
         """ Create a project with the dir's name and add all files
         contained in the directory to it.
         extensions is a komma separated list of extenstions of files
@@ -1176,7 +1227,9 @@ class EditorStack(QtGui.QWidget):
             return
         
         # get extensions
-        extensions = ["."+a.lstrip(".").strip() for a in extensions.split(",")]
+        extensions = iep.config.fileExtensionsToLoadFromDir
+        extensions = extensions.replace(',',' ').replace(';',' ')
+        extensions = ["."+a.lstrip(".").strip() for a in extensions.split(" ")]
         
         # create project        
         projectname = str( os.path.basename(path) )

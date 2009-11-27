@@ -253,6 +253,8 @@ class StyleManager(QtCore.QObject):
         
         # make lower case
         styleName = styleName.lower()
+        if not styleName:
+            styleName = 'default'
         
         # if styletree was not yet build, return
         if self._styles is None:
@@ -268,7 +270,7 @@ class StyleManager(QtCore.QObject):
             else:
                 tmp = "Unknown extension {}, applying default style."
                 print(tmp.format(ext))
-                styleName = ''
+                styleName = 'default'
         
         # get style struct
         styleStruct = ssdf.new()
@@ -277,7 +279,7 @@ class StyleManager(QtCore.QObject):
         # clear all formatting
         editor.SendScintilla(editor.SCI_CLEARDOCUMENTSTYLE)
         
-        if styleName: # else it is plain ...
+        if True: # apply always
             
             # short for sendscintilla
             send = editor.SendScintilla
