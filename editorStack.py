@@ -545,7 +545,9 @@ class FileListCtrl(QtGui.QFrame):
                 break
         
         # post process
-        if i_to_put is None:
+        if yd < self._items[0]._y:
+            i_to_put = 0
+        elif i_to_put is None:
             # put at the end
             i_to_put = len(self._items)
         elif isinstance(self._items[i_to_put], ProjectItem):
@@ -1059,6 +1061,9 @@ class EditorStack(QtGui.QWidget):
         self.setLayout(self._boxLayout)
         
         #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
+        
+        # accept drops
+        self.setAcceptDrops(True)
         
         # put the last opened files in 
         if iep.config.editorState:
