@@ -64,11 +64,11 @@ class MainWindow(qt.QMainWindow):
         status = self.statusBar()
         self._menuhelper = MenuHelper(self.menuBar())
         
-        # test dock widgets
-        dock = qt.QDockWidget("Find in files", self)
-        dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | QtCore.Qt.BottomDockWidgetArea)
-        dock.setFeatures(qt.QDockWidget.DockWidgetMovable)
-        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
+#         # test dock widgets
+#         dock = qt.QDockWidget("Find in files", self)
+#         dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | QtCore.Qt.BottomDockWidgetArea)
+#         dock.setFeatures(qt.QDockWidget.DockWidgetMovable)
+#         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
     
         
         # show now

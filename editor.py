@@ -10,7 +10,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 qt = QtGui
 
-from baseTextCtrl import BaseTextCtrl
+from baseTextCtrl import BaseTextCtrl, normalizePath
 import iep
 
 def determineLineEnding(text):
@@ -122,8 +122,8 @@ def createEditor(parent, filename=None):
             bb = f.read()
             f.close()
         
-        # convert to text
-        text = bb.decode('UTF-8')
+        # convert to text, be gentle with files not encoded with utf-8
+        text = bb.decode('UTF-8','replace')
         
         # process line endings
         lineEndings = determineLineEnding(text)
@@ -246,7 +246,13 @@ class IepEditor(BaseTextCtrl):
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
-            print("drag")
+
+    def dragMoveEvent(self, event):
+        # for some reason, we also need this one
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            BaseTextCtrl.dragMoveEvent(self, event)
     
     def dropEvent(self, event):
         """ Drop files in the list. """
@@ -256,18 +262,18 @@ class IepEditor(BaseTextCtrl):
     
     
     def showEvent(self, event=None):
-        """ Capture show event to change title. """
-        
+        """ Capture show event to change title. """        
         # get root widget
         ob = self
         while ob.parent():
-            ob = ob.parent()
-        
+            ob = ob.parent()        
         # compose title
-        title = self._name
-        if self._filename:
-            title += " ({})".format(self._filename)
-        title += ' Interactive Editor for Python'
+        name, path = self._name, self._filename
+        if not path:
+            path = 'no location on disk'
+        tmp = { 'fileName':name, 'filename':name, 'name':name,
+                'fullPath':path, 'fullpath':path, 'path':path}
+        title = iep.config.titleText.format(**tmp)
         # set title
         ob.setWindowTitle(title)
     
@@ -296,10 +302,10 @@ class IepEditor(BaseTextCtrl):
             f.close()
         
         # update stats
-        self._filename = filename
-        self._name = os.path.split(filename)[1]        
+        self._filename = normalizePath( filename )
+        self._name = os.path.split(self._filename)[1]        
         self.makeDirty(False)
-        self._modifyTime = os.path.getmtime(filename)
+        self._modifyTime = os.path.getmtime(self._filename)
         
         # allow item to update its texts (no need: makeDirty call does this)
         #self.somethingChanged.emit()
