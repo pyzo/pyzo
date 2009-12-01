@@ -348,6 +348,16 @@ def removeComment(text):
         return text
     
 
+def makeBytes(text):
+    """ Make sure the argument is bytes, converting with UTF-8 encoding
+    if it is a string. """
+    if isinstance(text, bytes):
+        return text
+    elif isinstance(text, str):
+        return text.encode('utf-8')
+    else:
+        raise ValueError("Expected str or bytes!")
+
 
 class BaseTextCtrl(Qsci.QsciScintilla):
     """ The base text control class.
@@ -365,9 +375,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
       text is stored. If you have unicode text, they do not apply!
     - the method name mentions explicityly what you get. getBytes() returns the
       bytes of the document, getString() gets the unicode string that it 
-      represents. If a method name mentions "text", it is an original 
-      Qscintilla method and can be either of these (best don't use that).
-    
+      represents. This applies to the get-methods. the set-methods use the
+      term text, and automatically convert to bytes using UTF-8 encoding
+      when a string is given. 
     """
         
     def __init__(self, parent):
@@ -453,7 +463,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
     
     
-    
     def SendScintilla(self, *args):
         """ Overloaded method that transforms any string arguments to
         bytes arguments. 
@@ -462,11 +471,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # copy args, transforming strings to bytes
         args2 = []
         for arg in args:
-            if isinstance(arg, str):
-                args2.append( arg.encode('utf-8') )
+            if isinstance(arg, (bytes, str)):
+                args2.append( makeBytes(arg) )
             else:
                 args2.append( arg )
-        
         # send it
         args = tuple( args2 )
         return Qsci.QsciScintillaBase.SendScintilla(self, *args)
@@ -482,15 +490,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         return self.length()
     
     
-    def setBytes(self, value):
-        """ Set the text as utf-8 encoded bytes. """
-        self.SendScintilla(self.SCI_SETTEXT, value)
-    
-    def setString(self, value):
-        """ Set the text as a unicode string. """
-        bb = value.encode('utf-8')
-        self.SendScintilla(self.SCI_SETTEXT, bb)
-    
+    def setText(self, value):
+        """ Set the text of the editor. """
+        self.SendScintilla(self.SCI_SETTEXT, makeBytes(value))
     
     def getBytes(self):
         """ Get the text as bytes (utf-8 encoded). This is how
@@ -505,6 +507,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ Get the text as a unicode string. """
         return self.getBytes().decode('utf-8')
     
+    
     def getLineBytes(self, linenr):
         """ Get the bytes of the given line. """
         # +1 because Null character needs to fit in too
@@ -516,7 +519,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def getLineString(self, linenr):
         """ Get the string of the given line. """
         return self.getLineBytes(linenr).decode('utf-8')
-    
+        
     
     def getSelectedBytes(self):
         """ Get the bytes that are currently selected. """
@@ -529,6 +532,21 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def getSelectedString(self):
         """ Get the string that represents the currently selected text. """
         return self.getSelectedBytes().decode('utf-8')
+    
+    def replaceSelection(self, replacement):
+        """ Replace the selected text with the given bytes or string. """
+        self.SendScintilla(self.SCI_REPLACESEL, 0, replacement)
+    
+    def getRangeBytes(self, pos1, pos2):
+        """ Get the bytes from pos1 up til pos2 (non inclusive). """
+        # There's a sendscintilla command for this, but it involves
+        # a struct, so I am afraid it is not possible to use that.
+        bb = self.getBytes()
+        return bb[pos1:pos2]
+    
+    def getRangeString(self, pos1, pos2):
+        """ Get the string from pos1 up til pos2 (non inclusive). """
+        return self.getRangeBytes(pos1, pos2).decode('utf-8')
     
     
     def getStyleAt(self, pos):
@@ -546,17 +564,15 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             return chr(char)
     
     
-    def insertBytes(self, pos, value):
-        """ insert the given bytes at the given position. """
-        self.SendScintilla(self.SCI_INSERTTEXT, pos, value)
+    def appendText(self, value):
+        """ insert the given text at the given position. """
+        value = makeBytes(value)
+        self.SendScintilla(self.SCI_APPENDTEXT, len(value), value)
     
-    def insertString(self, pos, value):
+    def insertText(self, pos, value):
         """ insert the given bytes at the given position. """
-        value = value.encode('utf-8')
-        self.SendScintilla(self.SCI_INSERTTEXT, pos, value)
+        self.SendScintilla(self.SCI_INSERTTEXT, pos, makeBytes(value))
     
-    # todo: test the get string methods
-    # todo: no names should override the qscintilla method!
     
     ## Positional methods
     
@@ -889,7 +905,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                     text2insert = b"\n"+indent*((ind+1)*indentWidth)
                 else:                
                     text2insert = b"\n"+indent*(ind*indentWidth)
-                self.insertBytes(pos, text2insert)
+                self.insertText(pos, text2insert)
                 pos = self.getPosition()
                 self.setPositionAndAnchor( pos + len(text2insert) )
                 return True

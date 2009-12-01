@@ -335,7 +335,7 @@ class IepEditor(BaseTextCtrl):
         text = text.replace('\r\n','\n').replace('\r','\n')
         
         # set text
-        self.setString(text)
+        self.setText(text)
         self.makeDirty(False)
     
     
