@@ -2,24 +2,28 @@
 Defines the shell to be used in IEP.
 This is done in a few inheritance steps:
 
-    - IepShell inherits IepTextCtrl and adds the typical shell behaviour.
+    - BaseShell inherits BaseTextCtrl and adds the typical shell behaviour.
     
-    - IepPythonShell makes it specific to Python.
+    - PythonShell makes it specific to Python.
 """
 
-import iep
-
 from PyQt4 import QtCore, QtGui
-qt = QtGui
 
-from editor import IepTextCtrl
+import iep
+from baseTextCtrl import BaseTextCtrl
 
-class IepShell(IepTextCtrl):
+# todo: list:
+# - on closing, destroy process
+# - reimplement cut, copy and paste
+# - bind process interrupt via menu
+
+
+class BaseShell(BaseTextCtrl):
     
     def __init__(self, parent):
-        IepTextCtrl.__init__(self, parent)
+        BaseTextCtrl.__init__(self, parent)
         
-        # set off some settings
+        # turn off some settings
         self.setIndentationGuides(False)
         self.setMarginWidth(1,3)
         self.setWrapMode(self.WrapCharacter)
@@ -29,26 +33,26 @@ class IepShell(IepTextCtrl):
         # no lexer
         self.setLexer()
         
-        # get main window
-        self._root = iep.GetMainFrame(self)
-        
         # variables we need
         self._more = False
-        self._promptPosEnd = 0
         self._promptPosStart = 0
+        self._promptPosEnd = 0
         
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
-        # self.historyIndex is the current position in the history; it
+        # self.+historyIndex is the current position in the history; it
         # gets incremented as you retrieve the previous command,
         # decremented as you retrieve the next, and reset when you hit
-        # Enter.  self.historyIndex == -1 means you're on the current
+        # Enter.  self._historyIndex == -1 means you're on the current
         # command, not in the history.
         self._history = []
         self._historyIndex = -1
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
-    
+        
+        # apply style
+        self.setStyle('pythonconsole')
+        
     
     def keyPressEvent2(self, keyevent):
         e = keyevent
@@ -83,33 +87,7 @@ class IepShell(IepTextCtrl):
         
         elif e.controldown and e.key == qc.Key_Cancel:
             # todo: ok, is this the break key?
-            print "I can interrupt the process here!"
-        
-        
-        elif e.controldown and e.char == 'X':
-            # If text is selected, copy it, if passed prompt also remove text
-            pos, anch = self.getCurrentPos(), self.getAnchor()
-            if pos != anch:
-                if pos >= self._promptPosEnd and anch >= self._promptPosEnd:
-                    self.cut()
-                else:
-                    self.copy()
-        
-        elif e.controldown and e.char == 'C':
-            # If text is selected, copy it, otherwise...
-            # INTERRUPT process 
-            if self.getCurrentPos() == self.getAnchor() and self.session:
-                self.session.interrupt()
-            else:
-                self.copy()
-            
-        elif e.controldown and e.char == 'V':
-            # past nicely:  when not at promt go there
-            if self.getCurrentPos() < self._promptPosEnd:
-                self.setCurrentPos(endpos)
-                self.setAnchor(endpos)            
-            # handle paste event
-            self.paste()
+            print("I can interrupt the process here!")
         
         
         elif e.key == qc.Key_Escape:
@@ -117,22 +95,51 @@ class IepShell(IepTextCtrl):
             if not ( self.isListActive() or self.isCallTipActive() ):
                 self.cancelList()
                 self.clearCommand()
-                self.setCurrentPos(self._promptPosEnd)
-                self.setAnchor(self._promptPosEnd)                
+                self.setPositionAndAnchor(self._promptPosEnd)
                 self.ensureCursorVisible()
                 self._historyNeedle = None            
-            # skip?
         
-        # todo: command history
+        elif e.key in [qc.Key_Up, qc.Key_Down]:
+            
+            # needle
+            if self._historyNeedle == None:
+                # get partly-command, result of method is tuple, 
+                # then we skip ">>> "
+                pos1, pos2 = self._promptPosEnd, self.length()
+                self._historyNeedle = self.getRangeString(pos1, pos2)
+                self._historyStep = 0
+            
+            # step
+            if e.key==qc.Key_Up:
+                self._historyStep +=1
+            if e.key==qc.Key_Down:
+                self._historyStep -=1
+            
+            # find the command
+            count = 0
+            for c in self._history:
+                if c.startswith(self._historyNeedle):
+                    count+=1
+                    if count >= self._historyStep:
+                        break
+            else:
+                # found nothing-> reset
+                self._historyStep = 0
+                c = self._historyNeedle                
+            print(self._history, c)
+            # apply
+            self.setAnchor(self._promptPosEnd)
+            self.setPosition(self.length())
+            self.ensureCursorVisible()
+            self.replaceSelection(c) # replaces the current selection
         
         elif e.key == qc.Key_Home:
             # Home goes to the prompt.
             home = self._promptPosEnd
             if e.shiftdown:
-                self.setCurrentPos(home)
+                self.setPosition(home)
             else:
-                self.setCurrentPos(home)
-                self.setAnchor(home)
+                self.setPositionAndAnchor(home)
             self.ensureCursorVisible()
         
         elif e.key == qc.Key_Insert:
@@ -143,17 +150,16 @@ class IepShell(IepTextCtrl):
             # do not backspace past prompt
             # nor with arrow key
             home = self._promptPosEnd
-            if self.getCurrentPos() > home:
+            if self.getPosition() > home:
                 return False # process normally
         
         else:
             if not e.controldown:
                 # go back to prompt if not there...
                 home = self._promptPosEnd 
-                pend = len(self.text())
-                if self.getCurrentPos() < home or self.getAnchor() < home:
-                    self.setCurrentPos(pend)
-                    self.setAnchor(pend)
+                pend = self.length()
+                if self.getPosition() < home or self.getAnchor() < home:
+                    self.setPositionAndAnchor(pend)
                     self.ensureCursorVisible()                
             
             # act normal
@@ -166,23 +172,48 @@ class IepShell(IepTextCtrl):
     
     def clearCommand(self):
         """ Clear the current command. """
-        pass
+        self.setPosition(self._promptPosEnd)
+        self.setAnchor(self.length())
+        self.removeSelectedText()
+        self.ensureCursorVisible()  
     
     
     def processLine(self):
         """ Process the current line, actived when user presses enter.
         """
+        # get command on the line
+        self.setPosition(self._promptPosEnd)
+        self.setAnchor(self.length())
+        command = self.getSelectedString()
+        
+        # remember it
+        self._history.insert(0,command)
+        
         # this is a stupid simulation version
-        print ":",
-        self.append("\n>>> ")
+        prompt = ">>> "
+        self.write("\n"+prompt)
         l = len(self.text())
-        self._promptPosStart = l - 4
+        self._promptPosStart = l - len(prompt)
         self._promptPosEnd = l
-        self.setCurrentPos(l)
-        self.setAnchor(l)
+        self.setPositionAndAnchor(l)
+    
+    def write(self, text):
+        """ Write the text. """
+        self.appendText(text)
+    
+
+class PythonShell(BaseShell):
+    """ This class implements the python part of the shell, 
+    attaching it to a remote process etc.
+    """
+    
+    def __init__(self, parent):
+        BaseShell.__init__(self, parent)
+
+
 
 if __name__=="__main__":
     app = QtGui.QApplication([])
-    win = IepShell(None)
+    win = PythonShell(None)
     win.show()
     app.exec_()
