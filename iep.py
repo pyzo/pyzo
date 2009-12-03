@@ -111,6 +111,7 @@ fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
 find_matchCase = 0
 find_regExp = 1
 titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
+shellMaxLines = 8
 editor = dict:
   showWhiteSpace = 0
   showWrapSymbols = 0

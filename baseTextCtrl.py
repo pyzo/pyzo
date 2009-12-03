@@ -570,9 +570,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_APPENDTEXT, len(value), value)
     
     def insertText(self, pos, value):
-        """ insert the given bytes at the given position. """
+        """ insert the given text at the given position. """
         self.SendScintilla(self.SCI_INSERTTEXT, pos, makeBytes(value))
     
+    def addText(self, value):
+        """ insert text at the current position. """
+        value = makeBytes(value)
+        self.SendScintilla(self.SCI_ADDTEXT, len(value), value)
     
     ## Positional methods
     
@@ -618,7 +622,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def getPositionFromLinenr(self, linenr):
         """ Get the position, given the line number. """
         return self.SendScintilla(self.SCI_POSITIONFROMLINE , linenr)
-    
     
     def setTargetStart(self, pos):
         """ Set the start of selection target. 

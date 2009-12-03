@@ -180,7 +180,7 @@ class IepEditor(BaseTextCtrl):
         self._modifyTime = 0
         
         # to be able to accept drops
-        self.setAcceptDrops(True)
+        #self.setAcceptDrops(True)
         
         # to see whether the doc has been changed
         self._dirty = False
@@ -243,22 +243,14 @@ class IepEditor(BaseTextCtrl):
         self.somethingChanged.emit()
     
     
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-
-    def dragMoveEvent(self, event):
-        # for some reason, we also need this one
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-        else:
-            BaseTextCtrl.dragMoveEvent(self, event)
-    
     def dropEvent(self, event):
-        """ Drop files in the list. """
-        # let the editorstack do the work.
-        iep.editors.dropEvent(event)
-        print("drop")
+        """ Drop files in the list. """        
+        if event.mimeData().hasUrls():
+            # file: let the editorstack do the work.
+            iep.editors.dropEvent(event)
+        else:
+            # text: act normal
+            BaseTextCtrl.dropEvent(self, event)
     
     
     def showEvent(self, event=None):

@@ -178,6 +178,20 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorVisible()  
     
     
+    def limitNumberOfLines(self):
+        """ Reduces the amount of lines by 50% if above a certain threshold.
+        Does not reset the position of prompt or current position. 
+        """ 
+        L = self.length()
+        N = self.getLinenrFromPosition( L )
+        limit = iep.config.shellMaxLines
+        if N > limit:
+            # reduce text
+            pos = self.getPositionFromLinenr( int(N/2) )
+            bb = self.getBytes()
+            self.setText( bb[pos:] )
+    
+    
     def processLine(self):
         """ Process the current line, actived when user presses enter.
         """
@@ -185,22 +199,121 @@ class BaseShell(BaseTextCtrl):
         self.setPosition(self._promptPosEnd)
         self.setAnchor(self.length())
         command = self.getSelectedString()
+        command = command.rstrip() # remove newlines spaces and tabs
         
-        # remember it
-        self._history.insert(0,command)
+        # remember it (but first remove to prevent duplicates)
+        if command:
+            if command in self._history:
+                self._history.remove(command)
+            self._history.insert(0,command)
         
+        # maybe modify the text given...
+        command = self.modifyCommand(command)
+        
+        # prepare to execute
+        self.appendText('\n')
+        self._promptPosStart = self._promptPosEnd = self.length()
+        
+        # go
+        self.write('') # resets stuff so we actually move to new line
+        self.executeCommand(command)
+        
+    
+    
+    def modifyCommand(self, command):
+        return command
+    
+    
+    def executeCommand(self, command):
+        """ Execute the given command. """
         # this is a stupid simulation version
         prompt = ">>> "
-        self.write("\n"+prompt)
-        l = len(self.text())
-        self._promptPosStart = l - len(prompt)
-        self._promptPosEnd = l
-        self.setPositionAndAnchor(l)
+        self.write("you executed: "+command+'\n')
+        self.writeErr(prompt)
+    
     
     def write(self, text):
-        """ Write the text. """
-        self.appendText(text)
+        """ Write normal stream. """
+        
+        # make text be a string
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
+        
+        # get offsets
+        L1 = self.length()
+        offsetStart = L1 - self._promptPosStart
+        offsetEnd = L1 - self._promptPosEnd
+        offsetPos = L1 - self.getPosition()
+        offsetAnchor = L1 - self.getAnchor()
+        # make sure they're not negative
+        if offsetStart<0: offsetStart = 0
+        if offsetEnd<0: offsetEnd = 0
+        if offsetPos<0: offsetPos = 0
+        if offsetAnchor<0: offsetAnchor = 0
+        
+        # put cursor in position to add (or delete) text
+        self.setPositionAndAnchor(self._promptPosStart)
+        
+        # take care of backspaces
+        if text.count('\b'):
+            # while NOT a backspace at first position, or non found
+            i=9999999999999
+            while i>0:
+                i = text.rfind('\b',0,i)
+                if i>0 and text[i-1]!='\b':
+                    text = text[0:i-1] + text[i+1:]
+            # how many are left? (they are all at the begining)
+            nb = text.count('\b')
+            text = text.lstrip('\b')
+            for i in range(nb):
+                self.SendScintilla(self.SCI_DELETEBACK)
+        
+        # insert text at current pos
+        self.addText(text)
+        
+        # limit number of lines
+        self.limitNumberOfLines()
+        
+        # shift the prompt position and current position
+        L2 = self.length()
+        self._promptPosStart = L2 - offsetStart
+        self._promptPosEnd = L2 - offsetEnd
+        self.setPosition(L2-offsetPos)
+        self.setAnchor(L2-offsetAnchor)
+        
+        # make visible
+        self.ensureCursorVisible()
     
+    
+    def writeErr(self, text):
+        """ Write error stream (and prompt). """
+        
+        # todo: or should we have a writePrompt method?
+        
+        # if our prompt is valid, insert text normally
+        if self._promptPosEnd > self._promptPosStart:
+            self.write(text)
+        
+        # get position and anchor
+        p1 = self.getPosition()
+        p2 = self.getAnchor()
+        
+        # insert text and calculate how many chars were inserted
+        L1 = self.length()        
+        self.insertText(self._promptPosEnd, text)
+        L2 = self.length()
+        Ld = L2-L1
+        
+        # shift the prompt
+        self._promptPosEnd += Ld
+        self._promptPosStart += self._promptPosEnd - Ld
+        self.setPosition(p1+L2)
+        self.setAnchor(p2+L2)
+        
+        # make visible
+        self.ensureCursorVisible()
+
+
 
 class PythonShell(BaseShell):
     """ This class implements the python part of the shell, 
@@ -210,7 +323,33 @@ class PythonShell(BaseShell):
     def __init__(self, parent):
         BaseShell.__init__(self, parent)
 
-
+    
+    def executeCommand(self, text):
+        """ executeCommand(text)
+        Execute one-line command in the remote Python session. 
+        """
+        pass
+    
+    
+    def executeCode(self, text):
+        """ executeCode(text)
+        Execute pieces of code in the remote Python session. 
+        These can be a few lines, or the contents of a file of a 
+        few thousand lines. """
+        pass
+    
+    
+    def poll(self):
+        """ Check if we have received anything from the remote
+        process that we should write.
+        Call this periodically. 
+        """
+        pass
+    
+    
+    
+    
+    
 
 if __name__=="__main__":
     app = QtGui.QApplication([])
