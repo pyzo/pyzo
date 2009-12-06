@@ -483,8 +483,9 @@ class SettingsMenu(BaseMenu):
             tmp = [i for i in QtGui.QStyleFactory.keys()]
             tmp.append(iep.config.qtstyle)
             return tmp
-        iep.config.qtstyle = value
-        QtGui.qApp.setStyle(value)
+        else:
+            iep.config.qtstyle = value
+            QtGui.qApp.setStyle(value)
     
     def fun_defaultStyle(self, value):
         """ The style used in new files. """

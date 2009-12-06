@@ -103,7 +103,7 @@ def GetMainFrame(window):
 ## the configuration stuff...
 
 defaultConfigString = """
-qtstyle = 'cleanlooks'
+qtstyle = ''
 editorState = ''
 editorStackBarWidth = 128
 editorStackBarSpacing = 0
