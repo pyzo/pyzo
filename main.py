@@ -18,6 +18,7 @@ import ssdf
 
 import iep
 from editorStack import EditorStack
+from shellStack import ShellStack
 from menu import MenuHelper
 
 
@@ -64,12 +65,19 @@ class MainWindow(qt.QMainWindow):
         status = self.statusBar()
         self._menuhelper = MenuHelper(self.menuBar())
         
-#         # test dock widgets
-#         dock = qt.QDockWidget("Find in files", self)
-#         dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | QtCore.Qt.BottomDockWidgetArea)
-#         dock.setFeatures(qt.QDockWidget.DockWidgetMovable)
-#         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
-    
+        # create floater
+        dock = qt.QDockWidget("Shells", self)
+        dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | 
+                            QtCore.Qt.BottomDockWidgetArea)
+        dock.setFeatures(qt.QDockWidget.DockWidgetMovable)
+        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
+        
+        # insert shell stack
+        iep.shells = ShellStack(self)
+        dock.setWidget(iep.shells)
+        iep.shells.show()
+        iep.shells.addShell()
+        iep.shells.addShell()
         
         # show now
         self.show()
