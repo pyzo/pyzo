@@ -339,7 +339,7 @@ class PythonShell(BaseShell):
         self._response = c.getReceivingChannel(2)
         
         # host it!
-        port = c.host('IEP')
+        port = c.host() # todo: port with range
         
         # build command to create process
         command = '{} "{}" {}'.format(pythonExecutable, remotePath, str(port))

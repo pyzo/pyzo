@@ -322,8 +322,10 @@ class ReceivingChannel(BaseChannel):
         # use default block state?
         if block is None:
             block = self._blocking
-        if block and not isinstance(block,(int,float)):
+        if block and isinstance(block, bool):
             block = 2**30
+        elif block and not isinstance(block,(int,float)):
+            raise ValueError('Block must be a bool, None, int, or float.')
         
         # get data, return empty bytes if queue is empty
         tmp = self._q.pop()
@@ -736,7 +738,8 @@ class Doorman(threading.Thread):
         # init other timers and counters
         t0 = time.time() # the start of an iteration
         t1 = t0 # the end of an iteration
-        ts = t0 # the last time we sent something (if >0.5s we send NOOP)        
+        ts = t0 # the last time we sent something (if >0.5s we send NOOP)   
+        ti = t0 # the time since we are idle
         niter = 0 # count the number of iterations
         tips = t0 # timer to determine iterations per second
         
@@ -751,15 +754,15 @@ class Doorman(threading.Thread):
                 break
             
             # catch messages
-            self.catch()
+            receivedSomething = self.catch()
             
             # pitch any messages
             # if the channel is closed from this side, send a close message
             # and never try sending again...
-            sendSomething = False
+            sentSomething = False
             for id in reversed(channelIds):
                 channel = self._channels.getSendingChannel(id)
-                sendSomething = sendSomething or self.pitchMessage(channel, id)
+                sentSomething = sentSomething or self.pitchMessage(channel, id)
                 if channel._closed:
                     self.pitchClose(id)
                     channelIds.remove(id)
@@ -776,15 +779,22 @@ class Doorman(threading.Thread):
             t1 = time.time()
             
             # should we pitch a noop?
-            if sendSomething:
+            if sentSomething:
                 ts = t1
             elif t1-ts > 0.5:
                 self.pitchNoop()
                 ts = t1
-                
-            # determine time to rest
-            trest = max(0.01 - (t1-t0), 0.001)
-            time.sleep(trest)
+            
+            # Determine time to rest. By default we sleep for 0.01 second.
+            # But when sending or receiving and untill 0.01 second afterwards,
+            # we go in super mode, pumping messages like crazy! 
+            if receivedSomething or sentSomething:
+                time.sleep(0.00001)
+                ti = t1
+            elif ti < 0.01:
+                time.sleep(0.00001)
+            else:
+                time.sleep(0.01)
             
             # prepare for next iter
             t0 = time.time()
@@ -915,12 +925,11 @@ class Doorman(threading.Thread):
         if self._nmiss > 5:
             self._stopMe = "Other side is unresponsive."
         
-        # get header
         if not self._message:
-            # get header
+            # try getting a header
             data = self.receiveBytes(16)            
             if not data:
-                return
+                return False # no messages to receive
             type, id, N = getHeader(data)
             # we got something! 
             self._tin = time.time()
@@ -945,7 +954,7 @@ class Doorman(threading.Thread):
             # try to get message            
             b = self.receiveBytes(N)
             if not b:
-                return
+                return True # we are in the process of receiving one
             # get channel and its queue
             channel = self._channels.getReceivingChannel(i)
             q = channel._q
@@ -954,6 +963,7 @@ class Doorman(threading.Thread):
             # finish
             self._message = None
             self._n_recv += 1
+            return True # we just received one
     
     
     def catchInterrupt(self):
@@ -975,103 +985,54 @@ class Doorman(threading.Thread):
 
 
 if 0:
-##
-    import subprocess
-
-    module = 'c:/projects/PYTHON/test_channels.py'
-    p = subprocess.Popen('python '+module, 1024*10, None, 
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE )
-    
-    channels = Channels(1, p.stdin, p.stdout)
-    c1 = channels.getSendingChannel(0)
-    c2 = channels.getReceivingChannel(0)
-    
-    c1.write("hello")
-    print(c2.read())
-
 ## here
 
     channels = Channels(2)
     port = channels.host('IEP'); print(port)
-    i1 = channels.getReceivingChannel(0)
-    o1 = channels.getSendingChannel(0)
-    o2 = channels.getSendingChannel(1)
+    r1 = channels.getReceivingChannel(0)
+    s1 = channels.getSendingChannel(0)
+    s2 = channels.getSendingChannel(1)
     
-    o1.write("I am channel one")
-    o1.write("hello there!")
-    o2.write("And I, dear sir, am channel two.")
-    o2.write("Nice meeting you.")
+    s1.write("I am channel one")
+    s1.write("hello there!")
+    s2.write("And I, dear sir, am channel two.")
+    s2.write("Nice meeting you.")
 
 ## there
     
     channels = Channels(1)
     channels.connect('IEP')
-    i1 = channels.getReceivingChannel(0)
-    i2 = channels.getReceivingChannel(1)
-    o1 = channels.getSendingChannel(0)
-    print( i1.read())
-    print( i1.read())
-    print( i2.read())
-    print( i2.read())
+    r1 = channels.getReceivingChannel(0)
+    r2 = channels.getReceivingChannel(1)
+    s1 = channels.getSendingChannel(0)
+    print( r1.read())
+    print( r1.read())
+    print( r2.read())
+    print( r2.read())
 
-## test
-    c = Channels(1)
-    c.host()
-    s = c.getSendingChannel(0)
-    s.write('vette shizzle')
-##
-
-if __name__ == "a__main__":
+## testing (receiving end)
     
-    args = sys.argv
+    times = []
+    while True:
+        tmp = r1.readOne(True)
+        if tmp == 'stop':
+            break
+        t = float( tmp.split(' ')[0] )
+        dt = time.time() - t
+        times.append(dt)
+    print(channels.getStats())
+    print( times)
+
+## testing (sending end): multiple small messages
     
-    if len(args) == 0:        
-        # test this module!
-        
-        # create channels
-        channels = c = Channels(1)
-        channels.host()
-        channels.stdin = channels.getSendingChannel(0)
-        channels.stdout = channels.getReceivingChannel(0)
-        channels.stderr = channels.getReceivingChannel(1)
-        
-        # create subprocess
-        import subprocess
-        if not __file__:
-            path = 'c:/projects/PYTHON/test_channels.py' # debuggin...
-        else:
-            path = os.path.abspath(__file__)
-        path = path.replace('\\','/')
-        cmd = "python %s %i" % (path, c.getPort())
-        p = subprocess.Popen(cmd, bufsize=0, shell=False)
-        
-    elif len(args)>=2:
-        # replace std streams
-        
-        channels = Channels( 2 )
-        channels.connect( port=int(args[1]) )
-        sys.stdout = channels.getSendingChannel(0)
-        sys.stderr = channels.getSendingChannel(1)
-        sys.stdin = channels.getReceivingChannel(0)
-        sys.stdout.writeString("hello!")
-        
-        if len(args) == 2:
-            # start a default echo process
-            while True:
-                tmp = sys.stdin.readOneString(True)
-                if sys.stdin.closed:
-                    break
-                if tmp.lower() in ['stop', 'quit', 'exit']:
-                    sys.stdout.writeString('bye bye')
-                    break
-                if tmp:
-                    sys.stdout.writeString('received: '+tmp)
-            
-        elif len(args) == 3:
-            # execute script
-            pass
-        
-        else:
-            raise RuntimeError("Invalid number of arguments.")
+    for i in range(1000):
+        s1.write(str(time.time()) + ' testing ' + str(i))
+    s1.write('stop')
+    print(channels.getStats())
 
-
+## testing (sending end): One huge message
+    
+    for i in range(2):
+        s1.write(str(time.time()) + ' testing ' + "a"*1000000)
+    s1.write('stop')
+    print(channels.getStats())

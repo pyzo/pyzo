@@ -22,7 +22,6 @@ class IepInterpreter(code.InteractiveConsole):
     def write(self, text):
         sys.stderr.write(text)
     
-    
     def interact(self, banner=None):    
         """ interact! (start the mainloop)
         """
@@ -49,7 +48,7 @@ class IepInterpreter(code.InteractiveConsole):
                         moreBanner))
         else:
             self.write("%s\n" % str(banner))
-        self.write(sys.ps1)
+        self.write(str(sys.ps1))
     
 #         # hijack tk and wx
 #         self.tkapp = tkapp = None#hijack_tk()
@@ -110,9 +109,10 @@ class IepInterpreter(code.InteractiveConsole):
                         more = self.push(line)
                     
                     if more:                        
-                        self.write(sys.ps2)  # write writes to stderr
+                        self.write(str(sys.ps2))  # write writes to stderr
                     else:
-                        self.write(sys.ps1)                    
+                        # prompt is allowed to be an object with __str__ method
+                        self.write(str(sys.ps1)) 
                 
 #                 # update tk and wx 50 times per second
 #                 if time.clock() - guitime > 0.019: # a bit sooner for sync

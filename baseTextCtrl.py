@@ -775,7 +775,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ Get the name of the currently applied style. """
         return self._styleName
     
-    
+    def textWidth(self, style=32, value='X'):
+        """ Get the width (in pixels) of the given text. """
+        return self.SendScintilla(self.SCI_TEXTWIDTH, style, value)
     
     
     ## Autocompletion and other introspection methods
