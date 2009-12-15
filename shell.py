@@ -8,7 +8,8 @@ This is done in a few inheritance steps:
 """
 
 from PyQt4 import QtCore, QtGui
-
+import os, sys, subprocess
+import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
 
@@ -213,10 +214,11 @@ class BaseShell(BaseTextCtrl):
         # prepare to execute
         self.appendText('\n')
         self._promptPosStart = self._promptPosEnd = self.length()
+        self.setPositionAndAnchor(self.length())
         
         # go
         self.write('') # resets stuff so we actually move to new line
-        self.executeCommand(command)
+        self.executeCommand(command+'\n')
         
     
     
@@ -306,12 +308,17 @@ class BaseShell(BaseTextCtrl):
         
         # shift the prompt
         self._promptPosEnd += Ld
-        self._promptPosStart += self._promptPosEnd - Ld
+        self._promptPosStart = self._promptPosEnd - Ld
         self.setPosition(p1+L2)
         self.setAnchor(p2+L2)
         
         # make visible
         self.ensureCursorVisible()
+
+
+# Python script to invoke (We need to use double quotes to 
+# surround the path, singles wont work.)
+remotePath = os.path.join(iep.path, 'remote.py')
 
 
 
@@ -320,15 +327,133 @@ class PythonShell(BaseShell):
     attaching it to a remote process etc.
     """
     
-    def __init__(self, parent):
+    def __init__(self, parent, pythonExecutable='python'):
         BaseShell.__init__(self, parent)
-
+        
+        # screate multi channel connection
+        c = channels.Channels(2)
+        self._stdin = c.getSendingChannel(0)        
+        self._stdout = c.getReceivingChannel(0)
+        self._stderr = c.getReceivingChannel(1)
+        self._request = c.getSendingChannel(1)
+        self._response = c.getReceivingChannel(2)
+        
+        # host it!
+        port = c.host('IEP')
+        
+        # build command to create process
+        command = '{} "{}" {}'.format(pythonExecutable, remotePath, str(port))
+        
+        if sys.platform.count('win'):
+            # as the author from Pype writes:
+            #if we don't run via a command shell, then either sometimes we
+            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
+            # And I also see problems with Tk.    
+            command = "cmd /c " + command
+        
+        # where to start
+        cwd = os.getcwd() # PYTHONPATH
+        
+        # start process
+        self._process = subprocess.Popen(command, shell=False, cwd=cwd)
+        
+        # is the process busy?
+        self._state = -1 # initializing
+        
+        # wich installed version
+        self._pythonExecutable = pythonExecutable
+        # which python version (for example 2.5.2), we set this in init2        
+        self._version = "?"
+        # the builtins list of the process, we set this in init2
+        self._builtins =[]
+        
+        # for the editor to keep track of attempted imports
+        self._importAttempts = []
+        
+        # create timer to keep polling any results
+        self._timer = QtCore.QTimer(self)
+        self._timer.setInterval(100)  # 100 ms
+        self._timer.setSingleShot(False)
+        self._timer.timeout.connect(self.poll)
+        self._timer.start()
+    
+    
+    def _Init2(self,event=None):
+        """ Initialize the process... Call only after the process
+        has started up. (by detecting a prompt)
+        """
+        
+        # it is possible that the process is destroyed already...
+        if self.stdin.closed:
+            return
+        
+#         # get builtins
+#         tmp = self.Introspect_keys("__builtins__")
+#         if tmp:
+#             self.builtins = tmp
+#         
+#         # get keywords
+#         tmp = self.Enquire("EXEC", "import keyword")
+#         tmp = self.Enquire2("EVAL", "','.join(keyword.kwlist)")
+#         if tmp is not None:            
+#             self.keywords = tmp.split(',')
+#             
+#         # get version
+#         tmp = self.Enquire2("EVAL", "sys.version")
+#         if tmp is not None:            
+#             self.version = str(tmp[0:5])
+        
+        
+        
+        # fire event
+        self._state = 9999 # so it is always different
+        #self.UpdateState()
+    
+    
+    def Enquire(self, type, args=""):
+        """ Enquire(type, args="")
+        Send an enquiry to the remote process, do not wait.
+        CAREFULL, debugging is hard when something goes wrong...
+        """         
+        self._request.write(type+' '+args)
+    
+    
+    def Enquire2(self, type, args="", text2send=''):
+        """ Enquire2(type, args="", text2send=None)
+        Send an enquiry to the remote process, and waiting (max 0.5 sec) 
+        for the other side to respond.
+        Returns None if timeout
+        CAREFULL, debugging is hard when something goes wrong...
+        """
+        
+        # build enquiry and send       
+        self.Enquire(type, args+' '+text2send)        
+        
+        # wait for response
+        t0 = time.clock()
+        while time.clock() - t0 < 0.500:
+            time.sleep(0.010)
+            if self.mmfile[0] == "0":
+                break
+        
+        if self.mmfile[0] == "0":
+            # success
+            L = bytes2int( self.mmfile[1:5] )
+            if L>0:
+                text = self.mmfile[10:L+10]
+            else:
+                text = ""
+        else:
+            text = None
+        
+        return text
+    
     
     def executeCommand(self, text):
         """ executeCommand(text)
         Execute one-line command in the remote Python session. 
         """
-        pass
+        self._stdin.write(text)
     
     
     def executeCode(self, text):
@@ -340,11 +465,17 @@ class PythonShell(BaseShell):
     
     
     def poll(self):
-        """ Check if we have received anything from the remote
+        """ poll()
+        Check if we have received anything from the remote
         process that we should write.
         Call this periodically. 
         """
-        pass
+        text = self._stdout.read(False)
+        if text:
+            self.write(text)
+        text = self._stderr.read(False)
+        if text:
+            self.writeErr(text)
     
     
     
