@@ -45,7 +45,7 @@ c = channels.Channels(2) # create channels object with two sending channels
 c.connect('channels_example') # connect (determine port by hashing same string)
 s1 = c.getSendingChannel(0)
 s2 = c.getSendingChannel(1)
-r1 = c.getReceivingChannel(0)
+r1 = c.getReceivingChannel(0
 
 s1.write('This is channel one')
 s2.write('This is channel two')
@@ -69,7 +69,7 @@ r1.readOne()
 # UTF-8 encoding.
 # 
 # There are some other messages that can be send. They consist of only
-# a (16 byte) header, which starts with an ASCII encoded string:
+# a (16 byte) header, which starts with a length-7 ASCII encoded string:
 # - NOOP: no operation, to let the other end know we are still there
 # - CLOSE: close the connection (and all channels)
 # - INT: interrupt the main thread of the other process
@@ -85,42 +85,79 @@ try:
 except ImportError:
     import _thread as thread # Python 3
 
+
 # version dependant defs
 V2 = sys.version_info[0] == 2
-if not V2:
-    basestring = str  # to check if instance is string
-else:
+if V2:
     bytes, str = str, unicode
+else:
+    basestring = str  # to check if instance is string
+    long = int # for the port
 
 
-def s2b(s):
-    """ s2b(s)
-    To convert small pieces of strings to bytes using ASCII encoding. """
-    return s.encode('ascii')
-
-
-def intToStr(nr):
-    """ intToStr(nr)
-    Convert an int to an ASCII string (big endian). """
-    ss = ''
+def makeHeader(type='CHANNEL', id=0, N=0):
+    """ makeHeader(type, id=None, N=None)
+    Build a header to send. Returns a bytes object.
+    - type must be a max 7 elements ASCII string.
+    - id must be an int between 0 and 255 (indicating channel id)
+    - N must be an int betwen 0 and 2**64 (indicating message length)
+    """
+    
+    # encode type (and justify)
+    header_b = type.encode('ascii')
+    header_b = header_b.ljust(7)
+    
+    # encode id
+    if V2:
+        header_b += chr(id)
+    else:
+        header_b += bytes([id])
+    
+    # encode N
+    bb = []
     nchars = 8
     for i in range(nchars):
         i = nchars-i-1
-        b  = nr / 2**(i*8)
-        nr = nr % 2**(i*8)
-        ss += chr(b)
-    return ss
+        b  = int(N / 2**(i*8))
+        N = N % 2**(i*8)
+        bb.append(b)
+    if V2:
+        header_b += ''.join([chr(i) for i in bb])
+    else:
+        header_b += bytes(bb)
+    
+    # done
+    return header_b
+    
 
-
-def strToInt(ss):
-    """ strToInt(ss)
-    Convert a series of 8 chars to an int (big endian). """
-    nr = 0
+def getHeader(header):
+    """getHeader(header)
+    Get the header data from the 16 header bytes.
+    Return tuple (type [str], id [int], N [int])
+    """
+    
+    # decode type
+    type = header[:7].decode('ascii').strip()
+    
+    # decode id
+    if V2:
+        id = ord(header[7])
+    else:
+        id = header[7]
+    
+    # decode N
+    N = 0
+    if V2:
+        bb = [ord(i) for i in header[8:]]
+    else:
+        bb = [i for i in header[8:]]
     nchars = 8
     for i in range(nchars):
-        b = ord(ss[nchars-i-1])
-        nr += b * 2**(i*8)
-    return nr
+        b = bb[nchars-i-1]
+        N += b * 2**(i*8)
+    
+    # done
+    return type, id, N
 
 
 def portHash(name):
@@ -158,19 +195,23 @@ class Queue:
         if value is None:
             return
         self._lock.acquire()
-        self._data.insert(0,value)
-        self._lock.release()
+        try:
+            self._data.insert(0,value)
+        finally:
+            self._lock.release()
     
     def pop(self):
         """ pop()
         Pops an object from the queue. 
         If the queue is empty, returns None. """
         self._lock.acquire()
-        if len(self._data)==0:
-            tmp = None
-        else:
-            tmp = self._data.pop()
-        self._lock.release()
+        try:
+            if len(self._data)==0:
+                tmp = None
+            else:
+                tmp = self._data.pop()
+        finally:
+            self._lock.release()
         return tmp
 
     
@@ -209,11 +250,13 @@ class SendingChannel(BaseChannel):
     def write(self, s):
         """ write(s)
         Write a string to the channel. The string is encoded using
-        utf-8 and then send over the binary channel.
+        utf-8 and then send over the binary channel. When the string
+        is empty, the call is ignored.
         """
         if not isinstance(s,basestring):
             raise ValueError("SendingChannel.write only accepts strings.")
-        self._q.push( s.encode('utf-8') )
+        if s:
+            self._q.push( s.encode('utf-8') )
     
     def writeBytes(self, b):
         """ writeBytes(b)
@@ -223,7 +266,8 @@ class SendingChannel(BaseChannel):
         Therefore: use with care. """
         if not isinstance(b,bytes):
             raise ValueError("SendingChannel.writeBytes only accepts bytes.")
-        self._q.push(b)
+        if b:
+            self._q.push(b)
     
     
     def close(self):
@@ -242,81 +286,111 @@ class ReceivingChannel(BaseChannel):
     """ ReceivingChannel
     An incoming channel to an other process.
     On the other end, this is a SendingChannel.
-    Exposes a non-blocking text file interface.
+    Exposes a text file interface that can be used in blocking
+    and non-blocking mode.
     """
     
-    def readOneBytes(self, block=False):
-        """ readOneBytes(block=False)
+    def __init__(self):
+        BaseChannel.__init__(self)
+        self._blocking = False
+    
+    
+    def setBlocking(self, blocking=True):
+        """ setBlocking(blocking=True)
+        Set the default blocking state. 
+        """
+        self._blocking = blocking
+    
+    
+    @property
+    def isBlocking(self):
+        return self._blocking 
+    
+    
+    def readOneBytes(self, block=None):
+        """ readOneBytes(block=None)
         Read bytes that were send as one package from the other end. 
-        Returns None if channels is closed.
-        Returns None if nothing is available,
-        or if block=True, waits until data is available. """
+        If channel is closed, returns empty bytes.
+        If block is not given, uses the default blocking state.
+        If not blocking, returns empty bytes if no data is available.
+        If blocking, waits until data is available. 
+        """
         # if closed, return nothing
         if self._closed:
-            return None
+            return bytes()
+        
+        # use default block state?
+        if block is None:
+            block = self._blocking
+        if block and not isinstance(block,(int,float)):
+            block = 2**30
+        
         # get data, return empty bytes if queue is empty
         tmp = self._q.pop()
         if block:
-            while tmp is None:
+            t0 = time.time()
+            while tmp is None and (time.time()-t0) < block:
                 if self._closed:
-                    return None
+                    break
                 time.sleep(0.01)
                 tmp = self._q.pop()
-        return tmp
+        
+        # return
+        if not tmp:
+            return bytes()
+        else:
+            return tmp
     
     
     def readBytes(self, block=False):
-        """ readBytes(block=False)
-        Read any available bytes from the channel. 
-        If block==False, returns empty bytes if none available.
-        Also returns empty bytes if channel is closed.
+        """ readBytes(block=False)        
+        Read all available bytes from the channel. 
+        If channel is closed, returns empty bytes.
+        If block is not given, uses the default blocking state.
+        If not blocking, returns empty bytes if no data is available.
+        If blocking, waits until data is available.
         """
         
         # if closed, return nothing
         if self._closed:
             return bytes()
         
-        # get data, skip strings of zero length
-        b = bytes()
-        while b==bytes(): # cannot check length, as b can be None
-            b = self.readOneBytes(block)
+        # get one package, use given blocking
+        b = self.readOneBytes(block)
         
-        # if b is None, block==False and queue empty (we checked channel closed)
-        if b is None:
-            return bytes()
-        
-        # get more data, now do not block
-        tmp = bytes()
-        while tmp is not None:
-            b += tmp
+        # get more packages if available
+        tmp = True
+        while tmp:
             tmp = self.readOneBytes(False)
+            b += tmp
         
-        # return
+        # done
         return b
     
     
     def readOne(self, block=False):
         """ readOne(block=False)
         Read one string that was send as one package from the other end.
-        The binary package is decoded using utf-8 encoding. 
-        Raises an error if decoding fails, thus losing the message.
-        (If using the unicode write methods from the other end, there
-        is nothing to worry about.)
-        Returns an empty string if the channel is closed.
-        Returns an empty sting if not blocking and no data is available.
+        The binary package is decoded using utf-8 encoding. Raises an error 
+        if decoding fails, thus losing the message. (If using the unicode 
+        write methods from the other end, there is nothing to worry about.)
+        If the channel is closed, returns None.        
+        If block is not given, uses the default blocking state.
+        If not blocking, returns None if no data is available.
+        If blocking, waits until data is available.
         """
         b = self.readOneBytes(block)
-        if b is None:
-            return str()
         return b.decode('utf-8')
     
     
     def read(self, block=False):
         """ read(block=False)
-        Read all text available now.
-        Raises an error if decoding fails, thus losing the message.
-        Returns an empty string if the channel is closed.
-        Returns an empty sting if not blocking and no data is available.
+        Read all text available now. Raises an error if decoding fails, 
+        thus losing the message.
+        If the channel is closed, returns an empty string.        
+        If block is not given, uses the default blocking state.
+        If not blocking, returns an empty string if no data is available.
+        If blocking, waits until data is available.
         """
         b = self.readBytes()
         return b.decode('utf-8')
@@ -435,7 +509,7 @@ class Channels(object):
             if isinstance(port, basestring):
                 port = portHash(port)
             # check port validity
-            if not isinstance(port, int):
+            if not isinstance(port, (int, long)):
                 raise ValueError("The port should be a name or an int.")
             if port < 1024 or port > 2**16:
                 raise ValueError("The port must be in the range [1024, 2^16>.")
@@ -451,7 +525,7 @@ class Channels(object):
         # store port number
         self._port = s.getsockname()[1]
         
-        # start thread ...  (make daemon: the program exits even if its running)
+        # start thread ...  (make on: the program exits even if its running)
         self._doorman = Doorman(self, s, host=True)
         self._doorman.daemon = True
         self._doorman.start()
@@ -486,7 +560,7 @@ class Channels(object):
             port = portHash(port)
         
         # check port validity
-        if not isinstance(port, int):
+        if not isinstance(port, (int, long)):
             raise ValueError("The port should be a name or an int.")
         if port < 1024 or port > 2**16:
             raise ValueError("The port must be in the range [1024, 2^16>.")
@@ -520,7 +594,7 @@ class Channels(object):
     def disconnect(self):
         """ disconnect()
         Close the connection. This also closes all channels. """
-        self._doorman._stop = "Closed from this end."
+        self._doorman._stopMe = "Closed from this end."
     
     
     def getReceivingChannel(self,i):
@@ -628,7 +702,7 @@ class Doorman(threading.Thread):
         self._host = host
         
         # flag to stop
-        self._stop = False
+        self._stopMe = False
         
         # buffer for input, message props (channel, length)
         self._buffer = bytes()
@@ -673,7 +747,7 @@ class Doorman(threading.Thread):
         while True:
             
             # should we stop?
-            if self._stop:
+            if self._stopMe:
                 break
             
             # catch messages
@@ -729,7 +803,7 @@ class Doorman(threading.Thread):
         
         # clean up
         self._socket.close()        
-        print("Connection closed: " + self._stop)
+        print("Connection closed: " + self._stopMe)
         self._channels._port = 0
     
     
@@ -748,8 +822,8 @@ class Doorman(threading.Thread):
             return False              
         else:
             # compose header and send
-            header = 'CHANNEL' + chr(id) + intToStr(len(b))
-            self._socket.sendall( s2b(header) )
+            header = makeHeader('CHANNEL', id, len(b))
+            self._socket.sendall( header )
             # send data            
             self._socket.sendall(b)
             # stats
@@ -760,31 +834,30 @@ class Doorman(threading.Thread):
     def pitchClose(self,id):
         """ pitchClose(id)
         Close a channel. """
-        header = 'CLOSE' + chr(id)
-        header = header.ljust(16,'x')
-        self._socket.sendall( s2b(header) )
+        header = makeHeader('CLOSE', id)
+        self._socket.sendall( header )
     
     
     def pitchKill(self):
         """ pitchKill()
         Kill the process at the other end. """
-        header = 'KILL'.ljust(16,'x')
-        self._socket.sendall( s2b(header) )
+        header = makeHeader('KILL')
+        self._socket.sendall( header )
     
     
     def pitchInterrupt(self):
         """ pitchInterrupt()
         Interrupt the main thread at the other end. """
-        header = 'INT'.ljust(16,'x')
-        self._socket.sendall( s2b(header) )
+        header = makeHeader('INT')
+        self._socket.sendall( header )
     
     
     def pitchNoop(self):
         """ pitchNoop()
         Send a no-operation signal to let the other end
         know we're still there. """
-        header = 'NOOP'.ljust(16,'x')
-        self._socket.sendall( s2b(header) )
+        header = makeHeader('NOOP')
+        self._socket.sendall( header )
     
     ## receive methods
     
@@ -805,11 +878,11 @@ class Doorman(threading.Thread):
             try:
                 tmp = self._socket.recv(N-len(data))
             except socket.error:
-                self._stop = "Other end seems to have been killed."
+                self._stopMe = "Other end dropped."
                 break
             # check if connection is closed
             if len(tmp) == 0:
-                self._stop = "Closed from other end."
+                self._stopMe = "Closed from other end."
                 break
             # append to buffer
             data += tmp
@@ -840,7 +913,7 @@ class Doorman(threading.Thread):
         else:
             self._nmiss = 0
         if self._nmiss > 5:
-            self._stop = "Other side is unresponsive."
+            self._stopMe = "Other side is unresponsive."
         
         # get header
         if not self._message:
@@ -848,30 +921,23 @@ class Doorman(threading.Thread):
             data = self.receiveBytes(16)            
             if not data:
                 return
-            # make string using ascii encoding
-            data = data.decode('ascii')
+            type, id, N = getHeader(data)
             # we got something! 
             self._tin = time.time()
             # check
-            if data.startswith('NOOP'):
+            if type == 'NOOP':
                 pass
-            elif data.startswith('CHANNEL'):
-                # get channel and message length
-                i = ord( data[7] )
-                N = strToInt( data[8:16] )
-                # store
-                self._message = i,N
-            elif data.startswith('CLOSE'):
-                # get channel and close
-                i = ord( data[5] )
-                channel = self._channels.getReceivingChannel(i)
+            elif type == 'CHANNEL':
+                self._message = id, N
+            elif type == 'CLOSE':
+                channel = self._channels.getReceivingChannel(id)
                 channel._closed = True
-            elif data.startswith('INT'):
+            elif type == 'INT':
                 self.catchInterrupt()
-            elif data.startswith('KILL'):
+            elif type == 'KILL':
                 self.catchKill()
             else:
-                self._stop = "Lost track of stream."
+                self._stopMe = "Lost track of stream."
         
         # process message
         if self._message:
@@ -926,7 +992,7 @@ if 0:
 ## here
 
     channels = Channels(2)
-    port = channels.host(7000); print(port)
+    port = channels.host('IEP'); print(port)
     i1 = channels.getReceivingChannel(0)
     o1 = channels.getSendingChannel(0)
     o2 = channels.getSendingChannel(1)
@@ -939,7 +1005,7 @@ if 0:
 ## there
     
     channels = Channels(1)
-    channels.connect(7000)
+    channels.connect('IEP')
     i1 = channels.getReceivingChannel(0)
     i2 = channels.getReceivingChannel(1)
     o1 = channels.getSendingChannel(0)
