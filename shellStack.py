@@ -34,12 +34,14 @@ class ShellStack(QtGui.QFrame):
         # make callbacks
         self._tabs.currentChanged.connect(self.sizeShellTo80Columns)
     
+    
     def addShell(self):
         """ addShell()
         Add a shell to the widget. """
         shell = PythonShell(None)
         self._tabs.addTab(shell, 'Python (v?)')
         self.sizeShellTo80Columns()
+    
     
     def getCurrentShell(self):
         """ getCurrentShell()
@@ -52,7 +54,13 @@ class ShellStack(QtGui.QFrame):
             return None
         else:
             return w
-        
+    
+    
+    def showEvent(self, event):
+        """ Overload to set size. """
+        QtGui.QFrame.showEvent(self, event)
+        self.sizeShellTo80Columns()
+    
     
     def sizeShellTo80Columns(self, event=None):
         """ Is the name not descriptive enough?
@@ -66,19 +74,11 @@ class ShellStack(QtGui.QFrame):
         if shell is None:
             return
         
-#         # get its current size
-#         w,h = shell.size()  
-        
         # get size it should be (but font needs to be monospaced!
         w = shell.textWidth(32, "-"*80)
         w += 26 # add scrollbar and margin
         
-        # clean up
-        self.resize(w,shell.height())
-        # use result to set minsize of the NoteBook (+8 border pixels): 
-        # this makes the sizer behave like we want...
-#         ww,hh = self.book.GetSize()        
-#         self.book.SetMinSize((w+8,hh))        
-#         self.Layout()
-#         # let's redraw, because I see some artifacts when I only do Update()
-#         self.Refresh()
+        # fix the width
+        shell.setMinimumWidth(w)
+        shell.setMaximumWidth(w)
+       

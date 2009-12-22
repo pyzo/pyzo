@@ -9,10 +9,12 @@ port = int(sys.argv[1])
 sys.argv[1:] = []
 
 # make connection
-c = Channels(3)
+c = Channels(4)
 sys.stdin = c.getReceivingChannel(0)
 sys.stdout = c.getSendingChannel(0)
 sys.stderr = c.getSendingChannel(1)
+sys._status = c.getSendingChannel(3)
+
 c.connect(port, timeOut=1)
 
 # class P:
@@ -33,10 +35,10 @@ c.connect(port, timeOut=1)
 #         break
 #     time.sleep(0.1)
 # print 'tot ziens'
-
+import __main__
 # create interpreter instance
 locals = {'aap':'mies'} # todo: make this __main__.__dict__ (import __main__)
-__iep__ = IepInterpreter(locals=locals)
+__iep__ = IepInterpreter(locals=__main__.__dict__)
 __iep__.channels = c
 
 
