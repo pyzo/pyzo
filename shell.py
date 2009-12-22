@@ -8,7 +8,7 @@ This is done in a few inheritance steps:
 """
 
 from PyQt4 import QtCore, QtGui
-import os, sys, subprocess
+import os, sys, time, subprocess
 import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
@@ -237,6 +237,9 @@ class BaseShell(BaseTextCtrl):
     def write(self, text):
         """ Write normal stream. """
         
+        if not text:
+            return
+        
         # make text be a string
         if isinstance(text, bytes):
             text = text.decode('utf-8')
@@ -270,6 +273,18 @@ class BaseShell(BaseTextCtrl):
             for i in range(nb):
                 self.SendScintilla(self.SCI_DELETEBACK)
         
+        # Perform hard-wrap, because Qscintilla becomes very slow 
+        # when long lines are displayed.
+        lines = text.splitlines()
+        lines2 = []
+        for line in lines:
+            while len(line)>80:
+                lines2.append(line[:80])
+                line = line[80:]
+            lines2.append(line)
+        lines2.append('')
+        text = '\n'.join(lines2)
+        
         # insert text at current pos
         self.addText(text)
         
@@ -285,6 +300,7 @@ class BaseShell(BaseTextCtrl):
         
         # make visible
         self.ensureCursorVisible()
+        #self.scroll(0,999999)
     
     
     def writeErr(self, text):
@@ -313,7 +329,10 @@ class BaseShell(BaseTextCtrl):
         self.setAnchor(p2+L2)
         
         # make visible
+        print('asd')
         self.ensureCursorVisible()
+        #self.scroll(0,999999)
+        
 
 
 # Python script to invoke (We need to use double quotes to 
@@ -337,6 +356,7 @@ class PythonShell(BaseShell):
         self._stderr = c.getReceivingChannel(1)
         self._request = c.getSendingChannel(1)
         self._response = c.getReceivingChannel(2)
+        self._status = c.getReceivingChannel(3)
         
         # host it!
         port = c.host() # todo: port with range
@@ -376,6 +396,10 @@ class PythonShell(BaseShell):
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
+        
+        # time var to pump messages in one go
+        self._t = time.time()
+        self._buffer = ''
     
     
     def _Init2(self,event=None):
@@ -462,7 +486,7 @@ class PythonShell(BaseShell):
         These can be a few lines, or the contents of a file of a 
         few thousand lines. """
         pass
-    
+        
     
     def poll(self):
         """ poll()
@@ -470,12 +494,34 @@ class PythonShell(BaseShell):
         process that we should write.
         Call this periodically. 
         """
+        
+        # todo: why is it so slow???
+        # Check stdout
+        # Fill the buffer and release it at regular intervals, this will
+        # update scintilla much faster if multiple messages are printed
+        # When printing a single message, self._t is very old, and the
+        # message is printed emidiately
         text = self._stdout.read(False)
         if text:
-            self.write(text)
+            self._buffer += text
+        if self._buffer and (time.time()-self._t) > 0.2:
+            self.write(self._buffer)
+            self._buffer = ''
+            self._t = time.time()
+        
+        # check stderr
         text = self._stderr.read(False)
         if text:
             self.writeErr(text)
+        
+        # check status
+        status = ''
+        while self._status.pending():
+            status = self._status.readOne()
+        if status:
+            tabWidget = self.parent().parent()
+            i = tabWidget.indexOf(self)
+            tabWidget.setTabText(i, 'Python ('+status+')')
     
     
     

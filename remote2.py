@@ -4,6 +4,9 @@ import code
 import traceback
 import types
 
+import threading
+import inspect
+
 class IepInterpreter(code.InteractiveConsole):
     """Closely emulate the interactive Python console.
     Almost the same as code.InteractiveConsole, but interact()
@@ -64,11 +67,10 @@ class IepInterpreter(code.InteractiveConsole):
         while True:
             try:
                 # set status
-#                 if mmfile:
-#                     if more:
-#                         mmfile[5] = '2'
-#                     else:
-#                         mmfile[5] = '1'
+                if more:
+                    sys._status.write('More')
+                else:
+                    sys._status.write('Ready')
                 
                 # wait for a bit
                 time.sleep(0.010) # 10 ms
@@ -84,8 +86,7 @@ class IepInterpreter(code.InteractiveConsole):
                 # process the line
                 if line:
                     # set busy
-#                     if mmfile:
-#                         mmfile[5] = '0'
+                    sys._status.write('busy')
                     
                     if isinstance(line,tuple):
                         # EXECUTE MODE
@@ -238,4 +239,262 @@ class IepInterpreter(code.InteractiveConsole):
         finally:
             tblist = tb = None
         map(self.write, list)
+
+
+
+TIMEOUT = 10 / 1000.0 # ms -> sec
+
+class IntroSpectionThread(threading.Thread):
+    """ IntroSpectionThread
+    Communicates with the IEP GUI, even if the main thread is busy.
+    """
+    
+    def __init__(self, requestChannel, responseChannel):
+        threading.Thread.__init__(self)
         
+        # store the two channel objects
+        self.request = requestChannel
+        self.response = responseChannel
+    
+    
+    def run(self):
+        """ This is the "mainloop" of our introspection thread.
+        """ 
+        while True:
+            
+            # sleep for a bit
+            time.sleep(TIMEOUT)
+            
+            # read code (wait here)
+            line = self.request.readOne(True)
+            if not line or self.request.closed:
+                break # from thread
+            
+            # get request and arg
+            tmp = line.split(" ",1)
+            req = tmp[0]
+            arg = tmp[1]
+            
+            # process request
+            
+            if req == "DIR":
+                self.enq_list("dir(%s)", arg)
+            
+            elif req == "KEYS":
+                self.enq_list("%s.keys()", arg)
+            
+            elif req == "HELP":
+                self.enq_help(arg)
+                
+            elif req == "SIGNATURE":
+                self.eng_signature(arg)
+            
+            elif req == "EVAL":
+                self.enq_eval( arg )
+                
+            elif req == "EXEC":    
+                try:
+                    exec(arg, None, piep.interpreter.locals)    
+                except:
+                    pass
+    
+    
+    def getSignature(self,objectName):
+        """ Get the signature of builtin, function or method.
+        Returns a tuple (signature_string, kind), where kind is a string
+        of one of the above. When none of the above, both elements in
+        the tuple are an empty string.
+        """
+        
+        # if a class, get init
+        # not if an instance! -> try __call__ instead        
+        # what about self?
+        
+        # find out what kind of function, or if a function at all!
+        ns = piep.interpreter.locals
+        fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, ns)
+        fun2 = eval("inspect.isfunction(%s)"%(objectName), None, ns)
+        fun3 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
+        fun4 = False
+        fun5 = False
+        if not (fun1 or fun2 or fun3):
+            # Maybe it's a class with an init?
+            if eval("isinstance(%s,type)"%(objectName), None, ns):
+                if eval("hasattr(%s,'__init__')"%(objectName), None, ns):
+                    objectName += ".__init__"
+                    fun4 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
+            #  Or a callable object?
+            elif eval("hasattr(%s,'__call__')"%(objectName), None, ns):
+                objectName += ".__call__"
+                fun5 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
+                
+        if fun1:
+            # the first line in the docstring is usually the signature
+            kind = 'builtin'
+            tmp = eval("%s.__doc__"%(objectName), {}, ns )
+            sigs = tmp.splitlines()[0]
+            if not ( sigs.count("(") and sigs.count(")") ):
+                sigs = ""
+                kind = ''            
+            
+        elif fun2 or fun3 or fun4 or fun5:
+            
+            if fun2:
+                kind = 'function'
+            elif fun3:
+                kind = 'method'
+            elif fun4:
+                kind = 'class'
+            elif fun5:
+                kind = 'callable'
+            
+            # collect
+            tmp = eval("inspect.getargspec(%s)"%(objectName), None, ns)
+            args, varargs, varkw, defaults = tmp
+            
+            # prepare defaults
+            if defaults == None:
+                defaults = ()
+            defaults = list(defaults)
+            defaults.reverse()
+            # make list (back to forth)
+            args2 = []
+            for i in range(len(args)-fun4):
+                arg = args.pop()
+                if i < len(defaults):
+                    args2.insert(0, "%s=%s" % (arg, defaults[i]) )
+                else:
+                    args2.insert(0, arg )
+            # append varargs and kwargs
+            if varargs:
+                args2.append( "*"+varargs )
+            if varkw:
+                args2.append( "**"+varkw )
+            
+            # append the lot to our  string
+            funname = objectName.split('.')[-1]
+            sigs = "%s(%s)" % ( funname, ", ".join(args2) )
+            
+        else:
+            sigs = ""
+            kind = ""
+                
+        return sigs, kind
+        
+        
+    def eng_signature(self, objectName):
+        
+        try:
+            text, kind = self.getSignature(objectName)
+        except:
+            text = ""
+            
+        # set text in mmfile   
+        self.mmfile.seek(10)
+        self.mmfile.write(text)
+        self.mmfile[1:5] = int2bytes( len(text) )  
+        
+        # notify that we're done
+        self.mmfile[0] = "0"
+        
+        
+    def enq_list(self, commandtoproducelist, objectName):
+        """ commandtoproducelist must look like:
+        "dir(%s)" or "%s.keys()"
+        and objectName is what will be filled in in %s
+        """
+        
+        # get dir
+        command = commandtoproducelist % (objectName)
+        
+        try:
+            d = eval(command, {}, piep.interpreter.locals)
+        except:            
+            d = None
+       
+        # set text in mmap file
+        if d:
+            text = ",".join(d)
+            self.mmfile.seek(10)
+            self.mmfile.write(text)
+            self.mmfile[1:5] = int2bytes( len(text) )
+        else:
+            self.mmfile[1:5] = int2bytes( 0 )
+            
+        # notify that we're done
+        self.mmfile[0] = "0"
+    
+    
+    def enq_help(self,objectName):
+        """ get help on an object """
+        try:
+            # collect data
+            ns = piep.interpreter.locals
+            h_text = eval("%s.__doc__"%(objectName), {}, ns )            
+            h_repr = eval("repr(%s)"%(objectName), {}, ns )
+            try:
+                h_class = eval("%s.__class__.__name__"%(objectName), {}, ns )
+            except:
+                h_class = "unknown"
+            
+            # docstring can be None, but should be empty then
+            if not h_text:
+                h_text = ""
+            # dont replace single newlines, but wrap the text. New paragraphs
+            # do need to be new paragraphs though...
+            h_text = h_text.replace("\n\n","<br /><br />")  
+            
+            # get and correct signature
+            h_fun, kind = self.getSignature(objectName)
+            if kind == 'builtin':
+                h_fun = ""  # signature already in docstring
+            elif h_fun:
+                h_fun = "<br /><b>%s signature:</b><br />%s" % (kind,h_fun)
+            else:
+                h_fun = ""
+            
+            # cut repr if too long
+            if len(h_repr) > 200:
+                h_repr = h_repr[:200] + "..."                
+            # these signs are often present in the repr
+            h_repr = h_repr.replace("<","&lt;") 
+            h_repr = h_repr.replace(">","&gt;")
+            
+            # build HTML string
+            text =  "<h3>%s</h3> <br /><b>class: </b>%s <br />"\
+                    "<b>repr: </b>%s %s<br /><br />%s" % (
+                    objectName, h_class, h_repr, h_fun, h_text)
+            
+        except Exception, why:
+            text = "No help available: " + str(why)
+        
+        # set text in mmfile   
+        self.mmfile.seek(10)
+        self.mmfile.write(text)
+        self.mmfile[1:5] = int2bytes( len(text) )  
+        
+        # notify that we're done
+        self.mmfile[0] = "0"
+        
+        
+    def enq_eval(self, command):
+        """ do a command and send "str(result)" back via mmap file """
+         
+        try:
+            # here globals is None, so we can look into sys, time, etc...
+            d = eval(command, None, piep.interpreter.locals)
+        except:            
+            d = None
+        
+        # set text in mmap file
+        if d:
+            text = str(d)
+            self.mmfile.seek(10)
+            self.mmfile.write(text)
+            self.mmfile[1:5] = int2bytes( len(text) )            
+        else:
+            self.mmfile[1:5] = int2bytes( 0 )
+            
+        # notify that we're done
+        self.mmfile[0] = "0"
+       
