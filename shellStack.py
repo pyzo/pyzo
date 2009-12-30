@@ -39,7 +39,7 @@ class ShellStack(QtGui.QFrame):
         """ addShell()
         Add a shell to the widget. """
         shell = PythonShell(None)
-        self._tabs.addTab(shell, 'Python (v?)')
+        self._tabs.addTab(shell, 'Python (Initializing)')
         self.sizeShellTo80Columns()
     
     

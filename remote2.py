@@ -22,8 +22,21 @@ class IepInterpreter(code.InteractiveConsole):
           block, but returns "" when nothing is available.
     """
     
+    def __init__(self, *args, **kwargs):
+        code.InteractiveConsole.__init__(self, *args, **kwargs)
+        
+        self._status = 'a status string that is never used'
+    
+    
     def write(self, text):
         sys.stderr.write(text)
+    
+    
+    def setStatus(self, status):
+        if self._status != status:
+            self._status = status
+            sys._status.write(status)
+    
     
     def interact(self, banner=None):    
         """ interact! (start the mainloop)
@@ -68,9 +81,9 @@ class IepInterpreter(code.InteractiveConsole):
             try:
                 # set status
                 if more:
-                    sys._status.write('More')
+                    self.setStatus('More')
                 else:
-                    sys._status.write('Ready')
+                    self.setStatus('Ready')
                 
                 # wait for a bit
                 time.sleep(0.010) # 10 ms
@@ -86,7 +99,7 @@ class IepInterpreter(code.InteractiveConsole):
                 # process the line
                 if line:
                     # set busy
-                    sys._status.write('busy')
+                    self.setStatus('Busy')
                     
                     if isinstance(line,tuple):
                         # EXECUTE MODE
@@ -242,28 +255,33 @@ class IepInterpreter(code.InteractiveConsole):
 
 
 
-TIMEOUT = 10 / 1000.0 # ms -> sec
-
 class IntroSpectionThread(threading.Thread):
     """ IntroSpectionThread
     Communicates with the IEP GUI, even if the main thread is busy.
     """
     
-    def __init__(self, requestChannel, responseChannel):
+    def __init__(self, requestChannel, responseChannel, locals):
         threading.Thread.__init__(self)
         
         # store the two channel objects
         self.request = requestChannel
         self.response = responseChannel
+        self.locals = locals
     
     
     def run(self):
         """ This is the "mainloop" of our introspection thread.
         """ 
-        while True:
+        
+        # we shall start by sending the version and builtins
+        self.enq_list('%s.keys()','__builtins__')
+        self.response.write(sys.version)
+        
+        
+        while False:
             
             # sleep for a bit
-            time.sleep(TIMEOUT)
+            time.sleep(0.01)
             
             # read code (wait here)
             line = self.request.readOne(True)
@@ -283,20 +301,20 @@ class IntroSpectionThread(threading.Thread):
             elif req == "KEYS":
                 self.enq_list("%s.keys()", arg)
             
-            elif req == "HELP":
-                self.enq_help(arg)
-                
-            elif req == "SIGNATURE":
-                self.eng_signature(arg)
-            
-            elif req == "EVAL":
-                self.enq_eval( arg )
-                
-            elif req == "EXEC":    
-                try:
-                    exec(arg, None, piep.interpreter.locals)    
-                except:
-                    pass
+#             elif req == "HELP":
+#                 self.enq_help(arg)
+#                 
+#             elif req == "SIGNATURE":
+#                 self.eng_signature(arg)
+#             
+#             elif req == "EVAL":
+#                 self.enq_eval( arg )
+#                 
+#             elif req == "EXEC":    
+#                 try:
+#                     exec(arg, None, piep.interpreter.locals)    
+#                 except:
+#                     pass
     
     
     def getSignature(self,objectName):
@@ -408,21 +426,15 @@ class IntroSpectionThread(threading.Thread):
         command = commandtoproducelist % (objectName)
         
         try:
-            d = eval(command, {}, piep.interpreter.locals)
-        except:            
+            d = eval(command, {}, self.locals)
+        except Exception:            
             d = None
        
-        # set text in mmap file
+        # respond
         if d:
-            text = ",".join(d)
-            self.mmfile.seek(10)
-            self.mmfile.write(text)
-            self.mmfile[1:5] = int2bytes( len(text) )
+            self.response.write( ",".join(d) )
         else:
-            self.mmfile[1:5] = int2bytes( 0 )
-            
-        # notify that we're done
-        self.mmfile[0] = "0"
+            self.response.write( "error" )
     
     
     def enq_help(self,objectName):
