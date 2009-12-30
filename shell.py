@@ -126,8 +126,8 @@ class BaseShell(BaseTextCtrl):
             else:
                 # found nothing-> reset
                 self._historyStep = 0
-                c = self._historyNeedle                
-            print(self._history, c)
+                c = self._historyNeedle  
+            
             # apply
             self.setAnchor(self._promptPosEnd)
             self.setPosition(self.length())
@@ -275,14 +275,13 @@ class BaseShell(BaseTextCtrl):
         
         # Perform hard-wrap, because Qscintilla becomes very slow 
         # when long lines are displayed.
-        lines = text.splitlines()
+        lines = text.split('\n')
         lines2 = []
         for line in lines:
             while len(line)>80:
                 lines2.append(line[:80])
                 line = line[80:]
             lines2.append(line)
-        lines2.append('')
         text = '\n'.join(lines2)
         
         # insert text at current pos
@@ -329,7 +328,7 @@ class BaseShell(BaseTextCtrl):
         self.setAnchor(p2+L2)
         
         # make visible
-        print('asd')
+        print('stderr')
         self.ensureCursorVisible()
         #self.scroll(0,999999)
         
@@ -354,9 +353,10 @@ class PythonShell(BaseShell):
         self._stdin = c.getSendingChannel(0)        
         self._stdout = c.getReceivingChannel(0)
         self._stderr = c.getReceivingChannel(1)
+        self._status = c.getReceivingChannel(2)
         self._request = c.getSendingChannel(1)
-        self._response = c.getReceivingChannel(2)
-        self._status = c.getReceivingChannel(3)
+        self._response = c.getReceivingChannel(3)
+        
         
         # host it!
         port = c.host() # todo: port with range
@@ -383,7 +383,7 @@ class PythonShell(BaseShell):
         # wich installed version
         self._pythonExecutable = pythonExecutable
         # which python version (for example 2.5.2), we set this in init2        
-        self._version = "?"
+        self._version = ""
         # the builtins list of the process, we set this in init2
         self._builtins =[]
         
@@ -514,18 +514,25 @@ class PythonShell(BaseShell):
         if text:
             self.writeErr(text)
         
+        # get response
+        response = self._response.readOne()
+        
         # check status
-        status = ''
-        while self._status.pending():
-            status = self._status.readOne()
-        if status:
-            tabWidget = self.parent().parent()
-            i = tabWidget.indexOf(self)
-            tabWidget.setTabText(i, 'Python ('+status+')')
-    
-    
-    
-    
+        if self._version:
+            status = self._status.readLast()
+            if status:
+                tabWidget = self.parent().parent()
+                i = tabWidget.indexOf(self)
+                if status == 'Ready':
+                    status = 'Python v{}'.format(self._version)
+                else:
+                    status = 'Python v{} ({})'.format(self._version, status)
+                tabWidget.setTabText(i, status)
+        elif response:
+            if not self._builtins:
+                self._builtins = response.split(',')
+            else:
+                self._version = response[:5]
     
 
 if __name__=="__main__":

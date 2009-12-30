@@ -14,7 +14,7 @@ This module allows communication with the following properties:
 This module can be imported in Python 2 ad well as in Python 3. It 
 implements the Channels object, which represents the connection to
 the other end. It has methods to obtain SendingChannel and 
-ReceivingChannel (file-like) objects, which are used to send and 
+ReceivingChannel (file-like) objects, which can be used to send and 
 receive strings. 
 
 
@@ -56,13 +56,13 @@ r1.readOne()
 # An earlier implementation used the "messages indicate how long they are" 
 # principle. However, this requires quite a bit of processing, and thus
 # makes sending a lot of (small) messages very slow (like for example
-# "for i in range(1000): print i"). Therefore we now use delimite the
-# messages. We can do this, because "The bytes 0xFE and 0xFF are never 
-# used in the UTF-8 encoding".
+# "for i in range(1000): print i"). Therefore we now delimit the
+# messages. We can do this, because the bytes 0xFE and 0xFF are never 
+# used in the UTF-8 encoding.
 #
 # The data is send bidirectional (using both directions of the socket).
 # SendingChannel objects push their message on a global send queue, that
-# is fully transmitted each cycle. On the other end, messages are received 
+# is fully popped before sending. On the other end, messages are received 
 # and pushed on the queue of the proper ReceivingChannel object. The 
 # queues are optimized to pop all data at once and can also receive
 # multiple messages at once. Note that the send queue contains packed
@@ -70,7 +70,7 @@ r1.readOne()
 # string only.
 #
 # Each message starts with a header of 8 bytes: 
-# 7 bytes for marker ascii string (CHANNEL to send message)
+# 7 bytes for marker ascii string (MESSAGE to send a message)
 # 1 bytes for channel id (uint8)
 #
 # After the header the encoded text (if any) follows, followed by the 
@@ -105,11 +105,30 @@ else:
     DELIMITER = bytes([255])
 
 
-def packMessage(type='CHANNEL', id=0, bb=None):
+
+def portHash(name):
+    """ portHash(name)
+    Given a string, returns a port number between 49152 and 65535. 
+    (2**14 (16384) different posibilities)
+    This range is the range for dynamic and/or private ports 
+    (ephemeral ports) specified by iana.org.
+    The algorithm is deterministic, thus providing a way to map names
+    to port numbers.
+    """
+    fac = 0xd2d84a61
+    val = 0
+    for c in name:
+        val += ( val>>3 ) + ( ord(c)*fac )
+    val += (val>>3) + (len(name)*fac)
+    return 49152 + val % 2**14 
+
+
+
+def packMessage(type='MESSAGE', id=0, bb=None):
     """ packMessage(type, id=None, bb=None)
     Build a message ready for sending. Returns a bytes object.
     - type must be a max 7 elements ASCII string.
-    - id must be an int between 0 and 255 (indicating channel id)
+    - id must be an int between 0 and 128 (indicating channel id)
     - bb must be the text encoded using utf-8 encoding
     """
     
@@ -118,8 +137,7 @@ def packMessage(type='CHANNEL', id=0, bb=None):
     # pack type (and justify)
     message += type.encode('ascii').ljust(7)
     
-    # todo: limit range
-    # pack id (in range 0-255)
+    # pack id (in range 0-128)
     message += chr(id).encode('ascii')
     
     # pack 
@@ -149,29 +167,11 @@ def unPackMessage(message):
     return type, id, text
 
 
-def portHash(name):
-    """ portHash(name)
-    Given a string, returns a port number between 49152 and 65535. 
-    (2**14 (16384) different posibilities)
-    This range is the range for dynamic and/or private ports 
-    (ephemeral ports) specified by iana.org.
-    The algorithm is deterministic, thus providing a way to map names
-    to port numbers.
-    """
-    fac = 0xd2d84a61
-    val = 0
-    for c in name:
-        val += ( val>>3 ) + ( ord(c)*fac )
-    val += (val>>3) + (len(name)*fac)
-    return 49152 + val % 2**14 
     
-    
-class Queue2:
+class Queue:
     """ Queue
-    Very simple non-blocking thread save queue class. 
-    q.pop() returns None if the queue is empty. 
-    You can add any object to the queue, except None, since that
-    would interfere with the above. """
+    Non-blocking thread save queue class for packages of bytes.
+    """
     
     def __init__(self):
         self._lock = threading.RLock()
@@ -179,53 +179,66 @@ class Queue2:
     
     def push(self, value):
         """ push(object)
-        Push an object to the queue. 
-        If None, nothing is pushed. """
-        if value is None:
-            return
+        Push a bytes package to the queue. """
         self._lock.acquire()
         try:
-            # todo: insert at beginning or end?
-            if isinstance(value, list):
-                self._data.extend(value)
-            else:
-                self._data.append(value)
+            self._data.append(value)
+        finally:
+            self._lock.release()
+    
+    def pushMore(self, value):
+        """ pushMore(object)
+        Push a list of bytes packages to the queue."""
+        self._lock.acquire()
+        try:
+            self._data.extend(value)
         finally:
             self._lock.release()
     
     def pop(self):
         """ pop()
-        Pops an object from the queue. 
-        If the queue is empty, returns None. """
+        Pops a bytes package from the queue. 
+        If the queue is empty, returns empty bytes. """
         self._lock.acquire()
         try:
-            if len(self._data)==0:
+            if not self._data:
                 tmp = bytes()
             else:
                 tmp = self._data.pop(0)
         finally:
             self._lock.release()
         return tmp
-        # todo: make return empty bytes instead of None
     
-    
-    def popAll(self, joiner):
+    def popAll(self):
+        """ popAll()
+        Pop a list containing all bytes packages, emptying the queue.
+        """ 
         self._lock.acquire()
         try:
-            if len(self._data)==0:
-                tmp = bytes()
-            else:
-                self._data.append(bytes()) # so we end with a joiner
-                tmp = joiner.join(self._data)
-                self._data[:] = []
+            tmp = self._data
+            self._data = [] # new empty list
         finally:
             self._lock.release()
         return tmp
     
+    def popLast(self):
+        """ popLast()
+        Pop only the last message, discarting all the rest.
+        """
+        self._lock.acquire()
+        try:
+            if not self._data:
+                tmp = bytes()
+            else:
+                tmp = self._data[-1]
+                self._data = [] # new empty list
+        finally:
+            self._lock.release()
+        return tmp
     
     def count(self):
         """count()
-        Return the number of elements in the list. """
+        Return the number of packages in the queue. """
         self._lock.acquire()
         try:
             tmp = len(self._data)
@@ -233,9 +246,6 @@ class Queue2:
             self._lock.release()
         return tmp
 
-## The Queue
-# todo: remove
-TheQueue = Queue2
 
 class BaseChannel(object):
     """ BaseChannel
@@ -243,10 +253,10 @@ class BaseChannel(object):
     
     Each channel has a queue in which the pending messages are stored.
     At the sending side they are waiting to be send, and at the receiving
-    side they are received but not yet queried. 
+    side they are received but not yet read. 
     
-    In other words:
-    The doorman of the Channels object pops the messages from the queue 
+    More specifically:
+    The doorman of the Channels object pops the messages from a single queue 
     and sends them over the channel. The doorman at that side receives 
     the mesage and puts it in the queue of the corresponding input channel, 
     where the data is available via the read methods.    
@@ -258,14 +268,15 @@ class BaseChannel(object):
     
     @property
     def closed(self):
+        """ Get whether the channel is closed. 
+        """
         return self._closed
 
 
 class SendingChannel(BaseChannel):
     """ SendingChannel
     An outgoing channel to an other process. 
-    On the other end, this is a ReceivingChannel.
-    Exposes a non-blokcing text file interface.
+    On the other end, there is a corresponding ReceivingChannel.
     """
     
     def __init__(self, queue, id):
@@ -281,11 +292,14 @@ class SendingChannel(BaseChannel):
         """
         if not isinstance(s,basestring):
             raise ValueError("SendingChannel.write only accepts strings.")
+        if self._closed:
+            raise ValueError("Cannot write to a closed channel.")
         if s:
-            message = packMessage('CHANNEL', self._id, s.encode('utf-8'))
+            # If not an empty string, push it on the queue
+            message = packMessage('MESSAGE', self._id, s.encode('utf-8'))
             self._q.push( message )
     
-    # todo: test this
+    
     def close(self):
         """ close()
         Close the channel, stopping all communication. 
@@ -304,86 +318,147 @@ class SendingChannel(BaseChannel):
 class ReceivingChannel(BaseChannel):
     """ ReceivingChannel
     An incoming channel to an other process.
-    On the other end, this is a SendingChannel.
-    Exposes a text file interface that can be used in blocking
-    and non-blocking mode.
+    On the other end, there is a corresponding SendingChannel.
+    Exposes a text file interface that can be used in blocking,
+    non-blocking, and blocking-for-a-specified-time mode.
     """
     
     def __init__(self):
-        BaseChannel.__init__(self, TheQueue())
+        BaseChannel.__init__(self, Queue())
         self._blocking = False
     
     
-    def setBlocking(self, blocking=True):
-        """ setBlocking(blocking=True)
+    def setDefaultBlocking(self, block):
+        """ setDefaultBlocking(block)
         Set the default blocking state. 
         """
-        self._blocking = blocking
+        if not isinstance(block, (bool,int,float)):
+            raise ValueError('Block must be a bool, int, or float.')
+        self._blocking = block
     
     
     @property
-    def isBlocking(self):
+    def defaultBlocking(self):
         return self._blocking 
     
     
     def readOne(self, block=None):
         """ readOne(block=False)
         Read one string that was send as one from the other end.
-        If the channel is closed, returns an empty string .        
+        If the channel is closed and all messages are read, returns ''.
         If block is not given, uses the default blocking state.
-        If not blocking, returns an empty string  if no data is available.
-        If blocking, waits until data is available.
+        If block is False or None, returns '' if no data is available. 
+        If block is an int or float, waits that many seconds and then
+        returns '' if no data is available. If block is True, waits forever
+        until data is available.
         """
         
-        # if closed, return nothing
-        if self._closed:
-            return ''
+        # Note: I could make a method of the first part of the read 
+        # methods, as it's the same. However, I like to avoid an extra
+        # function call.
         
-        # use default block state?
+        # Use default block state?
         if block is None:
             block = self._blocking
-        if block and isinstance(block, bool):
-            block = 2**30
-        elif block and not isinstance(block,(int,float)):
+        elif not isinstance(block, (bool,int,float)):
             raise ValueError('Block must be a bool, None, int, or float.')
         
-        # get data, return empty bytes if queue is empty
-        tmp = self._q.pop()
+        # should we block?
         if block:
-            t0 = time.time()
-            while not tmp and (time.time()-t0) < block:
-                if self._closed:
-                    break
+            if block is True:
+                block = 2**32 # over 100 years
+            block += time.time()
+            pending = self._q.count
+            while not pending() and not self._closed and time.time() < block:
                 time.sleep(0.01)
-                tmp = self._q.pop()
         
-        # return
-        return tmp.decode('utf-8')
+        # get data, decode, return
+        return self._q.pop().decode('utf-8')
     
+    
+    def readLast(self, block=None):
+        """ readLast(block=False)
+        Read one string that was send as one from the other end.
+        If the channel is closed and all messages are read, returns ''.
+        If block is not given, uses the default blocking state.
+        If block is False or None, returns '' if no data is available. 
+        If block is an int or float, waits that many seconds and then
+        returns '' if no data is available. If block is True, waits forever
+        until data is available.
+        """
+        
+        # Use default block state?
+        if block is None:
+            block = self._blocking
+        elif not isinstance(block, (bool,int,float)):
+            raise ValueError('Block must be a bool, None, int, or float.')
+        
+        # should we block?
+        if block:
+            if block is True:
+                block = 2**32 # over 100 years
+            block += time.time()
+            pending = self._q.count
+            while not pending() and not self._closed and time.time() < block:
+                time.sleep(0.01)
+        
+        # get data, decode, return
+        return self._q.popLast().decode('utf-8')
+    
+    
+    def readline(self):
+        """ readline()
+        Read one string that was send as one from the other end. A newline
+        character is appended if it does not end with one.
+        This method is always blocking.
+        """
+        
+        # wait until data is available
+        pending = self._q.count
+        while not pending() and not self._closed:
+            time.sleep(0.01)
+        
+        # get data, decode, make sure it ends with newline, return
+        tmp = self._q.popLast().decode('utf-8')
+        if not tmp.endswith('\n'):
+            tmp += '\n'
+        return tmp
+        
     
     def read(self, block=False):
         """ read(block=False)
         Read all text available now.
-        If the channel is closed, returns an empty string .        
+        If the channel is closed and all messages are read, returns ''.
         If block is not given, uses the default blocking state.
-        If not blocking, returns an empty string if no data is available.
-        If blocking, waits until data is available.
+        If block is False or None, returns '' if no data is available. 
+        If block is an int or float, waits that many seconds and then
+        returns '' if no data is available. If block is True, waits forever
+        until data is available.
         """
         
-        # if closed, return nothing
-        if self._closed:
-            return ''
+        # Use default block state?
+        if block is None:
+            block = self._blocking
+        elif not isinstance(block, (bool,int,float)):
+            raise ValueError('Block must be a bool, None, int, or float.')
         
-        # get all available
-        tmp = self._q.popAll(bytes())
+        # should we block?
+        if block:
+            if block is True:
+                block = 2**32 # over 100 years
+            block += time.time()
+            pending = self._q.count
+            while not pending() and not self._closed and time.time() < block:
+                time.sleep(0.01)
         
-        # done
+        # get data, decode, return
+        tmp = bytes().join( self._q.popAll() )
         return tmp.decode('utf-8')
     
     
+    @property
     def pending(self):
-        """ pending()
-        Return the number of pending messages. 
+        """ Get the number of pending messages. 
         """
         return self._q.count()
     
@@ -410,17 +485,22 @@ class Channels(object):
     interface between two processes, possibly on different machines.
     There can be multiple sending channels, and multiple 
     receiving channels. From each end, you can only chose the 
-    number of sending channels (max 255).
+    number of sending channels (max 128).
     
-    For more info, see the docstrings of this module and the docstrings
-    of the channel classes.
+    When the connection is closed, the callable attribute "disconnectCallback"
+    is called with the reason as an argument. By default it calls
+    a function that prints the reason. It can be set to None to call
+    nothing.
+    
+    For more information, see the docstrings of this module 
+    and the docstrings of the channel classes.
     """
     
     def __init__(self, N):
         
         # test
         if N<0 or N>127:
-            raise IndexError("Invalid amount of channels.")
+            raise IndexError("Invalid number of channels.")
         
         # create channel lists        
         self._sendingChannels = []
@@ -428,7 +508,7 @@ class Channels(object):
         
         # lock and queue for special stuff
         self._lock = threading.RLock()
-        self._q = TheQueue()
+        self._q = Queue()
         
         # create sending channels now
         for id in range(N):
@@ -437,7 +517,8 @@ class Channels(object):
         # port being used
         self._port = 0
         
-        self._test = True
+        # callback to call when connection closes
+        self.disconnectCallback =  self._defaultDisconnectCallback
     
     
     def _reOpenAllChannels(self):
@@ -463,7 +544,7 @@ class Channels(object):
         
         With portRange the number of ports to try can be specified.
         Starting from the given port, subsequent ports are tried
-        untill a free slot is available. If you only want to try 
+        until a free slot is available. If you only want to try 
         one port, set this to 1.
         
         If hostLocal is true, the socket is only visible from this
@@ -493,6 +574,7 @@ class Channels(object):
         # port given as string?
         if isinstance(port, basestring):
             port = portHash(port)
+        
         # check port validity
         if not isinstance(port, (int, long)):
             raise ValueError("The port should be a string or an int.")
@@ -517,7 +599,7 @@ class Channels(object):
         # store port number
         self._port = s.getsockname()[1]
         
-        # start thread ...  (make on: the program exits even if its running)
+        # start thread ...  (make deamon: the program exits even if its running)
         self._doorman = Doorman(self, s, host=True)
         self._doorman.daemon = True
         self._doorman.start()
@@ -592,7 +674,7 @@ class Channels(object):
     def getReceivingChannel(self,i):
         """ getReceivingChannel(i)
         Get the i'th receiving channel. The other end choses how
-        many such channels there are. You can always get up to 256 
+        many such channels there are. You can always get up to 128 
         receiving channels, but you just might never receive data 
         on them.
         This method is thread-safe, and you can get the channel 
@@ -638,7 +720,7 @@ class Channels(object):
     
     def isConnected(self):
         """ isConnected()
-        Return self.getPort() > 0. """
+        Returns whether the channel is connected. """
         return self._port > 0
     
     
@@ -652,16 +734,6 @@ class Channels(object):
         """ isClient()
         Returns True if this object is connected and not hosting. """
         return self._port>0 and self._doorman._host==False
-    
-    
-    def getStats(self):
-        """ getStats()
-        Get statistics as a 3-element tuple: 
-        (iters_per_second, n_send, n_recv)
-        """
-        dm = self._doorman
-        # todo: remove ips or get bps?
-        return dm._ips, dm._n_send, dm._n_recv
     
     
     def interrupt(self):
@@ -678,6 +750,9 @@ class Channels(object):
         """
         self._q.push( packMessage('KILL') )
 
+
+    def _defaultDisconnectCallback(self, why):
+        print("Connection closed: " + why)
 
 
 class Doorman(threading.Thread):
@@ -697,20 +772,12 @@ class Doorman(threading.Thread):
         # flag to stop the mainloop (and why)
         self._stopMe = False
         
-        # buffer for received bytes (incomplete messages)
+        # buffers for received and send bytes (incomplete messages)
         self._receiveBuffer = bytes()
+        self._sendBuffer = bytes()
         
         # store queues of receiveChannels (for efficient pushing of messages)
         self._receiveQueues = []
-        
-        # vars to test whether the other side is still there
-        self._tin = 0
-        self._nmiss = 0
-        
-        # for statistics
-        self._ips = 0           # iterations per second
-        self._n_send = 0        # number of send packages
-        self._n_recv = 0        # number of received packages
     
     
     def run(self):
@@ -725,12 +792,11 @@ class Doorman(threading.Thread):
             self._socket.close()
             self._socket = s
         
-        # Init unresponsive measure
-        self._tin = time.time()
-        
-        # Init other timers and counters
+        # Init timers and counters
         t0 = time.time() # temporary variable to hold current time
         ts = t0 # the last time we sent something (if >0.5s we send NOOP)
+        tr = t0 # the last time we received something (to detect unresponsive)
+        n_unresponsive = 0 # number of times found unresponsive
         
         
         # enter main loop
@@ -743,29 +809,29 @@ class Doorman(threading.Thread):
             # pitch messages
             sentSomething = self.pitch()
             
-            # end of iteration
-            t0 = time.time()
-            
             # should we pitch a noop?
+            t0 = time.time()
             if sentSomething:
                 ts = t0
-            elif t0-ts > 0.5:
+            elif t0 - ts > 0.5:
                 self._channels._q.push( packMessage('NOOP') )
                 ts = t0
             
-            # catch messages            
+            # catch messages
             receivedSomething = self.catch()
-            if receivedSomething:
-                self._tin = time.time() # we got something! 
             
-            # check if other side is still responding
-            if time.time() - self._tin > 1.0:
-                self._nmiss += 1
-            else:
-                self._nmiss = 0
-            if self._nmiss > 5:
-                self._stopMe = "Other side is unresponsive."
-                
+            # Check if other side is still responding. This can really
+            # only happen when the other end's thread is stuck. So we're
+            # carefull not to give up too soon.
+            t0 = time.time()
+            if receivedSomething:
+                tr = t0 # we got something!
+                n_unresponsive = 0
+            elif t0 - tr > 1.0:
+                tr = t0
+                n_unresponsive += 1
+                if n_unresponsive > 5:
+                    self._stopMe = "Other side is unresponsive."
             
             
             # Determine time to rest. By default we sleep for 0.01 second.
@@ -773,7 +839,6 @@ class Doorman(threading.Thread):
             # messages like crazy :)
             if receivedSomething or sentSomething:
                 time.sleep(0.000001) # corresponds with 1Mhz
-                #time.sleep(0.1) # corresponds with 1Mhz
             else:
                 time.sleep(0.01) # corresponds with 100Hz
                 # Sleeping 0.001 sec results in 0% processing power on my
@@ -785,37 +850,37 @@ class Doorman(threading.Thread):
             channel._closed = True
         
         # clean up
-        self._socket.close()        
-        print("Connection closed: " + self._stopMe)
+        self._socket.close()
         self._channels._port = 0
+        if self._channels.disconnectCallback:
+            self._channels.disconnectCallback(self._stopMe)
     
-    
-    ## send methods
     
     def pitch(self):
         """ pitch()
         Send all messages from the queue.
         Returns amount of sent messages/bytes. """
         
-        # flush the whole queue
-        tmp = self._channels._q.popAll(DELIMITER)
-        # todo: is this the way?
+        # Flush the whole queue if we have send everything so far.
+        if not self._sendBuffer:
+            tmp = self._channels._q.popAll()
+            n = len(tmp)
+            tmp.append(bytes())
+            self._sendBuffer = DELIMITER.join(tmp)
         
-        # try to send what we can
-        n = len(tmp)
-        if tmp:
+        # Try to send what we can. Do not use sendall, otherwise the thread
+        # would wait here until the other side receives.
+        nb = 0
+        if self._sendBuffer:
             try:
-                self._socket.sendall( tmp )
+                nb = self._socket.send( self._sendBuffer )
+                self._sendBuffer = self._sendBuffer[nb:]
             except socket.error:
                 self._stopMe = 'Other end dropped.'
         
-        # update stats
-        self._n_send += n
-        # todo: change n send to represent send bytes!
-        return n
+        # done
+        return nb
     
-    
-    ## receive methods
     
     def receiveMessages(self):
         """ receiveMessages()
@@ -827,9 +892,8 @@ class Doorman(threading.Thread):
         blocks = [self._receiveBuffer]
         
         # receive what we can
-        # todo: does it matter to loop?
         while True:
-            
+        
             # test whether there is something to receive
             l1,l2,l3 = select([self._socket],[],[],0)
             if not l1:
@@ -851,18 +915,16 @@ class Doorman(threading.Thread):
             blocks.append(tmp)
         
         # make one large string of bytes
-        messages = bytes().join(blocks)
+        data = bytes().join(blocks)
         
         # and split in messages
-        messages = messages.split(DELIMITER)
+        messages = data.split(DELIMITER)
         
-        # store last bit
+        # store last bit (which is always empty bytes or an incomplete message)
         self._receiveBuffer = messages.pop()
         
         # return all whole messages
         return messages
-        
-        # todo: use a substitute for buffer to save a dict lookup
     
     
     def catch(self):
@@ -876,7 +938,8 @@ class Doorman(threading.Thread):
         messages = self.receiveMessages()
         n = len(messages)
         
-        A = 'A'.encode('ascii')
+        # The M in MESSAGE, as a byte element
+        M = 'M'.encode('ascii')
         
         while messages:
             
@@ -885,34 +948,25 @@ class Doorman(threading.Thread):
             # not in a row, but it significantly improves performance
             # when multiple messages for the same channel are send in a
             # row.
-            i = 0 # todo: it seems faster if I do not do this 'optimization'
-            # but that might be because in IEP the data is available sooner
-            # and therefore there are more inserts in the editor?
+            i = 0
             id = ord( messages[0][7:8] ) # get id of first     
             for i in range(len(messages)):
-                if (not ord( messages[i][7:8] )==id) or (not messages[0][2:3]==A):
+                mes = messages[i]
+                if (not ord(mes[7:8])==id) or (not mes[0:1]==M):
                     break
             
             # select these messages, or first message if not a list
             if i>1:
                 bb = [mes[8:] for mes in messages[:i]]
                 messages[:i] = []
-                type = 'CHANNEL'
+                type = 'MESSAGE'
             else:
                 message = messages.pop(0)
                 type, id, bb = unPackMessage(message)
             
             # check and process
-            if type == 'NOOP':
-                pass
-            elif type == 'CLOSE':
-                channel = self._channels.getReceivingChannel(id)
-                channel._closed = True
-            elif type == 'INT':
-                self.doInterrupt()
-            elif type == 'KILL':
-                self.doKill()
-            elif type == 'CHANNEL':
+            
+            if type == 'MESSAGE':
                 # get channel and its queue
                 while len(self._receiveQueues) <= id:
                     i2 = len(self._receiveQueues)
@@ -920,34 +974,42 @@ class Doorman(threading.Thread):
                     self._receiveQueues.append(channel._q)
                 q = self._receiveQueues[id]
                 # put message it in the queue
-                q.push(bb)
-                # finish
-                self._n_recv += 1
-                # todo: what stats do we want to keep?
+                if isinstance(bb,list):
+                    q.pushMore(bb)
+                else:
+                    q.push(bb)
+            
+            elif type == 'NOOP':
+                # other end just let us know it's still there
+                pass
+            
+            elif type == 'CLOSE':
+                # close a channel
+                channel = self._channels.getReceivingChannel(id)
+                channel._closed = True
+            
+            elif type == 'INT':
+                # interrupt main thread
+                thread.interrupt_main()
+            
+            elif type == 'KILL':
+                # kill this process
+                pid = os.getpid()
+                if hasattr(os,'kill'):
+                    import signal
+                    os.kill(pid,signal.SIGTERM)
+                    time.sleep(1)
+                elif sys.platform.startswith('win'):
+                    os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
             
             else:
                 self._stopMe = "Lost track of stream."
         
+        # done
         return n
-    
-    
-    def doInterrupt(self):
-        """ doInterrupt()
-        Process a received interrupt command. """
-        thread.interrupt_main()
-        
-        
-    def doKill(self):
-        """ doKill()
-        Process a received kill command. """     
-        pid = os.getpid()
-        if hasattr(os,'kill'):
-            import signal
-            os.kill(pid,signal.SIGTERM)
-            time.sleep(1)
-        elif sys.platform.startswith('win'):
-            os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
 
+
+# stuff below is for testing
 
 if 0:
     channels.disconnect()
@@ -960,9 +1022,7 @@ if 0:
     s2 = channels.getSendingChannel(1)
     
     s1.write("I am channel one")
-    s1.write("hello there!")
-    s2.write("And I, dear sir, am channel two.")
-    s2.write("Nice meeting you.")
+    s2.write("And I am channel two.")
 
 ## there
     
@@ -973,73 +1033,31 @@ if 0:
     s1 = channels.getSendingChannel(0)
     time.sleep(0.5)
     print( r1.read())
-    print( r1.read())
-    print( r2.read())
     print( r2.read())
 
 ## testing (receiving end)
     
     times = []
-    t0 = 0
-    nb = 0
     tmp = r1.read(False) # flush
     while True:
         tmp = r1.readOne()
-        if not t0:
-            t0 = time.time()
-        nb += len(tmp)
         if tmp == 'stop':
             break
         if tmp:
             t = float( tmp.split(' ')[0] )
             dt = time.time() - t
             times.append(dt)
-    print( times[::100])
-    print(channels.getStats())
-    print( (nb/1024.0)/(time.time()-t0 -0.0000001),'KB/s' )
+    step = int(len(times)/20)+1
+    print( ['%1.3f'%t for t in times[::step] ] )
     
 
 ## testing (sending end): multiple small messages
-    # select and Queue2: 0.23, 1.8
-    # select and LL: 0.20, 1.8
-    # nonblocking and Queue2: 0.2, 1.5
-    #
-    # select v2, Queue2: 0.1, 0.7
-    # select v2, Queue2+LL: ditto
-    # select v2, single block: 2.5
-    # select v2, huge blocks: 0.7
-    # buffer as one large string + becomes unresponsive
-    # idea: delimit messages in exact blocks 00?
-    
     for i in range(10000):
         s1.write(str(time.time()) + ' testing '*10 + str(i))
     s1.write('stop')
-    print(channels.getStats())
 
 
 ## testing (sending end): One huge message
-    # select and Queue2: 0.13 _. 31 MB/s
-    # select v2 and Queue2: 0.06 _. 120 MB/s
     for i in range(2):
         s1.write(str(time.time()) + ' testing ' + "a"*1000000)
     s1.write('stop')
-    print(channels.getStats())
-
-## Receiving afterwards
-    t0 = 0
-    nb = 0
-    times = []
-    while True:
-        tmp = r1.readOne()
-        if not t0:
-            t0 = time.time()
-        nb += len(tmp)
-        if tmp == 'stop':
-            break
-        if tmp:
-            t = float( tmp.split(' ')[0] )
-            dt = time.time() - t
-            times.append(dt)
-    print( times[::100])
-    print(channels.getStats())
-    print( (nb/1024.0)/(time.time()-t0 -0.0000001),'KB/s' )
