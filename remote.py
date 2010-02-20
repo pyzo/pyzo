@@ -30,5 +30,5 @@ __iep__.ithread = IntroSpectionThread(
 
 # todo: need more cleaning up?
 del IepInterpreter
-__iep__.ithread.run()
+__iep__.ithread.start()
 __iep__.interact()

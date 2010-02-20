@@ -4,7 +4,7 @@ classes. Implements styling, introspection and a bit of other stuff that
 is common for both shells and editors.
 """
 
-    
+from introspection import doAutocomplete
 import iep
 import os, sys, time
 import ssdf
@@ -73,6 +73,56 @@ def normalizePath(path):
     # remove last sep
     return fullpath[:-len(sep)]
 
+
+# valid chars to make a name
+namechars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
+namekeys = [ord(i) for i in namechars]
+
+
+# todo: a regexp on the reverse string?
+def parseLine_autocomplete(text):
+    """ Given a line of code (from start to cursor position) 
+    returns a tuple (base, name).    
+    autocomp_parse("eat = banan") -> "", "banan"
+      ...("eat = food.fruit.ban") -> "food.fruit", "ban"
+    When no match found, both elements are an empty string.
+    """
+    
+    # is the line commented? The STC_P is 0 in commented lines...
+    i = text.rfind("#")
+    if i>=0 and text[:i].count("\"") % 2==0 and text[:i].count("\'") % 2==0:
+        return "",""
+        
+    i_base = 0
+    for i in range(len(text)-1,-1,-1):
+        c = text[i]
+        
+        if c=='.':
+            if i_base==0:
+                i_base = i        
+        elif c in ["'", '"']:
+            # a string                
+            if i_base == i+1: # dot after it
+                return "''", text[i_base+1:]
+            else:
+                return "",""
+        elif c==']':
+            # may be a list
+            if i_base == i+1 and i>0 and text[i-1]=='[': 
+                return "[]", text[i_base+1:]
+            else:
+                return "",""            
+        elif not c in namechars:
+            break
+    else:
+        # we need to decrease this extra bit when the loop fully unrolled
+        i-=1 
+        
+    # almost done...
+    if i_base == 0:
+        return "", text[i+1:]
+    else:
+        return text[i+1:i_base], text[i_base+1:]
 
 
 class StyleManager(QtCore.QObject):
@@ -840,6 +890,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         return True  
     
     
+    def autoCompShow(self, lenEntered, names):        
+        self.SendScintilla(self.SCI_AUTOCSHOW, lenEntered, names)
+    
+
     ## Callbacks
     
     
@@ -856,6 +910,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if not handled:
             Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
+        # process character press
+        if event.text():
+            linenr, i = self.getLinenrAndIndex()
+            line = self.getLineString(linenr)
+            base, namePart = parseLine_autocomplete(line[:i])
+            doAutocomplete(self, base, namePart)
         # todo: I need these commands to deal with encoding
         #i0 = self.getCurrentPos()
         #i1 = self.SendScintilla(self.SCI_POSITIONBEFORE, i0)
@@ -921,7 +981,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self._introspect_signature = ("","")
             
         if event.key == QtCore.Qt.Key_Backspace:
-            pass
+            doAutocomplete(self, '', '')
             #wx.CallAfter(self.Introspect_autoComplete)
             #wx.CallAfter(self.Introspect_signature)
             

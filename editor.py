@@ -370,7 +370,6 @@ class IepEditor(BaseTextCtrl):
                     self.setTargetEnd(pos2+i+1) # remove "#"
                 self.replaceTargetBytes(b"")
 
-
     
     
     

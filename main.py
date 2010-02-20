@@ -23,14 +23,13 @@ from menu import MenuHelper
 
 
 from PyQt4 import QtCore, QtGui
-qt = QtGui
+from queue import Queue, Empty
 
 
-
-class MainWindow(qt.QMainWindow):
+class MainWindow(QtGui.QMainWindow):
     
     def __init__(self, parent=None):
-        qt.QWidget.__init__(self, parent)
+        QtGui.QWidget.__init__(self, parent)
         
         # store myself
         iep.main = self
@@ -44,7 +43,7 @@ class MainWindow(qt.QMainWindow):
         
         # construct icon
         tmp = os.path.join(iep.path,'')
-        iep.icon = qt.QIcon()
+        iep.icon = QtGui.QIcon()
         iep.icon.addFile(tmp+'icon16.png', QtCore.QSize(16,16), 0, 0)
         iep.icon.addFile(tmp+'icon32.png', QtCore.QSize(32,32), 0, 0)
         iep.icon.addFile(tmp+'icon48.png', QtCore.QSize(48,48), 0, 0)
@@ -54,7 +53,7 @@ class MainWindow(qt.QMainWindow):
         self.setWindowIcon(iep.icon)
         
         # create splitter
-        #self.splitter0 = qt.QSplitter(self)
+        #self.splitter0 = QtGui.QSplitter(self)
         
         # set central widget
         iep.editors = EditorStack(self)
@@ -66,10 +65,10 @@ class MainWindow(qt.QMainWindow):
         self._menuhelper = MenuHelper(self.menuBar())
         
         # create floater
-        dock = qt.QDockWidget("Shells", self)
+        dock = QtGui.QDockWidget("Shells", self)
         dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | 
                             QtCore.Qt.BottomDockWidgetArea)
-        dock.setFeatures(qt.QDockWidget.DockWidgetMovable)
+        dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
         
         # insert shell stack
@@ -133,6 +132,37 @@ class MainWindow(qt.QMainWindow):
         
         # replace the process!                
         os.execv(sys.executable, args)
+
+
+class CallbackEventHandler(QtCore.QObject):
+
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        self.queue = Queue()
+
+    def customEvent(self, event):
+        while True:
+            try:
+                callback, args = self.queue.get_nowait()
+            except Empty:
+                break
+            try:
+                callback(*args)
+            except Exception:
+                print('callback failed: {}'.format(callback))
+
+    def postEventWithCallback(self, callback, *args):
+        self.queue.put((callback, args))
+        QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+
+callbackEventHandler = CallbackEventHandler()
+
+def callLater(callback, *args):
+    """ callLater(callback, *args)
+    Post a callback to be called in the main thread. 
+    """
+    callbackEventHandler.postEventWithCallback(callback, *args)
+iep.callLater = callLater
     
     
 if __name__ == "__main__":    
