@@ -278,7 +278,7 @@ class IntroSpectionThread(threading.Thread):
         self.response.write(sys.version)
         
         
-        while False:
+        while True:
             
             # sleep for a bit
             time.sleep(0.01)
@@ -307,15 +307,18 @@ class IntroSpectionThread(threading.Thread):
 #             elif req == "SIGNATURE":
 #                 self.eng_signature(arg)
 #             
-#             elif req == "EVAL":
-#                 self.enq_eval( arg )
+            elif req == "EVAL":
+                self.enq_eval( arg )
 #                 
 #             elif req == "EXEC":    
 #                 try:
 #                     exec(arg, None, piep.interpreter.locals)    
 #                 except:
 #                     pass
-    
+            else:
+                self.response.write('<no valid request>')
+                
+        print('IntrospectionThread stopped')
     
     def getSignature(self,objectName):
         """ Get the signature of builtin, function or method.
@@ -490,23 +493,17 @@ class IntroSpectionThread(threading.Thread):
         
         
     def enq_eval(self, command):
-        """ do a command and send "str(result)" back via mmap file """
+        """ do a command and send "str(result)" back. """
          
         try:
             # here globals is None, so we can look into sys, time, etc...
-            d = eval(command, None, piep.interpreter.locals)
+            d = eval(command, None, self.locals)
         except:            
             d = None
         
-        # set text in mmap file
+        # respond
         if d:
-            text = str(d)
-            self.mmfile.seek(10)
-            self.mmfile.write(text)
-            self.mmfile[1:5] = int2bytes( len(text) )            
+            self.response.write( str(d) )
         else:
-            self.mmfile[1:5] = int2bytes( 0 )
-            
-        # notify that we're done
-        self.mmfile[0] = "0"
+            self.response.write( "<error>" )
        
