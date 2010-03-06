@@ -4,31 +4,34 @@ SSDF is a format for storing structured (scientific) data.
 The goal of the format is to be easily readable by humans, 
 but at the same time be easily readable in various computer 
 languages. It is aimed for use in interpreted languages like 
-python and Matlab, but any language that can support lists, 
-dictionaries and multidimensional arrays can use this format.
+Python or Matlab, but it can be used in any language that supports 
+floats, ints, unicode strings, lists, dictionaries, and 
+multidimensional arrays.
 
 This is the Python implementation for reading, writing and using
 such data structures. This module can be used in both python 2.x
-and 3.x. If numpy is not installed, it can be used, but arrays 
-cannot be read or written.
+and 3.x. If numpy is not installed, arrays cannot be read or written.
 
 Elements in a data structure can be one of seven different data 
 elements, of which the first two are a container element (which 
 can be nested):
-    - a dictionary (a ssdf.Struct object in python)
-    - a list (of elements with no name)
+    - dictionary (an ssdf.Struct object in python)
+    - list (of elements with no name)
     - (unicode) string
     - float scalar
     - int scalar
     - (numpy) array of any type and shape
     - Null (None)
 
+In Python, True and False are converted to 1 and 0 respectively. Tuples
+are interpreted as lists, and scalar numpy arrays are interpreted as
+scalars.
 
 Usage
 =====
 s = ssdf.new() to create a new  Struct object
 s = ssdf.load(path) to load structured data from a file 
-s = ssdf.Struct(some_object) to create a structure from some object
+s = ssdf.Struct(some_dict) to create a structure from a dict
 ssdf.save(path,s) to save structured data to a file
 (use ssdf.saves(s) and ssdf.loads(text) to save/load a string)
 
@@ -53,11 +56,10 @@ numbers2 = array 4x9 float64 eJxjYACBD/YMozRWGgCcJSqd
 numbers = array 3x2 float64 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
 files = dict:
   basedir = 'c:/temp'
-  filenames = list:
-    'one.txt'
-    'two.txt'
-    'three.txt'
+  filenames = ['one.txt', 'two.txt', 'three.txt']
 
+This file and the ssdf standard are free for all to use.
+Copyright (C) 2010 Almar Klein 
 """
 
 import os, sys
@@ -67,15 +69,24 @@ import re
 
 # try importing numpy
 try:
-    import numpy as np
+    import numpy as np    
 except ImportError:
     np = None
-   
+
+# determine float and int types
+if np:
+    floatTypes = (float, np.float32, np.float64)
+    intTypes = (int, np.int8,  np.int16,  np.int32,  np.int64, 
+                    np.uint8, np.uint16, np.uint32, np.uint64)
+else:
+    floatTypes = (float)
+    intTypes = (int)
+
 # if version 2...
 if sys.version_info[0] <= 2:
-    try:
-        assert simplestr        
-    except NameError:
+#     try:
+#         assert simplestr        
+#     except NameError:
         simplestr = str
         bytes = str
         str = unicode
@@ -102,10 +113,8 @@ class Struct(object):
         
         s = Struct() creates a new (empty) Struct object
         
-        s = Struct(object) makes a Struct object from any structure of 
-        objects. Basically, all attributes of the objects are copied, 
-        except for methods and attributes starting with "__". Dictionaries 
-        are converted to Struct objects as well.
+        s = Struct(a_dict) makes a Struct object from a given dictionary,
+        where the keys should be valid names (invalid names are ignoired).
         
         ssdf.load(path) to load structured data from a file 
         ssdf.save(path,s) to save structured data to a file
@@ -113,44 +122,37 @@ class Struct(object):
     
     """    
 
-    def __init__(self,ob=None):
+    def __init__(self, a_dict=None):
         
-        if ob is None:
+        if a_dict is None:
             # plain struct
             return
         
         else:
             # try loading from object
             
-            # try getting the dict, if no success, tough luck.            
-            try:
-                if isinstance(ob,dict):
-                    tmp = ob
-                else:
-                    tmp = ob.__dict__
-            except Exception:
-                print("SSDF Warning: Cannot make Struct object from" + str(ob))
-                return
-            
             def _getValue(val):
                 "Get the value, as suitable for Struct"                
-                if isinstance(val, (str, unicode, float, int) ):
+                if isinstance(val, (basestring,) + floatTypes + intTypes ):
                     return val
                 if np and isinstance(val, np.ndarray):
                     return val
-                elif isinstance(val,list):
+                elif isinstance(val,(tuple,list)):
                     L = list()
                     for element in val:
                         L.append( _getValue(element) )
                     return L
-                else:
+                elif isinstance(val, dict):                
                     return Struct(val)
+                else:
+                    pass # leave it
             
-            # copy all keys in the dict that are not methods
-            for key in tmp:                
-                val = tmp[key]
-                if not hasattr(val,'__call__'):                
-                    self[key] = _getValue(val)
+            # Copy all keys in the dict that are not methods
+            for key in a_dict:    
+                if not _isvalidname(key):
+                    continue
+                val = a_dict[key]                
+                self[key] = _getValue(val)
     
     
     def __getitem__(self, key):
@@ -168,7 +170,7 @@ class Struct(object):
     def __setitem__(self, key, value):
         # name ok?
         key2 = _isvalidname(key)
-        if not key:
+        if not key2:
             raise KeyError("Trying to set invalid name '%s'." % key)
         # set
         self.__dict__[key] = value
@@ -454,29 +456,37 @@ def _toString(name, value, indent):
             lineObject.children.append(tmp)
     
     # lists
-    elif isinstance(value,list):
-        lineObject.line += "list:"
+    elif isinstance(value, (list, tuple)):
+        # Check whether this is a "small list"
+        isSmallList = False
         for element in value:
-            tmp = _toString("", element, indent+2)
-            lineObject.children.append(tmp)                
+            if not isinstance(element, intTypes+floatTypes+(basestring,)):
+                break
+        else:
+            isSmallList = True
+        # Store list
+        if isSmallList:
+            elements = [_toString("", element, 0).line.strip() for element in value]
+            lineObject.line += '[%s]' % ', '.join(elements)
+        else:            
+            lineObject.line += "list:"
+            for element in value:
+                tmp = _toString("", element, indent+2)
+                lineObject.children.append(tmp)                
     
     # base types
-    elif isinstance(value,basestring):                
-        # value = value.replace('\r\n','\n').replace('\r','\n')
-        # value = value.replace('\\', '\\\\') # if \n happens to occur
-        # value = value.replace('\n','\\n')
-        # lineObject.line += "$" + value
+    elif isinstance(value,basestring):
         value = value.replace('\r\n','\n').replace('\r','\n')
         value = value.replace('\\', '\\\\') # if \n happens to occur
         value = value.replace('\n','\\n')
-        value = value.replace("'", "\\'")
-        lineObject.line += "'" + value + "'"
-        
+        value = value.replace("'", "\\'")                
+        lineObject.line += "'" + value + "'"        
+    
     elif isinstance(value, bool):
         lineObject.line += '%i' % int(value)    
-    elif isinstance(value,int):
+    elif isinstance(value,intTypes):
         lineObject.line += '%i' % int(value)
-    elif isinstance(value,float):
+    elif isinstance(value,floatTypes):
         lineObject.line += '%0.12f' % value
     
     # array types
@@ -509,11 +519,6 @@ def _toString(name, value, indent):
             text = base64.encodestring(data)
             text = text.replace("\n","") # by default contains blocks
             lineObject.line += "array %s %s %s" % (shapestr, dtypestr, text)
-    
-    # we do not do tuples
-    elif isinstance(value,tuple):
-        tmp = "Tuples are not supported in ssdf, use lists or arrays instead!"
-        raise ValueError(tmp)
     
     elif isinstance(value, UnloadedArray):
         tmp = "Cannot save unloaded arrays (need numpy)!"
@@ -573,6 +578,24 @@ def _fromString(lineObject):
                 print("SSDF Warning: named element in list on line %i."%tmp)
             else:
                 value.append(val)
+        return name, value
+    
+    elif line[0] == '[':
+        # Get rid of comment
+        i = line.find('#')
+        if i>0:
+            line = line[:i]
+        # Don't parse anything with brackets (security!!)
+        # todo: this means strings with brackets will cause not being read!
+        if line.count('('):
+            print("SSDF Warning: Invalid one-line list.")
+            value = []
+        else:
+            try:
+                value = eval(line)
+            except Exception:
+                print("SSDF Warning: Could not parse one-line list.")
+                value = []
         return name, value
     
     elif line[0] == "$":
@@ -635,9 +658,14 @@ def _fromString(lineObject):
         
         # get data           
         tmp = word4.split(",")
-        if len(tmp) > 1:
+        
+        if np.prod(shape)==0:
+            # empty array
+            value = np.zeros(shape, dtype=dtypestr)
+            return name, value
+        
+        elif len(tmp) > 1:
             # stored in ascii
-            #dtypestr='float64'
             value = np.zeros((len(tmp),),dtype=dtypestr)
             for i in range(len(tmp)):
                 try:                    

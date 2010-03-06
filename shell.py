@@ -53,18 +53,50 @@ class BaseShell(BaseTextCtrl):
         
         # apply style
         self.setStyle('pythonconsole')
-        
     
-    def keyPressEvent2(self, keyevent):
+    
+    def handleAlways(self, keyevent):
+        e = keyevent
+        qc = QtCore.Qt
+        
+        if e.controldown and e.key == qc.Key_Cancel:
+            # todo: ok, is this the break key?
+            print("I can interrupt the process here!")
+            return True
+        
+        elif e.key == qc.Key_Home:
+            # Home goes to the prompt.
+            home = self._promptPosEnd
+            if e.shiftdown:
+                self.setPosition(home)
+            else:
+                self.setPositionAndAnchor(home)
+            self.ensureCursorVisible()
+            self.autoCompCancel()
+            return True
+        
+        elif e.key == qc.Key_Insert:
+            # Don't toggle between insert mode and overwrite mode.
+            return True
+        
+        elif e.key in [qc.Key_Backspace, qc.Key_Left]:
+            # do not backspace past prompt
+            # nor with arrow key
+            home = self._promptPosEnd
+            if self.getPosition() > home:
+                return False # process normally
+            return True
+    
+    def handleNormalKeyEvent(self, keyevent):
         e = keyevent
         qc = QtCore.Qt
         
 #         # If the auto-complete window is up let it do its thing.
-#         if self.AutoCompActive():
-#             if key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
+#         if self.autoCompActive():
+#             if e.key in [qc.Key_Return, qc.Key_Enter]:
 #                 # we shall interupt autocompletion and
 #                 # do the action a few lines below...
-#                 self.cancelList()
+# #                 self.cancelList()
 #                 pass
 #             else:
 #                 # give control to autocompleter
@@ -86,19 +118,14 @@ class BaseShell(BaseTextCtrl):
             # process
             self.processLine()
         
-        elif e.controldown and e.key == qc.Key_Cancel:
-            # todo: ok, is this the break key?
-            print("I can interrupt the process here!")
-        
         
         elif e.key == qc.Key_Escape:
             # Clear the current, unexecuted command.
-            if not ( self.isListActive() or self.isCallTipActive() ):
-                self.cancelList()
-                self.clearCommand()
-                self.setPositionAndAnchor(self._promptPosEnd)
-                self.ensureCursorVisible()
-                self._historyNeedle = None            
+            self.cancelList()
+            self.clearCommand()
+            self.setPositionAndAnchor(self._promptPosEnd)
+            self.ensureCursorVisible()
+            self._historyNeedle = None            
         
         elif e.key in [qc.Key_Up, qc.Key_Down]:
             
@@ -134,25 +161,7 @@ class BaseShell(BaseTextCtrl):
             self.ensureCursorVisible()
             self.replaceSelection(c) # replaces the current selection
         
-        elif e.key == qc.Key_Home:
-            # Home goes to the prompt.
-            home = self._promptPosEnd
-            if e.shiftdown:
-                self.setPosition(home)
-            else:
-                self.setPositionAndAnchor(home)
-            self.ensureCursorVisible()
         
-        elif e.key == qc.Key_Insert:
-            # Don't toggle between insert mode and overwrite mode.
-            pass
-        
-        elif e.key in [qc.Key_Backspace, qc.Key_Left]:
-            # do not backspace past prompt
-            # nor with arrow key
-            home = self._promptPosEnd
-            if self.getPosition() > home:
-                return False # process normally
         
         else:
             if not e.controldown:
@@ -168,7 +177,7 @@ class BaseShell(BaseTextCtrl):
             # todo: skip here? where elso should I skip?
         
         # Stop handling by default
-        return True
+        return False
     
     
     def clearCommand(self):
@@ -340,6 +349,13 @@ remotePath = os.path.join(iep.path, 'remote.py')
 
 
 
+class RequestObject:
+    def __init__(self, request, callback):
+        self._request = request
+        self._callback = callback
+        self._posted = False
+
+
 class PythonShell(BaseShell):
     """ This class implements the python part of the shell, 
     attaching it to a remote process etc.
@@ -348,7 +364,9 @@ class PythonShell(BaseShell):
     def __init__(self, parent, pythonExecutable='python'):
         BaseShell.__init__(self, parent)
         
-        # screate multi channel connection
+        # Create multi channel connection
+        # Note that the request and response channels are reserved and should
+        # not be read/written by "anyone" other than the introspection thread.
         c = channels.Channels(2)
         self._stdin = c.getSendingChannel(0)        
         self._stdout = c.getReceivingChannel(0)
@@ -397,9 +415,21 @@ class PythonShell(BaseShell):
         self._timer.timeout.connect(self.poll)
         self._timer.start()
         
+        # Define queue of requestObjects and insert two requests
+        self._requestQueue = []
+        self.postRequest('EVAL sys.version', self._setVersion)
+        self.postRequest('EVAL __builtins__.keys()', self._setBuiltins)
+        
         # time var to pump messages in one go
         self._t = time.time()
         self._buffer = ''
+    
+    
+    def _setVersion(self, response):
+        self._version = response[:5]
+    
+    def _setBuiltins(self, response):
+        self._builtins = response.split(',')
     
     
     def _Init2(self,event=None):
@@ -432,6 +462,15 @@ class PythonShell(BaseShell):
         # fire event
         self._state = 9999 # so it is always different
         #self.UpdateState()
+    
+    
+    def postRequest(self, request, callback):
+        """ postRequest(request, callback)
+        Post a request as a string. The given callback is called
+        when a response is received.
+        """
+        req = RequestObject(request, callback)
+        self._requestQueue.append(req)
     
     
     def Enquire(self, type, args=""):
@@ -509,13 +548,24 @@ class PythonShell(BaseShell):
             self._buffer = ''
             self._t = time.time()
         
-        # check stderr
+        # Check stderr
         text = self._stderr.read(False)
         if text:
             self.writeErr(text)
         
-        # get response
-        response = self._response.readOne()
+        # Process responses
+        if self._requestQueue:
+            response = self._response.readLast()
+            if response:
+                req = self._requestQueue.pop(0)
+                req._callback(response)
+        
+        # Process requests
+        if self._requestQueue:
+            req = self._requestQueue[0]
+            if not req._posted:
+                self._request.write( req._request )
+                req._posted = True
         
         # check status
         if self._version:
@@ -528,11 +578,11 @@ class PythonShell(BaseShell):
                 else:
                     status = 'Python v{} ({})'.format(self._version, status)
                 tabWidget.setTabText(i, status)
-        elif response:
-            if not self._builtins:
-                self._builtins = response.split(',')
-            else:
-                self._version = response[:5]
+#         elif response:
+#             if not self._builtins:
+#                 self._builtins = response.split(',')
+#             else:
+#                 self._version = response[:5]
     
 
 if __name__=="__main__":

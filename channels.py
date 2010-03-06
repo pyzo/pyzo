@@ -104,6 +104,8 @@ else:
     long = int # for the port
     DELIMITER = bytes([255])
 
+# To decode P2k strings that are not unicode
+stdinenc = sys.__stdin__.encoding
 
 
 def portHash(name):
@@ -295,7 +297,22 @@ class SendingChannel(BaseChannel):
         if self._closed:
             raise ValueError("Cannot write to a closed channel.")
         if s:
-            # If not an empty string, push it on the queue
+            # If in py2k and the string is not unicode, make unicode first
+            # Try encoding using UTF-8. When a piece of code stored
+            # in a unicode string is executed, str objects are utf-8 encoded. 
+            # Otherwise they are encoded using __stdin__.encoding. In rare 
+            # cases, a non utf-8 encoded str might be succesfully encoded
+            # using utf-8, but as I said, this is rare. Since I would not
+            # know how to tell the encoding beforehand, we'll take our 
+            # chances... Note that in IEP (for which this module was created,
+            # all executed code is unicode, so str instrances are always
+            # utf-8 encoded.
+            if isinstance(s, bytes):
+                try:
+                    s = s.decode('utf-8')
+                except UnicodeError:
+                    s = s.decode(stdinenc)
+            # Push it on the queue            
             message = packMessage('MESSAGE', self._id, s.encode('utf-8'))
             self._q.push( message )
     
