@@ -254,7 +254,7 @@ class IepEditor(BaseTextCtrl):
     
     
     def showEvent(self, event=None):
-        """ Capture show event to change title. """        
+        """ Capture show event to change title. """
         # get root widget
         ob = self
         while ob.parent():

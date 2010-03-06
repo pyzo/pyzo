@@ -29,8 +29,7 @@ class IepInterpreter(code.InteractiveConsole):
     
     
     def write(self, text):
-        sys.stderr.write(text)
-    
+        sys.stderr.write( text )
     
     def setStatus(self, status):
         if self._status != status:
@@ -273,9 +272,9 @@ class IntroSpectionThread(threading.Thread):
         """ This is the "mainloop" of our introspection thread.
         """ 
         
-        # we shall start by sending the version and builtins
-        self.enq_list('%s.keys()','__builtins__')
-        self.response.write(sys.version)
+#         # we shall start by sending the version and builtins
+#         self.enq_list('%s.keys()','__builtins__')
+#         self.response.write(sys.version)
         
         
         while True:

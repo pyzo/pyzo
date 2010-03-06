@@ -437,6 +437,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._styleName = ''
         styleManager.styleUpdate.connect(self.setStyle)
         
+        # Create timer for autocompletion delay
+        self._delayTimer = QtCore.QTimer(self)
+        self._delayTimer.setSingleShot(True)
+        self._delayTimer.timeout.connect(self.autoComplete_do_now)
+        
+        print('Initializing Scintilla component.')
+        
         # SET PREFERENCES
         # Inherited classes may override some of these settings. Indentation
         # guides are not nice in shells for instance...
@@ -483,7 +490,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)
         
-        # Clear some command keys.
+        # Clear command keys that we make accesable via menu shortcuts.
         # Do not clear all command keys; 
         # that even removes the arrow keys and such.
         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
@@ -506,11 +513,39 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # calltips, I dont know what this exactly does
         #self.setCallTipsStyle(self.CallTipsNoContext)
         
-        # autocompletion setting
-#         self.setAutoCompletionThreshold(1) # 0 means disabled
+        # Autocompletion settings
+
+        # Typing one of these characters will SCI_AUTOCCANCEL
+        self.SendScintilla(self.SCI_AUTOCSTOPS, None, ' .*+-/|&')
+        
+        # This char is used to seperate the words given with SCI_AUTOCSHOW
+        self.SendScintilla(self.SCI_AUTOCSETSEPARATOR, 32) # space
+        
+        # If True SCI_AUTOCCANCEL when the caret moves before the start pos 
+        self.SendScintilla(self.SCI_AUTOCSETCANCELATSTART, False)
+        
+        # These characters will SCI_AUTOCCOMPLETE automatically when typed
+        # I prefer not to have fillups.
+        self.SendScintilla(self.SCI_AUTOCSETFILLUPS, '')
+        
+        # If True, will SCI_AUTOCCOMPLETE when list has only one item
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
-        self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
+        
+        # Set case sensitifity
+        # Todo: this was True because ...?
         self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
+        
+        # If True, will hide the list if no match
+        self.SendScintilla(self.SCI_AUTOCSETAUTOHIDE, True)
+        
+        # If True, will erase the word-chars following the caret 
+        # before inserting selected text. Please don't!
+        self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
+        
+        # Amount of items to display in the list. Amount of chars set auto.
+        # The first does not seem to have any effect.
+        self.SendScintilla(self.SCI_AUTOCSETMAXHEIGHT, 10)
+        self.SendScintilla(self.SCI_AUTOCSETMAXWIDTH, 0)
     
     
     def SendScintilla(self, *args):
@@ -832,6 +867,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Autocompletion and other introspection methods
     
+    
 #     # the method below is not used because Qscintilla has it build in
 #     def doBraceMatch(self,event=None):
 #         """ Match braces and highlight accordingly.
@@ -867,89 +903,184 @@ class BaseTextCtrl(Qsci.QsciScintilla):
 #             self.SendScintilla(self.SCI_BRACEHIGHLIGHT, i1, i2)
     
     
-    def autoCompActive(self):         
+    """ Help on some autocomp functions
+        SCI_AUTOCSHOW # Start showing list
+        SCI_AUTOCCANCEL # Hide list, do nothing
+        SCI_AUTOCACTIVE # query whether is active
+        SCI_AUTOCPOSSTART # value of the current position when SCI_AUTOCSHOW
+        SCI_AUTOCCOMPLETE # Finish: insert selected text
+        
+        SCI_AUTOCSELECT # Programatically Select an item in the list
+        SCI_AUTOCGETCURRENT # Get current selection index
+        SCI_AUTOCGETCURRENTTEXT # Currently selected text
+        """
+    
+    def autoCompShow(self, names, lenentered=0): 
+        """ Start showing the autocompletion list, 
+        with the list of given names (which can be a list or a space separated
+        string.
+        """
+        if isinstance(names, list):
+            names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
+        self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
+    
+    
+    def autoCompCancel(self):
+        """ Hide the autocompletion list, do nothin. """
+        self.SendScintilla(self.SCI_AUTOCCANCEL)
+    
+    
+    def autoCompActive(self):  
+        """ Get whether the autocompletion is currently active. """
         return self.SendScintilla(self.SCI_AUTOCACTIVE)
     
     
-    def introspect_isValidPython(self):
+    def autoCompComplete(self):
+        """ Perform autocomplete: 
+        insert the selected item and hide the list. """
+        self.SendScintilla(self.SCI_AUTOCCOMPLETE)
+    
+    
+    def _isValidPython(self):
         """ Check if the code at the cursor is valid python:
         - the active lexer is the python lexer
         - the style at the cursor is "default"
         """
         
-        # only complete if lexer is python
-        if ~isinstance(self.getLexer(), Qsci.QsciLexerPython):
+        # The lexer should be Python
+        lexlang = self.SendScintilla(self.SCI_GETLEXER)
+        if lexlang != self.SCLEX_PYTHON:
             return False
         
-        # the style must be "default"
-        curstyle = self.getStyleAt(self.getCurrentPos())
-        if curstyle not in [self._lexer.Default, self._lexer.Operator]:
-            return False
+#         # The style must be "default"
+#         curstyle = self.getStyleAt(self.getPosition())
+#         if curstyle not in [32,10]:
+#             return False
         
         # all good
         return True  
     
     
-    def autoCompShow(self, lenEntered, names):        
-        self.SendScintilla(self.SCI_AUTOCSHOW, lenEntered, names)
+    def autoComplete_do(self):
+        """ Perform autocompletion
+        This method is called after a char is entered or backspace is used.
+        Parses the line and finds the baseobject and the needle part: the
+        part that needs completing.
+        
+        It is verified that the autocompletion box should be shown. If 
+        so, control is passed to autoComplete_do2().
+        
+        This method calls _Autocomplete_do which makes sure that the 
+        analysis is only done if no keys have been pressed for 100ms.
+        The analysis consists of checking whether the needle is in 
+        the list and if so, select that item in the STC automcompletion 
+        list. If not, hide the popup list.
+        The list is queried by _Autocomplete_produceList, which may query
+        the list from the active session or use a previously queried 
+        list.
+        """
+        
+#         # only proceed if we're supposed to
+#         if not iep.config.doAutoComplete:
+#             self.StopIntrospecting()
+#             return
+        
+        # only proceed if valid python
+        if not self._isValidPython():
+            self.autoCompCancel()
+            return
+        
+        # Get line up to cursor
+        linenr, i = self.getLinenrAndIndex()
+        text = self.getLineString(linenr)
+        text = text[:i]
+        
+        # is the char valid?        
+        if not text or not ( text[-1] in namechars or text[-1]=='.' ):
+            self.autoCompCancel()
+            return
+        
+        # Store line and (re)start timer
+        self._delayTimer._line = text
+        self._delayTimer.start(iep.config.autoCompDelay)
     
-
+    
+    def autoComplete_do_now(self):
+        
+        # Parse the line, to see what (partial) name we need to complete
+        line = self._delayTimer._line
+        baseObject, name = parseLine_autocomplete(line)
+        name = name.lower()
+        
+        # Process
+        if name or baseObject:
+            doAutocomplete(self, baseObject, name)
+    
+    
     ## Callbacks
     
     
     def keyPressEvent(self, event):
-        # create simple keyevent class
+        
+        # Create simple keyevent class and set modifiers
         keyevent = KeyEvent( event.key() )
-        # set modifiers
         modifiers = event.modifiers()
         keyevent.controldown = modifiers & QtCore.Qt.ControlModifier
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
-        # dispatch event
-        handled = self.keyPressEvent2( keyevent )
-        if not handled:
-            Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
-        # process character press
+        # Dispatch event        
+        if not self.handleAlways(keyevent):
+            handled = False
+            if self.autoCompActive():
+                handled = self.handleAutoCompKeyEvent(keyevent)
+            else:
+                handled = self.handleNormalKeyEvent(keyevent)
+            
+            # Should we handle it the normal way?
+            if not handled:
+                Qsci.QsciScintillaBase.keyPressEvent(self, event)
+        
+        # Process character press
         if event.text():
-            linenr, i = self.getLinenrAndIndex()
-            line = self.getLineString(linenr)
-            base, namePart = parseLine_autocomplete(line[:i])
-            doAutocomplete(self, base, namePart)
-        # todo: I need these commands to deal with encoding
-        #i0 = self.getCurrentPos()
-        #i1 = self.SendScintilla(self.SCI_POSITIONBEFORE, i0)
-        #i2 = self.SendScintilla(self.SCI_POSITIONAFTER, i0)
-        #print(i1, i0, i2) 
+            key = ord( event.text() )
+            if key >= 48 or key == 8:
+                # If a char that allows completion or backspace was pressed
+                self.autoComplete_do()
     
-    def keyPressEvent2(self, event):
+    def handleAlways(self, event):
+        pass
+    
+    def handleAutoCompKeyEvent(self, event):
+        pass # todo: show interactive help when moving up/down
+    
+    def handleNormalKeyEvent(self, event):
         """ A slightly easier keypress event. 
-        
-         For the autocomplete.
-        - put it on if we enter a char (by OnCharDown callback)
-        - if pressing backspace
-        - selecting by double clicking
-        
-        - If the style is not good
-        - put it off when clicking outside or using arrows
-        - when window loses focus
-        - when pressing escape
-        - when an invalid character occurs.
-        
-        This one is called last...
         """
         
-        self.SendScintilla(self.SCI_CALLTIPSHOW, "hallo")
         
-        indentWidth = self.getIndentation()
-        indent = b' '
-        if indentWidth<0:
-            indentWidth = 1
-            indent = b'\t'
+        
+#         # If the auto-complete window is up let it do its thing.
+#         if self.autoCompActive():
+#             if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+#                 # we shall interupt autocompletion and
+#                 # do the action a few lines below...
+# #                 self.cancelList()
+#                 pass
+#             else:
+#                 # give control to autocompleter
+#                 return False
         
         if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             # auto indentation
             
+            # Get some data
+            indentWidth = self.getIndentation()
+            indent = b' '
+            if indentWidth<0:
+                indentWidth = 1
+                indent = b'\t'
+                
             if iep.config.editor.autoIndent:                
                 # check if style is ok...
                 pos = self.getPosition()
@@ -976,24 +1107,24 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 return True
                 #self.StopIntrospecting()
         
-        if event.key == QtCore.Qt.Key_Escape:
-            # clear signature of current object 
-            self._introspect_signature = ("","")
+#         if event.key == QtCore.Qt.Key_Escape:
+#             # clear signature of current object 
+#             self._introspect_signature = ("","")
+        
+#         if event.key == QtCore.Qt.Key_Backspace:
+#             doAutocomplete(self, '', '')
+#             #wx.CallAfter(self.Introspect_autoComplete)
+#             #wx.CallAfter(self.Introspect_signature)
             
-        if event.key == QtCore.Qt.Key_Backspace:
-            doAutocomplete(self, '', '')
-            #wx.CallAfter(self.Introspect_autoComplete)
-            #wx.CallAfter(self.Introspect_signature)
+#         if event.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
+#             # show signature also when moving inside it
+#             pass
+#             #wx.CallAfter(self.Introspect_signature)
             
-        if event.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
-            # show signature also when moving inside it
-            pass
-            #wx.CallAfter(self.Introspect_signature)
-            
-        updown = [QtCore.Qt.Key_Up, QtCore.Qt.Key_Down]
-        if event.key in updown and self.autoCompActive():
-            # show help!
-            pass
+#         updown = [QtCore.Qt.Key_Up, QtCore.Qt.Key_Down]
+#         if event.key in updown and self.autoCompActive():
+#             # show help!
+#             return False
             
 #             # get current selected name in autocomp list
 #             try:                
@@ -1015,12 +1146,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # never accept event
         return False
-    
-    ## Public methods
-    
-    # todo: note that I just as well might give the undecoded bytes!
-    
-    
+
+
 
 if __name__=="__main__":
     app = QtGui.QApplication([])

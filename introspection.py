@@ -28,6 +28,7 @@ import iep
 
 ## blabla
 
+autoCompleteOb = None
 def doAutocomplete(editor, objectName, partialMemberName):
     
 #     # Get editor
@@ -38,8 +39,11 @@ def doAutocomplete(editor, objectName, partialMemberName):
     # Create introspection object
     ob = IntrospectAutocomplete(editor, objectName, partialMemberName)
     
-    # process it
-    shellQuerier.postAutocompletion(ob)
+    global autoCompleteOb
+    autoCompleteOb = ob
+    
+#     # Process it
+#     shellQuerier.postAutocompletion(ob)
 
 
 def doSignature(objectName, partialMemberName):
@@ -128,6 +132,10 @@ class IntrospectAutocomplete(IntrospectionClass):
         self._editor = editor
         self._objectName = objectName
         self._partialMemberName = partialMemberName
+        
+        # Get reference of currenly active shell
+        shell = iep.shells.getCurrentShell()
+        shell.postRequest(self.getRequestString(), self.process)
     
     def getRequestString(self):
         return "EVAL ' '.join(dir({}))".format(self._objectName)
@@ -135,13 +143,23 @@ class IntrospectAutocomplete(IntrospectionClass):
     def process(self, response):
         
         # First see if this is still the right editor (can also be a shell)
-#         editor = iep.editors.getCurrentEditor()
-        editor = iep.shells.getCurrentShell()
-        if editor is not self._editor:
+        editor = None
+        editor1 = iep.editors.getCurrentEditor()
+        editor2 = iep.shells.getCurrentShell()
+        if editor1 is self._editor:
+            editor = editor1
+        elif editor2 is self._editor:
+            editor = editor2
+        else:
             return
         
+        # Sort the response
+        response = response.split(' ')
+        response.sort(key=str.upper)
+        
         # Show list
-        iep.callLater(editor.autoCompShow, 0, response)
+        print('posing', len(response))
+        iep.callLater(editor.autoCompShow, response)
     
 
 # class RequestMembers(RequestClass):
@@ -249,16 +267,16 @@ class ShellQuerier(threading.Thread):
             req = shell._request
             resp = shell._response
             
-            # Flush response queue so we're in sync                    
-            resp.read()
-            
-            # Send request and wait for response
-            request = request.getRequestString()
-            if request:
-                req.write(request)
-                result = resp.readOne(True) # Block: wait for response
-                if result != '<error>':
-                    return result
+#             # Flush response queue so we're in sync                    
+#             resp.read()
+#             
+#             # Send request and wait for response
+#             request = request.getRequestString()
+#             if request:
+#                 req.write(request)
+#                 result = resp.readOne(10) # Block 10s: wait for response
+#                 if result != '<error>':
+#                     return result
         
         # If not returned nicely, disable
         self._requestAutocomp = None
