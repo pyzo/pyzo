@@ -55,19 +55,21 @@ class BaseShell(BaseTextCtrl):
         self.setStyle('pythonconsole')
     
     
-    def handleAlways(self, keyevent):
-        e = keyevent
+    def keyPressHandler_always(self, event):
+        """ keyPressHandler_always(event)
+        Is always called. If returns True, will not proceed.
+        If return False or None, keyPressHandler_autoComp or 
+        keyPressHandler_normal is called, depending on whether the
+        autocompletion list is active.
+        """
         qc = QtCore.Qt
         
-        if e.controldown and e.key == qc.Key_Cancel:
-            # todo: ok, is this the break key?
-            print("I can interrupt the process here!")
-            return True
+        # Process interrupt goes via the menu
         
-        elif e.key == qc.Key_Home:
+        if event.key == qc.Key_Home:
             # Home goes to the prompt.
             home = self._promptPosEnd
-            if e.shiftdown:
+            if event.shiftdown:
                 self.setPosition(home)
             else:
                 self.setPositionAndAnchor(home)
@@ -75,11 +77,11 @@ class BaseShell(BaseTextCtrl):
             self.autoCompCancel()
             return True
         
-        elif e.key == qc.Key_Insert:
+        elif event.key == qc.Key_Insert:
             # Don't toggle between insert mode and overwrite mode.
             return True
         
-        elif e.key in [qc.Key_Backspace, qc.Key_Left]:
+        elif event.key in [qc.Key_Backspace, qc.Key_Left]:
             # do not backspace past prompt
             # nor with arrow key
             home = self._promptPosEnd
@@ -87,28 +89,19 @@ class BaseShell(BaseTextCtrl):
                 return False # process normally
             return True
     
-    def handleNormalKeyEvent(self, keyevent):
-        e = keyevent
+    
+    def keyPressHandler_normal(self, event):
+        """ keyPressHandler_normal(event)
+        Called when the autocomp list is NOT active and when the event
+        was not handled by the "always" handler. If returns True,
+        will not process the event further.
+        """
         qc = QtCore.Qt
         
-#         # If the auto-complete window is up let it do its thing.
-#         if self.autoCompActive():
-#             if e.key in [qc.Key_Return, qc.Key_Enter]:
-#                 # we shall interupt autocompletion and
-#                 # do the action a few lines below...
-# #                 self.cancelList()
-#                 pass
-#             else:
-#                 # give control to autocompleter
-#                 return
-                
-                
-        if e.key in [qc.Key_Return, qc.Key_Enter]:            
-            # enter: execute line
+        if event.key in [qc.Key_Return, qc.Key_Enter]:            
+            # Enter: execute line
             
-            # first cancel autocomp and calltip
-            if self.isListActive():
-                self.cancelList()
+            # Remove calltip if shown
             if self.isCallTipActive():
                 pass # todo: how to hide it?
                 
@@ -117,17 +110,22 @@ class BaseShell(BaseTextCtrl):
             
             # process
             self.processLine()
+            return True
         
-        
-        elif e.key == qc.Key_Escape:
+        elif event.key == qc.Key_Escape:
             # Clear the current, unexecuted command.
-            self.cancelList()
+            
             self.clearCommand()
             self.setPositionAndAnchor(self._promptPosEnd)
             self.ensureCursorVisible()
-            self._historyNeedle = None            
+            self._historyNeedle = None
+            return True
         
-        elif e.key in [qc.Key_Up, qc.Key_Down]:
+        elif event.key in [qc.Key_Up, qc.Key_Down]:
+            # Command history
+            
+            # _historyStep is 0 by default, but the first history element
+            # is at _historyStep=1.
             
             # needle
             if self._historyNeedle == None:
@@ -138,10 +136,12 @@ class BaseShell(BaseTextCtrl):
                 self._historyStep = 0
             
             # step
-            if e.key==qc.Key_Up:
+            if event.key==qc.Key_Up:
                 self._historyStep +=1
-            if e.key==qc.Key_Down:
+            if event.key==qc.Key_Down:
                 self._historyStep -=1
+                if self._historyStep<1:
+                    self._historyStep = 1
             
             # find the command
             count = 0
@@ -160,24 +160,17 @@ class BaseShell(BaseTextCtrl):
             self.setPosition(self.length())
             self.ensureCursorVisible()
             self.replaceSelection(c) # replaces the current selection
-        
-        
+            return True
         
         else:
-            if not e.controldown:
+            if not event.controldown:
                 # go back to prompt if not there...
                 home = self._promptPosEnd 
                 pend = self.length()
                 if self.getPosition() < home or self.getAnchor() < home:
                     self.setPositionAndAnchor(pend)
                     self.ensureCursorVisible()                
-            
-            # act normal
-            return False
-            # todo: skip here? where elso should I skip?
-        
-        # Stop handling by default
-        return False
+                    # Proceed as normal though!
     
     
     def clearCommand(self):

@@ -377,25 +377,6 @@ class KeyEvent:
         except ValueError:
             self.char = ""
 
-
-def removeComment(text):    
-    """Remove comments from a one-line comment,
-    but if the text is just spaces, leave it alone.
-    """
-    
-    # Bytes and bytearray objects, being "strings of bytes", have all 
-    # methods found on strings, with the exception of encode(), format() 
-    # and isidentifier(), which do not make sense with these types.
-    
-    # remove everything after first #    
-    i = text.find(b'#')
-    if i>0:
-        text = text[:i] 
-    text2 = text.rstrip() # remove lose spaces
-    if len(text2)>0:        
-        return text2  
-    else:
-        return text
     
 
 def makeBytes(text):
@@ -1021,6 +1002,14 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     
     def keyPressEvent(self, event):
+        """ Receive qt key event. 
+        From here we'l dispatch the event to perform autocompletion
+        or other stuff...
+        """
+        # todo: Each autocomplete request should get an id or so,
+        # such that when the autocomplete wants to show the result,
+        # it can deside not to when the user has for example already
+        # pressed enter.
         
         # Create simple keyevent class and set modifiers
         keyevent = KeyEvent( event.key() )
@@ -1030,12 +1019,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
         
         # Dispatch event        
-        if not self.handleAlways(keyevent):
+        if not self.keyPressHandler_always(keyevent):
             handled = False
             if self.autoCompActive():
-                handled = self.handleAutoCompKeyEvent(keyevent)
+                handled = self.keyPressHandler_autoComp(keyevent)
             else:
-                handled = self.handleNormalKeyEvent(keyevent)
+                handled = self.keyPressHandler_normal(keyevent)
             
             # Should we handle it the normal way?
             if not handled:
@@ -1048,84 +1037,30 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 # If a char that allows completion or backspace was pressed
                 self.autoComplete_do()
     
-    def handleAlways(self, event):
+    
+    def keyPressHandler_always(self, event):
+        """ keyPressHandler_always(event)
+        Is always called. If returns True, will not proceed.
+        If return False or None, keyPressHandler_autoComp or 
+        keyPressHandler_normal is called, depending on whether the
+        autocompletion list is active.
+        """
         pass
     
-    def handleAutoCompKeyEvent(self, event):
-        pass # todo: show interactive help when moving up/down
     
-    def handleNormalKeyEvent(self, event):
-        """ A slightly easier keypress event. 
+    def keyPressHandler_autoComp(self, event):
+        """ keyPressHandler_autoComp(event)
+        Called when the autocomp list is active and when the event
+        was not handled by the "always" handler. If returns True,
+        will not process the event further.
         """
-        
-        
-        
-#         # If the auto-complete window is up let it do its thing.
-#         if self.autoCompActive():
-#             if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
-#                 # we shall interupt autocompletion and
-#                 # do the action a few lines below...
-# #                 self.cancelList()
-#                 pass
-#             else:
-#                 # give control to autocompleter
-#                 return False
-        
-        if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
-            # auto indentation
-            
-            # Get some data
-            indentWidth = self.getIndentation()
-            indent = b' '
-            if indentWidth<0:
-                indentWidth = 1
-                indent = b'\t'
-                
-            if iep.config.editor.autoIndent:                
-                # check if style is ok...
-                pos = self.getPosition()
-                curstyle = self.getStyleAt(self.getPosition())
-                if curstyle in [0,10]: # default, operator
-                    styleOk = True
-                else:
-                    styleOk = False
-                # auto indent!
-                linenr,index = self.getLinenrAndIndex()
-                line = self.getLineBytes(linenr)
-                if not line:
-                    return False
-                text = removeComment( line )
-                ind = len(text) - len(text.lstrip())
-                ind = int(round(ind/indentWidth))
-                if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
-                    text2insert = b"\n"+indent*((ind+1)*indentWidth)
-                else:                
-                    text2insert = b"\n"+indent*(ind*indentWidth)
-                self.insertText(pos, text2insert)
-                pos = self.getPosition()
-                self.setPositionAndAnchor( pos + len(text2insert) )
-                return True
-                #self.StopIntrospecting()
-        
-#         if event.key == QtCore.Qt.Key_Escape:
-#             # clear signature of current object 
-#             self._introspect_signature = ("","")
-        
-#         if event.key == QtCore.Qt.Key_Backspace:
-#             doAutocomplete(self, '', '')
-#             #wx.CallAfter(self.Introspect_autoComplete)
-#             #wx.CallAfter(self.Introspect_signature)
-            
-#         if event.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
-#             # show signature also when moving inside it
-#             pass
-#             #wx.CallAfter(self.Introspect_signature)
-            
+        pass 
+        # todo: show interactive help when moving up/down
 #         updown = [QtCore.Qt.Key_Up, QtCore.Qt.Key_Down]
 #         if event.key in updown and self.autoCompActive():
 #             # show help!
 #             return False
-            
+
 #             # get current selected name in autocomp list
 #             try:                
 #                 i = self.AutoCompGetCurrent()
@@ -1143,10 +1078,30 @@ class BaseTextCtrl(Qsci.QsciScintilla):
 #             
 #             # aply
 #             self.Introspect_help(name,True)
-        
-        # never accept event
-        return False
 
+    
+    def keyPressHandler_normal(self, event):
+        """ keyPressHandler_normal(event)
+        Called when the autocomp list is NOT active and when the event
+        was not handled by the "always" handler. If returns True,
+        will not process the event further.
+        """
+        return False
+        
+        
+#         if event.key == QtCore.Qt.Key_Escape:
+#             # clear signature of current object 
+#             self._introspect_signature = ("","")
+        
+#         if event.key == QtCore.Qt.Key_Backspace:
+#             doAutocomplete(self, '', '')
+#             #wx.CallAfter(self.Introspect_autoComplete)
+#             #wx.CallAfter(self.Introspect_signature)
+            
+#         if event.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
+#             # show signature also when moving inside it
+#             pass
+#             #wx.CallAfter(self.Introspect_signature)
 
 
 if __name__=="__main__":
