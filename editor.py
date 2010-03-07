@@ -98,6 +98,26 @@ def determineIndentation(text):
     return indent
 
 
+def removeComment(text):    
+    """Remove comments from a one-line comment,
+    but if the text is just spaces, leave it alone.
+    """
+    
+    # Bytes and bytearray objects, being "strings of bytes", have all 
+    # methods found on strings, with the exception of encode(), format() 
+    # and isidentifier(), which do not make sense with these types.
+    
+    # remove everything after first #    
+    i = text.find(b'#')
+    if i>0:
+        text = text[:i] 
+    text2 = text.rstrip() # remove lose spaces
+    if len(text2)>0:        
+        return text2  
+    else:
+        return text
+
+
 def createEditor(parent, filename=None):
     """ Tries to load the file given by the filename and
     if succesful, creates an editor instance to put it in, 
@@ -371,6 +391,47 @@ class IepEditor(BaseTextCtrl):
                 self.replaceTargetBytes(b"")
 
     
+    def keyPressHandler_normal(self, event):
+        """ keyPressHandler_normal(event)
+        Called when the autocomp list is NOT active and when the event
+        was not handled by the "always" handler. If returns True,
+        will not process the event further.
+        """
+        
+        if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+            # Auto indentation
+            
+            # Get some data
+            indentWidth = self.getIndentation()
+            indent = b' '
+            if indentWidth<0:
+                indentWidth = 1
+                indent = b'\t'
+                
+            if iep.config.editor.autoIndent:                
+                # check if style is ok...
+                pos = self.getPosition()
+                curstyle = self.getStyleAt(self.getPosition())
+                if curstyle in [0,10]: # default, operator
+                    styleOk = True
+                else:
+                    styleOk = False
+                # auto indent!
+                linenr,index = self.getLinenrAndIndex()
+                line = self.getLineBytes(linenr)
+                if not line:
+                    return False
+                text = removeComment( line )
+                ind = len(text) - len(text.lstrip())
+                ind = int(round(ind/indentWidth))
+                if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
+                    text2insert = b"\n"+indent*((ind+1)*indentWidth)
+                else:                
+                    text2insert = b"\n"+indent*(ind*indentWidth)
+                self.insertText(pos, text2insert)
+                pos = self.getPosition()
+                self.setPositionAndAnchor( pos + len(text2insert) )
+                return True
     
     
 if __name__=="__main__":
