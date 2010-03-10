@@ -138,9 +138,12 @@ class IntrospectAutocomplete(IntrospectionClass):
         shell.postRequest(self.getRequestString(), self.process)
     
     def getRequestString(self):
-        return "EVAL ' '.join(dir({}))".format(self._objectName)
+        return "DIR {}".format(self._objectName)
     
     def process(self, response):
+        
+        # Make list
+        response = response.split(',')
         
         # First see if this is still the right editor (can also be a shell)
         editor = None
@@ -153,12 +156,15 @@ class IntrospectAutocomplete(IntrospectionClass):
         else:
             return
         
+        # Insert  builtins
+        if editor2 and not self._objectName:
+            response.extend(editor2._builtins)
+        
         # Sort the response
-        response = response.split(' ')
         response.sort(key=str.upper)
         
         # Show list
-        print('posing', len(response))
+        #print('posing', len(response))
         iep.callLater(editor.autoCompShow, response)
     
 

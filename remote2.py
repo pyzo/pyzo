@@ -497,12 +497,13 @@ class IntroSpectionThread(threading.Thread):
         try:
             # here globals is None, so we can look into sys, time, etc...
             d = eval(command, None, self.locals)
-        except:            
+#             d = eval(command, {}, self.locals)
+        except Exception, why:            
             d = None
         
         # respond
         if d:
             self.response.write( str(d) )
         else:
-            self.response.write( "<error>" )
+            self.response.write( str(why) )
        
