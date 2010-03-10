@@ -31,9 +31,6 @@ class BaseShell(BaseTextCtrl):
         self.setMarginLineNumbers(1,False)
         self.setEdgeMode(self.EdgeNone)
         
-        # no lexer
-        self.setLexer()
-        
         # variables we need
         self._more = False
         self._promptPosStart = 0
@@ -411,7 +408,7 @@ class PythonShell(BaseShell):
         # Define queue of requestObjects and insert two requests
         self._requestQueue = []
         self.postRequest('EVAL sys.version', self._setVersion)
-        self.postRequest('EVAL __builtins__.keys()', self._setBuiltins)
+        self.postRequest('KEYS __builtins__.__dict__', self._setBuiltins)
         
         # time var to pump messages in one go
         self._t = time.time()

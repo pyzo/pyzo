@@ -423,7 +423,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._delayTimer.setSingleShot(True)
         self._delayTimer.timeout.connect(self.autoComplete_do_now)
         
-        print('Initializing Scintilla component.')
+        # For autocompletion
+        self._autoComp_name = ''
+        
+        #print('Initializing Scintilla component.')
+        
+        # Do not use the QScintilla lexer
+        self.setLexer()
         
         # SET PREFERENCES
         # Inherited classes may override some of these settings. Indentation
@@ -497,7 +503,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Autocompletion settings
 
         # Typing one of these characters will SCI_AUTOCCANCEL
-        self.SendScintilla(self.SCI_AUTOCSTOPS, None, ' .*+-/|&')
+        stopChars = ' .,;:([)]}\'"\\<>%^&+-=*/|`'
+        self.SendScintilla(self.SCI_AUTOCSTOPS, None, stopChars)
         
         # This char is used to seperate the words given with SCI_AUTOCSHOW
         self.SendScintilla(self.SCI_AUTOCSETSEPARATOR, 32) # space
@@ -512,12 +519,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # If True, will SCI_AUTOCCOMPLETE when list has only one item
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
         
-        # Set case sensitifity
-        # Todo: this was True because ...?
-        self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
-        
-        # If True, will hide the list if no match
+        # If True, will hide the list if no match. Set to True, although
+        # we will also do the check ourselves 
         self.SendScintilla(self.SCI_AUTOCSETAUTOHIDE, True)
+        
+        # Set case sensitifity - case insensitivity is so very handy
+        self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
         
         # If True, will erase the word-chars following the caret 
         # before inserting selected text. Please don't!
@@ -896,7 +903,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         SCI_AUTOCGETCURRENTTEXT # Currently selected text
         """
     
-    def autoCompShow(self, names, lenentered=0): 
+    def autoCompShow(self, lenentered, names): 
         """ Start showing the autocompletion list, 
         with the list of given names (which can be a list or a space separated
         string.
@@ -949,7 +956,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         part that needs completing.
         
         It is verified that the autocompletion box should be shown. If 
-        so, control is passed to autoComplete_do2().
+        so, a timer is started that will call autocomplete_do_now() in
+        xx seconds.
         
         This method calls _Autocomplete_do which makes sure that the 
         analysis is only done if no keys have been pressed for 100ms.
@@ -987,16 +995,71 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     
     def autoComplete_do_now(self):
+        # todo: better names for methods
         
         # Parse the line, to see what (partial) name we need to complete
         line = self._delayTimer._line
+        if not line:
+            return
         baseObject, name = parseLine_autocomplete(line)
         name = name.lower()
         
-        # Process
+        # Store name to search for
+        self._autoComp_name = baseObject + '.' + name
+        
+        # Process by posting a request at the shell
         if name or baseObject:
-            doAutocomplete(self, baseObject, name)
+            req = "DIR " + baseObject
+            shell = iep.shells.getCurrentShell()
+            shell.postRequest(req, self.autoComplete_process)
     
+    
+    def autoComplete_process(self, response):
+        
+        # todo: also send and receive back the self._autoComp_name so
+        # we can determine whether it's still up-to-date
+        
+        # Should we process at all?
+        if not self._autoComp_name:
+            self.autoCompCancel()
+            return
+        
+        # Get baseObject, name
+        baseObject, name = self._autoComp_name.split('.')
+        
+        # Make list
+        response = response.split(',')
+        
+        # First see if this is still the right editor (can also be a shell)
+        editor1 = iep.editors.getCurrentEditor()
+        editor2 = iep.shells.getCurrentShell()
+        if editor1 is not self and editor2 is not self:
+            # This editor is no longer active
+            self.autoCompCancel()
+            return
+        
+        # Insert  builtins
+        if editor2 and not baseObject:
+            response.extend(editor2._builtins)
+        
+        # Sort the response
+        response.sort(key=str.upper)
+        
+        # Check whether name in list. We do it like this rather than
+        # using AutoCompAutoHide() because it prevents flicker.    
+        thename = ""
+        for item in response:
+            if item.lower().startswith(name):
+                thename = item
+                break
+        # if not, hide
+        if not thename:
+            self.autoCompCancel()
+        else:
+            # Show completion list if required. 
+            # When already shown the list will change selection when typing
+            if not self.autoCompActive():
+                self.autoCompShow(len(name), response)
     
     ## Callbacks
     
@@ -1018,12 +1081,18 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
         
+        # Cancel any autocompletion in progress
+        # todo: can we not use a single flag for this?
+        self._delayTimer._line = ''
+        self._autoComp_name = ''
+        
         # Dispatch event        
         if not self.keyPressHandler_always(keyevent):
             handled = False
             if self.autoCompActive():
                 handled = self.keyPressHandler_autoComp(keyevent)
             else:
+                # Handle normal key event
                 handled = self.keyPressHandler_normal(keyevent)
             
             # Should we handle it the normal way?
