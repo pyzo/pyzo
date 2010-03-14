@@ -11,7 +11,15 @@ from PyQt4 import Qsci
 qt = QtGui
 
 from baseTextCtrl import BaseTextCtrl, normalizePath
+import codeparser
 import iep
+
+
+# Create "global" parser instance
+if not hasattr(iep, 'parser'):
+    iep.parser = codeparser.Parser()
+    iep.parser.start()
+
 
 def determineLineEnding(text):
     """get the line ending style used in the text.
@@ -207,6 +215,11 @@ class IepEditor(BaseTextCtrl):
         SIGNAL = QtCore.SIGNAL
         self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
         self.connect(self, SIGNAL('SCN_SAVEPOINTREACHED()'), self.makeDirtyNot)
+        
+        # To see whether the doc has changed, in a slightly different
+        # way to update the parser. SCN_MODIFIED might make more sense, but
+        # produces errors.
+        self.SCN_UPDATEUI.connect(self._onModified)
     
     
     def focusInEvent(self, event):
@@ -262,6 +275,9 @@ class IepEditor(BaseTextCtrl):
         self._dirty = False
         self.somethingChanged.emit()
     
+    
+    def _onModified(self):
+        iep.parser.parseThis(self)
     
     def dropEvent(self, event):
         """ Drop files in the list. """        
@@ -391,8 +407,8 @@ class IepEditor(BaseTextCtrl):
                 self.replaceTargetBytes(b"")
 
     
-    def keyPressHandler_normal(self, event):
-        """ keyPressHandler_normal(event)
+    def keyPressHandler_always(self, event):
+        """ keyPressHandler_always(event)
         Called when the autocomp list is NOT active and when the event
         was not handled by the "always" handler. If returns True,
         will not process the event further.
@@ -400,6 +416,9 @@ class IepEditor(BaseTextCtrl):
         
         if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             # Auto indentation
+            
+            # Remove autocomp if shown
+            self.autoCompCancel()
             
             # Get some data
             indentWidth = self.getIndentation()

@@ -63,7 +63,24 @@ class BaseShell(BaseTextCtrl):
         
         # Process interrupt goes via the menu
         
-        if event.key == qc.Key_Home:
+        if event.key in [qc.Key_Return, qc.Key_Enter]:            
+            # Enter: execute line
+            
+            # Remove calltip if shown
+            if self.isCallTipActive():
+                pass # todo: how to hide it?
+            
+            # Remove autocomp if shown
+            self.autoCompCancel()
+            
+            # reset history needle
+            self._historyNeedle = None
+            
+            # process
+            self.processLine()
+            return True
+        
+        elif event.key == qc.Key_Home:
             # Home goes to the prompt.
             home = self._promptPosEnd
             if event.shiftdown:
@@ -95,21 +112,7 @@ class BaseShell(BaseTextCtrl):
         """
         qc = QtCore.Qt
         
-        if event.key in [qc.Key_Return, qc.Key_Enter]:            
-            # Enter: execute line
-            
-            # Remove calltip if shown
-            if self.isCallTipActive():
-                pass # todo: how to hide it?
-                
-            # reset history needle
-            self._historyNeedle = None
-            
-            # process
-            self.processLine()
-            return True
-        
-        elif event.key == qc.Key_Escape:
+        if event.key == qc.Key_Escape:
             # Clear the current, unexecuted command.
             
             self.clearCommand()
@@ -383,7 +386,7 @@ class PythonShell(BaseShell):
         cwd = os.getcwd() # PYTHONPATH
         
         # start process
-        self._process = subprocess.Popen(command, shell=False, cwd=cwd)
+        self._process = subprocess.Popen(command, shell=True, cwd=cwd)
         
         # is the process busy?
         self._state = -1 # initializing

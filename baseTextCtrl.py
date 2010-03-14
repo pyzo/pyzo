@@ -22,7 +22,7 @@ if 'win' in sys.platform:
 elif 'mac' in sys.platform:
     FACES = {'serif': 'Lucida Grande', 'mono': 'Monaco', 'sans': 'Geneva'}
 else:
-    FACES = {'serif': 'Times', 'mono': 'Courier', 'sans': 'Helvetica'}
+    FACES = {'serif': 'Times', 'mono': 'mono', 'sans': 'Helvetica'}
 
 # define style stuff
 subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT,
@@ -534,7 +534,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # The first does not seem to have any effect.
         self.SendScintilla(self.SCI_AUTOCSETMAXHEIGHT, 10)
         self.SendScintilla(self.SCI_AUTOCSETMAXWIDTH, 0)
-    
+        
     
     def SendScintilla(self, *args):
         """ Overloaded method that transforms any string arguments to
@@ -1025,7 +1025,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             return
         
         # Get baseObject, name
-        baseObject, name = self._autoComp_name.split('.')
+        baseObject, name = tuple(self._autoComp_name.rsplit('.',1))
         
         # Make list
         response = response.split(',')
@@ -1041,6 +1041,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Insert  builtins
         if editor2 and not baseObject:
             response.extend(editor2._builtins)
+        
+        # Get normal fictive namespace        
+        if self is editor1 and not baseObject:
+            fictiveNS = iep.parser.getFictiveNameSpace(self)
+            response.extend(fictiveNS)  
+            print(fictiveNS)
         
         # Sort the response
         response.sort(key=str.upper)
@@ -1102,8 +1108,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Process character press
         if event.text():
             key = ord( event.text() )
-            if key >= 48 or key == 8:
-                # If a char that allows completion or backspace was pressed
+            if key >= 48 or key in [8, 46]:
+                # If a char that allows completion or backspace or dot was pressed
                 self.autoComplete_do()
     
     
@@ -1115,7 +1121,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         autocompletion list is active.
         """
         pass
-    
+        
     
     def keyPressHandler_autoComp(self, event):
         """ keyPressHandler_autoComp(event)

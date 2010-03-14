@@ -1,3 +1,4 @@
+#!/usr/bin/python3.1
 #   $Author: almar $
 #   $Date: 2008-09-30 10:26:38 +0200 (Tue, 30 Sep 2008) $
 #   $Rev: 557 $
@@ -45,7 +46,7 @@ def isFrozen():
     import os
     ex = os.path.split(sys.executable)[1]
     ex = os.path.splitext(ex)[0]
-    if ex.lower() == 'python':
+    if ex.lower().startswith('python'): # because can be python3 on Linux
         return False
     else:
         return True

@@ -33,7 +33,7 @@
 # DEFAULT, this is always set...
 default = dict:
     s032 = 'face:{mono},size:9,back:#FFFFFF' # STC_STYLE_DEFAULT
-    #s032 = 'face:consolas,size:10,back:#FFFFFF' # STC_STYLE_DEFAULT
+    #s032 = 'face:mono,size:10,back:#FFFFFF' # STC_STYLE_DEFAULT
     s033 = 'back:#C0C0C0,face:{sans},size:7' # STC_STYLE_LINENUMBER
     s034 = 'bold,back:#AAFFAA' # STC_STYLE_BRACELIGHT
     s035 = 'bold,back:#FFAAAA' # STC_STYLE_BRACEBAD
