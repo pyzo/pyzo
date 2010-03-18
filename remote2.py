@@ -128,7 +128,7 @@ class IepInterpreter(code.InteractiveConsole):
                         self.write(str(sys.ps1)) 
                 
 #                 # update tk and wx 50 times per second
-#                 if time.clock() - guitime > 0.019: # a bit sooner for sync
+#                 if time.time() - guitime > 0.019: # a bit sooner for sync
 #                     if tkapp:
 #                         tkapp.update()
 #                     if wxapp:
@@ -138,7 +138,7 @@ class IepInterpreter(code.InteractiveConsole):
 #                         flapp.wait(0)
 #                     if qtapp:
 #                         qtapp.processEvents()
-#                     guitime = time.clock()
+#                     guitime = time.time()
                     
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")
