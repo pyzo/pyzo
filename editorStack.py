@@ -824,7 +824,7 @@ class FindReplaceWidget(QtGui.QFrame):
         self._replaceText = qt.QLineEdit(self)
         self._replaceText.setGeometry(1,yy,barwidth-2,20)
         yy += 20
-        self._replaceAll = qt.QPushButton("Replace all", self) 
+        self._replaceAll = qt.QPushButton("Repl. all", self) 
         self._replaceAll.setGeometry(1,yy, ww,20)
         self._replace = qt.QPushButton("Replace", self)
         self._replace.setGeometry(ww+1,yy,ww,20)
@@ -1019,7 +1019,7 @@ class FindReplaceWidget(QtGui.QFrame):
             return 
         
         # get current position
-        line, index = editor.getLineAndIndex()
+        linenr, index = editor.getLinenrAndIndex()
         
         # replace all
         editor.setPosition(0)
@@ -1027,7 +1027,7 @@ class FindReplaceWidget(QtGui.QFrame):
             pass
         
         # reset position
-        pos = editor.getPositionFromLine(line)
+        pos = editor.getPositionFromLinenr(linenr)
         editor.setPositionAndAnchor(pos+index)
     
     
