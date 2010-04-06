@@ -124,6 +124,24 @@ def parseLine_autocomplete(text):
         return text[i+1:i_base], text[i_base+1:]
 
 
+# I wrote this for IEP1, but I find it a bit hard to read now :)
+# What it does is take inheritance into account.
+def findClassFullNameSpace(fobject):
+    locallist = fobject.attributes
+    for super in fobject.supers:
+        # Try cutting it up and so force an import
+        superparts = super.split('.')
+        superparts.append('') # to deal with -1
+        for i in range(1,len(superparts)):
+            superpart = ".".join(superparts[:-i])                    
+            tmp = self._Autocomplete_produceList(superpart)
+            if tmp: break
+        # Auto recursive
+        tmp = self._Autocomplete_produceList(super)
+        tmp = [item for item in tmp if item not in locallist]
+        locallist.extend(tmp)
+    return locallist
+
 class StyleManager(QtCore.QObject):
     """ Singleton class for managing the styles of the text control. """
     
@@ -1026,8 +1044,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Get baseObject, name
         baseObject, name = tuple(self._autoComp_name.rsplit('.',1))
         
-        # Make list
-        response = response.split(',')
+        # Make set instance (to prevent duplicates), and fill
+        names = set()
+        names.union( response.split(',') )
+        print(response.split(','))
+        # todo: union does not seem to do the trick in Py3k
         
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
@@ -1039,27 +1060,44 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # Insert  builtins
         if editor2 and not baseObject:
-            response.extend(editor2._builtins)
+            names.union(editor2._builtins)
         
-        # Get normal fictive namespace        
-        if self is editor1 and not baseObject:
-            fictiveNS = iep.parser.getFictiveNameSpace(self)
-            response.extend(fictiveNS)  
-            print(fictiveNS)
+        # Some things are only done if this is an editor ...
+        if self is editor1:
+            
+            # Include imports
+            if not baseObject:
+                importNames, importLines = iep.parser.getFictiveImports()
+                names.union(importNames)
+            
+            # Get normal fictive namespace
+            fictiveNS = set()        
+            if not baseObject:
+                fictiveNS = iep.parser.getFictiveNameSpace(self)
+                names.union(fictiveNS)  
+            
+            # Get fictive class name
+            if not names and baseObject in fictiveNS:
+                # get fictive self objectlist (self.[])                
+                fictiveClass = iep.parser.getFictiveCurrentClass(baseObject, self)
+#                 if fictiveClass:
+#                     names.union( findClassFullNameSpace(fictiveClass) )
+            
+            elif not names:
+                # only the self list
+                fictiveClass = iep.parser.getFictiveClass(baseObject)
+#                 if fictiveClass:
+#                     names.union( findClassFullNameSpace(fictiveClass) )
         
-        # Include imports
-        if self is editor1 and not baseObject:
-            importNames, importLines = iep.parser.getFictiveImports()
-            response.extend(importNames)
-        
-        # Sort the response
-        response.sort(key=str.upper)
+        # Make a list and sort it
+        names = list(names)
+        names.sort(key=str.upper)
         
         # Check whether name in list. We do it like this rather than
         # using AutoCompAutoHide() because it prevents flicker.    
         name = name.lower()
         thename = ""
-        for item in response:
+        for item in names:
             if item.lower().startswith(name):
                 thename = item
                 break
@@ -1070,7 +1108,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # Show completion list if required. 
             # When already shown the list will change selection when typing
             if not self.autoCompActive():
-                self.autoCompShow(len(name), response)
+                self.autoCompShow(len(name), names)
     
     
     
