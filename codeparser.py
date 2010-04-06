@@ -164,15 +164,15 @@ class Parser(threading.Thread):
         """ run()
         This is the main loop.
         """
-        
-        # todo: break when new text arrives? or maybe not
-        # todo: wait with analyzing for 0.5 sec or so
-        while True:
-            time.sleep(0.01)
-            if self._text:
-                self.rootitem, self.items = self._analyze(self._text)
-                self._text = ''
-        
+        time.sleep(0.5)
+        try:
+            while True:
+                time.sleep(0.01)
+                if self._text:
+                    self.rootitem, self.items = self._analyze(self._text)
+                    self._text = ''
+        except AttributeError:
+            pass # when python exits, time can be None...
     
     
     def _analyze(self, text):
@@ -215,10 +215,15 @@ class Parser(threading.Thread):
             object.parent = node
             lastObject[0] = object 
         
+        # Set flag to false so we are notified if new text arrives
+        self._gotNewText = False
+        
         # Find objects! 
         # type can be: cell, class, def, import, var 
         for i in range( len(lines) ):
-            line = lines[i]
+            
+            # Obtain line
+            line = lines[i]            
             linelen = len(line)
             
             # Should we stop?
@@ -264,13 +269,13 @@ class Parser(threading.Thread):
             foundSomething = False
             linel = line.lower()
             
-            
             # Detect classes
-            pattern = r'^\s*(cp?def\s+)?class ([a-zA-Z_][a-zA-Z_0-9]*)\s*\(?.*\)?:'
+            pattern = r'^\s*(cp?def\s+)?class ([a-zA-Z_][a-zA-Z_0-9]*)\s*(\(.*?\))?:'
             if not foundSomething:
                 classResult = re.search(pattern, line)
+                
                 if classResult:
-                    foundSomething = True
+                    foundSomething = True                    
                     # Get name
                     name = classResult.group(2)
                     item = FictiveObject('class', i, indent, name)
@@ -285,21 +290,27 @@ class Parser(threading.Thread):
                         item.supers = [tmp for tmp in supers if tmp]
             
             # Detect functions and methods (also multiline)
-            # todo: take several future lines into account
             pattern = r'^\s*(cp?)?def\s+([a-zA-Z_][a-zA-Z_0-9]*\s+)?([a-zA-Z_][a-zA-Z_0-9]*)\s*\((.*?)\):'
-            if not foundSomething:
-                defResult = re.search(pattern, line)
+            if (not foundSomething) and line.count('def '):
+                # Get a multiline version (for long defs)
+                multiLine = line
+                for ii in range(1,5):
+                    if i+ii<len(lines): multiLine += ' '+lines[i+ii].strip()
+                # Get result
+                defResult = re.search(pattern, multiLine)
                 if defResult:
                     # Get name
-                    name = defResult.group(3) # todo: find i
+                    name = defResult.group(3)
                     item = FictiveObject('def', i, indent, name)
                     appendToStructure(item)
                     item.selfname = None # will be filled in if a valid method
-                    args = a.group(4)
+                    args = defResult.group(4)
                     # is it a method? -> add method to attr and find selfname
                     if item.parent.type == 'class':
                         item.parent.attributes.append(name)
                         
+                        # Find what is used as "self"
+                        i2 = line.find('(')
                         i4 = line.find(",",i2)
                         if i4 < 0:
                             i4 = line.find(")",i2)
