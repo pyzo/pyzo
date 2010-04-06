@@ -4,7 +4,6 @@ classes. Implements styling, introspection and a bit of other stuff that
 is common for both shells and editors.
 """
 
-from introspection import doAutocomplete
 import iep
 import os, sys, time
 import ssdf
@@ -1018,7 +1017,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # todo: also send and receive back the self._autoComp_name so
         # we can determine whether it's still up-to-date
-        
+        # todo: keep reference of the autocomp list for re-use as in IEP1?
         # Should we process at all?
         if not self._autoComp_name:
             self.autoCompCancel()
@@ -1048,17 +1047,23 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             response.extend(fictiveNS)  
             print(fictiveNS)
         
+        # Include imports
+        if self is editor1 and not baseObject:
+            importNames, importLines = iep.parser.getFictiveImports()
+            response.extend(importNames)
+        
         # Sort the response
         response.sort(key=str.upper)
         
         # Check whether name in list. We do it like this rather than
         # using AutoCompAutoHide() because it prevents flicker.    
+        name = name.lower()
         thename = ""
         for item in response:
             if item.lower().startswith(name):
                 thename = item
                 break
-        # if not, hide
+        # If not, hide
         if not thename:
             self.autoCompCancel()
         else:
@@ -1066,6 +1071,109 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # When already shown the list will change selection when typing
             if not self.autoCompActive():
                 self.autoCompShow(len(name), response)
+    
+    
+    
+    def _Autocomplete_produceList(self, baseObject):
+        # todo: put in editor.py ?
+        # The simpler version would query in shell and extend w/ buildins and keywords
+        
+        # I wrote this for IEP1, but I find it a bit hard to read now :)
+        # What it does is take inheritance into account.
+        def findClassFullNameSpace(fobject):
+            locallist = fobject.attributes
+            for super in fobject.supers:
+                # Try cutting it up and so force an import
+                superparts = super.split('.')
+                superparts.append('') # to deal with -1
+                for i in range(1,len(superparts)):
+                    superpart = ".".join(superparts[:-i])                    
+                    tmp = self._Autocomplete_produceList(superpart)
+                    if tmp: break
+                # Auto recursive
+                tmp = self._Autocomplete_produceList(super)
+                tmp = [item for item in tmp if item not in locallist]
+                locallist.extend(tmp)
+            return locallist
+        
+        # Start list
+        thelist = []
+        fictivelist = []
+        
+        # Get current session
+        # todo: ->
+        shell = self.root.shells.GetCurrentShell()
+        if shell is not None:
+            session = shell.session
+            # get dir list
+            basedir = session.Introspect_dir(baseObject)
+            if basedir:
+                thelist.extend( basedir )        
+            # include buildins and keywords?
+            if baseObject=="":
+                thelist.extend(session.builtins)
+                thelist.extend(session.keywords)
+        
+        
+        fictiveNS, importNames, fictiveClass = [], [], None
+        if True: #iep.config.doAnalyzeSource:
+        
+            # Get normal fictive namespace        
+            fictiveNS = iep.parser.getFictiveNameSpace()
+            if baseObject=="":
+                fictivelist.extend(fictiveNS)  
+                
+            # include imports
+            importNames, importLines = self.parser.getFictiveImports()
+            if baseObject=="":
+                fictivelist.extend(importNames)   
+                    
+            if not thelist: # yet
+                # get fictive self objectlist (self.[])                
+                if baseObject:
+                    fictiveClass = self.parser.GetFictiveCurrentClass(baseObject)
+        
+        
+        # what will the list consist of...
+        
+        if not thelist and baseObject in importNames:            
+            # only based on a fictive import...
+            line = str( importLines[baseObject] ).strip()            
+            # get current shell/session
+            shell = self.root.shells.GetCurrentShell()
+            if shell and line not in shell.session.importAttempts:
+                # do the import
+                shell.DoPoll( None, "print '%s';%s\n" % (line, line) )
+                # notify user
+                pos = self.GetCurrentPos()
+                self.CallTipShow( pos, "running %s, please wait..." % line  )
+                i1 = len('running')+1
+                i2 = i1 + len(line)
+                self.CallTipSetHighlight(i1,i2)
+                # make sure not to try again
+                shell.session.importAttempts.append(line)
+                # but try getting the list after 1 second
+                wx.CallLater(1000, self.CallTipCancel)
+                wx.CallLater(1010, self.Introspect_autoComplete)
+                # Because the result will be [], the autocompletion
+                # will directly be tried again when a key is pressed.
+                
+        elif not thelist and baseObject in fictiveNS:
+            # get attributes of fictive class
+            theitem = self.parser.GetFictiveClass(baseObject)
+            if theitem:                
+                thelist.extend( findClassFullNameSpace(theitem) )
+            
+        elif not thelist and fictiveClass:
+            # only the self list
+            thelist.extend( findClassFullNameSpace(fictiveClass) )
+            
+        else:
+            # extend the list with fictive items
+            tmplist = [item for item in fictivelist if item not in thelist]
+            thelist.extend( tmplist )
+        
+        return thelist
     
     ## Callbacks
     

@@ -134,24 +134,26 @@ class Parser(threading.Thread):
             return None
     
     
-    def GetFictiveImports(self):
+    def getFictiveImports(self):
         """ Get the fictive imports of this source file.
         tuple: 
         - list of names that are imported, 
         - a dict with the line to import each name
         """
-        # how to use (or how I plan on using it): 
+        # how to use: 
         # - get the list using this function
         # - if required, try applying the import, but only if not in list \/
         # - keep a list on the session which (stripped) importlines you applied
         # - display msg to wait
+        
+        # Data available
+        if not self.items:
+            return [],[]
+        
+        # Make list of imports and lines to import them
         importlist = [item for item in self.items if item.type=='import']
         imports = []
         importlines = {}
-#         for item in self.items:
-#             if item.type == 'import':
-#                 imports.append(item.name)
-#                 importlines[item.name] = item.text
         for item in importlist:
             imports.append(item.name)
             importlines[item.name] = item.text
