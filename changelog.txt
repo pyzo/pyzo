@@ -1,0 +1,1 @@
+2009-03-04 Made the qt mainwindow, experimented a bit with dockables

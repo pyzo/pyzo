@@ -1,0 +1,197 @@
+# This is the style file for the editors in IEP.
+#
+# These lines are commented. Everything after a comment is ignored,
+# just like empty lines.
+#
+# A style definition is a dict of various options. These options can be:
+# - lexer: to set the lexer for this style
+# - ext: files with these extensions will be highlighthed with this style
+# - basedon: the style to base this style on (all settings are inherited)
+# - keywords: well, the keywords
+# - sxxx: where the number xxx is the int to use in .StyleSetSpec()
+# The lists of ext and keywords are space-separated.
+# When basedon is not specified, it is based on default.
+#
+# There are a few special style numbers used by IEP, of which a fore and a back
+# can be specified (other attributes are ignored):
+# - s301: the caret and current line background colors
+# - s302: the selection colors
+# - s303: the calltip colors
+#
+# With this setup you can easily make your own styles. Just look at the
+# examples in this file... All stylenames should be lowercase.
+#
+# When specifying a font, you can use "face:{mono}" where 'mono' may also
+# be 'serif' or 'sans'. A suitable font is selected based on the used OS.
+#
+# Here's a list of all posible lexers that StyledTextCtl knows:
+# ada asp ave baan batch bullant conf cpp diff eiffel eiffelkw 
+# errorlist hypertext latex lisp lua makefi le matlab nncrontab 
+# pascal perl php props python ruby sql tcl vb vbscript xml
+
+
+# DEFAULT, this is always set...
+default = dict:
+    s032 = 'face:{mono},size:9,back:#FFFFFF' # STC_STYLE_DEFAULT
+    #s032 = 'face:mono,size:10,back:#FFFFFF' # STC_STYLE_DEFAULT
+    s033 = 'back:#C0C0C0,face:{sans},size:7' # STC_STYLE_LINENUMBER
+    s034 = 'bold,back:#AAFFAA' # STC_STYLE_BRACELIGHT
+    s035 = 'bold,back:#FFAAAA' # STC_STYLE_BRACEBAD
+    s036 = 'face:{mono}' # STC_STYLE_CONTROLCHAR
+    s037 = '' # STC_STYLE_INDENTGUIDE
+    s038 = '' # STC_STYLE_CALLTIP
+	s301 = 'fore:#000,back:#FFA' # caret and current line background
+	s302 = 'fore:#CCCCCC,back:#333366' # selection
+	s303 = 'fore:#404040,back:#FFFFB8,forehlt:#0000FF' # calltip
+
+# PYTHON
+python = dict:
+    ext = 'py pyw'
+    lexer = 'python'
+    keywords = 'False None True and as assert break class continue def del elif else except exec finally for from global if import in is lambda nonlocal not or pass print raise return try while with yield'
+    s001 = 'fore:#007F00' # STC_P_COMMENTLINE
+    s002 = 'fore:#007F7F' # STC_P_NUMBER
+    s003 = 'fore:#7F007F' # STC_P_STRING
+    s004 = 'fore:#7F007F' # STC_P_CHARACTER
+    s005 = 'fore:#00007F,bold' # STC_P_WORD
+    s006 = 'fore:#7F0000,back:#FFFFFF' # STC_P_TRIPLE
+    s007 = 'fore:#7F0000,back:#FFFFFF' # STC_P_TRIPLEDOUBLE
+    s008 = 'fore:#0000FF,bold' # STC_P_CLASSNAME
+    s009 = 'fore:#007F7F,bold' # STC_P_DEFNAME
+    s010 = 'bold' # STC_P_OPERATOR
+    s011 = '' # STC_P_IDENTIFIER
+    s012 = 'fore:#007F00,back:#F0FFF0,bold,underline' # STC_P_COMMENTBLOCK/cell
+    s013 = 'fore:#000000,back:#E0C0E0,eolfilled' # STC_P_STRINGEOL
+    s014 = 'fore:#ffffff,back:#000000' # 
+
+
+# PYTHON CONSOLE
+pythonconsole = dict:
+    lexer = 'python'
+    s032 = 'face:{mono},size:9,fore:#111111,back:#FFFFFF'
+
+pythonconsoleblack = dict:
+    lexer = 'python'
+    s032 = 'face:{mono},size:9,fore:#CCCCCC,back:#000000'
+
+
+# PYTHON 2 and PYTHON 3 (precize set of keywords)
+python2 = dict: # without(nonlocal) extra(exec print)
+    basedon = 'python'
+    keywords = 'False None True and as assert break class continue def del elif else except exec finally for from global if import in is lambda not or pass print raise return try while with yield'
+    
+python3 = dict:
+    basedon = 'python' # without(exec print) extra(nonlocal)
+    keywords = 'False None True and as assert break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield'
+
+
+# PYREX (change def and class colours to distinguish)
+pyrex = dict:
+    basedon = 'python'
+    ext = 'pyi pyx'
+    lexer = 'python'
+    keywords =  'False None True and as assert break class continue def del elif else except exec finally for from global if import in is lambda nonlocal not or pass print raise return try while with yield cdef cpdef'
+    s008 = 'fore:#7700FF,bold' // STC_P_CLASSNAME
+    s009 = 'fore:#DD5500,bold'  // STC_P_DEFNAME
+
+
+# TODO files 
+todo = dict:
+    ext = 'todo 2do'
+    lexer = 'python' # note no keywords
+    #s032 = 'face:%(mono)s,size:9,fore:#000000,back:#FFFFFF' # nomal
+    s001 = 'bold,fore:#AA0000' # urgent
+    s012 = 'fore:#999999' # done
+
+
+# SSDF
+ssdf = dict:
+    lexer = 'python'
+    ext = 'ssdf'
+    keywords = 'dict list array'
+    s001 = 'fore:#007F00' # STC_P_COMMENTLINE
+    s002 = 'fore:#007F7F' # STC_P_NUMBER
+    s003 = 'fore:#FF0000' # STC_P_STRING double quoted (invalid) string
+    s004 = 'fore:#7F007F' # STC_P_CHARACTER single quoted string
+    s005 = 'fore:#00807F,bold' # STC_P_WORD
+
+
+# TEX (LATEX)
+tex = dict:
+    ext = 'tex bib'
+    lexer = 'latex'
+    s000 = 'fore:#000000'
+    s001 = 'fore:#0000FF,bold'
+    s002 = 'fore:#7F007F,bold'
+    s003 = 'fore:#00AAFF,bold'
+    s004 = 'back:#E8FFE8,italic,fore:#007F00'
+    ss005 = 'fore:#7F007F'
+    
+
+# MATLAB
+matlab = dict:
+    ext = 'm'
+    lexer = 'matlab'
+    keywords = 'break case catch continue else elseif end for function global if otherwise persistent return switch try while'
+    s000= 'fore:#000000' # STC_MATLAB_DEFAULT
+    s001= 'fore:#007F00' # STC_MATLAB_COMMENT
+    s002= '' # STC_MATLAB_COMMAND
+    s003= 'fore:#002010' # STC_MATLAB_NUMBER
+    s004= 'fore:#0000EE,bold' # STC_MATLAB_KEYWORD
+    s005= 'fore:#CC00AA' # STC_MATLAB_STRING
+    s008= 'fore:#CC00AA' # STC_MATLAB_DOUBLEQUOTESTRING
+    s006= 'bold' # STC_MATLAB_OPERATOR
+    s007= '' # STC_MATLAB_IDENTIFIER
+
+    
+# CPP (colours are probably ugly :) )
+cpp = dict:
+    ext = 'c h cpp cxx c++'
+    lexer = 'cpp'
+    s001='fore:#007F00'
+    s002='fore:#007F00'
+    s004='fore:#0076AE'
+    s005='bold,fore:#000090'
+    s006='fore:#800080'
+    s007='fore:#800040'
+    s009='fore:#808000'
+    s010='bold'
+    s012='back:#FFD5FF'
+    s013='fore:#0000FF'
+    keywords = 'asm auto bool break case catch char class const const_cast continue default delete do double dynamic_cast else enum explicit export extern false float for friend goto if inline int long mutable namespace new operator private protected public register reinterpret_cast return short signed sizeof static static_cast struct switch template this throw true try typedef typeid typename union unsigned using virtual void volatile wchar_t while'
+    
+
+# CSHARP should recognize ///
+# but hell, if you code C# just use microsofts IDE!
+csharp = dict:
+    ext = 'cs'
+    lexer = 'cpp'
+    basedon = 'cpp'
+    keywords = 'abstract as base bool break by byte case catch char checked class const continue decimal default delegate do double descending explicit event extern else enum false finally fixed float for foreach from goto group if implicit in int interface internal into is lock long new null namespace object operator out override orderby params private protected public readonly ref return switch struct sbyte sealed short sizeof stackalloc static string select this throw true try typeof uint ulong unchecked unsafe ushort using var virtual volatile void while where yield'
+
+
+# GLSL (OpenGL Shading Language)
+glsl = dict:
+    ext = 'glsl'
+    lexer = 'cpp'
+    basedon = 'cpp'
+    keywords = 'void bool int float vec2 vec3 vec4 bvec2 bvec3 bvec4 ivec2 ivec3 ivec4 mat2 mat3 mat4 sampler1D sampler2D sampler3D samplerCube sampler1DShadow sampler2DShadow uniform varying attribute if else for while return discard'
+
+
+# SIMPLE XML
+xml = dict:
+    ext = 'xml'
+    lexer = 'xml'
+    s001='bold,fore:#0000A0'
+    s002='fore:#800000'
+    s003='fore:#CC0000,bold'
+    s005='fore:#0000FF'
+    s006='fore:#800080'
+    s007='fore:#800080'
+    s009='fore:#008000'
+    s010='fore:#0000FF,bold' # Entities
+    s011='fore:#0000FF,bold' # XML style tag ends '/>'
+    s012='fore:#00AAFF,bold' # XML identifier start '<?'
+    s013='fore:#00AAFF,bold' # XML identifier end '?>'
+    s014='fore:#8000FF,bold'
+    s017='fore:#808000'
