@@ -436,7 +436,7 @@ class IntroSpectionThread(threading.Thread):
         if d:
             self.response.write( ",".join(d) )
         else:
-            self.response.write( "error" )
+            self.response.write( "<error>" )
     
     
     def enq_help(self,objectName):
