@@ -537,12 +537,9 @@ def washMultilineStrings(text):
     """ washMultilineStrings(text)
     Replace all text within multiline strings with dummy chars
     so that it is not parsed.
-    Note that this algorithm will be triggered when there is a normal
-    string that has three consequotives quotes in it, like this:
-    "fooled you! ''' "
     """ 
     i=0
-    s1 = "'''"  # do like this, to avoid triggered this same algorithm
+    s1 = "'''"
     s2 = '"""' 
     while i<len(text):
         # Detect start of a multiline comment (there are two versions)
@@ -568,7 +565,7 @@ def washMultilineStrings(text):
             if i4==-1:
                 i4 = 2**32
             # Replace all non-newline chars 
-            tmp = re.sub('.', 'x', text[i3:i4])
+            tmp = re.sub(r'\S', 'x', text[i3:i4])
             text = text[:i3] + tmp + text[i3+len(tmp):]
             # Prepare for next round
             i = i4+1

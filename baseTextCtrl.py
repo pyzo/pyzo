@@ -73,6 +73,23 @@ def normalizePath(path):
     return fullpath[:-len(sep)]
 
 
+def findClassFullNameSpace(self, fobject):
+    locallist = fobject.attributes
+    for super in fobject.supers:
+# todo: clean up
+#         # Try cutting it up and so force an import
+#         superparts = super.split('.')
+#         superparts.append('') # to deal with -1
+#         for i in range(1,len(superparts)):
+#             superpart = ".".join(superparts[:-i])                    
+#             tmp = self._Autocomplete_produceList(superpart)
+#             if tmp: break
+        # Auto recursive
+        tmp = self._Autocomplete_produceList(super)
+        tmp = [item for item in tmp if item not in locallist]
+        locallist.extend(tmp)
+    return locallist
+
 # valid chars to make a name
 namechars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
 namekeys = [ord(i) for i in namechars]
@@ -126,21 +143,8 @@ def parseLine_autocomplete(text):
 
 # I wrote this for IEP1, but I find it a bit hard to read now :)
 # What it does is take inheritance into account.
-def findClassFullNameSpace(fobject):
-    locallist = fobject.attributes
-    for super in fobject.supers:
-        # Try cutting it up and so force an import
-        superparts = super.split('.')
-        superparts.append('') # to deal with -1
-        for i in range(1,len(superparts)):
-            superpart = ".".join(superparts[:-i])                    
-            tmp = self._Autocomplete_produceList(superpart)
-            if tmp: break
-        # Auto recursive
-        tmp = self._Autocomplete_produceList(super)
-        tmp = [item for item in tmp if item not in locallist]
-        locallist.extend(tmp)
-    return locallist
+
+
 
 class StyleManager(QtCore.QObject):
     """ Singleton class for managing the styles of the text control. """
@@ -1021,12 +1025,75 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         baseObject, name = parseLine_autocomplete(line)
         name = name.lower()
         
-        # Store name to search for
-        self._autoComp_name = baseObject + '.' + name
+        # Make set instance (to prevent duplicates)
+        names = set()
+        
+        # Set name to poll by remote process (can be changed!)
+        nameToPoll = baseObject
+        
+        # First see if this is still the right editor (can also be a shell)
+        editor1 = iep.editors.getCurrentEditor()
+        editor2 = iep.shells.getCurrentShell()
+        
+        # Insert  builtins
+        if editor2 and not baseObject:
+            names.update(editor2._builtins)
+        
+        # Some things are only done if this is an editor ...
+        if self is editor1:
+            
+            # Include imports
+            if not baseObject:
+                importNames, importLines = iep.parser.getFictiveImports()
+                names.update(importNames)
+            
+            # Get normal fictive namespace
+            fictiveNS = iep.parser.getFictiveNameSpace(self)
+            fictiveNS = set(fictiveNS)        
+            if not baseObject:
+                names.update(fictiveNS)  
+            
+            
+            if baseObject:
+                
+                # Prepare list of class names to check out
+                classNames = []
+                
+                # Get namespace of class currently being edited
+                # -> fictive self objectlist (self.[])       
+                fictiveClass = iep.parser.getFictiveCurrentClass(self, baseObject)
+                if fictiveClass:
+                    names.update( fictiveClass.attributes )
+                    classNames.extend(fictiveClass.supers)
+                else:
+                    classNames.append(baseObject)
+                
+                # Unroll supers
+                while classNames:
+                    className = classNames.pop(0)
+                    print(className)
+                    if not className:
+                        continue
+                    if className in fictiveNS:
+                        # Only the self list (only first iter)
+                        fictiveClass = iep.parser.getFictiveClass(className)
+                        if fictiveClass:
+                            names.update( fictiveClass.attributes )
+                            classNames.extend(fictiveClass.supers)
+                    else:
+                        nameToPoll = className
+                        break
+        
         
         # Process by posting a request at the shell
-        if name or baseObject:
-            req = "DIR " + baseObject
+        if name or nameToPoll:
+            
+            # Store name to search for
+            self._autoComp_name = baseObject + '.' + name
+            self._autoComp_names = names
+            
+            # Poll name
+            req = "DIR " + nameToPoll
             shell = iep.shells.getCurrentShell()
             shell.postRequest(req, self.autoComplete_process)
     
@@ -1044,12 +1111,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Get baseObject, name
         baseObject, name = tuple(self._autoComp_name.rsplit('.',1))
         
-        # Make set instance (to prevent duplicates), and fill
-        names = set()
-        names.union( response.split(',') )
-        print(response.split(','))
-        # todo: union does not seem to do the trick in Py3k
-        
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
         editor2 = iep.shells.getCurrentShell()
@@ -1058,36 +1119,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.autoCompCancel()
             return
         
-        # Insert  builtins
-        if editor2 and not baseObject:
-            names.union(editor2._builtins)
-        
-        # Some things are only done if this is an editor ...
-        if self is editor1:
-            
-            # Include imports
-            if not baseObject:
-                importNames, importLines = iep.parser.getFictiveImports()
-                names.union(importNames)
-            
-            # Get normal fictive namespace
-            fictiveNS = set()        
-            if not baseObject:
-                fictiveNS = iep.parser.getFictiveNameSpace(self)
-                names.union(fictiveNS)  
-            
-            # Get fictive class name
-            if not names and baseObject in fictiveNS:
-                # get fictive self objectlist (self.[])                
-                fictiveClass = iep.parser.getFictiveCurrentClass(baseObject, self)
-#                 if fictiveClass:
-#                     names.union( findClassFullNameSpace(fictiveClass) )
-            
-            elif not names:
-                # only the self list
-                fictiveClass = iep.parser.getFictiveClass(baseObject)
-#                 if fictiveClass:
-#                     names.union( findClassFullNameSpace(fictiveClass) )
+        # Add result to the list
+        names = self._autoComp_names
+        if response != '<error>':
+            names.update(response.split(','))
         
         # Make a list and sort it
         names = list(names)
