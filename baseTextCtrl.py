@@ -141,9 +141,53 @@ def parseLine_autocomplete(text):
         return text[i+1:i_base], text[i_base+1:]
 
 
-# I wrote this for IEP1, but I find it a bit hard to read now :)
-# What it does is take inheritance into account.
 
+def parseLine_signature(text):
+    """ Given a line of code (from start to cursor position) 
+    returns a tuple (base, name, stats).
+    stats is another tuple: 
+    - location of end bracket
+    - amount of kommas till cursor (taking nested brackets into account)
+    """
+    
+    # find braces
+    level = 1  # for braces    
+    for i in range(len(text)-1,-1,-1):
+        c = text[i]
+        if c == ")": level += 1
+        elif c == "(": level -= 1        
+        if level == 0:
+            break
+            
+    if not i>0:
+        return "","",(0,0)
+    
+    # now find the amount of valid komma's to calculate which element at cursor
+    kommaCount = 0
+    l1 = 1  # for braces
+    l2=l3=l4=l5 = 0 # square brackets, curly brackets, qoutes, double quotes    
+    for ii in range(i+1,len(text)):
+        c = text[ii:ii+1]
+        if c == "'": l4 = (not l4)
+        elif c == '"': l5 = (not l5) 
+        if l4 or l5:
+            continue
+        if c == ",":
+            if l1 == 1 and l2==0 and l3==0:
+                kommaCount += 1        
+        elif c == "(": l1 += 1
+        elif c == ")": l1 -= 1        
+        elif c in "[": l2 += 1
+        elif c in "]": l2 -= 1
+        elif c in "{": l3 += 1
+        elif c in "}": l3 -= 1               
+    
+    # found it?
+    if i>0:
+        base, name = parseLine_autocomplete(text[:i])
+        return base, name, (i, kommaCount)
+    else:
+        return "","", (0,0)
 
 
 class StyleManager(QtCore.QObject):
@@ -442,7 +486,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)
         self._delayTimer.setSingleShot(True)
-        self._delayTimer.timeout.connect(self.autoComplete_do_now)
+        self._delayTimer.timeout.connect(self.doIntrospectionNow)
         
         # For autocompletion
         self._autoComp_name = ''
@@ -874,43 +918,50 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         return self.SendScintilla(self.SCI_TEXTWIDTH, style, value)
     
     
+    ## Autocomp and calltip methods of scintilla
+    
+    def autoCompShow(self, lenentered, names): 
+        """ Start showing the autocompletion list, 
+        with the list of given names (which can be a list or a space separated
+        string.
+        """
+        if isinstance(names, list):
+            names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
+        self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
+    
+    def autoCompCancel(self):
+        """ Hide the autocompletion list, do nothin. """
+        self.SendScintilla(self.SCI_AUTOCCANCEL)
+    
+    
+    def autoCompActive(self):  
+        """ Get whether the autocompletion is currently active. """
+        return self.SendScintilla(self.SCI_AUTOCACTIVE)
+    
+    def autoCompComplete(self):
+        """ Perform autocomplete: 
+        insert the selected item and hide the list. """
+        self.SendScintilla(self.SCI_AUTOCCOMPLETE)
+    
+    
+    def callTipShow(self, pos, text, hl1=0, hl2=0):
+        """ callTipShow(pos, text, hl1, hl2)
+        Show text in a call tip at position pos. the text between hl1 and hl2
+        is highlighted. """
+        self.SendScintilla(self.SCI_CALLTIPSHOW, pos, text)
+        if hl2 > hl1:
+            self.SendScintilla(self.SCI_CALLTIPSETHLT, hl1, hl2)
+    
+    def callTipCancel(self):
+        """ Hide call tip. """
+        self.SendScintilla(self.SCI_CALLTIPCANCEL)
+    
+    def callTipActive(self):
+        """ Hide call tip. """
+        return bool( self.SendScintilla(self.SCI_CALLTIPACTIVE) )
+    
+    
     ## Autocompletion and other introspection methods
-    
-    
-#     # the method below is not used because Qscintilla has it build in
-#     def doBraceMatch(self,event=None):
-#         """ Match braces and highlight accordingly.
-#         Called on EVT_STC_UPDATEUI.        
-#         """
-#        
-#         if not config.doBraceMatch:
-#             return
-#         
-#         # get location of current brace and the match
-#         i1 = self.getCurrentPos()        
-#         
-#         # get char at the cursor        
-#         chara, charb = 'a', 'b'
-#         if i1>0 and i1 < self.length():
-#             chara = self.getCharAt(i1-1)
-#             charb = self.getCharAt(i1)
-#         
-#         # do we have a brace right before or after the cursor?
-#         if charb in '()[]{}':
-#             i1 = i1
-#         elif chara in '()[]{}':
-#             i1 = i1-1
-#         else:
-#             self.SendScintilla(self.SCI_BRACEBADLIGHT, -1)
-#             return
-#         
-#         # match brace
-#         i2 = self.SendScintilla(self.SCI_BRACEMATCH, i1) 
-#         if i2<0:
-#             self.SendScintilla(self.SCI_BRACEBADLIGHT,i1)
-#         else:        
-#             self.SendScintilla(self.SCI_BRACEHIGHLIGHT, i1, i2)
-    
     
     """ Help on some autocomp functions
         SCI_AUTOCSHOW # Start showing list
@@ -923,32 +974,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         SCI_AUTOCGETCURRENT # Get current selection index
         SCI_AUTOCGETCURRENTTEXT # Currently selected text
         """
-    
-    def autoCompShow(self, lenentered, names): 
-        """ Start showing the autocompletion list, 
-        with the list of given names (which can be a list or a space separated
-        string.
-        """
-        if isinstance(names, list):
-            names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
-        self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
-    
-    
-    def autoCompCancel(self):
-        """ Hide the autocompletion list, do nothin. """
-        self.SendScintilla(self.SCI_AUTOCCANCEL)
-    
-    
-    def autoCompActive(self):  
-        """ Get whether the autocompletion is currently active. """
-        return self.SendScintilla(self.SCI_AUTOCACTIVE)
-    
-    
-    def autoCompComplete(self):
-        """ Perform autocomplete: 
-        insert the selected item and hide the list. """
-        self.SendScintilla(self.SCI_AUTOCCOMPLETE)
-    
     
     def _isValidPython(self):
         """ Check if the code at the cursor is valid python:
@@ -970,33 +995,16 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         return True  
     
     
-    def autoComplete_do(self):
-        """ Perform autocompletion
-        This method is called after a char is entered or backspace is used.
-        Parses the line and finds the baseobject and the needle part: the
-        part that needs completing.
+    def doIntrospection(self, tryAutoComp=False):
         
-        It is verified that the autocompletion box should be shown. If 
-        so, a timer is started that will call autocomplete_do_now() in
-        xx seconds.
-        
-        This method calls _Autocomplete_do which makes sure that the 
-        analysis is only done if no keys have been pressed for 100ms.
-        The analysis consists of checking whether the needle is in 
-        the list and if so, select that item in the STC automcompletion 
-        list. If not, hide the popup list.
-        The list is queried by _Autocomplete_produceList, which may query
-        the list from the active session or use a previously queried 
-        list.
-        """
-        
-#         # only proceed if we're supposed to
+        # Only proceed if we're supposed to
 #         if not iep.config.doAutoComplete:
 #             self.StopIntrospecting()
 #             return
         
-        # only proceed if valid python
+        # Only proceed if valid python
         if not self._isValidPython():
+            self.callTipCancel()
             self.autoCompCancel()
             return
         
@@ -1005,25 +1013,74 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         text = self.getLineString(linenr)
         text = text[:i]
         
-        # is the char valid?        
-        if not text or not ( text[-1] in namechars or text[-1]=='.' ):
-            self.autoCompCancel()
-            return
+        # Is the char valid for auto completion?
+        if tryAutoComp:
+            if not text or not ( text[-1] in namechars or text[-1]=='.' ):
+                self.autoCompCancel()
+                tryAutoComp = False
         
         # Store line and (re)start timer
         self._delayTimer._line = text
+        self._delayTimer._pos = self.getPosition()
+        self._delayTimer._tryAutoComp = tryAutoComp
         self._delayTimer.start(iep.config.autoCompDelay)
     
     
-    def autoComplete_do_now(self):
-        # todo: better names for methods
+    def doIntrospectionNow(self):
+        """ Users should not call this. It is called a short while after
+        doIntrospection by the timer. 
+        """
         
-        # Parse the line, to see what (partial) name we need to complete
+        # Retrieve the line of text that we stored
         line = self._delayTimer._line
         if not line:
             return
-        baseObject, name = parseLine_autocomplete(line)
-        name = name.lower()
+        
+        if True:
+            # Parse the line, to get the name of the function we should calltip
+            # if the name is empty/None, we should not show a signature
+            baseObject, name, stats = parseLine_signature(line)
+            
+            # Try to do call tip
+            pos = self._delayTimer._pos - len(line) + stats[0] - len(name)
+            self.doIntrospectionNow_callTip(baseObject, name, stats, pos)
+        
+        if self._delayTimer._tryAutoComp:
+            # Parse the line, to see what (partial) name we need to complete
+            baseObject, name = parseLine_autocomplete(line)
+            
+            # Try to do auto completion
+            self.doIntrospectionNow_autoComp(baseObject, name)
+    
+    
+    def doIntrospectionNow_callTip(self, baseObject, name, stats, pos):
+        
+        # Show tooltip
+        if not name:
+            self.callTipCancel()
+        else:
+            if baseObject:
+                name  = "%s.%s" % (baseObject, name)
+                
+            # Determine position
+            self._callTipPos = pos
+            
+            # Obtain calltip from the source
+            
+            
+            # Obtain calltip from the session
+            req = "SIGNATURE " + name
+            shell = iep.shells.getCurrentShell()
+            shell.postRequest(req, self.processIntrospection_callTip)
+    
+    
+    def processIntrospection_callTip(self, response):
+        #self.callTipShow(pos, name + '(...)', 0, len(name))
+        
+        self.callTipShow(self._callTipPos, response)
+    
+    
+    def doIntrospectionNow_autoComp(self, baseObject, name):
         
         # Make set instance (to prevent duplicates)
         names = set()
@@ -1089,7 +1146,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if name or nameToPoll:
             
             # Store name to search for
-            self._autoComp_name = baseObject + '.' + name
+            self._autoComp_name = baseObject + '.' + name.lower()
             self._autoComp_names = names
             
             # Poll name
@@ -1128,23 +1185,26 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         names = list(names)
         names.sort(key=str.upper)
         
-        # Check whether name in list. We do it like this rather than
-        # using AutoCompAutoHide() because it prevents flicker.    
-        name = name.lower()
-        thename = ""
-        for item in names:
-            if item.lower().startswith(name):
-                thename = item
-                break
-        # If not, hide
-        if not thename:
+        # todo: time the two methods!
+        # Check whether name in list. 
+#         name = name.lower()
+#         thename = ""
+#         for item in names:
+#             if item.lower().startswith(name):
+#                 thename = item
+#                 break
+#         # If not, hide
+#         if not thename:
+#             self.autoCompCancel()
+        haystack = ' ' + ' '.join(names).lower()
+        needle = ' '+name.lower()
+        if haystack.find(needle) == -1:
             self.autoCompCancel()
         else:
             # Show completion list if required. 
             # When already shown the list will change selection when typing
             if not self.autoCompActive():
                 self.autoCompShow(len(name), names)
-    
     
     
     def _Autocomplete_produceList(self, baseObject):
@@ -1286,12 +1346,16 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             if not handled:
                 Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
-        # Process character press
+        # Analyse character/key to determine what introspection to fire
         if event.text():
             key = ord( event.text() )
             if key >= 48 or key in [8, 46]:
                 # If a char that allows completion or backspace or dot was pressed
-                self.autoComplete_do()
+                self.doIntrospection(True)
+            else:
+                self.doIntrospection() # Only calltip
+        elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
+            self.doIntrospection()
     
     
     def keyPressHandler_always(self, event):

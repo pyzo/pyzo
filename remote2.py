@@ -303,9 +303,9 @@ class IntroSpectionThread(threading.Thread):
 #             elif req == "HELP":
 #                 self.enq_help(arg)
 #                 
-#             elif req == "SIGNATURE":
-#                 self.eng_signature(arg)
-#             
+            elif req == "SIGNATURE":
+                self.enq_signature(arg)
+            
             elif req == "EVAL":
                 self.enq_eval( arg )
 #                 
@@ -319,6 +319,7 @@ class IntroSpectionThread(threading.Thread):
                 
         print('IntrospectionThread stopped')
     
+    
     def getSignature(self,objectName):
         """ Get the signature of builtin, function or method.
         Returns a tuple (signature_string, kind), where kind is a string
@@ -331,7 +332,7 @@ class IntroSpectionThread(threading.Thread):
         # what about self?
         
         # find out what kind of function, or if a function at all!
-        ns = piep.interpreter.locals
+        ns = self.locals
         fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, ns)
         fun2 = eval("inspect.isfunction(%s)"%(objectName), None, ns)
         fun3 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
@@ -398,26 +399,24 @@ class IntroSpectionThread(threading.Thread):
         else:
             sigs = ""
             kind = ""
-                
+        
         return sigs, kind
-        
-        
-    def eng_signature(self, objectName):
+    
+    
+    def enq_signature(self, objectName):
         
         try:
             text, kind = self.getSignature(objectName)
-        except:
-            text = ""
+        except Exception:
+            text = None
             
-        # set text in mmfile   
-        self.mmfile.seek(10)
-        self.mmfile.write(text)
-        self.mmfile[1:5] = int2bytes( len(text) )  
-        
-        # notify that we're done
-        self.mmfile[0] = "0"
-        
-        
+        # respond
+        if text:
+            self.response.write( text)
+        else:
+            self.response.write( "<error>" )
+    
+    
     def enq_list(self, commandtoproducelist, objectName):
         """ commandtoproducelist must look like:
         "dir(%s)" or "%s.keys()"
@@ -443,7 +442,7 @@ class IntroSpectionThread(threading.Thread):
         """ get help on an object """
         try:
             # collect data
-            ns = piep.interpreter.locals
+            ns = self.locals
             h_text = eval("%s.__doc__"%(objectName), {}, ns )            
             h_repr = eval("repr(%s)"%(objectName), {}, ns )
             try:
