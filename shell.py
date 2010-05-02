@@ -236,6 +236,24 @@ class BaseShell(BaseTextCtrl):
         self.writeErr(prompt)
     
     
+    def executeLine(self, command):
+        """ Like executeCommand, but displays the command on the line.
+        """
+        # Normalize
+        command = command.strip('\n') + '\n'
+        
+        # Set position
+        self.setPositionAndAnchor(self._promptPosEnd)
+        
+        # Write command
+        self.addText(command)
+        self._promptPosStart = self._promptPosEnd = self._promptPosEnd + len(command)
+        self.setPositionAndAnchor(self.length())
+        
+        # Process line
+        self.executeCommand(command)
+    
+    
     def write(self, text):
         """ Write normal stream. """
         

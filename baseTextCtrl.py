@@ -976,7 +976,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """
     
     def _isValidPython(self):
-        """ Check if the code at the cursor is valid python:
+        """ _isValidPython()
+        Check if the code at the cursor is valid python:
         - the active lexer is the python lexer
         - the style at the cursor is "default"
         """
@@ -1065,17 +1066,19 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # Determine position
             self._callTipPos = pos
             
-            # Obtain calltip from the source
+            # Try obtaining calltip from the source
+            sig = iep.parser.getFictiveSignature(name, self)
+            if sig:
+                self.callTipShow(self._callTipPos, sig)
             
-            
-            # Obtain calltip from the session
-            req = "SIGNATURE " + name
-            shell = iep.shells.getCurrentShell()
-            shell.postRequest(req, self.processIntrospection_callTip)
+            else:
+                # Obtain calltip from the session
+                req = "SIGNATURE " + name
+                shell = iep.shells.getCurrentShell()
+                shell.postRequest(req, self.processIntrospection_callTip)
     
     
     def processIntrospection_callTip(self, response):
-        #self.callTipShow(pos, name + '(...)', 0, len(name))
         
         self.callTipShow(self._callTipPos, response)
     
@@ -1108,39 +1111,28 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             fictiveNS = iep.parser.getFictiveNameSpace(self)
             fictiveNS = set(fictiveNS)        
             if not baseObject:
-                names.update(fictiveNS)  
-            
+                names.update(fictiveNS)
             
             if baseObject:
-                
                 # Prepare list of class names to check out
-                classNames = []
-                
-                # Get namespace of class currently being edited
-                # -> fictive self objectlist (self.[])       
-                fictiveClass = iep.parser.getFictiveCurrentClass(self, baseObject)
-                if fictiveClass:
-                    names.update( fictiveClass.attributes )
-                    classNames.extend(fictiveClass.supers)
-                else:
-                    classNames.append(baseObject)
-                
+                classNames = [baseObject]
+                editorArg = self
                 # Unroll supers
                 while classNames:
                     className = classNames.pop(0)
-                    print(className)
                     if not className:
                         continue
-                    if className in fictiveNS:
+                    if editorArg or (className in fictiveNS):
                         # Only the self list (only first iter)
-                        fictiveClass = iep.parser.getFictiveClass(className)
+                        fictiveClass = iep.parser.getFictiveClass(className, 
+                            editorArg)
+                        editorArg = None
                         if fictiveClass:
                             names.update( fictiveClass.attributes )
                             classNames.extend(fictiveClass.supers)
                     else:
                         nameToPoll = className
                         break
-        
         
         # Process by posting a request at the shell
         if name or nameToPoll:
@@ -1181,32 +1173,54 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if response != '<error>':
             names.update(response.split(','))
         
-        # Make a list and sort it
-        names = list(names)
-        names.sort(key=str.upper)
+        # Process list
+        if not names:
+            
+            # Maybe we need to import it
+            importNames, importLines = iep.parser.getFictiveImports()
+            if baseObject in importNames:
+                self.autoComplete_autoImport(importLines[baseObject])
         
-        # todo: time the two methods!
-        # Check whether name in list. 
-#         name = name.lower()
-#         thename = ""
-#         for item in names:
-#             if item.lower().startswith(name):
-#                 thename = item
-#                 break
-#         # If not, hide
-#         if not thename:
-#             self.autoCompCancel()
-        haystack = ' ' + ' '.join(names).lower()
-        needle = ' '+name.lower()
-        if haystack.find(needle) == -1:
-            self.autoCompCancel()
         else:
-            # Show completion list if required. 
-            # When already shown the list will change selection when typing
-            if not self.autoCompActive():
-                self.autoCompShow(len(name), names)
+            
+            # Make a list and sort it
+            names = list(names)
+            names.sort(key=str.upper)
+            
+            # todo: time the two methods!
+            # Check whether name in list. 
+    #         name = name.lower()
+    #         thename = ""
+    #         for item in names:
+    #             if item.lower().startswith(name):
+    #                 thename = item
+    #                 break
+    #         # If not, hide
+    #         if not thename:
+    #             self.autoCompCancel()
+            haystack = ' ' + ' '.join(names).lower()
+            needle = ' '+name.lower()
+            if haystack.find(needle) == -1:
+                self.autoCompCancel()
+            else:
+                # Show completion list if required. 
+                # When already shown the list will change selection when typing
+                if not self.autoCompActive():
+                    self.autoCompShow(len(name), names)
     
     
+    def autoComplete_autoImport(self, line):
+        # Get line and shell to execute it in
+        line = line.strip()
+        shell = iep.shells.getCurrentShell()        
+        # Go?
+        if shell and (line not in shell._importAttempts):
+            # Do the import
+            shell.executeLine(line)
+            
+    
+    
+    # todo: remove
     def _Autocomplete_produceList(self, baseObject):
         # todo: put in editor.py ?
         # The simpler version would query in shell and extend w/ buildins and keywords
@@ -1348,7 +1362,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # Analyse character/key to determine what introspection to fire
         if event.text():
-            key = ord( event.text() )
+            key = ord(event.text()[0])
             if key >= 48 or key in [8, 46]:
                 # If a char that allows completion or backspace or dot was pressed
                 self.doIntrospection(True)

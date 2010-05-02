@@ -50,13 +50,15 @@ class Parser(threading.Thread):
     
     
     def getFictiveNameSpace(self, editor):
-        """ Produce the fictive namespace, 
-        given the linenr and indent        
+        """ getFictiveNameSpace(editor)
+        Produce the fictive namespace, based on the current position.
+        A list of names is returned.
         """
         if self.rootitem is None:
             return []
         
-        # Get linenr and indent
+        # Get linenr and indent. These are used to establish the namespace
+        # based on indentation.
         linenr, index = editor.getLinenrAndIndex()
         
         # init empty namespace and item list
@@ -87,55 +89,39 @@ class Parser(threading.Thread):
         return namespace
     
     
-    def getFictiveCurrentClass(self, editor, selfname):
-        """ Get the fictive object for the class referenced
-        using selfname (usually 'self').
-        """
-        # todo: should I really find the indent, or did I mean index?
-        # Get linenr and indent
-        linenr, index = editor.getLinenrAndIndex()
-        
-        items = self.rootitem.children
-        theclass = None
-        
-        while items:
-            curitem = None
-            for item in items:                
-                # check if this is the one only last one remains
-                if item.linenr <= linenr:                    
-                    if not item.linenr2 > linenr:
-                        continue
-                    curitem = item
-                    if item.type == 'def' and item.selfname==selfname:
-                        theclass = item.parent
-                else:
-                    break
-                    
-            # prepare for next round
-            if curitem and curitem.indent < index:
-                items = curitem.children
-            else:
-                items = []      
-        
-        # return
-        return theclass
     
     
-    def getFictiveClass(self, classname):
-        """ Return the fictive object that is a class,
-        and has the given name. 
+    
+    def getFictiveClass(self, name, editor=None):
+        """ getFictiveClass(name, editor=None)
+        Return the fictive class object of the given name, or None
+        if it does not exist. If editor is given, automatically
+        handles "self." names.
         """
-        theitem = [item for item in self.items if item.name==classname]
-        theitem = [item for item in theitem if item.type=='class']
+        return self._getFictiveItem(name, 'class', editor)
+    
+    
+    def getFictiveSignature(self, name, editor=None):
+        """ getFictiveSignature(name, editor=None)
+        Get the signature of the fictive function or method of the
+        given name. Returns None if the given name is not a known 
+        function or method. If editor is given, automatically
+        handles "self." names.
+        """
+        # Get item
+        item = self._getFictiveItem(name, 'def', editor)
         
-        if theitem:
-            return theitem[0]
+        # Process or return None if there was no item
+        if item:
+            nameParts = name.split('.')
+            return '{}({})'.format(nameParts[-1], item.sig)
         else:
             return None
     
     
     def getFictiveImports(self):
-        """ Get the fictive imports of this source file.
+        """ getFictiveImports()
+        Get the fictive imports of this source file.
         tuple: 
         - list of names that are imported, 
         - a dict with the line to import each name
@@ -158,6 +144,91 @@ class Parser(threading.Thread):
             imports.append(item.name)
             importlines[item.name] = item.text
         return imports, importlines
+    
+    
+    def _getFictiveItem(self, name, type, editor=None):
+        """ _getFictiveItem(name, type, editor=None)
+        Obtain the fictive item of the given name and type. 
+        If editor is given, will handle "self." correctly.
+        Intended for internal use.
+        """
+        
+        # Need rootitem
+        if self.rootitem is None:
+            return None
+        
+        # Split name in parts 
+        nameParts = name.split('.')
+        
+        # Try if the first part represents a class instance 
+        if editor is not None:
+            item = self._getFictiveCurrentClass(editor, nameParts[0])
+            if item:
+                nameParts[0] = item.name
+        
+        # Init
+        name = nameParts.pop(0)
+        items = self.rootitem.children
+        theItem = None
+        
+        # Search for name
+        while items:
+            for item in items:
+                if item.name == name:
+                    # Found it
+                    if nameParts:
+                        # Go down one level
+                        name = nameParts.pop(0)
+                        items = item.children
+                        break
+                    else:
+                        # This is it, is it what we wanted?
+                        if item.type == type:
+                            theItem = item
+                            items = []
+                            break
+            else:
+                # Did not find it
+                items = []
+        
+        return theItem
+    
+    
+    def _getFictiveCurrentClass(self, editor, selfname):
+        """ _getFictiveCurrentClass(editor, selfname)
+        Get the fictive object for the class referenced
+        using selfname (usually 'self').
+        Intendef for internal use.
+        """
+        
+        # Get linenr and indent
+        linenr, index = editor.getLinenrAndIndex()
+        
+        # Init
+        items = self.rootitem.children
+        theclass = None
+        
+        while items:
+            curitem = None
+            for item in items:                
+                # check if this is the one only last one remains
+                if item.linenr <= linenr:                    
+                    if not item.linenr2 > linenr:
+                        continue
+                    curitem = item
+                    if item.type == 'def' and item.selfname==selfname:
+                        theclass = item.parent
+                else:
+                    break
+            
+            # prepare for next round
+            if curitem and curitem.indent < index:
+                items = curitem.children
+            else:
+                items = []      
+        
+        # return
+        return theclass
     
     
     def run(self):
@@ -304,7 +375,7 @@ class Parser(threading.Thread):
                     item = FictiveObject('def', i, indent, name)
                     appendToStructure(item)
                     item.selfname = None # will be filled in if a valid method
-                    args = defResult.group(4)
+                    item.sig = defResult.group(4)
                     # is it a method? -> add method to attr and find selfname
                     if item.parent.type == 'class':
                         item.parent.attributes.append(name)
@@ -440,12 +511,13 @@ class FictiveObject:
     todo    -  
     """    
     def __init__(self, type, linenr, indent, name):
-        self.children = []                
+        self.children = []
         self.type = type
         self.linenr = linenr # at which line this object starts
         self.linenr2 = 9999999 # at which line it ends
         self.indent = indent
         self.name = name
+        self.sig = ''  # for functions and methods
 
 
 namechars = 'abcdefghijklmnopqrstuvwxyz_0123456789'
