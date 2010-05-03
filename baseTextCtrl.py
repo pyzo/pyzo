@@ -73,23 +73,6 @@ def normalizePath(path):
     return fullpath[:-len(sep)]
 
 
-def findClassFullNameSpace(self, fobject):
-    locallist = fobject.attributes
-    for super in fobject.supers:
-# todo: clean up
-#         # Try cutting it up and so force an import
-#         superparts = super.split('.')
-#         superparts.append('') # to deal with -1
-#         for i in range(1,len(superparts)):
-#             superpart = ".".join(superparts[:-i])                    
-#             tmp = self._Autocomplete_produceList(superpart)
-#             if tmp: break
-        # Auto recursive
-        tmp = self._Autocomplete_produceList(super)
-        tmp = [item for item in tmp if item not in locallist]
-        locallist.extend(tmp)
-    return locallist
-
 # valid chars to make a name
 namechars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
 namekeys = [ord(i) for i in namechars]
@@ -486,7 +469,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)
         self._delayTimer.setSingleShot(True)
-        self._delayTimer.timeout.connect(self.doIntrospectionNow)
+        self._delayTimer.timeout.connect(self._introspectNow)
         
         # For autocompletion
         self._autoComp_name = ''
@@ -987,6 +970,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if lexlang != self.SCLEX_PYTHON:
             return False
         
+        # todo: check style
 #         # The style must be "default"
 #         curstyle = self.getStyleAt(self.getPosition())
 #         if curstyle not in [32,10]:
@@ -996,7 +980,32 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         return True  
     
     
-    def doIntrospection(self, tryAutoComp=False):
+    def introspect(self, tryAutoComp=False):
+        """ introspect(tryAutoComp=False)
+        
+        The starting point for introspection (autocompletion and calltip). 
+        It will always try to produce a calltip. If tryAutoComp is True,
+        will also try to produce an autocompletion list (which, on success,
+        will hide the calltip).
+        
+        This method will obtain the line and (re)start a timer that will
+        call _introspectNow() after a short while. This way, if the
+        user types a lot of characters, there is not a stream of useless
+        introspection attempts; the introspection is only really started
+        after he stops typing for, say 0.1 or 0.5 seconds (depending on
+        iep.config.autoCompDelay).
+        
+        The method _introspectNow() will parse the line to obtain
+        information required to obtain the autocompletion and signature
+        information. Then it calls _introspect_callTip() or 
+        ..._autoComp() to process further. These methods will obtain
+        information from the source using the iep.parser. Then (if 
+        necessary) will query information from the current shell.
+        The _introspect_callTip_response() and ..._autoComp_response()
+        process the response of the shell. The actual showing of the
+        introspection info to the user happens either in _introspect_*()
+        or in _introspect_*response().
+        """
         
         # Only proceed if we're supposed to
 #         if not iep.config.doAutoComplete:
@@ -1027,9 +1036,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._delayTimer.start(iep.config.autoCompDelay)
     
     
-    def doIntrospectionNow(self):
-        """ Users should not call this. It is called a short while after
-        doIntrospection by the timer. 
+    def _introspectNow(self):
+        """ This methos is called a short while after introspect() 
+        by the timer. It parses the line and calls the specific methods
+        to process the callTip and autoComp.
         """
         
         # Retrieve the line of text that we stored
@@ -1044,17 +1054,19 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             
             # Try to do call tip
             pos = self._delayTimer._pos - len(line) + stats[0] - len(name)
-            self.doIntrospectionNow_callTip(baseObject, name, stats, pos)
+            self._introspect_callTip(baseObject, name, stats, pos)
         
         if self._delayTimer._tryAutoComp:
             # Parse the line, to see what (partial) name we need to complete
             baseObject, name = parseLine_autocomplete(line)
             
             # Try to do auto completion
-            self.doIntrospectionNow_autoComp(baseObject, name)
+            self._introspect_autoComp(baseObject, name)
     
     
-    def doIntrospectionNow_callTip(self, baseObject, name, stats, pos):
+    def _introspect_callTip(self, baseObject, name, stats, pos):
+        """ Process introspection for signatures.
+        """
         
         # Show tooltip
         if not name:
@@ -1075,15 +1087,18 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 # Obtain calltip from the session
                 req = "SIGNATURE " + name
                 shell = iep.shells.getCurrentShell()
-                shell.postRequest(req, self.processIntrospection_callTip)
+                shell.postRequest(req, self._introspect_callTip_response)
     
     
-    def processIntrospection_callTip(self, response):
-        
-        self.callTipShow(self._callTipPos, response)
+    def _introspect_callTip_response(self, response):
+        """ Process response of shell to show signature. """
+        if response and response != '<error>':
+            self.callTipShow(self._callTipPos, response)
     
     
-    def doIntrospectionNow_autoComp(self, baseObject, name):
+    def _introspect_autoComp(self, baseObject, name):
+        """ Process introspection for the auto completion. 
+        """
         
         # Make set instance (to prevent duplicates)
         names = set()
@@ -1144,10 +1159,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # Poll name
             req = "DIR " + nameToPoll
             shell = iep.shells.getCurrentShell()
-            shell.postRequest(req, self.autoComplete_process)
+            shell.postRequest(req, self._introspect_autoComp_response)
     
     
-    def autoComplete_process(self, response):
+    def _introspect_autoComp_response(self, response):
+        """ Process the response of the shell for the auto completion. 
+        """ 
         
         # todo: also send and receive back the self._autoComp_name so
         # we can determine whether it's still up-to-date
@@ -1179,7 +1196,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # Maybe we need to import it
             importNames, importLines = iep.parser.getFictiveImports()
             if baseObject in importNames:
-                self.autoComplete_autoImport(importLines[baseObject])
+                self._introspect_autoImport(importLines[baseObject])
         
         else:
             
@@ -1187,17 +1204,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             names = list(names)
             names.sort(key=str.upper)
             
-            # todo: time the two methods!
             # Check whether name in list. 
-    #         name = name.lower()
-    #         thename = ""
-    #         for item in names:
-    #             if item.lower().startswith(name):
-    #                 thename = item
-    #                 break
-    #         # If not, hide
-    #         if not thename:
-    #             self.autoCompCancel()
             haystack = ' ' + ' '.join(names).lower()
             needle = ' '+name.lower()
             if haystack.find(needle) == -1:
@@ -1209,7 +1216,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                     self.autoCompShow(len(name), names)
     
     
-    def autoComplete_autoImport(self, line):
+    def _introspect_autoImport(self, line):
+        """ Process an auto import. """
+        
         # Get line and shell to execute it in
         line = line.strip()
         shell = iep.shells.getCurrentShell()        
@@ -1217,110 +1226,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if shell and (line not in shell._importAttempts):
             # Do the import
             shell.executeLine(line)
-            
+            # Make sure not to try to import again
+            shell._importAttempts.append(line)
     
-    
-    # todo: remove
-    def _Autocomplete_produceList(self, baseObject):
-        # todo: put in editor.py ?
-        # The simpler version would query in shell and extend w/ buildins and keywords
-        
-        # I wrote this for IEP1, but I find it a bit hard to read now :)
-        # What it does is take inheritance into account.
-        def findClassFullNameSpace(fobject):
-            locallist = fobject.attributes
-            for super in fobject.supers:
-                # Try cutting it up and so force an import
-                superparts = super.split('.')
-                superparts.append('') # to deal with -1
-                for i in range(1,len(superparts)):
-                    superpart = ".".join(superparts[:-i])                    
-                    tmp = self._Autocomplete_produceList(superpart)
-                    if tmp: break
-                # Auto recursive
-                tmp = self._Autocomplete_produceList(super)
-                tmp = [item for item in tmp if item not in locallist]
-                locallist.extend(tmp)
-            return locallist
-        
-        # Start list
-        thelist = []
-        fictivelist = []
-        
-        # Get current session
-        # todo: ->
-        shell = self.root.shells.GetCurrentShell()
-        if shell is not None:
-            session = shell.session
-            # get dir list
-            basedir = session.Introspect_dir(baseObject)
-            if basedir:
-                thelist.extend( basedir )        
-            # include buildins and keywords?
-            if baseObject=="":
-                thelist.extend(session.builtins)
-                thelist.extend(session.keywords)
-        
-        
-        fictiveNS, importNames, fictiveClass = [], [], None
-        if True: #iep.config.doAnalyzeSource:
-        
-            # Get normal fictive namespace        
-            fictiveNS = iep.parser.getFictiveNameSpace()
-            if baseObject=="":
-                fictivelist.extend(fictiveNS)  
-                
-            # include imports
-            importNames, importLines = self.parser.getFictiveImports()
-            if baseObject=="":
-                fictivelist.extend(importNames)   
-                    
-            if not thelist: # yet
-                # get fictive self objectlist (self.[])                
-                if baseObject:
-                    fictiveClass = self.parser.GetFictiveCurrentClass(baseObject)
-        
-        
-        # what will the list consist of...
-        
-        if not thelist and baseObject in importNames:            
-            # only based on a fictive import...
-            line = str( importLines[baseObject] ).strip()            
-            # get current shell/session
-            shell = self.root.shells.GetCurrentShell()
-            if shell and line not in shell.session.importAttempts:
-                # do the import
-                shell.DoPoll( None, "print '%s';%s\n" % (line, line) )
-                # notify user
-                pos = self.GetCurrentPos()
-                self.CallTipShow( pos, "running %s, please wait..." % line  )
-                i1 = len('running')+1
-                i2 = i1 + len(line)
-                self.CallTipSetHighlight(i1,i2)
-                # make sure not to try again
-                shell.session.importAttempts.append(line)
-                # but try getting the list after 1 second
-                wx.CallLater(1000, self.CallTipCancel)
-                wx.CallLater(1010, self.Introspect_autoComplete)
-                # Because the result will be [], the autocompletion
-                # will directly be tried again when a key is pressed.
-                
-        elif not thelist and baseObject in fictiveNS:
-            # get attributes of fictive class
-            theitem = self.parser.GetFictiveClass(baseObject)
-            if theitem:                
-                thelist.extend( findClassFullNameSpace(theitem) )
-            
-        elif not thelist and fictiveClass:
-            # only the self list
-            thelist.extend( findClassFullNameSpace(fictiveClass) )
-            
-        else:
-            # extend the list with fictive items
-            tmplist = [item for item in fictivelist if item not in thelist]
-            thelist.extend( tmplist )
-        
-        return thelist
     
     ## Callbacks
     
@@ -1365,11 +1273,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             key = ord(event.text()[0])
             if key >= 48 or key in [8, 46]:
                 # If a char that allows completion or backspace or dot was pressed
-                self.doIntrospection(True)
+                self.introspect(True)
             else:
-                self.doIntrospection() # Only calltip
+                self.introspect() # Only calltip
         elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
-            self.doIntrospection()
+            self.introspect()
     
     
     def keyPressHandler_always(self, event):
