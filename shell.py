@@ -361,9 +361,10 @@ remotePath = os.path.join(iep.path, 'remote.py')
 
 
 class RequestObject:
-    def __init__(self, request, callback):
+    def __init__(self, request, callback, id=None):
         self._request = request
         self._callback = callback
+        self._id = id
         self._posted = False
 
 
@@ -436,10 +437,10 @@ class PythonShell(BaseShell):
         self._buffer = ''
     
     
-    def _setVersion(self, response):
+    def _setVersion(self, response, id):
         self._version = response[:5]
     
-    def _setBuiltins(self, response):
+    def _setBuiltins(self, response, id):
         self._builtins = response.split(',')
     
     
@@ -475,12 +476,13 @@ class PythonShell(BaseShell):
         #self.UpdateState()
     
     
-    def postRequest(self, request, callback):
-        """ postRequest(request, callback)
+    def postRequest(self, request, callback, id=None):
+        """ postRequest(request, callback, id=None)
         Post a request as a string. The given callback is called
-        when a response is received.
+        when a response is received, with the response and id as 
+        arguments.
         """
-        req = RequestObject(request, callback)
+        req = RequestObject(request, callback, id)
         self._requestQueue.append(req)
     
     
@@ -569,7 +571,7 @@ class PythonShell(BaseShell):
             response = self._response.readLast()
             if response:
                 req = self._requestQueue.pop(0)
-                req._callback(response)
+                req._callback(response, req._id)
         
         # Process requests
         if self._requestQueue:

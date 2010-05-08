@@ -78,7 +78,8 @@ namechars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
 namekeys = [ord(i) for i in namechars]
 
 
-# todo: a regexp on the reverse string?
+# todo: a regexp on the reverse string? Only for beauty, 
+# this is no performance bottleneck or anything
 def parseLine_autocomplete(text):
     """ Given a line of code (from start to cursor position) 
     returns a tuple (base, name).    
@@ -472,7 +473,17 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._delayTimer.timeout.connect(self._introspectNow)
         
         # For autocompletion
-        self._autoComp_name = ''
+        self._autoComp_name = '' # the name being looked up
+        self._autoComp_fictiveNames = [] # to pass fictive names
+        self._autoComp_bufBase = '' # the name of which we have a list
+        self._autoComp_bufTime = 0 # when did we obtain that list
+        self._autoComp_bufNames = [] # the buffered list of names
+        
+        # For calltip
+        self._callTip_pos = 0 # to store position
+        self._callTip_bufName = {} # full name of buffered function signature
+        self._callTip_bufTime = 0 # when did we obtain the buffered sig
+        self._callTip_bufSig = '' # the buffered signature
         
         #print('Initializing Scintilla component.')
         
@@ -930,8 +941,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def callTipShow(self, pos, text, hl1=0, hl2=0):
         """ callTipShow(pos, text, hl1, hl2)
         Show text in a call tip at position pos. the text between hl1 and hl2
-        is highlighted. """
+        is highlighted. If hl2 is -1, highlights all untill the first '('.
+        """
         self.SendScintilla(self.SCI_CALLTIPSHOW, pos, text)
+        if hl2 == -1:
+            hl2 = text.find('(')
         if hl2 > hl1:
             self.SendScintilla(self.SCI_CALLTIPSETHLT, hl1, hl2)
     
@@ -970,11 +984,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if lexlang != self.SCLEX_PYTHON:
             return False
         
-        # todo: check style
-#         # The style must be "default"
-#         curstyle = self.getStyleAt(self.getPosition())
-#         if curstyle not in [32,10]:
-#             return False
+        # The style must be "default"
+        curstyle = self.getStyleAt(self.getPosition())
+        if curstyle:
+            return False
         
         # all good
         return True  
@@ -1074,26 +1087,44 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         else:
             if baseObject:
                 name  = "%s.%s" % (baseObject, name)
-                
-            # Determine position
-            self._callTipPos = pos
             
-            # Try obtaining calltip from the source
-            sig = iep.parser.getFictiveSignature(name, self)
-            if sig:
-                self.callTipShow(self._callTipPos, sig)
+            # Determine position
+            self._callTip_pos = pos
+            
+            # Try reusing calltip
+            if (    (name == self._callTip_bufName) and 
+                    (time.time() - self._callTip_bufTime < 5.0)  ):
+                self.callTipShow(self._callTip_pos, self._callTip_bufSig, 0,-1)
             
             else:
-                # Obtain calltip from the session
-                req = "SIGNATURE " + name
-                shell = iep.shells.getCurrentShell()
-                shell.postRequest(req, self._introspect_callTip_response)
+                # Try obtaining calltip from the source
+                sig = iep.parser.getFictiveSignature(name, self)
+                if sig:
+                    # Buffer info and show calltip
+                    self._callTip_bufName = name
+                    self._callTip_bufTime = time.time()
+                    self._callTip_bufSig = sig
+                    self.callTipShow(self._callTip_pos, sig, 0,-1)
+                else:
+                    # Obtain calltip from the session
+                    req = "SIGNATURE " + name
+                    # Init buffer, so we know in response it is still needed
+                    self._callTip_bufName = id = name 
+                    self._callTip_bufSig = ''
+                    self._callTip_bufTime = time.time()
+                    # Post request
+                    shell = iep.shells.getCurrentShell()
+                    shell.postRequest(req, self._introspect_callTip_response, id)
     
     
-    def _introspect_callTip_response(self, response):
+    def _introspect_callTip_response(self, response, id):
         """ Process response of shell to show signature. """
-        if response and response != '<error>':
-            self.callTipShow(self._callTipPos, response)
+        if response and response == '<error>':
+            return
+        if id == self._callTip_bufName:
+            self._callTip_bufTime = time.time()
+            self._callTip_bufSig = response
+            self.callTipShow(self._callTip_pos, response, 0,-1)
     
     
     def _introspect_autoComp(self, baseObject, name):
@@ -1154,23 +1185,28 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             
             # Store name to search for
             self._autoComp_name = baseObject + '.' + name.lower()
-            self._autoComp_names = names
+            self._autoComp_fictiveNames = names
             
-            # Poll name
-            req = "DIR " + nameToPoll
-            shell = iep.shells.getCurrentShell()
-            shell.postRequest(req, self._introspect_autoComp_response)
+            # Use buffer or poll name
+            if (    (baseObject == self._autoComp_bufBase) and 
+                    (time.time() - self._autoComp_bufTime < 5.0)   ):
+                # Use buffer
+                self._introspect_autoComp_show(name, self._autoComp_bufNames)
+            
+            else:
+                # Poll name
+                req = "DIR " + nameToPoll
+                shell = iep.shells.getCurrentShell()
+                id = self._autoComp_name
+                shell.postRequest(req, self._introspect_autoComp_response, id)
     
     
-    def _introspect_autoComp_response(self, response):
+    def _introspect_autoComp_response(self, response, id):
         """ Process the response of the shell for the auto completion. 
         """ 
         
-        # todo: also send and receive back the self._autoComp_name so
-        # we can determine whether it's still up-to-date
-        # todo: keep reference of the autocomp list for re-use as in IEP1?
         # Should we process at all?
-        if not self._autoComp_name:
+        if not self._autoComp_name or self._autoComp_name != id:
             self.autoCompCancel()
             return
         
@@ -1186,7 +1222,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             return
         
         # Add result to the list
-        names = self._autoComp_names
+        names = self._autoComp_fictiveNames
         if response != '<error>':
             names.update(response.split(','))
         
@@ -1199,21 +1235,32 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 self._introspect_autoImport(importLines[baseObject])
         
         else:
-            
-            # Make a list and sort it
-            names = list(names)
-            names.sort(key=str.upper)
-            
-            # Check whether name in list. 
-            haystack = ' ' + ' '.join(names).lower()
-            needle = ' '+name.lower()
-            if haystack.find(needle) == -1:
-                self.autoCompCancel()
-            else:
-                # Show completion list if required. 
-                # When already shown the list will change selection when typing
-                if not self.autoCompActive():
-                    self.autoCompShow(len(name), names)
+            # Store result and show
+            self._autoComp_bufBase = baseObject
+            self._autoComp_bufTime = time.time()
+            self._autoComp_bufNames = names
+            self._introspect_autoComp_show(name, names)
+    
+    
+    def _introspect_autoComp_show(self, name, names):
+        """ The last bit in the auto completion processing. Sorts the
+        set of names and checks whether name is in it. Performs the
+        showing. 
+        """
+        # Make a list and sort it
+        names = list(names)
+        names.sort(key=str.upper)
+        
+        # Check whether name in list. 
+        haystack = ' ' + ' '.join(names).lower()
+        needle = ' '+name.lower()
+        if haystack.find(needle) == -1:
+            self.autoCompCancel()
+        else:
+            # Show completion list if required. 
+            # When already shown the list will change selection when typing
+            if not self.autoCompActive():
+                self.autoCompShow(len(name), names)
     
     
     def _introspect_autoImport(self, line):
@@ -1238,10 +1285,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         From here we'l dispatch the event to perform autocompletion
         or other stuff...
         """
-        # todo: Each autocomplete request should get an id or so,
-        # such that when the autocomplete wants to show the result,
-        # it can deside not to when the user has for example already
-        # pressed enter.
         
         # Create simple keyevent class and set modifiers
         keyevent = KeyEvent( event.key() )
@@ -1250,10 +1293,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
         
-        # Cancel any autocompletion in progress
-        # todo: can we not use a single flag for this?
+        # Cancel any introspection in progress
         self._delayTimer._line = ''
-        self._autoComp_name = ''
+        # todo: somehow cancel calltip and autocomps that are too late.
         
         # Dispatch event        
         if not self.keyPressHandler_always(keyevent):
