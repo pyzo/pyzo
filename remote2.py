@@ -272,11 +272,6 @@ class IntroSpectionThread(threading.Thread):
         """ This is the "mainloop" of our introspection thread.
         """ 
         
-#         # we shall start by sending the version and builtins
-#         self.enq_list('%s.keys()','__builtins__')
-#         self.response.write(sys.version)
-        
-        
         while True:
             
             # sleep for a bit
@@ -294,28 +289,23 @@ class IntroSpectionThread(threading.Thread):
             
             # process request
             
-            if req == "DIR":
-                self.enq_list("dir(%s)", arg)
-            
             elif req == "KEYS":
-                self.enq_list("%s.keys()", arg)
-            
-#             elif req == "HELP":
-#                 self.enq_help(arg)
-#                 
-            elif req == "SIGNATURE":
-                self.enq_signature(arg)
+                self.enq_list(arg)
             
             elif req == "EVAL":
                 self.enq_eval( arg )
-#                 
-#             elif req == "EXEC":    
-#                 try:
-#                     exec(arg, None, piep.interpreter.locals)    
-#                 except:
-#                     pass
+            
+            elif req == "SIGNATURE":
+                self.enq_signature(arg)
+                
+            elif req == "ATTRIBUTES":
+                self.enq_attributes(arg)
+            
+#             elif req == "HELP":
+#                 self.enq_help(arg)
+
             else:
-                self.response.write('<no valid request>')
+                self.response.write('<not a valid request>')
                 
         print('IntrospectionThread stopped')
     
@@ -417,15 +407,28 @@ class IntroSpectionThread(threading.Thread):
             self.response.write( "<error>" )
     
     
-    def enq_list(self, commandtoproducelist, objectName):
-        """ commandtoproducelist must look like:
-        "dir(%s)" or "%s.keys()"
-        and objectName is what will be filled in in %s
-        """
+    def enq_attributes(self, objectName):
+        
+        # obtain list using dir function
+        command = "dir(%s)" % (objectName)
+        try:
+            d = eval(command, {}, self.locals)
+        except Exception:            
+            d = None
+       
+        # todo: check for dir method to provide autocomp for pydicom
+        
+        # respond
+        if d:
+            self.response.write( ",".join(d) )
+        else:
+            self.response.write( "<error>" )
+    
+    
+    def enq_keys(self, objectName):
         
         # get dir
-        command = commandtoproducelist % (objectName)
-        
+        command = "%s.keys()" % (objectName)
         try:
             d = eval(command, {}, self.locals)
         except Exception:            

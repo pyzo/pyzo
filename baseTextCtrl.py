@@ -473,7 +473,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._delayTimer.timeout.connect(self._introspectNow)
         
         # For autocompletion
-        self._autoComp_name = '' # the name being looked up
+        self._autoComp_name = '' # the (partial) name to look up
         self._autoComp_fictiveNames = [] # to pass fictive names
         self._autoComp_bufBase = '' # the name of which we have a list
         self._autoComp_bufTime = 0 # when did we obtain that list
@@ -921,7 +921,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """
         if isinstance(names, list):
             names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
-        self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
+        if names:
+            self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
     
     def autoCompCancel(self):
         """ Hide the autocompletion list, do nothin. """
@@ -943,11 +944,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         Show text in a call tip at position pos. the text between hl1 and hl2
         is highlighted. If hl2 is -1, highlights all untill the first '('.
         """
-        self.SendScintilla(self.SCI_CALLTIPSHOW, pos, text)
-        if hl2 == -1:
-            hl2 = text.find('(')
-        if hl2 > hl1:
-            self.SendScintilla(self.SCI_CALLTIPSETHLT, hl1, hl2)
+        if text:
+            self.SendScintilla(self.SCI_CALLTIPSHOW, pos, text)
+            if hl2 == -1:
+                hl2 = text.find('(')
+            if hl2 > hl1:
+                self.SendScintilla(self.SCI_CALLTIPSETHLT, hl1, hl2)
     
     def callTipCancel(self):
         """ Hide call tip. """
@@ -1109,6 +1111,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                     # Obtain calltip from the session
                     req = "SIGNATURE " + name
                     # Init buffer, so we know in response it is still needed
+                    # This also prevents doing a second request
                     self._callTip_bufName = id = name 
                     self._callTip_bufSig = ''
                     self._callTip_bufTime = time.time()
@@ -1121,10 +1124,15 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ Process response of shell to show signature. """
         if response and response == '<error>':
             return
+        # If still required, show tip
         if id == self._callTip_bufName:
+            self.callTipShow(self._callTip_pos, response, 0,-1)
+        # Always store
+        if True:
+            self._callTip_bufName = id
             self._callTip_bufTime = time.time()
             self._callTip_bufSig = response
-            self.callTipShow(self._callTip_pos, response, 0,-1)
+    
     
     
     def _introspect_autoComp(self, baseObject, name):
@@ -1184,7 +1192,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if name or nameToPoll:
             
             # Store name to search for
-            self._autoComp_name = baseObject + '.' + name.lower()
+            self._autoComp_name = name.lower()
             self._autoComp_fictiveNames = names
             
             # Use buffer or poll name
@@ -1194,10 +1202,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 self._introspect_autoComp_show(name, self._autoComp_bufNames)
             
             else:
+                # Prepare for polling (prevent doing a second request)
+                self._autoComp_bufBase = id = baseObject
+                self._autoComp_bufTime = time.time()
+                self._autoComp_bufNames = set()
                 # Poll name
-                req = "DIR " + nameToPoll
+                req = "ATTRIBUTES " + nameToPoll
                 shell = iep.shells.getCurrentShell()
-                id = self._autoComp_name
                 shell.postRequest(req, self._introspect_autoComp_response, id)
     
     
@@ -1205,13 +1216,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ Process the response of the shell for the auto completion. 
         """ 
         
-        # Should we process at all?
-        if not self._autoComp_name or self._autoComp_name != id:
-            self.autoCompCancel()
-            return
-        
         # Get baseObject, name
-        baseObject, name = tuple(self._autoComp_name.rsplit('.',1))
+        baseObject, name = id, self._autoComp_name
         
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
@@ -1235,11 +1241,14 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 self._introspect_autoImport(importLines[baseObject])
         
         else:
-            # Store result and show
-            self._autoComp_bufBase = baseObject
-            self._autoComp_bufTime = time.time()
-            self._autoComp_bufNames = names
-            self._introspect_autoComp_show(name, names)
+            # Show if still up to date
+            if self._autoComp_bufBase == baseObject:
+                self._introspect_autoComp_show(name, names)
+            # Store result
+            if True:
+                self._autoComp_bufBase = baseObject
+                self._autoComp_bufTime = time.time()
+                self._autoComp_bufNames = names
     
     
     def _introspect_autoComp_show(self, name, names):
@@ -1295,7 +1304,16 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # Cancel any introspection in progress
         self._delayTimer._line = ''
-        # todo: somehow cancel calltip and autocomps that are too late.
+        
+        # Also invalidate introspection for when a response gets back
+        # These are set again when the timer runs out. If the response
+        # is received before the timer runs out, the results are buffered
+        # but not shown. When the timer runs out shortly after, the buffered
+        # results are shown. If the timer runs out before the response is
+        # received, a new request is done, although the response of the old
+        # request will show the info if it's still up to date. 
+        self._autoComp_bufBase = None
+        self._callTip_bufName = None
         
         # Dispatch event        
         if not self.keyPressHandler_always(keyevent):
