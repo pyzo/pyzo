@@ -289,11 +289,11 @@ class IntroSpectionThread(threading.Thread):
             
             # process request
             
-            elif req == "KEYS":
-                self.enq_list(arg)
-            
-            elif req == "EVAL":
+            if req == "EVAL":
                 self.enq_eval( arg )
+                
+            elif req == "KEYS":
+                self.enq_keys(arg)
             
             elif req == "SIGNATURE":
                 self.enq_signature(arg)
