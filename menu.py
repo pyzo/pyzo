@@ -602,7 +602,25 @@ class SettingsMenu(BaseMenu):
         iep.editors._findReplace._findText.setFocus()
         widget.setFocus()
     
-    
+import plugins
+class PluginsMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        for moduleName, name, description in plugins.getAvailablePlugins():
+            pass
+        
+        addItem( MI('Test', self.fun_testPlugin, True) )
+        
+    def fun_testPlugin(self, value):
+        """ To test a plugin. """
+        if value is None:
+            return True
+        else:
+            plugins.loadPlugin('iepsourcestructure')
+
+
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.
@@ -613,7 +631,10 @@ class MenuHelper:
         menus = [   ('File', FileMenu), 
                     ('Edit', EditMenu), 
                     ('View', ViewMenu),
-                    ('Settings', SettingsMenu)]
+                    ('Settings', SettingsMenu),
+                    ('Plugins', PluginsMenu),
+                ]
+                    
         
         for menuName, menuClass in menus:
             menu = menuClass(menuName, menubar)
