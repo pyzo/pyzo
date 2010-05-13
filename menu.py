@@ -16,18 +16,26 @@ class MI:
     - a boolean - values is True or False, indicating the currents state
     - a choice - values is a list of Strings, ending with the current
     
-    - func.__doc__ is used as statustip
-    - if isChoice, func(None) should give the 'values' property.
+    - if doc not given, func.__doc__ is used as statusti
+    - if values is [], func(None) is called to obtain the 'values' property.
     """
-    def __init__(self, text, func, isChoice=False):        
+    def __init__(self, text, func, values=None, doc=None):        
+        # Get text and func (always directly)
         self.text = text
         self.func = func
-        self.tip = func.__doc__
-        if isChoice:
+        # Get doc
+        if doc is None:
+            self.tip = func.__doc__
+        else:
+            self.tip = doc
+        # Get values
+        if values is None:
+            self.values = None
+        elif values == []:
             self.values = func(None)
         else:
-            self.values = None
-
+            self.values = values
+    
     def _attachShortcut(self, action):
         # set shortcut?
         shortcuts = getShortcut(action)
@@ -139,10 +147,10 @@ class FileMenu(BaseMenu):
         addItem( MI('Save file as ...', self.fun_saveAs) )
         addItem( MI('Close file', self.fun_closeFile) )
         addItem(None)
-        addItem( MI('Style', self.fun_style, True) )
-        addItem( MI('Indentation', self.fun_indentation, True) )
-        addItem( MI('Line endings', self.fun_lineEndings, True) )        
-        addItem( MI('File encoding', self.fun_encoding, True) )
+        addItem( MI('Style', self.fun_style, []) )
+        addItem( MI('Indentation', self.fun_indentation, []) )
+        addItem( MI('Line endings', self.fun_lineEndings, []) )        
+        addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)
         addItem( MI('Restart IEP (not saving settings)', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
@@ -345,18 +353,18 @@ class ViewMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Wrap text', self.fun_wrap, True) )
-        addItem( MI('Indentation guides', self.fun_indentGuides, True) )
-        addItem( MI('Edge column', self.fun_edgecolumn, True) )
-        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, True) )
+        addItem( MI('Wrap text', self.fun_wrap, []) )
+        addItem( MI('Indentation guides', self.fun_indentGuides, []) )
+        addItem( MI('Edge column', self.fun_edgecolumn, []) )
+        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( None )
-        addItem( MI('Show whitespace', self.fun_showWhiteSpace, True) )
-        addItem( MI('Show line endings', self.fun_showLineEndings, True) )
-        addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, True) )
+        addItem( MI('Show whitespace', self.fun_showWhiteSpace, []) )
+        addItem( MI('Show line endings', self.fun_showLineEndings, []) )
+        addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
         addItem( None )
         addItem( MI('Select previous file', self.fun_selectPrevious) )
-        addItem( MI('Highlight current line', self.fun_lineHighlight, True) )
-        addItem( MI('Zooming', self.fun_zooming, True) )
+        addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
+        addItem( MI('Zooming', self.fun_zooming, []) )
     
     
     def fun_wrap(self, value):
@@ -463,15 +471,15 @@ class SettingsMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Enable code folding', self.fun_codeFolding, True) )
-        addItem( MI('Match braces', self.fun_braceMatch, True) )
-        addItem( MI('Automatically indent', self.fun_autoIndent, True) )
+        addItem( MI('Enable code folding', self.fun_codeFolding, []) )
+        addItem( MI('Match braces', self.fun_braceMatch, []) )
+        addItem( MI('Automatically indent', self.fun_autoIndent, []) )
         addItem( None )
-        addItem( MI('Default style', self.fun_defaultStyle, True) )
-        addItem( MI('Default indentation', self.fun_defaultIndentation, True) )
-        addItem( MI('Default line endings', self.fun_defaultLineEndings, True) )
+        addItem( MI('Default style', self.fun_defaultStyle, []) )
+        addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
+        addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
         addItem( None )
-        addItem( MI('QT theme', self.fun_qtstyle, True) )
+        addItem( MI('QT theme', self.fun_qtstyle, []) )
         addItem( MI('Edit syntax styles ...', self.fun_editStyles) )        
         addItem( MI('Change key mappings ...', self.fun_keymap) )
         addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
@@ -601,24 +609,27 @@ class SettingsMenu(BaseMenu):
         # a file-changed message will appear
         iep.editors._findReplace._findText.setFocus()
         widget.setFocus()
-    
+
+
+# Instantiate plugin manager
 import plugins
+iep.pluginManager = pluginManager = plugins.PluginManager()
+
 class PluginsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        for moduleName, name, description in plugins.getAvailablePlugins():
-            pass
+        addItem( MI('Reload plugins', self.fun_reload) )
+        addItem( None )
         
-        addItem( MI('Test', self.fun_testPlugin, True) )
-        
-    def fun_testPlugin(self, value):
-        """ To test a plugin. """
-        if value is None:
-            return True
-        else:
-            plugins.loadPlugin('iepsourcestructure')
+        for plugin in pluginManager.loadPluginInfo():
+            addItem( MI(plugin.name, plugin.menuLauncher, 
+                       bool(plugin.instance), plugin.description) )
+    
+    def fun_reload(self, value):
+        """ Reload all plugins (intended for helping plugin development). """
+        pluginManager.reloadPlugins()
 
 
 class MenuHelper:

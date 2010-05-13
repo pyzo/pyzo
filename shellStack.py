@@ -26,7 +26,7 @@ class ShellStack(QtGui.QFrame):
         self._tabs = QtGui.QTabWidget(self)
         self._ws = QtGui.QFrame(self)
         self._boxLayout.addWidget(self._ws, 1)
-        self._boxLayout.addWidget(self._tabs, 0)
+        self._boxLayout.addWidget(self._tabs, 999)
         
         # set layout
         self.setLayout(self._boxLayout)
@@ -65,6 +65,8 @@ class ShellStack(QtGui.QFrame):
     def sizeShellTo80Columns(self, event=None):
         """ Is the name not descriptive enough?
         """
+        return 
+        
         # are we hidden?
         if not self.isVisible():
             return

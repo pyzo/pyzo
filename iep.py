@@ -114,6 +114,7 @@ find_regExp = 1
 titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
 shellMaxLines = 10000
 autoCompDelay = 300
+state = list:
 editor = dict:
   showWhiteSpace = 0
   showWrapSymbols = 0
