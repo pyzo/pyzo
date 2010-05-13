@@ -66,32 +66,63 @@ class MainWindow(QtGui.QMainWindow):
         
         # create floater
         dock = QtGui.QDockWidget("Shells", self)
-        dock.setAllowedAreas(QtCore.Qt.TopDockWidgetArea | 
-                            QtCore.Qt.BottomDockWidgetArea)
+        dock.setObjectName('shells')
         dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
         
         # insert shell stack
         iep.shells = ShellStack(self)
         dock.setWidget(iep.shells)
-        iep.shells.show()
+        #iep.shells.show()
         iep.shells.addShell()
         iep.shells.addShell()
         
         # show now
+        self.restoreIepState()
         self.show()
     
-    def onTrigger(self, action):
-        print('trigger:', action.text())
     
-
+    def saveIepState(self):
+        """ Save which plugins are loaded and all window positions. """
+        import base64
+        
+        # Save plugin list
+        plugins = iep.pluginManager.getLoadedPlugins()
+        
+        # Get state and make unicode string
+        state = bytes(self.saveState())
+        state = base64.encodebytes(state).decode('ascii')
+        
+        # Save in config
+        iep.config.state = plugins + [state]
+    
+    
+    def restoreIepState(self):
+        """ Restore plugins and positions of all windows. """
+        import base64
+        
+        # Load from config
+        plugins = iep.config.state
+        if not plugins:
+            return
+        state = plugins.pop(-1)
+        
+        # Load plugins
+        for pluginId in plugins:
+            iep.pluginManager.loadPlugin(pluginId)
+        
+        # Restore state
+        state = base64.decodebytes(state.encode('ascii'))
+        self.restoreState(state)
+    
+    
     def saveConfig(self):
         """ Save all configureations to file. """ 
         
         # store editorStack settings
         iep.editors.storeSettings()
         
-        # store splitter layout
+        # store window position
         pos = iep.config.layout
         if self.windowState() == QtCore.Qt.WindowMaximized:
             pos.maximized = 1
@@ -100,6 +131,9 @@ class MainWindow(QtGui.QMainWindow):
             pos.maximized = 0            
         pos.left, pos.top = self.x(), self.y()
         pos.width, pos.heigth = self.width(), self.height()
+        
+        # store state
+        self.saveIepState()
         
         # store config
         ssdf.save( os.path.join(iep.path,"config.ssdf"), iep.config )
@@ -125,13 +159,19 @@ class MainWindow(QtGui.QMainWindow):
         self._restarting = True
         self.close()
         
-        # put a space in front of all args
-        args = []
-        for i in sys.argv:
-            args.append(" "+i)
+        # todo: test under windows
+        args = sys.argv
+#         # put a space in front of all args
+#         args = []
+#         for i in sys.argv:
+#             args.append(" "+i)
+        
+        # prepend the executable name (required on Linux somehow)
+        lastBit = os.path.basename(sys.executable)
+        args.insert(0, lastBit)
         
         # replace the process!                
-        os.execv(sys.executable, args)
+        os.execv(sys.executable,args)
 
 
 class CallbackEventHandler(QtCore.QObject):

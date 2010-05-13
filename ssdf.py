@@ -79,8 +79,8 @@ if np:
     intTypes = (int, np.int8,  np.int16,  np.int32,  np.int64, 
                     np.uint8, np.uint16, np.uint32, np.uint64)
 else:
-    floatTypes = (float)
-    intTypes = (int)
+    floatTypes = (float,)
+    intTypes = (int,)
 
 # if version 2...
 if sys.version_info[0] <= 2:
