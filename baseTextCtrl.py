@@ -12,6 +12,8 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 qt = QtGui
 
+# todo: when right before a ), the autocomp dont work
+
 # get config
 config = iep.config.editor
 
