@@ -6,7 +6,7 @@
 import time
 from PyQt4 import QtCore, QtGui
 import iep
-#strux = iep.strux # do not do an actual import
+ssdf = iep.ssdf
 
 plugin_name = "Source Structure"
 plugin_summary = "Shows the structure of your source code"
@@ -16,8 +16,134 @@ class IepSourceStructure(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
-        but = QtGui.QPushButton(self)
-        but.setText('testing stuff!')
+        # Make sure there is a configuration entry for this plugin
+        pluginName = self.__class__.__name__.lower()
+        if not hasattr( iep.config.plugins, pluginName ):
+            config = ssdf.new()
+            config.showTypes = ['class', 'def', 'cell', 'todo']
+            config.level = 2
+            iep.config.plugins[pluginName] = config
+        
+        # Load configuration for easier access
+        self._config = iep.config.plugins[pluginName]
+        
+        # Create slider
+        self._slider = QtGui.QSlider(QtCore.Qt.Horizontal, self)
+        self._slider.setTickPosition(QtGui.QSlider.TicksBelow)
+        self._slider.setSingleStep(1)
+        self._slider.setPageStep(1)
+        self._slider.setRange(1,9)
+        self._slider.setValue(self._config.level)
+        self._slider.valueChanged.connect(self.updateStructure)
+        
+        # Create button
+        self._button = QtGui.QPushButton(self)
+        self._button.setText('Options ...')
+        self._button.pressed.connect(self.updateStructure)
+        
+        # Create tree widget        
+        self._tree = QtGui.QTreeWidget(self)
+        self._tree.setHeaderHidden(True)
+        self._tree.itemCollapsed.connect(self.updateStructure) # keep expanded
+        self._tree.itemClicked.connect(self.onItemClick)
+        
+        # Create two sizers
+        self._sizer1 = QtGui.QVBoxLayout(self)
+        self._sizer2 = QtGui.QHBoxLayout()
+        # self._sizer1.setSpacing()
+        
+        # Set layout
+        self.setLayout(self._sizer1)
+        self._sizer1.addLayout(self._sizer2, 0)
+        self._sizer1.addWidget(self._tree, 1)
+        self._sizer2.addWidget(self._slider, 1)
+        self._sizer2.addWidget(self._button, 1)
+    
+    
+    def onItemClick(self, item):
+        
+        # Get editor
+        editor = iep.editors.getCurrentEditor()
+        if not editor:
+            return
+        
+        # Move to line
+        pos1 = editor.getPositionFromLinenr(item.linenr+30)
+        pos2 = editor.getPositionFromLinenr(item.linenr-10)
+        pos3 = editor.getPositionFromLinenr(item.linenr-1)
+        editor.setPositionAndAnchor(pos1)
+        editor.setPositionAndAnchor(pos2)
+        editor.setPositionAndAnchor(pos3)
+        # todo: ensure visible?
+        
+        # Give focus
+        iep.callLater(editor.setFocus, True)
+
+    
+    def updateStructure(self):
+        """ Updates the tree. 
+        """
+        
+        # Get editor
+        editor = iep.editors.getCurrentEditor()
+        if not editor:
+            return
+        
+        # Get current line number and the structure
+        ln, index = editor.getLinenrAndIndex()
+        ln += 1  # is ln as in margin
+        
+        # Define colours
+        colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F', 
+                    'var':'#444444', 'import':'#8800BB', 'todo':'#FF3333'}
+        
+        # Define what to show
+        showTypes = self._config.showTypes
+        
+        # Define to what level to show (now is also a good time to save)
+        showLevel = int( self._slider.value() )
+        self._config.level = showLevel
+        
+        # Define function to set items
+        selectedItem = [None]
+        def SetItems(parentItem, fictiveObjects, level):
+            level += 1
+            for object in fictiveObjects:
+                type = object.type
+                if not type in showTypes:
+                    continue
+                # Construct text
+                if type=='cell':
+                    type = '##'
+                if type == 'import':                   
+                    text = "%s (%s)" % (object.name, object.text)
+                elif type=='todo':
+                    text = object.name                    
+                else:
+                    text = "%s %s" % (type, object.name)
+                # Create item
+                thisItem = QtGui.QTreeWidgetItem(parentItem, [text])
+                color = QtGui.QColor(colours[object.type])
+                thisItem.setForeground(0, QtGui.QBrush(color))
+                font = thisItem.font(0)
+                font.setBold(True)
+                thisItem.setFont(0, font)
+                thisItem.linenr = object.linenr
+                # Is this the current item?
+                if ln and object.linenr <= ln and object.linenr2 > ln:
+                    selectedItem[0] = thisItem                    
+                # Any children that we should display?
+                if object.children and level < showLevel:
+                    SetItems(thisItem, object.children, level)
+                # Set visibility
+                thisItem.setExpanded(True)
+        
+        # Go and return
+        self._tree.clear()
+        SetItems(self._tree, iep.parser.rootitem.children, 0)
+        return selectedItem[0]
+    
+
 
 
 # class IepSourceStructure(wx.Panel):

@@ -20,6 +20,7 @@ if not hasattr(iep, 'parser'):
     iep.parser = codeparser.Parser()
     iep.parser.start()
 
+# todo: home goes to start of the line. To beginning if already at start.
 
 def determineLineEnding(text):
     """get the line ending style used in the text.
