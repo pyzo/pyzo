@@ -30,6 +30,7 @@ class Parser(threading.Thread):
         # todo: get rid of need to use also a flat list.
         # The resulting structure
         self._result = None
+        self._editorId = 0
         self.rootitem, self.items = None, []
         
         # Set deamon
@@ -46,6 +47,7 @@ class Parser(threading.Thread):
         text = editor.getString()
         
         self._text = text
+        self._editorId = id(editor)
         self._gotNewText = True
     
     
@@ -238,10 +240,12 @@ class Parser(threading.Thread):
         time.sleep(0.5)
         try:
             while True:
-                time.sleep(0.01)
+                time.sleep(0.1)
                 if self._text:
                     self.rootitem, self.items = self._analyze(self._text)
                     self._text = ''
+                    iep.editors.parserDone.emit()
+            
         except AttributeError:
             pass # when python exits, time can be None...
     

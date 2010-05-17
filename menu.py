@@ -272,6 +272,7 @@ class EditMenu(BaseMenu):
         addItem( None )
         addItem( MI('Find or replace', self.fun_findReplace) )
         addItem( MI('Find selection', self.fun_findSelection) )
+        addItem( MI('Find selection backward', self.fun_findSelectionBw) )
         addItem( MI('Find next', self.fun_findNext) )
         addItem( MI('Find previous', self.fun_findPrevious) )
     
@@ -340,6 +341,10 @@ class EditMenu(BaseMenu):
     def fun_findSelection(self, value):
         iep.editors._findReplace.startFind()
         iep.editors._findReplace.findNext()
+    
+    def fun_findSelectionBw(self, value):
+        iep.editors._findReplace.startFind()
+        iep.editors._findReplace.findPrevious()
     
     def fun_findNext(self, value):
         iep.editors._findReplace.findNext()

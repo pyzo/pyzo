@@ -11,16 +11,8 @@ from PyQt4 import Qsci
 qt = QtGui
 
 from baseTextCtrl import BaseTextCtrl, normalizePath
-import codeparser
 import iep
 
-
-# Create "global" parser instance
-if not hasattr(iep, 'parser'):
-    iep.parser = codeparser.Parser()
-    iep.parser.start()
-
-# todo: home goes to start of the line. To beginning if already at start.
 
 def determineLineEnding(text):
     """get the line ending style used in the text.
@@ -221,6 +213,7 @@ class IepEditor(BaseTextCtrl):
         # way to update the parser. SCN_MODIFIED might make more sense, but
         # produces errors.
         self.SCN_UPDATEUI.connect(self._onModified)
+        
     
     
     def focusInEvent(self, event):
@@ -292,6 +285,7 @@ class IepEditor(BaseTextCtrl):
     
     def showEvent(self, event=None):
         """ Capture show event to change title. """
+        
         # get root widget
         ob = self
         while ob.parent():
@@ -305,6 +299,9 @@ class IepEditor(BaseTextCtrl):
         title = iep.config.titleText.format(**tmp)
         # set title
         ob.setWindowTitle(title)
+        
+        # make parser update
+        iep.parser.parseThis(self)
     
     
     def save(self, filename=None):
