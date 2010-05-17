@@ -14,7 +14,6 @@ from baseTextCtrl import styleManager
 barwidth = iep.config.editorStackBarWidth
 
 
-
 class Item(qt.QLabel):
     """ Base Item class, items for a list of files and projects.
     Some of the styling is implemented here. An item instance 
@@ -971,6 +970,7 @@ class FindReplaceWidget(QtGui.QFrame):
                                 forward, line, index, True)
         
         # done
+        editor.setFocus(True)
         return ok
     
     
@@ -1033,6 +1033,13 @@ class FindReplaceWidget(QtGui.QFrame):
     
 class EditorStack(QtGui.QWidget):
     
+    # Signal to notify that a different file was selected
+    changedSelected = QtCore.pyqtSignal()
+    
+    # Signal to notify that the parser has parsed the text (emit by parser)
+    parserDone = QtCore.pyqtSignal()
+    
+    
     def __init__(self, parent):
         qt.QWidget.__init__(self,parent)
         
@@ -1087,6 +1094,10 @@ class EditorStack(QtGui.QWidget):
         if editor is not None:
             self._stack.addWidget(editor)
             editor.show()
+        
+        # notify listeners to the change
+        self.changedSelected.emit()
+    
     
     def getCurrentEditor(self):
         """ Get the currently active editor. """
@@ -1110,7 +1121,9 @@ class EditorStack(QtGui.QWidget):
     def dropEvent(self, event):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
-            path = str( qurl.path()[1:] )
+            path = str( qurl.path() )
+            if os.name.lower().startswith('win'):
+                path = path[1:]
             if os.path.isfile(path):
                 self.loadFile(path)
             elif os.path.isdir(path):
@@ -1251,6 +1264,7 @@ class EditorStack(QtGui.QWidget):
             filelist = os.listdir(path)
             for filename in filelist:
                 filename = os.path.join(path,filename)
+                print('file', filename)
                 ext = os.path.splitext(filename)[1]            
                 if str(ext) in extensions:
                     item = self.loadFile(filename,projectname)

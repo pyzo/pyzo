@@ -25,6 +25,11 @@ from menu import MenuHelper
 from PyQt4 import QtCore, QtGui
 from queue import Queue, Empty
 
+# Create "global" parser instance
+import codeparser
+if not hasattr(iep, 'parser'):
+    iep.parser = codeparser.Parser()
+    iep.parser.start()
 
 class MainWindow(QtGui.QMainWindow):
     

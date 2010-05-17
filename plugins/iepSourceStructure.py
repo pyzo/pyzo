@@ -38,8 +38,8 @@ class IepSourceStructure(QtGui.QWidget):
         
         # Create button
         self._button = QtGui.QPushButton(self)
-        self._button.setText('Options ...')
-        self._button.pressed.connect(self.updateStructure)
+        self._button.setText('Show ...')
+        self._button.pressed.connect(self.onButtonPress)
         
         # Create tree widget        
         self._tree = QtGui.QTreeWidget(self)
@@ -58,9 +58,86 @@ class IepSourceStructure(QtGui.QWidget):
         self._sizer1.addWidget(self._tree, 1)
         self._sizer2.addWidget(self._slider, 1)
         self._sizer2.addWidget(self._button, 1)
+        
+        # Init current-file name and listen to selection changes
+        self._currentEditorId = 0
+        iep.editors.changedSelected.connect(self.onSelectedEditorChanged)
+        iep.editors.parserDone.connect(self.updateStructure)
+        
+        # When the plugin is loaded, the editorStack is already done loading
+        # all previous files and selected the appropriate file.
+        self.onSelectedEditorChanged()
+    
+    
+    def onButtonPress(self):
+        """  Let the user decide what to show in the structure. """
+        
+        # Prepare lists
+        allTypes = ['class', 'def', 'cell', 'todo', 'import']
+        callBacks = [   self.onMenu_class, self.onMenu_def, self.onMenu_cell,
+                        self.onMenu_todo, self.onMenu_import]
+        
+        # Prepare menu
+        menu = QtGui.QMenu(self)
+        for type, callback in zip(allTypes, callBacks):
+            checked = type in self._config.showTypes
+            action = menu.addAction(type, callback)
+            action.setCheckable(True)
+            action.setChecked(checked)
+        
+        # Show menu
+        menu.popup(QtGui.QCursor.pos())
+        self._slider.setFocus(True)
+    
+    
+    def onMenu_class(self):
+        self.onMenu_swap('class')
+    def onMenu_def(self):
+        self.onMenu_swap('def')
+    def onMenu_cell(self):
+        self.onMenu_swap('cell')
+    def onMenu_todo(self):
+        self.onMenu_swap('todo')
+    def onMenu_import(self):
+        self.onMenu_swap('import')
+    def onMenu_swap(self, type):
+        # Save
+        if type in self._config.showTypes:
+            while type in self._config.showTypes:
+                self._config.showTypes.remove(type)
+        else:
+            self._config.showTypes.append(type)
+        # Update
+        self.updateStructure()
+    
+    
+    def onSelectedEditorChanged(self):
+        """ Notify that the file is being parsed and make
+        sure that not the structure of a previously selected
+        file is shown. """
+        
+        # Get editor and clear list
+        editor = iep.editors.getCurrentEditor()        
+        self._tree.clear()
+        
+        if editor is None:
+            # Set editor id
+            self._currentEditorId = 0
+        
+        if editor is not None:
+            # Set editor id
+            self._currentEditorId = id(editor)
+            
+            # Notify
+            text = 'Parsing ' + editor._name + ' ...'
+            thisItem = QtGui.QTreeWidgetItem(self._tree, [text])
+            
+            # Try getting the  structure right now
+            self.updateStructure()
     
     
     def onItemClick(self, item):
+        """ Go to the right line in the editor and give focus. """
         
         # Get editor
         editor = iep.editors.getCurrentEditor()
@@ -68,13 +145,9 @@ class IepSourceStructure(QtGui.QWidget):
             return
         
         # Move to line
-        pos1 = editor.getPositionFromLinenr(item.linenr+30)
-        pos2 = editor.getPositionFromLinenr(item.linenr-10)
-        pos3 = editor.getPositionFromLinenr(item.linenr-1)
-        editor.setPositionAndAnchor(pos1)
-        editor.setPositionAndAnchor(pos2)
-        editor.setPositionAndAnchor(pos3)
-        # todo: ensure visible?
+        editor.gotoLine(item.linenr+30)
+        editor.gotoLine(item.linenr-10)
+        editor.gotoLine(item.linenr-1)
         
         # Give focus
         iep.callLater(editor.setFocus, True)
@@ -87,6 +160,15 @@ class IepSourceStructure(QtGui.QWidget):
         # Get editor
         editor = iep.editors.getCurrentEditor()
         if not editor:
+            return
+        
+        # Something to show
+        if iep.parser.rootitem is None:
+            return
+        
+        # Do the ids match?
+        id0, id1, id2 = self._currentEditorId, id(editor), iep.parser._editorId 
+        if id0 != id1 or id0 != id2:
             return
         
         # Get current line number and the structure
@@ -133,292 +215,20 @@ class IepSourceStructure(QtGui.QWidget):
                 if ln and object.linenr <= ln and object.linenr2 > ln:
                     selectedItem[0] = thisItem                    
                 # Any children that we should display?
-                if object.children and level < showLevel:
+                if object.children:
                     SetItems(thisItem, object.children, level)
-                # Set visibility
-                thisItem.setExpanded(True)
+                # Set visibility 
+                thisItem.setExpanded( bool(level < showLevel) )
         
-        # Go and return
+        # Go
+        self._tree.setUpdatesEnabled(False)
         self._tree.clear()
         SetItems(self._tree, iep.parser.rootitem.children, 0)
-        return selectedItem[0]
-    
-
-
-
-# class IepSourceStructure(wx.Panel):
-#     def __init__(self, parent):
-#         wx.Panel.__init__(self, parent, -1)
-#         
-#         # set double buffering for this control,
-#         # which will significantly reduce flicker.
-#         self.SetDoubleBuffered(True)
-#         
-#         self.tree = wx.TreeCtrl(self,-1, 
-#             style= wx.TR_HIDE_ROOT | wx.TR_LINES_AT_ROOT) # wx.TR_HAS_BUTTONS
-#         self.slider = wx.Slider(self,-1,2,1,8, style=wx.SL_AUTOTICKS)        
-#         self.text = wx.StaticText(self, style=wx.ALIGN_LEFT)
-#         self.menubut = wx.Button(self,-1,"show...")
-#         
-#         # create and fill sizer1
-#         self.sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-#         self.sizer1.Add(self.slider,2,wx.EXPAND)
-#         self.sizer1.Add(self.text,1,wx.EXPAND )
-#         self.sizer1.Add(self.menubut,1,wx.EXPAND )        
-#         
-#         # create and fill sizer2        
-#         self.sizer2 = wx.BoxSizer(wx.VERTICAL)        
-#         self.sizer2.Add(self.sizer1,0,wx.EXPAND)
-#         self.sizer2.Add(self.tree,1,wx.EXPAND)  
-#         
-#         # item to highlight
-#         self.selectedItem = None        
-#         self.root = iep.GetMainFrame(self) 
-#         self.editor = self.root.editors.GetCurrentEditor()
-#         
-#         # apply sizer
-#         self.SetSizer(self.sizer2) # 1
-#         self.SetAutoLayout(True)  # 2
-#         self.Layout()             # 3
-#         
-#         # add events
-#         self.tree.Bind( wx.EVT_LEFT_DOWN, self.OnClick )        
-#         self.Bind( wx.EVT_TREE_SEL_CHANGING, self.OnSelecting ) # to disable it
-#         self.slider.Bind( wx.EVT_SCROLL_CHANGED, self.UpdateMe )
-#         self.slider.Bind( wx.EVT_SCROLL_THUMBTRACK, self.UpdateMe )
-#         self.root.Bind( iep.EVT_SOURCE_PARSED, self.UpdateStructure)
-#         self.menubut.Bind( wx.EVT_BUTTON, self.ShowMenu )
-#         self.Bind(wx.EVT_MENU, self.ChangeShown)
-#         
-#         # test for configuration
-#         pluginName = self.__class__.__name__.lower()
-#         if not hasattr( iep.config.plugins, pluginName ):
-#             config = strux.new()
-#             config.showtypes = ['class', 'def', 'cell', 'todos']
-#             config.level = 2
-#             iep.config.plugins.__dict__[pluginName] = config
-#         
-#         # load configuration for easier access
-#         self.config = iep.config.plugins.__dict__[pluginName]
-#         self.slider.SetValue(self.config.level)
-#         
-#         # start...
-#         self.lastSelectTime = 0
-#         self.Show()
-#         self.UpdateMe()
-#         
-#         
-#     def UpdateStructure(self, event):
-#         """ Update the structure itself 
-#         Event should have a "rootitem" and "linenr" attribute
-#         """        
-#         self.editor = event.GetEventObject()
-#         self.UpdateMe()
-#         
-#     
-#     def EnsureVisible(self, event=None):
-#         """ Ensure the current location is visible """
-#         
-#         try:
-#             if self.selectedItem:                
-#                 self.tree.EnsureVisible(self.selectedItem)                
-#                 #self.tree.ScrollWindow(-999, 0, None) # werkt niet!
-#         except Exception, why:
-#             #print why, why.message
-#             pass 
-#     
-#     
-#     def UpdateMe(self, event=None):
-#         """ Update the list.
-#         The actual updating is done in UpdateMe2.
-#         This method makes sure to freeze and thaw and to maintain the 
-#         scroll position.        
-#         """
-#         if event:
-#             event.Skip()
-#             
-#         t0 = time.clock()
-#         
-#         self.Freeze()
-#         selectedItem = None
-#         try:
-#             # what is the scrollpos now?
-#             scrollpos = self.tree.GetScrollPos(wx.VERTICAL)
-#             # update list
-#             selectedItem = self.UpdateMe2()            
-#             # set position
-#             self.tree.SetScrollPos(wx.VERTICAL, scrollpos, False)
-#             if selectedItem:
-#                 # do not select (will scroll), but highlight
-#                 self.tree.SetItemBackgroundColour(selectedItem,'#AAAAAA')
-#                 wx.CallAfter(self.EnsureVisible)
-#             self.selectedItem = selectedItem
-#         except Exception, why:
-#             # this plugins sometimes hangs, I hope it happens here...
-#             print why, why.message
-#         finally:
-#             self.Thaw()
-#             self.Refresh()
-#             
-#         t1 = time.clock()
-#         
-#         # show text
-#         timestr = ""
-#         if self.editor:
-#             timestr = "%3.0f ms" % self.editor._analysisTime
-#         text = "level %i\n%s" % ( self.slider.GetValue(), timestr)
-#         self.text.SetLabel(text)
-#         # t1-t0 is mostly around 1/3 of the analysis time...
-#         
-#         # update config
-#         self.config.level = self.slider.GetValue()
-#         
-#     
-#     def UpdateMe2(self):
-#         """ Fill the list with elements from self.items.
-#         if linenr>0, the corresponding TreeItemId is returned.
-#         """
-#         
-#         if not self.editor:
-#             return
-#         
-#         # get current line number and the structure
-#         ln = self.editor.GetCurrentLine()+1 # is ln as in margin
-#         rootitem = self.editor.parser.rootitem
-#         
-#         colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F', 
-#                     'var':'#444444', 'import':'#8800BB', 'todo':'#FF3333'}
-#                 
-#         selectedItem = [None]
-#         def SetItems(itemid, fictiveObjects, level):
-#             level += 1
-#             for object in fictiveObjects:
-#                 type = object.type
-#                 if not type in self.config.showtypes:
-#                     continue
-#                 if type=='cell':
-#                     type = '##'
-#                 # create item
-#                 if type == 'import':                   
-#                     text = "%s (%s)" % (object.name, object.text)
-#                 elif type=='todo':
-#                     text = object.name                    
-#                 else:
-#                     text = "%s %s" % (type, object.name)               
-#                 thisitem = self.tree.AppendItem(itemid, text)
-#                 self.tree.SetItemTextColour(thisitem, colours[object.type])
-#                 self.tree.SetItemBold(thisitem)
-#                 self.tree.SetPyData(thisitem, object.linenr) # attach linenr
-#                 # is this the current item?
-#                 #if linenr and type!='##' and object.linenr < linenr:
-#                 if ln and object.linenr <= ln and object.linenr2 > ln:
-#                     selectedItem[0] = thisitem                    
-#                 # any children that we should display?
-#                 if object.children and level < self.slider.GetValue():
-#                     SetItems(thisitem,object.children, level)
-#                 self.tree.Expand(thisitem)
-#                 
-#         self.tree.DeleteAllItems()
-#         try:
-#             rootid = self.tree.AddRoot("root")
-#         except:
-#             rootid = self.tree.GetRoot()
-#         SetItems(rootid, rootitem.children, 0)
-#         
-#         # return        
-#         return selectedItem[0]        
-#       
-#         
-#     def ShowMenu(self,event=None):
-#         m = wx.Menu("")
-#         
-#         id = wx.NewId()        
-#         m.Append(id,"classes", "", kind=wx.ITEM_CHECK)
-#         m.Check(id,True)
-#         m.Enable(id,False)
-#         
-#         id = wx.NewId()
-#         m.Append(id,"defs", "", kind=wx.ITEM_CHECK)
-#         m.Check(id,True)
-#         m.Enable(id,False)
-#         
-#         m.Append(ID_SHOW_CELL, "cells", "", kind=wx.ITEM_CHECK)
-#         if "cell" in self.config.showtypes:
-#             m.Check(ID_SHOW_CELL,True)
-#         
-#         m.Append(ID_SHOW_IMPORT, "imports", "", kind=wx.ITEM_CHECK)        
-#         if "import" in self.config.showtypes:
-#             m.Check(ID_SHOW_IMPORT,True)
-#             
-#         m.Append(ID_SHOW_TODO, "todos", "", kind=wx.ITEM_CHECK)        
-#         if "todo" in self.config.showtypes:
-#             m.Check(ID_SHOW_TODO,True)
-#         
-#         # show
-#         self.PopupMenu(m)
-#         # clean up
-#         m.Destroy()
-#         # update
-#         self.UpdateMe()
-#         
-#         
-#     def ChangeShown(self,event):
-#         """ Change the shown types, called when using the drop down menu
-#         """
-#         # get that list
-#         showtypes = self.config.showtypes
-#         
-#         if event.Id == ID_SHOW_CELL:
-#             name = 'cell'        
-#         elif event.Id == ID_SHOW_IMPORT:
-#             name = 'import'                
-#         elif event.Id == ID_SHOW_TODO:
-#             name = 'todo'
-#         else:
-#             name = ''
-#             
-#         if name and name in showtypes:
-#             showtypes.remove(name)
-#         elif name:
-#             showtypes.append(name)
-# 
-#     
-#     def OnClick(self, event):
-#         """ When the user clicks. We use the mouse callback 
-#         rather than the selected callback, because the latter
-#         also fires when items are (programatically) expanded, 
-#         which caused me a lot of trouble. This is a simple and
-#         nice solution. 
-#         """
-#         
-#         # get item under the mouse
-#         pos = event.GetPosition()        
-#         id = self.tree.HitTest(pos)[0]
-#         
-#         if not id.IsOk():
-#             return
-#         
-#         # get the line nr stored in it...                
-#         linenr = self.tree.GetPyData(id)
-#         
-#         # set the editors linenr!
-#         if self.editor:
-#             self.editor.GotoLine(linenr+30)
-#             self.editor.GotoLine(linenr-10)
-#             self.editor.GotoLine(linenr-1)
-#             
-#             #self.editor.SetFocus()
-#             wx.CallAfter(self.editor.SetFocus)
-#             wx.CallLater(100,self.UpdateMe) # give the select event some time
-#     
-#     
-#     def OnSelecting(self, event):
-#         """ Prevent selecting """    
-#         event.Veto()
-#         
-# if False:
-#     class ThisClassShouldBeInRoot:
-#         pass
-#     if True:
-#         pass
-#         ## and this cell should be sibling to that class
+        self._tree.setUpdatesEnabled(True)
+        
+        # Handle selected item
+        selectedItem = selectedItem[0]
+        if selectedItem:
+            selectedItem.setBackground(0, QtGui.QBrush(QtGui.QColor('#CCC')))
+            self._tree.scrollToItem(selectedItem) # ensure visible
+        

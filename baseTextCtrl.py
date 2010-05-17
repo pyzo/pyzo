@@ -12,7 +12,6 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 qt = QtGui
 
-# todo: when right before a ), the autocomp dont work
 
 # get config
 config = iep.config.editor
@@ -714,6 +713,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Positional methods
     
+    def gotoLine(self, linenr):
+        """ Go to the beginning of the specified line and scroll
+        the editor if required to make the caret visible. 
+        """
+        self.SendScintilla(self.SCI_GOTOLINE, linenr)
+    
     def setPosition(self, pos):
         """ Set the position of the cursor. """
         self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
@@ -990,7 +995,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # The style must be "default"
         curstyle = self.getStyleAt(self.getPosition())
-        if curstyle:
+#         print(curstyle )
+        if curstyle not in [0,10,11]:
             return False
         
         # all good

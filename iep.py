@@ -132,7 +132,7 @@ editor = dict:
   tabWidth = 4
   codeFolding = 0
   # advanced settings
-  homeAndEndWorkOnDisplayedLine = 1
+  homeAndEndWorkOnDisplayedLine = 0
 shortcuts = dict:
   edit__paste = 'Ctrl+V,Shift+Insert'
   view__zooming__zoom_in = 'Ctrl+=,'
@@ -154,6 +154,7 @@ shortcuts = dict:
   file__open_file = 'Ctrl+O,'
   file__save_file = 'Ctrl+S,'
   edit__find_selection = 'Ctrl+F3,'
+  edit__find_selection_backward = 'Ctrl+Shift+F3,'
   view__select_previous_file = 'Ctrl+Tab,'
   edit__comment_lines = 'Ctrl+R,'
   settings__qt_theme__windows = 'Alt+F10,'
