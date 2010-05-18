@@ -152,10 +152,15 @@ class FileMenu(BaseMenu):
         addItem( MI('Line endings', self.fun_lineEndings, []) )        
         addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)
-        addItem( MI('Restart IEP (not saving settings)', self.fun_restart) )
+        addItem( MI('Restart IEP', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
+        
+        addItem( MI('TEST', self.fun_test) )
     
-    
+    def fun_test(self, value):
+        """ Test something. """
+        iep.main.setWindowState(QtCore.Qt.WindowFullScreen)
+        
     def fun_new(self, value):
         """ Create a new (or temporary) file. """
         iep.editors.newFile()
@@ -245,10 +250,10 @@ class FileMenu(BaseMenu):
     
     
     def fun_restart(self, value):
-        """ Restart the application, without saving any changes"""
+        """ Restart the application. """
         iep.main.restart()
-        
-        
+
+
 
 
 class EditMenu(BaseMenu):
@@ -488,8 +493,8 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Edit syntax styles ...', self.fun_editStyles) )        
         addItem( MI('Change key mappings ...', self.fun_keymap) )
         addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
-        addItem( MI('Save settings now', self.fun_saveSettings) )
-    
+        #addItem( MI('Save settings now', self.fun_saveSettings) )
+        
     def fun_qtstyle(self, value):
         """ Chose the QT style to use. """
         if value is None:
@@ -582,9 +587,10 @@ class SettingsMenu(BaseMenu):
     def fun_editStyles(self, value):
         """ Edit the style file. """
         text = """ 
-        The syntax styling can be changed by editing the style sheet, 
-        which will be opened after you press OK. The changes will be 
-        applied as soon as you'll save the file. """   
+        The syntax styling can be changed by editing the style
+        sheet, which will be opened after you press OK. The 
+        changes will be applied as soon as you'll save the file.
+        """   
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Edit syntax styling")
         m.setText(text)
@@ -593,18 +599,19 @@ class SettingsMenu(BaseMenu):
         iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
     
     def fun_advancedSettings(self, value):
-        """ Edit the style file. """
+        """ How to edit the advanced settings. """
         text = """ 
-        Some extra settings can be changed by editing the config file. 
-        IEP automatically saves the settings to that file when exiting, so 
-        to apply the settings, save the file and use File -> Restart IEP.
+        Some extra settings can be changed by editing 
+        'config.ssdf'. IEP automatically saves its settings 
+        to that file when exiting, so the file should be 
+        edited with another editor when IEP is NOT running.
         """
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Advanced settings")
         m.setText(text)
         m.setIcon(m.Information)
         m.exec_()
-        iep.editors.loadFile(os.path.join(iep.path,'config.ssdf'))
+        #iep.editors.loadFile(os.path.join(iep.path,'config.ssdf'))
     
     def fun_saveSettings(self, value):
         """ Iep saves the settings when exiting, but you can also save now. """
@@ -662,7 +669,7 @@ class MenuHelper:
     
     def onTrigger(self, action):
         if hasattr(action,'func'):
-            print('trigger:', action.text())
+#             print('trigger:', action.text())
             action.func(action.value)
         else:
             pass # the user clicked the file, edit, menus themselves.

@@ -56,7 +56,7 @@ class IepSourceStructure(QtGui.QWidget):
         self.setLayout(self._sizer1)
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._tree, 1)
-        self._sizer2.addWidget(self._slider, 1)
+        self._sizer2.addWidget(self._slider, 2)
         self._sizer2.addWidget(self._button, 1)
         
         # Init current-file name and listen to selection changes
@@ -163,11 +163,12 @@ class IepSourceStructure(QtGui.QWidget):
             return
         
         # Something to show
-        if iep.parser.rootitem is None:
+        result = iep.parser._getResult()
+        if result is None:
             return
         
         # Do the ids match?
-        id0, id1, id2 = self._currentEditorId, id(editor), iep.parser._editorId 
+        id0, id1, id2 = self._currentEditorId, id(editor), result.editorId 
         if id0 != id1 or id0 != id2:
             return
         
@@ -223,7 +224,7 @@ class IepSourceStructure(QtGui.QWidget):
         # Go
         self._tree.setUpdatesEnabled(False)
         self._tree.clear()
-        SetItems(self._tree, iep.parser.rootitem.children, 0)
+        SetItems(self._tree, result.rootItem.children, 0)
         self._tree.setUpdatesEnabled(True)
         
         # Handle selected item

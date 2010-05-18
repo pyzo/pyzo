@@ -128,14 +128,14 @@ class MainWindow(QtGui.QMainWindow):
         iep.editors.storeSettings()
         
         # store window position
-        pos = iep.config.layout
+        layout = iep.config.layout
         if self.windowState() == QtCore.Qt.WindowMaximized:
-            pos.maximized = 1
-            self.setWindowState(QtCore.Qt.WindowNoState)
+            layout.maximized = 1
+            # left,right, width, height stored when maximized
         else:
-            pos.maximized = 0            
-        pos.left, pos.top = self.x(), self.y()
-        pos.width, pos.heigth = self.width(), self.height()
+            layout.maximized = 0 
+            layout.left, layout.top = self.x(), self.y()
+            layout.width, layout.heigth = self.width(), self.height()
         
         # store state
         self.saveIepState()
@@ -144,39 +144,53 @@ class MainWindow(QtGui.QMainWindow):
         ssdf.save( os.path.join(iep.path,"config.ssdf"), iep.config )
     
     
+    def changeEvent(self, event):
+        
+        # Capture window state change events
+        if event.type() == QtCore.QEvent.WindowStateChange:
+            ok = [QtCore.Qt.WindowNoState, QtCore.Qt.WindowActive]
+            if event.oldState() in ok:
+                # Store layout if now non-maximized
+                layout = iep.config.layout
+                layout.left, layout.top = self.x(), self.y()
+                layout.width, layout.heigth = self.width(), self.height()
+        
+        # Proceed normally
+        QtGui.QMainWindow.changeEvent(self, event)
+    
+    
     def closeEvent(self, event):
         """ Override close event handler. """
         
-        if not hasattr(self, '_restarting') or not self._restarting:
-            self.saveConfig()
+        # Save settings
+        self.saveConfig()
         
-        # proceed with closing...
-        self._restarting = False
+        # Proceed with closing...
         result = iep.editors.closeAll()
         if not result:
+            self._didClose = False
             event.ignore()
         else:
+            self._didClose = True
             event.accept()
 
 
     def restart(self):
-        """ Restart IEP without saving changes. """
-        self._restarting = True
+        """ Restart IEP. """
+        
+        # Close
         self.close()
         
-        # todo: test under windows
-        args = sys.argv
-#         # put a space in front of all args
-#         args = []
-#         for i in sys.argv:
-#             args.append(" "+i)
-        
-        # prepend the executable name (required on Linux somehow)
-        lastBit = os.path.basename(sys.executable)
-        args.insert(0, lastBit)
-        
-        # replace the process!                
-        os.execv(sys.executable,args)
+        if self._didClose:
+            # Get args
+            args = [arg for arg in sys.argv]
+            
+            # Prepend the executable name (required on Linux somehow)
+            lastBit = os.path.basename(sys.executable)
+            args.insert(0, lastBit)
+            
+            # Replace the process!                
+            os.execv(sys.executable,args)
 
 
 class CallbackEventHandler(QtCore.QObject):
