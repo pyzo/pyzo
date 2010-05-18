@@ -11,6 +11,20 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 import iep
 
+class Job:
+    """ Simple class to represent a job. """
+    def __init__(self, text, editorId):
+        self.text = text
+        self.editorId = editorId
+
+
+class Result:
+    """ Simple class to represent a parser result. """
+    def __init__(self, rootItem, importList, editorId):
+        self.rootItem = rootItem
+        self.importList = importList
+        self.editorId = editorId
+
 
 class Parser(threading.Thread):
     """ Parser
@@ -23,15 +37,14 @@ class Parser(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         
-        # Reference to text to parse, and flag to indicate new text
-        self._text = ''
-        self._gotNewText = False
+        # Reference current job
+        self._job = None
         
-        # todo: get rid of need to use also a flat list.
-        # The resulting structure
+        # Reference to last result
         self._result = None
-        self._editorId = 0
-        self.rootitem, self.items = None, []
+        
+        # Lock to enable save threading
+        self._lock = threading.RLock()
         
         # Set deamon
         self.daemon = True
@@ -43,12 +56,14 @@ class Parser(threading.Thread):
         If the parser is busy parsing text, it will stop doing that
         and start anew with the most recent version of the text. 
         """
+        
         # Get text
         text = editor.getString()
         
-        self._text = text
-        self._editorId = id(editor)
-        self._gotNewText = True
+        # Make job
+        self._lock.acquire()
+        self._job = Job(text, id(editor))
+        self._lock.release()
     
     
     def getFictiveNameSpace(self, editor):
@@ -56,7 +71,10 @@ class Parser(threading.Thread):
         Produce the fictive namespace, based on the current position.
         A list of names is returned.
         """
-        if self.rootitem is None:
+        
+        # Obtain result
+        result = self._getResult()
+        if result is None:
             return []
         
         # Get linenr and indent. These are used to establish the namespace
@@ -65,7 +83,7 @@ class Parser(threading.Thread):
         
         # init empty namespace and item list
         namespace = [];        
-        items = self.rootitem.children
+        items = result.rootItem.children
         curIsClass = False # to not add methods (of classes)
         
         while items:
@@ -86,12 +104,9 @@ class Parser(threading.Thread):
                 else:
                     curIsClass = False
             else:
-                items = []         
+                items = []
                 
         return namespace
-    
-    
-    
     
     
     def getFictiveClass(self, name, editor=None):
@@ -128,26 +143,31 @@ class Parser(threading.Thread):
         - list of names that are imported, 
         - a dict with the line to import each name
         """
-        # how to use: 
-        # - get the list using this function
-        # - if required, try applying the import, but only if not in list \/
-        # - keep a list on the session which (stripped) importlines you applied
-        # - display msg to wait
         
-        # Data available
-        if not self.items:
-            return [],[]
+        # Obtain result
+        result = self._getResult()
+        if result is None:
+            return []
         
-        # Make list of imports and lines to import them
-        importlist = [item for item in self.items if item.type=='import']
+        # Extract list of names and dict of lines
         imports = []
         importlines = {}
-        for item in importlist:
+        for item in result.importList:
             imports.append(item.name)
             importlines[item.name] = item.text
         return imports, importlines
     
     
+    def _getResult(self):
+        """ getResult()
+        Savely Obtain result.
+        """
+        self._lock.acquire()
+        result = self._result
+        self._lock.release()
+        return result
+    
+    # todo: check id with result id
     def _getFictiveItem(self, name, type, editor=None):
         """ _getFictiveItem(name, type, editor=None)
         Obtain the fictive item of the given name and type. 
@@ -155,8 +175,9 @@ class Parser(threading.Thread):
         Intended for internal use.
         """
         
-        # Need rootitem
-        if self.rootitem is None:
+        # Obtain result
+        result = self._getResult()
+        if result is None:
             return None
         
         # Split name in parts 
@@ -170,7 +191,7 @@ class Parser(threading.Thread):
         
         # Init
         name = nameParts.pop(0)
-        items = self.rootitem.children
+        items = result.rootItem.children
         theItem = None
         
         # Search for name
@@ -203,11 +224,16 @@ class Parser(threading.Thread):
         Intendef for internal use.
         """
         
+        # Obtain result
+        result = self._getResult()
+        if result is None:
+            return None
+        
         # Get linenr and indent
         linenr, index = editor.getLinenrAndIndex()
         
         # Init
-        items = self.rootitem.children
+        items = result.rootItem.children
         theclass = None
         
         while items:
@@ -241,16 +267,30 @@ class Parser(threading.Thread):
         try:
             while True:
                 time.sleep(0.1)
-                if self._text:
-                    self.rootitem, self.items = self._analyze(self._text)
-                    self._text = ''
+                if self._job:
+                    
+                    # Savely obtain job
+                    self._lock.acquire()
+                    job = self._job
+                    self._job = None
+                    self._lock.release()
+                    
+                    # Analyse job
+                    result = self._analyze(job)
+                    
+                    # Savely store result
+                    self._lock.acquire()
+                    self._result = result
+                    self._lock.release()
+                    
+                    # Notify 
                     iep.editors.parserDone.emit()
             
         except AttributeError:
             pass # when python exits, time can be None...
     
     
-    def _analyze(self, text):
+    def _analyze(self, job):
         """ The core function.
         Analyses the source code.
         Produces:
@@ -260,7 +300,7 @@ class Parser(threading.Thread):
         """    
         
         # Remove multiline strings
-        text = washMultilineStrings(text)
+        text = washMultilineStrings(job.text)
         
         # Split text in lines
         lines = text.splitlines()
@@ -270,8 +310,14 @@ class Parser(threading.Thread):
         # the rest will be inserted afterwards.
         root = FictiveObject("root", 0, -1, 'root')
         
-        items = [root] # we also keep a flat list of the items
-        leafs = [] # cells and imports are inserted in the structure afterwards
+        # Also keep a flat list (while running this function)
+        flatList = []
+        
+        # Cells and imports are inserted in the structure afterwards
+        leafs = [] 
+        
+        # Keep a list of imports
+        importList = []
         
         # To know when to make something new when for instance a class is defined
         # in an if statement, we keep track of the last valid node/object:
@@ -285,13 +331,10 @@ class Parser(threading.Thread):
             while ( (object.indent <= node.indent) and (node is not root) ):
                 node = node.parent
             # insert object
-            items.append(object)
+            flatList.append(object)
             node.children.append(object)        
             object.parent = node
             lastObject[0] = object 
-        
-        # Set flag to false so we are notified if new text arrives
-        self._gotNewText = False
         
         # Find objects! 
         # type can be: cell, class, def, import, var 
@@ -302,7 +345,7 @@ class Parser(threading.Thread):
             linelen = len(line)
             
             # Should we stop?
-            if self._gotNewText:
+            if self._job:
                 break
             
             # Remove indentation
@@ -315,7 +358,6 @@ class Parser(threading.Thread):
                 name = line[2:].lstrip()            
                 item = FictiveObject('cell', i, indent, name)
                 leafs.append(item)
-                items.append(item)
                 # Next! (we have to put this before the elif stuff below
                 # because it looks like a comment!)            
                 continue
@@ -328,7 +370,7 @@ class Parser(threading.Thread):
             if cmnt and (cmnt.startswith('todo:') or cmnt.startswith('2do:') ):
                 item = FictiveObject('todo', i, indent, cmnt)
                 item.linenr2 = i+1 # a todo is active at one line only
-                leafs.append(item); items.append(item)
+                leafs.append(item)
             
             # Continue of no line left
             if not line:            
@@ -401,8 +443,8 @@ class Parser(threading.Thread):
                         item = FictiveObject('import', i, indent, name)
                         item.text = line
                         item.linenr2 = i+1 # an import is active at one line only
-                        leafs.append(item); items.append(item)
-                        
+                        leafs.append(item)
+                        importList.append(item)
                     
                 elif line.startswith("from "):
                     i1 = line.find(" import ")                
@@ -412,7 +454,8 @@ class Parser(threading.Thread):
                         item = FictiveObject('import', i, indent, name)
                         item.text = line
                         item.linenr2 = i+1 # an import is active at one line only
-                        leafs.append(item); items.append(item)
+                        leafs.append(item)
+                        importList.append(item)
                         
             elif line.count('='):
                 if lastObject[0].type=='def' and lastObject[0].selfname:
@@ -432,7 +475,6 @@ class Parser(threading.Thread):
                                 L = lastObject[0].parent.attributes
                                 if part2 not in L:
                                     L.append(part2)
-                    
         
      
         ## Post processing
@@ -442,7 +484,8 @@ class Parser(threading.Thread):
             given linenr. The object always is a class or def.
             """
             # find object after linenr
-            object1, object2 = None, None # if no items at all         
+            object1, object2 = None, None # if no items at all
+            i = -1  
             for i in range(len(series)):
                 object = series[i]
                 if object.type not in ['class','def']:
@@ -463,7 +506,7 @@ class Parser(threading.Thread):
                 
         # insert the leafs (backwards as the last inserted is at the top)
         for leaf in reversed(leafs):
-            ob1, ob2 = getTwoItems(items, leaf.linenr)           
+            ob1, ob2 = getTwoItems(flatList, leaf.linenr)           
             if ob1 is None: # also if ob2 is None 
                 # insert in root
                 root.children.insert(0,leaf)
@@ -496,10 +539,10 @@ class Parser(threading.Thread):
             else:
                 L.insert(0,leaf)
         
-        # Done todo: set data rather than return?
-        if self._gotNewText:
-            return None, None
-        return root, items
+        # Return result
+        return Result(root, importList, job.editorId)
+
+
 
 ## Helper classes and functions
 
