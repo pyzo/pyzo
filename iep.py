@@ -68,8 +68,13 @@ def startIep():
     """        
     from main import MainWindow
     from PyQt4 import QtCore, QtGui
+    # Set to use pure QT drawing (for consistent looks)
+    QtGui.QApplication.setDesktopSettingsAware(False)
+    # Instantiate the application and set the style
     app = QtGui.QApplication([])
-    app.setStyle(config.qtstyle)
+    qstyle = app.setStyle(config.qtstyle)
+    app.setPalette(QtGui.QStyle.standardPalette(qstyle))
+    # Instantiate the main window and enter the main loop
     frame=MainWindow()
     app.exec_()
     
