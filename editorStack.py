@@ -65,6 +65,7 @@ class Item(qt.QLabel):
     
     def enterEvent(self, event):
         self.updateStyle()
+    
     def leaveEvent(self, event):        
         self.updateStyle()
     
@@ -160,7 +161,7 @@ class ProjectItem(Item):
         self.upDownHelper(1)
     
     def upDownHelper(self, direction):
-        """" move project up (-1) or down (+1)
+        """ move project up (-1) or down (+1)
         """
         projectBefore, projectAfter, itemsToMove = None, None, []
         phase = 0
@@ -243,19 +244,15 @@ class FileItem(Item):
         # get texts
         name = self._editor._name
         filename = self._editor._filename
-        style = ''
         # prepare texts
         if self._editor._dirty:
             name = '*' + name
-            style += "color:#603000;"
-        if self._project and self._project._mainfile == self._editor._filename:
-            style += 'font-weight:bold;'
         if not filename: 
             filename = 'None'
-        # set texts
+        # apply
         self.setText( name )
-        self.setStyleSheet("QLabel{" + style + "}")
         self.setToolTip('file: '+ filename)
+        self.updateStyle()
     
     
     def updateStyle(self):
@@ -263,16 +260,29 @@ class FileItem(Item):
         Need to update position, because the frame width is different for
         the different scenarios."""
         
+        # Init style
+        style = ''
+        
+        # Set style to handle dirty and mainfile
+        if self._editor._dirty:
+            style += "color:#603000;"
+        if self._project and self._project._mainfile == self._editor._filename:
+            style += 'font-weight:bold;'
+        
+        # Handle mouse over or current file
         if self is self.parent()._currentItem:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
-            self.setStyleSheet("QLabel{ background:#DED;}")
             self.move(self._indent ,self._y)
+            style += 'background:#DED;'
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
             self.move(self._indent ,self._y)
         else:
             self.setFrameStyle(0)
             self.move(self._frameWidth+self._indent,self._y)
+        
+        # Set style
+        self.setStyleSheet("QLabel{" + style + "}")
     
     
     def mouseDoubleClickEvent(self, event):
@@ -312,7 +322,6 @@ class FileItem(Item):
         for item in self.parent()._items:
             if isinstance(item, FileItem):
                 item.updateTexts()
-    
     
 
 class FileListCtrl(QtGui.QFrame):
@@ -804,9 +813,11 @@ class FindReplaceWidget(QtGui.QFrame):
         
         yy+=16
         self._caseCheck = qt.QCheckBox("Match case", self)
+        self._caseCheck.resize(barwidth-2, 16)
         self._caseCheck.move(1,yy)
         yy+=16
         self._regExp = qt.QCheckBox("RegExp", self)
+        self._regExp.resize(barwidth-2, 16)
         self._regExp.move(1,yy)
         
         yy += 18

@@ -1108,7 +1108,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             
             else:
                 # Try obtaining calltip from the source
-                sig = iep.parser.getFictiveSignature(name, self)
+                sig = iep.parser.getFictiveSignature(name, self, True)
                 if sig:
                     # Buffer info and show calltip
                     self._callTip_bufName = name
@@ -1166,7 +1166,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             
             # Include imports
             if not baseObject:
-                importNames, importLines = iep.parser.getFictiveImports()
+                importNames, importLines = iep.parser.getFictiveImports(self)
                 names.update(importNames)
             
             # Get normal fictive namespace
@@ -1178,17 +1178,17 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             if baseObject:
                 # Prepare list of class names to check out
                 classNames = [baseObject]
-                editorArg = self
+                handleSelf = True
                 # Unroll supers
                 while classNames:
                     className = classNames.pop(0)
                     if not className:
                         continue
-                    if editorArg or (className in fictiveNS):
+                    if handleSelf or (className in fictiveNS):
                         # Only the self list (only first iter)
-                        fictiveClass = iep.parser.getFictiveClass(className, 
-                            editorArg)
-                        editorArg = None
+                        fictiveClass = iep.parser.getFictiveClass(
+                            className, self, handleSelf)
+                        handleSelf = False
                         if fictiveClass:
                             names.update( fictiveClass.attributes )
                             classNames.extend(fictiveClass.supers)
@@ -1244,7 +1244,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if not names:
             
             # Maybe we need to import it
-            importNames, importLines = iep.parser.getFictiveImports()
+            importNames, importLines = iep.parser.getFictiveImports(self)
             if baseObject in importNames:
                 self._introspect_autoImport(importLines[baseObject])
         

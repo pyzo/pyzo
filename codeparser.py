@@ -6,6 +6,7 @@ This can be used for fictive introspection, and to display the
 structure of a source file in for example a tree widget.
 
 """
+
 import time, threading, re
 from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
@@ -24,6 +25,15 @@ class Result:
         self.rootItem = rootItem
         self.importList = importList
         self.editorId = editorId
+    
+    def isMatch(self, editorId):
+        """ isMatch(editorId):
+        Returns whether the result matches with the given editorId.
+        The editorId can also be an editor instance. """
+        if isinstance(editorId, int):
+            return self.editorId == editorId
+        else:
+            return self.editorId == id(editorId)
 
 
 class Parser(threading.Thread):
@@ -74,7 +84,7 @@ class Parser(threading.Thread):
         
         # Obtain result
         result = self._getResult()
-        if result is None:
+        if result is None or not result.isMatch(editor):
             return []
         
         # Get linenr and indent. These are used to establish the namespace
@@ -109,24 +119,24 @@ class Parser(threading.Thread):
         return namespace
     
     
-    def getFictiveClass(self, name, editor=None):
-        """ getFictiveClass(name, editor=None)
+    def getFictiveClass(self, name, editor, handleSelf=False):
+        """ getFictiveClass(name, editor, handleSelf=False)
         Return the fictive class object of the given name, or None
-        if it does not exist. If editor is given, automatically
+        if it does not exist. If handleSelf is True, automatically
         handles "self." names.
         """
-        return self._getFictiveItem(name, 'class', editor)
+        return self._getFictiveItem(name, 'class', editor, handleSelf)
     
     
-    def getFictiveSignature(self, name, editor=None):
-        """ getFictiveSignature(name, editor=None)
+    def getFictiveSignature(self, name, editor, handleSelf=False):
+        """ getFictiveSignature(name, editor, handleSelf=False)
         Get the signature of the fictive function or method of the
         given name. Returns None if the given name is not a known 
-        function or method. If editor is given, automatically
+        function or method. If handleSelf is True, automatically
         handles "self." names.
         """
         # Get item
-        item = self._getFictiveItem(name, 'def', editor)
+        item = self._getFictiveItem(name, 'def', editor, handleSelf)
         
         # Process or return None if there was no item
         if item:
@@ -136,8 +146,8 @@ class Parser(threading.Thread):
             return None
     
     
-    def getFictiveImports(self):
-        """ getFictiveImports()
+    def getFictiveImports(self, editor):
+        """ getFictiveImports(editor)
         Get the fictive imports of this source file.
         tuple: 
         - list of names that are imported, 
@@ -146,7 +156,7 @@ class Parser(threading.Thread):
         
         # Obtain result
         result = self._getResult()
-        if result is None:
+        if result is None or not result.isMatch(editor):
             return []
         
         # Extract list of names and dict of lines
@@ -167,24 +177,24 @@ class Parser(threading.Thread):
         self._lock.release()
         return result
     
-    # todo: check id with result id
-    def _getFictiveItem(self, name, type, editor=None):
-        """ _getFictiveItem(name, type, editor=None)
+    
+    def _getFictiveItem(self, name, type, editor, handleSelf=False):
+        """ _getFictiveItem(name, type, editor, handleSelf=False)
         Obtain the fictive item of the given name and type. 
-        If editor is given, will handle "self." correctly.
+        If handleSelf is True, will handle "self." correctly.
         Intended for internal use.
         """
         
         # Obtain result
         result = self._getResult()
-        if result is None:
+        if result is None or not result.isMatch(editor):
             return None
         
         # Split name in parts 
         nameParts = name.split('.')
         
         # Try if the first part represents a class instance 
-        if editor is not None:
+        if handleSelf:
             item = self._getFictiveCurrentClass(editor, nameParts[0])
             if item:
                 nameParts[0] = item.name
@@ -676,10 +686,10 @@ def washMultilineStrings(text):
             # Find end of the multiline comment
             if i1 < i2:
                 i3 = i1+3
-                i4 = text.find(s1, i1+1)
+                i4 = text.find(s1, i3)
             else:
                 i3 = i2+3
-                i4 = text.find(s2, i2+1)
+                i4 = text.find(s2, i3)
             # No end found -> take all text, unclosed string!
             if i4==-1:
                 i4 = 2**32
