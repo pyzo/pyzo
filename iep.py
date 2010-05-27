@@ -73,7 +73,9 @@ def startIep():
     # Instantiate the application and set the style
     app = QtGui.QApplication([])
     qstyle = app.setStyle(config.qtstyle)
-    app.setPalette(QtGui.QStyle.standardPalette(qstyle))
+    # todo: obtain name of default style for this system?
+    if qstyle:
+        app.setPalette(QtGui.QStyle.standardPalette(qstyle))
     # Instantiate the main window and enter the main loop
     frame=MainWindow()
     app.exec_()
