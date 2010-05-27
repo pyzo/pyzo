@@ -506,7 +506,8 @@ class SettingsMenu(BaseMenu):
             iep.config.qtstyle = value
             # Set style and apply standard pallette
             qstyle = QtGui.qApp.setStyle(value)
-            QtGui.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
+            if qstyle:
+                QtGui.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
     
     def fun_defaultStyle(self, value):
         """ The style used in new files. """
