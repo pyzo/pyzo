@@ -264,6 +264,10 @@ class BaseChannel(object):
     where the data is available via the read methods.    
     """
     
+    # Our file-like objects should not implement:
+    # (http://docs.python.org/library/stdtypes.html#bltin-file-objects)
+    # fileno, isatty
+    
     def __init__(self, queue):
         self._q = queue
         self._closed = False
@@ -273,7 +277,18 @@ class BaseChannel(object):
         """ Get whether the channel is closed. 
         """
         return self._closed
-
+    
+    @property
+    def encoding(self):
+        """ The encoding used to encode strings to bytes and vice versa. 
+        """
+        return 'UTF-8'
+    
+    def flush(self):
+        """ flush()
+        Flush the file. Does nothing, since the messages are constantly
+        pumped to the other end. 
+        """ 
 
 class SendingChannel(BaseChannel):
     """ SendingChannel
@@ -489,11 +504,21 @@ class ReceivingChannel(BaseChannel):
     
     def close(self):
         """ close()
-        A receiving channel can only be close from the sending side. 
+        A receiving channel can only be closed from the sending side. 
         """
         raise IOError("Cannot close a receiving channel.")
 
-
+    
+    def next(self):
+        """ next()
+        Return the next message, or raises StopIteration if non available.
+        """
+        m = self.readOne(False)
+        if m:
+            return m
+        else:
+            raise StopIteration()
+    
 
 class Channels(object):
     """ Channels(number_of_sending_channels)

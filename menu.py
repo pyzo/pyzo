@@ -498,10 +498,17 @@ class SettingsMenu(BaseMenu):
     def fun_qtstyle(self, value):
         """ Chose the QT style to use. """
         if value is None:
-            tmp = [i for i in QtGui.QStyleFactory.keys()]
-            tmp.append(iep.config.qtstyle)
-            return tmp
+            # Create list of styles
+            styleNames = [i for i in QtGui.QStyleFactory.keys()]
+            styleNames.append(iep.config.qtstyle)
+            # Mark the default
+            for i in range(len(styleNames)):
+                if styleNames[i].lower() == iep.defaultStyleName:
+                    styleNames[i] += ' (default)'
+            return styleNames
         else:
+            # Remove default string
+            value = value.split(' ')[0]
             # Store selected style
             iep.config.qtstyle = value
             # Set style and apply standard pallette

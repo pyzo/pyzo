@@ -63,24 +63,23 @@ def getResourceDir():
 # get the path where IEP is located
 path = getResourceDir()
 
+# Init default style name (set in main.restoreIepState())
+defaultStyleName = ''
+
 def startIep():
     """ RUN IEP 
-    """        
+    """    
     from main import MainWindow
     from PyQt4 import QtCore, QtGui
     # Set to use pure QT drawing (for consistent looks)
     QtGui.QApplication.setDesktopSettingsAware(False)
-    # Instantiate the application and set the style
+    # Instantiate the application, and the main window
     app = QtGui.QApplication([])
-    qstyle = app.setStyle(config.qtstyle)
-    # todo: obtain name of default style for this system?
-    if qstyle:
-        app.setPalette(QtGui.QStyle.standardPalette(qstyle))
-    # Instantiate the main window and enter the main loop
     frame=MainWindow()
+    # Enter the main loop
     app.exec_()
-    
-    
+
+
 def normalizeLineEndings(text):
     """ normalize text, following Python styles.
     Convert all line endings to the \\n (LF) style.    
