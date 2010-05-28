@@ -106,6 +106,17 @@ class MainWindow(QtGui.QMainWindow):
         """ Restore plugins and positions of all windows. """
         import base64
         
+        # Set qt style and obtain style name of the default style
+        app = QtGui.qApp
+        iep.defaultStyleName = str(app.style().objectName())
+        qstyle = app.setStyle(iep.config.qtstyle)
+        if qstyle:
+            # We succeeded in setting the style
+            app.setPalette(QtGui.QStyle.standardPalette(qstyle))
+        else:
+            # We still have the default style
+            iep.config.qtstyle = iep.defaultStyleName 
+        
         # Load from config
         plugins = iep.config.state
         if not plugins:
