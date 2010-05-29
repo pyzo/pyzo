@@ -62,6 +62,9 @@ class ShellStack(QtGui.QFrame):
         self.sizeShellTo80Columns()
     
     
+    
+    
+    
     def sizeShellTo80Columns(self, event=None):
         """ Is the name not descriptive enough?
         """
