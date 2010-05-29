@@ -351,7 +351,51 @@ class BaseShell(BaseTextCtrl):
         print('stderr')
         self.ensureCursorVisible()
         #self.scroll(0,999999)
+    
+    def resizeEvent(self, event):
+        BaseTextCtrl.resizeEvent(self, event)
+        self.decreaseFontToMatch80Columns()
+    
+    
+    def decreaseFontToMatch80Columns(self, event=None):
         
+        # Are we hidden?
+        if not self.isVisible():
+            return
+        
+        # Init
+        width = self.width()
+        w = 0#width*2
+        zoom = 0
+        self.zoomTo(zoom)
+        
+        # Increase size untill 80 columns does not fit
+        while w < width:
+            # get size it should be (but font needs to be monospaced!)
+            w = self.textWidth(32, "-"*80)
+            w += 26 # add scrollbar and margin
+            
+            if w < width:
+                zoom += 1
+                self.zoomTo(zoom)
+#                 self.update()
+                
+        # Decrease size untill 80 columns fits
+        while w > width:
+            # get size it should be (but font needs to be monospaced!)
+            w = self.textWidth(32, "-"*80)
+            w += 26 # add scrollbar and margin
+            
+            if w > width:
+                zoom -= 1
+                self.zoomTo(zoom)
+#                 self.update()
+            if zoom < -10:
+                break
+        
+#         # fix the width
+#         self.setMinimumWidth(w)
+#         self.setMaximumWidth(w)
 
 
 # Python script to invoke (We need to use double quotes to 

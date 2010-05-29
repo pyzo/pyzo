@@ -265,12 +265,15 @@ class BaseChannel(object):
     """
     
     # Our file-like objects should not implement:
-    # (http://docs.python.org/library/stdtypes.html#bltin-file-objects)
-    # fileno, isatty
+    # (see http://docs.python.org/library/stdtypes.html#bltin-file-objects)
+    # explicitly stated: fileno, isatty
+    # don't seem to make sense: readlines, seek, tell, truncate, errors
+    # mode, name, 
     
     def __init__(self, queue):
         self._q = queue
         self._closed = False
+        self._softspace = False
     
     @property
     def closed(self):
@@ -289,7 +292,22 @@ class BaseChannel(object):
         Flush the file. Does nothing, since the messages are constantly
         pumped to the other end. 
         """ 
+        pass
+    
+    @property
+    def newlines(self):
+        """ The type of newlines used. Returns None; we never know what the
+        other end could be sending! """
+        return None
+    
+    # this is for the print statement to keep track spacing stuff
+    def _set_softspace(self, value):
+        self._softspace = bool(value)
+    def _get_softspace(self):
+        return self._softspace
+    softspace = property(_get_softspace, _set_softspace, None, '')
 
+    
 class SendingChannel(BaseChannel):
     """ SendingChannel
     An outgoing channel to an other process. 
@@ -312,12 +330,12 @@ class SendingChannel(BaseChannel):
         if self._closed:
             raise ValueError("Cannot write to a closed channel.")
         if s:
-            # If in py2k and the string is not unicode, make unicode first
-            # Try encoding using UTF-8. When a piece of code stored
+            # If using py2k and the string is not unicode, make unicode first
+            # by try encoding using UTF-8. When a piece of code stored
             # in a unicode string is executed, str objects are utf-8 encoded. 
-            # Otherwise they are encoded using __stdin__.encoding. In rare 
+            # Otherwise they are encoded using __stdin__.encoding. In specific 
             # cases, a non utf-8 encoded str might be succesfully encoded
-            # using utf-8, but as I said, this is rare. Since I would not
+            # using utf-8, but this is rare. Since I would not
             # know how to tell the encoding beforehand, we'll take our 
             # chances... Note that in IEP (for which this module was created,
             # all executed code is unicode, so str instrances are always
@@ -330,6 +348,14 @@ class SendingChannel(BaseChannel):
             # Push it on the queue            
             message = packMessage('MESSAGE', self._id, s.encode('utf-8'))
             self._q.push( message )
+    
+    
+    def writelines(self, lines):
+        """ writelines(lines)
+        Write a sequence of messaged to the channel.
+        """
+        for line in lines:
+            self.write(line)
     
     
     def close(self):
@@ -371,6 +397,7 @@ class ReceivingChannel(BaseChannel):
     
     @property
     def defaultBlocking(self):
+        """ The currently set default blocking state. """ 
         return self._blocking 
     
     
@@ -410,7 +437,7 @@ class ReceivingChannel(BaseChannel):
     
     def readLast(self, block=None):
         """ readLast(block=False)
-        Read one string that was send as one from the other end.
+        Read the last string that was send as one from the other end.
         If the channel is closed and all messages are read, returns ''.
         If block is not given, uses the default blocking state.
         If block is False or None, returns '' if no data is available. 
@@ -438,11 +465,13 @@ class ReceivingChannel(BaseChannel):
         return self._q.popLast().decode('utf-8')
     
     
-    def readline(self):
-        """ readline()
+    def readline(self, size=0):
+        """ readline(size=0)
         Read one string that was send as one from the other end. A newline
         character is appended if it does not end with one.
         This method is always blocking.
+        If size is given, returns only up to that many characters, the rest
+        of the messages is thrown away.
         """
         
         # wait until data is available
@@ -451,9 +480,11 @@ class ReceivingChannel(BaseChannel):
             time.sleep(0.01)
         
         # get data, decode, make sure it ends with newline, return
-        tmp = self._q.popLast().decode('utf-8')
+        tmp = self._q.pop().decode('utf-8')
         if not tmp.endswith('\n'):
             tmp += '\n'
+        if size:
+            tmp = tmp[:size]
         return tmp
         
     
@@ -507,7 +538,12 @@ class ReceivingChannel(BaseChannel):
         A receiving channel can only be closed from the sending side. 
         """
         raise IOError("Cannot close a receiving channel.")
-
+    
+    
+    def __iter__(self):
+        """ Returns self. """
+        return self
+    
     
     def next(self):
         """ next()
@@ -518,7 +554,7 @@ class ReceivingChannel(BaseChannel):
             return m
         else:
             raise StopIteration()
-    
+
 
 class Channels(object):
     """ Channels(number_of_sending_channels)
