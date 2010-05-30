@@ -22,8 +22,12 @@ class ShellStack(QtGui.QFrame):
         self._boxLayout = QtGui.QHBoxLayout(self)
         self._boxLayout.setSpacing(0)
         
-        # create and add widgets
+        # create tab widget
         self._tabs = QtGui.QTabWidget(self)
+        self._tabs.setTabPosition(QtGui.QTabWidget.South) # North/South
+        self._tabs.setMovable(True)
+        
+        # add widgets
         self._ws = QtGui.QFrame(self)
         self._boxLayout.addWidget(self._ws, 1)
         self._boxLayout.addWidget(self._tabs, 999)
