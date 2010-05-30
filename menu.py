@@ -655,6 +655,30 @@ class PluginsMenu(BaseMenu):
         pluginManager.reloadPlugins()
 
 
+class ShellMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Create "python" shell', self.fun_create) )
+        addItem( MI('Interrup current shell', self.fun_interrupt) )
+        addItem( MI('Terminate current shell', self.fun_term) )
+        addItem( None )
+    
+    def fun_create(self, value):
+        iep.shells.addShell()
+    
+    def fun_interrupt(self, value):
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.interrupt()
+        
+    def fun_term(self, value):
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.terminate()
+
+
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.
@@ -664,11 +688,11 @@ class MenuHelper:
         
         menus = [   ('File', FileMenu), 
                     ('Edit', EditMenu), 
-                    ('View', ViewMenu),
+                    ('View', ViewMenu),                    
                     ('Settings', SettingsMenu),
+                    ('Shell', ShellMenu),
                     ('Plugins', PluginsMenu),
                 ]
-                    
         
         for menuName, menuClass in menus:
             menu = menuClass(menuName, menubar)

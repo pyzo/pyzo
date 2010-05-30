@@ -677,7 +677,9 @@ class Channels(object):
         # store port number
         self._port = s.getsockname()[1]
         
-        # start thread ...  (make deamon: the program exits even if its running)
+        # start thread ...  
+        # Make it a deamon thread, which implies that the program exits
+        # even if its running.
         self._doorman = Doorman(self, s, host=True)
         self._doorman.daemon = True
         self._doorman.start()
@@ -738,6 +740,8 @@ class Channels(object):
             self._port = port
         
         # start thread
+        # Make it a deamon thread, which implies that the program exits
+        # even if its running.
         self._doorman = Doorman(self, s)
         self._doorman.daemon = True
         self._doorman.start()
@@ -922,9 +926,14 @@ class Doorman(threading.Thread):
                 # Sleeping 0.001 sec results in 0% processing power on my
                 # 3.5 year old laptop, so 0.01 sec should be ok.
         
-        # close all channels
+        # close all receiving channels
         for i in range(len(self._channels._receivingChannels)):
             channel = self._channels.getReceivingChannel(i)
+            channel._closed = True
+        
+        # close all sending channels too
+        for i in range(len(self._channels._sendingChannels)):
+            channel = self._channels.getSendingChannel(i)
             channel._closed = True
         
         # clean up
