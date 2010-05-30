@@ -16,7 +16,7 @@ class MI:
     - a boolean - values is True or False, indicating the currents state
     - a choice - values is a list of Strings, ending with the current
     
-    - if doc not given, func.__doc__ is used as statusti
+    - if doc not given, func.__doc__ is used as 3ti
     - if values is [], func(None) is called to obtain the 'values' property.
     """
     def __init__(self, text, func, values=None, doc=None):        
@@ -76,6 +76,7 @@ class MI:
                 sub = qt.QAction(action)
                 sub.setText(str(value))
                 sub.setStatusTip(self.tip)
+                #sub.setToolTip(self.tip)
                 sub.func = self.func
                 sub.value = value
                 sub.setCheckable(True)
@@ -88,6 +89,7 @@ class MI:
             raise Exception('Dont know what to do')
         
         action.setStatusTip(self.tip)
+        #action.setToolTip(self.tip)
         return action
 
 
@@ -331,8 +333,6 @@ class EditMenu(BaseMenu):
         if hasattr(widget,'uncommentCode'):
             widget.uncommentCode()
             linenr, index = widget.getLinenrAndIndex()
-            #print(b'"'+widget.getLineBytes(linenr)+b'"')
-            #print('"'+widget.getLineString(linenr)+'"')
     
     def fun_moveToMatchingBrace(self, value):
         """ Move the cursor to the brace matching the current brace. """
@@ -676,7 +676,7 @@ class MenuHelper:
             menu.fill() # initialize so shortcuts work
         
         menubar.triggered.connect(self.onTrigger)        
-        # menubar.hovered.connect(self.onHover)
+        #menubar.hovered.connect(self.onHover)
     
     def onTrigger(self, action):
         if hasattr(action,'func'):
@@ -686,7 +686,9 @@ class MenuHelper:
             pass # the user clicked the file, edit, menus themselves.
     
     def onHover(self, action):
-        print('hover:', action.text())
+        pass
+        #print('hover:', action.text())
+        #QtGui.QToolTip(**pos**, action.toolTip())
 
     
 

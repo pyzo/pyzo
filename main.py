@@ -39,6 +39,17 @@ class MainWindow(QtGui.QMainWindow):
         # store myself
         iep.main = self
         
+        # init dockwidget settings
+        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtGui.QTabWidget.West)
+        self.setDockOptions(
+                QtGui.QMainWindow.AllowNestedDocks
+            |  QtGui.QMainWindow.AllowTabbedDocks
+#             |  QtGui.QMainWindow.AnimatedDocks
+            )
+        
+        # Set window atrributes
+        self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
+        
         # set layout as it was the previous time
         pos = iep.config.layout
         self.move(pos.left, pos.top)
@@ -66,7 +77,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # create statusbar en menu 
         # (keep a ref to the menuhelper so it is not destroyed)
-        status = self.statusBar()
+#         status = self.statusBar()
         self._menuhelper = MenuHelper(self.menuBar())
         
         # create floater
