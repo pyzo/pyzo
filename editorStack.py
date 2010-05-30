@@ -25,7 +25,7 @@ class Item(qt.QLabel):
         qt.QLabel.__init__(self,parent)
        
         # indicate height and spacing
-        self._itemHeight = 15
+        self._itemHeight = 16
         self._itemSpacing = iep.config.editorStackBarSpacing
         
         # set indent and size        

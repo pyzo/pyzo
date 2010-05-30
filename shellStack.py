@@ -28,9 +28,9 @@ class ShellStack(QtGui.QFrame):
         self._tabs.setMovable(True)
         
         # add widgets
-        self._ws = QtGui.QFrame(self)
-        self._boxLayout.addWidget(self._ws, 1)
         self._boxLayout.addWidget(self._tabs, 999)
+        self._boxLayout.addStretch(1)
+        
         
         # set layout
         self.setLayout(self._boxLayout)
@@ -39,10 +39,10 @@ class ShellStack(QtGui.QFrame):
         self._tabs.currentChanged.connect(self.sizeShellTo80Columns)
     
     
-    def addShell(self):
+    def addShell(self, pythonExecutable=None):
         """ addShell()
         Add a shell to the widget. """
-        shell = PythonShell(None)
+        shell = PythonShell(pythonExecutable)
         self._tabs.addTab(shell, 'Python (Initializing)')
         self.sizeShellTo80Columns()
     
@@ -64,9 +64,6 @@ class ShellStack(QtGui.QFrame):
         """ Overload to set size. """
         QtGui.QFrame.showEvent(self, event)
         self.sizeShellTo80Columns()
-    
-    
-    
     
     
     def sizeShellTo80Columns(self, event=None):

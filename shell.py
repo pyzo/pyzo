@@ -13,13 +13,12 @@ import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
 
-# todo: list:
-# - on closing, destroy process
-# - reimplement cut, copy and paste
-# - bind process interrupt via menu
+# todo: reimplement cut, copy and paste
 
 
 class BaseShell(BaseTextCtrl):
+    """ The BaseShell implements functionality to make a generic shell.
+    """
     
     def __init__(self, parent):
         BaseTextCtrl.__init__(self, parent)
@@ -49,7 +48,7 @@ class BaseShell(BaseTextCtrl):
         self._historyStep = 0
         
         # apply style
-        self.setStyle('pythonconsole')
+        self.setStyle('')
     
     
     def keyPressHandler_always(self, event):
@@ -352,6 +351,7 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorVisible()
         #self.scroll(0,999999)
     
+    
     def resizeEvent(self, event):
         BaseTextCtrl.resizeEvent(self, event)
         self.decreaseFontToMatch80Columns()
@@ -363,11 +363,18 @@ class BaseShell(BaseTextCtrl):
         if not self.isVisible():
             return
         
+        # todo: also make the widget size to fit exactly 80 columns
+        zoom = 0
+        self.zoomTo(zoom)
+        
+#         self.setMinimumWidth(0)
+#         self.setMaximumWidth(99999)
+#         iep.shells._boxLayout.activate()
+
         # Init
         width = self.width()
         w = 0#width*2
-        zoom = 0
-        self.zoomTo(zoom)
+        
         
         # Increase size untill 80 columns does not fit
         while w < width:
@@ -396,13 +403,26 @@ class BaseShell(BaseTextCtrl):
 #         # fix the width
 #         self.setMinimumWidth(w)
 #         self.setMaximumWidth(w)
+# 
+
+
+class LoggerShell(BaseShell):
+    """ The LoggerShell implements a Python shell that executes code
+    in the current process and displays log messages.
+    """
+    
+    def __init__(self, parent):
+        BaseShell.__init__(self, parent)
+        
+        # apply style
+        # todo: make logger style
+        self.setStyle('pythonconsole')
+    
 
 
 # Python script to invoke (We need to use double quotes to 
 # surround the path, singles wont work.)
 remotePath = os.path.join(iep.path, 'remote.py')
-
-
 
 class RequestObject:
     def __init__(self, request, callback, id=None):
@@ -411,19 +431,30 @@ class RequestObject:
         self._id = id
         self._posted = False
 
-
 class PythonShell(BaseShell):
-    """ This class implements the python part of the shell, 
-    attaching it to a remote process etc.
+    """ The PythonShell class implements the python part of the shell
+    by connecting to a remote process that runs a Python interpreter.
     """
     
-    def __init__(self, parent, pythonExecutable='python'):
+    # called when the remote processe terminated
+    terminated = QtCore.pyqtSignal()
+    
+    def __init__(self, parent, pythonExecutable=None):
         BaseShell.__init__(self, parent)
+        
+        # apply Python shell style
+        self.setStyle('pythonconsole')
+        
+        # set default executable
+        if pythonExecutable is None:
+            pythonExecutable = 'python'
         
         # Create multi channel connection
         # Note that the request and response channels are reserved and should
         # not be read/written by "anyone" other than the introspection thread.
-        c = channels.Channels(2)
+        self._channels = c = channels.Channels(2)
+        c.disconnectCallback = self._onDisconnect
+        #
         self._stdin = c.getSendingChannel(0)        
         self._stdout = c.getReceivingChannel(0)
         self._stderr = c.getReceivingChannel(1)
@@ -433,7 +464,7 @@ class PythonShell(BaseShell):
         
         
         # host it!
-        port = c.host() # todo: port with range
+        port = c.host('IEP')
         
         # build command to create process
         command = '{} "{}" {}'.format(pythonExecutable, remotePath, str(port))
@@ -453,6 +484,9 @@ class PythonShell(BaseShell):
         
         # is the process busy?
         self._state = -1 # initializing
+        
+        # variable for killing it
+        self._killAttempts = 0
         
         # wich installed version
         self._pythonExecutable = pythonExecutable
@@ -641,6 +675,81 @@ class PythonShell(BaseShell):
 #             else:
 #                 self._version = response[:5]
     
+    
+    def interrupt(self):
+        """ interrupt()
+        Send a Keyboard interrupt signal to the main thread of the 
+        remote process. 
+        """
+        self._channels.interrupt()
+    
+    
+    def terminate(self):
+        """ terminate()
+        Terminates the python process. It will first try gently, but 
+        if that does not work, the process shall be killed.
+        After this function returns, it might take a bit of time before
+        the kill signal is send to the other process and executed.
+        """
+        
+        # Try closing the process gently: by closing stdin
+        self._killAttempts = 1
+        self._stdin.close()
+        
+        # Wait one second
+        t0 = time.time() + 1.0
+        while time.time() < t0:
+            time.sleep(0.1)
+            if not self._channels.isConnected:
+                break
+        else:
+            # We waited long enough, kill it!
+            self._killAttempts = 2
+            self._channels.kill()
+    
+    
+    def _onDisconnect(self, why):
+        """ Called when the connection is lost, and why.
+        """
+        
+        # Determine message
+        if self._killAttempts == 0:
+            msg = 'Python process dropped.'
+        elif self._killAttempts == 1:
+            msg = 'Python process gently terminated.'
+        elif self._killAttempts >= 2:
+            msg = 'Python process killed.'
+        else:
+            msg = 'Python process terminated twice?'
+        
+        # signal that the connection is gone
+        self._killAttempts = -1
+        
+        # notify closure
+        print(msg)
+        self.write('===== {} =====\n'.format(msg))
+        
+        # close ourselves in a bit
+        self._timer.timeout.disconnect(self.poll)
+        self._timer.timeout.connect(self._afterDisconnect)
+        self._timer.setInterval(3000)
+        self._timer.setSingleShot(True)
+        self._timer.start()
+    
+    
+    def _afterDisconnect(self):
+        """ Clean up after disconnection... """
+        
+        # Notify who-ever is interested
+        self.terminated.emit()
+        # Remove from tab widget
+        tabWidget = iep.shells._tabs
+        index = tabWidget.indexOf(self)
+        if index >= 0:
+            tabWidget.removeTab(index)
+        # close
+        self.close()
+
 
 if __name__=="__main__":
     app = QtGui.QApplication([])

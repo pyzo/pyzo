@@ -91,7 +91,6 @@ class MainWindow(QtGui.QMainWindow):
         dock.setWidget(iep.shells)
         #iep.shells.show()
         iep.shells.addShell()
-        iep.shells.addShell()
         
         # show now
         self.restoreIepState()

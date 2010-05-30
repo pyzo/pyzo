@@ -24,9 +24,11 @@ __iep__ = IepInterpreter(locals=__main__.__dict__)
 __iep__.channels = c
 
 # create introspection thread instance
+# Make it a deamon thread, which implies that the program exits
+# even if its running.
 __iep__.ithread = IntroSpectionThread(  
     c.getReceivingChannel(1), c.getSendingChannel(3), __main__.__dict__)
-
+__iep__.ithread.daemon = True
 
 # todo: need more cleaning up?
 del IepInterpreter
