@@ -39,6 +39,13 @@ class ShellStack(QtGui.QFrame):
         self._tabs.currentChanged.connect(self.sizeShellTo80Columns)
     
     
+    def __iter__(self):
+        i = 0
+        while i < self._tabs.count():
+            w = self._tabs.widget(i)
+            i += 1
+            yield w 
+    
     def addShell(self, pythonExecutable=None):
         """ addShell()
         Add a shell to the widget. """

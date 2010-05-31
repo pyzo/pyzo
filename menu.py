@@ -464,6 +464,8 @@ class ViewMenu(BaseMenu):
                 iep.config.editor.zoom = 0
             for editor in iep.editors:
                 editor.zoomTo(iep.config.editor.zoom)
+            for shell in iep.shells:
+                shell.updateFontSizeToMatch80Columns()
     
     def fun_lineHighlight(self, value):
         """ Whether the line containing the cursor should be highlighted. """

@@ -16,9 +16,29 @@ from baseTextCtrl import BaseTextCtrl
 # todo: reimplement cut, copy and paste
 
 
+class ShellPart:
+    def __init__(self):
+        self.bytes = b''
+
+
+# todo: model the shell with these blocks!
+class ShellParts:
+    def __init__(self):
+        self.frozen = ShellPart()
+        self.prompt = ShellPart()
+        self.inserted = ShellPart()
+        
+
 class BaseShell(BaseTextCtrl):
     """ The BaseShell implements functionality to make a generic shell.
     """
+    
+    # Here's a list of positions used:
+    # position - of the cursor
+    # anchor - of the other end when text is selected
+    # _prompPosStart - start of the prompt
+    # _promptPosEnd - end of the prompt
+    # length - the end of the text.
     
     def __init__(self, parent):
         BaseTextCtrl.__init__(self, parent)
@@ -28,7 +48,8 @@ class BaseShell(BaseTextCtrl):
         self.setMarginWidth(1,3)
         self.setWrapMode(self.WrapCharacter)
         self.setMarginLineNumbers(1,False)
-        self.setEdgeMode(self.EdgeNone)
+        self.setEdgeMode(self.EDGE_LINE)
+        self.setEdgeColumn(80)
         
         # variables we need
         self._more = False
@@ -50,6 +71,51 @@ class BaseShell(BaseTextCtrl):
         # apply style
         self.setStyle('')
     
+    
+    def resizeEvent(self, event):
+        BaseTextCtrl.resizeEvent(self, event)
+        self.updateFontSizeToMatch80Columns()
+    
+    
+    def updateFontSizeToMatch80Columns(self, event=None):
+        """ updateFontSizeToMatch80Columns()
+        Tries to conform to the correct font size as dictated by
+        the style and zooming, but decreases the size as necessary
+        to fit 80 columns on screen.
+        """
+        
+        # Are we hidden?
+        if not self.isVisible():
+            return
+        
+        # todo: also make the widget size to fit exactly 80 columns?
+        
+        # Init zooming to users choice
+        zoom = iep.config.editor.zoom
+        self.zoomTo(zoom)
+        
+        # Init variables
+        width = self.width()
+        w = width*2
+        
+        # Decrease size untill 80 columns fits
+        while w > width:
+            
+            # Get size it should be (but font needs to be monospaced!)
+            w = self.textWidth(32, "-"*80)
+            w += 26 # add scrollbar and margin
+            
+            # zoom out if necessary
+            if w > width:
+                zoom -= 1
+                self.zoomTo(zoom)
+            
+            # impose lower limit
+            if zoom < -10:
+                break
+    
+    
+    ## Key handlers
     
     def keyPressHandler_always(self, event):
         """ keyPressHandler_always(event)
@@ -172,11 +238,16 @@ class BaseShell(BaseTextCtrl):
                     # Proceed as normal though!
     
     
+    ## Basic commands to control the shell
+    
     def clearCommand(self):
-        """ Clear the current command. """
+        """ Clear the current command.         
+        """
+        # Select from prompt end to length and delete selected text.
         self.setPosition(self._promptPosEnd)
         self.setAnchor(self.length())
         self.removeSelectedText()
+        # Ensure cursor visible
         self.ensureCursorVisible()  
     
     
@@ -193,6 +264,166 @@ class BaseShell(BaseTextCtrl):
             bb = self.getBytes()
             self.setText( bb[pos:] )
     
+    
+    def write(self, text):
+        
+        if not text:
+            return
+        
+        # get offsets
+        L1 = self.length()
+        offsetStart = L1 - self._promptPosStart
+        offsetEnd = L1 - self._promptPosEnd
+        offsetPos = L1 - self.getPosition()
+        offsetAnchor = L1 - self.getAnchor()
+        # make sure they're not negative
+        if offsetStart<0: offsetStart = 0
+        if offsetEnd<0: offsetEnd = 0
+        if offsetPos<0: offsetPos = 0
+        if offsetAnchor<0: offsetAnchor = 0
+        
+        print('inserting stdout')
+        N = self._writeeText(self._promptPosStart, text)
+        
+        # shift the prompt position and current position
+        L2 = self.length()
+        self._promptPosStart = L2 - offsetStart
+        self._promptPosEnd = L2 - offsetEnd
+        self.setPosition(L2-offsetPos)
+        self.setAnchor(L2-offsetAnchor)
+        
+        # make visible
+        self.ensureCursorVisible()
+    
+    
+    def writeErr(self, text):
+        
+        if not text:
+            return
+        
+        # get offsets
+        L1 = self.length()
+        offsetStart = L1 - self._promptPosStart
+        offsetEnd = L1 - self._promptPosEnd
+        offsetPos = L1 - self.getPosition()
+        offsetAnchor = L1 - self.getAnchor()
+        # make sure they're not negative
+        if offsetStart<0: offsetStart = 0
+        if offsetEnd<0: offsetEnd = 0
+        if offsetPos<0: offsetPos = 0
+        if offsetAnchor<0: offsetAnchor = 0
+        
+        if self._promptPosEnd > self._promptPosStart:
+            # Is the case when error eminates from other thread
+            N = self._writeeText(self._promptPosStart, text)
+            print('insert in start',N)
+        else:
+            N = self._writeeText(self._promptPosEnd, text)
+            print('insert in end',N)
+        
+        
+        # shift the prompt position and current position
+        L2 = self.length()
+        self._promptPosStart = L2 - offsetStart
+        self._promptPosEnd = L2 - offsetEnd
+        self.setPosition(L2-offsetPos)
+        self.setAnchor(L2-offsetAnchor)
+        
+        # make visible
+        self.ensureCursorVisible()
+    
+    
+    def writeErrrrrrrrrr(self, text):
+        """ Write error stream (and prompt). 
+        """
+        
+        # Is there any text at all?
+        if not text:
+            return
+        
+        # Make sure text is a string
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
+        
+        # if our prompt is valid, insert text normally
+        if self._promptPosEnd > self._promptPosStart:
+            self.write(text)
+        
+        # get position and anchor
+        p1 = self.getPosition()
+        p2 = self.getAnchor()
+        
+        # insert text and calculate how many chars were inserted
+        L1 = self.length()
+        self.insertText(self._promptPosEnd, text)
+        L2 = self.length()
+        Ld = L2-L1
+        
+        # shift the prompt
+        self._promptPosEnd += Ld
+        self._promptPosStart = self._promptPosEnd - Ld
+        self.setPosition(p1+L2)
+        self.setAnchor(p2+L2)
+        
+        # make visible
+        print('stderr')
+        self.ensureCursorVisible()
+        #self.scroll(0,999999)
+        
+    
+    
+    def _writeeText(self, insertPos, text):
+        """ Write stdout to the shell. The text is inserted
+        right befor the _promptPosStart 
+        """
+        # Make sure text is a string
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
+        
+        # put cursor in position to add (or delete) text
+        self.setPositionAndAnchor(insertPos)
+        L1 = self.length()
+        
+        # take care of backspaces
+        if text.count('\b'):
+            # while NOT a backspace at first position, or non found
+            i=9999999999999
+            while i>0:
+                i = text.rfind('\b',0,i)
+                if i>0 and text[i-1]!='\b':
+                    text = text[0:i-1] + text[i+1:]
+            # how many are left? (they are all at the begining)
+            nb = text.count('\b')
+            text = text.lstrip('\b')
+            for i in range(nb):
+                self.SendScintilla(self.SCI_DELETEBACK)
+        
+        # Perform hard-wrap, because Qscintilla becomes very slow 
+        # when long lines are displayed.
+        lines = text.split('\n')
+        lines2 = []
+        for line in lines:
+            while len(line)>80:
+                lines2.append(line[:80])
+                line = line[80:]
+            lines2.append(line)
+        text = '\n'.join(lines2)
+        
+        # insert text at current pos
+        self.addText(text)
+        L2 = self.length()
+        
+        # limit number of lines
+        self.limitNumberOfLines()
+        
+        # Return number of chars inserted
+        return L2-L1
+        
+    
+    
+    
+    
+    ## Executing stuff
     
     def processLine(self):
         """ Process the current line, actived when user presses enter.
@@ -253,157 +484,10 @@ class BaseShell(BaseTextCtrl):
         self.executeCommand(command)
     
     
-    def write(self, text):
-        """ Write normal stream. """
-        
-        if not text:
-            return
-        
-        # make text be a string
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-        
-        # get offsets
-        L1 = self.length()
-        offsetStart = L1 - self._promptPosStart
-        offsetEnd = L1 - self._promptPosEnd
-        offsetPos = L1 - self.getPosition()
-        offsetAnchor = L1 - self.getAnchor()
-        # make sure they're not negative
-        if offsetStart<0: offsetStart = 0
-        if offsetEnd<0: offsetEnd = 0
-        if offsetPos<0: offsetPos = 0
-        if offsetAnchor<0: offsetAnchor = 0
-        
-        # put cursor in position to add (or delete) text
-        self.setPositionAndAnchor(self._promptPosStart)
-        
-        # take care of backspaces
-        if text.count('\b'):
-            # while NOT a backspace at first position, or non found
-            i=9999999999999
-            while i>0:
-                i = text.rfind('\b',0,i)
-                if i>0 and text[i-1]!='\b':
-                    text = text[0:i-1] + text[i+1:]
-            # how many are left? (they are all at the begining)
-            nb = text.count('\b')
-            text = text.lstrip('\b')
-            for i in range(nb):
-                self.SendScintilla(self.SCI_DELETEBACK)
-        
-        # Perform hard-wrap, because Qscintilla becomes very slow 
-        # when long lines are displayed.
-        lines = text.split('\n')
-        lines2 = []
-        for line in lines:
-            while len(line)>80:
-                lines2.append(line[:80])
-                line = line[80:]
-            lines2.append(line)
-        text = '\n'.join(lines2)
-        
-        # insert text at current pos
-        self.addText(text)
-        
-        # limit number of lines
-        self.limitNumberOfLines()
-        
-        # shift the prompt position and current position
-        L2 = self.length()
-        self._promptPosStart = L2 - offsetStart
-        self._promptPosEnd = L2 - offsetEnd
-        self.setPosition(L2-offsetPos)
-        self.setAnchor(L2-offsetAnchor)
-        
-        # make visible
-        self.ensureCursorVisible()
-        #self.scroll(0,999999)
     
     
-    def writeErr(self, text):
-        """ Write error stream (and prompt). """
-        
-        # todo: or should we have a writePrompt method?
-        
-        # if our prompt is valid, insert text normally
-        if self._promptPosEnd > self._promptPosStart:
-            self.write(text)
-        
-        # get position and anchor
-        p1 = self.getPosition()
-        p2 = self.getAnchor()
-        
-        # insert text and calculate how many chars were inserted
-        L1 = self.length()        
-        self.insertText(self._promptPosEnd, text)
-        L2 = self.length()
-        Ld = L2-L1
-        
-        # shift the prompt
-        self._promptPosEnd += Ld
-        self._promptPosStart = self._promptPosEnd - Ld
-        self.setPosition(p1+L2)
-        self.setAnchor(p2+L2)
-        
-        # make visible
-        print('stderr')
-        self.ensureCursorVisible()
-        #self.scroll(0,999999)
     
     
-    def resizeEvent(self, event):
-        BaseTextCtrl.resizeEvent(self, event)
-        self.decreaseFontToMatch80Columns()
-    
-    
-    def decreaseFontToMatch80Columns(self, event=None):
-        
-        # Are we hidden?
-        if not self.isVisible():
-            return
-        
-        # todo: also make the widget size to fit exactly 80 columns
-        zoom = 0
-        self.zoomTo(zoom)
-        
-#         self.setMinimumWidth(0)
-#         self.setMaximumWidth(99999)
-#         iep.shells._boxLayout.activate()
-
-        # Init
-        width = self.width()
-        w = 0#width*2
-        
-        
-        # Increase size untill 80 columns does not fit
-        while w < width:
-            # get size it should be (but font needs to be monospaced!)
-            w = self.textWidth(32, "-"*80)
-            w += 26 # add scrollbar and margin
-            
-            if w < width:
-                zoom += 1
-                self.zoomTo(zoom)
-#                 self.update()
-                
-        # Decrease size untill 80 columns fits
-        while w > width:
-            # get size it should be (but font needs to be monospaced!)
-            w = self.textWidth(32, "-"*80)
-            w += 26 # add scrollbar and margin
-            
-            if w > width:
-                zoom -= 1
-                self.zoomTo(zoom)
-#                 self.update()
-            if zoom < -10:
-                break
-        
-#         # fix the width
-#         self.setMinimumWidth(w)
-#         self.setMaximumWidth(w)
-# 
 
 
 class LoggerShell(BaseShell):
