@@ -14,20 +14,134 @@ import iep
 from baseTextCtrl import BaseTextCtrl
 
 # todo: reimplement cut, copy and paste
+# todo: color stderr red and prompt blue, and input text Python!
 
-
-class ShellPart:
+class PositionHelper:
+    """ Manages the position of the prompt and the cursor during 
+    inserting text to the shell. Provides methods to remember
+    and restore the positions. This is a more complex task than
+    might seem on first sight; depending on the situation, the 
+    position has to be stored relative to the beginning or to
+    the end of the text.
+    """
+    
     def __init__(self):
-        self.bytes = b''
-
-
-# todo: model the shell with these blocks!
-class ShellParts:
-    def __init__(self):
-        self.frozen = ShellPart()
-        self.prompt = ShellPart()
-        self.inserted = ShellPart()
+        self._where1 = ''
+        self._where2 = '' 
+        self._refPos1 = 0 # position
+        self._refPos2 = 0 # anchor
+        #
+        self._promptRefPos1b = 0 # b for before, a for after 
+        self._promptRefPos2b = 0
+        self._promptRefPos1a = 0
+        self._promptRefPos2a = 0
+    
+    
+    def remember(self, shell):
+        """ remember(shell)
+        Remember the positions.
+        """ 
         
+        # Get cursor position
+        pos1 = shell.getPosition()
+        pos2 = shell.getAnchor()
+        
+        # Get shell end
+        end = shell.length()
+        
+        # Remember position of prompt for when text is inserted
+        # before it and for when text is inserted after it.
+        self._promptRefPos1b = end - shell._promptPos1
+        self._promptRefPos2b = end - shell._promptPos2
+        self._promptRefPos1a = shell._promptPos1
+        self._promptRefPos2a = shell._promptPos2
+        
+        # Determine where each end is and store reference position
+        if pos1 >= shell._promptPos2:
+            self._where1 = 'input'
+            self._refPos1 = end - pos1
+        elif pos1 >= shell._promptPos1:
+            self._where1 = 'prompt'
+            self._refPos1 = end - pos1
+        else:
+            self._where1 = 'bulk'
+            self._refPos1 = pos1
+        #
+        if pos2 >= shell._promptPos2:
+            self._where2 = 'input'
+            self._refPos2 = end - pos2
+        elif pos2 >= shell._promptPos1:
+            self._where2 = 'prompt'
+            self._refPos2 = end - pos2
+        else:
+            self._where2 = 'bulk'
+            self._refPos2 = pos2
+    
+    
+    def restore(self, shell, newPromptLength=0):
+        """ restore(shell, newPromptLength=0)
+        Restore the positions. If newPromptLength is given, it is
+        assumed that a prompt was inserted AFTER the previous promptPos2
+        with the given number of bytes. If not given, it is assumed
+        that the text was inserted BEFORE the previous prompt.
+        In other words, all text should be printed before the prompt,
+        unless it's a new prompt.
+        """ 
+        
+        # Get shell end
+        end = shell.length()
+        
+        # Restore prompt
+        if newPromptLength:
+            # Text printed after the prompt
+            shell._promptPos1 = self._promptRefPos2a
+            shell._promptPos2 = shell._promptPos1 + newPromptLength
+        else:
+            # Text printed before the prompt
+            shell._promptPos1 = end - self._promptRefPos1b
+            shell._promptPos2 = end - self._promptRefPos2b
+        
+        # Obtain new position depending on where the pos was
+        if self._where1 == 'input':
+            pos1 = end - self._refPos1
+        elif self._where1 == 'prompt':
+            pos1 = end - self._refPos1
+        elif self._where1 == 'bulk':
+            pos1 = self._refPos1
+        else:
+            pos1 = end # error: move to end
+        #
+        if self._where2 == 'input':
+            pos2 = end - self._refPos2
+        elif self._where2 == 'prompt':
+            pos2 = end - self._refPos2
+        elif self._where2 == 'bulk':
+            pos2 = self._refPos2
+        else:
+            pos2 = end # error: move to end
+        
+        # Set new position
+        shell.setPosition(pos1)
+        shell.setAnchor(pos2)
+        
+        # Should we ensure visible?
+        # Only if cursor is at input ...
+        if self._where1 == 'input' and self._where2 == 'input':
+            shell.ensureCursorVisible()
+    
+    
+    def allowedToLimitNumberOfLines(self):
+        """ allowedToLimitNumberOfLines()
+        Returns a boolean indicating whether it is safe to reduce
+        the number of lines. Basically, this is the case if the cursore
+        is not in the bulk.
+        """ 
+        
+        if 'bulk' in [self._where1, self._where2]:
+            return False
+        else:
+            return True
+
 
 class BaseShell(BaseTextCtrl):
     """ The BaseShell implements functionality to make a generic shell.
@@ -36,8 +150,8 @@ class BaseShell(BaseTextCtrl):
     # Here's a list of positions used:
     # position - of the cursor
     # anchor - of the other end when text is selected
-    # _prompPosStart - start of the prompt
-    # _promptPosEnd - end of the prompt
+    # _promptPos1 - start of the prompt
+    # _promptPos2 - end of the prompt
     # length - the end of the text.
     
     def __init__(self, parent):
@@ -53,8 +167,8 @@ class BaseShell(BaseTextCtrl):
         
         # variables we need
         self._more = False
-        self._promptPosStart = 0
-        self._promptPosEnd = 0
+        self._promptPos1 = 0
+        self._promptPos2 = 0
         
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
@@ -147,7 +261,7 @@ class BaseShell(BaseTextCtrl):
         
         elif event.key == qc.Key_Home:
             # Home goes to the prompt.
-            home = self._promptPosEnd
+            home = self._promptPos2
             if event.shiftdown:
                 self.setPosition(home)
             else:
@@ -163,7 +277,7 @@ class BaseShell(BaseTextCtrl):
         elif event.key in [qc.Key_Backspace, qc.Key_Left]:
             # do not backspace past prompt
             # nor with arrow key
-            home = self._promptPosEnd
+            home = self._promptPos2
             if self.getPosition() > home:
                 return False # process normally
             return True
@@ -181,7 +295,7 @@ class BaseShell(BaseTextCtrl):
             # Clear the current, unexecuted command.
             
             self.clearCommand()
-            self.setPositionAndAnchor(self._promptPosEnd)
+            self.setPositionAndAnchor(self._promptPos2)
             self.ensureCursorVisible()
             self._historyNeedle = None
             return True
@@ -196,7 +310,7 @@ class BaseShell(BaseTextCtrl):
             if self._historyNeedle == None:
                 # get partly-command, result of method is tuple, 
                 # then we skip ">>> "
-                pos1, pos2 = self._promptPosEnd, self.length()
+                pos1, pos2 = self._promptPos2, self.length()
                 self._historyNeedle = self.getRangeString(pos1, pos2)
                 self._historyStep = 0
             
@@ -221,7 +335,7 @@ class BaseShell(BaseTextCtrl):
                 c = self._historyNeedle  
             
             # apply
-            self.setAnchor(self._promptPosEnd)
+            self.setAnchor(self._promptPos2)
             self.setPosition(self.length())
             self.ensureCursorVisible()
             self.replaceSelection(c) # replaces the current selection
@@ -230,7 +344,7 @@ class BaseShell(BaseTextCtrl):
         else:
             if not event.controldown:
                 # go back to prompt if not there...
-                home = self._promptPosEnd 
+                home = self._promptPos2 
                 pend = self.length()
                 if self.getPosition() < home or self.getAnchor() < home:
                     self.setPositionAndAnchor(pend)
@@ -241,152 +355,30 @@ class BaseShell(BaseTextCtrl):
     ## Basic commands to control the shell
     
     def clearCommand(self):
-        """ Clear the current command.         
+        """ Clear the current command, move the cursor right behind
+        the prompt, and ensure it's visible.
         """
         # Select from prompt end to length and delete selected text.
-        self.setPosition(self._promptPosEnd)
+        self.setPosition(self._promptPos2)
         self.setAnchor(self.length())
         self.removeSelectedText()
         # Ensure cursor visible
         self.ensureCursorVisible()  
     
     
-    def limitNumberOfLines(self):
-        """ Reduces the amount of lines by 50% if above a certain threshold.
-        Does not reset the position of prompt or current position. 
-        """ 
-        L = self.length()
-        N = self.getLinenrFromPosition( L )
-        limit = iep.config.shellMaxLines
-        if N > limit:
-            # reduce text
-            pos = self.getPositionFromLinenr( int(N/2) )
-            bb = self.getBytes()
-            self.setText( bb[pos:] )
-    
-    
-    def write(self, text):
+    def _handleBackspaces(self, text):
+        """ Apply backspaced in the string itself and if there are
+        backspaces left at the start of the text, remove the appropriate
+        amount of characters from the text.
         
-        if not text:
-            return
+        Note that before running this function, the position and anchor
+        should be set to the right position!
         
-        # get offsets
-        L1 = self.length()
-        offsetStart = L1 - self._promptPosStart
-        offsetEnd = L1 - self._promptPosEnd
-        offsetPos = L1 - self.getPosition()
-        offsetAnchor = L1 - self.getAnchor()
-        # make sure they're not negative
-        if offsetStart<0: offsetStart = 0
-        if offsetEnd<0: offsetEnd = 0
-        if offsetPos<0: offsetPos = 0
-        if offsetAnchor<0: offsetAnchor = 0
-        
-        print('inserting stdout')
-        N = self._writeeText(self._promptPosStart, text)
-        
-        # shift the prompt position and current position
-        L2 = self.length()
-        self._promptPosStart = L2 - offsetStart
-        self._promptPosEnd = L2 - offsetEnd
-        self.setPosition(L2-offsetPos)
-        self.setAnchor(L2-offsetAnchor)
-        
-        # make visible
-        self.ensureCursorVisible()
-    
-    
-    def writeErr(self, text):
-        
-        if not text:
-            return
-        
-        # get offsets
-        L1 = self.length()
-        offsetStart = L1 - self._promptPosStart
-        offsetEnd = L1 - self._promptPosEnd
-        offsetPos = L1 - self.getPosition()
-        offsetAnchor = L1 - self.getAnchor()
-        # make sure they're not negative
-        if offsetStart<0: offsetStart = 0
-        if offsetEnd<0: offsetEnd = 0
-        if offsetPos<0: offsetPos = 0
-        if offsetAnchor<0: offsetAnchor = 0
-        
-        if self._promptPosEnd > self._promptPosStart:
-            # Is the case when error eminates from other thread
-            N = self._writeeText(self._promptPosStart, text)
-            print('insert in start',N)
-        else:
-            N = self._writeeText(self._promptPosEnd, text)
-            print('insert in end',N)
-        
-        
-        # shift the prompt position and current position
-        L2 = self.length()
-        self._promptPosStart = L2 - offsetStart
-        self._promptPosEnd = L2 - offsetEnd
-        self.setPosition(L2-offsetPos)
-        self.setAnchor(L2-offsetAnchor)
-        
-        # make visible
-        self.ensureCursorVisible()
-    
-    
-    def writeErrrrrrrrrr(self, text):
-        """ Write error stream (and prompt). 
+        Returns the new text.
         """
-        
-        # Is there any text at all?
-        if not text:
-            return
-        
-        # Make sure text is a string
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-        
-        # if our prompt is valid, insert text normally
-        if self._promptPosEnd > self._promptPosStart:
-            self.write(text)
-        
-        # get position and anchor
-        p1 = self.getPosition()
-        p2 = self.getAnchor()
-        
-        # insert text and calculate how many chars were inserted
-        L1 = self.length()
-        self.insertText(self._promptPosEnd, text)
-        L2 = self.length()
-        Ld = L2-L1
-        
-        # shift the prompt
-        self._promptPosEnd += Ld
-        self._promptPosStart = self._promptPosEnd - Ld
-        self.setPosition(p1+L2)
-        self.setAnchor(p2+L2)
-        
-        # make visible
-        print('stderr')
-        self.ensureCursorVisible()
-        #self.scroll(0,999999)
-        
-    
-    
-    def _writeeText(self, insertPos, text):
-        """ Write stdout to the shell. The text is inserted
-        right befor the _promptPosStart 
-        """
-        # Make sure text is a string
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-        
-        # put cursor in position to add (or delete) text
-        self.setPositionAndAnchor(insertPos)
-        L1 = self.length()
-        
         # take care of backspaces
         if text.count('\b'):
-            # while NOT a backspace at first position, or non found
+            # while NOT a backspace at first position, or none found
             i=9999999999999
             while i>0:
                 i = text.rfind('\b',0,i)
@@ -398,6 +390,12 @@ class BaseShell(BaseTextCtrl):
             for i in range(nb):
                 self.SendScintilla(self.SCI_DELETEBACK)
         
+        return text
+    
+    
+    def _wrapLines(self, text):
+        """ Peform hard wrapping of the text to 80 characters.
+        """
         # Perform hard-wrap, because Qscintilla becomes very slow 
         # when long lines are displayed.
         lines = text.split('\n')
@@ -408,18 +406,101 @@ class BaseShell(BaseTextCtrl):
                 line = line[80:]
             lines2.append(line)
         text = '\n'.join(lines2)
+        return text
+    
+    
+    def _limitNumberOfLines(self):
+        """ Reduces the amount of lines by 50% if above a certain threshold.
+        Does not reset the position of prompt or current position. 
+        """ 
+        L = self.length()
+        N = self.getLinenrFromPosition( L )
+        limit = iep.config.shellMaxLines
+        if N > limit:
+            # reduce text
+            pos = self.getPositionFromLinenr( int(N/2) )
+            self.setPosition(pos)
+            self.setAnchor(0)
+            self.removeSelectedText()
+    
+    
+    def write(self, text):
+        """ write(text)
+        Write normal text (stdout) to the shell. The text is printed
+        before the prompt.
+        """
+        # Make sure there's text and make sure its a string
+        if not text:
+            return
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
         
-        # insert text at current pos
+        # Remember position of prompt and cursor
+        positionHelper = PositionHelper()
+        positionHelper.remember(self)
+        
+        # Put cursor in position to add (or delete) text
+        self.setPositionAndAnchor(self._promptPos1)
+        L = self.length()
+        
+        # Handle backspaces and wrap lines
+        text = self._handleBackspaces(text)
+        text = self._wrapLines(text)
+        
+        # Insert text at current pos
+        self.addText(text)
+        
+        # Limit number of lines (if cursor not in bulk)
+        if positionHelper.allowedToLimitNumberOfLines():
+            self._limitNumberOfLines()
+        
+        # Restore position of prompt and cursor
+        positionHelper.restore(self)
+    
+    
+    def writeErr(self, text):
+        """ writeErr(text)
+        Writes error messages (stderr) to the shell. If the text
+        does not end with a newline, the text is considered a
+        prompt and is printed behind the old prompt position
+        rather than befor it.
+        """
+        
+        # Make sure there's text and make sure its a string
+        if not text:
+            return
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
+        
+        # Remember position of prompt and cursor
+        positionHelper = PositionHelper()
+        positionHelper.remember(self)
+        
+        # Put cursor in position to add text
+        if text[-1] == '\n':
+            # Normal error message
+            self.setPositionAndAnchor(self._promptPos1)
+        else:
+            # A prompt
+            self.setPositionAndAnchor(self._promptPos2)
+        
+        # Wrap lines (no need to handle backspaces)
+        text = self._wrapLines(text)
+        
+        # Insert text at current pos
+        L1 = self.length()
         self.addText(text)
         L2 = self.length()
         
-        # limit number of lines
-        self.limitNumberOfLines()
+        # Limit number of lines (if cursor not in bulk)
+        if positionHelper.allowedToLimitNumberOfLines():
+            self._limitNumberOfLines()
         
-        # Return number of chars inserted
-        return L2-L1
-        
-    
+        # Restore position of prompt and cursor
+        if text[-1] == '\n':
+            positionHelper.restore(self)
+        else:
+            positionHelper.restore(self, L2-L1)
     
     
     
@@ -429,7 +510,7 @@ class BaseShell(BaseTextCtrl):
         """ Process the current line, actived when user presses enter.
         """
         # get command on the line
-        self.setPosition(self._promptPosEnd)
+        self.setPosition(self._promptPos2)
         self.setAnchor(self.length())
         command = self.getSelectedString()
         command = command.rstrip() # remove newlines spaces and tabs
@@ -445,7 +526,7 @@ class BaseShell(BaseTextCtrl):
         
         # prepare to execute
         self.appendText('\n')
-        self._promptPosStart = self._promptPosEnd = self.length()
+        self._promptPos1 = self._promptPos2 = self.length()
         self.setPositionAndAnchor(self.length())
         
         # go
@@ -473,11 +554,11 @@ class BaseShell(BaseTextCtrl):
         command = command.strip('\n') + '\n'
         
         # Set position
-        self.setPositionAndAnchor(self._promptPosEnd)
+        self.setPositionAndAnchor(self._promptPos2)
         
         # Write command
         self.addText(command)
-        self._promptPosStart = self._promptPosEnd = self._promptPosEnd + len(command)
+        self._promptPos1 = self._promptPos2 = self._promptPos2 + len(command)
         self.setPositionAndAnchor(self.length())
         
         # Process line
