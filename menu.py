@@ -207,21 +207,27 @@ class FileMenu(BaseMenu):
         
         if value is None:
             current = editor.getIndentation()
-            options = [-1,2,3,4,5,6,7,8,9,10, current]
+            options = [-1,2,3,4,5,6,7,8, current]
             for i in range(len(options)):
                 if options[i] < 0:
                     options[i] = 'Use tabs'
                 else:
                     options[i] = '{} spaces'.format(options[i])            
             return options
-        
-        # parse value
-        try:
-            val = int(value[:2])
-        except ValueError:
-            val = -1
-        # apply
-        editor.setIndentation(val)
+        else:
+            # parse value
+            val = 0
+            if value.lower() == 'use tabs':
+                val = -1
+            else:
+                try:
+                    val = int(value[:2])
+                except ValueError:
+                    pass
+            # apply
+            if not val:
+                val = iep.config.editor.defaultIndentation
+            editor.setIndentation(val)
     
     def fun_style(self, value):
         """ The styling used for the current style. """
