@@ -164,7 +164,8 @@ def createEditor(parent, filename=None):
         
         # process indentation
         indentWidth = determineIndentation(text)
-        editor.setIndentation(indentWidth)
+        if indentWidth:
+            editor.setIndentation(indentWidth)
     
     # clear undo history and modify time
     editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
@@ -421,10 +422,15 @@ class IepEditor(BaseTextCtrl):
             # Get some data
             indentWidth = self.getIndentation()
             indent = b' '
+            # todo: I tried solving the bug. Did it work?
+#             if indentWidth == 0:
+#                 # this can occur due to a bug, this code makes it self-solving
+#                 indentWidth = iep.config.editor.defaultIndentation
+#                 self.setIndentation(indentWidth)
             if indentWidth<0:
                 indentWidth = 1
                 indent = b'\t'
-                
+            
             if iep.config.editor.autoIndent:                
                 # check if style is ok...
                 pos = self.getPosition()
