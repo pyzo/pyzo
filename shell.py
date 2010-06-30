@@ -540,51 +540,54 @@ class BaseShell(BaseTextCtrl):
     
     
     ## Executing stuff
-    
     def processLine(self, line=None):
-        """ Process the current line, activated when user presses enter.
+        """ processLine(self, line=None)
+        Process the given line or the current line at the prompt if not given.
+        Called when the user presses enter.        
         """
         
-        if line:
-            # Given command
-            
-            # Normalize
-            command = line.strip('\n')
-            
-            # Set position
-            curPos = self.getPosition()
-            self.setPositionAndAnchor(self._promptPos2)
-            
-            # Write command
-            tmp = command + '\n'
-            self.addText(tmp)
-            self._promptPos1 = self._promptPos2 = self._promptPos2 + len(tmp)
-            self.setPositionAndAnchor(curPos+len(tmp))
+        # Remember position
+        curPos = self.getPosition()
         
+        if line:
+            # remove newlines spaces and tabs
+            command = line.rstrip()            
         else:
-            # Get command on the line
-            
             # Sample the text from the prompt
             self.setPosition(self._promptPos2)
             self.setAnchor(self.length())
             command = self.getSelectedString()
-            command = command.rstrip() # remove newlines spaces and tabs
+            self.replaceSelection('')
+            
+            # remove newlines spaces and tabs
+            command = command.rstrip()            
             
             # Remember the command (but first remove to prevent duplicates)
             if command:
                 if command in self._history:
                     self._history.remove(command)
                 self._history.insert(0,command)
-            
-            # prepare to execute
-            self.appendText('\n')
-            self._promptPos1 = self._promptPos2 = self.length()
-            self.setPositionAndAnchor(self.length())
+        
+        # Limit text to add to 80 chars
+        preamble = self._promptPos2-self._promptPos1
+        tmp = ' '*preamble + command        
+        tmp = self._wrapLines(tmp)[preamble:] + '\n'
+        
+        # Add the command text
+        self.setPositionAndAnchor(self._promptPos2)
+        self.addText(tmp)
+        self._promptPos1 = self._promptPos2 = self._promptPos2 + len(tmp)
+        
+        # Restore position
+        curPos += len(tmp)
+        if curPos < self._promptPos2:
+            curPos = self.length()        
+        self.setPositionAndAnchor(curPos)
         
         # Maybe modify the text given...
         command = self.modifyCommand(command)
         
-        # Go        
+        # Execute
         self.executeCommand(command+'\n')
     
     
@@ -603,91 +606,6 @@ class BaseShell(BaseTextCtrl):
         # this is a stupid simulation version
         self.write("you executed: "+command+'\n')
         self.writeErr(">>> ")
-
-
-def splitConsole(stdoutFun=None, stderrFun=None):
-    """ splitConsole(stdoutFun=None, stderrFun=None)
-    Splits the stdout and stderr streams. On each call
-    to their write methods, in addition to the original
-    write method being called, will call the given 
-    functions.
-    Returns the history of the console (combined stdout 
-    and stderr).
-    Used by the logger shell.
-    """
-    
-    # Split stdout and stderr
-    sys.stdout = OutputStreamSplitter(sys.stdout)
-    sys.stderr = OutputStreamSplitter(sys.stderr)
-    
-    # Make them share their history
-    sys.stderr._history = sys.stdout._history
-    
-    # Set defer functions
-    if stdoutFun:
-        sys.stdout._deferFunction = stdoutFun
-    if stderrFun:
-        sys.stderr._deferFunction = stderrFun
-    
-    # Return history 
-    return ''.join(sys.stdout._history)
-
-
-class OutputStreamSplitter:
-    """ This class is used to replace stdout and stderr output
-    streams. It defers the stream to the original and to
-    a function that can be registered.
-    Used by the logger shell.
-    """
-    
-    def __init__(self, fileObject):
-        
-        # Init, copy properties if it was already a splitter
-        if isinstance(fileObject, OutputStreamSplitter):
-            self._original = fileObject._original
-            self._history = fileObject._history
-            self._deferFunction = fileObject._deferFunction
-        else:
-            self._original = fileObject
-            self._history = []
-            self._deferFunction = self.dummyDeferFunction
-    
-    def dummyDeferFunction(self, text):
-        pass
-    
-    def write(self, text):
-        """ Write method. """
-        self._original.write(text)
-        self._history.append(text)
-        self._deferFunction(text)
-    
-    def flush(self):
-        return self._original.flush()
-    
-    def closed(self):
-        return self._original.closed()
-    
-    def close(self):
-        return self._original.close()
-    
-    def encoding(self):
-        return self._original.encoding()
-
-# Split now, with no defering
-splitConsole()
-
-class LoggerShell(BaseShell):
-    """ The LoggerShell implements a Python shell that executes code
-    in the current process and displays log messages.
-    """
-    
-    def __init__(self, parent):
-        BaseShell.__init__(self, parent)
-        
-        # apply style
-        # todo: make logger style
-        self.setStyle('pythonconsole')
-    
 
 
 # Python script to invoke (We need to use double quotes to 

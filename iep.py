@@ -68,7 +68,8 @@ defaultStyleName = ''
 
 def startIep():
     """ RUN IEP 
-    """    
+    """
+    import logging # to start logging asap
     from main import MainWindow
     from PyQt4 import QtCore, QtGui
     # Set to use pure QT drawing (for consistent looks)
