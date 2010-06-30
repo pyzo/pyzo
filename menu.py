@@ -489,9 +489,12 @@ class SettingsMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Enable code folding', self.fun_codeFolding, []) )
+        addItem( MI('Enable code folding', self.fun_codeFolding, []) )        
+        addItem( MI('Automatically indent', self.fun_autoIndent, []) )        
+        addItem( None )
         addItem( MI('Match braces', self.fun_braceMatch, []) )
-        addItem( MI('Automatically indent', self.fun_autoIndent, []) )
+        addItem( MI('Show auto completion', self.fun_autoComplete, []) )
+        addItem( MI('Show call tips', self.fun_callTip, []) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, []) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
@@ -589,6 +592,22 @@ class SettingsMenu(BaseMenu):
             for editor in iep.editors:
                 editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
                 editor.setBraceMatching(value)
+    
+    def fun_autoComplete(self, value):
+        """ Show a list with completion options queried from editor and shell."""
+        if value is None:
+            return bool(iep.config.editor.autoComplete)
+        else:
+            value = not bool(iep.config.editor.autoComplete)
+            iep.config.editor.autoComplete = value
+    
+    def fun_callTip(self, value):
+        """ Show a call tip for functions and methods."""
+        if value is None:
+            return bool(iep.config.editor.callTip)
+        else:
+            value = not bool(iep.config.editor.callTip)
+            iep.config.editor.callTip = value
     
     def fun_autoIndent(self, value):
         """ Enable auto-indentation (python style only). """

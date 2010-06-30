@@ -129,7 +129,7 @@ def parseLine_autocomplete(text):
 
 def parseLine_signature(text):
     """ Given a line of code (from start to cursor position) 
-    returns a tuple (base, name, stats).
+    returns a tuple (name, needle, stats).
     stats is another tuple: 
     - location of end bracket
     - amount of kommas till cursor (taking nested brackets into account)
@@ -169,8 +169,8 @@ def parseLine_signature(text):
     
     # found it?
     if i>0:
-        base, name = parseLine_autocomplete(text[:i])
-        return base, name, (i, kommaCount)
+        name, needle = parseLine_autocomplete(text[:i])
+        return name, needle, (i, kommaCount)
     else:
         return "","", (0,0)
 
@@ -473,18 +473,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._delayTimer.setSingleShot(True)
         self._delayTimer.timeout.connect(self._introspectNow)
         
-        # For autocompletion
-        self._autoComp_name = '' # the (partial) name to look up
-        self._autoComp_fictiveNames = [] # to pass fictive names
-        self._autoComp_bufBase = '' # the name of which we have a list
-        self._autoComp_bufTime = 0 # when did we obtain that list
-        self._autoComp_bufNames = [] # the buffered list of names
-        
-        # For calltip
-        self._callTip_pos = 0 # to store position
-        self._callTip_bufName = {} # full name of buffered function signature
-        self._callTip_bufTime = 0 # when did we obtain the buffered sig
-        self._callTip_bufSig = '' # the buffered signature
+        # For buffering autocompletion and calltip info
+        self._callTipBuffer_name = ''
+        self._callTipBuffer_time = 0
+        self._callTipBuffer_result = ''
+        self._autoCompBuffer_name = ''
+        self._autoCompBuffer_time = 0
+        self._autoCompBuffer_result = []
         
         #print('Initializing Scintilla component.')
         
@@ -1029,20 +1024,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         The method _introspectNow() will parse the line to obtain
         information required to obtain the autocompletion and signature
-        information. Then it calls _introspect_callTip() or 
-        ..._autoComp() to process further. These methods will obtain
-        information from the source using the iep.parser. Then (if 
-        necessary) will query information from the current shell.
-        The _introspect_callTip_response() and ..._autoComp_response()
-        process the response of the shell. The actual showing of the
-        introspection info to the user happens either in _introspect_*()
-        or in _introspect_*response().
+        information. Then it calls processCallTip and processAutoComp
+        which are implemented in the editor and shell classes.
         """
-        
-        # Only proceed if we're supposed to
-#         if not iep.config.doAutoComplete:
-#             self.StopIntrospecting()
-#             return
         
         # Only proceed if valid python
         if not self._isValidPython():
@@ -1079,230 +1063,41 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if not line:
             return
         
-        if True:
+        if iep.config.editor.callTip:
             # Parse the line, to get the name of the function we should calltip
             # if the name is empty/None, we should not show a signature
-            baseObject, name, stats = parseLine_signature(line)
+            name, needle, stats = parseLine_signature(line)
             
-            # Try to do call tip
-            pos = self._delayTimer._pos - len(line) + stats[0] - len(name)
-            self._introspect_callTip(baseObject, name, stats, pos)
+            if needle:
+                # Compose actual name
+                fullName = needle
+                if name:
+                    fullName = name + '.' + needle
+                # Calculate position
+                pos = self._delayTimer._pos - len(line) + stats[0] - len(needle)
+                # Process
+                cto = CallTipObject(self, fullName, pos)
+                self.processCallTip(cto)
+            else: 
+                self.callTipCancel()
         
-        if self._delayTimer._tryAutoComp:
+        if self._delayTimer._tryAutoComp and iep.config.editor.autoComplete:
             # Parse the line, to see what (partial) name we need to complete
-            baseObject, name = parseLine_autocomplete(line)
+            name, needle = parseLine_autocomplete(line)
             
             # Try to do auto completion
-            self._introspect_autoComp(baseObject, name)
+            aco = AutoCompObject(self, name, needle)
+            self.processAutoComp(aco)
     
     
-    def _introspect_callTip(self, baseObject, name, stats, pos):
-        """ Process introspection for signatures.
-        """
-        
-        # Show tooltip
-        if not name:
-            self.callTipCancel()
-        else:
-            if baseObject:
-                name  = "%s.%s" % (baseObject, name)
-            
-            # Determine position
-            self._callTip_pos = pos
-            
-            # Try reusing calltip
-            if (    (name == self._callTip_bufName) and 
-                    (time.time() - self._callTip_bufTime < 5.0)  ):
-                self.callTipShow(self._callTip_pos, self._callTip_bufSig, 0,-1)
-            
-            else:
-                # Try obtaining calltip from the source
-                sig = iep.parser.getFictiveSignature(name, self, True)
-                if sig:
-                    # Buffer info and show calltip
-                    self._callTip_bufName = name
-                    self._callTip_bufTime = time.time()
-                    self._callTip_bufSig = sig
-                    self.callTipShow(self._callTip_pos, sig, 0,-1)
-                else:
-                    # Obtain calltip from the session
-                    req = "SIGNATURE " + name
-                    # Init buffer, so we know in response it is still needed
-                    # This also prevents doing a second request
-                    self._callTip_bufName = id = name 
-                    self._callTip_bufSig = ''
-                    self._callTip_bufTime = time.time()
-                    # Post request
-                    shell = iep.shells.getCurrentShell()
-                    if shell:
-                        shell.postRequest(req, self._introspect_callTip_response, id)
+    def processCallTip(self, cto):
+        """ Dummy processing. """
+        pass
     
     
-    def _introspect_callTip_response(self, response, id):
-        """ Process response of shell to show signature. """
-        if response and response == '<error>':
-            return
-        # If still required, show tip
-        if id == self._callTip_bufName:
-            self.callTipShow(self._callTip_pos, response, 0,-1)
-        # Always store
-        if True:
-            self._callTip_bufName = id
-            self._callTip_bufTime = time.time()
-            self._callTip_bufSig = response
-    
-    
-    
-    def _introspect_autoComp(self, baseObject, name):
-        """ Process introspection for the auto completion. 
-        """
-        
-        # Make set instance (to prevent duplicates)
-        names = set()
-        
-        # Set name to poll by remote process (can be changed!)
-        nameToPoll = baseObject
-        
-        # First see if this is still the right editor (can also be a shell)
-        editor1 = iep.editors.getCurrentEditor()
-        editor2 = iep.shells.getCurrentShell()
-        
-        # Insert  builtins
-        if editor2 and not baseObject:
-            names.update(editor2._builtins)
-        
-        # Some things are only done if this is an editor ...
-        if self is editor1:
-            
-            # Include imports
-            if not baseObject:
-                importNames, importLines = iep.parser.getFictiveImports(self)
-                names.update(importNames)
-            
-            # Get normal fictive namespace
-            fictiveNS = iep.parser.getFictiveNameSpace(self)
-            fictiveNS = set(fictiveNS)        
-            if not baseObject:
-                names.update(fictiveNS)
-            
-            if baseObject:
-                # Prepare list of class names to check out
-                classNames = [baseObject]
-                handleSelf = True
-                # Unroll supers
-                while classNames:
-                    className = classNames.pop(0)
-                    if not className:
-                        continue
-                    if handleSelf or (className in fictiveNS):
-                        # Only the self list (only first iter)
-                        fictiveClass = iep.parser.getFictiveClass(
-                            className, self, handleSelf)
-                        handleSelf = False
-                        if fictiveClass:
-                            names.update( fictiveClass.attributes )
-                            classNames.extend(fictiveClass.supers)
-                    else:
-                        nameToPoll = className
-                        break
-        
-        # Process by posting a request at the shell
-        if name or nameToPoll:
-            
-            # Store name to search for
-            self._autoComp_name = name.lower()
-            self._autoComp_fictiveNames = names
-            
-            # Use buffer or poll name
-            if (    (baseObject == self._autoComp_bufBase) and 
-                    (time.time() - self._autoComp_bufTime < 5.0)   ):
-                # Use buffer
-                self._introspect_autoComp_show(name, self._autoComp_bufNames)
-            
-            else:
-                # Prepare for polling (prevent doing a second request)
-                self._autoComp_bufBase = id = baseObject
-                self._autoComp_bufTime = time.time()
-                self._autoComp_bufNames = set()
-                # Poll name
-                req = "ATTRIBUTES " + nameToPoll
-                shell = iep.shells.getCurrentShell()
-                if shell:
-                    shell.postRequest(req, self._introspect_autoComp_response, id)
-    
-    
-    def _introspect_autoComp_response(self, response, id):
-        """ Process the response of the shell for the auto completion. 
-        """ 
-        
-        # Get baseObject, name
-        baseObject, name = id, self._autoComp_name
-        
-        # First see if this is still the right editor (can also be a shell)
-        editor1 = iep.editors.getCurrentEditor()
-        editor2 = iep.shells.getCurrentShell()
-        if editor1 is not self and editor2 is not self:
-            # This editor is no longer active
-            self.autoCompCancel()
-            return
-        
-        # Add result to the list
-        names = self._autoComp_fictiveNames
-        if response != '<error>':
-            names.update(response.split(','))
-        
-        # Process list
-        if not names:
-            
-            # Maybe we need to import it
-            importNames, importLines = iep.parser.getFictiveImports(self)
-            if baseObject in importNames:
-                self._introspect_autoImport(importLines[baseObject])
-        
-        else:
-            # Show if still up to date
-            if self._autoComp_bufBase == baseObject:
-                self._introspect_autoComp_show(name, names)
-            # Store result
-            if True:
-                self._autoComp_bufBase = baseObject
-                self._autoComp_bufTime = time.time()
-                self._autoComp_bufNames = names
-    
-    
-    def _introspect_autoComp_show(self, name, names):
-        """ The last bit in the auto completion processing. Sorts the
-        set of names and checks whether name is in it. Performs the
-        showing. 
-        """
-        # Make a list and sort it
-        names = list(names)
-        names.sort(key=str.upper)
-        
-        # Check whether name in list. 
-        haystack = ' ' + ' '.join(names).lower()
-        needle = ' '+name.lower()
-        if haystack.find(needle) == -1:
-            self.autoCompCancel()
-        else:
-            # Show completion list if required. 
-            # When already shown the list will change selection when typing
-            if not self.autoCompActive():
-                self.autoCompShow(len(name), names)
-    
-    
-    def _introspect_autoImport(self, line):
-        """ Process an auto import. """
-        
-        # Get line and shell to execute it in
-        line = line.strip()
-        shell = iep.shells.getCurrentShell()        
-        # Go?
-        if shell and (line not in shell._importAttempts):
-            # Do the import
-            shell.processLine(line)
-            # Make sure not to try to import again
-            shell._importAttempts.append(line)
+    def processAutoComp(self, aco):
+        """ Dummy processing. """
+        pass
     
     
     ## Callbacks
@@ -1427,6 +1222,121 @@ class BaseTextCtrl(Qsci.QsciScintilla):
 #             pass
 #             #wx.CallAfter(self.Introspect_signature)
 
+
+
+class CallTipObject:
+    """ Object to help the process of call tips. 
+    An instance of this class is created for each call tip action.
+    """
+    def __init__(self, textCtrl, name, pos):
+        self.textCtrl = textCtrl        
+        self.name = name        
+        self.bufferName = name
+        self.pos = pos
+    
+    def tryUsingBuffer(self):
+        """ tryUsingBuffer()
+        Try performing this callTip using the buffer. 
+        Returns True on success.
+        """
+        bufferName = self.textCtrl._callTipBuffer_name
+        t = time.time() - self.textCtrl._callTipBuffer_time
+        if ( self.bufferName == bufferName and t < 5.0 ):
+            self._finish(self.textCtrl._callTipBuffer_result)
+            return True
+        else:
+            return False
+    
+    def finish(self, callTipText):
+        """ finish(callTipText)
+        Finish the introspection using the given calltipText.
+        Will also automatically call setBuffer.
+        """
+        self.setBuffer(callTipText)
+        self._finish(callTipText)
+    
+    def setBuffer(self, callTipText):
+        """ setBuffer(callTipText)        
+        Sets the buffer with the provided text. """
+        self.textCtrl._callTipBuffer_name = self.bufferName
+        self.textCtrl._callTipBuffer_time = time.time()
+        self.textCtrl._callTipBuffer_result = callTipText
+    
+    def _finish(self, callTipText):
+        self.textCtrl.callTipShow(self.pos, callTipText, 0, -1)
+
+
+class AutoCompObject:
+    """ Object to help the process of auto completion. 
+    An instance of this class is created for each auto completion action.
+    """
+    def __init__(self, textCtrl, name, needle):
+        self.textCtrl = textCtrl        
+        self.bufferName = name # name to identify with 
+        self.name = name  # object to find attributes of
+        self.needle = needle # partial name to look for
+        self.names = set() # the names (use a set to prevent duplicates)
+        self.importNames = []
+        self.importLines = {}
+    
+    def addNames(self, names):  
+        """ addNames(names)
+        Add a list of names to the collection. 
+        Duplicates are removed."""      
+        self.names.update(names)
+    
+    def tryUsingBuffer(self):
+        """ tryUsingBuffer()
+        Try performing this auto-completion using the buffer. 
+        Returns True on success.
+        """
+        bufferName = self.textCtrl._autoCompBuffer_name
+        t = time.time() - self.textCtrl._autoCompBuffer_time
+        if ( self.bufferName == bufferName and t < 5.0 ):
+            self._finish(self.textCtrl._autoCompBuffer_result)
+            return True
+        else:
+            return False
+    
+    def finish(self):
+        """ finish()
+        Finish the introspection using the collected names.
+        Will automatically call setBuffer.
+        """
+        # Remember at the object that started this introspection
+        # and get sorted names
+        names = self.setBuffer(self.names)
+        # really finish        
+        self._finish(names)
+    
+    def setBuffer(self, names=None):
+        """ setBuffer(names=None)        
+        Sets the buffer with the provided names (or the collected names).
+        Also returns a list with the sorted names. """
+        # Get names
+        if names is None:
+            names = self.names
+        # Make list and sort
+        names = list(names)        
+        names.sort(key=str.upper)
+        # Store
+        self.textCtrl._autoCompBuffer_name = self.bufferName
+        self.textCtrl._autoCompBuffer_time = time.time()
+        self.textCtrl._autoCompBuffer_result = names
+        # Return sorted list
+        return names
+        
+    def _finish(self, names):
+        # Check whether name in list.        
+        haystack = ' '.join(['']+names).lower()
+        searchNeedle = ' '+self.needle.lower()
+        if haystack.find(searchNeedle) == -1:
+            self.textCtrl.autoCompCancel()
+        else:
+            # Show completion list if required. 
+            # When already shown the list will change selection when typing
+            if not self.textCtrl.autoCompActive():
+                self.textCtrl.autoCompShow(len(self.needle), names)
 
 if __name__=="__main__":
     app = QtGui.QApplication([])
