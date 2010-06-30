@@ -13,7 +13,6 @@ import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
 
-# todo: reimplement cut, copy and paste
 # todo: color stderr red and prompt blue, and input text Python!
 
 class PositionHelper:
@@ -187,6 +186,7 @@ class BaseShell(BaseTextCtrl):
     
     
     def resizeEvent(self, event):
+        """ When resizing the fontsize nust be kept right. """
         BaseTextCtrl.resizeEvent(self, event)
         self.updateFontSizeToMatch80Columns()
     
@@ -203,6 +203,7 @@ class BaseShell(BaseTextCtrl):
             return
         
         # todo: also make the widget size to fit exactly 80 columns?
+        # Not necessary per see.
         
         # Init zooming to users choice
         zoom = iep.config.editor.zoom
@@ -238,9 +239,12 @@ class BaseShell(BaseTextCtrl):
         keyPressHandler_normal is called, depending on whether the
         autocompletion list is active.
         """
-        qc = QtCore.Qt
         
-        # Process interrupt goes via the menu
+        # Use base first
+        if BaseTextCtrl.keyPressHandler_always(self, event):
+            return True
+        
+        qc = QtCore.Qt
         
         if event.key in [qc.Key_Return, qc.Key_Enter]:            
             # Enter: execute line
@@ -350,6 +354,37 @@ class BaseShell(BaseTextCtrl):
                     self.setPositionAndAnchor(pend)
                     self.ensureCursorVisible()                
                     # Proceed as normal though!
+    
+    ## Cut / Copy / Paste
+    
+    def cut(self):
+        """ Reimplement cut to only copy if part of the selected text
+        is not at the prompt. """
+        
+        # Get position and anchor
+        pos1, pos2 = self.getPosition(), self.getAnchor()
+        
+        # Depending on position, cut or copy
+        if pos1 < self._promptPos2 or pos2 < self._promptPos2:
+            self.copy()
+        else:
+            BaseTextCtrl.cut(self)
+    
+    #def copy() > can stay the same
+    
+    def paste(self):
+        """ Reimplement paste to only paste when the position is at
+        the prompt. """
+        
+        # Get position and anchor
+        pos1, pos2 = self.getPosition(), self.getAnchor()
+        
+        # If not at prompt, go there
+        if pos1 < self._promptPos2 or pos2 < self._promptPos2:
+            self.setPositionAndAnchor(self.length())
+        
+        # Paste normally
+        BaseTextCtrl.paste(self)
     
     
     ## Basic commands to control the shell
@@ -506,70 +541,140 @@ class BaseShell(BaseTextCtrl):
     
     ## Executing stuff
     
-    def processLine(self):
-        """ Process the current line, actived when user presses enter.
+    def processLine(self, line=None):
+        """ Process the current line, activated when user presses enter.
         """
-        # get command on the line
-        self.setPosition(self._promptPos2)
-        self.setAnchor(self.length())
-        command = self.getSelectedString()
-        command = command.rstrip() # remove newlines spaces and tabs
         
-        # remember it (but first remove to prevent duplicates)
-        if command:
-            if command in self._history:
-                self._history.remove(command)
-            self._history.insert(0,command)
+        if line:
+            # Given command
+            
+            # Normalize
+            command = line.strip('\n')
+            
+            # Set position
+            curPos = self.getPosition()
+            self.setPositionAndAnchor(self._promptPos2)
+            
+            # Write command
+            tmp = command + '\n'
+            self.addText(tmp)
+            self._promptPos1 = self._promptPos2 = self._promptPos2 + len(tmp)
+            self.setPositionAndAnchor(curPos+len(tmp))
         
-        # maybe modify the text given...
+        else:
+            # Get command on the line
+            
+            # Sample the text from the prompt
+            self.setPosition(self._promptPos2)
+            self.setAnchor(self.length())
+            command = self.getSelectedString()
+            command = command.rstrip() # remove newlines spaces and tabs
+            
+            # Remember the command (but first remove to prevent duplicates)
+            if command:
+                if command in self._history:
+                    self._history.remove(command)
+                self._history.insert(0,command)
+            
+            # prepare to execute
+            self.appendText('\n')
+            self._promptPos1 = self._promptPos2 = self.length()
+            self.setPositionAndAnchor(self.length())
+        
+        # Maybe modify the text given...
         command = self.modifyCommand(command)
         
-        # prepare to execute
-        self.appendText('\n')
-        self._promptPos1 = self._promptPos2 = self.length()
-        self.setPositionAndAnchor(self.length())
-        
-        # go
-        self.write('') # resets stuff so we actually move to new line
+        # Go        
         self.executeCommand(command+'\n')
-        
     
     
     def modifyCommand(self, command):
+        """ Give the inheriting shell the change to modify/replace the
+        command, enabling magic commands. 
+        Should be overridden. 
+        """
         return command
     
     
     def executeCommand(self, command):
-        """ Execute the given command. """
-        # this is a stupid simulation version
-        prompt = ">>> "
-        self.write("you executed: "+command+'\n')
-        self.writeErr(prompt)
-    
-    
-    def executeLine(self, command):
-        """ Like executeCommand, but displays the command on the line.
+        """ Execute the given command. 
+        Should be overridden. 
         """
-        # Normalize
-        command = command.strip('\n') + '\n'
-        
-        # Set position
-        self.setPositionAndAnchor(self._promptPos2)
-        
-        # Write command
-        self.addText(command)
-        self._promptPos1 = self._promptPos2 = self._promptPos2 + len(command)
-        self.setPositionAndAnchor(self.length())
-        
-        # Process line
-        self.executeCommand(command)
-    
-    
-    
-    
-    
-    
+        # this is a stupid simulation version
+        self.write("you executed: "+command+'\n')
+        self.writeErr(">>> ")
 
+
+def splitConsole(stdoutFun=None, stderrFun=None):
+    """ splitConsole(stdoutFun=None, stderrFun=None)
+    Splits the stdout and stderr streams. On each call
+    to their write methods, in addition to the original
+    write method being called, will call the given 
+    functions.
+    Returns the history of the console (combined stdout 
+    and stderr).
+    Used by the logger shell.
+    """
+    
+    # Split stdout and stderr
+    sys.stdout = OutputStreamSplitter(sys.stdout)
+    sys.stderr = OutputStreamSplitter(sys.stderr)
+    
+    # Make them share their history
+    sys.stderr._history = sys.stdout._history
+    
+    # Set defer functions
+    if stdoutFun:
+        sys.stdout._deferFunction = stdoutFun
+    if stderrFun:
+        sys.stderr._deferFunction = stderrFun
+    
+    # Return history 
+    return ''.join(sys.stdout._history)
+
+
+class OutputStreamSplitter:
+    """ This class is used to replace stdout and stderr output
+    streams. It defers the stream to the original and to
+    a function that can be registered.
+    Used by the logger shell.
+    """
+    
+    def __init__(self, fileObject):
+        
+        # Init, copy properties if it was already a splitter
+        if isinstance(fileObject, OutputStreamSplitter):
+            self._original = fileObject._original
+            self._history = fileObject._history
+            self._deferFunction = fileObject._deferFunction
+        else:
+            self._original = fileObject
+            self._history = []
+            self._deferFunction = self.dummyDeferFunction
+    
+    def dummyDeferFunction(self, text):
+        pass
+    
+    def write(self, text):
+        """ Write method. """
+        self._original.write(text)
+        self._history.append(text)
+        self._deferFunction(text)
+    
+    def flush(self):
+        return self._original.flush()
+    
+    def closed(self):
+        return self._original.closed()
+    
+    def close(self):
+        return self._original.close()
+    
+    def encoding(self):
+        return self._original.encoding()
+
+# Split now, with no defering
+splitConsole()
 
 class LoggerShell(BaseShell):
     """ The LoggerShell implements a Python shell that executes code
@@ -596,23 +701,38 @@ class RequestObject:
         self._id = id
         self._posted = False
 
+
 class PythonShell(BaseShell):
     """ The PythonShell class implements the python part of the shell
     by connecting to a remote process that runs a Python interpreter.
     """
     
-    # called when the remote processe terminated
+    # called when the remote process is terminated
     terminated = QtCore.pyqtSignal()
     
     def __init__(self, parent, pythonExecutable=None):
         BaseShell.__init__(self, parent)
         
         # apply Python shell style
-        self.setStyle('pythonconsole')
+        self.setStyle('pythonshell')
         
-        # set default executable
+        # set executable
         if pythonExecutable is None:
             pythonExecutable = 'python'
+        self._pythonExecutable = pythonExecutable
+        
+        # variable to terminate the process in increasingly pressing ways
+        self._killAttempts = 0
+        
+        # which python version is this?
+        self._version = ""
+        
+        # the builtins list of the process
+        self._builtins =[]
+        
+        # for the editor to keep track of attempted imports
+        self._importAttempts = []
+        
         
         # Create multi channel connection
         # Note that the request and response channels are reserved and should
@@ -626,7 +746,6 @@ class PythonShell(BaseShell):
         self._status = c.getReceivingChannel(2)
         self._request = c.getSendingChannel(1)
         self._response = c.getReceivingChannel(3)
-        
         
         # host it!
         port = c.host('IEP')
@@ -642,33 +761,11 @@ class PythonShell(BaseShell):
             command = "cmd /c " + command
         
         # where to start
-        cwd = os.getcwd() # PYTHONPATH
+        cwd = os.getcwd() # todo: where to start?
         
         # start process
         self._process = subprocess.Popen(command, shell=True, cwd=cwd)
         
-        # is the process busy?
-        self._state = -1 # initializing
-        
-        # variable for killing it
-        self._killAttempts = 0
-        
-        # wich installed version
-        self._pythonExecutable = pythonExecutable
-        # which python version (for example 2.5.2), we set this in init2        
-        self._version = ""
-        # the builtins list of the process, we set this in init2
-        self._builtins =[]
-        
-        # for the editor to keep track of attempted imports
-        self._importAttempts = []
-        
-        # create timer to keep polling any results
-        self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(100)  # 100 ms
-        self._timer.setSingleShot(False)
-        self._timer.timeout.connect(self.poll)
-        self._timer.start()
         
         # Define queue of requestObjects and insert two requests
         self._requestQueue = []
@@ -678,46 +775,26 @@ class PythonShell(BaseShell):
         # time var to pump messages in one go
         self._t = time.time()
         self._buffer = ''
-    
+        
+        # create timer to keep polling any results
+        self._timer = QtCore.QTimer(self)
+        self._timer.setInterval(100)  # 100 ms
+        self._timer.setSingleShot(False)
+        self._timer.timeout.connect(self.poll)
+        self._timer.start()
+        
     
     def _setVersion(self, response, id):
+        """ Process the request for the version. """
         self._version = response[:5]
     
+    
     def _setBuiltins(self, response, id):
+        """ Process the request for the list of buildins. """
         self._builtins = response.split(',')
     
     
-    def _Init2(self,event=None):
-        """ Initialize the process... Call only after the process
-        has started up. (by detecting a prompt)
-        """
-        
-        # it is possible that the process is destroyed already...
-        if self.stdin.closed:
-            return
-        
-#         # get builtins
-#         tmp = self.Introspect_keys("__builtins__")
-#         if tmp:
-#             self.builtins = tmp
-#         
-#         # get keywords
-#         tmp = self.Enquire("EXEC", "import keyword")
-#         tmp = self.Enquire2("EVAL", "','.join(keyword.kwlist)")
-#         if tmp is not None:            
-#             self.keywords = tmp.split(',')
-#             
-#         # get version
-#         tmp = self.Enquire2("EVAL", "sys.version")
-#         if tmp is not None:            
-#             self.version = str(tmp[0:5])
-        
-        
-        
-        # fire event
-        self._state = 9999 # so it is always different
-        #self.UpdateState()
-    
+    ## Methods for communication and executing code
     
     def postRequest(self, request, callback, id=None):
         """ postRequest(request, callback, id=None)
@@ -727,45 +804,6 @@ class PythonShell(BaseShell):
         """
         req = RequestObject(request, callback, id)
         self._requestQueue.append(req)
-    
-    
-    def Enquire(self, type, args=""):
-        """ Enquire(type, args="")
-        Send an enquiry to the remote process, do not wait.
-        CAREFULL, debugging is hard when something goes wrong...
-        """         
-        self._request.write(type+' '+args)
-    
-    
-    def Enquire2(self, type, args="", text2send=''):
-        """ Enquire2(type, args="", text2send=None)
-        Send an enquiry to the remote process, and waiting (max 0.5 sec) 
-        for the other side to respond.
-        Returns None if timeout
-        CAREFULL, debugging is hard when something goes wrong...
-        """
-        
-        # build enquiry and send       
-        self.Enquire(type, args+' '+text2send)        
-        
-        # wait for response
-        t0 = time.clock()
-        while time.clock() - t0 < 0.500:
-            time.sleep(0.010)
-            if self.mmfile[0] == "0":
-                break
-        
-        if self.mmfile[0] == "0":
-            # success
-            L = bytes2int( self.mmfile[1:5] )
-            if L>0:
-                text = self.mmfile[10:L+10]
-            else:
-                text = ""
-        else:
-            text = None
-        
-        return text
     
     
     def executeCommand(self, text):
@@ -783,6 +821,8 @@ class PythonShell(BaseShell):
         pass
         
     
+    ## The polling method and terminating methods
+    
     def poll(self):
         """ poll()
         Check if we have received anything from the remote
@@ -790,7 +830,6 @@ class PythonShell(BaseShell):
         Call this periodically. 
         """
         
-        # todo: why is it so slow???
         # Check stdout
         # Fill the buffer and release it at regular intervals, this will
         # update scintilla much faster if multiple messages are printed
@@ -805,7 +844,7 @@ class PythonShell(BaseShell):
             self._t = time.time()
         
         # Check stderr
-        text = self._stderr.read(False)
+        text = self._stderr.readOne(False)
         if text:
             self.writeErr(text)
         
@@ -823,7 +862,7 @@ class PythonShell(BaseShell):
                 self._request.write( req._request )
                 req._posted = True
         
-        # check status
+        # Check status
         if self._version:
             status = self._status.readLast()
             if status:
@@ -834,11 +873,6 @@ class PythonShell(BaseShell):
                 else:
                     status = 'Python v{} ({})'.format(self._version, status)
                 tabWidget.setTabText(i, status)
-#         elif response:
-#             if not self._builtins:
-#                 self._builtins = response.split(',')
-#             else:
-#                 self._version = response[:5]
     
     
     def interrupt(self):
@@ -890,30 +924,61 @@ class PythonShell(BaseShell):
         # signal that the connection is gone
         self._killAttempts = -1
         
-        # notify closure
-        print(msg)
-        self.write('===== {} =====\n'.format(msg))
+        # New (empty prompt)
+        self.writeErr(' ') 
+        self.write('\n\n');
         
-        # close ourselves in a bit
-        self._timer.timeout.disconnect(self.poll)
-        self._timer.timeout.connect(self._afterDisconnect)
-        self._timer.setInterval(3000)
-        self._timer.setSingleShot(True)
-        self._timer.start()
+        # Notify
+        print(msg)        
+        self.write('===== {} =====\n'.format(msg))
+        self.terminated.emit()
+        
+        # We're now in a different thread, so use callLater to
+        # defer the timer to closing-mode
+        self._disconnectTime = time.time()-0.5
+        self._disconnectPhase = 4
+        iep.callLater(self._afterDisconnect)
     
     
     def _afterDisconnect(self):
-        """ Clean up after disconnection... """
+        """ To be called after disconnecting (because that is detected
+        from another thread.
+        Replaces the timeout callback for the timer to go in closing mode.
+        """
+        self._timer.timeout.disconnect(self.poll)
+        self._timer.timeout.connect(self._afterDisconnect_poll)
+    
+    
+    def _afterDisconnect_poll(self):
+        """ Poll method for when in closing mode. """
         
-        # Notify who-ever is interested
-        self.terminated.emit()
-        # Remove from tab widget
-        tabWidget = iep.shells._tabs
-        index = tabWidget.indexOf(self)
-        if index >= 0:
-            tabWidget.removeTab(index)
-        # close
-        self.close()
+        # if self._disconnectPhase is 0, the time's up and we should
+        # close as soon as focus is removed.
+        
+        if self._disconnectPhase and time.time() - self._disconnectTime > 1.0:
+            # Count down            
+            self._disconnectTime = time.time()
+            self._disconnectPhase -= 1
+            
+            # Notify
+            if self._disconnectPhase:
+                msg = 'Closing in {} seconds.\n'
+                self.write(msg.format(self._disconnectPhase)) 
+            elif self.hasFocus():
+                self.write('Waiting for focus to be removed.')
+        
+        if self._disconnectPhase <=0 and not self.hasFocus():
+            # Close
+            
+            # Remove from tab widget
+            tabWidget = iep.shells._tabs
+            index = tabWidget.indexOf(self)
+            if index >= 0:
+                tabWidget.removeTab(index)
+            
+            # close
+            self._timer.timeout.disconnect(self._afterDisconnect_poll)
+            self.close()
 
 
 if __name__=="__main__":

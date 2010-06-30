@@ -535,7 +535,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, home+shift, tmp2)
             tmp1, tmp2 = self.SCI_LINEENDDISPLAY, self.SCI_LINEENDDISPLAYEXTEND
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
-            self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)
+            self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)    
         
         # Clear command keys that we make accesable via menu shortcuts.
         # Do not clear all command keys; 
@@ -1125,7 +1125,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                     self._callTip_bufTime = time.time()
                     # Post request
                     shell = iep.shells.getCurrentShell()
-                    shell.postRequest(req, self._introspect_callTip_response, id)
+                    if shell:
+                        shell.postRequest(req, self._introspect_callTip_response, id)
     
     
     def _introspect_callTip_response(self, response, id):
@@ -1217,7 +1218,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 # Poll name
                 req = "ATTRIBUTES " + nameToPoll
                 shell = iep.shells.getCurrentShell()
-                shell.postRequest(req, self._introspect_autoComp_response, id)
+                if shell:
+                    shell.postRequest(req, self._introspect_autoComp_response, id)
     
     
     def _introspect_autoComp_response(self, response, id):
@@ -1289,7 +1291,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Go?
         if shell and (line not in shell._importAttempts):
             # Do the import
-            shell.executeLine(line)
+            shell.processLine(line)
             # Make sure not to try to import again
             shell._importAttempts.append(line)
     
@@ -1354,8 +1356,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         If return False or None, keyPressHandler_autoComp or 
         keyPressHandler_normal is called, depending on whether the
         autocompletion list is active.
-        """
-        pass
+        """        
+        # Enable backtabbing
+        if event.key == QtCore.Qt.Key_Backtab and event.shiftdown:            
+            self.SendScintilla(self.SCI_BACKTAB)
+            return True
         
     
     def keyPressHandler_autoComp(self, event):

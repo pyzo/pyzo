@@ -63,6 +63,8 @@ class ShellStack(QtGui.QFrame):
             w = self._tabs.currentWidget()
         if not w:
             return None
+        elif hasattr(w, '_disconnectPhase'):
+            return None
         else:
             return w
     

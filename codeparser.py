@@ -157,7 +157,7 @@ class Parser(threading.Thread):
         # Obtain result
         result = self._getResult()
         if result is None or not result.isMatch(editor):
-            return []
+            return [], []
         
         # Extract list of names and dict of lines
         imports = []
@@ -273,6 +273,7 @@ class Parser(threading.Thread):
         """ run()
         This is the main loop.
         """
+        
         time.sleep(0.5)
         try:
             while True:
