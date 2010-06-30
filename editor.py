@@ -413,6 +413,10 @@ class IepEditor(BaseTextCtrl):
         will not process the event further.
         """
         
+        # Use base first
+        if BaseTextCtrl.keyPressHandler_always(self, event):
+            return True
+        
         if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             # Auto indentation
             

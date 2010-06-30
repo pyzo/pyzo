@@ -882,65 +882,70 @@ class Doorman(threading.Thread):
         
         
         # enter main loop
-        while True:
+        try:
+            while True:
+                
+                # should we stop?
+                if self._stopMe:
+                    break
+                
+                # pitch messages
+                sentSomething = self.pitch()
+                
+                # should we pitch a noop?
+                t0 = time.time()
+                if sentSomething:
+                    ts = t0
+                elif t0 - ts > 0.5:
+                    self._channels._q.push( packMessage('NOOP') )
+                    ts = t0
+                
+                # catch messages
+                receivedSomething = self.catch()
+                
+                # Check if other side is still responding. This can really
+                # only happen when the other end's thread is stuck. So we're
+                # carefull not to give up too soon.
+                t0 = time.time()
+                if receivedSomething:
+                    tr = t0 # we got something!
+                    n_unresponsive = 0
+                elif t0 - tr > 1.0:
+                    tr = t0
+                    n_unresponsive += 1
+                    if n_unresponsive > 5:
+                        self._stopMe = "Other side is unresponsive."
+                
+                
+                # Determine time to rest. By default we sleep for 0.01 second.
+                # But when sending or receiving, we go in super mode, pumping 
+                # messages like crazy :)
+                if receivedSomething or sentSomething:
+                    time.sleep(0.000001) # corresponds with 1Mhz
+                else:
+                    time.sleep(0.01) # corresponds with 100Hz
+                    # Sleeping 0.001 sec results in 0% processing power on my
+                    # 3.5 year old laptop, so 0.01 sec should be ok.
             
-            # should we stop?
-            if self._stopMe:
-                break
+            # close all receiving channels
+            for i in range(len(self._channels._receivingChannels)):
+                channel = self._channels.getReceivingChannel(i)
+                channel._closed = True
             
-            # pitch messages
-            sentSomething = self.pitch()
+            # close all sending channels too
+            for i in range(len(self._channels._sendingChannels)):
+                channel = self._channels.getSendingChannel(i)
+                channel._closed = True
             
-            # should we pitch a noop?
-            t0 = time.time()
-            if sentSomething:
-                ts = t0
-            elif t0 - ts > 0.5:
-                self._channels._q.push( packMessage('NOOP') )
-                ts = t0
-            
-            # catch messages
-            receivedSomething = self.catch()
-            
-            # Check if other side is still responding. This can really
-            # only happen when the other end's thread is stuck. So we're
-            # carefull not to give up too soon.
-            t0 = time.time()
-            if receivedSomething:
-                tr = t0 # we got something!
-                n_unresponsive = 0
-            elif t0 - tr > 1.0:
-                tr = t0
-                n_unresponsive += 1
-                if n_unresponsive > 5:
-                    self._stopMe = "Other side is unresponsive."
-            
-            
-            # Determine time to rest. By default we sleep for 0.01 second.
-            # But when sending or receiving, we go in super mode, pumping 
-            # messages like crazy :)
-            if receivedSomething or sentSomething:
-                time.sleep(0.000001) # corresponds with 1Mhz
-            else:
-                time.sleep(0.01) # corresponds with 100Hz
-                # Sleeping 0.001 sec results in 0% processing power on my
-                # 3.5 year old laptop, so 0.01 sec should be ok.
+            # clean up
+            self._socket.close()
+            self._channels._port = 0
+            if self._channels.disconnectCallback:
+                self._channels.disconnectCallback(self._stopMe)
         
-        # close all receiving channels
-        for i in range(len(self._channels._receivingChannels)):
-            channel = self._channels.getReceivingChannel(i)
-            channel._closed = True
-        
-        # close all sending channels too
-        for i in range(len(self._channels._sendingChannels)):
-            channel = self._channels.getSendingChannel(i)
-            channel._closed = True
-        
-        # clean up
-        self._socket.close()
-        self._channels._port = 0
-        if self._channels.disconnectCallback:
-            self._channels.disconnectCallback(self._stopMe)
+        except Exception:
+            # Not much we can do.
+            pass 
     
     
     def pitch(self):
@@ -1085,9 +1090,13 @@ class Doorman(threading.Thread):
                 if hasattr(os,'kill'):
                     import signal
                     os.kill(pid,signal.SIGTERM)
-                    time.sleep(1)
                 elif sys.platform.startswith('win'):
-                    os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
+                    import ctypes
+                    kernel32 = ctypes.windll.kernel32
+                    handle = kernel32.OpenProcess(1, 0, pid)
+                    kernel32.TerminateProcess(handle, 0)
+                    #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
+                time.sleep(1)
             
             else:
                 self._stopMe = "Lost track of stream."

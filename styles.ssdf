@@ -65,12 +65,16 @@ python = dict:
     s014 = 'fore:#ffffff,back:#000000' # 
 
 
-# PYTHON CONSOLE
-pythonconsole = dict:
+# PYTHON SHELL
+pythonshell = dict:
     lexer = 'python'
     s032 = 'face:{mono},size:9,fore:#111111,back:#FFFFFF'
 
-pythonconsoleblack = dict:
+loggershell = dict:
+    lexer = 'python'
+    s032 = 'face:{mono},size:9,fore:#1111AA,back:#FFFFFF'
+
+pythonshellblack = dict:
     lexer = 'python'
     s032 = 'face:{mono},size:9,fore:#CCCCCC,back:#000000'
 
