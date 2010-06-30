@@ -135,8 +135,19 @@ class Parser(threading.Thread):
         function or method. If handleSelf is True, automatically
         handles "self." names.
         """
-        # Get item
+        # Get item being a function
         item = self._getFictiveItem(name, 'def', editor, handleSelf)
+        
+        # Get item being a class
+        if not item:
+            item = self._getFictiveItem(name, 'class', editor, handleSelf)
+            if item:
+                for subItem in item.children:
+                    if subItem.name == '__init__' and subItem.type == 'def':
+                        item = subItem
+                        break
+                else:
+                    item = None
         
         # Process or return None if there was no item
         if item:
