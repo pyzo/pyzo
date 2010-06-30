@@ -1100,6 +1100,38 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         pass
     
     
+    def processHelp(self, name=None, showError=False):
+        """ Show help on the given full object name.
+        - called when going up/down in the autocompletion list.
+        - called when double clicking a name     
+        """
+        # uses parse_autocomplete() to find baseName and objectName
+        
+        # Get help plugin
+        hw = iep.pluginManager.getPlugin('iepinteractivehelp')
+        # Get the shell
+        shell = iep.shells.getCurrentShell()        
+        # Both should exist
+        if not hw or not shell:
+            return
+        
+        if not name:
+            # get line up to cursor
+            text,i = self.GetCurLine()
+            text = text[:i]
+            baseName, objectName = parse_autocomplete(text)
+            if baseName:
+                objectName = "%s.%s" % (baseName, objectName)
+                
+        if name:
+            
+            # Get the result!
+            req = "HELP " + name
+            shell.postRequest(req, self.processHelp_response)
+    
+    def processHelp_response(self, response, id):
+        pass
+    
     ## Callbacks
     
     
@@ -1173,30 +1205,29 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         was not handled by the "always" handler. If returns True,
         will not process the event further.
         """
-        pass 
-        # todo: show interactive help when moving up/down
-#         updown = [QtCore.Qt.Key_Up, QtCore.Qt.Key_Down]
-#         if event.key in updown and self.autoCompActive():
-#             # show help!
-#             return False
-
-#             # get current selected name in autocomp list
-#             try:                
-#                 i = self.AutoCompGetCurrent()
-#                 i += {wx.WXK_UP:-1, wx.WXK_DOWN:+1}[key]
-#                 if i< 0: 
-#                     i=0
-#                 if i>=len(self._introspect_list):
-#                     i = len(self._introspect_list) -1 
-#                 name = self._introspect_list[ i ]
-#             except IndexError:
-#                 name = ""
-#             # add base part
-#             if self._introspect_baseObject:
-#                 name = self._introspect_baseObject + "." + name
-#             
-#             # aply
-#             self.Introspect_help(name,True)
+        up, down = QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
+        
+        if event.key in [up, down] and self.autoCompActive():
+            # show help!
+            
+            # get selected index after keypress
+            i = self.SendScintilla(self.SCI_AUTOCGETCURRENT)
+            i += {up:-1, down:+1}[event.key]
+            if i<0: 
+                i=0
+            if i >= len(self._autoCompBuffer_result):
+                i = len(self._autoCompBuffer_result) -1
+            
+            # Obtain name
+            name = ''
+            if self._autoCompBuffer_result:
+                name = self._autoCompBuffer_result[i]
+            # Add base part
+            if self._autoCompBuffer_name:
+                name = self._autoCompBuffer_name + '.' + name
+            
+            # Apply
+            self.processHelp(name,True)
 
     
     def keyPressHandler_normal(self, event):

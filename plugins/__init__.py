@@ -294,6 +294,13 @@ class PluginManager:
             dock = self._activePlugins[pluginId]
             dock.close()
     
+    def getPlugin(self, pluginId):
+        """ Get the plugin widget instance, or None
+        if not available. """
+        if pluginId in self._activePlugins:
+            return self._activePlugins[pluginId]
+        else:
+            return None
     
     def onPluginClose(self, pluginId):
         # Remove from dict

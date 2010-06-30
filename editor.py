@@ -491,7 +491,7 @@ class IepEditor(BaseTextCtrl):
             return
         
         # Init name to poll by remote process (can be changed!)
-        nameForShell = ''
+        nameForShell = aco.name
         
         # Get normal fictive namespace
         fictiveNS = iep.parser.getFictiveNameSpace(self)
