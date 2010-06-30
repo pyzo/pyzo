@@ -921,6 +921,15 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     ## Autocomp and calltip methods of scintilla
     
+    def focusOutEvent(self, event):
+        # Cancel autocomp and calltip
+        self.autoCompCancel()
+        self.callTipCancel()
+        
+        # Handle normally
+        Qsci.QsciScintilla.focusOutEvent(self, event)
+    
+    
     def autoCompShow(self, lenentered, names): 
         """ Start showing the autocompletion list, 
         with the list of given names (which can be a list or a space separated
