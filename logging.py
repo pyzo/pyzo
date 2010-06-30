@@ -85,6 +85,7 @@ class LoggerShell(BaseShell):
     allows to look inside IEP, which can be handy for debugging
     and developing.
     """
+    
     def __init__(self, parent):
         BaseShell.__init__(self, parent)
         
@@ -127,3 +128,25 @@ class LoggerShell(BaseShell):
             self.writeErr(sys.ps2)
         else:            
             self.writeErr(sys.ps1)  
+    
+    # Note that I did not (yet) implement calltips
+    
+    def processAutoComp(self, aco):
+        """ Processes an autocomp request using an AutoCompObject instance. 
+        """
+        
+        # Try using buffer first
+        if aco.tryUsingBuffer():
+            return
+        
+        # Include buildins?
+        if not aco.name:
+            command = "__builtins__.keys()"
+            names = eval(command, {}, self._interpreter.locals)
+            aco.addNames(names)
+        
+        # Query list of names
+        command = "dir({})".format(aco.name)
+        names = eval(command, {}, self._interpreter.locals)
+        aco.addNames(names)
+        aco.finish()

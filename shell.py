@@ -202,9 +202,6 @@ class BaseShell(BaseTextCtrl):
         if not self.isVisible():
             return
         
-        # todo: also make the widget size to fit exactly 80 columns?
-        # Not necessary per see.
-        
         # Init zooming to users choice
         zoom = iep.config.editor.zoom
         self.zoomTo(zoom)
@@ -249,12 +246,9 @@ class BaseShell(BaseTextCtrl):
         if event.key in [qc.Key_Return, qc.Key_Enter]:            
             # Enter: execute line
             
-            # Remove calltip if shown
-            if self.isCallTipActive():
-                pass # todo: how to hide it?
-            
-            # Remove autocomp if shown
+            # Remove calltip and autocomp if shown
             self.autoCompCancel()
+            self.callTipCancel()
             
             # reset history needle
             self._historyNeedle = None
@@ -651,6 +645,9 @@ class PythonShell(BaseShell):
         # for the editor to keep track of attempted imports
         self._importAttempts = []
         
+        # to keep track of the response for introspection
+        self._currentCTO = None
+        self._currentACO = None
         
         # Create multi channel connection
         # Note that the request and response channels are reserved and should
@@ -710,6 +707,108 @@ class PythonShell(BaseShell):
     def _setBuiltins(self, response, id):
         """ Process the request for the list of buildins. """
         self._builtins = response.split(',')
+    
+    ## Introspection processing methods
+    
+    def processCallTip(self, cto):
+        """ Processes a calltip request using a CallTipObject instance. 
+        """
+        
+        # Try using buffer first (not if we're not the requester)
+        if self is cto.textCtrl:
+            if cto.tryUsingBuffer():
+                return
+        
+        # Clear buffer to prevent doing a second request
+        # and store cto to see whether the response is still wanted.
+        cto.setBuffer('')
+        self._currentCTO = cto
+        
+        # Post request
+        req = "SIGNATURE " + cto.name
+        self.postRequest(req, self._processCallTip_response, cto)
+    
+    
+    def _processCallTip_response(self, response, cto):
+        """ Process response of shell to show signature. 
+        """
+        
+        # First see if this is still the right editor (can also be a shell)
+        editor1 = iep.editors.getCurrentEditor()
+        editor2 = iep.shells.getCurrentShell()
+        if cto.textCtrl not in [editor1, editor2]:
+            # The editor or shell starting the autocomp is no longer active
+            aco.textCtrl.autoCompCancel()
+            return
+        
+        # Invalid response
+        if response == '<error>':
+            cto.textCtrl.autoCompCancel()
+            return
+        
+        # If still required, show tip, otherwise only store result
+        if cto is self._currentCTO:
+            cto.finish(response)
+        else:
+            cto.setBuffer(response)
+    
+    
+    def processAutoComp(self, aco):
+        """ Processes an autocomp request using an AutoCompObject instance. 
+        """
+        
+        # Try using buffer first (not if we're not the requester)
+        if self is aco.textCtrl:
+            if aco.tryUsingBuffer():
+                return
+        
+        # Include builtins?
+        if not aco.name:
+            aco.addNames(self._builtins)
+        
+        # Clear buffer to prevent doing a second request
+        # and store cto to see whether the response is still wanted.
+        aco.setBuffer([])
+        self._currentACO = aco
+        # Poll name
+        req = "ATTRIBUTES " + aco.name
+        self.postRequest(req, self._processAutoComp_response, aco)
+    
+    
+    def _processAutoComp_response(self, response, aco):
+        """ Process the response of the shell for the auto completion. 
+        """ 
+        
+        # First see if this is still the right editor (can also be a shell)
+        editor1 = iep.editors.getCurrentEditor()
+        editor2 = iep.shells.getCurrentShell()
+        if aco.textCtrl not in [editor1, editor2]:
+            # The editor or shell starting the autocomp is no longer active
+            aco.textCtrl.autoCompCancel()
+            return
+        
+        # Add result to the list
+        foundNames = []
+        if response != '<error>':
+            foundNames = response.split(',')
+        aco.addNames(foundNames)
+        
+        # Process list
+        if aco.name and not aco.names and aco.textCtrl is editor1:
+            # No names found for the requested name. This means
+            # it does not exist, let's try to import it
+            importNames, importLines = iep.parser.getFictiveImports(editor1)
+            if aco.name in importNames:
+                line = importLines[aco.name].strip()
+                if line not in self._importAttempts:
+                    self.processLine(line)
+                    self._importAttempts.append(line)
+        else:
+            # If still required, show list, otherwise only store result
+            if self._currentACO is aco:
+                aco.finish()
+            else:
+                aco.setBuffer()
     
     
     ## Methods for communication and executing code
@@ -863,6 +962,9 @@ class PythonShell(BaseShell):
         from another thread.
         Replaces the timeout callback for the timer to go in closing mode.
         """
+        # Goto end such that the closing messages are visible
+        self.setPositionAndAnchor(self.length())
+        # Replace timer callback
         self._timer.timeout.disconnect(self.poll)
         self._timer.timeout.connect(self._afterDisconnect_poll)
     

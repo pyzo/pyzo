@@ -461,6 +461,80 @@ class IepEditor(BaseTextCtrl):
                 return True
     
     
+    ## Introspection processing methods
+    
+    def processCallTip(self, cto):
+        """ Processes a calltip request using a CallTipObject instance. 
+        """
+        # Try using buffer first
+        if cto.tryUsingBuffer():
+            return
+        
+        # Try obtaining calltip from the source
+        sig = iep.parser.getFictiveSignature(cto.name, self, True)
+        if sig:
+            # Done
+            cto.finish(sig)
+        else:
+            # Try the shell
+            shell = iep.shells.getCurrentShell()
+            if shell:
+                shell.processCallTip(cto)
+    
+    
+    def processAutoComp(self, aco):
+        """ Processes an autocomp request using an AutoCompObject instance. 
+        """
+        
+        # Try using buffer first
+        if aco.tryUsingBuffer():
+            return
+        
+        # Init name to poll by remote process (can be changed!)
+        nameForShell = ''
+        
+        # Get normal fictive namespace
+        fictiveNS = iep.parser.getFictiveNameSpace(self)
+        fictiveNS = set(fictiveNS)
+        
+        # Add names
+        if not aco.name:
+            # "root" names
+            aco.addNames(fictiveNS)
+            # imports
+            importNames, importLines = iep.parser.getFictiveImports(self)
+            aco.addNames(importNames)
+        else:
+            # Prepare list of class names to check out
+            classNames = [aco.name]
+            handleSelf = True
+            # Unroll supers
+            while classNames:
+                className = classNames.pop(0)
+                if not className:
+                    continue
+                if handleSelf or (className in fictiveNS):
+                    # Only the self list (only first iter)
+                    fictiveClass = iep.parser.getFictiveClass(
+                        className, self, handleSelf)
+                    handleSelf = False
+                    if fictiveClass:
+                        aco.addNames( fictiveClass.attributes )
+                        classNames.extend(fictiveClass.supers)
+                else:
+                    nameForShell = className
+                    break
+        
+        # If there's a shell, let it finish the autocompletion
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            aco.name = nameForShell # might be the same or a base class
+            shell.processAutoComp(aco)
+        else:
+            # Otherwise we finish it ourselves
+            aco.finish()
+        
+    
 if __name__=="__main__":
     app = QtGui.QApplication([])
     win = IepEditor(None)
@@ -470,3 +544,4 @@ if __name__=="__main__":
     win.setText(tmp)    
     win.show()
     app.exec_()
+    

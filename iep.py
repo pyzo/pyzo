@@ -136,6 +136,8 @@ editor = dict:
   defaultIndentation = 4
   defaultLineEndings = 'LF'
   doBraceMatch = 1
+  autoComplete = 1
+  callTip = 1
   tabWidth = 4
   codeFolding = 0
   # advanced settings
