@@ -17,15 +17,14 @@ class IepSourceStructure(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         
         # Make sure there is a configuration entry for this plugin
-        pluginName = self.__class__.__name__.lower()
-        if not hasattr( iep.config.plugins, pluginName ):
-            config = ssdf.new()
-            config.showTypes = ['class', 'def', 'cell', 'todo']
-            config.level = 2
-            iep.config.plugins[pluginName] = config
-        
-        # Load configuration for easier access
-        self._config = iep.config.plugins[pluginName]
+        # The IEP tool manager makes sure that there is an entry in
+        # config.plugins before the tool is instantiated.
+        pluginId = self.__class__.__name__.lower()        
+        self._config = iep.config.plugins[pluginId]
+        if not hasattr(self._config, 'showTypes'):
+            self._config.showTypes = ['class', 'def', 'cell', 'todo']
+        if not hasattr(self._config, 'level'):
+            self._config.level = 2
         
         # Create slider
         self._slider = QtGui.QSlider(QtCore.Qt.Horizontal, self)

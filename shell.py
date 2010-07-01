@@ -169,6 +169,9 @@ class BaseShell(BaseTextCtrl):
         self._promptPos1 = 0
         self._promptPos2 = 0
         
+        # variable to see whether we should resize to match 80 columns
+        self._reduceFontSizeToMatch80Columns = True
+        
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
         # self.+historyIndex is the current position in the history; it
@@ -188,7 +191,8 @@ class BaseShell(BaseTextCtrl):
     def resizeEvent(self, event):
         """ When resizing the fontsize nust be kept right. """
         BaseTextCtrl.resizeEvent(self, event)
-        self.updateFontSizeToMatch80Columns()
+        if self._reduceFontSizeToMatch80Columns:
+            self.updateFontSizeToMatch80Columns()
     
     
     def updateFontSizeToMatch80Columns(self, event=None):

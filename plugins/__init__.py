@@ -32,6 +32,8 @@ import os, sys, imp
 from PyQt4 import QtCore, QtGui
 import iep
 
+ssdf = iep.ssdf
+
 
 class PluginDockWidget(QtGui.QDockWidget):
     """ A dock widget that holds a plugin.
@@ -271,6 +273,10 @@ class PluginManager:
         else:
             name = pluginId
         
+        # Make sure there is a confi entry for this plugin
+        if not hasattr(iep.config.plugins, pluginId):
+            iep.config.plugins[pluginId] = ssdf.new()
+        
         # Create dock widget and add in the main window
         dock = PluginDockWidget(iep.main, self)
         dock.setPlugin(pluginId, name, pluginClass)
@@ -298,7 +304,7 @@ class PluginManager:
         """ Get the plugin widget instance, or None
         if not available. """
         if pluginId in self._activePlugins:
-            return self._activePlugins[pluginId]
+            return self._activePlugins[pluginId].widget()
         else:
             return None
     
