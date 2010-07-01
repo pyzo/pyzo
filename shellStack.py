@@ -52,7 +52,10 @@ class ShellStack(QtGui.QFrame):
         shell = PythonShell(pythonExecutable)
         self._tabs.addTab(shell, 'Python (Initializing)')
         self.sizeShellTo80Columns()
-    
+        # Focus on it
+        self._tabs.setCurrentWidget(shell)
+        shell.setFocus()
+        
     
     def getCurrentShell(self):
         """ getCurrentShell()

@@ -1,36 +1,40 @@
 from remote2 import IepInterpreter, IntroSpectionThread
 from channels import Channels
-import sys
+import sys, os
 import __main__ # we will run code in the __main__.__dict__ namespace
 
-# process input args (if it fails, well an exception is raised...)
+# Process input args (if it fails, well an exception is raised...)
 port = int(sys.argv[1])
 
-# set no input arguments (do keep the first)
+# Set no input arguments (do keep the first)
 sys.argv[1:] = []
 
-# make connection object and get channels
+# Make connection object and get channels
 c = Channels(4)
 sys.stdin = c.getReceivingChannel(0)
 sys.stdout = c.getSendingChannel(0)
 sys.stderr = c.getSendingChannel(1)
 sys._status = c.getSendingChannel(2)
 
-# connect
+# Connect
 c.connect(port, timeOut=1)
 
-# create interpreter instance
+# Create interpreter instance
 __iep__ = IepInterpreter(locals=__main__.__dict__)
 __iep__.channels = c
 
-# create introspection thread instance
+# Create introspection thread instance
 # Make it a deamon thread, which implies that the program exits
 # even if its running.
 __iep__.ithread = IntroSpectionThread(  
     c.getReceivingChannel(1), c.getSendingChannel(3), __main__.__dict__)
 __iep__.ithread.daemon = True
 
-# todo: need more cleaning up?
-del IepInterpreter
+# Clean up
+del Channels, IntroSpectionThread, IepInterpreter
+del c, port
+del os, sys
+
+# Enter the interpreter
 __iep__.ithread.start()
 __iep__.interact()

@@ -1,5 +1,5 @@
 
-import os, sys, re
+import os, sys, re, time
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
@@ -701,21 +701,117 @@ class ShellMenu(BaseMenu):
         
         addItem( MI('Create "python" shell', self.fun_create) )
         addItem( MI('Interrup current shell', self.fun_interrupt) )
-        addItem( MI('Terminate current shell', self.fun_term) )
+        addItem( MI('Terminate current shell', self.fun_term) )        
         addItem( None )
+        addItem( MI('Run file', self.fun_runFile) )
+        addItem( MI('Run selected lines', self.fun_runSelected) )
+        addItem( MI('Run cell', self.fun_runCell) )
+        
     
     def fun_create(self, value):
+        """ Create a new Python shell. """
         iep.shells.addShell()
     
     def fun_interrupt(self, value):
+        """ Send a keyboard interrupt signal to the current shell. """
         shell = iep.shells.getCurrentShell()
         if shell:
             shell.interrupt()
         
     def fun_term(self, value):
+        """ Terminate (or kill if necessary) the current shell. """
         shell = iep.shells.getCurrentShell()
         if shell:
             shell.terminate()
+    
+    def fun_runFile(self, value):
+        """ Run the current file in the current shell. """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()
+        editor = iep.editors.getCurrentEditor()
+        if not editor or not shell:
+            return        
+        # Obtain source code
+        text = editor.getString()
+        # Show the result to user and set back
+        i1, i2 = editor.getPosition(), editor.getAnchor()
+        editor.setPosition(0); editor.setAnchor(editor.length())
+        editor.update()
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setPosition(i1); editor.setAnchor(i2)
+        # Execute code
+        fname = editor._name # or editor._filename
+        shell.executeCode(text, fname, -1)
+    
+    def fun_runSelected(self, value):
+        """ Run the selected whole lines in the current shell. """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()
+        editor = iep.editors.getCurrentEditor()
+        if not editor or not shell:
+            return        
+        # Get position to sample between (only sample whole lines)
+        i1, i2 = editor.getPosition(), editor.getAnchor()        
+        line1 = editor.getLinenrFromPosition(i1)
+        line2 = editor.getLinenrFromPosition(i2)
+        line1,line2 = min(line1,line2), max(line1,line2)
+        i3 = editor.getPositionFromLinenr(line1)
+        i4 = editor.getPositionFromLinenr(line2+1)
+        # Sample code 
+        editor.setPosition(i3); editor.setAnchor(i4)
+        text = editor.getSelectedString()
+        # Show the result to user and set back
+        editor.update()
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setPosition(i1); editor.setAnchor(i2)
+        # Execute code
+        fname = editor._name # or editor._filename
+        shell.executeCode(text, fname, line1)
+    
+    def fun_runCell(self, value):
+        """ Run the code between two cell separaters ('##'). """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()
+        editor = iep.editors.getCurrentEditor()
+        if not editor or not shell:
+            return 
+        # Get current cell        
+        i1, i2 = editor.getPosition(), editor.getAnchor()
+        line1 = editor.getLinenrFromPosition(pos) # line is an int
+        line2 = line1
+        while line1>0:              
+            text = editor.getLineString(line1)
+            if text.startswith("##"):
+                line1 +=1
+                break
+            else:
+                line1 -=1
+        maxLines = editor.getLinenrFromPosition(editor.length())
+        while line2 < maxLines:
+            text = editor.getLineString(line2)
+            if text.startswith("##"):
+                line2 -=1
+                break
+            else:
+                line2 +=1
+        else:
+            line2 -=1
+        # Select the text of the cell
+        i3 = editor.getPositionFromLinenr(line1)
+        i4 = editor.getPositionFromLinenr(line2+1)
+        # Sample code 
+        editor.setPosition(i3); editor.setAnchor(i4)
+        text = editor.getSelectedString()
+        # Show the result to user and set back
+        editor.update()
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setPosition(i1); editor.setAnchor(i2)
+        # Execute code
+        fname = editor._name # or editor._filename
+        shell.executeCode(text, fname, line1)
 
 
 class MenuHelper:

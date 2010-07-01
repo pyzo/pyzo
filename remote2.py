@@ -1,5 +1,4 @@
-import sys
-import time
+import os, sys, time
 import code
 import traceback
 import types
@@ -7,41 +6,45 @@ import types
 import threading
 import inspect
 
+
 class IepInterpreter(code.InteractiveConsole):
     """Closely emulate the interactive Python console.
     Almost the same as code.InteractiveConsole, but interact()
     is overriden to change the following:
     - prompts are printed in the err stream, like the default interpreter does
-    - uses an asynchronous read() function
-    - this read() function may return tuples (sourceCode, filename, lineno)
-      to execute blocks of code. The showtraceback method is modified such
-      that the linenr is given the proper offset (when part of a file is
-      executed) and that the correct line (where it went wrong) is displayed.
-    - support for tk
-    Note: the sys.stdin needs to have a .readline2() method, which does not 
-          block, but returns "" when nothing is available.
+    - uses an asynchronous read using the channels interface.    
+    - support for hijacking GUI toolkits
+    - can run large pieces of code.
     """
     
     def __init__(self, *args, **kwargs):
         code.InteractiveConsole.__init__(self, *args, **kwargs)
         
         self._status = 'a status string that is never used'
-    
+        
     
     def write(self, text):
+        """ Write errors and prompts. """
         sys.stderr.write( text )
     
+    
     def setStatus(self, status):
+        """ Set the status of the interpreter. """
         if self._status != status:
             self._status = status
             sys._status.write(status)
     
     
     def interact(self, banner=None):    
-        """ interact! (start the mainloop)
+        """ Interact! (start the mainloop)
         """
         
-        # prompts
+        ## INIT
+        
+        # create list to store codeBlocks that we execute
+        self._codeList = []
+        
+        # Define prompts
         try:
             sys.ps1
         except AttributeError:
@@ -50,113 +53,164 @@ class IepInterpreter(code.InteractiveConsole):
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-            
-        # banner
+        
+        
+        ## WELCOME
+        
+        # Create banner
         cprt =  'Type "help", "copyright", "credits" or "license"'\
                 ' for more information.'
         moreBanner = 'This is the IepInterpreter. Type "?" for'\
                      ' a list of *magic* commands.'
         # moreBanner = self.__class__.__name__
         if banner is None:
-            self.write("Python %s on %s\n%s\n%s\n" %
+            sys.stdout.write("Python %s on %s\n%s\n%s\n" %
                        (sys.version, sys.platform, cprt,
                         moreBanner))
         else:
-            self.write("%s\n" % str(banner))
-        self.write(str(sys.ps1))
-    
+            sys.stdout.write("%s\n" % str(banner))
+        
+        
+        ## PREPARE
+        
+        # Remove "THIS" directory from the PYTHONPATH
+        # to prevent unwanted imports
+        thisPath = os.getcwd()
+        if thisPath in sys.path:
+            sys.path.remove(thisPath)
+        
+        # Go to home dir
+        os.chdir(os.path.expanduser('~/'))
+        
+        # Execute startup script
+        filename = os.environ.get('PYTHONSTARTUP')
+        if filename and os.path.isfile(filename):
+            execfile(filename, {}, self.locals)
+        
+
 #         # hijack tk and wx
 #         self.tkapp = tkapp = None#hijack_tk()
 #         self.wxapp = wxapp = hijack_wx()
 #         self.flapp = flapp = hijack_fl()
 #         self.qtapp = qtapp = hijack_qt4()
         
-        # create list to store codeBlocks that we execute
-        self._codeList = []
+        
+        ## ENTER MAIN LOOP
         
         guitime = time.clock()        
         more = 0
+        newPrompt = True
         while True:
             try:
-                # set status
-                if more:
-                    self.setStatus('More')
-                else:
-                    self.setStatus('Ready')
                 
-                # wait for a bit
+                # Set status and prompt?
+                # Prompt is allowed to be an object with __str__ method
+                if newPrompt:
+                    newPrompt = False                    
+                    if more:
+                        self.setStatus('More')
+                        self.write(str(sys.ps2))
+                    else:
+                        self.setStatus('Ready')
+                        self.write(str(sys.ps1))
+                
+                # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
                 
-                # are we still connected?
+                # Are we still connected?
                 if sys.stdin.closed:
                     self.write("\n")
                     break
                 
-                # read a packet
+                # Read a packet
                 line = sys.stdin.readOne(False)
                 
-                # process the line
+                # Process the line
                 if line:
-                    # set busy
+                    # Set busy
                     self.setStatus('Busy')
+                    newPrompt = True
                     
-                    if isinstance(line,tuple):
-                        # EXECUTE MODE
+                    if line.startswith('\n'):
+                        # Execute larger piece of code
+                        self.execute_text(line)
+                        # Reset more stuff
+                        self.resetbuffer()
                         more = False
-                        fname = line[1]
-                        code = None
-                        try:
-                            # put the index of the codeBlock in the filename
-                            fname = "%s [%i]" %(fname, len(self._codeList))
-                            # put the information in the filename
-                            self._codeList.append( line )
-                            # compile the code
-                            code = self.compile(line[0], fname, "exec")
-                        except (OverflowError, SyntaxError, ValueError):
-                            self.showsyntaxerror(fname)
-                        if code:
-                            self.runcode(code)
                     else:
-                        # NORMAL MODE
+                        # Execute line
                         line = line.rstrip("\n") # this is what push wants
                         more = self.push(line)
-                    
-                    if more:                        
-                        self.write(str(sys.ps2))  # write writes to stderr
-                    else:
-                        # prompt is allowed to be an object with __str__ method
-                        self.write(str(sys.ps1)) 
                 
-#                 # update tk and wx 50 times per second
-#                 if time.time() - guitime > 0.019: # a bit sooner for sync
-#                     if tkapp:
-#                         tkapp.update()
-#                     if wxapp:
-#                         wxapp.ProcessPendingEvents()
-#                         wxapp.ProcessIdle() # otherwise frames do not close
-#                     if flapp:
-#                         flapp.wait(0)
-#                     if qtapp:
-#                         qtapp.processEvents()
-#                     guitime = time.time()
-                    
+                # Keep GUI toolkits up to date
+                self.updateGUIs()
+            
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")
                 self.resetbuffer()
                 more = 0
                 self.write(sys.ps1)
-            except TypeError, err:
-                # For some reason, when wx is hijacked, keyboard interrupts
-                # result in a TypeError on "time.sleep(0.010)".
-                # I tried to find the source, but did not find it. If anyone
-                # has an idea, please mail me!
-                if err.message == "'int' object is not callable":
-                    self.write("\nKeyboardInterrupt\n")
-                    self.resetbuffer()
-                    more = 0
-                    self.write(sys.ps1)
-                else:
-                    raise err
+                # todo: is this still an issue?
+#             except TypeError, err:
+#                 # For some reason, when wx is hijacked, keyboard interrupts
+#                 # result in a TypeError on "time.sleep(0.010)".
+#                 # I tried to find the source, but did not find it. If anyone
+#                 # has an idea, please mail me!
+#                 if err.message == "'int' object is not callable":
+#                     self.write("\nKeyboardInterrupt\n")
+#                     self.resetbuffer()
+#                     more = 0
+#                     self.write(sys.ps1)
+#                 else:
+#                     raise err
+    
+    def updateGUIs(self):
+        pass
+        #                 # update tk and wx 50 times per second
+    #                 if time.time() - guitime > 0.019: # a bit sooner for sync
+    #                     if tkapp:
+    #                         tkapp.update()
+    #                     if wxapp:
+    #                         wxapp.ProcessPendingEvents()
+    #                         wxapp.ProcessIdle() # otherwise frames do not close
+    #                     if flapp:
+    #                         flapp.wait(0)
+    #                     if qtapp:
+    #                         qtapp.processEvents()
+    #                     guitime = time.time()
+    
+    
+    def execute_text(self, text):
+        """ To execute larger pieces of code. """
+        
+        # Split information
+        # (The last line contains filename + lineOffset about the code)
+        tmp = text.rsplit('\n', 2)
+        source = tmp[0]
+        fname = tmp[1]
+        lineno = int(tmp[2]) -1 # because we do not remove the first newline
+        
+        # Put the index of the codeBlock in the filename
+        fname = "%s [%i]" % (fname, len(self._codeList))
+        # Store the information
+        self._codeList.append( (source, fname, lineno) )
+        
+        # Try compiling the source
+        code = None
+        try:            
+            code = self.compile(source, fname, "exec")
+        except (OverflowError, SyntaxError, ValueError):
+            self.showsyntaxerror(fname)
+        
+        # Execute the code
+        if code:            
+            try:
+                exec code in self.locals
+            except SystemExit:
+                raise
+            except:
+                #self.write('oops!')
+                self.showtraceback()
     
     
     def showsyntaxerror(self, filename=None):
@@ -205,51 +259,74 @@ class IepInterpreter(code.InteractiveConsole):
         the filename is modified by appending " [x]". Where x is
         the index in a list that we keep, of tuples 
         (sourcecode, filename, lineno). 
+        
         Here, showing the traceback, we check if we see such [x], 
         and if so, we extract the line of code where it went wrong,
         and correct the lineno, so it will point at the right line
         in the editor if part of a file was executed. When the file
         was modified since the part in question was executed, the
         fileno might deviate, but the line of code shown shall 
-        always be correct...        
+        always be correct...
         """
-        try:         
+        # Traceback info:
+        # tb_next -> go down the trace
+        # tb_frame -> get the stack frame
+        # tb_lineno -> where it went wrong
+        #
+        # Frame info:
+        # f_back -> go up (towards caller)
+        # f_code -> code object
+        # f_locals -> we can execute code here when PM debugging
+        # f_globals
+        # f_trace -> (can be None) function for debugging? (
+        #
+        # The traceback module is used to obtain prints from the
+        # traceback.
+        
+        try:
+            # Get exception information and store for debugging
             type, value, tb = sys.exc_info()
-            frame = tb.tb_frame            
             sys.last_type = type
             sys.last_value = value
             sys.last_traceback = tb
             
-            # get traceback and correct all the line numbers,
-            # adding context information from what we stored...
-            # The x in "c:\...\filename.py [x]" is the index to the list
-            # of blocks of info.
-            tblist = traceback.extract_tb(tb)            
+            # Get frame
+            frame = tb.tb_frame
+            
+            # Get traceback to correct all the line numbers
+            # tblist = list  of (filename, line-number, function-name, text)
+            tblist = traceback.extract_tb(tb)
+            
+            # Remove first, since that's us
             del tblist[:1]
+            
+            # Walk through the list
             for i in range(len(tblist)):
                 tb = tblist[i]
                 # get codeblock number: piece between []                
                 codenr = tb[0].rsplit("[",1)[-1].split("]",1)[0]
                 try:
-                    codeblock = self._codeList[int(codenr)]
+                    source, fname, lineno = self._codeList[int(codenr)]
                 except (ValueError, IndexError):
                     continue
-                # add info to traceback and correct line number             
-                example = codeblock[0].splitlines()
+                # Add info to traceback and correct line number             
+                example = source.splitlines()
                 try:
                     example = example[ tb[1]-1 ]
                 except IndexError:
                     example = ""
-                lineno = tb[1] + int(codeblock[2])
+                lineno = tb[1] + lineno
                 tblist[i] = ( tb[0], lineno, tb[2], example)
             
-            # format list
+            # Format list
             list = traceback.format_list(tblist)
             if list:
                 list.insert(0, "Traceback (most recent call last):\n")
             list[len(list):] = traceback.format_exception_only(type, value)
         finally:
             tblist = tb = None
+        
+        # Write traceback
         map(self.write, list)
 
 
@@ -409,18 +486,40 @@ class IntroSpectionThread(threading.Thread):
     
     def enq_attributes(self, objectName):
         
-        # obtain list using dir function
-        command = "dir(%s)" % (objectName)
+        # Init names
+        names = set()
+        
+        # Obtain all attributes of the class
         try:
+            command = "dir(%s.__class__)" % (objectName)
             d = eval(command, {}, self.locals)
         except Exception:            
-            d = None
-       
-        # todo: check for dir method to provide autocomp for pydicom
+            pass
+        else:
+            names.update(d)
         
-        # respond
-        if d:
-            self.response.write( ",".join(d) )
+        # Obtain instance attributes
+        try:
+            command = "%s.__dict__.keys()" % (objectName)
+            d = eval(command, {}, self.locals)
+        except Exception:            
+            pass
+        else:
+            names.update(d)
+            
+        # That should be enough, but in case __dir__ is overloaded,
+        # query that as well
+        try:
+            command = "dir(%s)" % (objectName)
+            d = eval(command, {}, self.locals)
+        except Exception:            
+            pass
+        else:
+            names.update(d)
+        
+        # Respond
+        if names:
+            self.response.write( ",".join(list(names)) )
         else:
             self.response.write( "<error>" )
     
