@@ -204,6 +204,9 @@ class IepEditor(BaseTextCtrl):
         # to be able to accept drops
         #self.setAcceptDrops(True)
         
+        # Enable scrolling beyond last line
+        self.SendScintilla(self.SCI_SETENDATLASTLINE, False)
+        
         # to see whether the doc has been changed
         self._dirty = False
         SIGNAL = QtCore.SIGNAL

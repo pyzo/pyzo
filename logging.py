@@ -2,11 +2,22 @@
 Functionality for logging and a logger shell.
 """
 
-import sys, os, code
+import sys, os, time
+import code
 import iep
 from shell import BaseShell
 
 # todo: enable logging to a file?
+
+original_print = print
+def print(*args, **kwargs):
+    t = time.localtime()
+    preamble = "{:02g}-{:02g}-{:04g} {:02g}:{:02g}:{:02g}: "
+    preamble = preamble.format( t.tm_mday, t.tm_mon, t.tm_year, 
+                                t.tm_hour, t.tm_min, t.tm_sec)
+    args = [preamble] + list(args)
+    original_print(*tuple(args),**kwargs)
+
 
 def splitConsole(stdoutFun=None, stderrFun=None):
     """ splitConsole(stdoutFun=None, stderrFun=None)
@@ -91,6 +102,7 @@ class LoggerShell(BaseShell):
         
         # apply style        
         self.setStyle('loggerShell')
+        #self._reduceFontSizeToMatch80Columns = False
         
         # make sure sys has prompts
         try:

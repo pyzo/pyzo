@@ -11,6 +11,7 @@ from editor import createEditor
 from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
 
+from logging import print
 barwidth = iep.config.editorStackBarWidth
 
 

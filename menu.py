@@ -153,11 +153,26 @@ class FileMenu(BaseMenu):
         addItem( MI('Indentation', self.fun_indentation, []) )
         addItem( MI('Line endings', self.fun_lineEndings, []) )        
         addItem( MI('File encoding', self.fun_encoding, []) )
+        addItem(None)        
+        addItem( MI('Select shell', self.fun_selectShell) )
+        addItem( MI('Select editor', self.fun_selectEditor) )
         addItem(None)
         addItem( MI('Restart IEP', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
         
         addItem( MI('TEST', self.fun_test) )
+    
+    def fun_selectEditor(self, value):
+        """ Select the current editor. """
+        editor = iep.editors.getCurrentEditor()
+        if editor:
+            editor.setFocus()
+    
+    def fun_selectShell(self, value):
+        """ Select the current shell. """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.setFocus()
     
     def fun_test(self, value):
         """ Test something. """
@@ -468,10 +483,7 @@ class ViewMenu(BaseMenu):
                 iep.config.editor.zoom -= 1
             else:
                 iep.config.editor.zoom = 0
-            for editor in iep.editors:
-                editor.zoomTo(iep.config.editor.zoom)
-            for shell in iep.shells:
-                shell.updateFontSizeToMatch80Columns()
+            iep.styleManager.styleUpdate.emit()
     
     def fun_lineHighlight(self, value):
         """ Whether the line containing the cursor should be highlighted. """
@@ -670,7 +682,7 @@ class PluginsMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Reload plugins', self.fun_reload) )
+        addItem( MI('Reload tools', self.fun_reload) )
         addItem( None )
         
         for plugin in pluginManager.loadPluginInfo():
@@ -718,7 +730,7 @@ class MenuHelper:
                     ('View', ViewMenu),                    
                     ('Settings', SettingsMenu),
                     ('Shell', ShellMenu),
-                    ('Plugins', PluginsMenu),
+                    ('Tools', PluginsMenu),
                 ]
         
         for menuName, menuClass in menus:

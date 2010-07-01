@@ -590,6 +590,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_AUTOCSETMAXHEIGHT, 10)
         self.SendScintilla(self.SCI_AUTOCSETMAXWIDTH, 0)
         
+        # Notifications to bind to
+        self.SCN_DOUBLECLICK.connect(self._onDoubleClick)
+        
     
     def SendScintilla(self, *args):
         """ Overloaded method that transforms any string arguments to
@@ -904,6 +907,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             styleName = self._styleName        
         # apply and remember
         self._styleName = styleManager.applyStyle(self,styleName)
+        # apply zooming
+        self.zoomTo(config.zoom)
+    
     
     def getStyleName(self):
         """ Get the name of the currently applied style. """
@@ -1100,6 +1106,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         pass
     
     
+    def _onDoubleClick(self):
+        """ When double clicking on a name, autocomplete it. """
+        self.processHelp()
+    
+    
     def processHelp(self, name=None, showError=False):
         """ Show help on the given full object name.
         - called when going up/down in the autocompletion list.
@@ -1116,21 +1127,22 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             return
         
         if not name:
-            # get line up to cursor
-            text,i = self.GetCurLine()
-            text = text[:i]
-            baseName, objectName = parse_autocomplete(text)
-            if baseName:
-                objectName = "%s.%s" % (baseName, objectName)
-                
-        if name:
+            # Obtain name from current cursor position
             
-            # Get the result!
-            req = "HELP " + name
-            shell.postRequest(req, self.processHelp_response)
-    
-    def processHelp_response(self, response, id):
-        pass
+            # Is this valid python?
+            if self._isValidPython():
+                # Obtain line from text
+                linenr, i = self.getLinenrAndIndex()
+                text = self.getLineString(linenr)
+                text = text[:i]
+                # Obtain             
+                nameBefore, name = parseLine_autocomplete(text)
+                if nameBefore:
+                    name = "%s.%s" % (nameBefore, name)
+        
+        if name:
+            hw.setObjectName(name)
+        
     
     ## Callbacks
     

@@ -301,8 +301,8 @@ class IntroSpectionThread(threading.Thread):
             elif req == "ATTRIBUTES":
                 self.enq_attributes(arg)
             
-#             elif req == "HELP":
-#                 self.enq_help(arg)
+            elif req == "HELP":
+                self.enq_help(arg)
 
             else:
                 self.response.write('<not a valid request>')
@@ -456,43 +456,27 @@ class IntroSpectionThread(threading.Thread):
             # docstring can be None, but should be empty then
             if not h_text:
                 h_text = ""
-            # dont replace single newlines, but wrap the text. New paragraphs
-            # do need to be new paragraphs though...
-            h_text = h_text.replace("\n\n","<br /><br />")  
             
             # get and correct signature
             h_fun, kind = self.getSignature(objectName)
-            if kind == 'builtin':
-                h_fun = ""  # signature already in docstring
-            elif h_fun:
-                h_fun = "<br /><b>%s signature:</b><br />%s" % (kind,h_fun)
-            else:
-                h_fun = ""
+            if kind == 'builtin' or not h_fun:
+                h_fun = ""  # signature already in docstring or not available
             
             # cut repr if too long
             if len(h_repr) > 200:
                 h_repr = h_repr[:200] + "..."                
-            # these signs are often present in the repr
-            h_repr = h_repr.replace("<","&lt;") 
-            h_repr = h_repr.replace(">","&gt;")
+            # replace newlines so we can separates the different parts
+            h_repr = h_repr.replace('\n', '\r')
             
-            # build HTML string
-            text =  "<h3>%s</h3> <br /><b>class: </b>%s <br />"\
-                    "<b>repr: </b>%s %s<br /><br />%s" % (
-                    objectName, h_class, h_repr, h_fun, h_text)
-            
+            # build final text
+            text = '\n'.join([objectName, h_class, h_fun, h_repr, h_text])
+        
         except Exception, why:
             text = "No help available: " + str(why)
         
-        # set text in mmfile   
-        self.mmfile.seek(10)
-        self.mmfile.write(text)
-        self.mmfile[1:5] = int2bytes( len(text) )  
-        
-        # notify that we're done
-        self.mmfile[0] = "0"
-        
-        
+        self.response.write( text )
+    
+    
     def enq_eval(self, command):
         """ do a command and send "str(result)" back. """
          
