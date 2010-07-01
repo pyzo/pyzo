@@ -619,7 +619,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         .length() does the same)
         """
         return self.length()
-    
+        self.getli
     
     def setText(self, value):
         """ Set the text of the editor. """
@@ -633,7 +633,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         bb = QtCore.QByteArray(len,'0')
         N = self.SendScintilla(self.SCI_GETTEXT, len, bb)
         return bytes(bb)[:-1] # remove NULL character
-    
+        
     def getString(self):
         """ Get the text as a unicode string. """
         return self.getBytes().decode('utf-8')

@@ -538,10 +538,14 @@ class BaseShell(BaseTextCtrl):
     
     
     ## Executing stuff
-    def processLine(self, line=None):
-        """ processLine(self, line=None)
+    def processLine(self, line=None, execute=True):
+        """ processLine(self, line=None, execute=True)
         Process the given line or the current line at the prompt if not given.
         Called when the user presses enter.        
+        
+        If execute is False will not execute the command. This way 
+        a message can be written while other ways are used to process
+        the command.
         """
         
         # Remember position
@@ -582,11 +586,11 @@ class BaseShell(BaseTextCtrl):
             curPos = self.length()        
         self.setPositionAndAnchor(curPos)
         
-        # Maybe modify the text given...
-        command = self.modifyCommand(command)
-        
-        # Execute
-        self.executeCommand(command+'\n')
+        if execute:
+            # Maybe modify the text given...
+            command = self.modifyCommand(command)
+            # Execute        
+            self.executeCommand(command+'\n')
     
     
     def modifyCommand(self, command):
@@ -697,7 +701,7 @@ class PythonShell(BaseShell):
         
         # create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(100)  # 100 ms
+        self._timer.setInterval(20)  # 100 ms
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
@@ -834,13 +838,89 @@ class PythonShell(BaseShell):
         self._stdin.write(text)
     
     
-    def executeCode(self, text):
-        """ executeCode(text)
-        Execute pieces of code in the remote Python session. 
-        These can be a few lines, or the contents of a file of a 
-        few thousand lines. """
-        pass
+    def executeCode(self, text, fname, lineno=0):
+        """ executeCode(text, fname, lineno)
+        Execute (run) a large piece of code in the remote shell.
+        text: the source code to execute
+        filename: the file from which the source comes
+        lineno: the first lineno of the text in the file, where 0 would be
+        the first line of the file...
         
+        The text (source code) is first pre-processed:
+        - convert all line-endings to \n
+        - remove all empty lines at the end
+        - remove commented lines at the end
+        - convert tabs to spaces
+        - dedent so minimal indentation is zero        
+        """ 
+        
+        # Convert tabs to spaces
+        text = text.replace("\t"," "*4)
+        
+        # Examine the text line by line...
+        # - check for empty/commented lined at the end
+        # - calculate minimal indentation
+        lines = text.splitlines()        
+        lastLineOfCode = 0
+        minIndent = 99
+        for linenr in range(len(lines)):
+            # Get line
+            line = lines[linenr]
+            # Check if empty (can be commented, but nothing more)
+            tmp = line.split("#",1)[0]  # get part before first #
+            if tmp.count(" ") == len(tmp):
+                continue  # empty line, proceed
+            else:
+                lastLineOfCode = linenr
+            # Calculate indentation
+            tmp = line.lstrip(" ")
+            indent = len(line) - len(tmp)
+            if indent < minIndent:
+                minIndent = indent 
+        
+        # Copy all proper lines to a new array, 
+        # remove minimal indentation, but only if we then would only remove 
+        # spaces (in the case of commented lines)
+        lines2 = []
+        for linenr in range(lastLineOfCode+1):
+            line = lines[linenr]
+            # Remove indentation, 
+            if line[:minIndent].count(" ") == minIndent:
+                line = line[minIndent:]
+            else:
+                line = line.lstrip(" ")
+            lines2.append( line )
+        
+        # Running while file?
+        runWholeFile = False
+        if lineno<0:
+            lineno = 0
+            runWholeFile = True
+        
+        # Append info line, than combine
+        lines2.insert(0,'') # code is recognized because starts with newline
+        lines2.append('') # The code needs to end with a newline
+        lines2.append(fname)
+        lines2.append(str(lineno))
+        #
+        text = "\n".join(lines2)
+        
+        # Write to shell to let user know we are running...
+        lineno1 = lineno + 1
+        lineno2 = lineno + len(lines)
+        if runWholeFile:
+            runtext = '[executing "{}"]\n'.format(fname)
+        elif lineno1 == lineno2:
+            runtext = '[executing line {} of "{}"]\n'.format(lineno1, fname)
+        else:
+            runtext = '[executing lines {} to {} of "{}"]\n'.format(
+                                            lineno1, lineno2, fname)
+        self.processLine(runtext, False)
+        
+        print(text)
+        # Run!
+        self._stdin.write(text)
+    
     
     ## The polling method and terminating methods
     
@@ -920,7 +1000,7 @@ class PythonShell(BaseShell):
         t0 = time.time() + 1.0
         while time.time() < t0:
             time.sleep(0.1)
-            if not self._channels.isConnected:
+            if not self._channels.isConnected():
                 break
         else:
             # We waited long enough, kill it!
@@ -956,8 +1036,8 @@ class PythonShell(BaseShell):
         
         # We're now in a different thread, so use callLater to
         # defer the timer to closing-mode
-        self._disconnectTime = time.time()-0.5
-        self._disconnectPhase = 4
+        self._disconnectTime = 0
+        self._disconnectPhase = 3+1
         iep.callLater(self._afterDisconnect)
     
     
