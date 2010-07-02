@@ -703,10 +703,11 @@ class ShellMenu(BaseMenu):
         addItem( MI('Interrup current shell', self.fun_interrupt) )
         addItem( MI('Terminate current shell', self.fun_term) )        
         addItem( None )
-        addItem( MI('Run file', self.fun_runFile) )
         addItem( MI('Run selected lines', self.fun_runSelected) )
         addItem( MI('Run cell', self.fun_runCell) )
-        
+        addItem( MI('Run file', self.fun_runFile) )
+        addItem( MI('Run project main file', self.fun_runProject) )
+        addItem( MI('Restart and run project main file', self.fun_runProject2))
     
     def fun_create(self, value):
         """ Create a new Python shell. """
@@ -723,26 +724,6 @@ class ShellMenu(BaseMenu):
         shell = iep.shells.getCurrentShell()
         if shell:
             shell.terminate()
-    
-    def fun_runFile(self, value):
-        """ Run the current file in the current shell. """
-        # Get editor and shell
-        shell = iep.shells.getCurrentShell()
-        editor = iep.editors.getCurrentEditor()
-        if not editor or not shell:
-            return        
-        # Obtain source code
-        text = editor.getString()
-        # Show the result to user and set back
-        i1, i2 = editor.getPosition(), editor.getAnchor()
-        editor.setPosition(0); editor.setAnchor(editor.length())
-        editor.update()
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setPosition(i1); editor.setAnchor(i2)
-        # Execute code
-        fname = editor._name # or editor._filename
-        shell.executeCode(text, fname, -1)
     
     def fun_runSelected(self, value):
         """ Run the selected whole lines in the current shell. """
@@ -779,8 +760,8 @@ class ShellMenu(BaseMenu):
             return 
         # Get current cell        
         i1, i2 = editor.getPosition(), editor.getAnchor()
-        line1 = editor.getLinenrFromPosition(pos) # line is an int
-        line2 = line1
+        line1 = editor.getLinenrFromPosition(i1) # line is an int
+        line2 = line1+1
         while line1>0:              
             text = editor.getLineString(line1)
             if text.startswith("##"):
@@ -812,8 +793,43 @@ class ShellMenu(BaseMenu):
         # Execute code
         fname = editor._name # or editor._filename
         shell.executeCode(text, fname, line1)
-
-
+    
+    def fun_runFile(self, value, editor=None):
+        """ Run the current file in the current shell. """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()
+        if editor is None:
+            editor = iep.editors.getCurrentEditor()
+        if not editor or not shell:
+            return        
+        # Obtain source code
+        text = editor.getString()
+        # Show the result to user and set back
+        i1, i2 = editor.getPosition(), editor.getAnchor()
+        editor.setPosition(0); editor.setAnchor(editor.length())
+        editor.update()
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setPosition(i1); editor.setAnchor(i2)
+        # Execute code        
+        fname = editor._name # or editor._filename
+        shell.executeCode(text, fname, -1)
+    
+    def fun_runProject(self, value):
+        """ Run the current project's main file. """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()
+        editor = iep.editors.getCurrentProjectsMainEditor()
+        if not editor or not shell:
+            return 
+        # Run code by reusing fun_runFile
+        self.fun_runFile(None, editor)
+    
+    def fun_runProject2(self, value):
+        """ Restart the shell and run the current project's main file. """
+        # Restart
+        pass
+        
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.

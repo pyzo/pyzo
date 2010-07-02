@@ -1,7 +1,7 @@
 import sys, os, code
 from PyQt4 import QtCore, QtGui
 import iep
-from logging import LoggerShell
+from iepLogging import LoggerShell
 
 plugin_name = "Logger"
 plugin_summary = "Logs messaged, warnings and errors within IEP"
