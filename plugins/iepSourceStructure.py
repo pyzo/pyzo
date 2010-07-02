@@ -55,8 +55,8 @@ class IepSourceStructure(QtGui.QWidget):
         self.setLayout(self._sizer1)
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._tree, 1)
-        self._sizer2.addWidget(self._slider, 2)
-        self._sizer2.addWidget(self._button, 1)
+        self._sizer2.addWidget(self._slider, 1)
+        self._sizer2.addWidget(self._button, 0)
         
         # Init current-file name and listen to selection changes
         self._currentEditorId = 0

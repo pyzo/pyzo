@@ -124,6 +124,9 @@ class LoggerShell(BaseShell):
         history = splitConsole(self.write, self.writeErr)
         self.write(history)
         
+        # Goto end
+        self.setPositionAndAnchor(self.length())
+        
         # Create interpreter to run code        
         locals = {'iep':iep, 'sys':sys, 'os':os}
         self._interpreter = code.InteractiveConsole(locals, "<logger>")

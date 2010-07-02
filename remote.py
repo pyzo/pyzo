@@ -14,12 +14,13 @@ c = Channels(4)
 sys.stdin = c.getReceivingChannel(0)
 sys.stdout = c.getSendingChannel(0)
 sys.stderr = c.getSendingChannel(1)
+sys._control = c.getReceivingChannel(1)
 sys._status = c.getSendingChannel(2)
 
 # Connect
 c.connect(port, timeOut=1)
 
-# Create interpreter instance
+# Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter(locals=__main__.__dict__)
 __iep__.channels = c
 
@@ -27,7 +28,7 @@ __iep__.channels = c
 # Make it a deamon thread, which implies that the program exits
 # even if its running.
 __iep__.ithread = IntroSpectionThread(  
-    c.getReceivingChannel(1), c.getSendingChannel(3), __main__.__dict__)
+    c.getReceivingChannel(2), c.getSendingChannel(3), __iep__)
 __iep__.ithread.daemon = True
 
 # Clean up
