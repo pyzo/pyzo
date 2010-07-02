@@ -118,6 +118,8 @@ def removeComment(text):
     else:
         return text
 
+# To give each new file a unique name
+newFileCounter = 0
 
 def createEditor(parent, filename=None):
     """ Tries to load the file given by the filename and
@@ -128,9 +130,16 @@ def createEditor(parent, filename=None):
     
     if filename is None:
         
-        # create editor
+        # Increase counter
+        global newFileCounter
+        newFileCounter  += 1
+        
+        # Create editor
         editor = IepEditor(parent)
         editor.makeDirty(True)
+        
+        # Set name
+        editor._name = "<tmp {}>".format(newFileCounter)
     
     else:
         
@@ -217,7 +226,15 @@ class IepEditor(BaseTextCtrl):
         # way to update the parser. SCN_MODIFIED might make more sense, but
         # produces errors.
         self.SCN_UPDATEUI.connect(self._onModified)
-        
+    
+    
+    def id(self):
+        """ Get an id of this editor. This is the filename, 
+        or for tmp files, the name. """
+        if self._filename:
+            return self._filename
+        else:
+            return self._name
     
     
     def focusInEvent(self, event):

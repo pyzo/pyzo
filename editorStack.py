@@ -11,7 +11,7 @@ from editor import createEditor
 from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
 
-from logging import print
+from iepLogging import print
 barwidth = iep.config.editorStackBarWidth
 
 
@@ -267,7 +267,7 @@ class FileItem(Item):
         # Set style to handle dirty and mainfile
         if self._editor._dirty:
             style += "color:#603000;"
-        if self._project and self._project._mainfile == self._editor._filename:
+        if self._project and self._project._mainfile == self._editor.id():
             style += 'font-weight:bold;'
         
         # Handle mouse over or current file
@@ -319,7 +319,7 @@ class FileItem(Item):
         self.parent().parent().closeFile(self._editor)
     def context_makeMain(self, event=None):
         if self._project:
-            self._project._mainfile = self._editor._filename
+            self._project._mainfile = self._editor.id()
         for item in self.parent()._items:
             if isinstance(item, FileItem):
                 item.updateTexts()
@@ -1118,6 +1118,25 @@ class EditorStack(QtGui.QWidget):
             return item._editor
         else:
             return None
+    
+    
+    def getCurrentProjectsMainEditor(self):
+        """ Get the editor that represents the main file of the
+        current project, or None if not in a project or it has no
+        main file. """
+        # Obtain the real editor
+        item = self._list._currentItem
+        theEditor = None
+        if item and item._project:
+            mainFilename = item._project._mainfile
+            for item in iep.editors._list._items:
+                if hasattr(item, '_editor'):
+                    if item._editor.id() == mainFilename:
+                        theEditor = item._editor
+                        break
+        # Done
+        return theEditor
+    
     
     def __iter__(self):
         tmp = self._list._items

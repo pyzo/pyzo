@@ -857,6 +857,10 @@ class PythonShell(BaseShell):
         # Convert tabs to spaces
         text = text.replace("\t"," "*4)
         
+        # Make sure there is always *some* text
+        if not text:
+            text = ' '
+        
         # Examine the text line by line...
         # - check for empty/commented lined at the end
         # - calculate minimal indentation
@@ -982,6 +986,16 @@ class PythonShell(BaseShell):
                 tabWidget = self.parent().parent()
                 i = tabWidget.indexOf(self)
                 tabWidget.setTabText(i, status)
+    
+    
+    def restart(self, callback):
+        """ restart(callback)
+        Terminate the shell, after which it is restarted. 
+        When that one is up and running, the callback is called.
+        """
+        self._restart = self._info
+        self.terminate()
+        # todo: this!
     
     
     def interrupt(self):
