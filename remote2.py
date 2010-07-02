@@ -7,6 +7,11 @@ import threading
 import inspect
 
 
+# Init last traceback
+sys.last_type = None
+sys.last_value = None
+sys.last_traceback = None
+
 class IepInterpreter(code.InteractiveConsole):
     """Closely emulate the interactive Python console.
     Almost the same as code.InteractiveConsole, but interact()
@@ -17,22 +22,30 @@ class IepInterpreter(code.InteractiveConsole):
     - can run large pieces of code.
     """
     
-    def __init__(self, *args, **kwargs):
-        code.InteractiveConsole.__init__(self, *args, **kwargs)
+    def __init__(self, locals):
+        code.InteractiveConsole.__init__(self, locals=locals)
         
-        self._status = 'a status string that is never used'
-        
+        # Store ref of locals that is our main
+        self._main_locals = locals
+        self._dbFrames = []
+        self._dbFrameIndex = 0
+        self._dbFrameName = ''
+    
     
     def write(self, text):
         """ Write errors and prompts. """
         sys.stderr.write( text )
     
     
-    def setStatus(self, status):
-        """ Set the status of the interpreter. """
-        if self._status != status:
-            self._status = status
-            sys._status.write(status)
+    def writeStatus(self):
+        """ Write the status (Ready, or Busy, or Debug info). """
+        if self._dbFrames:
+            # Debug info
+            stack = [f.f_code.co_name for f in self._dbFrames]
+            stack.append(str(self._dbFrameIndex))
+            sys._status.write('Debug ' + ','.join(stack))
+        else:
+            sys._status.write('Ready')
     
     
     def interact(self, banner=None):    
@@ -79,8 +92,9 @@ class IepInterpreter(code.InteractiveConsole):
         if thisPath in sys.path:
             sys.path.remove(thisPath)
         
-        # Go to home dir
-        os.chdir(os.path.expanduser('~/'))
+        # Go to start dir
+        # os.chdir(os.path.expanduser('~/')) # home dir
+        os.chdir(sys.exec_prefix) # where original Python interpreter starts
         
         # Execute startup script
         filename = os.environ.get('PYTHONSTARTUP')
@@ -95,24 +109,28 @@ class IepInterpreter(code.InteractiveConsole):
 #         self.qtapp = qtapp = hijack_qt4()
         
         
-        ## ENTER MAIN LOOP
+        ## MAIN LOOP
         
         guitime = time.clock()        
         more = 0
-        newPrompt = True
+        self.newPrompt = True
         while True:
             try:
                 
                 # Set status and prompt?
                 # Prompt is allowed to be an object with __str__ method
-                if newPrompt:
-                    newPrompt = False                    
+                if self.newPrompt:
+                    self.newPrompt = False
+                    # Write prompt
+                    preamble = ''
+                    if self._dbFrames:
+                        preamble = '('+self._dbFrameName+')'
                     if more:
-                        self.setStatus('More')
-                        self.write(str(sys.ps2))
+                        self.write(preamble+str(sys.ps2))
                     else:
-                        self.setStatus('Ready')
-                        self.write(str(sys.ps1))
+                        self.write(preamble+str(sys.ps1))
+                    # Set status
+                    self.writeStatus()
                 
                 # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
@@ -122,16 +140,19 @@ class IepInterpreter(code.InteractiveConsole):
                     self.write("\n")
                     break
                 
-                # Read a packet
-                line = sys.stdin.readOne(False)
+                # Read control stream and process
+                control = sys._control.readOne(False)
+                if control:
+                    self.parseControl(control)
                 
-                # Process the line
+                # Read a packet and process
+                line = sys.stdin.readOne(False)
                 if line:
                     # Set busy
-                    self.setStatus('Busy')
-                    newPrompt = True
+                    sys._status.write('Busy')
+                    self.newPrompt = True
                     
-                    if line.startswith('\n'):
+                    if line.startswith('\n') and len(line)>1:
                         # Execute larger piece of code
                         self.execute_text(line)
                         # Reset more stuff
@@ -178,6 +199,71 @@ class IepInterpreter(code.InteractiveConsole):
     #                     if qtapp:
     #                         qtapp.processEvents()
     #                     guitime = time.time()
+    
+    
+    def parseControl(self, control):
+        
+        if control == 'STATUS':
+            self.writeStatus()
+        
+        elif control == 'DEBUG START':
+            # Collect frames from the traceback
+            tb = sys.last_traceback
+            frames = []
+            while tb:
+                frames.append(tb.tb_frame)
+                tb = tb.tb_next
+            # Enter debug mode if there was an error
+            if frames:
+                self._dbFrames = frames
+                self._dbFrameIndex = len(self._dbFrames)-1
+                frame = self._dbFrames[self._dbFrameIndex]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                # Notify IEP
+                self.writeStatus()
+            else:
+                self.write("No debug information available.\n")
+        
+        elif control.startswith('DEBUG') and not self._dbFrames:
+            # Ignoire other debug commands when not debugging
+            return
+        
+        elif control.startswith('DEBUG INDEX'):
+            # Set frame index
+            self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
+            if self._dbFrameIndex < 0:
+                self._dbFrameIndex = 0
+            elif self._dbFrameIndex >= len(self._dbFrames):
+                self._dbFrameIndex = len(self._dbFrames) - 1
+            # Set name and locals
+            frame = self._dbFrames[self._dbFrameIndex]
+            self._dbFrameName = frame.f_code.co_name
+            self.locals = frame.f_locals
+        
+        elif control == 'DEBUG DOWN':
+            # Decrease frame index
+            self._dbFrameIndex -= 1
+            if self._dbFrameIndex < 0:
+                self._dbFrameIndex = 0
+            # Set name and locals
+            frame = self._dbFrames[self._dbFrameIndex]
+            self._dbFrameName = frame.f_code.co_name
+            self.locals = frame.f_locals
+        
+        elif control == 'DEBUG UP':
+            # Increase frame index
+            self._dbFrameIndex += 1
+            if self._dbFrameIndex >= len(self._dbFrames):
+                self._dbFrameIndex = len(self._dbFrames) - 1
+            # Set name and locals
+            frame = self._dbFrames[self._dbFrameIndex]
+            self._dbFrameName = frame.f_code.co_name
+            self.locals = frame.f_locals
+        
+        elif control == 'DEBUG END':
+            self.locals = self._main_locals
+            self._dbFrames = []
     
     
     def execute_text(self, text):
@@ -284,11 +370,15 @@ class IepInterpreter(code.InteractiveConsole):
         # traceback.
         
         try:
-            # Get exception information and store for debugging
+            # Get exception information and remove first, since that's us
             type, value, tb = sys.exc_info()
-            sys.last_type = type
-            sys.last_value = value
-            sys.last_traceback = tb
+            tb = tb.tb_next
+            
+            # Store for debugging, but only store if not in debug mode
+            if not self._dbFrames:
+                sys.last_type = type
+                sys.last_value = value
+                sys.last_traceback = tb
             
             # Get frame
             frame = tb.tb_frame
@@ -296,9 +386,6 @@ class IepInterpreter(code.InteractiveConsole):
             # Get traceback to correct all the line numbers
             # tblist = list  of (filename, line-number, function-name, text)
             tblist = traceback.extract_tb(tb)
-            
-            # Remove first, since that's us
-            del tblist[:1]
             
             # Walk through the list
             for i in range(len(tblist)):
@@ -336,13 +423,13 @@ class IntroSpectionThread(threading.Thread):
     Communicates with the IEP GUI, even if the main thread is busy.
     """
     
-    def __init__(self, requestChannel, responseChannel, locals):
+    def __init__(self, requestChannel, responseChannel, interpreter):
         threading.Thread.__init__(self)
         
         # store the two channel objects
         self.request = requestChannel
         self.response = responseChannel
-        self.locals = locals
+        self.interpreter = interpreter
     
     
     def run(self):
@@ -399,27 +486,27 @@ class IntroSpectionThread(threading.Thread):
         # what about self?
         
         # find out what kind of function, or if a function at all!
-        ns = self.locals
-        fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, ns)
-        fun2 = eval("inspect.isfunction(%s)"%(objectName), None, ns)
-        fun3 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
+        NS = self.interpreter.locals
+        fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, NS)
+        fun2 = eval("inspect.isfunction(%s)"%(objectName), None, NS)
+        fun3 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
         fun4 = False
         fun5 = False
         if not (fun1 or fun2 or fun3):
             # Maybe it's a class with an init?
-            if eval("isinstance(%s,type)"%(objectName), None, ns):
-                if eval("hasattr(%s,'__init__')"%(objectName), None, ns):
+            if eval("isinstance(%s,type)"%(objectName), None, NS):
+                if eval("hasattr(%s,'__init__')"%(objectName), None, NS):
                     objectName += ".__init__"
-                    fun4 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
+                    fun4 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
             #  Or a callable object?
-            elif eval("hasattr(%s,'__call__')"%(objectName), None, ns):
+            elif eval("hasattr(%s,'__call__')"%(objectName), None, NS):
                 objectName += ".__call__"
-                fun5 = eval("inspect.ismethod(%s)"%(objectName), None, ns)
+                fun5 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
                 
         if fun1:
             # the first line in the docstring is usually the signature
             kind = 'builtin'
-            tmp = eval("%s.__doc__"%(objectName), {}, ns )
+            tmp = eval("%s.__doc__"%(objectName), {}, NS )
             sigs = tmp.splitlines()[0]
             if not ( sigs.count("(") and sigs.count(")") ):
                 sigs = ""
@@ -437,7 +524,7 @@ class IntroSpectionThread(threading.Thread):
                 kind = 'callable'
             
             # collect
-            tmp = eval("inspect.getargspec(%s)"%(objectName), None, ns)
+            tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
             args, varargs, varkw, defaults = tmp
             
             # prepare defaults
@@ -486,13 +573,16 @@ class IntroSpectionThread(threading.Thread):
     
     def enq_attributes(self, objectName):
         
+        # Get namespace
+        NS = self.interpreter.locals
+        
         # Init names
         names = set()
         
         # Obtain all attributes of the class
         try:
             command = "dir(%s.__class__)" % (objectName)
-            d = eval(command, {}, self.locals)
+            d = eval(command, {}, NS)
         except Exception:            
             pass
         else:
@@ -501,7 +591,7 @@ class IntroSpectionThread(threading.Thread):
         # Obtain instance attributes
         try:
             command = "%s.__dict__.keys()" % (objectName)
-            d = eval(command, {}, self.locals)
+            d = eval(command, {}, NS)
         except Exception:            
             pass
         else:
@@ -511,7 +601,7 @@ class IntroSpectionThread(threading.Thread):
         # query that as well
         try:
             command = "dir(%s)" % (objectName)
-            d = eval(command, {}, self.locals)
+            d = eval(command, {}, NS)
         except Exception:            
             pass
         else:
@@ -526,10 +616,13 @@ class IntroSpectionThread(threading.Thread):
     
     def enq_keys(self, objectName):
         
+        # Get namespace
+        NS = self.interpreter.locals
+        
         # get dir
         command = "%s.keys()" % (objectName)
         try:
-            d = eval(command, {}, self.locals)
+            d = eval(command, {}, NS)
         except Exception:            
             d = None
        
@@ -542,13 +635,16 @@ class IntroSpectionThread(threading.Thread):
     
     def enq_help(self,objectName):
         """ get help on an object """
+        
+        # Get namespace
+        NS = self.interpreter.locals
+        
         try:
-            # collect data
-            ns = self.locals
-            h_text = eval("%s.__doc__"%(objectName), {}, ns )            
-            h_repr = eval("repr(%s)"%(objectName), {}, ns )
+            # collect data            
+            h_text = eval("%s.__doc__"%(objectName), {}, NS )            
+            h_repr = eval("repr(%s)"%(objectName), {}, NS )
             try:
-                h_class = eval("%s.__class__.__name__"%(objectName), {}, ns )
+                h_class = eval("%s.__class__.__name__"%(objectName), {}, NS )
             except:
                 h_class = "unknown"
             
@@ -573,15 +669,19 @@ class IntroSpectionThread(threading.Thread):
         except Exception, why:
             text = "No help available: " + str(why)
         
+        # Done
         self.response.write( text )
     
     
     def enq_eval(self, command):
         """ do a command and send "str(result)" back. """
-         
+        
+        # Get namespace
+        NS = self.interpreter.locals
+        
         try:
             # here globals is None, so we can look into sys, time, etc...
-            d = eval(command, None, self.locals)
+            d = eval(command, None, NS)
 #             d = eval(command, {}, self.locals)
         except Exception, why:            
             d = None

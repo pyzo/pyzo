@@ -660,17 +660,20 @@ class PythonShell(BaseShell):
         # Create multi channel connection
         # Note that the request and response channels are reserved and should
         # not be read/written by "anyone" other than the introspection thread.
-        self._channels = c = channels.Channels(2)
+        self._channels = c = channels.Channels(3)
         c.disconnectCallback = self._onDisconnect
-        #
-        self._stdin = c.getSendingChannel(0)        
+        # Standard streams
+        self._stdin = c.getSendingChannel(0)
         self._stdout = c.getReceivingChannel(0)
         self._stderr = c.getReceivingChannel(1)
+        # Control and status of interpreter
+        self._control = c.getSendingChannel(1)
         self._status = c.getReceivingChannel(2)
-        self._request = c.getSendingChannel(1)
+        # For introspection
+        self._request = c.getSendingChannel(2)
         self._response = c.getReceivingChannel(3)
         
-        # host it!
+        # host it (tries several port numbers, staring from 'IEP')
         port = c.host('IEP')
         
         # build command to create process
@@ -683,11 +686,8 @@ class PythonShell(BaseShell):
             # And I also see problems with Tk.    
             command = "cmd /c " + command
         
-        # where to start
-        cwd = os.getcwd() # todo: where to start?
-        
         # start process
-        self._process = subprocess.Popen(command, shell=True, cwd=cwd)
+        self._process = subprocess.Popen(command, shell=True, cwd=os.getcwd())
         
         
         # Define queue of requestObjects and insert two requests
@@ -917,7 +917,6 @@ class PythonShell(BaseShell):
                                             lineno1, lineno2, fname)
         self.processLine(runtext, False)
         
-        print(text)
         # Run!
         self._stdin.write(text)
     
@@ -967,12 +966,21 @@ class PythonShell(BaseShell):
         if self._version:
             status = self._status.readLast()
             if status:
-                tabWidget = self.parent().parent()
-                i = tabWidget.indexOf(self)
-                if status == 'Ready':
+                # Get debug control
+                dbc = iep.shells._tabs.cornerWidget()
+                # Update it and obtain status text
+                if status.startswith('Debug'):
+                    dbc.setTrace( status[6:].split(',') )
+                    status = 'Python v{} ({})'.format(self._version, 'Debug')
+                elif status == 'Ready':
+                    dbc.setTrace(None)
                     status = 'Python v{}'.format(self._version)
                 else:
+                    dbc.setTrace(None)
                     status = 'Python v{} ({})'.format(self._version, status)
+                # Show status in tab text
+                tabWidget = self.parent().parent()
+                i = tabWidget.indexOf(self)
                 tabWidget.setTabText(i, status)
     
     
