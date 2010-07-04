@@ -9,7 +9,7 @@ from cx_Freeze import Executable, Freezer, setup
 name = "iep"
 baseDir = ''
 srcDir = ''
-distDir = baseDir+'frozen/'
+distDir = baseDir+'../frozen/'
 scriptFile = srcDir + 'iep.pyw'
 iconFile = srcDir + 'icon.ico'
 
@@ -32,6 +32,9 @@ excludes.append('numpy')
 # For qt to work
 includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 'PyQt4.Qsci'] 
 
+# Plugins are dynamically loaded so need copying or included explicitly
+includes = ['plugins.iepSourceStructure']
+
 
 ## Go!
 # See http://cx-freeze.sourceforge.net/cx_Freeze.html for docs.
@@ -50,8 +53,6 @@ if sys.platform.lower().count('win'):
                         )
 else:
     ex = Executable(    scriptFile, 
-                    icon=iconFile,
-                    appendScriptToExe = True,
                     )
 
 
@@ -59,7 +60,7 @@ f = Freezer(    {ex:True},
                 includes = includes,
                 excludes = excludes,
                 targetDir = distDir,
-#                 copyDependentFiles = True,
+                copyDependentFiles = True,
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
                 compress=False,
@@ -72,3 +73,6 @@ f.Freeze()
 shutil.copy(srcDir+'styles.ssdf', distDir+'styles.ssdf')
 for icon in ['icon16.png', 'icon32.png', 'icon48.png', 'icon.ico']:
     shutil.copy(srcDir+icon, distDir+icon)
+for mod in ['channels.py', 'remote.py', 'remote2.py']:
+    shutil.copy(srcDir+mod, distDir+mod)
+# todo: also need remote3.py?
