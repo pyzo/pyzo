@@ -93,8 +93,9 @@ class IepInterpreter(code.InteractiveConsole):
             sys.path.remove(thisPath)
         
         # Go to start dir
-        # os.chdir(os.path.expanduser('~/')) # home dir
-        os.chdir(sys.exec_prefix) # where original Python interpreter starts
+        os.chdir(os.path.expanduser('~/')) # home dir
+        # todo: let the user decide where to start
+        # os.chdir(sys.exec_prefix) On windows, python starts here
         
         # Execute startup script
         filename = os.environ.get('PYTHONSTARTUP')

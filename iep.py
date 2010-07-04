@@ -29,11 +29,7 @@ modules.
 import sys, os
 
 # import ssdf or the suplied copy if not available
-try:
-    import ssdf
-except ImportError:
-    # if strux not available, use the copy we included with IEP
-    import ssdf_copy as ssdf
+import ssdf
 
 
 ## Some functions...
