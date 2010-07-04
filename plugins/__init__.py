@@ -134,11 +134,20 @@ class PluginManager:
         """
         
         # Get path
-        # todo: does this also work when frozen?
         plugindir = os.path.dirname( os.path.abspath(__file__) )
         
-        # Create list    
-        pluginfiles = os.listdir(plugindir)
+        # Get list of files, also when we're in a zip file.
+        i = plugindir.find('.zip')
+        if i>0:
+            # Get list of files from zipfile
+            plugindir = plugindir[:i+4]
+            import zipfile
+            z = zipfile.ZipFile(plugindir)
+            pluginfiles = [os.path.split(i)[1] for i in z.namelist() 
+                        if i.startswith('visvis') and i.count('functions')]
+        else:
+            # Get list of files from file system
+            pluginfiles = os.listdir(plugindir)
         
         # Iterate over plugin modules
         newlist = []

@@ -41,7 +41,8 @@ class IepInterpreter(code.InteractiveConsole):
         """ Write the status (Ready, or Busy, or Debug info). """
         if self._dbFrames:
             # Debug info
-            stack = [f.f_code.co_name for f in self._dbFrames]
+            stack = [f.f_code.co_name+': '+str(f.f_lineno)+' in '+f.f_code.co_filename
+                for f in self._dbFrames]
             stack.append(str(self._dbFrameIndex))
             sys._status.write('Debug ' + ','.join(stack))
         else:
