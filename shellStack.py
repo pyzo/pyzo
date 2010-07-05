@@ -181,7 +181,7 @@ class DebugControl(QtGui.QToolButton):
             # Create menu and add __main__
             menu = QtGui.QMenu(self)
             self.setMenu(menu)
-            action = menu.addAction('__main__ (stop debugging)')
+            action = menu.addAction('MAIN: stop debugging')
             action._index = -1
             
             # Fill trace

@@ -133,6 +133,7 @@ editor = dict:
   defaultLineEndings = 'LF'
   doBraceMatch = 1
   autoComplete = 1
+  autoComplete_keywords = 1
   callTip = 1
   tabWidth = 4
   codeFolding = 0
