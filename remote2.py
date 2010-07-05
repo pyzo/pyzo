@@ -1,62 +1,53 @@
 import os, sys, time
-import code
+from codeop import CommandCompiler
 import traceback
 import types
-
 import threading
 import inspect
+import keyword # for autocomp
 
-
-# Init last traceback
+# Init last traceback information
 sys.last_type = None
 sys.last_value = None
 sys.last_traceback = None
 
-class IepInterpreter(code.InteractiveConsole):
-    """Closely emulate the interactive Python console.
-    Almost the same as code.InteractiveConsole, but interact()
-    is overriden to change the following:
+
+class IepInterpreter:
+    """ Closely emulate the interactive Python console.
+    Simular working as code.InteractiveConsole. Some code was copied, but
+    the following things are changed:
     - prompts are printed in the err stream, like the default interpreter does
-    - uses an asynchronous read using the channels interface.    
+    - uses an asynchronous read using the channels interface
     - support for hijacking GUI toolkits
-    - can run large pieces of code.
+    - can run large pieces of code
+    - support post mortem debugging
     """
     
-    def __init__(self, locals):
-        code.InteractiveConsole.__init__(self, locals=locals)
+    def __init__(self, locals, filename="<console>"):
+        
+        # Init variables for locals and globals (globals only for debugging)
+        self.locals = locals
+        self.globals = None
+        
+        # Store filename
+        self.filename = filename
         
         # Store ref of locals that is our main
         self._main_locals = locals
+        
+        # Information for debugging. If self._dbFrames, we're in debug mode
         self._dbFrames = []
         self._dbFrameIndex = 0
         self._dbFrameName = ''
-    
-    
-    def write(self, text):
-        """ Write errors and prompts. """
-        sys.stderr.write( text )
-    
-    
-    def writeStatus(self):
-        """ Write the status (Ready, or Busy, or Debug info). """
-        if self._dbFrames:
-            # Debug info
-            stack = [f.f_code.co_name+': '+str(f.f_lineno)+' in '+f.f_code.co_filename
-                for f in self._dbFrames]
-            stack.append(str(self._dbFrameIndex))
-            sys._status.write('Debug ' + ','.join(stack))
-        else:
-            sys._status.write('Ready')
-    
-    
-    def interact(self, banner=None):    
-        """ Interact! (start the mainloop)
-        """
         
-        ## INIT
+        # Init datase to store source code that we execute
+        self._codeCollection = ExecutedSourceCollection()
         
-        # create list to store codeBlocks that we execute
-        self._codeList = []
+        # Init buffer to deal with multi-line command in the shell
+        self.buffer = []
+        
+        # Init the compiler
+        self.compile = CommandCompiler()
         
         # Define prompts
         try:
@@ -67,25 +58,22 @@ class IepInterpreter(code.InteractiveConsole):
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-        
-        
-        ## WELCOME
+    
+    
+    ## Base of interpreter
+    
+    def interact(self):    
+        """ Interact! (start the mainloop)
+        """
         
         # Create banner
         cprt =  'Type "help", "copyright", "credits" or "license"'\
                 ' for more information.'
         moreBanner = 'This is the IepInterpreter. Type "?" for'\
                      ' a list of *magic* commands.'
-        # moreBanner = self.__class__.__name__
-        if banner is None:
-            sys.stdout.write("Python %s on %s\n%s\n%s\n" %
-                       (sys.version, sys.platform, cprt,
-                        moreBanner))
-        else:
-            sys.stdout.write("%s\n" % str(banner))
+        sys.stdout.write("Python %s on %s\n%s\n%s\n" %
+            (sys.version, sys.platform, cprt, moreBanner))
         
-        
-        ## PREPARE
         
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
@@ -101,7 +89,7 @@ class IepInterpreter(code.InteractiveConsole):
         # Execute startup script
         filename = os.environ.get('PYTHONSTARTUP')
         if filename and os.path.isfile(filename):
-            execfile(filename, {}, self.locals)
+            execfile(filename, self.locals)
         
 
 #         # hijack tk and wx
@@ -111,8 +99,7 @@ class IepInterpreter(code.InteractiveConsole):
 #         self.qtapp = qtapp = hijack_qt4()
         
         
-        ## MAIN LOOP
-        
+        # ENTER MAIN LOOP
         guitime = time.clock()        
         more = 0
         self.newPrompt = True
@@ -137,15 +124,15 @@ class IepInterpreter(code.InteractiveConsole):
                 # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
                 
+                # Read control stream and process
+                control = sys._control.readOne(False)
+                if control:
+                    self.parsecontrol(control)
+                
                 # Are we still connected?
                 if sys.stdin.closed:
                     self.write("\n")
                     break
-                
-                # Read control stream and process
-                control = sys._control.readOne(False)
-                if control:
-                    self.parseControl(control)
                 
                 # Read a packet and process
                 line = sys.stdin.readOne(False)
@@ -156,7 +143,7 @@ class IepInterpreter(code.InteractiveConsole):
                     
                     if line.startswith('\n') and len(line)>1:
                         # Execute larger piece of code
-                        self.execute_text(line)
+                        self.runlargecode(line)
                         # Reset more stuff
                         self.resetbuffer()
                         more = False
@@ -166,28 +153,139 @@ class IepInterpreter(code.InteractiveConsole):
                         more = self.push(line)
                 
                 # Keep GUI toolkits up to date
-                self.updateGUIs()
+                self.updateguis()
             
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")
                 self.resetbuffer()
                 more = 0
                 self.write(sys.ps1)
-                # todo: is this still an issue?
-#             except TypeError, err:
-#                 # For some reason, when wx is hijacked, keyboard interrupts
-#                 # result in a TypeError on "time.sleep(0.010)".
-#                 # I tried to find the source, but did not find it. If anyone
-#                 # has an idea, please mail me!
-#                 if err.message == "'int' object is not callable":
-#                     self.write("\nKeyboardInterrupt\n")
-#                     self.resetbuffer()
-#                     more = 0
-#                     self.write(sys.ps1)
-#                 else:
-#                     raise err
     
-    def updateGUIs(self):
+    
+    def resetbuffer(self):
+        """Reset the input buffer."""
+        self.buffer = []
+    
+    
+    def push(self, line):
+        """Push a line to the interpreter.
+        
+        The line should not have a trailing newline; it may have
+        internal newlines.  The line is appended to a buffer and the
+        interpreter's runsource() method is called with the
+        concatenated contents of the buffer as source.  If this
+        indicates that the command was executed or invalid, the buffer
+        is reset; otherwise, the command is incomplete, and the buffer
+        is left as it was after the line was appended.  The return
+        value is 1 if more input is required, 0 if the line was dealt
+        with in some way (this is the same as runsource()).
+        
+        """
+        self.buffer.append(line)
+        source = "\n".join(self.buffer)
+        more = self.runsource(source, self.filename)
+        if not more:
+            self.resetbuffer()
+        return more
+    
+    
+    def runsource(self, source, filename="<input>", symbol="single"):
+        """Compile and run some source in the interpreter.
+        
+        Arguments are as for compile_command().
+        
+        One several things can happen:
+        
+        1) The input is incorrect; compile_command() raised an
+        exception (SyntaxError or OverflowError).  A syntax traceback
+        will be printed by calling the showsyntaxerror() method.
+        
+        2) The input is incomplete, and more input is required;
+        compile_command() returned None.  Nothing happens.
+        
+        3) The input is complete; compile_command() returned a code
+        object.  The code is executed by calling self.runcode() (which
+        also handles run-time exceptions, except for SystemExit).
+        
+        The return value is True in case 2, False in the other cases (unless
+        an exception is raised).  The return value can be used to
+        decide whether to use sys.ps1 or sys.ps2 to prompt the next
+        line.
+        
+        """
+        try:
+            code = self.compile(source, filename, symbol)
+        except (OverflowError, SyntaxError, ValueError):
+            # Case 1
+            self.showsyntaxerror(filename)
+            return False
+        
+        if code is None:
+            # Case 2
+            return True
+        
+        # Case 3
+        self.runcode(code)
+        return False
+    
+    
+    def runcode(self, code):
+        """Execute a code object.
+
+        When an exception occurs, self.showtraceback() is called to
+        display a traceback.  All exceptions are caught except
+        SystemExit, which is reraised.
+
+        A note about KeyboardInterrupt: this exception may occur
+        elsewhere in this code, and may not always be caught.  The
+        caller should be prepared to deal with it.
+        
+        The globals variable is used when in debug mode.
+        """
+        try:
+            if self._dbFrames:
+                exec(code, self.globals, self.locals)
+            else:
+                exec(code, self.locals)
+        except SystemExit:
+            raise
+        except:
+            self.showtraceback()
+    
+    
+    def runlargecode(self, text):
+        """ To execute larger pieces of code. """
+        
+        # Split information
+        # (The last line contains filename + lineOffset about the code)
+        tmp = text.rsplit('\n', 2)
+        source = tmp[0][1:]  # remove first newline
+        fname = tmp[1]
+        lineno = int(tmp[2])
+        
+        # Put the line number in the filename (if necessary)
+        if lineno:
+            fname = "%s+%i" % (fname, lineno)
+        
+        # Try compiling the source
+        code = None
+        try:            
+            # Compile
+            code = self.compile(source, fname, "exec")          
+            
+        except (OverflowError, SyntaxError, ValueError):
+            self.showsyntaxerror(fname)
+        
+        if code:
+            # Store the source using the (id of the) code object as a key
+            self._codeCollection.storeSource(code, source)
+            # Execute the code
+            self.runcode(code)
+    
+    
+    ## Misc
+    
+    def updateguis(self):
         pass
         #                 # update tk and wx 50 times per second
     #                 if time.time() - guitime > 0.019: # a bit sooner for sync
@@ -203,7 +301,11 @@ class IepInterpreter(code.InteractiveConsole):
     #                     guitime = time.time()
     
     
-    def parseControl(self, control):
+    def parsecontrol(self, control):
+        """ Parse a command received on the control stream. 
+        This is used to request the status and to control the
+        (post mortem) debugging.
+        """
         
         if control == 'STATUS':
             self.writeStatus()
@@ -222,6 +324,7 @@ class IepInterpreter(code.InteractiveConsole):
                 frame = self._dbFrames[self._dbFrameIndex]
                 self._dbFrameName = frame.f_code.co_name
                 self.locals = frame.f_locals
+                self.globals = frame.f_globals
                 # Notify IEP
                 self.writeStatus()
             else:
@@ -242,6 +345,7 @@ class IepInterpreter(code.InteractiveConsole):
             frame = self._dbFrames[self._dbFrameIndex]
             self._dbFrameName = frame.f_code.co_name
             self.locals = frame.f_locals
+            self.globals = frame.f_globals
         
         elif control == 'DEBUG DOWN':
             # Decrease frame index
@@ -252,6 +356,7 @@ class IepInterpreter(code.InteractiveConsole):
             frame = self._dbFrames[self._dbFrameIndex]
             self._dbFrameName = frame.f_code.co_name
             self.locals = frame.f_locals
+            self.globals = frame.f_globals
         
         elif control == 'DEBUG UP':
             # Increase frame index
@@ -262,43 +367,39 @@ class IepInterpreter(code.InteractiveConsole):
             frame = self._dbFrames[self._dbFrameIndex]
             self._dbFrameName = frame.f_code.co_name
             self.locals = frame.f_locals
+            self.globals = frame.f_globals
         
         elif control == 'DEBUG END':
             self.locals = self._main_locals
+            self.globals = None
             self._dbFrames = []
     
     
-    def execute_text(self, text):
-        """ To execute larger pieces of code. """
-        
-        # Split information
-        # (The last line contains filename + lineOffset about the code)
-        tmp = text.rsplit('\n', 2)
-        source = tmp[0]
-        fname = tmp[1]
-        lineno = int(tmp[2]) -1 # because we do not remove the first newline
-        
-        # Put the index of the codeBlock in the filename
-        fname = "%s [%i]" % (fname, len(self._codeList))
-        # Store the information
-        self._codeList.append( (source, fname, lineno) )
-        
-        # Try compiling the source
-        code = None
-        try:            
-            code = self.compile(source, fname, "exec")
-        except (OverflowError, SyntaxError, ValueError):
-            self.showsyntaxerror(fname)
-        
-        # Execute the code
-        if code:            
-            try:
-                exec code in self.locals
-            except SystemExit:
-                raise
-            except:
-                #self.write('oops!')
-                self.showtraceback()
+    ## Writing and error handling
+    
+    
+    def write(self, text):
+        """ Write errors and prompts. """
+        sys.stderr.write( text )
+    
+    
+    def writeStatus(self):
+        """ Write the status (Ready, or Busy, or Debug info). """
+        if self._dbFrames:
+            # Debug info
+            stack = []
+            for f in self._dbFrames:
+                # Get fname and lineno, and correct if required
+                fname, lineno = f.f_code.co_filename, f.f_lineno
+                fname, lineno = correctFilenameAndLineno(fname, lineno)
+                # Build string
+                text = f.f_code.co_name + ': '
+                text += 'line ' + str(lineno) + ' in ' + fname
+                stack.append(text)
+            stack.append(str(self._dbFrameIndex))
+            sys._status.write('Debug ' + ','.join(stack))
+        else:
+            sys._status.write('Ready')
     
     
     def showsyntaxerror(self, filename=None):
@@ -312,32 +413,30 @@ class IepInterpreter(code.InteractiveConsole):
         see doc of showtraceback for details.        
         """
         
-        type, value, sys.last_traceback = sys.exc_info()
-        sys.last_type = type
-        sys.last_value = value
+        # Get info (do not store)
+        type, value, tb = sys.exc_info()
+        tb = None
+        
+        # Work hard to stuff the correct filename in the exception
         if filename and type is SyntaxError:
-            # Work hard to stuff the correct filename in the exception
             try:
                 # unpack information
                 msg, (dummy_filename, lineno, offset, line) = value
                 # correct line-number
-                codenr = filename.rsplit("[",1)[-1].split("]",1)[0]
-                try:
-                    codeblock = self._codeList[int(codenr)]
-                    lineno = lineno + int(codeblock[2])
-                except (ValueError, IndexError):
-                    pass
+                fname, lineno = correctFilenameAndLineno(filename, lineno)
             except:
                 # Not the format we expect; leave it alone
                 pass
             else:
                 # Stuff in the right filename
-                value = SyntaxError(msg, (filename, lineno, offset, line))
+                value = SyntaxError(msg, (fname, lineno, offset, line))
                 sys.last_value = value
+        
+        # Show syntax error 
         list = traceback.format_exception_only(type, value)
         map(self.write, list)
-        
-        
+    
+    
     def showtraceback(self):
         """Display the exception that just occurred.
         We remove the first stack item because it is our own code.
@@ -385,27 +484,28 @@ class IepInterpreter(code.InteractiveConsole):
             # Get frame
             frame = tb.tb_frame
             
-            # Get traceback to correct all the line numbers
+            # Get source (if available) and split lines
+            source = self._codeCollection.getSource(frame.f_code)
+            source = source.splitlines()
+            
+            # Get tpraceback to correct all the line numbers
             # tblist = list  of (filename, line-number, function-name, text)
             tblist = traceback.extract_tb(tb)
             
             # Walk through the list
             for i in range(len(tblist)):
                 tb = tblist[i]
-                # get codeblock number: piece between []                
-                codenr = tb[0].rsplit("[",1)[-1].split("]",1)[0]
-                try:
-                    source, fname, lineno = self._codeList[int(codenr)]
-                except (ValueError, IndexError):
-                    continue
-                # Add info to traceback and correct line number             
-                example = source.splitlines()
-                try:
-                    example = example[ tb[1]-1 ]
-                except IndexError:
-                    example = ""
-                lineno = tb[1] + lineno
-                tblist[i] = ( tb[0], lineno, tb[2], example)
+                # Get filename and line number
+                fname, lineno = correctFilenameAndLineno(tb[0], tb[1])
+                # Obtain source from example and select line
+                example = tb[3]
+                if source:
+                    try:
+                        example = source[ tb[1]-1 ]
+                    except IndexError:
+                        pass
+                # Reset info
+                tblist[i] = (fname, lineno, tb[2], example)
             
             # Format list
             list = traceback.format_list(tblist)
@@ -418,6 +518,33 @@ class IepInterpreter(code.InteractiveConsole):
         # Write traceback
         map(self.write, list)
 
+
+def correctFilenameAndLineno(fname, lineno):
+    """ Given a filename and lineno, this function returns
+    a modified (if necessary) version of the two. 
+    As example:
+    "foo.py+7", 22  -> "foo.py", 29
+    """
+    j = fname.find('+')
+    if j>0:
+        try:
+            lineno += int(fname[j+1:])
+            fname = fname[:j]
+        except ValueError:
+            pass
+    return fname, lineno
+
+
+class ExecutedSourceCollection(dict):
+    """ Stores the source of executed pieces of code, so that the right 
+    traceback can be reproduced when an error occurs.
+    The codeObject produced by compiling the source is used as a 
+    reference.
+    """
+    def storeSource(self, codeObject, source):
+        self[id(codeObject)] = source
+    def getSource(self, codeObject):
+        return self.get(id(codeObject), '')
 
 
 class IntroSpectionThread(threading.Thread):
@@ -457,9 +584,6 @@ class IntroSpectionThread(threading.Thread):
             
             if req == "EVAL":
                 self.enq_eval( arg )
-                
-            elif req == "KEYS":
-                self.enq_keys(arg)
             
             elif req == "SIGNATURE":
                 self.enq_signature(arg)
@@ -469,11 +593,29 @@ class IntroSpectionThread(threading.Thread):
             
             elif req == "HELP":
                 self.enq_help(arg)
-
+            
             else:
                 self.response.write('<not a valid request>')
                 
         print('IntrospectionThread stopped')
+    
+    
+    def getNameSpace(self):
+        """ Get the namespace to apply introspection in. 
+        This is necessary in order to be able to use inspect
+        in calling eval.
+        """
+        NS1 = self.interpreter.locals
+        NS2 = self.interpreter.globals
+        if not NS2:
+            return NS1
+        else:
+            NS3 = {}
+            for key in NS1:
+                NS3[key] = NS1[key]
+            for key in NS2:
+                NS3[key] = NS2[key]
+            return NS3
     
     
     def getSignature(self,objectName):
@@ -488,7 +630,7 @@ class IntroSpectionThread(threading.Thread):
         # what about self?
         
         # find out what kind of function, or if a function at all!
-        NS = self.interpreter.locals
+        NS = self.getNameSpace()
         fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, NS)
         fun2 = eval("inspect.isfunction(%s)"%(objectName), None, NS)
         fun3 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
@@ -576,7 +718,7 @@ class IntroSpectionThread(threading.Thread):
     def enq_attributes(self, objectName):
         
         # Get namespace
-        NS = self.interpreter.locals
+        NS = self.getNameSpace()
         
         # Init names
         names = set()
@@ -616,34 +758,24 @@ class IntroSpectionThread(threading.Thread):
             self.response.write( "<error>" )
     
     
-    def enq_keys(self, objectName):
-        
-        # Get namespace
-        NS = self.interpreter.locals
-        
-        # get dir
-        command = "%s.keys()" % (objectName)
-        try:
-            d = eval(command, {}, NS)
-        except Exception:            
-            d = None
-       
-        # respond
-        if d:
-            self.response.write( ",".join(d) )
-        else:
-            self.response.write( "<error>" )
-    
-    
     def enq_help(self,objectName):
         """ get help on an object """
         
         # Get namespace
-        NS = self.interpreter.locals
+        NS = self.getNameSpace()
         
         try:
-            # collect data            
-            h_text = eval("%s.__doc__"%(objectName), {}, NS )            
+            # collect docstring
+            className = eval("%s.__class__.__name__"%(objectName), {}, NS)
+            tmp = objectName.rsplit('.',1)
+            h_text = ''
+            if len(tmp)==2 and className != 'type':
+                part1, part2 = tmp[0], tmp[1]
+                h_text = eval("%s.__class__.%s.__doc__"%(part1,part2), {}, NS )
+            if not h_text:
+                h_text = eval("%s.__doc__"%(objectName), {}, NS )
+            
+            # collect more data            
             h_repr = eval("repr(%s)"%(objectName), {}, NS )
             try:
                 h_class = eval("%s.__class__.__name__"%(objectName), {}, NS )
@@ -679,12 +811,11 @@ class IntroSpectionThread(threading.Thread):
         """ do a command and send "str(result)" back. """
         
         # Get namespace
-        NS = self.interpreter.locals
+        NS = self.getNameSpace()
         
         try:
             # here globals is None, so we can look into sys, time, etc...
             d = eval(command, None, NS)
-#             d = eval(command, {}, self.locals)
         except Exception, why:            
             d = None
         

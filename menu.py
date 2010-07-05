@@ -504,9 +504,10 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Enable code folding', self.fun_codeFolding, []) )        
         addItem( MI('Automatically indent', self.fun_autoIndent, []) )        
         addItem( None )
-        addItem( MI('Match braces', self.fun_braceMatch, []) )
-        addItem( MI('Show auto completion', self.fun_autoComplete, []) )
+        addItem( MI('Match braces', self.fun_braceMatch, []) )        
         addItem( MI('Show call tips', self.fun_callTip, []) )
+        addItem( MI('Show auto completion', self.fun_autoComplete, []) )
+        addItem( MI('Autocomplete keywords', self.fun_autoComplete_kw, []) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, []) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
@@ -612,6 +613,14 @@ class SettingsMenu(BaseMenu):
         else:
             value = not bool(iep.config.editor.autoComplete)
             iep.config.editor.autoComplete = value
+    
+    def fun_autoComplete_kw(self, value):
+        """ Show the keywords in the autocompletion list."""
+        if value is None:
+            return bool(iep.config.editor.autoComplete_keywords)
+        else:
+            value = not bool(iep.config.editor.autoComplete_keywords)
+            iep.config.editor.autoComplete_keywords = value
     
     def fun_callTip(self, value):
         """ Show a call tip for functions and methods."""

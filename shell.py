@@ -644,11 +644,10 @@ class PythonShell(BaseShell):
         # variable to terminate the process in increasingly pressing ways
         self._killAttempts = 0
         
-        # which python version is this?
+        # Variables to store python version, builtins and keywords 
         self._version = ""
-        
-        # the builtins list of the process
-        self._builtins =[]
+        self._builtins = []
+        self._keywords = []
         
         # for the editor to keep track of attempted imports
         self._importAttempts = []
@@ -692,8 +691,10 @@ class PythonShell(BaseShell):
         
         # Define queue of requestObjects and insert two requests
         self._requestQueue = []
+        tmp = "','.join(__builtins__.__dict__.keys())"
         self.postRequest('EVAL sys.version', self._setVersion)
-        self.postRequest('KEYS __builtins__.__dict__', self._setBuiltins)
+        self.postRequest('EVAL ' + tmp, self._setBuiltins)
+        self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
         
         # time var to pump messages in one go
         self._t = time.time()
@@ -711,10 +712,13 @@ class PythonShell(BaseShell):
         """ Process the request for the version. """
         self._version = response[:5]
     
-    
     def _setBuiltins(self, response, id):
         """ Process the request for the list of buildins. """
         self._builtins = response.split(',')
+    
+    def _setKeywords(self, response, id):
+        """ Process the request for the list of keywords. """
+        self._keywords = response.split(',')
     
     ## Introspection processing methods
     
@@ -770,9 +774,11 @@ class PythonShell(BaseShell):
             if aco.tryUsingBuffer():
                 return
         
-        # Include builtins?
+        # Include builtins and keywords?
         if not aco.name:
             aco.addNames(self._builtins)
+            if iep.config.editor.autoComplete_keywords:
+                aco.addNames(self._keywords)
         
         # Clear buffer to prevent doing a second request
         # and store cto to see whether the response is still wanted.
