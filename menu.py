@@ -131,6 +131,8 @@ class BaseMenu(qt.QMenu):
             self.addAction(realitem)
         else:
             self.addSeparator()
+        # done
+        return realitem
     
     def fill(self):
         """ Update the contents. """
@@ -708,7 +710,14 @@ class ShellMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Create "python" shell', self.fun_create) )
+        # Insert entry for each configuration
+        for info in iep.config.shellConfigs:
+            text = 'Create shell: '+info.name
+            action = addItem( MI(text, self.fun_create) )
+            action.value = info
+        
+        addItem( MI('Edit shell configurations ...', self.fun_config) )
+        addItem( None )
         addItem( MI('Interrup current shell', self.fun_interrupt) )
         addItem( MI('Terminate current shell', self.fun_term) )        
         addItem( MI('Restart current shell', self.fun_restart) )        
@@ -719,9 +728,19 @@ class ShellMenu(BaseMenu):
         addItem( MI('Run project main file', self.fun_runProject) )
         addItem( MI('Restart and run project main file', self.fun_runProject2))
     
+    def fun_config(self, value):
+        """ Edit, add and remove configurations for the shells. """
+        from shellStack import ShellInfoDialog 
+        d = ShellInfoDialog()
+        d.exec_()
+    
+    
     def fun_create(self, value):
         """ Create a new Python shell. """
-        iep.shells.addShell()
+        if value:
+            iep.shells.addShell(value)
+        else:
+            iep.shells.addShell()
     
     def fun_interrupt(self, value):
         """ Send a keyboard interrupt signal to the current shell. """
@@ -934,7 +953,6 @@ def getShortcut( fullName):
         else:
             shortcut = shortcut, ''
     return shortcut
-
 
 ## Classes to enable editing the key mappings
 
@@ -1284,7 +1302,7 @@ class KeymappingDialog(QtGui.QDialog):
         size2 = size[0], size[1]+offset
         self.resize(*size2)
         self.setMaximumSize(*size2)
-        self.setMinimumSize(*size2)
+        self.setMinimumSize(*   size2)
         
         self.tab = QtGui.QTabWidget(self)
         self.tab.resize(*size)
@@ -1299,7 +1317,7 @@ class KeymappingDialog(QtGui.QDialog):
             model.setRootMenu(menu)
             tree = QtGui.QTreeView(self.tab) 
             tree.setModel(model)
-            # condigure treeview
+            # configure treeview
             tree.clicked.connect(self.onClickSelect)
             tree.doubleClicked.connect(self.onDoubleClick)
             tree.setColumnWidth(0,150)

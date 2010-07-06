@@ -167,6 +167,13 @@ shortcuts = dict:
   edit__cut = 'Ctrl+X,Shift+Delete'
   view__zooming__zoom_reset = 'Ctrl+\\,'
   settings__qt_theme__plastique = 'Alt+F11,'
+shellConfigs = list:
+  dict:
+    name = 'default'
+    runsus = 1
+    startdir = ''
+    gui = 'wx'
+    exe = 'python'
 plugins = dict:
   top = list:
   bottom = list:

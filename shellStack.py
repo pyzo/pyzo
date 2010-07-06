@@ -8,6 +8,7 @@ from PyQt4 import QtCore, QtGui
 import iep
 from shell import PythonShell
 
+ssdf = iep.ssdf
 
 class ShellStack(QtGui.QWidget):
     """ The shell stack widget provides a stack of shells,
@@ -198,51 +199,266 @@ class DebugControl(QtGui.QToolButton):
                 menu.setDefaultAction(theAction)
                 self.setText(theAction.text().ljust(20))
     
+
+
+class ShellInfoDialogEntries(QtGui.QWidget):
     
-# 
-# class DebugControl2(QtGui.QWidget):
-#     def __init__(self, parent):
-#         QtGui.QWidget.__init__(self, parent)
-#         
-#         # Create button
-#         self._but = QtGui.QPushButton(self)
-#         self._but.setToolTip("Start/Stop post mortem debugging.")
-#         self._but.setText('Post mortem')
-#         self._but.move(0,0)
-#         
-#         
-#         # Create list
-#         self._list = QtGui.QToolButton(self)
-#         self._list.setText("__main__")
-#         self._list.move(0,0)
-#         # Attach menu
-#         self._menu = QtGui.QMenu(self._list)
-#         self._list.setMenu(self._menu)
-#         a = self._menu.addAction("__main__")
-#         b = self._menu.addAction("aap")
-#         self._menu.addAction("noot")
-#         self._menu.addAction("mies")
-#         self._menu.setDefaultAction(b)
-#         
-#         self._list.setPopupMode(self._list.InstantPopup)
-#         
-#         self._but.setMinimumHeight(26)
-#         
-#         # Layout
-#         self._sizer =  QtGui.QHBoxLayout(self)
-#         self._sizer.addStretch(1)
-#         self._sizer.addWidget(self._list, 0)
-#         self._sizer.addWidget(self._but, 0)
-# #         self.setLayout(self._sizer)
-#         
-#         # 
-#         self.setMinimumSize(120,16)
-#         self.resize(120,16)
-#         self._sizer.setSizeConstraint(QtGui.QLayout.SetMinimumSize)
-#     
-#     
-# #     def minimumSizeHint(self):
-# #         return QtCore.QSize(100,26)
-#         
-#     def sizeHint(self):
-#         return self.size()#QtCore.QSize(200,300)
+    def __init__(self, *args):        
+        QtGui.QWidget.__init__(self, *args)    
+        
+        # Init
+        offset = 20
+        y = 10
+        dy = 60
+        
+        # Create name entry
+        label = QtGui.QLabel(self)
+        label.move(offset, y)
+        label.setText('Configuration name (e.g. "Python with qt")')        
+        self._name = QtGui.QLineEdit(self)        
+        self._name.move(offset, y+16)
+        y += dy
+        
+        # Create executable widget
+        label = QtGui.QLabel(self)
+        label.move(offset, y)
+        label.setText('Executable (e.g. "python" or '+
+                                    '"c:/program files/python31/python.exe" )')
+        self._exe = QtGui.QLineEdit(self)
+        self._exe.move(offset, y+16)
+        self._exe.resize(350, self._exe.height())
+        y += dy
+        
+        # Create GUI toolkit chooser
+        dx = 60
+        label = QtGui.QLabel(self)
+        label.move(offset, y)
+        label.setText('Gui toolkit to interact with.')        
+        #
+        self._gui_none = QtGui.QRadioButton(self)
+        self._gui_none.move(offset+dx*0, y+16)
+        self._gui_none.setText('None')
+        #
+        self._gui_tk = QtGui.QRadioButton(self)
+        self._gui_tk.move(offset+dx*1, y+16)
+        self._gui_tk.setText('TK')
+        #
+        self._gui_wx = QtGui.QRadioButton(self)
+        self._gui_wx.move(offset+dx*2, y+16)
+        self._gui_wx.setText('WX')
+        #
+        self._gui_qt4 = QtGui.QRadioButton(self)
+        self._gui_qt4.move(offset+dx*3, y+16)
+        self._gui_qt4.setText('QT4')
+        #
+        self._gui_fl = QtGui.QRadioButton(self)
+        self._gui_fl.move(offset+dx*4, y+16)
+        self._gui_fl.setText('FLTK')
+        #        
+        y += dy
+        
+        # Create run startup script checkbox
+        label = QtGui.QLabel(self)
+        label.move(offset, y)
+        label.setText('Run startup script (if set).')
+        self._runsus = QtGui.QCheckBox(self)
+        self._runsus.move(offset, y+16)
+        y += dy
+        
+        # Create initial directory edit
+        label = QtGui.QLabel(self)
+        label.move(offset, y)
+        label.setText('Initial directory')        
+        self._startdir = QtGui.QLineEdit(self)        
+        self._startdir.move(offset, y+16)
+        self._startdir.resize(350, self._exe.height())
+        y += dy
+        
+        self.show()
+        
+        # Create close button
+        self._close = QtGui.QPushButton(self)
+        self._close.setText('Remove')
+        self._close.move(offset, y+20)
+        self._close.clicked.connect(self.onClose)
+        
+        # Init values
+        self.setDefaults()
+        
+        # A few callbacks so we do not need an apply button
+        self._name.editingFinished.connect(self.apply)
+        self._name.editingFinished.connect(self.setNameInTab)
+        self._exe.editingFinished.connect(self.apply)
+        self._gui_none.clicked.connect(self.apply)
+        self._gui_tk.clicked.connect(self.apply)
+        self._gui_wx.clicked.connect(self.apply)
+        self._gui_qt4.clicked.connect(self.apply)
+        self._gui_fl.clicked.connect(self.apply)
+        self._runsus.clicked.connect(self.apply)
+        self._startdir.editingFinished.connect(self.apply)
+    
+    
+    def setDefaults(self):
+        """ Set defaults. """
+        self._name.setText('new')
+        self._exe.setText('python')
+        self._gui_tk.setChecked(True)
+        self._runsus.setChecked(True)
+        self._startdir.setText('')
+    
+    
+    def onClose(self):        
+        # Get tab widget
+        tabs = self.parent().parent()
+        # Remove
+        tabs.removeTab( tabs.indexOf(self) )
+        
+        
+    
+    def apply(self):
+        """ Apply the current config. """
+        
+        # Get the dialog
+        parent = self.parent()
+        while not isinstance(parent, ShellInfoDialog):
+            parent = parent.parent()
+        
+        # Call apply 
+        parent.apply()
+    
+    
+    def setNameInTab(self):        
+        tabWidget = self.parent().parent()
+        i = tabWidget.indexOf(self)
+        tabWidget.setTabText(i, self._name.text())
+    
+    
+    def setInfo(self, info):
+        """ Set the contents based on an ssdf item in the shellConfigs. """
+        try:
+            self._name.setText(info.name)
+            self.setNameInTab()
+            #
+            self._exe.setText(info.exe)
+            #
+            if info.gui == 'tk':
+                self._gui_tk.setChecked(True)
+            elif info.gui == 'wx':
+                self._gui_wx.setChecked(True)
+            elif info.gui == 'qt4':
+                self._gui_qt4.setChecked(True)
+            elif info.gui == 'fl':
+                self._gui_fl.setChecked(True)
+            else:
+                self._gui_none.setChecked(True)
+            #
+            self._runsus.setChecked(info.runsus)
+            #
+            self._startdir.setText(info.startdir)
+        except Exception:
+            print('Error when setting info in shell config.')
+    
+    
+    def getInfo(self):
+        """ Get an ssdf struct based on the contents. """
+        info = ssdf.new()
+        #
+        info.name = self._name.text()
+        #
+        info.exe = self._exe.text()
+        #
+        if self._gui_tk.isChecked():
+            info.gui = 'tk'
+        elif self._gui_wx.isChecked():
+            info.gui = 'wx'
+        elif self._gui_qt4.isChecked():
+            info.gui = 'qt4'
+        elif self._gui_fl.isChecked():
+            info.gui = 'fl'
+        else:
+            info.gui = ''
+        # 
+        info.runsus = self._runsus.isChecked()
+        #
+        info.startdir = self._startdir.text()
+        # Done
+        return info
+
+
+class ShellInfoDialog(QtGui.QDialog):
+    """ Dialog to edit the shell configurations. """
+    
+    def __init__(self, *args):
+        QtGui.QDialog.__init__(self, *args)
+        
+        # set title
+        self.setWindowTitle('IEP - shell configurations')
+        self.setWindowIcon(iep.icon)
+        
+        # set size
+        size = 400,400
+        offset = 0
+        
+        size2 = size[0], size[1]+offset
+        self.resize(*size2)
+        self.setMaximumSize(*size2)
+        self.setMinimumSize(*size2)
+        
+        # Create tab widget
+        self._tabs = QtGui.QTabWidget(self)
+        self._tabs.resize(*size)
+        self._tabs.move(0,offset)
+        self._tabs.setMovable(True)
+        
+        # Introduce an entry if there's none
+        if not iep.config.shellConfigs:
+            w = ShellInfoDialogEntries(self._tabs)
+            self._tabs.addTab(w, 'new')
+        
+        # Fill tabs
+        for item in iep.config.shellConfigs:
+            w = ShellInfoDialogEntries(self._tabs)
+            self._tabs.addTab(w, '---')
+            w.setInfo(item) # sets the title
+        
+        # Enable making new tabs
+        self._add = QtGui.QPushButton(self)
+        self._add.setText('+')
+        self._tabs.setCornerWidget(self._add)
+        self._add.clicked.connect(self.onAdd)
+        
+        # Enable removing tabs
+#         self._tabs.setTabsClosable(True)
+#         self._tabs.tabCloseRequested.connect(self.onTabClose)
+        
+    
+    def closeEvent(self, event):
+        """ Apply first! """
+        self.apply()
+        QtGui.QDialog.closeEvent(self, event)
+    
+    
+    def onAdd(self):
+        # Create widget and add to tabs
+        w = ShellInfoDialogEntries(self._tabs)            
+        self._tabs.addTab(w, 'new')
+        # Select
+        self._tabs.setCurrentWidget(w)
+        w.setFocus()
+    
+    
+    def onTabClose(self, index):
+        self._tabs.removeTab(index)
+        self.apply()
+    
+    
+    def apply(self):
+        """ Apply changes for all tabs. """
+        
+        # Clear
+        iep.config.shellConfigs = []
+        
+        # Set new versions
+        for i in range(self._tabs.count()):
+            w = self._tabs.widget(i)
+            iep.config.shellConfigs.append( w.getInfo() )
