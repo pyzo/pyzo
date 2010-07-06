@@ -711,6 +711,7 @@ class ShellMenu(BaseMenu):
         addItem( MI('Create "python" shell', self.fun_create) )
         addItem( MI('Interrup current shell', self.fun_interrupt) )
         addItem( MI('Terminate current shell', self.fun_term) )        
+        addItem( MI('Restart current shell', self.fun_restart) )        
         addItem( None )
         addItem( MI('Run selected lines', self.fun_runSelected) )
         addItem( MI('Run cell', self.fun_runCell) )
@@ -733,6 +734,13 @@ class ShellMenu(BaseMenu):
         shell = iep.shells.getCurrentShell()
         if shell:
             shell.terminate()
+    
+    def fun_restart(self, value):
+        """ Restart the current shell. """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.restart()
+    
     
     def fun_runSelected(self, value):
         """ Run the selected whole lines in the current shell. """
@@ -803,14 +811,8 @@ class ShellMenu(BaseMenu):
         fname = editor._name # or editor._filename
         shell.executeCode(text, fname, line1)
     
-    def fun_runFile(self, value, editor=None):
-        """ Run the current file in the current shell. """
-        # Get editor and shell
-        shell = iep.shells.getCurrentShell()
-        if editor is None:
-            editor = iep.editors.getCurrentEditor()
-        if not editor or not shell:
-            return        
+    
+    def _getCodeOfFile(self, editor):
         # Obtain source code
         text = editor.getString()
         # Show the result to user and set back
@@ -820,25 +822,45 @@ class ShellMenu(BaseMenu):
         editor.repaint()
         time.sleep(0.200)
         editor.setPosition(i1); editor.setAnchor(i2)
-        # Execute code        
+        # Get filename and return 
         fname = editor._name # or editor._filename
+        return fname, text
+    
+    
+    def fun_runFile(self, value):
+        """ Run the current file in the current shell. """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()        
+        editor = iep.editors.getCurrentEditor()
+        if not editor or not shell:
+            return        
+        # Obtain source code and fname
+        fname, text = self._getCodeOfFile(editor)
+        # Execute
         shell.executeCode(text, fname, -1)
     
-    def fun_runProject(self, value):
+    def fun_runProject(self, value=None):
         """ Run the current project's main file. """
         # Get editor and shell
         shell = iep.shells.getCurrentShell()
         editor = iep.editors.getCurrentProjectsMainEditor()
         if not editor or not shell:
             return 
-        # Run code by reusing fun_runFile
-        self.fun_runFile(None, editor)
+        # Run code
+        fname, text = self._getCodeOfFile(editor)
+        shell.executeCode(text, fname, -1)
     
     def fun_runProject2(self, value):
         """ Restart the shell and run the current project's main file. """
-        # Restart
-        pass
-        
+        shell = iep.shells.getCurrentShell()
+        editor = iep.editors.getCurrentProjectsMainEditor()
+        if not editor or not shell:
+            return 
+        # Obtain code to set as pending
+        fname, text = self._getCodeOfFile(editor)
+        shell.restart(text, fname, -1)
+    
+
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.

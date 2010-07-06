@@ -610,16 +610,60 @@ class BaseShell(BaseTextCtrl):
         self.writeErr(">>> ")
 
 
-# Python script to invoke (We need to use double quotes to 
-# surround the path, singles wont work.)
-remotePath = os.path.join(iep.path, 'remote.py')
-
 class RequestObject:
     def __init__(self, request, callback, id=None):
         self._request = request
         self._callback = callback
         self._id = id
         self._posted = False
+
+
+class ShellInfo:
+    """ Helper class to build the command to start the remote python
+    process. 
+    """
+    def __init__(self, exe='python', gui='', runSUS=True, startDir=''):
+        # Set defaults
+        if not exe:
+            exe = 'python'
+        if not gui:
+            gui = 'None'
+        if not startDir:
+            startDir = ''
+        # Corrections for paths
+        if exe.count(' '):
+            exe = '"' + exe + '"'
+        # Store
+        self.exe = exe
+        self.gui = gui
+        self.runSUS = bool(runSUS) # run start up script
+        self.startDir = startDir
+    
+    
+    def getCommand(self, port):
+        """ Given the port of the channels interface, creates the 
+        command to execute in order to invoke the remote shell.
+        """
+        # Python script to invoke (We need to use double quotes to 
+        # surround the path, singles wont work.)
+        remotePath = os.path.join(iep.path, 'remote.py')
+        
+        # Build command
+        command = self.exe
+        command += ' "{}" '.format(remotePath)
+        command += str(port) + ' '
+        command += self.gui + ' '
+        command += str(int(self.runSUS)) + ' '
+        command += '"{}"'.format(self.startDir)
+        
+        if sys.platform.count('win'):
+            # as the author from Pype writes:
+            #if we don't run via a command shell, then either sometimes we
+            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
+            # And I also see problems with Tk.    
+            command = "cmd /c " + command
+        
+        return command
 
 
 class PythonShell(BaseShell):
@@ -630,31 +674,65 @@ class PythonShell(BaseShell):
     # called when the remote process is terminated
     terminated = QtCore.pyqtSignal()
     
-    def __init__(self, parent, pythonExecutable=None):
+    def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
         
-        # apply Python shell style
+        # Apply Python shell style
         self.setStyle('pythonshell')
         
-        # set executable
-        if pythonExecutable is None:
-            pythonExecutable = 'python'
-        self._pythonExecutable = pythonExecutable
+        # Store info 
+        if info is None:
+            info = ShellInfo()
+        self._info = info
         
-        # variable to terminate the process in increasingly pressing ways
-        self._killAttempts = 0
+        # For the editor to keep track of attempted imports
+        self._importAttempts = []
+        
+        # To keep track of the response for introspection
+        self._currentCTO = None
+        self._currentACO = None
+        
+        # Multi purpose time variable and a buffer
+        self._t = time.time()
+        self._buffer = ''
         
         # Variables to store python version, builtins and keywords 
         self._version = ""
         self._builtins = []
         self._keywords = []
         
-        # for the editor to keep track of attempted imports
-        self._importAttempts = []
+        # Define queue of requestObjects and insert a few requests
+        self._requestQueue = []
+        tmp = "','.join(__builtins__.__dict__.keys())"
+        self.postRequest('EVAL sys.version', self._setVersion)
+        self.postRequest('EVAL ' + tmp, self._setBuiltins)
+        self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
         
-        # to keep track of the response for introspection
-        self._currentCTO = None
-        self._currentACO = None
+        # Create timer to keep polling any results
+        self._timer = QtCore.QTimer(self)
+        self._timer.setInterval(20)  # ms
+        self._timer.setSingleShot(False)
+        self._timer.timeout.connect(self.poll)
+        self._timer.start()
+        
+        # Initialize timer callback
+        self._pollMethod = None
+        
+        # Code to execute on startup
+        self._pendingCode = None # code, fname, lineno
+        
+        # Start!
+        self.start()
+    
+    
+    def start(self):
+        """ Start the remote process. """
+        
+        # (re)set restart vatiable and a callback
+        self._restart = False 
+        
+        # (re)set variable to terminate the process in increasingly rude ways
+        self._killAttempts = 0
         
         # Create multi channel connection
         # Note that the request and response channels are reserved and should
@@ -672,41 +750,16 @@ class PythonShell(BaseShell):
         self._request = c.getSendingChannel(2)
         self._response = c.getReceivingChannel(3)
         
-        # host it (tries several port numbers, staring from 'IEP')
+        # Host it (tries several port numbers, staring from 'IEP')
         port = c.host('IEP')
         
-        # build command to create process
-        command = '{} "{}" {}'.format(pythonExecutable, remotePath, str(port))
-        
-        if sys.platform.count('win'):
-            # as the author from Pype writes:
-            #if we don't run via a command shell, then either sometimes we
-            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.    
-            command = "cmd /c " + command
-        
-        # start process
+        # Start process
+        command = self._info.getCommand(port)
         self._process = subprocess.Popen(command, shell=True, cwd=os.getcwd())
         
-        
-        # Define queue of requestObjects and insert two requests
-        self._requestQueue = []
-        tmp = "','.join(__builtins__.__dict__.keys())"
-        self.postRequest('EVAL sys.version', self._setVersion)
-        self.postRequest('EVAL ' + tmp, self._setBuiltins)
-        self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
-        
-        # time var to pump messages in one go
-        self._t = time.time()
-        self._buffer = ''
-        
-        # create timer to keep polling any results
-        self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(20)  # 100 ms
-        self._timer.setSingleShot(False)
-        self._timer.timeout.connect(self.poll)
-        self._timer.start()
-        
+        # Set timer callback
+        self._pollMethod = self.poll_running
+    
     
     def _setVersion(self, response, id):
         """ Process the request for the version. """
@@ -931,13 +984,21 @@ class PythonShell(BaseShell):
         self._stdin.write(text)
     
     
-    ## The polling method and terminating methods
+    ## The polling methods and terminating methods
     
     def poll(self):
         """ poll()
+        To keep the shell up-to-date
+        Call this periodically. 
+        """
+        if self._pollMethod:
+            self._pollMethod()
+    
+    
+    def poll_running(self):
+        """  The timer callback method when the process is running.
         Check if we have received anything from the remote
         process that we should write.
-        Call this periodically. 
         """
         
         # Check stdout
@@ -985,6 +1046,10 @@ class PythonShell(BaseShell):
                 elif status == 'Ready':
                     dbc.setTrace(None)
                     status = 'Python v{}'.format(self._version)
+                    if self._pendingCode:
+                        code, fname, ln = self._pendingCode
+                        self._pendingCode = None
+                        self.executeCode(code, fname, ln)
                 else:
                     dbc.setTrace(None)
                     status = 'Python v{} ({})'.format(self._version, status)
@@ -994,14 +1059,54 @@ class PythonShell(BaseShell):
                 tabWidget.setTabText(i, status)
     
     
-    def restart(self, callback):
-        """ restart(callback)
-        Terminate the shell, after which it is restarted. 
-        When that one is up and running, the callback is called.
+    def poll_terminating(self):
+        """ The timer callback method when the process is being terminated. 
+        IEP will try to terminate in increasingly more rude ways. 
         """
-        self._restart = self._info
-        self.terminate()
-        # todo: this!
+        
+        if self._channels.isConnected():
+            
+            if self._killAttempts == 1:
+                # Waiting for process to stop by itself
+                
+                if time.time() - self._t > 1.0:
+                    # Increase counter, next time will interrupt
+                    self._killAttempts += 1
+            
+            elif self._killAttempts < 9:
+                # Send an interrupt every 100 ms
+                if time.time() - self._t > 0.1:
+                    self.interrupt()
+                    self._t = time.time()
+                    self._killAttempts += 1
+            
+            elif self._killAttempts == 9:
+                # Ok, that's it, we're leaving!
+                self._channels.kill()
+                self._killAttempts = 10
+            
+            else:
+                # Now we can only wait
+                pass
+    
+    
+    
+    def poll_terminated(self):
+        """ The timer callback method when the process is terminated.
+        Will wait for the focus to be removed and close the shell widget.
+        """
+        
+        if not self.hasFocus():            
+            
+            # Remove from tab widget
+            tabWidget = iep.shells._tabs
+            index = tabWidget.indexOf(self)
+            if index >= 0:
+                tabWidget.removeTab(index)
+            
+            # close
+            self._pollMethod = None
+            self.close()
     
     
     def interrupt(self):
@@ -1012,105 +1117,134 @@ class PythonShell(BaseShell):
         self._channels.interrupt()
     
     
+    def restart(self, *args):
+        """ restart(*args)
+        Terminate the shell, after which it is restarted. 
+        Args can be (code, fname, lineno), to execute as soon as the
+        shell is back up.
+        """
+        if args :
+            self._pendingCode = args
+        self._restart = True
+        self.terminate()
+        
+    
     def terminate(self):
         """ terminate()
         Terminates the python process. It will first try gently, but 
         if that does not work, the process shall be killed.
-        After this function returns, it might take a bit of time before
-        the kill signal is send to the other process and executed.
+        To be notified of the termination, connect to the "terminated"
+        signal of the shell.
         """
         
-        # Try closing the process gently: by closing stdin
-        self._killAttempts = 1
-        self._stdin.close()
+        if self._killAttempts != 0:
+            # Alreay in the process of terminating, or done terminating
+            return
         
-        # Wait one second
-        t0 = time.time() + 1.0
-        while time.time() < t0:
-            time.sleep(0.1)
-            if not self._channels.isConnected():
+        # Try closing the process gently: by closing stdin
+        self._stdin.close()
+        self._killAttempts = 1
+        self._t = time.time()
+        
+        # Keep track using an alternative polling function
+        self._pollMethod = self.poll_terminating
+    
+    
+    def terminateNow(self):
+        """ terminateNow()
+        Terminates the python process. Will terminate the shell in maximally
+        1 second. When this function returns, the shell will have been
+        terminated.
+        """
+        # Try closing the process gently: by closing stdin
+        self._stdin.close()
+        self._killAttempts = 1
+        self._t = time.time()
+        
+        # Terminate
+        while self._channels.isConnected():
+            time.sleep(0.02)
+            
+            if self._killAttempts == 1:
+                if time.time() - self._t > 0.5:
+                    self._killAttempts += 1
+            elif self._killAttempts < 5:
+                if time.time() - self._t > 0.1:
+                    self.interrupt()
+                    self._t = time.time()
+                    self._killAttempts += 1
+            elif self._killAttempts == 9:
+                # Ok, that's it, we're leaving!
+                self._channels.kill()
+                self._killAttempts = 10
+            else:
                 break
-        else:
-            # We waited long enough, kill it!
-            self._killAttempts = 2
-            self._channels.kill()
     
     
     def _onDisconnect(self, why):
-        """ Called when the connection is lost, and why.
+        """ Called when the connection is lost.
         """
         
         # Determine message
+        if self._killAttempts < 0:
+            msg = 'Python process terminated twice?' # this should not happen
         if self._killAttempts == 0:
             msg = 'Python process dropped.'
         elif self._killAttempts == 1:
             msg = 'Python process gently terminated.'
-        elif self._killAttempts >= 2:
-            msg = 'Python process killed.'
+        elif self._killAttempts < 10:
+            msg = 'Python process interruped and terminated.'        
         else:
-            msg = 'Python process terminated twice?'
+            msg = 'Python process killed.'
         
         # signal that the connection is gone
         self._killAttempts = -1
         
-        # New (empty prompt)
-        self.writeErr(' ') 
-        self.write('\n\n');
-        
-        # Notify
-        print(msg)        
-        self.write('===== {} =====\n'.format(msg))
-        self.terminated.emit()
-        
         # We're now in a different thread, so use callLater to
         # defer the timer to closing-mode
-        self._disconnectTime = 0
-        self._disconnectPhase = 3+1
-        iep.callLater(self._afterDisconnect)
+        iep.callLater(self._afterDisconnect, msg)
     
     
-    def _afterDisconnect(self):
+    def _afterDisconnect(self, msg= ''):
         """ To be called after disconnecting (because that is detected
         from another thread.
         Replaces the timeout callback for the timer to go in closing mode.
         """
+        # New (empty prompt)
+        self._promptPos1 = self._promptPos2 = self.length()
+        self.write('\n\n');
+        
+        # Build second message
+        if self._restart:
+            msg2 = "Restarting ..."
+        else:
+            msg2 = "Waiting for focus to be removed."
+        
+        # Compile and justify messages
+        msg2 = msg2.ljust(len(msg), ' ')
+        msg1 = "===== {} ".format(msg ).ljust(80, '=') + '\n'
+        msg2 = "===== {} ".format(msg2).ljust(80, '=') + '\n'
+        
+        # Notify via logger and in shell
+        print(msg)
+        self.write(msg1)
+        self.write(msg2)
+        self.writeErr('\n') 
+        
         # Goto end such that the closing messages are visible
         self.setPositionAndAnchor(self.length())
+        
         # Replace timer callback
-        self._timer.timeout.disconnect(self.poll)
-        self._timer.timeout.connect(self._afterDisconnect_poll)
+        self._pollMethod = self.poll_terminated
+        
+        # Notify listeners
+        self.terminated.emit()
+        
+        # Should we restart?
+        if self._restart:            
+            self.start()
+            
     
-    
-    def _afterDisconnect_poll(self):
-        """ Poll method for when in closing mode. """
-        
-        # if self._disconnectPhase is 0, the time's up and we should
-        # close as soon as focus is removed.
-        
-        if self._disconnectPhase and time.time() - self._disconnectTime > 1.0:
-            # Count down            
-            self._disconnectTime = time.time()
-            self._disconnectPhase -= 1
-            
-            # Notify
-            if self._disconnectPhase:
-                msg = 'Closing in {} seconds.\n'
-                self.write(msg.format(self._disconnectPhase)) 
-            elif self.hasFocus():
-                self.write('Waiting for focus to be removed.')
-        
-        if self._disconnectPhase <=0 and not self.hasFocus():
-            # Close
-            
-            # Remove from tab widget
-            tabWidget = iep.shells._tabs
-            index = tabWidget.indexOf(self)
-            if index >= 0:
-                tabWidget.removeTab(index)
-            
-            # close
-            self._timer.timeout.disconnect(self._afterDisconnect_poll)
-            self.close()
 
 
 if __name__=="__main__":
