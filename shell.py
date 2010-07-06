@@ -622,49 +622,50 @@ class ShellInfo:
     """ Helper class to build the command to start the remote python
     process. 
     """
-    def __init__(self, exe='python', gui='', runSUS=True, startDir=''):
+    def __init__(self, exe='python', gui='', runsus=True, startdir=''):
+        
         # Set defaults
         if not exe:
             exe = 'python'
         if not gui:
-            gui = 'None'
-        if not startDir:
-            startDir = ''
-        # Corrections for paths
+            gui = 'none'
+        if not startdir:
+            startdir = ''
+        # Corrections for spaces in path
         if exe.count(' '):
             exe = '"' + exe + '"'
         # Store
         self.exe = exe
         self.gui = gui
-        self.runSUS = bool(runSUS) # run start up script
-        self.startDir = startDir
+        self.runsus = bool(runsus) # run start up script
+        self.startdir = startdir
     
     
     def getCommand(self, port):
         """ Given the port of the channels interface, creates the 
         command to execute in order to invoke the remote shell.
         """
-        # Python script to invoke (We need to use double quotes to 
-        # surround the path, singles wont work.)
-        remotePath = os.path.join(iep.path, 'remote.py')
         
         # Build command
-        command = self.exe
-        command += ' "{}" '.format(remotePath)
+        command = self.exe + ' '
+        command += 'remote.py' + ' '
         command += str(port) + ' '
         command += self.gui + ' '
-        command += str(int(self.runSUS)) + ' '
-        command += '"{}"'.format(self.startDir)
+        command += str(int(self.runsus)) + ' '
+        command += '"{}"'.format(self.startdir)
         
         if sys.platform.count('win'):
             # as the author from Pype writes:
             #if we don't run via a command shell, then either sometimes we
             #don't get wx GUIs, or sometimes we can't kill the subprocesses.
             # And I also see problems with Tk.    
-            command = "cmd /c " + command
+            # The double quotes are important for it to work when the 
+            # executable is a path that contaiins spaces.
+            command = 'cmd /c "{}"'.format(command)
         
+        # Done
         return command
-
+    
 
 class PythonShell(BaseShell):
     """ The PythonShell class implements the python part of the shell
@@ -683,6 +684,8 @@ class PythonShell(BaseShell):
         # Store info 
         if info is None:
             info = ShellInfo()
+        elif not isinstance(info, ShellInfo):
+            info = ShellInfo(info.exe, info.gui, info.runsus, info.startdir)
         self._info = info
         
         # For the editor to keep track of attempted imports
@@ -755,7 +758,7 @@ class PythonShell(BaseShell):
         
         # Start process
         command = self._info.getCommand(port)
-        self._process = subprocess.Popen(command, shell=True, cwd=os.getcwd())
+        self._process = subprocess.Popen(command, shell=True, cwd=os.getcwd())  
         
         # Set timer callback
         self._pollMethod = self.poll_running
@@ -763,7 +766,7 @@ class PythonShell(BaseShell):
     
     def _setVersion(self, response, id):
         """ Process the request for the version. """
-        self._version = response[:5]
+        self._version = response.split(' ',1)[0]
     
     def _setBuiltins(self, response, id):
         """ Process the request for the list of buildins. """

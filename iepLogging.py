@@ -165,11 +165,17 @@ class LoggerShell(BaseShell):
         # Include buildins?
         if not aco.name:
             command = "__builtins__.keys()"
-            names = eval(command, {}, self._interpreter.locals)
-            aco.addNames(names)
+            try:
+                names = eval(command, {}, self._interpreter.locals)
+                aco.addNames(names)
+            except Exception:
+                pass
         
         # Query list of names
         command = "dir({})".format(aco.name)
-        names = eval(command, {}, self._interpreter.locals)
+        try:
+            names = eval(command, {}, self._interpreter.locals)
+        except Exception:
+            pass
         aco.addNames(names)
         aco.finish()

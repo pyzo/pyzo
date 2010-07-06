@@ -23,14 +23,18 @@ class IepInterpreter:
     - support post mortem debugging
     """
     
-    def __init__(self, locals, filename="<console>"):
+    def __init__(self, locals, filename="<console>", 
+                    gui='', runsus=True, startdir=''):
         
         # Init variables for locals and globals (globals only for debugging)
         self.locals = locals
         self.globals = None
         
-        # Store filename
+        # Store other variables
         self.filename = filename
+        self._runsus = runsus
+        self._startdir = startdir
+        self._gui = gui
         
         # Store ref of locals that is our main
         self._main_locals = locals
@@ -82,25 +86,35 @@ class IepInterpreter:
             sys.path.remove(thisPath)
         
         # Go to start dir
-        os.chdir(os.path.expanduser('~/')) # home dir
-        # todo: let the user decide where to start
-        # os.chdir(sys.exec_prefix) On windows, python starts here
+        if self._startdir and os.path.isdir(self._startdir):
+            os.chdir(self._startdir)
+        else:
+            os.chdir(os.path.expanduser('~')) # home dir        
+            #os.chdir(sys.exec_prefix) On windows, python starts here
         
         # Execute startup script
         filename = os.environ.get('PYTHONSTARTUP')
-        if filename and os.path.isfile(filename):
-            execfile(filename, self.locals)
+        if self._runsus and filename and os.path.isfile(filename):
+            exec(open(filename).read(), self.locals)
+            #execfile(filename, self.locals) # removed in py3k
         
-
-#         # hijack tk and wx
-#         self.tkapp = tkapp = None#hijack_tk()
-#         self.wxapp = wxapp = hijack_wx()
-#         self.flapp = flapp = hijack_fl()
-#         self.qtapp = qtapp = hijack_qt4()
-        
+        # Hijack GUI toolkit
+        self.guiApp = None
+        try:
+            if self._gui == 'tk':
+                self.guiApp = Hijacked_tk()
+            elif self._gui == 'wx':
+                self.guiApp = Hijacked_wx()
+            elif self._gui == 'qt4':
+                self.guiApp = Hijacked_qt4()
+            elif self._gui == 'fl':
+                self.guiApp = Hijacked_fltk()
+        except ImportError:
+            pass
+            
         
         # ENTER MAIN LOOP
-        guitime = time.clock()        
+        guitime = time.time()
         more = 0
         self.newPrompt = True
         while True:
@@ -152,14 +166,15 @@ class IepInterpreter:
                         line = line.rstrip("\n") # this is what push wants
                         more = self.push(line)
                 
-                # Keep GUI toolkits up to date
-                self.updateguis()
+                # Keep GUI toolkit up to date
+                if self.guiApp and time.time() - guitime > 0.019:
+                    self.guiApp.processEvents()
+                    guitime = time.time()
             
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")
                 self.resetbuffer()
                 more = 0
-                self.write(sys.ps1)
     
     
     def resetbuffer(self):
@@ -248,6 +263,8 @@ class IepInterpreter:
             else:
                 exec(code, self.locals)
         except SystemExit:
+            raise
+        except KeyboardInterrupt:
             raise
         except:
             self.showtraceback()
@@ -779,7 +796,7 @@ class IntroSpectionThread(threading.Thread):
             h_repr = eval("repr(%s)"%(objectName), {}, NS )
             try:
                 h_class = eval("%s.__class__.__name__"%(objectName), {}, NS )
-            except:
+            except Exception:
                 h_class = "unknown"
             
             # docstring can be None, but should be empty then
@@ -800,8 +817,13 @@ class IntroSpectionThread(threading.Thread):
             # build final text
             text = '\n'.join([objectName, h_class, h_fun, h_repr, h_text])
         
-        except Exception, why:
-            text = "No help available: " + str(why)
+        except Exception:
+            text = "No help available."
+        
+        # The lines below can be uncomented for debugging, but they don't
+        # work on python < 2.6.
+        #except Exception as why:            
+        #    text = "No help available." + str(why)
         
         # Done
         self.response.write( text )
@@ -816,7 +838,7 @@ class IntroSpectionThread(threading.Thread):
         try:
             # here globals is None, so we can look into sys, time, etc...
             d = eval(command, None, NS)
-        except Exception, why:            
+        except Exception:            
             d = None
         
         # respond
@@ -824,4 +846,161 @@ class IntroSpectionThread(threading.Thread):
             self.response.write( str(d) )
         else:
             self.response.write( str(why) )
-       
+    
+
+## GUI TOOLKIT HIJACKS
+
+
+class Hijacked_tk:    
+    """ Tries to import Tkinter and returns a withdrawn Tkinter root
+    window.  If Tkinter is already imported or not available, this
+    returns None.  
+    Modifies Tkinter's mainloop with a dummy so when a module calls
+    mainloop, it does not block.
+    """    
+    def __init__(self):
+        
+        # Try importing        
+        import Tkinter
+        
+        # Replace mainloop
+        def dummy_mainloop(*args,**kwargs):
+            pass
+        Tkinter.Misc.mainloop = dummy_mainloop
+        Tkinter.mainloop = dummy_mainloop
+        
+        # Create tk app and withdraw
+        r = Tkinter.Tk()
+        r.withdraw()
+        
+        # Store the app instance to process events
+        self.app = r
+    
+    def processEvents(self):
+        self.app.update()
+
+
+class Hijacked_fltk:
+    """ Hijack fltk 1.
+    This one is easy. Just call fl.wait(0.0) now and then.
+    Note that both tk and fltk try to bind to PyOS_InputHook. Fltk
+    will warn about not being able to and Tk does not, so we should
+    just hijack (import) fltk first. The hook that they try to fetch
+    is not required in IEP, because the IEP interpreter will keep
+    all GUI backends updated when idle.
+    """
+    def __init__(self):
+        # Try importing        
+        import fltk as fl
+        
+        # Replace mainloop with a dummy
+        def dummyrun(*args,**kwargs):
+            pass
+        fl.Fl.run = types.MethodType(dummyrun, fl.Fl)
+        
+        # Store the app instance to process events
+        self.app =  fl.Fl
+    
+    def processEvents(self):
+        self.app.wait(0)
+
+
+class Hijacked_fltk2:
+    """ Hijack fltk 2.    
+    """
+    def __init__(self):
+        # Try importing
+        import fltk2 as fl        
+        
+        # Replace mainloop with a dummy
+        def dummyrun(*args,**kwargs):
+            pass    
+        fl.run = dummyrun    
+        
+        # Return the app instance to process events
+        self.app = fl
+    
+    def processEvents(self):
+        # is this right?
+        self.app.wait(0) 
+
+
+class Hijacked_qt4:
+    """ Hijack the pyqt4 mainloop.
+    """
+    
+    def __init__(self):
+        # Try importing qt        
+        from PyQt4 import QtGui, QtCore
+        
+        # Create app class
+        class QHijackedApp(QtGui.QApplication):
+            def __init__(self):
+                QtGui.QApplication.__init__(self,[])
+            def __call__(self, *args, **kwargs):
+                return QtGui.qApp
+            def exec_(self, *args, **kwargs):
+                pass
+        
+        # Store the app instance to process events 
+        QtGui.QApplication = QtGui.qApp = app = QHijackedApp()
+        self.app = app
+    
+    def processEvents(self):
+        self.app.flush()
+        self.app.processEvents()
+
+
+class Hijacked_wx:
+    """ Hijack the wxWidgets mainloop.    
+    """ 
+    
+    def __init__(self):
+        
+        # Try importing
+        try:
+            import wx
+        except ImportError:            
+            # For very old versions of WX
+            import wxPython as wx
+        
+        # Create dummy mainloop to replace original mainloop
+        def dummy_mainloop(*args, **kw):
+            pass
+        
+        # Depending on version, replace mainloop
+        ver = wx.__version__
+        orig_mainloop = None
+        if ver[:3] >= '2.5':
+            if hasattr(wx, '_core_'): core = getattr(wx, '_core_')
+            elif hasattr(wx, '_core'): core = getattr(wx, '_core')
+            else: raise ImportError
+            orig_mainloop = core.PyApp_MainLoop
+            core.PyApp_MainLoop = dummy_mainloop
+        elif ver[:3] == '2.4':
+            orig_mainloop = wx.wxc.wxPyApp_MainLoop
+            wx.wxc.wxPyApp_MainLoop = dummy_mainloop
+        else:
+            # Unable to find either wxPython version 2.4 or >= 2.5."
+            raise ImportError
+        
+        # Store the app instance to process events    
+        self.wx = wx
+        self.app = wx.PySimpleApp()
+        #self.app = wx.App(redirect=False)
+        #self.app.SetExitOnFrameDelete(False)
+        #self.app.RestoreStdio()
+    
+    def processEvents(self):
+        wx = self.wx
+        
+        # This bit is really needed        
+        old = wx.EventLoop.GetActive()                       
+        eventLoop = wx.EventLoop()
+        wx.EventLoop.SetActive(eventLoop)                        
+        while eventLoop.Pending():
+            eventLoop.Dispatch()
+        
+        # Process and reset
+        self.app.ProcessIdle() # otherwise frames do not close
+        wx.EventLoop.SetActive(old)   
