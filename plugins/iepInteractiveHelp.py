@@ -104,9 +104,11 @@ class IepInteractiveHelp(QtGui.QWidget):
             # Init text
             text = ''
             
-            # These signs are often present in the repr
+            # These signs will fool the html
             h_repr = h_repr.replace("<","&lt;") 
             h_repr = h_repr.replace(">","&gt;")
+            h_text = h_text.replace("<","&lt;") 
+            h_text = h_text.replace(">","&gt;")
             
             if self._check.isChecked():
                 # Dont replace single newlines, but wrap the text. New paragraphs
