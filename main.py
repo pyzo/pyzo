@@ -191,11 +191,16 @@ class MainWindow(QtGui.QMainWindow):
         if not result:
             self._didClose = False
             event.ignore()
+            return
         else:
             self._didClose = True
             event.accept()
-
-
+        
+        # Proceed with closing shells
+        for shell in iep.shells:
+            shell.terminateNow()
+    
+    
     def restart(self):
         """ Restart IEP. """
         

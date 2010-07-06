@@ -52,16 +52,17 @@ class ShellStack(QtGui.QWidget):
             i += 1
             yield w 
     
-    def addShell(self, pythonExecutable=None):
+    
+    def addShell(self, shellInfo=None):
         """ addShell()
         Add a shell to the widget. """
-        shell = PythonShell(pythonExecutable)
+        shell = PythonShell(self._tabs, shellInfo)
         self._tabs.addTab(shell, 'Python (Initializing)')
         self.sizeShellTo80Columns()
         # Focus on it
         self._tabs.setCurrentWidget(shell)
         shell.setFocus()
-        
+    
     
     def getCurrentShell(self):
         """ getCurrentShell()
@@ -105,7 +106,8 @@ class ShellStack(QtGui.QWidget):
         # fix the width
         shell.setMinimumWidth(w)
         shell.setMaximumWidth(w)
-
+    
+    
 
 class DebugControl(QtGui.QToolButton):
     """ A button that can be used for post mortem debuggin. 
