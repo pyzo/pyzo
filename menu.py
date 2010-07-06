@@ -1021,7 +1021,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
     
     def headerData(self, section, orientation, role):
         if role == 0:# and orientation==1:
-            tmp = ['Menu action','Primary shortcut','Secondary shortcut']
+            tmp = ['Menu action','Shortcut 1','Shortcut 2']
             return tmp[section]
     
     def parent(self, index):

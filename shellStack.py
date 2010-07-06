@@ -214,7 +214,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         # Create name entry
         label = QtGui.QLabel(self)
         label.move(offset, y)
-        label.setText('Configuration name (e.g. "Python with qt")')        
+        label.setText('Configuration name')        
         self._name = QtGui.QLineEdit(self)        
         self._name.move(offset, y+16)
         y += dy
@@ -222,8 +222,9 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         # Create executable widget
         label = QtGui.QLabel(self)
         label.move(offset, y)
-        label.setText('Executable (e.g. "python" or '+
-                                    '"c:/program files/python31/python.exe" )')
+        label.setText('Executable (e.g. "python" or "/usr/python3.1"\n'+
+                            ' or"c:/program files/python24/python.exe" )')
+        y += 16
         self._exe = QtGui.QLineEdit(self)
         self._exe.move(offset, y+16)
         self._exe.resize(350, self._exe.height())
@@ -268,7 +269,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         # Create initial directory edit
         label = QtGui.QLabel(self)
         label.move(offset, y)
-        label.setText('Initial directory')        
+        label.setText('Initial directory (e.g. "/home/almar/py")')        
         self._startdir = QtGui.QLineEdit(self)        
         self._startdir.move(offset, y+16)
         self._startdir.resize(350, self._exe.height())
