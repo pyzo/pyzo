@@ -683,9 +683,12 @@ class PythonShell(BaseShell):
         self.setStyle('pythonshell')
         
         # Store info 
+        if info is None and iep.config.shellConfigs:
+            # Get it from known configurations            
+            info = iep.config.shellConfigs[0]
         if info is None:
             info = ShellInfo()
-        elif not isinstance(info, ShellInfo):
+        if not isinstance(info, ShellInfo):
             info = ShellInfo(info.exe, info.gui, info.runsus, info.startdir)
         self._info = info
         
@@ -904,6 +907,27 @@ class PythonShell(BaseShell):
         self._requestQueue.append(req)
     
     
+    def postRequestAndReceive(self, request):
+        """ postRequestAndReceive(request)
+        Post a message and wait for it to be received.
+        Returns the response. If you can, use postRequest
+        and catch the response by specifying a callback.
+        """
+        
+        # If there's an item being processed right now ...
+        if self._requestQueue:
+            # ... make it be reposted when we're done.        
+            self._requestQueue[0]._posted = False
+            # Wait for any leftover messages to arrive
+            self._response.readOne(block=True)
+        
+        # Do request
+        self._request.write(request)
+        
+        # Wait for it to arrive
+        return self._response.readLast(block=True)
+    
+    
     def executeCommand(self, text):
         """ executeCommand(text)
         Execute one-line command in the remote Python session. 
@@ -998,6 +1022,153 @@ class PythonShell(BaseShell):
         self._stdin.write(text)
     
     
+    def modifyCommand(self, text):
+        """ To implement magic commands. """
+        
+        message = """ *magic* commands that are evaluated in the IEP shell, 
+        before sending the command to the remote process:
+        ?               - show this message
+        ?X or X?        - print(X.__doc__)
+        ??X or X??      - help(X)
+        cd              - import os;print os.getcwd()
+        cd X            - import os;os.chdir("X");print os.getcwd()
+        ls              - import os;print os.popen("dir").read()
+        open X          - open file, module, or file that defines X
+        opendir Xs      - open all files in directory X 
+        timeit X        - times execution of command X
+        who             - list variables in current workspace
+        whos            - list variables plus their class and representation"""
+        
+        message = message.replace('\n','\\n')
+        message = message.replace('"','\"')
+        
+        # Define convenience functions
+        def remoteEval(command):
+            return self.postRequestAndReceive('EVAL ' + command)
+        def justify(text, width, margin):
+            if len(text)>width:
+                text = text[:width-3]+'...'
+            text = text.ljust(width+margin, ' ')
+            return text
+        
+        if text=="?":
+            text = "print('{}')".format(message)
+        
+        elif text.startswith("??"):
+            text = 'help({})'.format(text[2:])
+            
+        elif text.endswith("??"):
+            text = 'help({})'.format(text[:-2])
+            
+        elif text.startswith("?"):
+            text = 'print({}.__doc__)'.format(text[1:])
+            
+        elif text.endswith("?"):
+            text = 'print({}.__doc__)'.format(text[:-1])
+        
+        elif text.startswith("timeit "):
+            command = text[7:]
+            command = command.replace('"', '\\"')
+            text = 'import timeit; timeit.timeit("{}")'.format(command)
+            
+        elif text=='cd' or text.startswith("cd ") and '=' not in text:
+            tmp = text[3:].strip()
+            if tmp:
+                text = 'import os;os.chdir("{}");print(os.getcwd())'.format(tmp)
+            else:
+                text = 'import os;print(os.getcwd())'
+                
+        elif text=='ls':
+            if sys.platform.count('win'):
+                text = 'import os;print os.popen("dir").read()'
+            else:
+                text = 'import os;print os.popen("ls").read()'
+                
+        elif text.startswith('open ') or text.startswith('opendir '):
+            # get what to open            
+            objectName = text.split(' ',1)[1]
+            # query
+            pn = remoteEval('os.getcwd()')
+            fn = os.path.join(pn,objectName) # will also work if given absolute path
+            if text.startswith('opendir '):
+                iep.editors.loadDir(fn)
+                msg = "Opening dir '{}'."
+            elif os.path.isfile(fn):
+                # Load file
+                iep.editors.loadFile(fn)
+                msg = "Opening file '{}'."
+            elif remoteEval(objectName) == '<error>':
+                # Given name is not an object
+                msg = "Not a valid object: '{}'.".format(objectName)
+            else:
+                # Try loading file in which object is defined
+                fn = remoteEval('{}.__file__'.format(objectName))
+                if fn == '<error>':
+                    # Get module                    
+                    moduleName = remoteEval('{}.__module__'.format(objectName))
+                    tmp = 'sys.modules["{}"].__file__'
+                    fn = remoteEval(tmp.format(moduleName))                    
+                if fn != '<error>':
+                    # Make .py from .pyc
+                    if fn.endswith('.pyc'):
+                        fn = fn[:-1]
+                    # Try loading
+                    iep.editors.loadFile(fn)
+                    msg = "Opening file that defines '{}'.".format(objectName)
+                else:
+                    msg = "Could not open the file for that object."
+            # ===== Post process
+            if msg and '{}' in msg:
+                msg = msg.format(fn.replace('\\', '/'))
+            if msg:
+                text = 'print("{}")'.format(msg)
+        
+        elif text == 'who':
+            # Get list of names
+            names = remoteEval('",".join(dir())')
+            names = names.split(',')
+            # Compile list
+            text = ''
+            for name in names:
+                if name.startswith('__'):
+                    continue
+                # Make right length                
+                name = justify(name, 18, 2)
+                # Add to text
+                text += name  
+            text = text.replace("'", "\\'")
+            text = 'print("Your variables are:\\n{}")'.format(text)
+        
+        elif text == 'whos':
+            # Get list of names
+            names = remoteEval('",".join(dir())')
+            names = names.split(',')
+            # Compile list
+            text = ''
+            for name in names:
+                if name.startswith('__'):
+                    continue
+                # Find class and repr
+                className = remoteEval(name+'.__class__')
+                repres = remoteEval('repr({})'.format(name))
+                repres = repres.replace('\\n', '\\\\n')
+                # 
+                # Make right length
+                name = justify(name, 18, 2)
+                className = justify(className, 18, 2)
+                repres = justify(repres, 38, 2)
+                # Add to text
+                text += name + className + repres + '\\n'
+            text = text.replace("'", "\\'")
+            preamble = "NAME ".ljust(20,' ') + "CLASS ".ljust(20,' ') 
+            preamble += "REPR ".ljust(20,' ') + '\\n'
+            text = preamble + text[:-2]
+            text = 'print("{}")'.format(text)
+        
+        # Return modified version (or original)
+        return text
+    
+    
     ## The polling methods and terminating methods
     
     def poll(self):
@@ -1041,6 +1212,8 @@ class PythonShell(BaseShell):
                 req._callback(response, req._id)
         
         # Process requests
+        # Post from the bottom of the queue and only if it's not posted.
+        # This way there's always only one request being processed. 
         if self._requestQueue:
             req = self._requestQueue[0]
             if not req._posted:
