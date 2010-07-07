@@ -7,6 +7,7 @@ from PyQt4 import QtCore, QtGui
 
 import iep
 from shell import PythonShell
+from iepLogging import print
 
 ssdf = iep.ssdf
 

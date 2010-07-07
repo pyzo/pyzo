@@ -7,6 +7,7 @@ from PyQt4 import Qsci
 qt = QtGui
 
 import iep
+from iepLogging import print
 
 class MI:
     """ Menu Item
