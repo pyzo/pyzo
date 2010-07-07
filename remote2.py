@@ -266,7 +266,7 @@ class IepInterpreter:
             raise
         except KeyboardInterrupt:
             raise
-        except:
+        except Exception:
             self.showtraceback()
     
     
