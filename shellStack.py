@@ -198,18 +198,18 @@ class DebugControl(QtGui.QToolButton):
             if theAction:
                 menu.setDefaultAction(theAction)
                 self.setText(theAction.text().ljust(20))
-    
 
 
 class ShellInfoDialogEntries(QtGui.QWidget):
-    
+    """ A page in the tab widget of the shell configuration dialog. 
+    """
     def __init__(self, *args):        
         QtGui.QWidget.__init__(self, *args)    
         
         # Init
         offset = 20
         y = 10
-        dy = 60
+        dy = 30
         
         # Create name entry
         label = QtGui.QLabel(self)
@@ -217,7 +217,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         label.setText('Configuration name')        
         self._name = QtGui.QLineEdit(self)        
         self._name.move(offset, y+16)
-        y += dy
+        y += dy + self._name.height()
         
         # Create executable widget
         label = QtGui.QLabel(self)
@@ -228,7 +228,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         self._exe = QtGui.QLineEdit(self)
         self._exe.move(offset, y+16)
         self._exe.resize(350, self._exe.height())
-        y += dy
+        y += dy + self._exe.height()
         
         # Create GUI toolkit chooser
         dx = 60
@@ -256,7 +256,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         self._gui_fl.move(offset+dx*4, y+16)
         self._gui_fl.setText('FLTK')
         #        
-        y += dy
+        y += dy + self._gui_none.height()
         
         # Create run startup script checkbox
         label = QtGui.QLabel(self)
@@ -264,7 +264,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         label.setText('Run startup script (if set).')
         self._runsus = QtGui.QCheckBox(self)
         self._runsus.move(offset, y+16)
-        y += dy
+        y += dy + self._runsus.height()
         
         # Create initial directory edit
         label = QtGui.QLabel(self)
@@ -272,31 +272,25 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         label.setText('Initial directory (e.g. "/home/almar/py")')        
         self._startdir = QtGui.QLineEdit(self)        
         self._startdir.move(offset, y+16)
-        self._startdir.resize(350, self._exe.height())
-        y += dy
-        
-        self.show()
+        self._startdir.resize(350, self._startdir.height())
+        y += dy + self._startdir.height()
         
         # Create close button
-        self._close = QtGui.QPushButton(self)
-        self._close.setText('Remove')
-        self._close.move(offset, y+20)
+        self._close = QtGui.QToolButton(self)
+        style = QtGui.qApp.style()
+        self._close.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+        closeSize = self._close.iconSize()
+        self._close.move(400-closeSize.width()-20, 10)
         self._close.clicked.connect(self.onClose)
+        
+        # Show!
+        self.show()
         
         # Init values
         self.setDefaults()
         
-        # A few callbacks so we do not need an apply button
-        self._name.editingFinished.connect(self.apply)
+        # Editing the name should edit it in the tab
         self._name.editingFinished.connect(self.setNameInTab)
-        self._exe.editingFinished.connect(self.apply)
-        self._gui_none.clicked.connect(self.apply)
-        self._gui_tk.clicked.connect(self.apply)
-        self._gui_wx.clicked.connect(self.apply)
-        self._gui_qt4.clicked.connect(self.apply)
-        self._gui_fl.clicked.connect(self.apply)
-        self._runsus.clicked.connect(self.apply)
-        self._startdir.editingFinished.connect(self.apply)
     
     
     def setDefaults(self):
@@ -313,19 +307,6 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         tabs = self.parent().parent()
         # Remove
         tabs.removeTab( tabs.indexOf(self) )
-        
-        
-    
-    def apply(self):
-        """ Apply the current config. """
-        
-        # Get the dialog
-        parent = self.parent()
-        while not isinstance(parent, ShellInfoDialog):
-            parent = parent.parent()
-        
-        # Call apply 
-        parent.apply()
     
     
     def setNameInTab(self):        
@@ -422,16 +403,12 @@ class ShellInfoDialog(QtGui.QDialog):
             self._tabs.addTab(w, '---')
             w.setInfo(item) # sets the title
         
-        # Enable making new tabs
-        self._add = QtGui.QPushButton(self)
-        self._add.setText('+')
+        # Enable making new tabs        
+        self._add = QtGui.QToolButton(self)        
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
-        
-        # Enable removing tabs
-#         self._tabs.setTabsClosable(True)
-#         self._tabs.tabCloseRequested.connect(self.onTabClose)
-        
+        self._add.setText('+')
+    
     
     def closeEvent(self, event):
         """ Apply first! """
@@ -446,11 +423,6 @@ class ShellInfoDialog(QtGui.QDialog):
         # Select
         self._tabs.setCurrentWidget(w)
         w.setFocus()
-    
-    
-    def onTabClose(self, index):
-        self._tabs.removeTab(index)
-        self.apply()
     
     
     def apply(self):

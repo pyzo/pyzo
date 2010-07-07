@@ -1072,18 +1072,18 @@ class PythonShell(BaseShell):
             if self._killAttempts == 1:
                 # Waiting for process to stop by itself
                 
-                if time.time() - self._t > 1.0:
+                if time.time() - self._t > 0.5:
                     # Increase counter, next time will interrupt
                     self._killAttempts += 1
             
-            elif self._killAttempts < 9:
+            elif self._killAttempts < 6:
                 # Send an interrupt every 100 ms
                 if time.time() - self._t > 0.1:
                     self.interrupt()
                     self._t = time.time()
                     self._killAttempts += 1
             
-            elif self._killAttempts == 9:
+            elif self._killAttempts < 10:
                 # Ok, that's it, we're leaving!
                 self._channels.kill()
                 self._killAttempts = 10
@@ -1223,16 +1223,10 @@ class PythonShell(BaseShell):
         else:
             msg2 = "Waiting for focus to be removed."
         
-        # Compile and justify messages
-        msg2 = msg2.ljust(len(msg), ' ')
-        msg1 = "===== {} ".format(msg ).ljust(80, '=') + '\n'
-        msg2 = "===== {} ".format(msg2).ljust(80, '=') + '\n'
-        
         # Notify via logger and in shell
+        msg3 = "===== {} {} ".format(msg, msg2).ljust(80, '=') + '\n\n'
         print(msg)
-        self.write(msg1)
-        self.write(msg2)
-        self.writeErr('\n') 
+        self.write(msg3)
         
         # Goto end such that the closing messages are visible
         self.setPositionAndAnchor(self.length())
