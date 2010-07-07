@@ -594,8 +594,12 @@ class IntroSpectionThread(threading.Thread):
             
             # get request and arg
             tmp = line.split(" ",1)
-            req = tmp[0]
-            arg = tmp[1]
+            try:
+                req = tmp[0]
+                arg = tmp[1]
+            except Exception:
+                self.response.write('<not a valid request>')
+                continue
             
             # process request
             
@@ -783,12 +787,17 @@ class IntroSpectionThread(threading.Thread):
         
         try:
             # collect docstring
-            className = eval("%s.__class__.__name__"%(objectName), {}, NS)
-            tmp = objectName.rsplit('.',1)
             h_text = ''
-            if len(tmp)==2 and className != 'type':
-                part1, part2 = tmp[0], tmp[1]
-                h_text = eval("%s.__class__.%s.__doc__"%(part1,part2), {}, NS )
+            # Try using the class (for properties)
+            try:
+                className = eval("%s.__class__.__name__"%(objectName), {}, NS)
+                tmp = objectName.rsplit('.',1)
+                if len(tmp)==2 and className not in ['type', 'module']:
+                    cmd = "%s.__class__.%s.__doc__"
+                    h_text = eval(cmd % (tmp[0],tmp[1]), {}, NS)
+            except Exception:
+                pass
+            # Normal doc
             if not h_text:
                 h_text = eval("%s.__doc__"%(objectName), {}, NS )
             
@@ -817,13 +826,13 @@ class IntroSpectionThread(threading.Thread):
             # build final text
             text = '\n'.join([objectName, h_class, h_fun, h_repr, h_text])
         
-        except Exception:
-            text = "No help available."
+#         except Exception:
+#             text = "No help available."
         
         # The lines below can be uncomented for debugging, but they don't
         # work on python < 2.6.
-        #except Exception as why:            
-        #    text = "No help available." + str(why)
+        except Exception as why:            
+           text = "No help available." + str(why)
         
         # Done
         self.response.write( text )
@@ -845,7 +854,7 @@ class IntroSpectionThread(threading.Thread):
         if d:
             self.response.write( str(d) )
         else:
-            self.response.write( str(why) )
+            self.response.write( '<error>' )
     
 
 ## GUI TOOLKIT HIJACKS

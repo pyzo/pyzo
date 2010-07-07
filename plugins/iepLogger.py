@@ -82,7 +82,9 @@ class IepLogger(BaseShell):
         command = "dir({})".format(aco.name)
         try:
             names = eval(command, {}, self._interpreter.locals)
+            aco.addNames(names)
         except Exception:
             pass
-        aco.addNames(names)
+        
+        # Done
         aco.finish()

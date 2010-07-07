@@ -464,11 +464,12 @@ class IepEditor(BaseTextCtrl):
             # Get some data
             indentWidth = self.getIndentation()
             indent = b' '
-            # todo: I tried solving the bug. Did it work?
-#             if indentWidth == 0:
-#                 # this can occur due to a bug, this code makes it self-solving
-#                 indentWidth = iep.config.editor.defaultIndentation
-#                 self.setIndentation(indentWidth)
+            if indentWidth == 0:
+                # This once could occur due to a bug which is now solved,
+                # this code made it self-solving, and there's no harm in
+                # keeping it.
+                indentWidth = iep.config.editor.defaultIndentation
+                self.setIndentation(indentWidth)
             if indentWidth<0:
                 indentWidth = 1
                 indent = b'\t'
