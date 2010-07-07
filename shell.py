@@ -12,6 +12,7 @@ import os, sys, time, subprocess
 import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
+from iepLogging import print
 
 # todo: color stderr red and prompt blue, and input text Python!
 
@@ -838,7 +839,7 @@ class PythonShell(BaseShell):
         
         # Clear buffer to prevent doing a second request
         # and store cto to see whether the response is still wanted.
-        aco.setBuffer([])
+        aco.setBuffer()
         self._currentACO = aco
         # Poll name
         req = "ATTRIBUTES " + aco.name
@@ -864,15 +865,25 @@ class PythonShell(BaseShell):
         aco.addNames(foundNames)
         
         # Process list
-        if aco.name and not aco.names and aco.textCtrl is editor1:
+        if aco.name and not foundNames and aco.textCtrl is editor1:
             # No names found for the requested name. This means
             # it does not exist, let's try to import it
             importNames, importLines = iep.parser.getFictiveImports(editor1)
-            if aco.name in importNames:
-                line = importLines[aco.name].strip()
+            baseName = aco.nameInImportNames(importNames)
+            if baseName:
+                line = importLines[baseName].strip()
                 if line not in self._importAttempts:
-                    self.processLine(line)
+                    # Do import
+                    self.processLine(line + ' # auto-import')
                     self._importAttempts.append(line)
+                    # Wait a barely noticable time to increase the chances
+                    # That the import is complete when we repost the request.
+                    time.sleep(0.2)
+                    # To be sure, decrease the experiration date on the buffer
+                    aco.setBuffer(timeout=1)
+                    # Repost request
+                    req = "ATTRIBUTES " + aco.name
+                    self.postRequest(req, self._processAutoComp_response, aco)
         else:
             # If still required, show list, otherwise only store result
             if self._currentACO is aco:
@@ -1146,6 +1157,7 @@ class PythonShell(BaseShell):
         
         # Try closing the process gently: by closing stdin
         self._stdin.close()
+        self._request.close()
         self._killAttempts = 1
         self._t = time.time()
         
@@ -1161,6 +1173,7 @@ class PythonShell(BaseShell):
         """
         # Try closing the process gently: by closing stdin
         self._stdin.close()
+        self._request.close()
         self._killAttempts = 1
         self._t = time.time()
         

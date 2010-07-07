@@ -10,8 +10,8 @@ import iep
 from editor import createEditor
 from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
-
 from iepLogging import print
+
 barwidth = iep.config.editorStackBarWidth
 
 
@@ -1250,7 +1250,15 @@ class EditorStack(QtGui.QWidget):
         try:
             editor = createEditor(self, filename)
         except Exception as err:
+            # Notify in logger
             print("Error loading file: ", err)
+            # Make sure the user knows
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Error loading file")
+            m.setText(str(err))
+            m.setIcon(m.Warning)
+            m.exec_()
+            # reraise
             raise
         
         # create list item
@@ -1356,7 +1364,15 @@ class EditorStack(QtGui.QWidget):
         try:
             editor.save(filename)
         except Exception as err:
+            # Notify in logger
             print("Error saving file:",err)
+            # Make sure the user knows
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Error saving file")
+            m.setText(str(err))
+            m.setIcon(m.Warning)
+            m.exec_()
+            # Return now            
             return
         
         # get actual normalized filename

@@ -12,6 +12,7 @@ qt = QtGui
 
 from baseTextCtrl import BaseTextCtrl, normalizePath
 import iep
+from iepLogging import print
 
 
 def determineLineEnding(text):
@@ -240,8 +241,18 @@ class IepEditor(BaseTextCtrl):
     def focusInEvent(self, event):
         """ Test whether the file has been changed 'behind our back'
         """
-        # act normally to the focus event
+        # Act normally to the focus event        
         BaseTextCtrl.focusInEvent(self, event)
+        # Test file change
+        self.testWhetherFileWasChanged()
+    
+    
+    def testWhetherFileWasChanged(self):
+        """ testWhetherFileWasChanged()
+        Test to see whether the file was changed outside our backs,
+        and let the user decide what to do.
+        Returns True if it was changed.
+        """
         
         # get the path
         path = self._filename
@@ -271,7 +282,10 @@ class IepEditor(BaseTextCtrl):
                 self.reload()
             else:
                 pass # when cancelled or explicitly said, do nothing
-    
+            
+            # Return that indeed the file was changes
+            return True
+        
     
     def makeDirty(self, value=True): 
         """ Handler of the callback for SAVEPOINTLEFT,
@@ -333,6 +347,10 @@ class IepEditor(BaseTextCtrl):
             filename = self._filename
         if not filename:
             raise ValueError("No filename specified, and no filename known.")
+        
+        # Test whether it was changed without us knowing. If so, dont save now.
+        if self.testWhetherFileWasChanged():
+            return
         
         # get text and convert line endings
         text = self.getString()

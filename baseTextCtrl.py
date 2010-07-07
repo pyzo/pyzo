@@ -7,6 +7,7 @@ is common for both shells and editors.
 import iep
 import os, sys, time
 import ssdf
+from iepLogging import print
 
 from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
@@ -1284,7 +1285,7 @@ class CallTipObject:
         """
         bufferName = self.textCtrl._callTipBuffer_name
         t = time.time() - self.textCtrl._callTipBuffer_time
-        if ( self.bufferName == bufferName and t < 5.0 ):
+        if ( self.bufferName == bufferName and t < 0 ):
             self._finish(self.textCtrl._callTipBuffer_result)
             return True
         else:
@@ -1298,11 +1299,11 @@ class CallTipObject:
         self.setBuffer(callTipText)
         self._finish(callTipText)
     
-    def setBuffer(self, callTipText):
+    def setBuffer(self, callTipText, timeout=4):
         """ setBuffer(callTipText)        
         Sets the buffer with the provided text. """
         self.textCtrl._callTipBuffer_name = self.bufferName
-        self.textCtrl._callTipBuffer_time = time.time()
+        self.textCtrl._callTipBuffer_time = time.time() + timeout
         self.textCtrl._callTipBuffer_result = callTipText
     
     def _finish(self, callTipText):
@@ -1335,7 +1336,7 @@ class AutoCompObject:
         """
         bufferName = self.textCtrl._autoCompBuffer_name
         t = time.time() - self.textCtrl._autoCompBuffer_time
-        if ( self.bufferName == bufferName and t < 5.0 ):
+        if ( self.bufferName == bufferName and t < 0 ):
             self._finish(self.textCtrl._autoCompBuffer_result)
             return True
         else:
@@ -1352,7 +1353,7 @@ class AutoCompObject:
         # really finish        
         self._finish(names)
     
-    def setBuffer(self, names=None):
+    def setBuffer(self, names=None, timeout=4):
         """ setBuffer(names=None)        
         Sets the buffer with the provided names (or the collected names).
         Also returns a list with the sorted names. """
@@ -1364,11 +1365,11 @@ class AutoCompObject:
         names.sort(key=str.upper)
         # Store
         self.textCtrl._autoCompBuffer_name = self.bufferName
-        self.textCtrl._autoCompBuffer_time = time.time()
+        self.textCtrl._autoCompBuffer_time = time.time() + timeout
         self.textCtrl._autoCompBuffer_result = names
         # Return sorted list
         return names
-        
+    
     def _finish(self, names):
         # Check whether name in list.        
         haystack = ' '.join(['']+names).lower()
@@ -1380,7 +1381,23 @@ class AutoCompObject:
             # When already shown the list will change selection when typing
             if not self.textCtrl.autoCompActive():
                 self.textCtrl.autoCompShow(len(self.needle), names)
-
+    
+    def nameInImportNames(self, importNames):
+        """ nameInImportNames(importNames)
+        Test whether the name, or a base part of it is present in the
+        given list of names. Returns the (part of) the name that's in
+        the list, or None otherwise.
+        """
+        baseName = self.name
+        while baseName not in importNames:
+            if '.' in baseName:
+                baseName = baseName.rsplit('.',1)[0]
+            else:
+                baseName = None
+                break
+        return baseName
+    
+    
 if __name__=="__main__":
     app = QtGui.QApplication([])
     win = BaseTextCtrl(None)
