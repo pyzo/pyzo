@@ -36,7 +36,7 @@ import ssdf
 
 def isFrozen():
     """ Find out whether this is a frozen application
-    (using bbfreeze or py2exe) by finding out what was
+    (using cx_freeze, bbfreeze, py2exe) by finding out what was
     the executable name to start the application.
     """
     import os
@@ -71,10 +71,10 @@ def startIep():
     # Set to use pure QT drawing (for consistent looks)
     QtGui.QApplication.setDesktopSettingsAware(False)
     # Instantiate the application, and the main window
-    app = QtGui.QApplication([])
+    QtGui.qApp = QtGui.QApplication([])
     frame=MainWindow()
     # Enter the main loop
-    app.exec_()
+    QtGui.qApp.exec_()
 
 
 def normalizeLineEndings(text):
@@ -117,6 +117,7 @@ find_regExp = 1
 titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
 shellMaxLines = 10000
 autoCompDelay = 300
+showStatusbar = 1
 state = list:
 editor = dict:
   showWhiteSpace = 0

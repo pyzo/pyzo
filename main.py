@@ -14,87 +14,101 @@ $Rev: 946 $
 print("Importing iep.main ...")
 
 import os, sys
-import ssdf
-
 import iep
-from editorStack import EditorStack
-from shellStack import ShellStack
-from menu import MenuHelper
-
 
 from PyQt4 import QtCore, QtGui
 from queue import Queue, Empty
 
-# Create "global" parser instance
-import codeparser
-if not hasattr(iep, 'parser'):
-    iep.parser = codeparser.Parser()
-    iep.parser.start()
 
 class MainWindow(QtGui.QMainWindow):
     
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
-        # store myself
+        # Store myself
         iep.main = self
         
-        # init dockwidget settings
+        # Init dockwidget settings
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtGui.QTabWidget.West)
         self.setDockOptions(
                 QtGui.QMainWindow.AllowNestedDocks
             |  QtGui.QMainWindow.AllowTabbedDocks
-#             |  QtGui.QMainWindow.AnimatedDocks
+            #|  QtGui.QMainWindow.AnimatedDocks
             )
         
         # Set window atrributes
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
-        # set layout as it was the previous time
+        # Set layout as it was the previous time
         pos = iep.config.layout
         self.move(pos.left, pos.top)
         self.resize(pos.width, pos.heigth)
         if pos.maximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
-        # construct icon
+        # Construct icon
         tmp = os.path.join(iep.path,'')
         iep.icon = QtGui.QIcon()
         iep.icon.addFile(tmp+'icon16.png', QtCore.QSize(16,16), 0, 0)
         iep.icon.addFile(tmp+'icon32.png', QtCore.QSize(32,32), 0, 0)
         iep.icon.addFile(tmp+'icon48.png', QtCore.QSize(48,48), 0, 0)
         
-        # set label and icon
+        # Set label and icon
         self.setWindowTitle("IEP")
         self.setWindowIcon(iep.icon)
         
-        # create splitter
-        #self.splitter0 = QtGui.QSplitter(self)
+#         # Show spash screen
+#         im = QtGui.QPixmap(tmp+'icon48.png')
+#         iconContainer = QtGui.QSplashScreen(im)
+#         iconContainer.show()
         
-        # set central widget
+        # Show empty window
+        self.show()
+        QtGui.qApp.processEvents()
+        
+        # Fill the window
+        self.init1()
+        
+        # Show finally
+        self.restoreIepState()
+        self.show()
+    
+    
+    def init1(self):
+        
+        # Delayed imports
+        from editorStack import EditorStack
+        from shellStack import ShellStack
+        from menu import MenuHelper
+        import codeparser
+
+        # Create "global" parser instance
+        if not hasattr(iep, 'parser'):
+            iep.parser = codeparser.Parser()
+            iep.parser.start()
+        
+        # Create editor stack and make the central widget
         iep.editors = EditorStack(self)
         self.setCentralWidget(iep.editors)
         
-        # create statusbar en menu 
+        # Create statusbar and menu 
         # (keep a ref to the menuhelper so it is not destroyed)
-#         status = self.statusBar()
+        if iep.config.showStatusbar:
+            iep.status = self.statusBar()
+        else:
+            iep.status = None
         self._menuhelper = MenuHelper(self.menuBar())
         
-        # create floater
+        # Create floater
         dock = QtGui.QDockWidget("Shells", self)
         dock.setObjectName('shells')
         dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
         
-        # insert shell stack
+        # Insert shell stack and add the default shell
         iep.shells = ShellStack(self)
         dock.setWidget(iep.shells)
-        #iep.shells.show()
         iep.shells.addShell()
-        
-        # show now
-        self.restoreIepState()
-        self.show()
     
     
     def saveIepState(self):
@@ -144,6 +158,7 @@ class MainWindow(QtGui.QMainWindow):
     
     def saveConfig(self):
         """ Save all configureations to file. """ 
+        import ssdf
         
         # store editorStack settings
         iep.editors.storeSettings()

@@ -4,6 +4,8 @@ Functionality for logging and a logger shell.
 
 import sys, os, time
 import code
+import iep
+iep.status = None
 
 # todo: enable logging to a file?
 
@@ -20,13 +22,16 @@ except AttributeError:
     
 original_print = print
 def print(*args, **kwargs):
+    # Obtain time string
     t = time.localtime()
     preamble = "{:02g}-{:02g}-{:04g} {:02g}:{:02g}:{:02g}: "
     preamble = preamble.format( t.tm_mday, t.tm_mon, t.tm_year, 
                                 t.tm_hour, t.tm_min, t.tm_sec)
+    # Prepend to args and print
     args = [preamble] + list(args)
     original_print(*tuple(args),**kwargs)
-
+    
+    
 
 def splitConsole(stdoutFun=None, stderrFun=None):
     """ splitConsole(stdoutFun=None, stderrFun=None)
@@ -83,6 +88,10 @@ class OutputStreamSplitter:
         self._original.write(text)
         self._history.append(text)
         self._deferFunction(text)
+        # Show in statusbar
+        if iep.status and len(text)>1:
+            iep.status.showMessage(text, 5000)
+    
     
     def flush(self):
         return self._original.flush()

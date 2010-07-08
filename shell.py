@@ -429,15 +429,21 @@ class BaseShell(BaseTextCtrl):
     
     def _wrapLines(self, text):
         """ Peform hard wrapping of the text to 80 characters.
+        The cursor should be at the position to add the text.
         """
+        # Check how many chars are left at the line right now
+        linnr, index =  self.getLinenrAndIndex()
+        charsLeft = 80-index
+        
         # Perform hard-wrap, because Qscintilla becomes very slow 
         # when long lines are displayed.
         lines = text.split('\n')
         lines2 = []
         for line in lines:
-            while len(line)>80:
-                lines2.append(line[:80])
-                line = line[80:]
+            while len(line)>charsLeft:
+                lines2.append(line[:charsLeft])
+                line = line[charsLeft:]
+                charsLeft = 80 # All next lines have 80 chars
             lines2.append(line)
         text = '\n'.join(lines2)
         return text
@@ -646,10 +652,12 @@ class ShellInfo:
         """ Given the port of the channels interface, creates the 
         command to execute in order to invoke the remote shell.
         """
+        startScript = os.path.join( iep.getResourceDir(), 'remote.py')
+        startScript = '"{}"'.format(startScript)
         
         # Build command
         command = self.exe + ' '
-        command += 'remote.py' + ' '
+        command += startScript + ' '
         command += str(port) + ' '
         command += self.gui + ' '
         command += str(int(self.runsus)) + ' '
