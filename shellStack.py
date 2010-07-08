@@ -195,10 +195,11 @@ class DebugControl(QtGui.QToolButton):
                 if i == current:
                     theAction = action
             
-            # Highlight current item and make that the button text
+            # Highlight current item and set the button text
             if theAction:
                 menu.setDefaultAction(theAction)
-                self.setText(theAction.text().ljust(20))
+                #self.setText(theAction.text().ljust(20))
+                self.setText("Stack Trace:  ")
 
 
 class ShellInfoDialogEntries(QtGui.QWidget):

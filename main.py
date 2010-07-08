@@ -91,15 +91,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.editors = EditorStack(self)
         self.setCentralWidget(iep.editors)
         
-        # Create statusbar and menu 
-        # (keep a ref to the menuhelper so it is not destroyed)
-        if iep.config.showStatusbar:
-            iep.status = self.statusBar()
-        else:
-            iep.status = None
-        self._menuhelper = MenuHelper(self.menuBar())
-        
-        # Create floater
+        # Create floater for shell
         dock = QtGui.QDockWidget("Shells", self)
         dock.setObjectName('shells')
         dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
@@ -109,6 +101,15 @@ class MainWindow(QtGui.QMainWindow):
         iep.shells = ShellStack(self)
         dock.setWidget(iep.shells)
         iep.shells.addShell()
+        
+        # Create statusbar and menu 
+        # (keep a ref to the menuhelper so it is not destroyed)
+        if iep.config.showStatusbar:
+            iep.status = self.statusBar()
+        else:
+            iep.status = None
+            self.setStatusBar(None)
+        self._menuhelper = MenuHelper(self.menuBar())
     
     
     def saveIepState(self):

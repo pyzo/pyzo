@@ -164,14 +164,15 @@ class BaseShell(BaseTextCtrl):
         self.setMarginLineNumbers(1,False)
         self.setEdgeMode(self.EDGE_LINE)
         self.setEdgeColumn(80)
+        self.setHighlightCurrentLine(False)
+        
+        # variable to see whether we should resize to match 80 columns
+        self._reduceFontSizeToMatch80Columns = True
         
         # variables we need
         self._more = False
         self._promptPos1 = 0
         self._promptPos2 = 0
-        
-        # variable to see whether we should resize to match 80 columns
-        self._reduceFontSizeToMatch80Columns = True
         
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
@@ -192,6 +193,11 @@ class BaseShell(BaseTextCtrl):
     def resizeEvent(self, event):
         """ When resizing the fontsize nust be kept right. """
         BaseTextCtrl.resizeEvent(self, event)
+        if self._reduceFontSizeToMatch80Columns:
+            self.updateFontSizeToMatch80Columns()
+    
+    def setStyle(self, styleName=None):
+        BaseTextCtrl.setStyle(self, styleName)
         if self._reduceFontSizeToMatch80Columns:
             self.updateFontSizeToMatch80Columns()
     
@@ -652,7 +658,7 @@ class ShellInfo:
         """ Given the port of the channels interface, creates the 
         command to execute in order to invoke the remote shell.
         """
-        startScript = os.path.join( iep.getResourceDir(), 'remote.py')
+        startScript = os.path.join( iep.path, 'remote.py')
         startScript = '"{}"'.format(startScript)
         
         # Build command
@@ -770,7 +776,7 @@ class PythonShell(BaseShell):
         
         # Start process
         command = self._info.getCommand(port)
-        self._process = subprocess.Popen(command, shell=True, cwd=os.getcwd())  
+        self._process = subprocess.Popen(command, shell=True, cwd=iep.path)  
         
         # Set timer callback
         self._pollMethod = self.poll_running

@@ -365,6 +365,8 @@ class EditMenu(BaseMenu):
         
     def fun_findPrevious(self, value):
         iep.editors._findReplace.findPrevious()
+    
+
 
 
 class ViewMenu(BaseMenu):
@@ -384,10 +386,13 @@ class ViewMenu(BaseMenu):
         addItem( None )
         addItem( MI('Wrap long lines', self.fun_wrap, []) )
         addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
+        addItem( MI('Match braces', self.fun_braceMatch, []) )  
+        addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
         addItem( None )
         addItem( MI('Edge column', self.fun_edgecolumn, []) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( MI('Zooming', self.fun_zooming, []) )
+        addItem( MI('QT theme', self.fun_qtstyle, []) )
     
     
     def fun_selectEditor(self, value):
@@ -415,7 +420,6 @@ class ViewMenu(BaseMenu):
             iep.status = None
             iep.main.setStatusBar(None)
     
-    
     def fun_wrap(self, value):
         """ Wrap long lines. """
         if value is None:
@@ -424,6 +428,20 @@ class ViewMenu(BaseMenu):
         iep.config.editor.wrapText = value
         for editor in iep.editors:
             editor.setWrapMode(int(value)*2)
+    
+    def fun_braceMatch(self, value):
+        """ Indicate matching braces and when no matching brace is found. """
+        if value is None:
+            return bool(iep.config.editor.doBraceMatch)
+        else:
+            # get new value
+            value = not bool(iep.config.editor.doBraceMatch)
+            # apply
+            iep.config.editor.doBraceMatch = value
+            value = {True:2,False:0}[value]
+            for editor in iep.editors:
+                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                editor.setBraceMatching(value)
     
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """
@@ -490,7 +508,6 @@ class ViewMenu(BaseMenu):
     def fun_selectPrevious(self, value):
        iep.editors._list.selectPreviousItem() 
     
-    
     def fun_zooming(self, value):
         """ Zoom in or out, or reset zooming. """
         if value is None:
@@ -513,31 +530,19 @@ class ViewMenu(BaseMenu):
             iep.config.editor.highlightCurrentLine = value
             for editor in iep.editors:
                 editor.setHighlightCurrentLine(value)
+    
+    def fun_codeFolding(self, value):
+        """ Enable folding (hiding) pieces of code. """
+        if value is None:
+            return bool(iep.config.editor.codeFolding)
+        else:
+            value = not iep.config.editor.codeFolding
+            iep.config.editor.codeFolding = value
+            scin = Qsci.QsciScintilla
+            tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
+            for editor in iep.editors:                
+                editor.setFolding(tmp)
 
-
-class SettingsMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Enable code folding', self.fun_codeFolding, []) )        
-        addItem( MI('Automatically indent', self.fun_autoIndent, []) )        
-        addItem( None )
-        addItem( MI('Match braces', self.fun_braceMatch, []) )        
-        addItem( MI('Show call tips', self.fun_callTip, []) )
-        addItem( MI('Show auto completion', self.fun_autoComplete, []) )
-        addItem( MI('Autocomplete keywords', self.fun_autoComplete_kw, []) )
-        addItem( None )
-        addItem( MI('Default style', self.fun_defaultStyle, []) )
-        addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
-        addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
-        addItem( None )
-        addItem( MI('QT theme', self.fun_qtstyle, []) )
-        addItem( MI('Edit syntax styles ...', self.fun_editStyles) )        
-        addItem( MI('Change key mappings ...', self.fun_keymap) )
-        addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
-        #addItem( MI('Save settings now', self.fun_saveSettings) )
-        
     def fun_qtstyle(self, value):
         """ Chose the QT style to use. """
         if value is None:
@@ -558,6 +563,27 @@ class SettingsMenu(BaseMenu):
             qstyle = QtGui.qApp.setStyle(value)
             if qstyle:
                 QtGui.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
+
+
+class SettingsMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Automatically indent', self.fun_autoIndent, []) )        
+        addItem( MI('Enable call tips', self.fun_callTip, []) )
+        addItem( MI('Enable auto completion', self.fun_autoComplete, []) )
+        addItem( MI('Autocomplete keywords', self.fun_autoComplete_kw, []) )
+        addItem( None )
+        addItem( MI('Default style', self.fun_defaultStyle, []) )
+        addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
+        addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
+        addItem( None )
+        addItem( MI('Change key mappings ...', self.fun_keymap) )
+        addItem( MI('Edit syntax styles ...', self.fun_editStyles) )
+        addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
+        #addItem( MI('Save settings now', self.fun_saveSettings) )
+        
     
     def fun_defaultStyle(self, value):
         """ The style used in new files. """
@@ -598,32 +624,6 @@ class SettingsMenu(BaseMenu):
         else:
             # store
             iep.config.editor.defaultLineEndings = value
-    
-    def fun_codeFolding(self, value):
-        """ Enable folding (hiding) pieces of code. """
-        if value is None:
-            return bool(iep.config.editor.codeFolding)
-        else:
-            value = not iep.config.editor.codeFolding
-            iep.config.editor.codeFolding = value
-            scin = Qsci.QsciScintilla
-            tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
-            for editor in iep.editors:                
-                editor.setFolding(tmp)
-    
-    def fun_braceMatch(self, value):
-        """ Indicate matching braces and when no matching brace is found. """
-        if value is None:
-            return bool(iep.config.editor.doBraceMatch)
-        else:
-            # get new value
-            value = not bool(iep.config.editor.doBraceMatch)
-            # apply
-            iep.config.editor.doBraceMatch = value
-            value = {True:2,False:0}[value]
-            for editor in iep.editors:
-                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
-                editor.setBraceMatching(value)
     
     def fun_autoComplete(self, value):
         """ Show a list with completion options queried from editor and shell."""
@@ -679,17 +679,18 @@ class SettingsMenu(BaseMenu):
     def fun_advancedSettings(self, value):
         """ How to edit the advanced settings. """
         text = """ 
-        Some extra settings can be changed by editing 
-        'config.ssdf'. IEP automatically saves its settings 
-        to that file when exiting, so the file should be 
-        edited with another editor when IEP is NOT running.
+        The menu does not show all available settings. The
+        advanced settings can be changed by using the logger
+        and typing "iep.config.advanced.". The autocompletion
+        list will show you your options. 
+        
+        Note that most settings require a restart to take effect.
         """
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Advanced settings")
         m.setText(text)
         m.setIcon(m.Information)
         m.exec_()
-        #iep.editors.loadFile(os.path.join(iep.path,'config.ssdf'))
     
     def fun_saveSettings(self, value):
         """ Iep saves the settings when exiting, but you can also save now. """
@@ -735,7 +736,7 @@ class ShellMenu(BaseMenu):
         
         addItem( MI('Edit shell configurations ...', self.fun_config) )
         addItem( None )
-        addItem( MI('Interrup current shell', self.fun_interrupt) )
+        addItem( MI('Interrupt current shell', self.fun_interrupt) )
         addItem( MI('Terminate current shell', self.fun_term) )        
         addItem( MI('Restart current shell', self.fun_restart) )        
         addItem( None )
@@ -1169,7 +1170,7 @@ class KeyMapEditDialog(QtGui.QDialog):
         self.setWindowIcon(iep.icon)
         
         # set size
-        size = 300,140
+        size = 400,140
         offset = 5
         size2 = size[0], size[1]+offset
         self.resize(*size2)

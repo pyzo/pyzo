@@ -69,14 +69,12 @@ python = dict:
 pythonshell = dict:
     lexer = 'python'
     s032 = 'face:{mono},size:9,fore:#111111,back:#FFFFFF'
+    #s032 = 'face:{mono},size:9,fore:#CCCCCC,back:#000000'  # in black
 
 loggershell = dict:
     lexer = 'python'
     s032 = 'face:{mono},size:9,fore:#1111AA,back:#FFFFFF'
 
-pythonshellblack = dict:
-    lexer = 'python'
-    s032 = 'face:{mono},size:9,fore:#CCCCCC,back:#000000'
 
 
 # PYTHON 2 and PYTHON 3 (precize set of keywords)

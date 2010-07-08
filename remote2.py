@@ -450,8 +450,9 @@ class IepInterpreter:
                 sys.last_value = value
         
         # Show syntax error 
-        list = traceback.format_exception_only(type, value)
-        map(self.write, list)
+        strList = traceback.format_exception_only(type, value)
+        for s in strList:
+            self.write(s)
     
     
     def showtraceback(self):
@@ -525,16 +526,18 @@ class IepInterpreter:
                 tblist[i] = (fname, lineno, tb[2], example)
             
             # Format list
-            list = traceback.format_list(tblist)
-            if list:
-                list.insert(0, "Traceback (most recent call last):\n")
-            list[len(list):] = traceback.format_exception_only(type, value)
+            strList = traceback.format_list(tblist)
+            if strList:
+                strList.insert(0, "Traceback (most recent call last):\n")
+            strList.extend( traceback.format_exception_only(type, value) )
+            
+            # Write traceback
+            for s in strList:
+                self.write(s)
+            
         finally:
             tblist = tb = None
         
-        # Write traceback
-        map(self.write, list)
-
 
 def correctFilenameAndLineno(fname, lineno):
     """ Given a filename and lineno, this function returns
