@@ -77,7 +77,7 @@ class MI:
                 sub = qt.QAction(action)
                 sub.setText(str(value))
                 sub.setStatusTip(self.tip)
-                #sub.setToolTip(self.tip)
+                sub.setToolTip(self.tip)
                 sub.func = self.func
                 sub.value = value
                 sub.setCheckable(True)
@@ -157,25 +157,11 @@ class FileMenu(BaseMenu):
         addItem( MI('Line endings', self.fun_lineEndings, []) )        
         addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)        
-        addItem( MI('Select shell', self.fun_selectShell) )
-        addItem( MI('Select editor', self.fun_selectEditor) )
-        addItem(None)
         addItem( MI('Restart IEP', self.fun_restart) )
         addItem( MI('Close IEP', self.fun_close) )
         
-        addItem( MI('TEST', self.fun_test) )
+        #addItem( MI('TEST', self.fun_test) )
     
-    def fun_selectEditor(self, value):
-        """ Select the current editor. """
-        editor = iep.editors.getCurrentEditor()
-        if editor:
-            editor.setFocus()
-    
-    def fun_selectShell(self, value):
-        """ Select the current shell. """
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            shell.setFocus()
     
     def fun_test(self, value):
         """ Test something. """
@@ -293,7 +279,6 @@ class EditMenu(BaseMenu):
         addItem( MI('Cut', self.fun_cut) )
         addItem( MI('Copy', self.fun_copy) )
         addItem( MI('Paste', self.fun_paste) )
-        addItem( None )
         addItem( MI('Select all', self.fun_selectAll) )
         addItem( None )
         addItem( MI('Comment lines', self.fun_comment) )
@@ -387,18 +372,48 @@ class ViewMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Wrap text', self.fun_wrap, []) )
-        addItem( MI('Indentation guides', self.fun_indentGuides, []) )
-        addItem( MI('Edge column', self.fun_edgecolumn, []) )
-        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
+        addItem( MI('Select shell', self.fun_selectShell) )
+        addItem( MI('Select editor', self.fun_selectEditor) )
+        addItem( MI('Select previous file', self.fun_selectPrevious) )
         addItem( None )
         addItem( MI('Show whitespace', self.fun_showWhiteSpace, []) )
         addItem( MI('Show line endings', self.fun_showLineEndings, []) )
         addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
+        addItem( MI('Show indentation guides', self.fun_indentGuides, []) )
+        addItem( MI('Show status bar', self.fun_showStatusBar) )
         addItem( None )
-        addItem( MI('Select previous file', self.fun_selectPrevious) )
+        addItem( MI('Wrap long lines', self.fun_wrap, []) )
         addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
+        addItem( None )
+        addItem( MI('Edge column', self.fun_edgecolumn, []) )
+        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( MI('Zooming', self.fun_zooming, []) )
+    
+    
+    def fun_selectEditor(self, value):
+        """ Select the current editor. """
+        editor = iep.editors.getCurrentEditor()
+        if editor:
+            editor.setFocus()
+    
+    def fun_selectShell(self, value):
+        """ Select the current shell. """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.setFocus()
+    
+    
+    def fun_showStatusBar(self, value):
+        """ Display the status bar atthe bottom of the window. """ 
+        if value is None:
+            return bool(iep.config.showStatusbar)
+        value = not bool( iep.config.showStatusbar ) 
+        iep.config.showStatusbar = value
+        if value:
+            iep.status = iep.main.statusBar()
+        else:
+            iep.status = None
+            iep.main.setStatusBar(None)
     
     
     def fun_wrap(self, value):
@@ -413,7 +428,8 @@ class ViewMenu(BaseMenu):
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """
         if value is None:
-            return [60, 65, 70, 75, 76, 77, 78,79,80,-1, iep.config.editor.edgeColumn]
+            return [60, 65, 70, 75, 76, 77, 78,79,80,-1, 
+                        iep.config.editor.edgeColumn]
         iep.config.editor.edgeColumn = value
         for editor in iep.editors:
             editor.setEdgeColumn(value)
@@ -727,7 +743,8 @@ class ShellMenu(BaseMenu):
         addItem( MI('Run cell', self.fun_runCell) )
         addItem( MI('Run file', self.fun_runFile) )
         addItem( MI('Run project main file', self.fun_runProject) )
-        addItem( MI('Restart and run project main file', self.fun_runProject2))
+        addItem( MI('Restart shell and run project main file',  
+                        self.fun_runProject2))
     
     def fun_config(self, value):
         """ Edit, add and remove configurations for the shells. """
