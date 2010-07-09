@@ -1038,9 +1038,9 @@ class PythonShell(BaseShell):
         ?               - show this message
         ?X or X?        - print(X.__doc__)
         ??X or X??      - help(X)
-        cd              - import os;print os.getcwd()
-        cd X            - import os;os.chdir("X");print os.getcwd()
-        ls              - import os;print os.popen("dir").read()
+        cd              - import os; print(os.getcwd())
+        cd X            - import os; os.chdir("X"); print(os.getcwd())
+        ls              - import os; print(os.popen("dir").read())
         open X          - open file, module, or file that defines X
         opendir Xs      - open all files in directory X 
         timeit X        - times execution of command X
@@ -1058,6 +1058,12 @@ class PythonShell(BaseShell):
                 text = text[:width-3]+'...'
             text = text.ljust(width+margin, ' ')
             return text
+        def prepareTextForRemotePrinting(text):
+            # Escape backslah, quotes and newlines
+            text = text.replace("\\",  "\\\\")
+            text = text.replace("'", "\\'").replace('"', '\\"')
+            text = text.replace("\n", "\\n")
+            return text
         
         if text=="?":
             text = "print('{}')".format(message)
@@ -1074,11 +1080,29 @@ class PythonShell(BaseShell):
         elif text.endswith("?"):
             text = 'print({}.__doc__)'.format(text[:-1])
         
+        elif text == "timeit":
+            text = 'print("Time execution duration, usage:\\n'
+            text += 'timeit fun # where fun is a callable\\n'
+            text += 'timeit \'expression\' # where fun is a callable\\n'
+            text += 'timeit 20 fun # tests 20 passes\\n'
+            text += 'For more advanced use, see the timeit module.")\n'
+            
         elif text.startswith("timeit "):
             command = text[7:]
-            command = command.replace('"', '\\"')
-            text = 'import timeit; timeit.timeit("{}")'.format(command)
-            
+            # Get number of iterations
+            N = 1
+            tmp =  command.split(' ',1)
+            if len(tmp)==2:
+                try:
+                    N = int(tmp[0])
+                    command = tmp[1]
+                except Exception:
+                    pass
+            # Compile command
+            text = 'import timeit; t=timeit.Timer({}); '.format(command)
+            text += 'print(str( t.timeit({})/{} ) '.format(N,N)
+            text += '+" seconds on average for {} iterations." )'.format(N)
+        
         elif text=='cd' or text.startswith("cd ") and '=' not in text:
             tmp = text[3:].strip()
             if tmp:
@@ -1088,9 +1112,9 @@ class PythonShell(BaseShell):
                 
         elif text=='ls':
             if sys.platform.count('win'):
-                text = 'import os;print os.popen("dir").read()'
+                text = 'import os;print(os.popen("dir").read())'
             else:
-                text = 'import os;print os.popen("ls").read()'
+                text = 'import os;print(os.popen("ls").read())'
                 
         elif text.startswith('open ') or text.startswith('opendir '):
             # get what to open            
@@ -1108,7 +1132,7 @@ class PythonShell(BaseShell):
             elif remoteEval(objectName) == '<error>':
                 # Given name is not an object
                 msg = "Not a valid object: '{}'.".format(objectName)
-            else:
+            else:   
                 # Try loading file in which object is defined
                 fn = remoteEval('{}.__file__'.format(objectName))
                 if fn == '<error>':
@@ -1144,42 +1168,55 @@ class PythonShell(BaseShell):
                 name = justify(name, 18, 2)
                 # Add to text
                 text += name  
-            text = text.replace("'", "\\'")
-            text = 'print("Your variables are:\\n{}")'.format(text)
+            if text:            
+                text = 'print("Your variables are:\\n{}")'.format(text)
+            else:
+                text = 'print("There are no variables defined in this scope.")'
         
         elif text == 'whos':
             # Get list of names
             names = remoteEval('",".join(dir())')
             names = names.split(',')
+            # Select names
+            names = [name for name in names if not name.startswith('__')]
+            # Get class and repr for all names at once
+            if names:
+                # Define list comprehensions (the one for the class is huge!)
+                nameString = ','.join(names)
+                classGetter = '[str(c) for c in '
+                classGetter += '[a[1] or a[0].__class__.__name__ for a in '
+                classGetter += '[(b, not hasattr(b,"__class__")) for b in [{}]'
+                classGetter += ']]]'
+                reprGetter = '[repr(name) for name in [{}]]'
+                #
+                classGetter = classGetter.format(nameString)
+                reprGetter = reprGetter.format(nameString)
+                # Use special seperator that is unlikely to be used, ever.
+                namesClass = remoteEval('"##IEP##".join({})'.format(classGetter))
+                namesRepr = remoteEval('"##IEP##".join({})'.format(reprGetter))                
+                namesClass = namesClass.split('##IEP##')
+                namesRepr = namesRepr.split('##IEP##')
             # Compile list
             text = ''
-            for name in names:
-                if name.startswith('__'):
-                    continue
-                # Find class and repr
-                className = remoteEval(name+'.__class__.__name__')
-                if className == '<error>':
-                    className = ''
-                
-                repres = remoteEval('repr({})'.format(name))
-                # 
+            for name, nameClass, nameRepr in zip(names, namesClass, namesRepr):
+                # Post process nameclass
+                if nameClass == 'True':
+                    nameClass = ''
                 # Make right length
                 name = justify(name, 18, 2)
-                className = justify(className, 18, 2)
-                repres = justify(repres, 38, 2)
+                nameClass = justify(nameClass, 18, 2)
+                nameRepr = justify(nameRepr, 38, 2)
                 # Add to text
-                text += name + className + repres + '\n'
-            # Prepare for printing
-            text = text.replace("\\",  "\\\\")
-            text = text.replace("'", "\\'").replace('"', '\\"')
-            text = text.replace("\n", "\\n")
-            # Define header
-            # todo: Variable, Type, Representation
-            preamble = "NAME ".ljust(20,' ') + "CLASS ".ljust(20,' ') 
-            preamble += "REPR ".ljust(20,' ') + '\\n'
-            # Combine and print
-            text = preamble + text[:-2]
-            text = 'print("{}")'.format(text)
+                text += name + nameClass + nameRepr + '\n'
+            if text:
+                # Define header
+                preamble = "VARIABLE: ".ljust(20,' ') + "TYPE: ".ljust(20,' ') 
+                preamble += "REPRESENTATION: ".ljust(20,' ') + '\n'
+                # Combine and print
+                text = preamble + text[:-2]
+                text = 'print("{}")'.format(prepareTextForRemotePrinting(text))
+            else:
+                text = 'print("There are no variables defined in this scope.")'
         
         # Return modified version (or original)
         return text
