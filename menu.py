@@ -673,8 +673,11 @@ class SettingsMenu(BaseMenu):
         m.setWindowTitle("Edit syntax styling")
         m.setText(text)
         m.setIcon(m.Information)
-        m.exec_()
-        iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
+        m.setStandardButtons(m.Ok | m.Cancel)
+        m.setDefaultButton(m.Ok)
+        result = m.exec_()
+        if result == m.Ok:
+            iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
     
     def fun_advancedSettings(self, value):
         """ How to edit the advanced settings. """
@@ -899,6 +902,79 @@ class ShellMenu(BaseMenu):
         shell.restart(text, fname, -1)
     
 
+class HelpMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Website', self.fun_website) )
+        addItem( MI('Check for updates', self.fun_updates) )
+        addItem( MI('About IEP', self.fun_about) )
+    
+    
+    def fun_website(self, value):
+        """ Open the official IEP website. """
+        import webbrowser
+        webbrowser.open("http://code.google.com/p/iep/")
+    
+    def fun_updates(self, value):
+        """ Check whether a newer version of IEP is available. """
+        # Get version available
+        import urllib.request, re
+        f = urllib.request.urlopen("http://code.google.com/p/iep/downloads/list")        
+        remoteVersion = '?'
+        text = str(f.read())
+        for pattern in ['source.iep(.+?)\.zip', 'iep.(.+?).source\.zip']:
+            result = re.search(pattern, text)
+            if result:
+                remoteVersion = result.group(1)
+                break
+        # Process
+        remoteVersion = remoteVersion.strip('.').strip('_').strip()
+        # Define message
+        text = """ 
+        Your version of IEP is: {}
+        The latest version available is: {}\n        
+        """.format(iep.__version__, remoteVersion)
+        # Show message box
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("Check for the latest version.")
+        if iep.__version__ < remoteVersion:
+            text += "Do you want to download the latest version?"    
+            m.setStandardButtons(m.Yes | m.Cancel)
+            m.setDefaultButton(m.Cancel)
+        else:
+            text += "Your version is up to date."    
+        m.setText(text)
+        m.setIcon(m.Information)
+        result = m.exec_()
+        # Goto webpage if user chose to
+        if result == m.Yes:
+            import webbrowser
+            webbrowser.open("http://code.google.com/p/iep/downloads/list")
+    
+    
+    def fun_about(self, value):
+        """ Show the about text for IEP. """
+        # Define icon and text
+        tmp = os.path.join(iep.path,'')
+        im = QtGui.QPixmap(tmp+'icon48.png') 
+        text = """ 
+        IEP: the Interactive Editor for Python
+        Current version: {}\n
+        IEP is written in Python 3.x and uses the Qt4 widget toolkit.
+        Much of its code was inspired by the Pype and IPython projects.\n
+        IEP is subject to the General Public License (GPL)
+        Copyright (C) 2010 Almar Klein
+        """.format(iep.__version__)
+        # Show message box
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("About IEP")
+        m.setText(text)
+        m.setIconPixmap(im)
+        m.exec_()
+    
+
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.
@@ -912,6 +988,7 @@ class MenuHelper:
                     ('Settings', SettingsMenu),
                     ('Shell', ShellMenu),
                     ('Tools', PluginsMenu),
+                    ('Help', HelpMenu),
                 ]
         
         for menuName, menuClass in menus:

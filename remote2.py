@@ -70,14 +70,32 @@ class IepInterpreter:
         """ Interact! (start the mainloop)
         """
         
+        # Hijack GUI toolkit
+        self.guiApp = None
+        try:
+            if self._gui == 'tk':
+                self.guiApp = Hijacked_tk()
+            elif self._gui == 'wx':
+                self.guiApp = Hijacked_wx()
+            elif self._gui == 'qt4':
+                self.guiApp = Hijacked_qt4()
+            elif self._gui == 'fl':
+                self.guiApp = Hijacked_fltk()
+        except ImportError:
+            pass
+        
         # Create banner
         cprt =  'Type "help", "copyright", "credits" or "license"'\
                 ' for more information.'
-        moreBanner = 'This is the IepInterpreter. Type "?" for'\
-                     ' a list of *magic* commands.'
-        sys.stdout.write("Python %s on %s\n%s\n%s\n" %
+        if self.guiApp:
+            tmp = self._gui.upper()
+            moreBanner = 'This is the IEP interpreter (with %s). ' % (tmp) 
+            moreBanner += 'Type "?" for a list of *magic* commands.'
+        else:
+            moreBanner = 'This is the IEP interpreter. ' 
+            moreBanner += 'Type "?" for a list of *magic* commands.'
+        sys.stdout.write("Python %s on %s.\n%s\n%s\n" %
             (sys.version, sys.platform, cprt, moreBanner))
-        
         
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
@@ -97,21 +115,6 @@ class IepInterpreter:
         if self._runsus and filename and os.path.isfile(filename):
             exec(open(filename).read(), self.locals)
             #execfile(filename, self.locals) # removed in py3k
-        
-        # Hijack GUI toolkit
-        self.guiApp = None
-        try:
-            if self._gui == 'tk':
-                self.guiApp = Hijacked_tk()
-            elif self._gui == 'wx':
-                self.guiApp = Hijacked_wx()
-            elif self._gui == 'qt4':
-                self.guiApp = Hijacked_qt4()
-            elif self._gui == 'fl':
-                self.guiApp = Hijacked_fltk()
-        except ImportError:
-            pass
-            
         
         # ENTER MAIN LOOP
         guitime = time.time()

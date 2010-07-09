@@ -102,8 +102,8 @@ todo = dict:
     ext = 'todo 2do'
     lexer = 'python' # note no keywords
     #s032 = 'face:%(mono)s,size:9,fore:#000000,back:#FFFFFF' # nomal
-    s001 = 'bold,fore:#AA0000' # urgent
-    s012 = 'fore:#999999' # done
+    s012 = 'bold,fore:#AA0000' # urgent
+    s001 = 'fore:#999999' # done
 
 
 # SSDF

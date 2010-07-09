@@ -31,6 +31,7 @@ import sys, os
 # import ssdf or the suplied copy if not available
 import ssdf
 
+__version__ = '2.0.1a'
 
 ## Some functions...
 
