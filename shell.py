@@ -876,7 +876,7 @@ class PythonShell(BaseShell):
         aco.addNames(foundNames)
         
         # Process list
-        if aco.name and not foundNames and aco.textCtrl is editor1:
+        if aco.name and not foundNames:
             # No names found for the requested name. This means
             # it does not exist, let's try to import it
             importNames, importLines = iep.parser.getFictiveImports(editor1)
@@ -1157,19 +1157,27 @@ class PythonShell(BaseShell):
                 if name.startswith('__'):
                     continue
                 # Find class and repr
-                className = remoteEval(name+'.__class__')
+                className = remoteEval(name+'.__class__.__name__')
+                if className == '<error>':
+                    className = ''
+                
                 repres = remoteEval('repr({})'.format(name))
-                repres = repres.replace('\\n', '\\\\n')
                 # 
                 # Make right length
                 name = justify(name, 18, 2)
                 className = justify(className, 18, 2)
                 repres = justify(repres, 38, 2)
                 # Add to text
-                text += name + className + repres + '\\n'
-            text = text.replace("'", "\\'")
+                text += name + className + repres + '\n'
+            # Prepare for printing
+            text = text.replace("\\",  "\\\\")
+            text = text.replace("'", "\\'").replace('"', '\\"')
+            text = text.replace("\n", "\\n")
+            # Define header
+            # todo: Variable, Type, Representation
             preamble = "NAME ".ljust(20,' ') + "CLASS ".ljust(20,' ') 
             preamble += "REPR ".ljust(20,' ') + '\\n'
+            # Combine and print
             text = preamble + text[:-2]
             text = 'print("{}")'.format(text)
         
