@@ -851,8 +851,8 @@ class FindReplaceWidget(QtGui.QFrame):
         self._timer.timeout.connect( self.resetAppearance )
         
         # init case and regexp
-        self._caseCheck.setChecked( bool(iep.config.find_matchCase) )
-        self._regExp.setChecked( bool(iep.config.find_regExp) )
+        self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
+        self._regExp.setChecked( bool(iep.config.state.find_regExp) )
         
         # create callbacks
         self._findText.returnPressed.connect(self.findNext)
@@ -862,12 +862,6 @@ class FindReplaceWidget(QtGui.QFrame):
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
     
-    def closeEvent(self, event):
-        iep.config.find_matchCase = 0#self._caseCheck.isChecked()
-        iep.config.find_regExp = self._regExp.isChecked()
-        print('aaa'*20)
-        # proceed normally
-        QtGui.QFrame.closeEvent(self, event)
     
     def hideMe(self):
         """ Hide the find/replace widget. """
@@ -1085,8 +1079,8 @@ class EditorStack(QtGui.QWidget):
         self.setAcceptDrops(True)
         
         # put the last opened files in 
-        if iep.config.editorState:
-            self.setCurrentState(iep.config.editorState)
+        if iep.config.state.editorState:
+            self.setCurrentState(iep.config.state.editorState)
     
     
     def showEditor(self, editor=None):
@@ -1540,9 +1534,9 @@ class EditorStack(QtGui.QWidget):
         
         # store settings
         fr = self._findReplace
-        iep.config.find_matchCase = fr._caseCheck.isChecked()
-        iep.config.find_regExp = fr._regExp.isChecked()
-        iep.config.editorState = self.getCurrentState()
+        iep.config.state.find_matchCase = fr._caseCheck.isChecked()
+        iep.config.state.find_regExp = fr._regExp.isChecked()
+        iep.config.state.editorState = self.getCurrentState()
     
 
 if __name__ == "__main__":

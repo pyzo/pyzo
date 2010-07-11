@@ -40,10 +40,9 @@ class MainWindow(QtGui.QMainWindow):
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
         # Set layout as it was the previous time
-        pos = iep.config.layout
-        self.move(pos.left, pos.top)
-        self.resize(pos.width, pos.heigth)
-        if pos.maximized:
+        self.move(*iep.state.windowPos)
+        self.resize(*iep.state.windowSize)
+        if iep.state.windowMaximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
         # Construct icon
@@ -54,7 +53,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.icon.addFile(tmp+'icon48.png', QtCore.QSize(48,48), 0, 0)
         
         # Set label and icon
-        self.setWindowTitle("IEP")
+        self.setWindowTitle("IEP (loading ...)")
         self.setWindowIcon(iep.icon)
         
 #         # Show spash screen
@@ -71,6 +70,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Show finally
         self.restoreIepState()
+        self.setWindowTitle("IEP")
         self.show()
     
     
@@ -104,7 +104,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Create statusbar and menu 
         # (keep a ref to the menuhelper so it is not destroyed)
-        if iep.config.showStatusbar:
+        if iep.config.view.showStatusbar:
             iep.status = self.statusBar()
         else:
             iep.status = None
@@ -124,7 +124,7 @@ class MainWindow(QtGui.QMainWindow):
         state = base64.encodebytes(state).decode('ascii')
         
         # Save in config
-        iep.config.state = plugins + [state]
+        iep.config.windowState = plugins + [state]
     
     
     def restoreIepState(self):
@@ -143,7 +143,7 @@ class MainWindow(QtGui.QMainWindow):
             iep.config.qtstyle = iep.defaultStyleName 
         
         # Load from config
-        plugins = iep.config.state
+        plugins = iep.config.windowState
         if not plugins:
             return
         state = plugins.pop(-1)
@@ -165,14 +165,13 @@ class MainWindow(QtGui.QMainWindow):
         iep.editors.storeSettings()
         
         # store window position
-        layout = iep.config.layout
         if self.windowState() == QtCore.Qt.WindowMaximized:
-            layout.maximized = 1
+            iep.state.windowMaximized = 1
             # left,right, width, height stored when maximized
         else:
-            layout.maximized = 0 
-            layout.left, layout.top = self.x(), self.y()
-            layout.width, layout.heigth = self.width(), self.height()
+            iep.state.windowMaximized = 0 
+            iep.state.windowPos = self.x(), self.y()
+            iep.state.windowSize = self.width(), self.height()
         
         # store state
         self.saveIepState()
@@ -188,9 +187,8 @@ class MainWindow(QtGui.QMainWindow):
             ok = [QtCore.Qt.WindowNoState, QtCore.Qt.WindowActive]
             if event.oldState() in ok:
                 # Store layout if now non-maximized
-                layout = iep.config.layout
-                layout.left, layout.top = self.x(), self.y()
-                layout.width, layout.heigth = self.width(), self.height()
+                iep.state.windowPos = self.x(), self.y()
+                iep.state.windowSize = self.width(), self.height()
         
         # Proceed normally
         QtGui.QMainWindow.changeEvent(self, event)

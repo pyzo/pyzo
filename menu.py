@@ -411,9 +411,9 @@ class ViewMenu(BaseMenu):
     def fun_showStatusBar(self, value):
         """ Display the status bar atthe bottom of the window. """ 
         if value is None:
-            return bool(iep.config.showStatusbar)
-        value = not bool( iep.config.showStatusbar ) 
-        iep.config.showStatusbar = value
+            return bool(iep.config.view.showStatusbar)
+        value = not bool( iep.config.view.showStatusbar ) 
+        iep.config.view.showStatusbar = value
         if value:
             iep.status = iep.main.statusBar()
         else:
