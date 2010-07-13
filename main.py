@@ -57,6 +57,13 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle("IEP")
         self.setWindowIcon(iep.icon)
         
+        # Create frame with the IEP logo as a bg
+        ss = 'QFrame { background-image: url(icon48.png);'
+        ss += 'background-repeat:no-repeat; background-position: center; }'
+        self._frame = QtGui.QFrame(self)
+        self._frame.setStyleSheet(ss)
+        self.setCentralWidget(self._frame)
+        
 #         # Show spash screen
 #         im = QtGui.QPixmap(tmp+'icon48.png')
 #         iconContainer = QtGui.QSplashScreen(im)
@@ -69,13 +76,16 @@ class MainWindow(QtGui.QMainWindow):
         # Fill the window
         self.init1()
         
-        # Show finally
-        self.restoreIepState()
+        # Show finally 
+        # (restoring state does work completely when done here)        
+        self.setUpdatesEnabled(True)
         self.show()
+        callLater(self.restoreIepState)
     
     
     def init1(self):
-        
+        import time
+        time.sleep(2)
         # Delayed imports
         from editorStack import EditorStack
         from shellStack import ShellStack
@@ -118,13 +128,11 @@ class MainWindow(QtGui.QMainWindow):
         
         # Save plugin list
         plugins = iep.pluginManager.getLoadedPlugins()
+        iep.config.loadedPlugins = plugins
         
         # Get state and make unicode string
         state = bytes(self.saveState())
-        state = base64.encodebytes(state).decode('ascii')
-        
-        # Save in config
-        iep.config.state = plugins + [state]
+        iep.config.state = base64.encodebytes(state).decode('ascii')
     
     
     def restoreIepState(self):
@@ -142,19 +150,16 @@ class MainWindow(QtGui.QMainWindow):
             # We still have the default style
             iep.config.qtstyle = iep.defaultStyleName 
         
-        # Load from config
-        plugins = iep.config.state
-        if not plugins:
-            return
-        state = plugins.pop(-1)
-        
         # Load plugins
-        for pluginId in plugins:
-            iep.pluginManager.loadPlugin(pluginId)
+        if iep.config.loadedPlugins:            
+            for pluginId in iep.config.loadedPlugins:
+                iep.pluginManager.loadPlugin(pluginId)
         
         # Restore state
-        state = base64.decodebytes(state.encode('ascii'))
-        self.restoreState(state)
+        if iep.config.state:
+            state = iep.config.state
+            state = base64.decodebytes(state.encode('ascii'))
+            self.restoreState(state)        
     
     
     def saveConfig(self):

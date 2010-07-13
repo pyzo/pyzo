@@ -1187,7 +1187,7 @@ class EditorStack(QtGui.QWidget):
         
         # show dialog
         msg = "Select one or more files to open"
-        filter = "Python (*.py *.pyw);;Pyrex (*.pyi,*.pyx);;All (*.*)"
+        filter = "Python (*.py *.pyw);;Pyrex (*.pyi *.pyx);;All (*.*)"
         filenames = QtGui.QFileDialog.getOpenFileNames(self,
             msg, startdir, filter)
         
