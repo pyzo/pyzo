@@ -1288,7 +1288,7 @@ class PythonShell(BaseShell):
                 # Update it and obtain status text
                 if status.startswith('Debug'):
                     dbc.setTrace( status[6:].split(',') )
-                    status = 'Python v{} ({})'.format(self._version, 'Debug')
+                    status = 'Python {} ({})'.format(self._version, 'Debug')
                 elif status == 'Ready':
                     dbc.setTrace(None)
                     status = 'Python v{}'.format(self._version)
@@ -1298,7 +1298,7 @@ class PythonShell(BaseShell):
                         self.executeCode(code, fname, ln)
                 else:
                     dbc.setTrace(None)
-                    status = 'Python v{} ({})'.format(self._version, status)
+                    status = 'Python {} ({})'.format(self._version, status)
                 # Show status in tab text
                 tabWidget = self.parent().parent()
                 i = tabWidget.indexOf(self)

@@ -1,5 +1,5 @@
 # This Simple Structured Data Format (SSDF) file contains the default 
-# configurarion for IEP. The actual configuration is stored in the IEP
+# configuration for IEP. The user configuration is stored in the IEP
 # application data directory.
 
 state = dict:
@@ -64,7 +64,6 @@ shellConfigs = list:
         runsus = 1
         startdir = ''
 
-  
 shortcuts = dict:
     edit__paste = 'Ctrl+V,Shift+Insert'
     view__select_shell = 'F1,Ctrl+0'
