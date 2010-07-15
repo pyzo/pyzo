@@ -14,9 +14,6 @@ from PyQt4 import Qsci
 qt = QtGui
 
 
-# get config
-config = iep.config.editor
-
 # define fontnames
 if 'win' in sys.platform:
     FACES = {'serif': 'Times New Roman', 'mono': 'Courier New', 'sans': 'Arial'}
@@ -491,21 +488,20 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # Inherited classes may override some of these settings. Indentation
         # guides are not nice in shells for instance...
         
-        self.setViewWhiteSpace(config.showWhiteSpace)
-        self.setViewWrapSymbols(config.showWrapSymbols)
-        self.setViewEOL(config.showLineEndings)
+        self.setViewWhiteSpace(False)
+        self.setViewWrapSymbols(False)
+        self.setViewEOL(False)
+        self.setIndentationGuides(False)    
         
-        self.setWrapMode( int(config.wrapText)*2 )
-        self.setHighlightCurrentLine(config.highlightCurrentLine)
-        self.zoomTo(config.zoom)
-        self.setIndentationGuides(config.showIndentGuides)        
+        self.setWrapMode( 2 )
+        self.setHighlightCurrentLine(False)
+        self.zoomTo(iep.config.view.zoom)
         
-        self.setEdgeColumn(config.edgeColumn)
-        self.setIndentation(config.defaultIndentation)
-        self.setTabWidth(config.tabWidth)  
+        self.setIndentation(iep.config.settings.defaultIndentation)
+        self.setTabWidth(iep.config.view.tabWidth)  
         
-        self.setBraceMatching(int(config.doBraceMatch)*2)
-        self.setFolding( int(config.codeFolding)*5 )
+        self.setBraceMatching(int(iep.config.view.doBraceMatch)*2)
+        self.setFolding( False )
         
         # use unicode, the second line does not seem to do anything
         self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
@@ -909,7 +905,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # apply and remember
         self._styleName = styleManager.applyStyle(self,styleName)
         # apply zooming
-        self.zoomTo(config.zoom)
+        self.zoomTo(iep.config.view.zoom)
     
     
     def getStyleName(self):

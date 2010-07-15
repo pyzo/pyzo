@@ -214,7 +214,7 @@ class BaseShell(BaseTextCtrl):
             return
         
         # Init zooming to users choice
-        zoom = iep.config.editor.zoom
+        zoom = iep.config.view.zoom
         self.zoomTo(zoom)
         
         # Init variables
