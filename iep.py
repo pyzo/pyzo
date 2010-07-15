@@ -78,7 +78,7 @@ def getResourceDirs():
         os.mkdir(toolDir)
     
     # Make sure the style file is there
-    styleFileName1 = os.path.join(iepDir, 'styles.ssdf')
+    styleFileName1 = os.path.join(iepDir, 'defaultStyles.ssdf')
     styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')
     if not os.path.isfile(styleFileName2):
         import shutil        
