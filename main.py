@@ -134,13 +134,13 @@ class MainWindow(QtGui.QMainWindow):
         # Set qt style and obtain style name of the default style
         app = QtGui.qApp
         iep.defaultStyleName = str(app.style().objectName())
-        qstyle = app.setStyle(iep.config.qtstyle)
+        qstyle = app.setStyle(iep.config.view.qtstyle)
         if qstyle:
             # We succeeded in setting the style
             app.setPalette(QtGui.QStyle.standardPalette(qstyle))
         else:
             # We still have the default style
-            iep.config.qtstyle = iep.defaultStyleName 
+            iep.config.view.qtstyle = iep.defaultStyleName 
         
         # Load from config
         plugins = iep.config.windowState

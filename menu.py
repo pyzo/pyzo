@@ -423,85 +423,88 @@ class ViewMenu(BaseMenu):
     def fun_wrap(self, value):
         """ Wrap long lines. """
         if value is None:
-            return bool(iep.config.editor.wrapText)
-        value = not bool( iep.config.editor.wrapText ) 
-        iep.config.editor.wrapText = value
+            return bool(iep.config.view.wrapText)
+        value = not bool( iep.config.view.wrapText ) 
+        iep.config.view.wrapText = value
         for editor in iep.editors:
             editor.setWrapMode(int(value)*2)
     
     def fun_braceMatch(self, value):
         """ Indicate matching braces and when no matching brace is found. """
         if value is None:
-            return bool(iep.config.editor.doBraceMatch)
+            return bool(iep.config.view.doBraceMatch)
         else:
             # get new value
-            value = not bool(iep.config.editor.doBraceMatch)
+            value = not bool(iep.view.editor.doBraceMatch)
             # apply
-            iep.config.editor.doBraceMatch = value
+            iep.config.view.doBraceMatch = value
             value = {True:2,False:0}[value]
             for editor in iep.editors:
                 editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
                 editor.setBraceMatching(value)
+            for shell in iep.shells:
+                shell.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                shell.setBraceMatching(value)
     
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """
         if value is None:
             return [60, 65, 70, 75, 76, 77, 78,79,80,-1, 
-                        iep.config.editor.edgeColumn]
-        iep.config.editor.edgeColumn = value
+                        iep.config.view.edgeColumn]
+        iep.config.view.edgeColumn = value
         for editor in iep.editors:
             editor.setEdgeColumn(value)
     
     def fun_indentGuides(self, value):
         """ Show vertical lines at each indentation level. """
         if value is None:
-            return bool(iep.config.editor.showIndentGuides)
+            return bool(iep.config.view.showIndentGuides)
         else:
-            value = not bool( iep.config.editor.showIndentGuides ) 
-            iep.config.editor.showIndentGuides = value
+            value = not bool( iep.config.view.showIndentGuides ) 
+            iep.config.view.showIndentGuides = value
             for editor in iep.editors:
                 editor.setIndentationGuides(value)
     
     def fun_showWhiteSpace(self, value):
         """ Show tabs and spaces in the editor. """
         if value is None:
-            return bool(iep.config.editor.showWhiteSpace)
+            return bool(iep.config.view.showWhiteSpace)
         # for the sortcuts to work
-        value = not bool( iep.config.editor.showWhiteSpace ) 
+        value = not bool( iep.config.view.showWhiteSpace ) 
         # apply
-        iep.config.editor.showWhiteSpace = value
+        iep.config.view.showWhiteSpace = value
         for editor in iep.editors:
             editor.setViewWhiteSpace(value)
     
     def fun_showLineEndings(self, value):
         """ Show line endings in the editor. """
         if value is None:
-            return bool(iep.config.editor.showLineEndings)
+            return bool(iep.config.view.showLineEndings)
         # for the sortcuts to work
-        value = not bool( iep.config.editor.showLineEndings ) 
+        value = not bool( iep.config.view.showLineEndings ) 
         # apply
-        iep.config.editor.showLineEndings = value
+        iep.config.view.showLineEndings = value
         for editor in iep.editors:
             editor.setViewEOL(value)
     
     def fun_showWrapSymbols(self, value):
         """ Show wrap symbols in the editor. """
         if value is None:
-            return bool(iep.config.editor.showWrapSymbols)
+            return bool(iep.config.view.showWrapSymbols)
         # for the sortcuts to work
-        value = not bool( iep.config.editor.showWrapSymbols ) 
+        value = not bool( iep.config.view.showWrapSymbols ) 
         # apply
-        iep.config.editor.showWrapSymbols = value
+        iep.config.view.showWrapSymbols = value
         for editor in iep.editors:
             editor.setViewWrapSymbols(int(value)*1)
     
     def fun_tabWidth(self, value):
         """ The amount of space of a tab (but only if tabs are used). """
         if value is None:
-            return [2,3,4,5,6,7,8,9,10, iep.config.editor.tabWidth]
+            return [2,3,4,5,6,7,8,9,10, iep.config.view.tabWidth]
         
         # store and apply
-        iep.config.editor.tabWidth = value
+        iep.config.view.tabWidth = value
         for editor in iep.editors:
             editor.setTabWidth(value)
     
@@ -514,30 +517,30 @@ class ViewMenu(BaseMenu):
             return ["Zoom in", "Zoom out", 'Zoom reset', 'this wont match']
         else:
             if "in" in value:
-                iep.config.editor.zoom += 1
+                iep.config.view.zoom += 1
             elif "out" in value:
-                iep.config.editor.zoom -= 1
+                iep.config.view.zoom -= 1
             else:
-                iep.config.editor.zoom = 0
+                iep.config.view.zoom = 0
             iep.styleManager.styleUpdate.emit()
     
     def fun_lineHighlight(self, value):
         """ Whether the line containing the cursor should be highlighted. """
         if value is None:
-            return bool(iep.config.editor.highlightCurrentLine)
+            return bool(iep.config.view.highlightCurrentLine)
         else:
-            value = not bool(iep.config.editor.highlightCurrentLine)
-            iep.config.editor.highlightCurrentLine = value
+            value = not bool(iep.view.editor.highlightCurrentLine)
+            iep.config.view.highlightCurrentLine = value
             for editor in iep.editors:
                 editor.setHighlightCurrentLine(value)
     
     def fun_codeFolding(self, value):
         """ Enable folding (hiding) pieces of code. """
         if value is None:
-            return bool(iep.config.editor.codeFolding)
+            return bool(iep.config.view.codeFolding)
         else:
-            value = not iep.config.editor.codeFolding
-            iep.config.editor.codeFolding = value
+            value = not iep.config.view.codeFolding
+            iep.config.view.codeFolding = value
             scin = Qsci.QsciScintilla
             tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
             for editor in iep.editors:                
@@ -548,7 +551,7 @@ class ViewMenu(BaseMenu):
         if value is None:
             # Create list of styles
             styleNames = [i for i in QtGui.QStyleFactory.keys()]
-            styleNames.append(iep.config.qtstyle)
+            styleNames.append(iep.config.view.qtstyle)
             # Mark the default
             for i in range(len(styleNames)):
                 if styleNames[i].lower() == iep.defaultStyleName:
@@ -558,7 +561,7 @@ class ViewMenu(BaseMenu):
             # Remove default string
             value = value.split(' ')[0]
             # Store selected style
-            iep.config.qtstyle = value
+            iep.config.view.qtstyle = value
             # Set style and apply standard pallette
             qstyle = QtGui.qApp.setStyle(value)
             if qstyle:
@@ -963,7 +966,7 @@ class HelpMenu(BaseMenu):
         IEP: the Interactive Editor for Python
         Current version: {}\n
         IEP is written in Python 3.x and uses the Qt4 widget toolkit.
-        Much of its code was inspired by the Pype and IPython projects.\n
+        Much of its code was inspired by the Pype\n and IPython projects.\n
         IEP is subject to the General Public License (GPL)
         Copyright (C) 2010 Almar Klein
         """.format(iep.__version__)
