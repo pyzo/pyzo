@@ -61,6 +61,7 @@ def getResourceDirs():
     # Get directory where IEP is located
     if isFrozen():
         iepDir =  os.path.abspath( os.path.dirname(sys.executable) )
+        iepDir = os.path.join(iepDir, 'source')
     else:
         iepDir = os.path.abspath( os.path.dirname(__file__) )
 
@@ -94,7 +95,7 @@ def startIep():
     """
     
     # Do some imports
-    import logging # to start logging asap
+    import iepLogging # to start logging asap
     from main import MainWindow
     
     # Set to use pure QT drawing (for consistent looks)

@@ -105,7 +105,12 @@ else:
     DELIMITER = bytes([255])
 
 # To decode P2k strings that are not unicode
-stdinenc = sys.__stdin__.encoding
+if sys.__stdin__:
+    stdinenc = sys.__stdin__.encoding
+elif sys.stdin:
+    stdinenc = sys.stdin.encoding
+else:
+    stdinenc = 'utf-8'
 
 
 def portHash(name):

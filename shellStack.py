@@ -221,13 +221,16 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         self._name.move(offset, y+16)
         y += dy + self._name.height()
         
-        # Create executable widget
+        # Create executable entry
         label = QtGui.QLabel(self)
         label.move(offset, y)
         label.setText('Executable (e.g. "python" or "/usr/python3.1"\n'+
                             ' or"c:/program files/python24/python.exe" )')
         y += 16
-        self._exe = QtGui.QLineEdit(self)
+        #self._exe = QtGui.QLineEdit(self)
+        self._exe = QtGui.QComboBox(self)
+        self._exe.setEditable(True)
+        self._exe.setInsertPolicy(self._exe.InsertAtTop)
         self._exe.move(offset, y+16)
         self._exe.resize(350, self._exe.height())
         y += dy + self._exe.height()
@@ -297,12 +300,18 @@ class ShellInfoDialogEntries(QtGui.QWidget):
     
     def setDefaults(self):
         """ Set defaults. """
-        self._name.setText('new')
-        self._exe.setText('python')
+        self._name.setText('new')        
         self._gui_tk.setChecked(True)
         self._runsus.setChecked(True)
         self._startdir.setText('')
-    
+        
+        locations = findPythonExecutables()
+        locations.insert(0, 'python')
+        self._exe.clear()
+        for location in locations:
+            self._exe.addItem(location)
+        self._exe.setEditText('python') 
+        
     
     def onClose(self):        
         # Get tab widget
@@ -323,7 +332,8 @@ class ShellInfoDialogEntries(QtGui.QWidget):
             self._name.setText(info.name)
             self.setNameInTab()
             #
-            self._exe.setText(info.exe)
+            #self._exe.setText(info.exe)
+            self._exe.setEditText(info.exe)
             #
             if info.gui == 'tk':
                 self._gui_tk.setChecked(True)
@@ -349,7 +359,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         #
         info.name = self._name.text()
         #
-        info.exe = self._exe.text()
+        info.exe = self._exe.currentText()
         #
         if self._gui_tk.isChecked():
             info.gui = 'tk'
@@ -437,3 +447,51 @@ class ShellInfoDialog(QtGui.QDialog):
         for i in range(self._tabs.count()):
             w = self._tabs.widget(i)
             iep.config.shellConfigs.append( w.getInfo() )
+
+
+## Find all python executables
+
+def findPythonExecutables():
+    if sys.platform.startswith('win'):
+        return findPythonExecutables_win()
+    else:
+        # todo: implement for linux
+        return []
+
+def findPythonExecutables_win():
+    import winreg
+    
+    # Open base key
+    base = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
+    try:
+        key = winreg.OpenKey(base, 'SOFTWARE\\Python\\PythonCore', 0, winreg.KEY_READ)
+    except Exception:
+        return None
+    
+    # Get info about subkeys
+    nsub, nval, modified = winreg.QueryInfoKey(key)
+    
+    # Query all
+    versions = []
+    for i in range(nsub):
+        try:
+            # Get name and subkey 
+            name =  winreg.EnumKey(key, i)
+            subkey = winreg.OpenKey(key, name + '\\InstallPath', 0, winreg.KEY_READ)
+            # Get install location and store
+            location = winreg.QueryValue(subkey, '')
+            versions.append(location)
+            # Close
+            winreg.CloseKey(subkey)
+        except Exception:
+            pass
+    
+    # Append "python.exe"
+    versions = [os.path.join(v, 'python.exe') for v in versions]
+    
+    # Close keys
+    winreg.CloseKey(key)
+    winreg.CloseKey(base)
+    
+    # Done
+    return versions

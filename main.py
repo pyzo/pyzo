@@ -82,8 +82,7 @@ class MainWindow(QtGui.QMainWindow):
     
     
     def init1(self):
-        import time
-        time.sleep(2)
+        
         # Delayed imports
         from editorStack import EditorStack
         from shellStack import ShellStack
@@ -263,3 +262,4 @@ def callLater(callback, *args):
 # Create callback event handler instance and insert function in IEP namespace
 _callbackEventHandler = _CallbackEventHandler()   
 iep.callLater = callLater
+
