@@ -1,28 +1,27 @@
 #!/usr/bin/env python3.1
 
-import os, sys, time
-import threading, thread, Queue
+import os, sys
 
-from PyQt4 import QtCore, QtGui, Qsci
-
-# Determine if frozen
+# Determine the location of this file (also when frozen)
 ex = os.path.split(sys.executable)[1]
 ex = os.path.splitext(ex)[0]
 if ex.lower().startswith('python'): # because can be python3 on Linux
-    isFrozen = False
-else:
-    isFrozen = True
+    thisDir = os.path.abspath( os.path.dirname(__file__) ) # Not frozen
+else:    
+	thisDir = os.path.abspath( os.path.dirname(sys.executable) ) # Frozen
 
-# Go to the iep dir
-if isFrozen:
-    iepDir =  os.path.abspath( os.path.dirname(sys.executable) )
+# Go there!
+os.chdir(thisDir)
 
-if os.path.isfile( os.path.join(os.path.getcwd '')
+sys.path.insert(0, '')
 
-try:
+# Now we should have an iep.py, or a source dir
+if os.path.isdir('source'):
+    os.chdir('source')
+if os.path.isfile('iep.py'):
     exec("import iep")
-except Exception:
-    # Frozen
-    
+else:
+    raise RuntimeError("Could not locate iep.py!")
 
+# Start
 iep.startIep()

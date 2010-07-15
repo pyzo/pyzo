@@ -19,6 +19,21 @@ try:
 except AttributeError:
     sys.ps2 = "... "
 
+
+class DummyStd:
+    """ For when std is not available. """
+    def __init__(self):
+        self._closed = False
+    def write(self, text):
+        pass
+    def encoding(self):
+        return 'utf-8'
+    @property
+    def closed(self):
+        return self._closed    
+    def close(self):
+        self._closed = False
+    
     
 original_print = print
 def print(*args, **kwargs):
@@ -79,6 +94,11 @@ class OutputStreamSplitter:
             self._original = fileObject
             self._history = []
             self._deferFunction = self.dummyDeferFunction
+        
+        # Replace original with a dummy if None
+        if self._original is None:
+            self._original = DummyStd()
+    
     
     def dummyDeferFunction(self, text):
         pass
@@ -96,8 +116,9 @@ class OutputStreamSplitter:
     def flush(self):
         return self._original.flush()
     
+    @property
     def closed(self):
-        return self._original.closed()
+        return self._original.closed
     
     def close(self):
         return self._original.close()

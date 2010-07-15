@@ -834,7 +834,7 @@ class ShellMenu(BaseMenu):
             else:
                 line1 -=1
         maxLines = editor.getLinenrFromPosition(editor.length())
-        while line2 < maxLines:
+        while line2 <= maxLines:
             text = editor.getLineString(line2)
             if text.startswith("##"):
                 line2 -=1
@@ -1454,4 +1454,6 @@ class KeymappingDialog(QtGui.QDialog):
     
     def onDoubleClick(self, index):
         pass
-        
+
+
+
