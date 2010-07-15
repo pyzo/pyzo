@@ -306,7 +306,8 @@ class Parser(threading.Thread):
                     self._lock.release()
                     
                     # Notify 
-                    iep.editors.parserDone.emit()
+                    if iep.editors is not None:
+                        iep.editors.parserDone.emit()
             
         except AttributeError:
             pass # when python exits, time can be None...

@@ -51,6 +51,8 @@ del Channels, IntroSpectionThread, IepInterpreter
 del c, port, gui, runsus, startdir 
 del os, sys
 
+# Delete stuff we do not want 
+del __file__
 # Enter the interpreter
 __iep__.ithread.start()
 __iep__.interact()

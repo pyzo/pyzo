@@ -461,7 +461,7 @@ class BaseShell(BaseTextCtrl):
         """ 
         L = self.length()
         N = self.getLinenrFromPosition( L )
-        limit = iep.config.shellMaxLines
+        limit = iep.config.advanced.shellMaxLines
         if N > limit:
             # reduce text
             pos = self.getPositionFromLinenr( int(N/2) )
@@ -658,7 +658,7 @@ class ShellInfo:
         """ Given the port of the channels interface, creates the 
         command to execute in order to invoke the remote shell.
         """
-        startScript = os.path.join( iep.path, 'remote.py')
+        startScript = os.path.join( iep.iepDir, 'remote.py')
         startScript = '"{}"'.format(startScript)
         
         # Build command
@@ -776,7 +776,7 @@ class PythonShell(BaseShell):
         
         # Start process
         command = self._info.getCommand(port)
-        self._process = subprocess.Popen(command, shell=True, cwd=iep.path)  
+        self._process = subprocess.Popen(command, shell=True, cwd=iep.iepDir)  
         
         # Set timer callback
         self._pollMethod = self.poll_running
@@ -851,7 +851,7 @@ class PythonShell(BaseShell):
         # Include builtins and keywords?
         if not aco.name:
             aco.addNames(self._builtins)
-            if iep.config.editor.autoComplete_keywords:
+            if iep.config.settings.autoComplete_keywords:
                 aco.addNames(self._keywords)
         
         # Clear buffer to prevent doing a second request
