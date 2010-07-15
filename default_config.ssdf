@@ -1,0 +1,107 @@
+# This Simple Structured Data Format (SSDF) file contains the default 
+# configurarion for IEP. The actual configuration is stored in the IEP
+# application data directory.
+
+state = dict:
+    find_regExp = 0
+    find_matchCase = 0
+    windowState = [] # Of window and tools
+    editorState = '' # What files where loaded and where the cursor was
+    windowPos = []
+    windowSize = [800, 600]
+    windowMaximized = 0
+
+view = dict:       
+    showWhiteSpace = 0
+    showLineEndings = 0
+    showWrapSymbols = 0
+    showIndentGuides = 1
+    showStatusbar = 1
+    #
+    wrapText = 1
+    highlightCurrentLine = 1
+    doBraceMatch = 1  # Both in editor and shell
+    codeFolding = 0
+    #
+    qtstyle = 'Cleanlooks'
+    edgeColumn = 80    
+    zoom = -1  # Both for editor and shell
+    tabWidth = 4
+
+settings= dict:
+    defaultStyle = 'python'
+    defaultIndentation = 4
+    defaultLineEndings = 'LF'
+    #
+    autoComplete_keywords = 1
+    autoComplete = 1
+    autoIndent = 1
+    callTip = 1
+
+advanced = dict:
+    shellMaxLines = 10000
+    editorStackBarWidth = 128
+    editorStackBarSpacing = 0
+    fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
+    autoCompDelay = 300
+    titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
+    homeAndEndWorkOnDisplayedLine = 0
+  
+tools = dict:
+    ieplogger = dict:
+    iepinteractivehelp = dict:
+        noNewlines = 1
+    iepsourcestructure = dict:
+        showTypes = ['def', 'cell', 'todo', 'class']
+        level = 3
+
+shellConfigs = list:
+  dict:
+    name = 'default'
+    exe = 'python'
+    gui = 'tk'
+    runsus = 1
+    startdir = ''
+
+  
+shortcuts = dict:
+  edit__paste = 'Ctrl+V,Shift+Insert'
+  view__zooming__zoom_in = 'Ctrl+=,'
+  edit__select_all = 'Ctrl+A,'
+  shell__restart_current_shell = 'F12,'
+  shell__create_shell_default = 'Ctrl+P,'
+  edit__move_to_matching_brace = 'Ctrl+],'
+  edit__find_next = 'F3,'
+  edit__find_selection_backward = 'Ctrl+Shift+F3,'
+  edit__find_or_replace = 'Ctrl+F,'
+  edit__find_previous = 'Shift+F3,'
+  file__new_file = 'Ctrl+N,'
+  shell__interrup_current_shell = 'Ctrl+I,Pause'
+  shell__run_project_main_file = 'F6,'
+  view__select_editor = 'F2,'
+  shell__run_cell = 'Ctrl+Return,'
+  shell__terminate_current_shell = 'Ctrl+K,'
+  edit__copy = 'Ctrl+C,Ctrl+Insert'
+  view__zooming__zoom_out = 'Ctrl+-,'
+  settings__enable_code_folding = 'Alt+F,'
+  settings__qt_theme__cleanlooks = 'Alt+F12,'
+  edit__redo = 'Ctrl+Y,'
+  shell__run_file = 'F5,'
+  edit__undo = 'Ctrl+Z,'
+  file__close_file = 'Ctrl+W,'
+  view__wrap_text = 'Alt+W,'
+  edit__uncomment_lines = 'Ctrl+T,'
+  file__open_file = 'Ctrl+O,'
+  file__save_file = 'Ctrl+S,'
+  edit__find_selection = 'Ctrl+F3,'
+  file__save_file_as_ = 'Ctrl+Shift+S,'
+  view__select_previous_file = 'Ctrl+Tab,'
+  shell__run_selected_lines = 'F9,'
+  shell__restart_shell_and_run_project_main_file = 'F7,'
+  edit__comment_lines = 'Ctrl+R,'
+  view__select_shell = 'F1,'
+  settings__qt_theme__windows = 'Alt+F10,'
+  edit__cut = 'Ctrl+X,Shift+Delete'
+  view__zooming__zoom_reset = 'Ctrl+\\,'
+  settings__qt_theme__plastique = 'Alt+F11,'
+

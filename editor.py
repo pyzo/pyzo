@@ -202,22 +202,35 @@ class IepEditor(BaseTextCtrl):
     def __init__(self, parent, *args, **kwargs):
         BaseTextCtrl.__init__(self, parent, *args, **kwargs)
         
-        # init some stuff
+        # View settings
+        view = iep.config.view
+        self.setViewWhiteSpace(view.showWhiteSpace)
+        self.setViewWrapSymbols(view.showWrapSymbols)
+        self.setViewEOL(view.showLineEndings)
+        self.setIndentationGuides(view.showIndentGuides) 
+        #
+        self.setWrapMode( int(view.wrapText)*2 )
+        self.setHighlightCurrentLine(view.highlightCurrentLine)
+        self.setFolding( int(view.codeFolding)*5 )
+        self.setEdgeColumn(view.edgeColumn)
+        # bracematch is set in baseTextCtrl, since it also applies to shells
+        # dito for zoom and tabWidth
+        
+        # File settings
+        self._lineEndings = tmp[iep.config.editor.defaultLineEndings]
+        
+        # Init filename ane name
         self._filename = ''
         self._name = '<TMP>'
         tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
-        self._lineEndings = tmp[iep.config.editor.defaultLineEndings]
         
-        # modification time to test file change 
+        # Modification time to test file change 
         self._modifyTime = 0
-        
-        # to be able to accept drops
-        #self.setAcceptDrops(True)
         
         # Enable scrolling beyond last line
         self.SendScintilla(self.SCI_SETENDATLASTLINE, False)
         
-        # to see whether the doc has been changed
+        # To see whether the doc has been changed
         self._dirty = False
         SIGNAL = QtCore.SIGNAL
         self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
