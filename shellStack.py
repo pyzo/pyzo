@@ -455,8 +455,8 @@ def findPythonExecutables():
     if sys.platform.startswith('win'):
         return findPythonExecutables_win()
     else:
-        # todo: implement for linux
-        return []
+        return findPythonExecutables_linux()
+    # todo: and mac?
 
 def findPythonExecutables_win():
     import winreg
@@ -492,6 +492,24 @@ def findPythonExecutables_win():
     # Close keys
     winreg.CloseKey(key)
     winreg.CloseKey(base)
+    
+    # Done
+    return versions
+
+
+def findPythonExecutables_linux():
+    
+    # Get files
+    try:
+        files = os.listdir('/usr/bin')
+    except Exception:
+        return []
+    
+    # Search for python executables
+    versions = []
+    for fname in os.listdir('/usr/bin'):
+        if fname.startswith('python') and not fname.count('config'):
+            versions.append( '/usr/bin/' + fname )
     
     # Done
     return versions
