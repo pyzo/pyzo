@@ -187,7 +187,7 @@ def createEditor(parent, filename=None):
         ext = os.path.splitext(editor._filename)[1]
         editor.setStyle(ext)
     else:
-        editor.setStyle(iep.config.editor.defaultStyle)
+        editor.setStyle(iep.config.settings.defaultStyle)
     
     
     # return
@@ -217,12 +217,12 @@ class IepEditor(BaseTextCtrl):
         # dito for zoom and tabWidth
         
         # File settings
-        self._lineEndings = tmp[iep.config.editor.defaultLineEndings]
+        tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
+        self._lineEndings = tmp[iep.config.settings.defaultLineEndings]
         
         # Init filename ane name
         self._filename = ''
         self._name = '<TMP>'
-        tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
         
         # Modification time to test file change 
         self._modifyTime = 0
@@ -344,7 +344,7 @@ class IepEditor(BaseTextCtrl):
             path = 'no location on disk'
         tmp = { 'fileName':name, 'filename':name, 'name':name,
                 'fullPath':path, 'fullpath':path, 'path':path}
-        title = iep.config.titleText.format(**tmp)
+        title = iep.config.advanced.titleText.format(**tmp)
         # set title
         ob.setWindowTitle(title)
         
@@ -481,13 +481,13 @@ class IepEditor(BaseTextCtrl):
                 # This once could occur due to a bug which is now solved,
                 # this code made it self-solving, and there's no harm in
                 # keeping it.
-                indentWidth = iep.config.editor.defaultIndentation
+                indentWidth = iep.config.settings.defaultIndentation
                 self.setIndentation(indentWidth)
             if indentWidth<0:
                 indentWidth = 1
                 indent = b'\t'
             
-            if iep.config.editor.autoIndent:                
+            if iep.config.settings.autoIndent:                
                 # check if style is ok...
                 pos = self.getPosition()
                 curstyle = self.getStyleAt(self.getPosition())

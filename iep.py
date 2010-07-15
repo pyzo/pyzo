@@ -27,20 +27,22 @@ modules.
 """
 
 import sys, os
+import ssdf  # import ssdf or the suplied copy if not available
+from PyQt4 import QtCore, QtGui
 
-# import ssdf or the suplied copy if not available
-import ssdf
-
+# Set version number
 __version__ = '2.0.1a'
 
-## Some functions...
+
+## Define some functions
+
 
 def isFrozen():
-    """ Find out whether this is a frozen application
+    """ isFrozen()
+    Find out whether this IEP is a frozen application
     (using cx_freeze, bbfreeze, py2exe) by finding out what was
     the executable name to start the application.
     """
-    import os
     ex = os.path.split(sys.executable)[1]
     ex = os.path.splitext(ex)[0]
     if ex.lower().startswith('python'): # because can be python3 on Linux
@@ -49,189 +51,130 @@ def isFrozen():
         return True
 
 
-def getResourceDir():
-    """ Get the directory to the resources. """
+def getResourceDirs():
+    """ getResourceDirs()
+    Get the directories to the resources: (iepDir, userDir, appDataDir).
+    Also makes sure that the appDataDir has a "tools" directory and
+    a style file.
+    """
+    
+    # Get directory where IEP is located
     if isFrozen():
-        path =  os.path.abspath( os.path.dirname(sys.executable) )
+        iepDir =  os.path.abspath( os.path.dirname(sys.executable) )
     else:
-        path = os.path.abspath( os.path.dirname(__file__) )
-    return path
+        iepDir = os.path.abspath( os.path.dirname(__file__) )
 
-# get the path where IEP is located
-path = getResourceDir()
+    # Define user dir and appDataDir
+    userDir = os.path.expanduser('~')    
+    appDataDir = os.path.join(userDir, '.iep')
+    if sys.platform.startswith('win') and 'APPDATA' in os.environ:
+        appDataDir = os.path.join( os.environ['APPDATA'], 'iep' )
+    
+    # Make sure it exists, as well as the tools directory
+    if not os.path.isdir(appDataDir):
+        os.mkdir(appDataDir)
+    toolDir = os.path.join(appDataDir, 'tools')
+    if not os.path.isdir(toolDir):
+        os.mkdir(toolDir)
+    
+    # Make sure the style file is there
+    styleFileName1 = os.path.join(iepDir, 'styles.ssdf')
+    styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')
+    if not os.path.isfile(styleFileName2):
+        import shutil        
+        shutil.copy(styleFileName1, styleFileName2)
+    
+    # Done
+    return iepDir, userDir, appDataDir
 
-# Init default style name (set in main.restoreIepState())
-defaultStyleName = ''
 
 def startIep():
-    """ RUN IEP 
+    """ startIep()
+    Run IEP.
     """
+    
+    # Do some imports
     import logging # to start logging asap
     from main import MainWindow
-    from PyQt4 import QtCore, QtGui
+    
     # Set to use pure QT drawing (for consistent looks)
     QtGui.QApplication.setDesktopSettingsAware(False)
+    
     # Instantiate the application, and the main window
     QtGui.qApp = QtGui.QApplication([])
     frame=MainWindow()
+    
     # Enter the main loop
     QtGui.qApp.exec_()
 
 
-def normalizeLineEndings(text):
-    """ normalize text, following Python styles.
-    Convert all line endings to the \\n (LF) style.    
-    """ 
-    # line endings
-    text = text.replace("\r\n","\n")
-    text = text.replace("\r","\n")    
-    # done
-    return text
-
-
-def GetMainFrame(window):
-    """ Get the main frame, giving a window that's in it.
-    Can be used by windows to find the main frame, and
-    via it, can interact with other windows.
+def loadConfig(defaultsOnly=False):
+    """ loadConfig(defaultsOnly=False)
+    Load default configuration file and that of the user (if it exists).
+    Any missing fields in the user config are set to the defaults. 
     """
-    try:
-        while True:
-            parent = window.parent()
-            if parent is None:
-                return window
-            else:
-                window = parent
-    except:    
-        raise Exception("Cannot find the main window!")
-
-
-## the configuration stuff...
-
-defaultConfigString = """
-qtstyle = ''
-editorState = ''
-editorStackBarWidth = 128
-editorStackBarSpacing = 0
-fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
-find_matchCase = 0
-find_regExp = 1
-titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
-shellMaxLines = 10000
-autoCompDelay = 300
-showStatusbar = 1
-state = list:
-geometry = list:
-loadedPlugins = list:
-editor = dict:
-  showWhiteSpace = 0
-  showWrapSymbols = 0
-  showLineEndings = 0
-  zoom = 0
-  autoIndent = 1
-  highlightCurrentLine = 1
-  edgeColumn = 80  
-  showIndentGuides = 1
-  wrapText = 1
-  defaultStyle = 'python'
-  defaultIndentation = 4
-  defaultLineEndings = 'LF'
-  doBraceMatch = 1
-  autoComplete = 1
-  autoComplete_keywords = 1
-  callTip = 1
-  tabWidth = 4
-  codeFolding = 0
-  # advanced settings
-  homeAndEndWorkOnDisplayedLine = 0
-shortcuts = dict:
-  edit__paste = 'Ctrl+V,Shift+Insert'
-  view__zooming__zoom_in = 'Ctrl+=,'
-  edit__select_all = 'Ctrl+A,'
-  edit__move_to_matching_brace = 'Ctrl+],'
-  edit__find_next = 'F3,'
-  edit__find_or_replace = 'Ctrl+F,'
-  edit__find_previous = 'Shift+F3,'
-  file__new_file = 'Ctrl+N,'
-  edit__copy = 'Ctrl+C,Ctrl+Insert'
-  view__zooming__zoom_out = 'Ctrl+-,'
-  settings__enable_code_folding = 'Alt+F,'
-  settings__qt_theme__cleanlooks = 'Alt+F12,'
-  edit__redo = 'Ctrl+Y,'
-  edit__undo = 'Ctrl+Z,'
-  file__close_file = 'Ctrl+W,'
-  view__wrap_text = 'Alt+W,'
-  edit__uncomment_lines = 'Ctrl+T,'
-  file__open_file = 'Ctrl+O,'
-  file__save_file = 'Ctrl+S,'
-  edit__find_selection = 'Ctrl+F3,'
-  edit__find_selection_backward = 'Ctrl+Shift+F3,'
-  view__select_previous_file = 'Ctrl+Tab,'
-  edit__comment_lines = 'Ctrl+R,'
-  settings__qt_theme__windows = 'Alt+F10,'
-  edit__cut = 'Ctrl+X,Shift+Delete'
-  view__zooming__zoom_reset = 'Ctrl+\\,'
-  settings__qt_theme__plastique = 'Alt+F11,'
-shellConfigs = list:
-  dict:
-    name = 'default'
-    runsus = 1
-    startdir = ''
-    gui = 'wx'
-    exe = 'python'
-plugins = dict:
-  top = list:
-  bottom = list:
-layout = dict:
-  splitter2 = 400
-  splitter0 = 600
-  splitter1 = 400
-  heigth = 700
-  top = 42
-  width = 900
-  maximized = 0
-  left = 181
-"""
-
-# create ssdf in module namespace
-config = ssdf.new()
-defaultConfig = ssdf.loads(defaultConfigString)
-
-
-def loadConfig():
-    """Load configurations, create if doesn't exist!"""
     
-    # init
-    filename = os.path.join(path,"config.ssdf")
+    # Function to insert names from one config in another
+    def replaceFields(base, new):
+        for key in new:
+            if key in base and isinstance(base[key], ssdf.Struct):                
+                replaceFields(base[key], new[key])
+            else:
+                base[key] = new[key]
+    
+    # Reset our iep.config structure
     ssdf.clear(config)
     
-    # load file if we can
-    if os.path.isfile(filename):
-        tmp = ssdf.load(os.path.join(path,"config.ssdf"))
-        for key in tmp:
-            config[key] = tmp[key]
+    # Load default and inject in the iep.config
+    fname = os.path.join(iepDir, "defaultConfig.ssdf")
+    defaultConfig = ssdf.load(fname)
+    replaceFields(config, defaultConfig)
     
-    # fill editor keys
-    if 'editor' not in config:
-        config['editor'] = ssdf.new()
-    for key in defaultConfig.editor:
-        if key not in config.editor:
-            config.editor[key] = defaultConfig.editor[key]
-            
-    # fill in other missing values
-    for key in defaultConfig:
-        if key not in config:
-            config[key] = defaultConfig[key]
+    # Load user config and inject in iep.config
+    fname = os.path.join(appDataDir, "config.ssdf")
+    if os.path.isfile(fname):
+        userConfig = ssdf.load(fname)
+        replaceFields(config, userConfig)
+    
 
 def saveConfig():
-    """Store configurations"""
-    #ssdf.save( os.path.join(path,"config.ssdf"), config )
-    tmp="This function must be overridden to update the config before saving."
-    raise NotImplemented(tmp)
+    """ saveConfig()
+    Save all configureations to file. 
+    """ 
+    
+    # Let the editorStack save its state 
+    if editors:
+        editors.saveEditorState()
+    
+    # Let the main window save its state 
+    if main:
+        main.saveWindowState()
+    
+    # Store config
+    ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
 
-# load on import
+
+## Init
+
+# List of names that are later overriden (in main.py)
+editors = None # The editor stack instance
+shells = None # The shell stack instance
+main = None # The mainwindow
+icon = None # The icon 
+parser = None # The source parser
+status = None # The statusbar (or None)
+styleManager = None # Object that manages syntax styles
+
+# Get the paths
+iepDir, userDir, appDataDir = getResourceDirs()
+
+# Create ssdf in module namespace, and fill it
+config = ssdf.new()
 loadConfig()
+
+# Init default style name (set in main.restoreIepState())
+defaultQtStyleName = ''
 
 
 if __name__ == "__main__":
     startIep()
-    

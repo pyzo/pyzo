@@ -180,7 +180,7 @@ class StyleManager(QtCore.QObject):
     
     def __init__(self):
         QtCore.QObject.__init__(self)
-        self._filename = os.path.join(iep.path, 'styles.ssdf')
+        self._filename = os.path.join(iep.appDataDir, 'styles.ssdf')
         if not os.path.isfile(self._filename):
             raise RuntimeError("The stylefile does not exist: "+self._filename)
         self._filename = normalizePath(self._filename)
@@ -520,7 +520,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # HOME and END goto the start/end of the visible line, and also
         # for shift-home, shift end (selecting the text)
-        if config.homeAndEndWorkOnDisplayedLine:
+        if iep.config.advanced.homeAndEndWorkOnDisplayedLine:
             shift,home,end = self.SCMOD_SHIFT<<16, self.SCK_HOME, self.SCK_END
             tmp1, tmp2 = self.SCI_HOMEDISPLAY, self.SCI_HOMEDISPLAYEXTEND
             self.SendScintilla(self.SCI_ASSIGNCMDKEY, home, tmp1)
@@ -1052,7 +1052,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._delayTimer._line = text
         self._delayTimer._pos = self.getPosition()
         self._delayTimer._tryAutoComp = tryAutoComp
-        self._delayTimer.start(iep.config.autoCompDelay)
+        self._delayTimer.start(iep.config.advanced.autoCompDelay)
     
     
     def _introspectNow(self):
@@ -1066,7 +1066,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if not line:
             return
         
-        if iep.config.editor.callTip:
+        if iep.config.settings.autoCallTip:
             # Parse the line, to get the name of the function we should calltip
             # if the name is empty/None, we should not show a signature
             name, needle, stats = parseLine_signature(line)
@@ -1084,7 +1084,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             else: 
                 self.callTipCancel()
         
-        if self._delayTimer._tryAutoComp and iep.config.editor.autoComplete:
+        if self._delayTimer._tryAutoComp and iep.config.settings.autoComplete:
             # Parse the line, to see what (partial) name we need to complete
             name, needle = parseLine_autocomplete(line)
             

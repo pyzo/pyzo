@@ -12,7 +12,7 @@ from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
 from iepLogging import print
 
-barwidth = iep.config.editorStackBarWidth
+barwidth = iep.config.advanced.editorStackBarWidth
 
 
 class Item(qt.QLabel):
@@ -27,7 +27,7 @@ class Item(qt.QLabel):
        
         # indicate height and spacing
         self._itemHeight = 16
-        self._itemSpacing = iep.config.editorStackBarSpacing
+        self._itemSpacing = iep.config.advanced.editorStackBarSpacing
         
         # set indent and size        
         self._indent = 1
@@ -83,7 +83,7 @@ class ProjectItem(Item):
         Item.__init__(self, parent)
         
         # projects have more spacing
-        self._itemSpacing = 2 + iep.config.editorStackBarSpacing
+        self._itemSpacing = 2 + iep.config.advanced.editorStackBarSpacing
         
         # set name and tooltip
         self._name = name
@@ -1078,9 +1078,8 @@ class EditorStack(QtGui.QWidget):
         # accept drops
         self.setAcceptDrops(True)
         
-        # put the last opened files in 
-        if iep.config.state.editorState:
-            self.setCurrentState(iep.config.state.editorState)
+        # restore state
+        self.restoreEditorState()
     
     
     def showEditor(self, editor=None):
@@ -1278,7 +1277,7 @@ class EditorStack(QtGui.QWidget):
             return
         
         # get extensions
-        extensions = iep.config.fileExtensionsToLoadFromDir
+        extensions = iep.config.advanced.fileExtensionsToLoadFromDir
         extensions = extensions.replace(',',' ').replace(';',' ')
         extensions = ["."+a.lstrip(".").strip() for a in extensions.split(" ")]
         
@@ -1440,16 +1439,37 @@ class EditorStack(QtGui.QWidget):
         return result
     
     
-    def getCurrentState(self):
+    def saveEditorState(self):
+        """ Save the editor's state configuration.
+        """
+        fr = self._findReplace
+        iep.config.state.find_matchCase = fr._caseCheck.isChecked()
+        iep.config.state.find_regExp = fr._regExp.isChecked()
+        iep.config.state.editorState = self._getCurrentOpenFilesAsString()
+    
+    
+    def restoreEditorState(self):
+        """ Restore the editor's state configuration.
+        """
+        
+        # Restore opened editors
+        if iep.config.state.editorState:
+            self._setCurrentOpenFilesAsString(iep.config.state.editorState)
+        else:
+            self.newFile()
+        
+        # The find/replace state is set in the corresponding class during init
+    
+    
+    def _getCurrentOpenFilesAsString(self):
         """ Get the state as it currently is as a string.
         The state entails all open files and their structure in the
         projects. The being collapsed of projects and their main files.
         The position of the cursor in the editors.
         """
         
+        # Get items
         collapsed = {True:'+', False:'-'}
-        
-        # get items
         state = []
         for item in self._list._items:
             info = ''
@@ -1462,7 +1482,7 @@ class EditorStack(QtGui.QWidget):
             if info:
                 state.append( '>'.join(info) )
         
-        # get history
+        # Get history
         history = [item for item in self._list._itemHistory]
         history.reverse()
         history.append(self._list._currentItem)
@@ -1472,20 +1492,22 @@ class EditorStack(QtGui.QWidget):
                 if ed._filename:
                     state.append( 'hist>'+ed._filename )
         
+        # Done
         return ",".join(state)
     
     
-    def setCurrentState(self,state):
+    def _setCurrentOpenFilesAsString(self, state):
         """ Set the state of the editor in terms of opened files.
         The input should be a string as returned by 
-        .GetCurrentState().
+        ._getCurrentOpenFilesAsString().
         """
         
-        # make list
+        # Make list
         state = state.split(",")
         currentProject = ''
         fileItems = {}
         
+        # Process items
         for item in state:
             parts = item.split('>')
             if item[0] in '+-':
@@ -1528,15 +1550,7 @@ class EditorStack(QtGui.QWidget):
         return True
     
     
-    def storeSettings(self):
-        """ Go finish up, save settings, store files, etc. 
-        """
-        
-        # store settings
-        fr = self._findReplace
-        iep.config.state.find_matchCase = fr._caseCheck.isChecked()
-        iep.config.state.find_regExp = fr._regExp.isChecked()
-        iep.config.state.editorState = self.getCurrentState()
+   
     
 
 if __name__ == "__main__":

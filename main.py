@@ -11,8 +11,6 @@ $Rev: 946 $
 
 """
 
-print("Importing iep.main ...")
-
 import os, sys
 import iep
 
@@ -40,13 +38,15 @@ class MainWindow(QtGui.QMainWindow):
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
         # Set layout as it was the previous time
-        self.move(*iep.state.windowPos)
-        self.resize(*iep.state.windowSize)
-        if iep.state.windowMaximized:
+        if iep.config.state.windowPos:
+            self.move(*iep.config.state.windowPos)
+        if iep.config.state.windowSize:
+            self.resize(*iep.config.state.windowSize)
+        if iep.config.state.windowMaximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
         # Construct icon
-        tmp = os.path.join(iep.path,'')
+        tmp = os.path.join(iep.iepDir,'')
         iep.icon = QtGui.QIcon()
         iep.icon.addFile(tmp+'icon16.png', QtCore.QSize(16,16), 0, 0)
         iep.icon.addFile(tmp+'icon32.png', QtCore.QSize(32,32), 0, 0)
@@ -78,7 +78,7 @@ class MainWindow(QtGui.QMainWindow):
         # Show finally 
         # (restoring state does work completely when done here)        
         self.show()
-        callLater(self.restoreIepState)
+        callLater(self.restoreWindowState)
     
     
     def init1(self):
@@ -91,7 +91,7 @@ class MainWindow(QtGui.QMainWindow):
         import codeparser
 
         # Create "global" parser instance
-        if not hasattr(iep, 'parser'):
+        if iep.parser is None:
             iep.parser = codeparser.Parser()
             iep.parser.start()
         
@@ -120,69 +120,60 @@ class MainWindow(QtGui.QMainWindow):
         self._menuhelper = MenuHelper(self.menuBar())
     
     
-    def saveIepState(self):
+    def saveWindowState(self):
         """ Save which plugins are loaded and all window positions. """
         import base64
         
+        # store window position
+        if self.windowState() == QtCore.Qt.WindowMaximized:
+            iep.config.state.windowMaximized = 1
+            # left,right, width, height stored when maximized
+        else:
+            iep.config.state.windowMaximized = 0 
+            iep.config.state.windowPos = self.x(), self.y()
+            iep.config.state.windowSize = self.width(), self.height()
+        
         # Save plugin list
         plugins = iep.pluginManager.getLoadedPlugins()
-        iep.config.loadedPlugins = plugins
+        iep.config.state.loadedTools = plugins
         
         # Get state and make unicode string
         state = bytes(self.saveState())
-        iep.config.state = base64.encodebytes(state).decode('ascii')
+        state = base64.encodebytes(state).decode('ascii')
+        iep.config.state.windowState = state
     
-        iep.config.state = plugins + [state]
     
-    def restoreIepState(self):
+    def restoreWindowState(self):
         """ Restore plugins and positions of all windows. """
         import base64
         
-        # Set qt style and obtain style name of the default style
+        # Obtain default style
         app = QtGui.qApp
-        iep.defaultStyleName = str(app.style().objectName())
+        iep.defaultQtStyleName = str(app.style().objectName())
+        if sys.platform.startswith('win'):
+            iep.defaultQtStyleName = 'cleanlooks' # Windows theme==ugly
+            if not iep.config.view.qtstyle:
+                iep.config.view.qtstyle = 'cleanlooks' 
+        
+        # Set qt style and obtain style name of the default style
         qstyle = app.setStyle(iep.config.view.qtstyle)
         if qstyle:
             # We succeeded in setting the style
             app.setPalette(QtGui.QStyle.standardPalette(qstyle))
         else:
             # We still have the default style
-            iep.config.view.qtstyle = iep.defaultStyleName 
+            iep.config.view.qtstyle = iep.defaultQtStyleName 
         
-        plugins = iep.config.state
         # Load plugins
-        if iep.config.loadedPlugins:            
-            for pluginId in iep.config.loadedPlugins:
+        if iep.config.state.loadedTools:            
+            for pluginId in iep.config.state.loadedTools:
                 iep.pluginManager.loadPlugin(pluginId)
         
         # Restore state
-        if iep.config.state:
-            state = iep.config.state
+        if iep.config.state.windowState:
+            state = iep.config.state.windowState
             state = base64.decodebytes(state.encode('ascii'))
             self.restoreState(state)        
-    
-    
-    def saveConfig(self):
-        """ Save all configureations to file. """ 
-        import ssdf
-        
-        # store editorStack settings
-        iep.editors.storeSettings()
-        
-        # store window position
-        if self.windowState() == QtCore.Qt.WindowMaximized:
-            iep.state.windowMaximized = 1
-            # left,right, width, height stored when maximized
-        else:
-            iep.state.windowMaximized = 0 
-            iep.state.windowPos = self.x(), self.y()
-            iep.state.windowSize = self.width(), self.height()
-        
-        # store state
-        self.saveIepState()
-        
-        # store config
-        ssdf.save( os.path.join(iep.path,"config.ssdf"), iep.config )
     
     
     def changeEvent(self, event):
@@ -192,8 +183,8 @@ class MainWindow(QtGui.QMainWindow):
             ok = [QtCore.Qt.WindowNoState, QtCore.Qt.WindowActive]
             if event.oldState() in ok:
                 # Store layout if now non-maximized
-                iep.state.windowPos = self.x(), self.y()
-                iep.state.windowSize = self.width(), self.height()
+                iep.config.state.windowPos = self.x(), self.y()
+                iep.config.state.windowSize = self.width(), self.height()
         
         # Proceed normally
         QtGui.QMainWindow.changeEvent(self, event)
@@ -203,7 +194,7 @@ class MainWindow(QtGui.QMainWindow):
         """ Override close event handler. """
         
         # Save settings
-        self.saveConfig()
+        iep.saveConfig()
         
         # Proceed with closing...
         result = iep.editors.closeAll()
@@ -234,12 +225,16 @@ class MainWindow(QtGui.QMainWindow):
             lastBit = os.path.basename(sys.executable)
             args.insert(0, lastBit)
             
-            # Replace the process!                
+            # Replace the process! 
+            print('restarting',os.getcwd())
             os.execv(sys.executable,args)
 
 
-class CallbackEventHandler(QtCore.QObject):
 
+class _CallbackEventHandler(QtCore.QObject):
+    """ Helper class to provide the callLater function. 
+    """
+    
     def __init__(self):
         QtCore.QObject.__init__(self)
         self.queue = Queue()
@@ -252,23 +247,19 @@ class CallbackEventHandler(QtCore.QObject):
                 break
             try:
                 callback(*args)
-            except Exception:
-                print('callback failed: {}'.format(callback))
+            except Exception as why:
+                print('callback failed: {}:\n{}'.format(callback, why))
 
     def postEventWithCallback(self, callback, *args):
         self.queue.put((callback, args))
         QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
 
-callbackEventHandler = CallbackEventHandler()
-
 def callLater(callback, *args):
     """ callLater(callback, *args)
     Post a callback to be called in the main thread. 
     """
-    callbackEventHandler.postEventWithCallback(callback, *args)
+    _callbackEventHandler.postEventWithCallback(callback, *args)
+    
+# Create callback event handler instance and insert function in IEP namespace
+_callbackEventHandler = _CallbackEventHandler()   
 iep.callLater = callLater
-    
-    
-if __name__ == "__main__":    
-    iep.startIep()
-    

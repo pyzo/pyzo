@@ -230,7 +230,7 @@ class FileMenu(BaseMenu):
                     pass
             # apply
             if not val:
-                val = iep.config.editor.defaultIndentation
+                val = iep.config.settings.defaultIndentation
             editor.setIndentation(val)
     
     def fun_style(self, value):
@@ -554,7 +554,7 @@ class ViewMenu(BaseMenu):
             styleNames.append(iep.config.view.qtstyle)
             # Mark the default
             for i in range(len(styleNames)):
-                if styleNames[i].lower() == iep.defaultStyleName:
+                if styleNames[i].lower() == iep.defaultQtStyleName:
                     styleNames[i] += ' (default)'
             return styleNames
         else:
@@ -591,18 +591,18 @@ class SettingsMenu(BaseMenu):
     def fun_defaultStyle(self, value):
         """ The style used in new files. """
         if value is None:
-            current = iep.config.editor.defaultStyle
+            current = iep.config.settings.defaultStyle
             options = iep.styleManager.getStyleNames()
             options.append(current)
             return options
         else:
             # store
-            iep.config.editor.defaultStyle = value
+            iep.config.settings.defaultStyle = value
     
     def fun_defaultIndentation(self, value):
-        """ The indentation used in new files. """
+        """ The indentation used in new files and in the shells. """
         if value is None:
-            current = iep.config.editor.defaultIndentation
+            current = iep.config.settings.defaultIndentation
             options = [-1,2,3,4,5,6,7,8,9,10, current]
             for i in range(len(options)):
                 if options[i] < 0:
@@ -617,48 +617,51 @@ class SettingsMenu(BaseMenu):
         except ValueError:
             val = -1        
         # store
-        iep.config.editor.defaultIndentation = val
+        iep.config.settings.defaultIndentation = val
+        # Apply to shells
+        for shell in iep.shells:
+            shell.setIndentation(val)
     
     def fun_defaultLineEndings(self, value):
         """ The line endings used in new files. """
         if value is None:
-            current = iep.config.editor.defaultLineEndings
+            current = iep.config.settings.defaultLineEndings
             return ['LF', 'CR', 'CRLF', current]
         else:
             # store
-            iep.config.editor.defaultLineEndings = value
+            iep.config.settings.defaultLineEndings = value
     
     def fun_autoComplete(self, value):
         """ Show a list with completion options queried from editor and shell."""
         if value is None:
-            return bool(iep.config.editor.autoComplete)
+            return bool(iep.config.settings.autoComplete)
         else:
-            value = not bool(iep.config.editor.autoComplete)
-            iep.config.editor.autoComplete = value
+            value = not bool(iep.config.settings.autoComplete)
+            iep.config.settings.autoComplete = value
     
     def fun_autoComplete_kw(self, value):
         """ Show the keywords in the autocompletion list."""
         if value is None:
-            return bool(iep.config.editor.autoComplete_keywords)
+            return bool(iep.config.settings.autoComplete_keywords)
         else:
-            value = not bool(iep.config.editor.autoComplete_keywords)
-            iep.config.editor.autoComplete_keywords = value
+            value = not bool(iep.config.settings.autoComplete_keywords)
+            iep.config.settings.autoComplete_keywords = value
     
     def fun_callTip(self, value):
         """ Show a call tip for functions and methods."""
         if value is None:
-            return bool(iep.config.editor.callTip)
+            return bool(iep.config.settings.autoCallTip)
         else:
-            value = not bool(iep.config.editor.callTip)
-            iep.config.editor.callTip = value
+            value = not bool(iep.settings.settings.autoCallTip)
+            iep.config.settings.autoCallTip = value
     
     def fun_autoIndent(self, value):
         """ Enable auto-indentation (python style only). """
         if value is None:
-            return bool(iep.config.editor.autoIndent)
+            return bool(iep.config.settings.autoIndent)
         else:
-            value = not bool(iep.config.editor.autoIndent)
-            iep.config.editor.autoIndent = value
+            value = not bool(iep.config.settings.autoIndent)
+            iep.config.settings.autoIndent = value
     
     def fun_keymap(self, value):
         """ Change the keymappings for the menu. """
@@ -680,7 +683,7 @@ class SettingsMenu(BaseMenu):
         m.setDefaultButton(m.Ok)
         result = m.exec_()
         if result == m.Ok:
-            iep.editors.loadFile(os.path.join(iep.path,'styles.ssdf'))
+            iep.editors.loadFile(os.path.join(iep.appDataDir,'styles.ssdf'))
     
     def fun_advancedSettings(self, value):
         """ How to edit the advanced settings. """
@@ -960,8 +963,7 @@ class HelpMenu(BaseMenu):
     def fun_about(self, value):
         """ Show the about text for IEP. """
         # Define icon and text
-        tmp = os.path.join(iep.path,'')
-        im = QtGui.QPixmap(tmp+'icon48.png') 
+        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icon48.png') ) 
         text = """ 
         IEP: the Interactive Editor for Python
         Current version: {}\n
