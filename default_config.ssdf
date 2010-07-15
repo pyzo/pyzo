@@ -11,21 +11,21 @@ state = dict:
     windowSize = [800, 600]
     windowMaximized = 0
 
-view = dict:    
-    showStatusbar = 0
+view = dict:       
     showWhiteSpace = 0
     showLineEndings = 0
-    showIndentGuides = 1
     showWrapSymbols = 0
+    showIndentGuides = 1
+    showStatusbar = 1
     #
     wrapText = 1
     highlightCurrentLine = 1
-    doBraceMatch = 1
+    doBraceMatch = 1  # Both in editor and shell
     codeFolding = 0
     #
     qtstyle = 'Cleanlooks'
     edgeColumn = 80    
-    zoom = -1
+    zoom = -1  # Both for editor and shell
     tabWidth = 4
 
 settings= dict:
