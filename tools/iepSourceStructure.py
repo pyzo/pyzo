@@ -1,4 +1,4 @@
-""" PLUGIN SOURCE STRUCTURE
+""" TOOL SOURCE STRUCTURE
 
 
 """
@@ -8,19 +8,19 @@ from PyQt4 import QtCore, QtGui
 import iep
 ssdf = iep.ssdf
 
-plugin_name = "Source Structure"
-plugin_summary = "Shows the structure of your source code"
+tool_name = "Source Structure"
+tool_summary = "Shows the structure of your source code."
 
 
 class IepSourceStructure(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
-        # Make sure there is a configuration entry for this plugin
+        # Make sure there is a configuration entry for this tool
         # The IEP tool manager makes sure that there is an entry in
-        # config.plugins before the tool is instantiated.
-        pluginId = self.__class__.__name__.lower()        
-        self._config = iep.config.plugins[pluginId]
+        # config.tools before the tool is instantiated.
+        toolId = self.__class__.__name__.lower()        
+        self._config = iep.config.tools[toolId]
         if not hasattr(self._config, 'showTypes'):
             self._config.showTypes = ['class', 'def', 'cell', 'todo']
         if not hasattr(self._config, 'level'):
@@ -63,7 +63,7 @@ class IepSourceStructure(QtGui.QWidget):
         iep.editors.changedSelected.connect(self.onSelectedEditorChanged)
         iep.editors.parserDone.connect(self.updateStructure)
         
-        # When the plugin is loaded, the editorStack is already done loading
+        # When the tool is loaded, the editorStack is already done loading
         # all previous files and selected the appropriate file.
         self.onSelectedEditorChanged()
     

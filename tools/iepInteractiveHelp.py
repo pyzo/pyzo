@@ -2,8 +2,8 @@ import sys, os, time
 from PyQt4 import QtCore, QtGui
 import iep 
 
-plugin_name = "Interactive Help"
-plugin_summary = "Shows help on an object when using up/down in autocomplete."
+tool_name = "Interactive Help"
+tool_summary = "Shows help on an object when using up/down in autocomplete."
 
 
 initText =  """
@@ -23,8 +23,8 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._check = QtGui.QCheckBox("No newlines", )        
         self._but = QtGui.QPushButton("Print", self)
         #
-        pluginId =  self.__class__.__name__.lower()
-        config = iep.config.plugins[pluginId]
+        toolId =  self.__class__.__name__.lower()
+        config = iep.config.tools[toolId]
         if not hasattr(config, 'noNewlines'):
             config.noNewlines = True
         self._check.setChecked(config.noNewlines)
@@ -53,8 +53,8 @@ class IepInteractiveHelp(QtGui.QWidget):
     
     def _onCheckChanged(self):
         # Store
-        pluginId =  self.__class__.__name__.lower()         
-        iep.config.plugins[pluginId].noNewlines = self._check.isChecked()
+        toolId =  self.__class__.__name__.lower()         
+        iep.config.tools[toolId].noNewlines = self._check.isChecked()
         # Update text
         self.queryDoc()
     

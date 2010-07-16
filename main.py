@@ -116,7 +116,7 @@ class MainWindow(QtGui.QMainWindow):
     
     
     def saveWindowState(self):
-        """ Save which plugins are loaded and all window positions. """
+        """ Save which tools are loaded and all window positions. """
         import base64
         
         # store window position
@@ -128,9 +128,9 @@ class MainWindow(QtGui.QMainWindow):
             iep.config.state.windowPos = self.x(), self.y()
             iep.config.state.windowSize = self.width(), self.height()
         
-        # Save plugin list
-        plugins = iep.pluginManager.getLoadedPlugins()
-        iep.config.state.loadedTools = plugins
+        # Save tool list
+        tools = iep.toolManager.getLoadedTools()
+        iep.config.state.loadedTools = tools
         
         # Get state and make unicode string
         state = bytes(self.saveState())
@@ -139,7 +139,7 @@ class MainWindow(QtGui.QMainWindow):
     
     
     def restoreWindowState(self):
-        """ Restore plugins and positions of all windows. """
+        """ Restore toolss and positions of all windows. """
         import base64
         
         # Obtain default style
@@ -159,10 +159,10 @@ class MainWindow(QtGui.QMainWindow):
             # We still have the default style
             iep.config.view.qtstyle = iep.defaultQtStyleName 
         
-        # Load plugins
+        # Load toolss
         if iep.config.state.loadedTools:            
-            for pluginId in iep.config.state.loadedTools:
-                iep.pluginManager.loadPlugin(pluginId)
+            for toolId in iep.config.state.loadedTools:
+                iep.toolManager.loadTool(toolId)
         
         # Restore state
         if iep.config.state.windowState:

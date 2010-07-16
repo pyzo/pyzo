@@ -1115,8 +1115,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """
         # uses parse_autocomplete() to find baseName and objectName
         
-        # Get help plugin
-        hw = iep.pluginManager.getPlugin('iepinteractivehelp')
+        # Get help tool
+        hw = iep.toolManager.getTool('iepinteractivehelp')
         # Get the shell
         shell = iep.shells.getCurrentShell()        
         # Both should exist

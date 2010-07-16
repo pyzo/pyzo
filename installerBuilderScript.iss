@@ -1,4 +1,4 @@
-; Inno setup file to create an installer for IEP
+; Inno setup file to create a windows installer for IEP
 
 [Setup]
 AppName=iep
@@ -19,7 +19,6 @@ SolidCompression=yes
 
 [Files]
 Source: "*.*"; DestDir: "{app}"; Flags: recursesubdirs;
-;Source: "photoshow.ico"; DestDir: "{app}";
 
 [Tasks]
 Name: icon; Description: "Desktop Icon"

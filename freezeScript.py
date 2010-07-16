@@ -21,7 +21,7 @@ baseDir = './'
 srcDir = './'
 distDir = baseDir+'../frozen/'
 scriptFiles = [srcDir + 'iep.pyw', srcDir + 'iep_.pyw']
-iconFile = srcDir + 'icon.ico'
+iconFile = srcDir + 'icons/iep.ico'
 
 ## Includes and excludes
 
@@ -91,11 +91,17 @@ if not os.path.isdir(srcDir2):
     os.mkdir(srcDir2)
 
 # Create tools dir in frozen app
-toolsDir  = srcDir + 'plugins/'
-toolsDir2 = srcDir2 + 'plugins/'
+toolsDir  = srcDir + 'tools/'
+toolsDir2 = srcDir2 + 'tools/'
 if not os.path.isdir(toolsDir2):
     os.mkdir(toolsDir2)
 
+# Create icons dir in frozen app
+iconsDir  = srcDir + 'icons/'
+iconsDir2 = srcDir2 + 'icons/'
+if not os.path.isdir(iconsDir2):
+    os.mkdir(iconsDir2)
+    
 # Copy all source files
 for fname in os.listdir(srcDir):
     if os.path.isfile(srcDir+fname) and not fname.endswith('.pyc'):
@@ -103,6 +109,9 @@ for fname in os.listdir(srcDir):
 for fname in os.listdir(toolsDir):    
     if os.path.isfile(toolsDir+fname) and not fname.endswith('.pyc'):
         shutil.copy(toolsDir+fname, toolsDir2+fname)
+for fname in os.listdir(iconsDir):
+    shutil.copy(iconsDir+fname, iconsDir2+fname)
+
 
 # Remove dummy executable
 os.remove( os.path.join(distDir,'iep_.exe') )

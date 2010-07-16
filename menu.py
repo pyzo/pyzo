@@ -711,11 +711,11 @@ class SettingsMenu(BaseMenu):
         widget.setFocus()
 
 
-# Instantiate plugin manager
-import plugins
-iep.pluginManager = pluginManager = plugins.PluginManager()
+# Instantiate tool manager
+import tools
+iep.toolManager = toolManager = tools.ToolManager()
 
-class PluginsMenu(BaseMenu):
+class ToolsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
@@ -723,13 +723,13 @@ class PluginsMenu(BaseMenu):
         addItem( MI('Reload tools', self.fun_reload) )
         addItem( None )
         
-        for plugin in pluginManager.loadPluginInfo():
-            addItem( MI(plugin.name, plugin.menuLauncher, 
-                       bool(plugin.instance), plugin.description) )
+        for tool in toolManager.loadToolInfo():
+            addItem( MI(tool.name, tool.menuLauncher, 
+                       bool(tool.instance), tool.description) )
     
     def fun_reload(self, value):
-        """ Reload all plugins (intended for helping plugin development). """
-        pluginManager.reloadPlugins()
+        """ Reload all tools (intended for helping tool development). """
+        toolManager.reloadTools()
 
 
 class ShellMenu(BaseMenu):
@@ -992,7 +992,7 @@ class MenuHelper:
                     ('View', ViewMenu),                    
                     ('Settings', SettingsMenu),
                     ('Shell', ShellMenu),
-                    ('Tools', PluginsMenu),
+                    ('Tools', ToolsMenu),
                     ('Help', HelpMenu),
                 ]
         
