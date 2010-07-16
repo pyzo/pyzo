@@ -71,7 +71,7 @@ def getResourceDirs():
     if sys.platform.startswith('win') and 'APPDATA' in os.environ:
         appDataDir = os.path.join( os.environ['APPDATA'], 'iep' )
     
-    # Make sure it exists, as well as the tools directory
+    # Make sure it exists, as well as a tools directory
     if not os.path.isdir(appDataDir):
         os.mkdir(appDataDir)
     toolDir = os.path.join(appDataDir, 'tools')

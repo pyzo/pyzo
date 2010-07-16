@@ -48,7 +48,7 @@ advanced = dict:
     titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
     homeAndEndWorkOnDisplayedLine = 0
   
-plugins = dict:
+tools = dict:
     ieplogger = dict:
     iepinteractivehelp = dict:
         noNewlines = 1

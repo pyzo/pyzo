@@ -1,27 +1,25 @@
-""" Package PLugins of iep
+""" Package tools of iep
 
-A plugin consists of a module which contains a class. The id of 
-a plugin is its module name made lower case. The module should 
+A tool consists of a module which contains a class. The id of 
+a tool is its module name made lower case. The module should 
 contain a class corresponding to its id. We advise to follow the
 common python style and start the class name with a capital 
-letter, case does not matter for the plugin to work though.
-For instance, plugin "ieplogger" is the class "IepLogger" found 
+letter, case does not matter for the tool to work though.
+For instance, the tool "ieplogger" is the class "IepLogger" found 
 in module "iepLogger"
 
 The module may contain the following extra variables (which should
 be placed within the first 50 lines of code):
 
-plugin_name - A readable name for the plugin (may contain spaces, 
+tool_name - A readable name for the tool (may contain spaces, 
 will be shown in the tab)
 
-plugin_summary - A single line short summary of the plugin. To be
+tool_summary - A single line short summary of the tool. To be
 displayed in the statusbar.
 """
 
-# plugins I'd like:
-# - logger
+# tools I'd like:
 # - find in files
-# - interactive help
 # - workspace
 # - source tree
 # - snipet manager
@@ -35,17 +33,17 @@ import iep
 ssdf = iep.ssdf
 
 
-class PluginDockWidget(QtGui.QDockWidget):
-    """ A dock widget that holds a plugin.
-    It sets all settings, initializes the plugin widget, and notifies the
-    plugin manager on closing.
+class ToolDockWidget(QtGui.QDockWidget):
+    """ A dock widget that holds a tool.
+    It sets all settings, initializes the tool widget, and notifies the
+    tool manager on closing.
     """
     
-    def __init__(self, parent, pluginManager):
+    def __init__(self, parent, toolManager):
         QtGui.QDockWidget.__init__(self, parent)
         
         # Store stuff
-        self._pluginManager = pluginManager
+        self._toolManager = toolManager
         
         # Allow docking anywhere, othwerise restoring state wont work properly
         
@@ -57,46 +55,46 @@ class PluginDockWidget(QtGui.QDockWidget):
                             )
     
     
-    def setPlugin(self, pluginId, pluginName, pluginClass):
-        """ Set the plugin information. Call this right after
+    def setTool(self, toolId, toolName, toolClass):
+        """ Set the tool information. Call this right after
         initialization. """
         
         # Store id and set object name to enable saving/restoring state
-        self._pluginId = pluginId
-        self.setObjectName(pluginId)
+        self._toolId = toolId
+        self.setObjectName(toolId)
         
         # Set name
-        self.setWindowTitle(pluginName)
+        self.setWindowTitle(toolName)
         
-        # Create plugin widget
-        self.reload(pluginClass)
+        # Create tool widget
+        self.reload(toolClass)
     
     
     def closeEvent(self, event):
-        if self._pluginManager:
-            self._pluginManager.onPluginClose(self._pluginId)
-            self._pluginManager = None
+        if self._toolManager:
+            self._toolManager.onToolClose(self._toolId)
+            self._toolManager = None
         event.accept()
     
     
-    def reload(self, pluginClass):
+    def reload(self, toolClass):
         """ Reload the widget with a new widget class. """
         old = self.widget()
-        new = pluginClass(iep.main)
+        new = toolClass(iep.main)
         self.setWidget(new)
         if old:
             old.close()
     
 
-class PluginDescription:
-    """ Provides a description of a plugin and has a reference to
-    the plugin dock instance if it is loaded.
+class ToolDescription:
+    """ Provides a description of a tool and has a reference to
+    the tool dock instance if it is loaded.
     """
     
     def __init__(self, moduleName, name='', description=''):
         # Set names
+        self.id = os.path.split(os.path.splitext(moduleName)[0])[1].lower()
         self.moduleName = moduleName
-        self.id = moduleName.lower()
         if name:
             self.name = name
         else:
@@ -107,108 +105,117 @@ class PluginDescription:
         self.instance = None
     
     def menuLauncher(self, value):
-        """ Function that is called by the menu whet this plugin is selected.
+        """ Function that is called by the menu when this tool is selected.
         """
         if value is None:
             return bool(self.instance)
-            #return self.id in iep.pluginManager._activePlugins
+            #return self.id in iep.toolManager._activeTools
         elif value:
-            iep.pluginManager.loadPlugin(self.id)
+            iep.toolManager.loadTool(self.id)
         else:
-            iep.pluginManager.closePlugin(self.id)
+            iep.toolManager.closeTool(self.id)
 
 
-class PluginManager:
-    """ Manages the plugins. """
+class ToolManager:
+    """ Manages the tools. """
     
     
     def __init__(self):
         
-        # list of tuples: moduleName, plugin_name, plugin_summary
-        self._pluginInfo = None
-        self._activePlugins = {}
+        # list of ToolDescription instances
+        self._toolInfo = None
+        self._activeTools = {}
     
     
-    def loadPluginInfo(self):
-        """ (re)load the plugin information. 
+    def loadToolInfo(self):
+        """ (re)load the tool information. 
         """
         
-        # Get path
-        plugindir = os.path.dirname( os.path.abspath(__file__) )
+        # Get paths to load files from
+        toolDir1 = os.path.join(iep.iepDir, 'tools')
+        toolDir2 = os.path.join(iep.appDataDir, 'tools')
         
-        # Get list of files, also when we're in a zip file.
-        i = plugindir.find('.zip')
-        if i>0:
-            # Get list of files from zipfile
-            plugindir = plugindir[:i+4]
-            import zipfile
-            z = zipfile.ZipFile(plugindir)
-            pluginfiles = [os.path.split(i)[1] for i in z.namelist() 
-                        if i.startswith('visvis') and i.count('functions')]
-        else:
-            # Get list of files from file system
-            pluginfiles = os.listdir(plugindir)
+        # Create list of tool files 
+        toolfiles = []
+        for toolDir in [toolDir1, toolDir2]:
+            tmp = [os.path.join(toolDir, f) for f in os.listdir(toolDir)]
+            toolfiles.extend(tmp)
         
-        # Iterate over plugin modules
+        # Note: we no not the code below anymore, since even the frozen app
+        # makes use of the .py files.
+#         # Get list of files, also when we're in a zip file.
+#         i = tooldir.find('.zip')
+#         if i>0:
+#             # Get list of files from zipfile
+#             tooldir = tooldir[:i+4]
+#             import zipfile
+#             z = zipfile.ZipFile(tooldir)
+#             toolfiles = [os.path.split(i)[1] for i in z.namelist() 
+#                         if i.startswith('visvis') and i.count('functions')]
+#         else:
+#             # Get list of files from file system
+#             toolfiles = os.listdir(tooldir)
+        
+        # Iterate over tool modules
         newlist = []
-        for file in pluginfiles:
-            if file.startswith('__'):
+        for file in toolfiles:
+            if file.endswith('__.py') or not file.endswith('.py'):
                 continue
-            if file.endswith('.py'):            
-                pluginModule = file[:-3]
-                pluginName = ""
-                pluginSummary = ""
-                # read file to find name or summary
-                linecount = 0
-                for line in open(os.path.join(plugindir,file)):
-                    linecount += 1
-                    if linecount > 50:
-                        break
-                    if line.startswith("plugin_name"):
-                        i = line.find("=")
-                        if i<0: continue
-                        line = line.rstrip("\n").rstrip("\r")      
-                        line = line[i+1:].strip(" ")
-                        pluginName = line.strip("'").strip('"')
-                    elif line.startswith("plugin_summary"):
-                        i = line.find("=")
-                        if i<0: continue
-                        line = line.rstrip("\n").rstrip("\r")
-                        line = line[i+1:].strip(" ")
-                        pluginSummary = line.strip("'").strip('"')
-                    else:
-                        pass
-                
-                # Add stuff
-                tmp = PluginDescription(pluginModule, pluginName, pluginSummary)
-                newlist.append(tmp)
+            #
+            toolModule = file
+            toolName = ""
+            toolSummary = ""
+            # read file to find name or summary
+            linecount = 0
+            for line in open(file):
+                linecount += 1
+                if linecount > 50:
+                    break
+                if line.startswith("tool_name"):
+                    i = line.find("=")
+                    if i<0: continue
+                    line = line.rstrip("\n").rstrip("\r")      
+                    line = line[i+1:].strip(" ")
+                    toolName = line.strip("'").strip('"')
+                elif line.startswith("tool_summary"):
+                    i = line.find("=")
+                    if i<0: continue
+                    line = line.rstrip("\n").rstrip("\r")
+                    line = line[i+1:].strip(" ")
+                    toolSummary = line.strip("'").strip('"')
+                else:
+                    pass
+            
+            # Add stuff
+            tmp = ToolDescription(toolModule, toolName, toolSummary)
+            newlist.append(tmp)
         
         # Store and return
-        self._pluginInfo = sorted( newlist, key=lambda x:x.id )
-        self.updatePluginInstances()
-        return self._pluginInfo
+        self._toolInfo = sorted( newlist, key=lambda x:x.id )
+        self.updateToolInstances()
+        return self._toolInfo
     
     
-    def updatePluginInstances(self):
-        """ Make plugin instances up to date, so that it can be seen what
-        plugins are now active. """
-        for pluginDes in self._pluginInfo:
-            if pluginDes.id in self._activePlugins:
-                pluginDes.instance = self._activePlugins[pluginDes.id]
+    def updateToolInstances(self):
+        """ Make tool instances up to date, so that it can be seen what
+        tools are now active. """
+        for toolDes in self._toolInfo:
+            if toolDes.id in self._activeTools:
+                toolDes.instance = self._activeTools[toolDes.id]
             else:
-                pluginDes.instance = None
+                toolDes.instance = None
     
     
-    def getPluginInfo(self):
-        """ Like loadPluginInfo(), but use buffered instance if available.
+    def getToolInfo(self):
+        """ Like loadToolInfo(), but use buffered instance if available.
         """
-        if self._pluginInfo is None:
-            self.loadPluginInfo()
-        return self._pluginInfo
+        if self._toolInfo is None:
+            self.loadToolInfo()
+        return self._toolInfo
     
     
-    def getPluginClass(self, pluginId):
-        """ Get the class of the plugin.
+    def getToolClass(self, toolId):
+        """ Get the class of the tool.
         It will import (and reload) the module and get the class.
         Some checks are performed, like whether the class inherits 
         from QWidget.
@@ -216,392 +223,116 @@ class PluginManager:
         """
         
         # Make sure we have the info
-        if self._pluginInfo is None:
-            self.loadPluginInfo()
+        if self._toolInfo is None:
+            self.loadToolInfo()
         
         # Get module name
-        for pluginDes in self._pluginInfo:
-            if pluginDes.id == pluginId:
-                moduleName = pluginDes.moduleName
+        for toolDes in self._toolInfo:
+            if toolDes.id == toolId:
+                moduleName = toolDes.moduleName
                 break
         else:
-            print("WARNING: could not find module for plugin", repr(pluginId))
+            print("WARNING: could not find module for tool", repr(toolId))
             return None
             
-        # Load module (and reload)
+        # Load module (doing it this was always reloads)
         try:
-            mod = __import__("plugins."+moduleName, fromlist='NOn_ExIsTEnt_dUMmY' )
-            imp.reload(mod)
-        except ImportError:
-            print("Invalid plugin (%s), module does not exist!" % (moduleName))
+            mod = imp.load_source('tools.'+toolId, moduleName)
+        except ImportError as why:
+            print("Invalid tool " + toolId +":", why)
             return None
         
         # Is the expected class present?
         className = ""
         for member in dir(mod):
-            if member.lower() == pluginId:
+            if member.lower() == toolId:
                 className = member
                 break
         else:       
-            print("Invalid plugin, Classname must match module name!")
+            print("Invalid tool, Classname must match module name!")
             return None
         
         # Does it inherit from QWidget?
         plug = mod.__dict__[className]
         if not (isinstance(plug,type) and issubclass(plug,QtGui.QWidget)):
-            print("Invalid plugin, plugin class must inherit from QWidget!")
+            print("Invalid tool, tool class must inherit from QWidget!")
             return None
         
         # Succes!
         return plug
     
     
-    def loadPlugin(self, pluginId):
-        """ Load a plugin by creating a dock widget containing the plugin
-        widget.
+    def loadTool(self, toolId):
+        """ Load a tool by creating a dock widget containing the tool widget.
         """
         
-        # A plugin id should always be lower case
-        pluginId = pluginId.lower()
+        # A tool id should always be lower case
+        toolId = toolId.lower()
         
-        # Get plugin class (returns None on failure)
-        pluginClass = self.getPluginClass(pluginId)
-        if pluginClass is None:
+        # Get tool class (returns None on failure)
+        toolClass = self.getToolClass(toolId)
+        if toolClass is None:
             return
         
         # Already loaded? reload!
-        if pluginId in self._activePlugins:
-            self._activePlugins[pluginId].reload(pluginClass)
+        if toolId in self._activeTools:
+            self._activeTools[toolId].reload(toolClass)
             return
         
         # Obtain name from buffered list of names
-        for pluginDes in self._pluginInfo:
-            if pluginDes.id == pluginId:
-                name = pluginDes.name
+        for toolDes in self._toolInfo:
+            if toolDes.id == toolId:
+                name = toolDes.name
                 break
         else:
-            name = pluginId
+            name = toolId
         
-        # Make sure there is a confi entry for this plugin
-        if not hasattr(iep.config.plugins, pluginId):
-            iep.config.plugins[pluginId] = ssdf.new()
+        # Make sure there is a confi entry for this tool
+        if not hasattr(iep.config.tools, toolId):
+            iep.config.tools[toolId] = ssdf.new()
         
         # Create dock widget and add in the main window
-        dock = PluginDockWidget(iep.main, self)
-        dock.setPlugin(pluginId, name, pluginClass)
+        dock = ToolDockWidget(iep.main, self)
+        dock.setTool(toolId, name, toolClass)
         iep.main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
         
         # Add to list
-        self._activePlugins[pluginId] = dock
-        self.updatePluginInstances()
+        self._activeTools[toolId] = dock
+        self.updateToolInstances()
     
     
-    def reloadPlugins(self):
-        """ Reload all plugins. """
-        for id in self.getLoadedPlugins():
-            self.loadPlugin(id)
+    def reloadTools(self):
+        """ Reload all tools. """
+        for id in self.getLoadedTools():
+            self.loadTool(id)
     
     
-    def closePlugin(self, pluginId):
-        """ Close the plugin with specified id.
+    def closeTool(self, toolId):
+        """ Close the tool with specified id.
         """
-        if pluginId in self._activePlugins:
-            dock = self._activePlugins[pluginId]
+        if toolId in self._activeTools:
+            dock = self._activeTools[toolId]
             dock.close()
     
-    def getPlugin(self, pluginId):
-        """ Get the plugin widget instance, or None
+    def getTool(self, toolId):
+        """ Get the tool widget instance, or None
         if not available. """
-        if pluginId in self._activePlugins:
-            return self._activePlugins[pluginId].widget()
+        if toolId in self._activeTools:
+            return self._activeTools[toolId].widget()
         else:
             return None
     
-    def onPluginClose(self, pluginId):
+    def onToolClose(self, toolId):
         # Remove from dict
-        self._activePlugins.pop(pluginId, None)
+        self._activeTools.pop(toolId, None)
         # Set instance to None
-        self.updatePluginInstances()
+        self.updateToolInstances()
     
     
-    def getLoadedPlugins(self):
-        """ Get a list with id's of loaded plugins. """
+    def getLoadedTools(self):
+        """ Get a list with id's of loaded tools. """
         tmp = []
-        for pluginDes in self._pluginInfo:
-            if pluginDes.id in self._activePlugins:
-                tmp.append(pluginDes.id)
+        for toolDes in self._toolInfo:
+            if toolDes.id in self._activeTools:
+                tmp.append(toolDes.id)
         return tmp
-
-
-# class PluginWindow(wx.Panel):
-#     """ Window that contains two notebooks with plugins.
-#     """
-#     def __init__(self, parent, id=-1):
-#         wx.Panel.__init__(self,parent,id)
-#         
-#         # border sizer in pixels
-#         borderwidth = 10
-#         
-#         # create splitter and two notebooks
-#         self.splitter2 = wx.SplitterWindow(self, wx.HORIZONTAL)
-#         self.book1 = wx.Notebook(self.splitter2, style=wx.NB_TOP)
-#         self.book2 = wx.Notebook(self.splitter2, style=wx.NB_TOP)
-#         
-#         # split splitter        
-#         self.splitter2.SetWindowStyle(wx.SP_NOBORDER | wx.WANTS_CHARS)
-#         self.splitter2.SplitHorizontally(self.book1,self.book2)
-#         self.splitter2.SetMinimumPaneSize(100)
-#         # sash position is set in the main
-#         
-#         # create sizer and blanc panel
-#         self.panel = wx.Panel(self,-1)
-#         self.panel.SetMinSize((borderwidth,1))
-#         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-#         self.sizer.Add(self.panel,0,wx.EXPAND)
-#         self.sizer.Add(self.splitter2,1,wx.EXPAND)
-#         
-#         # apply sizer
-#         self.SetSizer(self.sizer) # 1
-#         self.SetAutoLayout(True)  # 2
-#         self.Layout()             # 3 
-#         
-#         # get root
-#         self.root = iep.GetMainFrame(self)
-#         
-#         # init a var
-#         self._pluginfiles = {}
-#         
-#         # hook to events
-#         self.root.Bind(wx.EVT_MENU, self.OnMenuSelect)
-#         self.root.Bind(wx.EVT_MENU, self.RefreshPlugins, id=ID_REFRESH)
-#         
-#         
-#     def FillPluginMenu(self, menu):
-#         """ fills the given menu with the available plugins        
-#         """
-#         # clear all items
-#         items = menu.GetMenuItems()
-#         for item in items:
-#             menu.RemoveItem(item)
-#             
-#         # create list            
-#         pluginfiles = getAvailablePlugins()
-#         
-#         # get plugins now in use
-#         plugs1, plugs2 = [],[]
-#         for i in range(self.book1.GetPageCount()):
-#             id = self.book1.GetPage(i).__class__.__name__.lower()            
-#             plugs1.append( id )
-#         for i in range(self.book2.GetPageCount()):
-#             id = self.book2.GetPage(i).__class__.__name__.lower()            
-#             plugs2.append( id )            
-#             
-#         # and a new dict list for later reference.
-#         # each entry (based on id) is a tuple (int, pluginModule)
-#         # the int indicates which notebook
-#         self._pluginfiles = {}
-#         
-#         # Refresh plugins        
-#         menu.Append(ID_REFRESH, "Refresh plugins", 
-#             "For plugin development: refresh all plugins.")
-#         
-#         menu.AppendSeparator()
-#         
-#         for file, name, summary in pluginfiles:
-#             id = wx.NewId() # this is a wx id (integer)           
-#             self._pluginfiles[id] = (0, file)
-#             menustring = file.lower()
-#             if name:
-#                 #menustring = "%s (%s)" %(name,file.lower())
-#                 menustring = name
-#             summary = '%s: %s' % (file.lower(), summary)
-#             # add to menu
-#             menu.Append(id, menustring, summary, kind=wx.ITEM_CHECK)
-#             if file.lower() in plugs1:
-#                 menu.Check(id,True)
-#                 
-#         menu.AppendSeparator()
-#         
-#         for file, name, summary in pluginfiles:
-#             id = wx.NewId()                
-#             self._pluginfiles[id] = (1, file)
-#             menustring = file.lower()
-#             if name:
-#                 #menustring = "%s (%s)" %(name,file.lower())
-#                 menustring = name
-#             summary = '%s: %s' % (file.lower(), summary)
-#             # add to menu
-#             menu.Append(id, menustring, summary, kind=wx.ITEM_CHECK)
-#             if file.lower() in plugs2:
-#                 menu.Check(id,True)
-#         
-#     
-#     def OnMenuSelect(self,event):
-#         """ Toggle plugin when selected from the menu """        
-#         
-#         # is the event ment for us?
-#         if event.Id not in self._pluginfiles:
-#             event.Skip()
-#             return
-#             
-#         # gather info        
-#         bookNr, moduleName = self._pluginfiles[event.Id]        
-#         # load...
-#         self.PluginToggle(bookNr, moduleName) 
-#         
-#     
-#     def PluginToggle(self, bookNr, pluginId):
-#         """ Load/toggle a plugin by its id name
-#         Remove plugin if it is there...
-#         """
-#         if not pluginId:
-#             return
-#         
-#         # make lowercase just to be sure
-#         pluginId = pluginId.lower()
-#         
-#         # gather info        
-#         Plug = getPlugin( pluginId )
-#         book = [self.book1,self.book2][bookNr]
-#         if not Plug:
-#             return  # fail
-#         
-#         # remove any plugins currently in use
-#         removedFrom = []
-#         for i in range(self.book1.GetPageCount()-1,-1,-1):
-#             page = self.book1.GetPage(i)
-#             id = page.__class__.__name__.lower()
-#             if pluginId == id:                
-#                 self.book1.RemovePage(i)
-#                 page.Destroy()
-#                 removedFrom.append(0)
-#         for i in range(self.book2.GetPageCount()-1,-1,-1):
-#             page = self.book2.GetPage(i)
-#             id = page.__class__.__name__.lower()
-#             if pluginId == id:                
-#                 self.book2.RemovePage(i)
-#                 page.Destroy()
-#                 removedFrom.append(1)
-#         
-#         # create plugin if we must
-#         if not bookNr in removedFrom:
-#             plug = Plug(book)
-#             plugMod = sys.modules[ plug.__module__ ]
-#             name = pluginId
-#             if hasattr(plugMod, 'plugin_name'):
-#                 name = plugMod.plugin_name            
-#             book.AddPage(plug,name,True)
-#             
-#         # refresh
-#         self.book1.Refresh()
-#         self.book2.Refresh()
-#         
-#         
-#     def ClearPlugins(self):
-#         "Clear all plugins"
-#         for i in range(self.book1.GetPageCount()-1,-1,-1):
-#             page = self.book1.GetPage(i)
-#             self.book1.RemovePage(i)
-#             page.Destroy()
-#         for i in range(self.book2.GetPageCount()-1,-1,-1):
-#             page = self.book2.GetPage(i)
-#             self.book2.RemovePage(i)
-#             page.Destroy()
-#         
-# 
-#     def LoadPluginsFromConfig(self):
-#         "Load the previous plugins from the config file"
-#         # clear first
-#         self.ClearPlugins()
-#         # get plugins
-#         top = [i for i in iep.config.plugins.top]
-#         bot = [i for i in iep.config.plugins.bottom]    
-#         if not top: top = ['']
-#         if not bot: bot = ['']
-#         # get selected plugins (last in the list)
-#         topSelected = top.pop()
-#         if not topSelected in top:
-#             top.append(topSelected)
-#         botSelected = bot.pop()
-#         if not botSelected in bot:
-#             bot.append(botSelected)
-#         # load plugins
-#         for id in top:
-#             self.PluginToggle(0,id)
-#         for id in bot:
-#             self.PluginToggle(1,id)
-#         # select the ones
-#         self.SelectPluginWindow(topSelected)
-#         self.SelectPluginWindow(botSelected)
-#         
-#         self.Refresh()
-#         self.book1.Refresh()
-#         self.book2.Refresh()
-#         
-# 
-#     def SavePluginsToConfig(self):
-#         "Save the current plugins from the config file"
-#          # get lists of plugins
-#         plugs_top, plugs_bot = [],[]
-#         for i in range(self.book1.GetPageCount()):
-#             page = self.book1.GetPage(i)
-#             plugs_top.append( page.__class__.__name__.lower() )
-#         for i in range(self.book2.GetPageCount()):
-#             page = self.book2.GetPage(i)
-#             plugs_bot.append( page.__class__.__name__.lower() )
-#         # add selected to the list
-#         topSelected = self.book1.GetCurrentPage()
-#         botSelected = self.book2.GetCurrentPage()
-#         if topSelected:
-#             plugs_top.append( topSelected.__class__.__name__.lower() )        
-#         if botSelected:
-#             plugs_bot.append( botSelected.__class__.__name__.lower() )
-#         # store
-#         iep.config.plugins.top = plugs_top
-#         iep.config.plugins.bottom = plugs_bot
-#         
-#         
-#     def RefreshPlugins(self, event=None):
-#         " Remove all plugins and put them back"
-#         self.SavePluginsToConfig()
-#         self.ClearPlugins()
-#         self.LoadPluginsFromConfig()
-#         
-#           
-#     def SelectPluginWindow(self, id):
-#         """ Select this plugin, does nothing
-#         if the plugin is not shown """
-#         if not id:
-#             return
-#         for i in range(self.book1.GetPageCount()):
-#             page = self.book1.GetPage(i) 
-#             id2 = page.__class__.__name__.lower()
-#             if id == id2:
-#                 self.book1.SetSelection(i)    
-#         for i in range(self.book2.GetPageCount()):
-#             page = self.book2.GetPage(i) 
-#             id2 = page.__class__.__name__.lower()
-#             if id == id2:
-#                 self.book2.SetSelection(i)
-#         
-#         
-#     def GetPluginWindow(self, pluginId):
-#         """ Get the window of the given plugin.
-#         Returns None if it is not loaded
-#         """
-#         pluginId = pluginId.lower()
-#         window = None        
-#         for i in range(self.book1.GetPageCount()):
-#             page = self.book1.GetPage(i) 
-#             id = page.__class__.__name__.lower()
-#             if pluginId == id:
-#                 window = page
-#         for i in range(self.book2.GetPageCount()):
-#             page = self.book2.GetPage(i) 
-#             id = page.__class__.__name__.lower()
-#             if pluginId == id:
-#                 window = page
-#         return window
-        
-        
-    

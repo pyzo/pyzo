@@ -5,8 +5,8 @@ from shell import BaseShell
 from iepLogging import splitConsole
 
 
-plugin_name = "Logger"
-plugin_summary = "Logs messaged, warnings and errors within IEP"
+tool_name = "Logger"
+tool_summary = "Logs messages, warnings and errors within IEP."
  
 
 class IepLogger(BaseShell):
