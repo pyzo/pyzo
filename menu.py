@@ -32,6 +32,17 @@ qt = QtGui
 import iep
 from iepLogging import print
 
+
+aboutText = """ 
+IEP: the Interactive Editor for Python
+Current version: {}\n
+IEP is written in Python 3.x and uses the Qt4 widget toolkit.
+Much of its code was inspired by the Pype and IPython projects.\n
+IEP is subject to the General Public License (GPL)
+Copyright (C) 2010 Almar Klein
+""".format(iep.__version__)
+        
+        
 class MI:
     """ Menu Item
     A virtual menu item to help producing a menu. 
@@ -986,19 +997,11 @@ class HelpMenu(BaseMenu):
     def fun_about(self, value):
         """ Show the about text for IEP. """
         # Define icon and text
-        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') ) 
-        text = """ 
-        IEP: the Interactive Editor for Python
-        Current version: {}\n
-        IEP is written in Python 3.x and uses the Qt4 widget toolkit.
-        Much of its code was inspired by the Pype\n and IPython projects.\n
-        IEP is subject to the General Public License (GPL)
-        Copyright (C) 2010 Almar Klein
-        """.format(iep.__version__)
+        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("About IEP")
-        m.setText(text)
+        m.setText(aboutText)
         m.setIconPixmap(im)
         m.exec_()
     

@@ -1321,7 +1321,14 @@ class PythonShell(BaseShell):
                 tabWidget = self.parent().parent()
                 i = tabWidget.indexOf(self)
                 tabWidget.setTabText(i, status)
-    
+        else:
+            # The version has not been set, poll the process to
+            # check whether it's still there
+            if self._process.poll():
+                self._restart = False
+                self._afterDisconnect('The process failed to start.')
+            
+            
     
     def poll_terminating(self):
         """ The timer callback method when the process is being terminated. 

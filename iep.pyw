@@ -28,7 +28,7 @@ pjoin = os.path.join
 # Make sure __file__ exists
 try:
     __file__
-except AttributeError:
+except NameError:
     __file__ = ''
 
 # Determine whether we're in a frozen app

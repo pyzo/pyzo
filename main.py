@@ -57,18 +57,20 @@ class MainWindow(QtGui.QMainWindow):
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
         # Construct icon
-        tmp = os.path.join(iep.iepDir,'')
+        pjoin = os.path.join
+        iconDir = pjoin(iep.iepDir,'icons')
         iep.icon = QtGui.QIcon()
-        iep.icon.addFile(tmp+'icons/iep16.png', QtCore.QSize(16,16), 0, 0)
-        iep.icon.addFile(tmp+'icons/iep32.png', QtCore.QSize(32,32), 0, 0)
-        iep.icon.addFile(tmp+'icons/iep48.png', QtCore.QSize(48,48), 0, 0)
+        iep.icon.addFile(pjoin(iconDir,'iep16.png'), QtCore.QSize(16,16), 0, 0)
+        iep.icon.addFile(pjoin(iconDir,'iep32.png'), QtCore.QSize(32,32), 0, 0)
+        iep.icon.addFile(pjoin(iconDir,'iep48.png'), QtCore.QSize(48,48), 0, 0)
         
         # Set label and icon
         self.setWindowTitle("IEP (loading ...)")
         self.setWindowIcon(iep.icon)
         
         # Create frame with the IEP logo as a bg (kinda splash screen)
-        values = [  'image: url(icons/iep256.png)', 'repeat: no-repeat',
+        iconUrl = pjoin(iconDir, 'iep256.png').replace('\\', '/')
+        values = [  'image: url({})'.format(iconUrl), 'repeat: no-repeat',
                     'position: center', 'color: #444']
         ss = ' '.join(['background-'+v+';' for v in values])
         self.setStyleSheet( 'QMainWindow {' + ss + '} ')
