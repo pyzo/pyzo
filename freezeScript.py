@@ -1,3 +1,8 @@
+#!/usr/bin/python3.1
+#
+# Copyright (c) 2010, Almar Klein
+# Let's say this script is BSD licensed.
+
 """ FREEZING IEP WITH CX_FREEZE
 This script can be run as a script (no need to do distutils stuff...)
 
@@ -15,7 +20,7 @@ program files directory of windows7.
 import sys, os, shutil
 from cx_Freeze import Executable, Freezer, setup
 
-# define app name and such
+# Define app name and such
 name = "iep"
 baseDir = './'
 srcDir = './'
@@ -42,9 +47,6 @@ excludes.append('numpy')
 # For qt to work
 includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 'PyQt4.Qsci'] 
 
-# For IEP to work
-includes.extend(['threading', '_thread', 'queue', 'socket', 
-                'base64', 'ssdf', 'code', ])
 
 ## Go!
 # See http://cx-freeze.sourceforge.net/cx_Freeze.html for docs.
@@ -84,6 +86,7 @@ f = Freezer(    executables,
 f.Freeze()
 
 
+## Process source code and other resources
 
 # Create source dir in frozen app
 srcDir2 = distDir + 'source/'

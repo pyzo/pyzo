@@ -1,9 +1,7 @@
 #!/usr/bin/python3.1
-#   $Author: almar $
-#   $Date: 2008-09-30 10:26:38 +0200 (Tue, 30 Sep 2008) $
-#   $Rev: 557 $
 #
-#   Copyright 2008 Almar Klein
+#   Copyright (c) 2010, Almar Klein
+#   All rights reserved.
 #
 #   This file is part of IEP.
 #    
@@ -20,9 +18,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" IEP - Interactive Editor for Python
-This is the main module, where I define some stuff to be used in the other
-modules.
+""" iep.py
+This is the entry module, it servers as a root for the other modules.
 
 """
 

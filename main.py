@@ -1,14 +1,25 @@
-""" MAIN MODULE OF IEP
-This module contains the main frame. The menu's are defined here,
-and therefore also some functionality (if we do not call
-methods in other windows). For example the functions for the running 
-of code is implemented here (well, only the part to select the right 
-code).
+#   Copyright (c) 2010, Almar Klein
+#   All rights reserved.
+#
+#   This file is part of IEP.
+#    
+#   IEP is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+# 
+#   IEP is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+# 
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-$Author: almar@SAS $
-$Date: 2009-01-30 14:48:05 +0100 (Fri, 30 Jan 2009) $
-$Rev: 946 $
-
+""" Module main
+This module contains the main frame. Implements the main window.
+Also adds some variables to the iep namespace, such as the callLater
+function which is also defined here.
 """
 
 import os, sys
