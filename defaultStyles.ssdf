@@ -1,16 +1,14 @@
-# This is the style file for the editors in IEP.
-#
-# These lines are commented. Everything after a comment is ignored,
-# just like empty lines.
+# This simple structured data format (SSDF) file is the style file for 
+# the editors in IEP.
 #
 # A style definition is a dict of various options. These options can be:
-# - lexer: to set the lexer for this style
+# - lexer: to set the lexer for the style
 # - ext: files with these extensions will be highlighthed with this style
 # - basedon: the style to base this style on (all settings are inherited)
-# - keywords: well, the keywords
+# - keywords: the keywords
 # - sxxx: where the number xxx is the int to use in .StyleSetSpec()
 # The lists of ext and keywords are space-separated.
-# When basedon is not specified, it is based on default.
+# When basedon is not specified, it is based on "default".
 #
 # There are a few special style numbers used by IEP, of which a fore and a back
 # can be specified (other attributes are ignored):
@@ -19,7 +17,7 @@
 # - s303: the calltip colors
 #
 # With this setup you can easily make your own styles. Just look at the
-# examples in this file... All stylenames should be lowercase.
+# examples in this file. All stylenames should be lowercase.
 #
 # When specifying a font, you can use "face:{mono}" where 'mono' may also
 # be 'serif' or 'sans'. A suitable font is selected based on the used OS.
@@ -101,7 +99,7 @@ pyrex = dict:
 todo = dict:
     ext = 'todo 2do'
     lexer = 'python' # note no keywords
-    #s032 = 'face:%(mono)s,size:9,fore:#000000,back:#FFFFFF' # nomal
+    #s032 = 'face:%(mono)s,size:9,fore:#000000,back:#FFFFFF' # normal
     s012 = 'bold,fore:#AA0000' # urgent
     s001 = 'fore:#999999' # done
 
@@ -164,7 +162,7 @@ cpp = dict:
     
 
 # CSHARP should recognize ///
-# but hell, if you code C# just use microsofts IDE!
+# but hey, if you code C# just use microsofts IDE!
 csharp = dict:
     ext = 'cs'
     lexer = 'cpp'

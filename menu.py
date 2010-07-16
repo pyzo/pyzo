@@ -216,11 +216,11 @@ class FileMenu(BaseMenu):
         iep.editors.newFile()
     
     def fun_open(self, value):
-        """ Open an existing file. """
+        """ Open an existing file from disk. """
         iep.editors.openFile()
     
     def fun_save(self, value):
-        """ Save the current file. """
+        """ Save the current file to disk. """
         iep.editors.saveFile()
     
     def fun_saveAs(self, value):
@@ -295,7 +295,7 @@ class FileMenu(BaseMenu):
             editor.setStyle(value)
     
     def fun_encoding(self, value):
-        """ Set the encoding of the file (only UTF-8). """
+        """ The encoding of the current file (IEP only supports UTF-8). """
         if value is None:
             return ['UTF-8', 'UTF-8']
     
@@ -339,19 +339,19 @@ class EditMenu(BaseMenu):
     
     
     def fun_cut(self, value):
-        """ Cut the text/object. """
+        """ Cut the selected text. """
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'cut'):
             widget.cut()
         
     def fun_copy(self, value):
-        """ Copy the text/object. """
+        """ Copy the selected text. """
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'copy'):
             widget.copy()
     
     def fun_paste(self, value):
-        """ Paste the text/object. """
+        """ Paste the text on the clipboard at the current cursor position. """
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'paste'):
             widget.paste()
@@ -394,20 +394,25 @@ class EditMenu(BaseMenu):
             widget.moveToMatchingBrace()
     
     def fun_findReplace(self, value):
+        """ Show and select the find widget. """
         iep.editors._findReplace.startFind()
     
     def fun_findSelection(self, value):
+        """ Set the selected text as search string and find next. """
         iep.editors._findReplace.startFind()
         iep.editors._findReplace.findNext()
     
     def fun_findSelectionBw(self, value):
+        """ Set the selected text as search string and find previous. """
         iep.editors._findReplace.startFind()
         iep.editors._findReplace.findPrevious()
     
     def fun_findNext(self, value):
+        """ Find the next match for the search string. """
         iep.editors._findReplace.findNext()
         
     def fun_findPrevious(self, value):
+        """ Find the previous match for the search string. """
         iep.editors._findReplace.findPrevious()
     
 
@@ -440,20 +445,20 @@ class ViewMenu(BaseMenu):
     
     
     def fun_selectEditor(self, value):
-        """ Select the current editor. """
+        """ Focus on the current editor. """
         editor = iep.editors.getCurrentEditor()
         if editor:
             editor.setFocus()
     
     def fun_selectShell(self, value):
-        """ Select the current shell. """
+        """ Focus on the current shell. """
         shell = iep.shells.getCurrentShell()
         if shell:
             shell.setFocus()
     
     
     def fun_showStatusBar(self, value):
-        """ Display the status bar atthe bottom of the window. """ 
+        """ Display the status bar at the bottom of the window. """ 
         if value is None:
             return bool(iep.config.view.showStatusbar)
         value = not bool( iep.config.view.showStatusbar ) 
@@ -465,7 +470,7 @@ class ViewMenu(BaseMenu):
             iep.main.setStatusBar(None)
     
     def fun_wrap(self, value):
-        """ Wrap long lines. """
+        """ Wrap lines that are too long to fit on the screen. """
         if value is None:
             return bool(iep.config.view.wrapText)
         value = not bool( iep.config.view.wrapText ) 
@@ -543,7 +548,7 @@ class ViewMenu(BaseMenu):
             editor.setViewWrapSymbols(int(value)*1)
     
     def fun_tabWidth(self, value):
-        """ The amount of space of a tab (but only if tabs are used). """
+        """ The amount of space for a tab (only if tabs are used). """
         if value is None:
             return [2,3,4,5,6,7,8,9,10, iep.config.view.tabWidth]
         
@@ -553,7 +558,8 @@ class ViewMenu(BaseMenu):
             editor.setTabWidth(value)
     
     def fun_selectPrevious(self, value):
-       iep.editors._list.selectPreviousItem() 
+        """ Select the previusly selected file. """
+        iep.editors._list.selectPreviousItem() 
     
     def fun_zooming(self, value):
         """ Zoom in or out, or reset zooming. """
@@ -591,7 +597,7 @@ class ViewMenu(BaseMenu):
                 editor.setFolding(tmp)
 
     def fun_qtstyle(self, value):
-        """ Chose the QT style to use. """
+        """ The QT style to use. """
         if value is None:
             # Create list of styles
             styleNames = [i for i in QtGui.QStyleFactory.keys()]
@@ -621,6 +627,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Enable call tips', self.fun_callTip, []) )
         addItem( MI('Enable auto completion', self.fun_autoComplete, []) )
         addItem( MI('Autocomplete keywords', self.fun_autoComplete_kw, []) )
+        addItem( MI('Autocomplete case sensitive', self.fun_autoComplete_case, []) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, []) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
@@ -635,7 +642,7 @@ class SettingsMenu(BaseMenu):
         
     
     def fun_defaultStyle(self, value):
-        """ The style used in new files. """
+        """ The style used for new files. """
         if value is None:
             current = iep.config.settings.defaultStyle
             options = iep.styleManager.getStyleNames()
@@ -646,7 +653,7 @@ class SettingsMenu(BaseMenu):
             iep.config.settings.defaultStyle = value
     
     def fun_defaultIndentation(self, value):
-        """ The indentation used in new files and in the shells. """
+        """ The indentation used for new files and in the shells. """
         if value is None:
             current = iep.config.settings.defaultIndentation
             options = [-1,2,3,4,5,6,7,8,9,10, current]
@@ -668,19 +675,8 @@ class SettingsMenu(BaseMenu):
         for shell in iep.shells:
             shell.setIndentation(val)
     
-    
-    def fun_shellFit80(self, value):
-        """ Decrease the shell font size so that at least 80 columns fit. """
-        if value is None:
-            return iep.config.settings.shellFit80
-        else:
-            value = not bool(iep.config.settings.shellFit80)
-            iep.config.settings.shellFit80 = value
-            iep.styleManager.styleUpdate.emit()
-    
-    
     def fun_defaultLineEndings(self, value):
-        """ The line endings used in new files. """
+        """ The line endings used for new files. """
         if value is None:
             current = iep.config.settings.defaultLineEndings
             return ['LF', 'CR', 'CRLF', current]
@@ -688,8 +684,17 @@ class SettingsMenu(BaseMenu):
             # store
             iep.config.settings.defaultLineEndings = value
     
+    def fun_shellFit80(self, value):
+        """ Decrease the shell font size so that at least 80 columns fit. """
+        if value is None:
+            return bool(iep.config.settings.shellFit80)
+        else:
+            value = not bool(iep.config.settings.shellFit80)
+            iep.config.settings.shellFit80 = value
+            iep.styleManager.styleUpdate.emit()
+    
     def fun_autoComplete(self, value):
-        """ Show a list with completion options queried from editor and shell."""
+        """ Show auto-completion list queried from editor and shell. """
         if value is None:
             return bool(iep.config.settings.autoComplete)
         else:
@@ -697,15 +702,23 @@ class SettingsMenu(BaseMenu):
             iep.config.settings.autoComplete = value
     
     def fun_autoComplete_kw(self, value):
-        """ Show the keywords in the autocompletion list."""
+        """ Show Python keywords in the autocompletion list. """
         if value is None:
             return bool(iep.config.settings.autoComplete_keywords)
         else:
             value = not bool(iep.config.settings.autoComplete_keywords)
             iep.config.settings.autoComplete_keywords = value
     
+    def fun_autoComplete_case(self, value):
+        """ Whether the autocompletion is case sensitive or not. """
+        if value is None:
+            return bool(iep.config.settings.autoComplete_caseSensitive)
+        else:
+            value = not bool(iep.config.settings.autoComplete_caseSensitive)
+            iep.config.settings.autoComplete_caseSensitive = value
+    
     def fun_callTip(self, value):
-        """ Show a call tip for functions and methods."""
+        """ Show a call tip for functions and methods. """
         if value is None:
             return bool(iep.config.settings.autoCallTip)
         else:
@@ -721,7 +734,7 @@ class SettingsMenu(BaseMenu):
             iep.config.settings.autoIndent = value
     
     def fun_keymap(self, value):
-        """ Change the keymappings for the menu. """
+        """ Edit the keymappings for the menu. """
         dialog = KeymappingDialog()
         dialog.exec_()
     
@@ -768,10 +781,6 @@ class SettingsMenu(BaseMenu):
         widget.setFocus()
 
 
-# Instantiate tool manager
-import tools
-iep.toolManager = toolManager = tools.ToolManager()
-
 class ToolsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
@@ -780,13 +789,13 @@ class ToolsMenu(BaseMenu):
         addItem( MI('Reload tools', self.fun_reload) )
         addItem( None )
         
-        for tool in toolManager.loadToolInfo():
+        for tool in iep.toolManager.loadToolInfo():
             addItem( MI(tool.name, tool.menuLauncher, 
                        bool(tool.instance), tool.description) )
     
     def fun_reload(self, value):
         """ Reload all tools (intended for helping tool development). """
-        toolManager.reloadTools()
+        iep.toolManager.reloadTools()
 
 
 class ShellMenu(BaseMenu):
@@ -840,7 +849,7 @@ class ShellMenu(BaseMenu):
             shell.terminate()
     
     def fun_restart(self, value):
-        """ Restart the current shell. """
+        """ Terminate and restart the current shell. """
         shell = iep.shells.getCurrentShell()
         if shell:
             shell.restart()

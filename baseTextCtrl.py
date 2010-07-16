@@ -1385,9 +1385,13 @@ class AutoCompObject:
         return names
     
     def _finish(self, names):
-        # Check whether name in list.        
-        haystack = ' '.join(['']+names).lower()
-        searchNeedle = ' '+self.needle.lower()
+        # Check whether name in list.
+        if iep.config.settings.autoComplete_caseSensitive:
+            haystack = ' '.join(['']+names)
+            searchNeedle = ' '+self.needle
+        else:
+            haystack = ' '.join(['']+names).lower()
+            searchNeedle = ' '+self.needle.lower()
         if haystack.find(searchNeedle) == -1:
             self.textCtrl.autoCompCancel()
         else:

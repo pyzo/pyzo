@@ -41,6 +41,7 @@ settings= dict:
     autoCallTip = 1
     autoComplete_keywords = 1
     autoComplete = 1
+    autoComplete_caseSensitive = 0
 
 advanced = dict:
     shellMaxLines = 10000
