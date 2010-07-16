@@ -812,7 +812,7 @@ class ShellMenu(BaseMenu):
         time.sleep(0.200)
         editor.setPosition(i1); editor.setAnchor(i2)
         # Execute code
-        fname = editor._name # or editor._filename
+        fname = editor.id() # editor._name or editor._filename
         shell.executeCode(text, fname, line1)
     
     def fun_runCell(self, value):
@@ -855,7 +855,7 @@ class ShellMenu(BaseMenu):
         time.sleep(0.200)
         editor.setPosition(i1); editor.setAnchor(i2)
         # Execute code
-        fname = editor._name # or editor._filename
+        fname = editor.id() # editor._name or editor._filename
         shell.executeCode(text, fname, line1)
     
     
@@ -870,7 +870,7 @@ class ShellMenu(BaseMenu):
         time.sleep(0.200)
         editor.setPosition(i1); editor.setAnchor(i2)
         # Get filename and return 
-        fname = editor._name # or editor._filename
+        fname = editor.id() # editor._name or editor._filename
         return fname, text
     
     
@@ -963,7 +963,7 @@ class HelpMenu(BaseMenu):
     def fun_about(self, value):
         """ Show the about text for IEP. """
         # Define icon and text
-        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icon48.png') ) 
+        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') ) 
         text = """ 
         IEP: the Interactive Editor for Python
         Current version: {}\n
