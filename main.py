@@ -83,11 +83,13 @@ class MainWindow(QtGui.QMainWindow):
         # Fill the window
         self.init1()
         
-        # Show finally         
+        # Set mainwindow back to normal
         self.setStyleSheet('')
-        self.show()
         self.setUpdatesEnabled(True)
+        
+        # Insert editor, shell, and all the tools
         callLater(self.restoreWindowState)
+        self._insertEditorAndShell()
     
     
     def init1(self):
@@ -97,25 +99,22 @@ class MainWindow(QtGui.QMainWindow):
         from shellStack import ShellStack
         from menu import MenuHelper
         import codeparser
-
-        # Create "global" parser instance
+        import tools
+        
+        # Instantiate tool manager
+        iep.toolManager = toolManager = tools.ToolManager()
+        
+        # Instantiate and start source-code parser
         if iep.parser is None:
             iep.parser = codeparser.Parser()
             iep.parser.start()
         
         # Create editor stack and make the central widget
-        iep.editors = EditorStack(self)
-        self.setCentralWidget(iep.editors)
+        iep.editors = EditorStack(self)        
+        #self.setCentralWidget(iep.editors)
         
-        # Create floater for shell
-        dock = QtGui.QDockWidget("Shells", self)
-        dock.setObjectName('shells')
-        dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
-        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
-        
-        # Insert shell stack and add the default shell
+        # Create shell stack and instantiate a default shell
         iep.shells = ShellStack(self)
-        dock.setWidget(iep.shells)
         iep.shells.addShell()
         
         # Create statusbar and menu 
@@ -126,6 +125,21 @@ class MainWindow(QtGui.QMainWindow):
             iep.status = None
             self.setStatusBar(None)
         self._menuhelper = MenuHelper(self.menuBar())
+    
+    
+    def _insertEditorAndShell(self):
+        """ Insert the editor and shell in the main window.
+        The first as the central widget, the other in a dock widget.
+        """
+        # Set central widget
+        self.setCentralWidget(iep.editors)
+        # Create floater for shell
+        dock = QtGui.QDockWidget("Shells", self)
+        dock.setObjectName('shells')
+        dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
+        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
+        # Insert
+        dock.setWidget(iep.shells)
     
     
     def saveWindowState(self):

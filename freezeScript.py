@@ -15,6 +15,9 @@ explicitly include them in this script.
 
 Note that .pyc files are created even if the frozen app is inside the 
 program files directory of windows7.
+
+The frozen application is created in a sibling directory of the source.
+
 """
 
 import sys, os, shutil
