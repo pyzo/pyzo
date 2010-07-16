@@ -284,6 +284,8 @@ class IepInterpreter:
         lineno = int(tmp[2])
         
         # Put the line number in the filename (if necessary)
+        # Note that we could store the line offset in the _codeCollection,
+        # but then we cannot retrieve it for syntax errors.
         if lineno:
             fname = "%s+%i" % (fname, lineno)
         
@@ -304,22 +306,6 @@ class IepInterpreter:
     
     
     ## Misc
-    
-    def updateguis(self):
-        pass
-        #                 # update tk and wx 50 times per second
-    #                 if time.time() - guitime > 0.019: # a bit sooner for sync
-    #                     if tkapp:
-    #                         tkapp.update()
-    #                     if wxapp:
-    #                         wxapp.ProcessPendingEvents()
-    #                         wxapp.ProcessIdle() # otherwise frames do not close
-    #                     if flapp:
-    #                         flapp.wait(0)
-    #                     if qtapp:
-    #                         qtapp.processEvents()
-    #                     guitime = time.time()
-    
     
     def parsecontrol(self, control):
         """ Parse a command received on the control stream. 
@@ -564,10 +550,12 @@ class ExecutedSourceCollection(dict):
     The codeObject produced by compiling the source is used as a 
     reference.
     """
+    def _getId(self, codeObject):
+        id_ = str(id(codeObject)) + '_' + codeObject.co_filename
     def storeSource(self, codeObject, source):
-        self[id(codeObject)] = source
+        self[self._getId(codeObject)] = source
     def getSource(self, codeObject):
-        return self.get(id(codeObject), '')
+        return self.get(self._getId(codeObject), '')
 
 
 class IntroSpectionThread(threading.Thread):

@@ -48,36 +48,32 @@ class MainWindow(QtGui.QMainWindow):
         # Construct icon
         tmp = os.path.join(iep.iepDir,'')
         iep.icon = QtGui.QIcon()
-        iep.icon.addFile(tmp+'icon16.png', QtCore.QSize(16,16), 0, 0)
-        iep.icon.addFile(tmp+'icon32.png', QtCore.QSize(32,32), 0, 0)
-        iep.icon.addFile(tmp+'icon48.png', QtCore.QSize(48,48), 0, 0)
+        iep.icon.addFile(tmp+'icons/iep16.png', QtCore.QSize(16,16), 0, 0)
+        iep.icon.addFile(tmp+'icons/iep32.png', QtCore.QSize(32,32), 0, 0)
+        iep.icon.addFile(tmp+'icons/iep48.png', QtCore.QSize(48,48), 0, 0)
         
         # Set label and icon
         self.setWindowTitle("IEP (loading ...)")
         self.setWindowIcon(iep.icon)
         
-        # Create frame with the IEP logo as a bg
-        ss = 'QFrame { background-image: url(icon48.png);'
-        ss += 'background-repeat:no-repeat; background-position: center; }'
-        self._frame = QtGui.QFrame(self)
-        self._frame.setStyleSheet(ss)
-        self.setCentralWidget(self._frame)
-        
-#         # Show spash screen
-#         im = QtGui.QPixmap(tmp+'icon48.png')
-#         iconContainer = QtGui.QSplashScreen(im)
-#         iconContainer.show()
+        # Create frame with the IEP logo as a bg (kinda splash screen)
+        values = [  'image: url(icons/iep256.png)', 'repeat: no-repeat',
+                    'position: center', 'color: #444']
+        ss = ' '.join(['background-'+v+';' for v in values])
+        self.setStyleSheet( 'QMainWindow {' + ss + '} ')
         
         # Show empty window
         self.show()
         QtGui.qApp.processEvents()
+        self.setUpdatesEnabled(False)
         
         # Fill the window
         self.init1()
         
-        # Show finally 
-        # (restoring state does work completely when done here)        
+        # Show finally         
+        self.setStyleSheet('')
         self.show()
+        self.setUpdatesEnabled(True)
         callLater(self.restoreWindowState)
     
     

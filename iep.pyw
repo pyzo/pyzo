@@ -1,32 +1,70 @@
 #!/usr/bin/env python3.1
+""" iep.pyw
+Startup Script.
 
+"""
 import os, sys
-print( os.getcwd())
+pjoin = os.path.join
 
-# Determine the location of this file (also when frozen)
+# Make sure __file__ exists
+try:
+    __file__
+except AttributeError:
+    __file__ = ''
+
+# Determine whether we're in a frozen app
 ex = os.path.split(sys.executable)[1]
 ex = os.path.splitext(ex)[0]
 if ex.lower().startswith('python'): # because can be python3 on Linux
-    thisDir = os.path.abspath( os.path.dirname(__file__) ) # Not frozen
+    isFrozen = False
 else:    
-	thisDir = os.path.abspath( os.path.dirname(sys.executable) ) # Frozen
+    isFrozen = True
 
-# Go there!
-os.chdir(thisDir)
+# Get four possible directories where this file is located. 
+# 1. The 1st entry of system path; is set when a script is run
+# 2. The executable name (when frozen)
+# 3. the directory of __file__.  Note that it does not necesarrily represent
+#    the location of this file, for instance when a linux link is made of this
+#    file and put on the desktop.
+# 4. The current working directory (as a last resort)
+dir1 = os.path.abspath( sys.path[0] )
+dir2 = os.path.abspath( os.path.dirname(sys.executable) )
+dir3 = os.path.abspath( os.path.dirname(__file__) )
+dir4 = os.path.abspath( os.getcwd() )
 
-sys.path.insert(0, '')
-print(thisDir, __file__, sys.executable)
-# Now we should have an iep.py, or a source dir
-if os.path.isdir('source'):
-    os.chdir('source')
-if os.path.isfile('iep.py'):
-    exec("import iep")
+# Test all the dirs and make sure the iep path is on the sys.path
+if isFrozen:
+    # Get possible dirs where the source is. In most cases they're the same
+    iepDir1 = pjoin(dir1, 'source')
+    iepDir2 = pjoin(dir2, 'source')
+    iepDir4 = pjoin(dir4, 'source')
+    # Add the source directory to the sys.path
+    if os.path.isdir( iepDir1 ):
+        sys.path.insert(0, iepDir1)
+    elif os.path.isdir( iepDir2 ):
+        sys.path.insert(0, iepDir2)
+    elif os.path.isdir( iepDir4 ):
+        sys.path.insert(0, iepDir4)
+    else:
+        # Mmm, I'm in the dark
+        raise RuntimeError("Could not detect iep source directory.")
+
 else:
-    exec("import iep")
-    #raise RuntimeError("Could not locate iep.py!")
+    # Get directory name where the source is
+    iepDir1 = dir1
+    iepDir3 = dir3
+    iepDir4 = dir4
+    # Add the source directory to the sys.path
+    if os.path.isfile( pjoin(iepDir1, 'iep.py') ):
+        pass # already on sys.path
+    elif os.path.isfile( pjoin(iepDir3, 'iep.py') ):
+        sys.path.insert(0, iepDir3)
+    elif os.path.isfile( pjoin(iepDir4, 'iep.py') ):
+        sys.path.insert(0, iepDir4)
+    else:
+        raise RuntimeError("Could not detect iep directory.")
 
-print(sys.path)
-
-# Start
+# Start iep. Do an import that cx_freeze won't detect, so we can make
+# a frozen app that uses plain source code.
+exec("import iep")
 iep.startIep()
-
