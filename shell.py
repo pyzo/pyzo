@@ -184,9 +184,6 @@ class BaseShell(BaseTextCtrl):
         self.setEdgeColumn(80)
         self.setHighlightCurrentLine(False)
         
-        # variable to see whether we should resize to match 80 columns
-        self._reduceFontSizeToMatch80Columns = True
-        
         # variables we need
         self._more = False
         self._promptPos1 = 0
@@ -211,12 +208,12 @@ class BaseShell(BaseTextCtrl):
     def resizeEvent(self, event):
         """ When resizing the fontsize nust be kept right. """
         BaseTextCtrl.resizeEvent(self, event)
-        if self._reduceFontSizeToMatch80Columns:
+        if iep.config.settings.shellFit80:
             self.updateFontSizeToMatch80Columns()
     
     def setStyle(self, styleName=None):
         BaseTextCtrl.setStyle(self, styleName)
-        if self._reduceFontSizeToMatch80Columns:
+        if iep.config.settings.shellFit80:
             self.updateFontSizeToMatch80Columns()
     
     

@@ -35,14 +35,24 @@ from iepLogging import print
 
 aboutText = """ 
 IEP: the Interactive Editor for Python
-Current version: {}\n
+Current version: {}
+
 IEP is written in Python 3.x and uses the Qt4 widget toolkit.
-Much of its code was inspired by the Pype and IPython projects.\n
-IEP is subject to the General Public License (GPL)
-Copyright (C) 2010 Almar Klein
+Much of its code was inspired by the Pype and IPython projects.
+
+Copyright (C) 2010, Almar Klein
+
+IEP is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+IEP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 """.format(iep.__version__)
-        
-        
+
 class MI:
     """ Menu Item
     A virtual menu item to help producing a menu. 
@@ -124,7 +134,7 @@ class MI:
             raise Exception('Dont know what to do')
         
         action.setStatusTip(self.tip)
-        #action.setToolTip(self.tip)
+        action.setToolTip(self.tip)
         return action
 
 
@@ -616,6 +626,8 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
         addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
         addItem( None )
+        addItem( MI('Shell always fits 80 columns', self.fun_shellFit80, []) )
+        addItem( None )
         addItem( MI('Change key mappings ...', self.fun_keymap) )
         addItem( MI('Edit syntax styles ...', self.fun_editStyles) )
         addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
@@ -655,6 +667,17 @@ class SettingsMenu(BaseMenu):
         # Apply to shells
         for shell in iep.shells:
             shell.setIndentation(val)
+    
+    
+    def fun_shellFit80(self, value):
+        """ Decrease the shell font size so that at least 80 columns fit. """
+        if value is None:
+            return iep.config.settings.shellFit80
+        else:
+            value = not bool(iep.config.settings.shellFit80)
+            iep.config.settings.shellFit80 = value
+            iep.styleManager.styleUpdate.emit()
+    
     
     def fun_defaultLineEndings(self, value):
         """ The line endings used in new files. """
@@ -949,6 +972,7 @@ class HelpMenu(BaseMenu):
         
         addItem( MI('Website', self.fun_website) )
         addItem( MI('Check for updates', self.fun_updates) )
+        addItem( MI('View license', self.fun_licese) )
         addItem( MI('About IEP', self.fun_about) )
     
     
@@ -994,6 +1018,10 @@ class HelpMenu(BaseMenu):
             webbrowser.open("http://code.google.com/p/iep/downloads/list")
     
     
+    def fun_licese(self, value):
+        """ Open the license text file. """
+        iep.editors.loadFile(os.path.join(iep.iepDir,'gpl.txt'))
+    
     def fun_about(self, value):
         """ Show the about text for IEP. """
         # Define icon and text
@@ -1028,7 +1056,7 @@ class MenuHelper:
             menu.fill() # initialize so shortcuts work
         
         menubar.triggered.connect(self.onTrigger)        
-        #menubar.hovered.connect(self.onHover)
+        menubar.hovered.connect(self.onHover)
     
     def onTrigger(self, action):
         if hasattr(action,'func'):
@@ -1038,9 +1066,8 @@ class MenuHelper:
             pass # the user clicked the file, edit, menus themselves.
     
     def onHover(self, action):
-        pass
         #print('hover:', action.text())
-        #QtGui.QToolTip(**pos**, action.toolTip())
+        QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.toolTip())
 
     
 
