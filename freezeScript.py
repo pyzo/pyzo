@@ -1,5 +1,15 @@
-""" FREEZING WITH CX_FREEZE
+""" FREEZING IEP WITH CX_FREEZE
 This script can be run as a script (no need to do distutils stuff...)
+
+Iep is frozen in such a way that it still uses the plain source code.
+Therefore iep.pyw imports iep.py using the "exec" function. We create
+two executables, one from iep.pyw, and one from iep_.pyw, that does
+import iep.py explcitily and is therefore completely frozen. The effect
+is that all modules that iep uses, are all available without having to
+explicitly include them in this script.
+
+Note that .pyc files are created even if the frozen app is inside the 
+program files directory of windows7.
 """
 
 import sys, os, shutil
@@ -7,16 +17,16 @@ from cx_Freeze import Executable, Freezer, setup
 
 # define app name and such
 name = "iep"
-baseDir = ''
-srcDir = ''
+baseDir = './'
+srcDir = './'
 distDir = baseDir+'../frozen/'
-scriptFile = srcDir + 'iep.pyw'
+scriptFiles = [srcDir + 'iep.pyw', srcDir + 'iep_.pyw']
 iconFile = srcDir + 'icon.ico'
 
 ## Includes and excludes
 
 # We do not need these
-excludes = ['_ssl', 'pyreadline', 'pdb', "email", 
+excludes = ['_ssl', 'pyreadline', 'pdb', 
      "matplotlib", 'doctest', 
     "scipy.linalg", "scipy.special", "Pyrex", 
     "numpy.core._dotblas",
@@ -32,9 +42,9 @@ excludes.append('numpy')
 # For qt to work
 includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 'PyQt4.Qsci'] 
 
-# Plugins are dynamically loaded so need copying or included explicitly
-includes = ['plugins.iepSourceStructure']
-
+# For IEP to work
+includes.extend(['threading', '_thread', 'queue', 'socket', 
+                'base64', 'ssdf', 'code', ])
 
 ## Go!
 # See http://cx-freeze.sourceforge.net/cx_Freeze.html for docs.
@@ -45,18 +55,22 @@ includes = ['plugins.iepSourceStructure']
 
 sys.path.append('')
 
-if sys.platform.lower().count('win'):
-    ex = Executable(    scriptFile, 
-                        icon=iconFile,
-                        appendScriptToExe = True,
-                        base = 'Win32GUI', # this is what hides the console
+executables = {}
+for scriptFile in scriptFiles:
+    
+    if sys.platform.lower().count('win'):
+        ex = Executable(    scriptFile, 
+                            icon=iconFile,
+                            appendScriptToExe = True,
+                            base = 'Win32GUI', # this is what hides the console
+                            )
+    else:
+        ex = Executable(    scriptFile, 
                         )
-else:
-    ex = Executable(    scriptFile, 
-                    )
+    executables[ex] = True
 
 
-f = Freezer(    {ex:True}, 
+f = Freezer(    executables, 
                 includes = includes,
                 excludes = excludes,
                 targetDir = distDir,
@@ -69,10 +83,26 @@ f = Freezer(    {ex:True},
 
 f.Freeze()
 
-# Copy resource files
-shutil.copy(srcDir+'styles.ssdf', distDir+'styles.ssdf')
-for icon in ['icon16.png', 'icon32.png', 'icon48.png', 'icon.ico']:
-    shutil.copy(srcDir+icon, distDir+icon)
-for mod in ['channels.py', 'remote.py', 'remote2.py']:
-    shutil.copy(srcDir+mod, distDir+mod)
-# todo: also need remote3.py?
+
+
+# Create source dir in frozen app
+srcDir2 = distDir + 'source/'
+if not os.path.isdir(srcDir2):
+    os.mkdir(srcDir2)
+
+# Create tools dir in frozen app
+toolsDir  = srcDir + 'plugins/'
+toolsDir2 = srcDir2 + 'plugins/'
+if not os.path.isdir(toolsDir2):
+    os.mkdir(toolsDir2)
+
+# Copy all source files
+for fname in os.listdir(srcDir):
+    if os.path.isfile(srcDir+fname) and not fname.endswith('.pyc'):
+        shutil.copy(srcDir+fname, srcDir2+fname)
+for fname in os.listdir(toolsDir):    
+    if os.path.isfile(toolsDir+fname) and not fname.endswith('.pyc'):
+        shutil.copy(toolsDir+fname, toolsDir2+fname)
+
+# Remove dummy executable
+os.remove( os.path.join(distDir,'iep_.exe') )
