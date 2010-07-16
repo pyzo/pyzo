@@ -20,7 +20,6 @@ class IepLogger(BaseShell):
         
         # apply style        
         self.setStyle('loggerShell')
-        #self._reduceFontSizeToMatch80Columns = False
         
         # Create interpreter to run code        
         locals = {'iep':iep, 'sys':sys, 'os':os}

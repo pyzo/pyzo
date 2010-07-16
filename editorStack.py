@@ -843,6 +843,10 @@ class FindReplaceWidget(QtGui.QFrame):
         self._regExp = qt.QCheckBox("RegExp", self)
         self._regExp.resize(barwidth-2, 16)
         self._regExp.move(1,yy)
+        yy+=16
+        self._wholeWord = qt.QCheckBox("Whole words", self)
+        self._wholeWord.resize(barwidth-2, 16)
+        self._wholeWord.move(1,yy)
         
         yy += 18
         self._findText = qt.QLineEdit(self)
@@ -876,6 +880,7 @@ class FindReplaceWidget(QtGui.QFrame):
         # init case and regexp
         self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
         self._regExp.setChecked( bool(iep.config.state.find_regExp) )
+        self._wholeWord.setChecked(  bool(iep.config.state.find_wholeWord) )
         
         # create callbacks
         self._findText.returnPressed.connect(self.findNext)
@@ -962,7 +967,7 @@ class FindReplaceWidget(QtGui.QFrame):
         # matchCase and regExp
         matchCase = self._caseCheck.isChecked()
         regExp = self._regExp.isChecked()
-        wholeWord = False
+        wholeWord = self._wholeWord.isChecked()
         
         # focus
         self.selectFindText()
@@ -1468,6 +1473,8 @@ class EditorStack(QtGui.QWidget):
         fr = self._findReplace
         iep.config.state.find_matchCase = fr._caseCheck.isChecked()
         iep.config.state.find_regExp = fr._regExp.isChecked()
+        iep.config.state.find_wholeWord = fr._wholeWord.isChecked()
+        #
         iep.config.state.editorState = self._getCurrentOpenFilesAsString()
     
     

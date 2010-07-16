@@ -5,6 +5,7 @@
 state = dict:
     find_regExp = 0
     find_matchCase = 0
+    find_wholeWord = 0
     editorState = '' # What files where loaded and where the cursor was
     loadedTools = []
     windowState = '' # Of window and tools    
@@ -17,7 +18,7 @@ view = dict:
     showLineEndings = 0
     showWrapSymbols = 0
     showIndentGuides = 1
-    showStatusbar = 1
+    showStatusbar = 0
     #
     wrapText = 1
     highlightCurrentLine = 1
@@ -33,6 +34,8 @@ settings= dict:
     defaultStyle = 'python'
     defaultIndentation = 4
     defaultLineEndings = 'LF'
+    #
+    shellFit80 = 1
     #
     autoIndent = 1
     autoCallTip = 1
