@@ -38,7 +38,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.main = self
         
         # Init dockwidget settings
-        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtGui.QTabWidget.West)
+        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtGui.QTabWidget.West)
         self.setDockOptions(
                 QtGui.QMainWindow.AllowNestedDocks
             |  QtGui.QMainWindow.AllowTabbedDocks
@@ -68,12 +68,15 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle("IEP (loading ...)")
         self.setWindowIcon(iep.icon)
         
-        # Create frame with the IEP logo as a bg (kinda splash screen)
-        iconUrl = pjoin(iconDir, 'iep256.png').replace('\\', '/')
-        values = [  'image: url({})'.format(iconUrl), 'repeat: no-repeat',
-                    'position: center', 'color: #444']
-        ss = ' '.join(['background-'+v+';' for v in values])
-        self.setStyleSheet( 'QMainWindow {' + ss + '} ')
+#         # Create frame with the IEP logo as a bg (kinda splash screen)
+#         iconUrl = pjoin(iconDir, 'iep256.png').replace('\\', '/')
+#         values = [  'image: url({})'.format(iconUrl), 'repeat: no-repeat',
+#                     'position: center', 'color: #444']
+#         ss = ' '.join(['background-'+v+';' for v in values])
+#         self.setStyleSheet( 'QWidget {' + ss + '} ')
+        
+        # Change background color to suggest that it will be filled.
+        self.setStyleSheet( 'QMainWindow { background-color: #556;} ')
         
         # Show empty window
         self.show()
@@ -88,8 +91,8 @@ class MainWindow(QtGui.QMainWindow):
         self.setUpdatesEnabled(True)
         
         # Insert editor, shell, and all the tools
-        callLater(self.restoreWindowState)
         self._insertEditorAndShell()
+        callLater(self.restoreWindowState)
     
     
     def init1(self):

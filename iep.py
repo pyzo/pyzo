@@ -1,4 +1,4 @@
-#!/usr/bin/python3.1
+#!/usr/bin/env python3.1
 #
 #   Copyright (c) 2010, Almar Klein
 #   All rights reserved.
