@@ -56,10 +56,11 @@ class MainWindow(QtGui.QMainWindow):
         if iep.config.state.windowMaximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
-        # Construct icon
+        # Construct icon (if we'd load the .ico that contains a 16x16, 32x32
+        # and 48x48 image, only the largest is loaded)
         pjoin = os.path.join
         iconDir = pjoin(iep.iepDir,'icons')
-        iep.icon = QtGui.QIcon()
+        iep.icon = QtGui.QIcon() 
         iep.icon.addFile(pjoin(iconDir,'iep16.png'), QtCore.QSize(16,16), 0, 0)
         iep.icon.addFile(pjoin(iconDir,'iep32.png'), QtCore.QSize(32,32), 0, 0)
         iep.icon.addFile(pjoin(iconDir,'iep48.png'), QtCore.QSize(48,48), 0, 0)

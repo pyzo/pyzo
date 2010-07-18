@@ -230,7 +230,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         # Init
         offset = 20
         y = 10
-        dy = 30
+        dy = 26
         
         # Create name entry
         label = QtGui.QLabel(self)
@@ -300,11 +300,14 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         y += dy + self._startdir.height()
         
         # Create close button
-        self._close = QtGui.QToolButton(self)
+        #self._close = QtGui.QToolButton(self)
+        self._close = QtGui.QPushButton(self)
         style = QtGui.qApp.style()
         self._close.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
         closeSize = self._close.iconSize()
-        self._close.move(400-closeSize.width()-20, 10)
+        #self._close.move(400-closeSize.width()-20, 10)
+        self._close.move(offset, y+16)
+        self._close.setText('Remove this config')
         self._close.clicked.connect(self.onClose)
         
         # Show!
