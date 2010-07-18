@@ -64,6 +64,7 @@ class IepInterpreter:
         self._main_locals = locals
         
         # Information for debugging. If self._dbFrames, we're in debug mode
+        # _dbFrameIndex starts from 1 
         self._dbFrames = []
         self._dbFrameIndex = 0
         self._dbFrameName = ''
@@ -350,8 +351,8 @@ class IepInterpreter:
             # Enter debug mode if there was an error
             if frames:
                 self._dbFrames = frames
-                self._dbFrameIndex = len(self._dbFrames)-1
-                frame = self._dbFrames[self._dbFrameIndex]
+                self._dbFrameIndex = len(self._dbFrames)
+                frame = self._dbFrames[self._dbFrameIndex-1]
                 self._dbFrameName = frame.f_code.co_name
                 self.locals = frame.f_locals
                 self.globals = frame.f_globals
@@ -362,44 +363,44 @@ class IepInterpreter:
         
         elif control.startswith('DEBUG') and not self._dbFrames:
             # Ignoire other debug commands when not debugging
-            return
+            self.write("Not in debug mode.\n")
         
         elif control.startswith('DEBUG INDEX'):
             # Set frame index
             self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
-            if self._dbFrameIndex < 0:
-                self._dbFrameIndex = 0
-            elif self._dbFrameIndex >= len(self._dbFrames):
-                self._dbFrameIndex = len(self._dbFrames) - 1
+            if self._dbFrameIndex < 1:
+                self._dbFrameIndex = 1
+            elif self._dbFrameIndex > len(self._dbFrames):
+                self._dbFrameIndex = len(self._dbFrames)
             # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG DOWN':
-            # Decrease frame index
-            self._dbFrameIndex -= 1
-            if self._dbFrameIndex < 0:
-                self._dbFrameIndex = 0
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex]
+            frame = self._dbFrames[self._dbFrameIndex-1]
             self._dbFrameName = frame.f_code.co_name
             self.locals = frame.f_locals
             self.globals = frame.f_globals
         
         elif control == 'DEBUG UP':
-            # Increase frame index
-            self._dbFrameIndex += 1
-            if self._dbFrameIndex >= len(self._dbFrames):
-                self._dbFrameIndex = len(self._dbFrames) - 1
+            # Decrease frame index
+            self._dbFrameIndex -= 1
+            if self._dbFrameIndex < 1:
+                self._dbFrameIndex = 1
             # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex]
+            frame = self._dbFrames[self._dbFrameIndex-1]
             self._dbFrameName = frame.f_code.co_name
             self.locals = frame.f_locals
             self.globals = frame.f_globals
         
-        elif control == 'DEBUG END':
+        elif control == 'DEBUG DOWN':
+            # Increase frame index
+            self._dbFrameIndex += 1
+            if self._dbFrameIndex > len(self._dbFrames):
+                self._dbFrameIndex = len(self._dbFrames)
+            # Set name and locals
+            frame = self._dbFrames[self._dbFrameIndex-1]
+            self._dbFrameName = frame.f_code.co_name
+            self.locals = frame.f_locals
+            self.globals = frame.f_globals
+        
+        elif control == 'DEBUG STOP':
             self.locals = self._main_locals
             self.globals = None
             self._dbFrames = []
@@ -417,7 +418,7 @@ class IepInterpreter:
         """ Write the status (Ready, or Busy, or Debug info). """
         if self._dbFrames:
             # Debug info
-            stack = []
+            stack = [str(self._dbFrameIndex)]
             for f in self._dbFrames:
                 # Get fname and lineno, and correct if required
                 fname, lineno = f.f_code.co_filename, f.f_lineno
@@ -426,7 +427,6 @@ class IepInterpreter:
                 text = f.f_code.co_name + ': '
                 text += 'line ' + str(lineno) + ' in ' + fname
                 stack.append(text)
-            stack.append(str(self._dbFrameIndex))
             sys._status.write('Debug ' + ','.join(stack))
         else:
             sys._status.write('Ready')
