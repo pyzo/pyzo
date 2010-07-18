@@ -1035,6 +1035,10 @@ class PythonShell(BaseShell):
         #
         text = "\n".join(lines2)
         
+        # Get last bit of filename to print in "[executing ...."
+        if not fname.startswith('<'):
+            fname = os.path.split(fname)[1]
+        
         # Write to shell to let user know we are running...
         lineno1 = lineno + 1
         lineno2 = lineno + len(lines)
@@ -1066,7 +1070,11 @@ class PythonShell(BaseShell):
         opendir Xs      - open all files in directory X 
         timeit X        - times execution of command X
         who             - list variables in current workspace
-        whos            - list variables plus their class and representation"""
+        whos            - list variables plus their class and representation
+        db start        - start post mortem debugging
+        db stop         - stop debugging
+        db up/down      - go up or down the stack frames
+        db frame X      - go to the Xth stack frame"""
         
         message = message.replace('\n','\\n')
         message = message.replace('"','\"')
@@ -1136,13 +1144,34 @@ class PythonShell(BaseShell):
                 text = 'import os;print(os.popen("dir").read())'
             else:
                 text = 'import os;print(os.popen("ls").read())'
-                
+        
+        elif text == 'db start':
+            text = ''
+            self._control.write('DEBUG START')
+        elif text == 'db stop':
+            text = ''
+            self._control.write('DEBUG STOP')
+        elif text == 'db up':
+            text = ''
+            self._control.write('DEBUG UP')
+        elif text == 'db down':
+            text = ''
+            self._control.write('DEBUG DOWN')
+        elif text.startswith('db frame '):
+            index = text.split(' ',2)[2]
+            try:
+                index = int(index)
+            except Exception:
+                return text
+            text = ''
+            self._control.write('DEBUG INDEX ' + str(index))
+        
         elif text.startswith('open ') or text.startswith('opendir '):
             # get what to open            
             objectName = text.split(' ',1)[1]
             # query
             pn = remoteEval('os.getcwd()')
-            fn = os.path.join(pn,objectName) # will also work if given absolute path
+            fn = os.path.join(pn,objectName) # will also work if given abs path
             if text.startswith('opendir '):
                 iep.editors.loadDir(fn)
                 msg = "Opening dir '{}'."
@@ -1214,7 +1243,7 @@ class PythonShell(BaseShell):
                 reprGetter = reprGetter.format(nameString)
                 # Use special seperator that is unlikely to be used, ever.
                 namesClass = remoteEval('"##IEP##".join({})'.format(classGetter))
-                namesRepr = remoteEval('"##IEP##".join({})'.format(reprGetter))                
+                namesRepr = remoteEval('"##IEP##".join({})'.format(reprGetter))
                 namesClass = namesClass.split('##IEP##')
                 namesRepr = namesRepr.split('##IEP##')
             # Compile list
@@ -1238,7 +1267,7 @@ class PythonShell(BaseShell):
                 text = 'print("{}")'.format(prepareTextForRemotePrinting(text))
             else:
                 text = 'print("There are no variables defined in this scope.")'
-        
+            
         # Return modified version (or original)
         return text
     

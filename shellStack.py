@@ -158,9 +158,7 @@ class DebugControl(QtGui.QToolButton):
             # Initiate debugging
             shell = iep.shells.getCurrentShell()
             if shell:
-                shell._control.write('DEBUG START')
-                shell.processLine('[Enter debug mode]', False)
-                shell._stdin.write('\n')
+                shell.processLine('db start')    
     
     
     def onTriggered(self, action):
@@ -170,16 +168,12 @@ class DebugControl(QtGui.QToolButton):
         if not shell:
             return
         
-        if action._index < 0:
+        if action._index < 1:
             # Stop debugging
-            shell._control.write('DEBUG END')
-            shell.processLine('[Exit debug mode]', False)
-            shell._stdin.write('\n')
+            shell.processLine('db stop')
         else:
             # Change stack index
-            shell._control.write('DEBUG INDEX {}'.format(action._index))
-            shell.processLine('[Change debug frame]', False)
-            shell._stdin.write('\n')
+            shell.processLine('db frame {}'.format(action._index))
     
     
     def setTrace(self, trace):
@@ -198,18 +192,18 @@ class DebugControl(QtGui.QToolButton):
         else:
             
             # Get the current frame
-            current = int(trace[-1])
+            current = int(trace[0])
             theAction = None
             
             # Create menu and add __main__
             menu = QtGui.QMenu(self)
             self.setMenu(menu)
             action = menu.addAction('MAIN: stop debugging')
-            action._index = -1
+            action._index = 0
             
             # Fill trace
-            for i in range(len(trace)-1):
-                action = menu.addAction(trace[i])
+            for i in range(1, len(trace)):
+                action = menu.addAction('{}  {}'.format(i, trace[i]))
                 action._index = i
                 if i == current:
                     theAction = action
@@ -218,7 +212,9 @@ class DebugControl(QtGui.QToolButton):
             if theAction:
                 menu.setDefaultAction(theAction)
                 #self.setText(theAction.text().ljust(20))
-                self.setText("Stack Trace:  ")
+                i = theAction._index
+                text = "Stack Trace ({}/{}):  ".format(i, len(trace)-1)
+                self.setText(text)
 
 
 class ShellInfoDialogEntries(QtGui.QWidget):
