@@ -183,7 +183,7 @@ class IepInterpreter:
                 line = sys.stdin.readOne(False)
                 if line:
                     # Set busy
-                    sys._status.write('Busy')
+                    sys._status.write('STATE Busy')
                     self.newPrompt = True
                     
                     if line.startswith('\n') and len(line)>1:
@@ -418,7 +418,17 @@ class IepInterpreter:
     
     
     def writeStatus(self):
-        """ Write the status (Ready, or Busy, or Debug info). """
+        """ Write the status when in ready state.
+        Writes STATE to Ready or Debug and writes DEBUG (info).
+        """
+        
+        # STATE
+        if self._dbFrames:
+            sys._status.write('STATE Debug')
+        else:
+            sys._status.write('STATE Ready')
+        
+        # DEBUG
         if self._dbFrames:
             # Debug info
             stack = [str(self._dbFrameIndex)]
@@ -430,9 +440,9 @@ class IepInterpreter:
                 text = f.f_code.co_name + ': '
                 text += 'line ' + str(lineno) + ' in ' + fname
                 stack.append(text)
-            sys._status.write('Debug ' + ','.join(stack))
+            sys._status.write('DEBUG ' + ','.join(stack))
         else:
-            sys._status.write('Ready')
+            sys._status.write('DEBUG ') # no debugging
     
     
     def showsyntaxerror(self, filename=None):
