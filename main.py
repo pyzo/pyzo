@@ -69,15 +69,9 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle("IEP (loading ...)")
         self.setWindowIcon(iep.icon)
         
-#         # Create frame with the IEP logo as a bg (kinda splash screen)
-#         iconUrl = pjoin(iconDir, 'iep256.png').replace('\\', '/')
-#         values = [  'image: url({})'.format(iconUrl), 'repeat: no-repeat',
-#                     'position: center', 'color: #444']
-#         ss = ' '.join(['background-'+v+';' for v in values])
-#         self.setStyleSheet( 'QWidget {' + ss + '} ')
-        
-        # Change background color to suggest that it will be filled.
-        self.setStyleSheet( 'QMainWindow { background-color: #556;} ')
+        # Change background color to a kind of darkish python-blue,
+        # to suggest that it will be filled (which it will)
+        self.setStyleSheet( 'QMainWindow { background-color: #285078;} ')
         
         # Show empty window
         self.show()

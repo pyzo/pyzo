@@ -310,7 +310,7 @@ def load(path):
     """        
     path = os.path.abspath(path)        
     if not os.path.isfile(path):
-        raise IOError("The specified file does not exist.")
+        raise IOError("The specified file does not exist: "+path)
     
     # open file and read data
     f = open(path,'rb')
