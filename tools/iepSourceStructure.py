@@ -36,9 +36,13 @@ class IepSourceStructure(QtGui.QWidget):
         self._slider.valueChanged.connect(self.updateStructure)
         
         # Create button
-        self._button = QtGui.QPushButton(self)
-        self._button.setText('Show ...')
+        self._button = QtGui.QToolButton(self)
+        self._button.setText('   Show    ')
+        self._button.setToolTip("What elements to show.")
+        self._button.setPopupMode(self._button.InstantPopup)
         self._button.pressed.connect(self.onButtonPress)
+        self._button.triggered.connect(self.onButtonMenuTiggered)
+        self.onButtonPress() # Create menu
         
         # Create tree widget        
         self._tree = QtGui.QTreeWidget(self)
@@ -69,43 +73,29 @@ class IepSourceStructure(QtGui.QWidget):
     
     
     def onButtonPress(self):
-        """  Let the user decide what to show in the structure. """
-        
-        # Prepare lists
-        allTypes = ['class', 'def', 'cell', 'todo', 'import']
-        callBacks = [   self.onMenu_class, self.onMenu_def, self.onMenu_cell,
-                        self.onMenu_todo, self.onMenu_import]
-        
-        # Prepare menu
+        """ Create the menu for the button, Do each time to make sure
+        the checks are right. """
         menu = QtGui.QMenu(self)
-        for type, callback in zip(allTypes, callBacks):
+        self._button.setMenu(menu)
+        for type in ['class', 'def', 'cell', 'todo', 'import']:
             checked = type in self._config.showTypes
-            action = menu.addAction(type, callback)
+            action = menu.addAction(type)
             action.setCheckable(True)
             action.setChecked(checked)
+    
+    def onButtonMenuTiggered(self, action):
+        """  The user decides what to show in the structure. """
         
-        # Show menu
-        menu.popup(QtGui.QCursor.pos())
-        self._slider.setFocus(True)
-    
-    
-    def onMenu_class(self):
-        self.onMenu_swap('class')
-    def onMenu_def(self):
-        self.onMenu_swap('def')
-    def onMenu_cell(self):
-        self.onMenu_swap('cell')
-    def onMenu_todo(self):
-        self.onMenu_swap('todo')
-    def onMenu_import(self):
-        self.onMenu_swap('import')
-    def onMenu_swap(self, type):
-        # Save
+        # What to show
+        type = action.text()
+        
+        # Swap
         if type in self._config.showTypes:
             while type in self._config.showTypes:
                 self._config.showTypes.remove(type)
         else:
             self._config.showTypes.append(type)
+        
         # Update
         self.updateStructure()
     
@@ -231,4 +221,3 @@ class IepSourceStructure(QtGui.QWidget):
         if selectedItem:
             selectedItem.setBackground(0, QtGui.QBrush(QtGui.QColor('#CCC')))
             self._tree.scrollToItem(selectedItem) # ensure visible
-        
