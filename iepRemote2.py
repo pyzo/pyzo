@@ -16,10 +16,13 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Module remote2
+""" Module iepRemote2
 Implements the IEP interpreter and the introspection thread.
 Also GUI hijacking is defined here. This code works on all* python versions.
 *: Well, at least from 2.4 and up (including py3k).
+
+Note that this module delibirately has a name that is very unlikely to 
+occur in any othe packages to prevent import clashes.
 """
 
 import os, sys, time

@@ -16,13 +16,13 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" remote.py
+""" iepRemote1.py
 Starting script for remote processes in iep.
 This script connects to the IEP ide using the channles interface
 and imports remote2 to start the interpreter and introspection thread.
 """
 
-from remote2 import IepInterpreter, IntroSpectionThread
+from iepRemote2 import IepInterpreter, IntroSpectionThread
 from channels import Channels
 import sys, os
 import __main__ # we will run code in the __main__.__dict__ namespace

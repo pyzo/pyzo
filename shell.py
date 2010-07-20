@@ -673,7 +673,7 @@ class ShellInfo:
         """ Given the port of the channels interface, creates the 
         command to execute in order to invoke the remote shell.
         """
-        startScript = os.path.join( iep.iepDir, 'remote.py')
+        startScript = os.path.join( iep.iepDir, 'iepRemote1.py')
         startScript = '"{}"'.format(startScript)
         
         # Build command

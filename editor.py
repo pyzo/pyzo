@@ -351,11 +351,25 @@ class IepEditor(BaseTextCtrl):
     
     def showEvent(self, event=None):
         """ Capture show event to change title. """
+        # Act normally
+        if event:
+            BaseTextCtrl.showEvent(self, event)
+        
+        # Set title to display filename of this file
+        self.setTitleInMainWindow()
+        
+        # Make parser update
+        iep.parser.parseThis(self)
+    
+    
+    def setTitleInMainWindow(self):
+        """ set the title  text in the main window to show filename. """
         
         # get root widget
         ob = self
         while ob.parent():
             ob = ob.parent()        
+        
         # compose title
         name, path = self._name, self._filename
         if not path:
@@ -363,11 +377,9 @@ class IepEditor(BaseTextCtrl):
         tmp = { 'fileName':name, 'filename':name, 'name':name,
                 'fullPath':path, 'fullpath':path, 'path':path}
         title = iep.config.advanced.titleText.format(**tmp)
+        
         # set title
         ob.setWindowTitle(title)
-        
-        # make parser update
-        iep.parser.parseThis(self)
     
     
     def save(self, filename=None):
@@ -402,6 +414,9 @@ class IepEditor(BaseTextCtrl):
         self._name = os.path.split(self._filename)[1]        
         self.makeDirty(False)
         self._modifyTime = os.path.getmtime(self._filename)
+        
+        # update title (in case of a rename)
+        self.setTitleInMainWindow()
         
         # allow item to update its texts (no need: makeDirty call does this)
         #self.somethingChanged.emit()
