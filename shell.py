@@ -201,6 +201,9 @@ class BaseShell(BaseTextCtrl):
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
         
+        # Set minimum width so 80 lines do fit in smallest font size
+        self.setMinimumWidth(200)
+        
         # apply style
         self.setStyle('')
     
@@ -211,10 +214,24 @@ class BaseShell(BaseTextCtrl):
         if iep.config.settings.shellFit80:
             self.updateFontSizeToMatch80Columns()
     
+    
     def setStyle(self, styleName=None):
         BaseTextCtrl.setStyle(self, styleName)
         if iep.config.settings.shellFit80:
             self.updateFontSizeToMatch80Columns()
+    
+    
+    def updateWidgetSizeToMatch80Columns(self):
+        """ updateWidgetSizeToMatch80Columns()
+        (not used)
+        """
+        
+        # Get size it should be (but font needs to be monospaced!)
+        w = self.textWidth(32, "-"*80)
+        w += 21 # add scrollbar and margin
+        
+        # fix the width
+        self.setMinimumWidth(w)
     
     
     def updateFontSizeToMatch80Columns(self, event=None):
@@ -702,8 +719,13 @@ class PythonShell(BaseShell):
     by connecting to a remote process that runs a Python interpreter.
     """
     
-    # called when the remote process is terminated
-    terminated = QtCore.pyqtSignal()
+    # Emits when the remote process is terminated
+    terminated = QtCore.pyqtSignal(BaseShell) # PythonShell is not yet defd
+    
+    # Emits when the status string has changed
+    stateChanged = QtCore.pyqtSignal(BaseShell)
+    debugStateChanged = QtCore.pyqtSignal(BaseShell)
+    
     
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
@@ -736,6 +758,11 @@ class PythonShell(BaseShell):
         self._version = ""
         self._builtins = []
         self._keywords = []
+        
+        # Variables to buffer shell status (updated every time 
+        # a prompt is generated, and when it is asked for).
+        self._state = ''
+        self._debugState = ''
         
         # Define queue of requestObjects and insert a few requests
         self._requestQueue = []
@@ -808,6 +835,45 @@ class PythonShell(BaseShell):
     def _setKeywords(self, response, id):
         """ Process the request for the list of keywords. """
         self._keywords = response.split(',')
+    
+    
+    def _setStatus(self, status):
+        """ Handle a new status. Store the state and notify listeners. """
+        
+        if status.startswith('STATE '):
+            state = status.split(' ',1)[1]
+            
+            # Determine the text to display in the tab. Also run any pending
+            # code if that is necessary. Note that self._version is set when
+            # this function is called.
+            if state == 'Ready':
+                stateText = 'Python {}'.format(self._version)
+                if self._pendingCode:
+                    code, fname, ln = self._pendingCode
+                    self._pendingCode = None
+                    self.executeCode(code, fname, ln)
+            else:
+                stateText = 'Python {} ({})'.format(self._version, state)
+            
+            # Show status in tab text
+            tabWidget = self.parent().parent()
+            i = tabWidget.indexOf(self)
+            tabWidget.setTabText(i, stateText)
+            
+            # Store status and emit signal if necessary
+            if state != self._state:
+                self._state = state
+                self.stateChanged.emit(self)
+        
+        
+        elif status.startswith('DEBUG '):
+            debugState = status.split(' ',1)[1]
+            
+            # Store status and emit signal if necessary
+            if debugState != self._debugState:
+                self._debugState = debugState
+                self.debugStateChanged.emit(self)
+    
     
     ## Introspection processing methods
     
@@ -1325,28 +1391,11 @@ class PythonShell(BaseShell):
         
         # Check status
         if self._version:
-            status = self._status.readLast()
-            if status:
-                # Get debug control
-                dbc = iep.shells._tabs.cornerWidget()
-                # Update it and obtain status text
-                if status.startswith('Debug'):
-                    dbc.setTrace( status[6:].split(',') )
-                    status = 'Python {} ({})'.format(self._version, 'Debug')
-                elif status == 'Ready':
-                    dbc.setTrace(None)
-                    status = 'Python {}'.format(self._version)
-                    if self._pendingCode:
-                        code, fname, ln = self._pendingCode
-                        self._pendingCode = None
-                        self.executeCode(code, fname, ln)
-                else:
-                    dbc.setTrace(None)
-                    status = 'Python {} ({})'.format(self._version, status)
-                # Show status in tab text
-                tabWidget = self.parent().parent()
-                i = tabWidget.indexOf(self)
-                tabWidget.setTabText(i, status)
+            status = 'dummy'
+            while status:
+                status = self._status.readOne()
+                if status:
+                    self._setStatus(status)
         else:
             # The version has not been set, poll the process to
             # check whether it's still there
@@ -1531,7 +1580,7 @@ class PythonShell(BaseShell):
         self._pollMethod = self.poll_terminated
         
         # Notify listeners
-        self.terminated.emit()
+        self.terminated.emit(self)
         
         # Should we restart?
         if self._restart:            

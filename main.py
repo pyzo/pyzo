@@ -58,12 +58,19 @@ class MainWindow(QtGui.QMainWindow):
         
         # Construct icon (if we'd load the .ico that contains a 16x16, 32x32
         # and 48x48 image, only the largest is loaded)
-        pjoin = os.path.join
-        iconDir = pjoin(iep.iepDir,'icons')
+        iconDir = os.path.join(iep.iepDir,'icons')
         iep.icon = QtGui.QIcon() 
-        iep.icon.addFile(pjoin(iconDir,'iep16.png'), QtCore.QSize(16,16), 0, 0)
-        iep.icon.addFile(pjoin(iconDir,'iep32.png'), QtCore.QSize(32,32), 0, 0)
-        iep.icon.addFile(pjoin(iconDir,'iep48.png'), QtCore.QSize(48,48), 0, 0)
+        tmp = os.path.join(iconDir,'iep{}.png')
+        iep.icon.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
+        iep.icon.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
+        iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
+        
+        # Construct another icon to show when the current shell is busy
+        iep.iconRunning = QtGui.QIcon() 
+        tmp = os.path.join(iconDir,'iep{}_running.png')
+        iep.iconRunning.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
+        iep.iconRunning.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
+        iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
         
         # Set label and icon
         self.setWindowTitle("IEP (loading ...)")

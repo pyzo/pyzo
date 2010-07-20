@@ -365,11 +365,6 @@ class IepEditor(BaseTextCtrl):
     def setTitleInMainWindow(self):
         """ set the title  text in the main window to show filename. """
         
-        # get root widget
-        ob = self
-        while ob.parent():
-            ob = ob.parent()        
-        
         # compose title
         name, path = self._name, self._filename
         if not path:
@@ -379,7 +374,7 @@ class IepEditor(BaseTextCtrl):
         title = iep.config.advanced.titleText.format(**tmp)
         
         # set title
-        ob.setWindowTitle(title)
+        iep.main.setWindowTitle(title)
     
     
     def save(self, filename=None):

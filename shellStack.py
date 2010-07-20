@@ -50,9 +50,8 @@ class ShellStack(QtGui.QWidget):
         self._tabs.setDocumentMode(True) # Prevents extra frame being drawn
         
         # add widgets
-        self._boxLayout.addWidget(self._tabs, 999)
-#         self._boxLayout.addStretch(1)
-        
+        self._boxLayout.addWidget(self._tabs, 1)
+        #self._boxLayout.addStretch(1)
         
         # set layout
         self.setLayout(self._boxLayout)
@@ -63,8 +62,8 @@ class ShellStack(QtGui.QWidget):
         #dbc.move(0,0)
         
         # make callbacks
-        self._tabs.currentChanged.connect(self.sizeShellTo80Columns)
-    
+        self._tabs.currentChanged.connect(self.onCurrentChanged)
+        
     
     def __iter__(self):
         i = 0
@@ -74,12 +73,48 @@ class ShellStack(QtGui.QWidget):
             yield w 
     
     
+    def onCurrentChanged(self, index):
+        """ When another shell is selected, update some things. 
+        """
+        # Update state info
+        shell = self._tabs.widget(index)
+        self.onShellStateChange(shell)
+        self.onShellDebugStateChange(shell)
+    
+    
+    def onShellStateChange(self, shell):
+        """ Called when the shell state changes, and is called
+        by onCurrentChanged. Sets the mainwindow's icon if busy.
+        """
+        if shell is self.getCurrentShell():
+            # Update state info            
+            if shell._state == 'Busy':
+                iep.main.setWindowIcon(iep.iconRunning)
+            else:
+                iep.main.setWindowIcon(iep.icon)
+    
+    
+    def onShellDebugStateChange(self, shell):
+        """ Called when the shell debug state changes, and is called
+        by onCurrentChanged. Sets the debug button.
+        """
+        if shell is self.getCurrentShell():
+            # Update debug info
+            if shell._debugState:
+                debugState = shell._debugState.split(',')
+                self._tabs.cornerWidget().setTrace(debugState)
+            else:
+                self._tabs.cornerWidget().setTrace(None)
+    
+    
     def addShell(self, shellInfo=None):
         """ addShell()
         Add a shell to the widget. """
         shell = PythonShell(self._tabs, shellInfo)
         self._tabs.addTab(shell, 'Python (Initializing)')
-        self.sizeShellTo80Columns()
+        # Bind to signals
+        shell.stateChanged.connect(self.onShellStateChange)
+        shell.debugStateChanged.connect(self.onShellDebugStateChange)
         # Focus on it
         self._tabs.setCurrentWidget(shell)
         shell.setFocus()
@@ -98,36 +133,6 @@ class ShellStack(QtGui.QWidget):
             return None
         else:
             return w
-    
-    
-    def showEvent(self, event):
-        """ Overload to set size. """
-        QtGui.QWidget.showEvent(self, event)
-        self.sizeShellTo80Columns()
-    
-    
-    def sizeShellTo80Columns(self, event=None):
-        """ Is the name not descriptive enough?
-        """
-        return 
-        
-        # are we hidden?
-        if not self.isVisible():
-            return
-            
-        # shell now selected
-        shell = self.getCurrentShell()
-        if shell is None:
-            return
-        
-        # get size it should be (but font needs to be monospaced!
-        w = shell.textWidth(32, "-"*80)
-        w += 26 # add scrollbar and margin
-        
-        # fix the width
-        shell.setMinimumWidth(w)
-        shell.setMaximumWidth(w)
-    
     
 
 class DebugControl(QtGui.QToolButton):
