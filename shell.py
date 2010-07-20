@@ -616,9 +616,7 @@ class BaseShell(BaseTextCtrl):
                 self._history.insert(0,command)
         
         # Limit text to add to 80 chars
-        preamble = self._promptPos2-self._promptPos1
-        tmp = ' '*preamble + command        
-        tmp = self._wrapLines(tmp)[preamble:] + '\n'
+        tmp = self._wrapLines(command) + '\n'
         
         # Add the command text
         self.setPositionAndAnchor(self._promptPos2)
