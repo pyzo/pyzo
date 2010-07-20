@@ -407,7 +407,24 @@ class IepInterpreter:
             self.locals = self._main_locals
             self.globals = None
             self._dbFrames = []
-    
+        
+        elif control == 'DEBUG WHERE':
+            lines = []
+            for i in range(len(self._dbFrames)):
+                frameIndex = i+1
+                f = self._dbFrames[i]
+                # Get fname and lineno, and correct if required
+                fname, lineno = f.f_code.co_filename, f.f_lineno
+                fname, lineno = correctFilenameAndLineno(fname, lineno)
+                # Build string
+                text = 'File "%s", line %i, in %s' % (
+                                        fname, lineno, f.f_code.co_name)
+                if frameIndex == self._dbFrameIndex:
+                    lines.append('-> %i: %s'%(frameIndex, text))
+                else:
+                    lines.append('   %i: %s'%(frameIndex, text))
+            lines.append('')
+            sys.stdout.write('\n'.join(lines))
     
     ## Writing and error handling
     
@@ -437,10 +454,10 @@ class IepInterpreter:
                 fname, lineno = f.f_code.co_filename, f.f_lineno
                 fname, lineno = correctFilenameAndLineno(fname, lineno)
                 # Build string
-                text = f.f_code.co_name + ': '
-                text += 'line ' + str(lineno) + ' in ' + fname
+                text = 'File "%s", line %i, in %s' % (
+                                        fname, lineno, f.f_code.co_name)
                 stack.append(text)
-            sys._status.write('DEBUG ' + ','.join(stack))
+            sys._status.write('DEBUG ' + ';'.join(stack))
         else:
             sys._status.write('DEBUG ') # no debugging
     
@@ -481,7 +498,7 @@ class IepInterpreter:
             self.write(s)
     
     
-    def showtraceback(self):
+    def showtraceback(self, useLastTraceback=False):
         """Display the exception that just occurred.
         We remove the first stack item because it is our own code.
         The output is written by self.write(), below.
@@ -515,15 +532,21 @@ class IepInterpreter:
         # traceback.
         
         try:
-            # Get exception information and remove first, since that's us
-            type, value, tb = sys.exc_info()
-            tb = tb.tb_next
-            
-            # Store for debugging, but only store if not in debug mode
-            if not self._dbFrames:
-                sys.last_type = type
-                sys.last_value = value
-                sys.last_traceback = tb
+            if useLastTraceback:
+                # Get traceback info from buffered
+                type = sys.last_type
+                value = sys.last_value
+                tb = sys.last_traceback
+            else:
+                # Get exception information and remove first, since that's us
+                type, value, tb = sys.exc_info()
+                tb = tb.tb_next
+                
+                # Store for debugging, but only store if not in debug mode
+                if not self._dbFrames:
+                    sys.last_type = type
+                    sys.last_value = value
+                    sys.last_traceback = tb
             
             # Get frame
             frame = tb.tb_frame

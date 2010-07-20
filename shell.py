@@ -1140,7 +1140,10 @@ class PythonShell(BaseShell):
         db start        - start post mortem debugging
         db stop         - stop debugging
         db up/down      - go up or down the stack frames
-        db frame X      - go to the Xth stack frame"""
+        db frame X      - go to the Xth stack frame
+        db where        - print the stack trace and indicate the current stack
+        db focus        - open the file and show the line of the stack frame"""
+        
         
         message = message.replace('\n','\\n')
         message = message.replace('"','\"')
@@ -1231,6 +1234,37 @@ class PythonShell(BaseShell):
                 return text
             text = ''
             self._control.write('DEBUG INDEX ' + str(index))
+        elif text == 'db where':
+            text = ''
+            self._control.write('DEBUG WHERE')
+        elif text == 'db focus':
+            # If not debugging, cant focus
+            if not self._debugState:
+                return 'print("Not in debug mode.")'
+            # Get filenr and item
+            try:
+                debugState = self._debugState.split(';')
+                i = int(debugState[0])            
+                tmp = debugState[i].split(', in ')[0].split(', line ')
+                filename = tmp[0][len('File '):].strip('"')
+                linenr = int(tmp[1].strip())
+            except:
+                return 'print("Oops, could not focus!")'
+            # Cannot open <console>            
+            if filename == '<console>':
+                return 'print("Stack frame is <console>.")'
+            # Go there!
+            result = iep.editors.loadFile(filename)
+            if not result:
+                return 'print("Could not open file where the error occured.")'
+            else:
+                editor = result._editor
+                i1 = editor.getPositionFromLinenr(linenr-1)
+                i2 = editor.getPositionFromLinenr(linenr)
+                editor.setPosition(i1)
+                editor.setAnchor(i2)
+                editor.ensureCursorVisible()
+                text = ''
         
         elif text.startswith('open ') or text.startswith('opendir '):
             # get what to open            

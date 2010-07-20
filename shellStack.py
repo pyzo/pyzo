@@ -101,7 +101,7 @@ class ShellStack(QtGui.QWidget):
         if shell is self.getCurrentShell():
             # Update debug info
             if shell._debugState:
-                debugState = shell._debugState.split(',')
+                debugState = shell._debugState.split(';')
                 self._tabs.cornerWidget().setTrace(debugState)
             else:
                 self._tabs.cornerWidget().setTrace(None)
@@ -208,7 +208,7 @@ class DebugControl(QtGui.QToolButton):
             
             # Fill trace
             for i in range(1, len(trace)):
-                action = menu.addAction('{}  {}'.format(i, trace[i]))
+                action = menu.addAction('{}: {}'.format(i, trace[i]))
                 action._index = i
                 if i == current:
                     theAction = action

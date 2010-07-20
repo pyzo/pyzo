@@ -1250,15 +1250,20 @@ class EditorStack(QtGui.QWidget):
         On success returns the item of the file, also if it was
         already open."""
         
+        # Note that by giving the name of a tempfile, we can select that
+        # temp file.
+        
         # normalize path
-        filename = normalizePath(filename)
+        if filename[0] != '<':
+            filename = normalizePath(filename)
         if not filename:
             return None
         
         # if the file is already open...
         for item in self._list._items:
             if isinstance(item, FileItem):
-                if item._editor._filename == filename:
+                if item._editor.id() == filename:
+                    # id() returns _filename or _name for temp files
                     break
         else:
             item = None
@@ -1279,8 +1284,7 @@ class EditorStack(QtGui.QWidget):
             m.setText(str(err))
             m.setIcon(m.Warning)
             m.exec_()
-            # reraise
-            raise
+            return None
         
         # create list item
         item = self._list.appendFile(editor, projectname)
