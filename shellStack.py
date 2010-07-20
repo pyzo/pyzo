@@ -78,8 +78,9 @@ class ShellStack(QtGui.QWidget):
         """
         # Update state info
         shell = self._tabs.widget(index)
-        self.onShellStateChange(shell)
-        self.onShellDebugStateChange(shell)
+        if shell:
+            self.onShellStateChange(shell)
+            self.onShellDebugStateChange(shell)
     
     
     def onShellStateChange(self, shell):
