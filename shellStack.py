@@ -178,7 +178,12 @@ class DebugControl(QtGui.QToolButton):
             shell.processLine('db stop')
         else:
             # Change stack index
-            shell.processLine('db frame {}'.format(action._index))
+            if not action._isCurrent:
+                shell.processLine('db frame {}'.format(action._index))
+            # Open file and select line
+            if True:
+                line = action.text().split(': ',1)[1]
+                self.debugFocus(line)
     
     
     def setTrace(self, trace):
@@ -210,8 +215,11 @@ class DebugControl(QtGui.QToolButton):
             for i in range(1, len(trace)):
                 action = menu.addAction('{}: {}'.format(i, trace[i]))
                 action._index = i
+                action._isCurrent = False
                 if i == current:
+                    action._isCurrent = True
                     theAction = action
+                    
             
             # Highlight current item and set the button text
             if theAction:
@@ -220,6 +228,33 @@ class DebugControl(QtGui.QToolButton):
                 i = theAction._index
                 text = "Stack Trace ({}/{}):  ".format(i, len(trace)-1)
                 self.setText(text)
+    
+    
+    def debugFocus(self, lineFromDebugState):
+        """ debugFocus(lineFromDebugState)
+        Open the file and show the linenr of the given lineFromDebugState.
+        """
+        # Get filenr and item
+        try:
+            tmp = lineFromDebugState.split(', in ')[0].split(', line ')
+            filename = tmp[0][len('File '):].strip('"')
+            linenr = int(tmp[1].strip())
+        except Exception:
+            return 'Could not focus!'
+        # Cannot open <console>            
+        if filename == '<console>':
+            return 'Stack frame is <console>.'
+        # Go there!
+        result = iep.editors.loadFile(filename)
+        if not result:
+            return 'Could not open file where the error occured.'
+        else:
+            editor = result._editor
+            i1 = editor.getPositionFromLinenr(linenr-1)
+            i2 = editor.getPositionFromLinenr(linenr)
+            editor.setPosition(i1)
+            editor.setAnchor(i2)
+            editor.ensureCursorVisible()
 
 
 class ShellInfoDialogEntries(QtGui.QWidget):
@@ -536,3 +571,7 @@ def findPythonExecutables_linux():
     
     # Done
     return versions
+
+
+
+    

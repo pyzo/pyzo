@@ -1241,29 +1241,14 @@ class PythonShell(BaseShell):
             # If not debugging, cant focus
             if not self._debugState:
                 return 'print("Not in debug mode.")'
-            # Get filenr and item
-            try:
-                debugState = self._debugState.split(';')
-                i = int(debugState[0])            
-                tmp = debugState[i].split(', in ')[0].split(', line ')
-                filename = tmp[0][len('File '):].strip('"')
-                linenr = int(tmp[1].strip())
-            except:
-                return 'print("Oops, could not focus!")'
-            # Cannot open <console>            
-            if filename == '<console>':
-                return 'print("Stack frame is <console>.")'
-            # Go there!
-            result = iep.editors.loadFile(filename)
-            if not result:
-                return 'print("Could not open file where the error occured.")'
+            # Get line from state
+            debugState = self._debugState.split(';')
+            i = int(debugState[0])
+            # Focus
+            error = iep.shells._tabs.cornerWidget().debugFocus(debugState[i])
+            if error:
+                text = 'print "{}"'.format(error)
             else:
-                editor = result._editor
-                i1 = editor.getPositionFromLinenr(linenr-1)
-                i2 = editor.getPositionFromLinenr(linenr)
-                editor.setPosition(i1)
-                editor.setAnchor(i2)
-                editor.ensureCursorVisible()
                 text = ''
         
         elif text.startswith('open ') or text.startswith('opendir '):
