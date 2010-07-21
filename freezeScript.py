@@ -43,7 +43,7 @@ excludes = ['_ssl', 'pyreadline', 'pdb',
 # Excludes for tk
 tk_excludes = [ "pywin", "pywin.debugger", "pywin.debugger.dbgcon",
                 "pywin.dialogs", "pywin.dialogs.list",
-                "Tkconstants","Tkinter","tcl" ]
+                "Tkconstants", "Tkinter", "tcl" ]
 excludes.extend(tk_excludes)
 excludes.append('numpy')
 

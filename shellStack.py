@@ -261,8 +261,8 @@ class DebugControl(QtGui.QToolButton):
 class ShellInfoDialogEntries(QtGui.QWidget):
     """ A page in the tab widget of the shell configuration dialog. 
     """
-    def __init__(self, *args):        
-        QtGui.QWidget.__init__(self, *args)    
+    def __init__(self, parent):
+        QtGui.QWidget.__init__(self, parent)
         
         # Init
         offset = 20
