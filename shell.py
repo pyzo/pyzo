@@ -1552,15 +1552,15 @@ class PythonShell(BaseShell):
         
         # Determine message
         if self._killAttempts < 0:
-            msg = 'Python process terminated twice?' # this should not happen
+            msg = 'Process terminated twice?' # this should not happen
         if self._killAttempts == 0:
-            msg = 'Python process dropped.'
+            msg = 'Process dropped.'
         elif self._killAttempts == 1:
-            msg = 'Python process gently terminated.'
+            msg = 'Process terminated.'
         elif self._killAttempts < 10:
-            msg = 'Python process interruped and terminated.'        
+            msg = 'Process interrupted and terminated.'        
         else:
-            msg = 'Python process killed.'
+            msg = 'Process killed.'
         
         # signal that the connection is gone
         self._killAttempts = -1
@@ -1602,12 +1602,5 @@ class PythonShell(BaseShell):
         # Should we restart?
         if self._restart:            
             self.start()
-            
-    
+   
 
-
-if __name__=="__main__":
-    app = QtGui.QApplication([])
-    win = PythonShell(None)
-    win.show()
-    app.exec_()

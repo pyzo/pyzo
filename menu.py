@@ -766,7 +766,7 @@ class SettingsMenu(BaseMenu):
         text = """ 
         The menu does not show all available settings. The
         advanced settings can be changed by using the logger
-        and typing "iep.config.advanced.". The autocompletion
+        tool and typing "iep.config.advanced.". The autocompletion
         list will show you your options. 
         
         Note that most settings require a restart to take effect.

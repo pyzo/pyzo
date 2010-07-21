@@ -41,8 +41,8 @@ sys.argv[1:] = []
 
 ## Make connection object and get channels
 
-# Create channels instance
-c = Channels(4)
+# Create channels instance that can be both interrupted and killed
+c = Channels(4, True, True)
 
 # Create all channels
 sys.stdin = c.getReceivingChannel(0)
