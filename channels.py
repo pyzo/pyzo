@@ -300,7 +300,7 @@ class BaseChannel(object):
     # Our file-like objects should not implement:
     # (see http://docs.python.org/library/stdtypes.html#bltin-file-objects)
     # explicitly stated: fileno, isatty
-    # don't seem to make sense: readlines, seek, tell, truncate, errors
+    # don't seem to make sense: readlines, seek, tell, truncate, errors,
     # mode, name, 
     
     def __init__(self, queue):
@@ -607,11 +607,15 @@ class Channels(object):
     and the docstrings of the channel classes.
     """
     
-    def __init__(self, N):
+    def __init__(self, N, canBeInterrupted=False, canBeKilled=False):
         
         # test
         if N<0 or N>127:
             raise IndexError("Invalid number of channels.")
+        
+        # store what other end is allowed to do
+        self._canBeInterrupted = canBeInterrupted
+        self._canBeKilled = canBeKilled
         
         # create channel lists        
         self._sendingChannels = []
@@ -666,7 +670,7 @@ class Channels(object):
         """ 
         
         # check if already connected. if so, raise error
-        if self.isConnected():
+        if self.isConnected:
             raise RuntimeError("Cannot host, already connected.")
         
         # clean up
@@ -726,14 +730,14 @@ class Channels(object):
         
         Connect to a channel being hosted by another process.
         The port number should match that of the port number returned
-        by the host() or getPort() method called on the other side. 
+        by the host() method or port property called on the other side. 
         
         Increase the timeout to wait a bit longer (maybe the host needs 
         to start up some stuff).
         """
         
         # check if already connected. if so, raise error
-        if self.isConnected():
+        if self.isConnected:
             raise RuntimeError("Cannot connect, already connected.")
         
         # clean up
@@ -827,27 +831,27 @@ class Channels(object):
         return tmp
 
     
-    def getPort(self):
-        """ getPort()
-        Get the port number in use, or 0 if not connected. """
+    @property
+    def port(self):
+        """ The port number in use, or 0 if not connected. """
         return self._port
     
     
+    @property
     def isConnected(self):
-        """ isConnected()
-        Returns whether the channel is connected. """
+        """ Whether the channel is connected. """
         return self._port > 0
     
     
+    @property
     def isHost(self):
-        """ isHost()
-        Returns True if this object is connected and hosting. """
+        """ Whether this instance is connected and hosting. """
         return self._port>0 and self._doorman._host==True
     
     
+    @property
     def isClient(self):
-        """ isClient()
-        Returns True if this object is connected and not hosting. """
+        """ Whether this instance is connected and not hosting. """
         return self._port>0 and self._doorman._host==False
     
     
@@ -864,8 +868,21 @@ class Channels(object):
         open for this to work though.
         """
         self._q.push( packMessage('KILL') )
-
-
+    
+    
+    @property 
+    def canBeKilled(self):
+        """ Whether the other end is allowed to kill this process."""
+        return self._canBeKilled
+    
+    
+    @property
+    def canBeInterrupted(self):
+        """ Whether the other end is allowed to interrupt this process."""
+        return self._canBeInterrupted
+    
+    
+    
     def _defaultDisconnectCallback(self, why):
         print("Connection closed: " + why)
 
@@ -1114,25 +1131,28 @@ class Doorman(threading.Thread):
                 channel._closed = True
             
             elif type == 'INT':
-                # interrupt main thread
-                thread.interrupt_main()
+                # interrupt main thread, if allowed
+                if self._channels._canBeInterrupted:
+                    thread.interrupt_main()
             
             elif type == 'KILL':
-                # kill this process
-                pid = os.getpid()
-                if hasattr(os,'kill'):
-                    import signal
-                    os.kill(pid,signal.SIGTERM)
-                elif sys.platform.startswith('win'):
-                    import ctypes
-                    kernel32 = ctypes.windll.kernel32
-                    handle = kernel32.OpenProcess(1, 0, pid)
-                    kernel32.TerminateProcess(handle, 0)
-                    #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
-                time.sleep(1)
+                # kill this process, if allowed
+                if self._channels._canBeKilled:
+                    pid = os.getpid()
+                    if hasattr(os,'kill'):
+                        import signal
+                        os.kill(pid,signal.SIGTERM)
+                    elif sys.platform.startswith('win'):
+                        import ctypes
+                        kernel32 = ctypes.windll.kernel32
+                        handle = kernel32.OpenProcess(1, 0, pid)
+                        kernel32.TerminateProcess(handle, 0)
+                        #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
+                    time.sleep(0.1)
             
             else:
-                self._stopMe = "Lost track of stream."
+                # This is bad ...
+                self._stopMe = "Lost track of the stream."
         
         # done
         return n
