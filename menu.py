@@ -54,7 +54,16 @@ but WITHOUT ANY WARRANTY; without even the implied
 warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
-""".format(iep.__version__).replace('\n\n','<>')
+"""
+
+# Insert version text
+if iep.isFrozen():
+   aboutText = aboutText.format(iep.__version__ + ' (binary)')
+else:
+    aboutText = aboutText.format(iep.__version__ + ' (source)')
+
+# Remove newlines, while preserving double newlines
+aboutText = aboutText.replace('\n\n','<>')
 aboutText = aboutText.replace('\n', ' ')
 aboutText = aboutText.replace('<>', '\n\n')
 
@@ -809,11 +818,12 @@ class ShellMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        # Insert entry for each configuration
-        for info in iep.config.shellConfigs:
-            text = 'Create shell: '+info.name
+        # Insert entry for each configuration, use the index as a reference
+        for index in range(len(iep.config.shellConfigs)):
+            name = iep.config.shellConfigs[index].name
+            text = 'Create shell {}: ({})'.format(index, name)
             action = addItem( MI(text, self.fun_create) )
-            action.value = info
+            action.value = index
         
         addItem( MI('Edit shell configurations ...', self.fun_config) )
         addItem( None )
@@ -837,10 +847,11 @@ class ShellMenu(BaseMenu):
     
     def fun_create(self, value):
         """ Create a new Python shell. """
-        if value:
-            iep.shells.addShell(value)
+        if isinstance(value, int) and value < len(iep.config.shellConfigs):
+            iep.shells.addShell( iep.config.shellConfigs[value] )
         else:
             iep.shells.addShell()
+    
     
     def fun_interrupt(self, value):
         """ Send a keyboard interrupt signal to the current shell. """
@@ -1100,6 +1111,8 @@ def getFullName(action):
             text = item.title() + '__' + text
         except Exception:
             print('error getting name',text, item.title())
+    # hide anything between brackets
+    text = re.sub('\(.*\)', '', text)
     # replace invalid chars
     text = text.replace(' ', '_')
     if text[0] in '0123456789':

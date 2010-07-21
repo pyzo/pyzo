@@ -814,9 +814,17 @@ class PythonShell(BaseShell):
         # Host it (tries several port numbers, staring from 'IEP')
         port = c.host('IEP')
         
+        # Prepare environment, remove references to tk libraries, 
+        # since they're wrong when frozen. Python will insert the
+        # correct ones.
+        env = os.environ.copy()
+        env.pop('TK_LIBRARY','') 
+        env.pop('TCL_LIBRARY','') 
+        
         # Start process
         command = self._info.getCommand(port)
-        self._process = subprocess.Popen(command, shell=True, cwd=iep.iepDir)  
+        self._process = subprocess.Popen(command, 
+                                shell=True, env=env, cwd=iep.iepDir)  
         
         # Set timer callback
         self._pollMethod = self.poll_running
@@ -1427,7 +1435,7 @@ class PythonShell(BaseShell):
         IEP will try to terminate in increasingly more rude ways. 
         """
         
-        if self._channels.isConnected():
+        if self._channels.isConnected:
             
             if self._killAttempts == 1:
                 # Waiting for process to stop by itself
@@ -1527,7 +1535,7 @@ class PythonShell(BaseShell):
         self._t = time.time()
         
         # Terminate
-        while self._channels.isConnected():
+        while self._channels.isConnected:
             time.sleep(0.02)
             
             if self._killAttempts == 1:
