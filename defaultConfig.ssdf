@@ -64,7 +64,7 @@ shellConfigs = list:
     dict:
         name = 'default'
         exe = 'python'
-        gui = 'tk'
+        gui = ''
         runsus = 1
         startdir = ''
 
