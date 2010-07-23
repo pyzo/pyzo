@@ -109,7 +109,7 @@ class IepInterpreter:
                 self.guiApp = Hijacked_qt4()
             elif self._gui == 'fl':
                 self.guiApp = Hijacked_fltk()
-        except ImportError:
+        except Exception: # Catch any error
             pass
         
         # Create banner
@@ -548,31 +548,36 @@ class IepInterpreter:
                     sys.last_value = value
                     sys.last_traceback = tb
             
-            # Get frame
-            frame = tb.tb_frame
-            
-            # Get source (if available) and split lines
-            source = self._codeCollection.getSource(frame.f_code)
-            source = source.splitlines()
-            
             # Get tpraceback to correct all the line numbers
             # tblist = list  of (filename, line-number, function-name, text)
             tblist = traceback.extract_tb(tb)
             
+            # Get frames
+            frames = []
+            while tb:
+                frames.append(tb.tb_frame)
+                tb = tb.tb_next
+            frames.pop(0)
+            
             # Walk through the list
             for i in range(len(tblist)):
-                tb = tblist[i]
-                # Get filename and line number
-                fname, lineno = correctFilenameAndLineno(tb[0], tb[1])
-                # Obtain source from example and select line
-                example = tb[3]
+                tbInfo = tblist[i]                
+                # Get filename and line number, init example
+                fname, lineno = correctFilenameAndLineno(tbInfo[0], tbInfo[1])
+                example = tbInfo[3]
+                # Get source (if available) and split lines
+                source = None
+                if i < len(frames):
+                    source = self._codeCollection.getSource(frames[i].f_code)
                 if source:
+                    source = source.splitlines()                
+                    # Obtain source from example and select line                    
                     try:
-                        example = source[ tb[1]-1 ]
+                        example = source[ tbInfo[1]-1 ]
                     except IndexError:
                         pass
                 # Reset info
-                tblist[i] = (fname, lineno, tb[2], example)
+                tblist[i] = (fname, lineno, tbInfo[2], example)
             
             # Format list
             strList = traceback.format_list(tblist)
@@ -583,6 +588,9 @@ class IepInterpreter:
             # Write traceback
             for s in strList:
                 self.write(s)
+        
+        except Exception:
+            self.write('An error occured, but could not write traceback.\n')
             
         finally:
             tblist = tb = None
