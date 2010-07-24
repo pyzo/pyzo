@@ -98,8 +98,15 @@ class IepInterpreter:
         """ Interact! (start the mainloop)
         """
         
+        # Write normal Python banner
+        cprt =  'Type "help", "copyright", "credits" or "license"'\
+                ' for more information.'
+        sys.stdout.write("Python %s on %s.\n%s\n" %
+            (sys.version, sys.platform, cprt))
+        
         # Hijack GUI toolkit
         self.guiApp = None
+        guiError = ''
         try:
             if self._gui == 'tk':
                 self.guiApp = Hijacked_tk()
@@ -110,20 +117,23 @@ class IepInterpreter:
             elif self._gui == 'fl':
                 self.guiApp = Hijacked_fltk()
         except Exception: # Catch any error
-            pass
+            # Get exception info (we do it using sys.exc_info() because
+            # we cannot catch the exception in a version independent way.
+            type, value, tb = sys.exc_info()
+            tb = None
+            guiError = 'Failed to integrate event loop for %s: %s' % (
+                self._gui, str(value))
         
-        # Create banner
-        cprt =  'Type "help", "copyright", "credits" or "license"'\
-                ' for more information.'
-        if self.guiApp:
+        # Write IEP part of banner
+        if True:
+            iepBanner = 'This is the IEP interpreter. ' 
+            iepBanner += 'Type "?" for a list of *magic* commands.\n'
+        if guiError:
+            iepBanner += guiError + '\n'
+        elif self.guiApp:
             tmp = self._gui.upper()
-            moreBanner = 'This is the IEP interpreter (with %s). ' % (tmp) 
-            moreBanner += 'Type "?" for a list of *magic* commands.'
-        else:
-            moreBanner = 'This is the IEP interpreter. ' 
-            moreBanner += 'Type "?" for a list of *magic* commands.'
-        sys.stdout.write("Python %s on %s.\n%s\n%s\n" %
-            (sys.version, sys.platform, cprt, moreBanner))
+            iepBanner += 'Integrated event loop for ' + tmp + '.\n'
+        sys.stdout.write(iepBanner)
         
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
