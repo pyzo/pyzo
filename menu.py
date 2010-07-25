@@ -1536,5 +1536,3 @@ class KeymappingDialog(QtGui.QDialog):
     def onDoubleClick(self, index):
         pass
 
-
-
