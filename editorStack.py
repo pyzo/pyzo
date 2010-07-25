@@ -304,17 +304,24 @@ class FileItem(Item):
         # Init style
         style = ''
         
+        isMain = self.isMainFile()
+        isCurrent = self is self.parent()._currentItem
+        
         # Set style to handle dirty and mainfile
         if self._editor._dirty:
             style += "color:#603000;"
-        if self.isMainFile():
-            style += 'background:#99F;'
+        if isMain and isCurrent:
+            style += 'background:#5FF;'
+        elif isMain:
+            style += 'background:#AAE;'
+        elif isCurrent:
+            style += 'background:#9E9;'
         
         # Handle mouse over or current file
-        if self is self.parent()._currentItem:
+        if isCurrent:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
             self.move(self._indent ,self._y)
-            style += 'font: bold;'
+#             style += 'font: bold;'
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
             self.move(self._indent ,self._y)
