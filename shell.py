@@ -819,7 +819,7 @@ class PythonShell(BaseShell):
         # correct ones.
         env = os.environ.copy()
         env.pop('TK_LIBRARY','') 
-        env.pop('TCL_LIBRARY','') 
+        env.pop('TCL_LIBRARY','')
         
         # Start process
         command = self._info.getCommand(port)
