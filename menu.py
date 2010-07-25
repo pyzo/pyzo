@@ -1014,7 +1014,7 @@ class HelpMenu(BaseMenu):
         f = urllib.request.urlopen("http://code.google.com/p/iep/downloads/list")        
         remoteVersion = '?'
         text = str(f.read())
-        for pattern in ['iep-(.+?).source\.zip' ]:
+        for pattern in ['iep-(.{1,7}?)\.source\.zip' ]:
             result = re.search(pattern, text)
             if result:
                 remoteVersion = result.group(1)
