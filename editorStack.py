@@ -62,6 +62,9 @@ class Item(qt.QLabel):
         self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
         self._frameWidth = self.frameWidth() + 3 # correction        
         
+        # Enable receiving the mouse move event always
+        self.setMouseTracking(True)
+        
         # To accept dropping
         self.setAcceptDrops(True)
     
@@ -94,7 +97,11 @@ class Item(qt.QLabel):
         self.updateStyle()
     
     def mouseMoveEvent(self, event):
-        self.parent().mouseMoveEvent(event)
+        if not event.buttons():
+            QtGui.QToolTip.showText(QtGui.QCursor.pos(), self.toolTip())
+        else:
+            self.parent().mouseMoveEvent(event)
+    
     def mouseReleaseEvent(self, event):
         self.parent().mouseReleaseEvent(event)
     
@@ -261,6 +268,11 @@ class FileItem(Item):
         self.updateStyle()
     
     
+    def isMainFile(self):
+        """ Returns whethe this is the main file of a project. """ 
+        return self._project and self._project._mainfile == self._editor.id()
+    
+    
     def updateTexts(self):
         """ Updates the text of the label and tooltip. Called when 
         the editor's dirty status changed or when saved as another file. 
@@ -272,10 +284,15 @@ class FileItem(Item):
         if self._editor._dirty:
             name = '*' + name
         if not filename: 
-            filename = 'None'
+            filename = '<temporary file>'        
+        # get whether this is the project main file
+        if self.isMainFile():
+            toolTipText = "project's main file: " + filename
+        else:
+            toolTipText = 'file: '+ filename
         # apply
-        self.setText( name )
-        self.setToolTip('file: '+ filename)
+        self.setText(name)
+        self.setToolTip(toolTipText)
         self.updateStyle()
     
     
@@ -290,14 +307,14 @@ class FileItem(Item):
         # Set style to handle dirty and mainfile
         if self._editor._dirty:
             style += "color:#603000;"
-        if self._project and self._project._mainfile == self._editor.id():
-            style += 'font-weight:bold;'
+        if self.isMainFile():
+            style += 'background:#99F;'
         
         # Handle mouse over or current file
         if self is self.parent()._currentItem:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
             self.move(self._indent ,self._y)
-            style += 'background:#DED;'
+            style += 'font-weight:bold;'
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
             self.move(self._indent ,self._y)
@@ -331,7 +348,10 @@ class FileItem(Item):
             menu.addAction('Save file', self.context_save)
             menu.addAction('Save file as', self.context_saveAs)
             menu.addAction('Close file', self.context_close)
-            menu.addAction('Make main file', self.context_makeMain)
+            if self.isMainFile():
+                menu.addAction('Unmake main file', self.context_makeMain)
+            else:
+                menu.addAction('Make main file', self.context_makeMain)
             menu.popup(event.globalPos())
     
     def context_save(self, event=None):
@@ -342,7 +362,10 @@ class FileItem(Item):
         self.parent().parent().closeFile(self._editor)
     def context_makeMain(self, event=None):
         if self._project:
-            self._project._mainfile = self._editor.id()
+            if self.isMainFile():
+                self._project._mainfile = ''
+            else:
+                self._project._mainfile = self._editor.id()
         for item in self.parent()._items:
             if isinstance(item, FileItem):
                 item.updateTexts()
@@ -529,7 +552,8 @@ class FileListCtrl(QtGui.QFrame):
         # check for mouse and moved enough
         
         if not event.buttons() & QtCore.Qt.LeftButton:
-            pass
+            return
+            
         th = QtGui.qApp.startDragDistance()
         
         if self._draggedItem:
