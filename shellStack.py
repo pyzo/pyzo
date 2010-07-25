@@ -574,5 +574,3 @@ def findPythonExecutables_linux():
     return versions
 
 
-
-    
