@@ -310,18 +310,15 @@ class FileItem(Item):
         # Set style to handle dirty and mainfile
         if self._editor._dirty:
             style += "color:#603000;"
-        if isMain and isCurrent:
-            style += 'background:#5FF;'
-        elif isMain:
-            style += 'background:#AAE;'
-        elif isCurrent:
-            style += 'background:#9E9;'
+        if isMain:
+            style += 'font: bold;'
+        if isCurrent:
+            style += 'background:#CEC;'
         
-        # Handle mouse over or current file
+        # Set frames sunken or raised
         if isCurrent:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
             self.move(self._indent ,self._y)
-#             style += 'font: bold;'
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
             self.move(self._indent ,self._y)
