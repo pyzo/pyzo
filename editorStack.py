@@ -314,7 +314,7 @@ class FileItem(Item):
         if self is self.parent()._currentItem:
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
             self.move(self._indent ,self._y)
-            style += 'font-weight:bold;'
+            style += 'font: bold;'
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
             self.move(self._indent ,self._y)
