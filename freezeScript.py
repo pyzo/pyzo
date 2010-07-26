@@ -120,4 +120,8 @@ for fname in os.listdir(iconsDir):
 
 
 # Remove dummy executable
-os.remove( os.path.join(distDir,'iep_.exe') )
+tmp1 = os.path.join(distDir,'iep_.exe')
+tmp2 = os.path.join(distDir,'iep')
+for fname in [tmp1, tmp2]:
+    if os.path.isfile(fname):
+        os.remove(fname)
