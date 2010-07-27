@@ -683,7 +683,6 @@ class ShellInfo:
         self.runsus = bool(runsus) # run start up script
         self.startdir = startdir
     
-    
     def getCommand(self, port):
         """ Given the port of the channels interface, creates the 
         command to execute in order to invoke the remote shell.
@@ -698,6 +697,7 @@ class ShellInfo:
         command += self.gui + ' '
         command += str(int(self.runsus)) + ' '
         command += '"{}"'.format(self.startdir)
+        # todo: remove bits here
         
         if sys.platform.count('win'):
             # as the author from Pype writes:
@@ -711,6 +711,31 @@ class ShellInfo:
         # Done
         return command
     
+    
+    def getEnviron(self, ScriptFilename=None):
+        """  Gets the environment to give to the remote process,
+        such that it can start up as the user wants to. 
+        If ScriptFilename is given, us that as the script file
+        to execute.
+        """ 
+        
+        # Prepare environment, remove references to tk libraries, 
+        # since they're wrong when frozen. Python will insert the
+        # correct ones if required.
+        env = os.environ.copy()
+        env.pop('TK_LIBRARY','') 
+        env.pop('TCL_LIBRARY','')
+        
+        # Insert iep specific variables
+        env['iep_gui'] = self.gui
+        env['iep_startDir'] = self.startdir
+        #env['iep_runStartupScript'] = str(self.runsus)
+        if not ScriptFilename:
+            ScriptFilename = ''
+        env['iep_scriptFile'] = ScriptFilename
+        # Done
+        return env
+
 
 class PythonShell(BaseShell):
     """ The PythonShell class implements the python part of the shell
@@ -779,8 +804,8 @@ class PythonShell(BaseShell):
         # Initialize timer callback
         self._pollMethod = None
         
-        # Code to execute on startup
-        self._pendingCode = None # code, fname, lineno
+        # File to execute on startup (in script mode)
+        self._pendingScriptFilename = None
         
         # Start!
         self.start()
@@ -817,17 +842,14 @@ class PythonShell(BaseShell):
         # Host it (tries several port numbers, staring from 'IEP')
         port = c.host('IEP')
         
-        # Prepare environment, remove references to tk libraries, 
-        # since they're wrong when frozen. Python will insert the
-        # correct ones.
-        env = os.environ.copy()
-        env.pop('TK_LIBRARY','') 
-        env.pop('TCL_LIBRARY','')
-        
         # Start process
         command = self._info.getCommand(port)
+        env = self._info.getEnviron(self._pendingScriptFilename)
         self._process = subprocess.Popen(command, 
-                                shell=True, env=env, cwd=iep.iepDir)  
+                               shell=True, env=env, cwd=iep.iepDir)  
+        
+        # Reset pending script
+        self._pendingScriptFilename = None
         
         # Set timer callback
         self._pollMethod = self.poll_running
@@ -852,15 +874,10 @@ class PythonShell(BaseShell):
         if status.startswith('STATE '):
             state = status.split(' ',1)[1]
             
-            # Determine the text to display in the tab. Also run any pending
-            # code if that is necessary. Note that self._version is set when
-            # this function is called.
+            # Determine the text to display in the tab. Note that 
+            # self._version is set before this function is called.
             if state == 'Ready':
                 stateText = 'Python {}'.format(self._version)
-                if self._pendingCode:
-                    code, fname, ln = self._pendingCode
-                    self._pendingCode = None
-                    self.executeCode(code, fname, ln)
             else:
                 stateText = 'Python {} ({})'.format(self._version, state)
             
@@ -1491,14 +1508,14 @@ class PythonShell(BaseShell):
         self._channels.interrupt()
     
     
-    def restart(self, *args):
-        """ restart(*args)
+    def restart(self, scriptFilename=None):
+        """ restart(scriptFilename=None)
         Terminate the shell, after which it is restarted. 
-        Args can be (code, fname, lineno), to execute as soon as the
+        Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
-        if args :
-            self._pendingCode = args
+        if scriptFilename:
+            self._pendingScriptFilename = scriptFilename
         self._restart = True
         self.terminate()
         

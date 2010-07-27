@@ -295,7 +295,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         dx = 60
         label = QtGui.QLabel(self)
         label.move(offset, y)
-        label.setText('Gui toolkit to interact with.')        
+        label.setText('Integrate event loop for GUI toolkit:')        
         #
         self._gui_none = QtGui.QRadioButton(self)
         self._gui_none.move(offset+dx*0, y+16)
@@ -322,7 +322,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         # Create run startup script checkbox
         label = QtGui.QLabel(self)
         label.move(offset, y)
-        label.setText('Run startup script (if set).')
+        label.setText('Run PYTHONSTARTUP (if set).')
         self._runsus = QtGui.QCheckBox(self)
         self._runsus.move(offset, y+16)
         y += dy + self._runsus.height()
