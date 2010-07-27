@@ -50,18 +50,14 @@ class IepInterpreter:
     - support post mortem debugging
     """
     
-    def __init__(self, locals, filename="<console>", 
-                    gui='', runsus=True, startdir=''):
+    def __init__(self, locals, filename="<console>"):
         
         # Init variables for locals and globals (globals only for debugging)
         self.locals = locals
         self.globals = None
         
-        # Store other variables
+        # Store filename
         self.filename = filename
-        self._runsus = runsus
-        self._startdir = startdir
-        self._gui = gui
         
         # Store ref of locals that is our main
         self._main_locals = locals
@@ -104,17 +100,19 @@ class IepInterpreter:
         sys.stdout.write("Python %s on %s.\n%s\n" %
             (sys.version, sys.platform, cprt))
         
-        # Hijack GUI toolkit
+        
+        # Integrate event loop of GUI toolkit
         self.guiApp = None
+        guiName = os.environ.get('iep_gui', '')
         guiError = ''
         try:
-            if self._gui == 'tk':
+            if guiName == 'tk':
                 self.guiApp = Hijacked_tk()
-            elif self._gui == 'wx':
+            elif guiName == 'wx':
                 self.guiApp = Hijacked_wx()
-            elif self._gui == 'qt4':
+            elif guiName == 'qt4':
                 self.guiApp = Hijacked_qt4()
-            elif self._gui == 'fl':
+            elif guiName == 'fl':
                 self.guiApp = Hijacked_fltk()
         except Exception: # Catch any error
             # Get exception info (we do it using sys.exc_info() because
@@ -122,17 +120,16 @@ class IepInterpreter:
             type, value, tb = sys.exc_info()
             tb = None
             guiError = 'Failed to integrate event loop for %s: %s' % (
-                self._gui, str(value))
+                guiName.upper(), str(value))
         
-        # Write IEP part of banner
+        # Write IEP part of banner (including what GUI loop is integrated)
         if True:
             iepBanner = 'This is the IEP interpreter. ' 
             iepBanner += 'Type "?" for a list of *magic* commands.\n'
         if guiError:
             iepBanner += guiError + '\n'
         elif self.guiApp:
-            tmp = self._gui.upper()
-            iepBanner += 'Integrated event loop for ' + tmp + '.\n'
+            iepBanner += 'Integrated event loop for ' + guiName.upper() + '.\n'
         sys.stdout.write(iepBanner)
         
         # Remove "THIS" directory from the PYTHONPATH
@@ -142,17 +139,56 @@ class IepInterpreter:
             sys.path.remove(thisPath)
         
         # Go to start dir
-        if self._startdir and os.path.isdir(self._startdir):
-            os.chdir(self._startdir)
+        startDir = os.environ.get('iep_startDir')
+        if startDir and os.path.isdir(startDir):
+            os.chdir(startDir)
         else:
             os.chdir(os.path.expanduser('~')) # home dir        
-            #os.chdir(sys.exec_prefix) On windows, python starts here
         
-        # Execute startup script
-        filename = os.environ.get('PYTHONSTARTUP')
-        if self._runsus and filename and os.path.isfile(filename):
-            exec(open(filename).read(), self.locals)
-            #execfile(filename, self.locals) # removed in py3k
+        # Get whether we should (and can) run as script
+        scriptFilename = os.environ.get('iep_scriptFile')
+        if scriptFilename:
+            if not os.path.isfile(scriptFilename):
+                sys.stdout.write('Invalid script file: '+scriptFilename+'\n')
+                scriptFilename = None
+        
+        
+        if scriptFilename:
+            # RUN AS SCRIPT
+            
+            # Set __file__  (note that __name__ is already '__main__')
+            self.locals['__file__'] = scriptFilename
+            # Set command line arguments
+            sys.argv[:] = []
+            sys.argv.append(scriptFilename)
+            # Insert script directory to path
+            theDir = os.path.abspath( os.path.dirname(scriptFilename) )
+            if theDir not in sys.path:
+                sys.path.insert(0, theDir)
+            
+            # Notify the running of the script
+            sys.stdout.write('[Running script: '+scriptFilename+']\n')
+            
+            # Run script
+            self.runfile(scriptFilename)
+            # todo: error are now printed BEFORE stdout.
+#             exec(open(scriptFilename).read(), self.locals)
+            
+        else:
+            # RUN INTERACTIVELY
+            
+            # No __file__ (note that __name__ is already '__main__')
+            self.locals.pop('__file__','')
+            # Remove all command line arguments
+            sys.argv[:] = []
+            # Insert current directory to path
+            sys.path.insert(0, '')
+            
+            # Run startup script (if set)
+            filename = os.environ.get('PYTHONSTARTUP')
+            if filename and os.path.isfile(filename):
+                self.runfile(scriptFilename)
+#                 exec(open(filename).read(), self.locals)
         
         # ENTER MAIN LOOP
         guitime = time.time()
@@ -342,6 +378,26 @@ class IepInterpreter:
             # Execute the code
             self.runcode(code)
     
+    
+    def runfile(self, fname):
+        """  To execute the startup script. """ 
+        
+        # Get text
+        source = open(fname).read()
+        
+        # Try compiling the source
+        code = None
+        try:            
+            # Compile
+            code = self.compile(source, fname, "exec")
+        except (OverflowError, SyntaxError, ValueError):
+            self.showsyntaxerror(fname)
+        
+        if code:
+            # Store the source using the (id of the) code object as a key
+            self._codeCollection.storeSource(code, source)
+            # Execute the code
+            self.runcode(code)
     
     ## Misc
     

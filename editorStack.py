@@ -1440,6 +1440,9 @@ class EditorStack(QtGui.QWidget):
             # reload styles
             styleManager.loadStyles()
             # editors are send a signal by the style manager
+        
+        # Notify done
+        return True
     
     
     def askToSaveFileIfDirty(self, editor):

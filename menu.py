@@ -818,25 +818,29 @@ class ShellMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
+        addItem( MI('Run selected lines', self.fun_runSelected) )
+        addItem( MI('Run cell', self.fun_runCell) )
+        addItem( MI('Run file', self.fun_runFile) )
+        addItem( MI('Run project main file', self.fun_runProject) )
+        addItem( None )
+        addItem( MI('Run file as script', self.fun_runFile2))
+        addItem( MI('Run project main file as script', self.fun_runProject2))
+        
+        addItem( None )
+        
+        addItem( MI('Interrupt current shell', self.fun_interrupt) )
+        addItem( MI('Terminate current shell', self.fun_term) )        
+        addItem( MI('Restart current shell', self.fun_restart) )        
+        addItem( None )
+        addItem( MI('Edit shell configurations ...', self.fun_config) )
+        
         # Insert entry for each configuration, use the index as a reference
         for index in range(len(iep.config.shellConfigs)):
             name = iep.config.shellConfigs[index].name
             text = 'Create shell {}: ({})'.format(index, name)
             action = addItem( MI(text, self.fun_create) )
             action.value = index
-        
-        addItem( MI('Edit shell configurations ...', self.fun_config) )
-        addItem( None )
-        addItem( MI('Interrupt current shell', self.fun_interrupt) )
-        addItem( MI('Terminate current shell', self.fun_term) )        
-        addItem( MI('Restart current shell', self.fun_restart) )        
-        addItem( None )
-        addItem( MI('Run selected lines', self.fun_runSelected) )
-        addItem( MI('Run cell', self.fun_runCell) )
-        addItem( MI('Run file', self.fun_runFile) )
-        addItem( MI('Run project main file', self.fun_runProject) )
-        addItem( MI('Restart shell and run project main file',  
-                        self.fun_runProject2))
+    
     
     def fun_config(self, value):
         """ Edit, add and remove configurations for the shells. """
@@ -871,7 +875,7 @@ class ShellMenu(BaseMenu):
         if shell:
             shell.restart()
     
-    
+
     def fun_runSelected(self, value):
         """ Run the selected whole lines in the current shell. """
         # Get editor and shell
@@ -980,16 +984,46 @@ class ShellMenu(BaseMenu):
         fname, text = self._getCodeOfFile(editor)
         shell.executeCode(text, fname, -1)
     
+    
+    def fun_runFile2(self, value):
+        """ Restart shell, and run the current file as a script. """
+        # Get editor and shell
+        shell = iep.shells.getCurrentShell()        
+        editor = iep.editors.getCurrentEditor()
+        if not editor or not shell:
+            return        
+        # Go
+        self._runScript(editor, shell)
+    
+    
     def fun_runProject2(self, value):
-        """ Restart the shell and run the current project's main file. """
+        """ Restart shell, and run the project's main file as a script. """
         shell = iep.shells.getCurrentShell()
         editor = iep.editors.getCurrentProjectsMainEditor()
         if not editor or not shell:
             return 
-        # Obtain code to set as pending
-        fname, text = self._getCodeOfFile(editor)
-        shell.restart(text, fname, -1)
+        # Go
+        self._runScript(editor, shell)
     
+    
+    def _runScript(self, editor, shell):
+        # Obtain fname and try running
+        err = ""
+        if editor._filename:
+            if iep.editors.saveFile(editor):
+                shell.restart(editor._filename)
+            else:
+                err = "Could not save the file."
+        else:
+            err = "Can only run scripts that are in the file system."
+        # If not success, notify
+        if err:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Could not run script.")
+            m.setText(err)
+            m.setIcon(m.Warning)
+            m.exec_()
+
 
 class HelpMenu(BaseMenu):
     def fill(self):
