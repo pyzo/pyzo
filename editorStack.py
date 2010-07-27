@@ -1236,7 +1236,7 @@ class EditorStack(QtGui.QWidget):
         
         # show dialog
         msg = "Select one or more files to open"
-        filter = "Python (*.py *.pyw);;Pyrex (*.pyi *.pyx);;All (*.*)"
+        filter = "Python (*.py *.pyw);;Pyrex (*.pyi *.pyx *.pxd);;All (*.*)"
         filenames = QtGui.QFileDialog.getOpenFileNames(self,
             msg, startdir, filter)
         
@@ -1387,7 +1387,7 @@ class EditorStack(QtGui.QWidget):
         
         # show dialog
         msg = "Select the file to save to"
-        filter = "Python (*.py *.pyw);;Pyrex (*.pyi,*.pyx);;All (*.*)"
+        filter = "Python (*.py *.pyw);;Pyrex (*.pyi,*.pyx,*.pxd);;All (*.*)"
         filename = QtGui.QFileDialog.getSaveFileName(self,
             msg, startdir, filter)
         
