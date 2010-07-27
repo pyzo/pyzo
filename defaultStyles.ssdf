@@ -88,9 +88,9 @@ python3 = dict:
 # PYREX (change def and class colours to distinguish)
 pyrex = dict:
     basedon = 'python'
-    ext = 'pyi pyx'
+    ext = 'pyi pyx pxd'
     lexer = 'python'
-    keywords =  'False None True and as assert break class continue def del elif else except exec finally for from global if import in is lambda nonlocal not or pass print raise return try while with yield cdef cpdef'
+    keywords =  'False None True and as assert break class continue def del elif else except exec finally for from global if import in is lambda nonlocal not or pass print raise return try while with yield cdef cpdef ctypedef cimport'
     s008 = 'fore:#7700FF,bold' // STC_P_CLASSNAME
     s009 = 'fore:#DD5500,bold'  // STC_P_DEFNAME
 

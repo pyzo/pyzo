@@ -792,6 +792,9 @@ class PythonShell(BaseShell):
         # (re)set restart vatiable and a callback
         self._restart = False 
         
+        # (re)set import attempts
+        self._importAttempts[:] = []
+        
         # (re)set variable to terminate the process in increasingly rude ways
         self._killAttempts = 0
         
