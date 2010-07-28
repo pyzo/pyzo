@@ -77,10 +77,13 @@ class ShellStack(QtGui.QWidget):
         """ When another shell is selected, update some things. 
         """
         # Update state info
-        shell = self._tabs.widget(index)
-        if shell:
-            self.onShellStateChange(shell)
-            self.onShellDebugStateChange(shell)
+        if index<0:
+            iep.main.setWindowIcon(iep.icon)
+        else:
+            shell = self._tabs.widget(index)
+            if shell:
+                self.onShellStateChange(shell)
+                self.onShellDebugStateChange(shell)
     
     
     def onShellStateChange(self, shell):

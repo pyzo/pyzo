@@ -149,7 +149,7 @@ class IepInterpreter:
         scriptFilename = os.environ.get('iep_scriptFile')
         if scriptFilename:
             if not os.path.isfile(scriptFilename):
-                sys.stdout.write('Invalid script file: '+scriptFilename+'\n')
+                sys.stdout.write('Invalid script file: "'+scriptFilename+'"\n')
                 scriptFilename = None
         
         
@@ -167,12 +167,10 @@ class IepInterpreter:
                 sys.path.insert(0, theDir)
             
             # Notify the running of the script
-            sys.stdout.write('[Running script: '+scriptFilename+']\n')
+            sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
             
             # Run script
             self.runfile(scriptFilename)
-            # todo: error are now printed BEFORE stdout.
-#             exec(open(scriptFilename).read(), self.locals)
             
         else:
             # RUN INTERACTIVELY
@@ -187,8 +185,8 @@ class IepInterpreter:
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
-                self.runfile(scriptFilename)
-#                 exec(open(filename).read(), self.locals)
+                self.runfile(filename)
+        
         
         # ENTER MAIN LOOP
         guitime = time.time()
@@ -383,7 +381,11 @@ class IepInterpreter:
         """  To execute the startup script. """ 
         
         # Get text
-        source = open(fname).read()
+        try:
+            source = open(fname).read()
+        except Exception:        
+            sys.stdout.write('Could not execute script: "' + fname + '"\n')
+            return
         
         # Try compiling the source
         code = None
@@ -391,13 +393,18 @@ class IepInterpreter:
             # Compile
             code = self.compile(source, fname, "exec")
         except (OverflowError, SyntaxError, ValueError):
+            time.sleep(0.3) # Give stdout time to be send
             self.showsyntaxerror(fname)
         
         if code:
             # Store the source using the (id of the) code object as a key
             self._codeCollection.storeSource(code, source)
             # Execute the code
-            self.runcode(code)
+            try:                
+                exec(code, self.locals)
+            except Exception:
+                time.sleep(0.3) # Give stdout time to be send
+                self.showtraceback()
     
     ## Misc
     
