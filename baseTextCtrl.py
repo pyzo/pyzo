@@ -40,10 +40,10 @@ elif 'mac' in sys.platform:
 else:
     # Monospace does not work on centos, no idea why, because its the default
     # in gedit!
-    FACES = {'serif': 'Times', 'mono': 'Courier', 'sans': 'Helvetica'}
+    FACES = {'serif': 'Times', 'mono': 'Courier New', 'sans': 'Helvetica'}
 
 # define style stuff
-subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT,
+subStyleStuff = {   'face': Qsci.QsciScintillaBase. ,
                     'fore': Qsci.QsciScintillaBase.SCI_STYLESETFORE,
                     'back': Qsci.QsciScintillaBase.SCI_STYLESETBACK,
                     'size': Qsci.QsciScintillaBase.SCI_STYLESETSIZE,
