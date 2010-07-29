@@ -86,7 +86,7 @@ class IepInterpreter:
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-    
+        
     
     ## Base of interpreter
     
@@ -220,6 +220,10 @@ class IepInterpreter:
                 
                 # Are we still connected?
                 if sys.stdin.closed:
+                    # Stop all deamon threads (or we wont really stop in <2.5)
+                    self.ithread._stop = True
+                    self.channels.disconnect()
+                    # Break
                     self.write("\n")
                     break
                 
@@ -661,12 +665,17 @@ class IepInterpreter:
             # Write traceback
             for s in strList:
                 self.write(s)
+            
+            # Clean up (we cannot combine except and finally in Python <2.5
+            tb = None
+            frames = None
         
         except Exception:
             self.write('An error occured, but could not write traceback.\n')
+            tb = None
+            frames = None
             
-        finally:
-            tblist = tb = None
+        
         
 
 def correctFilenameAndLineno(fname, lineno):
@@ -711,6 +720,9 @@ class IntroSpectionThread(threading.Thread):
         self.request = requestChannel
         self.response = responseChannel
         self.interpreter = interpreter
+        
+        # flag to stop
+        self._stop = False
     
     
     def run(self):
@@ -724,7 +736,7 @@ class IntroSpectionThread(threading.Thread):
             
             # read code (wait here)
             line = self.request.readOne(True)
-            if not line or self.request.closed:
+            if not line or self.request.closed or self._stop:
                 break # from thread
             
             # get request and arg
