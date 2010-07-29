@@ -175,7 +175,7 @@ class BaseShell(BaseTextCtrl):
     def __init__(self, parent):
         BaseTextCtrl.__init__(self, parent)
         
-        # turn off some settings
+        # Tweak settings specific for shell
         self.setIndentationGuides(False)
         self.setMarginWidth(1,3)
         self.setWrapMode(self.WrapCharacter)
@@ -183,6 +183,7 @@ class BaseShell(BaseTextCtrl):
         self.setEdgeMode(self.EDGE_LINE)
         self.setEdgeColumn(80)
         self.setHighlightCurrentLine(False)
+        self.setEolMode(self.SC_EOL_LF)
         
         # variables we need
         self._more = False
@@ -1518,7 +1519,7 @@ class PythonShell(BaseShell):
             self._pendingScriptFilename = scriptFilename
         self._restart = True
         self.terminate()
-        
+    
     
     def terminate(self):
         """ terminate()

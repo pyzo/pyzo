@@ -321,7 +321,10 @@ class FileItem(Item):
             self.move(self._indent ,self._y)
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
-            self.move(self._indent ,self._y)
+            if isMain: 
+                self.move(self._indent-1 ,self._y) # prevent "flickering"
+            else:
+                self.move(self._indent ,self._y)
         else:
             self.setFrameStyle(0)
             self.move(self._frameWidth+self._indent,self._y)
@@ -1440,8 +1443,8 @@ class EditorStack(QtGui.QWidget):
         filename = editor._filename
         
         # notify
-        tmp = {'\n':'LF', '\r':'CR', '\r\n':'CRLF'}[editor._lineEndings]
-        print("saved file: {} ({})".format(filename, tmp))
+        tmp = editor.getLineEndings()
+        print("saved file: {} ({})".format(filename, tmp[0]))
         
         # special case, we edited the style file!
         if filename == styleManager._filename:

@@ -33,7 +33,7 @@ view = dict:
 settings= dict:
     defaultStyle = 'python'
     defaultIndentation = 4
-    defaultLineEndings = 'LF'
+    defaultLineEndings = '' # Set depending on OS
     #
     shellFit80 = 1
     #
