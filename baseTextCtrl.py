@@ -384,8 +384,8 @@ class StyleManager(QtCore.QObject):
                 if ext in exts:
                     break
             else:
-                tmp = "Unknown extension {}, applying default style."
-                print(tmp.format(ext))
+                #tmp = "Unknown extension {}, applying default style."
+                #print(tmp.format(ext))
                 styleName = 'default'
         
         # get style struct
@@ -634,7 +634,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         .length() does the same)
         """
         return self.length()
-        self.getli
+    
     
     def setText(self, value):
         """ Set the text of the editor. """

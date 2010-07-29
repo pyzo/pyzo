@@ -114,6 +114,7 @@ def resetConfig():
     shutil.copy(styleFileName1, styleFileName2)
     global _saveConfigFile
     _saveConfigFile = False
+    print("Replaced config file. Restart IEP to revert to the default config.")
 
 
 def startIep():

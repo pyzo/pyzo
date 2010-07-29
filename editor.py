@@ -24,6 +24,7 @@ file loading/saving /reloading stuff.
 
 import os, sys
 
+
 from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 qt = QtGui
@@ -473,6 +474,9 @@ class IepEditor(BaseTextCtrl):
             return
         filename = self._filename
         
+        # Remember where we are
+        linenr, index = self.getLinenrAndIndex()
+        
         # Load file (as bytes)
         with open(filename, 'rb') as f:
             bb = f.read()
@@ -480,15 +484,21 @@ class IepEditor(BaseTextCtrl):
         # Convert to text
         text = bb.decode('UTF-8')
         
-        # Process line endings
+        # Process line endings (before setting the text)
         self.setLineEndings( determineLineEnding(text) )
         
-        # set text
+        # Set text
         self.setText(text)
         self.makeDirty(False)
+        
+        # Go where we were (approximately)
+        pos = self.getPositionFromLinenr(linenr) + index
+        self.setPositionAndAnchor(pos)
+        self.ensureCursorVisible()
     
     
     def commentCode(self):
+        
         # get locations of the selected text (but whole lines only)
         pos = self.getPosition()
         anch = self.getAnchor()
