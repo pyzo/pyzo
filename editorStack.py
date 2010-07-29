@@ -1242,7 +1242,7 @@ class EditorStack(QtGui.QWidget):
         filter =  "Python (*.py *.pyw);;"
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
         filter += "C (*.c *.h *.cpp *.c++);;"
-        filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
+        #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
         filenames = QtGui.QFileDialog.getOpenFileNames(self,
             msg, startdir, filter)
@@ -1397,7 +1397,7 @@ class EditorStack(QtGui.QWidget):
         filter =  "Python (*.py *.pyw);;"
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
         filter += "C (*.c *.h *.cpp);;"
-        filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
+        #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
         filename = QtGui.QFileDialog.getSaveFileName(self,
             msg, startdir, filter)
