@@ -177,19 +177,22 @@ class MainWindow(QtGui.QMainWindow):
         # Obtain default style
         app = QtGui.qApp
         iep.defaultQtStyleName = str(app.style().objectName())
-        if sys.platform.startswith('win'):
-            iep.defaultQtStyleName = 'cleanlooks' # Windows theme==ugly
-            if not iep.config.view.qtstyle:
-                iep.config.view.qtstyle = 'cleanlooks' 
+        # Other than gtk+, cleanlooks looks best (is my opinion)
+        if not 'gtk' in iep.defaultQtStyleName.lower():
+            iep.defaultQtStyleName = 'cleanlooks'
         
-        # Set qt style and obtain style name of the default style
+        # Set style if there is no style yet
+        if not iep.config.view.qtstyle:
+            iep.config.view.qtstyle = iep.defaultQtStyleName 
+        
+        # Set qt style and test success
         qstyle = app.setStyle(iep.config.view.qtstyle)
         if qstyle:
             # We succeeded in setting the style
             app.setPalette(QtGui.QStyle.standardPalette(qstyle))
         else:
             # We still have the default style
-            iep.config.view.qtstyle = iep.defaultQtStyleName 
+            pass
         
         # Load toolss
         if iep.config.state.loadedTools:            

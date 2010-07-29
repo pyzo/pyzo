@@ -321,10 +321,9 @@ class FileItem(Item):
             self.move(self._indent ,self._y)
         elif self.underMouse():
             self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
-            if isMain: 
-                self.move(self._indent-1 ,self._y) # prevent "flickering"
-            else:
-                self.move(self._indent ,self._y)
+            self.move(self._indent ,self._y)
+            # Can flicker on gtk if isMain, but solving by correcting
+            # indentation makes it flicker on windows :)
         else:
             self.setFrameStyle(0)
             self.move(self._frameWidth+self._indent,self._y)

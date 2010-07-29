@@ -33,39 +33,23 @@ import iep
 from iepLogging import print
 
 
-aboutText = """ 
-IEP: the Interactive Editor for Python
-Current version: {}
-
-IEP is written in Python 3.x and uses the Qt4 widget
-toolkit. Much of its code was inspired by the Pype
-and IPython projects.
-
-Copyright (C) 2010, Almar Klein
-
-IEP is free software: you can redistribute it and/or
-modify it under the terms of the GNU General Public
-License as published by the Free Software Foundation,
-either version 3 of the License, or (at your option)
-any later version.
-
-IEP is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied
-warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License
-for more details.
-"""
-
-# Insert version text
-if iep.isFrozen():
-   aboutText = aboutText.format(iep.__version__ + ' (binary)')
-else:
-    aboutText = aboutText.format(iep.__version__ + ' (source)')
-
-# Remove newlines, while preserving double newlines
-aboutText = aboutText.replace('\n\n','<>')
-aboutText = aboutText.replace('\n', ' ')
-aboutText = aboutText.replace('<>', '\n\n')
+def unwrapText(text):
+    """ Unwrap text to display in message boxes. """
+    
+    # Remove double/triple/etc spaces
+    for i in range(10):
+        text = text.replace('  ', ' ')
+    
+    # Remove newlines, while preserving double newlines
+    text = text.replace('\n \n','<>')
+    text = text.replace('\n', ' ')
+    text = text.replace('<>', '\n\n')
+    
+    # Remove leftover double/triple/etc spaces
+    for i in range(4):
+        text = text.replace('  ', ' ')
+    
+    return text
 
 
 class MI:
@@ -756,12 +740,12 @@ class SettingsMenu(BaseMenu):
         """ Edit the style file. """
         text = """ 
         The syntax styling can be changed by editing the style
-        sheet, which will be opened after you press OK. The 
+        sheet, which will be opened after you press OK. The
         changes will be applied as soon as you'll save the file.
-        """   
+        """
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Edit syntax styling")
-        m.setText(text)
+        m.setText(unwrapText(text))
         m.setIcon(m.Information)
         m.setStandardButtons(m.Ok | m.Cancel)
         m.setDefaultButton(m.Ok)
@@ -781,7 +765,7 @@ class SettingsMenu(BaseMenu):
         """
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Advanced settings")
-        m.setText(text)
+        m.setText(unwrapText(text))
         m.setIcon(m.Information)
         m.exec_()
     
@@ -1083,12 +1067,40 @@ class HelpMenu(BaseMenu):
     
     def fun_about(self, value):
         """ Show the about text for IEP. """
+        
+        aboutText = """ 
+        IEP: the Interactive Editor for Python
+        Current version: {}
+        
+        IEP is written in Python 3.x and uses the Qt4 widget
+        toolkit. Much of its code was inspired by the Pype
+        and IPython projects.
+        
+        Copyright (C) 2010, Almar Klein
+        
+        IEP is free software: you can redistribute it and/or
+        modify it under the terms of the GNU General Public
+        License as published by the Free Software Foundation,
+        either version 3 of the License, or (at your option)
+        any later version.
+        
+        IEP is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied
+        warranty of MERCHANTABILITY or FITNESS FOR A
+        PARTICULAR PURPOSE. See the GNU General Public License
+        for more details.
+        """
+        # Insert version text
+        if iep.isFrozen():
+           aboutText = aboutText.format(iep.__version__ + ' (binary)')
+        else:
+            aboutText = aboutText.format(iep.__version__ + ' (source)')
         # Define icon and text
         im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("About IEP")
-        m.setText(aboutText)
+        m.setText(unwrapText(aboutText))
         m.setIconPixmap(im)
         m.exec_()
     

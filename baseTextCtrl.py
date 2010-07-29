@@ -38,7 +38,9 @@ if 'win' in sys.platform:
 elif 'mac' in sys.platform:
     FACES = {'serif': 'Lucida Grande', 'mono': 'Monaco', 'sans': 'Geneva'}
 else:
-    FACES = {'serif': 'Times', 'mono': 'mono', 'sans': 'Helvetica'}
+    # Monospace does not work on centos, no idea why, because its the default
+    # in gedit!
+    FACES = {'serif': 'Times', 'mono': 'Courier', 'sans': 'Helvetica'}
 
 # define style stuff
 subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT,
