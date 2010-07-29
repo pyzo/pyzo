@@ -86,6 +86,36 @@ def getResourceDirs():
     return iepDir, userDir, appDataDir
 
 
+def resetStyles():
+    """ resetStyles()
+    Replaces the style file with the default and re-applies the styles.
+    """
+    import shutil
+    # Copy file
+    styleFileName1 = os.path.join(iepDir, 'defaultStyles.ssdf')
+    styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')        
+    shutil.copy(styleFileName1, styleFileName2)
+    # Apply
+    try:
+        styleManager.loadStyles()
+    except NameError:
+        pass
+
+
+def resetConfig():
+    """ resetConfig()
+    Replaces the config fyle with the default and prevent IEP from storing
+    its config on the next shutdown.
+    """ 
+    import shutil
+    # Copy file
+    styleFileName1 = os.path.join(iepDir, 'defaultConfig.ssdf')
+    styleFileName2 = os.path.join(appDataDir, 'config.ssdf')        
+    shutil.copy(styleFileName1, styleFileName2)
+    global _saveConfigFile
+    _saveConfigFile = False
+
+
 def startIep():
     """ startIep()
     Run IEP.
@@ -149,7 +179,8 @@ def saveConfig():
         main.saveWindowState()
     
     # Store config
-    ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
+    if _saveConfigFile:
+        ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
 
 
 ## Init
@@ -162,6 +193,9 @@ icon = None # The icon
 parser = None # The source parser
 status = None # The statusbar (or None)
 styleManager = None # Object that manages syntax styles
+
+# Whether the config file should be saved
+_saveConfigFile = True
 
 # Get the paths
 iepDir, userDir, appDataDir = getResourceDirs()

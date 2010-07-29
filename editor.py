@@ -22,7 +22,7 @@ This module/class also implements all the relatively low level
 file loading/saving /reloading stuff.
 """
 
-import os
+import os, sys
 
 from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
@@ -31,6 +31,16 @@ qt = QtGui
 from baseTextCtrl import BaseTextCtrl, normalizePath
 import iep
 from iepLogging import print
+
+
+# Set default line ending (if not set)
+if not iep.config.settings.defaultLineEndings:
+    if 'win' in sys.platform:
+        iep.config.settings.defaultLineEndings = 'CRLF'
+    elif 'mac' in sys.platform:
+        iep.config.settings.defaultLineEndings = 'CR'
+    else:
+        iep.config.settings.defaultLineEndings = 'LF'
 
 
 def determineLineEnding(text):
@@ -63,6 +73,7 @@ def determineIndentation(text):
     The result is -1 if tab indents are most common.
     A positive result means spaces are used; the amount
     signifies the amount of spaces per indentation.
+    0 is returned if the indentation could not be determined.
     """
     
     # create dictionary of indents, -1 means a tab
@@ -176,19 +187,18 @@ def createEditor(parent, filename=None):
         
         # process line endings
         lineEndings = determineLineEnding(text)
-        text = text.replace('\r\n','\n').replace('\r','\n')
         
         # if we got here safely ...
         
         # create editor and set text
         editor = IepEditor(parent)
         editor.setText(text)
+        editor.setLineEndings(lineEndings)
         editor.makeDirty(False)
         
-        # store name and line endings
+        # store name and filename
         editor._filename = filename
         editor._name = os.path.split(filename)[1]
-        editor._lineEndings = lineEndings
         
         # process indentation
         indentWidth = determineIndentation(text)
@@ -234,13 +244,12 @@ class IepEditor(BaseTextCtrl):
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
-        # File settings
-        tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
-        self._lineEndings = tmp[iep.config.settings.defaultLineEndings]
-        
         # Init filename ane name
         self._filename = ''
         self._name = '<TMP>'
+        
+        # Set line endings to default
+        self.setLineEndings(iep.config.settings.defaultLineEndings)
         
         # Modification time to test file change 
         self._modifyTime = 0
@@ -377,6 +386,41 @@ class IepEditor(BaseTextCtrl):
         iep.main.setWindowTitle(title)
     
     
+    def setLineEndings(self, le=None):
+        """  Set the line ending style used in this editor.
+        le can be '\n', 'LF', '\r', 'CR', '\r\n', 'CRLF'.
+        If le is None, all line endings in the document are converted
+        to the current line ending style.
+        """ 
+        tmp = { 'LF':self.SC_EOL_LF, '\n':self.SC_EOL_LF, 
+                'CR':self.SC_EOL_CR, '\r':self.SC_EOL_CR, 
+                'CRLF':self.SC_EOL_CRLF, '\r\n':self.SC_EOL_CRLF} 
+        
+        # If le given, set new style
+        if le:
+            if le in tmp:
+                eol = tmp[le]
+                self.SendScintilla(self.SCI_SETEOLMODE, eol)
+            else:
+                raise ValueError('Unknown line ending style: ' + str(le))
+        
+        # Always convert
+        if True:
+            eol = self.SendScintilla(self.SCI_GETEOLMODE)
+            self.SendScintilla(self.SCI_CONVERTEOLS, eol)
+    
+    
+    def getLineEndings(self):
+        """ Return the line ending style in use.
+        Returns a tuple, the first element is one of LF, CR, CRLF,
+        the second is/are the line ending character(s),
+        """ 
+        tmp = { self.SC_EOL_LF: ('LF', '\n'), 
+                self.SC_EOL_CR: ('CR', '\r'), 
+                self.SC_EOL_CRLF: ('CRLF', '\r\n')} 
+        return tmp[self.SendScintilla(self.SCI_GETEOLMODE)]
+    
+    
     def save(self, filename=None):
         """ Save the file. No checking is done. """
         
@@ -390,21 +434,21 @@ class IepEditor(BaseTextCtrl):
         if self.testWhetherFileWasChanged():
             return
         
-        # get text and convert line endings
-        text = self.getString()
-        text = text.replace('\n', self._lineEndings)
+        # Make sure all line endings are the same
+        self.setLineEndings()
         
-        # make bytes
+        # Get text and make bytes
+        text = self.getString()
         bb = text.encode('UTF-8')
         
-        # store
+        # Store
         f = open(filename, 'wb')
         try:
             f.write(bb)
         finally:
             f.close()
         
-        # update stats
+        # Update stats
         self._filename = normalizePath( filename )
         self._name = os.path.split(self._filename)[1]        
         self.makeDirty(False)
@@ -419,26 +463,25 @@ class IepEditor(BaseTextCtrl):
 
     def reload(self):
         """ Reload text using the self._filename. 
-        We do not have a load method; let's first try to load the file
+        We do not have a load method; we first try to load the file
         and only when we succeed create an editor to show it in...
         This method is only for reloading in case the file was changed
         outside of the editor. """
         
-        # we can only load if the filename is known
+        # We can only load if the filename is known
         if not self._filename:
             return
         filename = self._filename
         
-        # load file (as bytes)
+        # Load file (as bytes)
         with open(filename, 'rb') as f:
             bb = f.read()
         
-        # convert to text
+        # Convert to text
         text = bb.decode('UTF-8')
         
-        # process line endings
-        self._lineEndings = determineLineEnding(text)
-        text = text.replace('\r\n','\n').replace('\r','\n')
+        # Process line endings
+        self.setLineEndings( determineLineEnding(text) )
         
         # set text
         self.setText(text)
@@ -504,7 +547,7 @@ class IepEditor(BaseTextCtrl):
             
             # Get some data
             indentWidth = self.getIndentation()
-            indent = b' '
+            indent = ' '
             if indentWidth == 0:
                 # This once could occur due to a bug which is now solved,
                 # this code made it self-solving, and there's no harm in
@@ -513,7 +556,7 @@ class IepEditor(BaseTextCtrl):
                 self.setIndentation(indentWidth)
             if indentWidth<0:
                 indentWidth = 1
-                indent = b'\t'
+                indent = '\t'
             
             if iep.config.settings.autoIndent:                
                 # check if style is ok...
@@ -531,10 +574,13 @@ class IepEditor(BaseTextCtrl):
                 text = removeComment( line )
                 ind = len(text) - len(text.lstrip())
                 ind = int(round(ind/indentWidth))
+                dummy, leChar = self.getLineEndings()
                 if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
-                    text2insert = b"\n"+indent*((ind+1)*indentWidth)
+                    text2insert = leChar+indent*((ind+1)*indentWidth)
                 else:                
-                    text2insert = b"\n"+indent*(ind*indentWidth)
+                    text2insert = leChar+indent*(ind*indentWidth)
+                # Make bytes and insert
+                text2insert = bytes(text2insert, 'utf-8')
                 self.insertText(pos, text2insert)
                 pos = self.getPosition()
                 self.setPositionAndAnchor( pos + len(text2insert) )

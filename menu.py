@@ -254,12 +254,11 @@ class FileMenu(BaseMenu):
         if editor is None:
             return ['no editor', '']
         
-        if value is None:                        
-            le = {'\n':'LF', '\r':'CR', '\r\n':'CRLF'}[editor._lineEndings]
+        if value is None:
+            le, dummy = editor.getLineEndings()
             return ['LF', 'CR', 'CRLF', le]
         else:
-            tmp = {'LF':'\n', 'CR':'\r', 'CRLF':'\r\n'}
-            editor._lineEndings = tmp[value]
+            editor.setLineEndings(value)
     
     def fun_indentation(self, value):
         """ The indentation style used for the current file. """
