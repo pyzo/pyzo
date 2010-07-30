@@ -32,25 +32,16 @@ from PyQt4 import Qsci
 qt = QtGui
 
 
-# define fontnames
-if 'win' in sys.platform:
-    FACES = {'serif': 'Times New Roman', 'mono': 'Courier New', 'sans': 'Arial'}
-elif 'mac' in sys.platform:
-    FACES = {'serif': 'Lucida Grande', 'mono': 'Monaco', 'sans': 'Geneva'}
-else:
-    # Monospace does not work on centos, no idea why, because its the default
-    # in gedit!
-    FACES = {'serif': 'Times', 'mono': 'Courier New', 'sans': 'Helvetica'}
-
-# define style stuff
-subStyleStuff = {   'face': Qsci.QsciScintillaBase. ,
+# Define style stuff
+subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT ,
                     'fore': Qsci.QsciScintillaBase.SCI_STYLESETFORE,
                     'back': Qsci.QsciScintillaBase.SCI_STYLESETBACK,
                     'size': Qsci.QsciScintillaBase.SCI_STYLESETSIZE,
                     'bold': Qsci.QsciScintillaBase.SCI_STYLESETBOLD,
                     'italic': Qsci.QsciScintillaBase.SCI_STYLESETITALIC,
                     'underline': Qsci.QsciScintillaBase.SCI_STYLESETUNDERLINE}
-
+    
+    
 def normalizePath(path):
     """ Normalize the path given. 
     All slashes will be made the same (and doubles removed)
@@ -200,17 +191,25 @@ class StyleManager(QtCore.QObject):
     
     def __init__(self):
         QtCore.QObject.__init__(self)
+        
+        # Init filename and test if it exists
         self._filename = os.path.join(iep.appDataDir, 'styles.ssdf')
         if not os.path.isfile(self._filename):
             raise RuntimeError("The stylefile does not exist: "+self._filename)
         self._filename = normalizePath(self._filename)
+        
+        # Init default fonts dicts
+        self._faces = {}
+        
+        # Init style structure and load it 
         self._styles = None
-        self.loadStyles()    
+        self.loadStyles()
+    
     
     def loadStyles(self, filename=None):
         """ Load the stylefile. """
         
-        # get filena,me
+        # get filename
         if not filename:
             filename = self._filename
         else:
@@ -225,15 +224,64 @@ class StyleManager(QtCore.QObject):
         # load file
         import ssdf
         self._styles = ssdf.load(filename)
-        self.buildStyleTree()
-        self.styleUpdate.emit()
+        # Try building style tree and emit signal on success
+        if self.buildStyleTree():
+            self.styleUpdate.emit() 
+    
     
     def getStyleNames(self):
+        """ Get a list of style names. """
         return [name for name in self._styles]
+    
+    
+    def selectDefaultFonts(self, editor):
+        """ Selects the default font by trying their existance.
+        This method has to be executed only once. It is called
+        automatically from applyStyle if _faces is not set.
+        """
+        
+        # Preferences for monospace fonts
+        if 'win' in sys.platform:
+            monoFaces = ['Courier New', 'Lucida Console']
+        elif 'mac' in sys.platform:
+            monoFaces = ['Monaco', 'Courier New']
+        else:
+            monoFaces = ['Mono', 'Fixed', 'Courier New']
+        
+        # Most important, select monospace font
+        # I like the good old Courier, but it usually looks greyish on Linux.
+        for fontName in monoFaces:    
+            # Set font (scintilla will use a default non-monospace font if the
+            # given font name is not available)
+            editor.SendScintilla(editor.SCI_STYLESETFONT, 32, fontName)
+            # Get widths of a short and a long character
+            w1 = editor.textWidth(32, "i"*10)
+            w2 = editor.textWidth(32, "w"*10)
+            # Compare, stop if ok
+            if w1 == w2:
+                self._faces['mono'] = fontName
+                #print('found mono:',fontName)
+                break
+        else:
+            print('Oops, could not detect a suitable monospace font!')
+            self._faces['mono'] = 'Courier New' # just set this
+        
+        # Sans font, is also selected if scintilla does not know the given font
+        self._faces['sans'] = 'Helvetica'
+        
+        # Serif font, I'm not sure whether this works on all OS's
+        self._faces['serif'] = 'Times'
+        
+        # Try building style tree now
+        self.buildStyleTree()
+    
     
     def buildStyleTree(self):
         """ Using the load ssdf file, build a tree such that
-        the styles can be applied to the editors easily. """
+        the styles can be applied to the editors easily. 
+        Requires _faces to be set. 
+        Returns True on success.
+        """
         
         # a stylefile is an ssdf file which contains styling information
         # for several style types.
@@ -242,7 +290,7 @@ class StyleManager(QtCore.QObject):
         # each substylenr) and can be based on any other style. 
         # All styles are automtically based on the style named default.
         
-        if self._styles is None:
+        if self._styles is None or not self._faces:
             return
         
         # do for each defined style
@@ -298,11 +346,14 @@ class StyleManager(QtCore.QObject):
                         subStyle['back'] = qt.QColor(tmp)
                     if s.startswith('face:'):
                         tmp = s[len('face:'):]
-                        subStyle['face'] = tmp.format(**FACES)
+                        subStyle['face'] = tmp.format(**self._faces)
                     if s.startswith('size:'):
                         tmp = s[len('size:'):]
                         subStyle['size'] = int(tmp)
                 #print(subStyle)
+        
+        # Done
+        return True
     
     
     def applyStyleNumber(self, editor, nr, subStyle):
@@ -369,6 +420,10 @@ class StyleManager(QtCore.QObject):
         The actual stylename is returned.
         """
         
+        # Are the default fonts set?
+        if not self._faces:
+            self.selectDefaultFonts(editor)
+		
         # make lower case
         styleName = styleName.lower()
         if not styleName:
@@ -482,7 +537,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def __init__(self, parent):
         Qsci.QsciScintillaBase.__init__(self,parent)
         
-        # be notified of style updates
+        # Be notified of style updates
         self._styleName = ''
         styleManager.styleUpdate.connect(self.setStyle)
         
@@ -609,7 +664,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # Notifications to bind to
         self.SCN_DOUBLECLICK.connect(self._onDoubleClick)
-        
+    
     
     def SendScintilla(self, *args):
         """ Overloaded method that transforms any string arguments to
