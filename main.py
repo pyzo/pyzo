@@ -179,7 +179,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.defaultQtStyleName = str(app.style().objectName())
         # Other than gtk+, cleanlooks looks best (is my opinion)
         if not 'gtk' in iep.defaultQtStyleName.lower():
-            iep.defaultQtStyleName = 'cleanlooks'
+            iep.defaultQtStyleName = 'Cleanlooks'
         
         # Set style if there is no style yet
         if not iep.config.view.qtstyle:
