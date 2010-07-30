@@ -151,7 +151,7 @@ class PositionHelper:
     def allowedToLimitNumberOfLines(self):
         """ allowedToLimitNumberOfLines()
         Returns a boolean indicating whether it is safe to reduce
-        the number of lines. Basically, this is the case if the cursore
+        the number of lines. Basically, this is the case if the cursor
         is not in the bulk.
         """ 
         

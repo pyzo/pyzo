@@ -1077,7 +1077,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
         # The style must be "default"
         curstyle = self.getStyleAt(self.getPosition())
-#         print(curstyle )
         if curstyle not in [0,10,11]:
             return False
         
@@ -1116,6 +1115,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         linenr, i = self.getLinenrAndIndex()
         text = self.getLineString(linenr)
         text = text[:i]
+        
+        # Are we in a comment (not detected by _isValidPython if at the end)
+        if text.lstrip().startswith('#'):
+            self.callTipCancel()
+            self.autoCompCancel()
+            return
         
         # Is the char valid for auto completion?
         if tryAutoComp:
