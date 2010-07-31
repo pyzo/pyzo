@@ -40,8 +40,8 @@ subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT ,
                     'bold': Qsci.QsciScintillaBase.SCI_STYLESETBOLD,
                     'italic': Qsci.QsciScintillaBase.SCI_STYLESETITALIC,
                     'underline': Qsci.QsciScintillaBase.SCI_STYLESETUNDERLINE}
-    
-    
+
+
 def normalizePath(path):
     """ Normalize the path given. 
     All slashes will be made the same (and doubles removed)
@@ -244,15 +244,14 @@ class StyleManager(QtCore.QObject):
         if 'win' in sys.platform:
             monoFaces = ['Courier New', 'Lucida Console']
         elif 'mac' in sys.platform:
-            monoFaces = ['Monaco', 'Courier New']
+            monoFaces = ['Courier New', 'Monaco']
         else:
-            monoFaces = ['Mono', 'Fixed', 'Courier New']
+            monoFaces = ['Courier New', 'Monospace', 'Fixed']
         
         # Most important, select monospace font
-        # I like the good old Courier, but it usually looks greyish on Linux.
         for fontName in monoFaces:    
-            # Set font (scintilla will use a default non-monospace font if the
-            # given font name is not available)
+            # Set font (scintilla will usyally use a default non-monospace
+            # font if the given font name is not available)
             editor.SendScintilla(editor.SCI_STYLESETFONT, 32, fontName)
             # Get widths of a short and a long character
             w1 = editor.textWidth(32, "i"*10)
@@ -321,11 +320,11 @@ class StyleManager(QtCore.QObject):
                 # in a dict. 
                 subStyleString = style[styleNr].lower()
                 subStyleString = subStyleString.split(' # ')[0] # remove comments
-                subStyleString = subStyleString.replace(',', ' ')
-                subStyleString = subStyleString.replace(';', ' ')
+                subStyleString = subStyleString.replace(',', ';')
                 
-                # split in parts
-                subStyleStrings = subStyleString.split(' ')
+                # split in parts (strip each part of leading+trailing spaces)
+                subStyleStrings = subStyleString.split(';')                
+                subStyleStrings = [s.strip() for s in subStyleStrings]
                 
                 # store results in here
                 subStyle = style[styleNr] = ssdf.new()
