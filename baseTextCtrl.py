@@ -246,8 +246,7 @@ class StyleManager(QtCore.QObject):
         elif 'mac' in sys.platform:
             monoFaces = ['Courier New', 'Monaco']
         else:
-            monoFaces = ['Courier New', 'Monospace', 'Fixed']
-        
+            monoFaces = ['Courier New', 'Liberation Mono', 'Monospace', 'Fixed']
         # Most important, select monospace font
         for fontName in monoFaces:    
             # Set font (scintilla will usyally use a default non-monospace
