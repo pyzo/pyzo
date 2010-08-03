@@ -716,7 +716,7 @@ class ShellInfo:
     def getEnviron(self, ScriptFilename=None):
         """  Gets the environment to give to the remote process,
         such that it can start up as the user wants to. 
-        If ScriptFilename is given, us that as the script file
+        If ScriptFilename is given, use that as the script file
         to execute.
         """ 
         

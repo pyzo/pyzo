@@ -268,76 +268,88 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         
         # Init
-        offset = 20
+        offset1 = 20
+        offset2 = 200
+        desWidth = offset2 - offset1 - 5  # Width of description text
         y = 10
         dy = 26
         
+        def createLabel(y, text):
+            label = QtGui.QLabel(self)            
+            label.setWordWrap(True)
+            label.setText(text)            
+            label.setMaximumWidth(desWidth)
+            label.move(offset1, y)
+            return label.height()
+        
         # Create name entry
-        label = QtGui.QLabel(self)
-        label.move(offset, y)
-        label.setText('Configuration name')        
+        dy_label = createLabel(y, 'Name:\n(The name of this configuration.)')
         self._name = QtGui.QLineEdit(self)        
-        self._name.move(offset, y+16)
-        y += dy + self._name.height()
+        self._name.move(offset2, y)
+        y += dy + max(dy_label, self._name.height())
         
         # Create executable entry
-        label = QtGui.QLabel(self)
-        label.move(offset, y)
-        label.setText('Executable (e.g. "python" or "/usr/python3.1"\n'+
-                            ' or"c:/program files/python24/python.exe" )')
-        y += 16
-        #self._exe = QtGui.QLineEdit(self)
+        dy_label = createLabel(y, 'Executable:\n(e.g. "python"' 
+            ' or "/usr/python3.1" or "c:/program files/python24/python.exe")')
         self._exe = QtGui.QComboBox(self)
         self._exe.setEditable(True)
         self._exe.setInsertPolicy(self._exe.InsertAtTop)
-        self._exe.move(offset, y+16)
-        self._exe.resize(350, self._exe.height())
-        y += dy + self._exe.height()
+        self._exe.move(offset2, y)
+        self._exe.resize(290, self._exe.height())
+        y += dy + max(dy_label, self._exe.height())
         
         # Create GUI toolkit chooser
         dx = 60
-        label = QtGui.QLabel(self)
-        label.move(offset, y)
-        label.setText('Integrate event loop for GUI toolkit:')        
+        dy_label = createLabel(y, 'GUI toolkit:\n(The event loop for the'+
+            'selected GUI toolkit is integrated in the interpreter.)')
         #
         self._gui_none = QtGui.QRadioButton(self)
-        self._gui_none.move(offset+dx*0, y+16)
+        self._gui_none.move(offset2+dx*0, y)
         self._gui_none.setText('None')
         #
         self._gui_tk = QtGui.QRadioButton(self)
-        self._gui_tk.move(offset+dx*1, y+16)
+        self._gui_tk.move(offset2+dx*1, y)
         self._gui_tk.setText('TK')
         #
         self._gui_wx = QtGui.QRadioButton(self)
-        self._gui_wx.move(offset+dx*2, y+16)
+        self._gui_wx.move(offset2+dx*2, y)
         self._gui_wx.setText('WX')
         #
         self._gui_qt4 = QtGui.QRadioButton(self)
-        self._gui_qt4.move(offset+dx*3, y+16)
+        self._gui_qt4.move(offset2+dx*3, y)
         self._gui_qt4.setText('QT4')
         #
         self._gui_fl = QtGui.QRadioButton(self)
-        self._gui_fl.move(offset+dx*4, y+16)
+        self._gui_fl.move(offset2+dx*4, y)
         self._gui_fl.setText('FLTK')
         #        
-        y += dy + self._gui_none.height()
-        
-        # Create run startup script checkbox
-        label = QtGui.QLabel(self)
-        label.move(offset, y)
-        label.setText('Run PYTHONSTARTUP (if set).')
-        self._runsus = QtGui.QCheckBox(self)
-        self._runsus.move(offset, y+16)
-        y += dy + self._runsus.height()
+        y += dy + max(dy_label, self._gui_none.height())
         
         # Create initial directory edit
-        label = QtGui.QLabel(self)
-        label.move(offset, y)
-        label.setText('Initial directory (e.g. "/home/almar/py")')        
+        dy_label = createLabel(y, 'Initial directory:\n(e.g. "/home/almar/py")')
         self._startdir = QtGui.QLineEdit(self)        
-        self._startdir.move(offset, y+16)
-        self._startdir.resize(350, self._startdir.height())
-        y += dy + self._startdir.height()
+        self._startdir.move(offset2, y)
+        self._startdir.resize(290, self._startdir.height())
+        y += dy + max(dy_label, self._startdir.height())
+        
+        # Create Pythonpath line edit
+        dy_label = createLabel(y, 'PYTHONPATH:\n(One path per line.)')
+        self._ppCheck = QtGui.QCheckBox(self)        
+        self._ppCheck.setText('Use system default')
+        self._ppCheck.move(offset2, y)
+        self._ppCheck.stateChanged.connect(self.pythonPathCheckBoxCallback)
+        #
+        self._ppList = QtGui.QTextEdit(self)
+        self._ppList.move(offset2, y+self._ppCheck.height())
+        self._ppList.resize(290, 60)
+        #
+        y += dy + max(dy_label, self._ppCheck.height()+self._ppList.height())
+        
+        # Create run startup script checkbox
+        dy_label = createLabel(y, 'Run PYTHONSTARTUP (if set).')
+        self._runsus = QtGui.QCheckBox(self)
+        self._runsus.move(offset1, y+16)
+        y += dy + self._runsus.height()
         
         # Create close button
         #self._close = QtGui.QToolButton(self)
@@ -346,11 +358,15 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         self._close.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
         closeSize = self._close.iconSize()
         #self._close.move(400-closeSize.width()-20, 10)
-        self._close.move(offset, y+16)
+        self._close.move(offset1, y+16)
         self._close.setText('Remove this config')
         self._close.clicked.connect(self.onClose)
         
-        # Show!
+        # Define size and show
+        size = 500, y
+        self.resize(*size)
+        self.setMaximumSize(*size)
+        self.setMinimumSize(*size)        
         self.show()
         
         # Init values
@@ -358,6 +374,18 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         
         # Editing the name should edit it in the tab
         self._name.editingFinished.connect(self.setNameInTab)
+    
+    
+    def pythonPathCheckBoxCallback(self, state):
+        
+        # Enable or disable
+        self._ppList.setEnabled(not state)
+        if state:
+            pp = os.environ.get('PYTHONPATH','')
+            pp = pp.replace(';','\n').replace(',','\n')
+            if not 'win' in sys.platform:
+                pp = pp.replace(':','\n')
+            self._ppList.setText(pp+'\n')
     
     
     def setDefaults(self):
@@ -447,23 +475,12 @@ class ShellInfoDialog(QtGui.QDialog):
     def __init__(self, *args):
         QtGui.QDialog.__init__(self, *args)
         
-        # set title
+        # Set title
         self.setWindowTitle('IEP - shell configurations')
         self.setWindowIcon(iep.icon)
         
-        # set size
-        size = 400,400
-        offset = 0
-        
-        size2 = size[0], size[1]+offset
-        self.resize(*size2)
-        self.setMaximumSize(*size2)
-        self.setMinimumSize(*size2)
-        
         # Create tab widget
         self._tabs = QtGui.QTabWidget(self)
-        self._tabs.resize(*size)
-        self._tabs.move(0,offset)
         self._tabs.setMovable(True)
         
         # Introduce an entry if there's none
@@ -482,12 +499,37 @@ class ShellInfoDialog(QtGui.QDialog):
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
         self._add.setText('+')
+        
+        # Create buttons
+        cancelBut = QtGui.QPushButton("Cancel", self)        
+        okBut = QtGui.QPushButton("Ok", self)
+        cancelBut.clicked.connect(self.close)
+        okBut.clicked.connect(self.applyAndClose)
+        # Layout for buttons
+        buttonLayout = QtGui.QHBoxLayout()
+        buttonLayout.addStretch(1)
+        buttonLayout.addWidget(cancelBut)
+        buttonLayout.addSpacing(10)
+        buttonLayout.addWidget(okBut)
+        
+        
+        # Layout the widgets
+        mainLayout = QtGui.QVBoxLayout()
+        mainLayout.addSpacing(8)
+        mainLayout.addWidget(self._tabs,0)
+        mainLayout.addLayout(buttonLayout,0)
+        self.setLayout(mainLayout)
+        
+        # Prevent resizing
+        self.show()
+        size = self.size()
+        self.setMaximumSize(size)
+        self.setMinimumSize(size)
     
     
-    def closeEvent(self, event):
-        """ Apply first! """
+    def applyAndClose(self, event=None):
         self.apply()
-        QtGui.QDialog.closeEvent(self, event)
+        self.close()
     
     
     def onAdd(self):
