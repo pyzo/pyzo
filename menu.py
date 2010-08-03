@@ -801,13 +801,13 @@ class ShellMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Run selected lines', self.fun_runSelected) )
-        addItem( MI('Run cell', self.fun_runCell) )
-        addItem( MI('Run file', self.fun_runFile) )
-        addItem( MI('Run project main file', self.fun_runProject) )
-        addItem( None )
-        addItem( MI('Run file as script', self.fun_runFile2))
-        addItem( MI('Run project main file as script', self.fun_runProject2))
+#         addItem( MI('Run selected lines', self.fun_runSelected) )
+#         addItem( MI('Run cell', self.fun_runCell) )
+#         addItem( MI('Run file', self.fun_runFile) )
+#         addItem( MI('Run project main file', self.fun_runProject) )
+#         addItem( None )
+#         addItem( MI('Run file as script', self.fun_runFile2))
+#         addItem( MI('Run project main file as script', self.fun_runProject2))
         
         addItem( None )
         
@@ -858,6 +858,20 @@ class ShellMenu(BaseMenu):
         if shell:
             shell.restart()
     
+
+class RunMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Run selected lines', self.fun_runSelected) )
+        addItem( MI('Run cell', self.fun_runCell) )
+        addItem( MI('Run file', self.fun_runFile) )
+        addItem( MI('Run project main file', self.fun_runProject) )
+        addItem( None )
+        addItem( MI('Run file as script', self.fun_runFile2))
+        addItem( MI('Run project main file as script', self.fun_runProject2))
+        
 
     def fun_runSelected(self, value):
         """ Run the selected whole lines in the current shell. """
@@ -1117,6 +1131,7 @@ class MenuHelper:
                     ('View', ViewMenu),                    
                     ('Settings', SettingsMenu),
                     ('Shell', ShellMenu),
+                    ('Run', RunMenu),
                     ('Tools', ToolsMenu),
                     ('Help', HelpMenu),
                 ]
