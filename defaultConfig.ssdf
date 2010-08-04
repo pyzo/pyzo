@@ -65,8 +65,11 @@ shellConfigs = list:
         name = 'default'
         exe = 'python'
         gui = ''
-        runsus = 1
-        startdir = ''
+        startDir = ''
+        PYTHONSTARTUP_custom = ''
+        PYTHONSTARTUP_useCustom = 0
+        PYTHONPATH_custom = ''
+        PYTHONPATH_useCustom = 0
 
 shortcuts = dict:
     edit__paste = 'Ctrl+V,Shift+Insert'

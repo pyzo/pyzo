@@ -1084,7 +1084,10 @@ class HelpMenu(BaseMenu):
         
         aboutText = """ 
         IEP: the Interactive Editor for Python
+        
         Current version: {}
+        
+        IEP appdata directory: {}
         
         IEP is written in Python 3.x and uses the Qt4 widget
         toolkit. Much of its code was inspired by the Pype
@@ -1105,10 +1108,11 @@ class HelpMenu(BaseMenu):
         for more details.
         """
         # Insert version text
+        tmp = iep.appDataDir
         if iep.isFrozen():
-           aboutText = aboutText.format(iep.__version__ + ' (binary)')
+           aboutText = aboutText.format(iep.__version__ + ' (binary)', tmp)
         else:
-            aboutText = aboutText.format(iep.__version__ + ' (source)')
+            aboutText = aboutText.format(iep.__version__ + ' (source)', tmp)
         # Define icon and text
         im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
         # Show message box

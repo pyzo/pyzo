@@ -666,23 +666,38 @@ class ShellInfo:
     """ Helper class to build the command to start the remote python
     process. 
     """
-    def __init__(self, exe='python', gui='', runsus=True, startdir=''):
+    def __init__(self, info=None):
         
         # Set defaults
-        if not exe:
-            exe = 'python'
-        if not gui:
-            gui = 'none'
-        if not startdir:
-            startdir = ''
-        # Corrections for spaces in path
-        if exe.count(' '):
-            exe = '"' + exe + '"'
-        # Store
-        self.exe = exe
-        self.gui = gui
-        self.runsus = bool(runsus) # run start up script
-        self.startdir = startdir
+        self.exe = 'python'
+        self.gui = 'none'
+        self.PYTHONPATH = os.environ.get('PYTHONPATH','')            
+        self.PYTHONSTARTUP = os.environ.get('PYTHONSTARTUP','')
+        self.startDir = ''
+        
+        # Get path division char
+        if 'win' in sys.platform:
+            div = ';'
+        else:
+            div = ':'
+        
+        # Set info if given
+        if info:
+            try:
+                self.exe = info.exe
+                self.gui = info.gui
+                if info.PYTHONPATH_useCustom:
+                    self.PYTHONPATH = info.PYTHONPATH_custom.replace('\n',div)
+                if info.PYTHONSTARTUP_useCustom:
+                    self.PYTHONSTARTUP = info.PYTHONSTARTUP_custom
+                self.startDir = info.startDir
+            except Exception:
+               pass
+        
+        # Correct path when it contains spaces
+        if self.exe.count(' '):
+            self.exe = '"' + self.exe + '"'
+    
     
     def getCommand(self, port):
         """ Given the port of the channels interface, creates the 
@@ -692,15 +707,9 @@ class ShellInfo:
         startScript = '"{}"'.format(startScript)
         
         # Build command
-        command = self.exe + ' '
-        command += startScript + ' '
-        command += str(port) + ' '
-        command += self.gui + ' '
-        command += str(int(self.runsus)) + ' '
-        command += '"{}"'.format(self.startdir)
-        # todo: remove bits here
+        command = self.exe + ' ' + startScript + ' ' + str(port)
         
-        if sys.platform.count('win'):
+        if 'win' in sys.platform:
             # as the author from Pype writes:
             #if we don't run via a command shell, then either sometimes we
             #don't get wx GUIs, or sometimes we can't kill the subprocesses.
@@ -713,7 +722,7 @@ class ShellInfo:
         return command
     
     
-    def getEnviron(self, ScriptFilename=None):
+    def getEnviron(self, scriptFilename=None):
         """  Gets the environment to give to the remote process,
         such that it can start up as the user wants to. 
         If ScriptFilename is given, use that as the script file
@@ -724,16 +733,22 @@ class ShellInfo:
         # since they're wrong when frozen. Python will insert the
         # correct ones if required.
         env = os.environ.copy()
+        #
         env.pop('TK_LIBRARY','') 
         env.pop('TCL_LIBRARY','')
+        env['PYTHONPATH'] = self.PYTHONPATH
         
         # Insert iep specific variables
         env['iep_gui'] = self.gui
-        env['iep_startDir'] = self.startdir
-        #env['iep_runStartupScript'] = str(self.runsus)
-        if not ScriptFilename:
-            ScriptFilename = ''
-        env['iep_scriptFile'] = ScriptFilename
+        env['iep_startDir'] = self.startDir
+        
+        # Depending on mode (interactive or script)
+        if scriptFilename:
+            env['iep_scriptFile'] = scriptFilename
+        else:
+            env['iep_scriptFile'] = ''
+            env['PYTHONSTARTUP'] = self.PYTHONSTARTUP            
+        
         # Done
         return env
 
@@ -759,13 +774,8 @@ class PythonShell(BaseShell):
         
         # Store info 
         if info is None and iep.config.shellConfigs:
-            # Get it from known configurations            
             info = iep.config.shellConfigs[0]
-        if info is None:
-            info = ShellInfo()
-        if not isinstance(info, ShellInfo):
-            info = ShellInfo(info.exe, info.gui, info.runsus, info.startdir)
-        self._info = info
+        self._shellInfo = ShellInfo(info)
         
         # For the editor to keep track of attempted imports
         self._importAttempts = []
@@ -843,11 +853,12 @@ class PythonShell(BaseShell):
         # Host it (tries several port numbers, staring from 'IEP')
         port = c.host('IEP')
         
-        # Start process
-        command = self._info.getCommand(port)
-        env = self._info.getEnviron(self._pendingScriptFilename)
+        # Start process (open PYPES to detect errors when starting up)
+        command = self._shellInfo.getCommand(port)
+        env = self._shellInfo.getEnviron(self._pendingScriptFilename)
         self._process = subprocess.Popen(command, 
-                               shell=True, env=env, cwd=iep.iepDir)  
+                                shell=True, env=env, cwd=iep.iepDir,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)  
         
         # Reset pending script
         self._pendingScriptFilename = None
@@ -1447,9 +1458,10 @@ class PythonShell(BaseShell):
             # check whether it's still there
             if self._process.poll():
                 self._restart = False
+                print('Process stdout:', self._process.stdout.read())
+                print('Process stderr:', self._process.stderr.read())
                 self._afterDisconnect('The process failed to start.')
-            
-            
+    
     
     def poll_terminating(self):
         """ The timer callback method when the process is being terminated. 
