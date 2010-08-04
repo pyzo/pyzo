@@ -374,7 +374,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
 #         y += self._close.height() + 30
         
         # Define size and show
-        size = 500, y
+        size = 550, y
         self.resize(*size)
         self.setMaximumSize(*size)
         self.setMinimumSize(*size)        
