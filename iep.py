@@ -102,16 +102,19 @@ def resetStyles():
         pass
 
 
-def resetConfig():
+def resetConfig(preserveState=True):
     """ resetConfig()
     Replaces the config fyle with the default and prevent IEP from storing
     its config on the next shutdown.
     """ 
-    import shutil
-    # Copy file
-    styleFileName1 = os.path.join(iepDir, 'defaultConfig.ssdf')
-    styleFileName2 = os.path.join(appDataDir, 'config.ssdf')        
-    shutil.copy(styleFileName1, styleFileName2)
+    # Get filenames
+    configFileName1 = os.path.join(iepDir, 'defaultConfig.ssdf')
+    configFileName2 = os.path.join(appDataDir, 'config.ssdf')        
+    # Read, edit, write
+    tmp = ssdf.load(configFileName1)
+    if preserveState:
+        tmp.state = config.state
+    ssdf.save(configFileName2, tmp)    
     global _saveConfigFile
     _saveConfigFile = False
     print("Replaced config file. Restart IEP to revert to the default config.")

@@ -1032,6 +1032,9 @@ class Hijacked_tk:
         
         # Store the app instance to process events
         self.app = r
+        
+        # Notify that we integrated the event loop
+        Tkinter._integratedEventLoop = 'IEP'
     
     def processEvents(self):
         self.app.update()
@@ -1057,6 +1060,9 @@ class Hijacked_fltk:
         
         # Store the app instance to process events
         self.app =  fl.Fl
+        
+        # Notify that we integrated the event loop
+        fl._integratedEventLoop = 'IEP'
     
     def processEvents(self):
         self.app.wait(0)
@@ -1076,6 +1082,9 @@ class Hijacked_fltk2:
         
         # Return the app instance to process events
         self.app = fl
+        
+        # Notify that we integrated the event loop
+        fl._integratedEventLoop = 'IEP'
     
     def processEvents(self):
         # is this right?
@@ -1088,6 +1097,7 @@ class Hijacked_qt4:
     
     def __init__(self):
         # Try importing qt        
+        import PyQt4
         from PyQt4 import QtGui, QtCore
         
         # Create app class
@@ -1102,6 +1112,10 @@ class Hijacked_qt4:
         # Store the app instance to process events 
         QtGui.QApplication = QtGui.qApp = app = QHijackedApp()
         self.app = app
+        
+        # Notify that we integrated the event loop
+        PyQt4._integratedEventLoop = 'IEP'
+        QtGui._integratedEventLoop = 'IEP'
     
     def processEvents(self):
         self.app.flush()
@@ -1147,6 +1161,9 @@ class Hijacked_wx:
         #self.app = wx.App(redirect=False)
         #self.app.SetExitOnFrameDelete(False)
         #self.app.RestoreStdio()
+        
+        # Notify that we integrated the event loop
+        wx._integratedEventLoop = 'IEP'
     
     def processEvents(self):
         wx = self.wx
