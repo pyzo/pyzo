@@ -100,7 +100,6 @@ class IepInterpreter:
         sys.stdout.write("Python %s on %s.\n%s\n" %
             (sys.version, sys.platform, cprt))
         
-        
         # Integrate event loop of GUI toolkit
         self.guiApp = None
         guiName = os.environ.get('iep_gui', '')
@@ -138,20 +137,12 @@ class IepInterpreter:
         if thisPath in sys.path:
             sys.path.remove(thisPath)
         
-        # Go to start dir
-        startDir = os.environ.get('iep_startDir')
-        if startDir and os.path.isdir(startDir):
-            os.chdir(startDir)
-        else:
-            os.chdir(os.path.expanduser('~')) # home dir        
-        
         # Get whether we should (and can) run as script
         scriptFilename = os.environ.get('iep_scriptFile')
         if scriptFilename:
             if not os.path.isfile(scriptFilename):
                 sys.stdout.write('Invalid script file: "'+scriptFilename+'"\n')
                 scriptFilename = None
-        
         
         if scriptFilename:
             # RUN AS SCRIPT
@@ -165,6 +156,9 @@ class IepInterpreter:
             theDir = os.path.abspath( os.path.dirname(scriptFilename) )
             if theDir not in sys.path:
                 sys.path.insert(0, theDir)
+            
+            # Go to script dir
+            os.chdir( os.path.dirname(scriptFilename) )
             
             # Notify the running of the script
             sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
@@ -182,6 +176,13 @@ class IepInterpreter:
             # Insert current directory to path
             sys.path.insert(0, '')
             
+            # Go to start dir
+            startDir = os.environ.get('iep_startDir')
+            if startDir and os.path.isdir(startDir):
+                os.chdir(startDir)
+            else:
+                os.chdir(os.path.expanduser('~')) # home dir 
+                
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
