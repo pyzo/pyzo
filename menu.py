@@ -570,7 +570,9 @@ class ViewMenu(BaseMenu):
                 iep.config.view.zoom -= 1
             else:
                 iep.config.view.zoom = 0
-            iep.styleManager.styleUpdate.emit()
+            # Apply
+            for e in iep.getAllScintillas():                
+                e.zoomTo(iep.config.view.zoom)
     
     def fun_lineHighlight(self, value):
         """ Whether the line containing the cursor should be highlighted. """
@@ -626,6 +628,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Enable auto completion', self.fun_autoComplete, []) )
         addItem( MI('Autocomplete keywords', self.fun_autoComplete_kw, []) )
         addItem( MI('Autocomplete case sensitive', self.fun_autoComplete_case, []) )
+        addItem( MI('Autocomplete select chars', self.fun_autoComplete_fillups, []) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, []) )
         addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
@@ -689,7 +692,9 @@ class SettingsMenu(BaseMenu):
         else:
             value = not bool(iep.config.settings.shellFit80)
             iep.config.settings.shellFit80 = value
-            iep.styleManager.styleUpdate.emit()
+            for s in iep.getAllScintillas():
+                if hasattr(s, 'updateFontSizeToMatch80Columns'):
+                    s.updateFontSizeToMatch80Columns()
     
     def fun_autoComplete(self, value):
         """ Show auto-completion list queried from editor and shell. """
@@ -714,6 +719,31 @@ class SettingsMenu(BaseMenu):
         else:
             value = not bool(iep.config.settings.autoComplete_caseSensitive)
             iep.config.settings.autoComplete_caseSensitive = value
+    
+    def fun_autoComplete_fillups(self, value):
+        """ Selected autocomp item is inserted when typing these chars. """
+        if value is None:
+            # Show options
+            options = ['Tab', 'Tab and Enter', 'Tab, Enter and "([."']
+            if '.' in iep.config.settings.autoComplete_fillups:
+                options.append( options[2] )
+            elif '\n' in iep.config.settings.autoComplete_fillups:
+                options.append( options[1] )
+            else:
+                options.append( options[0] )
+            return options
+        else:
+            # Process selection
+            if '.' in value:
+                iep.config.settings.autoComplete_fillups = '\n.(['
+            elif 'enter' in value.lower():
+                iep.config.settings.autoComplete_fillups = '\n'
+            else:
+                iep.config.settings.autoComplete_fillups = ''
+            # Apply
+            tmp = iep.config.settings.autoComplete_fillups
+            for e in iep.getAllScintillas():                
+                e.SendScintilla(e.SCI_AUTOCSETFILLUPS, tmp)
     
     def fun_callTip(self, value):
         """ Show a call tip for functions and methods. """
@@ -1157,8 +1187,8 @@ class MenuHelper:
     
     def onHover(self, action):
         #print('hover:', action.text())
+        QtGui.QToolTip.hideText()
         QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.toolTip())
-
     
 
 def getFullName(action):

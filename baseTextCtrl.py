@@ -24,6 +24,7 @@ is common for both shells and editors.
 
 import iep
 import os, sys, time
+import weakref
 import ssdf
 from iepLogging import print
 
@@ -386,7 +387,6 @@ class StyleManager(QtCore.QObject):
                 if key in subStyle:
                     value = subStyle[key]
                     editor.SendScintilla(scintillaCommand, nr, value)
-        
     
     def collectStyle(self, styleStruct, styleName):
         """ Collect the styleStruct, taking style inheritance
@@ -448,6 +448,9 @@ class StyleManager(QtCore.QObject):
         self.collectStyle(styleStruct, styleName)
         
         # clear all formatting
+        editor.SendScintilla(subStyleStuff['bold'], 32, 0)
+        editor.SendScintilla(subStyleStuff['italic'], 32, 0)
+        editor.SendScintilla(subStyleStuff['underline'], 32, 0)
         editor.SendScintilla(editor.SCI_CLEARDOCUMENTSTYLE)
         
         if True: # apply always
@@ -511,6 +514,20 @@ def makeBytes(text):
         raise ValueError("Expected str or bytes!")
 
 
+_allScintillas = []
+def getAllScintillas():
+    """ Get a list of all the scintialla editing components that 
+    derive from BaseTextCtrl. Used mainly by the menu.
+    """
+    for i in reversed(range(len(_allScintillas))):
+        e = _allScintillas[i]()
+        if e is None:
+            _allScintillas.pop(i)
+        else:
+            yield e
+iep.getAllScintillas = getAllScintillas
+
+
 class BaseTextCtrl(Qsci.QsciScintilla):
     """ The base text control class.
     Inherited by the shell class and the IEP editor.
@@ -534,6 +551,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
     def __init__(self, parent):
         Qsci.QsciScintillaBase.__init__(self,parent)
+        
+        # Register
+        _allScintillas.append(weakref.ref(self))
         
         # Be notified of style updates
         self._styleName = ''
@@ -637,9 +657,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # If True SCI_AUTOCCANCEL when the caret moves before the start pos 
         self.SendScintilla(self.SCI_AUTOCSETCANCELATSTART, False)
         
-        # These characters will SCI_AUTOCCOMPLETE automatically when typed
-        # I prefer not to have fillups.
-        self.SendScintilla(self.SCI_AUTOCSETFILLUPS, '')
+        # These characters will SCI_AUTOCCOMPLETE automatically when typed        
+        tmp = iep.config.settings.autoComplete_fillups
+        self.SendScintilla(self.SCI_AUTOCSETFILLUPS, tmp)
         
         # If True, will SCI_AUTOCCOMPLETE when list has only one item
         self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
@@ -648,8 +668,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         # we will also do the check ourselves 
         self.SendScintilla(self.SCI_AUTOCSETAUTOHIDE, True)
         
-        # Set case sensitifity - case insensitivity is so very handy
-        self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, True)
+        # Set case sensitifity
+        tmp = iep.config.settings.autoComplete_caseSensitive
+        self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, not tmp)
         
         # If True, will erase the word-chars following the caret 
         # before inserting selected text. Please don't!
@@ -971,14 +992,14 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     
     def setStyle(self, styleName=None):
-        """ Set the styling used, or the extension of the file. """
+        """ Set the styling to use. styleName can be None, in which case the
+        style is only updated, or the extension of the file. 
+        """
         # remember style or use remebered style
         if styleName is None:
             styleName = self._styleName        
         # apply and remember
         self._styleName = styleManager.applyStyle(self,styleName)
-        # apply zooming
-        self.zoomTo(iep.config.view.zoom)
     
     
     def getStyleName(self):
@@ -1279,12 +1300,22 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         If return False or None, keyPressHandler_autoComp or 
         keyPressHandler_normal is called, depending on whether the
         autocompletion list is active.
-        """        
+        """
         # Enable backtabbing
         if event.key == QtCore.Qt.Key_Backtab and event.shiftdown:            
             self.SendScintilla(self.SCI_BACKTAB)
             return True
         
+        # Enable completion with enter
+        enterKeys = [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]
+        fillups = iep.config.settings.autoComplete_fillups
+        if self.autoCompActive():
+            if (event.key in enterKeys) and ('\n' in fillups):
+                self.SendScintilla(self.SCI_AUTOCCOMPLETE)
+                return True
+#             elif event.char and event.char in fillups:                
+#                 self.SendScintilla(self.SCI_AUTOCCOMPLETE)
+    
     
     def keyPressHandler_autoComp(self, event):
         """ keyPressHandler_autoComp(event)
@@ -1315,7 +1346,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             
             # Apply
             self.processHelp(name,True)
-
+    
     
     def keyPressHandler_normal(self, event):
         """ keyPressHandler_normal(event)
@@ -1324,21 +1355,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         will not process the event further.
         """
         return False
-        
-        
-#         if event.key == QtCore.Qt.Key_Escape:
-#             # clear signature of current object 
-#             self._introspect_signature = ("","")
-        
-#         if event.key == QtCore.Qt.Key_Backspace:
-#             doAutocomplete(self, '', '')
-#             #wx.CallAfter(self.Introspect_autoComplete)
-#             #wx.CallAfter(self.Introspect_signature)
-            
-#         if event.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
-#             # show signature also when moving inside it
-#             pass
-#             #wx.CallAfter(self.Introspect_signature)
+
 
 
 

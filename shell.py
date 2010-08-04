@@ -211,15 +211,14 @@ class BaseShell(BaseTextCtrl):
     
     def resizeEvent(self, event):
         """ When resizing the fontsize nust be kept right. """
-        BaseTextCtrl.resizeEvent(self, event)
-        if iep.config.settings.shellFit80:
-            self.updateFontSizeToMatch80Columns()
+        BaseTextCtrl.resizeEvent(self, event)        
+        self.updateFontSizeToMatch80Columns()
     
     
-    def setStyle(self, styleName=None):
-        BaseTextCtrl.setStyle(self, styleName)
-        if iep.config.settings.shellFit80:
-            self.updateFontSizeToMatch80Columns()
+#     def setStyle(self, styleName=None):
+#         BaseTextCtrl.setStyle(self, styleName)
+#         if iep.config.settings.shellFit80:
+#             self.updateFontSizeToMatch80Columns()
     
     
     def updateWidgetSizeToMatch80Columns(self):
@@ -249,6 +248,10 @@ class BaseShell(BaseTextCtrl):
         # Init zooming to users choice
         zoom = iep.config.view.zoom
         self.zoomTo(zoom)
+        
+        # Should we do this?
+        if not iep.config.settings.shellFit80:
+            return
         
         # Init variables
         width = self.width()
