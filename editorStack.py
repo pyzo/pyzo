@@ -1205,7 +1205,7 @@ class EditorStack(QtGui.QWidget):
         for qurl in event.mimeData().urls():
             path = str( qurl.path() )
             if sys.platform.count('win'):
-                path = path[1:]            
+                path = path[1:]
             if os.path.isfile(path):
                 self.loadFile(path)
             elif os.path.isdir(path):

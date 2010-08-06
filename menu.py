@@ -429,7 +429,7 @@ class ViewMenu(BaseMenu):
         addItem( MI('Show line endings', self.fun_showLineEndings, []) )
         addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
         addItem( MI('Show indentation guides', self.fun_indentGuides, []) )
-        addItem( MI('Show status bar', self.fun_showStatusBar) )
+        #addItem( MI('Show status bar', self.fun_showStatusBar, []) )
         addItem( None )
         addItem( MI('Wrap long lines', self.fun_wrap, []) )
         addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
@@ -719,6 +719,9 @@ class SettingsMenu(BaseMenu):
         else:
             value = not bool(iep.config.settings.autoComplete_caseSensitive)
             iep.config.settings.autoComplete_caseSensitive = value
+            # Apply
+            for e in iep.getAllScintillas():
+                e.SendScintilla(e.SCI_AUTOCSETIGNORECASE, not value)
     
     def fun_autoComplete_fillups(self, value):
         """ Selected autocomp item is inserted when typing these chars. """
@@ -1610,23 +1613,28 @@ class KeymappingDialog(QtGui.QDialog):
         for menu in iep.main.menuBar()._menus:
             menu.fill()
         event.accept()
-        
+    
     def onTabSelect(self):
         pass
-        
+    
+    
     def onClickSelect(self, index):
         # should we show a prompt?
-        item = index.internalPointer()
-        if isinstance(item, QtGui.QAction) and item.text() and index.column():
-            
+        if index.column():
+            self.popupItem(index.internalPointer(), index.column())
+    
+    
+    def onDoubleClick(self, index):        
+        if not index.column():
+            self.popupItem(index.internalPointer())
+    
+    
+    def popupItem(self, item, shortCutId=1):
+        """ Popup the dialog to change the shortcut. """
+        if isinstance(item, QtGui.QAction) and item.text():
             # create prompt dialog
             dlg = KeyMapEditDialog(self)
-            fullname = getFullName(index.internalPointer())
-            isprimary = index.column()==1
-            dlg.setFullName( fullname, isprimary )
+            fullname = getFullName(item)
+            dlg.setFullName( fullname, shortCutId==1 )
             # show it
             dlg.exec_()
-    
-    def onDoubleClick(self, index):
-        pass
-
