@@ -552,6 +552,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     def __init__(self, parent):
         Qsci.QsciScintillaBase.__init__(self,parent)
         
+        #print('Initializing Scintilla component.')
+        
         # Register
         _allScintillas.append(weakref.ref(self))
         
@@ -572,7 +574,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._autoCompBuffer_time = 0
         self._autoCompBuffer_result = []
         
-        #print('Initializing Scintilla component.')
+        # The string with names given to SCI_AUTOCSHOW
+        self._autoCompNameString = ''
         
         # Do not use the QScintilla lexer
         self.setLexer()
@@ -1022,19 +1025,32 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         Qsci.QsciScintilla.focusOutEvent(self, event)
     
     
-    def autoCompShow(self, lenentered, names): 
+    def autoCompShow(self, lenentered, names, preventFlicker=False): 
         """ Start showing the autocompletion list, 
         with the list of given names (which can be a list or a space separated
-        string.
+        string. If preventFlicker is True, will not reshow if the currently
+        shown list is the same.
         """
+        # Process names
         if isinstance(names, list):
             names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
+        
+        # Show list
         if names:
-            self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
+            curNames = self._autoCompNameString
+            self._autoCompNameString = names
+            if preventFlicker and self.autoCompActive() and names==curNames:
+                pass # Do not reshow, the currently shown list seems fine
+            else: 
+                self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
+        else:
+            self.autoCompCancel()
+    
     
     def autoCompCancel(self):
         """ Hide the autocompletion list, do nothin. """
         self.SendScintilla(self.SCI_AUTOCCANCEL)
+        self._autoCompNameString = ''
     
     
     def autoCompActive(self):  
@@ -1136,10 +1152,13 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         text = text[:i]
         
         # Are we in a comment (not detected by _isValidPython if at the end)
-        if text.lstrip().startswith('#'):
-            self.callTipCancel()
-            self.autoCompCancel()
-            return
+        i = text.rfind('#')
+        if i>0:
+            i = self.positionFromLineIndex(linenr,i)
+            if self.getStyleAt(i) == 1:
+                self.callTipCancel()
+                self.autoCompCancel()
+                return
         
         # Is the char valid for auto completion?
         if tryAutoComp:
@@ -1328,18 +1347,21 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if event.key in [up, down] and self.autoCompActive():
             # show help!
             
+            # Get list of names currently shown
+            names = self._autoCompNameString.split(' ')
+            
             # get selected index after keypress
             i = self.SendScintilla(self.SCI_AUTOCGETCURRENT)
             i += {up:-1, down:+1}[event.key]
             if i<0: 
                 i=0
-            if i >= len(self._autoCompBuffer_result):
-                i = len(self._autoCompBuffer_result) -1
+            if i >= len(names):
+                i = len(names) -1
             
             # Obtain name
             name = ''
-            if self._autoCompBuffer_result:
-                name = self._autoCompBuffer_result[i]
+            if names:
+                name = names[i]
             # Add base part
             if self._autoCompBuffer_name:
                 name = self._autoCompBuffer_name + '.' + name
@@ -1444,15 +1466,24 @@ class AutoCompObject:
         # really finish        
         self._finish(names)
     
-    def setBuffer(self, names=None, timeout=4):
+    def setBuffer(self, names=None, timeout=None):
         """ setBuffer(names=None)        
         Sets the buffer with the provided names (or the collected names).
         Also returns a list with the sorted names. """
+        # Determine timeout
+        # Global namespaces change more often than local one, plus when
+        # typing a xxx.yyy, the autocompletion buffer changes and is thus
+        # automatically refreshed.
+        if timeout is None:
+            if self.bufferName:
+                timeout = 5 
+            else:
+                timeout = 1
         # Get names
         if names is None:
             names = self.names
         # Make list and sort
-        names = list(names)        
+        names = list(names)
         names.sort(key=str.upper)
         # Store
         self.textCtrl._autoCompBuffer_name = self.bufferName
@@ -1473,9 +1504,7 @@ class AutoCompObject:
             self.textCtrl.autoCompCancel()
         else:
             # Show completion list if required. 
-            # When already shown the list will change selection when typing
-            if not self.textCtrl.autoCompActive():
-                self.textCtrl.autoCompShow(len(self.needle), names)
+            self.textCtrl.autoCompShow(len(self.needle), names, True)
     
     def nameInImportNames(self, importNames):
         """ nameInImportNames(importNames)

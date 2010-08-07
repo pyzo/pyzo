@@ -976,8 +976,8 @@ class PythonShell(BaseShell):
             if iep.config.settings.autoComplete_keywords:
                 aco.addNames(self._keywords)
         
-        # Clear buffer to prevent doing a second request
-        # and store cto to see whether the response is still wanted.
+        # Set buffer to prevent doing a second request
+        # and store aco to see whether the response is still wanted.
         aco.setBuffer()
         self._currentACO = aco
         # Poll name
