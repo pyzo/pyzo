@@ -619,16 +619,19 @@ class BaseShell(BaseTextCtrl):
                     self._history.remove(command)
                 self._history.insert(0,command)
         
-        # Limit text to add to 80 chars
+        # Limit text to add to 80 chars 
         tmp = self._wrapLines(command) + '\n'
+        
+        # Get length of the amount of bytes (or unicode symbols will go wrong)
+        L = len(bytes(tmp, 'utf-8'))
         
         # Add the command text
         self.setPositionAndAnchor(self._promptPos2)
         self.addText(tmp)
-        self._promptPos1 = self._promptPos2 = self._promptPos2 + len(tmp)
+        self._promptPos1 = self._promptPos2 = self._promptPos2 + L
         
         # Restore position
-        curPos += len(tmp)
+        curPos += L
         if curPos < self._promptPos2:
             curPos = self.length()        
         self.setPositionAndAnchor(curPos)
