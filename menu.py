@@ -1073,18 +1073,19 @@ class HelpMenu(BaseMenu):
     
     def fun_updates(self, value):
         """ Check whether a newer version of IEP is available. """
-        # Get version available
+        # Get versions available
         import urllib.request, re
-        f = urllib.request.urlopen("http://code.google.com/p/iep/downloads/list")        
-        remoteVersion = '?'
-        text = str(f.read())
-        for pattern in ['iep-(.{1,7}?)\.source\.zip' ]:
-            result = re.search(pattern, text)
-            if result:
-                remoteVersion = result.group(1)
-                break
-        # Process
-        remoteVersion = remoteVersion.strip('.').strip('_').strip()
+        url = "http://code.google.com/p/iep/downloads/list"
+        text = str( urllib.request.urlopen(url).read() )
+        results = []
+        for pattern in ['iep-(.{1,9}?)\.source\.zip' ]:
+            results.extend( re.findall(pattern, text) )
+        # Select best
+        remoteVersion = ''
+        for result in results:
+            remoteVersion = max(remoteVersion, result)
+        if not remoteVersion:
+            remoteVersion = '?'
         # Define message
         text = """ 
         Your version of IEP is: {}
@@ -1093,7 +1094,9 @@ class HelpMenu(BaseMenu):
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Check for the latest version.")
-        if iep.__version__ < remoteVersion:
+        if remoteVersion == '?':
+            text += "Oops, could not determine the latest version."    
+        elif iep.__version__ < remoteVersion:
             text += "Do you want to download the latest version?"    
             m.setStandardButtons(m.Yes | m.Cancel)
             m.setDefaultButton(m.Cancel)
