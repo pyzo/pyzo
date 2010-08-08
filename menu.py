@@ -34,20 +34,22 @@ from iepLogging import print
 
 
 def unwrapText(text):
-    """ Unwrap text to display in message boxes. """
+    """ Unwrap text to display in message boxes. This just removes all
+    newlines. If you want to insert newlines, use \\r."""
+    
+    # Removes newlines
+    text = text.replace('\n', '')
     
     # Remove double/triple/etc spaces
+    text = text.lstrip()
     for i in range(10):
         text = text.replace('  ', ' ')
     
-    # Remove newlines, while preserving double newlines
-    text = text.replace('\n \n','<>')
-    text = text.replace('\n', ' ')
-    text = text.replace('<>', '\n\n')
+    # Convert \\r newlines 
+    text = text.replace('\r', '\n')
     
-    # Remove leftover double/triple/etc spaces
-    for i in range(4):
-        text = text.replace('  ', ' ')
+    # Remove spaces after newlines
+    text = text.replace('\n ', '\n')
     
     return text
 
@@ -771,10 +773,11 @@ class SettingsMenu(BaseMenu):
     
     def fun_editStyles(self, value):
         """ Edit the style file. """
-        text = """ 
+        text = """
         The syntax styling can be changed by editing the style
-        sheet, which will be opened after you press OK. The
-        changes will be applied as soon as you'll save the file.
+        sheet, which will be opened after you press OK. 
+        \r\r
+        The changes will be applied as soon as you'll save the file.
         """
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Edit syntax styling")
@@ -788,13 +791,17 @@ class SettingsMenu(BaseMenu):
     
     def fun_advancedSettings(self, value):
         """ How to edit the advanced settings. """
-        text = """ 
-        The menu does not show all available settings. The
-        advanced settings can be changed by using the logger
-        tool and typing "iep.config.advanced.". The autocompletion
-        list will show you your options. 
-        
-        Note that most settings require a restart to take effect.
+        text = """
+        More settings are available via the logger-tool:
+        \r\r
+        - Advanced settings are stored in the struct "iep.config.advanced".
+          Type "print(iep.config.advanced)" to view all advanced settings.\r
+        - Call "iep.resetConfig()" to reset all settings.\r
+        - Call "iep.resetConfig(True)" to reset all settings and state.\r
+        - Call "iep.resetStyles() to reset the style sheet to the default.
+        \r\r
+        Note that most settings require a restart for the change to
+        take effect.
         """
         m = QtGui.QMessageBox(self)
         m.setWindowTitle("Advanced settings")
@@ -904,14 +911,42 @@ class RunMenu(BaseMenu):
         addItem( None )
         addItem( MI('Run file as script', self.fun_runFile2))
         addItem( MI('Run project main file as script', self.fun_runProject2))
+    
+    def getShellAndEditor(self, what, mainEditor=False):
+        """ Get the shell and editor. Shows a warning dialog when one of
+        these is not available.
+        """
+        # Init empty error message
+        msg = ''
+        # Get shell
+        shell = iep.shells.getCurrentShell()
+        if shell is None:
+            msg += "No shell to run code in. "
+        # Get editor
+        if mainEditor:
+            editor = iep.editors.getCurrentProjectsMainEditor()
+            if editor is None:
+                msg += "Not in a project or project does not have a main file."
+        else:
+            editor = iep.editors.getCurrentEditor()
+            if editor is None:
+                msg += "No editor selected."
+        # Show error dialog
+        if msg:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Could not run")
+            m.setText("Could not run " + what + ":\n\n" + msg)
+            m.setIcon(m.Warning)
+            m.exec_()
+        # Return
+        return shell, editor
         
 
     def fun_runSelected(self, value):
         """ Run the selected whole lines in the current shell. """
         # Get editor and shell
-        shell = iep.shells.getCurrentShell()
-        editor = iep.editors.getCurrentEditor()
-        if not editor or not shell:
+        shell, editor = self.getShellAndEditor('selected lines')
+        if not shell or not editor:
             return        
         # Get position to sample between (only sample whole lines)
         i1, i2 = editor.getPosition(), editor.getAnchor()        
@@ -935,9 +970,8 @@ class RunMenu(BaseMenu):
     def fun_runCell(self, value):
         """ Run the code between two cell separaters ('##'). """
         # Get editor and shell
-        shell = iep.shells.getCurrentShell()
-        editor = iep.editors.getCurrentEditor()
-        if not editor or not shell:
+        shell, editor = self.getShellAndEditor('cell')
+        if not shell or not editor:
             return 
         # Get current cell        
         i1, i2 = editor.getPosition(), editor.getAnchor()
@@ -994,9 +1028,8 @@ class RunMenu(BaseMenu):
     def fun_runFile(self, value):
         """ Run the current file in the current shell. """
         # Get editor and shell
-        shell = iep.shells.getCurrentShell()        
-        editor = iep.editors.getCurrentEditor()
-        if not editor or not shell:
+        shell, editor = self.getShellAndEditor('file')
+        if not shell or not editor:
             return        
         # Obtain source code and fname
         fname, text = self._getCodeOfFile(editor)
@@ -1006,9 +1039,8 @@ class RunMenu(BaseMenu):
     def fun_runProject(self, value=None):
         """ Run the current project's main file. """
         # Get editor and shell
-        shell = iep.shells.getCurrentShell()
-        editor = iep.editors.getCurrentProjectsMainEditor()
-        if not editor or not shell:
+        shell, editor = self.getShellAndEditor('project', True)
+        if not shell or not editor:
             return 
         # Run code
         fname, text = self._getCodeOfFile(editor)
@@ -1018,9 +1050,8 @@ class RunMenu(BaseMenu):
     def fun_runFile2(self, value):
         """ Restart shell, and run the current file as a script. """
         # Get editor and shell
-        shell = iep.shells.getCurrentShell()        
-        editor = iep.editors.getCurrentEditor()
-        if not editor or not shell:
+        shell, editor = self.getShellAndEditor('file (as script)')
+        if not shell or not editor:
             return        
         # Go
         self._runScript(editor, shell)
@@ -1028,9 +1059,9 @@ class RunMenu(BaseMenu):
     
     def fun_runProject2(self, value):
         """ Restart shell, and run the project's main file as a script. """
-        shell = iep.shells.getCurrentShell()
-        editor = iep.editors.getCurrentProjectsMainEditor()
-        if not editor or not shell:
+        # Get editor and shell
+        shell, editor = self.getShellAndEditor('project (as script)', True)
+        if not shell or not editor:
             return 
         # Go
         self._runScript(editor, shell)
@@ -1118,25 +1149,24 @@ class HelpMenu(BaseMenu):
     def fun_about(self, value):
         """ Show the about text for IEP. """
         
-        aboutText = """ 
+        aboutText = """
         IEP: the Interactive Editor for Python
-        
-        Current version: {}
-        
+        \r\r
+        Current version: {}\r
         IEP appdata directory: {}
-        
+        \r\r
         IEP is written in Python 3.x and uses the Qt4 widget
         toolkit. Much of its code was inspired by the Pype
         and IPython projects.
-        
+        \r\r
         Copyright (C) 2010, Almar Klein
-        
+        \r\r
         IEP is free software: you can redistribute it and/or
         modify it under the terms of the GNU General Public
         License as published by the Free Software Foundation,
         either version 3 of the License, or (at your option)
         any later version.
-        
+        \r\r
         IEP is distributed in the hope that it will be useful,
         but WITHOUT ANY WARRANTY; without even the implied
         warranty of MERCHANTABILITY or FITNESS FOR A
