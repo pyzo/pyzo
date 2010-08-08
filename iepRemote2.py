@@ -128,8 +128,11 @@ class IepInterpreter:
             iepBanner += ' with integrated event loop for ' 
             iepBanner += guiName.upper() + '.\n'
         sys.stdout.write(iepBanner)
+        
+        # Write tips message
         sys.stdout.write('Type "help" for help, ' + 
                             'and type "?" for a list of *magic* commands.\n')
+        
         
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
@@ -807,15 +810,15 @@ class IntroSpectionThread(threading.Thread):
         fun5 = False
         if not (fun1 or fun2 or fun3):
             # Maybe it's a class with an init?
-            if eval("isinstance(%s,type)"%(objectName), None, NS):
-                if eval("hasattr(%s,'__init__')"%(objectName), None, NS):
-                    objectName += ".__init__"
-                    fun4 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
+            if eval("hasattr(%s,'__init__')"%(objectName), None, NS):
+                objectName += ".__init__"
+                fun4 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
             #  Or a callable object?
             elif eval("hasattr(%s,'__call__')"%(objectName), None, NS):
                 objectName += ".__call__"
                 fun5 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
-                
+        
+        
         if fun1:
             # the first line in the docstring is usually the signature
             kind = 'builtin'
