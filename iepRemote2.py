@@ -94,11 +94,9 @@ class IepInterpreter:
         """ Interact! (start the mainloop)
         """
         
-        # Write normal Python banner
-        cprt =  'Type "help", "copyright", "credits" or "license"'\
-                ' for more information.'
-        sys.stdout.write("Python %s on %s.\n%s\n" %
-            (sys.version, sys.platform, cprt))
+        # Write Python banner
+        sys.stdout.write("Python %s on %s.\n" %
+            (sys.version.split('\n')[0].rstrip(), sys.platform))
         
         # Integrate event loop of GUI toolkit
         self.guiApp = None
@@ -123,13 +121,15 @@ class IepInterpreter:
         
         # Write IEP part of banner (including what GUI loop is integrated)
         if True:
-            iepBanner = 'This is the IEP interpreter. ' 
-            iepBanner += 'Type "?" for a list of *magic* commands.\n'
+            iepBanner = 'This is the IEP interpreter'
         if guiError:
-            iepBanner += guiError + '\n'
+            iepBanner += '. ' + guiError + '\n'
         elif self.guiApp:
-            iepBanner += 'Integrated event loop for ' + guiName.upper() + '.\n'
+            iepBanner += ' with integrated event loop for ' 
+            iepBanner += guiName.upper() + '.\n'
         sys.stdout.write(iepBanner)
+        sys.stdout.write('Type "help" for help, ' + 
+                            'and type "?" for a list of *magic* commands.\n')
         
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
