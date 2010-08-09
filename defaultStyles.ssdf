@@ -65,8 +65,13 @@ python = dict:
 # PYTHON SHELL
 pythonshell = dict:
     lexer = 'python'
-    s032 = 'size:9,fore:#111111,back:#FFFFFF'
-    #s032 = 'size:9,fore:#CCCCCC,back:#000000'  # in black
+    s032 = 'size:9,fore:#111,back:#FFF'
+    #s032 = 'size:9,fore:#CCC,back:#000'  # in black
+
+pythonshell_dead = dict:
+    basedon = 'pythonshell'
+    s032 = 'fore:#111,back:#FAA'
+    #s032 = 'size:9,fore:#CCC,back:#600'  # in black
 
 loggershell = dict:
     lexer = 'python'

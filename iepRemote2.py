@@ -96,7 +96,7 @@ class IepInterpreter:
         
         # Write Python banner
         sys.stdout.write("Python %s on %s.\n" %
-            (sys.version.split('\n')[0].rstrip(), sys.platform))
+            (sys.version.split('[')[0].rstrip(), sys.platform))
         
         # Integrate event loop of GUI toolkit
         self.guiApp = None
@@ -131,7 +131,7 @@ class IepInterpreter:
         
         # Write tips message
         sys.stdout.write('Type "help" for help, ' + 
-                            'and type "?" for a list of *magic* commands.\n')
+                            'type "?" for a list of *magic* commands.\n')
         
         
         # Remove "THIS" directory from the PYTHONPATH

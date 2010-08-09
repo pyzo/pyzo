@@ -27,6 +27,23 @@ from PyQt4 import QtCore, QtGui
 from PyQt4 import Qsci
 import iep
 
+
+# Define regular expression patterns
+classPattern  = r'^\s*' # Optional whitespace
+classPattern += r'(cp?def\s+)?' # Cython preamble + whitespace
+classPattern += r'class\s+'  # The class keyword + whitespace
+classPattern += r'([a-zA-Z_][a-zA-Z_0-9]*)\s*' # The NAME + optional whitespace
+classPattern += r'(\(.*?\))?' # The superclass(es)
+classPattern += r'\s*:' # Optional whitespace and the colon
+#
+defPattern  = r'^\s*' # Optional whitespace
+defPattern += r'(cp?)?def\s+' # The Cython preamble, def keyword and whitespace
+defPattern += r'([a-zA-Z_][a-zA-Z_0-9]*\s+)?' # Optional Cython return type
+defPattern += r'([a-zA-Z_][a-zA-Z_0-9]*)\s*' # The NAME + optional whitespace
+defPattern += r'\((.*?)\)' # The SIGNATURE
+defPattern += r'\s*:' # Optional whitespace and the colon
+
+
 class Job:
     """ Simple class to represent a job. """
     def __init__(self, text, editorId):
@@ -425,9 +442,8 @@ class Parser(threading.Thread):
             linel = line.lower()
             
             # Detect classes
-            pattern = r'^\s*(cp?def\s+)?class ([a-zA-Z_][a-zA-Z_0-9]*)\s*(\(.*?\))?:'
             if not foundSomething:
-                classResult = re.search(pattern, line)
+                classResult = re.search(classPattern, line)
                 
                 if classResult:
                     foundSomething = True                    
@@ -445,14 +461,13 @@ class Parser(threading.Thread):
                         item.supers = [tmp for tmp in supers if tmp]
             
             # Detect functions and methods (also multiline)
-            pattern = r'^\s*(cp?)?def\s+([a-zA-Z_][a-zA-Z_0-9]*\s+)?([a-zA-Z_][a-zA-Z_0-9]*)\s*\((.*?)\):'
             if (not foundSomething) and line.count('def '):
                 # Get a multiline version (for long defs)
                 multiLine = line
                 for ii in range(1,5):
                     if i+ii<len(lines): multiLine += ' '+lines[i+ii].strip()
                 # Get result
-                defResult = re.search(pattern, multiLine)
+                defResult = re.search(defPattern, multiLine)
                 if defResult:
                     # Get name
                     name = defResult.group(3)
@@ -722,7 +737,7 @@ def washMultilineStrings(text):
             if i4==-1:
                 i4 = 2**32
             # Replace all non-newline chars 
-            tmp = re.sub(r'\S', 'x', text[i3:i4])
+            tmp = re.sub(r'\S', ' ', text[i3:i4])
             text = text[:i3] + tmp + text[i3+len(tmp):]
             # Prepare for next round
             i = i4+1
