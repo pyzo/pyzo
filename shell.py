@@ -597,6 +597,10 @@ class BaseShell(BaseTextCtrl):
         the command.
         """
         
+        # Can we do this?
+        if self.isReadOnly():
+            return
+        
         # Remember position
         curPos = self.getPosition()
         
@@ -830,6 +834,10 @@ class PythonShell(BaseShell):
     
     def start(self):
         """ Start the remote process. """
+        
+        # (re)set style
+        self.setStyle('pythonshell')
+        self.setReadOnly(False)
         
         # (re)set restart vatiable and a callback
         self._restart = False 
@@ -1637,8 +1645,13 @@ class PythonShell(BaseShell):
         print(msg)
         self.write(msg3)
         
-        # Goto end such that the closing messages are visible
+        # Set style to indicate dead-ness
+        self.setStyle('pythonshell_dead')
+        self.setReadOnly(True)
+        
+        # Goto end such that the closing message is visible
         self.setPositionAndAnchor(self.length())
+        self.ensureCursorVisible()  
         
         # Replace timer callback
         self._pollMethod = self.poll_terminated
@@ -1650,4 +1663,3 @@ class PythonShell(BaseShell):
         if self._restart:            
             self.start()
    
-
