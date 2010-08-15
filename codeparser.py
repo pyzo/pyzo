@@ -736,6 +736,9 @@ def washMultilineStrings(text):
             # No end found -> take all text, unclosed string!
             if i4==-1:
                 i4 = 2**32
+            # Leave only the first two quotes of the start of the comment
+            i3 -= 1
+            i4 += 3
             # Replace all non-newline chars 
             tmp = re.sub(r'\S', ' ', text[i3:i4])
             text = text[:i3] + tmp + text[i3+len(tmp):]
