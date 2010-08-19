@@ -307,6 +307,7 @@ class IepEditor(BaseTextCtrl):
             
             # ask user
             dlg = QtGui.QMessageBox(self)
+            dlg.setWindowTitle('File was changed')
             dlg.setText("File has been modified outside of the editor:\n"+
                         self._filename)
             dlg.setInformativeText("Do you want to reload?")

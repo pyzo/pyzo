@@ -337,12 +337,18 @@ class BaseShell(BaseTextCtrl):
         qc = QtCore.Qt
         
         if event.key == qc.Key_Escape:
-            # Clear the current, unexecuted command.
+            # Clear autocomp and calltip, goto end, clear
             
-            self.clearCommand()
-            self.setPositionAndAnchor(self._promptPos2)
-            self.ensureCursorVisible()
-            self._historyNeedle = None
+            if self.autoCompActive() or self.callTipActive():
+                # Note that the autocomp is already removed on escape by
+                # scintilla, but I leave it for clarity
+                self.autoCompCancel()             
+                self.callTipCancel()
+            elif self.getPosition() < self._promptPos2:
+                self.setPositionAndAnchor(self.length())
+            else:
+                self.clearCommand()
+                self._historyNeedle = None
             return True
         
         elif event.key in [qc.Key_Up, qc.Key_Down]:
@@ -438,6 +444,8 @@ class BaseShell(BaseTextCtrl):
         self.setPosition(self._promptPos2)
         self.setAnchor(self.length())
         self.removeSelectedText()
+        # Go to end
+        self.setPositionAndAnchor(self._promptPos2)
         # Ensure cursor visible
         self.ensureCursorVisible()  
     
