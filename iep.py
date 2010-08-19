@@ -132,7 +132,7 @@ def startIep():
     # Set to use pure QT drawing. 
     # On GTK this makes the fonts look better, on KDE not
     # todo: and on mac?
-    if not os.environ.get('KDE_FULL_VERSION'):
+    if not os.environ.get('KDE_FULL_SESSION'):
         QtGui.QApplication.setDesktopSettingsAware(False)
     
     # Instantiate the application, and the main window
