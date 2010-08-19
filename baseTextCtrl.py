@@ -122,7 +122,11 @@ def parseLine_autocomplete(text):
             if i_base == i+1 and i>0 and text[i-1]=='[': 
                 return "[]", text[i_base+1:]
             else:
-                return "",""            
+                pass
+                #return "",""
+        elif c in '[]':
+            # Allow looking in lists, if using plain indexing
+            pass
         elif not c in namechars:
             break
     else:
@@ -1115,6 +1119,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         if curstyle not in [0,10,11]:
             return False
         
+        # When at the end of a comment, _isValidPython will fail, but 
+        # parseLine_autocomplete will still detect this
+        
         # all good
         return True  
     
@@ -1150,15 +1157,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         linenr, i = self.getLinenrAndIndex()
         text = self.getLineString(linenr)
         text = text[:i]
-        
-        # Are we in a comment (not detected by _isValidPython if at the end)
-        i = text.rfind('#')
-        if i>0:
-            i = self.positionFromLineIndex(linenr,i)
-            if self.getStyleAt(i) == 1:
-                self.callTipCancel()
-                self.autoCompCancel()
-                return
         
         # Is the char valid for auto completion?
         if tryAutoComp:
@@ -1206,9 +1204,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # Parse the line, to see what (partial) name we need to complete
             name, needle = parseLine_autocomplete(line)
             
-            # Try to do auto completion
-            aco = AutoCompObject(self, name, needle)
-            self.processAutoComp(aco)
+            if name or needle:
+                # Try to do auto completion
+                aco = AutoCompObject(self, name, needle)
+                self.processAutoComp(aco)
     
     
     def processCallTip(self, cto):
@@ -1307,8 +1306,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             if key >= 48 or key in [8, 46]:
                 # If a char that allows completion or backspace or dot was pressed
                 self.introspect(True)
-            else:
-                self.introspect() # Only calltip
+            elif key >= 32: 
+                # Printable chars, only calltip
+                self.introspect()
         elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
             self.introspect()
     
