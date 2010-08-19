@@ -129,8 +129,11 @@ def startIep():
     import iepLogging # to start logging asap
     from main import MainWindow
     
-    # Set to use pure QT drawing (for consistent looks)
-    QtGui.QApplication.setDesktopSettingsAware(False)
+    # Set to use pure QT drawing. 
+    # On GTK this makes the fonts look better, on KDE not
+    # todo: and on mac?
+    if not os.environ.get('KDE_FULL_VERSION'):
+        QtGui.QApplication.setDesktopSettingsAware(False)
     
     # Instantiate the application, and the main window
     QtGui.qApp = QtGui.QApplication([])

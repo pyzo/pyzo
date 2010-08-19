@@ -251,13 +251,13 @@ class MainWindow(QtGui.QMainWindow):
             # Get args
             args = [arg for arg in sys.argv]
             
-            # Prepend the executable name (required on Linux somehow)
-            lastBit = os.path.basename(sys.executable)
-            args.insert(0, lastBit)
+            if not iep.isFrozen():
+                # Prepend the executable name (required on Linux)
+                lastBit = os.path.basename(sys.executable)
+                args.insert(0, lastBit)
             
-            # Replace the process! 
-            print('restarting',os.getcwd())
-            os.execv(sys.executable,args)
+            # Replace the process!
+            os.execv(sys.executable, args)
 
 
 

@@ -603,6 +603,9 @@ class ViewMenu(BaseMenu):
         if value is None:
             # Create list of styles
             styleNames = [i for i in QtGui.QStyleFactory.keys()]
+            # Add current, handle case
+            M = dict([(name.lower(),name) for name in styleNames])
+            iep.config.view.qtstyle = M[iep.config.view.qtstyle.lower()]
             styleNames.append(iep.config.view.qtstyle)
             # Mark the default
             for i in range(len(styleNames)):
