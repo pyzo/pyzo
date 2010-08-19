@@ -656,7 +656,7 @@ class IepEditor(BaseTextCtrl):
                         className, self, handleSelf)
                     handleSelf = False
                     if fictiveClass:
-                        aco.addNames( fictiveClass.attributes )
+                        aco.addNames( fictiveClass.members )
                         classNames.extend(fictiveClass.supers)
                 else:
                     nameForShell = className

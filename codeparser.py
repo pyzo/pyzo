@@ -451,8 +451,8 @@ class Parser(threading.Thread):
                     name = classResult.group(2)
                     item = FictiveObject('class', i, indent, name)
                     appendToStructure(item)                
-                    item.attributes = []
                     item.supers = []
+                    item.members = []
                     # Get inheritance
                     supers = classResult.group(3)
                     if supers:
@@ -477,7 +477,7 @@ class Parser(threading.Thread):
                     item.sig = defResult.group(4)
                     # is it a method? -> add method to attr and find selfname
                     if item.parent.type == 'class':
-                        item.parent.attributes.append(name)
+                        item.parent.members.append(name)
                         
                         # Find what is used as "self"
                         i2 = line.find('(')
@@ -525,9 +525,14 @@ class Parser(threading.Thread):
                             part2 = part[len(selfname):]
                             if part.startswith(selfname) and IsValidName(part2):
                                 # add to the list if not already present
-                                L = lastObject[0].parent.attributes
-                                if part2 not in L:
-                                    L.append(part2)
+                                defItem = lastObject[0]
+                                classItem = lastObject[0].parent
+                                #
+                                item = FictiveObject('attribute', i, indent, part2)
+                                item.parent = defItem
+                                defItem.children.append(item)
+                                if part2 not in classItem.members:
+                                    classItem.members.append(part2)
         
      
         ## Post processing
@@ -603,12 +608,13 @@ class Parser(threading.Thread):
 class FictiveObject:
     """ An un-instantiated object.
     type can be class, def, import, cell, todo
-    extra attributes: 
-    class   - supers, attributes
+    extra stuff: 
+    class   - supers, members
     def     - selfname
     imports - text
     cell    -
     todo    -  
+    attribute -
     """    
     def __init__(self, type, linenr, indent, name):
         self.children = []
@@ -618,7 +624,7 @@ class FictiveObject:
         self.indent = indent
         self.name = name
         self.sig = ''  # for functions and methods
-
+    
 
 namechars = 'abcdefghijklmnopqrstuvwxyz_0123456789'
 def IsValidName(name):

@@ -77,7 +77,7 @@ class IepSourceStructure(QtGui.QWidget):
         the checks are right. """
         menu = QtGui.QMenu(self)
         self._button.setMenu(menu)
-        for type in ['class', 'def', 'cell', 'todo', 'import']:
+        for type in ['class', 'def', 'cell', 'todo', 'import', 'attribute']:
             checked = type in self._config.showTypes
             action = menu.addAction(type)
             action.setCheckable(True)
@@ -133,6 +133,10 @@ class IepSourceStructure(QtGui.QWidget):
         if not editor:
             return
         
+        # If item is attribute, get parent
+        if not item.linenr:
+            item = item.parent()
+        
         # Move to line
         editor.gotoLine(item.linenr+30)
         editor.gotoLine(item.linenr-10)
@@ -167,7 +171,7 @@ class IepSourceStructure(QtGui.QWidget):
         
         # Define colours
         colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F', 
-                    'var':'#444444', 'import':'#8800BB', 'todo':'#FF3333'}
+                    'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333'}
         
         # Define what to show
         showTypes = self._config.showTypes
@@ -187,10 +191,13 @@ class IepSourceStructure(QtGui.QWidget):
                 # Construct text
                 if type=='cell':
                     type = '##'
+                elif type=='attribute':
+                    type = 'attr'
+                #
                 if type == 'import':                   
                     text = "%s (%s)" % (object.name, object.text)
                 elif type=='todo':
-                    text = object.name                    
+                    text = object.name
                 else:
                     text = "%s %s" % (type, object.name)
                 # Create item
@@ -203,7 +210,17 @@ class IepSourceStructure(QtGui.QWidget):
                 thisItem.linenr = object.linenr
                 # Is this the current item?
                 if ln and object.linenr <= ln and object.linenr2 > ln:
-                    selectedItem[0] = thisItem                    
+                    selectedItem[0] = thisItem 
+                # Any variable members that we should display?
+#                 if object.type == 'class':
+#                     for att in object.attributes:
+#                         subItem = QtGui.QTreeWidgetItem(thisItem, [att])
+#                         color = QtGui.QColor(colours['var'])
+#                         subItem.setForeground(0, QtGui.QBrush(color))
+#                         font = thisItem.font(0)
+#                         font.setBold(False)
+#                         subItem.setFont(0, font)
+#                         subItem.linenr = 0 # no linenr
                 # Any children that we should display?
                 if object.children:
                     SetItems(thisItem, object.children, level)

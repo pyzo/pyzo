@@ -741,7 +741,7 @@ class SettingsMenu(BaseMenu):
         """ Selected autocomp item is inserted when typing these chars. """
         if value is None:
             # Show options
-            options = ['Tab', 'Tab and Enter', 'Tab, Enter and "([."']
+            options = ['Tab', 'Tab and Enter', 'Tab, Enter and " .(["']
             if '.' in iep.config.settings.autoComplete_fillups:
                 options.append( options[2] )
             elif '\n' in iep.config.settings.autoComplete_fillups:
@@ -752,7 +752,7 @@ class SettingsMenu(BaseMenu):
         else:
             # Process selection
             if '.' in value:
-                iep.config.settings.autoComplete_fillups = '\n.(['
+                iep.config.settings.autoComplete_fillups = '\n .(['
             elif 'enter' in value.lower():
                 iep.config.settings.autoComplete_fillups = '\n'
             else:
