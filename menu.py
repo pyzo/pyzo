@@ -498,7 +498,7 @@ class ViewMenu(BaseMenu):
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """
         if value is None:
-            return [60, 65, 70, 75, 76, 77, 78,79,80,-1, 
+            return [60, 70, 80, 90, 100, 110, 120, -1, 
                         iep.config.view.edgeColumn]
         iep.config.view.edgeColumn = value
         for editor in iep.editors:
@@ -642,7 +642,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Shell wraps to 80 columns', self.fun_shellWrap80, []) )
         addItem( MI('Shell always fits 80 columns', self.fun_shellFit80, []) )
         addItem( None )
-        addItem( MI('Change key mappings ...', self.fun_keymap) )
+        addItem( MI('Change shortcuts ...', self.fun_keymap) )
         addItem( MI('Edit syntax styles ...', self.fun_editStyles) )
         addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
         #addItem( MI('Save settings now', self.fun_saveSettings) )
