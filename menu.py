@@ -639,6 +639,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
         addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
         addItem( None )
+        addItem( MI('Shell wraps to 80 columns', self.fun_shellWrap80, []) )
         addItem( MI('Shell always fits 80 columns', self.fun_shellFit80, []) )
         addItem( None )
         addItem( MI('Change key mappings ...', self.fun_keymap) )
@@ -689,6 +690,14 @@ class SettingsMenu(BaseMenu):
         else:
             # store
             iep.config.settings.defaultLineEndings = value
+    
+    def fun_shellWrap80(self, value):
+        """ The shell performs hard wrapping of long lines to 80 columns. """
+        if value is None:
+            return bool(iep.config.settings.shellWrap80)
+        else:
+            value = not bool(iep.config.settings.shellWrap80)
+            iep.config.settings.shellWrap80 = value
     
     def fun_shellFit80(self, value):
         """ Decrease the shell font size so that at least 80 columns fit. """

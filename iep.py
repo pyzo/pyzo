@@ -131,7 +131,8 @@ def startIep():
     
     # Set to use pure QT drawing. 
     # On GTK this makes the fonts look better, on KDE not
-    # todo: and on mac?
+    # On Windows it does not matter
+    # todo: and on mac, or other desktops environments?
     if not os.environ.get('KDE_FULL_SESSION'):
         QtGui.QApplication.setDesktopSettingsAware(False)
     

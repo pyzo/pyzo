@@ -35,6 +35,7 @@ settings= dict:
     defaultIndentation = 4
     defaultLineEndings = '' # Set depending on OS
     #
+    shellWrap80 = 1
     shellFit80 = 0
     #
     autoIndent = 1
