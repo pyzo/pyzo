@@ -211,16 +211,6 @@ class IepSourceStructure(QtGui.QWidget):
                 # Is this the current item?
                 if ln and object.linenr <= ln and object.linenr2 > ln:
                     selectedItem[0] = thisItem 
-                # Any variable members that we should display?
-#                 if object.type == 'class':
-#                     for att in object.attributes:
-#                         subItem = QtGui.QTreeWidgetItem(thisItem, [att])
-#                         color = QtGui.QColor(colours['var'])
-#                         subItem.setForeground(0, QtGui.QBrush(color))
-#                         font = thisItem.font(0)
-#                         font.setBold(False)
-#                         subItem.setFont(0, font)
-#                         subItem.linenr = 0 # no linenr
                 # Any children that we should display?
                 if object.children:
                     SetItems(thisItem, object.children, level)
