@@ -479,22 +479,29 @@ class BaseShell(BaseTextCtrl):
     
     def _wrapLines(self, text):
         """ Peform hard wrapping of the text to 80 characters.
+        We do this because Qscintilla becomes very slow when 
+        long lines are displayed.
         The cursor should be at the position to add the text.
         """
-        # Check how many chars are left at the line right now
-        linnr, index =  self.getLinenrAndIndex()
-        charsLeft = 80-index
         
-        # Perform hard-wrap, because Qscintilla becomes very slow 
-        # when long lines are displayed.
+        # Should we do this?
+        if not iep.config.settings.shellWrap80:
+            return text
+        
+        # Check how many chars are left at the line right now
+        linenr, index =  self.getLinenrAndIndex()
+        charsLeft = 80-index # Is reset to 80 as soon as we are on a next line
+        
+        # Perform hard-wrap
         lines = text.split('\n')
         lines2 = []
         for line in lines:
             while len(line)>charsLeft:
                 lines2.append(line[:charsLeft])
                 line = line[charsLeft:]
-                charsLeft = 80 # All next lines have 80 chars
+                charsLeft = 80
             lines2.append(line)
+            charsLeft = 80
         text = '\n'.join(lines2)
         return text
     
@@ -632,13 +639,13 @@ class BaseShell(BaseTextCtrl):
                 self._history.insert(0,command)
         
         # Limit text to add to 80 chars 
+        self.setPositionAndAnchor(self._promptPos2)
         tmp = self._wrapLines(command) + '\n'
         
         # Get length of the amount of bytes (or unicode symbols will go wrong)
         L = len(bytes(tmp, 'utf-8'))
         
         # Add the command text
-        self.setPositionAndAnchor(self._promptPos2)
         self.addText(tmp)
         self._promptPos1 = self._promptPos2 = self._promptPos2 + L
         
