@@ -432,6 +432,16 @@ class FileListCtrl(QtGui.QFrame):
         QtGui.QFrame.resizeEvent(self, event)
         self.updateMe()
     
+    
+    def wheelEvent(self, event):
+        """ Allow the user to scroll the file list. """
+        # Determine amount of pixels to scroll
+        degrees = event.delta() / 8
+        steps = degrees / 15
+        deltaPixels = steps * 16
+        self._scroller.setValue( self._scroller.value() + deltaPixels)
+    
+    
     def updateMe(self):
         project = None
         ncollapsed = 0
@@ -1199,7 +1209,7 @@ class EditorStack(QtGui.QWidget):
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
-        
+    
     def dropEvent(self, event):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():

@@ -388,9 +388,11 @@ class IepInterpreter:
     def runfile(self, fname):
         """  To execute the startup script. """ 
         
-        # Get text
+        # Get text (make sure it ends with a newline)
         try:
             source = open(fname).read()
+            if source[-1] not in '\r\n':
+                source += '\n'
         except Exception:        
             sys.stdout.write('Could not execute script: "' + fname + '"\n')
             return
