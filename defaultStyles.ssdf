@@ -22,7 +22,7 @@
 # When specifying a font, you can use "face:{mono}" where 'mono' may also
 # be 'serif' or 'sans'. A suitable font is selected based on the used OS.
 #
-# Here's a list of all posible lexers that StyledTextCtl knows:
+# Here's a list of all posible lexers that Scintilla knows:
 # ada asp ave baan batch bullant conf cpp diff eiffel eiffelkw 
 # errorlist hypertext latex lisp lua makefi le matlab nncrontab 
 # pascal perl php props python ruby sql tcl vb vbscript xml

@@ -1175,7 +1175,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         """ This methos is called a short while after introspect() 
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
-        """
+        """ 
         
         # Retrieve the line of text that we stored
         line = self._delayTimer._line
@@ -1475,6 +1475,8 @@ class AutoCompObject:
         # Global namespaces change more often than local one, plus when
         # typing a xxx.yyy, the autocompletion buffer changes and is thus
         # automatically refreshed.
+        # I've once encountered a wrong autocomp list on an object, but
+        # haven' been able to reproduce it. It was probably some odity.
         if timeout is None:
             if self.bufferName:
                 timeout = 5 
