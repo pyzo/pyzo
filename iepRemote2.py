@@ -109,8 +109,10 @@ class IepInterpreter:
                 self.guiApp = Hijacked_wx()
             elif guiName == 'qt4':
                 self.guiApp = Hijacked_qt4()
-            elif guiName == 'fl':
+            elif guiName == 'fltk':
                 self.guiApp = Hijacked_fltk()
+            elif guiName == 'gtk':
+                self.guiApp = Hijacked_gtk()
         except Exception: # Catch any error
             # Get exception info (we do it using sys.exc_info() because
             # we cannot catch the exception in a version independent way.
@@ -1183,3 +1185,21 @@ class Hijacked_wx:
         # Process and reset
         self.app.ProcessIdle() # otherwise frames do not close
         wx.EventLoop.SetActive(old)   
+
+
+class Hijacked_gtk:
+    """ Modifies pyGTK's mainloop with a dummy so user code does not
+    block IPython.  processing events is done using the ???
+    """
+    def __init__(self):
+        
+        def dummy_mainloop(*args, **kw):
+            pass
+        import gtk
+        if gtk.pygtk_version >= (2,4,0): orig_mainloop = gtk.main
+        else:                            orig_mainloop = gtk.mainloop
+        gtk.mainloop = dummy_mainloop
+        gtk.main = dummy_mainloop
+    
+    def processEvents(self):
+        pass

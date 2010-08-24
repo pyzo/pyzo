@@ -483,7 +483,7 @@ class BaseShell(BaseTextCtrl):
         long lines are displayed.
         The cursor should be at the position to add the text.
         """
-        
+    
         # Should we do this?
         if not iep.config.settings.shellWrap80:
             return text
@@ -504,7 +504,7 @@ class BaseShell(BaseTextCtrl):
             charsLeft = 80
         text = '\n'.join(lines2)
         return text
-    
+       
     
     def _limitNumberOfLines(self):
         """ Reduces the amount of lines by 50% if above a certain threshold.

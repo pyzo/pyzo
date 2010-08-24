@@ -320,9 +320,13 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         self._gui_qt4.move(offset2+dx*3, y+dyl)
         self._gui_qt4.setText('QT4')
         #
-        self._gui_fl = QtGui.QRadioButton(self)
-        self._gui_fl.move(offset2+dx*4, y+dyl)
-        self._gui_fl.setText('FLTK')
+        self._gui_fltk = QtGui.QRadioButton(self)
+        self._gui_fltk.move(offset2+dx*4, y+dyl)
+        self._gui_fltk.setText('FLTK')
+        #
+        self._gui_gtk = QtGui.QRadioButton(self)
+        self._gui_gtk.move(offset2+dx*5, y+dyl)
+        self._gui_gtk.setText('GTK')
         #        
         y += dy + dyl + self._gui_none.height()
         
@@ -460,8 +464,10 @@ class ShellInfoDialogEntries(QtGui.QWidget):
                 self._gui_wx.setChecked(True)
             elif info.gui == 'qt4':
                 self._gui_qt4.setChecked(True)
-            elif info.gui == 'fl':
-                self._gui_fl.setChecked(True)
+            elif info.gui == 'fltk':
+                self._gui_fltk.setChecked(True)
+            elif info.gui == 'gtk':
+                self._gui_gtk.setChecked(True)
             else:
                 self._gui_none.setChecked(True)
             #
@@ -493,8 +499,10 @@ class ShellInfoDialogEntries(QtGui.QWidget):
             info.gui = 'wx'
         elif self._gui_qt4.isChecked():
             info.gui = 'qt4'
-        elif self._gui_fl.isChecked():
-            info.gui = 'fl'
+        elif self._gui_fltk.isChecked():
+            info.gui = 'fltk'
+        elif self._gui_gtk.isChecked():
+            info.gui = 'gtk'
         else:
             info.gui = ''
         # store states
