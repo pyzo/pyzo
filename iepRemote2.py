@@ -1189,17 +1189,34 @@ class Hijacked_wx:
 
 class Hijacked_gtk:
     """ Modifies pyGTK's mainloop with a dummy so user code does not
-    block IPython.  processing events is done using the ???
+    block IPython.  processing events is done using the module'
+    main_iteration function.
     """
     def __init__(self):
-        
-        def dummy_mainloop(*args, **kw):
-            pass
+        # Try importing gtk
         import gtk
-        if gtk.pygtk_version >= (2,4,0): orig_mainloop = gtk.main
-        else:                            orig_mainloop = gtk.mainloop
+        
+        # Replace mainloop with a dummy
+        def dummy_mainloop(*args, **kwargs):
+            pass        
         gtk.mainloop = dummy_mainloop
         gtk.main = dummy_mainloop
+        
+        # Replace main_quit with a dummy too
+        def dummy_quit(*args, **kwargs):
+            pass        
+        gtk.main_quit = dummy_quit
+        gtk.mainquit = dummy_quit
+        
+        # Make sure main_iteration exists even on older versions
+        if not hasattr(gtk, 'main_iteration'):
+            gtk.main_iteration = gtk.mainiteration
+        
+        # Store 'app object'
+        self.gtk = gtk
     
     def processEvents(self):
-        pass
+        gtk = self.gtk
+        while gtk.events_pending():            
+            gtk.main_iteration(False)
+
