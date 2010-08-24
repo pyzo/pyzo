@@ -3,13 +3,13 @@
 [Setup]
 AppName=iep
 AppId=iep
-AppVerName=iep version 2.1
+AppVerName=iep version 2.2
 DefaultDirName={pf}\iep
 DefaultGroupName=iep
 
 SourceDir=../frozen/
 OutputDir=../
-OutputBaseFilename = iep-2.1.win32
+OutputBaseFilename = iep-2.2.win32
 
 ChangesEnvironment = no
 DisableProgramGroupPage = yes
@@ -24,7 +24,7 @@ Source: "*.*"; DestDir: "{app}"; Flags: recursesubdirs;
 Name: icon; Description: "Desktop Icon"
 
 [Icons]
-Name: "{commondesktop}\iep"; Filename: "{app}\iep.exe"; IconFilename: "{app}\source\icons\iep.ico"; Workingdir: "{app}"; Tasks: icon;
+Name: "{commondesktop}\iep"; Filename: "{app}\iep.exe"; IconFilename: "{app}\iep.exe"; Workingdir: "{app}"; Tasks: icon;
 
 
 
