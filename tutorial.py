@@ -14,6 +14,7 @@ uses a set of pluggable tools to help the programmer in various ways.
 
 """
 
+
 ## The editor
 """
 The editor is where your code is located; it is the central component
@@ -22,7 +23,7 @@ of IEP.
 To the left of the editor is a list of open files. The files
 can be organized in projects, and are stacked vertically so you can
 access your files easily. You can drag files to change their order, or
-to move them to a (different) project.
+move them to a (different) project.
 
 Using the right mouse button, files can be created, saved, closed, etc. 
 
@@ -33,6 +34,7 @@ tutorial).
 
 """
 
+
 ## The shells
 """
 The other main component is the window that holds the shells. When IEP
@@ -40,18 +42,41 @@ starts, a default shell is created. You can add more shells that run
 simultaneously, and which can be of different Python versions.
 
 It is good to know that the shells run in a sub-process, such that
-when it is busy, IEP itself stays responsonsive, which allows you
-to keep coding or even run code in another shell. 
+when it is busy, IEP itself stays responsive, which allows you to 
+keep coding and even run code in another shell. 
 
-We get back to the different shell configurations later in this 
-tutorial.
+Another notable feature is that IEP can integrate the event loop of
+four different GUI toolkits, thus enabling interactive plotting with
+Visvis or Matplotlib. The module of the integrated toolkit is given
+an "_integratedEventLoop" attribute, which can be used in scripts to
+recognize that an application instance does not have to be created.
+  
+Via "Shell > Edit shell configurations", you can edit and add shell
+configurations. This allows you to for example select the initial
+directory, or use a custom PYTHONPATH.
 
 """
+
+
+## The tools
+"""
+Via the "Tools" menu, one can select what tools to use. The tools can
+be positioned in any way you want, and can also be un-docked.
+
+Try the "Source Structure" tool to see the outline of this tutorial!
+
+Note that the tools system is designed such that it's quite easy to
+create your own tools. Look at the online wiki for more information,
+or use one of the existing tools as an example. Also, IEP does not
+need to restart to see new tools, or to update existing tools.
+
+"""
+
 
 ## Running code
 """
 IEP supports several ways to run source code in the editor. (see
-also Menu > Run).
+also the "Run" menu).
 
   * Run selected lines. If a line is partially selected, the whole
     line is executed. If there is no selection, IEP will run the
@@ -66,18 +91,18 @@ also Menu > Run).
   * Run project main file. Runs the code in the current project's
     main file.
 
-Additionally, one can run the current file or the current project's
+Additionally, you can run the current file or the current project's
 main file as a script. This will first restart the shell to provide
 a clean environment. The shell is also initialized differently, see
 below.
 
-Done on shell startup in INTERACTIVE MODE:
+Things done on shell startup in INTERACTIVE MODE:
   * sys.argv = []
   * sys.path is prepended with an empty string (current working directory)
   * The working dir is set to the "Initial directory" of the shell config.
   * The PYTHONSTARTUP script is run.
 
-Done on shell startup in SCRIPT MODE:
+Things done on shell startup in SCRIPT MODE:
   * __file__ = <script_filename>  
   * sys.argv = [ <script_filename> ]  
   * sys.path is prepended with the directory containing the script.
@@ -89,18 +114,68 @@ a = 3
 b = 4
 print('The answer is ' + str(a+b))
 
+
 ## The menu
 """
 Almost all functionality of IEP can be accessed via the menu. For more
-advanced/specific stuff, you can use the logger tool.
+advanced/specific stuff, you can use the logger tool (see also 
+Settings > Advanced)
 
-All actions in the menu can be run quicker by defining a shortcut for it
-via the shortcut editor: Menu > Settings > Change shortcuts.
+All actions in the menu can be accessed via a shortcut. Change the 
+shortcuts using the shortcut editor: Menu > Settings > Change shortcuts.
   
 """
 
-## Shell configurations
+  
+## Introspection
+"""
+IEP has strong introspection capabilities. IEP knows about the objects
+in the shell, and parses (not runs) the source code in order to detect
+the structure of your code. This enables powerful instospection such
+as autocompletion, calltips, interactive help and source structure.
+  
+"""
+
 
 ## Debugging
+"""
+IEP supports post-mortem debugging, which means that after something 
+went wrong, you can inspect the stack trace to find the error.
 
-## The different tools
+The easiest way to start debugging is to press the "Post mortem" button
+at the upper right corner of the shells.
+
+Once in debug mode, the button becomes expandable, allowing you to
+see the stack trace and go to any frame you like. (Starting debug mode
+brings you to the bottom frame). Changing a frame will make all objects
+in that frame available in the shell. If possible, IEP will also show
+the source file belonging to that frame, and select the line where the
+error occurred.
+
+Debugging can also be controlled via magic commands, type "?" in the
+shell for more information.
+
+Below follows an example that you can run to test the debugging.
+  
+""" 
+
+import random
+someModuleVariable = True
+
+def getNumber():
+    return random.choice(range(10))
+
+def foo():
+    spam = 'yum'
+    egs = 7 
+    value = bar()
+    
+def bar():
+    total = 0
+    for i1 in range(100):
+        i2 = getNumber()
+        total += i1/i2    
+    return total
+
+foo()
+

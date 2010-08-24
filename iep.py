@@ -171,7 +171,7 @@ def loadConfig(defaultsOnly=False):
     if os.path.isfile(fname):
         userConfig = ssdf.load(fname)
         replaceFields(config, userConfig)
-    
+
 
 def saveConfig():
     """ saveConfig()
