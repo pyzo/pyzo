@@ -41,8 +41,8 @@ defPattern += r'(cp?)?def\s+' # The Cython preamble, def keyword and whitespace
 defPattern += r'([a-zA-Z_][\*a-zA-Z_0-9]*\s+)?' # Optional Cython return type
 defPattern += r'([a-zA-Z_][a-zA-Z_0-9]*)\s*' # The NAME + optional whitespace
 defPattern += r'\((.*?)\)' # The SIGNATURE
-defPattern += r'\s*:' # Optional whitespace and the colon
-
+#defPattern += r'\s*:' # Optional whitespace and the colon
+# Leave the colon, easier for cython
 
 class Job:
     """ Simple class to represent a job. """

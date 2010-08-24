@@ -372,6 +372,14 @@ class FileItem(Item):
                 self._project._mainfile = ''
             else:
                 self._project._mainfile = self._editor.id()
+        else:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Project main file")
+            m.setText(  "Cannot make this the project main file, " +
+                        "because this file is not in a project.")
+            m.setIcon(m.Information)
+            m.exec_()
+        #
         for item in self.parent()._items:
             if isinstance(item, FileItem):
                 item.updateTexts()
@@ -439,7 +447,7 @@ class FileListCtrl(QtGui.QFrame):
         degrees = event.delta() / 8
         steps = degrees / 15
         deltaPixels = steps * 16
-        self._scroller.setValue( self._scroller.value() + deltaPixels)
+        self._scroller.setValue( self._scroller.value() - deltaPixels)
     
     
     def updateMe(self):
@@ -1541,7 +1549,8 @@ class EditorStack(QtGui.QWidget):
         if iep.config.state.editorState:
             self._setCurrentOpenFilesAsString(iep.config.state.editorState)
         else:
-            self.newFile()
+            #self.newFile()
+            self.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
         
         # The find/replace state is set in the corresponding class during init
     

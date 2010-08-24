@@ -1103,11 +1103,16 @@ class HelpMenu(BaseMenu):
         BaseMenu.fill(self)
         addItem = self.addItem
         
+        addItem( MI('Tutorial', self.fun_tutorial) )
         addItem( MI('Website', self.fun_website) )
         addItem( MI('Check for updates', self.fun_updates) )
         addItem( MI('View license', self.fun_licese) )
         addItem( MI('About IEP', self.fun_about) )
     
+    
+    def fun_tutorial(self, value):
+        """ Open the tutorial file. """
+        iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
     
     def fun_website(self, value):
         """ Open the official IEP website. """
@@ -1153,7 +1158,6 @@ class HelpMenu(BaseMenu):
             import webbrowser
             webbrowser.open("http://code.google.com/p/iep/downloads/list")
     
-    
     def fun_licese(self, value):
         """ Open the license text file. """
         iep.editors.loadFile(os.path.join(iep.iepDir,'gpl.txt'))
@@ -1164,8 +1168,10 @@ class HelpMenu(BaseMenu):
         aboutText = """
         IEP: the Interactive Editor for Python
         \r\r
-        Current version: {}\r
-        IEP appdata directory: {}
+        Current version: {}
+        \r\r
+        IEP source directory: {}\r
+        IEP userdata directory: {}        
         \r\r
         IEP is written in Python 3.x and uses the Qt4 widget
         toolkit. Much of its code was inspired by the Pype
@@ -1185,12 +1191,13 @@ class HelpMenu(BaseMenu):
         PARTICULAR PURPOSE. See the GNU General Public License
         for more details.
         """
-        # Insert version text
-        tmp = iep.appDataDir
+        # Insert information texts
         if iep.isFrozen():
-           aboutText = aboutText.format(iep.__version__ + ' (binary)', tmp)
+            versionText = iep.__version__ + ' (binary)'
         else:
-            aboutText = aboutText.format(iep.__version__ + ' (source)', tmp)
+            versionText = iep.__version__ + ' (source)'
+        aboutText = aboutText.format(versionText, iep.iepDir, iep.appDataDir)
+        
         # Define icon and text
         im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
         # Show message box

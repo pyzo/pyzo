@@ -1296,8 +1296,9 @@ class BaseTextCtrl(Qsci.QsciScintilla):
                 # Handle normal key event
                 handled = self.keyPressHandler_normal(keyevent)
             
-            # Should we handle it the normal way?
-            if not handled:
+            # Should we handle it the normal way? 
+            # By testing key>0 we prevent backspace chars inserted
+            if not handled and event.key()>0:
                 Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
         # Analyse character/key to determine what introspection to fire
