@@ -220,7 +220,7 @@ class IepInterpreter:
                 time.sleep(0.010) # 10 ms
                 
                 # Read control stream and process
-                control = sys._control.readOne(False)
+                control = sys._control.read_one(False)
                 if control:
                     self.parsecontrol(control)
                 
@@ -234,7 +234,7 @@ class IepInterpreter:
                     break
                 
                 # Read a packet and process
-                line = sys.stdin.readOne(False)
+                line = sys.stdin.read_one(False)
                 if line:
                     # Set busy
                     sys._status.write('STATE Busy')
@@ -743,7 +743,7 @@ class IntroSpectionThread(threading.Thread):
             time.sleep(0.01)
             
             # read code (wait here)
-            line = self.request.readOne(True)
+            line = self.request.read_one(True)
             if not line or self.request.closed or self._stop:
                 break # from thread
             

@@ -53,29 +53,29 @@ Here's an example:
 import channels
 c = channels.Channels(1) # create channels object with one sending channel
 c.host('channels_example') # host (determine port by hashing a string)
-s1 = c.getSendingChannel(0)
-r1 = c.getReceivingChannel(0)
-r2 = c.getReceivingChannel(1)
+s1 = c.get_sending_channel(0)
+r1 = c.get_receiving_channel(0)
+r2 = c.get_receiving_channel(1)
 
 # write something. This will be send as soon as the other side is connected.
 s1.write('hello there')
 # read all packages received until now (returns '' if none available)
 r1.read()
 # read a single package (waits for max 5 s, returns '' if none available)
-r2.readOne(5) 
+r2.read_one(5) 
 
 
 # On other side:
 import channels
 c = channels.Channels(2) # create channels object with two sending channels
 c.connect('channels_example') # connect (determine port by hashing same string)
-s1 = c.getSendingChannel(0)
-s2 = c.getSendingChannel(1)
-r1 = c.getReceivingChannel(0
+s1 = c.get_sending_channel(0)
+s2 = c.get_sending_channel(1)
+r1 = c.get_receiving_channel(0
 
 s1.write('This is channel one')
 s2.write('This is channel two')
-r1.readOne()
+r1.read_one()
 
 """
 
@@ -221,8 +221,8 @@ class Queue:
         finally:
             self._lock.release()
     
-    def pushMore(self, value):
-        """ pushMore(object)
+    def push_more(self, value):
+        """ push_more(object)
         Push a list of bytes packages to the queue."""
         self._lock.acquire()
         try:
@@ -244,8 +244,8 @@ class Queue:
             self._lock.release()
         return tmp
     
-    def popAll(self):
-        """ popAll()
+    def pop_all(self):
+        """ pop_all()
         Pop a list containing all bytes packages, emptying the queue.
         """ 
         self._lock.acquire()
@@ -256,8 +256,8 @@ class Queue:
             self._lock.release()
         return tmp
     
-    def popLast(self):
-        """ popLast()
+    def pop_last(self):
+        """ pop_last()
         Pop only the last message, discarting all the rest.
         """
         self._lock.acquire()
@@ -419,8 +419,8 @@ class ReceivingChannel(BaseChannel):
         self._blocking = False
     
     
-    def setDefaultBlocking(self, block):
-        """ setDefaultBlocking(block)
+    def set_default_blocking(self, block):
+        """ set_default_blocking(block)
         Set the default blocking state. 
         """
         if not isinstance(block, (bool,int,float)):
@@ -429,13 +429,13 @@ class ReceivingChannel(BaseChannel):
     
     
     @property
-    def defaultBlocking(self):
+    def default_blocking(self):
         """ The currently set default blocking state. """ 
         return self._blocking 
     
     
-    def readOne(self, block=None):
-        """ readOne(block=False)
+    def read_one(self, block=None):
+        """ read_one(block=False)
         Read one string that was send as one from the other end.
         If the channel is closed and all messages are read, returns ''.
         If block is not given, uses the default blocking state.
@@ -468,8 +468,8 @@ class ReceivingChannel(BaseChannel):
         return self._q.pop().decode('utf-8')
     
     
-    def readLast(self, block=None):
-        """ readLast(block=False)
+    def read_last(self, block=None):
+        """ read_last(block=False)
         Read the last string that was send as one from the other end.
         If the channel is closed and all messages are read, returns ''.
         If block is not given, uses the default blocking state.
@@ -495,7 +495,7 @@ class ReceivingChannel(BaseChannel):
                 time.sleep(0.01)
         
         # get data, decode, return
-        return self._q.popLast().decode('utf-8')
+        return self._q.pop_last().decode('utf-8')
     
     
     def readline(self, size=0):
@@ -548,7 +548,7 @@ class ReceivingChannel(BaseChannel):
                 time.sleep(0.01)
         
         # get data, decode, return
-        tmp = bytes().join( self._q.popAll() )
+        tmp = bytes().join( self._q.pop_all() )
         return tmp.decode('utf-8')
     
     
@@ -582,7 +582,7 @@ class ReceivingChannel(BaseChannel):
         """ next()
         Return the next message, or raises StopIteration if non available.
         """
-        m = self.readOne(False)
+        m = self.read_one(False)
         if m:
             return m
         else:
@@ -633,11 +633,11 @@ class Channels(object):
         self._port = 0
         
         # callback to call when connection closes
-        self.disconnectCallback =  self._defaultDisconnectCallback
+        self.disconnectCallback =  self._default_disconnect_callback
     
     
-    def _reOpenAllChannels(self):
-        """ _reOpenAllChannels()
+    def _reopen_all_channels(self):
+        """ _reopen_all_channels()
         Re-open all channels. To clean up when re-hosting. """
         for channel in self._sendingChannels:
             channel._closed = False
@@ -670,11 +670,11 @@ class Channels(object):
         """ 
         
         # check if already connected. if so, raise error
-        if self.isConnected:
+        if self.is_connected:
             raise RuntimeError("Cannot host, already connected.")
         
         # clean up
-        self._reOpenAllChannels()
+        self._reopen_all_channels()
         
         # determine host
         host = 'localhost'
@@ -737,11 +737,11 @@ class Channels(object):
         """
         
         # check if already connected. if so, raise error
-        if self.isConnected:
+        if self.is_connected:
             raise RuntimeError("Cannot connect, already connected.")
         
         # clean up
-        self._reOpenAllChannels()
+        self._reopen_all_channels()
         
         # create socket
         self._s = s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -790,8 +790,8 @@ class Channels(object):
         self._doorman._stopMe = "Closed from this end."
     
     
-    def getReceivingChannel(self,i):
-        """ getReceivingChannel(i)
+    def get_receiving_channel(self,i):
+        """ get_receiving_channel(i)
         Get the i'th receiving channel. The other end choses how
         many such channels there are. You can always get up to 128 
         receiving channels, but you just might never receive data 
@@ -814,8 +814,8 @@ class Channels(object):
         return tmp
     
     
-    def getSendingChannel(self,i):
-        """ getSendingChannel(i)
+    def get_sending_channel(self,i):
+        """ get_sending_channel(i)
         Get the i'th sending channel. The number i must be between
         0 and N-1, with N the number of output channels chosen when
         this Channels object was created.
@@ -838,19 +838,19 @@ class Channels(object):
     
     
     @property
-    def isConnected(self):
+    def is_connected(self):
         """ Whether the channel is connected. """
         return self._port > 0
     
     
     @property
-    def isHost(self):
+    def is_host(self):
         """ Whether this instance is connected and hosting. """
         return self._port>0 and self._doorman._host==True
     
     
     @property
-    def isClient(self):
+    def is_client(self):
         """ Whether this instance is connected and not hosting. """
         return self._port>0 and self._doorman._host==False
     
@@ -871,19 +871,19 @@ class Channels(object):
     
     
     @property 
-    def canBeKilled(self):
+    def can_be_killed(self):
         """ Whether the other end is allowed to kill this process."""
         return self._canBeKilled
     
     
     @property
-    def canBeInterrupted(self):
+    def can_be_interrupted(self):
         """ Whether the other end is allowed to interrupt this process."""
         return self._canBeInterrupted
     
     
     
-    def _defaultDisconnectCallback(self, why):
+    def _default_disconnect_callback(self, why):
         print("Connection closed: " + why)
 
 
@@ -979,12 +979,12 @@ class Doorman(threading.Thread):
             
             # close all receiving channels
             for i in range(len(self._channels._receivingChannels)):
-                channel = self._channels.getReceivingChannel(i)
+                channel = self._channels.get_receiving_channel(i)
                 channel._closed = True
             
             # close all sending channels too
             for i in range(len(self._channels._sendingChannels)):
-                channel = self._channels.getSendingChannel(i)
+                channel = self._channels.get_sending_channel(i)
                 channel._closed = True
             
             # clean up
@@ -1005,7 +1005,7 @@ class Doorman(threading.Thread):
         
         # Flush the whole queue if we have send everything so far.
         if not self._sendBuffer:
-            tmp = self._channels._q.popAll()
+            tmp = self._channels._q.pop_all()
             n = len(tmp)
             tmp.append(bytes())
             self._sendBuffer = DELIMITER.join(tmp)
@@ -1024,8 +1024,8 @@ class Doorman(threading.Thread):
         return nb
     
     
-    def receiveMessages(self):
-        """ receiveMessages()
+    def receive_messages(self):
+        """ receive_messages()
         Receive data from the socket, devide in messages using the
         delimiter and return the available messages as a list.
         """
@@ -1077,7 +1077,7 @@ class Doorman(threading.Thread):
         """
         
         # receive what we can now
-        messages = self.receiveMessages()
+        messages = self.receive_messages()
         n = len(messages)
         
         # The M in MESSAGE, as a byte element
@@ -1112,12 +1112,12 @@ class Doorman(threading.Thread):
                 # get channel and its queue
                 while len(self._receiveQueues) <= id:
                     i2 = len(self._receiveQueues)
-                    channel = self._channels.getReceivingChannel(i2)
+                    channel = self._channels.get_receiving_channel(i2)
                     self._receiveQueues.append(channel._q)
                 q = self._receiveQueues[id]
                 # put message it in the queue
                 if isinstance(bb,list):
-                    q.pushMore(bb)
+                    q.push_more(bb)
                 else:
                     q.push(bb)
             
@@ -1127,7 +1127,7 @@ class Doorman(threading.Thread):
             
             elif type == 'CLOSE':
                 # close a channel
-                channel = self._channels.getReceivingChannel(id)
+                channel = self._channels.get_receiving_channel(id)
                 channel._closed = True
             
             elif type == 'INT':
@@ -1166,9 +1166,9 @@ if 0:
 
     channels = Channels(2)
     port = channels.host('IEP'); print(port)
-    r1 = channels.getReceivingChannel(0)
-    s1 = channels.getSendingChannel(0)
-    s2 = channels.getSendingChannel(1)
+    r1 = channels.get_receiving_channel(0)
+    s1 = channels.get_sending_channel(0)
+    s2 = channels.get_sending_channel(1)
     
     s1.write("I am channel one")
     s2.write("And I am channel two.")
@@ -1177,9 +1177,9 @@ if 0:
     
     channels = Channels(1)
     channels.connect('IEP')
-    r1 = channels.getReceivingChannel(0)
-    r2 = channels.getReceivingChannel(1)
-    s1 = channels.getSendingChannel(0)
+    r1 = channels.get_receiving_channel(0)
+    r2 = channels.get_receiving_channel(1)
+    s1 = channels.get_sending_channel(0)
     time.sleep(0.5)
     print( r1.read())
     print( r2.read())
@@ -1189,7 +1189,7 @@ if 0:
     times = []
     tmp = r1.read(False) # flush
     while True:
-        tmp = r1.readOne()
+        tmp = r1.read_one()
         if tmp == 'stop':
             break
         if tmp:

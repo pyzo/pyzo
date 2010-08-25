@@ -630,7 +630,7 @@ def findPythonExecutables_win():
     try:
         key = winreg.OpenKey(base, 'SOFTWARE\\Python\\PythonCore', 0, winreg.KEY_READ)
     except Exception:
-        return None
+        return []
     
     # Get info about subkeys
     nsub, nval, modified = winreg.QueryInfoKey(key)

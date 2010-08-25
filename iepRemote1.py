@@ -37,11 +37,11 @@ port = int(sys.argv[1])
 c = Channels(4, True, True)
 
 # Create all channels
-sys.stdin = c.getReceivingChannel(0)
-sys.stdout = c.getSendingChannel(0)
-sys.stderr = c.getSendingChannel(1)
-sys._control = c.getReceivingChannel(1)
-sys._status = c.getSendingChannel(2)
+sys.stdin = c.get_receiving_channel(0)
+sys.stdout = c.get_sending_channel(0)
+sys.stderr = c.get_sending_channel(1)
+sys._control = c.get_receiving_channel(1)
+sys._status = c.get_sending_channel(2)
 
 # Connect
 c.connect(port, timeOut=1)
@@ -57,7 +57,7 @@ __iep__.channels = c
 # Make it a deamon thread, which implies that the program exits
 # even if its running.
 __iep__.ithread = IntroSpectionThread(  
-    c.getReceivingChannel(2), c.getSendingChannel(3), __iep__)
+    c.get_receiving_channel(2), c.get_sending_channel(3), __iep__)
 __iep__.ithread.daemon = True
 
 

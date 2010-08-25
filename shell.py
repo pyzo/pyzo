@@ -869,15 +869,15 @@ class PythonShell(BaseShell):
         self._channels = c = channels.Channels(3)
         c.disconnectCallback = self._onDisconnect
         # Standard streams
-        self._stdin = c.getSendingChannel(0)
-        self._stdout = c.getReceivingChannel(0)
-        self._stderr = c.getReceivingChannel(1)
+        self._stdin = c.get_sending_channel(0)
+        self._stdout = c.get_receiving_channel(0)
+        self._stderr = c.get_receiving_channel(1)
         # Control and status of interpreter
-        self._control = c.getSendingChannel(1)
-        self._status = c.getReceivingChannel(2)
+        self._control = c.get_sending_channel(1)
+        self._status = c.get_receiving_channel(2)
         # For introspection
-        self._request = c.getSendingChannel(2)
-        self._response = c.getReceivingChannel(3)
+        self._request = c.get_sending_channel(2)
+        self._response = c.get_receiving_channel(3)
         
         # Host it (tries several port numbers, staring from 'IEP')
         port = c.host('IEP')
@@ -1081,13 +1081,13 @@ class PythonShell(BaseShell):
             # ... make it be reposted when we're done.        
             self._requestQueue[0]._posted = False
             # Wait for any leftover messages to arrive
-            self._response.readOne(block=True)
+            self._response.read_one(block=True)
         
         # Do request
         self._request.write(request)
         
         # Wait for it to arrive
-        return self._response.readLast(block=True)
+        return self._response.read_last(block=True)
     
     
     def executeCommand(self, text):
@@ -1455,13 +1455,13 @@ class PythonShell(BaseShell):
             self._t = time.time()
         
         # Check stderr
-        text = self._stderr.readOne(False)
+        text = self._stderr.read_one(False)
         if text:
             self.writeErr(text)
         
         # Process responses
         if self._requestQueue:
-            response = self._response.readLast()
+            response = self._response.read_last()
             if response:
                 req = self._requestQueue.pop(0)
                 req._callback(response, req._id)
@@ -1479,7 +1479,7 @@ class PythonShell(BaseShell):
         if self._version:
             status = 'dummy'
             while status:
-                status = self._status.readOne()
+                status = self._status.read_one()
                 if status:
                     self._setStatus(status)
         else:
@@ -1497,7 +1497,7 @@ class PythonShell(BaseShell):
         IEP will try to terminate in increasingly more rude ways. 
         """
         
-        if self._channels.isConnected:
+        if self._channels.is_connected:
             
             if self._killAttempts == 1:
                 # Waiting for process to stop by itself
@@ -1597,7 +1597,7 @@ class PythonShell(BaseShell):
         self._t = time.time()
         
         # Terminate
-        while self._channels.isConnected:
+        while self._channels.is_connected:
             time.sleep(0.02)
             
             if self._killAttempts == 1:
