@@ -1274,6 +1274,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
         
+        # Get ordinal key
+        ordKey = -1
+        if event.text():
+            ordKey = ord(event.text()[0])
+        
         # Cancel any introspection in progress
         self._delayTimer._line = ''
         
@@ -1298,16 +1303,17 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             
             # Should we handle it the normal way? 
             # By testing key>0 we prevent backspace chars inserted
-            if not handled and event.key()>0:
+            # But allowing ordKey makes tapping quote twice, insert 2 quotes
+            if not handled and (ordKey>=32 or event.key()>0):
+                print(event.key(), event.text(), 'keyevent')
                 Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
         # Analyse character/key to determine what introspection to fire
-        if event.text():
-            key = ord(event.text()[0])
-            if key >= 48 or key in [8, 46]:
+        if ordKey:
+            if ordKey >= 48 or ordKey in [8, 46]:
                 # If a char that allows completion or backspace or dot was pressed
                 self.introspect(True)
-            elif key >= 32: 
+            elif ordKey >= 32: 
                 # Printable chars, only calltip
                 self.introspect()
         elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
