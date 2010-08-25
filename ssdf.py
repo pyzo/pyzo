@@ -112,9 +112,6 @@ else:
 
 # if version 2...
 if sys.version_info[0] <= 2:
-#     try:
-#         assert simplestr        
-#     except NameError:
         simplestr = str
         bytes = str
         str = unicode
@@ -156,6 +153,9 @@ class Struct(object):
             # plain struct
             return
         
+        elif not isinstance(a_dict, (Struct, dict)):
+            tmp = "Struct can only be initialized with a Struct or a dict."
+            raise ValueError(tmp)
         else:
             # try loading from object
             
@@ -177,7 +177,8 @@ class Struct(object):
             
             # Copy all keys in the dict that are not methods
             for key in a_dict:    
-                if not _isvalidname(key):
+                if not _isvalidname(key):                    
+                    print("Ignoring invalid key-name '%s'." % key)
                     continue
                 val = a_dict[key]                
                 self[key] = _getValue(val)
@@ -541,11 +542,20 @@ def _toString(name, value, indent):
             # get attributes
             shapestr = _shapeString(value)
             dtypestr = str(value.dtype)
-            # get data as compressed base 64 string
+            # get raw data
             data = value.tostring()
-            data = zlib.compress(data)
-            text = base64.encodestring(data)
-            text = text.replace("\n","") # by default contains blocks
+            # in blocks of 1MB, compress and encode
+            BS = 1024*1024
+            texts = []
+            i=0
+            while i < len(data):
+                block = data[i:i+BS]
+                blockc = zlib.compress(block)
+                text = base64.encodestring(blockc)
+                texts.append( text.replace("\n","") )
+                i += BS
+            # Combine blocks and store
+            text = ';'.join(texts)
             lineObject.line += "array %s %s %s" % (shapestr, dtypestr, text)
     
     elif isinstance(value, UnloadedArray):
@@ -609,21 +619,39 @@ def _fromString(lineObject):
         return name, value
     
     elif line[0] == '[':
-        # Get rid of comment
-        i = line.find('#')
-        if i>0:
-            line = line[:i]
-        # Don't parse anything with brackets (security!!)
-        # todo: this means strings with brackets will cause not being read!
-        if line.count('('):
-            print("SSDF Warning: Invalid one-line list.")
-            value = []
+        # Smart cutting, taking strings into account
+        i0 = 1
+        pieces = []
+        inString = False
+        escapeThis = False
+        for i in range(1,len(line)):
+            if inString:
+                # Detect how to get out
+                if escapeThis:
+                    escapeThis = False
+                    continue
+                elif line[i] == "\\":
+                    escapeThis = True
+                elif line[i] == "'":
+                    inString = False
+            else:
+                # Detect going in a string, break, or end
+                if line[i] == "'":
+                    inString = True
+                elif line[i] == ",":
+                    pieces.append(line[i0:i])
+                    i0 = i+1
+                elif line[i] == "]":
+                    pieces.append(line[i0:i])
+                    break
         else:
-            try:
-                value = eval(line)
-            except Exception:
-                print("SSDF Warning: Could not parse one-line list.")
-                value = []
+            print("SSDF Warning: One-line list not closed correctly.")
+        
+        # Cut in pieces and process each piece
+        value = []
+        for piece in pieces:
+            lo = _LineObject(value=piece.strip(), linenr=lineObject.linenr)
+            value.append( _fromString(lo)[1] )
         return name, value
     
     elif line[0] == "$":
@@ -709,9 +737,15 @@ def _fromString(lineObject):
         else:
             # stored binary
             
-            # get data: decode and decompress, convert to numpy array
-            data = base64.decodestring(word4)
-            data = zlib.decompress(data)
+            # get data: decode and decompress in blocks
+            dataparts = []
+            for blockt in word4.split(';'):                
+                blockc = base64.decodestring(blockt)
+                block = zlib.decompress(blockc)
+                dataparts.append(block)
+            
+            # Combine and convert to numpy array
+            data = bytes().join(dataparts)
             value  = np.frombuffer(data, dtype=dtypestr )
             
             # set shape
