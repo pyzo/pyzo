@@ -97,7 +97,7 @@ a clean environment. The shell is also initialized differently, see
 below.
 
 Things done on shell startup in INTERACTIVE MODE:
-  * sys.argv = []
+  * sys.argv = ['']
   * sys.path is prepended with an empty string (current working directory)
   * The working dir is set to the "Initial directory" of the shell config.
   * The PYTHONSTARTUP script is run.

@@ -176,8 +176,9 @@ class IepInterpreter:
             
             # No __file__ (note that __name__ is already '__main__')
             self.locals.pop('__file__','')
-            # Remove all command line arguments
+            # Remove all command line arguments, set first to empty string
             sys.argv[:] = []
+            sys.argv.append('')
             # Insert current directory to path
             sys.path.insert(0, '')
             
