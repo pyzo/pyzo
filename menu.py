@@ -864,8 +864,9 @@ class ShellMenu(BaseMenu):
         addItem( None )
         
         addItem( MI('Interrupt current shell', self.fun_interrupt) )
-        addItem( MI('Terminate current shell', self.fun_term) )        
-        addItem( MI('Restart current shell', self.fun_restart) )        
+        addItem( MI('Terminate current shell', self.fun_term) ) 
+        addItem( MI('Restart current shell', self.fun_restart) )
+        addItem( MI('Clear screen', self.fun_clearScreen) )       
         addItem( None )
         addItem( MI('Edit shell configurations ...', self.fun_config) )
         
@@ -910,7 +911,15 @@ class ShellMenu(BaseMenu):
         if shell:
             shell.restart()
     
+    def fun_clearScreen(self, value):
+        """ Clear all the previous output of the screen, leaving only
+        the prompt.
+        """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.clearScreen()
 
+    
 class RunMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)

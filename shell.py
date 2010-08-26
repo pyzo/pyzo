@@ -436,6 +436,17 @@ class BaseShell(BaseTextCtrl):
     
     ## Basic commands to control the shell
     
+    def clearScreen(self):
+        """ Clear all the previous output from the screen. """
+        # Select what to remove, and remove it
+        self.setPosition(0)
+        self.setAnchor(self._promptPos1)
+        self.removeSelectedText()
+        # Go to end and ensure visible
+        self.setPositionAndAnchor(self._promptPos2)
+        self.ensureCursorVisible()  
+    
+    
     def clearCommand(self):
         """ Clear the current command, move the cursor right behind
         the prompt, and ensure it's visible.
@@ -444,9 +455,8 @@ class BaseShell(BaseTextCtrl):
         self.setPosition(self._promptPos2)
         self.setAnchor(self.length())
         self.removeSelectedText()
-        # Go to end
+        # Go to end and ensure visible
         self.setPositionAndAnchor(self._promptPos2)
-        # Ensure cursor visible
         self.ensureCursorVisible()  
     
     
