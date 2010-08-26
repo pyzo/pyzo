@@ -111,3 +111,4 @@ shortcuts = dict:
     view__select_shell = 'F1,Ctrl+0'
     edit__cut = 'Ctrl+X,Shift+Delete'
     file__open_file = 'Ctrl+O,'
+    shell__clear_screen = 'Ctrl+L,'
