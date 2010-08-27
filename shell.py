@@ -442,6 +442,9 @@ class BaseShell(BaseTextCtrl):
         self.setPosition(0)
         self.setAnchor(self._promptPos1)
         self.removeSelectedText()
+        # Set prompt pos
+        self._promptPos2 = self._promptPos2 - self._promptPos1
+        self._promptPos1 = 0
         # Go to end and ensure visible
         self.setPositionAndAnchor(self._promptPos2)
         self.ensureCursorVisible()  
