@@ -24,7 +24,7 @@ and imports remote2 to start the interpreter and introspection thread.
 
 from iepRemote2 import IepInterpreter, IntroSpectionThread
 from channels import Channels
-import sys, os
+import sys, os, time
 import __main__ # we will run code in the __main__.__dict__ namespace
 
 
@@ -47,6 +47,17 @@ sys._status = c.get_sending_channel(2)
 c.connect(port, timeOut=1)
 
 
+## Set Excepthook
+
+def iep_excepthook(type, value, tb):
+    print("Uncaught exception in interpreter on line %i of %s:" % (
+            tb.tb_frame.f_lineno, tb.tb_frame.f_code.co_filename) )
+    print(value)    
+    time.sleep(0.3) # Give some time for the message to be send
+    
+sys.excepthook = iep_excepthook
+
+
 ## Init interpreter and introspection tread
 
 # Create interpreter instance and give dict in which to run all code
@@ -67,9 +78,9 @@ sys._iepInterpreter = __iep__
 sys._channels = c
 
 # Delete local variables
-del Channels, IntroSpectionThread, IepInterpreter
+del Channels, IntroSpectionThread, IepInterpreter, iep_excepthook
 del c, port
-del os, sys
+del os, sys, time
 
 # Delete stuff we do not want 
 del __file__
