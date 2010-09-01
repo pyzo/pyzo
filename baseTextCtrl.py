@@ -1274,8 +1274,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
         
-        print(keyevent.char, 'lala')
-        
         # Get ordinal key
         ordKey = -1
         if event.text():

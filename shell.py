@@ -186,6 +186,7 @@ class BaseShell(BaseTextCtrl):
         self.setEolMode(self.SC_EOL_LF)
         
         # Disable specif editing commands
+        ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
@@ -193,6 +194,13 @@ class BaseShell(BaseTextCtrl):
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
+        
+#         # Set shortcut
+#         keyseq = QtGui.QKeySequence('Ctrl+C')
+#         self._interruptShortcut = QtGui.QShortcut(keyseq, self)
+#         self._interruptShortcut.setContext(QtCore.Qt.WidgetShortcut)
+#         self._interruptShortcut.activated.connect(self.interrupt2)
+#         self._interruptShortcut.activatedAmbiguously.connect(self.interrupt2)
         
         # variables we need
         self._more = False
@@ -426,7 +434,8 @@ class BaseShell(BaseTextCtrl):
         else:
             BaseTextCtrl.cut(self)
     
-    #def copy() > can stay the same
+    #def copy(self): # no overload needed
+    
     
     def paste(self):
         """ Reimplement paste to only paste when the position is at
@@ -444,6 +453,7 @@ class BaseShell(BaseTextCtrl):
     
     
     ## Basic commands to control the shell
+    
     
     def clearScreen(self):
         """ Clear all the previous output from the screen. """
