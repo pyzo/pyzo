@@ -640,7 +640,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Z')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Y')+ ctrl)
         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('A')+ ctrl)
-#         # these are mostly not used ... but we might just leave them ...
+        # leave these in the editor, remove in shell
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
 #         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
@@ -1273,6 +1273,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         keyevent.controldown = modifiers & QtCore.Qt.ControlModifier
         keyevent.altdown = modifiers & QtCore.Qt.AltModifier
         keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
+        
+        print(keyevent.char, 'lala')
         
         # Get ordinal key
         ordKey = -1

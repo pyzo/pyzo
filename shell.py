@@ -185,6 +185,15 @@ class BaseShell(BaseTextCtrl):
         self.setHighlightCurrentLine(False)
         self.setEolMode(self.SC_EOL_LF)
         
+        # Disable specif editing commands
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
+        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
+        
         # variables we need
         self._more = False
         self._promptPos1 = 0

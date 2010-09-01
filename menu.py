@@ -1588,9 +1588,9 @@ class KeyMapEditDialog(QtGui.QDialog):
         shortcut = self._line.text()
         
         # remove shortcut if present elsewhere
-        keys = [key for key in iep.config.shortcuts] # since it can change size
+        keys = [key for key in iep.config.shortcuts] # copy
         for key in keys:
-            # get shortcut and test whether it corresponds with what's pressed
+            # get shortcut, test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
             tmp = list(shortcuts)
             needUpdate = False
