@@ -51,7 +51,6 @@ c.connect(port, timeOut=1)
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
-__iep__.channels = c
 
 # Create introspection thread instance
 # Make it a deamon thread, which implies that the program exits
@@ -63,6 +62,10 @@ __iep__.ithread.daemon = True
 
 ## Clean up
 
+# Store interpreter and channels on sys
+sys._iepInterpreter = __iep__
+sys._channels = c
+
 # Delete local variables
 del Channels, IntroSpectionThread, IepInterpreter
 del c, port
@@ -70,6 +73,7 @@ del os, sys
 
 # Delete stuff we do not want 
 del __file__
+
 # Enter the interpreter
 __iep__.ithread.start()
 __iep__.interact()
