@@ -261,6 +261,15 @@ class IepInterpreter:
                 self.write("\nKeyboardInterrupt\n")
                 self.resetbuffer()
                 more = 0
+            except TypeError:
+                # For some reason, when wx is hijacked, keyboard interrupts
+                # result in a TypeError.
+                # I tried to find the source, but did not find it. If anyone
+                # has an idea, please e-mail me!
+                if guiName == 'wx':
+                    self.write("\nKeyboardInterrupt\n")
+                    self.resetbuffer()
+                    more = 0
     
     
     def resetbuffer(self):
