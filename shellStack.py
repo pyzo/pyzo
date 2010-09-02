@@ -90,9 +90,23 @@ class ShellStack(QtGui.QWidget):
         """ Called when the shell state changes, and is called
         by onCurrentChanged. Sets the mainwindow's icon if busy.
         """
+        if True:
+            
+            # Determine the text to display in the tab
+            if shell._state == 'Ready':
+                stateText = 'Python {}'.format(shell._version)
+            else:
+                tmp = 'Python {} ({})'
+                stateText = tmp.format(shell._version, shell._state)
+            
+            # Show status in tab text            
+            i = self._tabs.indexOf(shell)
+            self._tabs.setTabText(i, stateText)
+        
         if shell is self.getCurrentShell():
-            # Update state info            
-            if shell._state == 'Busy':
+            
+            # Update icon
+            if shell._state in ['Busy']:
                 iep.main.setWindowIcon(iep.iconRunning)
             else:
                 iep.main.setWindowIcon(iep.icon)
@@ -115,7 +129,7 @@ class ShellStack(QtGui.QWidget):
         """ addShell()
         Add a shell to the widget. """
         shell = PythonShell(self._tabs, shellInfo)
-        self._tabs.addTab(shell, 'Python (Initializing)')
+        self._tabs.addTab(shell, 'Python')
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)

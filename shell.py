@@ -886,6 +886,12 @@ class PythonShell(BaseShell):
         self.setStyle('pythonshell')
         self.setReadOnly(False)
         
+        # (re)set state and debug state
+        self._debugState = ''
+        self._state = 'Initializing'
+        self.stateChanged.emit(self)
+        self.debugStateChanged.emit(self)
+        
         # (re)set restart vatiable and a callback
         self._restart = False 
         
@@ -912,7 +918,7 @@ class PythonShell(BaseShell):
         self._response = c.get_receiving_channel(3)
         
         # Host it (tries several port numbers, staring from 'IEP')
-        port = c.host('IEP')
+        port = c.host('IEP', hostLocal=True)
         
         # Start process (open PYPES to detect errors when starting up)
         command = self._shellInfo.getCommand(port)
@@ -947,23 +953,10 @@ class PythonShell(BaseShell):
         if status.startswith('STATE '):
             state = status.split(' ',1)[1]
             
-            # Determine the text to display in the tab. Note that 
-            # self._version is set before this function is called.
-            if state == 'Ready':
-                stateText = 'Python {}'.format(self._version)
-            else:
-                stateText = 'Python {} ({})'.format(self._version, state)
-            
-            # Show status in tab text
-            tabWidget = self.parent().parent()
-            i = tabWidget.indexOf(self)
-            tabWidget.setTabText(i, stateText)
-            
             # Store status and emit signal if necessary
             if state != self._state:
                 self._state = state
                 self.stateChanged.emit(self)
-        
         
         elif status.startswith('DEBUG '):
             debugState = status.split(' ',1)[1]
@@ -1656,7 +1649,7 @@ class PythonShell(BaseShell):
         if self._killAttempts < 0:
             msg = 'Process terminated twice?' # this should not happen
         if self._killAttempts == 0:
-            msg = 'Process dropped.'
+            msg = why#'Process dropped.'
         elif self._killAttempts == 1:
             msg = 'Process terminated.'
         elif self._killAttempts < 10:
