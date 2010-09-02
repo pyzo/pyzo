@@ -22,7 +22,6 @@ This script connects to the IEP ide using the channles interface
 and imports remote2 to start the interpreter and introspection thread.
 """
 
-from iepRemote2 import IepInterpreter, IntroSpectionThread
 from channels import Channels
 import sys, os, time
 import __main__ # we will run code in the __main__.__dict__ namespace
@@ -50,15 +49,23 @@ c.connect(port, timeOut=1)
 ## Set Excepthook
 
 def iep_excepthook(type, value, tb):
-    print("Uncaught exception in interpreter on line %i of %s:" % (
-            tb.tb_frame.f_lineno, tb.tb_frame.f_code.co_filename) )
-    print(value)    
+    print("Uncaught exception in interpreter:")
+    print(value)
+    if not isinstance(value, (OverflowError, SyntaxError, ValueError)):
+        while tb:
+            print("-> line %i of %s." % (
+                        tb.tb_frame.f_lineno, tb.tb_frame.f_code.co_filename) )
+            tb = tb.tb_next
+    import time
     time.sleep(0.3) # Give some time for the message to be send
     
 sys.excepthook = iep_excepthook
 
 
 ## Init interpreter and introspection tread
+
+# Delay import, so we can detect syntax errors using the except hook
+from iepRemote2 import IepInterpreter, IntroSpectionThread
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
