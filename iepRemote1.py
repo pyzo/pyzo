@@ -43,6 +43,7 @@ sys._control = c.get_receiving_channel(1)
 sys._status = c.get_sending_channel(2)
 
 # Connect
+#c.connect(port, timeOut=1, host='sas-p4-40') # Testing
 c.connect(port, timeOut=1)
 
 
