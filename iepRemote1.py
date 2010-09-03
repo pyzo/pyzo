@@ -59,8 +59,9 @@ def iep_excepthook(type, value, tb):
             tb = tb.tb_next
     import time
     time.sleep(0.3) # Give some time for the message to be send
-    
-sys.excepthook = iep_excepthook
+
+# Uncomment to detect error in the interpreter itself
+# sys.excepthook = iep_excepthook
 
 
 ## Init interpreter and introspection tread
