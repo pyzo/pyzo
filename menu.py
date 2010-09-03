@@ -1107,6 +1107,16 @@ class RunMenu(BaseMenu):
             m.exec_()
 
 
+def expandVersion(version):        
+        parts = []
+        for ver in version.split('.'):
+            try:
+                tmp = '%05i' % int(ver)
+                parts.append(tmp)
+            except ValueError: 
+                parts.append(ver)
+        return '.'.join(parts)
+
 class HelpMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
@@ -1140,7 +1150,8 @@ class HelpMenu(BaseMenu):
         # Select best
         remoteVersion = ''
         for result in results:
-            remoteVersion = max(remoteVersion, result)
+            if expandVersion(result) > expandVersion(remoteVersion):
+                remoteVersion = result
         if not remoteVersion:
             remoteVersion = '?'
         # Define message
@@ -1153,7 +1164,7 @@ class HelpMenu(BaseMenu):
         m.setWindowTitle("Check for the latest version.")
         if remoteVersion == '?':
             text += "Oops, could not determine the latest version."    
-        elif iep.__version__ < remoteVersion:
+        elif expandVersion(iep.__version__) < expandVersion(remoteVersion):
             text += "Do you want to download the latest version?"    
             m.setStandardButtons(m.Yes | m.Cancel)
             m.setDefaultButton(m.Cancel)
