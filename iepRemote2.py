@@ -149,6 +149,9 @@ class IepInterpreter:
                 sys.stdout.write('Invalid script file: "'+scriptFilename+'"\n')
                 scriptFilename = None
         
+        # Init script to run on startup
+        scriptToRunOnStartup = None
+        
         if scriptFilename:
             # RUN AS SCRIPT
             
@@ -170,8 +173,8 @@ class IepInterpreter:
             sys._status.write('STATE Busy')
             
             # Run script
-            self.runfile(scriptFilename)
-            
+            scriptToRunOnStartup = scriptFilename
+        
         else:
             # RUN INTERACTIVELY
             
@@ -196,7 +199,7 @@ class IepInterpreter:
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
-                self.runfile(filename)
+                scriptToRunOnStartup = filename
         
         
         # ENTER MAIN LOOP
@@ -205,6 +208,12 @@ class IepInterpreter:
         self.newPrompt = True
         while True:
             try:
+                
+                # Run startup script inside the loop (only the first time)
+                # so that keyboard interrupt will work
+                if scriptToRunOnStartup:
+                    scriptToRunOnStartup, tmp = None, scriptToRunOnStartup
+                    self.runfile(tmp)
                 
                 # Set status and prompt?
                 # Prompt is allowed to be an object with __str__ method
@@ -348,11 +357,11 @@ class IepInterpreter:
     
     def runcode(self, code):
         """Execute a code object.
-
+        
         When an exception occurs, self.showtraceback() is called to
         display a traceback.  All exceptions are caught except
         SystemExit, which is reraised.
-
+        
         A note about KeyboardInterrupt: this exception may occur
         elsewhere in this code, and may not always be caught.  The
         caller should be prepared to deal with it.
@@ -364,11 +373,8 @@ class IepInterpreter:
                 exec(code, self.globals, self.locals)
             else:
                 exec(code, self.locals)
-        except SystemExit:
-            raise
-        except KeyboardInterrupt:
-            raise
         except Exception:
+            time.sleep(0.1) # Give stdout some time to send data
             self.showtraceback()
     
     
@@ -422,18 +428,14 @@ class IepInterpreter:
             # Compile
             code = self.compile(source, fname, "exec")
         except (OverflowError, SyntaxError, ValueError):
-            time.sleep(0.3) # Give stdout time to be send
+            time.sleep(0.2) # Give stdout time to be send
             self.showsyntaxerror(fname)
         
         if code:
             # Store the source using the (id of the) code object as a key
             self._codeCollection.storeSource(code, source)
             # Execute the code
-            try:                
-                exec(code, self.locals)
-            except Exception:
-                time.sleep(0.3) # Give stdout time to be send
-                self.showtraceback()
+            self.runcode(code)
     
     ## Misc
     
