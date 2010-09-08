@@ -154,7 +154,7 @@ class IepInteractiveHelp(QtGui.QWidget):
             lines2.append( line[minIndent:] )
         
         # Prepare        
-        prevLine = ''
+        prevLine_ = ''
         prevIndent = 0
         prevWasHeader = False
         inExample = False
@@ -180,12 +180,12 @@ class IepInteractiveHelp(QtGui.QWidget):
             
             # Determine if we should introduce a newline
             isHeader = False
-            if "---" in line and indent == prevIndent:
+            if ("---" in line or "===" in line) and indent == prevIndent:
                 line = '<br /> ' + line
                 isHeader = True
                 inExample = False
                 # Special case, examples
-                if prevLine.strip().lower().startswith('example'):
+                if prevLine_.lower().startswith('example'):
                     inExample = True
                 else:
                     inExample = False
@@ -202,7 +202,7 @@ class IepInteractiveHelp(QtGui.QWidget):
                 forceNewline = False
             
             # Prepare for next line
-            prevLine = line
+            prevLine_ = line_
             prevIndent = indent
             prevWasHeader = isHeader
             
