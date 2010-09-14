@@ -232,10 +232,14 @@ class BaseShell(BaseTextCtrl):
         self.updateFontSizeToMatch80Columns()
     
     
-#     def setStyle(self, styleName=None):
-#         BaseTextCtrl.setStyle(self, styleName)
-#         if iep.config.settings.shellFit80:
-#             self.updateFontSizeToMatch80Columns()
+    def mousePressEvent(self, event):
+        """ Disable right MB and middle MB (which pastes by default). """
+        if event.button() != QtCore.Qt.MidButton:
+            BaseTextCtrl.mousePressEvent(self, event)
+    
+    def contextMenuEvent(self, event):
+        """ Do not show context menu. """
+        pass
     
     
     def updateWidgetSizeToMatch80Columns(self):
@@ -419,7 +423,7 @@ class BaseShell(BaseTextCtrl):
                     self.ensureCursorVisible()                
                     # Proceed as normal though!
     
-    ## Cut / Copy / Paste
+    ## Cut / Copy / Paste / Undo / Redo
     
     def cut(self):
         """ Reimplement cut to only copy if part of the selected text
@@ -450,6 +454,13 @@ class BaseShell(BaseTextCtrl):
         
         # Paste normally
         BaseTextCtrl.paste(self)
+    
+    
+    def undo(self):
+        pass
+    
+    def redo(self):
+        pass
     
     
     ## Basic commands to control the shell
