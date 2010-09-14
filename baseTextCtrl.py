@@ -1304,7 +1304,11 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # Should we handle it the normal way? 
             # By testing key>0 we prevent backspace chars inserted
             # But allowing ordKey makes tapping quote twice, insert 2 quotes
-            if not handled and (ordKey>=32 or event.key()>0):
+            # ordKey can be backspace, tab, enter, escape, or a char!
+            keyOk = ordKey>=32 or ordKey in [8,9,10,27]
+            keyOk = keyOk or (ordKey==-1 and event.key()>0)    
+            
+            if not handled and keyOk:
                 Qsci.QsciScintillaBase.keyPressEvent(self, event)
         
         # Analyse character/key to determine what introspection to fire

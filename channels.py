@@ -158,7 +158,6 @@ def portHash(name):
     return 49152 + val % 2**14 
 
 
-
 def packMessage(type='MESSAGE', id=0, bb=None):
     """ packMessage(type, id=None, bb=None)
     Build a message ready for sending. Returns a bytes object.
