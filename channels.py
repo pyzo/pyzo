@@ -963,7 +963,11 @@ class Doorman(threading.Thread):
                     tr = t0
                     n_unresponsive += 1
                     if n_unresponsive > 5:
-                        self._stopMe = "Other side is unresponsive."
+                        # Could be running extension code!
+                        # Do nothing for now. In Yoton, we'll take a better
+                        # approach to this.
+                        pass 
+                        #self._stopMe = "Other side is unresponsive."
                 
                 
                 # Determine time to rest. By default we sleep for 0.01 second.
