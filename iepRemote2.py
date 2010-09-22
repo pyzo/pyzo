@@ -28,7 +28,6 @@ occur in any othe packages to prevent import clashes.
 import os, sys, time
 from codeop import CommandCompiler
 import traceback
-import types
 import threading
 import inspect
 import keyword # for autocomp
@@ -1046,13 +1045,17 @@ class Hijacked_tk:
         # Try importing        
         import Tkinter
         
-        # Replace mainloop
+        # Replace mainloop. Note that a root object obtained with
+        # Tkinter.Tk() has a mainloop method, which will simply call
+        # Tkinter.mainloop().
         def dummy_mainloop(*args,**kwargs):
             pass
         Tkinter.Misc.mainloop = dummy_mainloop
         Tkinter.mainloop = dummy_mainloop
         
-        # Create tk app and withdraw
+        # Create tk "main window" that has a Tcl interpreter.
+        # Withdraw so it's not shown. This object can be used to
+        # process events for any other windows.
         r = Tkinter.Tk()
         r.withdraw()
         
@@ -1078,6 +1081,7 @@ class Hijacked_fltk:
     def __init__(self):
         # Try importing        
         import fltk as fl
+        import types
         
         # Replace mainloop with a dummy
         def dummyrun(*args,**kwargs):
@@ -1085,7 +1089,7 @@ class Hijacked_fltk:
         fl.Fl.run = types.MethodType(dummyrun, fl.Fl)
         
         # Store the app instance to process events
-        self.app =  fl.Fl
+        self.app =  fl.Fl   
         
         # Notify that we integrated the event loop
         fl._integratedEventLoop = 'IEP'

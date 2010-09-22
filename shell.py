@@ -1360,7 +1360,7 @@ class PythonShell(BaseShell):
             # query
             pn = remoteEval('os.getcwd()')
             fn = os.path.join(pn,objectName) # will also work if given abs path
-            if text.startswith('opendir '):
+            if text.startswith('opendir '):                
                 iep.editors.loadDir(fn)
                 msg = "Opening dir '{}'."
             elif os.path.isfile(fn):
