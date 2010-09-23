@@ -1235,6 +1235,7 @@ class MenuHelper:
     """
     def __init__(self, menubar):
         
+        # Define name-class menus
         menus = [   ('File', FileMenu), 
                     ('Edit', EditMenu), 
                     ('View', ViewMenu),                    
@@ -1245,8 +1246,13 @@ class MenuHelper:
                     ('Help', HelpMenu),
                 ]
         
+        # Init dict of menu instances
+        self._menus = {}
+        
+        # Create the menus
         for menuName, menuClass in menus:
             menu = menuClass(menuName, menubar)
+            self._menus[menuName] = menu
             menubar.addMenu(menu)
             menu.fill() # initialize so shortcuts work
         

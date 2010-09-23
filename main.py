@@ -258,7 +258,31 @@ class MainWindow(QtGui.QMainWindow):
             
             # Replace the process!
             os.execv(sys.executable, args)
-
+    
+    
+    def createPopupMenu(self):
+        
+        # Init menu
+        menu = QtGui.QMenu()
+        
+        # Insert two items
+        for item in ['Editors', 'Shells']:
+            action = menu.addAction(item)
+            action.setCheckable(True)
+            action.setChecked(True)
+            action.setEnabled(False)
+        
+        # Insert tools
+        for tool in iep.toolManager.loadToolInfo():
+            action = menu.addAction(tool.name)
+            action.setCheckable(True)
+            action.setChecked(bool(tool.instance))
+            action.menuLauncher = tool.menuLauncher
+        
+        # Show menu and process result
+        a = menu.exec_(QtGui.QCursor.pos())
+        if a:
+            a.menuLauncher(not a.menuLauncher(None))
 
 
 class _CallbackEventHandler(QtCore.QObject):

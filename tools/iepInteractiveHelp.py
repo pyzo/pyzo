@@ -120,13 +120,13 @@ class IepInteractiveHelp(QtGui.QWidget):
                 h_text = h_text.replace("\n","<br />")  
             
             # Compile rich text
-            text += '<h2>{}</h2>'.format(objectName)
+            text += '<h1>{}</h1>'.format(objectName)
             text += '<b>CLASS:</b> {}<br />'.format(h_class)
             if h_fun:
                 text += '<b>SIGNATURE:</b> {}<br />'.format(h_fun)
-            text += '<b>REPR:</b> {}<br />'.format(h_repr)
-            text += '<br />'
-            text += '<b>DOC:</b><br />{}<br />'.format(h_text)
+            text += '<b>REPR:</b> {}'.format(h_repr)
+#             text += '<br />'
+            text += '<h2>Docstring:</h2>{}<br />'.format(h_text)
         
         except Exception:
             text = response
@@ -164,6 +164,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         lines3 = []
         for line in lines2:
             
+            
             # Get indentation
             line_ = line.lstrip()
             indent = len(line) - len(line_)
@@ -181,7 +182,9 @@ class IepInteractiveHelp(QtGui.QWidget):
             # Determine if we should introduce a newline
             isHeader = False
             if ("---" in line or "===" in line) and indent == prevIndent:
-                line = '<br /> ' + line
+                # Header
+                lines3[-1] = '<b>' + lines3[-1] + '</b>'
+                line = ''#'<br /> ' + line
                 isHeader = True
                 inExample = False
                 # Special case, examples
@@ -189,9 +192,11 @@ class IepInteractiveHelp(QtGui.QWidget):
                     inExample = True
                 else:
                     inExample = False
-            elif (  ' : ' in line or 
-                    prevWasHeader or inExample or forceNewline):
-                line = '<br /> ' + line            
+            elif ' : ' in line:
+                tmp = line.split(' : ',1)
+                line = '<br /> <u>' + tmp[0] + '</u> : ' + tmp[1]
+            elif prevWasHeader or inExample or forceNewline:
+                line = '<br /> ' + line
             else:
                 line = " " + line_
             

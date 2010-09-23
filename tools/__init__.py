@@ -74,6 +74,15 @@ class ToolDockWidget(QtGui.QDockWidget):
         if self._toolManager:
             self._toolManager.onToolClose(self._toolId)
             self._toolManager = None
+        # Close and delete widget
+        old = self.widget()
+        if old:
+            old.close()
+            old.deleteLater()        
+        # Close and delete dock widget
+        self.close()
+        self.deleteLater() 
+        # We handled the event
         event.accept()
     
     
@@ -84,6 +93,7 @@ class ToolDockWidget(QtGui.QDockWidget):
         self.setWidget(new)
         if old:
             old.close()
+            old.deleteLater()
     
 
 class ToolDescription:
@@ -141,8 +151,8 @@ class ToolManager:
             tmp = [os.path.join(toolDir, f) for f in os.listdir(toolDir)]
             toolfiles.extend(tmp)
         
-        # Note: we no not the code below anymore, since even the frozen app
-        # makes use of the .py files.
+        # Note: we do not use the code below anymore, since even the frozen
+        # app makes use of the .py files.
 #         # Get list of files, also when we're in a zip file.
 #         i = tooldir.find('.zip')
 #         if i>0:

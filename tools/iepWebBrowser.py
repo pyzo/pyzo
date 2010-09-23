@@ -46,13 +46,17 @@ class IepWebBrowser(QtGui.QFrame):
         #
         self._forward = QtGui.QToolButton(self)
         self._forward.setIcon(style.standardIcon(style.SP_ArrowForward))
-        #
-        self._home = QtGui.QToolButton(self)
-        #self._home.setIcon(style.standardIcon(style.SP_DirHomeIcon))
-        self._home.setText('G')
         
         # Create address bar
-        self._address = QtGui.QLineEdit(self)
+        #self._address = QtGui.QLineEdit(self)
+        self._address = QtGui.QComboBox(self)
+        self._address.setEditable(True)
+        self._address.setInsertPolicy(self._address.NoInsert)
+        #
+        for a in [  'google.com', 'docs.python.org', 'doc.qt.nokia.com/4.5/', 
+                    'code.google.com/p/iep', 'm.xkcd.com']:
+            self._address.addItem(a)
+        self._address.setEditText('') 
         
         # Create web view
         self._view = WebView()
@@ -68,7 +72,6 @@ class IepWebBrowser(QtGui.QFrame):
         #
         self._sizer2.addWidget(self._back, 0)
         self._sizer2.addWidget(self._forward, 0)
-        self._sizer2.addWidget(self._home, 0)
         self._sizer2.addWidget(self._address, 1)
         #
         self._sizer1.addLayout(self._sizer2, 0)
@@ -78,13 +81,14 @@ class IepWebBrowser(QtGui.QFrame):
         # Bind signals
         self._back.clicked .connect(self.onBack)
         self._forward.clicked .connect(self.onForward)
-        self._home.clicked .connect(self.onHome)
-        self._address.returnPressed.connect(self.go)
-        self._view.loadFinished.connect(self.onLoad)
+        self._address.lineEdit().returnPressed.connect(self.go)
+        self._address.activated.connect(self.go)
+        self._view.loadFinished.connect(self.onLoadEnd)
+        self._view.loadStarted.connect(self.onLoadStart)
         
         # Start
         self._view.show()
-        self.onHome()
+        self.go('www.google.com')
     
     
     def parseAddress(self, address):
@@ -92,23 +96,27 @@ class IepWebBrowser(QtGui.QFrame):
             address = 'http://' + address
         return QtCore.QUrl(address, QtCore.QUrl.TolerantMode)
     
-    def go(self):
-        address = self._address.text()
+    def go(self, address=None):
+        if not isinstance(address, str):
+            address = self._address.currentText()
         self._view.load( self.parseAddress(address) )
     
-    def onLoad(self):
-        url = self._view.url()
-        address = str(url.toString())
-        self._address.setText(str(address))
+    def onLoadStart(self):
+        self._address.setEditText('<loading>')
+    
+    def onLoadEnd(self, ok):
+        if ok:
+            url = self._view.url()
+            address = str(url.toString())
+        else:
+            address = '<could not load page>'
+        self._address.setEditText(str(address))
     
     def onBack(self):
         self._view.back()
     
     def onForward(self):
         self._view.forward()
-    
-    def onHome(self):
-        self._view.load( self.parseAddress("www.google.com") )
     
     def wheelEvent(self, event):
         if QtCore.Qt.ControlModifier & QtGui.qApp.keyboardModifiers():
