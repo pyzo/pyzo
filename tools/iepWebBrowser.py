@@ -12,6 +12,13 @@ tool_name = "Web browser"
 tool_summary = "A simple web browser."
 
 
+default_bookmarks = [   'google.com', 
+                        'docs.python.org', 
+                        'doc.qt.nokia.com/4.5/',
+                        'code.google.com/p/iep', 
+                        'm.xkcd.com' ]
+
+
 class WebView(QtWebKit.QWebView):
     """ Inherit the webview class to implement zooming using
     the mouse wheel. 
@@ -36,6 +43,8 @@ class IepWebBrowser(QtGui.QFrame):
         self._config = iep.config.tools[toolId]
         if not hasattr(self._config, 'zoomFactor'):
             self._config.zoomFactor = 1.0
+        if not hasattr(self._config, 'bookMarks'):
+            self._config.bookMarks = default_bookmarks
             
         # Get style object (for icons)
         style = QtGui.QApplication.style()
@@ -53,8 +62,7 @@ class IepWebBrowser(QtGui.QFrame):
         self._address.setEditable(True)
         self._address.setInsertPolicy(self._address.NoInsert)
         #
-        for a in [  'google.com', 'docs.python.org', 'doc.qt.nokia.com/4.5/', 
-                    'code.google.com/p/iep', 'm.xkcd.com']:
+        for a in self._config.bookMarks:
             self._address.addItem(a)
         self._address.setEditText('') 
         
