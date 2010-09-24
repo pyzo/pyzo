@@ -641,7 +641,7 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Shell wraps to 80 columns', self.fun_shellWrap80, []) )
         addItem( MI('Shell always fits 80 columns', self.fun_shellFit80, []) )
         addItem( None )
-        addItem( MI('Change shortcuts ...', self.fun_keymap) )
+        addItem( MI('Edit key mappings ...', self.fun_keymap) )
         addItem( MI('Edit syntax styles ...', self.fun_editStyles) )
         addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
         #addItem( MI('Save settings now', self.fun_saveSettings) )
@@ -1663,6 +1663,7 @@ class KeymappingDialog(QtGui.QDialog):
         self.tab = QtGui.QTabWidget(self)
         self.tab.resize(*size)
         self.tab.move(0,offset)
+        self.tab.setDocumentMode(True) # Prevents extra frame being drawn
         
         # fill tab
         self._models = []
