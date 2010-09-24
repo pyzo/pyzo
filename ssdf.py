@@ -119,6 +119,8 @@ else:
     basestring = str
     simplestr = str
 
+
+
 ## The class
 
 class Struct(object):
@@ -505,11 +507,12 @@ def _toString(name, value, indent):
     
     # base types
     elif isinstance(value,basestring):
-        value = value.replace('\r\n','\n').replace('\r','\n')
-        value = value.replace('\\', '\\\\') # if \n happens to occur
+        #value = value.replace('\r\n','\n').replace('\r','\n')
+        value = value.replace('\\', '\\\\')
         value = value.replace('\n','\\n')
+        value = value.replace('\r','\\r')
         value = value.replace("'", "\\'")                
-        lineObject.line += "'" + value + "'"        
+        lineObject.line += "'" + value + "'"
     
     elif isinstance(value, bool):
         lineObject.line += '%i' % int(value)    
@@ -619,6 +622,7 @@ def _fromString(lineObject):
         return name, value
     
     elif line[0] == '[':
+        
         # Smart cutting, taking strings into account
         i0 = 1
         pieces = []
@@ -642,7 +646,9 @@ def _fromString(lineObject):
                     pieces.append(line[i0:i])
                     i0 = i+1
                 elif line[i] == "]":
-                    pieces.append(line[i0:i])
+                    piece = line[i0:i]
+                    if piece.strip(): # Do not add if empty
+                        pieces.append(piece)
                     break
         else:
             print("SSDF Warning: One-line list not closed correctly.")
@@ -658,13 +664,14 @@ def _fromString(lineObject):
         # old string syntax
         line = line[1:].replace('\\\\','0x07') # temp
         line = line.replace('\\n','\n')
+        line = line.replace('\\r','\r')
         line = line.replace('0x07','\\')
         return name, line
     
     elif line[0] == "'":
         # string
         
-        # encode double slasges
+        # encode double slashes
         line = line.replace('\\\\','0x07') # temp
         
         # find string using a regular expression
@@ -675,8 +682,9 @@ def _fromString(lineObject):
         else:
             line = m.group(0)[1:-1]
         
-        # decode stuff
+        # decode stuff        
         line = line.replace('\\n','\n')
+        line = line.replace('\\r','\r')
         line = line.replace("\\'","'")
         line = line.replace('0x07','\\')
         return name, line
