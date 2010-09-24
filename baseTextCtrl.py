@@ -246,10 +246,10 @@ class StyleManager(QtCore.QObject):
         """
         
         # Preferences for monospace fonts
-        if 'win' in sys.platform:
+        if sys.platform=='darwin':
+            monoFaces = ['Monaco','Courier New']
+        elif sys.platform.startswith('win'):
             monoFaces = ['Courier New', 'Lucida Console']
-        elif 'mac' in sys.platform:
-            monoFaces = ['Courier New', 'Monaco']
         else:
             monoFaces = ['Courier New', 'Liberation Mono', 'Monospace', 'Fixed']
         # Most important, select monospace font

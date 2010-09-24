@@ -743,19 +743,13 @@ class ShellInfo:
         self.PYTHONSTARTUP = os.environ.get('PYTHONSTARTUP','')
         self.startDir = ''
         
-        # Get path division char
-        if 'win' in sys.platform:
-            div = ';'
-        else:
-            div = ':'
-        
         # Set info if given
         if info:
             try:
                 self.exe = info.exe
                 self.gui = info.gui
                 if info.PYTHONPATH_useCustom:
-                    self.PYTHONPATH = info.PYTHONPATH_custom.replace('\n',div)
+                    self.PYTHONPATH = info.PYTHONPATH_custom.replace('\n',os.pathsep)
                 if info.PYTHONSTARTUP_useCustom:
                     self.PYTHONSTARTUP = info.PYTHONSTARTUP_custom
                 self.startDir = info.startDir
@@ -777,7 +771,7 @@ class ShellInfo:
         # Build command
         command = self.exe + ' ' + startScript + ' ' + str(port)
         
-        if 'win' in sys.platform:
+        if sys.platform.startswith('win'):
             # as the author from Pype writes:
             #if we don't run via a command shell, then either sometimes we
             #don't get wx GUIs, or sometimes we can't kill the subprocesses.
@@ -1312,7 +1306,7 @@ class PythonShell(BaseShell):
                 text = 'import os;print(os.getcwd())'
                 
         elif text=='ls':
-            if sys.platform.count('win'):
+            if sys.platform.startswith('win'):
                 text = 'import os;print(os.popen("dir").read())'
             else:
                 text = 'import os;print(os.popen("ls").read())'

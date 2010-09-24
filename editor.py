@@ -36,10 +36,8 @@ from iepLogging import print
 
 # Set default line ending (if not set)
 if not iep.config.settings.defaultLineEndings:
-    if 'win' in sys.platform:
+    if sys.platform.startswith('win'):
         iep.config.settings.defaultLineEndings = 'CRLF'
-    elif 'mac' in sys.platform:
-        iep.config.settings.defaultLineEndings = 'CR'
     else:
         iep.config.settings.defaultLineEndings = 'LF'
 
