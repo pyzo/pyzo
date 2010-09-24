@@ -31,6 +31,16 @@ distDir = baseDir+'../frozen/'
 scriptFiles = [srcDir + 'iep.pyw', srcDir + 'iep_.pyw']
 iconFile = srcDir + 'icons/iep.ico'
 
+#On MAC, build an application bundle
+if sys.platform=='darwin':
+	contentsDir=distDir+name+'.app/Contents/'
+	distDir=contentsDir+'MacOS/'
+	applicationBundle=True
+else:
+	applicationBundle=False
+	
+
+
 ## Includes and excludes
 
 # We do not need these
@@ -63,7 +73,7 @@ sys.path.append('')
 executables = {}
 for scriptFile in scriptFiles:
     
-    if sys.platform.lower().count('win'):
+    if sys.platform.startswith('win'):
         ex = Executable(    scriptFile, 
                             icon=iconFile,
                             appendScriptToExe = True,
@@ -125,3 +135,8 @@ tmp2 = os.path.join(distDir,'iep_')
 for fname in [tmp1, tmp2]:
     if os.path.isfile(fname):
         os.remove(fname)
+
+if applicationBundle:
+	#Copy the Info.plist file
+	shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
+

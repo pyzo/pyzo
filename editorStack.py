@@ -1222,7 +1222,7 @@ class EditorStack(QtGui.QWidget):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
             path = str( qurl.path() )
-            if sys.platform.count('win'):
+            if sys.platform.startswith('win'):
                 path = path[1:]
             if os.path.isfile(path):
                 self.loadFile(path)

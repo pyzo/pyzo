@@ -413,9 +413,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         if state:
             self._ppListCustom = self._ppList.toPlainText()
             pp = os.environ.get('PYTHONPATH','')
-            pp = pp.replace(';','\n').replace(',','\n')
-            if not 'win' in sys.platform:
-                pp = pp.replace(':','\n')
+            pp = pp.replace(os.pathsep,'\n').replace(',','\n')
             self._ppList.setText(pp+'\n')
         else:
             self._ppList.setText(self._ppListCustom)
@@ -633,8 +631,7 @@ def findPythonExecutables():
     if sys.platform.startswith('win'):
         return findPythonExecutables_win()
     else:
-        return findPythonExecutables_linux()
-    # todo: and mac?
+        return findPythonExecutables_posix()
 
 def findPythonExecutables_win():
     import winreg
@@ -675,21 +672,20 @@ def findPythonExecutables_win():
     return versions
 
 
-def findPythonExecutables_linux():
-    
-    # Get files
-    try:
-        files = os.listdir('/usr/bin')
-    except Exception:
-        return []
-    
-    # Search for python executables
-    versions = []
-    for fname in os.listdir('/usr/bin'):
-        if fname.startswith('python') and not fname.count('config'):
-            versions.append( '/usr/bin/' + fname )
-    
+def findPythonExecutables_posix():
+    found=[]
+    for searchpath in ['/usr/bin','/opt/local/bin']: 
+        # Get files
+        try:
+            files = os.listdir(searchpath)
+        except Exception:
+            continue
+        
+        # Search for python executables
+        for fname in files:
+            if fname.startswith('python') and not fname.count('config'):
+                found.append( os.path.join(searchpath, fname) )
     # Done
-    return versions
+    return found
 
 

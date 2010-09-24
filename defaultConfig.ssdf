@@ -9,7 +9,7 @@ state = dict:
     editorState = '' # What files where loaded and where the cursor was
     loadedTools = []
     windowState = '' # Of window and tools    
-    windowPos = []
+    windowPos = 0 #TODO: change to [] after Almar fixes ssdf loads
     windowSize = [800, 600]
     windowMaximized = 0
 
