@@ -178,7 +178,11 @@ class MainWindow(QtGui.QMainWindow):
         app = QtGui.qApp
         iep.defaultQtStyleName = str(app.style().objectName())
         # Other than gtk+, cleanlooks looks best (is my opinion)
-        if not 'gtk' in iep.defaultQtStyleName.lower():
+        if 'gtk' in iep.defaultQtStyleName.lower():
+            pass # Use default style
+        elif 'macintosh' in iep.defaultQtStyleName.lower():
+            pass # Use default style
+        else:
             iep.defaultQtStyleName = 'Cleanlooks'
         
         # Set style if there is no style yet

@@ -125,10 +125,9 @@ class MI:
                 sub.setToolTip(self.tip)
                 sub.func = self.func
                 sub.value = value
-                sub.setCheckable(True)
+                sub.setCheckable(True) 
+                sub.setChecked( (value==self.values[-1]) )
                 self._attachShortcut(sub)
-                if value == self.values[-1]:
-                    sub.setChecked(True)
                 action.addAction(sub)
         else:
             print(self.values)
@@ -607,14 +606,14 @@ class ViewMenu(BaseMenu):
             M = dict([(name.lower(),name) for name in styleNames])
             iep.config.view.qtstyle = M.get(iep.config.view.qtstyle.lower(),'')
             styleNames.append(iep.config.view.qtstyle)
-            # Mark the default
+            # Mark the default (and the current)
             for i in range(len(styleNames)):
-                if styleNames[i].lower() == iep.defaultQtStyleName:
+                if styleNames[i].lower() == iep.defaultQtStyleName.lower():
                     styleNames[i] += ' (default)'
             return styleNames
         else:
             # Remove default string
-            value = value.split(' ')[0]
+            value = value.split(' (default)')[0]
             # Store selected style
             iep.config.view.qtstyle = value
             # Set style and apply standard pallette
