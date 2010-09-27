@@ -1307,7 +1307,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # ordKey can be backspace, tab, enter, escape, or a char!
             keyOk = ordKey>=32 or ordKey in [8,9,10,13,27]
             keyOk = keyOk or (ordKey==-1 and event.key()>0)    
-            #print(ordKey, event.key(),keyOk)
+            #print(ordKey, event.key(), keyOk)
             
             if not handled and keyOk:
                 Qsci.QsciScintillaBase.keyPressEvent(self, event)

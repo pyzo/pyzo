@@ -6,6 +6,18 @@ tool_name = "Interactive Help"
 tool_summary = "Shows help on an object when using up/down in autocomplete."
 
 
+htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<html>
+<head><meta name="qrichtext" content="1" /><style type="text/css">
+p, li {{ white-space: pre-wrap; }}
+</style>
+</head>
+<body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{}
+</p>
+</body></html>
+"""
+
 initText =  """
 Help information is queried from the current shell<br />
 when moving up/down in the autocompletion list<br />
@@ -17,6 +29,7 @@ class IepInteractiveHelp(QtGui.QWidget):
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
+        
         
         # Create text field, checkbox, and button
         self._text = QtGui.QLineEdit(self)
@@ -31,7 +44,10 @@ class IepInteractiveHelp(QtGui.QWidget):
         
         # Create browser
         self._browser = QtGui.QTextBrowser(self)
+        print(self._browser.toHtml())
         self._browser.setHtml(initText)
+        
+        
         
         # Create two sizers
         self._sizer1 = QtGui.QVBoxLayout(self)
@@ -125,14 +141,13 @@ class IepInteractiveHelp(QtGui.QWidget):
             if h_fun:
                 text += '<b>SIGNATURE:</b> {}<br />'.format(h_fun)
             text += '<b>REPR:</b> {}'.format(h_repr)
-#             text += '<br />'
             text += '<h2>Docstring:</h2>{}<br />'.format(h_text)
         
         except Exception:
             text = response
         
         # Done
-        self._browser.setText(text)
+        self._browser.setHtml(htmlWrap.format(text))
     
     
     def smartFormat(self, text):
@@ -195,11 +210,15 @@ class IepInteractiveHelp(QtGui.QWidget):
             elif ' : ' in line:
                 tmp = line.split(' : ',1)
                 line = '<br /> <u>' + tmp[0] + '</u> : ' + tmp[1]
+            elif line_.startswith('* '):
+                line = '<br />&nbsp;&nbsp;&nbsp;&#8226;' + line_[2:]
             elif prevWasHeader or inExample or forceNewline:
                 line = '<br /> ' + line
             else:
                 line = " " + line_
-            
+            if '*' in line:
+                print(line.lstrip().startswith('* '))
+                print(repr(line))
             # Force next line to be on a new line if using a colon
             if ' : ' in line:
                 forceNewline = True
