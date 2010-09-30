@@ -1125,7 +1125,15 @@ class HelpMenu(BaseMenu):
         addItem( MI('Website', self.fun_website) )
         addItem( MI('Check for updates', self.fun_updates) )
         addItem( MI('View license', self.fun_licese) )
-        addItem( MI('About IEP', self.fun_about) )
+        
+        if sys.platform=='darwin':
+            #Hack to prevent 'special' about menu on mac
+            #since this makes the keymap dialog crash when the
+            #menus are rebuilt
+            addItem( MI(' About IEP', self.fun_about) )
+        else:
+            addItem( MI('About IEP', self.fun_about) )
+            
     
     
     def fun_tutorial(self, value):
@@ -1459,7 +1467,7 @@ class KeyMapLineEdit(QtGui.QLineEdit):
         nativekey = event.nativeVirtualKey()
         
         # try to get text
-        if nativekey < 128:
+        if nativekey < 128 and sys.platform != 'darwin':
             text = chr(nativekey).upper()
         elif key<128:
             text = chr(key).upper()

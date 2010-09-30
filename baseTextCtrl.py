@@ -1266,7 +1266,6 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         From here we'l dispatch the event to perform autocompletion
         or other stuff...
         """
-        
         # Create simple keyevent class and set modifiers
         keyevent = KeyEvent( event.key() )
         modifiers = event.modifiers()
@@ -1307,7 +1306,10 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             # ordKey can be backspace, tab, enter, escape, or a char!
             keyOk = ordKey>=32 or ordKey in [8,9,10,13,27]
             keyOk = keyOk or (ordKey==-1 and event.key()>0)    
+
             #print(ordKey, event.key(), keyOk)
+            if sys.platform=='darwin':
+                keyOk=True # Fix/hack to make cursor keys work on mac
             
             if not handled and keyOk:
                 Qsci.QsciScintillaBase.keyPressEvent(self, event)
