@@ -812,7 +812,7 @@ class IntroSpectionThread(threading.Thread):
             return NS3
     
     
-    def getSignature(self,objectName):
+    def getSignature(self, objectName):
         """ Get the signature of builtin, function or method.
         Returns a tuple (signature_string, kind), where kind is a string
         of one of the above. When none of the above, both elements in
@@ -822,6 +822,9 @@ class IntroSpectionThread(threading.Thread):
         # if a class, get init
         # not if an instance! -> try __call__ instead        
         # what about self?
+        
+        # Store original
+        objectName_original = objectName
         
         # find out what kind of function, or if a function at all!
         NS = self.getNameSpace()
@@ -840,16 +843,22 @@ class IntroSpectionThread(threading.Thread):
                 objectName += ".__call__"
                 fun5 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
         
+        sigs = ""
+        if True:
+            # the first line in the docstring is usually the signature
+            tmp = eval("%s.__doc__"%(objectName_original), {}, NS )
+            sigs = tmp.splitlines()[0].strip()
+            hasSig = sigs.startswith(objectName_original+"(")
+            if not hasSig or sigs.count("(") != sigs.count(")"):
+                sigs = ""
         
         if fun1:
-            # the first line in the docstring is usually the signature
-            kind = 'builtin'
-            tmp = eval("%s.__doc__"%(objectName), {}, NS )
-            sigs = tmp.splitlines()[0]
-            if not ( sigs.count("(") and sigs.count(")") ):
-                sigs = ""
+            # We only have docstring, cause we cannot introspect
+            if sigs:
+                kind = 'builtin'
+            else:
                 kind = ''            
-            
+        
         elif fun2 or fun3 or fun4 or fun5:
             
             if fun2:
@@ -861,33 +870,36 @@ class IntroSpectionThread(threading.Thread):
             elif fun5:
                 kind = 'callable'
             
-            # collect
-            tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
-            args, varargs, varkw, defaults = tmp
-            
-            # prepare defaults
-            if defaults == None:
-                defaults = ()
-            defaults = list(defaults)
-            defaults.reverse()
-            # make list (back to forth)
-            args2 = []
-            for i in range(len(args)-fun4):
-                arg = args.pop()
-                if i < len(defaults):
-                    args2.insert(0, "%s=%s" % (arg, defaults[i]) )
-                else:
-                    args2.insert(0, arg )
-            # append varargs and kwargs
-            if varargs:
-                args2.append( "*"+varargs )
-            if varkw:
-                args2.append( "**"+varkw )
-            
-            # append the lot to our  string
-            funname = objectName.split('.')[-1]
-            sigs = "%s(%s)" % ( funname, ", ".join(args2) )
-            
+            if not sigs:
+                # Use intospection
+                
+                # collect
+                tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
+                args, varargs, varkw, defaults = tmp
+                
+                # prepare defaults
+                if defaults == None:
+                    defaults = ()
+                defaults = list(defaults)
+                defaults.reverse()
+                # make list (back to forth)
+                args2 = []
+                for i in range(len(args)-fun4):
+                    arg = args.pop()
+                    if i < len(defaults):
+                        args2.insert(0, "%s=%s" % (arg, defaults[i]) )
+                    else:
+                        args2.insert(0, arg )
+                # append varargs and kwargs
+                if varargs:
+                    args2.append( "*"+varargs )
+                if varkw:
+                    args2.append( "**"+varkw )
+                
+                # append the lot to our  string
+                funname = objectName.split('.')[-1]
+                sigs = "%s(%s)" % ( funname, ", ".join(args2) )
+        
         else:
             sigs = ""
             kind = ""
