@@ -823,8 +823,9 @@ class IntroSpectionThread(threading.Thread):
         # not if an instance! -> try __call__ instead        
         # what about self?
         
-        # Store original
-        objectName_original = objectName
+        # Get valid object names
+        parts = objectName.rsplit('.')
+        objectNames = ['.'.join(parts[-i:]) for i in range(1,len(parts)+1)]
         
         # find out what kind of function, or if a function at all!
         NS = self.getNameSpace()
@@ -846,14 +847,19 @@ class IntroSpectionThread(threading.Thread):
         sigs = ""
         if True:
             # the first line in the docstring is usually the signature
-            tmp = eval("%s.__doc__"%(objectName_original), {}, NS )
+            tmp = eval("%s.__doc__"%(objectNames[-1]), {}, NS )
             sigs = tmp.splitlines()[0].strip()
-            hasSig = sigs.startswith(objectName_original+"(")
-            if not hasSig or sigs.count("(") != sigs.count(")"):
+            # Test if doc has signature
+            hasSig = False
+            for name in objectNames:
+                if sigs.startswith(name+"("):
+                    hasSig = True
+            # If not a valid signature, do not bother ...
+            if (not hasSig) or (sigs.count("(") != sigs.count(")")):
                 sigs = ""
         
         if fun1:
-            # We only have docstring, cause we cannot introspect
+            # We only have docstring, because we cannot introspect
             if sigs:
                 kind = 'builtin'
             else:
