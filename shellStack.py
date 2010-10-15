@@ -408,7 +408,10 @@ class ShellInfoDialogEntries(QtGui.QWidget):
     def pythonPathCheckBoxCallback(self, state):
         
         # Enable or disable
-        self._ppList.setEnabled(not state)
+        #self._ppList.setEnabled(not state)
+        self._ppList.setReadOnly(state)
+        tmp = [QtGui.QColor('#000'), QtGui.QColor('#777')][bool(state)]
+        self._ppList.setTextColor(tmp)
         # Show text
         if state:
             self._ppListCustom = self._ppList.toPlainText()
@@ -422,7 +425,6 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         
         # Enable or disable
         self._startup.setEnabled(not state)
-        
         # Show text
         if state:
             self._startupCustom = self._startup.text()
