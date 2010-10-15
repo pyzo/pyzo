@@ -103,7 +103,10 @@ def parseLine_autocomplete(text):
     i = text.rfind("#")
     if i>=0 and text[:i].count("\"") % 2==0 and text[:i].count("\'") % 2==0:
         return "",""
-        
+    
+    # Helper variable
+    in_list = 0
+    
     i_base = 0
     for i in range(len(text)-1,-1,-1):
         c = text[i]
@@ -122,11 +125,13 @@ def parseLine_autocomplete(text):
             if i_base == i+1 and i>0 and text[i-1]=='[': 
                 return "[]", text[i_base+1:]
             else:
-                pass
-                #return "",""
-        elif c in '[]':
-            # Allow looking in lists, if using plain indexing
-            pass
+                in_list += 1
+        elif c == '[':
+            # Allow looking in lists, if using simple indexing
+            if in_list > 0:
+                in_list  -= 1
+            else:
+                break
         elif not c in namechars:
             break
     else:

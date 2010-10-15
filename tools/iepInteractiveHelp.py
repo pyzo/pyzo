@@ -43,8 +43,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._check.setChecked(config.smartNewlines)
         
         # Create browser
-        self._browser = QtGui.QTextBrowser(self)
-        print(self._browser.toHtml())
+        self._browser = QtGui.QTextBrowser(self)        
         self._browser.setHtml(initText)
         
         
@@ -216,9 +215,7 @@ class IepInteractiveHelp(QtGui.QWidget):
                 line = '<br /> ' + line
             else:
                 line = " " + line_
-            if '*' in line:
-                print(line.lstrip().startswith('* '))
-                print(repr(line))
+            
             # Force next line to be on a new line if using a colon
             if ' : ' in line:
                 forceNewline = True
