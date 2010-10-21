@@ -977,14 +977,19 @@ class IntroSpectionThread(threading.Thread):
         NS = self.getNameSpace()
         
         try:
+            
             # collect docstring
             h_text = ''
             # Try using the class (for properties)
             try:
                 className = eval("%s.__class__.__name__"%(objectName), {}, NS)
-                tmp = objectName.rsplit('.',1)
-                if len(tmp)==2 and className not in ['type', 'module']:
-                    cmd = "%s.__class__.%s.__doc__"
+                if '.' in objectName:
+                    tmp = objectName.rsplit('.',1)
+                    tmp[1] += '.'
+                else:
+                    tmp = [objectName, '']
+                if className not in ['type', 'module', 'builtin_function_or_method']:
+                    cmd = "%s.__class__.%s__doc__"
                     h_text = eval(cmd % (tmp[0],tmp[1]), {}, NS)
             except Exception:
                 pass
@@ -1019,6 +1024,7 @@ class IntroSpectionThread(threading.Thread):
         
         except Exception:
             text = "No help available."
+        
         
         # The lines below can be uncomented for debugging, but they don't
         # work on python < 2.6.
