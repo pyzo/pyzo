@@ -13,10 +13,11 @@ p, li {{ white-space: pre-wrap; }}
 </style>
 </head>
 <body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{}
-</p>
+{}
 </body></html>
 """
+# <p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{}
+#</p>
 
 initText =  """
 Help information is queried from the current shell<br />
