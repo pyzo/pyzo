@@ -1108,16 +1108,20 @@ class PythonShell(BaseShell):
         
         # If there's an item being processed right now ...
         if self._requestQueue:
-            # ... make it be reposted when we're done.        
+            # ... make it be reposted when we're done.  
             self._requestQueue[0]._posted = False
             # Wait for any leftover messages to arrive
-            self._response.read_one(block=True)
+            self._response.read_one(block=2.0)
         
         # Do request
         self._request.write(request)
         
         # Wait for it to arrive
-        return self._response.read_last(block=True)
+        tmp = self._response.read_last(block=1.0)
+        if tmp is None:
+            raise RuntimeError('Request interrupted.')
+        else:
+            return tmp
     
     
     def executeCommand(self, text):
