@@ -50,7 +50,14 @@ class MainWindow(QtGui.QMainWindow):
         
         # Set layout as it was the previous time
         if iep.config.state.windowPos:
-            self.move(*iep.config.state.windowPos)
+            xy = iep.config.state.windowPos
+            r = QtGui.qApp.desktop().visibleRegion()
+            if r.contains(QtCore.QPoint(*xy)):
+                # todo: test on my windows box
+                print('position ok')
+                self.move(*iep.config.state.windowPos)
+            else:
+                print('position NOT ok')
         if iep.config.state.windowSize:
             self.resize(*iep.config.state.windowSize)
         if iep.config.state.windowMaximized:
