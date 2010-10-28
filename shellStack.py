@@ -676,7 +676,7 @@ def findPythonExecutables_win():
 
 def findPythonExecutables_posix():
     found=[]
-    for searchpath in ['/usr/bin','/opt/local/bin']: 
+    for searchpath in ['/usr/bin','/usr/local/bin','/opt/local/bin']: 
         # Get files
         try:
             files = os.listdir(searchpath)
