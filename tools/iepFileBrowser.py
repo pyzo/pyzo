@@ -21,9 +21,23 @@ class PathInput(QtGui.QComboBox):
         # Flag
         self._typingFlag = False
         
-        # Bind to signals
-        self.editTextChanged.connect(self.onTyping)
-        self.activated.connect(self.onActivated)
+        # Set completion mode
+        c = self.completer()
+        c.setCompletionMode(c.UnfilteredPopupCompletion)
+        #c.setCompletionMode(c.PopupCompletion)
+        
+        dirModel = QtGui.QDirModel(c)
+        dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        c.setModel(dirModel)
+        c.setMaxVisibleItems(7)
+        
+        # Bind to signals3
+        #self.highlighted.connect(self.onHighlighted)
+        
+        #self.editTextChanged.connect(self.onTyping)
+        #self.activated.connect(self.onActivated)
+    
+        
     
     def onActivated(self, s):
         text = self.currentText()
@@ -91,25 +105,47 @@ class PathInput(QtGui.QComboBox):
         dirs.sort()
         return dirs, text, needle
     
+    def _firstOfSeries(self):
+        # Prevent multiple ups
+        if hasattr(self, '_uptime') and (time.time() - self._uptime) < 0.5:
+            return False
+        else:
+            self._uptime = time.time()
+            return True
+    
     
     def event(self, event):
         if isinstance(event, QtGui.QKeyEvent):
             
-#             if event.key() == QtCore.Qt.Key_Backspace:
-#                 tmp = QtGui.QComboBox.keyPressEvent(self, event)
-#                 self.onTyping()
-#                 return tmp
             if event.key() == QtCore.Qt.Key_Tab:
-                self.parent()._up.setFocus(7)
-                self.setFocus(7)
+                if False:
+                    # does not work!
+                    popup = self.completer().popup()
+                    popup.activated.emit(popup.currentIndex())
+                elif self._firstOfSeries():
+                    popup = self.completer().popup()
+                    self.completer().setCurrentRow(popup.currentIndex().row())
+                    cur = self.completer().currentCompletion()
+                    self.setEditText(cur+'/')
+                    self.completer().setCompletionPrefix(cur+'/')
+                    #self.completer().complete()
+                    #iep.callLater()
+                    
+                    
                 return True
-            else:
-                return QtGui.QComboBox.event(self, event)
-        else:
-            return QtGui.QComboBox.event(self, event)
+            elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Back]:
+                modifiers = event.modifiers()
+                if modifiers & QtCore.Qt.ControlModifier:
+                    if self._firstOfSeries():
+                        self.goUp()
+                        return True
+        
+        # Resort to default behaviour
+        return QtGui.QComboBox.event(self, event)
+    
     
     def goUp(self):
-    
+        
         # Get text
         text = self.currentText()
         
@@ -119,6 +155,7 @@ class PathInput(QtGui.QComboBox):
         text = text.rsplit('/',2)[0]
         
         self.setEditText(text+'/')
+        self.completer().setCompletionPrefix(text+'/')
         
     def focusOutEvent(self, event):
         QtGui.QComboBox.focusOutEvent(self, event)
@@ -130,7 +167,7 @@ class PathInput(QtGui.QComboBox):
         text = text.replace('//', '/').replace('//', '/')
         text = text.rstrip('/')
         
-        while not os.path.isdir(text):
+        while '/' in text and not os.path.isdir(text):
             text = text.rsplit('/',1)[0]
         
         self.setEditText(text+'/')
