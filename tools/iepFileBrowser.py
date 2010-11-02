@@ -106,7 +106,10 @@ class IepCompleter(QtGui.QCompleter):
         return normPath(path)
     
     def splitPath(self, path):
-        return path.split('/')
+        parts = path.split('/')
+        if not sys.platform.startswith('win') and not parts[0]:
+            parts[0] = '/'
+        return parts
     
 
 class PathInput(QtGui.QLineEdit):
@@ -341,25 +344,34 @@ class SearchTools(QtGui.QWidget):
         layouts = []
         
         # File pattern
-        label = QtGui.QLabel(self)
-        label.setText('File pattern:')
+#         label = QtGui.QLabel(self)
+#         label.setText('File pattern:')
         #
         self._filePattern = w = QtGui.QLineEdit(self)
         self._filePattern.setText('*.py')
+        self._filePattern.setToolTip('File pattern')
         #
         self._fileShowDirs = w = QtGui.QCheckBox(self)
         self._fileShowDirs.setText('Show dirs')
         #
+        self._searchButton = QtGui.QCheckBox(self)
+        self._searchButton.setText('SEARCH')
+        self._searchButton.setStyleSheet("QCheckBox{background:#99F;}")
+        #
         layout = QtGui.QHBoxLayout()
-        layout.addWidget(label, 0)
+        #layout.addWidget(label, 0)
         layout.addWidget(self._filePattern, 0)
         layout.addWidget(self._fileShowDirs, 0)
         layout.addStretch(1)
+        layout.addWidget(self._searchButton, 0)
         layouts.append(layout)
         
         # Search pattern
-        label = QtGui.QLabel(self)
-        label.setText('Search pattern:')
+        #label = QtGui.QLabel(self)
+        #label.setText('Search pattern:')
+        #
+        self._searchProgress = QtGui.QProgressBar(self)
+        self._searchProgress.setMaximumHeight(10)
         #
         self._searchPattern = QtGui.QLineEdit(self)
         self._searchPattern.setText('')
@@ -367,18 +379,26 @@ class SearchTools(QtGui.QWidget):
         self._searchIsRegExp = QtGui.QCheckBox(self) 
         self._searchIsRegExp.setText('RegExp')
         #
+        self._searchInSubdirs = QtGui.QCheckBox(self) 
+        self._searchInSubdirs.setText('Subdirs')
+        #
         layout = QtGui.QHBoxLayout()
-        layout.addWidget(label, 0)
+        #layout.addWidget(label, 0)
         layout.addWidget(self._searchPattern, 1)
         layout.addWidget(self._searchIsRegExp, 0)
+        layout.addWidget(self._searchInSubdirs, 0)
+        layouts.append(self._searchProgress)
         layouts.append(layout)
         
         # Set layout
         mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.setSpacing(2)
         for layout in layouts:
-            layout.setSpacing(2)
-            mainLayout.addLayout(layout)
+            if isinstance(layout, QtGui.QLayout):
+                layout.setSpacing(2)
+                mainLayout.addLayout(layout)
+            else:
+                mainLayout.addWidget(layout)
         #
         self.setLayout(mainLayout)
         
@@ -387,10 +407,41 @@ class SearchTools(QtGui.QWidget):
         self._fileShowDirs.released.connect(self.onSomethingChanged)
         self._searchPattern.editingFinished.connect(self.onSomethingChanged)
         self._searchIsRegExp.released.connect(self.onSomethingChanged)
+        #
+        self._searchButton.released.connect(self.onSearchButtonPressed)
+        self.onSearchButtonPressed()
+    
     
     def onSomethingChanged(self):
         self.somethingChanged.emit()
-
+    
+    
+    def onSearchButtonPressed(self):
+        
+        #if self._searchButton.isDown():
+        #if self._searchButton.text().endswith('\\'):
+        if self._searchButton.isChecked():
+            # Expand
+            self._searchPattern.show()
+            self._searchIsRegExp.show()
+            self._searchProgress.show()
+            self._searchInSubdirs.show()
+            #self._searchButton.setText('Search /\\')
+            #self._searchButton.setDown(True)
+            #pal = QtGui.QPalette.AlternateBase
+            #self._searchButton.setBackgroundRole(pal)
+            #self._searchButton.setAutoFillBackground(True)
+            #self._searchButton.setFlat(True)
+            #self._searchButton.setStyleSheet("QPushButton{background:#99C;}")
+        else:
+            # Collapse
+            self._searchPattern.hide()
+            self._searchIsRegExp.hide()
+            self._searchProgress.hide()
+            self._searchInSubdirs.hide()
+            #self._searchButton.setText('Search \\/')
+            #self._searchButton.setStyleSheet("QPushButton{background:#559;}")
+        
 
 
 class Browser(QtGui.QTreeWidget):
@@ -612,7 +663,8 @@ class SearcherThread(threading.Thread):
                 lines.append(line)
             
             if lines:
-                print(fname, lines)
+                pass
+                #print(fname, lines)
 
 
 # todo: enable making bookmarks
