@@ -1,4 +1,7 @@
 import sys, os, time
+import threading
+import re
+
 from PyQt4 import QtCore, QtGui
 import iep 
 
@@ -6,201 +9,656 @@ tool_name = "File browser"
 tool_summary = "Browse and search in files."
 
 
-class PathInput(QtGui.QComboBox):
+## Helper functions
+
+def normPath(path):
+    """ normPath(path)
+    Normalize the path by:
+      * making it a string
+      * replacing all backslashes to forward slashes
+      * prevents multiple slashes
+      * makes sure the path ends with a slash.
+    """
+    
+    # Make string
+    path = str(path)
+    
+    # Replace slashes
+    path = path.replace('\\', '/')
+    
+    # Remove double slashes
+    while '//' in path:
+        path = path.replace('//', '/')
+    
+    # Ends with one slash
+    path = path.rstrip('/') + '/'
+    
+    # Done
+    return path
+
+def checkFileAgainstPattern(pattern, fname):
+    """ checkFileAgainstPattern(pattern, fname)
+    Check the given filename matches the given pattern.
+    """ 
+    
+    # Count number of wildcards
+    parts = pattern.count('*')+1
+    
+    if not pattern:
+        # No pattern
+        return True
+    
+    elif parts == 1:
+        # Full match
+        if pattern == filename:
+            return True
+        else:
+            return False
+    
+    else:
+        # Harder match (at least one wildcard)
+        tmp = pattern.split('*')
+        ok = True
+        # Test start
+        if tmp[0] and not fname.startswith(tmp[0]):
+            ok = False
+        # Test end
+        if tmp[-1] and not fname.endswith(tmp[-1]):
+            ok = False
+        # Test middle parts
+        for t in tmp[1:-1]:
+            if t and t not in fname:
+                ok = False
+        # Done
+        return ok
+
+
+def checkFileAgainstPatterns(patterns, fname):
+    """ checkFileAgainstPatterns(patterns, fname)
+    Check if the given filename matches any of the given patterns.
+    """
+    
+    # Empty patterns means ok
+    if not patterns:
+        return True
+    
+    # Split
+    patterns.replace(',', ' ')
+    patterns = patterns.strip().split(' ')
+    
+    # Test all patterns
+    for pattern in patterns:
+        ok = checkFileAgainstPattern(pattern, fname)
+        if ok:
+            return True
+    
+    # Return false by default
+    return False
+
+
+    
+class IepCompleter(QtGui.QCompleter):
+    """ Completer that normalized the path using forward slashes only.
+    """
+    
+    def pathFromIndex(self, index):
+        path = QtGui.QCompleter.pathFromIndex(self, index)
+        return normPath(path)
+    
+    def splitPath(self, path):
+        return path.split('/')
+    
+
+class PathInput(QtGui.QLineEdit):
+    """ Line edit for selecting a path.
+    """
+    
+    dirChanged = QtCore.pyqtSignal(str)
+    
     def __init__(self, parent):
-        QtGui.QComboBox.__init__(self, parent)
-        
-        self.setEditable(True)
-        self.setInsertPolicy(self.NoInsert)
-        
+        QtGui.QLineEdit.__init__(self, parent)
         
         # To receive focus events
-        #self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setFocusPolicy(QtCore.Qt.ClickFocus)
-        
-        # Flag
-        self._typingFlag = False
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
         
         # Set completion mode
+        self.setCompleter(IepCompleter())
         c = self.completer()
+        c.setMaxVisibleItems(7)
+        #c.setCompletionMode(c.InlineCompletion)
         c.setCompletionMode(c.UnfilteredPopupCompletion)
         #c.setCompletionMode(c.PopupCompletion)
         
+        # Set dir model to completer
         dirModel = QtGui.QDirModel(c)
         dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
         c.setModel(dirModel)
-        c.setMaxVisibleItems(7)
         
-        # Bind to signals3
-        #self.highlighted.connect(self.onHighlighted)
+        # Set history for going back up
+        self._upHistory = []
         
-        #self.editTextChanged.connect(self.onTyping)
-        #self.activated.connect(self.onActivated)
+        # Bind
+        c.activated.connect(self.onActivated)
     
-        
     
-    def onActivated(self, s):
-        text = self.currentText()
-        self.setEditText(text+'/')
+    def init(self, config):
+        # Set path of previous time
+        self._config = config
+        self.setText(config.path)
     
-    def onTyping(self, text=None):
-        
-        if self._typingFlag:
-            return
-        
-        self._typingFlag = True
-        
-        try:
-            if text is None:
-                text = self.currentText()
-            texto = text
-            
-            # Normalize text
-            text = text.replace('\\', '/')
-            text = text.replace('//', '/').replace('//', '/')
-            text = text.rsplit('/',1)[0]
-            
-            # 
-            dirs = []
-            if os.path.isdir(text):            
-                for sub in os.listdir(text):
-                    if sub.startswith('.'):
-                        continue
-                    sub = text + '/' + sub
-                    if os.path.isdir(sub):
-                        dirs.append(sub)
-            
-            text += '/'
-            print(text)
-            # Add possible options
-            dirs.sort()
-            self.clear()            
-            for d in dirs:
-                self.addItem(d)
-            self.setEditText(texto)
-            
-        finally:
-            self._typingFlag = False
-    
-    def getSubDirs(self):
-        text = self.currentText()
-        
-        # Normalize text
-        text = text.replace('\\', '/')
-        text = text.replace('//', '/').replace('//', '/')
-        tmp = text.rsplit('/',1)
-        txt, needle = tmp[0], tmp[1]
-        
-        # 
-        dirs = []
-        if os.path.isdir(text):            
-            for sub in os.listdir(text):
-                if sub.startswith('.'):
-                    continue
-                sub2 = text + '/' + sub
-                if os.path.isdir(sub2):
-                    dirs.append(sub)
-        
-        # Add possible options
-        dirs.sort()
-        return dirs, text, needle
     
     def _firstOfSeries(self):
+        """ _firstOfSeries()
+        Simple function to prevent multiple keystrokes.
+        """
         # Prevent multiple ups
-        if hasattr(self, '_uptime') and (time.time() - self._uptime) < 0.5:
+        if hasattr(self, '_uptime') and (time.time() - self._uptime) < 0.2:
             return False
         else:
             self._uptime = time.time()
             return True
     
     
-    def event(self, event):
-        if isinstance(event, QtGui.QKeyEvent):
-            
-            if event.key() == QtCore.Qt.Key_Tab:
-                if False:
-                    # does not work!
-                    popup = self.completer().popup()
-                    popup.activated.emit(popup.currentIndex())
-                elif self._firstOfSeries():
-                    popup = self.completer().popup()
-                    self.completer().setCurrentRow(popup.currentIndex().row())
-                    cur = self.completer().currentCompletion()
-                    self.setEditText(cur+'/')
-                    self.completer().setCompletionPrefix(cur+'/')
-                    #self.completer().complete()
-                    #iep.callLater()
-                    
-                    
-                return True
-            elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Back]:
-                modifiers = event.modifiers()
-                if modifiers & QtCore.Qt.ControlModifier:
-                    if self._firstOfSeries():
-                        self.goUp()
-                        return True
+    def setText(self, path):
+        """ setText(path)
+        Overload setText to ensure the set text is a valid path and that
+        only forward slashes are used (yeah also on windows). 
+        """
+        if os.path.isdir(path):
+            path = normPath(path)
+            QtGui.QLineEdit.setText(self, path)
+            self.dirChanged.emit(path)
+            self._config.path = path
+        else:
+            pass
+    
+    
+    def appendPathPart(self, part):
+        """ appendPathPart(part)
+        Append a part to the current path, discarting any previous text.
+        """
         
-        # Resort to default behaviour
-        return QtGui.QComboBox.event(self, event)
+        # Get current path
+        path = self.text()
+        
+        if '/' in path:
+            # Add to bit after last slash
+            path = path.rsplit('/',1)[0]
+            path = path + '/' + part + '/'
+        else:
+            # root: Simple replace
+            path = part
+        
+        # Set path
+        self.setText(path)
+    
+    
+    def goDown(self):
+        """ goDown()
+        Reverse of going up (using history).
+        """
+        if self._upHistory:
+            
+            # Get path
+            path = self._upHistory.pop()
+            
+            # Go there
+            self.setText(path)
+            self.completer().setCompletionPrefix(self.text())
     
     
     def goUp(self):
+        """ goUp()
+        Go a directory up in the file system.
+        """
         
-        # Get text
-        text = self.currentText()
+        # Get path
+        path = normPath( self.text() )
         
-        # Normalize text
-        text = text.replace('\\', '/')
-        text = text.replace('//', '/').replace('//', '/')
-        text = text.rsplit('/',2)[0]
+        # Store
+        self._upHistory.append(path)
+        self._upHistory = self._upHistory[-32:]
         
-        self.setEditText(text+'/')
-        self.completer().setCompletionPrefix(text+'/')
+        # Split to get base
+        path = path.rsplit('/',2)[0]
         
-    def focusOutEvent(self, event):
-        QtGui.QComboBox.focusOutEvent(self, event)
+        # Update
+        self.setText(path)
+        self.completer().setCompletionPrefix(self.text())
+        #self.completer().complete()
+    
+    
+    def _completeNow(self):
+        """ _completeNow()
+        Finishe the completion now.
+        """        
+        # Get part selection in list box
+        popup = self.completer().popup()
+        if popup:
+            newPart = popup.model().data(popup.currentIndex())
+            if newPart:
+                # Append part and update completer
+                self.appendPathPart(newPart)
+        else:
+            self.setText(self.completer().currentCompletion())
+            
+        # Update completer
+        self.completer().setCompletionPrefix(self.text())
+    
+    
+    def event(self, event):
+        """ event(event)
+        Overload event to be able to use the tab key for completion.
+        """
+        if isinstance(event, QtGui.QKeyEvent):
+            
+            # Get whether control is down
+            modifiers = event.modifiers()
+            CTRL = modifiers & QtCore.Qt.ControlModifier
+            QTK = QtCore.Qt
+            key = event.key()
+            
+            if key in [QTK.Key_Return, QTK.Key_Enter]:
+                # Invoke focus out event
+                self.parent().setFocus()
+                self.setFocus()
+            elif key == QTK.Key_Tab:
+                # Complete
+                if self._firstOfSeries():
+                    self._completeNow()
+                return True
+            elif CTRL and key in [QTK.Key_Backspace, QTK.Key_Left]:
+                # Up
+                if self._firstOfSeries():
+                    self.goUp()
+                return True
+            elif CTRL and key == QTK.Key_Right:
+                # Down
+                if self._firstOfSeries():
+                    self.goDown()
+                return True
         
-        text = self.currentText()
+        # Resort to default behaviour
+        return QtGui.QLineEdit.event(self, event)
+    
+    
+    def focusOutEvent(self, event=None):
+        """ focusOutEvent(event)
+        On focusing out, make sure that the set path is correct.
+        """
         
-        # Normalize text
-        text = text.replace('\\', '/')
-        text = text.replace('//', '/').replace('//', '/')
-        text = text.rstrip('/')
+        # Handle normally
+        if event is not None:
+            QtGui.QLineEdit.focusOutEvent(self, event)
         
-        while '/' in text and not os.path.isdir(text):
-            text = text.rsplit('/',1)[0]
+        # Get path
+        path = normPath( self.text() )
         
-        self.setEditText(text+'/')
+        # Remove parts untill it is valid
+        while '/' in path and not os.path.isdir(path):
+            path = path.rsplit('/',1)[0]
+        
+        # Update
+        if path.rstrip('/') and os.path.isdir(path):
+            self.setText(path)
+        else:
+            self.setText(self._config.path)
+    
+    
+    def focusInEvent(self, event):
+        """ focusInEvent(event)
+        On focusing in, the dir selection dialog is popped up. 
+        """
+        QtGui.QLineEdit.focusInEvent(self, event)
+        self.selectDown()
+    
+    
+    def onActivated(self):
+        """ onActivated()
+        When clicked -> set text and show drop down.
+        """
+        self.focusOutEvent()
+        self.selectDown()
+    
+    
+    def selectDown(self):
+        """ selectDown()
+        Pops up the completer list.
+        """
+        pass
+        #self.completer().setCompletionPrefix(self.text())
+        #self.completer().complete()
+
+
+class SearchTools(QtGui.QWidget):
+    
+    somethingChanged = QtCore.pyqtSignal()
+    
+    def __init__(self, parent):
+        QtGui.QWidget.__init__(self, parent)
+        
+        # List of layouts
+        layouts = []
+        
+        # File pattern
+        label = QtGui.QLabel(self)
+        label.setText('File pattern:')
+        #
+        self._filePattern = w = QtGui.QLineEdit(self)
+        self._filePattern.setText('*.py')
+        #
+        self._fileShowDirs = w = QtGui.QCheckBox(self)
+        self._fileShowDirs.setText('Show dirs')
+        #
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(label, 0)
+        layout.addWidget(self._filePattern, 0)
+        layout.addWidget(self._fileShowDirs, 0)
+        layout.addStretch(1)
+        layouts.append(layout)
+        
+        # Search pattern
+        label = QtGui.QLabel(self)
+        label.setText('Search pattern:')
+        #
+        self._searchPattern = QtGui.QLineEdit(self)
+        self._searchPattern.setText('')
+        #
+        self._searchIsRegExp = QtGui.QCheckBox(self) 
+        self._searchIsRegExp.setText('RegExp')
+        #
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(label, 0)
+        layout.addWidget(self._searchPattern, 1)
+        layout.addWidget(self._searchIsRegExp, 0)
+        layouts.append(layout)
+        
+        # Set layout
+        mainLayout = QtGui.QVBoxLayout(self)
+        mainLayout.setSpacing(2)
+        for layout in layouts:
+            layout.setSpacing(2)
+            mainLayout.addLayout(layout)
+        #
+        self.setLayout(mainLayout)
+        
+        # Bind to signals
+        self._filePattern.editingFinished.connect(self.onSomethingChanged)
+        self._fileShowDirs.released.connect(self.onSomethingChanged)
+        self._searchPattern.editingFinished.connect(self.onSomethingChanged)
+        self._searchIsRegExp.released.connect(self.onSomethingChanged)
+    
+    def onSomethingChanged(self):
+        self.somethingChanged.emit()
+
+
+
+class Browser(QtGui.QTreeWidget):
+    def __init__(self, parent, tools):
+        QtGui.QTreeWidget.__init__(self, parent)
+        
+        # Store tools
+        self._tools = tools
+        self._tools.somethingChanged.connect(self.refreshList)
+        
+        # Init path
+        self._path = 'Nonsensethisstringshouldbe'
+        
+        # Init searcher
+        self._searcher = SearcherThread(tools)
+        self._searcher.start()
+        
+        # Set headers
+        self.setColumnCount(2)
+        self.setHeaderLabels(['File name', 'Size'])
+        self.setColumnWidth(0, 200)
+        
+        # Do not show lines for top level items
+        self.setRootIsDecorated(False)
+        #self.setSortingEnabled(True)
+        
+        # Bind
+        self.itemDoubleClicked.connect(self.onDoubleClicked)
+    
+    
+    def onDoubleClicked(self, item):
+        """ Take action! 
+        """
+        if hasattr(item, '_dir'):
+            if item._dir.endswith('..'):
+                self.parent()._path.goUp()
+            else:
+                self.parent()._path.setText(item._dir)
+        elif hasattr(item, '_fname'):
+            iep.editors.loadFile(item._fname)
+    
+    
+    def _getFileSize(self, fname):
+        """ getFileSize(fname)
+        Get the size of a file as a string expressed nicely using KiB figures.
+        """
+        
+        # Get size
+        size = float( os.path.getsize(fname) )
+        
+        # Make strings
+        if size > 2**30:
+            size = '%1.1f GiB' % (size / 2**30)
+        elif size > 2**20:
+            size = '%1.1f MiB' % (size / 2**20)
+        elif size > 2**10:
+            size = '%1.1f KiB' % (size / 2**10)
+        else:
+            size = '%1.0f B' % (size)
+        
+        # Done
+        return size
+    
+    
+    def showDir(self, path):
+        """ showDir(path)
+        Show the given dir.
+        """
+        self._path = path
+        self.refreshList()
+    
+    
+    def refreshList(self):
+        """ refreshList()
+        Refresh the list of files.
+        """
+        
+        # Get path
+        path = self._path
+        
+        # Check
+        if not os.path.isdir(path):
+            return
+        
+        # Search in this path?
+        if self._tools._searchPattern.text():
+            self._searcher._runCounter += 1
+        
+        # Prepare for searching files
+        patterns = self._tools._filePattern.text()
+        files = []
+        dirs = []
+        
+        # Search files                
+        for fname in os.listdir(path):
+            if fname.startswith('.'):
+                continue
+            ffname = os.path.join(path,fname)
+            if os.path.isdir(ffname):
+                dirs.append(fname)
+            if os.path.isfile(ffname):
+                if checkFileAgainstPatterns(patterns, fname):
+                    files.append(fname)
+        
+        # todo: use different icons for .py and .pyx files
+        # Get file icon
+        style = QtGui.qApp.style()
+        fileIcon = style.standardIcon(style.SP_FileIcon)
+        dirIcon = style.standardIcon(style.SP_DirIcon)
+        
+        # Sort
+        files.sort()
+        dirs.sort()
+        #dirs.insert(0, '..')
+        
+        # Make entries
+        self.clear()
+        if self._tools._fileShowDirs.isChecked():
+            for fname in dirs:
+                ffname = os.path.join(path,fname)
+                item = QtGui.QTreeWidgetItem([fname, ''], 1)
+                item._dir = ffname
+                item.setIcon(0, dirIcon)
+                self.addTopLevelItem(item)
+        if True:
+            for fname in files:
+                ffname = os.path.join(path,fname)
+                size = self._getFileSize(ffname)
+                item = QtGui.QTreeWidgetItem([fname, size], 0)
+                item._fname = ffname
+                item.setIcon(0, fileIcon)
+                self.addTopLevelItem(item)
+
+
+class SearcherThread(threading.Thread):
+    """ This is the worker that searches the files in a directory for
+    a specific search pattern.    
+    """
+    
+    def __init__(self, tools):
+        threading.Thread.__init__(self)
+        
+        # Store tools
+        self._tools = tools
+        
+        # Make deamon
+        self.deamon = True
+        
+        # Flag to indicate new data
+        self._runCounter = 0
+    
+    
+    
+    def run(self):
+        
+        while True:
+            
+            # Wait untill counter increases
+            counter = self._runCounter
+            while counter == self._runCounter:
+                time.sleep(0.1)
+            
+            # Run
+            self.performSearch()
+    
+    
+    def performSearch(self):
+        
+        # Get counter as it is now
+        runCounter = self._runCounter
+        
+        # Get params
+        path = self._tools.parent()._path.text()
+        pattern = self._tools._searchPattern.text()
+        regExp = self._tools._searchIsRegExp.isChecked()
+        if regExp:
+            pattern = '({})'.format(pattern)
+        
+        # Check
+        if not os.path.isdir(path):
+            return
+        
+        # Get file list
+        patterns = self._tools._filePattern.text()
+        files = []
+        for fname in os.listdir(path):
+            if fname.startswith('.'):
+                continue
+            ffname = os.path.join(path,fname)
+            if os.path.isfile(ffname):
+                if checkFileAgainstPatterns(patterns, fname):
+                    files.append(fname)
         
         
-        
+        # Enter loop
+        for fname in files:
+            
+            # Test if still good
+            if runCounter != self._runCounter:
+                break
+            
+            # Read file
+            data = open(os.path.join(path, fname), 'rb').read()
+            
+            # Convert to text
+            try:
+                text = data.decode('utf-8')
+                del data
+            except UnicodeDecodeError:
+                continue
+            
+            # Search
+            lines = []
+            for match in re.finditer(pattern, text):
+                i = match.start()
+                line = text[:i].count('\n') + 1
+                if line == 1:
+                    line = text[:i].count('\r') + 1
+                lines.append(line)
+            
+            if lines:
+                print(fname, lines)
+
+
+# todo: enable making bookmarks
 
 class IepFileBrowser(QtGui.QWidget):
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
-        # Get initial dir
-        # todo: store path
-        p = os.path.expanduser('~')
+        # Init config
+        toolId =  self.__class__.__name__.lower()
+        self._config = iep.config.tools[toolId]
+        if not hasattr(self._config, 'path'):
+            self._config.path = os.path.expanduser('~')
         
         # Create current-directory-tool
         self._path = path = PathInput(self)
         self._up = QtGui.QToolButton(self)
-        self._up.setText('up')
+        #self._up.setText('up')
+        style = QtGui.qApp.style()
+        self._up.setIcon( style.standardIcon(style.SP_ArrowUp) )
         
-        path.setEditText(p)
+        # Create tool
+        self._tools = SearchTools(self)
         
+        # Create browser
+        self._browser = Browser(self, self._tools)
         
+        # Set layout
         layout2 = QtGui.QHBoxLayout()
-        layout2.addWidget(self._up,0)        
+        layout2.addWidget(self._up,0)
         layout2.addWidget(path,1)
-        
+        #
         layout = QtGui.QVBoxLayout(self)
         layout.addLayout(layout2)
-        layout.addStretch(1)
+        #layout.addSpacing(10)
+        layout.addWidget(self._tools)
+        layout.addWidget(self._browser)
+        #layout.addStretch(1)        
+        #
+        layout.setSpacing(1)
         self.setLayout(layout)
         
         self._up.pressed.connect(self._path.goUp)
+        self._path.dirChanged.connect(self._browser.showDir)
         
+        # Start
+        self._path.init(self._config)
         
