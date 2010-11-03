@@ -96,7 +96,43 @@ def checkFileAgainstPatterns(patterns, fname):
     return False
 
 
+def selectIconForDir(path):
+    if os.path.isdir(os.path.join(path, '.hg')):
+        return iep.icons['folder_hg']
+    elif os.path.isdir(os.path.join(path, '.svn')):
+        return iep.icons['folder_svn']
+    else:
+        return iep.icons['folder_normal']
     
+def selectIconForFile(path):
+    
+    # Get extention
+    ext = os.path.splitext(path)[1]
+    
+    # Select
+    if ext in ['.py', '.pyw']:
+        return iep.icons['file_py']
+    elif ext in ['.pyx', '.pxd']:
+        return iep.icons['file_pyx']
+    elif ext in ['.txt', '.2do', '.xml', '.html', '.htm', 
+                    '.c', '.h', '.cpp', '.m']:
+        return iep.icons['file_text']
+    else:
+        return iep.icons['file_normal']
+
+
+## Classes for the path selection widget
+
+
+class IconProvider(QtGui.QFileIconProvider):
+    def icon(self, arg):
+        if isinstance(arg, QtCore.QFileInfo):
+            return selectIconForDir(arg.filePath())
+        else:
+            return iep.icons['folder_normal']
+        #return QtGui.QFileIconProvider.icon(self, arg)
+
+
 class IepCompleter(QtGui.QCompleter):
     """ Completer that normalized the path using forward slashes only.
     """
@@ -127,7 +163,7 @@ class PathInput(QtGui.QLineEdit):
         # Set completion mode
         self.setCompleter(IepCompleter())
         c = self.completer()
-        c.setMaxVisibleItems(7)
+        c.setMaxVisibleItems(12)
         #c.setCompletionMode(c.InlineCompletion)
         c.setCompletionMode(c.UnfilteredPopupCompletion)
         #c.setCompletionMode(c.PopupCompletion)
@@ -135,6 +171,7 @@ class PathInput(QtGui.QLineEdit):
         # Set dir model to completer
         dirModel = QtGui.QDirModel(c)
         dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        dirModel.setIconProvider(IconProvider())
         c.setModel(dirModel)
         
         # Set history for going back up
@@ -348,14 +385,14 @@ class Browser(QtGui.QTreeWidget):
         # Init searcher thread
         self._searchThread = None
         
-        # Set headers
-        self.setColumnCount(2)
-        self.setHeaderLabels(['Name', 'Size'])
-        self.setColumnWidth(0, 200)
-        
-        # Do not show lines for top level items
-        self.setRootIsDecorated(False)
-        #self.setSortingEnabled(True)
+        # Set headers        
+        if False:
+            self.setColumnCount(2)
+            self.setHeaderLabels(['Name', 'Size'])
+            self.setColumnWidth(0, 200)        
+            #self.setSortingEnabled(True)
+        else:
+            self.setHeaderHidden(True)
         
         # Bind
         self.itemDoubleClicked.connect(self.onDoubleClicked)
@@ -489,31 +526,6 @@ class Browser(QtGui.QTreeWidget):
             self._showFilesAndDirs(path, files, dirs)
     
     
-    def _selectIconForDir(self, path):
-        if os.path.isdir(os.path.join(path, '.hg')):
-            return iep.icons['folder_hg']
-        elif os.path.isdir(os.path.join(path, '.svn')):
-            return iep.icons['folder_svn']
-        else:
-            return iep.icons['folder_normal']
-    
-    def _selectIconForFile(self, path):
-        
-        # Get extention
-        ext = os.path.splitext(path)[1]
-        
-        # Select
-        if ext in ['.py', '.pyw']:
-            return iep.icons['file_py']
-        elif ext in ['.pyx', '.pxd']:
-            return iep.icons['file_pyx']
-        elif ext in ['.txt', '.2do', '.xml', '.html', '.htm', 
-                        '.c', '.h', '.cpp', '.m']:
-            return iep.icons['file_text']
-        else:
-            return iep.icons['file_normal']
-    
-    
     def _showFilesAndDirs(self, path, files, dirs):
         """ _showFilesAndDirs(files, dirs)
         Display the given files and directories in the list right now.
@@ -522,16 +534,17 @@ class Browser(QtGui.QTreeWidget):
         # Show parent directory
         #dirs.insert(0, '..')
         
-        # Clear list
+        # Init list
         self.clear()
+        self.setRootIsDecorated(False)
         
-        # Show dirss
+        # Show dirs
         if self._tools._showDirs.isChecked():
             for fname in dirs:
                 ffname = os.path.join(path,fname)
                 item = QtGui.QTreeWidgetItem([fname, ''], 1)
                 item._dir = ffname
-                item.setIcon(0, self._selectIconForDir(ffname))
+                item.setIcon(0, selectIconForDir(ffname))
                 self.addTopLevelItem(item)
         
         # Show files
@@ -541,7 +554,8 @@ class Browser(QtGui.QTreeWidget):
                 size = self._getFileSize(ffname)
                 item = QtGui.QTreeWidgetItem([fname, size], 0)
                 item._fname = ffname
-                item.setIcon(0, self._selectIconForFile(fname))
+                item.setIcon(0, selectIconForFile(fname))
+                item.setToolTip(0,'%s (%s)'%(ffname, size))
                 self.addTopLevelItem(item)
     
     
@@ -557,7 +571,7 @@ class Browser(QtGui.QTreeWidget):
         # Init progress bar
         self._tools._searchProgress.setRange(0,len(files))
         
-        # Clear list
+        # Init list
         self.clear()
         self.setRootIsDecorated(True)
         
@@ -591,7 +605,8 @@ class Browser(QtGui.QTreeWidget):
         size = self._getFileSize(ffname)
         item = QtGui.QTreeWidgetItem([fname, size], 0)
         item._fname = ffname
-        item.setIcon(0, self._selectIconForFile(fname))
+        item.setIcon(0, selectIconForFile(fname))
+        item.setToolTip(0,'%s (%s)'%(ffname, size))
         item.setChildIndicatorPolicy(item.ShowIndicator)
         self.addTopLevelItem(item)
         
@@ -769,7 +784,7 @@ class IepFileBrowser(QtGui.QWidget):
         
         # File pattern line edit
         self._filePattern = w = QtGui.QLineEdit(self)
-        self._filePattern.setText('*.py')
+        self._filePattern.setText('*.py *.pyw, *.pyx, *.pxd')
         self._filePattern.setToolTip('File pattern')        
         
         # Show dirs check box
@@ -812,6 +827,8 @@ class IepFileBrowser(QtGui.QWidget):
         # Bind to signals
         self._filePattern.editingFinished.connect(self.onSomethingMaybeChanged)
         self._searchPattern.editingFinished.connect(self.onSomethingMaybeChanged)
+        self._filePattern.returnPressed.connect(self.onSomethingChanged)
+        self._searchPattern.returnPressed.connect(self.onSomethingChanged)
         #
         self._showDirs.released.connect(self.onSomethingChanged)
         self._searchIsRegExp.released.connect(self.onSomethingChanged)
@@ -844,7 +861,7 @@ class IepFileBrowser(QtGui.QWidget):
         
         # Second row
         layout = QtGui.QHBoxLayout()
-        layout.addWidget(self._filePattern, 0)
+        layout.addWidget(self._filePattern, 4)
         layout.addWidget(self._showDirs, 0)
         layout.addStretch(1)
         layout.addWidget(self._searchButton, 0)
