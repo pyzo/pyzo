@@ -38,7 +38,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.main = self
         
         # Init dockwidget settings
-        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtGui.QTabWidget.West)
+        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtGui.QTabWidget.South)
         self.setDockOptions(
                 QtGui.QMainWindow.AllowNestedDocks
             |  QtGui.QMainWindow.AllowTabbedDocks
