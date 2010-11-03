@@ -61,21 +61,8 @@ class MainWindow(QtGui.QMainWindow):
         if iep.config.state.windowMaximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
-        # Construct icon (if we'd load the .ico that contains a 16x16, 32x32
-        # and 48x48 image, only the largest is loaded)
-        iconDir = os.path.join(iep.iepDir,'icons')
-        iep.icon = QtGui.QIcon() 
-        tmp = os.path.join(iconDir,'iep{}.png')
-        iep.icon.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
-        iep.icon.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
-        iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
-        
-        # Construct another icon to show when the current shell is busy
-        iep.iconRunning = QtGui.QIcon() 
-        tmp = os.path.join(iconDir,'iep{}_running.png')
-        iep.iconRunning.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
-        iep.iconRunning.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
-        iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
+        # Load icons now
+        loadIcons()
         
         # Set label and icon
         self.setWindowTitle("IEP (loading ...)")
@@ -292,6 +279,50 @@ class MainWindow(QtGui.QMainWindow):
         a = menu.exec_(QtGui.QCursor.pos())
         if a:
             a.menuLauncher(not a.menuLauncher(None))
+
+
+def loadIcons():
+    """ loadIcons()
+    Load all icons in the icon dir.
+    """
+    
+    # Construct icon (if we'd load the .ico that contains a 16x16, 32x32
+    # and 48x48 image, only the largest is loaded)
+    
+    # Get directory containing all icons
+    iconDir = os.path.join(iep.iepDir,'icons')
+    
+    # Construct normal iep icon
+    iep.icon = QtGui.QIcon() 
+    tmp = os.path.join(iconDir,'iep{}.png')
+    iep.icon.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
+    iep.icon.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
+    iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
+    
+    # Construct another icon to show when the current shell is busy
+    iep.iconRunning = QtGui.QIcon() 
+    tmp = os.path.join(iconDir,'iep{}_running.png')
+    iep.iconRunning.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
+    iep.iconRunning.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
+    iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
+    
+    # Construct other icons
+    iep.icons = {}
+    for fname in os.listdir(iconDir):
+        if fname.startswith('iep'):
+            continue
+        if fname.endswith('.png'):
+            try:
+                # Short and full name
+                name = fname.split('.')[0]
+                ffname = os.path.join(iconDir,fname)
+                # Create icon
+                icon = QtGui.QIcon() 
+                icon.addFile(ffname, QtCore.QSize(16,16), 0, 0)
+                # Store
+                iep.icons[name] = icon
+            except Exception:
+                print('Could not load icon ', fname)
 
 
 class _CallbackEventHandler(QtCore.QObject):
