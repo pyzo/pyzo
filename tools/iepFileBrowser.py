@@ -371,6 +371,64 @@ class PathInput(QtGui.QLineEdit):
         #self.completer().complete()
 
 
+class LineEditWithClearButton(QtGui.QLineEdit):
+    
+    cleared = QtCore.pyqtSignal()
+    
+    def __init__(self, parent):
+        QtGui.QLineEdit.__init__(self, parent)
+        
+        style = QtGui.qApp.style()
+        
+        # Load two icons
+        self._defaultIcon = iep.icons['magGlass']
+        self._clearIcon = iep.icons['lineEditClear']
+        
+        # Create tool button
+        self._button = button = QtGui.QToolButton(self)
+        button.setIcon(self._defaultIcon)
+        button.setIconSize(QtCore.QSize(16,16))
+        button.setCursor(QtCore.Qt.ArrowCursor)
+        button.setStyleSheet("QToolButton { border: none; padding: 0px; }");
+        
+        # Connect signals
+        button.clicked.connect(self.clear)
+        self.textChanged.connect(self.updateCloseButton)
+        
+        # Set padding of line edit
+        fw = QtGui.qApp.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+        padding =  button.sizeHint().width() + fw + 1
+        self.setStyleSheet("QLineEdit { padding-right: %ipx; } " % padding);
+        
+        # Set minimum size
+        msz = self.minimumSizeHint()
+        w = max(msz.width(), button.sizeHint().height() + fw * 2 + 2)
+        h = max(msz.height(), button.sizeHint().height() + fw * 2 + 2)
+        self.setMinimumSize(w,h)
+    
+    def clear(self):
+        """ clear()
+        Emit signal that the text was cleared.
+        """
+        QtGui.QLineEdit.clear(self)
+        self.cleared.emit()
+    
+    def resizeEvent(self, event):
+        QtGui.QLineEdit.resizeEvent(self, event)
+        
+        sz = self._button.sizeHint()
+        fw = QtGui.qApp.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+        rect = self.rect()
+        self._button.move(  rect.right() - fw -sz.width(),
+                            (rect.bottom() + 1 - sz.height())/2)
+    
+    def updateCloseButton(self, text):
+        if self.text():
+            self._button.setIcon(self._clearIcon)
+        else:
+            self._button.setIcon(self._defaultIcon)
+
+
 class Browser(QtGui.QTreeWidget):
     def __init__(self, parent):
         QtGui.QTreeWidget.__init__(self, parent)
@@ -385,17 +443,20 @@ class Browser(QtGui.QTreeWidget):
         # Init searcher thread
         self._searchThread = None
         
-        # Set headers        
-        if False:
-            self.setColumnCount(2)
-            self.setHeaderLabels(['Name', 'Size'])
-            self.setColumnWidth(0, 200)        
+        # Bind
+        self.itemDoubleClicked.connect(self.onDoubleClicked)
+    
+    
+    def showHeaders(self, show=True):
+        if show:
+            self.setHeaderHidden(False)
+            self.setColumnCount(3)
+            self.setHeaderLabels(['Name', 'Size', 'Modified'])
+            self.setColumnWidth(0, 170)
             #self.setSortingEnabled(True)
         else:
             self.setHeaderHidden(True)
-        
-        # Bind
-        self.itemDoubleClicked.connect(self.onDoubleClicked)
+            self.setColumnCount(1)
     
     
     def onDoubleClicked(self, item):
@@ -448,6 +509,16 @@ class Browser(QtGui.QTreeWidget):
         
         # Done
         return size
+    
+    
+    def _getFileModified(self, fname):
+        """ _getFileModified(fname)
+        Get when the file was last modified.
+        """
+        
+        time_float = os.path.getmtime(fname)
+        time_tuple = time.gmtime(time_float)
+        return time.strftime('%d-%m-%Y %H:%M', time_tuple)
     
     
     def _listDir(self, path):
@@ -504,14 +575,14 @@ class Browser(QtGui.QTreeWidget):
         
         # Get search pattern
         searchPattern = self._tools._searchPattern.text()
-        regExp = self._tools._searchIsRegExp.isChecked()
+        regExp = self._tools._config['searchRegExp']
         
         
-        if searchPattern and self._tools._searchButton.isChecked():
+        if searchPattern:
             # Apply a search
             
             # Expand subdirs?
-            if self._tools._searchInSubdirs.isChecked():
+            if self._tools._config['searchSubDirs']:
                 while dirs:
                     dirName = dirs.pop(0)
                     ff, dd = self._listDir(os.path.join(path, dirName))
@@ -537,9 +608,10 @@ class Browser(QtGui.QTreeWidget):
         # Init list
         self.clear()
         self.setRootIsDecorated(False)
+        self.showHeaders(self._tools._config['showDetails'])
         
         # Show dirs
-        if self._tools._showDirs.isChecked():
+        if self._tools._config['showDirs']:
             for fname in dirs:
                 ffname = os.path.join(path,fname)
                 item = QtGui.QTreeWidgetItem([fname, ''], 1)
@@ -551,8 +623,11 @@ class Browser(QtGui.QTreeWidget):
         if True:
             for fname in files:
                 ffname = os.path.join(path,fname)
+                # Create item with extra info
                 size = self._getFileSize(ffname)
-                item = QtGui.QTreeWidgetItem([fname, size], 0)
+                modi = self._getFileModified(ffname)
+                item = QtGui.QTreeWidgetItem([fname, size, modi], 0)
+                # Configure item
                 item._fname = ffname
                 item.setIcon(0, selectIconForFile(fname))
                 item.setToolTip(0,'%s (%s)'%(ffname, size))
@@ -574,6 +649,7 @@ class Browser(QtGui.QTreeWidget):
         # Init list
         self.clear()
         self.setRootIsDecorated(True)
+        self.showHeaders(self._tools._config['showDetails'])
         
         # Create new thread and start it
         args = path, files, pattern, regExp
@@ -603,7 +679,9 @@ class Browser(QtGui.QTreeWidget):
         
         # Insert item in list
         size = self._getFileSize(ffname)
+        modi = self._getFileModified(ffname)
         item = QtGui.QTreeWidgetItem([fname, size], 0)
+        # Configure item
         item._fname = ffname
         item.setIcon(0, selectIconForFile(fname))
         item.setToolTip(0,'%s (%s)'%(ffname, size))
@@ -653,34 +731,6 @@ class SearchThread(threading.Thread):
         
         # Flag to indicate it should stop
         self._stop_me = False
-        
-#         # Init info list
-#         self._info = []
-#         
-#         # Init lock
-#         self._lock = threading.RLock()
-#     
-#     
-#     def addInfo(self, newInfo):
-#         """ To add info in a thread safe way. 
-#         """ 
-#         self._lock.acquire()
-#         try:
-#             self._info.append(newInfo)
-#         finally:
-#             self._lock.release()
-#     
-#     
-#     def getInfo(self):
-#         """ To get info in a thread safe way. 
-#         """ 
-#         self._lock.acquire()
-#         try:
-#             tmp = [i for i in self._info]
-#             self._info[:] = []
-#             return tmp
-#         finally:
-#             self._lock.release()
     
     
     def run(self):
@@ -772,47 +822,48 @@ class IepFileBrowser(QtGui.QWidget):
         if not hasattr(self._config, 'path'):
             self._config.path = os.path.expanduser('~')
         
-        # Create current-directory-tool, and up button
+        # Create current-directory-tool
         self._path = path = PathInput(self)
-        #
+        
+        # Create up button
         self._up = QtGui.QToolButton(self)
-        #self._up.setText('up')
-        #style = QtGui.qApp.style()
-        #self._up.setIcon( style.standardIcon(style.SP_ArrowUp) )
         self._up.setIcon( iep.icons['folder_parent'] )
+        self._up.setStyleSheet("QToolButton { padding: 0px; }");
+        self._up.setIconSize(QtCore.QSize(20,20))
         
+        # Create file pattern combo box
+        self._filePatternCombo = QtGui.QComboBox(self)
+        self._filePatternCombo.setEditable(True)
+        self._filePatternCombo.setCompleter(None)
+        for tmp in ['*', '*.py *.pyw', '*.pyx *.pxd', 
+                    '*.py *.pyw, *.pyx, *.pxd', '*.h *.c *.cpp']:
+            self._filePatternCombo.addItem(tmp)
         
-        # File pattern line edit
-        self._filePattern = w = QtGui.QLineEdit(self)
+        # Set file pattern line edit (in combobox)
+        self._filePattern = self._filePatternCombo.lineEdit()
         self._filePattern.setText('*.py *.pyw, *.pyx, *.pxd')
         self._filePattern.setToolTip('File pattern')        
         
-        # Show dirs check box
-        self._showDirs = QtGui.QCheckBox(self)
-        self._showDirs.setText('Show dirs')
-        self._showDirs.setChecked(True)
+        # Create options button
+        self._options = QtGui.QPushButton(self)
+        self._options.setText('Options')
+        self._options.setToolTip("File browser options.")
         
-        # Search toggle button
-        self._searchButton = QtGui.QCheckBox(self)
-        self._searchButton.setText('SEARCH')
-        self._searchButton.setStyleSheet("QCheckBox{background:#aad;}")
+        # Create options menu
+        self._options._menu = QtGui.QMenu()
+        self._options.setMenu(self._options._menu)
         
-        # Search progress bar
-        self._searchProgress = QtGui.QProgressBar(self)
-        self._searchProgress.setMaximumHeight(15)
-        self._searchProgress.setFormat('%v/%m')
-        
-        # Search pattern line edit
-        self._searchPattern = QtGui.QLineEdit(self)
+        # Create search pattern line edit
+        self._searchPattern = LineEditWithClearButton(self)
         self._searchPattern.setToolTip('Search pattern')
         
-        # Search reg-exp check box
-        self._searchIsRegExp = QtGui.QCheckBox(self) 
-        self._searchIsRegExp.setText('RegExp')
-        
-        # Search in subdirs check button
-        self._searchInSubdirs = QtGui.QCheckBox(self) 
-        self._searchInSubdirs.setText('Subdirs')
+        # Create search progress bar
+        self._searchProgress = QtGui.QProgressBar(self)
+        self._searchProgress.setMaximumHeight(18)
+        self._searchProgress.setFormat('%v/%m')
+        self._searchProgress.hide()
+        #
+        self._searchProgress_ = QtGui.QWidget(self)
         
         # Create browser
         self._browser = Browser(self)
@@ -823,26 +874,24 @@ class IepFileBrowser(QtGui.QWidget):
             if hasattr(lineEdit, 'setPlaceholderText'):
                 lineEdit.setPlaceholderText(lineEdit.toolTip())
         
-        
         # Bind to signals
+        self._up.pressed.connect(self._path.goUp)
+        self._path.dirChanged.connect(self._browser.showDir)
+        #
+        self._options._menu.triggered.connect(self.onOptionMenuTiggered)
+        self._options.pressed.connect(self.onOptionsPress)
+        #
         self._filePattern.editingFinished.connect(self.onSomethingMaybeChanged)
         self._searchPattern.editingFinished.connect(self.onSomethingMaybeChanged)
         self._filePattern.returnPressed.connect(self.onSomethingChanged)
         self._searchPattern.returnPressed.connect(self.onSomethingChanged)
-        #
-        self._showDirs.released.connect(self.onSomethingChanged)
-        self._searchIsRegExp.released.connect(self.onSomethingChanged)
-        self._searchInSubdirs.released.connect(self.onSomethingChanged)
-        self._searchButton.released.connect(self.onSearchButtonPressed)
-        #
-        self._up.pressed.connect(self._path.goUp)
-        self._path.dirChanged.connect(self._browser.showDir)
+        self._searchPattern.cleared.connect(self.onSomethingChanged)
         
         # Start
         self.init_layout()
-        self.restoreFromConfig()
-        self.onSearchButtonPressed()
-        self._path.init(self._config)
+        self.onOptionsPress() # makes sure that the options exist in config        
+        self.restoreFromConfig() # set line edit texts
+        self._path.init(self._config) # Init path
     
     
     def init_layout(self):
@@ -861,20 +910,17 @@ class IepFileBrowser(QtGui.QWidget):
         
         # Second row
         layout = QtGui.QHBoxLayout()
-        layout.addWidget(self._filePattern, 4)
-        layout.addWidget(self._showDirs, 0)
+        layout.addWidget(self._filePatternCombo, 4)
         layout.addStretch(1)
-        layout.addWidget(self._searchButton, 0)
+        layout.addWidget(self._options, 2)
         layouts.append(layout)
         
-        # Third row
-        layouts.append(self._searchProgress)
-        
-        # Fourth row
+        # third row
         layout = QtGui.QHBoxLayout()
-        layout.addWidget(self._searchPattern, 1)
-        layout.addWidget(self._searchIsRegExp, 0)
-        layout.addWidget(self._searchInSubdirs, 0)
+        layout.addWidget(self._searchPattern, 4)
+        layout.addStretch(1)
+        layout.addWidget(self._searchProgress, 2)
+        layout.addWidget(self._searchProgress_, 2)
         layouts.append(layout)
         
         # Last row
@@ -895,6 +941,53 @@ class IepFileBrowser(QtGui.QWidget):
         self.setLayout(mainLayout)
     
     
+    def onOptionsPress(self):
+        """ onOptionsPress()
+        Create menu for options.
+        """
+        
+        # Map of options and their description
+        map = [ ('showDirs', 'Show Directories'),
+                ('showDetails', 'Show Details'),
+                (None, None),
+                ('searchRegExp', 'Search with regular expression'),
+                ('searchSubDirs', 'Search in sub-directories')]
+        
+        # Get menu anc clear
+        menu = self._options._menu
+        menu.clear()
+        
+        # Fill menu
+        for option, description in map:
+            if option is None:
+                menu.addSeparator()
+            else:
+                # Make sure the option exists
+                if option not in self._config:
+                    self._config[option] = False
+                # Make action in menu
+                action = menu.addAction(description)
+                action._option = option
+                action.setCheckable(True)
+                action.setChecked( bool(self._config[option]) )
+    
+    
+    def onOptionMenuTiggered(self, action):
+        """ The user changes an option. """
+        
+        # What option is changed
+        option = action._option
+        
+        # Swap
+        if option in self._config:
+            self._config[option] = not self._config[option]
+        else:
+            self._config[option] = True
+        
+        # Update
+        self.onSomethingChanged()
+    
+    
     def restoreFromConfig(self):
         """ restoreFromConfig()
         Restore all user inputs from previous session. 
@@ -907,13 +1000,6 @@ class IepFileBrowser(QtGui.QWidget):
                 lineEdit = self.__dict__['_'+name]
                 text = self._config[name]
                 lineEdit.setText(text)
-        
-        # Set check boxes
-        for name in ['showDirs', 'searchIsRegExp', 'searchInSubdirs', 'searchButton']:
-            if name in self._config:
-                checkBox = self.__dict__['_'+name]
-                state = bool(self._config[name])
-                checkBox.setChecked(state)
     
     
     def updateConfig(self):
@@ -925,11 +1011,6 @@ class IepFileBrowser(QtGui.QWidget):
         for name in ['filePattern', 'searchPattern']:
             lineEdit = self.__dict__['_'+name]
             self._config[name] = lineEdit.text()
-        
-        # Set check boxes
-        for name in ['showDirs', 'searchIsRegExp', 'searchInSubdirs', 'searchButton']:
-            checkBox = self.__dict__['_'+name]
-            self._config[name] = checkBox.isChecked()
     
     
     def onSomethingChanged(self):
@@ -937,6 +1018,15 @@ class IepFileBrowser(QtGui.QWidget):
         Updates the config and emits the signal that invokes the browser
         to update its contents.
         """
+        
+        # Show/hide the progress bar
+        if self._searchPattern.text():
+            self._searchProgress.show()
+            self._searchProgress_.hide()
+        else:
+            self._searchProgress.hide()
+            self._searchProgress_.show()
+        
         self.updateConfig()
         self.somethingChanged.emit()
     
@@ -952,30 +1042,3 @@ class IepFileBrowser(QtGui.QWidget):
             if text != lineEdit.text():
                 self.onSomethingChanged()
                 break
-    
-    
-    def onSearchButtonPressed(self):
-        """ onSearchButtonPressed()
-        When the search toggle button is pressed, we need to show
-        or hide the search widgets.
-        """
-        
-        # Clear search text
-        self._searchPattern.setText('')
-        self._searchProgress.reset()
-        
-        if self._searchButton.isChecked():
-            # Expand
-            self._searchPattern.show()
-            self._searchIsRegExp.show()
-            self._searchProgress.show()
-            self._searchInSubdirs.show()
-        else:
-            # Collapse
-            self._searchPattern.hide()
-            self._searchIsRegExp.hide()
-            self._searchProgress.hide()
-            self._searchInSubdirs.hide()
-        
-        # Update
-        self.onSomethingChanged()
