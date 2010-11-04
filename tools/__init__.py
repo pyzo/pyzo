@@ -129,7 +129,6 @@ class ToolDescription:
 class ToolManager:
     """ Manages the tools. """
     
-    
     def __init__(self):
         
         # list of ToolDescription instances
