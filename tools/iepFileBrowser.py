@@ -83,11 +83,13 @@ def checkFileAgainstPatterns(patterns, fname):
         return True
     
     # Split
-    patterns.replace(',', ' ')
+    patterns = patterns.replace(',', ' ')
     patterns = patterns.strip().split(' ')
     
     # Test all patterns
     for pattern in patterns:
+        if not pattern:
+            continue
         ok = checkFileAgainstPattern(pattern, fname)
         if ok:
             return True
@@ -605,6 +607,11 @@ class Browser(QtGui.QTreeWidget):
         # Show parent directory
         #dirs.insert(0, '..')
         
+        # Stop any running search thread
+        if self._searchThread is not None:
+            self._searchThread._stop_me = True
+            self._searchThread = None
+        
         # Init list
         self.clear()
         self.setRootIsDecorated(False)
@@ -680,7 +687,7 @@ class Browser(QtGui.QTreeWidget):
         # Insert item in list
         size = self._getFileSize(ffname)
         modi = self._getFileModified(ffname)
-        item = QtGui.QTreeWidgetItem([fname, size], 0)
+        item = QtGui.QTreeWidgetItem([fname, size, modi], 0)
         # Configure item
         item._fname = ffname
         item.setIcon(0, selectIconForFile(fname))
@@ -695,6 +702,7 @@ class Browser(QtGui.QTreeWidget):
             subItem._fname = ffname
             subItem._linenr = linenr
             item.addChild(subItem)
+    
 
 
 class SearchResult:
@@ -733,6 +741,24 @@ class SearchThread(threading.Thread):
         self._stop_me = False
     
     
+    def _determineLineEnding(self, text):
+        """ function to determine quickly whether LF or CR is used
+        as line endings. Windows endings (CRLF) result in LF
+        (you can split lines with either char).
+        """
+        i = 0
+        LE = '\n'
+        while i < len(text):
+            i += 128
+            LF = text.count('\n', 0, i)
+            CR = text.count('\r', 0, i)
+            if LF or CR:
+                if CR > LF:
+                    LE = '\r'
+                break
+        return LE
+    
+    
     def run(self):
         
         # Get params
@@ -759,7 +785,7 @@ class SearchThread(threading.Thread):
                 continue
             
             # Sleep a tiny bit
-            time.sleep(0.001)
+            time.sleep(0.02)
             
             # Read file and convert to text
             data = open(ffname, 'rb').read()
@@ -786,21 +812,18 @@ class SearchThread(threading.Thread):
             # Obtain line and line numbers
             lines = []
             for i in indices:
+                # Determine line endings
+                LE = self._determineLineEnding(text)
                 # Get linenr and index of the line
-                linenr = text.count('\n',0,i) + 1
-                if linenr > 1:
-                    i1 = text.rfind('\n',0,i)
-                    i2 = text.find('\n',i)
-                else:
-                    linenr = text.count('\r',0,i) + 1
-                    i1 = text.rfind('\r',0,i)
-                    i2 = text.find('\r',i)
+                linenr = text.count(LE, 0, i) + 1                
+                i1 = text.rfind(LE, 0, i)
+                i2 = text.find(LE, i)
                 # Get line and strip
                 if i1<0:
                     i1 = 0
                 line = text[i1:i2].strip()[:80]
                 # Store
-                lines.append( (linenr, line) )
+                lines.append( (linenr, repr(line)) )
             
             # Make result object and send
             result = SearchResult(self, path, fname, lines, count)
@@ -835,13 +858,14 @@ class IepFileBrowser(QtGui.QWidget):
         self._filePatternCombo = QtGui.QComboBox(self)
         self._filePatternCombo.setEditable(True)
         self._filePatternCombo.setCompleter(None)
+        self._filePatternCombo.setInsertPolicy(self._filePatternCombo.NoInsert)
         for tmp in ['*', '*.py *.pyw', '*.pyx *.pxd', 
-                    '*.py *.pyw, *.pyx, *.pxd', '*.h *.c *.cpp']:
+                    '*.py *.pyw *.pyx *.pxd', '*.h *.c *.cpp']:
             self._filePatternCombo.addItem(tmp)
         
         # Set file pattern line edit (in combobox)
         self._filePattern = self._filePatternCombo.lineEdit()
-        self._filePattern.setText('*.py *.pyw, *.pyx, *.pxd')
+        self._filePattern.setText('*.py *.pyw *.pyx *.pxd')
         self._filePattern.setToolTip('File pattern')        
         
         # Create options button
@@ -881,6 +905,7 @@ class IepFileBrowser(QtGui.QWidget):
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
         self._options.pressed.connect(self.onOptionsPress)
         #
+        self._filePatternCombo.activated.connect(self.onSomethingChanged)
         self._filePattern.editingFinished.connect(self.onSomethingMaybeChanged)
         self._searchPattern.editingFinished.connect(self.onSomethingMaybeChanged)
         self._filePattern.returnPressed.connect(self.onSomethingChanged)
