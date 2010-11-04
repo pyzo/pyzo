@@ -799,7 +799,7 @@ class IepFileBrowser(QtGui.QWidget):
         
         # Search progress bar
         self._searchProgress = QtGui.QProgressBar(self)
-        self._searchProgress.setMaximumHeight(10)
+        self._searchProgress.setMaximumHeight(15)
         self._searchProgress.setFormat('%v/%m')
         
         # Search pattern line edit
