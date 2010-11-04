@@ -415,7 +415,8 @@ class IepInterpreter:
         # Get text (make sure it ends with a newline)
         try:
             source = open(fname).read()
-            if source[-1] not in '\r\n':
+            source = source.replace('\r\n', '\n').replace('\r','\n')
+            if source[-1] != '\n':
                 source += '\n'
         except Exception:        
             sys.stdout.write('Could not execute script: "' + fname + '"\n')
