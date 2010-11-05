@@ -788,7 +788,9 @@ class SearchThread(threading.Thread):
             time.sleep(0.02)
             
             # Read file and convert to text
-            data = open(ffname, 'rb').read()
+            f = open(ffname, 'rb')
+            data = f.read()
+            f.close()
             try:
                 text = data.decode('utf-8')
                 del data
@@ -831,6 +833,7 @@ class SearchThread(threading.Thread):
 
 
 # todo: enable making bookmarks
+# todo: sorting by name/type/size/modified/...
 
 class IepFileBrowser(QtGui.QWidget):
     
