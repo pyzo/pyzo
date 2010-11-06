@@ -46,7 +46,7 @@ when it is busy, IEP itself stays responsive, which allows you to
 keep coding and even run code in another shell. 
 
 Another notable feature is that IEP can integrate the event loop of
-four different GUI toolkits, thus enabling interactive plotting with
+five different GUI toolkits, thus enabling interactive plotting with
 Visvis or Matplotlib. The module of the integrated toolkit is given
 an "_integratedEventLoop" attribute, which can be used in scripts to
 recognize that an application instance does not have to be created.
