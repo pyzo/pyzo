@@ -449,6 +449,29 @@ class Browser(QtGui.QTreeWidget):
         self.itemDoubleClicked.connect(self.onDoubleClicked)
     
     
+    def mousePressEvent(self, event):
+        """ mousePressEvent(event)
+        Overload to enable dragging files and directories.
+        """ 
+        QtGui.QTreeWidget.mousePressEvent(self, event)
+        
+        item = self.currentItem()
+        if item and (hasattr(item, '_dir') or hasattr(item, '_fname')):
+            
+            # Create mime data
+            mimeData = QtCore.QMimeData()
+            if hasattr(item, '_dir'):
+                url = QtCore.QUrl(item._dir)
+            else:
+                url = QtCore.QUrl(item._fname)
+            mimeData.setUrls([url])
+            
+            # Create drag object
+            drag = QtGui.QDrag(self)
+            drag.setMimeData(mimeData)
+            drag.exec_(QtCore.Qt.CopyAction)
+    
+    
     def showHeaders(self, show=True):
         if show:
             self.setHeaderHidden(False)
@@ -478,7 +501,7 @@ class Browser(QtGui.QTreeWidget):
         elif hasattr(item, '_fname'):
             # A filename, open file
             fileItem = iep.editors.loadFile(item._fname)
-            
+        
             # Select a line number?
             if fileItem and hasattr(item, '_linenr'):
                 linenr = item._linenr - 1
@@ -625,6 +648,10 @@ class Browser(QtGui.QTreeWidget):
                 item._dir = ffname
                 item.setIcon(0, selectIconForDir(ffname))
                 self.addTopLevelItem(item)
+                # 
+                item.setFlags(  QtCore.Qt.ItemIsDragEnabled |
+                                QtCore.Qt.ItemIsSelectable |
+                                QtCore.Qt.ItemIsEnabled)
         
         # Show files
         if True:
@@ -767,6 +794,7 @@ class SearchThread(threading.Thread):
         # Prepare counters
         count = 0
         maxCount = len(files)
+        timer = time.time()
         
         
         # For each file
@@ -785,7 +813,7 @@ class SearchThread(threading.Thread):
                 continue
             
             # Sleep a tiny bit
-            time.sleep(0.02)
+            time.sleep(0.01)
             
             # Read file and convert to text
             f = open(ffname, 'rb')
@@ -830,6 +858,11 @@ class SearchThread(threading.Thread):
             # Make result object and send
             result = SearchResult(self, path, fname, lines, count)
             iep.callLater(self._callback, result)
+            
+            # Sleep to give the main thread some time to recover
+            if time.time() - timer > 0.1:
+                time.sleep(0.1)
+                timer = time.time()
 
 
 # todo: enable making bookmarks
@@ -1006,14 +1039,23 @@ class IepFileBrowser(QtGui.QWidget):
         # What option is changed
         option = action._option
         
-        # Swap
+        # Swap this option
         if option in self._config:
             self._config[option] = not self._config[option]
         else:
             self._config[option] = True
         
-        # Update
-        self.onSomethingChanged()
+        # Update, depending on whether we are in search mode
+        if True:
+            if option == 'showDetails':
+                self._browser.showHeaders(self._config[option])
+        if self._searchPattern.text():            
+            if option in ['searchRegExp', 'searchSubDirs']:
+                self.onSomethingChanged()
+        else:
+            if option in ['showDirs']:
+                self.onSomethingChanged()
+    
     
     
     def restoreFromConfig(self):
@@ -1023,7 +1065,8 @@ class IepFileBrowser(QtGui.QWidget):
         
         # Set line edits
         # Note that the path maintains its own value in the config
-        for name in ['filePattern', 'searchPattern']:
+        # Do not restore searchPattern
+        for name in ['filePattern']:
             if name in self._config:
                 lineEdit = self.__dict__['_'+name]
                 text = self._config[name]
@@ -1036,7 +1079,7 @@ class IepFileBrowser(QtGui.QWidget):
         """
         
         # Set line edits
-        for name in ['filePattern', 'searchPattern']:
+        for name in ['filePattern']:
             lineEdit = self.__dict__['_'+name]
             self._config[name] = lineEdit.text()
     
