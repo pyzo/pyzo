@@ -445,6 +445,10 @@ class Browser(QtGui.QTreeWidget):
         # Init searcher thread
         self._searchThread = None
         
+        # Accept drops
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(False)
+        
         # Bind
         self.itemDoubleClicked.connect(self.onDoubleClicked)
     
@@ -466,11 +470,25 @@ class Browser(QtGui.QTreeWidget):
                 url = QtCore.QUrl(item._fname)
             mimeData.setUrls([url])
             
+            # This is to make the treeview show that something is being dragged
+            tmp = b'dummu_data'
+            mimeData.setData("vla", tmp)
+            mimeData.setData("application/x-qabstractitemmodeldatalist", tmp)
+            
             # Create drag object
             drag = QtGui.QDrag(self)
             drag.setMimeData(mimeData)
             drag.exec_(QtCore.Qt.CopyAction)
     
+    
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+    
+    def dropEvent(self, event):
+        # Need to overload, or IEP will crash. Probably because the data
+        # of the MimeData object is incorrect.
+        pass
     
     def showHeaders(self, show=True):
         if show:
@@ -648,10 +666,6 @@ class Browser(QtGui.QTreeWidget):
                 item._dir = ffname
                 item.setIcon(0, selectIconForDir(ffname))
                 self.addTopLevelItem(item)
-                # 
-                item.setFlags(  QtCore.Qt.ItemIsDragEnabled |
-                                QtCore.Qt.ItemIsSelectable |
-                                QtCore.Qt.ItemIsEnabled)
         
         # Show files
         if True:
@@ -666,6 +680,8 @@ class Browser(QtGui.QTreeWidget):
                 item.setIcon(0, selectIconForFile(fname))
                 item.setToolTip(0,'%s (%s)'%(ffname, size))
                 self.addTopLevelItem(item)
+                #
+                #item.setFlags(QtCore.Qt.ItemIsDragEnabled)
     
     
     def _startSearch(self, path, files, pattern, regExp):
