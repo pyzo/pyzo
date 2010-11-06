@@ -898,7 +898,11 @@ class IepFileBrowser(QtGui.QWidget):
             self._config.path = os.path.expanduser('~')
         
         # Create current-directory-tool
-        self._path = path = PathInput(self)
+        self._path = PathInput(self)
+        self._path.setToolTip(  'Selected directory:\n\n'  +
+                                'TAB: complete suggested directory\n' +
+                                'CTRL+LEFT: directory up\n' + 
+                                'CTRL+RIGHT: directory down (history)')  
         
         # Create up button
         self._up = QtGui.QToolButton(self)
