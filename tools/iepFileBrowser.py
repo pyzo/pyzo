@@ -1099,7 +1099,7 @@ class IepFileBrowser(QtGui.QWidget):
         """
         
         # Set line edits
-        for name in ['filePattern']:
+        for name in ['filePattern', 'searchPattern']:
             lineEdit = self.__dict__['_'+name]
             self._config[name] = lineEdit.text()
     
