@@ -701,9 +701,9 @@ class IepInterpreter:
             self.write('An error occured, but could not write traceback.\n')
             tb = None
             frames = None
-            
-        
-        
+    
+    
+    
 
 def correctFilenameAndLineno(fname, lineno):
     """ Given a filename and lineno, this function returns
@@ -785,6 +785,9 @@ class IntroSpectionThread(threading.Thread):
                 
             elif req == "ATTRIBUTES":
                 self.enq_attributes(arg)
+            
+            elif req == "VARIABLES":
+                self.enq_variables_plus()
             
             elif req == "HELP":
                 self.enq_help(arg)
@@ -969,6 +972,53 @@ class IntroSpectionThread(threading.Thread):
             self.response.write( ",".join(list(names)) )
         else:
             self.response.write( "<error>" )
+    
+    # todo: all introspection should go like this I think.
+    def enq_variables_plus(self):
+        """ enq_variables_plus()
+        
+        get variable names in currently active namespace plus extra information.
+        Returns a list with strings, which each contain a (comma separated)
+        list of elements: name, type, kind, repr.
+        
+        """ 
+        try:
+            names = ['','']
+            def storeInfo(name, val):
+                # Determine type
+                typeName = type(val).__name__
+                # Determine kind
+                kind = typeName
+                if hasattr(val, '__array__') and hasattr(val, 'dtype'):
+                    kind = 'array'
+                if isinstance(val, list):
+                    kind = 'list'
+                # Determine representation
+                if kind == 'array':
+                    tmp = 'x'.join([str(s) for s in val.shape])
+                    repres = '<array with shape %s of type %s>' % (
+                                                tmp, val.dtype.name)
+                if kind == 'list':
+                    repres = '<list with %i elements>' % len(val)
+                else:
+                    repres = repr(val)
+                    if len(repres) > 80:
+                        repres = repres[:77] + '...'
+                # Store
+                tmp = ','.join([name, typeName, kind, repres])
+                names.append(tmp)
+            
+            # Get locals
+            NS = self.getNameSpace()
+            for name in NS.keys():
+                if not name.startswith('__'):
+                    storeInfo(name, NS[name])
+            
+            # Respond
+            self.response.write("##IEP##".join(names))
+            
+        except Exception:
+            self.response.write( '<error>' )
     
     
     def enq_help(self,objectName):

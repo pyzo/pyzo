@@ -1421,7 +1421,7 @@ class EditorStack(QtGui.QWidget):
         
         # give python extension if it has no extension
         head, tail = os.path.split(filename)
-        if '.' not in tail:
+        if tail and '.' not in tail:
             filename += '.py'
         
         # proceed or cancel
