@@ -1419,6 +1419,11 @@ class EditorStack(QtGui.QWidget):
         filename = QtGui.QFileDialog.getSaveFileName(self,
             msg, startdir, filter)
         
+        # give python extension if it has no extension
+        head, tail = os.path.split(filename)
+        if '.' not in tail:
+            filename += '.py'
+        
         # proceed or cancel
         if filename:
             self.saveFile(editor, filename)
