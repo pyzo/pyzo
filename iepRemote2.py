@@ -1013,23 +1013,29 @@ class IntroSpectionThread(threading.Thread):
         
         """ 
         try:
+            name = ''
             names = ['','']
             def storeInfo(name, val):
                 # Determine type
                 typeName = type(val).__name__
                 # Determine kind
                 kind = typeName
-                if hasattr(val, '__array__') and hasattr(val, 'dtype'):
-                    kind = 'array'
-                if isinstance(val, list):
-                    kind = 'list'
+                if typeName != 'type':
+                    if hasattr(val, '__array__') and hasattr(val, 'dtype'):
+                        kind = 'array'
+                    elif isinstance(val, list):
+                        kind = 'list'
+                    elif isinstance(val, tuple):
+                        kind = 'tuple'
                 # Determine representation
                 if kind == 'array':
                     tmp = 'x'.join([str(s) for s in val.shape])
-                    repres = '<array with shape %s of type %s>' % (
+                    repres = '<array %s %s>' % (
                                                 tmp, val.dtype.name)
-                if kind == 'list':
+                elif kind == 'list':
                     repres = '<list with %i elements>' % len(val)
+                elif kind == 'tuple':
+                    repres = '<tuple with %i elements>' % len(val)
                 else:
                     repres = repr(val)
                     if len(repres) > 80:
@@ -1047,8 +1053,9 @@ class IntroSpectionThread(threading.Thread):
             # Respond
             self.response.write("##IEP##".join(names))
             
-        except Exception:
-            self.response.write( '<error>' )
+        except Exception, err:
+            self.response.write( str(err)+'...'+name)
+            #self.response.write( '<error>' )
     
     
     def enq_help(self,objectName):

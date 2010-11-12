@@ -79,7 +79,8 @@ class WorkspaceProxy(QtCore.QObject):
         Cut the last part off the name. 
         """
         parts = splitName(self._name)
-        parts.pop()
+        if parts:
+            parts.pop()
         self.setName(joinName(parts))
     
     
@@ -114,10 +115,10 @@ class WorkspaceProxy(QtCore.QObject):
         # Check
         if not '##IEP##' in response:
             print('Error getting VARIABLES:', response)
-            return
-        
-        # Store variables
-        self._variables = [r for r in response.split('##IEP##') if r]
+            self._variables = []
+        else:
+            # Store variables
+            self._variables = [r for r in response.split('##IEP##') if r]
         
         # Signal
         self.haveNewData.emit()
@@ -150,6 +151,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
         
         # Nice rows
         self.setAlternatingRowColors(True)
+        self.setRootIsDecorated(False)
         
         # Create proxy
         self._proxy = WorkspaceProxy()
