@@ -9,6 +9,12 @@ tool_name = "File browser"
 tool_summary = "Browse and search in files."
 
 
+# todo: enable making bookmarks
+# todo: sorting by name/type/size/modified/...
+# todo: create new folder file, delete, rename, cut/copy/paste
+# todo: simple mercurial control
+
+    
 ## Helper functions
 
 def normPath(path):
@@ -880,9 +886,6 @@ class SearchThread(threading.Thread):
                 time.sleep(0.1)
                 timer = time.time()
 
-
-# todo: enable making bookmarks
-# todo: sorting by name/type/size/modified/...
 
 class IepFileBrowser(QtGui.QWidget):
     

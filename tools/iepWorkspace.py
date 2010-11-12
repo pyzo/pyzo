@@ -4,41 +4,112 @@ from PyQt4 import QtCore, QtGui
 import iep 
 
 tool_name = "Workspace"
-tool_summary = "Lists the variables in the current shell."
+tool_summary = "Lists the variables in the current shell's namespace."
 
+
+
+def splitName(name):
+    """ splitName(name)    
+    Split an object name in parts, taking dots and indexing into account.
+    """    
+    name = name.replace('[', '.[')
+    parts = name.split('.')
+    return [p for p in parts if p]
+
+
+def joinName(parts):
+    """ joinName(parts)    
+    Join the parts of an object name, taking dots and indexing into account.
+    """    
+    name = '.'.join(parts)
+    return name.replace('.[', '[')
 
 
 class WorkspaceProxy(QtCore.QObject):
+    """ WorkspaceProxy
+    
+    A proxy class to handle the asynchonous behaviour of getting information
+    from the shell. The workspace tool asks for a certain name, and this
+    class notifies when new data is available using a qt signal.
+    
+    """
     
     haveNewData = QtCore.pyqtSignal()
     
     def __init__(self):
         QtCore.QObject.__init__(self)
         
-        # Create timer to keep polling the process
-        self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(2000)  # ms
-        self._timer.setSingleShot(True)
-        self._timer.timeout.connect(self.poll)
-        self._timer.start()
-        
         # Variables
         self._variables = []
+        
+        # Element to get more info of
+        self._name = ''
+        
+        # Bind to events
+        iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
+        iep.shells.currentShellStateChanged.connect(self.onCurrentShellStateChanged)
+        
+        # Initialize
+        self.onCurrentShellStateChanged()
     
     
-    def poll(self):
+    
+    def addNamePart(self, part):
+        """ addNamePart(part)
+        Add a part to the name.
+        """
+        parts = splitName(self._name)
+        parts.append(part)
+        self.setName(joinName(parts))
+    
+    
+    def setName(self, name):
+        """ setName(name)        
+        Set the name that we want to know more of. 
+        """
+        self._name = name
+        
         shell = iep.shells.getCurrentShell()
         if shell:
-            shell.postRequest('VARIABLES a', self.processResponse)
-        
-        # If no response poll again in 5 seconds
-        self._timer.start(5000)
+            shell.postRequest('VARIABLES '+self._name, self.processResponse)
+    
+    
+    def goUp(self):
+        """ goUp()
+        Cut the last part off the name. 
+        """
+        parts = splitName(self._name)
+        parts.pop()
+        self.setName(joinName(parts))
+    
+    
+    def onCurrentShellChanged(self):
+        """ onCurrentShellChanged()
+        When no shell is selected now, update this. In all other cases,
+        the onCurrentShellStateChange will be fired too. 
+        """
+        shell = iep.shells.getCurrentShell()
+        if not shell:
+            self._variables = []
+            self.haveNewData.emit()
+    
+    
+    def onCurrentShellStateChanged(self):
+        """ onCurrentShellStateChanged()
+        Do a request for information! 
+        """ 
+        shell = iep.shells.getCurrentShell()
+        if not shell:
+            # Should never happen I think, but just to be sure
+            self._variables = []
+        elif shell._state.lower() != 'busy':
+            shell.postRequest('VARIABLES '+self._name, self.processResponse)
     
     
     def processResponse(self, response, id=None):
-        
-        # Poll next time
-        self._timer.start(2000)
+        """ processResponse(response, id-None)
+        We got a response, update our list and notify the tree.
+        """
         
         # Check
         if not '##IEP##' in response:
@@ -51,32 +122,22 @@ class WorkspaceProxy(QtCore.QObject):
         # Signal
         self.haveNewData.emit()
     
-#     def getWhos(self):
-#         
-#         names = remoteEval('",".join(dir())')
-#         names = names.split(',')
-#         # Select names
-#         names = [name for name in names if not name.startswith('__')]
-#         # Get class and repr for all names at once
-#         if names:
-#             # Define list comprehensions (the one for the class is huge!)
-#             nameString = ','.join(names)
-#             classGetter = '[str(c) for c in '
-#             classGetter += '[a[1] or a[0].__class__.__name__ for a in '
-#             classGetter += '[(b, not hasattr(b,"__class__")) for b in [{}]'
-#             classGetter += ']]]'
-#             reprGetter = '[repr(name) for name in [{}]]'
-#             #
-#             classGetter = classGetter.format(nameString)
-#             reprGetter = reprGetter.format(nameString)
-#             # Use special seperator that is unlikely to be used, ever.
-#             namesClass = remoteEval('"##IEP##".join({})'.format(classGetter))
-#             namesRepr = remoteEval('"##IEP##".join({})'.format(reprGetter))
-#             namesClass = namesClass.split('##IEP##')
-#             namesRepr = namesRepr.split('##IEP##')
+    
 
 
 class WorkspaceTree(QtGui.QTreeWidget):
+    """ WorkspaceTree
+    
+    The tree that displays the items in the current namespace.
+    I first thought about implementing this using the mode/view 
+    framework, but it is so much work and I can't seem to fully 
+    understand how it works :(
+    
+    The QTreeWidget is so very simple and enables sorting very 
+    easily, so I'll stick with that ...
+    
+    """
+    
     def __init__(self, parent):
         QtGui.QTreeWidget.__init__(self, parent)
         
@@ -93,12 +154,85 @@ class WorkspaceTree(QtGui.QTreeWidget):
         # Create proxy
         self._proxy = WorkspaceProxy()
         self._proxy.haveNewData.connect(self.fillWorkspace)
+        
+        # For menu
+        self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self._menu = QtGui.QMenu()
+        self._menu.triggered.connect(self.contextMenuTriggered)
+        
+        # Bind to events
+        self.itemActivated.connect(self.onItemExpand)
+    
+    
+    def contextMenuEvent(self, event):
+        """ contextMenuEvent(event)
+        Show the context menu. 
+        """
+        
+        QtGui.QTreeView.contextMenuEvent(self, event)
+        
+        # Get if an item is selected
+        item = self.currentItem()
+        if not item:
+            return
+        
+        # Create menu
+        self._menu.clear()
+        for a in ['Show namespace', 'Show help', 'Delete']:
+            action = self._menu.addAction(a)
+            parts = splitName(self._proxy._name)
+            parts.append(item.text(0))
+            action._objectName = joinName(parts)
+            action._item = item
+        
+        # Show
+        self._menu.exec_(QtGui.QCursor.pos())
+    
+    
+    def contextMenuTriggered(self, action):
+        """ contextMenuTriggered(action)
+        Process a request from the context menu.
+        """
+        
+        # Get text
+        req = action.text().lower()
+        
+        if 'namespace' in req:
+            # Go deeper
+            self.onItemExpand(action._item)
+        
+        elif 'help' in req:
+            # Show help in help tool (if loaded)
+            hw = iep.toolManager.getTool('iepinteractivehelp')
+            if hw:
+                hw.setObjectName(action._objectName)
+        
+        elif 'delete' in req:
+            # Delete the variable
+            shell = iep.shells.getCurrentShell()
+            if shell:
+                shell.processLine('del ' + action._objectName)
+    
+    
+    def onItemExpand(self, item):
+        """ onItemExpand(item)
+        Inspect the attributes of that item.
+        """
+        self._proxy.addNamePart(item.text(0))
     
     
     def fillWorkspace(self):
+        """ fillWorkspace()
+        Update the workspace tree.
+        """
         
-        # Cleat first
+        # Clear first
         self.clear()
+        
+        # Set name
+        line = self.parent()._line
+        line.setText(self._proxy._name)
+        
         
         # Add elements
         for des in self._proxy._variables:
@@ -108,24 +242,53 @@ class WorkspaceTree(QtGui.QTreeWidget):
             if len(parts) < 4:
                 continue
             
-            # Create item
+            # Pop the 'kind' element
             kind = parts.pop(2)
-            tt = '%s: %s' % (parts[0], parts[-1])
+            
+            # Create item
             item = QtGui.QTreeWidgetItem(parts, 0)
+            self.addTopLevelItem(item)
+            
+            # Set tooltip
+            tt = '%s: %s' % (parts[0], parts[-1])
             item.setToolTip(0,tt)
             item.setToolTip(1,tt)
             item.setToolTip(2,tt)
-            self.addTopLevelItem(item)
-    
+
 
 class IepWorkspace(QtGui.QWidget):
+    """ IepWorkspace
+    
+    The main widget for this tool.
+    
+    """
+    
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
+        # Create tool button
+        self._up = QtGui.QToolButton(self)
+        style = QtGui.qApp.style()
+        self._up.setIcon( style.standardIcon(style.SP_ArrowLeft) )
+        self._up.setIconSize(QtCore.QSize(16,16))
+        
+        # Create "path" line edit
+        self._line = QtGui.QLineEdit(self)
+        self._line.setReadOnly(True)
+        
+        # Create tree
         self._tree = WorkspaceTree(self)
         
         # Set layout
-        layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(self._tree)
-        self.setLayout(layout)
-    
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(self._up, 0)
+        layout.addWidget(self._line, 1)
+        #
+        mainLayout = QtGui.QVBoxLayout(self)
+        mainLayout.addLayout(layout, 0)
+        mainLayout.addWidget(self._tree, 1)
+        mainLayout.setSpacing(0)
+        self.setLayout(mainLayout)
+        
+        # Bind up event
+        self._up.pressed.connect(self._tree._proxy.goUp)

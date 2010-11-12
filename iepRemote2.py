@@ -787,7 +787,7 @@ class IntroSpectionThread(threading.Thread):
                 self.enq_attributes(arg)
             
             elif req == "VARIABLES":
-                self.enq_variables_plus()
+                self.enq_variables_plus(arg)
             
             elif req == "HELP":
                 self.enq_help(arg)
@@ -798,22 +798,52 @@ class IntroSpectionThread(threading.Thread):
         print('IntrospectionThread stopped')
     
     
-    def getNameSpace(self):
+    def getNameSpace(self, name=''):
         """ Get the namespace to apply introspection in. 
         This is necessary in order to be able to use inspect
         in calling eval.
+        
+        if name is given, will find that name. For example sys.stdin.
+        
         """
+        
+        # Get namespace
         NS1 = self.interpreter.locals
         NS2 = self.interpreter.globals
         if not NS2:
-            return NS1
+            NS = NS1
         else:
-            NS3 = {}
-            for key in NS1:
-                NS3[key] = NS1[key]
-            for key in NS2:
-                NS3[key] = NS2[key]
-            return NS3
+            NS = NS2.copy()
+            NS.update(NS1)
+        
+        # Look up a name?
+        if not name:
+            return NS
+        else:
+            try:
+                # Get object
+                ob = eval(name, None, NS)
+                
+                # Get namespace for this object
+                if isinstance(ob, dict):
+                    NS = ob
+                elif isinstance(ob, (list, tuple)):
+                    NS = {}
+                    count = -1
+                    for el in ob:
+                        count += 1
+                        NS['[%i]'%count] = el
+                else:
+                    keys = dir(ob)
+                    NS = {}
+                    for key in keys:
+                        NS[key] = getattr(ob, key)
+                
+                # Done
+                return NS
+            
+            except Exception:
+                return {}
     
     
     def getSignature(self, objectName):
@@ -974,8 +1004,8 @@ class IntroSpectionThread(threading.Thread):
             self.response.write( "<error>" )
     
     # todo: all introspection should go like this I think.
-    def enq_variables_plus(self):
-        """ enq_variables_plus()
+    def enq_variables_plus(self, arg):
+        """ enq_variables_plus(arg)
         
         get variable names in currently active namespace plus extra information.
         Returns a list with strings, which each contain a (comma separated)
@@ -1009,7 +1039,7 @@ class IntroSpectionThread(threading.Thread):
                 names.append(tmp)
             
             # Get locals
-            NS = self.getNameSpace()
+            NS = self.getNameSpace(arg)
             for name in NS.keys():
                 if not name.startswith('__'):
                     storeInfo(name, NS[name])
