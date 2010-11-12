@@ -36,6 +36,13 @@ class ShellStack(QtGui.QWidget):
     they have exactly 80 columns. 
     """
     
+    # When the current shell changes.
+    currentShellChanged = QtCore.pyqtSignal()
+    
+    # When the current shells state (or debug state) changes. 
+    # Also fired when the current shell changes.
+    currentShellStateChanged = QtCore.pyqtSignal() 
+    
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
@@ -84,6 +91,9 @@ class ShellStack(QtGui.QWidget):
             if shell:
                 self.onShellStateChange(shell)
                 self.onShellDebugStateChange(shell)
+        
+        # Signal
+        self.currentShellChanged.emit()
     
     
     def onShellStateChange(self, shell):
@@ -110,6 +120,9 @@ class ShellStack(QtGui.QWidget):
                 iep.main.setWindowIcon(iep.iconRunning)
             else:
                 iep.main.setWindowIcon(iep.icon)
+            
+            # Send signal
+            self.currentShellStateChanged.emit()
     
     
     def onShellDebugStateChange(self, shell):
@@ -123,6 +136,9 @@ class ShellStack(QtGui.QWidget):
                 self._tabs.cornerWidget().setTrace(debugState)
             else:
                 self._tabs.cornerWidget().setTrace(None)
+            
+            # Send signal
+            self.currentShellStateChanged.emit()
     
     
     def addShell(self, shellInfo=None):
