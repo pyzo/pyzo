@@ -882,7 +882,9 @@ class IntroSpectionThread(threading.Thread):
         if True:
             # the first line in the docstring is usually the signature
             tmp = eval("%s.__doc__"%(objectNames[-1]), {}, NS )
-            sigs = tmp.splitlines()[0].strip()
+            sigs = ''
+            if tmp:
+                sigs = tmp.splitlines()[0].strip()
             # Test if doc has signature
             hasSig = False
             for name in objectNames:
@@ -1053,9 +1055,9 @@ class IntroSpectionThread(threading.Thread):
             # Respond
             self.response.write("##IEP##".join(names))
             
-        except Exception, err:
-            self.response.write( str(err)+'...'+name)
-            #self.response.write( '<error>' )
+        except Exception:
+            #self.response.write( str(err)+'...'+name)
+            self.response.write( '<error>' )
     
     
     def enq_help(self,objectName):
@@ -1081,6 +1083,7 @@ class IntroSpectionThread(threading.Thread):
                     h_text = eval(cmd % (tmp[0],tmp[1]), {}, NS)
             except Exception:
                 pass
+            
             # Normal doc
             if not h_text:
                 h_text = eval("%s.__doc__"%(objectName), {}, NS )
