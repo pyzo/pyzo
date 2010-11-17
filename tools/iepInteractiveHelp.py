@@ -12,7 +12,7 @@ htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.or
 p, li {{ white-space: pre-wrap; }}
 </style>
 </head>
-<body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+<body style=" font-family:'Sans Serif'; font-size:12pt; font-weight:400; font-style:normal;">
 {}
 </body></html>
 """
@@ -20,8 +20,8 @@ p, li {{ white-space: pre-wrap; }}
 #</p>
 
 initText =  """
-Help information is queried from the current shell<br />
-when moving up/down in the autocompletion list<br />
+Help information is queried from the current shell
+when moving up/down in the autocompletion list
 and when double clicking on a name.
 """
 
@@ -136,12 +136,12 @@ class IepInteractiveHelp(QtGui.QWidget):
                 h_text = h_text.replace("\n","<br />")  
             
             # Compile rich text
-            text += '<h1>{}</h1>'.format(objectName)
-            text += '<b>CLASS:</b> {}<br />'.format(h_class)
+            text += '<b>{}</b><br />'.format(objectName)
+            text += '{}<br />'.format(h_text)
+            text += '<br /><b>CLASS:</b> {}<br />'.format(h_class)
             if h_fun:
                 text += '<b>SIGNATURE:</b> {}<br />'.format(h_fun)
             text += '<b>REPR:</b> {}'.format(h_repr)
-            text += '<h2>Docstring:</h2>{}<br />'.format(h_text)
         
         except Exception:
             text = response
