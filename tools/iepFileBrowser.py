@@ -481,10 +481,11 @@ class Browser(QtGui.QTreeWidget):
             mimeData.setData("vla", tmp)
             mimeData.setData("application/x-qabstractitemmodeldatalist", tmp)
             
-            # Create drag object
-            drag = QtGui.QDrag(self)
-            drag.setMimeData(mimeData)
-            drag.exec_(QtCore.Qt.CopyAction)
+            if sys.platform!='darwin': #TODO: Dragging breaks the tool on Mac OS X
+                # Create drag object
+                drag = QtGui.QDrag(self)
+                drag.setMimeData(mimeData)
+                drag.exec_(QtCore.Qt.CopyAction)
     
     
     def dragEnterEvent(self, event):
