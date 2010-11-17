@@ -19,6 +19,9 @@ p, li {{ white-space: pre-wrap; }}
 # <p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{}
 #</p>
 
+# Define title text (font-size percentage does not seem to work sadly.)
+title_text = "<p style='font-size:small'>Docs for <b>{}</b>:</p>\n"
+
 initText =  """
 Help information is queried from the current shell
 when moving up/down in the autocompletion list
@@ -135,7 +138,7 @@ class IepInteractiveHelp(QtGui.QWidget):
                 h_text = h_text.replace("\n","<br />")  
             
             # Compile rich text
-            text += '<i>Docs for: <b>{}</b></i><br />'.format(objectName)
+            text += title_text.format(objectName)
             text += '{}<br />'.format(h_text)
             if h_class:
                 text += '<br /><b>CLASS:</b> {}<br />'.format(h_class)
@@ -146,7 +149,7 @@ class IepInteractiveHelp(QtGui.QWidget):
             
         except Exception:
             try:
-                text = '<i>Docs for: <b>{}</b></i><br />'.format(objectName)
+                text = title_text.format(objectName)
                 text += h_text
             except Exception:
                 text = response
