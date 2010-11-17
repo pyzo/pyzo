@@ -736,7 +736,8 @@ class Browser(QtGui.QTreeWidget):
         # Insert item in list
         size = self._getFileSize(ffname)
         modi = self._getFileModified(ffname)
-        item = QtGui.QTreeWidgetItem([fname, size, modi], 0)
+        title = '%s (%i matches)'%(fname, len(result.lines))
+        item = QtGui.QTreeWidgetItem([title, size, modi], 0)
         # Configure item
         item._fname = ffname
         item.setIcon(0, selectIconForFile(fname))
