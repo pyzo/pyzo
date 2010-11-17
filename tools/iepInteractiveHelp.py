@@ -48,7 +48,6 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._browser.setHtml(initText)
         
         
-        
         # Create two sizers
         self._sizer1 = QtGui.QVBoxLayout(self)
         self._sizer2 = QtGui.QHBoxLayout()
@@ -111,7 +110,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         try:
             # Get parts
             parts = response.split('\n')                
-            objectName, h_class, h_fun, h_repr = tuple(parts[:4])                
+            objectName, h_class, h_fun, h_repr = tuple(parts[:4])
             h_text = '\n'.join(parts[4:])
             
             # Obtain newlines that we hid
@@ -136,15 +135,21 @@ class IepInteractiveHelp(QtGui.QWidget):
                 h_text = h_text.replace("\n","<br />")  
             
             # Compile rich text
-            text += '<b>{}</b><br />'.format(objectName)
+            text += '<i>Docs for: <b>{}</b></i><br />'.format(objectName)
             text += '{}<br />'.format(h_text)
-            text += '<br /><b>CLASS:</b> {}<br />'.format(h_class)
+            if h_class:
+                text += '<br /><b>CLASS:</b> {}<br />'.format(h_class)
             if h_fun:
                 text += '<b>SIGNATURE:</b> {}<br />'.format(h_fun)
-            text += '<b>REPR:</b> {}'.format(h_repr)
-        
+            if h_repr:
+                text += '<b>REPR:</b> {}'.format(h_repr)
+            
         except Exception:
-            text = response
+            try:
+                text = '<i>Docs for: <b>{}</b></i><br />'.format(objectName)
+                text += h_text
+            except Exception:
+                text = response
         
         # Done
         self._browser.setHtml(htmlWrap.format(text))
@@ -209,13 +214,16 @@ class IepInteractiveHelp(QtGui.QWidget):
                     inExample = False
             elif ' : ' in line:
                 tmp = line.split(' : ',1)
-                line = '<br /> <u>' + tmp[0] + '</u> : ' + tmp[1]
+                line = '<br /><u>' + tmp[0] + '</u> : ' + tmp[1]
             elif line_.startswith('* '):
                 line = '<br />&nbsp;&nbsp;&nbsp;&#8226;' + line_[2:]
             elif prevWasHeader or inExample or forceNewline:
-                line = '<br /> ' + line
+                line = '<br />' + line
             else:
-                line = " " + line_
+                if prevLine_:
+                    line = " " + line_
+                else:
+                    line = line_
             
             # Force next line to be on a new line if using a colon
             if ' : ' in line:
