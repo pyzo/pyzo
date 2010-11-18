@@ -931,6 +931,27 @@ class RunMenu(BaseMenu):
         addItem( None )
         addItem( MI('Run file as script', self.fun_runFile2))
         addItem( MI('Run project main file as script', self.fun_runProject2))
+        addItem( None )
+        addItem( MI('Help on running code', self.fun_showHelp))
+    
+    
+    def fun_showHelp(self, value):
+        """ Show more information about ways to run code. """
+        
+        # Get file item
+        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        
+        # Select line number
+        if fileItem:
+            linenr = 90
+            editor = fileItem._editor
+            pos = editor.getPositionFromLinenr(linenr)
+            editor.setPositionAndAnchor(pos)
+            editor.ensureCursorVisible()
+            
+            # Give focus
+            iep.editors.getCurrentEditor().setFocus()
+    
     
     def getShellAndEditor(self, what, mainEditor=False):
         """ Get the shell and editor. Shows a warning dialog when one of
