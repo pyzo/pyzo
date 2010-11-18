@@ -20,7 +20,16 @@ p, li {{ white-space: pre-wrap; }}
 #</p>
 
 # Define title text (font-size percentage does not seem to work sadly.)
-title_text = "<p style='font-size:small'>Docs for <b>{}</b>:</p>\n"
+def get_title_text(objectName, h_class='', h_repr=''):
+    title_text = "<i><b>Object:</b> {}".format(objectName)
+    if h_class:
+        title_text += ', <b>class:</b> {}'.format(h_class)
+    if h_repr:
+        title_text += ', <b>repr:</b> {}'.format(h_repr)
+        
+    # Finish
+    title_text += '</i>\n <hr />\n'
+    return title_text
 
 initText =  """
 Help information is queried from the current shell
@@ -138,7 +147,7 @@ class IepInteractiveHelp(QtGui.QWidget):
                 h_text = h_text.replace("\n","<br />")  
             
             # Compile rich text
-            text += title_text.format(objectName)
+            text += get_title_text(objectName, h_class, h_repr)
             text += '{}<br />'.format(h_text)
             if h_class:
                 text += '<br /><b>CLASS:</b> {}<br />'.format(h_class)
@@ -149,7 +158,7 @@ class IepInteractiveHelp(QtGui.QWidget):
             
         except Exception:
             try:
-                text = title_text.format(objectName)
+                text += get_title_text(objectName, h_class, h_repr)
                 text += h_text
             except Exception:
                 text = response
