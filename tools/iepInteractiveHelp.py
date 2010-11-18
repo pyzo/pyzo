@@ -12,7 +12,7 @@ htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.or
 p, li {{ white-space: pre-wrap; }}
 </style>
 </head>
-<body style=" font-family:'Sans Serif'; font-size:12pt; font-weight:400; font-style:normal;">
+<body style=" font-family:'Sans Serif'; font-size:{}pt; font-weight:400; font-style:normal;">
 {}
 </body></html>
 """
@@ -21,21 +21,68 @@ p, li {{ white-space: pre-wrap; }}
 
 # Define title text (font-size percentage does not seem to work sadly.)
 def get_title_text(objectName, h_class='', h_repr=''):
-    title_text = "<i><b>Object:</b> {}".format(objectName)
+    title_text = "<b><i>Object:</i></b> {}".format(objectName)
     if h_class:
-        title_text += ', <b>class:</b> {}'.format(h_class)
+        title_text += ', <b><i>class:</i></b> {}'.format(h_class)
     if h_repr:
-        title_text += ', <b>repr:</b> {}'.format(h_repr)
+        if len(h_repr) > 40:
+            h_repr = h_repr[:37] + '...'
+        title_text += ', <b><i>repr:</i></b> {}'.format(h_repr)
         
     # Finish
-    title_text += '</i>\n <hr />\n'
+    title_text += '\n<hr />\n'
     return title_text
 
 initText =  """
 Help information is queried from the current shell
 when moving up/down in the autocompletion list
 and when double clicking on a name.
+
+<br /><br />Use the right mouse button to change the font size.
 """
+
+
+class Browser(QtGui.QTextBrowser):
+    def __init__(self, parent):
+        QtGui.QTextBrowser.__init__(self, parent)
+        
+        # For menu
+        self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self._menu = QtGui.QMenu()
+        self._menu.triggered.connect(self.contextMenuTriggered)
+    
+    
+    def contextMenuEvent(self, event):
+        """ contextMenuEvent(event)
+        Show the context menu. 
+        """
+        # Prepare
+        menu = self._menu
+        menu.clear()
+        currentSize = self.parent()._config.fontSize
+        
+        # Fill menu
+        for i in range(8,15):
+            action = menu.addAction('font-size: %ipx' % i)
+            action.setCheckable(True)
+            action.setChecked(i==currentSize)
+        
+        # Show
+        menu.exec_(QtGui.QCursor.pos())
+    
+    
+    def contextMenuTriggered(self, action):
+        """ contextMenuTriggered(action)
+        Process a request from the context menu.
+        """
+        
+        # Get text
+        text = action.text().lower()
+        # Get font size
+        size = int( text.split(':',1)[1][:-2] )
+        # Update
+        self.parent()._config.fontSize = size
+        self.parent().setText()
 
 
 class IepInteractiveHelp(QtGui.QWidget):
@@ -48,17 +95,10 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._text = QtGui.QLineEdit(self)
         self._check = QtGui.QCheckBox("Smart newlines", )        
         self._but = QtGui.QPushButton("Print", self)
-        #
-        toolId =  self.__class__.__name__.lower()
-        config = iep.config.tools[toolId]
-        if not hasattr(config, 'smartNewlines'):
-            config.smartNewlines = True
-        self._check.setChecked(config.smartNewlines)
         
         # Create browser
-        self._browser = QtGui.QTextBrowser(self)        
-        self._browser.setHtml(initText)
-        
+        self._browser = Browser(self)        
+        self._browser_text = initText
         
         # Create two sizers
         self._sizer1 = QtGui.QVBoxLayout(self)
@@ -72,10 +112,40 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._sizer2.addWidget(self._check, 0)
         self._sizer2.addWidget(self._but, 0)
         
+        # Set config
+        toolId =  self.__class__.__name__.lower()
+        self._config = config = iep.config.tools[toolId]
+        #
+        if not hasattr(config, 'smartNewlines'):
+            config.smartNewlines = True
+        self._check.setChecked(config.smartNewlines)
+        #
+        if not hasattr(config, 'fontSize'):
+            if sys.platform == 'darwin':
+                config.fontSize = 12
+            else:
+                config.fontSize = 10
+        
+        # Set browser text
+        self.setText()
+        
         # Create callbacks
         self._text.returnPressed.connect(self.queryDoc)
         self._but.clicked.connect(self.printDoc)
         self._check.stateChanged.connect(self._onCheckChanged)
+    
+    
+    def setText(self, text=None):
+        
+        # (Re)store text
+        if text is None:
+            text = self._browser_text
+        else:
+            self._browser_text = text
+        
+        # Set text with html header
+        size = self._config.fontSize
+        self._browser.setHtml(htmlWrap.format(size,text))
     
     
     def _onCheckChanged(self):
@@ -111,6 +181,8 @@ class IepInteractiveHelp(QtGui.QWidget):
         if shell and name:
             req = "HELP " + name
             shell.postRequest(req, self.queryDoc_response)
+        elif not name:
+            self.setText(initText)
     
     
     def queryDoc_response(self, response, id):
@@ -164,7 +236,8 @@ class IepInteractiveHelp(QtGui.QWidget):
                 text = response
         
         # Done
-        self._browser.setHtml(htmlWrap.format(text))
+        size = self._config.fontSize
+        self.setText(text)
     
     
     def smartFormat(self, text):
