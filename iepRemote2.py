@@ -31,6 +31,7 @@ import traceback
 import threading
 import inspect
 import keyword # for autocomp
+import guisupport
 
 # Init last traceback information
 sys.last_type = None
@@ -1177,7 +1178,8 @@ class Hijacked_tk:
         self.app = r
         
         # Notify that we integrated the event loop
-        Tkinter._integratedEventLoop = 'IEP'
+        self.app._in_event_loop = 'IEP'
+        Tkinter._in_event_loop = 'IEP'
     
     def processEvents(self):
         self.app.update()
@@ -1206,7 +1208,8 @@ class Hijacked_fltk:
         self.app =  fl.Fl   
         
         # Notify that we integrated the event loop
-        fl._integratedEventLoop = 'IEP'
+        self.app._in_event_loop = 'IEP'
+        fl._in_event_loop = 'IEP'
     
     def processEvents(self):
         self.app.wait(0)
@@ -1228,7 +1231,7 @@ class Hijacked_fltk2:
         self.app = fl
         
         # Notify that we integrated the event loop
-        fl._integratedEventLoop = 'IEP'
+        self.app._in_event_loop = 'IEP'
     
     def processEvents(self):
         # is this right?
@@ -1247,19 +1250,24 @@ class Hijacked_qt4:
         # Create app class
         class QHijackedApp(QtGui.QApplication):
             def __init__(self):
-                QtGui.QApplication.__init__(self,[])
+                QtGui.QApplication.__init__(self,[''])
             def __call__(self, *args, **kwargs):
                 return QtGui.qApp
             def exec_(self, *args, **kwargs):
                 pass
         
+        # Create app if one does not already exist
+        app = QtGui.QApplication.instance()
+        if app is None:
+            app = QHijackedApp()
+        
         # Store the app instance to process events 
-        QtGui.QApplication = QtGui.qApp = app = QHijackedApp()
+        QtGui.QApplication = QtGui.qApp = app
         self.app = app
         
         # Notify that we integrated the event loop
-        PyQt4._integratedEventLoop = 'IEP'
-        QtGui._integratedEventLoop = 'IEP'
+        self.app._in_event_loop = 'IEP'
+        QtGui._in_event_loop = 'IEP'
     
     def processEvents(self):
         self.app.flush()
@@ -1301,13 +1309,11 @@ class Hijacked_wx:
         
         # Store the app instance to process events    
         self.wx = wx
-        self.app = wx.PySimpleApp()
-        #self.app = wx.App(redirect=False)
-        #self.app.SetExitOnFrameDelete(False)
-        #self.app.RestoreStdio()
+        self.app = guisupport.get_app_wx()
         
         # Notify that we integrated the event loop
-        wx._integratedEventLoop = 'IEP'
+        self.app._in_event_loop = 'IEP'
+        wx._in_event_loop = 'IEP'
     
     def processEvents(self):
         wx = self.wx
@@ -1350,10 +1356,13 @@ class Hijacked_gtk:
             gtk.main_iteration = gtk.mainiteration
         
         # Store 'app object'
-        self.gtk = gtk
+        self.app = gtk
+        
+        # Notify that we integrated the event loop
+        self.app._in_event_loop = 'IEP'
     
     def processEvents(self):
-        gtk = self.gtk
+        gtk = self.app
         while gtk.events_pending():            
             gtk.main_iteration(False)
 
