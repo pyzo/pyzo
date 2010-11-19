@@ -277,6 +277,8 @@ class IepWorkspace(QtGui.QWidget):
         # Create "path" line edit
         self._line = QtGui.QLineEdit(self)
         self._line.setReadOnly(True)
+        self._line.setStyleSheet("QLineEdit { background:#ddd; }")
+        self._line.setFocusPolicy(QtCore.Qt.NoFocus)
         
         # Create tree
         self._tree = WorkspaceTree(self)
@@ -289,7 +291,7 @@ class IepWorkspace(QtGui.QWidget):
         mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.addLayout(layout, 0)
         mainLayout.addWidget(self._tree, 1)
-        mainLayout.setSpacing(0)
+        mainLayout.setSpacing(2)
         self.setLayout(mainLayout)
         
         # Bind up event

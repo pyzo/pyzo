@@ -35,14 +35,14 @@ class IepSourceStructure(QtGui.QWidget):
         self._slider.setValue(self._config.level)
         self._slider.valueChanged.connect(self.updateStructure)
         
-        # Create button
-        self._button = QtGui.QToolButton(self)
-        self._button.setText('   Show    ')
-        self._button.setToolTip("What elements to show.")
-        self._button.setPopupMode(self._button.InstantPopup)
-        self._button.pressed.connect(self.onButtonPress)
-        self._button.triggered.connect(self.onButtonMenuTiggered)
-        self.onButtonPress() # Create menu
+        # Create options button
+        self._options = QtGui.QPushButton(self)
+        self._options.setText('Options')
+        self._options.setToolTip("What elements to show.")
+        
+        # Create options menu
+        self._options._menu = QtGui.QMenu()
+        self._options.setMenu(self._options._menu)
         
         # Create tree widget        
         self._tree = QtGui.QTreeWidget(self)
@@ -56,38 +56,52 @@ class IepSourceStructure(QtGui.QWidget):
         # self._sizer1.setSpacing()
         
         # Set layout
-        self.setLayout(self._sizer1)
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._tree, 1)
-        self._sizer2.addWidget(self._slider, 1)
-        self._sizer2.addWidget(self._button, 0)
+        self._sizer2.addWidget(self._slider, 4)
+        self._sizer2.addStretch(1)
+        self._sizer2.addWidget(self._options, 2)
+        #
+        self._sizer1.setSpacing(2)
+        self.setLayout(self._sizer1)
         
-        # Init current-file name and listen to selection changes
+        # Init current-file name
         self._currentEditorId = 0
+        
+        # Bind to events
         iep.editors.changedSelected.connect(self.onSelectedEditorChanged)
         iep.editors.parserDone.connect(self.updateStructure)
         
+        self._options.pressed.connect(self.onOptionsPress)
+        self._options._menu.triggered.connect(self.onOptionMenuTiggered)
+        
+        # Start
         # When the tool is loaded, the editorStack is already done loading
         # all previous files and selected the appropriate file.
+        self.onOptionsPress() # Create menu now
         self.onSelectedEditorChanged()
     
     
-    def onButtonPress(self):
+    def onOptionsPress(self):
         """ Create the menu for the button, Do each time to make sure
         the checks are right. """
-        menu = QtGui.QMenu(self)
-        self._button.setMenu(menu)
+        
+        # Get menu
+        menu = self._options._menu
+        menu.clear()
+        
         for type in ['class', 'def', 'cell', 'todo', 'import', 'attribute']:
             checked = type in self._config.showTypes
-            action = menu.addAction(type)
+            action = menu.addAction('Show %s'%type)
             action.setCheckable(True)
             action.setChecked(checked)
     
-    def onButtonMenuTiggered(self, action):
+    
+    def onOptionMenuTiggered(self, action):
         """  The user decides what to show in the structure. """
         
         # What to show
-        type = action.text()
+        type = action.text().split(' ',1)[1]
         
         # Swap
         if type in self._config.showTypes:
