@@ -5,32 +5,33 @@ import iep
 tool_name = "Interactive Help"
 tool_summary = "Shows help on an object when using up/down in autocomplete."
 
-
-htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+#
+htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
+"http://www.w3.org/TR/REC-html40/strict.dtd">
 <html>
-<head><meta name="qrichtext" content="1" /><style type="text/css">
-p, li {{ white-space: pre-wrap; }}
+<head>
+<style type="text/css">
 </style>
 </head>
 <body style=" font-family:'Sans Serif'; font-size:{}pt; font-weight:400; font-style:normal;">
 {}
-</body></html>
+</body>
+</html>
 """
-# <p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{}
-#</p>
 
 # Define title text (font-size percentage does not seem to work sadly.)
 def get_title_text(objectName, h_class='', h_repr=''):
-    title_text = "<b><i>Object:</i></b> {}".format(objectName)
+    title_text = "<p style='background-color:#cde;'>"
+    title_text += "<b>Object:</b> {}".format(objectName)
     if h_class:
-        title_text += ', <b><i>class:</i></b> {}'.format(h_class)
+        title_text += ", <b>class:</b> {}".format(h_class)
     if h_repr:
         if len(h_repr) > 40:
             h_repr = h_repr[:37] + '...'
-        title_text += ', <b><i>repr:</i></b> {}'.format(h_repr)
+        title_text += ", <b>repr:</b> {}".format(h_repr)
         
     # Finish
-    title_text += '\n<hr />\n'
+    title_text += '</p>\n'
     return title_text
 
 initText =  """
