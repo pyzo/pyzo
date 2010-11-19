@@ -42,47 +42,47 @@ and when double clicking on a name.
 """
 
 
-class Browser(QtGui.QTextBrowser):
-    def __init__(self, parent):
-        QtGui.QTextBrowser.__init__(self, parent)
-        
-        # For menu
-        self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        self._menu = QtGui.QMenu()
-        self._menu.triggered.connect(self.contextMenuTriggered)
-    
-    
-    def contextMenuEvent(self, event):
-        """ contextMenuEvent(event)
-        Show the context menu. 
-        """
-        # Prepare
-        menu = self._menu
-        menu.clear()
-        currentSize = self.parent()._config.fontSize
-        
-        # Fill menu
-        for i in range(8,15):
-            action = menu.addAction('font-size: %ipx' % i)
-            action.setCheckable(True)
-            action.setChecked(i==currentSize)
-        
-        # Show
-        menu.exec_(QtGui.QCursor.pos())
-    
-    
-    def contextMenuTriggered(self, action):
-        """ contextMenuTriggered(action)
-        Process a request from the context menu.
-        """
-        
-        # Get text
-        text = action.text().lower()
-        # Get font size
-        size = int( text.split(':',1)[1][:-2] )
-        # Update
-        self.parent()._config.fontSize = size
-        self.parent().setText()
+# class Browser(QtGui.QTextBrowser):
+#     def __init__(self, parent):
+#         QtGui.QTextBrowser.__init__(self, parent)
+#         
+#         # For menu
+#         self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+#         self._menu = QtGui.QMenu()
+#         self._menu.triggered.connect(self.contextMenuTriggered)
+#     
+#     
+#     def contextMenuEvent(self, event):
+#         """ contextMenuEvent(event)
+#         Show the context menu. 
+#         """
+#         # Prepare
+#         menu = self._menu
+#         menu.clear()
+#         currentSize = self.parent()._config.fontSize
+#         
+#         # Fill menu
+#         for i in range(8,15):
+#             action = menu.addAction('font-size: %ipx' % i)
+#             action.setCheckable(True)
+#             action.setChecked(i==currentSize)
+#         
+#         # Show
+#         menu.exec_(QtGui.QCursor.pos())
+#     
+#     
+#     def contextMenuTriggered(self, action):
+#         """ contextMenuTriggered(action)
+#         Process a request from the context menu.
+#         """
+#         
+#         # Get text
+#         text = action.text().lower()
+#         # Get font size
+#         size = int( text.split(':',1)[1][:-2] )
+#         # Update
+#         self.parent()._config.fontSize = size
+#         self.parent().setText()
 
 
 class IepInteractiveHelp(QtGui.QWidget):
@@ -93,11 +93,19 @@ class IepInteractiveHelp(QtGui.QWidget):
         
         # Create text field, checkbox, and button
         self._text = QtGui.QLineEdit(self)
-        self._check = QtGui.QCheckBox("Smart newlines", )        
-        self._but = QtGui.QPushButton("Print", self)
+        self._printBut = QtGui.QPushButton("Print", self)
+        
+        # Create options button
+        self._options = QtGui.QPushButton(self)
+        self._options.setText('Options')
+        self._options.setToolTip("Set the options for this tool.")
+        
+        # Create options menu
+        self._options._menu = QtGui.QMenu()
+        self._options.setMenu(self._options._menu)
         
         # Create browser
-        self._browser = Browser(self)        
+        self._browser = QtGui.QTextBrowser(self)        
         self._browser_text = initText
         
         # Create two sizers
@@ -105,12 +113,16 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._sizer2 = QtGui.QHBoxLayout()
         
         # Put the elements together
-        self.setLayout(self._sizer1)
+        self._sizer2.addWidget(self._text, 4)
+        self._sizer2.addWidget(self._printBut, 0)
+        self._sizer2.addStretch(1)
+        self._sizer2.addWidget(self._options, 2)
+        #
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._browser, 1)
-        self._sizer2.addWidget(self._text, 1)
-        self._sizer2.addWidget(self._check, 0)
-        self._sizer2.addWidget(self._but, 0)
+        #
+        self._sizer1.setSpacing(2)
+        self.setLayout(self._sizer1)
         
         # Set config
         toolId =  self.__class__.__name__.lower()
@@ -118,21 +130,68 @@ class IepInteractiveHelp(QtGui.QWidget):
         #
         if not hasattr(config, 'smartNewlines'):
             config.smartNewlines = True
-        self._check.setChecked(config.smartNewlines)
-        #
         if not hasattr(config, 'fontSize'):
             if sys.platform == 'darwin':
                 config.fontSize = 12
             else:
                 config.fontSize = 10
         
-        # Set browser text
-        self.setText()
-        
         # Create callbacks
         self._text.returnPressed.connect(self.queryDoc)
-        self._but.clicked.connect(self.printDoc)
-        self._check.stateChanged.connect(self._onCheckChanged)
+        self._printBut.clicked.connect(self.printDoc)
+        #
+        self._options.pressed.connect(self.onOptionsPress)
+        self._options._menu.triggered.connect(self.onOptionMenuTiggered)
+        
+        # Start
+        self.setText()  # Set default text
+        self.onOptionsPress() # Fill menu
+    
+    
+    def onOptionsPress(self):
+        """ Create the menu for the button, Do each time to make sure
+        the checks are right. """
+        
+        # Get menu
+        menu = self._options._menu
+        menu.clear()
+        
+        # Add smart format option
+        action = menu.addAction('Smart format')
+        action.setCheckable(True)
+        action.setChecked(bool(self._config.smartNewlines))
+        
+        # Add delimiter
+        menu.addSeparator()
+        
+        # Add font size options
+        currentSize = self._config.fontSize
+        for i in range(8,15):
+            action = menu.addAction('font-size: %ipx' % i)
+            action.setCheckable(True)
+            action.setChecked(i==currentSize)
+    
+    
+    def onOptionMenuTiggered(self, action):
+        """  The user decides what to show in the structure. """
+        
+        # Get text
+        text = action.text().lower()
+        
+        if 'smart' in text:
+            # Swap value
+            current = bool(self._config.smartNewlines)
+            self._config.smartNewlines = not current
+            # Update 
+            self.queryDoc()
+        
+        elif 'size' in text:
+            # Get font size
+            size = int( text.split(':',1)[1][:-2] )
+            # Update
+            self._config.fontSize = size
+            # Update
+            self.setText()
     
     
     def setText(self, text=None):
@@ -146,14 +205,6 @@ class IepInteractiveHelp(QtGui.QWidget):
         # Set text with html header
         size = self._config.fontSize
         self._browser.setHtml(htmlWrap.format(size,text))
-    
-    
-    def _onCheckChanged(self):
-        # Store
-        toolId =  self.__class__.__name__.lower()         
-        iep.config.tools[toolId].smartNewlines = self._check.isChecked()
-        # Update text
-        self.queryDoc()
     
     
     def setObjectName(self, name):
@@ -171,6 +222,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         shell = iep.shells.getCurrentShell()
         if shell and name:
             shell.processLine('print({}.__doc__)'.format(name))
+    
     
     def queryDoc(self):
         """ Query the doc for the text in the line edit. """
@@ -209,7 +261,7 @@ class IepInteractiveHelp(QtGui.QWidget):
             h_text = h_text.replace("<","&lt;") 
             h_text = h_text.replace(">","&gt;")
             
-            if self._check.isChecked():
+            if self._config.smartNewlines:
                 # Dont replace single newlines, but wrap the text. New paragraphs
                 # do need to be new paragraphs though...
                 #h_text = h_text.replace("\n\n","<br /><br />")  
@@ -221,13 +273,7 @@ class IepInteractiveHelp(QtGui.QWidget):
             # Compile rich text
             text += get_title_text(objectName, h_class, h_repr)
             text += '{}<br />'.format(h_text)
-            if h_class:
-                text += '<br /><b>CLASS:</b> {}<br />'.format(h_class)
-            if h_fun:
-                text += '<b>SIGNATURE:</b> {}<br />'.format(h_fun)
-            if h_repr:
-                text += '<b>REPR:</b> {}'.format(h_repr)
-            
+        
         except Exception:
             try:
                 text += get_title_text(objectName, h_class, h_repr)

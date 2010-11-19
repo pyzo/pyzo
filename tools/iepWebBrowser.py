@@ -52,9 +52,11 @@ class IepWebBrowser(QtGui.QFrame):
         # Create some buttons
         self._back = QtGui.QToolButton(self)
         self._back.setIcon(style.standardIcon(style.SP_ArrowBack))
+        self._back.setIconSize(QtCore.QSize(16,16))
         #
         self._forward = QtGui.QToolButton(self)
         self._forward.setIcon(style.standardIcon(style.SP_ArrowForward))
+        self._forward.setIconSize(QtCore.QSize(16,16))
         
         # Create address bar
         #self._address = QtGui.QLineEdit(self)
@@ -84,6 +86,8 @@ class IepWebBrowser(QtGui.QFrame):
         #
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._view, 1)
+        #
+        self._sizer1.setSpacing(2)
         self.setLayout(self._sizer1)
         
         # Bind signals
