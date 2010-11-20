@@ -1,4 +1,4 @@
-import sys, os, time
+import sys, os, time, re
 from PyQt4 import QtCore, QtGui
 import iep 
 
@@ -21,7 +21,7 @@ htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
 
 # Define title text (font-size percentage does not seem to work sadly.)
 def get_title_text(objectName, h_class='', h_repr=''):
-    title_text = "<p style='background-color:#cde;'>"
+    title_text = "<p style='background-color:#def;'>"
     title_text += "<b>Object:</b> {}".format(objectName)
     if h_class:
         title_text += ", <b>class:</b> {}".format(h_class)
@@ -38,52 +38,7 @@ initText =  """
 Help information is queried from the current shell
 when moving up/down in the autocompletion list
 and when double clicking on a name.
-
-<br /><br />Use the right mouse button to change the font size.
 """
-
-
-# class Browser(QtGui.QTextBrowser):
-#     def __init__(self, parent):
-#         QtGui.QTextBrowser.__init__(self, parent)
-#         
-#         # For menu
-#         self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-#         self._menu = QtGui.QMenu()
-#         self._menu.triggered.connect(self.contextMenuTriggered)
-#     
-#     
-#     def contextMenuEvent(self, event):
-#         """ contextMenuEvent(event)
-#         Show the context menu. 
-#         """
-#         # Prepare
-#         menu = self._menu
-#         menu.clear()
-#         currentSize = self.parent()._config.fontSize
-#         
-#         # Fill menu
-#         for i in range(8,15):
-#             action = menu.addAction('font-size: %ipx' % i)
-#             action.setCheckable(True)
-#             action.setChecked(i==currentSize)
-#         
-#         # Show
-#         menu.exec_(QtGui.QCursor.pos())
-#     
-#     
-#     def contextMenuTriggered(self, action):
-#         """ contextMenuTriggered(action)
-#         Process a request from the context menu.
-#         """
-#         
-#         # Get text
-#         text = action.text().lower()
-#         # Get font size
-#         size = int( text.split(':',1)[1][:-2] )
-#         # Update
-#         self.parent()._config.fontSize = size
-#         self.parent().setText()
 
 
 class IepInteractiveHelp(QtGui.QWidget):
@@ -250,8 +205,12 @@ class IepInteractiveHelp(QtGui.QWidget):
             objectName, h_class, h_fun, h_repr = tuple(parts[:4])
             h_text = '\n'.join(parts[4:])
             
-            # Obtain newlines that we hid
+            # Obtain newlines that we hid for repr
             h_repr.replace('/r', '/n')
+            
+            # Make all newlines \n in h_text and strip
+            h_text = h_text.replace('\r\n', '\n').replace('\r', '\n')
+            h_text = h_text.lstrip()
             
             # Init text
             text = ''
@@ -263,10 +222,32 @@ class IepInteractiveHelp(QtGui.QWidget):
             h_text = h_text.replace(">","&gt;")
             
             if self._config.smartNewlines:
-                # Dont replace single newlines, but wrap the text. New paragraphs
-                # do need to be new paragraphs though...
-                #h_text = h_text.replace("\n\n","<br /><br />")  
+                
+                # Make sure the signature is separated from the rest using at
+                # least two newlines
+                header = ''
+                if True:
+                    # Get short version of objectName
+                    name = objectName.split('.')[-1]
+                    # Is the signature in the docstring?
+                    docs = h_text.replace('\n','|')
+                    tmp = re.search('[a-zA-z_\.]*'+name+'\(.*?\)', docs)
+                    if tmp:
+                        header = tmp.group(0)
+                        h_text = h_text[len(header):].lstrip(':').lstrip()
+                        header = header.replace('|','')
+                        #h_text = header + '\n\n' + h_text
+                    elif h_text.startswith(objectName) or h_text.startswith(name):
+                        header, sep, docs = docs.partition('\n')
+                        #h_text = header + '\n\n' + docs
+                        h_text = docs
+                
+                # Parse the text as rest/numpy like docstring  
                 h_text = self.smartFormat(h_text)
+                if header:
+                    h_text = "<p style='color:#005;'><b>%s</b></p>\n%s" % (
+                                                            header, h_text)
+                    #h_text = "<b>%s</b><br /><br />\n%s" % (header, h_text)
             else:
                 # Make newlines html
                 h_text = h_text.replace("\n","<br />")  
@@ -275,7 +256,7 @@ class IepInteractiveHelp(QtGui.QWidget):
             text += get_title_text(objectName, h_class, h_repr)
             text += '{}<br />'.format(h_text)
         
-        except Exception:
+        except Exception as why:
             try:
                 text += get_title_text(objectName, h_class, h_repr)
                 text += h_text
