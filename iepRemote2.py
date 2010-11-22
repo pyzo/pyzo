@@ -879,8 +879,9 @@ class IntroSpectionThread(threading.Thread):
                 sigs = tmp.splitlines()[0].strip()
             # Test if doc has signature
             hasSig = False
-            for name in objectNames:
-                if sigs.startswith(name+"("):
+            for name in objectNames: # list.append -> L.apend(objec) -- blabla
+                name +="("
+                if name in sigs:
                     hasSig = True
             # If not a valid signature, do not bother ...
             if (not hasSig) or (sigs.count("(") != sigs.count(")")):
