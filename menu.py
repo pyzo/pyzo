@@ -1136,7 +1136,7 @@ class HelpMenu(BaseMenu):
         addItem( MI('Tutorial', self.fun_tutorial) )
         addItem( MI('Website', self.fun_website) )
         addItem( MI('Check for updates', self.fun_updates) )
-        addItem( MI('View license', self.fun_licese) )
+        addItem( MI('View license', self.fun_license) )
         
         if sys.platform=='darwin':
             #Hack to prevent 'special' about menu on mac
@@ -1197,9 +1197,9 @@ class HelpMenu(BaseMenu):
             import webbrowser
             webbrowser.open("http://code.google.com/p/iep/downloads/list")
     
-    def fun_licese(self, value):
+    def fun_license(self, value):
         """ Open the license text file. """
-        iep.editors.loadFile(os.path.join(iep.iepDir,'gpl.txt'))
+        iep.editors.loadFile(os.path.join(iep.iepDir,'license.txt'))
     
     def fun_about(self, value):
         """ Show the about text for IEP. """

@@ -16,7 +16,7 @@ import ssdf  # import ssdf or the suplied copy if not available
 from PyQt4 import QtCore, QtGui
 
 # Set version number
-__version__ = '2.2.dev'
+__version__ = '2.3'
 
 
 ## Define some functions
