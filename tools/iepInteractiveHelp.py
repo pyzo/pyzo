@@ -238,14 +238,14 @@ class IepInteractiveHelp(QtGui.QWidget):
                     name = objectName.split('.')[-1]
                     # Is the signature in the docstring?
                     docs = h_text.replace('\n','|')
-                    tmp = re.search('[a-zA-z_\.]*'+name+'\(.*?\)', docs)
-                    if tmp:
+                    tmp = re.search('[a-zA-z_\.]*?'+name+'\(.*?\)', docs)
+                    if tmp and tmp.span(0)[0]<5:
                         header = tmp.group(0)
                         h_text = h_text[len(header):].lstrip(':').lstrip()
                         header = header.replace('|','')
                         #h_text = header + '\n\n' + h_text
                     elif h_text.startswith(objectName) or h_text.startswith(name):
-                        header, sep, docs = docs.partition('\n')
+                        header, sep, docs = h_text.partition('\n')
                         #h_text = header + '\n\n' + docs
                         h_text = docs
                 
