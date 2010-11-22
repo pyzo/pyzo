@@ -1033,8 +1033,15 @@ class IntroSpectionThread(threading.Thread):
                 # Determine representation
                 if kind == 'array':
                     tmp = 'x'.join([str(s) for s in val.shape])
-                    repres = '<array %s %s>' % (
-                                                tmp, val.dtype.name)
+                    if tmp:
+                        repres = '<array %s %s>' % (tmp, val.dtype.name)
+                    elif val.size:
+                        tmp = str(float(val))
+                        if 'int' in val.dtype.name:
+                            tmp = str(int(val))
+                        repres = '<array scalar %s (%s)>' % (val.dtype.name, tmp)
+                    else:
+                        repres = '<array empty %s>' % (val.dtype.name)
                 elif kind == 'list':
                     repres = '<list with %i elements>' % len(val)
                 elif kind == 'tuple':
@@ -1051,7 +1058,10 @@ class IntroSpectionThread(threading.Thread):
             NS = self.getNameSpace(arg)
             for name in NS.keys():
                 if not name.startswith('__'):
-                    storeInfo(name, NS[name])
+                    try:
+                        storeInfo(name, NS[name])
+                    except Exception:
+                        pass
             
             # Respond
             self.response.write("##IEP##".join(names))
