@@ -1,7 +1,8 @@
 #!/usr/bin/env python3.1
+# Copyright (c) 2010, the IEP development team
 #
-# Copyright (c) 2010, Almar Klein
-# Let's say this script is BSD licensed.
+# IEP is distributed under the terms of the (new) BSD License.
+# The full license can be found in 'license.txt'.
 
 """ FREEZING IEP WITH CX_FREEZE
 This script can be run as a script (no need to do distutils stuff...)
