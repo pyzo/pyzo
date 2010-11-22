@@ -47,9 +47,10 @@ keep coding and even run code in another shell.
 
 Another notable feature is that IEP can integrate the event loop of
 five different GUI toolkits, thus enabling interactive plotting with
-Visvis or Matplotlib. The module of the integrated toolkit is given
-an "_integratedEventLoop" attribute, which can be used in scripts to
-recognize that an application instance does not have to be created.
+Visvis or Matplotlib. IEP does this in a way that is compatible with
+the guisupport.py module, which makes it easy to write apps that
+run good in IEP or standalone. (The application instance of the GUI
+toolkit is given an "_in_event_loop" attribute.)
   
 Via "Shell > Edit shell configurations", you can edit and add shell
 configurations. This allows you to for example select the initial

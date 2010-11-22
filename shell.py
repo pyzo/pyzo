@@ -1,28 +1,19 @@
-#   Copyright (c) 2010, Almar Klein
-#   All rights reserved.
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010, the IEP development team
 #
-#   This file is part of IEP.
-#    
-#   IEP is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-# 
-#   IEP is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-# 
-#   You should have received a copy of the GNU General Public License
-#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# IEP is distributed under the terms of the (new) BSD License.
+# The full license can be found in 'license.txt'.
+
 
 """ Module shell
+
 Defines the shell to be used in IEP.
 This is done in a few inheritance steps:
   - BaseShell inherits BaseTextCtrl and adds the typical shell behaviour.    
   - PythonShell makes it specific to Python.
 This module also implements ways to communicate with the shell and to run
 code in it.
+
 """
 
 from PyQt4 import QtCore, QtGui
