@@ -3,13 +3,13 @@
 [Setup]
 AppName=iep
 AppId=iep
-AppVerName=iep version 2.2
+AppVerName=iep version 2.3
 DefaultDirName={pf}\iep
 DefaultGroupName=iep
 
 SourceDir=../frozen/
 OutputDir=../
-OutputBaseFilename = iep-2.2.win32
+OutputBaseFilename = iep-2.3.win32
 
 ChangesEnvironment = no
 DisableProgramGroupPage = yes
