@@ -6,30 +6,137 @@
 
 
 import time
-from PyQt4 import QtCore, QtGui, QtWebKit
+import urllib.request, urllib.parse
+from PyQt4 import QtCore, QtGui
+
 import iep
 ssdf = iep.ssdf
 
 tool_name = "Web browser"
-tool_summary = "A simple web browser."
+tool_summary = "A very simple web browser."
 
 
-default_bookmarks = [   'google.com', 
-                        'docs.python.org', 
-                        'doc.qt.nokia.com/4.5/',
-                        'code.google.com/p/iep', 
-                        'm.xkcd.com' ]
+default_bookmarks = [   'docs.python.org', 
+                        'doc.qt.nokia.com/4.5/' ]
 
 
-class WebView(QtWebKit.QWebView):
+class WebView(QtGui.QTextBrowser):
     """ Inherit the webview class to implement zooming using
     the mouse wheel. 
     """
+    
+    loadStarted = QtCore.pyqtSignal()
+    loadFinished = QtCore.pyqtSignal(bool)
+    
+    def __init__(self, parent):
+        QtGui.QTextBrowser.__init__(self, parent)
+        
+        # Current url
+        self._url = ''
+        self._history = []
+        self._history2 = []
+        
+        # Connect
+        self.anchorClicked.connect(self.load)
+    
+    
     def wheelEvent(self, event):
+        # Zooming does not work for this widget
         if QtCore.Qt.ControlModifier & QtGui.qApp.keyboardModifiers():
             self.parent().wheelEvent(event)
         else:
-            QtWebKit.QWebView.wheelEvent(self, event)
+            QtGui.QTextBrowser.wheelEvent(self, event)
+    
+    
+    def url(self):
+        return self._url
+    
+    
+    def _getUrlParts(self):
+        r = urllib.parse.urlparse(self._url)
+        base = r.scheme + '://' + r.netloc
+        return base, r.path, r.fragment
+    
+#     
+#     def loadCss(self, urls=[]):
+#         urls.append('http://docs.python.org/_static/default.css')
+#         urls.append('http://docs.python.org/_static/pygments.css')
+#         text = ''
+#         for url in urls:
+#             tmp = urllib.request.urlopen(url).read().decode('utf-8')
+#             text += '\n' + tmp
+#         self.document().setDefaultStyleSheet(text)
+    
+    
+    def back(self):
+        
+        # Get url and update forward history
+        url = self._history.pop()
+        self._history2.append(self._url)
+        
+        # Go there
+        url = self._load(url)
+    
+    
+    def forward(self):
+        
+        if not self._history2:
+            return
+        
+        # Get url and update forward history
+        url = self._history2.pop()
+        self._history.append(self._url)
+        
+        # Go there
+        url = self._load(url)
+    
+    
+    def load(self, url):
+        
+        # Clear forward history
+        self._history2 =  []
+        
+        # Store current url in history
+        while self._url in self._history:
+            self._history.remove(self._url)
+        self._history.append(self._url)
+        
+        # Load
+        url = self._load(url)
+        
+        
+    
+    
+    def _load(self, url):
+        """ _load(url)
+        Convert url and load page, returns new url.
+        """
+        # Make url a string
+        if isinstance(url, QtCore.QUrl):
+            url = str(url.toString())
+        
+        # Compose relative url to absolute
+        if url.startswith('#'):
+            base, path, frag = self._getUrlParts()
+            url = base + path + url
+        elif not '//' in url:
+            base, path, frag = self._getUrlParts()
+            url = base + '/' + url.lstrip('/')
+        
+        # Try loading
+        self.loadStarted.emit()
+        self._url = url
+        try:
+            #print('URL:', url)
+            text = urllib.request.urlopen(url).read().decode('utf-8')
+            self.setHtml(text)
+            self.loadFinished.emit(True)
+        except Exception as err:
+            self.setHtml(str(err))
+            self.loadFinished.emit(False)
+        
+        # Set
+        return url
 
 
 class IepWebBrowser(QtGui.QFrame):
@@ -47,7 +154,7 @@ class IepWebBrowser(QtGui.QFrame):
             self._config.zoomFactor = 1.0
         if not hasattr(self._config, 'bookMarks'):
             self._config.bookMarks = default_bookmarks
-            
+        
         # Get style object (for icons)
         style = QtGui.QApplication.style()
         
@@ -71,12 +178,12 @@ class IepWebBrowser(QtGui.QFrame):
         self._address.setEditText('') 
         
         # Create web view
-        self._view = WebView()
+        self._view = WebView(self)
         #
-        self._view.setZoomFactor(self._config.zoomFactor)
-        settings = self._view.settings()
-        settings.setAttribute(settings.JavascriptEnabled, True)
-        settings.setAttribute(settings.PluginsEnabled, True)
+#         self._view.setZoomFactor(self._config.zoomFactor)
+#         settings = self._view.settings()
+#         settings.setAttribute(settings.JavascriptEnabled, True)
+#         settings.setAttribute(settings.PluginsEnabled, True)
         
         # Layout
         self._sizer1 = QtGui.QVBoxLayout(self)
@@ -102,13 +209,13 @@ class IepWebBrowser(QtGui.QFrame):
         
         # Start
         self._view.show()
-        self.go('www.google.com')
+        self.go('http://docs.python.org')
     
     
     def parseAddress(self, address):
         if not address.startswith('http'):
             address = 'http://' + address
-        return QtCore.QUrl(address, QtCore.QUrl.TolerantMode)
+        return address#QtCore.QUrl(address, QtCore.QUrl.TolerantMode)
     
     def go(self, address=None):
         if not isinstance(address, str):
@@ -120,8 +227,9 @@ class IepWebBrowser(QtGui.QFrame):
     
     def onLoadEnd(self, ok):
         if ok:
-            url = self._view.url()
-            address = str(url.toString())
+            #url = self._view.url()
+            #address = str(url.toString())
+            address = self._view.url()
         else:
             address = '<could not load page>'
         self._address.setEditText(str(address))
@@ -138,14 +246,14 @@ class IepWebBrowser(QtGui.QFrame):
             degrees = event.delta() / 8.0
             steps = degrees / 15.0      
             # Set factor
-            factor = self._view.zoomFactor() + steps/10.0
+#             factor = self._view.zoomFactor() + steps/10.0
             if factor < 0.25:
                 factor = 0.25
             if factor > 4.0:
                 factor = 4.0
             # Store and apply
             self._config.zoomFactor = factor
-            self._view.setZoomFactor(factor)
+#             self._view.setZoomFactor(factor)
         else:
             QtGui.QFrame.wheelEvent(self, event)
             
