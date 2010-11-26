@@ -36,6 +36,7 @@ iconFile = srcDir + 'icons/iep.ico'
 if sys.platform=='darwin':
     contentsDir=distDir+name+'.app/Contents/'
     resourcesDir=contentsDir+'Resources/'
+    appDir=distDir
     distDir=contentsDir+'MacOS/'
     applicationBundle=True
 else:
@@ -146,4 +147,30 @@ if applicationBundle:
 	#Copy the Info.plist file
     shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
 
+    #Package in a dmg
+    dmgFile=appDir+'iep.dmg'
+    dmgTemp=appDir+'temp.dmg'
+
+    tempDir=appDir+'temp'
+    os.mkdir(tempDir)
+    #Create the dmg
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX','-layout','SPUD','-megabytes','50',dmgTemp,'-srcfolder',tempDir,'-format','UDRW','-volname','iEP')!=0:
+	    sys.exit(1)
+
+    #Mount the dmg
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','attach',dmgTemp,'-noautoopen','-quiet','-mountpoint',tempDir)!=0:
+	    sys.exit(1)
+
+    #Copy the app
+    shutil.copytree(appDir+'iep.app',tempDir+'/iep.app')
+
+    #Unount the dmg
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','detach',tempDir,'-force')!=0:
+        sys.exit(1)
+    os.rmdir(tempDir)
+
+	#Convert the dmg to compressed, read=only
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','convert',dmgTemp,'-format','UDZO','-imagekey','zlib-level=9','-o',dmgFile)!=0:
+        sys.exit(1)
+    os.unlink(dmgTemp)
 
