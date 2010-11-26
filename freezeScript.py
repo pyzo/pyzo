@@ -34,11 +34,12 @@ iconFile = srcDir + 'icons/iep.ico'
 
 #On MAC, build an application bundle
 if sys.platform=='darwin':
-	contentsDir=distDir+name+'.app/Contents/'
-	distDir=contentsDir+'MacOS/'
-	applicationBundle=True
+    contentsDir=distDir+name+'.app/Contents/'
+    resourcesDir=contentsDir+'Resources/'
+    distDir=contentsDir+'MacOS/'
+    applicationBundle=True
 else:
-	applicationBundle=False
+    applicationBundle=False
 	
 
 
@@ -138,6 +139,11 @@ for fname in [tmp1, tmp2]:
         os.remove(fname)
 
 if applicationBundle:
+    #Copy the icon
+    if not os.path.isdir(resourcesDir):
+        os.mkdir(resourcesDir)
+    shutil.copy(srcDir+'Icons/iep.icns',resourcesDir+'iep.icns')
 	#Copy the Info.plist file
-	shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
+    shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
+
 
