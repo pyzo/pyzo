@@ -65,9 +65,6 @@ class IepInterpreter:
         # Init buffer to deal with multi-line command in the shell
         self.buffer = []
         
-        # Init the compiler
-        self.compile = CommandCompiler()
-        
         # Define prompts
         try:
             sys.ps1
@@ -77,9 +74,10 @@ class IepInterpreter:
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-        
+    
     
     ## Base of interpreter
+    
     
     def interact(self):    
         """ Interact! (start the mainloop)
@@ -430,6 +428,37 @@ class IepInterpreter:
             self.runcode(code)
     
     ## Misc
+    
+    
+    def compile(self, source, filename, mode, *args, **kwargs):
+        """ Compile source code.
+        Will mangle coding definitions on first two lines. 
+        
+        * This method should be called with Unicode sources.
+        * Source newlines should consist only of LF characters.
+        """
+        
+        # This method solves IEP issue 22
+        
+        # Split in first two lines and the rest
+        parts = source.split('\n', 3)
+        
+        # Replace any coding definitions
+        ci = 'coding is'
+        contained_coding = False
+        for i in range(len(parts)-1):
+            tmp = parts[i]
+            if 'coding' in tmp:
+                contained_coding = True
+                parts[i] = tmp.replace('coding=', ci).replace('coding:', ci)
+        
+        # Combine parts again (if necessary)
+        if contained_coding:
+            source = '\n'.join(parts)
+        
+        # Compile
+        return CommandCompiler(source, filename, mode, *args, **kwargs)
+    
     
     def parsecontrol(self, control):
         """ Parse a command received on the control stream. 
