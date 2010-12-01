@@ -65,6 +65,9 @@ class IepInterpreter:
         # Init buffer to deal with multi-line command in the shell
         self.buffer = []
         
+        # Create compiler
+        self._compile = CommandCompiler()
+        
         # Define prompts
         try:
             sys.ps1
@@ -457,7 +460,7 @@ class IepInterpreter:
             source = '\n'.join(parts)
         
         # Compile
-        return CommandCompiler(source, filename, mode, *args, **kwargs)
+        return self._compile(source, filename, mode, *args, **kwargs)
     
     
     def parsecontrol(self, control):
