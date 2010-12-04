@@ -22,6 +22,7 @@ The frozen application is created in a sibling directory of the source.
 """
 
 import sys, os, shutil
+import subprocess
 from cx_Freeze import Executable, Freezer, setup
 
 # Define app name and such
@@ -41,7 +42,7 @@ if sys.platform=='darwin':
     applicationBundle=True
 else:
     applicationBundle=False
-	
+
 
 
 ## Includes and excludes
@@ -140,36 +141,69 @@ for fname in [tmp1, tmp2]:
         os.remove(fname)
 
 if applicationBundle:
+    #Change the absolute paths in all library files to relative paths
+    #This should be a cx_freeze task, but cx_freeze doesn't do it
+    
+    shippedfiles=os.listdir(distDir)
+
+    for file in shippedfiles:
+        #Do the processing for any found file or dir, the tools will just
+        #fail for files for which it does not apply
+        filepath=os.path.join(distDir,file)
+
+        #Let the library itself know its place
+        subprocess.call(('install_name_tool','-id','@executable_path/'+file,filepath))
+
+        #Find the references
+        otool=subprocess.Popen(('otool','-L', filepath),stdout=subprocess.PIPE)
+        libs=otool.stdout.readlines()
+
+        for lib in libs:
+            #For each referenced library, chech if it is in the set of
+            #files that we ship. If so, change the reference to a path
+            #relative to the executable path
+            lib=lib.decode()
+            filename,_,_=lib.strip().partition(' ')
+            prefix,name=os.path.split(filename)
+            if name in shippedfiles:
+                newfilename='@executable_path/'+name
+                print ('%s => %s' % (name,newfilename))
+                subprocess.call(('install_name_tool','-change',filename,newfilename,filepath))
+
     #Copy the icon
     if not os.path.isdir(resourcesDir):
         os.mkdir(resourcesDir)
     shutil.copy(srcDir+'Icons/iep.icns',resourcesDir+'iep.icns')
-	#Copy the Info.plist file
+    #Copy the Info.plist file
     shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
 
+    #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
+    shutil.copytree('/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
+
+
     #Package in a dmg
-    dmgFile=appDir+'iep.dmg'
+    dmgFile=appDir+'IEP.dmg'
     dmgTemp=appDir+'temp.dmg'
 
     tempDir=appDir+'temp'
     os.mkdir(tempDir)
     #Create the dmg
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX','-layout','SPUD','-megabytes','50',dmgTemp,'-srcfolder',tempDir,'-format','UDRW','-volname','iEP')!=0:
-	    sys.exit(1)
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX','-layout','SPUD','-megabytes','100',dmgTemp,'-srcfolder',tempDir,'-format','UDRW','-volname','IEP')!=0:
+        sys.exit(1)
 
     #Mount the dmg
     if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','attach',dmgTemp,'-noautoopen','-quiet','-mountpoint',tempDir)!=0:
-	    sys.exit(1)
+        sys.exit(1)
 
     #Copy the app
-    shutil.copytree(appDir+'iep.app',tempDir+'/iep.app')
+    shutil.copytree(appDir+'iep.app',tempDir+'/IEP.app')
 
     #Unount the dmg
     if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','detach',tempDir,'-force')!=0:
         sys.exit(1)
     os.rmdir(tempDir)
 
-	#Convert the dmg to compressed, read=only
+    #Convert the dmg to compressed, read=only
     if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','convert',dmgTemp,'-format','UDZO','-imagekey','zlib-level=9','-o',dmgFile)!=0:
         sys.exit(1)
     os.unlink(dmgTemp)

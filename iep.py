@@ -123,7 +123,12 @@ def startIep():
     # todo: and on mac, or other desktops environments?
     if not os.environ.get('KDE_FULL_SESSION'):
         QtGui.QApplication.setDesktopSettingsAware(False)
-    
+   
+    #Prevent loading plugins form the users' plugin dir since
+    #this may cause multiple versions of the Qt library to be loaded
+    #at once, which will conflict
+    QtGui.QApplication.setLibraryPaths([])
+
     # Instantiate the application, and the main window
     QtGui.qApp = QtGui.QApplication([])
     frame=MainWindow()
