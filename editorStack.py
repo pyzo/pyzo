@@ -1251,8 +1251,21 @@ class EditorStack(QtGui.QWidget):
         filter += "C (*.c *.h *.cpp *.c++);;"
         #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
-        filenames = QtGui.QFileDialog.getOpenFileNames(self,
-            msg, startdir, filter)
+        if True:
+            filenames = QtGui.QFileDialog.getOpenFileNames(self,
+                msg, startdir, filter)
+        else:
+            # Example how to preselect files, can be used when the users
+            # opens a file in a project to select all files currently not
+            # loaded.
+            d = QtGui.QFileDialog(self, msg, startdir, filter)
+            d.setFileMode(d.ExistingFiles)
+            d.selectFile('"codeparser.py" "editorStack.py"')
+            d.exec_()
+            if d.result():
+                filenames = d.selectedFiles()
+            else:
+                filenames = []
         
         # were some selected?
         if not filenames:
