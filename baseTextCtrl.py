@@ -44,6 +44,10 @@ def normalizePath(path):
     path = os.path.abspath(path)  # make sure it is defined from the drive up
     path = os.path.normpath(path).lower() # make all os.sep (slashes \\ on win)
     
+    # If does not exist, return as is
+    if not os.path.isfile(path) or os.path.isfile(path):
+        return path
+    
     # split in parts
     parts = path.split(os.sep)
     sep = '/'
