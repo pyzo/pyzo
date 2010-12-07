@@ -2,6 +2,7 @@ from PyQt4 import QtCore, QtGui
 import iep
 import os.path
 import ssdf
+import fnmatch
 
 tool_name = "Project manager"
 tool_summary = "Manage project directories."
@@ -110,7 +111,51 @@ class ProjectsList(QtGui.QComboBox):
         
         
         
-
+class FileFilter(QtGui.QSortFilterProxyModel):
+    """
+    Proxy model to filter a directory tree based on filename patterns
+    """
+    def __init__(self):
+        QtGui.QSortFilterProxyModel.__init__(self)
+        self.filter='!*.pyc'
+    def filterAcceptsRow(self,sourceRow,sourceParent):
+        #Overridden method to determine wether a row should be
+        #shown or not. Check wether the item matches the filter
+        
+        #Get the fileinfo of the item
+        item=self.sourceModel().index(sourceRow,0,sourceParent)
+        fileInfo=self.sourceModel().fileInfo(item)
+        
+        #Show everything that's not a file
+        if not fileInfo.isFile():
+            return True
+        
+        fileName=fileInfo.fileName()
+        
+        default=True #Return value when nothing matches
+        
+        #Get the current filter spec
+        filters=self.filter.replace(',',' ').split()          
+        for filter in filters:
+            #Process filters in order
+            if filter.startswith('!'):
+                #If the filename matches a filter starting with !, hide it
+                if fnmatch.fnmatch(fileName,filter[1:]):
+                    return False
+                default=True
+            else:
+                #If the file name matches a filter not starting with!, show it
+                if fnmatch.fnmatch(fileName,filter):
+                    return True
+                default=False
+                    
+        #No filter matched, return True
+        return default
+        
+    def setFilter(self,filter):
+        self.filter=filter
+        self.invalidateFilter()
+        
         
 
 class IepProjectManager(QtGui.QWidget):
@@ -124,49 +169,72 @@ class IepProjectManager(QtGui.QWidget):
             self._config.projects=[]
         if not hasattr(self._config,'activeproject'):
             self._config.activeproject=-1
+        if not hasattr(self._config,'filter'):
+            self._config.filter='!*.pyc'
 
         #Init dir model
         self.dirModel=QtGui.QDirModel()
+        #self.dirModel=QtGui.QDirModel()
+        
         self.dirModel.setSorting(QtCore.QDir.DirsFirst)
-                
+        self.filteredDirModel=FileFilter()
+        self.filteredDirModel.setSourceModel(self.dirModel)
                 
         #Init widgets and layout
         self.layout=QtGui.QBoxLayout(2,self)
         
-        self.comboBox=ProjectsList()
+        self.projectsCombo=ProjectsList()
         self.dirList=QtGui.QTreeView()
+        self.filterCombo=QtGui.QComboBox()
 
-        
-
-        self.layout.addWidget(self.comboBox)
+        self.layout.addWidget(self.projectsCombo)
         self.layout.addWidget(self.dirList,1)
+        self.layout.addWidget(self.filterCombo)
         
         #Load projects in the list
+        self.projectsCombo.show()
         
-        self.comboBox.show()
+        #Load default filters
+        self.filterCombo.setEditable(True)
+        self.filterCombo.setCompleter(None)
+        self.filterCombo.setInsertPolicy(self.filterCombo.NoInsert)
+        for pattern in ['*', '!*.pyc','*.py *.pyw *.pyx *.pxd', '*.h *.c *.cpp']:
+            self.filterCombo.addItem(pattern)
+        
+        # Set file pattern line edit (in combobox)
+        self.filterPattern = self.filterCombo.lineEdit()
+        self.filterPattern.setText(self._config.filter)
+        self.filterPattern.setToolTip('File filter pattern')        
+        
 
         #Connect signals
-        self.comboBox.projectChanged.connect(self.projectChanged)
+        self.projectsCombo.projectChanged.connect(self.projectChanged)
         self.dirList.doubleClicked.connect(self.itemDoubleClicked)
+        self.filterCombo.editTextChanged.connect(self.filterChanged)
         
         #Load projects and active project from config
         #This needs to be done after the signals have been connected!
-        self.comboBox.setConfig(self._config)
+        self.projectsCombo.setConfig(self._config)
+    def filterChanged(self):
+        filter=self.filterCombo.lineEdit().text()
+        self._config.filter=filter
+        self.filteredDirModel.setFilter(filter)
         
     def projectChanged(self,path):
         if path == '':
             self.dirList.setModel(None)
             return
-        
-        self.dirList.setModel(self.dirModel)
+  
+        self.dirList.setModel(self.filteredDirModel)
         self.dirList.setColumnHidden(1,True)
         self.dirList.setColumnHidden(2,True)
         self.dirList.setColumnHidden(3,True)
         
-        self.dirList.setRootIndex(self.dirList.model().index(path))
+        #self.dirList.setRootIndex(self.dirList.model().index(path))
+        self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(self.dirModel.index(path)))
     
     def itemDoubleClicked(self,item):
-        info=self.dirList.model().fileInfo(item)
+        info=self.dirModel.fileInfo(self.filteredDirModel.mapToSource(item))
         if info.isFile():
             #TODO: check extension associations
             if info.suffix() in ['py','c','pyw','pyx','pxd','h','cpp','hpp']:
