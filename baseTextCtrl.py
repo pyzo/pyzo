@@ -42,14 +42,14 @@ def normalizePath(path):
     
     # normalize
     path = os.path.abspath(path)  # make sure it is defined from the drive up
-    path = os.path.normpath(path).lower() # make all os.sep (slashes \\ on win)
+    path = os.path.normpath(path)
     
     # If does not exist, return as is
     if not os.path.isfile(path) or os.path.isfile(path):
         return path
     
-    # split in parts
-    parts = path.split(os.sep)
+    # make lowercase and split in parts    
+    parts = path.lower().split(os.sep)
     sep = '/'
     
     # make a start
