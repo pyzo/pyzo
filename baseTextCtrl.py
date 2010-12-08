@@ -44,7 +44,11 @@ def normalizePath(path):
     path = os.path.abspath(path)  # make sure it is defined from the drive up
     path = os.path.normpath(path)
     
-    # If does not exist, return as is
+    # If does not exist, return as is.
+    # This also happens if the path's case is incorrect and the
+    # file system is case sensitive. That's ok, because the stuff we 
+    # do below is intended to get the path right on case insensitive
+    # file systems.
     if not os.path.isfile(path) or os.path.isfile(path):
         return path
     
