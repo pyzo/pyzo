@@ -23,8 +23,8 @@ class ProjectsModel(QtCore.QAbstractListModel):
     def data(self, index, role):
         if not index.isValid():
             return None
-             
-        if role == QtCore.Qt.DisplayRole:
+        
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.projectFromIndex(index).name
         elif role == QtCore.Qt.UserRole:
             return self.projectFromIndex(index)
@@ -101,6 +101,9 @@ class ProjectsList(QtGui.QListView):
         if newRow!=self.draggingRow:
             self.model().swapRows(newRow,self.draggingRow)
             self.draggingRow=newRow
+            
+        #TODO: when the order is changed, the ProjectManager should update
+        #config.activeproject
     def mousePressEvent(self,event):
         """Register at which row a drag operation starts"""
         self.draggingRow=self.indexAt(event.pos()).row()
