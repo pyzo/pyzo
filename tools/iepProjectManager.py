@@ -358,7 +358,7 @@ class IepProjectManager(QtGui.QWidget):
     def filterChanged(self):
         """Handler for when the filter is changed"""
         filter=self.filterCombo.lineEdit().text()
-        self._config.filter=filter
+        self.config.filter=filter
         self.filteredDirModel.setFilter(filter)
         
    
