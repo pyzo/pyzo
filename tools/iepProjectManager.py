@@ -14,103 +14,99 @@ class Project(ssdf.Struct):
     def __repr__(self):
         return "Project %s at %s" % (self.name,self.path)
 
-class ProjectsList(QtGui.QComboBox):
-    """
-    Combobox showing the projects
-    Allows adding/renaming/removing projects using context menu
-    """
-    #Signal emitted when a different project is selected
-    projectChanged=QtCore.pyqtSignal(str)
-    def __init__(self):
-        QtGui.QComboBox.__init__(self)
-        
-        self.config=object()
-        self.projectsList=[]
-        self.currentIndexChanged.connect(self.currentIndexChangedEvent)
-        
-    def setConfig(self,config):
+class ProjectsModel(QtCore.QAbstractListModel):
+    def __init__(self,config):
+        QtCore.QAbstractListModel.__init__(self)
         self.config=config
-        self.projectsList=self.config.projects
-        self.fill()
-        self.setCurrentIndex(config.activeproject)
-        self.currentIndexChangedEvent(config.activeproject)
-
-    
-    def fill(self):
-        self.clear()
-        if not self.projectsList:
-            self.insertItem(0,"<Right-click to add projects>",None)
+    def rowCount(self,parent):
+        return len(self.config.projects)
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+             
+        if role == QtCore.Qt.DisplayRole:
+            return self.projectFromIndex(index).name
+        elif role == QtCore.Qt.UserRole:
+            return self.projectFromIndex(index)
+    def setData(self,index,value,role):
+        """Change the name of a project"""
+        if not index.isValid():
+            return False
+        if role == QtCore.Qt.EditRole:
+            self.projectFromIndex(index).name=value
+            self.dataChanged.emit(index,index)
+            return True
+        return False
+    def supportedDropActions(self):
+        return QtCore.Qt.MoveAction
+    def flags(self,index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
         else:
-            for i,project in enumerate(self.projectsList):
-                self.insertItem(i,project.name,project)
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | \
+                QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled | \
+                QtCore.Qt.ItemIsDropEnabled
                 
-        
-    def currentIndexChangedEvent(self,newIndex):
-        self.config.activeproject=newIndex
-        project=self.itemData(self.currentIndex())
-        if project is None:
-            self.projectChanged.emit('')
-        else:
-            self.projectChanged.emit(project.path)
-        
-    def contextMenuEvent(self,evt):
-        project=self.itemData(self.currentIndex())
-        
-    
-        contextMenu=QtGui.QMenu()
-        contextMenu.addAction("Add project",self.addProject)
-        if project is not None:
-            contextMenu.addAction("Rename '%s'" % project.name,self.renameProject)
-            contextMenu.addAction("Remove '%s'" % project.name,self.removeProject)
-        contextMenu.exec_(evt.globalPos())
-
-    def addProject(self):
-        dir=QtGui.QFileDialog.getExistingDirectory(None,'Select project directory')
-        _,projectName=os.path.split(dir)
-        self.projectsList.append(Project(projectName,dir))
-        self.fill()
-        
-    def renameProject(self):
-        project=self.itemData(self.currentIndex())
-        oldName=project.name
-        newName,ok=QtGui.QInputDialog.getText(None,"Rename project",
-            "Rename '%s' to:" % oldName,text=oldName)
-        if not ok:
+    def add(self,project):
+        self.config.projects.append(project)
+        self.reset()
+        return self.config.projects.index(project)
+    def remove(self,project):
+        self.config.projects.remove(project)
+        self.reset()
+    def projectFromIndex(self,index):
+        return self.config.projects[index.row()]
+    def projectFromRow(self,row):
+        if row<0 or row>=len(self.config.projects):
+            return None
+        return self.config.projects[row]
+    def swapRows(self,row1,row2):
+        if row1==row2:
             return
-        
-        project.name=newName
-        self.fill()
-        
-    def removeProject(self):
-        project=self.itemData(self.currentIndex())
-        
-        confirm=QtGui.QMessageBox(QtGui.QMessageBox.Warning,
-            "Remove project?",
-            "Remove project '%s'?" % project.name)
             
-        confirm.addButton("Remove",QtGui.QMessageBox.DestructiveRole)
-        cancel=confirm.addButton("Cancel",QtGui.QMessageBox.RejectRole)
-        confirm.setDefaultButton(cancel)
-        confirm.setEscapeButton(cancel)
-        
-        confirm.setInformativeText("The project contents will not be removed.")
-        confirm.exec_()
-        
-        if confirm.result()!=0: #Cancel button pressed
+        #Ensure row1<row2
+        if row2>row1:
+            row1,row2=row2,row1
+            
+        self.beginMoveRows(QtCore.QModelIndex(),row1,row1,QtCore.QModelIndex(),row2)
+        project1=self.config.projects[row1]
+        self.config.projects[row1]=self.config.projects[row2]
+        self.config.projects[row2]=project1
+        self.endMoveRows()
+
+
+class ProjectsList(QtGui.QListView):
+    def __init__(self):
+        QtGui.QListView.__init__(self)
+        self.draggingRow=None
+    def mouseMoveEvent(self,event):
+        """
+        If the user drags an item, swap rows if necessary
+        """
+        pos=event.pos()
+        index=self.indexAt(pos)
+        if not index.isValid():
             return
         
-        self.projectsList.remove(project)
-        
-        self.fill()
-        
-    def _currentProject(self):
-        """Use the currentIndex to find the reference to the project in the
-        self.projectsList"""
-        
-        #Somehow, self.itemData() returns a copy
-        
-        
-        
+        #Find ot the new position of the row
+        rect=self.visualRect(index)
+        newRow=index.row()
+        if pos.y()>rect.y()+rect.height()/2:
+            #Below the horizontal center line of the item
+            newRow+=1
+        if newRow>self.draggingRow:
+            #Moving below the original position
+            newRow-=1
+            
+        if newRow!=self.draggingRow:
+            self.model().swapRows(newRow,self.draggingRow)
+            self.draggingRow=newRow
+    def mousePressEvent(self,event):
+        """Register at which row a drag operation starts"""
+        self.draggingRow=self.indexAt(event.pos()).row()
+        QtGui.QListView.mousePressEvent(self,event) 
+
+
 class FileFilter(QtGui.QSortFilterProxyModel):
     """
     Proxy model to filter a directory tree based on filename patterns
@@ -132,9 +128,13 @@ class FileFilter(QtGui.QSortFilterProxyModel):
         
         fileName=fileInfo.fileName()
         
-        default=True #Return value when nothing matches
+        #'default' is the return value when no filter matches. A 'hide' filter
+        #(i.e. starting with '!') sets the default to 'show', a 'show' filter
+        #(i.e. not starting with '!') sets the default to 'hide'
         
-        #Get the current filter spec
+        default=True #Return True if there are no filters
+                
+        #Get the current filter spec and split it into separate filters
         filters=self.filter.replace(',',' ').split()          
         for filter in filters:
             #Process filters in order
@@ -153,6 +153,7 @@ class FileFilter(QtGui.QSortFilterProxyModel):
         return default
         
     def setFilter(self,filter):
+        """Set and apply the filter"""
         self.filter=filter
         self.invalidateFilter()
         
@@ -164,32 +165,56 @@ class IepProjectManager(QtGui.QWidget):
         
         # Init config
         toolId =  self.__class__.__name__.lower()
-        self._config = iep.config.tools[toolId]
-        if not hasattr(self._config, 'projects'):
-            self._config.projects=[]
-        if not hasattr(self._config,'activeproject'):
-            self._config.activeproject=-1
-        if not hasattr(self._config,'filter'):
-            self._config.filter='!*.pyc'
-
-        #Init dir model
-        self.dirModel=QtGui.QDirModel()
-        #self.dirModel=QtGui.QDirModel()
+        self.config = iep.config.tools[toolId]
+        if not hasattr(self.config, 'projects'):
+            self.config.projects=[]
+        if not hasattr(self.config,'activeproject'):
+            self.config.activeproject=-1
+        if not hasattr(self.config,'filter'):
+            self.config.filter='!*.pyc'
+        if not hasattr(self.config,'listdisclosed'):
+            self.config.listdisclosed=True
         
+        #Init projects model
+        self.projectsModel=ProjectsModel(self.config)
+
+        #Init dir model and filtered dir model
+        self.dirModel=QtGui.QDirModel()       
         self.dirModel.setSorting(QtCore.QDir.DirsFirst)
         self.filteredDirModel=FileFilter()
         self.filteredDirModel.setSourceModel(self.dirModel)
                 
         #Init widgets and layout
-        self.layout=QtGui.QBoxLayout(2,self)
+        self.buttonLayout=QtGui.QVBoxLayout()
+        self.listDisclosureButton=QtGui.QPushButton('...')
+        self.listDisclosureButton.setCheckable(True)
         
-        self.projectsCombo=ProjectsList()
+        #The following two buttons are only added when the list is disclosed
+        self.addProjectButton=QtGui.QPushButton('+')
+        self.removeProjectButton=QtGui.QPushButton('-')
+        
+        self.buttonLayout.addWidget(self.listDisclosureButton,0)
+        self.buttonLayout.addStretch(1)
+
+        self.projectsCombo=QtGui.QComboBox()
+        self.projectsCombo.setModel(self.projectsModel)
+        
+        self.hLayout=QtGui.QHBoxLayout()
+        self.hLayout.addWidget(self.projectsCombo,1)
+        self.hLayout.addLayout(self.buttonLayout,0)
+  
+        self.projectsList=ProjectsList()
+        self.projectsList.setModel(self.projectsModel)
+        
         self.dirList=QtGui.QTreeView()
         self.filterCombo=QtGui.QComboBox()
 
-        self.layout.addWidget(self.projectsCombo)
-        self.layout.addWidget(self.dirList,1)
+        self.layout=QtGui.QVBoxLayout()
+        self.layout.addLayout(self.hLayout)
+        self.layout.addWidget(self.dirList,10)
         self.layout.addWidget(self.filterCombo)
+        
+        self.setLayout(self.layout)
         
         #Load projects in the list
         self.projectsCombo.show()
@@ -203,37 +228,142 @@ class IepProjectManager(QtGui.QWidget):
         
         # Set file pattern line edit (in combobox)
         self.filterPattern = self.filterCombo.lineEdit()
-        self.filterPattern.setText(self._config.filter)
+        self.filterPattern.setText(self.config.filter)
         self.filterPattern.setToolTip('File filter pattern')        
-        
 
         #Connect signals
-        self.projectsCombo.projectChanged.connect(self.projectChanged)
+        self.projectsCombo.currentIndexChanged.connect(self.comboChangedEvent)
+        self.projectsList.selectionModel().currentChanged.connect(self.listChangedEvent)
         self.dirList.doubleClicked.connect(self.itemDoubleClicked)
         self.filterCombo.editTextChanged.connect(self.filterChanged)
+        self.listDisclosureButton.toggled.connect(self.listDisclosed)
+        self.addProjectButton.clicked.connect(self.addProjectClicked)
+        self.removeProjectButton.clicked.connect(self.removeProjectClicked)
         
-        #Load projects and active project from config
-        #This needs to be done after the signals have been connected!
-        self.projectsCombo.setConfig(self._config)
-    def filterChanged(self):
-        filter=self.filterCombo.lineEdit().text()
-        self._config.filter=filter
-        self.filteredDirModel.setFilter(filter)
+        #Apply previous selected project
+        self.projectChanged(self.config.activeproject)
+        if self.config.listdisclosed:
+            self.listDisclosureButton.toggle()
         
-    def projectChanged(self,path):
-        if path == '':
+    ## Project changed handlers
+    def comboChangedEvent(self,newIndex):
+        self.projectChanged(newIndex)
+            
+    def listChangedEvent(self,current,previous):
+        if not current.isValid():
+            self.projectChanged(-1)
+        else:
+            self.projectChanged(current.row())
+        
+    def projectChanged(self,projectIndex):
+        """Handler for when the project is changed
+        projectIndex: -1 or None for no project or 0..len(projects)
+        """
+        if projectIndex==-1 or projectIndex is None:
+            #This happens when the model is reset
             self.dirList.setModel(None)
             return
+        
+        #Remember the previous selected project
+        self.config.activeproject=projectIndex
   
+        #Sync list and combo boxes
+        self.projectsCombo.setCurrentIndex(projectIndex)
+        self.projectsList.selectionModel().setCurrentIndex(self.projectsModel.index(projectIndex), 
+                QtGui.QItemSelectionModel.ClearAndSelect)
+    
+        #Sync the dirList
+        project=self.projectsModel.projectFromRow(projectIndex)
+        if project is None:
+            return #Invalid project index
+    
+        path=project.path
+    
         self.dirList.setModel(self.filteredDirModel)
         self.dirList.setColumnHidden(1,True)
         self.dirList.setColumnHidden(2,True)
         self.dirList.setColumnHidden(3,True)
         
-        #self.dirList.setRootIndex(self.dirList.model().index(path))
         self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(self.dirModel.index(path)))
+ 
+    ## Add/remove buttons
+    def addProjectClicked(self):
+        dir=QtGui.QFileDialog.getExistingDirectory(None,'Select project directory')
+        if dir=='':
+            return #Cancel was pressed
+        _,projectName=os.path.split(dir)
+        index=self.projectsModel.add(Project(projectName,dir))
+        self.projectChanged(index)
+        
+    def removeProjectClicked(self):
+        if not self.projectsList.currentIndex().isValid():
+            return
+        
+        projectIndex=self.projectsList.currentIndex()
+        projectRow=projectIndex.row()
+        project=self.projectsModel.projectFromIndex(projectIndex)
+  
+        confirm=QtGui.QMessageBox(QtGui.QMessageBox.Warning,
+            "Remove project?",
+            "Remove project '%s'?" % project.name)
+            
+        confirm.addButton("Remove",QtGui.QMessageBox.DestructiveRole)
+        cancel=confirm.addButton("Cancel",QtGui.QMessageBox.RejectRole)
+        confirm.setDefaultButton(cancel)
+        confirm.setEscapeButton(cancel)
+        
+        confirm.setInformativeText("The project contents will not be removed.")
+        confirm.exec_()
+        
+        if confirm.result()!=0: #Cancel button pressed
+            return
+        
+        
+        self.projectsModel.remove(project)
+        
+        #Select another project (try the one before)
+        if projectRow>0:
+            projectRow-=1
+            
+        if self.projectsModel.projectFromRow(projectRow) is None:
+            #If we deleted the last project
+            projectRow=-1
+
+        self.projectChanged(projectRow)
+
+    def listDisclosed(self):
+        """Handler for when disclosure button toggled"""
+        if self.listDisclosureButton.isChecked():   
+            self.hLayout.insertWidget(0,self.projectsList,1)
+            self.hLayout.removeWidget(self.projectsCombo)
+            self.buttonLayout.addWidget(self.addProjectButton,0)
+            self.buttonLayout.addWidget(self.removeProjectButton,0)
+            self.projectsCombo.hide()
+            self.projectsList.show()
+            self.addProjectButton.show()
+            self.removeProjectButton.show()
+        else:
+            self.hLayout.insertWidget(0,self.projectsCombo,1)
+            self.hLayout.removeWidget(self.projectsList)
+            self.projectsList.hide()
+            self.buttonLayout.removeWidget(self.addProjectButton)
+            self.buttonLayout.removeWidget(self.removeProjectButton)
+            self.addProjectButton.hide()
+            self.removeProjectButton.hide()
+            self.projectsCombo.show()
+            
+        self.config.listdisclosed=self.listDisclosureButton.isChecked()
+        
     
+    def filterChanged(self):
+        """Handler for when the filter is changed"""
+        filter=self.filterCombo.lineEdit().text()
+        self._config.filter=filter
+        self.filteredDirModel.setFilter(filter)
+        
+   
     def itemDoubleClicked(self,item):
+        """Handler for if an item is double-clicked"""
         info=self.dirModel.fileInfo(self.filteredDirModel.mapToSource(item))
         if info.isFile():
             #TODO: check extension associations
