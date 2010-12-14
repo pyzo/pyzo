@@ -1523,7 +1523,6 @@ class PythonShell(BaseShell):
         """
         
         if self._channels.is_connected:
-            
             if self._killAttempts == 1:
                 # Waiting for process to stop by itself
                 
@@ -1542,10 +1541,11 @@ class PythonShell(BaseShell):
                 # Ok, that's it, we're leaving!
                 self._channels.kill()
                 self._killAttempts = 10
-            
+                self._t = time.time()
             else:
-                # Now we can only wait
-                pass
+                if time.time()-self._t >0.5:
+                    self._process.kill()
+
     
     
     
