@@ -90,7 +90,7 @@ class Parser(threading.Thread):
         """
         
         # Get text
-        text = editor.getString()
+        text = editor.toPlainText()
         
         # Make job
         self._lock.acquire()

@@ -265,13 +265,13 @@ class FileItem(Item):
     
     def updateTexts(self):
         """ Updates the text of the label and tooltip. Called when 
-        the editor's dirty status changed or when saved as another file. 
+        the editor's modification status changed or when saved as another file. 
         """
         # get texts
         name = self._editor._name
         filename = self._editor._filename
         # prepare texts
-        if self._editor._dirty:
+        if self._editor.document().isModified():
             name = '*' + name
         if not filename: 
             filename = '<temporary file>'        
@@ -298,7 +298,7 @@ class FileItem(Item):
         isCurrent = self is self.parent()._currentItem
         
         # Set style to handle dirty and mainfile
-        if self._editor._dirty:
+        if self._editor.document().isModified():
             style += "color:#603000;"
         if isMain:
             style += 'font: bold;'
@@ -1491,7 +1491,7 @@ class EditorStack(QtGui.QWidget):
         """
         
         # should we ask to save the file?
-        if editor._dirty:
+        if editor.document().isModified():
             
             # get filename
             filename = editor._filename
@@ -1580,7 +1580,7 @@ class EditorStack(QtGui.QWidget):
             elif isinstance(item, FileItem):
                 ed = item._editor
                 if ed._filename:
-                    info = ed._filename, str(ed.getPosition())
+                    info = ed._filename, str(ed.textCursor().position())
             if info:
                 state.append( '>'.join(info) )
         
@@ -1629,9 +1629,14 @@ class EditorStack(QtGui.QWidget):
                     ed = tmp._editor
                     # set position and make sure it is visible
                     pos = int(parts[1])
-                    linenr = ed.getLinenrFromPosition(pos)
-                    ed.setPositionAndAnchor(pos)
-                    ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
+                    #linenr = ed.getLinenrFromPosition(pos)
+                    #ed.setPositionAndAnchor(pos)
+                    #ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
+                    cursor = ed.textCursor()
+                    cursor.setPosition(pos)
+                    ed.setTextCursor(cursor)
+                    #TODO: scroll to that position
+                    
                     fileItems[parts[0]] = tmp
     
     

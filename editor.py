@@ -155,7 +155,7 @@ def createEditor(parent, filename=None):
         
         # Create editor
         editor = IepEditor(parent)
-        editor.makeDirty(True)
+        editor.document().setModified(True)
         
         # Set name
         editor._name = "<tmp {}>".format(newFileCounter)
@@ -181,9 +181,9 @@ def createEditor(parent, filename=None):
         
         # create editor and set text
         editor = IepEditor(parent)
-        editor.setText(text)
-        editor.setLineEndings(lineEndings)
-        editor.makeDirty(False)
+        editor.setPlainText(text)
+        #editor.setLineEndings(lineEndings)
+        editor.document().setModified(False)
         
         # store name and filename
         editor._filename = filename
@@ -191,45 +191,50 @@ def createEditor(parent, filename=None):
         
         # process indentation
         indentWidth = determineIndentation(text)
-        if indentWidth:
-            editor.setIndentation(indentWidth)
+        if indentWidth == -1: #Tabs
+            editor.tabSize = 4 #TODO: configurable
+            editor.spaceTabs = False
+        elif indentWidth:
+            editor.tabSize = indentWidth
+            editor.spaceTabs = True
     
     # clear undo history and modify time
-    editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
+    #TODO: editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
     if editor._filename:
         editor._modifyTime = os.path.getmtime(editor._filename)
     
     # set style
-    if editor._filename:
-        ext = os.path.splitext(editor._filename)[1]
-        editor.setStyle(ext)
-    else:
-        editor.setStyle(iep.config.settings.defaultStyle)
+    #TODO:
+    #if editor._filename:
+    #    ext = os.path.splitext(editor._filename)[1]
+    #    editor.setStyle(ext)
+    #else:
+    #    editor.setStyle(iep.config.settings.defaultStyle)
     
     
     # return
     return editor
+from codeeditor import CodeEditor
 
-
-class IepEditor(BaseTextCtrl):
+class IepEditor(CodeEditor):
     
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.pyqtSignal()
     
     def __init__(self, parent, *args, **kwargs):
-        BaseTextCtrl.__init__(self, parent, *args, **kwargs)
+        CodeEditor.__init__(self, parent, *args, **kwargs)
         
         # View settings
         view = iep.config.view
-        self.setViewWhiteSpace(view.showWhiteSpace)
-        self.setViewWrapSymbols(view.showWrapSymbols)
-        self.setViewEOL(view.showLineEndings)
-        self.setIndentationGuides(view.showIndentGuides) 
+        self.showWhitespace = view.showWhiteSpace
+        #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
+        self.showLineEndings = view.showLineEndings
+        #TODO: self.setIndentationGuides(view.showIndentGuides) 
         #
-        self.setWrapMode( int(view.wrapText)*2 )
-        self.setHighlightCurrentLine(view.highlightCurrentLine)
-        self.setFolding( int(view.codeFolding)*5 )
-        self.setEdgeColumn(view.edgeColumn)
+        self.wrap = view.wrapText
+        self.highlightCurrentLine = view.highlightCurrentLine
+        #TODO: self.setFolding( int(view.codeFolding)*5 )
+        #TODO: self.setEdgeColumn(view.edgeColumn)
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
@@ -238,26 +243,28 @@ class IepEditor(BaseTextCtrl):
         self._name = '<TMP>'
         
         # Set line endings to default
-        self.setLineEndings(iep.config.settings.defaultLineEndings)
+        #TODO: self.setLineEndings(iep.config.settings.defaultLineEndings)
         
         # Modification time to test file change 
         self._modifyTime = 0
         
         # Enable scrolling beyond last line
-        self.SendScintilla(self.SCI_SETENDATLASTLINE, False)
+        #self.SendScintilla(self.SCI_SETENDATLASTLINE, False)
         
-        # To see whether the doc has been changed
-        self._dirty = False
-        SIGNAL = QtCore.SIGNAL
-        self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
-        self.connect(self, SIGNAL('SCN_SAVEPOINTREACHED()'), self.makeDirtyNot)
+        self.modificationChanged.connect(self._onModificationChanged)
         
-        # To see whether the doc has changed, in a slightly different
-        # way to update the parser. SCN_MODIFIED might make more sense, but
-        # produces errors.
-        self.SCN_UPDATEUI.connect(self._onModified)
+        # To see whether the doc has changed to update the parser.
+        self.textChanged.connect(self._onModified)
     
-    
+    def gotoLine(self,lineNumber):
+        """Move the cursor to the given lineNumber (0-based) and center
+        the cursor vertically"""
+        cursor=self.textCursor()
+        cursor.movePosition(cursor.Start) #move to begin of the document
+        cursor.movePosition(cursor.NextBlock,n=lineNumber) #n lines down
+        self.setTextCursor(cursor)
+        
+        self.centerCursor()
     def id(self):
         """ Get an id of this editor. This is the filename, 
         or for tmp files, the name. """
@@ -271,7 +278,7 @@ class IepEditor(BaseTextCtrl):
         """ Test whether the file has been changed 'behind our back'
         """
         # Act normally to the focus event        
-        BaseTextCtrl.focusInEvent(self, event)
+        CodeEditor.focusInEvent(self, event)
         # Test file change
         self.testWhetherFileWasChanged()
     
@@ -316,25 +323,11 @@ class IepEditor(BaseTextCtrl):
             # Return that indeed the file was changes
             return True
         
-    
-    def makeDirty(self, value=True): 
-        """ Handler of the callback for SAVEPOINTLEFT,
-        and used as a way to tell scintilla we just saved. """
-        self._dirty = value
-        if not value:
-            self.SendScintilla(self.SCI_SETSAVEPOINT)
+    def _onModificationChanged(self,changed):
+        """Handler for the modificationChanged signal. Emit somethingChanged
+        for the editorStack to update the modification notice."""
         self.somethingChanged.emit()
-    
-    
-    def makeDirtyNot(self): 
-        """ This is the handler for SAVEPOINTREACHED. If we would let
-        it call makeDirty(False), that would send the SETSAVEPOINT signal,
-        which results in a SAVEPOINTREACHED signal being emitted, etc ...
-        """
-        self._dirty = False
-        self.somethingChanged.emit()
-    
-    
+        
     def _onModified(self):
         iep.parser.parseThis(self)
     
@@ -352,7 +345,7 @@ class IepEditor(BaseTextCtrl):
         """ Capture show event to change title. """
         # Act normally
         if event:
-            BaseTextCtrl.showEvent(self, event)
+            CodeEditor.showEvent(self, event)
         
         # Set title to display filename of this file
         self.setTitleInMainWindow()
@@ -377,6 +370,8 @@ class IepEditor(BaseTextCtrl):
     
     
     def setLineEndings(self, le=None):
+        #TODO
+        return
         """  Set the line ending style used in this editor.
         le can be '\n', 'LF', '\r', 'CR', '\r\n', 'CRLF'.
         If le is None, all line endings in the document are converted
@@ -401,6 +396,9 @@ class IepEditor(BaseTextCtrl):
     
     
     def getLineEndings(self):
+        #TODO
+        return
+        
         """ Return the line ending style in use.
         Returns a tuple, the first element is one of LF, CR, CRLF,
         the second is/are the line ending character(s),
@@ -428,7 +426,7 @@ class IepEditor(BaseTextCtrl):
         self.setLineEndings()
         
         # Get text and make bytes
-        text = self.getString()
+        text = self.toPlainText()
         bb = text.encode('UTF-8')
         
         # Store
@@ -440,14 +438,14 @@ class IepEditor(BaseTextCtrl):
         
         # Update stats
         self._filename = normalizePath( filename )
-        self._name = os.path.split(self._filename)[1]        
-        self.makeDirty(False)
+        self._name = os.path.split(self._filename)[1]
+        self.document().setModified(False)
         self._modifyTime = os.path.getmtime(self._filename)
         
         # update title (in case of a rename)
         self.setTitleInMainWindow()
         
-        # allow item to update its texts (no need: makeDirty call does this)
+        # allow item to update its texts (no need: onModifiedChanged does this)
         #self.somethingChanged.emit()
 
 
@@ -477,13 +475,14 @@ class IepEditor(BaseTextCtrl):
         self.setLineEndings( determineLineEnding(text) )
         
         # Set text
-        self.setText(text)
-        self.makeDirty(False)
+        self.setPlainText(text)
+        self.document().setModified(False)
         
         # Go where we were (approximately)
-        pos = self.getPositionFromLinenr(linenr) + index
-        self.setPositionAndAnchor(pos)
-        self.ensureCursorVisible()
+        #TODO:
+        #pos = self.getPositionFromLinenr(linenr) + index
+        #self.setPositionAndAnchor(pos)
+        #self.ensureCursorVisible()
     
     
     def commentCode(self):
@@ -552,10 +551,13 @@ class IepEditor(BaseTextCtrl):
                 # this code made it self-solving, and there's no harm in
                 # keeping it.
                 indentWidth = iep.config.settings.defaultIndentation
-                self.setIndentation(indentWidth)
+                self.tabSize = indentWidth
+                self.spaceTabs = True 
             if indentWidth<0:
-                indentWidth = 1
-                indent = '\t'
+                #indentWidth = 1
+                #indent = '\t'
+                self.tabSize = 4 #TODO: configurable
+                self.spaceTabs = False
             
             if iep.config.settings.autoIndent:                
                 # check if style is ok...

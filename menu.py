@@ -231,7 +231,8 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            le, dummy = editor.getLineEndings()
+            #TODO: le, dummy = editor.getLineEndings()
+            le = 'LF'
             return ['LF', 'CR', 'CRLF', le]
         else:
             editor.setLineEndings(value)
@@ -244,7 +245,7 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            current = editor.getIndentation()
+            current = editor.tabSize if editor.spaceTabs else -1 #getIndentation()
             options = [-1,2,3,4,5,6,7,8, current]
             for i in range(len(options)):
                 if options[i] < 0:
@@ -275,7 +276,8 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            current = editor.getStyleName()
+            #TODO: current = editor.getStyleName()
+            current = None
             if not current:
                 current = 'default'
             options = iep.styleManager.getStyleNames()
@@ -419,14 +421,14 @@ class ViewMenu(BaseMenu):
         addItem( None )
         addItem( MI('Show whitespace', self.fun_showWhiteSpace, []) )
         addItem( MI('Show line endings', self.fun_showLineEndings, []) )
-        addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
+        #TODO: addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
         addItem( MI('Show indentation guides', self.fun_indentGuides, []) )
         #addItem( MI('Show status bar', self.fun_showStatusBar, []) )
         addItem( None )
         addItem( MI('Wrap long lines', self.fun_wrap, []) )
         addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
-        addItem( MI('Match braces', self.fun_braceMatch, []) )  
-        addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
+        #TODO: addItem( MI('Match braces', self.fun_braceMatch, []) )  
+        #TODO: addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
         addItem( None )
         addItem( MI('Edge column', self.fun_edgecolumn, []) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
@@ -466,7 +468,7 @@ class ViewMenu(BaseMenu):
         value = not bool( iep.config.view.wrapText ) 
         iep.config.view.wrapText = value
         for editor in iep.editors:
-            editor.setWrapMode(int(value)*2)
+            editor.wrap = value
     
     def fun_braceMatch(self, value):
         """ Indicate matching braces and when no matching brace is found. """
@@ -513,7 +515,7 @@ class ViewMenu(BaseMenu):
         # apply
         iep.config.view.showWhiteSpace = value
         for editor in iep.editors:
-            editor.setViewWhiteSpace(value)
+            editor.showWhitespace = value
     
     def fun_showLineEndings(self, value):
         """ Show line endings in the editor. """
@@ -524,7 +526,7 @@ class ViewMenu(BaseMenu):
         # apply
         iep.config.view.showLineEndings = value
         for editor in iep.editors:
-            editor.setViewEOL(value)
+            editor.showLineEndings = value
     
     def fun_showWrapSymbols(self, value):
         """ Show wrap symbols in the editor. """
@@ -544,8 +546,9 @@ class ViewMenu(BaseMenu):
         
         # store and apply
         iep.config.view.tabWidth = value
-        for editor in iep.editors:
-            editor.setTabWidth(value)
+        #TODO: this is mixed with the size of space-tabs in CodeEditor
+        #for editor in iep.editors:
+        #    editor.setTabWidth(value)
     
     def fun_selectPrevious(self, value):
         """ Select the previusly selected file. """
@@ -571,10 +574,10 @@ class ViewMenu(BaseMenu):
         if value is None:
             return bool(iep.config.view.highlightCurrentLine)
         else:
-            value = not bool(iep.view.editor.highlightCurrentLine)
+            value = not bool(iep.config.view.highlightCurrentLine)
             iep.config.view.highlightCurrentLine = value
             for editor in iep.editors:
-                editor.setHighlightCurrentLine(value)
+                editor.highlightCurrentLine = value
     
     def fun_codeFolding(self, value):
         """ Enable folding (hiding) pieces of code. """
