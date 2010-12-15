@@ -233,7 +233,7 @@ class IepEditor(BaseTextCtrl):
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
-        # Init filename ane name
+        # Init filename and name
         self._filename = ''
         self._name = '<TMP>'
         
