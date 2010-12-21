@@ -2,11 +2,15 @@
 
 A tab widget for editors.
 
-An IepFile has no visualization purpose, but represents the document and editor.
-The FileItem represents the visual appearance of a document in the tab widget.
-Multiple FileItems can reference a single IepFile. The order of the documents
-is determined by the files. The items are sorted on each draw to match the
-order.
+The FileItem represents the visual aspect of a file. Multiple file items
+can refer to the same IepFile. A ProjectItem represents the visual
+aspect of a project (a directory). It also has some organizing methods to
+for example select all iepFiles that apply to the project. A DirItem represents
+a directory (inside a project).
+
+The FileListCtrl holds a list of all iepFiles, and a list of all
+project items. Each project item has a list of fileItems and dirItems.
+dirItems in turn, hold lists of fileItems and dirItems.
 
 """
 
@@ -15,6 +19,10 @@ from PyQt4 import QtCore, QtGui
 
 # todo: make dynamic
 barwidth = 120
+
+STYLE_DIRTY = "color:#603000;"
+STYLE_MAIN = 'font:bold;'
+TYLE_CURRENT = 'background:#CEC;'
 
 PROJECT_ALL = "PROJECT_ALL"
 PROJECT_LOOSE = "PROJECT_LOOSE"
@@ -85,31 +93,43 @@ def normalizePath(path):
 #         """
 #         return self._path
 # 
-# 
-# # todo: OR DO I ONLY NEED AN EDITOR FOR THIS???
-# class IepFile(IepPath):
-#     """ IepFile()
-#     
-#     Represents an open document.
-#     The file is initially not read from disk (lazy loading).
-#     """ 
-#     
-#     def __init__(self, path):
-#         IepPath.__init__(self, path)
-#         
-#         self._editor = None
-#         # todo: store stuff that editor stores here.
-#         # Also methods such as save etc?
-#     
-#     
-#     @property
-#     def editor(self):
-#         """ The editor in which this file is loaded. 
-#         """
-#         return self._editor
-# 
-# 
-# 
+
+
+# todo: OR DO I ONLY NEED AN EDITOR FOR THIS???
+class IepFile(QtCore.QObject):
+    """ IepFile()
+    
+    Represents an open document. This is basically a proxy for
+    an editor. This makes it possible to initially NOT load the editor;
+    The file is initially not read from disk (lazy loading).
+    
+    """ 
+    
+    # Signal to pass on somethingChanged signals from the editor
+    somethingChanged = QtCore.pyqtSignal()
+    
+    def __init__(self, path):
+        
+        # Normalize and check success
+        self._path = normalizePath(path)
+        if self._path is None or not os.path.isfile(self._path):
+            raise ValueError("Invalid path:", path)
+        
+        # Init editor (do not load file initially)
+        self._editor = None
+        # todo: store stuff that editor stores here.
+        # also load unicode stuff here?
+        # Also methods such as save etc?
+    
+    
+    @property
+    def editor(self):
+        """ The editor in which this file is loaded. 
+        """
+        return self._editor
+
+
+
 # class IepProject:
 #     """ IepProject(path)
 #     
@@ -204,30 +224,31 @@ class Item(qt.QLabel):
         self.parent().mouseReleaseEvent(event)
     
 
-class ProjectItem(Item):
-    """ An item representing a project. """
+class BaseProjectItem(Item):
+    """ A base project class.
+    """
     
-    def __init__(self, parent, iepProject):
+    def __init__(self, parent):
         Item.__init__(self, parent)
+        
+        # Default path
+        self._name = 'Loose files'
+        self._path = 'Files that do not belong to any project.'
+        
+        # This project's main file (an iepFile instance)
+        self._mainFile = None
         
         # Projects have more spacing
         self._itemSpacing = 2 + iep.config.advanced.editorStackBarSpacing
         
-        # Store iepProject instance and its name
-        self._iepProject = iepProject
-        self._name = os.path.split(IepProject.path)[1]
-        
         # Set of file items
         self._items = set()
         
-        # The main iepFile instance
-        self._mainFile = None
-        
-        # collapsed?
+        # Whether this dir is collapsed
         self._collapsed = False
         
-        # update
-        self.setStyleSheet("ProjectItem { font:bold; background:#999; }")
+        # Update
+        self.setStyleSheet("Item { font:bold; background:#77C; }")
         self.updateTexts()
         self.updateStyle()
     
@@ -238,7 +259,7 @@ class ProjectItem(Item):
             self.setText('- {} ({})'.format(self._name, len(self._items)))
         else:
             self.setText('+ {}'.format(self._name))
-        self.setToolTip('project '+ self._name + ': ' + self._iepProject.path)
+        self.setToolTip('project '+ self._name + ': ' + self._path)
     
     
     def updateStyle(self):
@@ -253,6 +274,37 @@ class ProjectItem(Item):
             #self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Plain)
             self.move(self._indent,self._y)
     
+    def selectFiles(self, *args):
+        raise NotImplemented('BaseProjects do not know how to select files.')
+
+    
+    def mousePressEvent(self, event):
+        """ Collapse/expand item, or show context menu. """
+        
+        if event.button() == QtCore.Qt.LeftButton:
+            # collapse/expand
+            self._collapsed = not self._collapsed
+            self.parent().updateMe()
+
+
+
+class ProjectItem(BaseProjectItem):
+    """ An item representing a directory. """
+    
+    def __init__(self, parent, path):
+        Item.__init__(self, parent)
+        
+        # Store path
+        self._path = normalizePath(path)
+        if self._path is None or os.path.isdir(self._path):
+            raise ValueError('Invalid path:', path)
+        
+        # Set name of directory (projects can be renamed, DirItems not)
+        self._name = os.path.split(IepProject.path)[1]
+        
+        # Set style
+        self.setStyleSheet("Item { font:bold; background:#77A; }")
+    
     
     def selectFiles(self, iepFiles):
         """ selectFiles(self, iepFiles)
@@ -264,7 +316,7 @@ class ProjectItem(Item):
         # Fill subset
         subSet = set()
         for file in iepFiles:
-            if file.path.startswith(self.path):
+            if file.path.startswith(self._path):
                 subSet.add(file)
         
         # Done
@@ -361,6 +413,18 @@ class ProjectItem(Item):
         self.parent().updateMe()
 
 
+class DirItem(ProjectItem):
+    """ A subproject. well not really a project, but a directory inside 
+    a project.
+    """
+    
+    def __init__(self, parent, path):
+        BaseProjectItem.__init__(self, parent, path)
+        
+        # Set style
+        self.setStyleSheet("Item { font:bold; background:#88A; }")
+    
+    
 class FileItem(Item):
     """ An item representing a file. This class does the loading 
     and saving of that file, but without any checks, that is up to
@@ -369,14 +433,14 @@ class FileItem(Item):
     def __init__(self, parent, projectItem, iepFile):
         Item.__init__(self, parent)
         
+        # Each file item belongs to a project item
+        self._projectItem = projectItem
+        
         # Store iepFile instance
         self._iepFile = iepFile
         
         # To keep name and tooltip up to date
-        self._iepFile.editor.somethingChanged.connect(self.updateTexts)
-        
-        # each file item belongs to a project item
-        self._projectItem = projectItem
+        self._iepFile.somethingChanged.connect(self.updateTexts)
         
         # set style
         self.setAutoFillBackground(True)
@@ -395,11 +459,12 @@ class FileItem(Item):
         """ Updates the text of the label and tooltip. Called when 
         the editor's dirty status changed or when saved as another file. 
         """
+        # todo: IepFile should implement all these properties
         # get texts
         name = self._iepFile._editor._name
         filename = self._iepFile._editor._filename
         # prepare texts
-        if self._editor._dirty:
+        if self._iepFile._editor._dirty:
             name = '*' + name
         if not filename: 
             filename = '<temporary file>'        
@@ -427,11 +492,11 @@ class FileItem(Item):
         
         # Set style to handle dirty and mainfile
         if self._editor._dirty:
-            style += "color:#603000;"
+            style += STYLE_DIRTY
         if isMain:
-            style += 'font: bold;'
+            style += STYLE_MAIN
         if isCurrent:
-            style += 'background:#CEC;'
+            style += STYLE_CURRENT
         
         # Set frames sunken or raised
         if isCurrent:
@@ -451,8 +516,9 @@ class FileItem(Item):
     
     
     def mouseDoubleClickEvent(self, event):
-        self.parent().parent().saveFile(self._editor)
-        #self.parent().parent().closeFile(self._editor)
+        """ Double click saves the file
+        """
+        self.parent().parent().saveFile(self._iepFile)
     
     
     def mousePressEvent(self, event):
@@ -528,7 +594,7 @@ class FileListCtrl(QtGui.QFrame):
         # create list of iep docs and matching items
         # todo: _items or _docs?
         self._files = []
-        self._projectItems = []
+        self._projectItems = [BaseProjectItem()]
         self._currentItem = None
         self._itemHistory = []
         
@@ -714,6 +780,17 @@ class FileListCtrl(QtGui.QFrame):
     
     ## Updating etc.
     
+    
+    def updateItems(self):
+        """ Make sure that there exists a FileItem for each IepFile
+        instance in the list.
+        These items are positioned in updateMe()
+        """
+        
+        for project in self._projectItems[1:]:
+            pass
+    
+    
     def updateMe(self):
         project = None
         ncollapsed = 0
@@ -782,7 +859,8 @@ class FileListCtrl(QtGui.QFrame):
     def setCurrentItem(self, item, remember=True):
         """ Make the given item current. 
         If item is None, select previous item. 
-        If remember, store the current item in the history. """
+        If remember, store the current item in the history. 
+        """
         
         if item is self._currentItem:
             return # no need to change
@@ -823,30 +901,35 @@ class FileListCtrl(QtGui.QFrame):
         self.setCurrentItem(None)
     
     
-    def appendFile(self, editor):
+    def appendFile(self, file):
         """ Create file item. 
-        Returns the created file item on success."""
+        Accepts a file name or IepFile instance.
+        Returns the created IepFile instance on success.        
+        """
         
-        # default insert position is at the end
+        # Default insert position is at the end
         i_insert = len(self._files)
         
-        # should we put it at the dropped position?
+        # Should we put it at the dropped position?
         if time.time() - self._droppedTime < 0.25:
             i_insert = self._droppedIndex
             self._droppedTime = time.time() # when multiple files are inserted
         
-        # create document
-        iepFile = IepFile(editor)
+        # Make an IepFile instance if not already so
+        if not isinstance(file, IepFile):
+            file = IepFile(file)
+        
+        # Insert and make current
         self._docs.insert(i_insert, iepFile)
         
-        # make it current
+        # todo: need to make sure that there is an item now
         self.setCurrentItem(item)
         
         return iepFile
     
     
     def _createItemForFile(self, iepFile):
-        
+        pass # todo: ?
         
     
     def appendProject(self, projectname):
