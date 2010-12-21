@@ -16,42 +16,124 @@ from PyQt4 import QtCore, QtGui
 # todo: make dynamic
 barwidth = 120
 
-
-class IepFile:
-    """ IepFile()
-    
-    Represents an open document.
-    The file is initially not read from disk (lazy loading).
-    """ 
-    
-    def __init__(self, editor):
-        
-        self._editor = editor
-        # todo: store stuff that editor stores here
-
 PROJECT_ALL = "PROJECT_ALL"
 PROJECT_LOOSE = "PROJECT_LOOSE"
 
-class IepProject:
-    """ IepProject(path)
-    
-    represents a project to group files. 
-    In most cases, this represents a directory.
+
+def normalizePath(path):
+    """ Normalize the path given. 
+    All slashes will be made the same (and doubles removed)
+    The real case as stored on the file system is recovered.
+    Returns None on error.
     """
-    def __init__(self, path):
-        
-        # Store
-        self._normal = True
-        self._path = path
-        
-        # Check
-        if path in [PROJECT_ALL, PROJECT_LOOSE]:
-            # lists of all files or list of files not in any other project
-            self._normal = False
-        elif not os.path.isdir(path):
-            raise ValueError('Invalid directory')
     
-    def selectF
+    # normalize
+    path = os.path.abspath(path)  # make sure it is defined from the drive up
+    path = os.path.normpath(path)
+    
+    # If does not exist, return as is.
+    # This also happens if the path's case is incorrect and the
+    # file system is case sensitive. That's ok, because the stuff we 
+    # do below is intended to get the path right on case insensitive
+    # file systems.
+    if not (os.path.isfile(path) or os.path.isdir(path)):
+        print("Path does not exist:", path)
+        return None
+    
+    # make lowercase and split in parts    
+    parts = path.lower().split(os.sep)
+    sep = '/'
+    
+    # make a start
+    drive, tmp = os.path.splitdrive(path)
+    if drive:
+        # windows
+        fullpath = drive.upper() + sep
+        parts = parts[1:]
+    else:
+        # posix/mac
+        fullpath = sep + parts[1] + sep
+        parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
+    
+    for part in parts:
+        # print( fullpath,part)
+        options = [x for x in os.listdir(fullpath) if x.lower()==part]
+        if len(options) > 1:
+            print("Error normalizing path: Ambiguous path names!")
+            return None
+        elif len(options) < 1:
+            print("Invalid path: "+fullpath+part)
+            return None
+        fullpath += options[0] + sep
+    
+    # remove last sep
+    return fullpath[:-len(sep)]
+
+# 
+# 
+# class IepPath:
+#     def __init__(self, path):
+#         
+#         # Normalize and check success
+#         self._path = normalizePath(path)
+#         if self._path is None:
+#             raise ValueError("Invalid path")
+#     
+#     @property
+#     def path(self):
+#         """ The full (normalized) path of this file or project. 
+#         """
+#         return self._path
+# 
+# 
+# # todo: OR DO I ONLY NEED AN EDITOR FOR THIS???
+# class IepFile(IepPath):
+#     """ IepFile()
+#     
+#     Represents an open document.
+#     The file is initially not read from disk (lazy loading).
+#     """ 
+#     
+#     def __init__(self, path):
+#         IepPath.__init__(self, path)
+#         
+#         self._editor = None
+#         # todo: store stuff that editor stores here.
+#         # Also methods such as save etc?
+#     
+#     
+#     @property
+#     def editor(self):
+#         """ The editor in which this file is loaded. 
+#         """
+#         return self._editor
+# 
+# 
+# 
+# class IepProject:
+#     """ IepProject(path)
+#     
+#     represents a project to group files. 
+#     In most cases, this represents a directory.
+#     """
+#     
+#     def __init__(self, path):
+#         IepPath.__init__(self, path)
+#         
+#         # Store
+#         self._normal = True
+#         
+#         # todo: make subclasses for these special cases
+#         # Check
+#         if path in [PROJECT_ALL, PROJECT_LOOSE]:
+#             # lists of all files or list of files not in any other project
+#             self._normal = False
+#         elif not os.path.isdir(path):
+#             raise ValueError('Invalid directory')
+#     
+#     
+#     
+
 
 
 class Item(qt.QLabel):
@@ -62,7 +144,7 @@ class Item(qt.QLabel):
     """
     
     def __init__(self, parent):
-        qt.QLabel.__init__(self,parent)
+        qt.QLabel.__init__(self, parent)
        
         # indicate height and spacing
         self._itemHeight = 16
@@ -125,21 +207,24 @@ class Item(qt.QLabel):
 class ProjectItem(Item):
     """ An item representing a project. """
     
-    def __init__(self, parent, name):
+    def __init__(self, parent, iepProject):
         Item.__init__(self, parent)
         
-        # projects have more spacing
+        # Projects have more spacing
         self._itemSpacing = 2 + iep.config.advanced.editorStackBarSpacing
         
-        # set name and tooltip
-        self._name = name
+        # Store iepProject instance and its name
+        self._iepProject = iepProject
+        self._name = os.path.split(IepProject.path)[1]
         
-        # each project can have one main file
-        self._mainfile = ''
+        # Set of file items
+        self._items = set()
+        
+        # The main iepFile instance
+        self._mainFile = None
         
         # collapsed?
         self._collapsed = False
-        self._ncollapsed = 0
         
         # update
         self.setStyleSheet("ProjectItem { font:bold; background:#999; }")
@@ -150,10 +235,10 @@ class ProjectItem(Item):
     def updateTexts(self):
         """ Update the text and tooltip """        
         if self._collapsed:
-            self.setText('- {} ({})'.format(self._name, self._ncollapsed))
+            self.setText('- {} ({})'.format(self._name, len(self._items)))
         else:
             self.setText('+ {}'.format(self._name))
-        self.setToolTip('project: '+ self._name)
+        self.setToolTip('project '+ self._name + ': ' + self._iepProject.path)
     
     
     def updateStyle(self):
@@ -167,6 +252,24 @@ class ProjectItem(Item):
             self.setFrameStyle(0)
             #self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Plain)
             self.move(self._indent,self._y)
+    
+    
+    def selectFiles(self, iepFiles):
+        """ selectFiles(self, iepFiles)
+        
+        Given a set of iepFiles, returns the subset of files that belong
+        to this project.
+        """
+        
+        # Fill subset
+        subSet = set()
+        for file in iepFiles:
+            if file.path.startswith(self.path):
+                subSet.add(file)
+        
+        # Done
+        return subSet
+    
     
     def mousePressEvent(self, event):
         """ Collapse/expand item, or show context menu. """
@@ -263,18 +366,17 @@ class FileItem(Item):
     and saving of that file, but without any checks, that is up to
     the editorStack. """
     
-    def __init__(self, parent, editor):
+    def __init__(self, parent, projectItem, iepFile):
         Item.__init__(self, parent)
         
-        # set editor
-        #if isinstance(editor, ??) (why should we care?)
-        self._editor = editor
+        # Store iepFile instance
+        self._iepFile = iepFile
         
-        # to keep name and tooltip up to date
-        editor.somethingChanged.connect(self.updateTexts)
+        # To keep name and tooltip up to date
+        self._iepFile.editor.somethingChanged.connect(self.updateTexts)
         
-        # each file item can belong to a project, or to the root project (None)
-        self._project = None
+        # each file item belongs to a project item
+        self._projectItem = projectItem
         
         # set style
         self.setAutoFillBackground(True)
@@ -285,8 +387,8 @@ class FileItem(Item):
     
     
     def isMainFile(self):
-        """ Returns whethe this is the main file of a project. """ 
-        return self._project and self._project._mainfile == self._editor.id()
+        """ Returns whether this is the main file of a project. """ 
+        return self._projectItem._mainFile is self._iepFile
     
     
     def updateTexts(self):
@@ -294,8 +396,8 @@ class FileItem(Item):
         the editor's dirty status changed or when saved as another file. 
         """
         # get texts
-        name = self._editor._name
-        filename = self._editor._filename
+        name = self._iepFile._editor._name
+        filename = self._iepFile._editor._filename
         # prepare texts
         if self._editor._dirty:
             name = '*' + name
@@ -383,11 +485,11 @@ class FileItem(Item):
     def context_close(self, event=None):
         self.parent().parent().closeFile(self._editor)
     def context_makeMain(self, event=None):
-        if self._project:
+        if self._projectItem:
             if self.isMainFile():
-                self._project._mainfile = ''
+                self._projectItem._mainFile = None
             else:
-                self._project._mainfile = self._editor.id()
+                self._projectItem._mainFile = self._iepFile
         else:
             m = QtGui.QMessageBox(self)
             m.setWindowTitle("Project main file")
@@ -425,8 +527,8 @@ class FileListCtrl(QtGui.QFrame):
         
         # create list of iep docs and matching items
         # todo: _items or _docs?
-        self._docs = []
-        self._items = []
+        self._files = []
+        self._projectItems = []
         self._currentItem = None
         self._itemHistory = []
         
@@ -624,14 +726,11 @@ class FileListCtrl(QtGui.QFrame):
         spacing = 0
         for item in self._items:            
             if isinstance(item, ProjectItem):
-                # handle previous collapsed project?
-                if project and project._collapsed:
-                    project._ncollapsed = ncollapsed
                 project = item
                 if project._collapsed:
                     ncollapsed = 0
             elif isinstance(item, FileItem):
-                item._project = project
+                item._projectItem = project
                 if project and project._collapsed:
                     item.hide()
                     ncollapsed += 1
@@ -654,9 +753,6 @@ class FileListCtrl(QtGui.QFrame):
             y += item._itemHeight
             spacing = item._itemSpacing 
         
-        # handle last collapsed project
-        if project and project._collapsed:
-            project._ncollapsed = ncollapsed
         
         # update scroller
         h = y-offset
@@ -732,7 +828,7 @@ class FileListCtrl(QtGui.QFrame):
         Returns the created file item on success."""
         
         # default insert position is at the end
-        i_insert = len(self._docs)
+        i_insert = len(self._files)
         
         # should we put it at the dropped position?
         if time.time() - self._droppedTime < 0.25:
@@ -740,16 +836,16 @@ class FileListCtrl(QtGui.QFrame):
             self._droppedTime = time.time() # when multiple files are inserted
         
         # create document
-        doc = IepDoc(editor)
-        self._docs.insert(i_insert, doc)
+        iepFile = IepFile(editor)
+        self._docs.insert(i_insert, iepFile)
         
         # make it current
         self.setCurrentItem(item)
         
-        return doc
+        return iepFile
     
     
-    def _createItemForDoc(self, doc):
+    def _createItemForFile(self, iepFile):
         
         
     
