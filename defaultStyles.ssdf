@@ -62,6 +62,19 @@ python = dict:
     s014 = 'fore:#ffffff,back:#000000' # 
 
 
+# IDLE LIKE STYLE
+idle = dict:
+    basedon = 'python'
+    s001 = 'fore:#e80000' # STC_P_COMMENTLINE
+    s004 = 'fore:#00aa00' # STC_P_CHARACTER
+    s005 = 'fore:#ff773a' # STC_P_WORD
+    s006 = 'fore:#00aa00' # STC_P_TRIPLE
+    s007 = 'fore:#00aa00' # STC_P_TRIPLEDOUBLE
+    s008 = 'fore:#3a3aff' # STC_P_CLASSNAME
+    s009 = 'fore:#0000ff' # STC_P_DEFNAME
+    s010 = 'fore:#000000' # STC_P_OPERATOR
+
+
 # PYTHON SHELL
 pythonshell = dict:
     lexer = 'python'
