@@ -480,19 +480,26 @@ class FileTabWidget(QtGui.QTabWidget):
         # Get which tab to show the context menu of
         tabBar = self.tabBar()
         index = tabBar.tabAt(event.pos())
-        if index<0:
-            self._menu.hide()
-            return
         
-        # Get item
-        item = self.items()[index]
+        # Define actions
+        generalActions = [ None, 'New file', 'Open file' ]
+        fileActions = [ 'Save file', 'Save file as', 'Rename file', None, 
+                        'Run file', 'Run file as script', None,
+                        'Pin file', 'Make this the MAIN file', None,
+                        'Close file', 'Close all but this (and pinned)', 
+                        'Delete file (from file system)'] 
+        
+        # Get item and actions
+        actions = generalActions
+        if index<0:
+            item = None
+        else:
+            item = self.items()[index]
+            actions = fileActions + actions
         
         # Create menu
         self._menu.clear()
-        for a in [  'New file', 'Open file', None,
-                    'Save file', 'Save file as', 'Rename file', None, 
-                    'Pin file', 'Make this the MAIN file', None,
-                    'Close file', 'Close all but this (and pinned)']:
+        for a in actions:
             if not a:
                 self._menu.addSeparator()
             else:
@@ -505,7 +512,7 @@ class FileTabWidget(QtGui.QTabWidget):
                     a = 'Unp' + a[1:]
                 
                 # Create action
-                action = self._menu.addAction(a)
+                action = self._menu.addAction(a)                
                 action._item = item
                 action._index = index
                 
@@ -514,8 +521,10 @@ class FileTabWidget(QtGui.QTabWidget):
                     action.setIcon( iep.icons.cross )
         
         # Show
-        #pos = event.globalPos()
-        pos = tabBar.mapToGlobal( tabBar.tabRect(index).bottomLeft() )
+        if item:
+            pos = tabBar.mapToGlobal( tabBar.tabRect(index).bottomLeft() )
+        else:
+            pos = event.globalPos()
         self._menu.exec_(pos)
     
     
@@ -531,6 +540,7 @@ class FileTabWidget(QtGui.QTabWidget):
             iep.editors.newFile()
         elif 'open file' in request:
             iep.editors.openFile()
+        
         elif 'save file as' in request:
             iep.editors.saveFileAs(item.editor)
         elif 'save file' in request:
@@ -542,6 +552,14 @@ class FileTabWidget(QtGui.QTabWidget):
                 os.remove(filename)
             except Exception:
                 pass
+        
+        elif 'run' in request and 'script' in request:
+            menu = iep.main._menuhelper._menus['Run']
+            menu.fun_runFileAsScript(None, item.editor)
+        elif 'run' in request:
+            menu = iep.main._menuhelper._menus['Run']
+            menu.fun_runFile(None, item.editor)
+        
         elif 'pin file' in request:
             item._pinned = not item._pinned
         elif 'main' in request:
@@ -549,6 +567,7 @@ class FileTabWidget(QtGui.QTabWidget):
                 self._mainFile = None
             else:
                 self._mainFile = item.id
+        
         elif 'close all' in request:
             items = self.items()
             for i in reversed(range(self.count())):
@@ -557,6 +576,13 @@ class FileTabWidget(QtGui.QTabWidget):
                 self.tabCloseRequested.emit(i)
         elif 'close' in request:
             self.tabCloseRequested.emit(index)
+        elif 'delete' in request:
+            filename = item.filename
+            self.tabCloseRequested.emit(index)
+            try:
+                os.remove(filename)
+            except Exception:
+                pass
         
         # Update
         self.updateItemsFull()

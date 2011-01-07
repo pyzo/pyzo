@@ -918,10 +918,10 @@ class RunMenu(BaseMenu):
         addItem( MI('Run selected lines', self.fun_runSelected) )
         addItem( MI('Run cell', self.fun_runCell) )
         addItem( MI('Run file', self.fun_runFile) )
-        addItem( MI('Run project main file', self.fun_runProject) )
+        addItem( MI('Run main file', self.fun_runMainFile) )
         addItem( None )
-        addItem( MI('Run file as script', self.fun_runFile2))
-        addItem( MI('Run project main file as script', self.fun_runProject2))
+        addItem( MI('Run file as script', self.fun_runFileAsScript))
+        addItem( MI('Run main file as script', self.fun_runMainFileAsScript))
         addItem( None )
         addItem( MI('Help on running code', self.fun_showHelp))
     
@@ -1057,10 +1057,12 @@ class RunMenu(BaseMenu):
         return fname, text
     
     
-    def fun_runFile(self, value):
+    def fun_runFile(self, value, givenEditor=None):
         """ Run the current file in the current shell. """
         # Get editor and shell
         shell, editor = self.getShellAndEditor('file')
+        if givenEditor:
+            editor = givenEditor
         if not shell or not editor:
             return        
         # Obtain source code and fname
@@ -1068,10 +1070,10 @@ class RunMenu(BaseMenu):
         # Execute
         shell.executeCode(text, fname, -1)
     
-    def fun_runProject(self, value=None):
-        """ Run the current project's main file. """
+    def fun_runMainFile(self, value=None):
+        """ Run the main file in the current shell. """
         # Get editor and shell
-        shell, editor = self.getShellAndEditor('project', True)
+        shell, editor = self.getShellAndEditor('main file', True)
         if not shell or not editor:
             return 
         # Run code
@@ -1079,26 +1081,29 @@ class RunMenu(BaseMenu):
         shell.executeCode(text, fname, -1)
     
     
-    def fun_runFile2(self, value):
+    def fun_runFileAsScript(self, value, givenEditor=None):
         """ Restart shell, and run the current file as a script. """
         # Get editor and shell
         shell, editor = self.getShellAndEditor('file (as script)')
+        if givenEditor:
+            editor = givenEditor
         if not shell or not editor:
             return        
         # Go
         self._runScript(editor, shell)
     
     
-    def fun_runProject2(self, value):
-        """ Restart shell, and run the project's main file as a script. """
+    def fun_runMainFileAsScript(self, value):
+        """ Restart shell, and run the main file as a script. """
         # Get editor and shell
-        shell, editor = self.getShellAndEditor('project (as script)', True)
+        shell, editor = self.getShellAndEditor('main file (as script)', True)
         if not shell or not editor:
             return 
         # Go
         self._runScript(editor, shell)
     
     
+    # todo: pass as code, not filename
     def _runScript(self, editor, shell):
         # Obtain fname and try running
         err = ""
