@@ -13,6 +13,7 @@ function which is also defined here.
 """
 
 import os, sys
+import ssdf
 import iep
 
 from PyQt4 import QtCore, QtGui
@@ -297,7 +298,7 @@ def loadIcons():
     iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
     
     # Construct other icons
-    iep.icons = {}
+    iep.icons = ssdf.new()
     for fname in os.listdir(iconDir):
         if fname.startswith('iep'):
             continue

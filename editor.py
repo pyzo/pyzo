@@ -210,7 +210,7 @@ def createEditor(parent, filename=None):
     # return
     return editor
 
-
+ 
 class IepEditor(BaseTextCtrl):
     
     # called when dirty changed or filename changed, etc

@@ -6,6 +6,7 @@ state = dict:
     find_regExp = 0
     find_matchCase = 0
     find_wholeWord = 0
+    find_show = 0
     editorState = '' # What files where loaded and where the cursor was
     loadedTools = []
     windowState = '' # Of window and tools    

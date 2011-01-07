@@ -389,8 +389,9 @@ class ShellInfoDialogEntries(QtGui.QWidget):
 #         # Create close button
 #         #self._close = QtGui.QToolButton(self)
 #         self._close = QtGui.QPushButton(self)
-#         style = QtGui.qApp.style()
-#         self._close.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+#         #style = QtGui.qApp.style()
+#         #self._close.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+#         self._close.setIcon( iep.icons.cross )
 #         closeSize = self._close.iconSize()
 #         #self._close.move(400-closeSize.width()-20, 10)
 #         self._close.move(offset1, y+16)

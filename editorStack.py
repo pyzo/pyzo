@@ -915,7 +915,7 @@ class FindReplaceWidget(QtGui.QFrame):
         self._timer.setSingleShot(True)
         self._timer.timeout.connect( self.resetAppearance )
         
-        # init case and regexp
+        # init checkboxes
         self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
         self._regExp.setChecked( bool(iep.config.state.find_regExp) )
         self._wholeWord.setChecked(  bool(iep.config.state.find_wholeWord) )
@@ -927,6 +927,12 @@ class FindReplaceWidget(QtGui.QFrame):
         self._findPrev.clicked.connect(self.findPrevious)
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
+        
+        # show or hide?
+        if bool(iep.config.state.find_show):
+            self.show()
+        else:
+            self.hide()
     
     
     def hideMe(self):
@@ -1545,6 +1551,8 @@ class EditorStack(QtGui.QWidget):
         iep.config.state.find_matchCase = fr._caseCheck.isChecked()
         iep.config.state.find_regExp = fr._regExp.isChecked()
         iep.config.state.find_wholeWord = fr._wholeWord.isChecked()
+        iep.config.state.find_show = fr.isVisible()
+        
         #
         iep.config.state.editorState = self._getCurrentOpenFilesAsString()
     
