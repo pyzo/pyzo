@@ -1100,6 +1100,7 @@ class EditorTabs(QtGui.QWidget):
         # add to list
         item = FileItem(editor)
         self._tabs.addItem(item)
+        self._tabs.setCurrentItem(item)
         
         return item
     
@@ -1108,7 +1109,7 @@ class EditorTabs(QtGui.QWidget):
         """ Create a dialog for the user to select a file. """
         
         # determine start dir
-        # todo: better selection of dir
+        # todo: better selection of dir, using project manager
         editor = self.getCurrentEditor()
         if editor and editor._filename:
             startdir = os.path.split(editor._filename)[0]
