@@ -82,7 +82,7 @@ class MainWindow(QtGui.QMainWindow):
     def init1(self):
         
         # Delayed imports
-        from editorStack import EditorStack
+        from editorTabs import EditorTabs
         from shellStack import ShellStack
         from menu import MenuHelper
         import codeparser
@@ -97,7 +97,7 @@ class MainWindow(QtGui.QMainWindow):
             iep.parser.start()
         
         # Create editor stack and make the central widget
-        iep.editors = EditorStack(self)        
+        iep.editors = EditorTabs(self)
         #self.setCentralWidget(iep.editors)
         
         # Create shell stack and instantiate a default shell

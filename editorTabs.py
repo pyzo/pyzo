@@ -1,191 +1,872 @@
-"""  editorTabs
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010, the IEP development team
+#
+# IEP is distributed under the terms of the (new) BSD License.
+# The full license can be found in 'license.txt'.
 
-A tab widget for editors.
+""" EditorTabs class
 
-The FileItem represents the visual aspect of a file. Multiple file items
-can refer to the same IepFile. A ProjectItem represents the visual
-aspect of a project (a directory). It also has some organizing methods to
-for example select all iepFiles that apply to the project. A DirItem represents
-a directory (inside a project).
+Replaces the earlier EditorStack class.
 
-The FileListCtrl holds a list of all iepFiles, and a list of all
-project items. Each project item has a list of fileItems and dirItems.
-dirItems in turn, hold lists of fileItems and dirItems.
+The editor tabs class represents the different open files. They can
+be selected using a tab widget (with tabs placed north of the editor).
+It also has a find/replace widget that is at the bottom of the editor.
 
 """
 
 import os, sys, time, gc
 from PyQt4 import QtCore, QtGui
 
-# todo: make dynamic
-barwidth = 120
+import iep
+from editor import createEditor
+from baseTextCtrl import normalizePath
+from baseTextCtrl import styleManager
+from iepLogging import print
 
-STYLE_DIRTY = "color:#603000;"
-STYLE_MAIN = 'font:bold;'
-TYLE_CURRENT = 'background:#CEC;'
-
-PROJECT_ALL = "PROJECT_ALL"
-PROJECT_LOOSE = "PROJECT_LOOSE"
+# Constants for the alignments of tabs
+MIN_NAME_WIDTH = 50
+MAX_NAME_WIDTH = 200
 
 
-def normalizePath(path):
-    """ Normalize the path given. 
-    All slashes will be made the same (and doubles removed)
-    The real case as stored on the file system is recovered.
-    Returns None on error.
+# todo: some management stuff could (should?) go here
+class FileItem:
+    """ FileItem(editor)
+    
+    A file item represents an open file. It is associated with an editing
+    component and has a filename.
+    
     """
     
-    # normalize
-    path = os.path.abspath(path)  # make sure it is defined from the drive up
-    path = os.path.normpath(path)
-    
-    # If does not exist, return as is.
-    # This also happens if the path's case is incorrect and the
-    # file system is case sensitive. That's ok, because the stuff we 
-    # do below is intended to get the path right on case insensitive
-    # file systems.
-    if not (os.path.isfile(path) or os.path.isdir(path)):
-        print("Path does not exist:", path)
-        return None
-    
-    # make lowercase and split in parts    
-    parts = path.lower().split(os.sep)
-    sep = '/'
-    
-    # make a start
-    drive, tmp = os.path.splitdrive(path)
-    if drive:
-        # windows
-        fullpath = drive.upper() + sep
-        parts = parts[1:]
-    else:
-        # posix/mac
-        fullpath = sep + parts[1] + sep
-        parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
-    
-    for part in parts:
-        # print( fullpath,part)
-        options = [x for x in os.listdir(fullpath) if x.lower()==part]
-        if len(options) > 1:
-            print("Error normalizing path: Ambiguous path names!")
-            return None
-        elif len(options) < 1:
-            print("Invalid path: "+fullpath+part)
-            return None
-        fullpath += options[0] + sep
-    
-    # remove last sep
-    return fullpath[:-len(sep)]
-
-# 
-# 
-# class IepPath:
-#     def __init__(self, path):
-#         
-#         # Normalize and check success
-#         self._path = normalizePath(path)
-#         if self._path is None:
-#             raise ValueError("Invalid path")
-#     
-#     @property
-#     def path(self):
-#         """ The full (normalized) path of this file or project. 
-#         """
-#         return self._path
-# 
-
-
-# todo: OR DO I ONLY NEED AN EDITOR FOR THIS???
-class IepFile(QtCore.QObject):
-    """ IepFile()
-    
-    Represents an open document. This is basically a proxy for
-    an editor. This makes it possible to initially NOT load the editor;
-    The file is initially not read from disk (lazy loading).
-    
-    """ 
-    
-    # Signal to pass on somethingChanged signals from the editor
-    somethingChanged = QtCore.pyqtSignal()
-    
-    def __init__(self, path):
+    def __init__(self, editor):
         
-        # Normalize and check success
-        self._path = normalizePath(path)
-        if self._path is None or not os.path.isfile(self._path):
-            raise ValueError("Invalid path:", path)
-        
-        # Init editor (do not load file initially)
-        self._editor = None
-        # todo: store stuff that editor stores here.
-        # also load unicode stuff here?
-        # Also methods such as save etc?
-    
+        # Store editor
+        self._editor = editor
     
     @property
     def editor(self):
-        """ The editor in which this file is loaded. 
+        """ Get the editor component corresponding to this item.
         """
         return self._editor
+    
+    @property
+    def id(self):
+        """ Get an id of this editor. This is the filename, 
+        or for tmp files, the name. """
+        if self.filename:
+            return self.filename
+        else:
+            return self.name 
+    
+    @property
+    def filename(self):
+        """ Get the full filename corresponding to this item.
+        """
+        return self._editor._filename
+    
+    @property
+    def name(self):
+        """ Get the name corresponding to this item.
+        """
+        return self._editor._name
+
+
+# todo: when this works with the new editor, put in own module.
+class FindReplaceWidget(QtGui.QFrame):
+    """ A widget to find and replace text. """
+    
+    def __init__(self, *args):
+        QtGui.QWidget.__init__(self, *args)
+        
+        # init layout
+        layout = QtGui.QHBoxLayout(self)
+        layout.setSpacing(0)
+        self.setLayout(layout)
+        
+        # Get style instance
+        style = QtGui.qApp.style()
+        
+        # create widgets
+        
+#         self._stext = QtGui.QLabel("Find / Replace", self)
+#         self._stext.setFont( QtGui.QFont('helvetica',8,QtGui.QFont.Bold) ) 
+#         self._stext.move(5,yy)
+        
+        if True:
+            # Create sub layouts
+            vsubLayout = QtGui.QVBoxLayout()
+            vsubLayout.setSpacing(0)
+            layout.addLayout(vsubLayout, 0)
+            
+            # Add button
+            self._hidebut = QtGui.QToolButton(self)
+            self._hidebut.setFont( QtGui.QFont('helvetica',7) )
+            self._hidebut.setToolTip("Escape")
+            self._hidebut.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+            vsubLayout.addWidget(self._hidebut, 0)
+            
+            vsubLayout.addStretch(1)
+        
+        if True:
+            
+            # Create sub layouts
+            vsubLayout = QtGui.QVBoxLayout()
+            hsubLayout = QtGui.QHBoxLayout()
+            vsubLayout.setSpacing(0)
+            hsubLayout.setSpacing(0)
+            layout.addLayout(vsubLayout, 0)
+            
+            # Add find text
+            self._findText = QtGui.QLineEdit(self)
+            vsubLayout.addWidget(self._findText, 0)
+            
+            vsubLayout.addLayout(hsubLayout)
+            
+            # Add previous button
+            self._findPrev = QtGui.QToolButton(self) 
+            self._findPrev.setText('Previous')
+            hsubLayout.addWidget(self._findPrev, 0)
+            
+            hsubLayout.addStretch(1)
+            
+            # Add next button
+            self._findNext = QtGui.QToolButton(self)
+            self._findNext.setText('Next')
+            #self._findNext.setDefault(True)
+            hsubLayout.addWidget(self._findNext, 0)
+        
+        layout.addSpacing(10)
+        
+        if True:
+            
+            # Create sub layouts
+            vsubLayout = QtGui.QVBoxLayout()
+            hsubLayout = QtGui.QHBoxLayout()
+            vsubLayout.setSpacing(0)
+            hsubLayout.setSpacing(0)
+            layout.addLayout(vsubLayout, 0)
+            
+            # Add replace text
+            self._replaceText = QtGui.QLineEdit(self)
+            vsubLayout.addWidget(self._replaceText, 0)
+            
+            vsubLayout.addLayout(hsubLayout)
+            
+            # Add replace-all button
+            self._replaceAll = QtGui.QToolButton(self) 
+            self._replaceAll.setText("Repl. all")
+            hsubLayout.addWidget(self._replaceAll, 0)
+            
+            hsubLayout.addStretch(1)
+            
+            # Add replace button
+            self._replace = QtGui.QToolButton(self)
+            self._replace.setText("Replace")
+            hsubLayout.addWidget(self._replace, 0)
+        
+        
+        layout.addSpacing(10)
+        
+        if True:
+            
+            # Create sub layouts
+            vsubLayout = QtGui.QVBoxLayout()
+            vsubLayout.setSpacing(0)
+            layout.addLayout(vsubLayout, 0)
+            
+            # Add match-case checkbox
+            self._caseCheck = QtGui.QCheckBox("Match case", self)
+            vsubLayout.addWidget(self._caseCheck, 0)
+            
+            # Add regexp checkbox
+            self._regExp = QtGui.QCheckBox("RegExp", self)
+            vsubLayout.addWidget(self._regExp, 0)
+        
+        if True:
+            
+            # Create sub layouts
+            vsubLayout = QtGui.QVBoxLayout()
+            vsubLayout.setSpacing(0)
+            layout.addLayout(vsubLayout, 0)
+            
+            # Add whole-word checkbox
+            self._wholeWord = QtGui.QCheckBox("Whole words", self)
+            self._wholeWord.resize(60, 16)
+            vsubLayout.addWidget(self._wholeWord, 0)
+            
+            vsubLayout.addStretch(1)
+       
+        layout.addStretch(1)
+        
+        # create timer object
+        self._timer = QtCore.QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect( self.resetAppearance )
+        
+        # init case and regexp
+        self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
+        self._regExp.setChecked( bool(iep.config.state.find_regExp) )
+        self._wholeWord.setChecked(  bool(iep.config.state.find_wholeWord) )
+        
+        # create callbacks
+        self._findText.returnPressed.connect(self.findNext)
+        self._hidebut.clicked.connect(self.hideMe)
+        self._findNext.clicked.connect(self.findNext)
+        self._findPrev.clicked.connect(self.findPrevious)
+        self._replace.clicked.connect(self.replaceOne)
+        self._replaceAll.clicked.connect(self.replaceAll)
+    
+    
+    def hideMe(self):
+        """ Hide the find/replace widget. """
+        self.hide()
+        es = self.parent() # editor stack
+        #es._boxLayout.activate()
+        editor = es.getCurrentEditor()
+        if editor:
+            editor.setFocus()
+    
+    def keyPressEvent(self, event):
+        """ To capture escape. """
+        
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.hideMe()
+            event.ignore()
+        else:
+            event.accept()
+    
+    
+    def startFind(self,event=None):
+        """ Use this rather than show(). It will check if anything is 
+        selected in the current editor, and if so, will set that as the
+        initial search string
+        """
+        # show
+        self.show()
+        es = self.parent()
+        #es._boxLayout.activate()        
+        
+        # get needle
+        editor = self.parent().getCurrentEditor()
+        if editor:
+            needle = editor.getSelectedString()
+            if needle:
+                self._findText.setText( needle )
+        # select the find-text
+        self.selectFindText()
+        
+        
+    def notifyPassBeginEnd(self):
+        self.setStyleSheet("QFrame { background:#f00; }")
+        self._timer.start(300)
+    
+    def resetAppearance(self):
+        self.setStyleSheet("QFrame {}")
+    
+    def selectFindText(self):
+        """ Select the textcontrol for the find needle,
+        and the text in it """
+        # select text
+        self._findText.selectAll()
+        # focus
+        self._findText.setFocus()
+    
+    def findNext(self, event=None):
+        self.find()
+        #self._findText.setFocus()
+    
+    def findPrevious(self, event=None):
+        self.find(False)
+        # self._findText.setFocus()
+    
+    def find(self, forward=True):
+        """ The main find method.
+        Returns True if a match was found. """
+        
+        # get editor
+        editor = self.parent().getCurrentEditor()
+        if not editor:
+            return        
+        
+        # matchCase and regExp
+        matchCase = self._caseCheck.isChecked()
+        regExp = self._regExp.isChecked()
+        wholeWord = self._wholeWord.isChecked()
+        
+        # focus
+        self.selectFindText()
+        
+        # get text to find
+        needle = self._findText.text()
+        if not matchCase:
+            needle = needle.lower()
+        
+        # estblish start position
+        pos1 = editor.getPosition()
+        pos2 = editor.getAnchor()
+        if forward:
+            pos = max([pos1,pos2])
+        else:
+            pos = min([pos1,pos2])
+        line = editor.getLinenrFromPosition(pos)
+        index = pos-editor.getPositionFromLinenr(line)
+        
+        # use Qscintilla's implementation
+        ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
+                            forward, line, index, True)
+        
+        # wrap and notify
+        if not ok:
+            self.notifyPassBeginEnd()
+            if forward:
+                line, index = 0,0
+            else:
+                pos = editor.length()
+                line = editor.getLinenrFromPosition(pos)
+                index = pos-editor.getPositionFromLinenr(line)
+            ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
+                                forward, line, index, True)
+        
+        # done
+        editor.setFocus(True)
+        return ok
+    
+    
+    def replaceOne(self,event=None):
+        """ If the currently selected text matches the find string,
+        replaces that text. Then it finds and selects the next match.
+        Returns True if a next match was found.
+        """
+        
+        # get editor
+        editor = self.parent().getCurrentEditor()
+        if not editor:
+            return        
+        
+        # matchCase
+        matchCase = self._caseCheck.isChecked()
+        
+        # get text to find
+        needle = self._findText.text()
+        if not matchCase:
+            needle = needle.lower()
+        
+        # get replacement
+        replacement = self._replaceText.text()
+        
+        # get original text
+        original = editor.getSelectedString()
+        if not original:
+            original = ''
+        if not matchCase:
+            original = original.lower()
+        
+        # replace
+        if original and original == needle:
+            editor.replace( replacement )
+        
+        # next!
+        return self.find()
+    
+    
+    def replaceAll(self,event=None):
+        
+        # get editor
+        editor = self.parent().getCurrentEditor()
+        if not editor:
+            return 
+        
+        # get current position
+        linenr, index = editor.getLinenrAndIndex()
+        
+        # replace all
+        editor.setPosition(0)
+        while self.replaceOne():
+            pass
+        
+        # reset position
+        pos = editor.getPositionFromLinenr(linenr)
+        editor.setPositionAndAnchor(pos+index)
 
 
 
-# class IepProject:
-#     """ IepProject(path)
-#     
-#     represents a project to group files. 
-#     In most cases, this represents a directory.
-#     """
-#     
-#     def __init__(self, path):
-#         IepPath.__init__(self, path)
-#         
-#         # Store
-#         self._normal = True
-#         
-#         # todo: make subclasses for these special cases
-#         # Check
-#         if path in [PROJECT_ALL, PROJECT_LOOSE]:
-#             # lists of all files or list of files not in any other project
-#             self._normal = False
-#         elif not os.path.isdir(path):
-#             raise ValueError('Invalid directory')
-#     
-#     
-#     
-
-
-
-class Item(qt.QLabel):
-    """ Base Item class, items for a list of files and projects.
-    Some of the styling is implemented here. An item instance 
-    directly represents the file or project, but also its 
-    asociated widget (and thus appearance).
+class FileTabWidget(QtGui.QTabWidget):
+    """ FileTabWidget(parent)
+    
+    The tab widget that contains the editors and lists all open files.
+    
     """
     
     def __init__(self, parent):
-        qt.QLabel.__init__(self, parent)
-       
-        # indicate height and spacing
-        self._itemHeight = 16
-        self._itemSpacing = iep.config.advanced.editorStackBarSpacing
+        QtGui.QTabWidget.__init__(self, parent)
         
-        # set indent and size        
-        self._indent = 1
-        self._y = 1
-        self.resize(barwidth-self._indent, self._itemHeight)
+        # Init main file
+        self._mainFile = ''
         
-        # test framewidths when raised
-        self.setLineWidth(1)
-        self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
-        self._frameWidth = self.frameWidth() + 3 # correction        
+        # Put tab widget in document mode
+        self.setDocumentMode(True)
         
-        # Enable receiving the mouse move event always
-        self.setMouseTracking(True)
+        # Allow moving tabs around
+        self.setMovable(True)
         
-        # To accept dropping
-        self.setAcceptDrops(True)
+        # Tune the tab bar
+        if True:
+            tabBar = self.tabBar()
+            
+            # We do our own eliding
+            tabBar.setElideMode(QtCore.Qt.ElideNone) 
+            # Make tabs wider if there's plenty space
+            tabBar.setExpanding(False) 
+            # If there's not enough space, use scroll buttons
+            tabBar.setUsesScrollButtons(True) 
+            # When a tab is removed, select previous
+            tabBar.setSelectionBehaviorOnRemove(tabBar.SelectPreviousTab)
+            
+            # Reduce font size to fit more text
+            font = tabBar.font()
+            font.setPointSize(8)
+            tabBar.setFont(font)        
+        
+        # Create a corner widget
+        but = QtGui.QToolButton()
+        style = QtGui.qApp.style()
+        but.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+        but.clicked.connect(self.onClose)
+        self.setCornerWidget(but)
+        
+        # Create context menu
+        self._menu = QtGui.QMenu()
+        self._menu.triggered.connect(self.contextMenuTriggered)
+        self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        
+        # Init alignment parameters
+        self._alignWidth = MIN_NAME_WIDTH
+        self._alignWidthIsReducing = False
+        
+        # Create timer for aligning
+        self._alignTimer = QtCore.QTimer(self)
+        self._alignTimer.setInterval(10)
+        self._alignTimer.setSingleShot(True)
+        self._alignTimer.timeout.connect(self._alignRecursive)
+        
+        # Bind signal to update items
+        self.currentChanged.connect(self.updateItems)
     
+    
+    
+    ## Context menu
+    
+    def contextMenuEvent(self, event):
+        tabBar = self.tabBar()
+        index = tabBar.tabAt(event.pos())
+        print( 'what was pressed?', unicode(tabBar.tabText(index)) )
+        
+        # Create menu
+        self._menu.clear()
+        for a in ['Show namespace', 'Show help', 'Delete']:
+            action = self._menu.addAction(a)
+        
+        # Show
+        #pos = event.globalPos()
+        pos = tabBar.mapToGlobal( tabBar.tabRect(index).bottomLeft() )
+        self._menu.exec_(pos)
+    
+    
+    def contextMenuTriggered(self, action):
+        print( action.text() )
+    
+    
+    ## Aligning of the tabs (eliding)
+    
+    def resizeEvent(self, event):
+        QtGui.QTabWidget.resizeEvent(self, event)
+        self.alignItems()
+    
+    
+    def showEvent(self, event):
+        QtGui.QTabWidget.showEvent(self, event)
+        self.alignItems()
+    
+    
+    def alignItems(self):
+        """ alignItems()
+        
+        Align the tab items. Their names are ellided if required so that
+        all tabs fit on the tab bar if possible. When there is too little
+        space, the tabbar itself will kick in and draw scroll arrows.
+        
+        """
+        
+        # Set name widths correct (in case new names were added)
+        self._setMaxWidthOfAllItems()
+        
+        # Start alignment process
+        self._alignWidthIsReducing = False
+        self._alignTimer.start()
+        
+        
+    def _alignRecursive(self):
+        """ _alignRecursive()
+        
+        Recursive alignment of the items. The alignment process
+        should be initiated from alignItems().
+        
+        """
+        
+        # Only if visible
+        if not self.isVisible():
+            return
+        
+        # Get tab bar and number of items
+        tabBar = self.tabBar()
+        N = self.count()
+        
+        # Get right edge of last tab and left edge of corner widget
+        pos1 = tabBar.tabRect(N-1).topRight()
+        pos2 = self.cornerWidget().pos()
+        x1 = tabBar.mapToGlobal(pos1).x()
+        x2 = self.mapToGlobal(pos2).x()
+        alignMargin = x2-x1 -3  # Must be positive (has margin)
+        
+        # Are the tabs too wide?
+        if alignMargin < 0:
+            # Tabs extend beyond corner widget
+            
+            # Reduce width then
+            self._alignWidth -= max(abs(alignMargin)/N, 5)
+            self._alignWidth = max(self._alignWidth, MIN_NAME_WIDTH)
+            
+            # Apply
+            self._setMaxWidthOfAllItems()
+            self._alignWidthIsReducing = True
+            
+            # Try again if there's still room for reduction
+            if self._alignWidth > MIN_NAME_WIDTH:
+                self._alignTimer.start()
+        
+        elif alignMargin > 10 and not self._alignWidthIsReducing:
+            # Gap between tabs and corner widget is a bit large
+            
+            # Increase width then
+            self._alignWidth += max(abs(alignMargin)/N, 5)
+            self._alignWidth = min(self._alignWidth, MAX_NAME_WIDTH)
+            
+            # Apply
+            itemsElided = self._setMaxWidthOfAllItems()
+            
+            # Try again if there's still room for increment
+            if itemsElided and self._alignWidth < MAX_NAME_WIDTH:
+                self._alignTimer.start()
+        
+        else:            
+            pass # margin is good
+    
+    
+    
+    def _setMaxWidthOfAllItems(self):
+        """ _setMaxWidthOfAllItems()
+        
+        Sets the maximum width of all items now, by eliding the names.
+        Returns whether any items were elided.
+        
+        """ 
+        
+        # Get width
+        w = self._alignWidth
+        
+        # Prepare for measuring font sizes
+        font = self.tabBar().font()
+        metrics = QtGui.QFontMetrics(font)
+        
+        # Get tabbar and items
+        tabBar = self.tabBar()
+        items = self.items()
+        
+        # Get whether an item was reduced in size
+        itemReduced = False
+        
+        for i in range(len(items)):
+            
+            # Get name and splint in root+ext
+            name = name0 = items[i].name
+            root, ext = os.path.splitext(name)
+            
+            # If extension is small, ellide only the root part, 
+            # otherwise, ellide full name
+            if len(ext) < 5:
+                offset = metrics.width(ext)
+                root2 = metrics.elidedText(root, QtCore.Qt.ElideRight, w-offset)
+                if len(root2) < len(root):
+                    name = root2+ext[1:]
+            else:
+                name = metrics.elidedText(name, QtCore.Qt.ElideRight, w)
+            
+            # Get whether the item was changed
+            itemReduced = itemReduced or (len(name) != len(name0))
+            
+            # Set text now
+            tabBar.setTabText(i, name)
+        
+        # Done
+        return itemReduced
+    
+    
+    ## Item management and updating
+    
+    
+    def items(self):
+        """ Get the items in the tab widget. These are Item instances, and
+        are in the order in which they are at the tab bar.
+        """
+        tabBar = self.tabBar()
+        items = []
+        for i in range(tabBar.count()):
+            item = tabBar.tabData(i)
+            if item is None:
+                continue
+            if not isinstance(item, FileItem):
+                item = item.toPyObject() # Older version of Qt
+            items.append(item)
+        return items
+    
+    
+    def setCurrentItem(self, item):
+        """ setCurrentItem(self, item)
+        
+        Set a FileItem instance to be the current. if The given item
+        is not in the list, no action is taken.
+        
+        """
+        
+        if isinstance(item, FileItem):
+            
+            items = self.items()
+            for i in range(self.count()):
+                if item is items[i]:
+                    self.setCurrentIndex(i)
+                    break
+        
+        elif isinstance(item, str):
+            
+            items = self.items()
+            for i in range(self.count()):
+                if item == items[i].filename:
+                    self.setCurrentIndex(i)
+                    break
+        
+        else:
+            raise ValueError('item should be a FileItem or file name.')
+    
+    
+    def currentItem(self):
+        """ Get the item corresponding to the currently active tab.
+        """
+        i = self.currentIndex()
+        if i>=0:
+            item = self.tabBar().tabData(i)
+            if not isinstance(item, FileItem):
+                item = item.toPyObject() # Older version of Qt
+            return item
+    
+    
+    def mainItem(self):
+        """ Get the item corresponding to the "main" file. Returns None
+        if there is no main file.
+        """
+        for item in self.items():
+            if item.id == self._mainFile:
+                return item
+        else:
+            return None
+    
+    
+    def onClose(self):
+        """ onClose()
+        
+        Request to close the current tab.
+        
+        """
+        
+        self.tabCloseRequested.emit(self.currentIndex())
+    
+    
+    def removeTab(self, which):
+        """ removeTab(which)
+        
+        Removes the specified tab. which can be an integer, an item,
+        or an editor.
+        
+        """
+        
+        # Init
+        items = self.items()
+        theIndex = -1
+        
+        # Find index
+        if isinstance(which, int) and which>=0 and which<len(items):
+            theIndex = which
+        
+        elif isinstance(which, FileItem):
+            for i in range(self.count()):
+                if items[i] is which:
+                    theIndex = i
+                    break
+        
+        elif isinstance(which, str):
+            for i in range(self.count()):
+                if items[i].filename == which:
+                    theIndex = i
+                    break
+        
+        elif hasattr(which, '_filename'):
+            for i in range(self.count()):
+                if items[i].filename == which._filename:
+                    theIndex = i
+                    break
+        
+        else:
+            raise ValueError('removeTab accepts a FileItem, integer, file name, or editor.')
+        
+        
+        if theIndex >= 0:
+            
+            # Close tab
+            QtGui.QTabWidget.removeTab(self, theIndex)
+            
+            # Delete editor
+            items[theIndex].editor.destroy()
+            gc.collect()
+            
+            # Update
+            self.alignItems()
+    
+    
+    def addItem(self, item, update=True):
+        """ addItem(item, update=True)
+        
+        Add item to the tab widget. Set update to false if you are
+        calling this method many times in a row. Then use updateItemsFull()
+        to update the tab widget.
+        
+        """
+        
+        # Add tab and widget
+        i = self.addTab(item.editor, item.name)        
+        # Store the item at the tab
+        self.tabBar().setTabData(i, item)
+        # Update
+        if update:
+            self.updateItemsFull()
+    
+    
+    def updateItemsFull(self):
+        """ updateItemsFull()
+        
+        Update the appearance of the items and also updates names and 
+        re-aligns the items.
+        
+        """
+        self.updateItems()
+        self.alignItems()
+    
+    
+    def updateItems(self):
+        """ updateItems()
+        
+        Update the appearance of the items.
+        
+        """
+        
+        # Get items and tab bar
+        items = self.items()
+        tabBar = self.tabBar()
+        
+        for i in range(len(items)):
+            
+            # Get item
+            item = items[i]
+            if item is None:
+                continue
+            
+            # Update tooltip
+            tabBar.setTabToolTip(i, item.filename)
+            
+            # Determine text color. Is main file? Is current?
+            if self._mainFile == item.id:
+                tabBar.setTabTextColor(i, QtGui.QColor('#008'))
+            elif i == self.currentIndex():
+                tabBar.setTabTextColor(i, QtGui.QColor('#000'))
+            else:
+                tabBar.setTabTextColor(i, QtGui.QColor('#444'))
+            
+            # Update appearance of icon
+            #tabBar.setTabIcon(iep.icons['file_normal'])
+
+
+class EditorTabs(QtGui.QWidget):
+    
+    # Signal to notify that a different file was selected
+    changedSelected = QtCore.pyqtSignal()
+    
+    # Signal to notify that the parser has parsed the text (emit by parser)
+    parserDone = QtCore.pyqtSignal()
+    
+    
+    def __init__(self, parent):
+        QtGui.QWidget.__init__(self,parent)
+        
+        # keep a booking of opened directories
+        self._lastpath = ''
+        
+        # create tab widget
+        self._tabs = FileTabWidget(self)       
+        self._tabs.tabCloseRequested.connect(self.closeFile)
+        
+        # Create find/replace widget
+        self._findReplace = FindReplaceWidget(self)
+        
+        # create box layout control and add widgets
+        self._boxLayout = QtGui.QVBoxLayout(self)
+        self._boxLayout.addWidget(self._tabs, 1)
+        self._boxLayout.addWidget(self._findReplace, 0)
+        # spacing of widgets
+        self._boxLayout.setSpacing(0)
+        # apply
+        self.setLayout(self._boxLayout)
+        
+        #self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
+        
+        # accept drops
+        self.setAcceptDrops(True)
+        
+        # restore state
+        self.restoreEditorState()
+    
+    
+    def getCurrentEditor(self):
+        """ Get the currently active editor. """
+        item = self._tabs.currentItem()
+        if item:
+            return item.editor
+        else:
+            return None
+    
+    
+    def getMainEditor(self):
+        """ Get the editor that represents the main file, or None if
+        there is no main file. """
+        item = self._tabs.mainItem()
+        if item:
+            return item.editor
+        else:
+            return None
+    
+    
+    def __iter__(self):
+        tmp = [item.editor for item in self._tabs.items()]
+        return tmp.__iter__()
+    
+    
+    ## Loading ad saving files
     
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -193,870 +874,444 @@ class Item(qt.QLabel):
     
     def dropEvent(self, event):
         """ Drop files in the list. """
-        # let the editorstack do the work.
-        event._y = self._y + event.pos().y()
-        self.parent().dropEvent(event)
-    
-    def setIndent(self, indent):
-        """ Set the indentation of the item. """
-        self._indent = indent
-        self.resize(barwidth-self._indent, self._itemHeight)
-    
-    def updateTexts(self):
-        raise NotImplemented()
-        
-    def updateStyle(self):
-        raise NotImplemented()
-    
-    def enterEvent(self, event):
-        self.updateStyle()
-    
-    def leaveEvent(self, event):        
-        self.updateStyle()
-    
-    def mouseMoveEvent(self, event):
-        if not event.buttons():
-            QtGui.QToolTip.showText(QtGui.QCursor.pos(), self.toolTip())
-        else:
-            self.parent().mouseMoveEvent(event)
-    
-    def mouseReleaseEvent(self, event):
-        self.parent().mouseReleaseEvent(event)
-    
-
-class BaseProjectItem(Item):
-    """ A base project class.
-    """
-    
-    def __init__(self, parent):
-        Item.__init__(self, parent)
-        
-        # Default path
-        self._name = 'Loose files'
-        self._path = 'Files that do not belong to any project.'
-        
-        # This project's main file (an iepFile instance)
-        self._mainFile = None
-        
-        # Projects have more spacing
-        self._itemSpacing = 2 + iep.config.advanced.editorStackBarSpacing
-        
-        # Set of file items
-        self._items = set()
-        
-        # Whether this dir is collapsed
-        self._collapsed = False
-        
-        # Update
-        self.setStyleSheet("Item { font:bold; background:#77C; }")
-        self.updateTexts()
-        self.updateStyle()
-    
-    
-    def updateTexts(self):
-        """ Update the text and tooltip """        
-        if self._collapsed:
-            self.setText('- {} ({})'.format(self._name, len(self._items)))
-        else:
-            self.setText('+ {}'.format(self._name))
-        self.setToolTip('project '+ self._name + ': ' + self._path)
-    
-    
-    def updateStyle(self):
-        """ Update the style. Automatically detects whether the mouse
-        is over the label. Depending on the type and whether the file is
-        selected, sets its appearance and redraw! """
-        if self._collapsed:#self.underMouse():
-            self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Plain)
-            self.move(self._indent,self._y)
-        else:
-            self.setFrameStyle(0)
-            #self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Plain)
-            self.move(self._indent,self._y)
-    
-    def selectFiles(self, *args):
-        raise NotImplemented('BaseProjects do not know how to select files.')
-
-    
-    def mousePressEvent(self, event):
-        """ Collapse/expand item, or show context menu. """
-        
-        if event.button() == QtCore.Qt.LeftButton:
-            # collapse/expand
-            self._collapsed = not self._collapsed
-            self.parent().updateMe()
-
-
-
-class ProjectItem(BaseProjectItem):
-    """ An item representing a directory. """
-    
-    def __init__(self, parent, path):
-        Item.__init__(self, parent)
-        
-        # Store path
-        self._path = normalizePath(path)
-        if self._path is None or os.path.isdir(self._path):
-            raise ValueError('Invalid path:', path)
-        
-        # Set name of directory (projects can be renamed, DirItems not)
-        self._name = os.path.split(IepProject.path)[1]
-        
-        # Set style
-        self.setStyleSheet("Item { font:bold; background:#77A; }")
-    
-    
-    def selectFiles(self, iepFiles):
-        """ selectFiles(self, iepFiles)
-        
-        Given a set of iepFiles, returns the subset of files that belong
-        to this project.
-        """
-        
-        # Fill subset
-        subSet = set()
-        for file in iepFiles:
-            if file.path.startswith(self._path):
-                subSet.add(file)
-        
-        # Done
-        return subSet
-    
-    
-    def mousePressEvent(self, event):
-        """ Collapse/expand item, or show context menu. """
-        
-        if event.button() == QtCore.Qt.LeftButton:
-            # collapse/expand
-            self._collapsed = not self._collapsed
-            self.parent().updateMe()
-        
-        elif event.button() == QtCore.Qt.RightButton:
-            # popup menu
-            menu = QtGui.QMenu(self)
-            menu.addAction('New file (in project)', self.context_new)
-            menu.addAction('Open file (in project)', self.context_open)
-            menu.addSeparator()       
-            menu.addAction('Rename project', self.context_rename)
-            menu.addAction('Remove project', self.context_remove)
-            menu.addSeparator()
-            menu.addAction('Move project up', self.context_up)
-            menu.addAction('Move project down', self.context_down)
-            menu.popup(event.globalPos())
-    
-    def context_new(self, event=None):
-        self.parent().parent().newFile(self._name)
-    def context_open(self, event=None):
-        self.parent().parent().openFile(self._name)
-    def context_rename(self, event=None):
-        title = "Project name"
-        label = "Give the new project name"
-        name, ok = QtGui.QInputDialog.getText(self, title, label)
-        if ok and name:
-            self._name = name
-            self.updateTexts()
-    def context_remove(self, event=None):
-        self.parent().removeProject(self)
-    def context_up(self, event=None):
-        self.upDownHelper(-1)            
-    def context_down(self, event=None):
-        self.upDownHelper(1)
-    
-    def upDownHelper(self, direction):
-        """ move project up (-1) or down (+1)
-        """
-        projectBefore, projectAfter, itemsToMove = None, None, []
-        phase = 0
-        for item in self.parent()._items:
-            if phase == 0:
-                if item is self:
-                    phase = 1
-                elif isinstance(item, ProjectItem):
-                    projectBefore = item
-            elif phase == 1:
-                if isinstance(item, ProjectItem):                    
-                    phase = 2
-                else:
-                    itemsToMove.append(item)
-            elif phase == 2:
-                if isinstance(item, ProjectItem):
-                    projectAfter = item
-                    break
-        
-        if direction<0 and not projectBefore:
-            return # no need, already at top
-        
-        # finish up list of items to move and get parent list object
-        itemsToMove.reverse()
-        itemsToMove.append(self)        
-        items = self.parent()._items
-        
-        # remove all items from the list 
-        for item in itemsToMove:
-            while item in items:
-                items.remove(item)
-        
-        # determine index to insert
-        if direction < 0:
-            i = items.index(projectBefore)
-        elif direction > 0:
-            if projectAfter:
-                i = items.index(projectAfter)
+        for qurl in event.mimeData().urls():
+            path = str( qurl.path() )
+            if sys.platform.startswith('win'):
+                path = path[1:]
+            if os.path.isfile(path):
+                self.loadFile(path)
+            elif os.path.isdir(path):
+                self.loadDir(path)
             else:
-                i = len(items) # put at the end
-        
-        # insert them again at the new position
-        for item in itemsToMove:
-            items.insert(i, item)
-        
-        # update
-        self.parent().updateMe()
-
-
-class DirItem(ProjectItem):
-    """ A subproject. well not really a project, but a directory inside 
-    a project.
-    """
-    
-    def __init__(self, parent, path):
-        BaseProjectItem.__init__(self, parent, path)
-        
-        # Set style
-        self.setStyleSheet("Item { font:bold; background:#88A; }")
+                pass
     
     
-class FileItem(Item):
-    """ An item representing a file. This class does the loading 
-    and saving of that file, but without any checks, that is up to
-    the editorStack. """
-    
-    def __init__(self, parent, projectItem, iepFile):
-        Item.__init__(self, parent)
+    def newFile(self):
+        """ Create a new (unsaved) file. """
         
-        # Each file item belongs to a project item
-        self._projectItem = projectItem
+        # create editor
+        editor = createEditor(self, None)
         
-        # Store iepFile instance
-        self._iepFile = iepFile
+        # add to list
+        item = FileItem(editor)
+        self._tabs.addItem(item)
         
-        # To keep name and tooltip up to date
-        self._iepFile.somethingChanged.connect(self.updateTexts)
-        
-        # set style
-        self.setAutoFillBackground(True)
-        
-        # update
-        self.updateTexts()
-        self.updateStyle()
-    
-    
-    def isMainFile(self):
-        """ Returns whether this is the main file of a project. """ 
-        return self._projectItem._mainFile is self._iepFile
-    
-    
-    def updateTexts(self):
-        """ Updates the text of the label and tooltip. Called when 
-        the editor's dirty status changed or when saved as another file. 
-        """
-        # todo: IepFile should implement all these properties
-        # get texts
-        name = self._iepFile._editor._name
-        filename = self._iepFile._editor._filename
-        # prepare texts
-        if self._iepFile._editor._dirty:
-            name = '*' + name
-        if not filename: 
-            filename = '<temporary file>'        
-        # get whether this is the project main file
-        if self.isMainFile():
-            toolTipText = "project's main file: " + filename
-        else:
-            toolTipText = 'file: '+ filename
-        # apply
-        self.setText(name)
-        self.setToolTip(toolTipText)
-        self.updateStyle()
-    
-    
-    def updateStyle(self):
-        """ Update the style. To indicate selected file or hoovering over one.
-        Need to update position, because the frame width is different for
-        the different scenarios."""
-        
-        # Init style
-        style = ''
-        
-        isMain = self.isMainFile()
-        isCurrent = self is self.parent()._currentItem
-        
-        # Set style to handle dirty and mainfile
-        if self._editor._dirty:
-            style += STYLE_DIRTY
-        if isMain:
-            style += STYLE_MAIN
-        if isCurrent:
-            style += STYLE_CURRENT
-        
-        # Set frames sunken or raised
-        if isCurrent:
-            self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
-            self.move(self._indent ,self._y)
-        elif self.underMouse():
-            self.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Raised)
-            self.move(self._indent ,self._y)
-            # Can flicker on gtk if isMain, but solving by correcting
-            # indentation makes it flicker on windows :)
-        else:
-            self.setFrameStyle(0)
-            self.move(self._frameWidth+self._indent,self._y)
-        
-        # Set style
-        self.setStyleSheet("QLabel{" + style + "}")
-    
-    
-    def mouseDoubleClickEvent(self, event):
-        """ Double click saves the file
-        """
-        self.parent().parent().saveFile(self._iepFile)
-    
-    
-    def mousePressEvent(self, event):
-        """ Item selected. """
-        
-        # select this item! 
-        self.parent().setCurrentItem(self)
-        
-        if event.button() == QtCore.Qt.LeftButton:
-            # change stuff at parent to get the dragging right
-            x, y = event.globalX(), event.globalY()
-            self.parent()._dragStartPos = QtCore.QPoint(x,y)
-        
-        elif event.button() == QtCore.Qt.RightButton:
-            # popup menu
-            menu = QtGui.QMenu(self)
-            menu.addAction('Save file', self.context_save)
-            menu.addAction('Save file as', self.context_saveAs)
-            menu.addAction('Close file', self.context_close)
-            if self.isMainFile():
-                menu.addAction('Unmake main file', self.context_makeMain)
-            else:
-                menu.addAction('Make main file', self.context_makeMain)
-            menu.popup(event.globalPos())
-    
-    def context_save(self, event=None):
-        self.parent().parent().saveFile(self._editor)
-    def context_saveAs(self, event=None):
-        self.parent().parent().saveFileAs(self._editor)
-    def context_close(self, event=None):
-        self.parent().parent().closeFile(self._editor)
-    def context_makeMain(self, event=None):
-        if self._projectItem:
-            if self.isMainFile():
-                self._projectItem._mainFile = None
-            else:
-                self._projectItem._mainFile = self._iepFile
-        else:
-            m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Project main file")
-            m.setText(  "Cannot make this the project main file, " +
-                        "because this file is not in a project.")
-            m.setIcon(m.Information)
-            m.exec_()
-        #
-        for item in self.parent()._items:
-            if isinstance(item, FileItem):
-                item.updateTexts()
-    
-
-class FileListCtrl(QtGui.QFrame):
-    """ Control that displays a list of files using Labels.
-    """
-    
-    def __init__(self, parent):
-        qt.QWidget.__init__(self,parent)
-        
-        # store editorstack
-        self._editorStack = parent
-        
-        # set width
-        self.setMinimumWidth(barwidth)
-        self.setMaximumWidth(barwidth)
-        
-        # create scrollbar to scroll
-        self._scroller = QtGui.QScrollBar(self)
-        self._scroller.setOrientation(QtCore.Qt.Horizontal)
-        self._scroller.resize(barwidth, 15)
-        self._scroller.setRange(0,200)
-        self._scroller.setSingleStep(10)
-        self._scroller.setValue(0)
-        
-        # create list of iep docs and matching items
-        # todo: _items or _docs?
-        self._files = []
-        self._projectItems = [BaseProjectItem()]
-        self._currentItem = None
-        self._itemHistory = []
-        
-        # enable dragging/dropping
-        self.setAcceptDrops(True)
-        # for dragging file items
-        self._draggedItem = None
-        self._dragStartPos = QtCore.QPoint(0,0)
-        # for dropping files
-        self._droppedIndex = 0
-        self._droppedTime = time.time()-1.0
-        
-        # set callbacks
-        self._scroller.valueChanged.connect(self.updateMe)
-    
-    
-    
-    ## Events and dragging
-    
-    def resizeEvent(self, event):
-        QtGui.QFrame.resizeEvent(self, event)
-        self.updateMe()
-    
-    
-    def wheelEvent(self, event):
-        """ Allow the user to scroll the file list. """
-        # Determine amount of pixels to scroll
-        degrees = event.delta() / 8
-        steps = degrees / 15
-        deltaPixels = steps * 16
-        self._scroller.setValue( self._scroller.value() - deltaPixels)
-    
-    
-    def mouseReleaseEvent(self, event):
-        # stop dragging
-        self._draggedItem = None        
-        # update
-        self.updateMe()
-    
-    
-    def mouseMoveEvent(self, event):
-        # check for mouse and moved enough
-        
-        if not event.buttons() & QtCore.Qt.LeftButton:
-            return
-            
-        th = QtGui.qApp.startDragDistance()
-        
-        if self._draggedItem:
-            # do drag now
-            self._doDrag(event)
-        
-        elif (event.globalPos() - self._dragStartPos).manhattanLength() > th:
-            # start drag
-            
-            # determine which item to drag
-            theitem = None
-            yref = self._dragStartPos.y()
-            for item in self._items:
-                if item.underMouse():
-                    theitem = item  
-                    break
-            
-            # is the item a file?
-            if isinstance(theitem, FileItem):
-                theitem.raise_() # make it the front-most item
-                theitem._yStart = theitem._y
-                self._draggedItem = theitem
-    
-    
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-    
-    
-    def dropEvent(self, event):
-        """ Drop files/directories in the list. """
-        
-        # get y position
-        if hasattr(event, '_y'):
-            yd = event._y
-        else:
-            yd = event.pos().y()
-        
-        # determine where to place the item
-        i_to_put = None
-        for i in range(len(self._items)):
-            item = self._items[i]
-            y = item._y + item._itemHeight + item._itemSpacing
-            if item.isVisible() and y > yd:
-                i_to_put = i
-                break
-        
-        # post process
-        if yd < self._items[0]._y:
-            i_to_put = 0
-        elif i_to_put is None:
-            # put at the end
-            i_to_put = len(self._items)
-        elif isinstance(self._items[i_to_put], ProjectItem):
-            # if a project item, insert as first item in that project.
-            if i_to_put < len(self._items) -1:
-                i_to_put += 1
-        
-        # make the item be inserted here
-        self._droppedIndex = i_to_put
-        self._droppedTime = time.time()
-        
-        # let the editorstack do the loading,
-        # which calls our appendFile, where we can put it in the
-        # right place.
-        self._editorStack.dropEvent(event)
-    
-    
-    def mousePressEvent(self, event):
-        """ Context menu """        
-        if event.button() == QtCore.Qt.RightButton:
-            # popup menu
-            menu = QtGui.QMenu(self)
-            menu.addAction('New file', self.context_newFile)
-            menu.addAction('Open file', self.context_openFile)
-            menu.addSeparator()   
-            menu.addAction('Create new project', self.context_newProject)
-            menu.addAction('Open dir as project', self.context_openProject)
-            menu.popup(event.globalPos())
-    
-    
-    def _doDrag(self, event):
-        
-        # determine new position
-        diffY = event.globalY() - self._dragStartPos.y()
-        self._draggedItem._y = self._draggedItem._yStart+ diffY
-        
-        # determine if we should swap items
-        i_to_put = None
-        y2 = self._draggedItem._itemHeight/2
-        for i in range(len(self._items)):
-            item = self._items[i]
-            if item is self._draggedItem:
-                continue
-            dy = item._y - self._draggedItem._y
-            if item.isVisible() and abs(dy) < y2:                    
-                if dy < 0 and self._draggedItem._y < item._y + y2:
-                    i_to_put = i
-                if dy > 0 and self._draggedItem._y > item._y - y2:
-                    i_to_put = i
-                break
-            
-        if i_to_put is not None:
-            # first remove item being dragged
-            self._items.remove(self._draggedItem)
-            # determine where to put it
-            if i_to_put > len(self._items):
-                # at the end
-                self._items.insert(i_to_put, self._draggedItem)
-            else:
-                # somewhere in between
-                for i in range(i_to_put-1,-1,-1):
-                    item = self._items[i]
-                    if isinstance(item, ProjectItem) and item._collapsed:
-                        continue
-                    if self._items[i].isVisible():
-                        self._items.insert(i+1, self._draggedItem)
-                        break
-                else:
-                    # at the beginning
-                    self._items.insert(0, self._draggedItem)
-            
-            # update list, but disable drawing to prevent flicker
-            self.setUpdatesEnabled(False)
-            try:
-                tmp = self._draggedItem._y
-                self.updateMe()
-                self._draggedItem._y = tmp
-            finally:
-                self.setUpdatesEnabled(True)
-        
-        # update position
-        self._draggedItem.updateStyle()
-        self._draggedItem.show()
-        self.update()
-   
-    
-    ## Updating etc.
-    
-    
-    def updateItems(self):
-        """ Make sure that there exists a FileItem for each IepFile
-        instance in the list.
-        These items are positioned in updateMe()
-        """
-        
-        for project in self._projectItems[1:]:
-            pass
-    
-    
-    def updateMe(self):
-        project = None
-        ncollapsed = 0
-        itemsToUpdate = []
-        
-        h1 = self._label.height() + 2
-        
-        offset = h1-self._scroller.value()
-        y = offset  # initial y position
-        spacing = 0
-        for item in self._items:            
-            if isinstance(item, ProjectItem):
-                project = item
-                if project._collapsed:
-                    ncollapsed = 0
-            elif isinstance(item, FileItem):
-                item._projectItem = project
-                if project and project._collapsed:
-                    item.hide()
-                    ncollapsed += 1
-                    continue
-                elif project:
-                    item.setIndent(10)
-                else:
-                    item.setIndent(1)
-            else:
-                continue
-            
-            # add spacing to y and update item's position
-            y = y + max(spacing, item._itemSpacing)
-            item._y = y
-            
-            # list item
-            itemsToUpdate.append(item)
-            
-            # next item
-            y += item._itemHeight
-            spacing = item._itemSpacing 
-        
-        
-        # update scroller
-        h = y-offset
-        h0 = self.height()
-        h1 = self._label.height()
-        h2 = self._scroller.height()
-        self._scroller.setRange(0, h-h0+h1+h2 + 10)
-        self._scroller.setPageStep(self.height())
-        self._scroller.move(0,h0-h2)
-        if self._scroller.maximum()==0:
-            self._scroller.hide()
-        else:
-            self._scroller.show()
-            self._scroller.raise_()
-        
-        # and label
-        self._label.raise_()
-        
-        # update
-        for item in itemsToUpdate:
-            item.updateTexts()
-            item.updateStyle()
-            item.show()
-        #self.update()
-    
-    
-    def setCurrentItem(self, item, remember=True):
-        """ Make the given item current. 
-        If item is None, select previous item. 
-        If remember, store the current item in the history. 
-        """
-        
-        if item is self._currentItem:
-            return # no need to change
-        
-        if item is None:
-            # make an old item history
-            if self._itemHistory:
-                item = self._itemHistory[0]
-        
-        if item is None:
-            # just select first one then ...
-            if self._items:
-                item = self._items[0]
-        
-        if item and isinstance(item, FileItem):
-            # store old item
-            if remember:
-                while self._currentItem in self._itemHistory:
-                    self._itemHistory.remove(self._currentItem)
-                self._itemHistory.insert(0,self._currentItem)
-                self._itemHistory[10:] = []
-            # make the item current and show...
-            self._currentItem = item
-            self._editorStack.showEditor(self._currentItem._editor)
-        else:
-            # no files present
-            self._currentItem = None
-            self._editorStack.showEditor(None)
-        
-        # finish and focus
-        self.updateMe()
-        if self._currentItem:
-            self._currentItem._editor.setFocus()
-    
-    
-    def selectPreviousItem(self):
-        """ Select the previously selected item. """
-        self.setCurrentItem(None)
-    
-    
-    def appendFile(self, file):
-        """ Create file item. 
-        Accepts a file name or IepFile instance.
-        Returns the created IepFile instance on success.        
-        """
-        
-        # Default insert position is at the end
-        i_insert = len(self._files)
-        
-        # Should we put it at the dropped position?
-        if time.time() - self._droppedTime < 0.25:
-            i_insert = self._droppedIndex
-            self._droppedTime = time.time() # when multiple files are inserted
-        
-        # Make an IepFile instance if not already so
-        if not isinstance(file, IepFile):
-            file = IepFile(file)
-        
-        # Insert and make current
-        self._docs.insert(i_insert, iepFile)
-        
-        # todo: need to make sure that there is an item now
-        self.setCurrentItem(item)
-        
-        return iepFile
-    
-    
-    def _createItemForFile(self, iepFile):
-        pass # todo: ?
-        
-    
-    def appendProject(self, projectname):
-        """ Create project Item. 
-        Return the project item if all went well."""
-        
-        # stop if already a project with that name
-        for item in self._items:            
-            if isinstance(item,ProjectItem) and item._name == projectname:
-                print("Cannot load dir: a project with that name "\
-                    "already exists!" )                  
-                return None
-        
-        # disable the insert location for dropping
-        self._droppedTime = time.time()-1.0
-        
-        # create project at the end
-        item = ProjectItem(self, projectname)
-        self._items.append(item)
-        #print("Creating project: %s" % (projectname))
         return item
     
     
-    def removeFile(self, editor):
-        """ Remove file item from the list. """
+    def openFile(self):
+        """ Create a dialog for the user to select a file. """
         
-        # get item corresonding to that editor
-        for item in self._items:
-            if isinstance(item, FileItem) and item._editor is editor:
-                break
+        # determine start dir
+        # todo: better selection of dir
+        editor = self.getCurrentEditor()
+        if editor and editor._filename:
+            startdir = os.path.split(editor._filename)[0]
         else:
-            tmp = editor._name
-            print("Could not remove listItem for file '{}'.".format(tmp))
+            startdir = self._lastpath            
+        if not os.path.isdir(startdir):
+            startdir = ''
+        
+        # show dialog
+        msg = "Select one or more files to open"        
+        filter =  "Python (*.py *.pyw);;"
+        filter += "Pyrex (*.pyi *.pyx *.pxd);;"
+        filter += "C (*.c *.h *.cpp *.c++);;"
+        #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
+        filter += "All (*.*)"
+        if True:
+            filenames = QtGui.QFileDialog.getOpenFileNames(self,
+                msg, startdir, filter)
+        else:
+            # Example how to preselect files, can be used when the users
+            # opens a file in a project to select all files currently not
+            # loaded.
+            d = QtGui.QFileDialog(self, msg, startdir, filter)
+            d.setFileMode(d.ExistingFiles)
+            d.selectFile('"codeparser.py" "editorStack.py"')
+            d.exec_()
+            if d.result():
+                filenames = d.selectedFiles()
+            else:
+                filenames = []
+        
+        # were some selected?
+        if not filenames:
             return
         
-        # clear from lists        
-        for items in [self._items, self._itemHistory]:
-            while item in items:  
-                items.remove(item)
-        # select other editor (also removes from editorStack's boxlayout)
-        if self._currentItem is item:
-            self.setCurrentItem(None, False)        
-        
-        # destroy...   
-        item.hide()
-        editor.hide()     
-        item.destroy()
-        editor.destroy()
-        gc.collect()
-        
-        # update
-        self.updateMe()
+        # load
+        for filename in filenames:
+            self.loadFile(filename)
     
     
-    def removeProject(self, project):
-        """ Remove a project.
-        project should be a ProjectItem instance or the name of the project. 
-        """
+    def openDir(self):
+        """ Create a dialog for the user to select a directory. """
         
-        # get project
-        if isinstance(project, str):
-            for item in self._items:
-                if isinstance(item, ProjectItem) and item._name == project:
-                    project = item
-                    break
-            else:
-                print("Cannot remove project: no project with that name.")
-                return
+        # determine start dir
+        editor = self.getCurrentEditor()
+        if editor and editor._filename:
+            startdir = os.path.split(editor._filename)[0]
+        else:
+            startdir = self._lastpath            
+        if not os.path.isdir(startdir):
+            startdir = ''
         
-        # get list of files to remove first
-        itemsToRemove = []
-        phase = 0
-        for item in self._items:
-            if phase == 0:
-                if item is project:
-                    phase = 1
-            elif phase == 1:
-                if isinstance(item, ProjectItem):
-                    break
-                else:
-                    itemsToRemove.append(item)
+        # show dialog
+        msg = "Select a directory to open"
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, msg, startdir)
         
-        # remove these items.
-        for item in itemsToRemove:
-            ok = self._editorStack.closeFile(item._editor)
-            if not ok:
+        # was a dir selected?
+        if not dirname:
+            return
+        
+        # load
+        self.loadDir(dirname)
+    
+    
+    def loadFile(self, filename):
+        """ Load the specified file. 
+        On success returns the item of the file, also if it was
+        already open."""
+        
+        # Note that by giving the name of a tempfile, we can select that
+        # temp file.
+        
+        # normalize path
+        if filename[0] != '<':
+            filename = normalizePath(filename)
+        if not filename:
+            return None
+        
+        # if the file is already open...
+        for item in self._tabs.items():
+            if item.id == filename:
+                # id gets _filename or _name for temp files
                 break
         else:
-            # we get here if the user did not press cancel
-            # remove project item
-            while project in self._items:
-                self._items.remove(project)
-            project.hide()
-            project.destroy()
+            item = None
+        if item:
+            self._tabs.setCurrentItem(item)
+            print("File already open: '{}'".format(filename))
+            return item
         
-        # update
-        self.updateMe()
-    
-    
-    ## Context menu 
+        # create editor
+        try:
+            editor = createEditor(self, filename)
+        except Exception as err:
+            # Notify in logger
+            print("Error loading file: ", err)
+            # Make sure the user knows
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Error loading file")
+            m.setText(str(err))
+            m.setIcon(m.Warning)
+            m.exec_()
+            return None
         
-    def context_newFile(self, event=None):
-        self._editorStack.newFile()
-    def context_openFile(self, event=None):
-        self._editorStack.openFile()
-    def context_newProject(self, event=None):
-        title = "Create new project"
-        label = "Give the new project's name"
-        name, ok = QtGui.QInputDialog.getText(self, title, label)
-        if ok and name:
-            self.appendProject(name)
-        self.updateMe()
-    def context_openProject(self, event=None):
-        self._editorStack.openDir()
+        # create list item
+        item = FileItem(editor)
+        self._tabs.addItem(item)        
+        
+        # store the path
+        self._lastpath = os.path.dirname(item.filename)
+        
+        return item
     
     
+    def loadDir(self, path):
+        """ Create a project with the dir's name and add all files
+        contained in the directory to it.
+        extensions is a komma separated list of extenstions of files
+        to accept...        
+        """
+        
+        # if the path does not exist, stop     
+        path = os.path.abspath(path)   
+        if not os.path.isdir(path):
+            print("ERROR loading dir: the specified directory does not exist!")
+            return
+        
+        # get extensions
+        extensions = iep.config.advanced.fileExtensionsToLoadFromDir
+        extensions = extensions.replace(',',' ').replace(';',' ')
+        extensions = ["."+a.lstrip(".").strip() for a in extensions.split(" ")]
+        
+        # init item
+        item = None
+        
+        # open all qualified files...
+        self._tabs.setUpdatesEnabled(False)
+        try:
+            filelist = os.listdir(path)
+            for filename in filelist:
+                filename = os.path.join(path, filename)
+                ext = os.path.splitext(filename)[1]            
+                if str(ext) in extensions:
+                    item = self.loadFile(filename)
+        finally:
+            self._tabs.setUpdatesEnabled(True)
+            self._tabs.updateItemsFull()
+        
+        # return lastopened item
+        return item
     
-
-
-class EditorTabs:
-    pass
-
-
-if __name__ == '__main__':
     
-    app = QtGui.QApplication([])
-    flc = FileListCtrl()
-    flc.show()
-    app.exec_()
+    def saveFileAs(self, editor=None):
+        """ Create a dialog for the user to select a file. 
+        """
+        
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        if editor is None:
+            return
+        
+        # get startdir
+        if editor._filename:
+            startdir = os.path.dirname(editor._filename)
+        else:
+            startdir = self._lastpath            
+        if not os.path.isdir(startdir):
+            startdir = ''
+        
+        # show dialog
+        msg = "Select the file to save to"        
+        filter =  "Python (*.py *.pyw);;"
+        filter += "Pyrex (*.pyi *.pyx *.pxd);;"
+        filter += "C (*.c *.h *.cpp);;"
+        #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
+        filter += "All (*.*)"
+        filename = QtGui.QFileDialog.getSaveFileName(self,
+            msg, startdir, filter)
+        
+        # give python extension if it has no extension
+        head, tail = os.path.split(filename)
+        if tail and '.' not in tail:
+            filename += '.py'
+        
+        # proceed or cancel
+        if filename:
+            self.saveFile(editor, filename)
+        else:
+            pass
+    
+    
+    def saveFile(self, editor=None, filename=None):
+        """ Save the file. 
+        """
+        
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        if editor is None:
+            return
+        
+        # get filename
+        if filename is None:
+            filename = editor._filename
+        if not filename:
+            self.saveFileAs(editor)
+            return
+        
+        # let the editor do the low level stuff...
+        try:
+            editor.save(filename)
+        except Exception as err:
+            # Notify in logger
+            print("Error saving file:",err)
+            # Make sure the user knows
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Error saving file")
+            m.setText(str(err))
+            m.setIcon(m.Warning)
+            m.exec_()
+            # Return now            
+            return
+        
+        # get actual normalized filename
+        filename = editor._filename
+        
+        # notify
+        tmp = editor.getLineEndings()
+        print("saved file: {} ({})".format(filename, tmp[0]))
+        
+        # special case, we edited the style file!
+        if filename == styleManager._filename:
+            # reload styles
+            styleManager.loadStyles()
+            # editors are send a signal by the style manager
+        
+        # Notify done
+        return True
+    
+    
+    ## Closing files / closing down
+    
+    def askToSaveFileIfDirty(self, editor):
+        """ askToSaveFileIfDirty(editor)
+        
+        If the given file is not saved, pop up a dialog
+        where the user can save the file
+        . 
+        Returns 1 if file need not be saved.
+        Returns 2 if file was saved.
+        Returns 3 if user discarded changes.
+        Returns 0 if cancelled.
+        
+        """
+        
+        # should we ask to save the file?
+        if editor._dirty:
+            
+            # get filename
+            filename = editor._filename
+            if not filename:
+                filename = '<TMP>'
+            
+            # setup dialog
+            dlg = QtGui.QMessageBox(self)
+            dlg.setText("Closing file:\n{}".format(filename))
+            dlg.setInformativeText("Save modified file?")
+            tmp = QtGui.QMessageBox
+            dlg.setStandardButtons(tmp.Save| tmp.Discard | tmp.Cancel)
+            dlg.setDefaultButton(tmp.Cancel)
+            
+            # get result and act
+            result = dlg.exec_() 
+            if result == tmp.Save:
+                self.saveFile(editor)
+                return 2
+            elif result == tmp.Discard:
+                return 3
+            else: # cancel
+                return 0
+        
+        return 1
+    
+    
+    def closeFile(self, editor=None):
+        """ Close the selected (or current) editor. 
+        Returns same result as askToSaveFileIfDirty() """
+        
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
+        elif isinstance(editor, int):
+            index = editor
+            editor = self._tabs.items()[index].editor
+        if editor is None:
+            return
+        
+        result = self.askToSaveFileIfDirty(editor)
+        
+        # ok, close...
+        if result:
+            self._tabs.removeTab(editor)
+        return result
+    
+    
+    def saveEditorState(self):
+        """ Save the editor's state configuration.
+        """
+        fr = self._findReplace
+        iep.config.state.find_matchCase = fr._caseCheck.isChecked()
+        iep.config.state.find_regExp = fr._regExp.isChecked()
+        iep.config.state.find_wholeWord = fr._wholeWord.isChecked()
+        #
+        iep.config.state.editorState = self._getCurrentOpenFilesAsString()
+    
+    
+    def restoreEditorState(self):
+        """ Restore the editor's state configuration.
+        """
+        
+        # Restore opened editors
+        if iep.config.state.editorState:
+            self._setCurrentOpenFilesAsString(iep.config.state.editorState)
+        else:
+            #self.newFile()
+            self.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        
+        # The find/replace state is set in the corresponding class during init
+    
+    
+    def _getCurrentOpenFilesAsString(self):
+        """ Get the state as it currently is as a string.
+        The state entails all open files and their structure in the
+        projects. The being collapsed of projects and their main files.
+        The position of the cursor in the editors.
+        """
+        
+        # Get items
+        collapsed = {True:'+', False:'-'}
+        state = []
+        for item in self._tabs.items():
+            info = ''
+            ed = item.editor
+            if ed._filename:
+                info = ed._filename, str(ed.getPosition())
+            if info:
+                state.append( '>'.join(info) )
+        
+#         # Get history
+#         history = [item for item in self._tabs._itemHistory]
+#         history.reverse()
+#         history.append(self._tabs.currentItem())
+#         for item in history:
+#             if isinstance(item, FileItem):
+#                 ed = item._editor
+#                 if ed._filename:
+#                     state.append( 'hist>'+ed._filename )
+        
+        # Done
+        return ",".join(state)
+    
+    
+    def _setCurrentOpenFilesAsString(self, state):
+        """ Set the state of the editor in terms of opened files.
+        The input should be a string as returned by 
+        ._getCurrentOpenFilesAsString().
+        """
+        
+        # Make list
+        state = state.split(",")
+        fileItems = {}
+        
+        # Process items
+        for item in state:
+            parts = item.split('>')
+            if item[0] in '+-':
+                continue # Was a project
+            elif item.startswith('hist'):
+                # select item (to make the history right)
+                if parts[1] in fileItems:
+                    self._tabs.setCurrentItem( fileItems[parts[1]] )
+            elif parts[0]:
+                # a file item
+                tmp = self.loadFile(parts[0])
+                if tmp:
+                    ed = tmp.editor
+                    # set position and make sure it is visible
+                    pos = int(parts[1])
+                    linenr = ed.getLinenrFromPosition(pos)
+                    ed.setPositionAndAnchor(pos)
+                    ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
+                    fileItems[parts[0]] = tmp
+    
+    
+    def closeAll(self):
+        """ Close all files (well technically, we don't really close them,
+        so that they are all stil there when the user presses cancel).
+        Returns False if the user pressed cancel when asked for
+        saving an unsaved file. 
+        """
+        
+        # try closing all editors.
+        for editor in self:
+            result = self.askToSaveFileIfDirty(editor)
+            if not result:
+                return False
+        
+        # we're good to go closing
+        return True
     

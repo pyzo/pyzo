@@ -549,7 +549,7 @@ class ViewMenu(BaseMenu):
     
     def fun_selectPrevious(self, value):
         """ Select the previusly selected file. """
-        iep.editors._list.selectPreviousItem() 
+        iep.editors._tabs.selectPreviousItem() 
     
     def fun_zooming(self, value):
         """ Zoom in or out, or reset zooming. """
@@ -956,9 +956,9 @@ class RunMenu(BaseMenu):
             msg += "No shell to run code in. "
         # Get editor
         if mainEditor:
-            editor = iep.editors.getCurrentProjectsMainEditor()
+            editor = iep.editors.getMainEditor()
             if editor is None:
-                msg += "Not in a project or project does not have a main file."
+                msg += "The is no main file selected."
         else:
             editor = iep.editors.getCurrentEditor()
             if editor is None:
