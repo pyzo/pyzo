@@ -41,6 +41,9 @@ class FileItem:
         
         # Store editor
         self._editor = editor
+        
+        # Init pinned state
+        self._pinned = False
     
     @property
     def editor(self):
@@ -68,6 +71,19 @@ class FileItem:
         """ Get the name corresponding to this item.
         """
         return self._editor._name
+    
+    @property
+    def dirty(self):
+        """ Get whether the file has been changed since it is changed.
+        """
+        return self._editor._dirty
+    
+    @property
+    def pinned(self):
+        """ Get whether this item is pinned (i.e. will not be closed
+        when closing all files.
+        """
+        return self._pinned
 
 
 # todo: when this works with the new editor, put in own module.
@@ -82,14 +98,7 @@ class FindReplaceWidget(QtGui.QFrame):
         layout.setSpacing(0)
         self.setLayout(layout)
         
-        # Get style instance
-        style = QtGui.qApp.style()
-        
         # create widgets
-        
-#         self._stext = QtGui.QLabel("Find / Replace", self)
-#         self._stext.setFont( QtGui.QFont('helvetica',8,QtGui.QFont.Bold) ) 
-#         self._stext.move(5,yy)
         
         if True:
             # Create sub layouts
@@ -100,11 +109,14 @@ class FindReplaceWidget(QtGui.QFrame):
             # Add button
             self._hidebut = QtGui.QToolButton(self)
             self._hidebut.setFont( QtGui.QFont('helvetica',7) )
-            self._hidebut.setToolTip("Escape")
-            self._hidebut.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+            self._hidebut.setToolTip("Hide search widget (Escape)")
+            self._hidebut.setIcon( iep.icons.cross )
+            self._hidebut.setIconSize(QtCore.QSize(16,16))
             vsubLayout.addWidget(self._hidebut, 0)
             
             vsubLayout.addStretch(1)
+        
+        layout.addSpacing(10)
         
         if True:
             
@@ -214,6 +226,12 @@ class FindReplaceWidget(QtGui.QFrame):
         self._findPrev.clicked.connect(self.findPrevious)
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
+        
+        # show or hide?
+        if bool(iep.config.state.find_show):
+            self.show()
+        else:
+            self.hide()
     
     
     def hideMe(self):
@@ -402,6 +420,9 @@ class FileTabWidget(QtGui.QTabWidget):
         # Init main file
         self._mainFile = ''
         
+        # Init item history
+        self._itemHistory = []
+        
         # Put tab widget in document mode
         self.setDocumentMode(True)
         
@@ -428,8 +449,7 @@ class FileTabWidget(QtGui.QTabWidget):
         
         # Create a corner widget
         but = QtGui.QToolButton()
-        style = QtGui.qApp.style()
-        but.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
+        but.setIcon( iep.icons.cross )
         but.clicked.connect(self.onClose)
         self.setCornerWidget(but)
         
@@ -448,22 +468,50 @@ class FileTabWidget(QtGui.QTabWidget):
         self._alignTimer.setSingleShot(True)
         self._alignTimer.timeout.connect(self._alignRecursive)
         
-        # Bind signal to update items
+        # Bind signal to update items and keep track of history
         self.currentChanged.connect(self.updateItems)
-    
+        self.currentChanged.connect(self.trackHistory)
     
     
     ## Context menu
     
     def contextMenuEvent(self, event):
+    
+        # Get which tab to show the context menu of
         tabBar = self.tabBar()
         index = tabBar.tabAt(event.pos())
-        print( 'what was pressed?', unicode(tabBar.tabText(index)) )
+        if index<0:
+            self._menu.hide()
+            return
+        
+        # Get item
+        item = self.items()[index]
         
         # Create menu
         self._menu.clear()
-        for a in ['Show namespace', 'Show help', 'Delete']:
-            action = self._menu.addAction(a)
+        for a in [  'New file', 'Open file', None,
+                    'Save file', 'Save file as', 'Rename file', None, 
+                    'Pin file', 'Make this the MAIN file', None,
+                    'Close file', 'Close all but this (and pinned)']:
+            if not a:
+                self._menu.addSeparator()
+            else:
+                al = a.lower()
+                
+                # Tweak names
+                if 'main' in al and item.id == self._mainFile:
+                    a = 'Unm' + a[1:]
+                if 'pin file' in al and item.pinned:
+                    a = 'Unp' + a[1:]
+                
+                # Create action
+                action = self._menu.addAction(a)
+                action._item = item
+                action._index = index
+                
+                # Set icon?
+                if 'close file' in a.lower():
+                    action.setIcon( iep.icons.cross )
         
         # Show
         #pos = event.globalPos()
@@ -472,7 +520,46 @@ class FileTabWidget(QtGui.QTabWidget):
     
     
     def contextMenuTriggered(self, action):
-        print( action.text() )
+        
+        # Get request and item
+        request = action.text().lower()
+        item = action._item
+        index = action._index
+        
+        # Parse
+        if 'new file' in request:
+            iep.editors.newFile()
+        elif 'open file' in request:
+            iep.editors.openFile()
+        elif 'save file as' in request:
+            iep.editors.saveFileAs(item.editor)
+        elif 'save file' in request:
+            iep.editors.saveFile(item.editor)
+        elif 'rename' in request:
+            filename = item.filename
+            iep.editors.saveFileAs(item.editor)
+            try:
+                os.remove(filename)
+            except Exception:
+                pass
+        elif 'pin file' in request:
+            item._pinned = not item._pinned
+        elif 'main' in request:
+            if self._mainFile == item.id:
+                self._mainFile = None
+            else:
+                self._mainFile = item.id
+        elif 'close all' in request:
+            items = self.items()
+            for i in reversed(range(self.count())):
+                if items[i] is item or items[i].pinned:
+                    continue
+                self.tabCloseRequested.emit(i)
+        elif 'close' in request:
+            self.tabCloseRequested.emit(index)
+        
+        # Update
+        self.updateItemsFull()
     
     
     ## Aligning of the tabs (eliding)
@@ -521,18 +608,20 @@ class FileTabWidget(QtGui.QTabWidget):
         N = self.count()
         
         # Get right edge of last tab and left edge of corner widget
-        pos1 = tabBar.tabRect(N-1).topRight()
-        pos2 = self.cornerWidget().pos()
-        x1 = tabBar.mapToGlobal(pos1).x()
-        x2 = self.mapToGlobal(pos2).x()
-        alignMargin = x2-x1 -3  # Must be positive (has margin)
+        pos1 = tabBar.tabRect(0).topLeft()
+        pos2 = tabBar.tabRect(N-1).topRight()
+        pos3 = self.cornerWidget().pos()
+        x1 = pos1.x()#tabBar.mapToGlobal(pos1).x()
+        x2 = pos2.x()#tabBar.mapToGlobal(pos2).x()
+        x3 = pos3.x()#self.mapToGlobal(pos3).x()
+        alignMargin = x3 - (x2-x1) -3  # Must be positive (has margin)
         
         # Are the tabs too wide?
         if alignMargin < 0:
             # Tabs extend beyond corner widget
             
             # Reduce width then
-            self._alignWidth -= max(abs(alignMargin)/N, 5)
+            self._alignWidth -= 5#max(abs(alignMargin)/N, 5)
             self._alignWidth = max(self._alignWidth, MIN_NAME_WIDTH)
             
             # Apply
@@ -547,7 +636,7 @@ class FileTabWidget(QtGui.QTabWidget):
             # Gap between tabs and corner widget is a bit large
             
             # Increase width then
-            self._alignWidth += max(abs(alignMargin)/N, 5)
+            self._alignWidth += 5#max(abs(alignMargin)/N, 5)
             self._alignWidth = min(self._alignWidth, MAX_NAME_WIDTH)
             
             # Apply
@@ -556,6 +645,7 @@ class FileTabWidget(QtGui.QTabWidget):
             # Try again if there's still room for increment
             if itemsElided and self._alignWidth < MAX_NAME_WIDTH:
                 self._alignTimer.start()
+                #self._alignTimer.timeout.emit()
         
         else:            
             pass # margin is good
@@ -610,7 +700,7 @@ class FileTabWidget(QtGui.QTabWidget):
         return itemReduced
     
     
-    ## Item management and updating
+    ## Item management
     
     
     def items(self):
@@ -627,35 +717,7 @@ class FileTabWidget(QtGui.QTabWidget):
                 item = item.toPyObject() # Older version of Qt
             items.append(item)
         return items
-    
-    
-    def setCurrentItem(self, item):
-        """ setCurrentItem(self, item)
-        
-        Set a FileItem instance to be the current. if The given item
-        is not in the list, no action is taken.
-        
-        """
-        
-        if isinstance(item, FileItem):
-            
-            items = self.items()
-            for i in range(self.count()):
-                if item is items[i]:
-                    self.setCurrentIndex(i)
-                    break
-        
-        elif isinstance(item, str):
-            
-            items = self.items()
-            for i in range(self.count()):
-                if item == items[i].filename:
-                    self.setCurrentIndex(i)
-                    break
-        
-        else:
-            raise ValueError('item should be a FileItem or file name.')
-    
+   
     
     def currentItem(self):
         """ Get the item corresponding to the currently active tab.
@@ -678,6 +740,78 @@ class FileTabWidget(QtGui.QTabWidget):
         else:
             return None
     
+    
+    def trackHistory(self, index):
+        """ trackHistory(index)
+        
+        Called when a tab is changed. Puts the current item on top of
+        the history.
+        
+        """
+        
+        # Valid index?
+        if index<0 or index>=self.count():
+            return
+        
+        # Remove current item from history
+        currentItem = self.currentItem()
+        while currentItem in self._itemHistory:
+            self._itemHistory.remove(currentItem)
+        
+        # Add current item to history
+        self._itemHistory.insert(0, currentItem)
+        
+        # Limit history size
+        self._itemHistory[10:] = []
+    
+    
+    def setCurrentItem(self, item):
+        """ _setCurrentItem(self, item)
+        
+        Set a FileItem instance to be the current. If the given item
+        is not in the list, no action is taken.
+        
+        item can be an int, FileItem, or file name.
+        """
+        
+        if isinstance(item, int):
+            self.setCurrentIndex(i)
+            
+        elif isinstance(item, FileItem):
+            
+            items = self.items()
+            for i in range(self.count()):
+                if item is items[i]:
+                    self.setCurrentIndex(i)
+                    break
+        
+        elif isinstance(item, str):
+            
+            items = self.items()
+            for i in range(self.count()):
+                if item == items[i].filename:
+                    self.setCurrentIndex(i)
+                    break
+        
+        else:
+            raise ValueError('item should be int, FileItem or file name.')
+    
+    
+    def selectPreviousItem(self):
+        """ Select the previously selected item. """
+        
+        # make an old item history
+        if len(self._itemHistory)>1:
+            item = self._itemHistory[1]
+            self.setCurrentItem(item)
+        
+        # just select first one then ...
+        elif item is None and self.count():
+            item = 0
+            self.setCurrentItem(item)
+    
+    
+    ## Closing, adding and updating
     
     def onClose(self):
         """ onClose()
@@ -750,9 +884,14 @@ class FileTabWidget(QtGui.QTabWidget):
         """
         
         # Add tab and widget
-        i = self.addTab(item.editor, item.name)        
+        i = self.addTab(item.editor, item.name)
+        
+        # Keep informed about changes
+        item.editor.somethingChanged.connect(self.updateItems)
+        
         # Store the item at the tab
         self.tabBar().setTabData(i, item)
+        
         # Update
         if update:
             self.updateItemsFull()
@@ -799,9 +938,45 @@ class FileTabWidget(QtGui.QTabWidget):
                 tabBar.setTabTextColor(i, QtGui.QColor('#444'))
             
             # Update appearance of icon
-            #tabBar.setTabIcon(iep.icons['file_normal'])
-
-
+            if True:
+                
+                # Select base pixmap and pen color
+                if item.dirty:
+                    pm0 = iep.icons.page_white_dirty.pixmap(16,16)
+                    penColor = '#f00'
+                else:
+                    pm0 = iep.icons.page_white.pixmap(16,16)
+                    penColor = '#333'
+                
+                # Create painter
+                painter = QtGui.QPainter()
+                painter.begin(pm0)
+                
+                # Paint lines
+                pen = QtGui.QPen()
+                pen.setColor(QtGui.QColor(penColor))
+                painter.setPen(pen)
+                for y in range(4,13,2):
+                    end = 9
+                    if y>6: end = 12
+                    painter.drawLine(4,y,end,y)
+                
+                # Add star-overlay?
+                if self._mainFile == item.id:
+                    pm1 = iep.icons.overlay_star.pixmap(16,16)
+                    painter.drawPixmap(0,0, pm1)
+                
+                # Add pin-overlay?
+                if item.pinned:
+                    #pm1 = iep.icons.overlay_link.pixmap(16,16)
+                    pm1 = iep.icons.overlay_thumbnail.pixmap(16,16)
+                    painter.drawPixmap(0,0, pm1)
+                
+                # Finish
+                painter.end()
+                tabBar.setTabIcon(i, QtGui.QIcon(pm0))
+ 
+ 
 class EditorTabs(QtGui.QWidget):
     
     # Signal to notify that a different file was selected
@@ -820,7 +995,7 @@ class EditorTabs(QtGui.QWidget):
         # create tab widget
         self._tabs = FileTabWidget(self)       
         self._tabs.tabCloseRequested.connect(self.closeFile)
-        
+        self._tabs.currentChanged.connect(self.onCurrentChanged)
         # Create find/replace widget
         self._findReplace = FindReplaceWidget(self)
         
@@ -840,6 +1015,10 @@ class EditorTabs(QtGui.QWidget):
         
         # restore state
         self.restoreEditorState()
+    
+    
+    def onCurrentChanged(self):
+        self.changedSelected.emit()
     
     
     def getCurrentEditor(self):
@@ -968,7 +1147,7 @@ class EditorTabs(QtGui.QWidget):
         self.loadDir(dirname)
     
     
-    def loadFile(self, filename):
+    def loadFile(self, filename, updateTabs=True):
         """ Load the specified file. 
         On success returns the item of the file, also if it was
         already open."""
@@ -1010,7 +1189,9 @@ class EditorTabs(QtGui.QWidget):
         
         # create list item
         item = FileItem(editor)
-        self._tabs.addItem(item)        
+        self._tabs.addItem(item, updateTabs)        
+        if updateTabs:
+            self._tabs.setCurrentItem(item)
         
         # store the path
         self._lastpath = os.path.dirname(item.filename)
@@ -1047,7 +1228,7 @@ class EditorTabs(QtGui.QWidget):
                 filename = os.path.join(path, filename)
                 ext = os.path.splitext(filename)[1]            
                 if str(ext) in extensions:
-                    item = self.loadFile(filename)
+                    item = self.loadFile(filename, False)
         finally:
             self._tabs.setUpdatesEnabled(True)
             self._tabs.updateItemsFull()
@@ -1217,6 +1398,7 @@ class EditorTabs(QtGui.QWidget):
         iep.config.state.find_matchCase = fr._caseCheck.isChecked()
         iep.config.state.find_regExp = fr._regExp.isChecked()
         iep.config.state.find_wholeWord = fr._wholeWord.isChecked()
+        iep.config.state.find_show = fr.isVisible()
         #
         iep.config.state.editorState = self._getCurrentOpenFilesAsString()
     
@@ -1242,26 +1424,39 @@ class EditorTabs(QtGui.QWidget):
         The position of the cursor in the editors.
         """
         
-        # Get items
-        collapsed = {True:'+', False:'-'}
+        # Init
         state = []
-        for item in self._tabs.items():
-            info = ''
-            ed = item.editor
-            if ed._filename:
-                info = ed._filename, str(ed.getPosition())
-            if info:
-                state.append( '>'.join(info) )
         
-#         # Get history
-#         history = [item for item in self._tabs._itemHistory]
-#         history.reverse()
-#         history.append(self._tabs.currentItem())
-#         for item in history:
-#             if isinstance(item, FileItem):
-#                 ed = item._editor
-#                 if ed._filename:
-#                     state.append( 'hist>'+ed._filename )
+        # Get items
+        for item in self._tabs.items():
+            
+            # Get editor
+            ed = item.editor
+            if not ed._filename:
+                continue
+            
+            # Init info
+            info = []
+            # Add filename and line number
+            info.append(ed._filename)
+            info.append(str(ed.getPosition()))
+            # Add whether pinned or main file
+            if item.pinned:
+                info.append('pinned')
+            if item.id == self._tabs._mainFile:
+                info.append('main')
+            
+            # Add to state
+            state.append( '>'.join(info) )
+        
+        # Get history
+        history = [item for item in self._tabs._itemHistory]
+        history.reverse() # Last one is current
+        for item in history:
+            if isinstance(item, FileItem):
+                ed = item._editor
+                if ed._filename:
+                    state.append( 'hist>'+ed._filename )
         
         # Done
         return ",".join(state)
@@ -1288,15 +1483,21 @@ class EditorTabs(QtGui.QWidget):
                     self._tabs.setCurrentItem( fileItems[parts[1]] )
             elif parts[0]:
                 # a file item
-                tmp = self.loadFile(parts[0])
-                if tmp:
-                    ed = tmp.editor
+                itm = self.loadFile(parts[0])
+                if itm:
                     # set position and make sure it is visible
+                    ed = itm.editor
                     pos = int(parts[1])
                     linenr = ed.getLinenrFromPosition(pos)
                     ed.setPositionAndAnchor(pos)
                     ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
-                    fileItems[parts[0]] = tmp
+                    # set main and/or pinned?
+                    if 'main' in parts:
+                        self._tabs._mainFile = itm.id
+                    if 'pinned' in parts:
+                        itm._pinned = True
+                    # store item
+                    fileItems[parts[0]] = itm
     
     
     def closeAll(self):
