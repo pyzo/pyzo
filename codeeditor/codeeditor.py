@@ -21,16 +21,29 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 	def __init__(self,*args):
 		QtGui.QSyntaxHighlighter.__init__(self,*args)
 		#Init properties
-		self.spaceTabs = False
+		self.indentation = False
 	## Properties
 	@property
-	def spaceTabs(self):
-		return self._spaceTabs
+	def indentation(self):
+		"""
+		The number of spaces for each indentation level, or
+		0 when tabs are used for indentation
+		"""
+		return self._indentation
 	
-	@spaceTabs.setter
-	def spaceTabs(self,value):
-		self._spaceTabs = bool(value)
+	@indentation.setter
+	def indentation(self,value):
+		if (not value):
+			value = 0
+		self._indentation = int(value)
 		self.rehighlight()
+	
+	@property
+	def spaceTabs(self):
+		"""
+		True when spaces are used and False when tabs are used
+		"""
+		return bool(self.indentation)
 	
 	## Methods
 	def highlightBlock(self,line):
@@ -93,8 +106,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 
 		
 		#Line numbers
-		self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
-		self.lineNumberArea=LineNumberArea(self)
+		self.lineNumberArea=LineNumberArea(self) #Create line number area widget
 		
 		#Autocompleter
 		self.completerModel=QtGui.QStringListModel(keyword.kwlist)
@@ -104,11 +116,6 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.completerNames=[]
 		self.recentCompletions=[] #List of recently selected completions
 		self.autocompleteStart=None
-
-		#Connect signals
-		self.connect(self.completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
-		self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
-		self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
 
 			
 		#Default options
@@ -120,10 +127,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.wrap = True
 		self.showWhitespace = False
 		self.showLineEndings = False
+		self.showLineNumbers = False
 		self.highlightCurrentLine = False
-		
-		self.spaceTabs = False
-		self.tabSize = 4
+		self.indentation = 4
+		self.tabWidth = 4
+
+		#Connect signals
+		self.connect(self.completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
+		self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
+		self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
 
 
 	## Properties
@@ -142,6 +154,22 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		else:
 			option.setWrapMode(option.NoWrap)
 		self.document().setDefaultTextOption(option)
+	
+	#show line numbers
+	@property
+	def showLineNumbers(self):
+		return self._showLineNumbers
+	
+	@showLineNumbers.setter
+	def showLineNumbers(self,value):
+		self._showLineNumbers = bool(value)
+		if self._showLineNumbers:
+			self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
+			self.lineNumberArea.show()
+		else:
+			self.setViewportMargins(0,0,0,0)
+			self.lineNumberArea.hide()
+
 	
 	#show whitespace
 	@property
@@ -177,26 +205,31 @@ class CodeEditor(QtGui.QPlainTextEdit):
 	
 	#tab size
 	@property
-	def tabSize(self):
+	def tabWidth(self):
 		"""Size of a tab stop in characters"""
-		return self._tabSize
+		return self._tabWidth
 		
-	@tabSize.setter
-	def tabSize(self,value):
-		self._tabSize = int(value)
+	@tabWidth.setter
+	def tabWidth(self,value):
+		self._tabWidth = int(value)
 		fontMetrics=QtGui.QFontMetrics(self.font())
-		self.setTabStopWidth(fontMetrics.width('i')*self._tabSize)
+		self.setTabStopWidth(fontMetrics.width('i')*self._tabWidth)
 	
-	#space tabs
+	#indentation
 	@property
-	def spaceTabs(self):
-		"""Wether or not to use spaces instead of tabs"""
-		return self._spaceTabs
+	def indentation(self):
+		"""
+		Number of spaces to insert when the tab key is pressed, or 
+		0 to insert tabs
+		"""
+		return self._indentation
 	
-	@spaceTabs.setter
-	def spaceTabs(self,value):
-		self._spaceTabs=bool(value)
-		self.highlighter.spaceTabs = self._spaceTabs
+	@indentation.setter
+	def indentation(self,value):
+		if (not value): #Also support assignment by None or False etc
+			value = 0
+		self._indentation = int(value)
+		self.highlighter.indentation = self._indentation
 	
 	#highlight current line
 	@property
@@ -263,7 +296,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		selection.cursor.clearSelection();
 		self.setExtraSelections([selection])
 	def updateLineNumberAreaWidth(self,count):
-		self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
+		if self.showLineNumbers:
+			self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
 	## Autocompletion
 	def autocompleteShow(self,offset = 0,names = None):
 		"""
@@ -384,16 +418,17 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		
 
 	def keyPressEvent(self,event):
+		#TODO: backtabbing, backspacing over tabs, tab indenting for a selection
 		key=event.key()
 		if key == Qt.Key_Tab:
 			if self.autocompleteActive():
 				#Let the completer handle this one!
 				event.ignore()
 				return
-			elif self.spaceTabs:
+			elif self.indentation:
 				#Insert space-tabs
 				cursor=self.textCursor()
-				cursor.insertText(' '*(self.tabSize-((cursor.columnNumber() + self.tabSize )%self.tabSize)))
+				cursor.insertText(' '*(self.indentation-((cursor.columnNumber() + self.indentation )%self.indentation)))
 				return
 
 			
@@ -449,6 +484,8 @@ if __name__=='__main__':
 			CodeEditor.keyPressEvent(self,event)
 		
 	e=TestEditor()
+	e.showLineNumbers = True
+	e.showWhitespace = True
 	e.show()
 	s=QtGui.QSplitter()
 	s.addWidget(e)

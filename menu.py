@@ -189,7 +189,7 @@ class FileMenu(BaseMenu):
         addItem(None)
         addItem( MI('Style', self.fun_style, []) )
         addItem( MI('Indentation', self.fun_indentation, []) )
-        addItem( MI('Line endings', self.fun_lineEndings, []) )        
+        #TODO: addItem( MI('Line endings', self.fun_lineEndings, []) )        
         addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)        
         addItem( MI('Restart IEP', self.fun_restart) )
@@ -245,28 +245,29 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            current = editor.tabSize if editor.spaceTabs else -1 #getIndentation()
-            options = [-1,2,3,4,5,6,7,8, current]
+            current = editor.indentation
+            options = [0,2,3,4,5,6,7,8, current]
             for i in range(len(options)):
-                if options[i] < 0:
+                if not options[i]:
                     options[i] = 'Use tabs'
                 else:
                     options[i] = '{} spaces'.format(options[i])            
             return options
         else:
             # parse value
-            val = 0
+            val = None
             if value.lower() == 'use tabs':
-                val = -1
+                val = 0
             else:
                 try:
                     val = int(value[:2])
                 except ValueError:
                     pass
             # apply
-            if not val:
+            if val is None:
                 val = iep.config.settings.defaultIndentation
-            editor.setIndentation(val)
+            
+            editor.indentation = val
     
     def fun_style(self, value):
         """ The styling used for the current style. """
@@ -320,8 +321,8 @@ class EditMenu(BaseMenu):
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
-        addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
-        addItem( None )
+        #TODO: addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
+        #addItem( None )
         addItem( MI('Find or replace', self.fun_findReplace) )
         addItem( MI('Find selection', self.fun_findSelection) )
         addItem( MI('Find selection backward', self.fun_findSelectionBw) )
@@ -430,7 +431,7 @@ class ViewMenu(BaseMenu):
         #TODO: addItem( MI('Match braces', self.fun_braceMatch, []) )  
         #TODO: addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
         addItem( None )
-        addItem( MI('Edge column', self.fun_edgecolumn, []) )
+        #TODO: addItem( MI('Edge column', self.fun_edgecolumn, []) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( MI('Zooming', self.fun_zooming, []) )
         addItem( MI('QT theme', self.fun_qtstyle, []) )
@@ -543,12 +544,11 @@ class ViewMenu(BaseMenu):
         """ The amount of space for a tab (only if tabs are used). """
         if value is None:
             return [2,3,4,5,6,7,8,9,10, iep.config.view.tabWidth]
-        
         # store and apply
         iep.config.view.tabWidth = value
-        #TODO: this is mixed with the size of space-tabs in CodeEditor
-        #for editor in iep.editors:
-        #    editor.setTabWidth(value)
+
+        for editor in iep.editors:
+            editor.tabWidth = value
     
     def fun_selectPrevious(self, value):
         """ Select the previusly selected file. """
