@@ -4,8 +4,8 @@ from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
 import keyword
-from . import python_syntax
-#import python_syntax
+#from . import python_syntax
+import python_syntax
 
 	
 class Highlighter(QtGui.QSyntaxHighlighter):
@@ -79,7 +79,26 @@ class LineNumberArea(QtGui.QWidget):
 #	def sizeHint(self):
 #		return QtCore.QSize(50,0)
 
+
+class CalltipLabel(QtGui.QLabel):
+	
+	def __init__(self):
+		QtGui.QLabel.__init__(self)
 		
+		# Start hidden
+		self.hide()
+		# Accept rich text
+		self.setTextFormat(QtCore.Qt.RichText)
+		# Set appearance
+		self.setStyleSheet("QLabel { background:#ff9; border:1px solid #000; }")
+		# Show as tooltip
+		self.setWindowFlags(QtCore.Qt.ToolTip)
+	
+	def enterEvent(self, event):
+		# Act a bit like a tooltip
+		self.hide()
+
+	
 class CodeEditor(QtGui.QPlainTextEdit):
 	def __init__(self,*args,**kwds):
 		QtGui.QPlainTextEdit.__init__(self,*args,**kwds)
@@ -103,8 +122,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.completer.setWidget(self)
 		self.completerNames=[]
 		self.recentCompletions=[] #List of recently selected completions
-		self.autocompleteStart=None
-
+		
+		# Text position corresponding to first charcter of the word being completed
+		self._autocompleteStart=None
+		
+		# Create label for call tips
+		self._calltipLabel = CalltipLabel()
+		
 		#Connect signals
 		self.connect(self.completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
 		self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
@@ -125,7 +149,11 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.spaceTabs = False
 		self.tabSize = 4
 
-
+	
+	def focusOutEvent(self, event):
+		QtGui.QPlainTextEdit.focusOutEvent(self, event)
+		self._calltipLabel.hide()
+	
 	## Properties
 	
 	#wrap
@@ -273,12 +301,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		"""
 		#Pop-up the autocompleteList
 		startcursor=self.textCursor()
-		startcursor.setPosition(startcursor.position()-offset)
+		startcursor.movePosition(startcursor.Left, n=offset)
 		
 		if not self.autocompleteActive() or \
-			startcursor.position() != self.autocompleteStart:
+			startcursor.position() != self._autocompleteStart:
 
-			self.autocompleteStart=startcursor.position()
+			self._autocompleteStart=startcursor.position()
 
 			#Popup the autocompleter. Don't use .complete() since we want to
 			#position the popup manually
@@ -299,15 +327,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		pass
 	def autocompleteCancel(self):
 		self.completer.popup().hide()
-		self.autocompleteStart = None
+		self._autocompleteStart = None
 		
 	def onAutoComplete(self,text):
 		#Select the text from autocompleteStart until the current cursor
 		cursor=self.textCursor()
-		cursor.setPosition(self.autocompleteStart,cursor.KeepAnchor)
+		cursor.setPosition(self._autocompleteStart,cursor.KeepAnchor)
 		#Replace it with the selected text 
 		cursor.insertText(text)
-		self.autocompleteStart=None
+		self._autocompleteStart=None
 		self.autocompleteCancel() #Reset the completer
 		
 		#Update the recent completions list
@@ -316,14 +344,16 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.recentCompletions.append(text)
 		
 	def autocompleteActive(self):
-		return self.autocompleteStart is not None
+		""" Returns whether an autocompletion list is currently shown. 
+		"""
+		return self._autocompleteStart is not None
 	
 		
 	def _positionAutocompleter(self):
 		"""Move the autocompleter list to a proper position"""
 		#Find the start of the autocompletion and move the completer popup there
 		cur=self.textCursor()
-		cur.setPosition(self.autocompleteStart)
+		cur.setPosition(self._autocompleteStart)
 		position = self.cursorRect(cur).bottomLeft() + \
 			self.viewport().pos() #self.geometry().topLeft() +
 		self.completer.popup().move(self.mapToGlobal(position))
@@ -339,7 +369,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		Find the autocompletion prefix (the part of the word that has been 
 		entered) and send it to the completer
 		"""
-		prefix=self.toPlainText()[self.autocompleteStart:
+		prefix=self.toPlainText()[self._autocompleteStart:
 		self.textCursor().position()]
 
 		self.completer.setCompletionPrefix(prefix)
@@ -366,7 +396,63 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		else:
 			#No match, just hide
 			self.autocompleteCancel()
-			
+	
+	
+	## Calltips
+	
+	def calltipShow(self, offset=0, richText='', highlightFunctionName=True):
+		""" calltipShow(offset=0, richText='', highlightFunctionName=True)
+		
+		Shows the given calltip.
+		
+		"""
+		
+		# Process calltip text?
+		if highlightFunctionName:
+			i = richText.find('(')
+			if i>0:
+				richText = '<b>{}</b>{}'.format(richText[:i], richText[i:])
+		
+		# Get a cursor to establish the position to show the calltip
+		startcursor=self.textCursor()
+		startcursor.movePosition(startcursor.Left, n=offset)
+		
+		# Get position in pixel coordinates
+		rect = self.cursorRect(startcursor)
+		pos = rect.topLeft()
+		pos.setY( pos.y() - rect.height() )
+		#pos.setX( pos.x() + self.viewport().pos().x() + 1 )
+		pos = self.viewport().mapToGlobal(pos)
+		
+		# Set text and update font
+		self._calltipLabel.setText(richText)
+		self._calltipLabel.setFont(self.font())
+		
+		# Use a qt tooltip to show the calltip
+		if richText:
+			self._calltipLabel.move(pos)
+			self._calltipLabel.show()
+		else:
+			self._calltipLabel.hide()
+	
+	
+	def calltipCancel(self):
+		""" calltipCancel()
+		
+		Hides the calltip.
+		
+		"""
+		self._calltipLabel.hide()
+	
+	def calltipActive(self):
+		""" calltipActive()
+		
+		Get whether the calltip is currently active.
+		
+		"""
+		return self._calltipLabel.isVisible()
+	
+	
 	##Overridden Event Handlers
 	def resizeEvent(self,event):
 		QtGui.QPlainTextEdit.resizeEvent(self,event)
@@ -385,7 +471,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
 
 	def keyPressEvent(self,event):
 		key=event.key()
-		if key == Qt.Key_Tab:
+		if key == Qt.Key_Escape:
+			self.autocompleteCancel()
+			self._calltipLabel.hide()
+		elif key == Qt.Key_Tab:
 			if self.autocompleteActive():
 				#Let the completer handle this one!
 				event.ignore()
@@ -403,7 +492,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		# Backspace (until start of autocomplete word)
 		if self.autocompleteActive() and \
 			not event.text().isalnum() and event.text != '_' and not (
-			(key==Qt.Key_Backspace) and self.textCursor().position()>self.autocompleteStart):
+			(key==Qt.Key_Backspace) and self.textCursor().position()>self._autocompleteStart):
 			self.autocompleteCancel()
 			
 		#Apply the key
@@ -431,7 +520,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
 			self._positionAutocompleter()
 			
 			self._updateAutocompleterPrefix()
-
+		
+		self.calltipShow(0, 'test(foo, bar)')
 
 
 if __name__=='__main__':
@@ -455,3 +545,4 @@ if __name__=='__main__':
 	s.addWidget(QtGui.QLabel('test'))
 	s.show()
 	app.exec_()
+	
