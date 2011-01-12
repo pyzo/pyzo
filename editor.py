@@ -214,15 +214,15 @@ def createEditor(parent, filename=None):
     
     # return
     return editor
-from codeeditor import CodeEditor
 
-class IepEditor(CodeEditor):
+class IepEditor(BaseTextCtrl):
     
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.pyqtSignal()
     
     def __init__(self, parent, *args, **kwargs):
-        CodeEditor.__init__(self, parent, *args, **kwargs)
+        BaseTextCtrl.__init__(self, parent, *args, **kwargs)
+        self.showLineNumbers = True
         
         # View settings
         view = iep.config.view
@@ -279,7 +279,7 @@ class IepEditor(CodeEditor):
         """ Test whether the file has been changed 'behind our back'
         """
         # Act normally to the focus event        
-        CodeEditor.focusInEvent(self, event)
+        BaseTextCtrl.focusInEvent(self, event)
         # Test file change
         self.testWhetherFileWasChanged()
     
@@ -346,7 +346,7 @@ class IepEditor(CodeEditor):
         """ Capture show event to change title. """
         # Act normally
         if event:
-            CodeEditor.showEvent(self, event)
+            BaseTextCtrl.showEvent(self, event)
         
         # Set title to display filename of this file
         self.setTitleInMainWindow()
@@ -659,7 +659,7 @@ class IepEditor(CodeEditor):
                 else:
                     nameForShell = className
                     break
-        
+         
         # If there's a shell, let it finish the autocompletion
         shell = iep.shells.getCurrentShell()
         if shell:
