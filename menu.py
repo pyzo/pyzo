@@ -1047,14 +1047,14 @@ class RunMenu(BaseMenu):
     
     def _getCodeOfFile(self, editor):
         # Obtain source code
-        text = editor.getString()
-        # Show the result to user and set back
-        i1, i2 = editor.getPosition(), editor.getAnchor()
-        editor.setPosition(0); editor.setAnchor(editor.length())
-        editor.update()
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setPosition(i1); editor.setAnchor(i2)
+        text = editor.toPlainText()
+        # TODO:?? Show the result to user and set back
+        #i1, i2 = editor.getPosition(), editor.getAnchor()
+        #editor.setPosition(0); editor.setAnchor(editor.length())
+        #editor.update()
+        #editor.repaint()
+        #time.sleep(0.200)
+        #editor.setPosition(i1); editor.setAnchor(i2)
         # Get filename and return 
         fname = editor.id() # editor._name or editor._filename
         return fname, text
