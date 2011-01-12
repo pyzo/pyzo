@@ -256,6 +256,7 @@ class IepEditor(CodeEditor):
         # To see whether the doc has changed to update the parser.
         self.textChanged.connect(self._onModified)
     
+
     def gotoLine(self,lineNumber):
         """Move the cursor to the given lineNumber (0-based) and center
         the cursor vertically"""
@@ -486,21 +487,28 @@ class IepEditor(CodeEditor):
     
     
     def commentCode(self):
+        #Note: a 'TextCursor' does not represent the actual on-screen cursor, so
+        #movements do not move the on-screen cursor
         
-        # get locations of the selected text (but whole lines only)
-        pos = self.getPosition()
-        anch = self.getAnchor()
-        line1 = self.getLinenrFromPosition(pos)
-        line2 = self.getLinenrFromPosition(anch)
-        line1,line2 = min(line1,line2), max(line1,line2)+1
+        #Note 2: when the text is changed, the cursor and selection start/end
+        #positions of all cursors are updated accordingly, so the screenCursor
+        #stays in place even if characters are inserted at the editCursor
         
-        # comment all lines
-        for linenr in range(line1,line2):            
-            pos2 = self.getPositionFromLinenr(linenr)
-            self.setTargetStart(pos2)
-            self.setTargetEnd(pos2)
-            self.replaceTargetBytes(b"# ")
+        screenCursor = self.textCursor() #For maintaining which region is selected
+        editCursor = self.textCursor()   #For inserting the comment marks
     
+        #Use beginEditBlock / endEditBlock to make this one undo/redo operation
+        editCursor.beginEditBlock()
+            
+        editCursor.setPosition(screenCursor.selectionStart())
+        editCursor.movePosition(editCursor.StartOfBlock)
+        # < : if selection end is at beginning of the line, don't comment that one
+        while editCursor.position()<screenCursor.selectionEnd(): 
+            editCursor.insertText('# ')
+            editCursor.movePosition(editCursor.NextBlock)
+            
+        editCursor.endEditBlock()
+     
     
     def uncommentCode(self):
         

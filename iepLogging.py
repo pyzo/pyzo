@@ -42,8 +42,8 @@ class DummyStd:
         return self._closed    
     def close(self):
         self._closed = False
-    
-    
+
+
 original_print = print
 def print(*args, **kwargs):
     # Obtain time string

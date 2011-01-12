@@ -1629,13 +1629,10 @@ class EditorStack(QtGui.QWidget):
                     ed = tmp._editor
                     # set position and make sure it is visible
                     pos = int(parts[1])
-                    #linenr = ed.getLinenrFromPosition(pos)
-                    #ed.setPositionAndAnchor(pos)
-                    #ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
                     cursor = ed.textCursor()
                     cursor.setPosition(pos)
                     ed.setTextCursor(cursor)
-                    #TODO: scroll to that position
+                    ed.centerCursor() #TODO: this does not work yet
                     
                     fileItems[parts[0]] = tmp
     

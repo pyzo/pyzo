@@ -5,6 +5,7 @@ from PyQt4.QtCore import Qt
 
 import keyword
 from . import python_syntax
+#import python_syntax
 
 	
 class Highlighter(QtGui.QSyntaxHighlighter):
@@ -96,9 +97,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.lineNumberArea=LineNumberArea(self)
 		
 		#Autocompleter
-		self.completer=QtGui.QCompleter(keyword.kwlist, self)
+		self.completerModel=QtGui.QStringListModel(keyword.kwlist)
+		self.completer=QtGui.QCompleter(self.completerModel, self)
 		self.completer.setCaseSensitivity(Qt.CaseInsensitive)
 		self.completer.setWidget(self)
+		self.completerNames=[]
+		self.recentCompletions=[] #List of recently selected completions
 		self.autocompleteStart=None
 
 		#Connect signals
@@ -207,6 +211,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		else:
 			self.setExtraSelections([])
 	## MISC
+	def setStyle(self,style):
+		#TODO: to be implemented
+		pass
+		
 	def lineNumberAreaPaintEvent(self,event):
 		painter = QtGui.QPainter(self.lineNumberArea)
 		cursor = self.cursorForPosition(self.viewport().pos())
@@ -237,8 +245,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		"""
 		lastLineNumber = self.blockCount() 
 		return QtGui.QFontMetrics(self.font()).width(str(lastLineNumber))
-	def testTokenize(self):
-		print (tokenize.generate_tokens(io.StringIO(self.toPlainText()).readline))
+
 		
 	##Custom signal handlers
 	def updateCurrentLineHighlight(self):
@@ -257,7 +264,109 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.setExtraSelections([selection])
 	def updateLineNumberAreaWidth(self,count):
 		self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
+	## Autocompletion
+	def autocompleteShow(self,offset = 0,names = None):
+		"""
+		Pop-up the autocompleter (if not already visible) and position it at current
+		cursor position minus offset. If names is given and not None, it is set
+		as the list of possible completions.
+		"""
+		#Pop-up the autocompleteList
+		startcursor=self.textCursor()
+		startcursor.setPosition(startcursor.position()-offset)
 		
+		if not self.autocompleteActive() or \
+			startcursor.position() != self.autocompleteStart:
+
+			self.autocompleteStart=startcursor.position()
+
+			#Popup the autocompleter. Don't use .complete() since we want to
+			#position the popup manually
+			self._positionAutocompleter()
+			self._updateAutocompleterPrefix()
+			self.completer.popup().show()
+		
+
+		if names is not None:
+			#TODO: a more intelligent implementation that adds new items and removes
+			#old ones
+			if names != self.completerNames:
+				self.completerModel.setStringList(names)
+				self.completerNames = names
+
+		self._updateAutocompleterPrefix()
+	def autocompleteAccept(self):
+		pass
+	def autocompleteCancel(self):
+		self.completer.popup().hide()
+		self.autocompleteStart = None
+		
+	def onAutoComplete(self,text):
+		#Select the text from autocompleteStart until the current cursor
+		cursor=self.textCursor()
+		cursor.setPosition(self.autocompleteStart,cursor.KeepAnchor)
+		#Replace it with the selected text 
+		cursor.insertText(text)
+		self.autocompleteStart=None
+		self.autocompleteCancel() #Reset the completer
+		
+		#Update the recent completions list
+		if text in self.recentCompletions:
+			self.recentCompletions.remove(text)
+		self.recentCompletions.append(text)
+		
+	def autocompleteActive(self):
+		return self.autocompleteStart is not None
+	
+		
+	def _positionAutocompleter(self):
+		"""Move the autocompleter list to a proper position"""
+		#Find the start of the autocompletion and move the completer popup there
+		cur=self.textCursor()
+		cur.setPosition(self.autocompleteStart)
+		position = self.cursorRect(cur).bottomLeft() + \
+			self.viewport().pos() #self.geometry().topLeft() +
+		self.completer.popup().move(self.mapToGlobal(position))
+		
+		#Set size
+		geometry = self.completer.popup().geometry()
+		geometry.setWidth(100)
+		geometry.setHeight(100)
+		self.completer.popup().setGeometry(geometry)
+	
+	def _updateAutocompleterPrefix(self):
+		"""
+		Find the autocompletion prefix (the part of the word that has been 
+		entered) and send it to the completer
+		"""
+		prefix=self.toPlainText()[self.autocompleteStart:
+		self.textCursor().position()]
+
+		self.completer.setCompletionPrefix(prefix)
+		model = self.completer.completionModel()
+		if model.rowCount():
+			#Iterate over the matches, find the one that was most recently used
+			#print (self.recentCompletions)
+			recentFound = -1
+			recentFoundRow = 0 #If no recent match, just select the first match
+			
+			for row in range(model.rowCount()):
+				data = model.data(model.index(row,0),self.completer.completionRole())
+				if not data in self.recentCompletions:
+					continue
+				
+				index = self.recentCompletions.index(data)
+				if index > recentFound: #Later in the list = more recent
+					recentFound, recentFoundRow = index, row
+
+			
+			self.completer.popup().setCurrentIndex(model.index(row,0));
+
+				
+		else:
+			#No match, just hide
+			self.autocompleteCancel()
+			
 	##Overridden Event Handlers
 	def resizeEvent(self,event):
 		QtGui.QPlainTextEdit.resizeEvent(self,event)
@@ -271,18 +380,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		QtGui.QPlainTextEdit.paintEvent(self,event)
 		self.lineNumberArea.update(0,event.rect().y(),50,event.rect().height())
 		
-	def onAutoComplete(self,text):
-		#Select the text from autocompleteStart until the current cursor
-		cursor=self.textCursor()
-		cursor.setPosition(self.autocompleteStart,cursor.KeepAnchor)
-		#Replace it with the selected text 
-		cursor.insertText(text)
-		self.autocompleteStart=None
+
+		
 
 	def keyPressEvent(self,event):
 		key=event.key()
 		if key == Qt.Key_Tab:
-			if self.autocompleteStart is not None:
+			if self.autocompleteActive():
 				#Let the completer handle this one!
 				event.ignore()
 				return
@@ -292,16 +396,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
 				cursor.insertText(' '*(self.tabSize-((cursor.columnNumber() + self.tabSize )%self.tabSize)))
 				return
 
-		if key == Qt.Key_F1:
-			self.testTokenize()
+			
+			#self.testTokenize()
 		#Allowed keys that do not close the autocompleteList:
 		# alphanumeric and _
 		# Backspace (until start of autocomplete word)
-		if self.autocompleteStart is not None and \
+		if self.autocompleteActive() and \
 			not event.text().isalnum() and event.text != '_' and not (
 			(key==Qt.Key_Backspace) and self.textCursor().position()>self.autocompleteStart):
-			self.completer.popup().hide()
-			self.autocompleteStart=None	
+			self.autocompleteCancel()
 			
 		#Apply the key
 		QtGui.QPlainTextEdit.keyPressEvent(self,event)
@@ -321,34 +424,34 @@ class CodeEditor(QtGui.QPlainTextEdit):
 						indent+='\t' #TODO: tabs or spaces
 				cursor.insertText(indent)
 				
-		
-		if event.text()=='.':
-			#Pop-up the autocompleteList
-			rect=self.cursorRect(self.textCursor())
-			rect.setSize(QtCore.QSize(100,150))
-			self.autocompleteStart=self.textCursor().position()
-			self.completer.complete(rect) #The popup is positioned in the next if block
-		
-		if self.autocompleteStart:
-			prefix=self.toPlainText()[self.autocompleteStart:
-				self.textCursor().position()]
+				
+		if self.autocompleteActive():
+			#While we type, the start of the autocompletion may move due to line
+			#wrapping, so reposition after every key stroke
+			self._positionAutocompleter()
 			
-			#While we type, the start of the autocompletion may move due to line wrapping
-			#Find the start of the autocompletion and move the completer popup there
-			cur=self.textCursor()
-			cur.setPosition(self.autocompleteStart)
-			position = self.cursorRect(cur).bottomLeft() + \
-				self.geometry().topLeft() + self.viewport().pos()
-			self.completer.popup().move(position)
-			
-			self.completer.setCompletionPrefix(prefix)
-			#Select the first one of the matches
-			self.completer.popup().setCurrentIndex(self.completer.completionModel().index(0,0));
+			self._updateAutocompleterPrefix()
+
 
 
 if __name__=='__main__':
 	app=QtGui.QApplication([])
-	QtGui.QFontDatabase.addApplicationFontFromData(open('/Users/rob/projecten/iep/whitespace.ttf','rb').read())
-	t=CodeEditor()
-	t.show()
+	class TestEditor(CodeEditor):
+		def keyPressEvent(self,event):
+			key = event.key()
+			if key == Qt.Key_F1:
+				self.autocompleteShow()
+				return
+			elif key == Qt.Key_F2:
+				self.autocompleteCancel()
+				return
+			
+			CodeEditor.keyPressEvent(self,event)
+		
+	e=TestEditor()
+	e.show()
+	s=QtGui.QSplitter()
+	s.addWidget(e)
+	s.addWidget(QtGui.QLabel('test'))
+	s.show()
 	app.exec_()
