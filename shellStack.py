@@ -573,7 +573,7 @@ class ShellInfoDialog(QtGui.QDialog):
         self._add = QtGui.QToolButton(self)        
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
-        self._add.setText('+')
+        self._add.setIcon(iep.icons.add)
         #
         self._tabs.setTabsClosable(True)
         self._tabs.tabCloseRequested.connect(self.onTabClose)

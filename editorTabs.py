@@ -28,6 +28,61 @@ MIN_NAME_WIDTH = 50
 MAX_NAME_WIDTH = 200
 
 
+def simpleDialog(item, action, question, options, defaultOption):
+    """ simpleDialog(editor, action, question, options, defaultOption)
+    
+    Options with special buttons
+    ----------------------------
+    ok, open, save, cancel, close, discard, apply, reset, restoredefaults,
+    help, saveall, yes, yestoall, no, notoall, abort, retry, ignore.
+    
+    Returns the lowercase selected option, or None if canceled.
+    
+    """
+    
+    # Get filename
+    if isinstance(item, FileItem):
+        filename = item.id
+    else:
+        filename = item.id()
+    
+    # create button map
+    mb = QtGui.QMessageBox
+    M = {   'ok':mb.Ok, 'open':mb.Open, 'save':mb.Save, 'cancel':mb.Cancel,
+            'close':mb.Close, 'discard':mb.Discard, 'apply':mb.Apply, 
+            'reset':mb.Reset, 'restoredefaults':mb.RestoreDefaults, 
+            'help':mb.Help, 'saveall':mb.SaveAll, 'yes':mb.Yes, 
+            'yestoall':mb.YesToAll, 'no':mb.No, 'notoall':mb.NoToAll, 
+            'abort':mb.Abort, 'retry':mb.Retry, 'ignore':mb.Ignore}
+    
+    # setup dialog
+    dlg = QtGui.QMessageBox(iep.main)
+    dlg.setWindowTitle('IEP')
+    dlg.setText(action + " file:\n{}".format(filename))
+    dlg.setInformativeText(question)
+    
+    # process options
+    for option in options:
+        option_lower = option.lower()
+        # Use standard button?
+        if option_lower in M:
+            button = dlg.addButton(M[option_lower]) 
+        else:        
+            button = dlg.addButton(option, dlg.AcceptRole)
+        # Set as default?
+        if option_lower == defaultOption:
+            dlg.setDefaultButton(button)
+    
+    # get result
+    result = dlg.exec_()
+    button = dlg.clickedButton()
+    if button:        
+        return button.text().lower()
+    else:
+        return None
+    
+    
+
 # todo: some management stuff could (should?) go here
 class FileItem:
     """ FileItem(editor)
@@ -483,11 +538,13 @@ class FileTabWidget(QtGui.QTabWidget):
         
         # Define actions
         generalActions = [ None, 'New file', 'Open file' ]
-        fileActions = [ 'Save file', 'Save file as', 'Rename file', None, 
-                        'Run file', 'Run file as script', None,
+        fileActions = [ 'Close file', 'Close all but this (and pinned)',
+                        'Save file', 'Save file as', 
+                        'Rename file', 'Delete file (from file system)', 
+                        None,                        
                         'Pin file', 'Make this the MAIN file', None,
-                        'Close file', 'Close all but this (and pinned)', 
-                        'Delete file (from file system)'] 
+                        'Run file', 'Run file as script'
+                        ] 
         
         # Get item and actions
         actions = generalActions
@@ -521,10 +578,13 @@ class FileTabWidget(QtGui.QTabWidget):
                     action.setIcon( iep.icons.cross )
         
         # Show
+        
         if item:
             pos = tabBar.mapToGlobal( tabBar.tabRect(index).bottomLeft() )
         else:
             pos = event.globalPos()
+            # Putting it below the tabbar seems a bit as if its wrongly placed
+        
         self._menu.exec_(pos)
     
     
@@ -577,12 +637,16 @@ class FileTabWidget(QtGui.QTabWidget):
         elif 'close' in request:
             self.tabCloseRequested.emit(index)
         elif 'delete' in request:
-            filename = item.filename
-            self.tabCloseRequested.emit(index)
-            try:
-                os.remove(filename)
-            except Exception:
-                pass
+            result = simpleDialog(item, "Delete", 
+                "Are you sure you want to delete the file from your file system?",
+                ['Delete', 'Cancel'], 'Cancel')
+            if result=='delete':
+                filename = item.filename            
+                self.tabCloseRequested.emit(index)
+                try:
+                    os.remove(filename)
+                except Exception:
+                    pass
         
         # Update
         self.updateItemsFull()
@@ -751,7 +815,7 @@ class FileTabWidget(QtGui.QTabWidget):
         i = self.currentIndex()
         if i>=0:
             item = self.tabBar().tabData(i)
-            if not isinstance(item, FileItem):
+            if (item is not None) and (not isinstance(item, FileItem)):
                 item = item.toPyObject() # Older version of Qt
             return item
     
@@ -1022,6 +1086,7 @@ class EditorTabs(QtGui.QWidget):
         self._tabs = FileTabWidget(self)       
         self._tabs.tabCloseRequested.connect(self.closeFile)
         self._tabs.currentChanged.connect(self.onCurrentChanged)
+        
         # Create find/replace widget
         self._findReplace = FindReplaceWidget(self)
         
@@ -1366,30 +1431,20 @@ class EditorTabs(QtGui.QWidget):
         Returns 3 if user discarded changes.
         Returns 0 if cancelled.
         
-        """
+        """ 
         
         # should we ask to save the file?
         if editor._dirty:
             
-            # get filename
-            filename = editor._filename
-            if not filename:
-                filename = '<TMP>'
+            # Ask user what to do
+            result = simpleDialog(editor, "Closing", "Save modified file?", 
+                                    ['Save', 'Discard', 'Cancel'], 'Cancel')
             
-            # setup dialog
-            dlg = QtGui.QMessageBox(self)
-            dlg.setText("Closing file:\n{}".format(filename))
-            dlg.setInformativeText("Save modified file?")
-            tmp = QtGui.QMessageBox
-            dlg.setStandardButtons(tmp.Save| tmp.Discard | tmp.Cancel)
-            dlg.setDefaultButton(tmp.Cancel)
-            
-            # get result and act
-            result = dlg.exec_() 
-            if result == tmp.Save:
+            # Get result and act            
+            if result == 'save':
                 self.saveFile(editor)
                 return 2
-            elif result == tmp.Discard:
+            elif result == 'discard':
                 return 3
             else: # cancel
                 return 0
@@ -1404,19 +1459,29 @@ class EditorTabs(QtGui.QWidget):
         # get editor
         if editor is None:
             editor = self.getCurrentEditor()
+            item = self._tabs.currentItem()
         elif isinstance(editor, int):
             index = editor
-            editor = self._tabs.items()[index].editor
+            item = self._tabs.items()[index]
+            editor = item.editor
         if editor is None:
             return
         
+        # Ask if dirty
         result = self.askToSaveFileIfDirty(editor)
+        
+        # Ask if closing pinned file
+        if result and item.pinned:
+            result = simpleDialog(editor, "Closing pinned", 
+                "Are you sure you want to close this pinned file?",
+                ['Close', 'Cancel'], 'Cancel')
+            result = result == 'close'
         
         # ok, close...
         if result:
             self._tabs.removeTab(editor)
         return result
-    
+     
     
     def saveEditorState(self):
         """ Save the editor's state configuration.
