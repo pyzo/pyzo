@@ -305,48 +305,51 @@ class FindReplaceWidget(QtGui.QFrame):
         if not editor:
             return        
         
-        # matchCase and regExp
-        matchCase = self._caseCheck.isChecked()
-        regExp = self._regExp.isChecked()
-        wholeWord = self._wholeWord.isChecked()
+        # find flags
+        flags = QtGui.QTextDocument.FindFlags()
+        if self._caseCheck.isChecked():
+            flags |= QtGui.QTextDocument.FindCaseSensitively
+
+        if self._wholeWord.isChecked():
+            flags |= QtGui.QTextDocument.FindWholeWords
+        
+        if not forward:
+            flags |= QtGui.QTextDocument.FindBackward
+
         
         # focus
         self.selectFindText()
         
         # get text to find
         needle = self._findText.text()
-        if not matchCase:
-            needle = needle.lower()
+        if self._regExp.isChecked():
+            #Make needle a QRegExp; speciffy case-sensitivity here since the
+            #FindCaseSensitively flag is ignored when finding using a QRegExp
+            needle = QtCore.QRegExp(needle,
+                QtCore.Qt.CaseSensitive if self._caseCheck.isChecked() else
+                QtCore.Qt.CaseInsensitive)
         
         # estblish start position
-        pos1 = editor.getPosition()
-        pos2 = editor.getAnchor()
-        if forward:
-            pos = max([pos1,pos2])
+        cursor = editor.textCursor()
+        result = editor.document().find(needle, cursor, flags)
+        
+        if not result.isNull():
+            editor.setTextCursor(result)
         else:
-            pos = min([pos1,pos2])
-        line = editor.getLinenrFromPosition(pos)
-        index = pos-editor.getPositionFromLinenr(line)
-        
-        # use Qscintilla's implementation
-        ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
-                            forward, line, index, True)
-        
-        # wrap and notify
-        if not ok:
             self.notifyPassBeginEnd()
+            #Move cursor to start or end of document
             if forward:
-                line, index = 0,0
+                cursor.movePosition(cursor.Start)
             else:
-                pos = editor.length()
-                line = editor.getLinenrFromPosition(pos)
-                index = pos-editor.getPositionFromLinenr(line)
-            ok = editor.findFirst(needle, regExp, matchCase, wholeWord, False, 
-                                forward, line, index, True)
-        
+                cursor.movePosition(cursor.End)
+            #Try again
+            result = editor.document().find(needle, cursor, flags)
+            if not result.isNull():
+                editor.setTextCursor(result)
+            
         # done
         editor.setFocus(True)
-        return ok
+        return not result.isNull()
     
     
     def replaceOne(self,event=None):
@@ -358,7 +361,10 @@ class FindReplaceWidget(QtGui.QFrame):
         # get editor
         editor = self.parent().getCurrentEditor()
         if not editor:
-            return        
+            return
+        
+        #Create a cursor to do the editing
+        cursor = editor.textCursor()
         
         # matchCase
         matchCase = self._caseCheck.isChecked()
@@ -372,21 +378,24 @@ class FindReplaceWidget(QtGui.QFrame):
         replacement = self._replaceText.text()
         
         # get original text
-        original = editor.getSelectedString()
+        original = cursor.selectedText()
         if not original:
             original = ''
         if not matchCase:
             original = original.lower()
         
         # replace
+        #TODO: this line does not work for regexp-search!
         if original and original == needle:
-            editor.replace( replacement )
+            cursor.insertText( replacement )
         
         # next!
         return self.find()
     
     
     def replaceAll(self,event=None):
+        #TODO: share a cursor between all replaces, in order to 
+        #make this one undo/redo-step
         
         # get editor
         editor = self.parent().getCurrentEditor()
@@ -394,16 +403,17 @@ class FindReplaceWidget(QtGui.QFrame):
             return 
         
         # get current position
-        linenr, index = editor.getLinenrAndIndex()
+        originalPosition = editor.textCursor()
         
-        # replace all
-        editor.setPosition(0)
+        # move to beginning of text and replace all
+        cursor = editor.textCursor()
+        cursor.movePosition(cursor.Start)
+        editor.setTextCursor(cursor)
         while self.replaceOne():
             pass
         
         # reset position
-        pos = editor.getPositionFromLinenr(linenr)
-        editor.setPositionAndAnchor(pos+index)
+        editor.setTextCursor(cursor)
 
 
 
@@ -751,7 +761,7 @@ class FileTabWidget(QtGui.QTabWidget):
         i = self.currentIndex()
         if i>=0:
             item = self.tabBar().tabData(i)
-            if not isinstance(item, FileItem):
+            if (item is not None) and (not isinstance(item, FileItem)):
                 item = item.toPyObject() # Older version of Qt
             return item
     
