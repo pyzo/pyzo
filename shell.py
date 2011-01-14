@@ -66,8 +66,6 @@ class BaseShell(BaseTextCtrl):
         
         # variables we need
         self._more = False
-        self._promptPos1 = 0
-        self._promptPos2 = 0
         self.stdoutCursor = self.textCursor() #Stays at the place where stdout is printed
         self.lineBeginCursor = self.textCursor() #Stays at the beginning of the edit line
         
@@ -95,8 +93,16 @@ class BaseShell(BaseTextCtrl):
         
         # apply style
         # TODO: self.setStyle('')
+        self.cursorPositionChanged.connect(self.onCursorPositionChanged)
+        
+    def onCursorPositionChanged(self):
+        #If the end of the selection (or just the cursor if there is no selection)
+        #is before the beginning of the line. make the document read-only
+        if self.textCursor().selectionEnd() < self.lineBeginCursor.position():
+            self.setReadOnly(True)
+        else:
+            self.setReadOnly(False)
     
-
 
     def resizeEvent(self, event):
         """ When resizing the fontsize nust be kept right. """
@@ -165,12 +171,7 @@ class BaseShell(BaseTextCtrl):
             # impose lower limit
             if zoom < -10:
                 break
-    
-    def onAutoComplete(self,text):
-        #Keep the lineBeginCursor at its place when auto-completing
-        pos=self.lineBeginCursor.position()
-        BaseTextCtrl.onAutoComplete(self,text)
-        self.lineBeginCursor.setPosition(pos)
+
     ##Indentation: override code editor behaviour
     def indentSelection(self):
         pass
@@ -179,6 +180,7 @@ class BaseShell(BaseTextCtrl):
         
     ## Key handlers
     def keyPressEvent(self,event):
+        
         if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
             # Enter: execute line
             # Remove calltip and autocomp if shown
@@ -204,6 +206,16 @@ class BaseShell(BaseTextCtrl):
             self.autocompleteCancel()
             return
 
+        if event.key() == Qt.Key_Insert:
+            # Don't toggle between insert mode and overwrite mode.
+            return True
+        
+        #Ensure to not backspace / go left beyond the prompt
+        if event.key() in [Qt.Key_Backspace, Qt.Key_Left]:
+            if self.textCursor().position() == self.lineBeginCursor.position():
+                return  #Ignore the key, don't go beyond the prompt
+
+
         if event.key() in [Qt.Key_Up, Qt.Key_Down] and not \
                 self.autocompleteActive():
             #TODO: searching with needle
@@ -227,118 +239,46 @@ class BaseShell(BaseTextCtrl):
                 cursor.insertText(self._history[self._historyIndex])
             return
         
+        cursor=self.textCursor()
+        #if a 'normal' key is pressed, ensure the cursor is at the edit line
+        if event.text():
+            self.ensureCursorAtEditLine()
+        
         #Default behaviour: BaseTextCtrl
         BaseTextCtrl.keyPressEvent(self,event)
-     
+        
+        
         #TODO: escape to clear the current line? (Only if not handled by the
         #default editor behaviour)
-    
-    def keyPressHandler_normal(self, event):
-        """ keyPressHandler_normal(event)
-        Called when the autocomp list is NOT active and when the event
-        was not handled by the "always" handler. If returns True,
-        will not process the event further.
-        """
-        qc = QtCore.Qt
-        
-        if event.key == qc.Key_Escape:
-            # Clear autocomp and calltip, goto end, clear
-            
-            if self.autoCompActive() or self.callTipActive():
-                # Note that the autocomp is already removed on escape by
-                # scintilla, but I leave it for clarity
-                self.autoCompCancel()             
-                self.callTipCancel()
-            elif self.getPosition() < self._promptPos2:
-                self.setPositionAndAnchor(self.length())
-            else:
-                self.clearCommand()
-                self._historyNeedle = None
-            return True
-        
-        elif event.key in [qc.Key_Up, qc.Key_Down]:
-            # Command history
-            
-            # _historyStep is 0 by default, but the first history element
-            # is at _historyStep=1.
-            
-            # needle
-            if self._historyNeedle == None:
-                # get partly-command, result of method is tuple, 
-                # then we skip ">>> "
-                pos1, pos2 = self._promptPos2, self.length()
-                self._historyNeedle = self.getRangeString(pos1, pos2)
-                self._historyStep = 0
-            
-            # step
-            if event.key==qc.Key_Up:
-                self._historyStep +=1
-            if event.key==qc.Key_Down:
-                self._historyStep -=1
-                if self._historyStep<1:
-                    self._historyStep = 1
-            
-            # find the command
-            count = 0
-            for c in self._history:
-                if c.startswith(self._historyNeedle):
-                    count+=1
-                    if count >= self._historyStep:
-                        break
-            else:
-                # found nothing-> reset
-                self._historyStep = 0
-                c = self._historyNeedle  
-            
-            # apply
-            self.setAnchor(self._promptPos2)
-            self.setPosition(self.length())
-            self.ensureCursorVisible()
-            self.replaceSelection(c) # replaces the current selection
-            return True
-        
-        else:
-            #TODO: if not event.controldown:
-            cursor=self.textCursor()
-            if cursor.position() < self.lineBeginCursor.position():
-                # go back to prompt if not there..
-                cursor.move(cursor.End)
-                self.setTextCursor(cursor)
 
-                # Proceed as normal though!
     
-    ## Cut / Copy / Paste / Undo / Redo
+    ## Cut / Copy / Paste / Drag & Drop
     
     def cut(self):
         """ Reimplement cut to only copy if part of the selected text
         is not at the prompt. """
         
-        # get cursor and begin of the edit line
-        cursor = self.textCursor()
-        lineBegin = self.lineBeginCursor.position()
-        if cursor.position() < lineBegin or cursor.anchor() < lineBegin:
+        if self.isReadOnly():
             return self.copy()
         else:
             return BaseTextCtrl.cut(self)
     
     #def copy(self): # no overload needed
-    
-    
+
     def paste(self):
-        """ Reimplement paste to only paste when the position is at
-        the prompt. """
-        
-        # get cursor and begin of the edit line
-        cursor = self.textCursor()
-        lineBegin = self.lineBeginCursor.position()
-        if cursor.position() < lineBegin or cursor.anchor() < lineBegin:
-            #Move cursor to end of edit line
-            cursor.movePosition(cursor.End)
-            self.setTextCursor(cursor)
+        """ Reimplement paste to paste at the end of the edit line when
+        the position is at the prompt. """
+        self.ensureCursorAtEditLine()
         # Paste normally
         return BaseTextCtrl.paste(self)
 
-    
+    def dragEnterEvent(self):
+        """No dropping allowed"""
+        pass
+        
+    def dropEvent(self,event):
+        """No dropping allowed"""
+        pass
     
     def ensureCursorAtEditLine(self):
         """
