@@ -18,6 +18,7 @@ import os, sys, time, gc
 from PyQt4 import QtCore, QtGui
 
 import iep
+from compactTabWidget import CompactTabWidget
 from editor import createEditor
 from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
@@ -461,8 +462,41 @@ class FindReplaceWidget(QtGui.QFrame):
         editor.setPositionAndAnchor(pos+index)
 
 
-
-class FileTabWidget(QtGui.QTabWidget):
+class TabToolButton(QtGui.QToolButton):
+    def __init__(self, tabWidget, item,  icon1, icon2):
+        QtGui.QToolButton.__init__(self)
+        
+        # Init
+        self.setIconSize(QtCore.QSize(16,16))
+        self.setStyleSheet("QToolButton{ border: none; }")                
+        
+        # Store widget and icons
+        self._tabWidget = tabWidget
+        self._item = item
+        self._icon1 = icon1
+        self._icon2 = icon2
+        
+        # Set icon now
+        if False:#self.underMouse():
+            self.setIcon(icon2)
+        else:
+            self.setIcon(icon1)
+        
+        # Connect
+        self.pressed.connect(self.onTriggered)
+    
+    def onTriggered(self):
+        self._item._pinned = not self._item._pinned
+        self._tabWidget.updateItemsFull()
+        
+#     def enterEvent(self, event):
+#         self.setIcon(self._icon2)
+#     
+#     def leaveEvent(self, event):
+#         self.setIcon(self._icon1)
+#     
+    
+class FileTabWidget(CompactTabWidget):
     """ FileTabWidget(parent)
     
     The tab widget that contains the editors and lists all open files.
@@ -470,37 +504,13 @@ class FileTabWidget(QtGui.QTabWidget):
     """
     
     def __init__(self, parent):
-        QtGui.QTabWidget.__init__(self, parent)
+        CompactTabWidget.__init__(self, parent)
         
         # Init main file
         self._mainFile = ''
         
         # Init item history
         self._itemHistory = []
-        
-        # Put tab widget in document mode
-        self.setDocumentMode(True)
-        
-        # Allow moving tabs around
-        self.setMovable(True)
-        
-        # Tune the tab bar
-        if True:
-            tabBar = self.tabBar()
-            
-            # We do our own eliding
-            tabBar.setElideMode(QtCore.Qt.ElideNone) 
-            # Make tabs wider if there's plenty space
-            tabBar.setExpanding(False) 
-            # If there's not enough space, use scroll buttons
-            tabBar.setUsesScrollButtons(True) 
-            # When a tab is removed, select previous
-            tabBar.setSelectionBehaviorOnRemove(tabBar.SelectPreviousTab)
-            
-            # Reduce font size to fit more text
-            font = tabBar.font()
-            font.setPointSize(8)
-            tabBar.setFont(font)        
         
         # Create a corner widget
         but = QtGui.QToolButton()
@@ -512,16 +522,6 @@ class FileTabWidget(QtGui.QTabWidget):
         self._menu = QtGui.QMenu()
         self._menu.triggered.connect(self.contextMenuTriggered)
         self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        
-        # Init alignment parameters
-        self._alignWidth = MIN_NAME_WIDTH
-        self._alignWidthIsReducing = False
-        
-        # Create timer for aligning
-        self._alignTimer = QtCore.QTimer(self)
-        self._alignTimer.setInterval(10)
-        self._alignTimer.setSingleShot(True)
-        self._alignTimer.timeout.connect(self._alignRecursive)
         
         # Bind signal to update items and keep track of history
         self.currentChanged.connect(self.updateItems)
@@ -650,144 +650,6 @@ class FileTabWidget(QtGui.QTabWidget):
         
         # Update
         self.updateItemsFull()
-    
-    
-    ## Aligning of the tabs (eliding)
-    
-    def resizeEvent(self, event):
-        QtGui.QTabWidget.resizeEvent(self, event)
-        self.alignItems()
-    
-    
-    def showEvent(self, event):
-        QtGui.QTabWidget.showEvent(self, event)
-        self.alignItems()
-    
-    
-    def alignItems(self):
-        """ alignItems()
-        
-        Align the tab items. Their names are ellided if required so that
-        all tabs fit on the tab bar if possible. When there is too little
-        space, the tabbar itself will kick in and draw scroll arrows.
-        
-        """
-        
-        # Set name widths correct (in case new names were added)
-        self._setMaxWidthOfAllItems()
-        
-        # Start alignment process
-        self._alignWidthIsReducing = False
-        self._alignTimer.start()
-        
-        
-    def _alignRecursive(self):
-        """ _alignRecursive()
-        
-        Recursive alignment of the items. The alignment process
-        should be initiated from alignItems().
-        
-        """
-        
-        # Only if visible
-        if not self.isVisible():
-            return
-        
-        # Get tab bar and number of items
-        tabBar = self.tabBar()
-        N = self.count()
-        
-        # Get right edge of last tab and left edge of corner widget
-        pos1 = tabBar.tabRect(0).topLeft()
-        pos2 = tabBar.tabRect(N-1).topRight()
-        pos3 = self.cornerWidget().pos()
-        x1 = pos1.x()#tabBar.mapToGlobal(pos1).x()
-        x2 = pos2.x()#tabBar.mapToGlobal(pos2).x()
-        x3 = pos3.x()#self.mapToGlobal(pos3).x()
-        alignMargin = x3 - (x2-x1) -3  # Must be positive (has margin)
-        
-        # Are the tabs too wide?
-        if alignMargin < 0:
-            # Tabs extend beyond corner widget
-            
-            # Reduce width then
-            self._alignWidth -= 5#max(abs(alignMargin)/N, 5)
-            self._alignWidth = max(self._alignWidth, MIN_NAME_WIDTH)
-            
-            # Apply
-            self._setMaxWidthOfAllItems()
-            self._alignWidthIsReducing = True
-            
-            # Try again if there's still room for reduction
-            if self._alignWidth > MIN_NAME_WIDTH:
-                self._alignTimer.start()
-        
-        elif alignMargin > 10 and not self._alignWidthIsReducing:
-            # Gap between tabs and corner widget is a bit large
-            
-            # Increase width then
-            self._alignWidth += 5#max(abs(alignMargin)/N, 5)
-            self._alignWidth = min(self._alignWidth, MAX_NAME_WIDTH)
-            
-            # Apply
-            itemsElided = self._setMaxWidthOfAllItems()
-            
-            # Try again if there's still room for increment
-            if itemsElided and self._alignWidth < MAX_NAME_WIDTH:
-                self._alignTimer.start()
-                #self._alignTimer.timeout.emit()
-        
-        else:            
-            pass # margin is good
-    
-    
-    
-    def _setMaxWidthOfAllItems(self):
-        """ _setMaxWidthOfAllItems()
-        
-        Sets the maximum width of all items now, by eliding the names.
-        Returns whether any items were elided.
-        
-        """ 
-        
-        # Get width
-        w = self._alignWidth
-        
-        # Prepare for measuring font sizes
-        font = self.tabBar().font()
-        metrics = QtGui.QFontMetrics(font)
-        
-        # Get tabbar and items
-        tabBar = self.tabBar()
-        items = self.items()
-        
-        # Get whether an item was reduced in size
-        itemReduced = False
-        
-        for i in range(len(items)):
-            
-            # Get name and splint in root+ext
-            name = name0 = items[i].name
-            root, ext = os.path.splitext(name)
-            
-            # If extension is small, ellide only the root part, 
-            # otherwise, ellide full name
-            if len(ext) < 5:
-                offset = metrics.width(ext)
-                root2 = metrics.elidedText(root, QtCore.Qt.ElideRight, w-offset)
-                if len(root2) < len(root):
-                    name = root2+ext[1:]
-            else:
-                name = metrics.elidedText(name, QtCore.Qt.ElideRight, w)
-            
-            # Get whether the item was changed
-            itemReduced = itemReduced or (len(name) != len(name0))
-            
-            # Set text now
-            tabBar.setTabText(i, name)
-        
-        # Done
-        return itemReduced
     
     
     ## Item management
@@ -954,14 +816,11 @@ class FileTabWidget(QtGui.QTabWidget):
         if theIndex >= 0:
             
             # Close tab
-            QtGui.QTabWidget.removeTab(self, theIndex)
+            CompactTabWidget.removeTab(self, theIndex)
             
             # Delete editor
             items[theIndex].editor.destroy()
             gc.collect()
-            
-            # Update
-            self.alignItems()
     
     
     def addItem(self, item, update=True):
@@ -995,7 +854,7 @@ class FileTabWidget(QtGui.QTabWidget):
         
         """
         self.updateItems()
-        self.alignItems()
+        self.tabBar().alignTabs()
     
     
     def updateItems(self):
@@ -1036,7 +895,7 @@ class FileTabWidget(QtGui.QTabWidget):
                     penColor = '#f00'
                 else:
                     pm0 = iep.icons.page_white.pixmap(16,16)
-                    penColor = '#333'
+                    penColor = '#444'
                 
                 # Create painter
                 painter = QtGui.QPainter()
@@ -1064,10 +923,19 @@ class FileTabWidget(QtGui.QTabWidget):
                 
                 # Finish
                 painter.end()
-                tabBar.setTabIcon(i, QtGui.QIcon(pm0))
- 
+                
+                # Show icon using tool button. That will make the space
+                # between icon and text much smaller for some reason.
+                #tabBar.setTabIcon(i, QtGui.QIcon(pm0))
+                but = TabToolButton(self, item,
+                    QtGui.QIcon(pm0), iep.icons.overlay_thumbnail)
+                tabBar.setTabButton(i, 0, but)
+                
  
 class EditorTabs(QtGui.QWidget):
+    """ The EditorTabs instance manages the open files and corresponding
+    editors. It does the saving loading etc.
+    """ 
     
     # Signal to notify that a different file was selected
     changedSelected = QtCore.pyqtSignal()
