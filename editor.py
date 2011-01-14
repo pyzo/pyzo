@@ -258,7 +258,7 @@ class IepEditor(BaseTextCtrl):
         self.SCN_UPDATEUI.connect(self._onModified)
     
     
-    def id(self):
+    def id(self): 
         """ Get an id of this editor. This is the filename, 
         or for tmp files, the name. """
         if self._filename:
