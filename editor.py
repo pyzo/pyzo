@@ -193,10 +193,10 @@ def createEditor(parent, filename=None):
         indentWidth = determineIndentation(text)
         if indentWidth == -1: #Tabs
             editor.tabSize = 4 #TODO: configurable
-            editor.spaceTabs = False
+            editor.indentation = 0
         elif indentWidth:
             editor.tabSize = indentWidth
-            editor.spaceTabs = True
+            editor.indentation = indentWidth
     
     # clear undo history and modify time
     #TODO: editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
@@ -487,27 +487,11 @@ class IepEditor(BaseTextCtrl):
     
     
     def commentCode(self):
-        #Note: a 'TextCursor' does not represent the actual on-screen cursor, so
-        #movements do not move the on-screen cursor
-        
-        #Note 2: when the text is changed, the cursor and selection start/end
-        #positions of all cursors are updated accordingly, so the screenCursor
-        #stays in place even if characters are inserted at the editCursor
-        
-        screenCursor = self.textCursor() #For maintaining which region is selected
-        editCursor = self.textCursor()   #For inserting the comment marks
-    
-        #Use beginEditBlock / endEditBlock to make this one undo/redo operation
-        editCursor.beginEditBlock()
-            
-        editCursor.setPosition(screenCursor.selectionStart())
-        editCursor.movePosition(editCursor.StartOfBlock)
-        # < : if selection end is at beginning of the line, don't comment that one
-        while editCursor.position()<screenCursor.selectionEnd(): 
-            editCursor.insertText('# ')
-            editCursor.movePosition(editCursor.NextBlock)
-            
-        editCursor.endEditBlock()
+        """
+        Comment the lines that are currently selected
+        """
+        self.doForSelectedLines(
+            lambda cursor: cursor.insertText('# ') )
      
     
     def uncommentCode(self):
@@ -533,67 +517,6 @@ class IepEditor(BaseTextCtrl):
                     self.setTargetEnd(pos2+i+1) # remove "#"
                 self.replaceTargetBytes(b"")
 
-    
-    def keyPressHandler_always(self, event):
-        """ keyPressHandler_always(event)
-        Called when the autocomp list is NOT active and when the event
-        was not handled by the "always" handler. If returns True,
-        will not process the event further.
-        """
-        
-        # Use base first
-        if BaseTextCtrl.keyPressHandler_always(self, event):
-            return True
-        
-        if event.key in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
-            # Auto indentation
-            
-            # Remove autocomp if shown
-            self.autoCompCancel()
-            
-            # Get some data
-            indentWidth = self.getIndentation()
-            indent = ' '
-            if indentWidth == 0:
-                # This once could occur due to a bug which is now solved,
-                # this code made it self-solving, and there's no harm in
-                # keeping it.
-                indentWidth = iep.config.settings.defaultIndentation
-                self.tabSize = indentWidth
-                self.spaceTabs = True 
-            if indentWidth<0:
-                #indentWidth = 1
-                #indent = '\t'
-                self.tabSize = 4 #TODO: configurable
-                self.spaceTabs = False
-            
-            if iep.config.settings.autoIndent:                
-                # check if style is ok...
-                pos = self.getPosition()
-                curstyle = self.getStyleAt(self.getPosition())
-                if curstyle in [0,10]: # default, operator
-                    styleOk = True
-                else:
-                    styleOk = False
-                # auto indent!
-                linenr,index = self.getLinenrAndIndex()
-                line = self.getLineBytes(linenr)
-                if not line:
-                    return False
-                text = removeComment( line )
-                ind = len(text) - len(text.lstrip())
-                ind = int(round(ind/indentWidth))
-                dummy, leChar = self.getLineEndings()
-                if styleOk and len(text)>0 and text[-1] == 58: # or b':'[0]
-                    text2insert = leChar+indent*((ind+1)*indentWidth)
-                else:                
-                    text2insert = leChar+indent*(ind*indentWidth)
-                # Make bytes and insert
-                text2insert = bytes(text2insert, 'utf-8')
-                self.insertText(pos, text2insert)
-                pos = self.getPosition()
-                self.setPositionAndAnchor( pos + len(text2insert) )
-                return True
     
     
     ## Introspection processing methods

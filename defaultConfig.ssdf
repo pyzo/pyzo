@@ -112,3 +112,4 @@ shortcuts = dict:
     edit__cut = 'Ctrl+X,Shift+Delete'
     file__open_file = 'Ctrl+O,'
     shell__clear_screen = 'Ctrl+L,'
+    edit__dedent_lines = 'Shift+Tab,'

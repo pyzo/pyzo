@@ -17,6 +17,7 @@ code in it.
 """
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import Qt
 import os, sys, time, subprocess
 import channels
 import iep
@@ -170,65 +171,67 @@ class BaseShell(BaseTextCtrl):
         pos=self.lineBeginCursor.position()
         BaseTextCtrl.onAutoComplete(self,text)
         self.lineBeginCursor.setPosition(pos)
+    ##Indentation: override code editor behaviour
+    def indentSelection(self):
+        pass
+    def dedentSelection(self):
+        pass
+        
     ## Key handlers
     def keyPressEvent(self,event):
-        #TODO: put keyPressHandler_always here
-        if not self.keyPressHandler_always(event):
-            BaseTextCtrl.keyPressEvent(self,event)
-     
-    def keyPressHandler_always(self, event):
-        """ keyPressHandler_always(event)
-        Is always called. If returns True, will not proceed.
-        If return False or None, keyPressHandler_autoComp or 
-        keyPressHandler_normal is called, depending on whether the
-        autocompletion list is active.
-        """
-        
-        # Use base first
-        # TODO: if BaseTextCtrl.keyPressHandler_always(self, event):
-        #    return True
-        #print (event.key())
-        
-        qc = QtCore.Qt
-        if event.key() in [qc.Key_Return, qc.Key_Enter]:
+        if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
             # Enter: execute line
-
             # Remove calltip and autocomp if shown
             self.autocompleteCancel()
-            #TODO: self.callTipCancel()
+            self.callTipCancel()
             
             # reset history needle
             self._historyNeedle = None
+            self._historyIndex = -1
             
             # process
             self.processLine()
-            return True
-        
-        elif event.key() == qc.Key_Home:
+            return
+            
+        if event.key() == Qt.Key_Home:
             # Home goes to the prompt.
             cursor=self.textCursor()
-            shift = event.modifiers() & qc.ShiftModifier
+            shift = event.modifiers() & Qt.ShiftModifier
             cursor.setPosition(self.lineBeginCursor.position(),
                 cursor.KeepAnchor if shift else cursor.MoveAnchor)
             
             self.setTextCursor(cursor)
+            self.autocompleteCancel()
+            return
+
+        if event.key() in [Qt.Key_Up, Qt.Key_Down] and not \
+                self.autocompleteActive():
+            #TODO: searching with needle
+            #Browse through history
+            if event.key() == Qt.Key_Up:
+                if self._historyIndex + 1 >= len(self._history):
+                    return #On top of history, ignore
+                self._historyIndex += 1
+            else: # Key_Down
+                if self._historyIndex < 0:
+                    return #On bottom of history (allow -1 which will be an empty line)
+                self._historyIndex -= 1
             
-
-#  TODO:           self.ensureCursorVisible()
-#             self.autoCompCancel()
-            return True
-        
-        elif event.key() == qc.Key_Insert:
-            # Don't toggle between insert mode and overwrite mode.
-            return True
-        
-        elif event.key() in [qc.Key_Backspace, qc.Key_Left]:
-            if self.textCursor().position() > self.lineBeginCursor.position():
-                return False # process normally
+            cursor = self.textCursor()
+            cursor.setPosition(self.lineBeginCursor.position())
+            cursor.movePosition(cursor.End,cursor.KeepAnchor)
+            #print (cursor.selectedText())
+            if self._historyIndex == -1:
+                cursor.removeSelectedText()
             else:
-                return True  #Ignore
-
-    
+                cursor.insertText(self._history[self._historyIndex])
+            return
+        
+        #Default behaviour: BaseTextCtrl
+        BaseTextCtrl.keyPressEvent(self,event)
+     
+        #TODO: escape to clear the current line? (Only if not handled by the
+        #default editor behaviour)
     
     def keyPressHandler_normal(self, event):
         """ keyPressHandler_normal(event)
