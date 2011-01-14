@@ -18,6 +18,7 @@ import os, sys, time, gc
 from PyQt4 import QtCore, QtGui
 
 import iep
+from compactTabWidget import CompactTabWidget
 from editor import createEditor
 from baseTextCtrl import normalizePath
 from baseTextCtrl import styleManager
@@ -27,6 +28,61 @@ from iepLogging import print
 MIN_NAME_WIDTH = 50
 MAX_NAME_WIDTH = 200
 
+
+def simpleDialog(item, action, question, options, defaultOption):
+    """ simpleDialog(editor, action, question, options, defaultOption)
+    
+    Options with special buttons
+    ----------------------------
+    ok, open, save, cancel, close, discard, apply, reset, restoredefaults,
+    help, saveall, yes, yestoall, no, notoall, abort, retry, ignore.
+    
+    Returns the lowercase selected option, or None if canceled.
+    
+    """
+    
+    # Get filename
+    if isinstance(item, FileItem):
+        filename = item.id
+    else:
+        filename = item.id()
+    
+    # create button map
+    mb = QtGui.QMessageBox
+    M = {   'ok':mb.Ok, 'open':mb.Open, 'save':mb.Save, 'cancel':mb.Cancel,
+            'close':mb.Close, 'discard':mb.Discard, 'apply':mb.Apply, 
+            'reset':mb.Reset, 'restoredefaults':mb.RestoreDefaults, 
+            'help':mb.Help, 'saveall':mb.SaveAll, 'yes':mb.Yes, 
+            'yestoall':mb.YesToAll, 'no':mb.No, 'notoall':mb.NoToAll, 
+            'abort':mb.Abort, 'retry':mb.Retry, 'ignore':mb.Ignore}
+    
+    # setup dialog
+    dlg = QtGui.QMessageBox(iep.main)
+    dlg.setWindowTitle('IEP')
+    dlg.setText(action + " file:\n{}".format(filename))
+    dlg.setInformativeText(question)
+    
+    # process options
+    for option in options:
+        option_lower = option.lower()
+        # Use standard button?
+        if option_lower in M:
+            button = dlg.addButton(M[option_lower]) 
+        else:        
+            button = dlg.addButton(option, dlg.AcceptRole)
+        # Set as default?
+        if option_lower == defaultOption:
+            dlg.setDefaultButton(button)
+    
+    # get result
+    result = dlg.exec_()
+    button = dlg.clickedButton()
+    if button:        
+        return button.text().lower()
+    else:
+        return None
+    
+    
 
 # todo: some management stuff could (should?) go here
 class FileItem:
@@ -406,8 +462,41 @@ class FindReplaceWidget(QtGui.QFrame):
         editor.setPositionAndAnchor(pos+index)
 
 
-
-class FileTabWidget(QtGui.QTabWidget):
+class TabToolButton(QtGui.QToolButton):
+    def __init__(self, tabWidget, item,  icon1, icon2):
+        QtGui.QToolButton.__init__(self)
+        
+        # Init
+        self.setIconSize(QtCore.QSize(16,16))
+        self.setStyleSheet("QToolButton{ border: none; }")                
+        
+        # Store widget and icons
+        self._tabWidget = tabWidget
+        self._item = item
+        self._icon1 = icon1
+        self._icon2 = icon2
+        
+        # Set icon now
+        if False:#self.underMouse():
+            self.setIcon(icon2)
+        else:
+            self.setIcon(icon1)
+        
+        # Connect
+        self.pressed.connect(self.onTriggered)
+    
+    def onTriggered(self):
+        self._item._pinned = not self._item._pinned
+        self._tabWidget.updateItemsFull()
+        
+#     def enterEvent(self, event):
+#         self.setIcon(self._icon2)
+#     
+#     def leaveEvent(self, event):
+#         self.setIcon(self._icon1)
+#     
+    
+class FileTabWidget(CompactTabWidget):
     """ FileTabWidget(parent)
     
     The tab widget that contains the editors and lists all open files.
@@ -415,37 +504,13 @@ class FileTabWidget(QtGui.QTabWidget):
     """
     
     def __init__(self, parent):
-        QtGui.QTabWidget.__init__(self, parent)
+        CompactTabWidget.__init__(self, parent)
         
         # Init main file
         self._mainFile = ''
         
         # Init item history
         self._itemHistory = []
-        
-        # Put tab widget in document mode
-        self.setDocumentMode(True)
-        
-        # Allow moving tabs around
-        self.setMovable(True)
-        
-        # Tune the tab bar
-        if True:
-            tabBar = self.tabBar()
-            
-            # We do our own eliding
-            tabBar.setElideMode(QtCore.Qt.ElideNone) 
-            # Make tabs wider if there's plenty space
-            tabBar.setExpanding(False) 
-            # If there's not enough space, use scroll buttons
-            tabBar.setUsesScrollButtons(True) 
-            # When a tab is removed, select previous
-            tabBar.setSelectionBehaviorOnRemove(tabBar.SelectPreviousTab)
-            
-            # Reduce font size to fit more text
-            font = tabBar.font()
-            font.setPointSize(8)
-            tabBar.setFont(font)        
         
         # Create a corner widget
         but = QtGui.QToolButton()
@@ -457,16 +522,6 @@ class FileTabWidget(QtGui.QTabWidget):
         self._menu = QtGui.QMenu()
         self._menu.triggered.connect(self.contextMenuTriggered)
         self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        
-        # Init alignment parameters
-        self._alignWidth = MIN_NAME_WIDTH
-        self._alignWidthIsReducing = False
-        
-        # Create timer for aligning
-        self._alignTimer = QtCore.QTimer(self)
-        self._alignTimer.setInterval(10)
-        self._alignTimer.setSingleShot(True)
-        self._alignTimer.timeout.connect(self._alignRecursive)
         
         # Bind signal to update items and keep track of history
         self.currentChanged.connect(self.updateItems)
@@ -483,11 +538,13 @@ class FileTabWidget(QtGui.QTabWidget):
         
         # Define actions
         generalActions = [ None, 'New file', 'Open file' ]
-        fileActions = [ 'Save file', 'Save file as', 'Rename file', None, 
-                        'Run file', 'Run file as script', None,
+        fileActions = [ 'Close file', 'Close all but this (and pinned)',
+                        'Save file', 'Save file as', 
+                        'Rename file', 'Delete file (from file system)', 
+                        None,                        
                         'Pin file', 'Make this the MAIN file', None,
-                        'Close file', 'Close all but this (and pinned)', 
-                        'Delete file (from file system)'] 
+                        'Run file', 'Run file as script'
+                        ] 
         
         # Get item and actions
         actions = generalActions
@@ -521,10 +578,13 @@ class FileTabWidget(QtGui.QTabWidget):
                     action.setIcon( iep.icons.cross )
         
         # Show
+        
         if item:
             pos = tabBar.mapToGlobal( tabBar.tabRect(index).bottomLeft() )
         else:
             pos = event.globalPos()
+            # Putting it below the tabbar seems a bit as if its wrongly placed
+        
         self._menu.exec_(pos)
     
     
@@ -577,153 +637,19 @@ class FileTabWidget(QtGui.QTabWidget):
         elif 'close' in request:
             self.tabCloseRequested.emit(index)
         elif 'delete' in request:
-            filename = item.filename
-            self.tabCloseRequested.emit(index)
-            try:
-                os.remove(filename)
-            except Exception:
-                pass
+            result = simpleDialog(item, "Delete", 
+                "Are you sure you want to delete the file from your file system?",
+                ['Delete', 'Cancel'], 'Cancel')
+            if result=='delete':
+                filename = item.filename            
+                self.tabCloseRequested.emit(index)
+                try:
+                    os.remove(filename)
+                except Exception:
+                    pass
         
         # Update
         self.updateItemsFull()
-    
-    
-    ## Aligning of the tabs (eliding)
-    
-    def resizeEvent(self, event):
-        QtGui.QTabWidget.resizeEvent(self, event)
-        self.alignItems()
-    
-    
-    def showEvent(self, event):
-        QtGui.QTabWidget.showEvent(self, event)
-        self.alignItems()
-    
-    
-    def alignItems(self):
-        """ alignItems()
-        
-        Align the tab items. Their names are ellided if required so that
-        all tabs fit on the tab bar if possible. When there is too little
-        space, the tabbar itself will kick in and draw scroll arrows.
-        
-        """
-        
-        # Set name widths correct (in case new names were added)
-        self._setMaxWidthOfAllItems()
-        
-        # Start alignment process
-        self._alignWidthIsReducing = False
-        self._alignTimer.start()
-        
-        
-    def _alignRecursive(self):
-        """ _alignRecursive()
-        
-        Recursive alignment of the items. The alignment process
-        should be initiated from alignItems().
-        
-        """
-        
-        # Only if visible
-        if not self.isVisible():
-            return
-        
-        # Get tab bar and number of items
-        tabBar = self.tabBar()
-        N = self.count()
-        
-        # Get right edge of last tab and left edge of corner widget
-        pos1 = tabBar.tabRect(0).topLeft()
-        pos2 = tabBar.tabRect(N-1).topRight()
-        pos3 = self.cornerWidget().pos()
-        x1 = pos1.x()#tabBar.mapToGlobal(pos1).x()
-        x2 = pos2.x()#tabBar.mapToGlobal(pos2).x()
-        x3 = pos3.x()#self.mapToGlobal(pos3).x()
-        alignMargin = x3 - (x2-x1) -3  # Must be positive (has margin)
-        
-        # Are the tabs too wide?
-        if alignMargin < 0:
-            # Tabs extend beyond corner widget
-            
-            # Reduce width then
-            self._alignWidth -= 5#max(abs(alignMargin)/N, 5)
-            self._alignWidth = max(self._alignWidth, MIN_NAME_WIDTH)
-            
-            # Apply
-            self._setMaxWidthOfAllItems()
-            self._alignWidthIsReducing = True
-            
-            # Try again if there's still room for reduction
-            if self._alignWidth > MIN_NAME_WIDTH:
-                self._alignTimer.start()
-        
-        elif alignMargin > 10 and not self._alignWidthIsReducing:
-            # Gap between tabs and corner widget is a bit large
-            
-            # Increase width then
-            self._alignWidth += 5#max(abs(alignMargin)/N, 5)
-            self._alignWidth = min(self._alignWidth, MAX_NAME_WIDTH)
-            
-            # Apply
-            itemsElided = self._setMaxWidthOfAllItems()
-            
-            # Try again if there's still room for increment
-            if itemsElided and self._alignWidth < MAX_NAME_WIDTH:
-                self._alignTimer.start()
-                #self._alignTimer.timeout.emit()
-        
-        else:            
-            pass # margin is good
-    
-    
-    
-    def _setMaxWidthOfAllItems(self):
-        """ _setMaxWidthOfAllItems()
-        
-        Sets the maximum width of all items now, by eliding the names.
-        Returns whether any items were elided.
-        
-        """ 
-        
-        # Get width
-        w = self._alignWidth
-        
-        # Prepare for measuring font sizes
-        font = self.tabBar().font()
-        metrics = QtGui.QFontMetrics(font)
-        
-        # Get tabbar and items
-        tabBar = self.tabBar()
-        items = self.items()
-        
-        # Get whether an item was reduced in size
-        itemReduced = False
-        
-        for i in range(len(items)):
-            
-            # Get name and splint in root+ext
-            name = name0 = items[i].name
-            root, ext = os.path.splitext(name)
-            
-            # If extension is small, ellide only the root part, 
-            # otherwise, ellide full name
-            if len(ext) < 5:
-                offset = metrics.width(ext)
-                root2 = metrics.elidedText(root, QtCore.Qt.ElideRight, w-offset)
-                if len(root2) < len(root):
-                    name = root2+ext[1:]
-            else:
-                name = metrics.elidedText(name, QtCore.Qt.ElideRight, w)
-            
-            # Get whether the item was changed
-            itemReduced = itemReduced or (len(name) != len(name0))
-            
-            # Set text now
-            tabBar.setTabText(i, name)
-        
-        # Done
-        return itemReduced
     
     
     ## Item management
@@ -751,7 +677,7 @@ class FileTabWidget(QtGui.QTabWidget):
         i = self.currentIndex()
         if i>=0:
             item = self.tabBar().tabData(i)
-            if not isinstance(item, FileItem):
+            if (item is not None) and (not isinstance(item, FileItem)):
                 item = item.toPyObject() # Older version of Qt
             return item
     
@@ -890,14 +816,11 @@ class FileTabWidget(QtGui.QTabWidget):
         if theIndex >= 0:
             
             # Close tab
-            QtGui.QTabWidget.removeTab(self, theIndex)
+            CompactTabWidget.removeTab(self, theIndex)
             
             # Delete editor
             items[theIndex].editor.destroy()
             gc.collect()
-            
-            # Update
-            self.alignItems()
     
     
     def addItem(self, item, update=True):
@@ -931,7 +854,7 @@ class FileTabWidget(QtGui.QTabWidget):
         
         """
         self.updateItems()
-        self.alignItems()
+        self.tabBar().alignTabs()
     
     
     def updateItems(self):
@@ -972,7 +895,7 @@ class FileTabWidget(QtGui.QTabWidget):
                     penColor = '#f00'
                 else:
                     pm0 = iep.icons.page_white.pixmap(16,16)
-                    penColor = '#333'
+                    penColor = '#444'
                 
                 # Create painter
                 painter = QtGui.QPainter()
@@ -1000,10 +923,19 @@ class FileTabWidget(QtGui.QTabWidget):
                 
                 # Finish
                 painter.end()
-                tabBar.setTabIcon(i, QtGui.QIcon(pm0))
- 
+                
+                # Show icon using tool button. That will make the space
+                # between icon and text much smaller for some reason.
+                #tabBar.setTabIcon(i, QtGui.QIcon(pm0))
+                but = TabToolButton(self, item,
+                    QtGui.QIcon(pm0), iep.icons.overlay_thumbnail)
+                tabBar.setTabButton(i, 0, but)
+                
  
 class EditorTabs(QtGui.QWidget):
+    """ The EditorTabs instance manages the open files and corresponding
+    editors. It does the saving loading etc.
+    """ 
     
     # Signal to notify that a different file was selected
     changedSelected = QtCore.pyqtSignal()
@@ -1022,6 +954,7 @@ class EditorTabs(QtGui.QWidget):
         self._tabs = FileTabWidget(self)       
         self._tabs.tabCloseRequested.connect(self.closeFile)
         self._tabs.currentChanged.connect(self.onCurrentChanged)
+        
         # Create find/replace widget
         self._findReplace = FindReplaceWidget(self)
         
@@ -1366,30 +1299,20 @@ class EditorTabs(QtGui.QWidget):
         Returns 3 if user discarded changes.
         Returns 0 if cancelled.
         
-        """
+        """ 
         
         # should we ask to save the file?
         if editor._dirty:
             
-            # get filename
-            filename = editor._filename
-            if not filename:
-                filename = '<TMP>'
+            # Ask user what to do
+            result = simpleDialog(editor, "Closing", "Save modified file?", 
+                                    ['Save', 'Discard', 'Cancel'], 'Cancel')
             
-            # setup dialog
-            dlg = QtGui.QMessageBox(self)
-            dlg.setText("Closing file:\n{}".format(filename))
-            dlg.setInformativeText("Save modified file?")
-            tmp = QtGui.QMessageBox
-            dlg.setStandardButtons(tmp.Save| tmp.Discard | tmp.Cancel)
-            dlg.setDefaultButton(tmp.Cancel)
-            
-            # get result and act
-            result = dlg.exec_() 
-            if result == tmp.Save:
+            # Get result and act            
+            if result == 'save':
                 self.saveFile(editor)
                 return 2
-            elif result == tmp.Discard:
+            elif result == 'discard':
                 return 3
             else: # cancel
                 return 0
@@ -1404,19 +1327,29 @@ class EditorTabs(QtGui.QWidget):
         # get editor
         if editor is None:
             editor = self.getCurrentEditor()
+            item = self._tabs.currentItem()
         elif isinstance(editor, int):
             index = editor
-            editor = self._tabs.items()[index].editor
+            item = self._tabs.items()[index]
+            editor = item.editor
         if editor is None:
             return
         
+        # Ask if dirty
         result = self.askToSaveFileIfDirty(editor)
+        
+        # Ask if closing pinned file
+        if result and item.pinned:
+            result = simpleDialog(editor, "Closing pinned", 
+                "Are you sure you want to close this pinned file?",
+                ['Close', 'Cancel'], 'Cancel')
+            result = result == 'close'
         
         # ok, close...
         if result:
             self._tabs.removeTab(editor)
         return result
-    
+     
     
     def saveEditorState(self):
         """ Save the editor's state configuration.

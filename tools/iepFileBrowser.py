@@ -117,7 +117,7 @@ def selectIconForDir(path):
     elif os.path.isdir(os.path.join(path, '.svn')):
         return iep.icons['folder_svn']
     else:
-        return iep.icons['folder_normal']
+        return iep.icons['folder']
     
 def selectIconForFile(path):
     
@@ -126,14 +126,14 @@ def selectIconForFile(path):
     
     # Select
     if ext in ['.py', '.pyw']:
-        return iep.icons['file_py']
+        return iep.icons['page_white_py']
     elif ext in ['.pyx', '.pxd']:
-        return iep.icons['file_pyx']
+        return iep.icons['page_white_pyx']
     elif ext in ['.txt', '.2do', '.xml', '.html', '.htm', 
                     '.c', '.h', '.cpp', '.m']:
-        return iep.icons['file_text']
+        return iep.icons['page_white_text']
     else:
-        return iep.icons['file_normal']
+        return iep.icons['page_white']
 
 
 ## Classes for the path selection widget
@@ -396,8 +396,8 @@ class LineEditWithClearButton(QtGui.QLineEdit):
         style = QtGui.qApp.style()
         
         # Load two icons
-        self._defaultIcon = iep.icons['magGlass']
-        self._clearIcon = iep.icons['lineEditClear']
+        self._defaultIcon = iep.icons['magnifier']
+        self._clearIcon = iep.icons['cancel']
         
         # Create tool button
         self._button = button = QtGui.QToolButton(self)
