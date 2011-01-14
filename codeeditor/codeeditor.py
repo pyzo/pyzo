@@ -4,8 +4,10 @@ from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
 import keyword
-from . import python_syntax
-#import python_syntax
+if __name__ == '__main__':
+	import python_syntax
+else:
+	from . import python_syntax
 
 	
 class Highlighter(QtGui.QSyntaxHighlighter):
@@ -88,7 +90,7 @@ class LineNumberArea(QtGui.QWidget):
 		QtGui.QWidget.__init__(self,codeEditor)
 		self.codeEditor=codeEditor
 	def paintEvent(self,event):
-		self.codeEditor.lineNumberAreaPaintEvent(event)
+		self.codeEditor._lineNumberAreaPaintEvent(event)
 #	def sizeHint(self):
 #		return QtCore.QSize(50,0)
 
@@ -125,15 +127,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
 
 		
 		#Line numbers
-		self.lineNumberArea=LineNumberArea(self) #Create line number area widget
+		self._lineNumberArea=LineNumberArea(self) #Create line number area widget
 		
 		#Autocompleter
-		self.completerModel=QtGui.QStringListModel(keyword.kwlist)
-		self.completer=QtGui.QCompleter(self.completerModel, self)
-		self.completer.setCaseSensitivity(Qt.CaseInsensitive)
-		self.completer.setWidget(self)
-		self.completerNames=[]
-		self.recentCompletions=[] #List of recently selected completions
+		self._completerModel=QtGui.QStringListModel(keyword.kwlist)
+		self._completer=QtGui.QCompleter(self._completerModel, self)
+		self._completer.setCaseSensitivity(Qt.CaseInsensitive)
+		self._completer.setWidget(self)
+		self._completerNames=[]
+		self._recentCompletions=[] #List of recently selected completions
 		
 		# Text position corresponding to first charcter of the word being completed
 		self._autocompleteStart=None
@@ -141,11 +143,6 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		# Create label for call tips
 		self._calltipLabel = CalltipLabel()
 		
-		#Connect signals
-		self.connect(self.completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
-		self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
-		self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
-
 			
 		#Default options
 		option=self.document().defaultTextOption()
@@ -162,7 +159,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.tabWidth = 4
 
 		#Connect signals
-		self.connect(self.completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
+		self.connect(self._completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
 		self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
 		self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
 
@@ -198,10 +195,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self._showLineNumbers = bool(value)
 		if self._showLineNumbers:
 			self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
-			self.lineNumberArea.show()
+			self._lineNumberArea.show()
 		else:
 			self.setViewportMargins(0,0,0,0)
-			self.lineNumberArea.hide()
+			self._lineNumberArea.hide()
 
 	
 	#show whitespace
@@ -247,7 +244,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self._tabWidth = int(value)
 		fontMetrics=QtGui.QFontMetrics(self.font())
 		self.setTabStopWidth(fontMetrics.width('i')*self._tabWidth)
-	
+		
+	@property
+	def spaceTabs(self):
+		"""
+		True when spaces are used and False when tabs are used
+		"""
+		return bool(self.indentation)
 	#indentation
 	@property
 	def indentation(self):
@@ -276,13 +279,123 @@ class CodeEditor(QtGui.QPlainTextEdit):
 			self.updateCurrentLineHighlight()
 		else:
 			self.setExtraSelections([])
+	
+	#Completer
+	@property
+	def completer(self):
+		return self._completer
+	
+	#Recent completions
+	@property
+	def recentCompletions(self):
+		""" 
+		The list of recent auto-completions. This property may be set to a
+		list that is shared among several editors, in order to share the notion
+		of recent auto-completions
+		"""
+		return self._recentCompletions
+	
+	@recentCompletions.setter
+	def recentCompletions(self,value):
+		self._recentCompletions = value
+		
 	## MISC
+	def doForSelectedBlocks(self,function):
+		"""
+		Call the given function(cursor) for all blocks in the current selection
+		A block is considered to be in the current selection if a part of it is in
+		the current selection 
+		
+		The supplied cursor will be located at the beginning of each block. This
+		cursor may be modified by the function as required
+		"""
+		
+		#Note: a 'TextCursor' does not represent the actual on-screen cursor, so
+		#movements do not move the on-screen cursor
+		
+		#Note 2: when the text is changed, the cursor and selection start/end
+		#positions of all cursors are updated accordingly, so the screenCursor
+		#stays in place even if characters are inserted at the editCursor
+		
+		screenCursor = self.textCursor() #For maintaining which region is selected
+		editCursor = self.textCursor()   #For inserting the comment marks
+	
+		#Use beginEditBlock / endEditBlock to make this one undo/redo operation
+		editCursor.beginEditBlock()
+			
+		editCursor.setPosition(screenCursor.selectionStart())
+		editCursor.movePosition(editCursor.StartOfBlock)
+		# < : if selection end is at beginning of the block, don't include that one
+		while editCursor.position()<screenCursor.selectionEnd(): 
+			#Create a copy of the editCursor and call the user-supplied function
+			editCursorCopy = QtGui.QTextCursor(editCursor)
+			function(editCursorCopy)
+			
+			#Move to the next block
+			if not editCursor.block().next().isValid():
+				break #We reached the end of the document
+			editCursor.movePosition(editCursor.NextBlock)
+			
+		editCursor.endEditBlock()
+	
+	def indentBlock(self,cursor,amount = 1):
+		"""
+		Indent the block given by cursor
+		May be overridden to customize indentation
+		"""
+		text = cursor.block().text()
+		leadingWhitespace = text[:len(text)-len(text.lstrip())]
+		
+		#Select the leading whitespace
+		cursor.movePosition(cursor.StartOfBlock)
+		cursor.movePosition(cursor.Right,cursor.KeepAnchor,len(leadingWhitespace))
+		
+		#Compute the new indentation length, expanding any existing tabs
+		indent = len(leadingWhitespace.expandtabs(self.tabWidth))
+		if self.spaceTabs:
+			# Add the indentation tabs, and round to multiples of indentation
+			indent += (self.indentation * amount) - (indent % self.indentation)
+			cursor.insertText(' '*max(indent,0))
+		else:
+			# Convert indentation to number of tabs, and add one
+			indent = (indent // self.tabWidth) + amount
+			cursor.insertText('\t' * max(indent,0))
+			
+	def dedentBlock(self,cursor):
+		"""
+		Dedent the block given by cursor
+		Calls indentBlock with amount = -1
+		May be overridden to customize indentation
+		"""
+		self.indentBlock(cursor, amount = -1)
+		
+	def indentSelection(self):
+		"""
+		Called when the current line/selection is to be indented.
+		Calls indentLine(cursor) for each line in the selection
+		May be overridden to customize indentation
+		
+		See also doForSelectedBlocks and indentBlock
+		"""
+		
+		self.doForSelectedBlocks(self.indentBlock)
+	def dedentSelection(self):
+		"""
+		Called when the current line/selection is to be dedented.
+		Calls dedentLine(cursor) for each line in the selection
+		May be overridden to customize indentation
+		
+		See also doForSelectedBlocks and dedentBlock
+		"""
+		
+		self.doForSelectedBlocks(self.dedentBlock)
+		
 	def setStyle(self,style):
 		#TODO: to be implemented
 		pass
 		
-	def lineNumberAreaPaintEvent(self,event):
-		painter = QtGui.QPainter(self.lineNumberArea)
+	def _lineNumberAreaPaintEvent(self,event):
+		painter = QtGui.QPainter(self._lineNumberArea)
 		cursor = self.cursorForPosition(self.viewport().pos())
 		
 		#Draw the background
@@ -351,21 +464,21 @@ class CodeEditor(QtGui.QPlainTextEdit):
 			#position the popup manually
 			self._positionAutocompleter()
 			self._updateAutocompleterPrefix()
-			self.completer.popup().show()
+			self._completer.popup().show()
 		
 
 		if names is not None:
 			#TODO: a more intelligent implementation that adds new items and removes
 			#old ones
-			if names != self.completerNames:
-				self.completerModel.setStringList(names)
-				self.completerNames = names
+			if names != self._completerNames:
+				self._completerModel.setStringList(names)
+				self._completerNames = names
 
 		self._updateAutocompleterPrefix()
 	def autocompleteAccept(self):
 		pass
 	def autocompleteCancel(self):
-		self.completer.popup().hide()
+		self._completer.popup().hide()
 		self._autocompleteStart = None
 		
 	def onAutoComplete(self,text):
@@ -378,9 +491,9 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		self.autocompleteCancel() #Reset the completer
 		
 		#Update the recent completions list
-		if text in self.recentCompletions:
-			self.recentCompletions.remove(text)
-		self.recentCompletions.append(text)
+		if text in self._recentCompletions:
+			self._recentCompletions.remove(text)
+		self._recentCompletions.append(text)
 		
 	def autocompleteActive(self):
 		""" Returns whether an autocompletion list is currently shown. 
@@ -395,13 +508,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		cur.setPosition(self._autocompleteStart)
 		position = self.cursorRect(cur).bottomLeft() + \
 			self.viewport().pos() #self.geometry().topLeft() +
-		self.completer.popup().move(self.mapToGlobal(position))
+		self._completer.popup().move(self.mapToGlobal(position))
 		
 		#Set size
-		geometry = self.completer.popup().geometry()
+		geometry = self._completer.popup().geometry()
 		geometry.setWidth(100)
 		geometry.setHeight(100)
-		self.completer.popup().setGeometry(geometry)
+		self._completer.popup().setGeometry(geometry)
 	
 	def _updateAutocompleterPrefix(self):
 		"""
@@ -411,25 +524,25 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		prefix=self.toPlainText()[self._autocompleteStart:
 		self.textCursor().position()]
 
-		self.completer.setCompletionPrefix(prefix)
-		model = self.completer.completionModel()
+		self._completer.setCompletionPrefix(prefix)
+		model = self._completer.completionModel()
 		if model.rowCount():
 			#Iterate over the matches, find the one that was most recently used
-			#print (self.recentCompletions)
+			#print (self._recentCompletions)
 			recentFound = -1
 			recentFoundRow = 0 #If no recent match, just select the first match
 			
 			for row in range(model.rowCount()):
-				data = model.data(model.index(row,0),self.completer.completionRole())
-				if not data in self.recentCompletions:
+				data = model.data(model.index(row,0),self._completer.completionRole())
+				if not data in self._recentCompletions:
 					continue
 				
-				index = self.recentCompletions.index(data)
+				index = self._recentCompletions.index(data)
 				if index > recentFound: #Later in the list = more recent
 					recentFound, recentFoundRow = index, row
 
 			
-			self.completer.popup().setCurrentIndex(model.index(row,0));
+			self._completer.popup().setCurrentIndex(model.index(recentFoundRow,0));
 
 				
 		else:
@@ -497,33 +610,47 @@ class CodeEditor(QtGui.QPlainTextEdit):
 		QtGui.QPlainTextEdit.resizeEvent(self,event)
 		rect=self.contentsRect()
 		#On resize, resize the lineNumberArea, too
-		self.lineNumberArea.setGeometry(rect.x(),rect.y(),
+		self._lineNumberArea.setGeometry(rect.x(),rect.y(),
 			self.getLineNumberAreaWidth(),rect.height())
 
 	def paintEvent(self,event):
 		#Draw the default QTextEdit, then update the lineNumberArea 
 		QtGui.QPlainTextEdit.paintEvent(self,event)
-		self.lineNumberArea.update(0,event.rect().y(),50,event.rect().height())
+		self._lineNumberArea.update(0,event.rect().y(),50,event.rect().height())
 		
 
-		
 
 	def keyPressEvent(self,event):
-		#TODO: backtabbing, backspacing over tabs, tab indenting for a selection
-		key=event.key()
-		if key == Qt.Key_Escape:
+		#TODO: backspacing over tabs
+		key = event.key()
+		modifiers = event.modifiers()
+		
+		if key == Qt.Key_Escape and modifiers == Qt.NoModifier:
 			self.autocompleteCancel()
 			self._calltipLabel.hide()
-		elif key == Qt.Key_Tab:
-			if self.autocompleteActive():
-				#Let the completer handle this one!
-				event.ignore()
+			return
+		
+		#Tab key
+		if key == Qt.Key_Tab:
+			if modifiers == Qt.NoModifier:
+				if self.autocompleteActive():
+					#Let the completer handle this one!
+					event.ignore()
+					return
+					
+				elif self.textCursor().hasSelection(): #Tab pressed while some area was selected
+					self.indentSelection()
+					return
+				
+				elif self.indentation:
+					#Insert space-tabs
+					cursor=self.textCursor()
+					cursor.insertText(' '*(self.indentation-((cursor.columnNumber() + self.indentation )%self.indentation)))
+					return
+				#else: default behaviour, insert tab character
+			else: #Some other modifiers + Tab: ignore
 				return
-			elif self.indentation:
-				#Insert space-tabs
-				cursor=self.textCursor()
-				cursor.insertText(' '*(self.indentation-((cursor.columnNumber() + self.indentation )%self.indentation)))
-				return
+		
 
 			
 			#self.testTokenize()
@@ -574,6 +701,10 @@ if __name__=='__main__':
 			elif key == Qt.Key_F2:
 				self.autocompleteCancel()
 				return
+			elif key == Qt.Key_Backtab: #Shift + Tab
+				self.dedentSelection()
+			return
+			
 			CodeEditor.keyPressEvent(self,event)
 			self.calltipShow(0, 'test(foo, bar)')
 		

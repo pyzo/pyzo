@@ -318,6 +318,9 @@ class EditMenu(BaseMenu):
         addItem( MI('Paste', self.fun_paste) )
         addItem( MI('Select all', self.fun_selectAll) )
         addItem( None )
+        addItem( MI('Indent lines', self.fun_indent) )
+        addItem( MI('Dedent lines', self.fun_dedent) )
+        addItem( None )
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
@@ -366,7 +369,19 @@ class EditMenu(BaseMenu):
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'redo'):
             widget.redo()
-    
+            
+    def fun_dedent(self, value):
+        """ Dedent the selected lines"""
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'dedentSelection'):
+            widget.dedentSelection()
+            
+    def fun_indent(self, value):
+        """ Indent the selected lines"""
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'indentSelection'):
+            widget.indentSelection()
+            
     def fun_comment(self, value):
         """ Comment the selected lines. """
         widget = QtGui.qApp.focusWidget()
@@ -1342,7 +1357,22 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         """ Call this after starting. """
         menu.fill()
         self._root = menu
-    
+    def translateShortcutToOSNames(self,shortcut):
+        """
+        Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
+        Meta -> Windows for windows
+        """
+        
+        if sys.platform == 'darwin':
+            replace = (('Ctrl+','\u2318'),('Shift+','\u21E7'),
+                        ('Alt+','\u2325'),('Meta+','^'))
+        else:
+            replace = ()
+        
+        for old, new in replace:
+            shortcut = shortcut.replace(old, new)
+            
+        return shortcut
     def data(self, index, role):
         if not index.isValid() or role not in [0, 8]:
             return None
@@ -1365,6 +1395,9 @@ class KeyMapModel(QtCore.QAbstractItemModel):
                     key1 = shortcuts[0]
                 if shortcuts[1]:
                     key2 = shortcuts[1]
+        # translate to text for the user
+        key1 = self.translateShortcutToOSNames(key1)
+        key2 = self.translateShortcutToOSNames(key2)
         
         # obtain value
         value = [value,key1,key2][index.column()]
@@ -1441,6 +1474,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
 k = QtCore.Qt
 keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape', 
     k.Key_Tab:'Tab', k.Key_Backspace:'Backspace', k.Key_Pause:'Pause', 
+    k.Key_Backtab: 'Tab', #Backtab is actually shift+tab
     k.Key_F1:'F1', k.Key_F2:'F2', k.Key_F3:'F3', k.Key_F4:'F4', k.Key_F5:'F5',
     k.Key_F6:'F6', k.Key_F7:'F7', k.Key_F8:'F8', k.Key_F9:'F9', 
     k.Key_F10:'F10', k.Key_F11:'F11', k.Key_F12:'F12', k.Key_Space:'Space',
@@ -1470,8 +1504,21 @@ class KeyMapLineEdit(QtGui.QLineEdit):
         #self.clear()
         QtGui.QLineEdit.focusInEvent(self, event)
     
-    def keyPressEvent(self, event):
+    def event(self,event):
+        # Override event handler to enable catching the Tab key
+        # If the event is a KeyPress or KeyRelease, handle it with
+        # self.keyPressEvent or keyReleaseEvent
+        print (event)
+        if event.type()==event.KeyPress:
+            self.keyPressEvent(event)
+            return True #Mark as handled
+        if event.type()==event.KeyRelease:
+            self.keyReleaseEvent(event)
+            return True #Mark as handled
+        #Default: handle events as usual
+        return QtGui.QLineEdit.event(self,event)
         
+    def keyPressEvent(self, event):
         # get key codes
         key = event.key()
         nativekey = event.nativeVirtualKey()
@@ -1499,7 +1546,9 @@ class KeyMapLineEdit(QtGui.QLineEdit):
                 text  = 'Shift+' + text
                 storeNativeKey = False
             if QtGui.qApp.keyboardModifiers() & k.ControlModifier:
-                text  = 'Ctrl+' + text            
+                text  = 'Ctrl+' + text
+            if QtGui.qApp.keyboardModifiers() & k.MetaModifier:
+                text  = 'Meta+' + text
             self.setText(text)
             if storeNativeKey and nativekey:
                 # store native key if shift was not pressed.

@@ -1018,31 +1018,6 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             self.introspect()
     
     
-    def keyPressHandler_always(self, event):
-        """ keyPressHandler_always(event)
-        Is always called. If returns True, will not proceed.
-        If return False or None, keyPressHandler_autoComp or 
-        keyPressHandler_normal is called, depending on whether the
-        autocompletion list is active.
-        """
-#       TODO: include the backtabbing and  autocomplete fillups settings into the codeeditor
-
-        return
-        # Enable backtabbing
-        if event.key() == QtCore.Qt.Key_Backtab and event.shiftdown:            
-            self.SendScintilla(self.SCI_BACKTAB)
-            return True
-
-
-        # Enable completion with enter
-        enterKeys = [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]
-        fillups = iep.config.settings.autoComplete_fillups
-        if self.autoCompActive():
-            if (event.key in enterKeys) and ('\n' in fillups):
-                self.autocompleteAccept()
-                return True
-            elif event.char and event.char in fillups:                
-                 self.SendScintilla(self.SCI_AUTOCCOMPLETE)
     
 
 

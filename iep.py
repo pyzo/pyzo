@@ -118,10 +118,9 @@ def startIep():
     from main import MainWindow
     
     # Set to use pure QT drawing. 
-    # On GTK this makes the fonts look better, on KDE not
+    # On GTK this makes the fonts look better, on KDE or Mac not
     # On Windows it does not matter
-    # todo: and on mac, or other desktops environments?
-    if not os.environ.get('KDE_FULL_SESSION'):
+    if not os.environ.get('KDE_FULL_SESSION') and sys.platform != 'darwin':
         QtGui.QApplication.setDesktopSettingsAware(False)
    
     #Prevent loading plugins form the users' plugin dir since
