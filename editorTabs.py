@@ -64,19 +64,19 @@ class FileItem:
     def filename(self):
         """ Get the full filename corresponding to this item.
         """
-        return self._editor._filename
+        return self._editor.filename
     
     @property
     def name(self):
         """ Get the name corresponding to this item.
         """
-        return self._editor._name
+        return self._editor.name
     
     @property
     def dirty(self):
         """ Get whether the file has been changed since it is changed.
         """
-        return self._editor._dirty
+        return self._editor.document().isModified()
     
     @property
     def pinned(self):
@@ -1340,8 +1340,10 @@ class EditorTabs(QtGui.QWidget):
         filename = editor._filename
         
         # notify
-        tmp = editor.getLineEndings()
-        print("saved file: {} ({})".format(filename, tmp[0]))
+        # TODO: message concerining line endings
+        #tmp = editor.getLineEndings()
+        #print("saved file: {} ({})".format(filename, tmp[0]))
+        print("saved file: {}".format(filename))
         
         # special case, we edited the style file!
         if filename == styleManager._filename:
@@ -1369,7 +1371,7 @@ class EditorTabs(QtGui.QWidget):
         """
         
         # should we ask to save the file?
-        if editor._dirty:
+        if editor.document().isModified():
             
             # get filename
             filename = editor._filename
@@ -1466,7 +1468,7 @@ class EditorTabs(QtGui.QWidget):
             info = []
             # Add filename and line number
             info.append(ed._filename)
-            info.append(str(ed.getPosition()))
+            info.append(str(ed.textCursor().position()))
             # Add whether pinned or main file
             if item.pinned:
                 info.append('pinned')
@@ -1515,9 +1517,11 @@ class EditorTabs(QtGui.QWidget):
                     # set position and make sure it is visible
                     ed = itm.editor
                     pos = int(parts[1])
-                    linenr = ed.getLinenrFromPosition(pos)
-                    ed.setPositionAndAnchor(pos)
-                    ed.SendScintilla(ed.SCI_LINESCROLL, 0, linenr-10)
+                    cursor = ed.textCursor()
+                    cursor.setPosition(pos)
+                    ed.setTextCursor(cursor)
+                    ed.centerCursor() #TODO: this does not work yet
+                    
                     # set main and/or pinned?
                     if 'main' in parts:
                         self._tabs._mainFile = itm.id

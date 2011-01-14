@@ -96,6 +96,7 @@ def parseLine_autocomplete(text):
       ...("eat = food.fruit.ban") -> "food.fruit", "ban"
     When no match found, both elements are an empty string.
     """
+    #TODO: use the syntax tokens to do this processing
     
     # is the line commented? The STC_P is 0 in commented lines...
     i = text.rfind("#")
@@ -151,7 +152,7 @@ def parseLine_signature(text):
     - location of end bracket
     - amount of kommas till cursor (taking nested brackets into account)
     """
-    
+    #TODO: use the syntax tokens to do this processing
     # find braces
     level = 1  # for braces    
     for i in range(len(text)-1,-1,-1):
@@ -544,8 +545,10 @@ def getAllScintillas():
             yield e
 iep.getAllScintillas = getAllScintillas
 
+import codeeditor
 
-class BaseTextCtrl(Qsci.QsciScintilla):
+
+class BaseTextCtrl(codeeditor.CodeEditor):
     """ The base text control class.
     Inherited by the shell class and the IEP editor.
     The class implements autocompletion, calltips, and auto-help,
@@ -567,8 +570,27 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     """
         
     def __init__(self, parent):
-        Qsci.QsciScintillaBase.__init__(self,parent)
+        codeeditor.CodeEditor.__init__(self,parent)
+
+        # Create timer for autocompletion delay
+        self._delayTimer = QtCore.QTimer(self)
+        self._delayTimer.setSingleShot(True)
+        self._delayTimer.timeout.connect(self._introspectNow)
         
+        # For buffering autocompletion and calltip info
+        self._callTipBuffer_name = ''
+        self._callTipBuffer_time = 0
+        self._callTipBuffer_result = ''
+        self._autoCompBuffer_name = ''
+        self._autoCompBuffer_time = 0
+        self._autoCompBuffer_result = []
+        
+        # The string with names given to SCI_AUTOCSHOW
+        self._autoCompNameString = ''
+
+        self.completer.highlighted.connect(self.updateHelp)
+        
+        return
         #print('Initializing Scintilla component.')
         
         # Register
@@ -705,379 +727,53 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self.SCN_DOUBLECLICK.connect(self._onDoubleClick)
     
     
-    def SendScintilla(self, *args):
-        """ Overloaded method that transforms any string arguments to
-        bytes arguments. 
-        This is required in PyQt4 4.6.2, but not in earlier versions.
-        """
-        # copy args, transforming strings to bytes
-        args2 = []
-        for arg in args:
-            if isinstance(arg, (bytes, str)):
-                args2.append( makeBytes(arg) )
-            else:
-                args2.append( arg )
-        # send it
-        args = tuple( args2 )
-        return Qsci.QsciScintillaBase.SendScintilla(self, *args)
-    
-    
-    ## getting and setting text
-    
-    
-    def getBytesLength(self):
-        """ Get the length of the (encoded) text. 
-        .length() does the same)
-        """
-        return self.length()
-    
-    
-    def setText(self, value):
-        """ Set the text of the editor. """
-        self.SendScintilla(self.SCI_SETTEXT, makeBytes(value))
-    
-    def getBytes(self):
-        """ Get the text as bytes (utf-8 encoded). This is how
-        the data is stored internally. """
-        # +1 because Null character needs to fit in too
-        len = self.SendScintilla(self.SCI_GETLENGTH)+1
-        bb = QtCore.QByteArray(len,'0')
-        N = self.SendScintilla(self.SCI_GETTEXT, len, bb)
-        return bytes(bb)[:-1] # remove NULL character
-        
-    def getString(self):
-        """ Get the text as a unicode string. """
-        return self.getBytes().decode('utf-8')
-    
-    
-    def getLineBytes(self, linenr):
-        """ Get the bytes of the given line. """
-        # +1 because Null character needs to fit in too
-        len = self.SendScintilla(self.SCI_LINELENGTH, linenr)+1
-        bb = QtCore.QByteArray(len,'0')
-        N = self.SendScintilla(self.SCI_GETLINE, linenr, bb)
-        return bytes(bb)[:-1] # remove NULL character
-    
-    def getLineString(self, linenr):
-        """ Get the string of the given line. """
-        return self.getLineBytes(linenr).decode('utf-8')
-        
-    
-    def getSelectedBytes(self):
-        """ Get the bytes that are currently selected. """
-        # +1 because Null character needs to fit in too
-        len = self.SendScintilla(self.SCI_GETSELTEXT, 0, 0) # not +1
-        bb = QtCore.QByteArray(len,'0')
-        N = self.SendScintilla(self.SCI_GETSELTEXT, 0, bb)
-        return bytes(bb)[:-1] # remove NULL character
-    
-    def getSelectedString(self):
-        """ Get the string that represents the currently selected text. """
-        return self.getSelectedBytes().decode('utf-8')
-    
-    def replaceSelection(self, replacement):
-        """ Replace the selected text with the given bytes or string. """
-        self.SendScintilla(self.SCI_REPLACESEL, 0, replacement)
-    
-    def getRangeBytes(self, pos1, pos2):
-        """ Get the bytes from pos1 up til pos2 (non inclusive). """
-        # There's a sendscintilla command for this, but it involves
-        # a struct, so I am afraid it is not possible to use that.
-        bb = self.getBytes()
-        return bb[pos1:pos2]
-    
-    def getRangeString(self, pos1, pos2):
-        """ Get the string from pos1 up til pos2 (non inclusive). """
-        return self.getRangeBytes(pos1, pos2).decode('utf-8')
-    
-    
-    def getStyleAt(self, pos):
-        """ Get the style at the given position."""
-        return self.SendScintilla(self.SCI_GETSTYLEAT,pos)
-    
-    def getCharAt(self,pos):
-        """ Get the character at the current position. """
-        char = self.SendScintilla(self.SCI_GETCHARAT, pos)
-        if char == 0:
-            return ""
-        elif char < 0:
-            return chr(char + 256)
-        else:
-            return chr(char)
-    
-    
-    def appendText(self, value):
-        """ insert the given text at the given position. """
-        value = makeBytes(value)
-        self.SendScintilla(self.SCI_APPENDTEXT, len(value), value)
-    
-    def insertText(self, pos, value):
-        """ insert the given text at the given position. """
-        self.SendScintilla(self.SCI_INSERTTEXT, pos, makeBytes(value))
-    
-    def addText(self, value):
-        """ insert text at the current position. """
-        value = makeBytes(value)
-        self.SendScintilla(self.SCI_ADDTEXT, len(value), value)
-    
-    ## Positional methods
-    
-    def gotoLine(self, linenr):
-        """ Go to the beginning of the specified line and scroll
-        the editor if required to make the caret visible. 
-        """
-        self.SendScintilla(self.SCI_GOTOLINE, linenr)
-    
-    def setPosition(self, pos):
-        """ Set the position of the cursor. """
-        self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
-    
-    def setAnchor(self, pos):
-        """ Set the position of the anchor. """
-        self.SendScintilla(self.SCI_SETANCHOR, pos)
-    
-    def setPositionAndAnchor(self, pos):
-        """ Set both position and anchor to the same position. """
-        self.SendScintilla(self.SCI_SETCURRENTPOS, pos)
-        self.SendScintilla(self.SCI_SETANCHOR, pos)
-    
-    def getPosition(self):
-        """ Get the current position of the cursor. """
-        return self.SendScintilla(self.SCI_GETCURRENTPOS)
-    
-    def getAnchor(self):
-        """ Get the anchor (as int) of the cursor. If this is
-        different than the position, text is selected."""
-        return self.SendScintilla(self.SCI_GETANCHOR)
-    
-    
-    def getLinenrAndIndex(self, pos=None):
-        """ Get the linenr and index of the given position,
-        or the current position if pos is None. """
-        if pos is None:
-            pos = self.SendScintilla(self.SCI_GETCURRENTPOS)
-        linenr = self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
-        index = pos - self.SendScintilla(self.SCI_POSITIONFROMLINE, linenr)
-        return linenr, index
-    
-    def getLinenrFromPosition(self, pos=None):
-        """ Get the linenr, given the position (or the
-        current position if pos is None). """
-        if pos is None:
-            pos = self.SendScintilla(self.SCI_GETCURRENTPOS)
-        return self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
-    
-    def getPositionFromLinenr(self, linenr):
-        """ Get the position, given the line number. """
-        return self.SendScintilla(self.SCI_POSITIONFROMLINE , linenr)
-    
-    def setTargetStart(self, pos):
-        """ Set the start of selection target. 
-        The target is used in various task and can be seen
-        as a selection that is not shown to the user. """
-        self.SendScintilla(self.SCI_SETTARGETSTART, pos)
-    
-    def setTargetEnd(self, pos):
-        """ Set the end of selection target. 
-        The target is used in various task and can be seen
-        as a selection that is not shown to the user. """
-        self.SendScintilla(self.SCI_SETTARGETEND, pos)
-    
-    def replaceTargetBytes(self, value):
-        """ replace the target with the selected bytes. 
-        The target is used in various task and can be seen
-        as a selection that is not shown to the user. """        
-        self.SendScintilla(self.SCI_REPLACETARGET, len(value), value)
-    
-    def replaceTargetString(self, value):
-        """ replace the target with the selected string. 
-        The target is used in various task and can be seen
-        as a selection that is not shown to the user. """        
-        value = value.encode('utf-8')
-        self.SendScintilla(self.SCI_REPLACETARGET, len(value), value)
-    
-    
-    ## Settings methods
-    
-    def setIndentation(self, value):
-        """ Set the used indentation. If a number larger than 0,
-        tabs are disabled and the number is the amount of spaces for
-        an indent. If the number is negative, tabs are used for 
-        indentation. """
-        if value < 0:
-            self.SendScintilla(self.SCI_SETUSETABS, True)
-            self.SendScintilla(self.SCI_SETINDENT, 0)
-        else:
-            self.SendScintilla(self.SCI_SETUSETABS, False)
-            self.SendScintilla(self.SCI_SETINDENT, value)
-    
-    def getIndentation(self):
-        """ Get the used indentation. See setIndentation for details. """
-        if self.SendScintilla(self.SCI_GETUSETABS):
-            return -1
-        else:
-            return self.SendScintilla(self.SCI_GETINDENT)
-    
-    
-    def setTabWidth(self, width):
-        """ Set the tab width. """
-        self.SendScintilla(self.SCI_SETTABWIDTH, width)    
-    
-    def getTabWidth(self):
-        """ Get the tab width. """
-        return self.SendScintilla(self.SCI_GETTABWIDTH)
-    
-    
-    def setViewWhiteSpace(self, value):
-        """ Set the white space visibility, can be True or False, 
-        or 0, 1, or 2, where 2 means show after indentation. """
-        value = int(value)
-        self.SendScintilla(self.SCI_SETVIEWWS, value)
-    
-    def getViewWhiteSpace(self):
-        """ Get the white space visibility, can be 0, 1 or 2, 
-        where 2 means show after indentation. """
-        return self.SendScintilla(self.SCI_GETVIEWWS)
-    
-    def setViewEOL(self, value):
-        """ Set the line ending visibility, can be True or False. """
-        value = int(value)
-        self.SendScintilla(self.SCI_SETVIEWEOL, value)
-    
-    def getViewEOL(self):
-        """ Get the line ending visibility. """
-        return self.SendScintilla(self.SCI_GETVIEWEOL)
-    
-    def setViewWrapSymbols(self, value):
-        """ Set the wrap symbols visibility, can be True or False,
-        or 0,1 or 2, for off, show-at-end, show-at-start, respectively. """
-        value = int(value)
-        self.SendScintilla(self.SCI_SETWRAPVISUALFLAGS, value)
-    
-    def getViewWrapSymbols(self):
-        """ Get the wrap symbols visibility. Is 0,1 or 2, 
-        for off, show-at-end, show-at-start, respectively. """
-        return self.SendScintilla(self.SCI_GETWRAPVISUALFLAGS)
-        
-    def setHighlightCurrentLine(self, value):
-        """ Set whether or not to highlight the line containing the caret.
-        Call SCI_SETCARETLINEBACK(int color) to set the color
-        """
-        self.SendScintilla(self.SCI_SETCARETLINEVISIBLE, bool(value))
-    
-    def getHighlightCurrentLine(self):
-        """ Get whether or not to highlight the line containing the caret.
-        Call SCI_SETCARETLINEBACK(int color) to set the color
-        """
-        return self.SendScintilla(self.SCI_GETCARETLINEVISIBLE)
-    
-#     def setWrapMode(self, value):
-#         """ Set the wrapmode of the editor. 
-#         0: no wrap, 1: wrap word, 2: wrap character.
-#         1 is not recommended since it is very slow. """
-#         self.SendScintilla(self.SCI_SETWRAPMODE, value)
-#     
-#     def getWrapMode(self, value):
-#         """ Get the wrapmode of the editor. 
-#         0: no wrap, 1: wrap word, 2: wrap character.
-#         1 is not recommended since it is very slow. """
-#         return self.SendScintilla(self.SCI_GETWRAPMODE)
-#     
-#     
-#     def setEdgeColumn(self, value):
-#         """ Set the position of the edge column of the editor. """
-#         self.SendScintilla(self.SCI_SETEDGECOLUMN, value)
-#     
-#     def getEdgeColumn(self):
-#         """ Get the position of the edge column of the editor. """
-#         return self.SendScintilla(self.SCI_GETEDGECOLUMN)
-#     
-#     
-#     def setIndentationGuides(self, value):
-#         """ Set whether or not to show indentation guides. """
-#         self.SendScintilla(self.SCI_SETINDENTATIONGUIDES, value)
-#     
-#     def getIndentationGuides(self):
-#         """ Get whether or not to show indentation guides."""
-#         return self.SendScintilla(self.SCI_GETINDENTATIONGUIDES)
-#     
-#     
-#     def setEolMode(self, value):
-#         """ Set The line ending mode to apply. """
-#         self.SendScintilla(self.SCI_SETEOLMODE, value)
-#     
-#     def getEolMode(self):
-#         """ Get The line ending mode to apply. """
-#         return self.SendScintilla(self.SCI_GETEOLMODE)
-    
-    
-    def setStyle(self, styleName=None):
-        """ Set the styling to use. styleName can be None, in which case the
-        style is only updated, or the extension of the file. 
-        """
-        # remember style or use remebered style
-        if styleName is None:
-            styleName = self._styleName        
-        # apply and remember
-        self._styleName = styleManager.applyStyle(self,styleName)
-    
-    
-    def getStyleName(self):
-        """ Get the name of the currently applied style. """
-        return self._styleName
-    
-    def textWidth(self, style=32, value='X'):
-        """ Get the width (in pixels) of the given text. """
-        return self.SendScintilla(self.SCI_TEXTWIDTH, style, value)
-    
-    
+
     ## Autocomp and calltip methods of scintilla
     
     def focusOutEvent(self, event):
         # Cancel autocomp and calltip
-        self.autoCompCancel()
+        self.autocompleteCancel()
         self.callTipCancel()
         
         # Handle normally
-        Qsci.QsciScintilla.focusOutEvent(self, event)
+        codeeditor.CodeEditor.focusOutEvent(self, event)
     
     
-    def autoCompShow(self, lenentered, names, preventFlicker=False): 
-        """ Start showing the autocompletion list, 
-        with the list of given names (which can be a list or a space separated
-        string. If preventFlicker is True, will not reshow if the currently
-        shown list is the same.
-        """
-        # Process names
-        if isinstance(names, list):
-            names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
-        
-        # Show list
-        if names:
-            curNames = self._autoCompNameString
-            self._autoCompNameString = names
-            if preventFlicker and self.autoCompActive() and names==curNames:
-                pass # Do not reshow, the currently shown list seems fine
-            else: 
-                self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
-        else:
-            self.autoCompCancel()
-    
-    
-    def autoCompCancel(self):
-        """ Hide the autocompletion list, do nothin. """
-        self.SendScintilla(self.SCI_AUTOCCANCEL)
-        self._autoCompNameString = ''
-    
-    
-    def autoCompActive(self):  
-        """ Get whether the autocompletion is currently active. """
-        return self.SendScintilla(self.SCI_AUTOCACTIVE)
-    
-    def autoCompComplete(self):
-        """ Perform autocomplete: 
-        insert the selected item and hide the list. """
-        self.SendScintilla(self.SCI_AUTOCCOMPLETE)
+#     def autoCompShow(self, lenentered, names, preventFlicker=False): 
+#         """ Start showing the autocompletion list, 
+#         with the list of given names (which can be a list or a space separated
+#         string. If preventFlicker is True, will not reshow if the currently
+#         shown list is the same.
+#         """
+#         #Todo: remove this method and move to the caller
+#         print (lenentered)
+#         self.autocompleteShow(lenentered,names)
+#         return
+#         # Process names
+#         if isinstance(names, list):
+#             names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
+#         
+#         # Show list
+#         if names:
+#             curNames = self._autoCompNameString
+#             self._autoCompNameString = names
+#             if preventFlicker and self.autoCompActive() and names==curNames:
+#                 pass # Do not reshow, the currently shown list seems fine
+#             else: 
+#                 self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
+#         else:
+#             self.autocompleteCancel()
+#     
+#     
+#     
+#     def autoCompActive(self):  
+#         """ Get whether the autocompletion is currently active. """
+#         return self.SendScintilla(self.SCI_AUTOCACTIVE)
+#     
+#     def autoCompComplete(self):
+#         """ Perform autocomplete: 
+#         insert the selected item and hide the list. """
+#         self.SendScintilla(self.SCI_AUTOCCOMPLETE)
     
     
     def callTipShow(self, pos, text, hl1=0, hl2=0):
@@ -1085,6 +781,7 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         Show text in a call tip at position pos. the text between hl1 and hl2
         is highlighted. If hl2 is -1, highlights all untill the first '('.
         """
+        return
         if text:
             self.SendScintilla(self.SCI_CALLTIPSHOW, pos, text)
             if hl2 == -1:
@@ -1094,10 +791,12 @@ class BaseTextCtrl(Qsci.QsciScintilla):
     
     def callTipCancel(self):
         """ Hide call tip. """
+        return
         self.SendScintilla(self.SCI_CALLTIPCANCEL)
     
     def callTipActive(self):
         """ Hide call tip. """
+        return
         return bool( self.SendScintilla(self.SCI_CALLTIPACTIVE) )
     
     
@@ -1121,7 +820,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         - the active lexer is the python lexer
         - the style at the cursor is "default"
         """
-        
+        #TODO:
+        return True
         # The lexer should be Python
         lexlang = self.SendScintilla(self.SCI_GETLEXER)
         if lexlang != self.SCLEX_PYTHON:
@@ -1167,19 +867,21 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             return
         
         # Get line up to cursor
-        linenr, i = self.getLinenrAndIndex()
-        text = self.getLineString(linenr)
-        text = text[:i]
+        cursor = self.textCursor()
+        position = cursor.position()
+        cursor.setPosition(cursor.position()) #Move the anchor to the cursor pos
+        cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+        text = cursor.selectedText()
         
         # Is the char valid for auto completion?
         if tryAutoComp:
             if not text or not ( text[-1] in namechars or text[-1]=='.' ):
-                self.autoCompCancel()
+                self.autocompleteCancel()
                 tryAutoComp = False
         
         # Store line and (re)start timer
         self._delayTimer._line = text
-        self._delayTimer._pos = self.getPosition()
+        self._delayTimer._pos = position
         self._delayTimer._tryAutoComp = tryAutoComp
         self._delayTimer.start(iep.config.advanced.autoCompDelay)
     
@@ -1272,19 +974,27 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         
     
     ## Callbacks
-    
+    def updateHelp(self,name):
+        """A name has been highlighted, show help on that name"""
+        
+        if self._autoCompBuffer_name:
+            name = self._autoCompBuffer_name + '.' + name
+            
+        # Apply
+        self.processHelp(name,True)
+   
     
     def keyPressEvent(self, event):
         """ Receive qt key event. 
         From here we'l dispatch the event to perform autocompletion
         or other stuff...
         """
-        # Create simple keyevent class and set modifiers
-        keyevent = KeyEvent( event.key() )
-        modifiers = event.modifiers()
-        keyevent.controldown = modifiers & QtCore.Qt.ControlModifier
-        keyevent.altdown = modifiers & QtCore.Qt.AltModifier
-        keyevent.shiftdown = modifiers & QtCore.Qt.ShiftModifier
+        
+        #Ignore CTRL+{A-Z} since those keys are handled through the menu
+        if (event.modifiers() & QtCore.Qt.ControlModifier) and \
+            (event.key()>=QtCore.Qt.Key_A) and (event.key()<=QtCore.Qt.Key_Z):
+                event.ignore()
+                return
         
         # Get ordinal key
         ordKey = -1
@@ -1304,29 +1014,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
         self._autoComp_bufBase = None
         self._callTip_bufName = None
         
-        # Dispatch event        
-        if not self.keyPressHandler_always(keyevent):
-            handled = False
-            if self.autoCompActive():
-                handled = self.keyPressHandler_autoComp(keyevent)
-            else:
-                # Handle normal key event
-                handled = self.keyPressHandler_normal(keyevent)
-            
-            # Should we handle it the normal way? 
-            # By testing key>0 we prevent backspace chars inserted
-            # But allowing ordKey makes tapping quote twice, insert 2 quotes
-            # ordKey can be backspace, tab, enter, escape, or a char!
-            keyOk = ordKey>=32 or ordKey in [8,9,10,13,27]
-            keyOk = keyOk or (ordKey==-1 and event.key()>0)    
 
-            #print(ordKey, event.key(), keyOk)
-            if sys.platform=='darwin':
-                keyOk=True # Fix/hack to make cursor keys work on mac
-            
-            if not handled and keyOk:
-                Qsci.QsciScintillaBase.keyPressEvent(self, event)
-        
+        codeeditor.CodeEditor.keyPressEvent(self, event)
         # Analyse character/key to determine what introspection to fire
         if ordKey:
             if ordKey >= 48 or ordKey in [8, 46]:
@@ -1339,70 +1028,8 @@ class BaseTextCtrl(Qsci.QsciScintilla):
             self.introspect()
     
     
-    def keyPressHandler_always(self, event):
-        """ keyPressHandler_always(event)
-        Is always called. If returns True, will not proceed.
-        If return False or None, keyPressHandler_autoComp or 
-        keyPressHandler_normal is called, depending on whether the
-        autocompletion list is active.
-        """
-        # Enable backtabbing
-        if event.key == QtCore.Qt.Key_Backtab and event.shiftdown:            
-            self.SendScintilla(self.SCI_BACKTAB)
-            return True
-        
-        # Enable completion with enter
-        enterKeys = [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]
-        fillups = iep.config.settings.autoComplete_fillups
-        if self.autoCompActive():
-            if (event.key in enterKeys) and ('\n' in fillups):
-                self.SendScintilla(self.SCI_AUTOCCOMPLETE)
-                return True
-#             elif event.char and event.char in fillups:                
-#                 self.SendScintilla(self.SCI_AUTOCCOMPLETE)
     
-    
-    def keyPressHandler_autoComp(self, event):
-        """ keyPressHandler_autoComp(event)
-        Called when the autocomp list is active and when the event
-        was not handled by the "always" handler. If returns True,
-        will not process the event further.
-        """
-        up, down = QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
-        
-        if event.key in [up, down] and self.autoCompActive():
-            # show help!
-            
-            # Get list of names currently shown
-            names = self._autoCompNameString.split(' ')
-            
-            # get selected index after keypress
-            i = self.SendScintilla(self.SCI_AUTOCGETCURRENT)
-            i += {up:-1, down:+1}[event.key]
-            if i<0: 
-                i=0
-            if i >= len(names):
-                i = len(names) -1
-            
-            # Obtain name
-            name = ''
-            if names:
-                name = names[i]
-            # Add base part
-            if self._autoCompBuffer_name:
-                name = self._autoCompBuffer_name + '.' + name
-            
-            # Apply
-            self.processHelp(name,True)
-    
-    
-    def keyPressHandler_normal(self, event):
-        """ keyPressHandler_normal(event)
-        Called when the autocomp list is NOT active and when the event
-        was not handled by the "always" handler. If returns True,
-        will not process the event further.
-        """
-        return False
+
 
 
 
@@ -1521,18 +1148,8 @@ class AutoCompObject:
         return names
     
     def _finish(self, names):
-        # Check whether name in list.
-        if iep.config.settings.autoComplete_caseSensitive:
-            haystack = ' '.join(['']+names)
-            searchNeedle = ' '+self.needle
-        else:
-            haystack = ' '.join(['']+names).lower()
-            searchNeedle = ' '+self.needle.lower()
-        if haystack.find(searchNeedle) == -1:
-            self.textCtrl.autoCompCancel()
-        else:
-            # Show completion list if required. 
-            self.textCtrl.autoCompShow(len(self.needle), names, True)
+        # Show completion list if required. 
+        self.textCtrl.autocompleteShow(len(self.needle), names)
     
     def nameInImportNames(self, importNames):
         """ nameInImportNames(importNames)

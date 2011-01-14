@@ -154,8 +154,6 @@ class IepSourceStructure(QtGui.QWidget):
             item = item.parent()
         
         # Move to line
-        editor.gotoLine(item.linenr+30)
-        editor.gotoLine(item.linenr-10)
         editor.gotoLine(item.linenr-1)
         
         # Give focus
@@ -182,8 +180,8 @@ class IepSourceStructure(QtGui.QWidget):
             return
         
         # Get current line number and the structure
-        ln, index = editor.getLinenrAndIndex()
-        ln += 1  # is ln as in margin
+        ln = editor.textCursor().blockNumber()
+        ln += 1  # is ln as in line number area
         
         # Define colours
         colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F', 

@@ -26,7 +26,7 @@ class IepLogger(BaseShell):
         BaseShell.__init__(self, parent)
         
         # apply style        
-        self.setStyle('loggerShell')
+        #self.setStyle('loggerShell')
         
         # Create interpreter to run code        
         locals = {'iep':iep, 'sys':sys, 'os':os}
@@ -62,7 +62,9 @@ class IepLogger(BaseShell):
         # Write normally
         BaseShell.writeErr(self, text)
         # Goto end
-        self.setPositionAndAnchor(self.length())
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.End)
+        self.setTextCursor(cursor)
         
         
     # Note that I did not (yet) implement calltips
