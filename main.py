@@ -13,6 +13,7 @@ function which is also defined here.
 """
 
 import os, sys
+import ssdf
 import iep
 
 from PyQt4 import QtCore, QtGui
@@ -82,7 +83,7 @@ class MainWindow(QtGui.QMainWindow):
     def init1(self):
         
         # Delayed imports
-        from editorStack import EditorStack
+        from editorTabs import EditorTabs
         from shellStack import ShellStack
         from menu import MenuHelper
         import codeparser
@@ -97,7 +98,7 @@ class MainWindow(QtGui.QMainWindow):
             iep.parser.start()
         
         # Create editor stack and make the central widget
-        iep.editors = EditorStack(self)        
+        iep.editors = EditorTabs(self)
         #self.setCentralWidget(iep.editors)
         
         # Create shell stack and instantiate a default shell
@@ -297,7 +298,7 @@ def loadIcons():
     iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
     
     # Construct other icons
-    iep.icons = {}
+    iep.icons = ssdf.new()
     for fname in os.listdir(iconDir):
         if fname.startswith('iep'):
             continue

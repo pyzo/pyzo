@@ -238,7 +238,7 @@ class IepEditor(BaseTextCtrl):
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
-        # Init filename ane name
+        # Init filename and name
         self._filename = ''
         self._name = '<TMP>'
         
@@ -255,8 +255,15 @@ class IepEditor(BaseTextCtrl):
         
         # To see whether the doc has changed to update the parser.
         self.textChanged.connect(self._onModified)
+    ## Properties
+    @property
+    def name(self):
+        return self._name
     
-
+    @property
+    def filename(self):
+        return self._filename
+    ##
     def gotoLine(self,lineNumber):
         """Move the cursor to the given lineNumber (0-based) and center
         the cursor vertically"""

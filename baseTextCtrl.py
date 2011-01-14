@@ -442,13 +442,23 @@ class StyleManager(QtCore.QObject):
         # if extension was given, find out which style it belongs to
         if styleName.startswith('.'):
             ext = styleName[1:]
+            
+            # Collect styles that correspond to this extension
+            validStyles = []
             for styleName in self._styles:
                 exts = self._styles[styleName].ext.split(' ')                
                 if ext in exts:
-                    break
+                    validStyles.append(styleName)
+            
+            # Select style
+            defaultStyle = iep.config.settings.defaultStyle
+            if defaultStyle in validStyles:
+                styleName = defaultStyle
+            elif validStyles:
+                styleName = validStyles[0]
             else:
-                #tmp = "Unknown extension {}, applying default style."
-                #print(tmp.format(ext))
+                # Unknown extension. Apply 'default' style, not defaultStyle:
+                # this file is probably best viewed as plaint text.
                 styleName = 'default'
         
         # get style struct
