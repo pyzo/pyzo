@@ -463,7 +463,7 @@ class FindReplaceWidget(QtGui.QFrame):
 
 
 class TabToolButton(QtGui.QToolButton):
-    def __init__(self, tabWidget, item,  icon1, icon2):
+    def __init__(self, tabWidget, item,  icon1):
         QtGui.QToolButton.__init__(self)
         
         # Init
@@ -474,27 +474,25 @@ class TabToolButton(QtGui.QToolButton):
         self._tabWidget = tabWidget
         self._item = item
         self._icon1 = icon1
-        self._icon2 = icon2
+        self._icon2 = iep.icons.cross
         
         # Set icon now
-        if False:#self.underMouse():
-            self.setIcon(icon2)
-        else:
-            self.setIcon(icon1)
+        self.setIcon(icon1)
         
         # Connect
         self.pressed.connect(self.onTriggered)
     
     def onTriggered(self):
-        self._item._pinned = not self._item._pinned
-        self._tabWidget.updateItems()
-        
-#     def enterEvent(self, event):
-#         self.setIcon(self._icon2)
-#     
-#     def leaveEvent(self, event):
-#         self.setIcon(self._icon1)
-#     
+        #self._item._pinned = not self._item._pinned
+        #self._tabWidget.updateItems()
+        self._tabWidget.parent().closeFile(self._item.editor)
+    
+    def enterEvent(self, event):
+        self.setIcon(self._icon2)
+    
+    def leaveEvent(self, event):
+        self.setIcon(self._icon1)
+
     
 class FileTabWidget(CompactTabWidget):
     """ FileTabWidget(parent)
@@ -928,8 +926,7 @@ class FileTabWidget(CompactTabWidget):
                 # Show icon using tool button. That will make the space
                 # between icon and text much smaller for some reason.
                 #tabBar.setTabIcon(i, QtGui.QIcon(pm0))
-                but = TabToolButton(self, item,
-                    QtGui.QIcon(pm0), iep.icons.overlay_thumbnail)
+                but = TabToolButton(self, item, QtGui.QIcon(pm0))
                 tabBar.setTabButton(i, 0, but)
                 
  
@@ -1334,7 +1331,12 @@ class EditorTabs(QtGui.QWidget):
             index = editor
             item = self._tabs.items()[index]
             editor = item.editor
-        if editor is None:
+        else:
+            item = None
+            for i in self._tabs.items():
+                if i.editor is editor:
+                    item = i
+        if editor is None or item is None:
             return
         
         # Ask if dirty
