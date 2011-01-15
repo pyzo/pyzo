@@ -487,7 +487,7 @@ class TabToolButton(QtGui.QToolButton):
     
     def onTriggered(self):
         self._item._pinned = not self._item._pinned
-        self._tabWidget.updateItemsFull()
+        self._tabWidget.updateItems()
         
 #     def enterEvent(self, event):
 #         self.setIcon(self._icon2)
@@ -649,7 +649,7 @@ class FileTabWidget(CompactTabWidget):
                     pass
         
         # Update
-        self.updateItemsFull()
+        self.updateItems()
     
     
     ## Item management
@@ -843,7 +843,7 @@ class FileTabWidget(CompactTabWidget):
         
         # Update
         if update:
-            self.updateItemsFull()
+            self.updateItems()
     
     
     def updateItemsFull(self):
@@ -875,7 +875,8 @@ class FileTabWidget(CompactTabWidget):
             if item is None:
                 continue
             
-            # Update tooltip
+            # Update name and tooltip
+            tabBar.setTabText(i, item.name)
             tabBar.setTabToolTip(i, item.filename)
             
             # Determine text color. Is main file? Is current?
@@ -1191,7 +1192,7 @@ class EditorTabs(QtGui.QWidget):
                     item = self.loadFile(filename, False)
         finally:
             self._tabs.setUpdatesEnabled(True)
-            self._tabs.updateItemsFull()
+            self._tabs.updateItems()
         
         # return lastopened item
         return item
@@ -1275,6 +1276,7 @@ class EditorTabs(QtGui.QWidget):
         # notify
         tmp = editor.getLineEndings()
         print("saved file: {} ({})".format(filename, tmp[0]))
+        self._tabs.updateItems()
         
         # special case, we edited the style file!
         if filename == styleManager._filename:

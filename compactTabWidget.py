@@ -208,10 +208,11 @@ class CompactTabBar(QtGui.QTabBar):
         
         """
         tabData = self._compactTabBarData(i)
-        tabData.name = text
-        self.alignTabs()
+        if text != tabData.name:
+            tabData.name = text
+            self.alignTabs()
     
-        
+    
     def tabText(self, i):
         """ tabText(i)
         
@@ -233,8 +234,11 @@ class CompactTabBar(QtGui.QTabBar):
         name = str(QtGui.QTabBar.tabText(self, i))
         tabData = TabData(name)
         QtGui.QTabBar.setTabData(self, i, tabData)
+        
+        # Update
+        self.alignTabs()
     
-    
+        
     def tabRemoved(self, i):
         QtGui.QTabBar.tabRemoved(self, i)
         
