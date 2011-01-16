@@ -496,32 +496,37 @@ class IepEditor(BaseTextCtrl):
         """
         Comment the lines that are currently selected
         """
-        self.doForSelectedLines(
+        self.doForSelectedBlocks(
             lambda cursor: cursor.insertText('# ') )
      
     
     def uncommentCode(self):
+        """
+        Uncomment the lines that are currently selected
+        """
+        #TODO: this should not be applied to lines that are part of a multi-line string
         
-        # get locations of the selected text (but whole lines only)
-        pos = self.getPosition()
-        anch = self.getAnchor()
-        line1 = self.getLinenrFromPosition(pos)
-        line2 = self.getLinenrFromPosition(anch)
-        line1,line2 = min(line1,line2), max(line1,line2)+1
-        
-        # comment all lines
-        for linenr in range(line1,line2):            
-            pos2 = self.getPositionFromLinenr(linenr)              
-            linetext = self.getLineBytes(linenr)
-            i = linetext.find(b"#")
-            c = linetext[:i].count(b" ") # only spaces before comment
-            if i>=0 and i==c:
-                self.setTargetStart(pos2+i)
-                if i < len(linetext)-1 and linetext[i+1]==b" "[0]:
-                    self.setTargetEnd(pos2+i+2) # remove "# "
-                else:
-                    self.setTargetEnd(pos2+i+1) # remove "#"
-                self.replaceTargetBytes(b"")
+        #Define the uncomment function to be applied to all blocks
+        def uncommentBlock(cursor):
+            """
+            Find the first # on the line; if there is just whitespace before it,
+            remove the # and if it is followed by a space remove the space, too
+            """
+            text = cursor.block().text()
+            commentStart = text.find('#')
+            if commentStart == -1:
+                return #No comment on this line
+            if text[:commentStart].strip() != '':
+                return #Text before the #
+            #Move the cursor to the beginning of the comment
+            cursor.setPosition(cursor.block().position() + commentStart)
+            cursor.deleteChar()
+            if text[commentStart:].startswith('# '):
+                cursor.deleteChar()
+                
+        #Apply this function to all blocks
+        self.doForSelectedBlocks(uncommentBlock)
+
 
     
     

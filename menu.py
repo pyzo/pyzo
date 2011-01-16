@@ -392,7 +392,6 @@ class EditMenu(BaseMenu):
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'uncommentCode'):
             widget.uncommentCode()
-            linenr, index = widget.getLinenrAndIndex()
     
     def fun_moveToMatchingBrace(self, value):
         """ Move the cursor to the brace matching the current brace. """
