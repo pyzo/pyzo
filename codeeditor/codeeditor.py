@@ -300,6 +300,19 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self._recentCompletions = value
         
     ## MISC
+    def _cursorIsInLeadingWhitespace(self,cursor = None):
+        """
+        Checks wether the given cursor is in the leading whitespace of a block, i.e.
+        before the first non-whitespace character. The cursor is not modified.
+        If the cursor is not given or is None, the current textCursor is used
+        """
+        if cursor is None:
+            cursor = self.textCursor()
+        
+        # Get the text of the current block up to the cursor
+        textBeforeCursor = cursor.block().text()[:cursor.positionInBlock()]
+        return textBeforeCursor.lstrip() == '' #If we trim it and it is empty, it's all whitespace
+        
     def doForSelectedBlocks(self,function):
         """
         Call the given function(cursor) for all blocks in the current selection
@@ -341,6 +354,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def indentBlock(self,cursor,amount = 1):
         """
         Indent the block given by cursor
+        The cursor specified is used to do the indentation; it is positioned
+        at the beginning of the first non-whitespace position after completion
         May be overridden to customize indentation
         """
         text = cursor.block().text()
@@ -641,7 +656,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
                 elif self.textCursor().hasSelection(): #Tab pressed while some area was selected
                     self.indentSelection()
                     return
-                
+                elif self._cursorIsInLeadingWhitespace():
+                    #If the cursor is in the leading whitespace, indent and move cursor to end of whitespace
+                    cursor = self.textCursor()
+                    self.indentBlock(cursor)
+                    self.setTextCursor(cursor)
+                    return
+                    
                 elif self.indentation:
                     #Insert space-tabs
                     cursor=self.textCursor()
@@ -650,10 +671,18 @@ class CodeEditor(QtGui.QPlainTextEdit):
                 #else: default behaviour, insert tab character
             else: #Some other modifiers + Tab: ignore
                 return
-        
 
-            
-            #self.testTokenize()
+        # If backspace is pressed in the leading whitespace, (except for at the first position of the line)
+        # dedent that line and move cursor to end of whitespace
+        if key == Qt.Key_Backspace and modifiers == Qt.NoModifier and \
+                self._cursorIsInLeadingWhitespace() and not self.textCursor().atBlockStart():
+            # Create a cursor, dedent the block and move screen cursor to the end of the whitespace
+            cursor = self.textCursor()
+            self.dedentBlock(cursor)
+            self.setTextCursor(cursor)
+            return
+
+
         #Allowed keys that do not close the autocompleteList:
         # alphanumeric and _
         # Backspace (until start of autocomplete word)
@@ -680,14 +709,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
                         indent+='\t'
                 cursor.insertText(indent)
                 
-                
         if self.autocompleteActive():
             #While we type, the start of the autocompletion may move due to line
             #wrapping, so reposition after every key stroke
             self._positionAutocompleter()
-            
             self._updateAutocompleterPrefix()
-        
+
 
 
 if __name__=='__main__':
