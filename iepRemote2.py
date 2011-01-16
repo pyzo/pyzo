@@ -407,7 +407,11 @@ class IepInterpreter:
         
         # Get text (make sure it ends with a newline)
         try:
-            source = open(fname).read()
+            source = open(fname, 'rb').read().decode('UTF-8')
+        except Exception:
+            sys.stdout.write('Could not read script (decoding using UTF-8): "' + fname + '"\n')
+            return
+        try:
             source = source.replace('\r\n', '\n').replace('\r','\n')
             if source[-1] != '\n':
                 source += '\n'
