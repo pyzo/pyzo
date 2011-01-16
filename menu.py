@@ -17,7 +17,6 @@ import os, sys, re, time
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
-from PyQt4 import Qsci
 qt = QtGui
 
 import iep
@@ -601,10 +600,8 @@ class ViewMenu(BaseMenu):
         else:
             value = not iep.config.view.codeFolding
             iep.config.view.codeFolding = value
-            scin = Qsci.QsciScintilla
-            tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
             for editor in iep.editors:                
-                editor.setFolding(tmp)
+                editor.setFolding(value)
 
     def fun_qtstyle(self, value):
         """ The QT style to use. """

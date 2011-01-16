@@ -16,7 +16,6 @@ structure of a source file in for example a tree widget.
 
 import time, threading, re
 from PyQt4 import QtCore, QtGui
-from PyQt4 import Qsci
 import iep
 
 

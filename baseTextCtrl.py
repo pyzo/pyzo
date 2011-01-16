@@ -19,18 +19,19 @@ import ssdf
 from iepLogging import print
 
 from PyQt4 import QtCore, QtGui
-from PyQt4 import Qsci
 qt = QtGui
 
 
 # Define style stuff
-subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT ,
-                    'fore': Qsci.QsciScintillaBase.SCI_STYLESETFORE,
-                    'back': Qsci.QsciScintillaBase.SCI_STYLESETBACK,
-                    'size': Qsci.QsciScintillaBase.SCI_STYLESETSIZE,
-                    'bold': Qsci.QsciScintillaBase.SCI_STYLESETBOLD,
-                    'italic': Qsci.QsciScintillaBase.SCI_STYLESETITALIC,
-                    'underline': Qsci.QsciScintillaBase.SCI_STYLESETUNDERLINE}
+subStyleStuff = {}
+
+#subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT ,
+#                    'fore': Qsci.QsciScintillaBase.SCI_STYLESETFORE,
+#                    'back': Qsci.QsciScintillaBase.SCI_STYLESETBACK,
+#                    'size': Qsci.QsciScintillaBase.SCI_STYLESETSIZE,
+#                    'bold': Qsci.QsciScintillaBase.SCI_STYLESETBOLD,
+#                    'italic': Qsci.QsciScintillaBase.SCI_STYLESETITALIC,
+#                    'underline': Qsci.QsciScintillaBase.SCI_STYLESETUNDERLINE}
 
 
 def normalizePath(path):

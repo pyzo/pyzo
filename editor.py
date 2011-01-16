@@ -16,7 +16,6 @@ import os, sys
 
 
 from PyQt4 import QtCore, QtGui
-from PyQt4 import Qsci
 qt = QtGui
 
 from baseTextCtrl import BaseTextCtrl, normalizePath
