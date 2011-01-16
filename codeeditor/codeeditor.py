@@ -119,8 +119,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
         QtGui.QPlainTextEdit.__init__(self,*args,**kwds)
         
         self.highlighter=Highlighter(self.document())
-        font=QtGui.QFont('Monaco',15)
-        self.setFont(font)
+        #font=QtGui.QFont('Monaco',15)
+        self.setFont()
         #print (QtGui.QFontInfo(self.font()).fixedPitch())
         
 
@@ -162,11 +162,74 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self.connect(self._completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
         self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
-
+    
+    
     
     def focusOutEvent(self, event):
         QtGui.QPlainTextEdit.focusOutEvent(self, event)
         self._calltipLabel.hide()
+    
+    ## Font
+    
+    def fontNames(self):
+        """ fontNames()
+        
+        Get a list of all monospace fonts available on this system.
+        
+        """
+        db = QtGui.QFontDatabase()
+        QFont, QFontInfo = QtGui.QFont, QtGui.QFontInfo
+        # fn = font_name (str)
+        return [fn for fn in db.families() if QFontInfo(QFont(fn)).fixedPitch()]
+    
+    
+    def defaultFont(self):
+        """ defaultFont()
+        
+        Get the default (monospace font) for this system. Returns a QFont
+        object. 
+        
+        """
+        
+        # Get font size
+        f = QtGui.QFont()
+        size = f.pointSize()
+        
+        # Get font family
+        f = QtGui.QFont('not_a_valid_font')
+        f.setStyleHint(f.TypeWriter, f.PreferDefault)
+        fi = QtGui.QFontInfo(f)
+        family = fi.family()
+        
+        # Done
+        return QtGui.QFont(family, size)
+    
+    
+    def setFont(self, font=None):
+        """ setFont(font=None)
+        
+        Set the font for the editor. Should be a monospace font. If not,
+        Qt will select the best matching monospace font.
+        
+        """
+        
+        # Check
+        if font is None:
+            font = self.defaultFont()
+        elif isinstance(font, QtGui.QFont):
+            pass
+        elif isinstance(font, str):
+            font = QtGui.QFont(font, self.defaultFont().pointSize())
+        else:
+            raise ValueError("setFont accepts None, QFont or string.")
+        
+        # Make sure it's monospace
+        font.setStyleHint(font.TypeWriter, font.PreferDefault)
+        # todo: can be done smarter, return resulting font, implement zooming
+        
+        # Set
+        QtGui.QPlainTextEdit.setFont(self, font)
+    
     
     ## Properties
     
@@ -242,8 +305,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
     @tabWidth.setter
     def tabWidth(self,value):
         self._tabWidth = int(value)
-        fontMetrics=QtGui.QFontMetrics(self.font())
-        self.setTabStopWidth(fontMetrics.width('i')*self._tabWidth)
+        self.setTabStopWidth(self.fontMetrics().width('i')*self._tabWidth)
         
     @property
     def spaceTabs(self):
@@ -438,7 +500,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         (in pixels)
         """
         lastLineNumber = self.blockCount() 
-        return QtGui.QFontMetrics(self.font()).width(str(lastLineNumber))
+        return self.fontMetrics().width(str(lastLineNumber))
 
         
     ##Custom signal handlers
