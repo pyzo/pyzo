@@ -113,7 +113,7 @@ class CalltipLabel(QtGui.QLabel):
         # Act a bit like a tooltip
         self.hide()
 
-    
+
 class CodeEditor(QtGui.QPlainTextEdit):
     def __init__(self,*args,**kwds):
         QtGui.QPlainTextEdit.__init__(self,*args,**kwds)
@@ -675,9 +675,9 @@ class CodeEditor(QtGui.QPlainTextEdit):
                 if line.endswith(':'): #TODO: (multi-line) strings, comments
                     #TODO: check correct identation (no mixed space/tabs)
                     if self.spaceTabs:
-                        indent+=' '*self.tabSize
+                        indent+=' '*self.tabWidth
                     else:
-                        indent+='\t' #TODO: tabs or spaces
+                        indent+='\t'
                 cursor.insertText(indent)
                 
                 
@@ -717,4 +717,4 @@ if __name__=='__main__':
     s.addWidget(QtGui.QLabel('test'))
     s.show()
     app.exec_()
-    
+
