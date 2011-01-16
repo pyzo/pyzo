@@ -252,10 +252,12 @@ class IepEditor(BaseTextCtrl):
         
         self.modificationChanged.connect(self._onModificationChanged)
         
-<<<<<<< /home/almar/projects/py/iep3/trunk/editor.py
         # To see whether the doc has changed to update the parser.
         self.textChanged.connect(self._onModified)
+    
+    
     ## Properties
+    
     @property
     def name(self):
         return self._name
@@ -273,22 +275,9 @@ class IepEditor(BaseTextCtrl):
         self.setTextCursor(cursor)
         
         self.centerCursor()
+    
+    
     def id(self):
-=======
-        # To see whether the doc has been changed
-        self._dirty = False
-        SIGNAL = QtCore.SIGNAL
-        self.connect(self, SIGNAL('SCN_SAVEPOINTLEFT()'), self.makeDirty)
-        self.connect(self, SIGNAL('SCN_SAVEPOINTREACHED()'), self.makeDirtyNot)
-        
-        # To see whether the doc has changed, in a slightly different
-        # way to update the parser. SCN_MODIFIED might make more sense, but
-        # produces errors.
-        self.SCN_UPDATEUI.connect(self._onModified)
-    
-    
-    def id(self): 
->>>>>>> /tmp/editor.py~other.a_NHsU
         """ Get an id of this editor. This is the filename, 
         or for tmp files, the name. """
         if self._filename:

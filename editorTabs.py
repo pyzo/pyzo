@@ -1281,16 +1281,11 @@ class EditorTabs(QtGui.QWidget):
         filename = editor._filename
         
         # notify
-<<<<<<< /home/almar/projects/py/iep3/trunk/editorTabs.py
         # TODO: message concerining line endings
         #tmp = editor.getLineEndings()
         #print("saved file: {} ({})".format(filename, tmp[0]))
         print("saved file: {}".format(filename))
-=======
-        tmp = editor.getLineEndings()
-        print("saved file: {} ({})".format(filename, tmp[0]))
         self._tabs.updateItems()
->>>>>>> /tmp/editorTabs.py~other.9kIsFl
         
         # special case, we edited the style file!
         if filename == styleManager._filename:
