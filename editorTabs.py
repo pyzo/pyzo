@@ -322,7 +322,7 @@ class FindReplaceWidget(QtGui.QFrame):
         # get needle
         editor = self.parent().getCurrentEditor()
         if editor:
-            needle = editor.getSelectedString()
+            needle = editor.textCursor().selectedText()
             if needle:
                 self._findText.setText( needle )
         # select the find-text
