@@ -37,7 +37,7 @@ def simpleDialog(item, action, question, options, defaultOption):
     ok, open, save, cancel, close, discard, apply, reset, restoredefaults,
     help, saveall, yes, yestoall, no, notoall, abort, retry, ignore.
     
-    Returns the lowercase selected option, or None if canceled.
+    Returns the selected option as a string, or None if canceled.
     
     """
     
@@ -63,6 +63,7 @@ def simpleDialog(item, action, question, options, defaultOption):
     dlg.setInformativeText(question)
     
     # process options
+    buttons = {}
     for option in options:
         option_lower = option.lower()
         # Use standard button?
@@ -70,6 +71,7 @@ def simpleDialog(item, action, question, options, defaultOption):
             button = dlg.addButton(M[option_lower]) 
         else:        
             button = dlg.addButton(option, dlg.AcceptRole)
+        buttons[button] = option
         # Set as default?
         if option_lower == defaultOption:
             dlg.setDefaultButton(button)
@@ -77,8 +79,8 @@ def simpleDialog(item, action, question, options, defaultOption):
     # get result
     result = dlg.exec_()
     button = dlg.clickedButton()
-    if button:        
-        return button.text().lower()
+    if button in buttons:
+        return buttons[button]
     else:
         return None
     
@@ -638,7 +640,7 @@ class FileTabWidget(CompactTabWidget):
             result = simpleDialog(item, "Delete", 
                 "Are you sure you want to delete the file from your file system?",
                 ['Delete', 'Cancel'], 'Cancel')
-            if result=='delete':
+            if result=='Delete':
                 filename = item.filename            
                 self.tabCloseRequested.emit(index)
                 try:
@@ -1306,6 +1308,7 @@ class EditorTabs(QtGui.QWidget):
             # Ask user what to do
             result = simpleDialog(editor, "Closing", "Save modified file?", 
                                     ['Save', 'Discard', 'Cancel'], 'Cancel')
+            result = result.lower()
             
             # Get result and act            
             if result == 'save':
@@ -1347,7 +1350,7 @@ class EditorTabs(QtGui.QWidget):
             result = simpleDialog(editor, "Closing pinned", 
                 "Are you sure you want to close this pinned file?",
                 ['Close', 'Cancel'], 'Cancel')
-            result = result == 'close'
+            result = result == 'Close'
         
         # ok, close...
         if result:
