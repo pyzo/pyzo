@@ -1,5 +1,4 @@
-
-
+import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
@@ -196,11 +195,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
         size = f.pointSize()
         
         # Get font family
-        f = QtGui.QFont('not_a_valid_font')
+        f = QtGui.QFont()
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
-        fi = QtGui.QFontInfo(f)
-        family = fi.family()
-        
+        if sys.platform == 'darwin':
+            family = 'Monaco'
+        else:
+            family = f.defaultFamily()
+            
         # Done
         return QtGui.QFont(family, size)
     
