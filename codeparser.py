@@ -12,9 +12,10 @@ structure of a source file in for example a tree widget.
 
 """
 
+#TODO: replace this module, get data from the syntax highlighter in the code editor
+
 import time, threading, re
 from PyQt4 import QtCore, QtGui
-from PyQt4 import Qsci
 import iep
 
 
@@ -90,7 +91,7 @@ class Parser(threading.Thread):
         """
         
         # Get text
-        text = editor.getString()
+        text = editor.toPlainText()
         
         # Make job
         self._lock.acquire()
@@ -111,7 +112,10 @@ class Parser(threading.Thread):
         
         # Get linenr and indent. These are used to establish the namespace
         # based on indentation.
-        linenr, index = editor.getLinenrAndIndex()
+        #linenr, index = editor.getLinenrAndIndex()
+        cursor = editor.textCursor()
+        linenr = cursor.blockNumber()
+        index = cursor.positionInBlock()
         
         # init empty namespace and item list
         namespace = [];        
@@ -273,7 +277,11 @@ class Parser(threading.Thread):
             return None
         
         # Get linenr and indent
-        linenr, index = editor.getLinenrAndIndex()
+        #linenr, index = editor.getLinenrAndIndex()
+        cursor = editor.textCursor()
+        linenr = cursor.blockNumber()
+        index = cursor.positionInBlock()
+        
         
         # Init
         items = result.rootItem.children

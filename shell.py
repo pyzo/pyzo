@@ -17,6 +17,7 @@ code in it.
 """
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import Qt
 import os, sys, time, subprocess
 import channels
 import iep
@@ -25,166 +26,36 @@ from iepLogging import print
 
 # todo: color stderr red and prompt blue, and input text Python!
 
-class PositionHelper:
-    """ Manages the position of the prompt and the cursor during 
-    inserting text to the shell. Provides methods to remember
-    and restore the positions. This is a more complex task than
-    might seem on first sight; depending on the situation, the 
-    position has to be stored relative to the beginning or to
-    the end of the text.
-    """
-    
-    def __init__(self):
-        self._where1 = ''
-        self._where2 = '' 
-        self._refPos1 = 0 # position
-        self._refPos2 = 0 # anchor
-        #
-        self._promptRefPos1b = 0 # b for before, a for after 
-        self._promptRefPos2b = 0
-        self._promptRefPos1a = 0
-        self._promptRefPos2a = 0
-    
-    
-    def remember(self, shell):
-        """ remember(shell)
-        Remember the positions.
-        """ 
-        
-        # Get cursor position
-        pos1 = shell.getPosition()
-        pos2 = shell.getAnchor()
-        
-        # Get shell end
-        end = shell.length()
-        
-        # Remember position of prompt for when text is inserted
-        # before it and for when text is inserted after it.
-        self._promptRefPos1b = end - shell._promptPos1
-        self._promptRefPos2b = end - shell._promptPos2
-        self._promptRefPos1a = shell._promptPos1
-        self._promptRefPos2a = shell._promptPos2
-        
-        # Determine where each end is and store reference position
-        if pos1 >= shell._promptPos2:
-            self._where1 = 'input'
-            self._refPos1 = end - pos1
-        elif pos1 >= shell._promptPos1:
-            self._where1 = 'prompt'
-            self._refPos1 = end - pos1
-        else:
-            self._where1 = 'bulk'
-            self._refPos1 = pos1
-        #
-        if pos2 >= shell._promptPos2:
-            self._where2 = 'input'
-            self._refPos2 = end - pos2
-        elif pos2 >= shell._promptPos1:
-            self._where2 = 'prompt'
-            self._refPos2 = end - pos2
-        else:
-            self._where2 = 'bulk'
-            self._refPos2 = pos2
-    
-    
-    def restore(self, shell, newPromptLength=0):
-        """ restore(shell, newPromptLength=0)
-        Restore the positions. If newPromptLength is given, it is
-        assumed that a prompt was inserted AFTER the previous promptPos2
-        with the given number of bytes. If not given, it is assumed
-        that the text was inserted BEFORE the previous prompt.
-        In other words, all text should be printed before the prompt,
-        unless it's a new prompt.
-        """ 
-        
-        # Get shell end
-        end = shell.length()
-        
-        # Restore prompt
-        if newPromptLength:
-            # Text printed after the prompt
-            shell._promptPos1 = self._promptRefPos2a
-            shell._promptPos2 = shell._promptPos1 + newPromptLength
-        else:
-            # Text printed before the prompt
-            shell._promptPos1 = end - self._promptRefPos1b
-            shell._promptPos2 = end - self._promptRefPos2b
-        
-        # Obtain new position depending on where the pos was
-        if self._where1 == 'input':
-            pos1 = end - self._refPos1
-        elif self._where1 == 'prompt':
-            pos1 = end - self._refPos1
-        elif self._where1 == 'bulk':
-            pos1 = self._refPos1
-        else:
-            pos1 = end # error: move to end
-        #
-        if self._where2 == 'input':
-            pos2 = end - self._refPos2
-        elif self._where2 == 'prompt':
-            pos2 = end - self._refPos2
-        elif self._where2 == 'bulk':
-            pos2 = self._refPos2
-        else:
-            pos2 = end # error: move to end
-        
-        # Set new position
-        shell.setPosition(pos1)
-        shell.setAnchor(pos2)
-        
-        # Should we ensure visible?
-        # Only if cursor is at input ...
-        if self._where1 == 'input' and self._where2 == 'input':
-            shell.ensureCursorVisible()
-    
-    
-    def allowedToLimitNumberOfLines(self):
-        """ allowedToLimitNumberOfLines()
-        Returns a boolean indicating whether it is safe to reduce
-        the number of lines. Basically, this is the case if the cursor
-        is not in the bulk.
-        """ 
-        
-        if 'bulk' in [self._where1, self._where2]:
-            return False
-        else:
-            return True
 
 
 class BaseShell(BaseTextCtrl):
     """ The BaseShell implements functionality to make a generic shell.
     """
-    
-    # Here's a list of positions used:
-    # position - of the cursor
-    # anchor - of the other end when text is selected
-    # _promptPos1 - start of the prompt
-    # _promptPos2 - end of the prompt
-    # length - the end of the text.
+
     
     def __init__(self, parent):
         BaseTextCtrl.__init__(self, parent)
         
-        # Tweak settings specific for shell
-        self.setIndentationGuides(False)
-        self.setMarginWidth(1,3)
-        self.setWrapMode(self.WrapCharacter)
-        self.setMarginLineNumbers(1,False)
-        self.setEdgeMode(self.EDGE_LINE)
-        self.setEdgeColumn(80)
-        self.setHighlightCurrentLine(False)
-        self.setEolMode(self.SC_EOL_LF)
-        
-        # Disable specif editing commands
-        ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
+        self.setUndoRedoEnabled(False)
+#         # Tweak settings specific for shell
+#         self.setIndentationGuides(False)
+#         self.setMarginWidth(1,3)
+#         self.setWrapMode(self.WrapCharacter)
+#         self.setMarginLineNumbers(1,False)
+#         self.setEdgeMode(self.EDGE_LINE)
+#         self.setEdgeColumn(80)
+#         self.setHighlightCurrentLine(False)
+#         self.setEolMode(self.SC_EOL_LF)
+#         
+#         # Disable specif editing commands
+#         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
+#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
         
 #         # Set shortcut
 #         keyseq = QtGui.QKeySequence('Ctrl+C')
@@ -195,8 +66,15 @@ class BaseShell(BaseTextCtrl):
         
         # variables we need
         self._more = False
-        self._promptPos1 = 0
-        self._promptPos2 = 0
+        self.stdoutCursor = self.textCursor() #Stays at the place where stdout is printed
+        self.lineBeginCursor = self.textCursor() #Stays at the beginning of the edit line
+        
+        # When inserting/removing text at the edit line (thus also while typing)
+        # keep the lineBeginCursor at its place. Only when text is written before
+        # the lineBeginCursor (i.e. in write and writeErr), this flag is
+        # temporarily set to False
+        self.lineBeginCursor.setKeepPositionOnInsert(True)
+        
         
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
@@ -214,9 +92,18 @@ class BaseShell(BaseTextCtrl):
         self.setMinimumWidth(200)
         
         # apply style
-        self.setStyle('')
+        # TODO: self.setStyle('')
+        self.cursorPositionChanged.connect(self.onCursorPositionChanged)
+        
+    def onCursorPositionChanged(self):
+        #If the end of the selection (or just the cursor if there is no selection)
+        #is before the beginning of the line. make the document read-only
+        if self.textCursor().selectionEnd() < self.lineBeginCursor.position():
+            self.setReadOnly(True)
+        else:
+            self.setReadOnly(False)
     
-    
+
     def resizeEvent(self, event):
         """ When resizing the fontsize nust be kept right. """
         BaseTextCtrl.resizeEvent(self, event)        
@@ -252,7 +139,7 @@ class BaseShell(BaseTextCtrl):
         the style and zooming, but decreases the size as necessary
         to fit 80 columns on screen.
         """
-        
+        return #TODO: re-implement
         # Are we hidden?
         if not self.isVisible():
             return
@@ -284,191 +171,136 @@ class BaseShell(BaseTextCtrl):
             # impose lower limit
             if zoom < -10:
                 break
-    
-    
+
+    ##Indentation: override code editor behaviour
+    def indentSelection(self):
+        pass
+    def dedentSelection(self):
+        pass
+        
     ## Key handlers
-    
-    def keyPressHandler_always(self, event):
-        """ keyPressHandler_always(event)
-        Is always called. If returns True, will not proceed.
-        If return False or None, keyPressHandler_autoComp or 
-        keyPressHandler_normal is called, depending on whether the
-        autocompletion list is active.
-        """
+    def keyPressEvent(self,event):
         
-        # Use base first
-        if BaseTextCtrl.keyPressHandler_always(self, event):
-            return True
-        
-        qc = QtCore.Qt
-        
-        if event.key in [qc.Key_Return, qc.Key_Enter]:            
+        if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
             # Enter: execute line
-            
             # Remove calltip and autocomp if shown
-            self.autoCompCancel()
+            self.autocompleteCancel()
             self.callTipCancel()
             
             # reset history needle
             self._historyNeedle = None
+            self._historyIndex = -1
             
             # process
             self.processLine()
-            return True
-        
-        elif event.key == qc.Key_Home:
+            return
+            
+        if event.key() == Qt.Key_Home:
             # Home goes to the prompt.
-            home = self._promptPos2
-            if event.shiftdown:
-                self.setPosition(home)
-            else:
-                self.setPositionAndAnchor(home)
-            self.ensureCursorVisible()
-            self.autoCompCancel()
-            return True
-        
-        elif event.key == qc.Key_Insert:
+            cursor=self.textCursor()
+            shift = event.modifiers() & Qt.ShiftModifier
+            cursor.setPosition(self.lineBeginCursor.position(),
+                cursor.KeepAnchor if shift else cursor.MoveAnchor)
+            
+            self.setTextCursor(cursor)
+            self.autocompleteCancel()
+            return
+
+        if event.key() == Qt.Key_Insert:
             # Don't toggle between insert mode and overwrite mode.
             return True
         
-        elif event.key in [qc.Key_Backspace, qc.Key_Left]:
-            # do not backspace past prompt
-            # nor with arrow key
-            home = self._promptPos2
-            if self.getPosition() > home:
-                return False # process normally
-            return True
-    
-    
-    def keyPressHandler_normal(self, event):
-        """ keyPressHandler_normal(event)
-        Called when the autocomp list is NOT active and when the event
-        was not handled by the "always" handler. If returns True,
-        will not process the event further.
-        """
-        qc = QtCore.Qt
-        
-        if event.key == qc.Key_Escape:
-            # Clear autocomp and calltip, goto end, clear
+        #Ensure to not backspace / go left beyond the prompt
+        if event.key() in [Qt.Key_Backspace, Qt.Key_Left]:
+            if self.textCursor().position() == self.lineBeginCursor.position():
+                return  #Ignore the key, don't go beyond the prompt
+
+
+        if event.key() in [Qt.Key_Up, Qt.Key_Down] and not \
+                self.autocompleteActive():
+            #TODO: searching with needle
+            #Browse through history
+            if event.key() == Qt.Key_Up:
+                if self._historyIndex + 1 >= len(self._history):
+                    return #On top of history, ignore
+                self._historyIndex += 1
+            else: # Key_Down
+                if self._historyIndex < 0:
+                    return #On bottom of history (allow -1 which will be an empty line)
+                self._historyIndex -= 1
             
-            if self.autoCompActive() or self.callTipActive():
-                # Note that the autocomp is already removed on escape by
-                # scintilla, but I leave it for clarity
-                self.autoCompCancel()             
-                self.callTipCancel()
-            elif self.getPosition() < self._promptPos2:
-                self.setPositionAndAnchor(self.length())
+            cursor = self.textCursor()
+            cursor.setPosition(self.lineBeginCursor.position())
+            cursor.movePosition(cursor.End,cursor.KeepAnchor)
+            #print (cursor.selectedText())
+            if self._historyIndex == -1:
+                cursor.removeSelectedText()
             else:
-                self.clearCommand()
-                self._historyNeedle = None
-            return True
+                cursor.insertText(self._history[self._historyIndex])
+            return
         
-        elif event.key in [qc.Key_Up, qc.Key_Down]:
-            # Command history
-            
-            # _historyStep is 0 by default, but the first history element
-            # is at _historyStep=1.
-            
-            # needle
-            if self._historyNeedle == None:
-                # get partly-command, result of method is tuple, 
-                # then we skip ">>> "
-                pos1, pos2 = self._promptPos2, self.length()
-                self._historyNeedle = self.getRangeString(pos1, pos2)
-                self._historyStep = 0
-            
-            # step
-            if event.key==qc.Key_Up:
-                self._historyStep +=1
-            if event.key==qc.Key_Down:
-                self._historyStep -=1
-                if self._historyStep<1:
-                    self._historyStep = 1
-            
-            # find the command
-            count = 0
-            for c in self._history:
-                if c.startswith(self._historyNeedle):
-                    count+=1
-                    if count >= self._historyStep:
-                        break
-            else:
-                # found nothing-> reset
-                self._historyStep = 0
-                c = self._historyNeedle  
-            
-            # apply
-            self.setAnchor(self._promptPos2)
-            self.setPosition(self.length())
-            self.ensureCursorVisible()
-            self.replaceSelection(c) # replaces the current selection
-            return True
+        cursor=self.textCursor()
+        #if a 'normal' key is pressed, ensure the cursor is at the edit line
+        if event.text():
+            self.ensureCursorAtEditLine()
         
-        else:
-            if not event.controldown:
-                # go back to prompt if not there...
-                home = self._promptPos2 
-                pend = self.length()
-                if self.getPosition() < home or self.getAnchor() < home:
-                    self.setPositionAndAnchor(pend)
-                    self.ensureCursorVisible()                
-                    # Proceed as normal though!
+        #Default behaviour: BaseTextCtrl
+        BaseTextCtrl.keyPressEvent(self,event)
+        
+        
+        #TODO: escape to clear the current line? (Only if not handled by the
+        #default editor behaviour)
+
     
-    ## Cut / Copy / Paste / Undo / Redo
+    ## Cut / Copy / Paste / Drag & Drop
     
     def cut(self):
         """ Reimplement cut to only copy if part of the selected text
         is not at the prompt. """
         
-        # Get position and anchor
-        pos1, pos2 = self.getPosition(), self.getAnchor()
-        
-        # Depending on position, cut or copy
-        if pos1 < self._promptPos2 or pos2 < self._promptPos2:
-            self.copy()
+        if self.isReadOnly():
+            return self.copy()
         else:
-            BaseTextCtrl.cut(self)
+            return BaseTextCtrl.cut(self)
     
     #def copy(self): # no overload needed
-    
-    
+
     def paste(self):
-        """ Reimplement paste to only paste when the position is at
-        the prompt. """
-        
-        # Get position and anchor
-        pos1, pos2 = self.getPosition(), self.getAnchor()
-        
-        # If not at prompt, go there
-        if pos1 < self._promptPos2 or pos2 < self._promptPos2:
-            self.setPositionAndAnchor(self.length())
-        
+        """ Reimplement paste to paste at the end of the edit line when
+        the position is at the prompt. """
+        self.ensureCursorAtEditLine()
         # Paste normally
-        BaseTextCtrl.paste(self)
-    
-    
-    def undo(self):
+        return BaseTextCtrl.paste(self)
+
+    def dragEnterEvent(self):
+        """No dropping allowed"""
+        pass
+        
+    def dropEvent(self,event):
+        """No dropping allowed"""
         pass
     
-    def redo(self):
-        pass
-    
+    def ensureCursorAtEditLine(self):
+        """
+        If the text cursor is before the beginning of the edit line,
+        move it to the end of the edit line
+        """
+        cursor = self.textCursor()
+        if cursor.position() < self.lineBeginCursor.position():
+            cursor.movePosition(cursor.End)
+            self.setTextCursor(cursor)
     
     ## Basic commands to control the shell
     
     
     def clearScreen(self):
         """ Clear all the previous output from the screen. """
-        # Select what to remove, and remove it
-        self.setPosition(0)
-        self.setAnchor(self._promptPos1)
-        self.removeSelectedText()
-        # Set prompt pos
-        self._promptPos2 = self._promptPos2 - self._promptPos1
-        self._promptPos1 = 0
-        # Go to end and ensure visible
-        self.setPositionAndAnchor(self._promptPos2)
-        self.ensureCursorVisible()  
+        #Select from current stdout cursor (begin of prompt) to start of document
+        self.stdoutCursor.movePosition(self.stdoutCursor.Start,
+            self.stdoutCursor.KeepAnchor)
+        self.stdoutCursor.removeSelectedText()
+        self.ensureCursorAtEditLine()
+        self.ensureCursorVisible()
     
     
     def clearCommand(self):
@@ -565,29 +397,14 @@ class BaseShell(BaseTextCtrl):
             return
         if isinstance(text, bytes):
             text = text.decode('utf-8')
+        #print (text)
+        #self.stdoutCursor.setKeepPositionOnInsert(False)
         
-        # Remember position of prompt and cursor
-        positionHelper = PositionHelper()
-        positionHelper.remember(self)
-        
-        # Put cursor in position to add (or delete) text
-        self.setPositionAndAnchor(self._promptPos1)
-        L = self.length()
-        
-        # Handle backspaces and wrap lines
-        text = self._handleBackspaces(text)
-        text = self._wrapLines(text)
-        
-        # Insert text at current pos
-        self.addText(text)
-        
-        # Limit number of lines (if cursor not in bulk)
-        if positionHelper.allowedToLimitNumberOfLines():
-            self._limitNumberOfLines()
-        
-        # Restore position of prompt and cursor
-        positionHelper.restore(self)
-    
+        self.lineBeginCursor.setKeepPositionOnInsert(False)
+        self.stdoutCursor.insertText(text) #TODO: backspacing
+        self.lineBeginCursor.setKeepPositionOnInsert(True)
+
+        self.ensureCursorVisible()#TODO: only when cursor is at last line
     
     def writeErr(self, text):
         """ writeErr(text)
@@ -596,43 +413,35 @@ class BaseShell(BaseTextCtrl):
         prompt and is printed behind the old prompt position
         rather than befor it.
         """
-        
         # Make sure there's text and make sure its a string
         if not text:
             return
         if isinstance(text, bytes):
             text = text.decode('utf-8')
-        
-        # Remember position of prompt and cursor
-        positionHelper = PositionHelper()
-        positionHelper.remember(self)
-        
-        # Put cursor in position to add text
-        if text[-1] == '\n':
+
+        #While we're writing text, the lineBeginCursor should move with the
+        #inserted text
+        self.lineBeginCursor.setKeepPositionOnInsert(False)
+
+        if text.endswith('\n'):
             # Normal error message
-            self.setPositionAndAnchor(self._promptPos1)
+            self.stdoutCursor.insertText(text) #TODO: backspacing
         else:
-            # A prompt
-            self.setPositionAndAnchor(self._promptPos2)
+            # Prompt
+            # This shifts the lineBeginCursor appropriately 
+            # Keep the stdout cursor before the prompt
+            stdoutPos = self.stdoutCursor.position()
+            #Since the lineBeginCursor keeps its position on insert, but the
+            #anchor may move, clear the selection (i.e. place anchor at the cursor)
+            self.lineBeginCursor.clearSelection()
+            self.lineBeginCursor.insertText(text) #TODO: backspacing
+            self.stdoutCursor.setPosition(stdoutPos)
+            
+        # Revert keepPositionOnInsert to True
+        self.lineBeginCursor.setKeepPositionOnInsert(True)
         
-        # Wrap lines (no need to handle backspaces)
-        text = self._wrapLines(text)
-        
-        # Insert text at current pos
-        L1 = self.length()
-        self.addText(text)
-        L2 = self.length()
-        
-        # Limit number of lines (if cursor not in bulk)
-        if positionHelper.allowedToLimitNumberOfLines():
-            self._limitNumberOfLines()
-        
-        # Restore position of prompt and cursor
-        if text[-1] == '\n':
-            positionHelper.restore(self)
-        else:
-            positionHelper.restore(self, L2-L1)
-    
+        self.ensureCursorVisible()#TODO: only when cursor is at last line
+
     
     
     ## Executing stuff
@@ -650,21 +459,23 @@ class BaseShell(BaseTextCtrl):
         if self.isReadOnly():
             return
         
-        # Remember position
-        curPos = self.getPosition()
+        #Create cursor to modify the text document starting at start of edit line
+        commandCursor = self.textCursor()
+        commandCursor.setPosition(self.lineBeginCursor.position())
         
         if line:
             # remove newlines spaces and tabs
-            command = line.rstrip()            
+            command = line.rstrip()
         else:
-            # Sample the text from the prompt
-            self.setPosition(self._promptPos2)
-            self.setAnchor(self.length())
-            command = self.getSelectedString()
-            self.replaceSelection('')
+            #create a selection from begin of the edit line to end of the document
+            commandCursor.movePosition(commandCursor.End,commandCursor.KeepAnchor)
+            
+            #Sample the text from the prompt and remove it
+            command = commandCursor.selectedText()
+            commandCursor.removeSelectedText()
             
             # remove newlines spaces and tabs
-            command = command.rstrip()            
+            command = command.rstrip()
             
             # Remember the command (but first remove to prevent duplicates)
             if command:
@@ -672,27 +483,22 @@ class BaseShell(BaseTextCtrl):
                     self._history.remove(command)
                 self._history.insert(0,command)
         
-        # Limit text to add to 80 chars 
-        self.setPositionAndAnchor(self._promptPos2)
-        tmp = self._wrapLines(command) + '\n'
+        # TODO:# Limit text to add to 80 chars 
+        #self.setPositionAndAnchor(self._promptPos2)
+        #tmp = self._wrapLines(command) + '\n'
         
-        # Get length of the amount of bytes (or unicode symbols will go wrong)
-        L = len(bytes(tmp, 'utf-8'))
+        commandCursor.insertText(command + '\n')
         
-        # Add the command text
-        self.addText(tmp)
-        self._promptPos1 = self._promptPos2 = self._promptPos2 + L
+        #Resulting stdout text and the next edit-line are at end of document
+        self.stdoutCursor.movePosition(self.stdoutCursor.End)
+        self.lineBeginCursor.movePosition(self.lineBeginCursor.End)
         
-        # Restore position
-        curPos += L
-        if curPos < self._promptPos2:
-            curPos = self.length()        
-        self.setPositionAndAnchor(curPos)
         
         if execute:
             # Maybe modify the text given...
             command = self.modifyCommand(command)
             # Execute        
+
             self.executeCommand(command+'\n')
     
     
@@ -800,7 +606,7 @@ class ShellInfo:
             env['iep_scriptFile'] = scriptFilename
         else:
             env['iep_scriptFile'] = ''
-            env['PYTHONSTARTUP'] = self.PYTHONSTARTUP            
+            env['PYTHONSTARTUP'] = self.PYTHONSTARTUP
         
         # Done
         return env
@@ -823,7 +629,7 @@ class PythonShell(BaseShell):
         BaseShell.__init__(self, parent)
         
         # Apply Python shell style
-        self.setStyle('pythonshell')
+        #TODO: self.setStyle('pythonshell')
         
         # Store info 
         if info is None and iep.config.shellConfigs:
@@ -879,7 +685,7 @@ class PythonShell(BaseShell):
         """ Start the remote process. """
         
         # (re)set style
-        self.setStyle('pythonshell')
+        #TODO: self.setStyle('pythonshell')
         self.setReadOnly(False)
         
         # (re)set state and debug state
@@ -993,12 +799,12 @@ class PythonShell(BaseShell):
         editor2 = iep.shells.getCurrentShell()
         if cto.textCtrl not in [editor1, editor2]:
             # The editor or shell starting the autocomp is no longer active
-            aco.textCtrl.autoCompCancel()
+            aco.textCtrl.autocompleteCancel()
             return
         
         # Invalid response
         if response == '<error>':
-            cto.textCtrl.autoCompCancel()
+            cto.textCtrl.autocompleteCancel()
             return
         
         # If still required, show tip, otherwise only store result
@@ -1041,7 +847,7 @@ class PythonShell(BaseShell):
         editor2 = iep.shells.getCurrentShell()
         if aco.textCtrl not in [editor1, editor2]:
             # The editor or shell starting the autocomp is no longer active
-            aco.textCtrl.autoCompCancel()
+            aco.textCtrl.autocompleteCancel()
             return
         
         # Add result to the list
@@ -1671,7 +1477,9 @@ class PythonShell(BaseShell):
         Replaces the timeout callback for the timer to go in closing mode.
         """
         # New (empty prompt)
-        self._promptPos1 = self._promptPos2 = self.length()
+        self.stdoutCursor.movePosition(self.stdoutCursor.End)
+        self.lineBeginCursor.movePosition(self.lineBeginCursor.End)
+
         self.write('\n\n');
         
         # Build second message
@@ -1690,8 +1498,10 @@ class PythonShell(BaseShell):
         self.setReadOnly(True)
         
         # Goto end such that the closing message is visible
-        self.setPositionAndAnchor(self.length())
-        self.ensureCursorVisible()  
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.End)
+        self.setTextCursor(cursor)
+        self.ensureCursorVisible()
         
         # Replace timer callback
         self._pollMethod = self.poll_terminated

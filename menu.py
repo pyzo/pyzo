@@ -17,7 +17,6 @@ import os, sys, re, time
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
-from PyQt4 import Qsci
 qt = QtGui
 
 import iep
@@ -189,7 +188,7 @@ class FileMenu(BaseMenu):
         addItem(None)
         addItem( MI('Style', self.fun_style, []) )
         addItem( MI('Indentation', self.fun_indentation, []) )
-        addItem( MI('Line endings', self.fun_lineEndings, []) )        
+        #TODO: addItem( MI('Line endings', self.fun_lineEndings, []) )        
         addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)        
         addItem( MI('Restart IEP', self.fun_restart) )
@@ -231,7 +230,8 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            le, dummy = editor.getLineEndings()
+            #TODO: le, dummy = editor.getLineEndings()
+            le = 'LF'
             return ['LF', 'CR', 'CRLF', le]
         else:
             editor.setLineEndings(value)
@@ -244,28 +244,29 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            current = editor.getIndentation()
-            options = [-1,2,3,4,5,6,7,8, current]
+            current = editor.indentation
+            options = [0,2,3,4,5,6,7,8, current]
             for i in range(len(options)):
-                if options[i] < 0:
+                if not options[i]:
                     options[i] = 'Use tabs'
                 else:
                     options[i] = '{} spaces'.format(options[i])            
             return options
         else:
             # parse value
-            val = 0
+            val = None
             if value.lower() == 'use tabs':
-                val = -1
+                val = 0
             else:
                 try:
                     val = int(value[:2])
                 except ValueError:
                     pass
             # apply
-            if not val:
+            if val is None:
                 val = iep.config.settings.defaultIndentation
-            editor.setIndentation(val)
+            
+            editor.indentation = val
     
     def fun_style(self, value):
         """ The styling used for the current style. """
@@ -275,7 +276,8 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            current = editor.getStyleName()
+            #TODO: current = editor.getStyleName()
+            current = None
             if not current:
                 current = 'default'
             options = iep.styleManager.getStyleNames()
@@ -315,11 +317,14 @@ class EditMenu(BaseMenu):
         addItem( MI('Paste', self.fun_paste) )
         addItem( MI('Select all', self.fun_selectAll) )
         addItem( None )
+        addItem( MI('Indent lines', self.fun_indent) )
+        addItem( MI('Dedent lines', self.fun_dedent) )
+        addItem( None )
         addItem( MI('Comment lines', self.fun_comment) )
         addItem( MI('Uncomment lines', self.fun_uncomment) )
         addItem( None )
-        addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
-        addItem( None )
+        #TODO: addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
+        #addItem( None )
         addItem( MI('Find or replace', self.fun_findReplace) )
         addItem( MI('Find selection', self.fun_findSelection) )
         addItem( MI('Find selection backward', self.fun_findSelectionBw) )
@@ -363,7 +368,19 @@ class EditMenu(BaseMenu):
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'redo'):
             widget.redo()
-    
+            
+    def fun_dedent(self, value):
+        """ Dedent the selected lines"""
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'dedentSelection'):
+            widget.dedentSelection()
+            
+    def fun_indent(self, value):
+        """ Indent the selected lines"""
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'indentSelection'):
+            widget.indentSelection()
+            
     def fun_comment(self, value):
         """ Comment the selected lines. """
         widget = QtGui.qApp.focusWidget()
@@ -375,7 +392,6 @@ class EditMenu(BaseMenu):
         widget = QtGui.qApp.focusWidget()
         if hasattr(widget,'uncommentCode'):
             widget.uncommentCode()
-            linenr, index = widget.getLinenrAndIndex()
     
     def fun_moveToMatchingBrace(self, value):
         """ Move the cursor to the brace matching the current brace. """
@@ -419,16 +435,16 @@ class ViewMenu(BaseMenu):
         addItem( None )
         addItem( MI('Show whitespace', self.fun_showWhiteSpace, []) )
         addItem( MI('Show line endings', self.fun_showLineEndings, []) )
-        addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
+        #TODO: addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
         addItem( MI('Show indentation guides', self.fun_indentGuides, []) )
         #addItem( MI('Show status bar', self.fun_showStatusBar, []) )
         addItem( None )
         addItem( MI('Wrap long lines', self.fun_wrap, []) )
         addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
-        addItem( MI('Match braces', self.fun_braceMatch, []) )  
-        addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
+        #TODO: addItem( MI('Match braces', self.fun_braceMatch, []) )  
+        #TODO: addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
         addItem( None )
-        addItem( MI('Edge column', self.fun_edgecolumn, []) )
+        #TODO: addItem( MI('Edge column', self.fun_edgecolumn, []) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( MI('Zooming', self.fun_zooming, []) )
         addItem( MI('QT theme', self.fun_qtstyle, []) )
@@ -466,7 +482,7 @@ class ViewMenu(BaseMenu):
         value = not bool( iep.config.view.wrapText ) 
         iep.config.view.wrapText = value
         for editor in iep.editors:
-            editor.setWrapMode(int(value)*2)
+            editor.wrap = value
     
     def fun_braceMatch(self, value):
         """ Indicate matching braces and when no matching brace is found. """
@@ -513,7 +529,7 @@ class ViewMenu(BaseMenu):
         # apply
         iep.config.view.showWhiteSpace = value
         for editor in iep.editors:
-            editor.setViewWhiteSpace(value)
+            editor.showWhitespace = value
     
     def fun_showLineEndings(self, value):
         """ Show line endings in the editor. """
@@ -524,7 +540,7 @@ class ViewMenu(BaseMenu):
         # apply
         iep.config.view.showLineEndings = value
         for editor in iep.editors:
-            editor.setViewEOL(value)
+            editor.showLineEndings = value
     
     def fun_showWrapSymbols(self, value):
         """ Show wrap symbols in the editor. """
@@ -541,11 +557,11 @@ class ViewMenu(BaseMenu):
         """ The amount of space for a tab (only if tabs are used). """
         if value is None:
             return [2,3,4,5,6,7,8,9,10, iep.config.view.tabWidth]
-        
         # store and apply
         iep.config.view.tabWidth = value
+
         for editor in iep.editors:
-            editor.setTabWidth(value)
+            editor.tabWidth = value
     
     def fun_selectPrevious(self, value):
         """ Select the previusly selected file. """
@@ -571,10 +587,10 @@ class ViewMenu(BaseMenu):
         if value is None:
             return bool(iep.config.view.highlightCurrentLine)
         else:
-            value = not bool(iep.view.editor.highlightCurrentLine)
+            value = not bool(iep.config.view.highlightCurrentLine)
             iep.config.view.highlightCurrentLine = value
             for editor in iep.editors:
-                editor.setHighlightCurrentLine(value)
+                editor.highlightCurrentLine = value
     
     def fun_codeFolding(self, value):
         """ Enable folding (hiding) pieces of code. """
@@ -583,10 +599,8 @@ class ViewMenu(BaseMenu):
         else:
             value = not iep.config.view.codeFolding
             iep.config.view.codeFolding = value
-            scin = Qsci.QsciScintilla
-            tmp = {False:scin.NoFoldStyle, True:scin.BoxedTreeFoldStyle}[value]
             for editor in iep.editors:                
-                editor.setFolding(tmp)
+                editor.setFolding(value)
 
     def fun_qtstyle(self, value):
         """ The QT style to use. """
@@ -1044,14 +1058,14 @@ class RunMenu(BaseMenu):
     
     def _getCodeOfFile(self, editor):
         # Obtain source code
-        text = editor.getString()
-        # Show the result to user and set back
-        i1, i2 = editor.getPosition(), editor.getAnchor()
-        editor.setPosition(0); editor.setAnchor(editor.length())
-        editor.update()
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setPosition(i1); editor.setAnchor(i2)
+        text = editor.toPlainText()
+        # TODO:?? Show the result to user and set back
+        #i1, i2 = editor.getPosition(), editor.getAnchor()
+        #editor.setPosition(0); editor.setAnchor(editor.length())
+        #editor.update()
+        #editor.repaint()
+        #time.sleep(0.200)
+        #editor.setPosition(i1); editor.setAnchor(i2)
         # Get filename and return 
         fname = editor.id() # editor._name or editor._filename
         return fname, text
@@ -1344,7 +1358,22 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         """ Call this after starting. """
         menu.fill()
         self._root = menu
-    
+    def translateShortcutToOSNames(self,shortcut):
+        """
+        Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
+        Meta -> Windows for windows
+        """
+        
+        if sys.platform == 'darwin':
+            replace = (('Ctrl+','\u2318'),('Shift+','\u21E7'),
+                        ('Alt+','\u2325'),('Meta+','^'))
+        else:
+            replace = ()
+        
+        for old, new in replace:
+            shortcut = shortcut.replace(old, new)
+            
+        return shortcut
     def data(self, index, role):
         if not index.isValid() or role not in [0, 8]:
             return None
@@ -1367,6 +1396,9 @@ class KeyMapModel(QtCore.QAbstractItemModel):
                     key1 = shortcuts[0]
                 if shortcuts[1]:
                     key2 = shortcuts[1]
+        # translate to text for the user
+        key1 = self.translateShortcutToOSNames(key1)
+        key2 = self.translateShortcutToOSNames(key2)
         
         # obtain value
         value = [value,key1,key2][index.column()]
@@ -1443,6 +1475,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
 k = QtCore.Qt
 keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape', 
     k.Key_Tab:'Tab', k.Key_Backspace:'Backspace', k.Key_Pause:'Pause', 
+    k.Key_Backtab: 'Tab', #Backtab is actually shift+tab
     k.Key_F1:'F1', k.Key_F2:'F2', k.Key_F3:'F3', k.Key_F4:'F4', k.Key_F5:'F5',
     k.Key_F6:'F6', k.Key_F7:'F7', k.Key_F8:'F8', k.Key_F9:'F9', 
     k.Key_F10:'F10', k.Key_F11:'F11', k.Key_F12:'F12', k.Key_Space:'Space',
@@ -1472,8 +1505,21 @@ class KeyMapLineEdit(QtGui.QLineEdit):
         #self.clear()
         QtGui.QLineEdit.focusInEvent(self, event)
     
-    def keyPressEvent(self, event):
+    def event(self,event):
+        # Override event handler to enable catching the Tab key
+        # If the event is a KeyPress or KeyRelease, handle it with
+        # self.keyPressEvent or keyReleaseEvent
+        print (event)
+        if event.type()==event.KeyPress:
+            self.keyPressEvent(event)
+            return True #Mark as handled
+        if event.type()==event.KeyRelease:
+            self.keyReleaseEvent(event)
+            return True #Mark as handled
+        #Default: handle events as usual
+        return QtGui.QLineEdit.event(self,event)
         
+    def keyPressEvent(self, event):
         # get key codes
         key = event.key()
         nativekey = event.nativeVirtualKey()
@@ -1501,7 +1547,9 @@ class KeyMapLineEdit(QtGui.QLineEdit):
                 text  = 'Shift+' + text
                 storeNativeKey = False
             if QtGui.qApp.keyboardModifiers() & k.ControlModifier:
-                text  = 'Ctrl+' + text            
+                text  = 'Ctrl+' + text
+            if QtGui.qApp.keyboardModifiers() & k.MetaModifier:
+                text  = 'Meta+' + text
             self.setText(text)
             if storeNativeKey and nativekey:
                 # store native key if shift was not pressed.
