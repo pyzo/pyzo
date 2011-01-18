@@ -195,13 +195,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
         size = f.pointSize()
         
         # Get font family
-        f = QtGui.QFont()
+        f = QtGui.QFont('this_font_name_must_not exist')
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
-        if sys.platform == 'darwin':
+        fi = QtGui.QFontInfo(f)
+        family = fi.family()
+        
+        # The default family seems to be Courier new on Mac
+        if sys.platform == 'darwin':            
             family = 'Monaco'
-        else:
-            family = f.defaultFamily()
-            
+        
         # Done
         return QtGui.QFont(family, size)
     
@@ -233,7 +235,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
     
     
     ## Properties
-    
+
     #wrap
     @property
     def wrap(self):
