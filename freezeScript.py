@@ -63,7 +63,7 @@ excludes.append('numpy')
 
 # For qt to work
 # todo: remove Qsci, enable pyside?
-includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 'PyQt4.Qsci'] 
+includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui"] 
 
 
 ## Go!

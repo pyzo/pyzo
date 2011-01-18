@@ -590,7 +590,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         #Set size
         geometry = self._completer.popup().geometry()
-        geometry.setWidth(100)
+        geometry.setWidth(200)
         geometry.setHeight(100)
         self._completer.popup().setGeometry(geometry)
     
@@ -735,22 +735,26 @@ class CodeEditor(QtGui.QPlainTextEdit):
             else: #Some other modifiers + Tab: ignore
                 return
 
-        # If backspace is pressed in the leading whitespace, (except for at the first position of the line)
+        # If backspace is pressed in the leading whitespace, (except for at the first 
+        # position of the line), and there is no selection
         # dedent that line and move cursor to end of whitespace
         if key == Qt.Key_Backspace and modifiers == Qt.NoModifier and \
-                self._cursorIsInLeadingWhitespace() and not self.textCursor().atBlockStart():
+                self._cursorIsInLeadingWhitespace() and not self.textCursor().atBlockStart() \
+                and not self.textCursor().hasSelection():
             # Create a cursor, dedent the block and move screen cursor to the end of the whitespace
             cursor = self.textCursor()
             self.dedentBlock(cursor)
             self.setTextCursor(cursor)
             return
-
+        #TODO: same for delete
+        
 
         #Allowed keys that do not close the autocompleteList:
-        # alphanumeric and _
+        # alphanumeric and _ ans shift
         # Backspace (until start of autocomplete word)
         if self.autocompleteActive() and \
-            not event.text().isalnum() and event.text != '_' and not (
+            not event.text().isalnum() and event.text != '_' and \
+            event.key() != Qt.Key_Shift and not (
             (key==Qt.Key_Backspace) and self.textCursor().position()>self._autocompleteStart):
             self.autocompleteCancel()
             
