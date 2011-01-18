@@ -31,6 +31,10 @@ QTabWidget::pane { /* The tab widget frame */
     border-top: 1px solid #A09B90;
 }
 
+QTabBar {
+    background-color: none; /* to set bgcolor on Mac */
+}
+
 QTabWidget::tab-bar {
     left: 0px; /* move to the right by x px */
 }

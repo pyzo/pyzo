@@ -1224,24 +1224,38 @@ class HelpMenu(BaseMenu):
         """ Show the about text for IEP. """
         
         aboutText = """
-        IEP: the Interactive Editor for Python
-        \r\r
-        Current version: {}
-        \r\r
-        IEP source directory: {}\r
-        IEP userdata directory: {}        
-        \r\r
-        IEP is written in Python 3.x and uses the Qt4 widget
-        toolkit. Much of its code was inspired by the Pype
-        and IPython projects.
-        \r\r
-        Copyright (c) 2010, the IEP development team\r
-        IEP is distributed under the terms of the (new) BSD License.\r
+        <h2>IEP: the Interactive Editor for Python</h2>
+        
+        <b>Version info</b><br>
+        IEP version: <u>{}</u><br>
+        Platform: {}<br>
+        Python version: {}<br>
+        Qt version: {}<br>
+        PyQt version: {}<br>
+        <br>
+        
+        <b>IEP directories</b><br>
+        IEP source directory: {}<br>
+        IEP userdata directory: {}<br>
+        <br>
+        
+        <b>Acknowledgements</b><br>
+        IEP is written in Python 3 and uses the Qt4 widget
+        toolkit. IEP uses code and concepts that are inspired by 
+        IPython, Pype, and Spyder.
+        IEP uses a (modified) subset of the silk icon set, 
+        by Mark James (http://www.famfamfam.com/lab/icons/silk/).
+        <br><br>
+        
+        <b>License</b><br>
+        Copyright (c) 2010, the IEP development team<br>
+        IEP is distributed under the terms of the (new) BSD License.<br>
         The full license can be found in 'license.txt'.
-        \r\r
-        Developers:\r
-        Almar Klein (almar.klein AT gmail DOT com)\r
-        Rob Reilink
+        <br><br>
+        
+        <b>Developers</b><br>
+        Almar Klein (almar.klein AT gmail DOT com)<br>
+        Rob Reilink<br>
         
         """
         # Insert information texts
@@ -1249,12 +1263,16 @@ class HelpMenu(BaseMenu):
             versionText = iep.__version__ + ' (binary)'
         else:
             versionText = iep.__version__ + ' (source)'
-        aboutText = aboutText.format(versionText, iep.iepDir, iep.appDataDir)
+        aboutText = aboutText.format(versionText, 
+                        sys.platform, sys.version.split(' ')[0],
+                        QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR,
+                        iep.iepDir, iep.appDataDir)
         
         # Define icon and text
         im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
         # Show message box
         m = QtGui.QMessageBox(self)
+        m.setTextFormat(QtCore.Qt.RichText)
         m.setWindowTitle("About IEP")
         m.setText(unwrapText(aboutText))
         m.setIconPixmap(im)
