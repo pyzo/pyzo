@@ -993,67 +993,86 @@ class RunMenu(BaseMenu):
         # Get editor and shell
         shell, editor = self.getShellAndEditor('selected lines')
         if not shell or not editor:
-            return        
+            return
         # Get position to sample between (only sample whole lines)
-        i1, i2 = editor.getPosition(), editor.getAnchor()        
-        line1 = editor.getLinenrFromPosition(i1)
-        line2 = editor.getLinenrFromPosition(i2)
-        line1,line2 = min(line1,line2), max(line1,line2)
-        i3 = editor.getPositionFromLinenr(line1)
-        i4 = editor.getPositionFromLinenr(line2+1)
+        screenCursor = editor.textCursor() #Current selection in the editor
+        runCursor = editor.textCursor() #The part that should be run
+        
+        runCursor.setPosition(screenCursor.selectionStart())
+        runCursor.movePosition(runCursor.StartOfBlock) #This also moves the anchor
+        lineNumber = runCursor.blockNumber()
+        
+        runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
+        if not runCursor.atBlockStart():
+            #If the end of the selection is at the beginning of a block, don't extend it
+            runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
+        
         # Sample code 
-        editor.setPosition(i3); editor.setAnchor(i4)
-        text = editor.getSelectedString()
+        code = runCursor.selectedText()
         # Show the result to user and set back
-        editor.update()
+        editor.setTextCursor(runCursor)
+        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
         editor.repaint()
         time.sleep(0.200)
-        editor.setPosition(i1); editor.setAnchor(i2)
+        editor.setTextCursor(screenCursor)
         # Execute code
         fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(text, fname, line1)
+        shell.executeCode(code, fname, lineNumber)
     
     def fun_runCell(self, value):
         """ Run the code between two cell separaters ('##'). """
+        #TODO: ignore ## in multi-line strings
+        
         # Get editor and shell
         shell, editor = self.getShellAndEditor('cell')
         if not shell or not editor:
             return 
-        # Get current cell        
-        i1, i2 = editor.getPosition(), editor.getAnchor()
-        line1 = editor.getLinenrFromPosition(i1) # line is an int
-        line2 = line1+1
-        while line1>0:              
-            text = editor.getLineString(line1)
-            if text.startswith("##"):
-                line1 +=1
+        # Get current cell
+        screenCursor = editor.textCursor() #Current selection in the editor
+        runCursor = editor.textCursor() #The part that should be run
+        
+        # Move up until the start of document or right after a line starting with ##
+        runCursor.movePosition(runCursor.StartOfBlock)
+        while True:
+            if not runCursor.block().previous().isValid():
+                break #Start of document
+            if runCursor.block().text().lstrip().startswith('##'):
+                # ## line, move to the line following this one
+                if not runCursor.block().next().isValid():
+                    #The user tried to execute the last line of a file which
+                    #started with ##. Do nothing
+                    return
+                runCursor.movePosition(runCursor.NextBlock)
                 break
-            else:
-                line1 -=1
-        maxLines = editor.getLinenrFromPosition(editor.length())
-        while line2 <= maxLines:
-            text = editor.getLineString(line2)
-            if text.startswith("##"):
-                line2 -=1
+            runCursor.movePosition(runCursor.PreviousBlock)
+        
+        #This is the line number of the start
+        lineNumber = runCursor.blockNumber()
+        
+        #Move down until a line before one starting with ## or to end of document
+        while True:
+            if runCursor.block().text().lstrip().startswith('##'):
+                #This line starts with ##, move to the end of the previous one
+                runCursor.movePosition(runCursor.Left,runCursor.KeepAnchor)
                 break
-            else:
-                line2 +=1
-        else:
-            line2 -=1
-        # Select the text of the cell
-        i3 = editor.getPositionFromLinenr(line1)
-        i4 = editor.getPositionFromLinenr(line2+1)
+            if not runCursor.block().next().isValid():
+                #Last block of the document, move to the end of the line
+                runCursor.movePosition(runCursor.EndOfLine,runCursor.KeepAnchor)
+                break
+            runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
+        
+        
         # Sample code 
-        editor.setPosition(i3); editor.setAnchor(i4)
-        text = editor.getSelectedString()
+        code = runCursor.selectedText()
         # Show the result to user and set back
-        editor.update()
+        editor.setTextCursor(runCursor)
+        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
         editor.repaint()
         time.sleep(0.200)
-        editor.setPosition(i1); editor.setAnchor(i2)
+        #editor.setTextCursor(screenCursor)
         # Execute code
         fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(text, fname, line1)
+        shell.executeCode(code, fname, lineNumber)
     
     
     def _getCodeOfFile(self, editor):
