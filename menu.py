@@ -1069,7 +1069,7 @@ class RunMenu(BaseMenu):
         editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
         editor.repaint()
         time.sleep(0.200)
-        #editor.setTextCursor(screenCursor)
+        editor.setTextCursor(screenCursor)
         # Execute code
         fname = editor.id() # editor._name or editor._filename
         shell.executeCode(code, fname, lineNumber)
