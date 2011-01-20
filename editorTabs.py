@@ -876,8 +876,12 @@ class FileTabWidget(CompactTabWidget):
                 continue
             
             # Update name and tooltip
-            tabBar.setTabText(i, item.name)
-            tabBar.setTabToolTip(i, item.filename)
+            if item.dirty:
+                tabBar.setTabText(i, '*'+item.name)
+                tabBar.setTabToolTip(i, item.filename + ' [modified]')
+            else:
+                tabBar.setTabText(i, item.name)
+                tabBar.setTabToolTip(i, item.filename)
             
             # Determine text color. Is main file? Is current?
             if self._mainFile == item.id:
