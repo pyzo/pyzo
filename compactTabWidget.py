@@ -47,6 +47,8 @@ QTabBar::tab {
     border-top-right-radius: 4px;
     min-width: 5ex;
     padding: 2px;
+    padding-left: 1px;
+    padding-right: 4px;
 }
 
 /* Style the selected tab, hoovered tab, and other tabs. */
@@ -71,28 +73,11 @@ QTabBar::tab:selected {
 
 
 QTabBar::tab:!selected {
-    margin-top: 2px; /* make non-selected tabs look smaller */
+    margin-top: 3px; /* make non-selected tabs look smaller */
     margin-right: -1px; /* "combine" borders */
 }
 QTabBar::tab:!selected:last {    
     margin-right: 0px;
-}
-
-/*  Make use of negative margins to make the current tab bar overlap. 
-    The first and last selected tab should not overlap with left/right.
-*/
-QTabBar::tab:selected {
-    margin-left: -2px;
-    margin-right: -2px;
-}
-QTabBar::tab:first:selected {
-    margin-left: 0;
-}
-QTabBar::tab:last:selected {
-    margin-right: 0;
-}
-QTabBar::tab:only-one {
-    margin: 0;
 }
 
 """
@@ -120,6 +105,12 @@ class CompactTabBar(QtGui.QTabBar):
         
         # Put tab widget in document mode
         self.setDocumentMode(True)
+        
+        # Widget needs to draw its background (otherwise Mac has a dark bg)
+        self.setDrawBase(False)
+        if sys.platform == 'darwin':
+            self.setAutoFillBackground(True)
+        
         
         # Allow moving tabs around
         self.setMovable(True)
