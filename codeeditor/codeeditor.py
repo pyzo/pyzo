@@ -481,13 +481,17 @@ class CodeEditor(QtGui.QPlainTextEdit):
         #Draw the background
         painter.fillRect(event.rect(),Qt.lightGray)
         
+        # Init painter
+        painter.setPen(Qt.black)
+        painter.setFont(self.font())
+        
         #Repainting always starts at the first block in the viewport,
         #regardless of the event.rect().y(). Just to keep it simple
         while True:
             blockNumber=cursor.block().blockNumber()
-            painter.setPen(Qt.black)
+            
             y=self.cursorRect(cursor).y()+self.viewport().pos().y()+1 #Why +1?
-            painter.drawText(0,y,self.getLineNumberAreaWidth(),50,
+            painter.drawText(0,y,self.getLineNumberAreaWidth()-2,50,
                 Qt.AlignRight,str(blockNumber+1))
             
             if y>event.rect().bottom():
@@ -503,7 +507,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         (in pixels)
         """
         lastLineNumber = self.blockCount() 
-        return self.fontMetrics().width(str(lastLineNumber))
+        return self.fontMetrics().width(str(lastLineNumber)) + 4 # margin
 
         
     ##Custom signal handlers
@@ -696,7 +700,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def paintEvent(self,event):
         #Draw the default QTextEdit, then update the lineNumberArea 
         QtGui.QPlainTextEdit.paintEvent(self,event)
-        self._lineNumberArea.update(0,event.rect().y(),50,event.rect().height())
+        self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
         
 
 
