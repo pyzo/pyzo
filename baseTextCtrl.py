@@ -590,8 +590,12 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self._autoCompNameString = ''
 
         self.completer.highlighted.connect(self.updateHelp)
+            
         
         return
+        
+        
+        
         #print('Initializing Scintilla component.')
         
         # Register
@@ -984,18 +988,31 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Apply
         self.processHelp(name,True)
    
+   
+    def event(self,event):
+        """ event(event)
+        
+        Overload main event handler so we can pass Ctrl-C Ctr-v etc, to the main
+        window.
+        
+        """
+        if isinstance(event, QtGui.QKeyEvent):
+            # Ignore CTRL+{A-Z} since those keys are handled through the menu
+            if (event.modifiers() & QtCore.Qt.ControlModifier) and \
+                (event.key()>=QtCore.Qt.Key_A) and (event.key()<=QtCore.Qt.Key_Z):
+                    event.ignore()
+                    return False
+        
+        # Default behavior
+        codeeditor.CodeEditor.event(self, event)
+        return True
+    
     
     def keyPressEvent(self, event):
         """ Receive qt key event. 
         From here we'l dispatch the event to perform autocompletion
         or other stuff...
         """
-        
-        #Ignore CTRL+{A-Z} since those keys are handled through the menu
-        if (event.modifiers() & QtCore.Qt.ControlModifier) and \
-            (event.key()>=QtCore.Qt.Key_A) and (event.key()<=QtCore.Qt.Key_Z):
-                event.ignore()
-                return
         
         # Get ordinal key
         ordKey = -1
