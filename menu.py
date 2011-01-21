@@ -1331,7 +1331,7 @@ class MenuHelper:
     
     def onTrigger(self, action):
         if hasattr(action,'func'):
-#             print('trigger:', action.text())
+            #print('trigger:', action.text())
             action.func(action.value)
         else:
             pass # the user clicked the file, edit, menus themselves.
@@ -1546,7 +1546,6 @@ class KeyMapLineEdit(QtGui.QLineEdit):
         # Override event handler to enable catching the Tab key
         # If the event is a KeyPress or KeyRelease, handle it with
         # self.keyPressEvent or keyReleaseEvent
-        print (event)
         if event.type()==event.KeyPress:
             self.keyPressEvent(event)
             return True #Mark as handled
