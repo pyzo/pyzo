@@ -475,35 +475,20 @@ class FindReplaceWidget(QtGui.QFrame):
 
 
 class TabToolButton(QtGui.QToolButton):
-    def __init__(self, tabWidget, item,  icon1):
+    def __init__(self, icon):
         QtGui.QToolButton.__init__(self)
         
         # Init
         self.setIconSize(QtCore.QSize(16,16))
         self.setStyleSheet("QToolButton{ border: none; }")                
         
-        # Store widget and icons
-        self._tabWidget = tabWidget
-        self._item = item
-        self._icon1 = icon1
-        self._icon2 = iep.icons.cross
-        
         # Set icon now
-        self.setIcon(icon1)
-        
-        # Connect
-        self.pressed.connect(self.onTriggered)
+        self.setIcon(icon)
     
-    def onTriggered(self):
-        #self._item._pinned = not self._item._pinned
-        #self._tabWidget.updateItems()
-        self._tabWidget.parent().closeFile(self._item.editor)
+    def mousePressEvent(self, event):
+        # Ignore event so that the tabbar will change to that tab
+        event.ignore()
     
-    def enterEvent(self, event):
-        self.setIcon(self._icon2)
-    
-    def leaveEvent(self, event):
-        self.setIcon(self._icon1)
 
     
 class FileTabWidget(CompactTabWidget):
@@ -886,8 +871,12 @@ class FileTabWidget(CompactTabWidget):
                 continue
             
             # Update name and tooltip
-            tabBar.setTabText(i, item.name)
-            tabBar.setTabToolTip(i, item.filename)
+            if item.dirty:
+                tabBar.setTabText(i, '*'+item.name)
+                tabBar.setTabToolTip(i, item.filename + ' [modified]')
+            else:
+                tabBar.setTabText(i, item.name)
+                tabBar.setTabToolTip(i, item.filename)
             
             # Determine text color. Is main file? Is current?
             if self._mainFile == item.id:
@@ -938,7 +927,7 @@ class FileTabWidget(CompactTabWidget):
                 # Show icon using tool button. That will make the space
                 # between icon and text much smaller for some reason.
                 #tabBar.setTabIcon(i, QtGui.QIcon(pm0))
-                but = TabToolButton(self, item, QtGui.QIcon(pm0))
+                but = TabToolButton(QtGui.QIcon(pm0))
                 tabBar.setTabButton(i, 0, but)
                 
  
