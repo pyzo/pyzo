@@ -45,8 +45,10 @@ def getResourceDirs():
     
     # Get directory where IEP is located
     if isFrozen():
-        iepDir =  os.path.abspath( os.path.dirname(sys.executable) )
-        iepDir = os.path.join(iepDir, 'source')
+        # Set in iep.pyw
+        iepDir = os.path.abspath( sys.path[0] )
+        #iepDir = os.path.abspath( os.path.dirname(sys.executable) )
+        #iepDir = os.path.join(iepDir, 'source')
     else:
         iepDir = os.path.abspath( os.path.dirname(__file__) )
 
