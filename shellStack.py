@@ -16,6 +16,7 @@ import os, sys, time
 from PyQt4 import QtCore, QtGui
 
 import iep
+from compactTabWidget import CompactTabWidget
 from shell import PythonShell
 from iepLogging import print
 
@@ -42,10 +43,7 @@ class ShellStack(QtGui.QWidget):
         self._boxLayout.setSpacing(0)
         
         # create tab widget
-        self._tabs = QtGui.QTabWidget(self)
-        self._tabs.setTabPosition(QtGui.QTabWidget.North) # North/South
-        self._tabs.setMovable(True)
-        self._tabs.setDocumentMode(True) # Prevents extra frame being drawn
+        self._tabs = CompactTabWidget(self)
         
         # add widgets
         self._boxLayout.addWidget(self._tabs, 1)

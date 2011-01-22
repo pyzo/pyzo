@@ -489,7 +489,7 @@ class FileTabWidget(CompactTabWidget):
     """
     
     def __init__(self, parent):
-        CompactTabWidget.__init__(self, parent)
+        CompactTabWidget.__init__(self, parent, paddingLeft=0)
         
         # Init main file
         self._mainFile = ''
