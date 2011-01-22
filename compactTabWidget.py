@@ -47,8 +47,8 @@ QTabBar::tab {
     border-top-right-radius: 4px;
     min-width: 5ex;
     padding: 2px;
-    padding-left: 1px;
-    padding-right: 4px;
+    padding-left: PADDING_LEFTpx;
+    padding-right: PADDING_RIGHTpx;
 }
 
 /* Style the selected tab, hoovered tab, and other tabs. */
@@ -94,14 +94,23 @@ class TabData:
 
 
 class CompactTabBar(QtGui.QTabBar):
-    """ CompactTabBar
+    """ CompactTabBar(parent, *args, **kwargs)
     
     Tab bar corresponcing to the CompactTabWidget.
     
+    There are a few keyword arguments to influence the appearance of
+    the tabs:
+    paddingLeft : int
+        The padding at the left side of each tab. When a tab has a button,
+        this padding is the space between button and text.
+    paddingRight : int
+        The padding at the right side of each tab. When a tab has a button,
+        this padding is the space between button and text.
+    
     """
     
-    def __init__(self, *args, **kwargs):
-        QtGui.QTabBar.__init__(self, *args, **kwargs)
+    def __init__(self, *args, paddingLeft=4, paddingRight=4):
+        QtGui.QTabBar.__init__(self, *args)
         
         # Put tab widget in document mode
         self.setDocumentMode(True)
@@ -111,12 +120,12 @@ class CompactTabBar(QtGui.QTabBar):
         if sys.platform == 'darwin':
             self.setAutoFillBackground(True)
         
-        
         # Allow moving tabs around
         self.setMovable(True)
         
         # Set style sheet
-        self.setStyleSheet(STYLESHEET)
+        tmp = STYLESHEET.replace('PADDING_LEFT',str(paddingLeft)).replace('PADDING_RIGHT',str(paddingRight))
+        self.setStyleSheet(tmp)
         
         # We do our own eliding
         self.setElideMode(QtCore.Qt.ElideNone) 
@@ -390,7 +399,7 @@ class CompactTabBar(QtGui.QTabBar):
 
 
 class CompactTabWidget(QtGui.QTabWidget):
-    """ CompactTabWidget
+    """ CompactTabWidget(parent, *args, **kwargs)
     
     Implements a tab widget with a tabbar that is in document mode
     and has more compact tabs that conventional tab widgets, so more
@@ -403,12 +412,20 @@ class CompactTabWidget(QtGui.QTabWidget):
         sure that enough characters are shown such that the names
         can be distinguished.
     
+    The kwargs are passed to the tab bar constructor. There are a few 
+    keywords arguments to influence the appearance of the tabs. See the 
+    CompactTabBar class.
+    
     """
     
     def __init__(self, *args, **kwargs):
-        QtGui.QTabWidget.__init__(self, *args, **kwargs)
+        QtGui.QTabWidget.__init__(self, *args)
         
-        self.setTabBar(CompactTabBar(self))
+        # Set tab bar
+        self.setTabBar(CompactTabBar(self, **kwargs))
+        
+        # Draw tabs at the top by default
+        self.setTabPosition(QtGui.QTabWidget.North)
     
     
     def setTabData(self, i, data):
