@@ -124,7 +124,14 @@ class MainWindow(QtGui.QMainWindow):
         # Create floater for shell
         dock = QtGui.QDockWidget("Shells", self)
         dock.setObjectName('shells')
-        dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
+        if sys.platform == 'darwin':
+            #TODO: moving the shells SEGFAULTS on Mac. disable it for now
+            dock.setFeatures(dock.NoDockWidgetFeatures)
+        else:
+            dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
+
+        self._shellDock = dock
+
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
         # Insert
         dock.setWidget(iep.shells)

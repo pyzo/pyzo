@@ -464,3 +464,4 @@ if __name__ == '__main__':
     w.addTab( QtGui.QWidget(w), 'vis')
     w.addTab( QtGui.QWidget(w), 'vuurvuurvuur')
 
+
