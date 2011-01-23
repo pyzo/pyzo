@@ -41,7 +41,6 @@ def determineLineEnding(text):
     c_win = text.count("\r\n")
     c_mac = text.count("\r") - c_win
     c_lin = text.count("\n") - c_win
-    
     # set the appropriate style
     if c_win > c_mac and c_win > c_lin:
         mode = '\r\n'
@@ -117,25 +116,6 @@ def determineIndentation(text):
     return indent
 
 
-def removeComment(text):    
-    """Remove comments from a one-line comment,
-    but if the text is just spaces, leave it alone.
-    """
-    
-    # Bytes and bytearray objects, being "strings of bytes", have all 
-    # methods found on strings, with the exception of encode(), format() 
-    # and isidentifier(), which do not make sense with these types.
-    
-    # remove everything after first #    
-    i = text.find(b'#')
-    if i>0:
-        text = text[:i] 
-    text2 = text.rstrip() # remove lose spaces
-    if len(text2)>0:        
-        return text2  
-    else:
-        return text
-
 # To give each new file a unique name
 newFileCounter = 0
 
@@ -181,7 +161,7 @@ def createEditor(parent, filename=None):
         # create editor and set text
         editor = IepEditor(parent)
         editor.setPlainText(text)
-        #editor.setLineEndings(lineEndings)
+        editor.lineEndings = lineEndings
         editor.document().setModified(False)
         
         # store name and filename
@@ -222,16 +202,16 @@ class IepEditor(BaseTextCtrl):
     def __init__(self, parent, *args, **kwargs):
         BaseTextCtrl.__init__(self, parent, *args, **kwargs)
         self.showLineNumbers = True
+
         
         # View settings
-        view = iep.config.view
-        self.showWhitespace = view.showWhiteSpace
+        self.showWhitespace = iep.config.view.showWhiteSpace
         #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
-        self.showLineEndings = view.showLineEndings
+        self.showLineEndings = iep.config.view.showLineEndings
         #TODO: self.setIndentationGuides(view.showIndentGuides) 
         #
-        self.wrap = view.wrapText
-        self.highlightCurrentLine = view.highlightCurrentLine
+        self.wrap = iep.config.view.wrapText
+        self.highlightCurrentLine = iep.config.view.highlightCurrentLine
         #TODO: self.setFolding( int(view.codeFolding)*5 )
         #TODO: self.setEdgeColumn(view.edgeColumn)
         # bracematch is set in baseTextCtrl, since it also applies to shells
@@ -242,13 +222,10 @@ class IepEditor(BaseTextCtrl):
         self._name = '<TMP>'
         
         # Set line endings to default
-        #TODO: self.setLineEndings(iep.config.settings.defaultLineEndings)
+        self.lineEndings = iep.config.settings.defaultLineEndings
         
         # Modification time to test file change 
         self._modifyTime = 0
-        
-        # Enable scrolling beyond last line
-        #self.SendScintilla(self.SCI_SETENDATLASTLINE, False)
         
         self.modificationChanged.connect(self._onModificationChanged)
         
@@ -265,6 +242,31 @@ class IepEditor(BaseTextCtrl):
     @property
     def filename(self):
         return self._filename
+        
+    @property
+    def lineEndings(self):
+        """
+        Line-endings style of this file. Setter accepts machine-readable (e.g. '\r') and human-readable (e.g. 'CR') input
+        """
+        return self._lineEndings
+        
+    @lineEndings.setter
+    def lineEndings(self,value):
+        if value in ('\r','\n','\r\n'):
+            self._lineEndings = value
+            return
+        try:
+            self._lineEndings = {'CR': '\r', 'LF': '\n', 'CRLF': '\r\n'}[value]
+        except KeyError:
+            raise ValueError('Invalid line endings style %r' % value)
+    
+    @property 
+    def lineEndingsHumanReadable(self):
+        """
+        Current line-endings style, human readable (e.g. 'CR')
+        """
+        return {'\r': 'CR', '\n': 'LF', '\r\n': 'CRLF'}[self.lineEndings]
+    
     ##
     def gotoLine(self,lineNumber):
         """Move the cursor to the given lineNumber (0-based) and center
@@ -374,51 +376,12 @@ class IepEditor(BaseTextCtrl):
         if not path:
             path = 'no location on disk'
         tmp = { 'fileName':name, 'filename':name, 'name':name,
-                'fullPath':path, 'fullpath':path, 'path':path}
+                'fullPath':path, 'fullpath':path, 'path':path }
         title = iep.config.advanced.titleText.format(**tmp)
         
         # set title
         iep.main.setWindowTitle(title)
     
-    
-    def setLineEndings(self, le=None):
-        #TODO
-        return
-        """  Set the line ending style used in this editor.
-        le can be '\n', 'LF', '\r', 'CR', '\r\n', 'CRLF'.
-        If le is None, all line endings in the document are converted
-        to the current line ending style.
-        """ 
-        tmp = { 'LF':self.SC_EOL_LF, '\n':self.SC_EOL_LF, 
-                'CR':self.SC_EOL_CR, '\r':self.SC_EOL_CR, 
-                'CRLF':self.SC_EOL_CRLF, '\r\n':self.SC_EOL_CRLF} 
-        
-        # If le given, set new style
-        if le:
-            if le in tmp:
-                eol = tmp[le]
-                self.SendScintilla(self.SCI_SETEOLMODE, eol)
-            else:
-                raise ValueError('Unknown line ending style: ' + str(le))
-        
-        # Always convert
-        if True:
-            eol = self.SendScintilla(self.SCI_GETEOLMODE)
-            self.SendScintilla(self.SCI_CONVERTEOLS, eol)
-    
-    
-    def getLineEndings(self):
-        #TODO
-        return
-        
-        """ Return the line ending style in use.
-        Returns a tuple, the first element is one of LF, CR, CRLF,
-        the second is/are the line ending character(s),
-        """ 
-        tmp = { self.SC_EOL_LF: ('LF', '\n'), 
-                self.SC_EOL_CR: ('CR', '\r'), 
-                self.SC_EOL_CRLF: ('CRLF', '\r\n')} 
-        return tmp[self.SendScintilla(self.SCI_GETEOLMODE)]
     
     
     def save(self, filename=None):
@@ -434,11 +397,10 @@ class IepEditor(BaseTextCtrl):
         if self.testWhetherFileWasChanged():
             return
         
-        # Make sure all line endings are the same
-        self.setLineEndings()
-        
-        # Get text and make bytes
+        # Get text, convert line endings and make bytes
         text = self.toPlainText()
+        text = text.replace('\n', self.lineEndings)
+        
         bb = text.encode('UTF-8')
         
         # Store
@@ -484,7 +446,7 @@ class IepEditor(BaseTextCtrl):
         text = bb.decode('UTF-8')
         
         # Process line endings (before setting the text)
-        self.setLineEndings( determineLineEnding(text) )
+        self.lineEndings= determineLineEnding(text)
         
         # Set text
         self.setPlainText(text)
@@ -615,7 +577,7 @@ if __name__=="__main__":
     win.setStyle('.py')
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
-    win.setText(tmp)    
+    win.setPlainText(tmp)    
     win.show()
     app.exec_()
     

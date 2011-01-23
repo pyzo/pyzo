@@ -1273,9 +1273,7 @@ class EditorTabs(QtGui.QWidget):
         
         # notify
         # TODO: message concerining line endings
-        #tmp = editor.getLineEndings()
-        #print("saved file: {} ({})".format(filename, tmp[0]))
-        print("saved file: {}".format(filename))
+        print("saved file: {} ({})".format(filename, editor.lineEndingsHumanReadable))
         self._tabs.updateItems()
         
         # special case, we edited the style file!

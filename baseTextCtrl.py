@@ -590,196 +590,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self._autoCompNameString = ''
 
         self.completer.highlighted.connect(self.updateHelp)
-            
         
-        return
-        
-        
-        
-        #print('Initializing Scintilla component.')
-        
-        # Register
-        _allScintillas.append(weakref.ref(self))
-        
-        # Be notified of style updates
-        self._styleName = ''
-        styleManager.styleUpdate.connect(self.setStyle)
-        
-        # Create timer for autocompletion delay
-        self._delayTimer = QtCore.QTimer(self)
-        self._delayTimer.setSingleShot(True)
-        self._delayTimer.timeout.connect(self._introspectNow)
-        
-        # For buffering autocompletion and calltip info
-        self._callTipBuffer_name = ''
-        self._callTipBuffer_time = 0
-        self._callTipBuffer_result = ''
-        self._autoCompBuffer_name = ''
-        self._autoCompBuffer_time = 0
-        self._autoCompBuffer_result = []
-        
-        # The string with names given to SCI_AUTOCSHOW
-        self._autoCompNameString = ''
-        
-        # Do not use the QScintilla lexer
-        self.setLexer()
-        
-        # SET PREFERENCES
-        # Inherited classes may override some of these settings. Indentation
-        # guides are not nice in shells for instance...
-        
-        self.setViewWhiteSpace(False)
-        self.setViewWrapSymbols(False)
-        self.setViewEOL(False)
-        self.setIndentationGuides(False)    
-        
-        self.setWrapMode( 2 )
-        self.setHighlightCurrentLine(False)
-        self.zoomTo(iep.config.view.zoom)
-        
-        self.setIndentation(iep.config.settings.defaultIndentation)
-        self.setTabWidth(iep.config.view.tabWidth)  
-        
-        self.setBraceMatching(int(iep.config.view.doBraceMatch)*2)
-        self.setFolding( False )
-        
-        # use unicode, the second line does not seem to do anything
-        self.SendScintilla(self.SCI_SETCODEPAGE, self.SC_CP_UTF8)
-        self.SendScintilla(self.SCI_SETKEYSUNICODE, 1) 
-        # type of edge indicator        
-        self.SendScintilla(self.SCI_SETEDGEMODE, self.EDGE_LINE)
-        # tab stuff        
-        self.SendScintilla(self.SCI_SETBACKSPACEUNINDENTS, True)
-        self.SendScintilla(self.SCI_SETTABINDENTS, True)
-        # line endings inside scintilla always \n
-        self.setEolMode(self.SC_EOL_LF)
-        self.SendScintilla(self.SCI_SETPASTECONVERTENDINGS, True)
-        # line numbers in margin      
-        self.SendScintilla(self.SCI_SETMARGINWIDTHN, 1, 30)
-        self.SendScintilla(self.SCI_SETMARGINTYPEN, 1, self.SC_MARGIN_NUMBER)
-        
-        # HOME and END goto the start/end of the visible line, and also
-        # for shift-home, shift end (selecting the text)
-        if iep.config.advanced.homeAndEndWorkOnDisplayedLine:
-            shift,home,end = self.SCMOD_SHIFT<<16, self.SCK_HOME, self.SCK_END
-            tmp1, tmp2 = self.SCI_HOMEDISPLAY, self.SCI_HOMEDISPLAYEXTEND
-            self.SendScintilla(self.SCI_ASSIGNCMDKEY, home, tmp1)
-            self.SendScintilla(self.SCI_ASSIGNCMDKEY, home+shift, tmp2)
-            tmp1, tmp2 = self.SCI_LINEENDDISPLAY, self.SCI_LINEENDDISPLAYEXTEND
-            self.SendScintilla(self.SCI_ASSIGNCMDKEY, end, tmp1)
-            self.SendScintilla(self.SCI_ASSIGNCMDKEY, end+shift, tmp2)    
-        
-        # Clear command keys that we make accesable via menu shortcuts.
-        # Do not clear all command keys; 
-        # that even removes the arrow keys and such.
-        ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
-        # these we all map via the edit menu
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('X')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('C')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('V')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Z')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('Y')+ ctrl)
-        self.SendScintilla(self.SCI_CLEARCMDKEY, ord('A')+ ctrl)
-        # leave these in the editor, remove in shell
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
-        
-        # calltips, I dont know what this exactly does
-        #self.setCallTipsStyle(self.CallTipsNoContext)
-        
-        # Autocompletion settings
-
-        # Typing one of these characters will SCI_AUTOCCANCEL
-        stopChars = ' .,;:([)]}\'"\\<>%^&+-=*/|`'
-        self.SendScintilla(self.SCI_AUTOCSTOPS, None, stopChars)
-        
-        # This char is used to seperate the words given with SCI_AUTOCSHOW
-        self.SendScintilla(self.SCI_AUTOCSETSEPARATOR, 32) # space
-        
-        # If True SCI_AUTOCCANCEL when the caret moves before the start pos 
-        self.SendScintilla(self.SCI_AUTOCSETCANCELATSTART, False)
-        
-        # These characters will SCI_AUTOCCOMPLETE automatically when typed        
-        tmp = iep.config.settings.autoComplete_fillups
-        self.SendScintilla(self.SCI_AUTOCSETFILLUPS, tmp)
-        
-        # If True, will SCI_AUTOCCOMPLETE when list has only one item
-        self.SendScintilla(self.SCI_AUTOCSETCHOOSESINGLE, False)
-        
-        # If True, will hide the list if no match. Set to True, although
-        # we will also do the check ourselves 
-        self.SendScintilla(self.SCI_AUTOCSETAUTOHIDE, True)
-        
-        # Set case sensitifity
-        tmp = iep.config.settings.autoComplete_caseSensitive
-        self.SendScintilla(self.SCI_AUTOCSETIGNORECASE, not tmp)
-        
-        # If True, will erase the word-chars following the caret 
-        # before inserting selected text. Please don't!
-        self.SendScintilla(self.SCI_AUTOCSETDROPRESTOFWORD, False)
-        
-        # Amount of items to display in the list. Amount of chars set auto.
-        # The first does not seem to have any effect.
-        self.SendScintilla(self.SCI_AUTOCSETMAXHEIGHT, 10)
-        self.SendScintilla(self.SCI_AUTOCSETMAXWIDTH, 0)
-        
-        # Notifications to bind to
-        self.SCN_DOUBLECLICK.connect(self._onDoubleClick)
-    
-    
-
-    ## Autocomp and calltip methods of scintilla
-    
-    def focusOutEvent(self, event):
-        # Cancel autocomp and calltip
-        self.autocompleteCancel()
-        self.callTipCancel()
-        
-        # Handle normally
-        codeeditor.CodeEditor.focusOutEvent(self, event)
-    
-    
-#     def autoCompShow(self, lenentered, names, preventFlicker=False): 
-#         """ Start showing the autocompletion list, 
-#         with the list of given names (which can be a list or a space separated
-#         string. If preventFlicker is True, will not reshow if the currently
-#         shown list is the same.
-#         """
-#         #Todo: remove this method and move to the caller
-#         print (lenentered)
-#         self.autocompleteShow(lenentered,names)
-#         return
-#         # Process names
-#         if isinstance(names, list):
-#             names = ' '.join(names)  # See SCI_AUTOCSETSEPARATOR
-#         
-#         # Show list
-#         if names:
-#             curNames = self._autoCompNameString
-#             self._autoCompNameString = names
-#             if preventFlicker and self.autoCompActive() and names==curNames:
-#                 pass # Do not reshow, the currently shown list seems fine
-#             else: 
-#                 self.SendScintilla(self.SCI_AUTOCSHOW, lenentered, names)
-#         else:
-#             self.autocompleteCancel()
-#     
-#     
-#     
-#     def autoCompActive(self):  
-#         """ Get whether the autocompletion is currently active. """
-#         return self.SendScintilla(self.SCI_AUTOCACTIVE)
-#     
-#     def autoCompComplete(self):
-#         """ Perform autocomplete: 
-#         insert the selected item and hide the list. """
-#         self.SendScintilla(self.SCI_AUTOCCOMPLETE)
-    
     
     def callTipShow(self, pos, text, hl1=0, hl2=0):
         """ callTipShow(pos, text, hl1, hl2)
@@ -787,37 +598,18 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         is highlighted. If hl2 is -1, highlights all untill the first '('.
         """
         return
-        if text:
-            self.SendScintilla(self.SCI_CALLTIPSHOW, pos, text)
-            if hl2 == -1:
-                hl2 = text.find('(')
-            if hl2 > hl1:
-                self.SendScintilla(self.SCI_CALLTIPSETHLT, hl1, hl2)
+
     
     def callTipCancel(self):
         """ Hide call tip. """
         return
-        self.SendScintilla(self.SCI_CALLTIPCANCEL)
+
     
     def callTipActive(self):
         """ Hide call tip. """
         return
-        return bool( self.SendScintilla(self.SCI_CALLTIPACTIVE) )
+
     
-    
-    ## Autocompletion and other introspection methods
-    
-    """ Help on some autocomp functions
-        SCI_AUTOCSHOW # Start showing list
-        SCI_AUTOCCANCEL # Hide list, do nothing
-        SCI_AUTOCACTIVE # query whether is active
-        SCI_AUTOCPOSSTART # value of the current position when SCI_AUTOCSHOW
-        SCI_AUTOCCOMPLETE # Finish: insert selected text
-        
-        SCI_AUTOCSELECT # Programatically Select an item in the list
-        SCI_AUTOCGETCURRENT # Get current selection index
-        SCI_AUTOCGETCURRENTTEXT # Currently selected text
-        """
     
     def _isValidPython(self):
         """ _isValidPython()
