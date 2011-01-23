@@ -188,7 +188,7 @@ class FileMenu(BaseMenu):
         addItem(None)
         addItem( MI('Style', self.fun_style, []) )
         addItem( MI('Indentation', self.fun_indentation, []) )
-        #TODO: addItem( MI('Line endings', self.fun_lineEndings, []) )        
+        addItem( MI('Line endings', self.fun_lineEndings, []) )
         addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)        
         addItem( MI('Restart IEP', self.fun_restart) )
@@ -230,11 +230,9 @@ class FileMenu(BaseMenu):
             return ['no editor', '']
         
         if value is None:
-            #TODO: le, dummy = editor.getLineEndings()
-            le = 'LF'
-            return ['LF', 'CR', 'CRLF', le]
+            return ['LF', 'CR', 'CRLF', editor.lineEndingsHumanReadable]
         else:
-            editor.setLineEndings(value)
+            editor.lineEndings = value
     
     def fun_indentation(self, value):
         """ The indentation style used for the current file. """
