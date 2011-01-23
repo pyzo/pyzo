@@ -31,10 +31,6 @@ QTabWidget::pane { /* The tab widget frame */
     border-top: 1px solid #A09B90;
 }
 
-QTabBar {
-    background-color: none; /* to set bgcolor on Mac */
-}
-
 QTabWidget::tab-bar {
     left: 0px; /* move to the right by x px */
 }
@@ -50,9 +46,14 @@ QTabBar::tab {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
     min-width: 5ex;
-    padding: 2px;
-    padding-left: 1px;
-    padding-right: 4px;
+    padding-bottom: PADDING_BOTTOMpx;
+    padding-top: PADDING_TOPpx;
+    padding-left: PADDING_LEFTpx;
+    padding-right: PADDING_RIGHTpx;
+    margin-right: -1px; /* "combine" borders */
+}
+QTabBar::tab:last {    
+    margin-right: 0px;
 }
 
 /* Style the selected tab, hoovered tab, and other tabs. */
@@ -66,7 +67,6 @@ QTabBar::tab:selected {
                 stop: 0.120001 #FAF5EC, stop: 0.4 #DAD5CC, stop: 1.0 #D4D0C8);
 }
 
-
 QTabBar::tab:selected {     
     border-width: 1px;
     border-bottom-width: 0px;
@@ -75,13 +75,8 @@ QTabBar::tab:selected {
     border-color: #333;
 }
 
-
 QTabBar::tab:!selected {
     margin-top: 3px; /* make non-selected tabs look smaller */
-    margin-right: -1px; /* "combine" borders */
-}
-QTabBar::tab:!selected:last {    
-    margin-right: 0px;
 }
 
 """
@@ -98,14 +93,19 @@ class TabData:
 
 
 class CompactTabBar(QtGui.QTabBar):
-    """ CompactTabBar
+    """ CompactTabBar(parent, *args, padding=(4,4,6,6))
     
     Tab bar corresponcing to the CompactTabWidget.
     
+    With the "padding" argument the padding of the tabs can be chosen.
+    It should be an integer, or a 4 element tuple specifying the padding
+    for top, bottom, left, right. When a tab has a button,
+    the padding is the space between button and text.
+    
     """
     
-    def __init__(self, *args, **kwargs):
-        QtGui.QTabBar.__init__(self, *args, **kwargs)
+    def __init__(self, *args, padding=(4,4,6,6)):
+        QtGui.QTabBar.__init__(self, *args)
         
         # Put tab widget in document mode
         self.setDocumentMode(True)
@@ -115,12 +115,24 @@ class CompactTabBar(QtGui.QTabBar):
         if sys.platform == 'darwin':
             self.setAutoFillBackground(True)
         
-        
         # Allow moving tabs around
         self.setMovable(True)
         
+        # Get padding
+        if isinstance(padding, (int, float)):
+            padding = padding, padding, padding, padding
+        elif isinstance(padding, (tuple, list)):
+            pass
+        else:
+            raise ValueError('Invalid value for padding.')
+        
         # Set style sheet
-        self.setStyleSheet(STYLESHEET)
+        stylesheet = STYLESHEET
+        stylesheet = stylesheet.replace('PADDING_TOP', str(padding[0]))
+        stylesheet = stylesheet.replace('PADDING_BOTTOM', str(padding[1]))
+        stylesheet = stylesheet.replace('PADDING_LEFT', str(padding[2]))
+        stylesheet = stylesheet.replace('PADDING_RIGHT', str(padding[3]))
+        self.setStyleSheet(stylesheet)
         
         # We do our own eliding
         self.setElideMode(QtCore.Qt.ElideNone) 
@@ -394,7 +406,7 @@ class CompactTabBar(QtGui.QTabBar):
 
 
 class CompactTabWidget(QtGui.QTabWidget):
-    """ CompactTabWidget
+    """ CompactTabWidget(parent, *args, **kwargs)
     
     Implements a tab widget with a tabbar that is in document mode
     and has more compact tabs that conventional tab widgets, so more
@@ -407,12 +419,20 @@ class CompactTabWidget(QtGui.QTabWidget):
         sure that enough characters are shown such that the names
         can be distinguished.
     
+    The kwargs are passed to the tab bar constructor. There are a few 
+    keywords arguments to influence the appearance of the tabs. See the 
+    CompactTabBar class.
+    
     """
     
     def __init__(self, *args, **kwargs):
-        QtGui.QTabWidget.__init__(self, *args, **kwargs)
+        QtGui.QTabWidget.__init__(self, *args)
         
-        self.setTabBar(CompactTabBar(self))
+        # Set tab bar
+        self.setTabBar(CompactTabBar(self, **kwargs))
+        
+        # Draw tabs at the top by default
+        self.setTabPosition(QtGui.QTabWidget.North)
     
     
     def setTabData(self, i, data):
@@ -463,5 +483,3 @@ if __name__ == '__main__':
     w.addTab( QtGui.QWidget(w), 'roosemarijnus')
     w.addTab( QtGui.QWidget(w), 'vis')
     w.addTab( QtGui.QWidget(w), 'vuurvuurvuur')
-
-
