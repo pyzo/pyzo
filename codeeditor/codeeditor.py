@@ -365,6 +365,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self._recentCompletions = value
         
     ## MISC
+    def gotoLine(self,lineNumber):
+        """
+        Move the cursor to the block given by the line number (first line is line number 1) and show that line
+        """
+        cursor = self.textCursor()
+        block = self.document().findBlockByNumber( lineNumber + 1)
+        cursor.setPosition(block.position())
+        self.setTextCursor(cursor)
+        
     def _cursorIsInLeadingWhitespace(self,cursor = None):
         """
         Checks wether the given cursor is in the leading whitespace of a block, i.e.
