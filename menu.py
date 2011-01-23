@@ -579,7 +579,7 @@ class ViewMenu(BaseMenu):
             else:
                 iep.config.view.zoom = 0
             # Apply
-            for e in iep.getAllScintillas():                
+            for e in iep.getAllScintillas():
                 e.zoomTo(iep.config.view.zoom)
     
     def fun_lineHighlight(self, value):
