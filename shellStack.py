@@ -291,7 +291,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         offset2 = offset1
         desWidth = offset2 - offset1 - 5  # Width of description text
         y = 10
-        dy = 20
+        dy = 10
         
         def createLabel(y, name, description):
             label = QtGui.QLabel(self)            
@@ -401,7 +401,7 @@ class ShellInfoDialogEntries(QtGui.QWidget):
         size = 550, y
         self.resize(*size)
         self.setMaximumSize(*size)
-        self.setMinimumSize(*size)        
+        self.setMinimumSize(*size)   
         self.show()
         
         # Init values
@@ -553,8 +553,8 @@ class ShellInfoDialog(QtGui.QDialog):
         self.setWindowIcon(iep.icon)
         
         # Create tab widget
-        self._tabs = QtGui.QTabWidget(self)
-        self._tabs.setMovable(True)
+        self._tabs = CompactTabWidget(self, padding=(2,1,4,2))
+        self._tabs.setDocumentMode(False)
         
         # Introduce an entry if there's none
         if not iep.config.shellConfigs:
@@ -572,6 +572,8 @@ class ShellInfoDialog(QtGui.QDialog):
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
         self._add.setIcon(iep.icons.add)
+        self._add.setText('Add config')
+        self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         #
         self._tabs.setTabsClosable(True)
         self._tabs.tabCloseRequested.connect(self.onTabClose)
@@ -587,11 +589,10 @@ class ShellInfoDialog(QtGui.QDialog):
         buttonLayout.addWidget(cancelBut)
         buttonLayout.addSpacing(10)
         buttonLayout.addWidget(okBut)
-        
+        okBut.setDefault(True)
         
         # Layout the widgets
         mainLayout = QtGui.QVBoxLayout()
-        mainLayout.addSpacing(8)
         mainLayout.addWidget(self._tabs,0)
         mainLayout.addLayout(buttonLayout,0)
         self.setLayout(mainLayout)
