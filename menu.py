@@ -20,6 +20,7 @@ from PyQt4 import QtCore, QtGui
 qt = QtGui
 
 import iep
+from compactTabWidget import CompactTabWidget
 from iepLogging import print
 
 
@@ -1762,10 +1763,10 @@ class KeymappingDialog(QtGui.QDialog):
         self.setMaximumSize(*size2)
         self.setMinimumSize(*   size2)
         
-        self.tab = QtGui.QTabWidget(self)
+        self.tab = CompactTabWidget(self, padding=(4,4,6,6))
         self.tab.resize(*size)
         self.tab.move(0,offset)
-        self.tab.setDocumentMode(True) # Prevents extra frame being drawn
+        self.tab.setMovable(False)
         
         # fill tab
         self._models = []
