@@ -12,7 +12,7 @@ function which is also defined here.
 
 """
 
-import os, sys
+import os, sys, time
 import ssdf
 import iep
 
@@ -303,6 +303,7 @@ def loadIcons():
     iep.iconRunning.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
     iep.iconRunning.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
     iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
+    
     
     # Construct other icons
     iep.icons = ssdf.new()
