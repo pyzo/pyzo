@@ -286,9 +286,41 @@ class FileMenu(BaseMenu):
             editor.setStyle(value)
     
     def fun_encoding(self, value):
-        """ The encoding of the current file (IEP only supports UTF-8). """
+        """ The file encoding of the current file. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
         if value is None:
-            return ['UTF-8', 'UTF-8']
+            # Dict with encoding aliases
+            D = {   'utf-8': 'utf-8 (Default)',
+                    'cp1250':'cp1250 (windows-1252)',
+                    'cp1251':'cp1251 (windows-1251)',
+                    'latin_1':'latin_1 (iso-8859-1)'
+                }
+                
+            # Encodings to list
+            encodings = [   'utf-8','ascii', 'latin_1',
+                            'cp1250', 'cp1251']
+            if editor.encoding not in encodings:
+                encodings.append(editor.encoding) # Add if not present
+            encodings.append(editor.encoding) # Add to mark the current
+            
+            # Handle aliases
+            encodings2 = []
+            for encoding in encodings:
+                if encoding in D:
+                    encoding = D[encoding]
+                encodings2.append(encoding)
+            
+            # Done
+            return encodings2
+        
+        else:
+            # Set encodin
+            value = value.split('(')[0].rstrip()
+            editor.encoding = value
     
     
     def fun_close(self, value):

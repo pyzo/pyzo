@@ -166,7 +166,9 @@ class DebugControl(QtGui.QToolButton):
         QtGui.QToolButton.__init__(self, parent)
         
         # Set text and tooltip
-        self.setText('Post mortem')
+        self.setText('Debug')
+        self.setIcon(iep.icons.bug)
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setToolTip("Start/Stop post mortem debugging.")
         
         # Set mode
@@ -220,7 +222,7 @@ class DebugControl(QtGui.QToolButton):
             
             # Remove trace
             self.setMenu(None)
-            self.setText('Post mortem')
+            self.setText('Debug')
         
         else:
             

@@ -13,7 +13,7 @@ file loading/saving /reloading stuff.
 """
 
 import os, sys
-
+import re, codecs
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui
@@ -31,8 +31,53 @@ if not iep.config.settings.defaultLineEndings:
         iep.config.settings.defaultLineEndings = 'LF'
 
 
+def determineEncoding(bb):
+    """ Get the encoding used to encode a file.
+    Accepts the bytes of the file. Returns the codec name. If the
+    codec could not be determined, uses UTF-8.
+    """
+    
+    # Get first two lines
+    parts = bb.split(b'\n', 2)
+    
+    # Init to default encoding
+    encoding = 'UTF-8'
+    
+    # Determine encoding from first two lines
+    for i in range(len(parts)-1):
+        
+        # Get line
+        try:
+            line = parts[i].decode('ASCII')
+        except Exception:
+            continue 
+        
+        # Search for encoding directive
+        
+        # Has comment?
+        if line[0] == '#':
+            
+            # Matches regular expression given in PEP 0263?
+            expression = "coding[:=]\s*([-\w.]+)"
+            result = re.search(expression, line)
+            if result:
+                
+                # Is it a known encoding? Correct name if it is
+                candidate_encoding = result.group(1)
+                try:
+                    c = codecs.lookup(candidate_encoding)
+                    candidate_encoding = c.name
+                except Exception:
+                    pass
+                else:
+                    encoding = candidate_encoding
+    
+    # Done
+    return encoding
+
+
 def determineLineEnding(text):
-    """get the line ending style used in the text.
+    """ Get the line ending style used in the text.
     \n, \r, \r\n,
     The EOLmode is determined by counting the occurances of each
     line ending...    
@@ -151,7 +196,8 @@ def createEditor(parent, filename=None):
             f.close()
         
         # convert to text, be gentle with files not encoded with utf-8
-        text = bb.decode('UTF-8','replace')
+        encoding = determineEncoding(bb)
+        text = bb.decode(encoding,'replace')
         
         # process line endings
         lineEndings = determineLineEnding(text)
@@ -162,6 +208,7 @@ def createEditor(parent, filename=None):
         editor = IepEditor(parent)
         editor.setPlainText(text)
         editor.lineEndings = lineEndings
+        editor.encoding = encoding
         editor.document().setModified(False)
         
         # store name and filename
@@ -223,6 +270,9 @@ class IepEditor(BaseTextCtrl):
         
         # Set line endings to default
         self.lineEndings = iep.config.settings.defaultLineEndings
+
+        # Set encoding to default
+        self.encoding = 'UTF-8'
         
         # Modification time to test file change 
         self._modifyTime = 0
@@ -266,6 +316,26 @@ class IepEditor(BaseTextCtrl):
         Current line-endings style, human readable (e.g. 'CR')
         """
         return {'\r': 'CR', '\n': 'LF', '\r\n': 'CRLF'}[self.lineEndings]
+    
+    
+    @property
+    def encoding(self):
+        """ Encoding used to convert the text of this file to bytes.
+        """
+        return self._encoding
+    
+    
+    @encoding.setter
+    def encoding(self, value):
+        # Test given value, correct name if it exists
+        try:
+            c = codecs.lookup(value)
+            value = c.name
+        except Exception:
+            value = codecs.lookup('UTF-8').name
+        # Store
+        self._encoding = value
+    
     
     ##
     def gotoLine(self,lineNumber):
@@ -397,11 +467,12 @@ class IepEditor(BaseTextCtrl):
         if self.testWhetherFileWasChanged():
             return
         
-        # Get text, convert line endings and make bytes
+        # Get text, convert line endings
         text = self.toPlainText()
         text = text.replace('\n', self.lineEndings)
         
-        bb = text.encode('UTF-8')
+        # Make bytes
+        bb = text.encode(self.encoding)
         
         # Store
         f = open(filename, 'wb')

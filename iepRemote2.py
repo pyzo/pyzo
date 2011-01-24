@@ -446,16 +446,16 @@ class IepInterpreter:
         """
         
         # This method solves IEP issue 22
-        
+
         # Split in first two lines and the rest
-        parts = source.split('\n', 3)
+        parts = source.split('\n', 2)
         
         # Replace any coding definitions
         ci = 'coding is'
         contained_coding = False
         for i in range(len(parts)-1):
             tmp = parts[i]
-            if 'coding' in tmp:
+            if tmp[0] == '#' and 'coding' in tmp:
                 contained_coding = True
                 parts[i] = tmp.replace('coding=', ci).replace('coding:', ci)
         
