@@ -121,6 +121,8 @@ class IepInterpreter:
         elif self.guiApp:
             iepBanner += ' with integrated event loop for ' 
             iepBanner += guiName.upper() + '.\n'
+        else:
+            iepBanner += '.\n'
         sys.stdout.write(iepBanner)
         
         # Write tips message

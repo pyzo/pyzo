@@ -1306,7 +1306,7 @@ class EditorTabs(QtGui.QWidget):
             
             # Ask user what to do
             result = simpleDialog(editor, "Closing", "Save modified file?", 
-                                    ['Save', 'Discard', 'Cancel'], 'Cancel')
+                                    ['Discard', 'Cancel', 'Save'], 'Save')
             result = result.lower()
             
             # Get result and act            
