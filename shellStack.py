@@ -282,11 +282,14 @@ class DebugControl(QtGui.QToolButton):
             editor.ensureCursorVisible()
 
 
-class ShellInfoDialogEntries(QtGui.QWidget):
+class ShellInfoDialogEntries(QtGui.QFrame):
     """ A page in the tab widget of the shell configuration dialog. 
     """
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QFrame.__init__(self, parent)
+        
+        # Give border
+        self.setStyleSheet('ShellInfoDialogEntries{ border: 1px solid #333; }')
         
         # Init
         offset1 = 20
@@ -556,7 +559,6 @@ class ShellInfoDialog(QtGui.QDialog):
         
         # Create tab widget
         self._tabs = CompactTabWidget(self, padding=(2,1,4,2))
-        self._tabs.setDocumentMode(False)
         
         # Introduce an entry if there's none
         if not iep.config.shellConfigs:

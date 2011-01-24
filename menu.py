@@ -1788,7 +1788,7 @@ class KeymappingDialog(QtGui.QDialog):
         self.setWindowIcon(iep.icon)
         
         # set size
-        size = 400,400
+        size = 600,400
         offset = 0
         size2 = size[0], size[1]+offset
         self.resize(*size2)
