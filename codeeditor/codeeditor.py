@@ -441,9 +441,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         #Compute the new indentation length, expanding any existing tabs
         indent = len(leadingWhitespace.expandtabs(self.tabWidth))
-        if self.spaceTabs:
-            # Add the indentation tabs, and round to multiples of indentation
-            indent += (self.indentation * amount) - (indent % self.indentation)
+        if self.spaceTabs:            
+            # Determine correction, so we can round to multiples of indentation
+            correction = indent % self.indentation
+            if correction and amount<0:
+                correction = - (self.indentation - correction) # Flip
+            # Add the indentation tabs
+            indent += (self.indentation * amount) - correction
             cursor.insertText(' '*max(indent,0))
         else:
             # Convert indentation to number of tabs, and add one
@@ -761,25 +765,47 @@ class CodeEditor(QtGui.QPlainTextEdit):
             self.dedentBlock(cursor)
             self.setTextCursor(cursor)
             return
-        #TODO: same for delete
+        
+        # todo: Same for delete, I think not (what to do with the cursor?)
+    
         
         # Home
-        if key == Qt.Key_Home and modifiers == Qt.NoModifier:
+        if key == Qt.Key_Home and modifiers in [Qt.NoModifier, Qt.ShiftModifier]:
+            # Prepare
             cursor = self.textCursor()
-            if cursor.atBlockStart() or not self._cursorIsInLeadingWhitespace(cursor):
-                         
-                text = cursor.block().text()            
-                leadingWhitespace = text[:len(text)-len(text.lstrip())]
+            shiftDown = modifiers == Qt.ShiftModifier
+            # Get leading whitespace
+            text = cursor.block().text()            
+            leadingWhitespace = text[:len(text)-len(text.lstrip())]
+            # Get current position and move to start of whitespace
+            i = cursor.positionInBlock()
+            cursor.movePosition(cursor.StartOfBlock, shiftDown)
+            cursor.movePosition(cursor.Right, shiftDown, len(leadingWhitespace))
+            # If we were alread there, move to start of block
+            if cursor.positionInBlock() == i:
+                cursor.movePosition(cursor.StartOfBlock, shiftDown)
+            # Done
+            self.setTextCursor(cursor)
+            event.accept()
+            return                             
                 
-                # Goto after leading whitespace            
-                cursor.movePosition(cursor.StartOfBlock)
-                cursor.movePosition(cursor.Right, 0,len(leadingWhitespace))
-                self.setTextCursor(cursor)
-                
-                # We handled the event
-                event.accept()
-                return
-            
+        
+        # End
+        if key == Qt.Key_End and modifiers in [Qt.NoModifier, Qt.ShiftModifier]:
+            # Prepare
+            cursor = self.textCursor()
+            shiftDown = modifiers == Qt.ShiftModifier
+            # Get current position and move to end of line
+            i = cursor.positionInBlock()
+            cursor.movePosition(cursor.EndOfLine, shiftDown)
+            # If alread at end of line, move to end of block
+            if cursor.positionInBlock() == i:
+                cursor.movePosition(cursor.EndOfBlock, shiftDown)
+            # Done
+            self.setTextCursor(cursor)
+            event.accept()
+            return
+        
         #Allowed keys that do not close the autocompleteList:
         # alphanumeric and _ ans shift
         # Backspace (until start of autocomplete word)
