@@ -55,7 +55,7 @@ def determineEncoding(bb):
         # Search for encoding directive
         
         # Has comment?
-        if line[0] == '#':
+        if line and line[0] == '#':
             
             # Matches regular expression given in PEP 0263?
             expression = "coding[:=]\s*([-\w.]+)"
