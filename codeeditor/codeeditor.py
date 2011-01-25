@@ -763,7 +763,23 @@ class CodeEditor(QtGui.QPlainTextEdit):
             return
         #TODO: same for delete
         
-
+        # Home
+        if key == Qt.Key_Home and modifiers == Qt.NoModifier:
+            cursor = self.textCursor()
+            if cursor.atBlockStart() or not self._cursorIsInLeadingWhitespace(cursor):
+                         
+                text = cursor.block().text()            
+                leadingWhitespace = text[:len(text)-len(text.lstrip())]
+                
+                # Goto after leading whitespace            
+                cursor.movePosition(cursor.StartOfBlock)
+                cursor.movePosition(cursor.Right, 0,len(leadingWhitespace))
+                self.setTextCursor(cursor)
+                
+                # We handled the event
+                event.accept()
+                return
+            
         #Allowed keys that do not close the autocompleteList:
         # alphanumeric and _ ans shift
         # Backspace (until start of autocomplete word)
