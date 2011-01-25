@@ -668,7 +668,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         position = cursor.position()
         cursor.setPosition(cursor.position()) #Move the anchor to the cursor pos
         cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
-        text = cursor.selectedText()
+        text = cursor.selectedText().replace('\u2029', '\n') 
         
         # Is the char valid for auto completion?
         if tryAutoComp:
