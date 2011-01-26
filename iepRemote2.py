@@ -455,7 +455,7 @@ class IepInterpreter:
         contained_coding = False
         for i in range(len(parts)-1):
             tmp = parts[i]
-            if tmp[0] == '#' and 'coding' in tmp:
+            if tmp and tmp[0] == '#' and 'coding' in tmp:
                 contained_coding = True
                 parts[i] = tmp.replace('coding=', ci).replace('coding:', ci)
         
