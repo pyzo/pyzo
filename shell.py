@@ -471,7 +471,7 @@ class BaseShell(BaseTextCtrl):
             commandCursor.movePosition(commandCursor.End,commandCursor.KeepAnchor)
             
             #Sample the text from the prompt and remove it
-            command = commandCursor.selectedText()
+            command = commandCursor.selectedText().replace('\u2029', '\n') 
             commandCursor.removeSelectedText()
             
             # remove newlines spaces and tabs

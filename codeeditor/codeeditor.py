@@ -8,6 +8,11 @@ if __name__ == '__main__':
 else:
     from . import python_syntax
 
+class BlockData(QtGui.QTextBlockUserData):
+    def __init__(self):
+        QtGui.QTextBlockUserData.__init__(self)
+        self.indentation = None
+
     
 class Highlighter(QtGui.QSyntaxHighlighter):
     formats=(
@@ -41,7 +46,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
     
     @property
     def spaceTabs(self):
-        """
+        """ 
         True when spaces are used and False when tabs are used
         """
         return bool(self.indentation)
@@ -49,7 +54,16 @@ class Highlighter(QtGui.QSyntaxHighlighter):
     ## Methods
     def highlightBlock(self,line):
         previousState=self.previousBlockState()
-    
+
+        # Get whitespace
+        i = len(line.lstrip())
+        whitespace = line[:-i]
+        bd = BlockData()
+        if self.spaceTabs:
+            bd.indentation = len(whitespace)
+        self.setCurrentBlockUserData(bd)
+        # todo: handle tabs too
+        
         self.setCurrentBlockState(0)
         for token in python_syntax.tokenizeLine(line,previousState):
             for tokenType,format in self.formats:
@@ -84,14 +98,14 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             format.setToolTip('Whitespace differs from document setting')
             self.setFormat(0,len(leadingWhitespace),format)
             
-class LineNumberArea(QtGui.QWidget):
-    def __init__(self,codeEditor):
-        QtGui.QWidget.__init__(self,codeEditor)
-        self.codeEditor=codeEditor
-    def paintEvent(self,event):
-        self.codeEditor._lineNumberAreaPaintEvent(event)
-#	def sizeHint(self):
-#		return QtCore.QSize(50,0)
+# class LineNumberArea(QtGui.QWidget):
+#     def __init__(self,codeEditor):
+#         QtGui.QWidget.__init__(self,codeEditor)
+#         self.codeEditor=codeEditor
+#     def paintEvent(self,event):
+#         self.codeEditor._lineNumberAreaPaintEvent(event)
+# #	def sizeHint(self):
+# #		return QtCore.QSize(50,0)
 
 
 class CalltipLabel(QtGui.QLabel):
@@ -126,7 +140,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 
         
         #Line numbers
-        self._lineNumberArea=LineNumberArea(self) #Create line number area widget
+#         self._lineNumberArea=LineNumberArea(self) #Create line number area widget
         
         #Autocompleter
         self._completerModel=QtGui.QStringListModel(keyword.kwlist)
@@ -142,7 +156,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         # Create label for call tips
         self._calltipLabel = CalltipLabel()
         
-            
+        
         #Default options
         option=self.document().defaultTextOption()
         option.setFlags(option.IncludeTrailingSpaces|option.AddSpaceForLineAndParagraphSeparators)
@@ -156,6 +170,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self.highlightCurrentLine = False
         self.indentation = 4
         self.tabWidth = 4
+        self.longLineIndicator = 80
 
         #Connect signals
         self.connect(self._completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
@@ -260,11 +275,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def showLineNumbers(self,value):
         self._showLineNumbers = bool(value)
         if self._showLineNumbers:
-            self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
-            self._lineNumberArea.show()
+            self.updateLineNumberAreaWidth()
+#             self._lineNumberArea.show()
         else:
-            self.setViewportMargins(0,0,0,0)
-            self._lineNumberArea.hide()
+            self.document().setDocumentMargin(0)
+#             self.setViewportMargins(0,0,0,0)
+#             self._lineNumberArea.hide()
 
     
     #show whitespace
@@ -298,6 +314,22 @@ class CodeEditor(QtGui.QPlainTextEdit):
         else:
             option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
         self.document().setDefaultTextOption(option)
+    
+    
+    @property
+    def longLineIndicator(self):
+        """ The position of the long line indicator 
+        (0 or False means not visible). 
+        """
+        return self._longLineIndicator
+        
+    longLineIndicator.setter
+    def longLineIndicator(self,value):
+        if not isinstance(value, int):
+            raise ValueError('Long line indicator must be an int.')
+        if value < 0:
+            value = 0
+        self._longLineIndicator = int(value)
     
     #tab size
     @property
@@ -441,9 +473,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         #Compute the new indentation length, expanding any existing tabs
         indent = len(leadingWhitespace.expandtabs(self.tabWidth))
-        if self.spaceTabs:
-            # Add the indentation tabs, and round to multiples of indentation
-            indent += (self.indentation * amount) - (indent % self.indentation)
+        if self.spaceTabs:            
+            # Determine correction, so we can round to multiples of indentation
+            correction = indent % self.indentation
+            if correction and amount<0:
+                correction = - (self.indentation - correction) # Flip
+            # Add the indentation tabs
+            indent += (self.indentation * amount) - correction
             cursor.insertText(' '*max(indent,0))
         else:
             # Convert indentation to number of tabs, and add one
@@ -483,32 +519,32 @@ class CodeEditor(QtGui.QPlainTextEdit):
         #TODO: to be implemented
         pass
         
-    def _lineNumberAreaPaintEvent(self,event):
-        painter = QtGui.QPainter(self._lineNumberArea)
-        cursor = self.cursorForPosition(self.viewport().pos())
-        
-        #Draw the background
-        painter.fillRect(event.rect(),Qt.lightGray)
-        
-        # Init painter
-        painter.setPen(Qt.black)
-        painter.setFont(self.font())
-        
-        #Repainting always starts at the first block in the viewport,
-        #regardless of the event.rect().y(). Just to keep it simple
-        while True:
-            blockNumber=cursor.block().blockNumber()
-            
-            y=self.cursorRect(cursor).y()+self.viewport().pos().y()+1 #Why +1?
-            painter.drawText(0,y,self.getLineNumberAreaWidth()-2,50,
-                Qt.AlignRight,str(blockNumber+1))
-            
-            if y>event.rect().bottom():
-                break #Reached end of the repaint area
-            if not cursor.block().next().isValid():
-                break #Reached end of the text
-
-            cursor.movePosition(cursor.NextBlock)
+#     def _lineNumberAreaPaintEvent(self,event):
+#         painter = QtGui.QPainter(self._lineNumberArea)
+#         cursor = self.cursorForPosition(self.viewport().pos())
+#         
+#         #Draw the background
+#         painter.fillRect(event.rect(),Qt.lightGray)
+#         
+#         # Init painter
+#         painter.setPen(Qt.black)
+#         painter.setFont(self.font())
+#         
+#         #Repainting always starts at the first block in the viewport,
+#         #regardless of the event.rect().y(). Just to keep it simple
+#         while True:
+#             blockNumber=cursor.block().blockNumber()
+#             
+#             y=self.cursorRect(cursor).y()+self.viewport().pos().y()+1 #Why +1?
+#             painter.drawText(0,y,self.getLineNumberAreaWidth()-2,50,
+#                 Qt.AlignRight,str(blockNumber+1))
+#             
+#             if y>event.rect().bottom():
+#                 break #Reached end of the repaint area
+#             if not cursor.block().next().isValid():
+#                 break #Reached end of the text
+# 
+#             cursor.movePosition(cursor.NextBlock)
     
     def getLineNumberAreaWidth(self):
         """
@@ -516,7 +552,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         (in pixels)
         """
         lastLineNumber = self.blockCount() 
-        return self.fontMetrics().width(str(lastLineNumber)) + 4 # margin
+        return self.fontMetrics().width(str(lastLineNumber)) + 6 # margin
 
         
     ##Custom signal handlers
@@ -534,9 +570,27 @@ class CodeEditor(QtGui.QPlainTextEdit):
         selection.cursor = self.textCursor();
         selection.cursor.clearSelection();
         self.setExtraSelections([selection])
-    def updateLineNumberAreaWidth(self,count):
+    
+    
+    def updateLineNumberAreaWidth(self,count=None):
+        """ updateLineNumberAreaWidth()
+        
+        Update the line number area width. We do this by obtaining the
+        required width using getLineNumberAreaWidth(). The document margin
+        is set to this width (+ extra for the real margin). The line numbers
+        are drawn in this margin. To compensate for the large margins at 
+        the top and right of the screen, we set the viewport margins to
+        negative values.
+        
+        """
         if self.showLineNumbers:
-            self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
+            #self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
+            realMargin = 4
+            w = self.getLineNumberAreaWidth()
+            self.document().setDocumentMargin(w + realMargin)
+            self.setViewportMargins(0,-w, -w, 0)
+    
+    
     ## Autocompletion
     def autocompleteShow(self,offset = 0,names = None):
         """
@@ -698,20 +752,159 @@ class CodeEditor(QtGui.QPlainTextEdit):
         return self._calltipLabel.isVisible()
     
     
-    ##Overridden Event Handlers
-    def resizeEvent(self,event):
-        QtGui.QPlainTextEdit.resizeEvent(self,event)
-        rect=self.contentsRect()
-        #On resize, resize the lineNumberArea, too
-        self._lineNumberArea.setGeometry(rect.x(),rect.y(),
-            self.getLineNumberAreaWidth(),rect.height())
+#     ##Overridden Event Handlers
+#     def resizeEvent(self,event):
+#         QtGui.QPlainTextEdit.resizeEvent(self,event)
+#         rect=self.contentsRect()
+#         #On resize, resize the lineNumberArea, too
+#         self._lineNumberArea.setGeometry(rect.x(),rect.y(),
+#             self.getLineNumberAreaWidth(),rect.height())
 
     def paintEvent(self,event):
+        
+        self._paintLineNumbers(event)
+        
         #Draw the default QTextEdit, then update the lineNumberArea 
         QtGui.QPlainTextEdit.paintEvent(self,event)
-        self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
         
+        #self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
+        
+        # self._paintIndentationGuides(event)
+        self._paintLongLineIndicator(event)
+        
+    
+    def _paintLineNumbers(self, event):
+        """ _paintLineNumbers(event)
+        
+        Paint the line numbers in the document margin.
+        
+        """ 
 
+        if not self.showLineNumbers:
+            return
+        
+        # Get doc and viewport
+        doc = self.document()
+        viewport = self.viewport()
+        
+        # Init painter
+        painter = QtGui.QPainter()
+        painter.begin(viewport)
+                
+        # Get which part to paint. Just do all to avoid glitches
+        w = self.getLineNumberAreaWidth()
+        y1, y2 = 0, self.height() + w
+        #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
+        
+        #Draw the background        
+        painter.fillRect(QtCore.QRect(0, y1, w, y2), QtGui.QColor('#DDD'))
+        
+        # Get cursor
+        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
+        
+        # Init painter
+        painter.setPen(QtGui.QColor('#222'))
+        painter.setFont(self.font())
+        
+        #Repainting always starts at the first block in the viewport,
+        #regardless of the event.rect().y(). Just to keep it simple
+        while True:
+            blockNumber=cursor.block().blockNumber()
+            
+            y=self.cursorRect(cursor).y()#+self.viewport().pos().y()+1 #Why +1?
+            painter.drawText(0,y,self.getLineNumberAreaWidth()-3,50,
+                Qt.AlignRight,str(blockNumber+1))
+            
+            if y>y2:
+                break #Reached end of the repaint area
+            if not cursor.block().next().isValid():
+                break #Reached end of the text
+
+            cursor.movePosition(cursor.NextBlock)
+        
+        # Done
+        painter.end()
+    
+    
+    def _paintIndentationGuides(self, event):
+        """ _paintIndentationGuides(event)
+        
+        Paint the indentation guides.
+        
+        """ 
+
+        if not self.showLineNumbers:
+            return
+        
+        # Get doc and viewport
+        doc = self.document()
+        viewport = self.viewport()
+        
+        # Init painter
+        painter = QtGui.QPainter()
+        painter.begin(viewport)
+                
+        # Get which part to paint. Just do all to avoid glitches
+        w = self.getLineNumberAreaWidth()
+        y1, y2 = 0, self.height() + w
+        #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
+                
+        # Get cursor
+        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
+        
+        
+        charWidth = self.fontMetrics().width('i')
+                
+        # Init painter
+        painter.setPen(QtGui.QColor('#CCC'))
+        
+        #Repainting always starts at the first block in the viewport,
+        #regardless of the event.rect().y(). Just to keep it simple
+        while True:
+            blockNumber=cursor.block().blockNumber()
+            bd = cursor.block().userData()
+            
+            if bd.indentation is not None:
+                y3=self.cursorRect(cursor).top()
+                y4=self.cursorRect(cursor).bottom()
+                w = charWidth * bd.indentation + doc.documentMargin()
+                
+                painter.drawLine(QtCore.QLine(w, y3, w, y4))
+            
+            if y4>y2:
+                break #Reached end of the repaint area
+            if not cursor.block().next().isValid():
+                break #Reached end of the text
+
+            cursor.movePosition(cursor.NextBlock)
+        
+        # Done
+        painter.end()
+            
+    def _paintLongLineIndicator(self, event):
+        """ _paintLongLineIndicator()
+        
+        Paint the long line indicator.
+        
+        """
+        if not self.longLineIndicator:
+            return
+            
+        # Get doc and viewport
+        doc = self.document()
+        viewport = self.viewport()
+        
+        # Get position of long line
+        fm = QtGui.QFontMetrics( self.font() )
+        w = fm.width('i') * self.longLineIndicator + doc.documentMargin()
+        
+        # Draw long line indicator
+        painter = QtGui.QPainter()
+        painter.begin(viewport)
+        painter.setPen(QtGui.QColor('#bbb'))
+        painter.drawLine(QtCore.QLine(w, 0, w, self.height()) )
+        painter.end()
+    
 
     def keyPressEvent(self,event):
         #TODO: backspacing over tabs
@@ -761,9 +954,47 @@ class CodeEditor(QtGui.QPlainTextEdit):
             self.dedentBlock(cursor)
             self.setTextCursor(cursor)
             return
-        #TODO: same for delete
         
-
+        # todo: Same for delete, I think not (what to do with the cursor?)
+    
+        
+        # Home
+        if key == Qt.Key_Home and modifiers in [Qt.NoModifier, Qt.ShiftModifier]:
+            # Prepare
+            cursor = self.textCursor()
+            shiftDown = modifiers == Qt.ShiftModifier
+            # Get leading whitespace
+            text = cursor.block().text()            
+            leadingWhitespace = text[:len(text)-len(text.lstrip())]
+            # Get current position and move to start of whitespace
+            i = cursor.positionInBlock()
+            cursor.movePosition(cursor.StartOfBlock, shiftDown)
+            cursor.movePosition(cursor.Right, shiftDown, len(leadingWhitespace))
+            # If we were alread there, move to start of block
+            if cursor.positionInBlock() == i:
+                cursor.movePosition(cursor.StartOfBlock, shiftDown)
+            # Done
+            self.setTextCursor(cursor)
+            event.accept()
+            return                             
+                
+        
+        # End
+        if key == Qt.Key_End and modifiers in [Qt.NoModifier, Qt.ShiftModifier]:
+            # Prepare
+            cursor = self.textCursor()
+            shiftDown = modifiers == Qt.ShiftModifier
+            # Get current position and move to end of line
+            i = cursor.positionInBlock()
+            cursor.movePosition(cursor.EndOfLine, shiftDown)
+            # If alread at end of line, move to end of block
+            if cursor.positionInBlock() == i:
+                cursor.movePosition(cursor.EndOfBlock, shiftDown)
+            # Done
+            self.setTextCursor(cursor)
+            event.accept()
+            return
+        
         #Allowed keys that do not close the autocompleteList:
         # alphanumeric and _ ans shift
         # Backspace (until start of autocomplete word)
@@ -812,8 +1043,7 @@ if __name__=='__main__':
                 return
             elif key == Qt.Key_Backtab: #Shift + Tab
                 self.dedentSelection()
-            return
-            
+           
             CodeEditor.keyPressEvent(self,event)
             self.calltipShow(0, 'test(foo, bar)')
         

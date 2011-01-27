@@ -1055,7 +1055,10 @@ class IepFileBrowser(QtGui.QWidget):
             else:
                 # Make sure the option exists
                 if option not in self._config:
-                    self._config[option] = False
+                    if 'Dirs' in option:
+                        self._config[option] = True
+                    else:
+                        self._config[option] = False
                 # Make action in menu
                 action = menu.addAction(description)
                 action._option = option

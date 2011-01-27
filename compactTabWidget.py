@@ -28,7 +28,7 @@ MAX_NAME_WIDTH = 64
 
 STYLESHEET = """
 QTabWidget::pane { /* The tab widget frame */
-    border-top: 1px solid #A09B90;
+    border-top: 0px solid #A09B90;
 }
 
 QTabWidget::tab-bar {
