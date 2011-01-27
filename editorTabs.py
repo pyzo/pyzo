@@ -168,7 +168,7 @@ class FindReplaceWidget(QtGui.QFrame):
             self._hidebut = QtGui.QToolButton(self)
             self._hidebut.setFont( QtGui.QFont('helvetica',7) )
             self._hidebut.setToolTip("Hide search widget (Escape)")
-            self._hidebut.setIcon( iep.icons.cross )
+            self._hidebut.setIcon( iep.icons.cancel )
             self._hidebut.setIconSize(QtCore.QSize(16,16))
             vsubLayout.addWidget(self._hidebut, 0)
             
@@ -510,6 +510,7 @@ class FileTabWidget(CompactTabWidget):
         # Create a corner widget
         but = QtGui.QToolButton()
         but.setIcon( iep.icons.cross )
+        but.setIconSize(QtCore.QSize(16,16))
         but.clicked.connect(self.onClose)
         self.setCornerWidget(but)
         
@@ -872,7 +873,7 @@ class FileTabWidget(CompactTabWidget):
             
             # Update name and tooltip
             if item.dirty:
-                tabBar.setTabText(i, '*'+item.name)
+                #tabBar.setTabText(i, '*'+item.name)
                 tabBar.setTabToolTip(i, item.filename + ' [modified]')
             else:
                 tabBar.setTabText(i, item.name)
@@ -892,7 +893,7 @@ class FileTabWidget(CompactTabWidget):
                 # Select base pixmap and pen color
                 if item.dirty:
                     pm0 = iep.icons.page_white_dirty.pixmap(16,16)
-                    penColor = '#f00'
+                    penColor = '#f00'                    
                 else:
                     pm0 = iep.icons.page_white.pixmap(16,16)
                     penColor = '#444'
@@ -921,6 +922,11 @@ class FileTabWidget(CompactTabWidget):
                     pm1 = iep.icons.overlay_thumbnail.pixmap(16,16)
                     painter.drawPixmap(0,0, pm1)
                 
+                # Add dirty overlay?
+                if item.dirty:
+                    pm1 = iep.icons.overlay_disk.pixmap(16,16)
+                    painter.drawPixmap(0,0, pm1)
+                
                 # Finish
                 painter.end()
                 
@@ -930,7 +936,7 @@ class FileTabWidget(CompactTabWidget):
                 but = TabToolButton(QtGui.QIcon(pm0))
                 tabBar.setTabButton(i, 0, but)
                 
- 
+
 class EditorTabs(QtGui.QWidget):
     """ The EditorTabs instance manages the open files and corresponding
     editors. It does the saving loading etc.
@@ -953,6 +959,7 @@ class EditorTabs(QtGui.QWidget):
         self._tabs = FileTabWidget(self)       
         self._tabs.tabCloseRequested.connect(self.closeFile)
         self._tabs.currentChanged.connect(self.onCurrentChanged)
+        self._tabs.tabBar().tabDoubleClicked.connect(self.saveFile)
         
         # Create find/replace widget
         self._findReplace = FindReplaceWidget(self)
@@ -1243,6 +1250,18 @@ class EditorTabs(QtGui.QWidget):
         # get editor
         if editor is None:
             editor = self.getCurrentEditor()
+        elif isinstance(editor, int):
+            index = editor
+            editor = None
+            if index>=0:
+                item = self._tabs.items()[index]
+                editor = item.editor
+        if editor is None:
+            return
+        
+        # get editor
+        if editor is None:
+            editor = self.getCurrentEditor()
         if editor is None:
             return
         
@@ -1331,8 +1350,10 @@ class EditorTabs(QtGui.QWidget):
             item = self._tabs.currentItem()
         elif isinstance(editor, int):
             index = editor
-            item = self._tabs.items()[index]
-            editor = item.editor
+            editor, item = None, None
+            if index>=0:
+                item = self._tabs.items()[index]
+                editor = item.editor
         else:
             item = None
             for i in self._tabs.items():
