@@ -37,9 +37,9 @@ default = dict:
     s036 = 'face:{mono}' # STC_STYLE_CONTROLCHAR
     s037 = '' # STC_STYLE_INDENTGUIDE
     s038 = '' # STC_STYLE_CALLTIP
-	s301 = 'fore:#000,back:#FFA' # caret and current line background
-	s302 = 'fore:#CCCCCC,back:#333366' # selection
-	s303 = 'fore:#404040,back:#FFFFB8,forehlt:#0000FF' # calltip
+    s301 = 'fore:#000,back:#FFA' # caret and current line background
+    s302 = 'fore:#CCCCCC,back:#333366' # selection
+    s303 = 'fore:#404040,back:#FFFFB8,forehlt:#0000FF' # calltip
 
 # PYTHON
 python = dict:

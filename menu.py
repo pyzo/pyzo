@@ -1039,7 +1039,7 @@ class RunMenu(BaseMenu):
             runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
         
         # Sample code 
-        code = runCursor.selectedText()
+        code = runCursor.selectedText().replace('\u2029', '\n') 
         # Show the result to user and set back
         editor.setTextCursor(runCursor)
         editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
@@ -1094,7 +1094,7 @@ class RunMenu(BaseMenu):
         
         
         # Sample code 
-        code = runCursor.selectedText()
+        code = runCursor.selectedText().replace('\u2029', '\n')
         # Show the result to user and set back
         editor.setTextCursor(runCursor)
         editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
@@ -1788,7 +1788,7 @@ class KeymappingDialog(QtGui.QDialog):
         self.setWindowIcon(iep.icon)
         
         # set size
-        size = 400,400
+        size = 600,400
         offset = 0
         size2 = size[0], size[1]+offset
         self.resize(*size2)

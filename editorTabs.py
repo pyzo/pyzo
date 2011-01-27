@@ -324,7 +324,7 @@ class FindReplaceWidget(QtGui.QFrame):
         # get needle
         editor = self.parent().getCurrentEditor()
         if editor:
-            needle = editor.textCursor().selectedText()
+            needle = editor.textCursor().selectedText().replace('\u2029', '\n') 
             if needle:
                 self._findText.setText( needle )
         # select the find-text
@@ -436,7 +436,7 @@ class FindReplaceWidget(QtGui.QFrame):
         replacement = self._replaceText.text()
         
         # get original text
-        original = cursor.selectedText()
+        original = cursor.selectedText().replace('\u2029', '\n') 
         if not original:
             original = ''
         if not matchCase:
@@ -1306,7 +1306,7 @@ class EditorTabs(QtGui.QWidget):
             
             # Ask user what to do
             result = simpleDialog(editor, "Closing", "Save modified file?", 
-                                    ['Save', 'Discard', 'Cancel'], 'Cancel')
+                                    ['Discard', 'Cancel', 'Save'], 'Save')
             result = result.lower()
             
             # Get result and act            
