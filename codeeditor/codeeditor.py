@@ -109,15 +109,28 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             # Store info for indentation guides
             # amount of tabs or spaces
             bd.indentation = len(leadingWhitespace)
+
+
+class LineNumberArea(QtGui.QWidget):
+    """ This is the widget reponsible for drawing the line numbers.
+    """
     
-# class LineNumberArea(QtGui.QWidget):
-#     def __init__(self,codeEditor):
-#         QtGui.QWidget.__init__(self,codeEditor)
-#         self.codeEditor=codeEditor
-#     def paintEvent(self,event):
-#         self.codeEditor._lineNumberAreaPaintEvent(event)
-# #	def sizeHint(self):
-# #		return QtCore.QSize(50,0)
+    def __init__(self, codeEditor):
+        QtGui.QWidget.__init__(self, codeEditor)
+    
+    def codeEditor(self): 
+        """ codeEditor()
+        
+        Get the associated code editor.
+        
+        """
+        return self.parent()
+    
+    
+    def paintEvent(self, event):
+        # The paint method is implemented at the code editor, near
+        # the paint methods for indent guides and long line indicator.
+        self.codeEditor()._paintLineNumbers(event)
 
 
 class CalltipLabel(QtGui.QLabel):
@@ -143,18 +156,17 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def __init__(self,*args,**kwds):
         QtGui.QPlainTextEdit.__init__(self,*args,**kwds)
         
-        self.highlighter=Highlighter(self.document())
-        #font=QtGui.QFont('Monaco',15)
+        # Set font (always monospace)
         self.setFont()
-        #print (QtGui.QFontInfo(self.font()).fixedPitch())
         
-
-
+        # Create highlighter class
+        # todo: attribute is not private
+        self.highlighter = Highlighter(self.document())
         
-        #Line numbers
-#         self._lineNumberArea=LineNumberArea(self) #Create line number area widget
+        # Create widget that draws the line numbers
+        self._lineNumberArea = LineNumberArea(self)
         
-        #Autocompleter
+        # Autocompleter
         self._completerModel=QtGui.QStringListModel(keyword.kwlist)
         self._completer=QtGui.QCompleter(self._completerModel, self)
         self._completer.setCaseSensitivity(Qt.CaseInsensitive)
@@ -290,11 +302,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self._showLineNumbers = bool(value)
         if self._showLineNumbers:
             self.updateLineNumberAreaWidth()
-#             self._lineNumberArea.show()
+            self._lineNumberArea.show()
         else:
-            self.document().setDocumentMargin(0)
-#             self.setViewportMargins(0,0,0,0)
-#             self._lineNumberArea.hide()
+            self.setViewportMargins(0,0,0,0)
+            self._lineNumberArea.hide()
     
     
     #show indentation guides
@@ -600,20 +611,13 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def updateLineNumberAreaWidth(self,count=None):
         """ updateLineNumberAreaWidth()
         
-        Update the line number area width. We do this by obtaining the
-        required width using getLineNumberAreaWidth(). The document margin
-        is set to this width (+ extra for the real margin). The line numbers
-        are drawn in this margin. To compensate for the large margins at 
-        the top and right of the screen, we set the viewport margins to
-        negative values.
+        Update the line number area width. This requires to set the 
+        viewport margins, so there is space to draw the linenumber area
+        widget.
         
         """
         if self.showLineNumbers:
-            #self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
-            realMargin = 4
-            w = self.getLineNumberAreaWidth()
-            self.document().setDocumentMargin(w + realMargin)
-            self.setViewportMargins(0, -w, -w, 0)
+            self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
     
     
     ## Autocompletion
@@ -777,26 +781,27 @@ class CodeEditor(QtGui.QPlainTextEdit):
         return self._calltipLabel.isVisible()
     
     
-#     ##Overridden Event Handlers
-#     def resizeEvent(self,event):
-#         QtGui.QPlainTextEdit.resizeEvent(self,event)
-#         rect=self.contentsRect()
-#         #On resize, resize the lineNumberArea, too
-#         self._lineNumberArea.setGeometry(rect.x(),rect.y(),
-#             self.getLineNumberAreaWidth(),rect.height())
-
+    ##Overridden Event Handlers
+    def resizeEvent(self,event):
+        QtGui.QPlainTextEdit.resizeEvent(self,event)
+        rect=self.contentsRect()
+        #On resize, resize the lineNumberArea, too
+        self._lineNumberArea.setGeometry(rect.x(),rect.y(),
+            self.getLineNumberAreaWidth(),rect.height())
+    
+    
     def paintEvent(self,event):
         
-        self._paintLineNumbers(event)
+        #self._paintLineNumbers(event)
         
         #Draw the default QTextEdit, then update the lineNumberArea 
         QtGui.QPlainTextEdit.paintEvent(self,event)
         
-        #self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
+        self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
         
         self._paintIndentationGuides(event)
         self._paintLongLineIndicator(event)
-        
+    
     
     def _paintLineNumbers(self, event):
         """ _paintLineNumbers(event)
@@ -804,7 +809,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         Paint the line numbers in the document margin.
         
         """ 
-
+        
         if not self.showLineNumbers:
             return
         
@@ -814,12 +819,16 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         # Init painter
         painter = QtGui.QPainter()
-        painter.begin(viewport)
-                
+        painter.begin(self._lineNumberArea)
+        
         # Get which part to paint. Just do all to avoid glitches
         w = self.getLineNumberAreaWidth()
-        y1, y2 = 0, self.height() + w
+        y1, y2 = 0, self.height()
         #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
+
+        # Get offset        
+        tmp = self._lineNumberArea.mapToGlobal(QtCore.QPoint(0,0))
+        offset = viewport.mapFromGlobal(tmp).y()
         
         #Draw the background        
         painter.fillRect(QtCore.QRect(0, y1, w, y2), QtGui.QColor('#DDD'))
@@ -837,14 +846,14 @@ class CodeEditor(QtGui.QPlainTextEdit):
             blockNumber=cursor.block().blockNumber()
             
             y=self.cursorRect(cursor).y()#+self.viewport().pos().y()+1 #Why +1?
-            painter.drawText(0,y,self.getLineNumberAreaWidth()-3,50,
+            painter.drawText(0,y-offset,self.getLineNumberAreaWidth()-3,50,
                 Qt.AlignRight,str(blockNumber+1))
             
             if y>y2:
                 break #Reached end of the repaint area
             if not cursor.block().next().isValid():
                 break #Reached end of the text
-
+            
             cursor.movePosition(cursor.NextBlock)
         
         # Done
@@ -872,9 +881,9 @@ class CodeEditor(QtGui.QPlainTextEdit):
                 
         # Get which part to paint. Just do all to avoid glitches
         w = self.getLineNumberAreaWidth()
-        y1, y2 = 0, self.height() + w
+        y1, y2 = 0, self.height()
         #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
-                
+        
         # Get cursor
         cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
         
@@ -941,7 +950,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         painter = QtGui.QPainter()
         painter.begin(viewport)
         painter.setPen(QtGui.QColor('#bbb'))
-        painter.drawLine(QtCore.QLine(x, 0, x, self.height()+w) )
+        painter.drawLine(QtCore.QLine(x, 0, x, self.height()) )
         painter.end()
     
 
