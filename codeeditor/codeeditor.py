@@ -51,18 +51,21 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         """
         return bool(self.indentation)
     
+    def getCurrentBlockUserData(self):
+        """ getCurrentBlockUserData()
+        
+        Gets the BlockData object. Creates one if necesary.
+        
+        """
+        bd = self.currentBlockUserData()
+        if not isinstance(bd, BlockData):
+            bd = BlockData()
+            self.setCurrentBlockUserData(bd)
+        return bd
+    
     ## Methods
     def highlightBlock(self,line):
         previousState=self.previousBlockState()
-
-        # Get whitespace
-        i = len(line.lstrip())
-        whitespace = line[:-i]
-        bd = BlockData()
-        if self.spaceTabs:
-            bd.indentation = len(whitespace)
-        self.setCurrentBlockUserData(bd)
-        # todo: handle tabs too
         
         self.setCurrentBlockState(0)
         for token in python_syntax.tokenizeLine(line,previousState):
@@ -81,9 +84,13 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             if isinstance(token,python_syntax.ContinuationToken):
                 self.setCurrentBlockState(token.state)
         
+        # Get user data
+        bd = self.getCurrentBlockUserData()
+        
         leadingWhitespace=line[:len(line)-len(line.lstrip())]
         if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
             #Mixed whitespace
+            bd.indentation = 0
             format=QtGui.QTextCharFormat()
             format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
             format.setUnderlineColor(QtCore.Qt.red)
@@ -92,12 +99,17 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         elif ('\t' in leadingWhitespace and self.spaceTabs) or \
             (' ' in leadingWhitespace and not self.spaceTabs):
             #Whitespace differs from document setting
+            bd.indentation = 0
             format=QtGui.QTextCharFormat()
             format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
             format.setUnderlineColor(QtCore.Qt.blue)
             format.setToolTip('Whitespace differs from document setting')
             self.setFormat(0,len(leadingWhitespace),format)
-            
+        else:
+            # Store info for indentation guides
+            # amount of tabs or spaces
+            bd.indentation = len(leadingWhitespace)
+    
 # class LineNumberArea(QtGui.QWidget):
 #     def __init__(self,codeEditor):
 #         QtGui.QWidget.__init__(self,codeEditor)
@@ -167,6 +179,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self.showWhitespace = False
         self.showLineEndings = False
         self.showLineNumbers = False
+        self.showIndentationGuides = True
         self.highlightCurrentLine = False
         self.indentation = 4
         self.tabWidth = 4
@@ -266,6 +279,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
             option.setWrapMode(option.NoWrap)
         self.document().setDefaultTextOption(option)
     
+    
     #show line numbers
     @property
     def showLineNumbers(self):
@@ -281,7 +295,18 @@ class CodeEditor(QtGui.QPlainTextEdit):
             self.document().setDocumentMargin(0)
 #             self.setViewportMargins(0,0,0,0)
 #             self._lineNumberArea.hide()
-
+    
+    
+    #show indentation guides
+    @property
+    def showIndentationGuides(self):
+        return self._showIndentationGuides
+    
+    @showIndentationGuides.setter
+    def showIndentationGuides(self,value):
+        self._showIndentationGuides = bool(value)
+        self.update()
+    
     
     #show whitespace
     @property
@@ -588,7 +613,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
             realMargin = 4
             w = self.getLineNumberAreaWidth()
             self.document().setDocumentMargin(w + realMargin)
-            self.setViewportMargins(0,-w, -w, 0)
+            self.setViewportMargins(0, -w, -w, 0)
     
     
     ## Autocompletion
@@ -769,7 +794,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         #self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
         
-        # self._paintIndentationGuides(event)
+        self._paintIndentationGuides(event)
         self._paintLongLineIndicator(event)
         
     
@@ -829,11 +854,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def _paintIndentationGuides(self, event):
         """ _paintIndentationGuides(event)
         
-        Paint the indentation guides.
+        Paint the indentation guides, using the indentation info calculated
+        by the highlighter.
         
         """ 
-
-        if not self.showLineNumbers:
+        
+        if not self.showIndentationGuides:
             return
         
         # Get doc and viewport
@@ -852,35 +878,46 @@ class CodeEditor(QtGui.QPlainTextEdit):
         # Get cursor
         cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
         
-        
+        # Get multiplication factor and indent width
         charWidth = self.fontMetrics().width('i')
-                
+        if self.spaceTabs:
+            indentWidth = self.indentation
+            factor = charWidth
+        else:
+            indentWidth = self.tabWidth
+            factor = charWidth * indentWidth
+        indentWidthInPixels = indentWidth * charWidth
+        
         # Init painter
-        painter.setPen(QtGui.QColor('#CCC'))
+        painter.setPen(QtGui.QColor('#DDF'))
         
         #Repainting always starts at the first block in the viewport,
         #regardless of the event.rect().y(). Just to keep it simple
         while True:
             blockNumber=cursor.block().blockNumber()
-            bd = cursor.block().userData()
+            y3=self.cursorRect(cursor).top()
+            y4=self.cursorRect(cursor).bottom()            
             
-            if bd.indentation is not None:
-                y3=self.cursorRect(cursor).top()
-                y4=self.cursorRect(cursor).bottom()
-                w = charWidth * bd.indentation + doc.documentMargin()
-                
-                painter.drawLine(QtCore.QLine(w, y3, w, y4))
+            bd = cursor.block().userData()            
+            if bd.indentation:
+                x = indentWidthInPixels
+                lineIndentationInPixels = bd.indentation * factor
+                while x < lineIndentationInPixels:
+                    w = x + doc.documentMargin() + 2
+                    painter.drawLine(QtCore.QLine(w, y3, w, y4))
+                    x += indentWidthInPixels
             
             if y4>y2:
                 break #Reached end of the repaint area
             if not cursor.block().next().isValid():
                 break #Reached end of the text
-
+            
             cursor.movePosition(cursor.NextBlock)
         
         # Done
         painter.end()
-        
+    
+    
     
     def _paintLongLineIndicator(self, event):
         """ _paintLongLineIndicator()
@@ -897,13 +934,14 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         # Get position of long line
         fm = QtGui.QFontMetrics( self.font() )
-        w = fm.width('i') * self.longLineIndicator + doc.documentMargin()
+        x = fm.width('i') * self.longLineIndicator + doc.documentMargin()
+        w = self.getLineNumberAreaWidth()
         
         # Draw long line indicator
         painter = QtGui.QPainter()
         painter.begin(viewport)
         painter.setPen(QtGui.QColor('#bbb'))
-        painter.drawLine(QtCore.QLine(w, 0, w, self.height()) )
+        painter.drawLine(QtCore.QLine(x, 0, x, self.height()+w) )
         painter.end()
     
 
