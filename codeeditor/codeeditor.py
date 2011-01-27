@@ -896,7 +896,9 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         # Get position of long line
         fm = QtGui.QFontMetrics( self.font() )
-        w = fm.width('i') * self.longLineIndicator + doc.documentMargin()
+        # width of ('i'*length) not length * (width of 'i') b/c of
+        # font kerning and rounding
+        w = fm.width('i' * self.longLineIndicator) + doc.documentMargin()
         
         # Draw long line indicator
         painter = QtGui.QPainter()
