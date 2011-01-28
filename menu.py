@@ -549,7 +549,7 @@ class ViewMenu(BaseMenu):
             value = not bool( iep.config.view.showIndentGuides ) 
             iep.config.view.showIndentGuides = value
             for editor in iep.editors:
-                editor.setIndentationGuides(value)
+                editor.showIndentationGuides = value
     
     def fun_showWhiteSpace(self, value):
         """ Show tabs and spaces in the editor. """
