@@ -587,6 +587,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
         Count the number of lines, compute the length of the longest line number
         (in pixels)
         """
+        if not self.showLineNumbers:
+            return 0
         lastLineNumber = self.blockCount() 
         return self.fontMetrics().width(str(lastLineNumber)) + 6 # margin
 
@@ -867,7 +869,6 @@ class CodeEditor(QtGui.QPlainTextEdit):
         by the highlighter.
         
         """ 
-        
         if not self.showIndentationGuides:
             return
         
@@ -888,14 +889,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
         cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
         
         # Get multiplication factor and indent width
-        charWidth = self.fontMetrics().width('i')
         if self.spaceTabs:
             indentWidth = self.indentation
-            factor = charWidth
+            factor = 1 
         else:
             indentWidth = self.tabWidth
-            factor = charWidth * indentWidth
-        indentWidthInPixels = indentWidth * charWidth
+            factor = indentWidth
         
         # Init painter
         painter.setPen(QtGui.QColor('#DDF'))
@@ -909,12 +908,9 @@ class CodeEditor(QtGui.QPlainTextEdit):
             
             bd = cursor.block().userData()            
             if bd.indentation:
-                x = indentWidthInPixels
-                lineIndentationInPixels = bd.indentation * factor
-                while x < lineIndentationInPixels:
-                    w = x + doc.documentMargin() + 2
+                for x in range(indentWidth, bd.indentation * factor, indentWidth):
+                    w = self.fontMetrics().width('i'*x)
                     painter.drawLine(QtCore.QLine(w, y3, w, y4))
-                    x += indentWidthInPixels
             
             if y4>y2:
                 break #Reached end of the repaint area
@@ -943,8 +939,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         # Get position of long line
         fm = QtGui.QFontMetrics( self.font() )
-        x = fm.width('i') * self.longLineIndicator + doc.documentMargin()
-        w = self.getLineNumberAreaWidth()
+        # width of ('i'*length) not length * (width of 'i') b/c of
+        # font kerning and rounding
+        x = fm.width('i' * self.longLineIndicator) + \
+            self.getLineNumberAreaWidth() + doc.documentMargin()
         
         # Draw long line indicator
         painter = QtGui.QPainter()
