@@ -255,7 +255,7 @@ class IepEditor(BaseTextCtrl):
         self.showWhitespace = iep.config.view.showWhiteSpace
         #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
         self.showLineEndings = iep.config.view.showLineEndings
-        #TODO: self.setIndentationGuides(view.showIndentGuides) 
+        self.showIndentationGuides  = iep.config.view.showIndentGuides
         #
         self.wrap = iep.config.view.wrapText
         self.highlightCurrentLine = iep.config.view.highlightCurrentLine
