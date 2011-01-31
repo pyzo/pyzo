@@ -986,11 +986,7 @@ class RunMenu(BaseMenu):
         if fileItem:
             linenr = 90
             editor = fileItem._editor
-            pos = editor.getPositionFromLinenr(linenr)
-            editor.setPositionAndAnchor(pos)
-            editor.ensureCursorVisible()
-            
-            # Give focus
+            editor.gotoLine(linenr)
             iep.editors.getCurrentEditor().setFocus()
     
     
