@@ -259,8 +259,8 @@ class IepEditor(BaseTextCtrl):
         #
         self.wrap = iep.config.view.wrapText
         self.highlightCurrentLine = iep.config.view.highlightCurrentLine
-        #TODO: self.setFolding( int(view.codeFolding)*5 )
-        #TODO: self.setEdgeColumn(view.edgeColumn)
+        self.longLineIndicator = iep.config.view.edgeColumn
+        #TODO: self.setFolding( int(view.codeFolding)*5 )        
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
@@ -270,7 +270,7 @@ class IepEditor(BaseTextCtrl):
         
         # Set line endings to default
         self.lineEndings = iep.config.settings.defaultLineEndings
-
+        
         # Set encoding to default
         self.encoding = 'UTF-8'
         

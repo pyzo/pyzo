@@ -475,7 +475,7 @@ class ViewMenu(BaseMenu):
         #TODO: addItem( MI('Match braces', self.fun_braceMatch, []) )  
         #TODO: addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
         addItem( None )
-        #TODO: addItem( MI('Edge column', self.fun_edgecolumn, []) )
+        addItem( MI('Edge column', self.fun_edgecolumn, []) )
         addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( MI('Zooming', self.fun_zooming, []) )
         addItem( MI('QT theme', self.fun_qtstyle, []) )
@@ -535,11 +535,16 @@ class ViewMenu(BaseMenu):
     def fun_edgecolumn(self, value):
         """ The position of the edge column indicator. """
         if value is None:
-            return [60, 70, 80, 90, 100, 110, 120, -1, 
-                        iep.config.view.edgeColumn]
-        iep.config.view.edgeColumn = value
-        for editor in iep.editors:
-            editor.setEdgeColumn(value)
+            theValue = iep.config.view.edgeColumn
+            if theValue <= 0:
+                theValue = 'None'
+            return ['None', 60, 70, 80, 90, 100, 110, 120, theValue]
+        else:
+            if value == 'None':
+                value = 0
+            iep.config.view.edgeColumn = value
+            for editor in iep.editors:
+                editor.longLineIndicator = value
     
     def fun_indentGuides(self, value):
         """ Show vertical lines at each indentation level. """
