@@ -275,12 +275,12 @@ class DebugControl(QtGui.QToolButton):
             return 'Could not open file where the error occured.'
         else:
             editor = result._editor
-            i1 = editor.getPositionFromLinenr(linenr-1)
-            i2 = editor.getPositionFromLinenr(linenr)
-            editor.setPosition(i1)
-            editor.setAnchor(i2)
-            editor.ensureCursorVisible()
-
+            # Goto line and select it
+            editor.gotoLine(linenr)
+            cursor = editor.textCursor()
+            cursor.movePosition(cursor.StartOfBlock)
+            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            editor.setTextCursor(cursor)
 
 class ShellInfoDialogEntries(QtGui.QFrame):
     """ A page in the tab widget of the shell configuration dialog. 

@@ -587,6 +587,8 @@ class IepInterpreter:
                 # Get fname and lineno, and correct if required
                 fname, lineno = f.f_code.co_filename, f.f_lineno
                 fname, lineno = correctFilenameAndLineno(fname, lineno)
+                if not fname.startswith('<'):
+                    fname = os.path.abspath(fname)
                 # Build string
                 text = 'File "%s", line %i, in %s' % (
                                         fname, lineno, f.f_code.co_name)

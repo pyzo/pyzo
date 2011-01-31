@@ -44,39 +44,33 @@ def normalizePath(path):
     # normalize
     path = os.path.abspath(path)  # make sure it is defined from the drive up
     path = os.path.normpath(path)
+    sep = os.sep
     
     # If does not exist, return as is.
     # This also happens if the path's case is incorrect and the
     # file system is case sensitive. That's ok, because the stuff we 
     # do below is intended to get the path right on case insensitive
     # file systems.
-    if not os.path.isfile(path) or os.path.isfile(path):
+    if not os.path.isfile(path):
         return path
     
-    # make lowercase and split in parts    
-    parts = path.lower().split(os.sep)
-    sep = '/'
+    # split drive name from the rest
+    drive, rest = os.path.splitdrive(path)
+    fullpath = drive.upper() + sep
     
-    # make a start
-    drive, tmp = os.path.splitdrive(path)
-    if drive:
-        # windows
-        fullpath = drive.upper() + sep
-        parts = parts[1:]
-    else:
-        # posix/mac
-        fullpath = sep + parts[1] + sep
-        parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
+    # make lowercase and split in parts    
+    parts = rest.lower().split(os.sep)
+    parts = [part for part in parts if part]
     
     for part in parts:
         # print( fullpath,part)
         options = [x for x in os.listdir(fullpath) if x.lower()==part]
         if len(options) > 1:
             print("Error normalizing path: Ambiguous path names!")
-            return None
+            return path
         elif len(options) < 1:
             print("Invalid path: "+fullpath+part)
-            return None
+            return path
         fullpath += options[0] + sep
     
     # remove last sep

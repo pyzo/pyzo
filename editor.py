@@ -248,7 +248,10 @@ class IepEditor(BaseTextCtrl):
     
     def __init__(self, parent, **kwds):
         super().__init__(parent, showLineNumbers = True, **kwds)
-        
+
+        # Init filename and name
+        self._filename = ''
+        self._name = '<TMP>'
         
         # View settings
         self.setShowWhitespace(iep.config.view.showWhiteSpace)
@@ -263,9 +266,7 @@ class IepEditor(BaseTextCtrl):
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
-        # Init filename and name
-        self._filename = ''
-        self._name = '<TMP>'
+        
         
         # Set line endings to default
         self.lineEndings = iep.config.settings.defaultLineEndings
@@ -523,10 +524,7 @@ class IepEditor(BaseTextCtrl):
         self.document().setModified(False)
         
         # Go where we were (approximately)
-        #TODO:
-        #pos = self.getPositionFromLinenr(linenr) + index
-        #self.setPositionAndAnchor(pos)
-        #self.ensureCursorVisible()
+        self.gotoLine(linenr)
     
     
     def commentCode(self):

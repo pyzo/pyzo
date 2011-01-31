@@ -151,6 +151,8 @@ class FindReplaceWidget(QtGui.QFrame):
     def __init__(self, *args):
         QtGui.QWidget.__init__(self, *args)
         
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
+        
         # init layout
         layout = QtGui.QHBoxLayout(self)
         layout.setSpacing(0)
@@ -187,6 +189,7 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add find text
             self._findText = QtGui.QLineEdit(self)
+            self._findText.setToolTip("Find pattern")
             vsubLayout.addWidget(self._findText, 0)
             
             vsubLayout.addLayout(hsubLayout)
@@ -194,6 +197,8 @@ class FindReplaceWidget(QtGui.QFrame):
             # Add previous button
             self._findPrev = QtGui.QToolButton(self) 
             self._findPrev.setText('Previous')
+            self._findPrev.setToolTip("Find previous occurance of the pattern")
+            
             hsubLayout.addWidget(self._findPrev, 0)
             
             hsubLayout.addStretch(1)
@@ -201,7 +206,8 @@ class FindReplaceWidget(QtGui.QFrame):
             # Add next button
             self._findNext = QtGui.QToolButton(self)
             self._findNext.setText('Next')
-            #self._findNext.setDefault(True)
+            self._findNext.setToolTip("Find next occurance of the pattern")
+            #self._findNext.setDefault(True) # Not possible with tool buttons
             hsubLayout.addWidget(self._findNext, 0)
         
         layout.addSpacing(10)
@@ -217,6 +223,7 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add replace text
             self._replaceText = QtGui.QLineEdit(self)
+            self._replaceText.setToolTip("Replace pattern")
             vsubLayout.addWidget(self._replaceText, 0)
             
             vsubLayout.addLayout(hsubLayout)
@@ -224,6 +231,7 @@ class FindReplaceWidget(QtGui.QFrame):
             # Add replace-all button
             self._replaceAll = QtGui.QToolButton(self) 
             self._replaceAll.setText("Repl. all")
+            self._replaceAll.setToolTip("Replace all matches in current document")
             hsubLayout.addWidget(self._replaceAll, 0)
             
             hsubLayout.addStretch(1)
@@ -231,6 +239,7 @@ class FindReplaceWidget(QtGui.QFrame):
             # Add replace button
             self._replace = QtGui.QToolButton(self)
             self._replace.setText("Replace")
+            self._replace.setToolTip("Replace this match")
             hsubLayout.addWidget(self._replace, 0)
         
         
@@ -245,10 +254,12 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add match-case checkbox
             self._caseCheck = QtGui.QCheckBox("Match case", self)
+            self._caseCheck.setToolTip("Find words that match case")
             vsubLayout.addWidget(self._caseCheck, 0)
             
             # Add regexp checkbox
             self._regExp = QtGui.QCheckBox("RegExp", self)
+            self._regExp.setToolTip("Find using regular expressions")
             vsubLayout.addWidget(self._regExp, 0)
         
         if True:
@@ -260,22 +271,43 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add whole-word checkbox
             self._wholeWord = QtGui.QCheckBox("Whole words", self)
+            self._wholeWord.setToolTip("Find only whole words")
             self._wholeWord.resize(60, 16)
             vsubLayout.addWidget(self._wholeWord, 0)
             
-            vsubLayout.addStretch(1)
-       
+            # Add autohide dropbox
+            self._autoHide = QtGui.QCheckBox("Auto hide", self)
+            self._autoHide.setToolTip("Hide search/replace when unused for 10s")
+            self._autoHide.resize(60, 16)
+            vsubLayout.addWidget(self._autoHide, 0)
+        
         layout.addStretch(1)
         
-        # create timer object
-        self._timer = QtCore.QTimer(self)
-        self._timer.setSingleShot(True)
-        self._timer.timeout.connect( self.resetAppearance )
         
-        # init case and regexp
-        self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
-        self._regExp.setChecked( bool(iep.config.state.find_regExp) )
-        self._wholeWord.setChecked(  bool(iep.config.state.find_wholeWord) )
+        # Set placeholder texts
+        for lineEdit in [self._findText, self._replaceText]:
+            if hasattr(lineEdit, 'setPlaceholderText'):
+                lineEdit.setPlaceholderText(lineEdit.toolTip())
+            lineEdit.textChanged.connect(self.autoHideTimerReset)
+        
+        # Set focus policy
+        for but in [self._findPrev, self._findNext, 
+                    self._replaceAll, self._replace,
+                    self._caseCheck, self._wholeWord, self._regExp]:
+            but.setFocusPolicy(QtCore.Qt.ClickFocus)
+            but.clicked.connect(self.autoHideTimerReset)
+        
+        # create timer objects
+        self._timerBeginEnd = QtCore.QTimer(self)
+        self._timerBeginEnd.setSingleShot(True)
+        self._timerBeginEnd.timeout.connect( self.resetAppearance )
+        #
+        self._timerAutoHide = QtCore.QTimer(self)
+        self._timerAutoHide.setSingleShot(False)
+        self._timerAutoHide.setInterval(500) # ms
+        self._timerAutoHide.timeout.connect( self.autoHideTimerCallback )
+        self._timerAutoHide_t0 = time.time()
+        self._timerAutoHide.start()
         
         # create callbacks
         self._findText.returnPressed.connect(self.findNext)
@@ -284,12 +316,37 @@ class FindReplaceWidget(QtGui.QFrame):
         self._findPrev.clicked.connect(self.findPrevious)
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
+        #        
+        self._regExp.stateChanged.connect(self.handleReplacePossible)
+        
+        # init case and regexp
+        self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
+        self._regExp.setChecked( bool(iep.config.state.find_regExp) )
+        self._wholeWord.setChecked(  bool(iep.config.state.find_wholeWord) )
+        self._autoHide.setChecked(  bool(iep.config.state.find_autoHide) )
         
         # show or hide?
         if bool(iep.config.state.find_show):
             self.show()
         else:
             self.hide()
+    
+    
+    def autoHideTimerReset(self):
+        self._timerAutoHide_t0 = time.time()
+    
+    
+    def autoHideTimerCallback(self):
+        """ Check whether we should hide the tool.
+        """
+        timeout = iep.config.advanced.find_autoHide_timeout
+        if self._autoHide.isChecked():
+            if (time.time() - self._timerAutoHide_t0) > timeout: # seconds            
+                # Hide if editor has focus
+                es = self.parent() # editor stack
+                editor = es.getCurrentEditor()
+                if editor.hasFocus():
+                    self.hide()
     
     
     def hideMe(self):
@@ -301,6 +358,7 @@ class FindReplaceWidget(QtGui.QFrame):
         if editor:
             editor.setFocus()
     
+    
     def keyPressEvent(self, event):
         """ To capture escape. """
         
@@ -311,6 +369,13 @@ class FindReplaceWidget(QtGui.QFrame):
             event.accept()
     
     
+    def handleReplacePossible(self, state):
+        """ Disable replacing when using regular expressions.
+        """
+        for w in [self._replaceText, self._replaceAll, self._replace]:
+            w.setEnabled(not state)
+    
+    
     def startFind(self,event=None):
         """ Use this rather than show(). It will check if anything is 
         selected in the current editor, and if so, will set that as the
@@ -318,8 +383,8 @@ class FindReplaceWidget(QtGui.QFrame):
         """
         # show
         self.show()
+        self.autoHideTimerReset()
         es = self.parent()
-        #es._boxLayout.activate()        
         
         # get needle
         editor = self.parent().getCurrentEditor()
@@ -329,11 +394,11 @@ class FindReplaceWidget(QtGui.QFrame):
                 self._findText.setText( needle )
         # select the find-text
         self.selectFindText()
-        
-        
+    
+    
     def notifyPassBeginEnd(self):
         self.setStyleSheet("QFrame { background:#f00; }")
-        self._timer.start(300)
+        self._timerBeginEnd.start(300)
     
     def resetAppearance(self):
         self.setStyleSheet("QFrame {}")
@@ -358,10 +423,13 @@ class FindReplaceWidget(QtGui.QFrame):
         """ The main find method.
         Returns True if a match was found. """
         
+        # Reset timer
+        self.autoHideTimerReset()
+        
         # get editor
         editor = self.parent().getCurrentEditor()
         if not editor:
-            return        
+            return       
         
         # find flags
         flags = QtGui.QTextDocument.FindFlags()
@@ -1019,9 +1087,7 @@ class EditorTabs(QtGui.QWidget):
     def dropEvent(self, event):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
-            path = str( qurl.path() )
-            if sys.platform.startswith('win'):
-                path = path[1:]
+            path = str( qurl.toLocalFile() )
             if os.path.isfile(path):
                 self.loadFile(path)
             elif os.path.isdir(path):
