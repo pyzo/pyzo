@@ -316,7 +316,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
     @showIndentationGuides.setter
     def showIndentationGuides(self,value):
         self._showIndentationGuides = bool(value)
-        self.update()
+        self.hide(); self.show()
     
     
     #show whitespace
@@ -358,14 +358,15 @@ class CodeEditor(QtGui.QPlainTextEdit):
         (0 or False means not visible). 
         """
         return self._longLineIndicator
-        
-    longLineIndicator.setter
+    
+    @longLineIndicator.setter
     def longLineIndicator(self,value):
         if not isinstance(value, int):
             raise ValueError('Long line indicator must be an int.')
         if value < 0:
             value = 0
         self._longLineIndicator = int(value)
+        self.hide(); self.show()
     
     #tab size
     @property
@@ -433,6 +434,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self._recentCompletions = value
         
     ## MISC
+        
     def gotoLine(self,lineNumber):
         """
         Move the cursor to the block given by the line number (first line is line number 1) and show that line
@@ -794,13 +796,12 @@ class CodeEditor(QtGui.QPlainTextEdit):
     
     def paintEvent(self,event):
         
-        #self._paintLineNumbers(event)
-        
         #Draw the default QTextEdit, then update the lineNumberArea 
         QtGui.QPlainTextEdit.paintEvent(self,event)
+        self._lineNumberArea.update(0, 0, 
+                self.getLineNumberAreaWidth(), self.height() )
         
-        self._lineNumberArea.update(0, 0, self.getLineNumberAreaWidth(), self.height())
-        
+        # Draw guides
         self._paintIndentationGuides(event)
         self._paintLongLineIndicator(event)
     
@@ -809,6 +810,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
         """ _paintLineNumbers(event)
         
         Paint the line numbers in the document margin.
+        Called by the LineNumberArea widget, but placed here because
+        it so much resembles the other paint handlers.
         
         """ 
         
@@ -876,10 +879,6 @@ class CodeEditor(QtGui.QPlainTextEdit):
         doc = self.document()
         viewport = self.viewport()
         
-        # Init painter
-        painter = QtGui.QPainter()
-        painter.begin(viewport)
-                
         # Get which part to paint. Just do all to avoid glitches
         w = self.getLineNumberAreaWidth()
         y1, y2 = 0, self.height()
@@ -897,6 +896,9 @@ class CodeEditor(QtGui.QPlainTextEdit):
             factor = indentWidth
         
         # Init painter
+        painter = QtGui.QPainter()
+        painter.setCompositionMode(painter.CompositionMode_DestinationOver)
+        painter.begin(viewport)
         painter.setPen(QtGui.QColor('#DDF'))
         
         #Repainting always starts at the first block in the viewport,
@@ -909,9 +911,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
             bd = cursor.block().userData()            
             if bd.indentation:
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
-                    w = self.fontMetrics().width('i'*x)
+                    w = self.fontMetrics().width('i'*x) + doc.documentMargin()
+                    w += 1 # Put it more under the block
                     painter.drawLine(QtCore.QLine(w, y3, w, y4))
-            
+ 
             if y4>y2:
                 break #Reached end of the repaint area
             if not cursor.block().next().isValid():
@@ -936,16 +939,17 @@ class CodeEditor(QtGui.QPlainTextEdit):
         # Get doc and viewport
         doc = self.document()
         viewport = self.viewport()
-        
+
         # Get position of long line
-        fm = QtGui.QFontMetrics( self.font() )
+        fm = self.fontMetrics()
         # width of ('i'*length) not length * (width of 'i') b/c of
         # font kerning and rounding
-        x = fm.width('i' * self.longLineIndicator) + \
-            self.getLineNumberAreaWidth() + doc.documentMargin()
+        x = fm.width('i' * self.longLineIndicator) + doc.documentMargin()
+        x += 1 # Otherwise it will hide the cursor (at least on Windows)
         
         # Draw long line indicator
         painter = QtGui.QPainter()
+        painter.setCompositionMode(painter.CompositionMode_DestinationOver)
         painter.begin(viewport)
         painter.setPen(QtGui.QColor('#bbb'))
         painter.drawLine(QtCore.QLine(x, 0, x, self.height()) )
