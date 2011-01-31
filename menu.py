@@ -188,7 +188,8 @@ class FileMenu(BaseMenu):
         addItem( MI('Close file', self.fun_closeFile) )
         addItem(None)
         addItem( MI('Style', self.fun_style, []) )
-        addItem( MI('Indentation', self.fun_indentation, []) )
+        addItem( MI('Indentation width', self.fun_indentWidth, []) )
+        addItem( MI('Indentation style', self.fun_indentStyle, []) )
         addItem( MI('Line endings', self.fun_lineEndings, []) )
         addItem( MI('File encoding', self.fun_encoding, []) )
         addItem(None)        
@@ -235,37 +236,54 @@ class FileMenu(BaseMenu):
         else:
             editor.lineEndings = value
     
-    def fun_indentation(self, value):
-        """ The indentation style used for the current file. """
+    def fun_indentWidth(self, value):
+        """ The indentation width used for the current file. """
         # get editor
         editor = iep.editors.getCurrentEditor()
         if editor is None:
             return ['no editor', '']
         
         if value is None:
-            current = editor.indentation
-            options = [0,2,3,4,5,6,7,8, current]
-            for i in range(len(options)):
-                if not options[i]:
-                    options[i] = 'Use tabs'
-                else:
-                    options[i] = '{} spaces'.format(options[i])            
-            return options
+            current = editor.indentWidth()
+            options = [2,3,4,5,6,7,8, current]           
+            return ['%d spaces' % i for i in options]
         else:
             # parse value
             val = None
-            if value.lower() == 'use tabs':
-                val = 0
-            else:
-                try:
-                    val = int(value[:2])
-                except ValueError:
-                    pass
+
+            try:
+                val = int(value[:2])
+            except ValueError:
+                pass
             # apply
             if val is None:
-                val = iep.config.settings.defaultIndentation
+                val = iep.config.settings.defaultIndentWidth
             
-            editor.indentation = val
+            editor.setIndentWidth(val)
+    def fun_indentStyle(self,value):
+        """Use tabs or spaces for indentation"""
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            options = ['Spaces', 'Tabs']        
+            return options + [options[0 if editor.indentUsingSpaces() else 1]]
+        else:
+            # parse value
+            val = None
+
+            try:
+                val = {'Spaces': True, 'Tabs': False}[value]
+            except KeyError:
+                print ("%r" % val)
+                pass
+            # apply
+            if val is None:
+                val = iep.config.settings.defaultIndentUsingSpaces
+            
+            editor.setIndentUsingSpaces(val)
     
     def fun_style(self, value):
         """ The styling used for the current style. """
@@ -476,7 +494,7 @@ class ViewMenu(BaseMenu):
         #TODO: addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
         addItem( None )
         addItem( MI('Edge column', self.fun_edgecolumn, []) )
-        addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
+        #addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
         addItem( MI('Zooming', self.fun_zooming, []) )
         addItem( MI('QT theme', self.fun_qtstyle, []) )
     
@@ -676,7 +694,8 @@ class SettingsMenu(BaseMenu):
         addItem( MI('Autocomplete select chars', self.fun_autoComplete_fillups, []) )
         addItem( None )
         addItem( MI('Default style', self.fun_defaultStyle, []) )
-        addItem( MI('Default indentation', self.fun_defaultIndentation, []) )
+        addItem( MI('Default indentation width', self.fun_defaultIndentWidth, []) )
+        addItem( MI('Default indentation style', self.fun_defaultIndentStyle, []) )
         addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
         addItem( None )
         addItem( MI('Shell wraps to 80 columns', self.fun_shellWrap80, []) )
@@ -699,29 +718,43 @@ class SettingsMenu(BaseMenu):
             # store
             iep.config.settings.defaultStyle = value
     
-    def fun_defaultIndentation(self, value):
+    def fun_defaultIndentWidth(self, value):
         """ The indentation used for new files and in the shells. """
+        
         if value is None:
-            current = iep.config.settings.defaultIndentation
-            options = [-1,2,3,4,5,6,7,8,9,10, current]
-            for i in range(len(options)):
-                if options[i] < 0:
-                    options[i] = 'Use tabs'
-                else:
-                    options[i] = '{} spaces'.format(options[i])            
-            return options
+            current = iep.config.settings.defaultIndentWidth
+            options = [2,3,4,5,6,7,8, current]           
+            return ['%d' % i for i in options]
         
         # parse value
         try:
             val = int(value[:2])
         except ValueError:
-            val = -1        
+            val = 4      
         # store
-        iep.config.settings.defaultIndentation = val
+        iep.config.settings.defaultIndentWidth = val
         # Apply to shells
         for shell in iep.shells:
-            shell.setIndentation(val)
-    
+            shell.setIndentWidth(val)
+            
+    def fun_defaultIndentStyle(self,value):
+        """Whether to use tabs or spaces for indentation in the shells and in new files"""
+        # get editor
+        
+        if value is None:
+            options = ['Spaces', 'Tabs']        
+            return options + [options[0 if iep.config.settings.defaultIndentUsingSpaces else 1]]
+        else:
+            # parse value
+            val = None
+
+            try:
+                val = {'Spaces': True, 'Tabs': False}[value]
+            except KeyError:
+                val = True
+            # apply
+            iep.config.settings.defaultIndentUsingSpaces = val
+            
     def fun_defaultLineEndings(self, value):
         """ The line endings used for new files. """
         if value is None:

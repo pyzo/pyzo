@@ -218,14 +218,13 @@ def createEditor(parent, filename=None):
         # process indentation
         indentWidth = determineIndentation(text)
         if indentWidth == -1: #Tabs
-            editor.tabSize = 4 #TODO: configurable
-            editor.indentation = 0
+            editor.setIndentWidth(iep.config.settings.defaultIndentWidth)
+            editor.setIndentUsingSpaces(False)
         elif indentWidth:
-            editor.tabSize = indentWidth
-            editor.indentation = indentWidth
+            editor.setIndentWidth(indentWidth)
+            editor.setIndentUsingSpaces(True)
     
-    # clear undo history and modify time
-    #TODO: editor.SendScintilla(editor.SCI_EMPTYUNDOBUFFER)
+
     if editor._filename:
         editor._modifyTime = os.path.getmtime(editor._filename)
     

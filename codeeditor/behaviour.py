@@ -76,10 +76,11 @@ class Indentation:
                     self.setTextCursor(cursor)
                     return
                     
-                elif self.indentation:
+                elif self.indentUsingSpaces():
                     #Insert space-tabs
                     cursor=self.textCursor()
-                    cursor.insertText(' '*(self.indentation-((cursor.columnNumber() + self.indentation )%self.indentation)))
+                    w = self.indentWidth()
+                    cursor.insertText(' '*(w-((cursor.positionInBlock() + w ) % w)))
                     return
                 #else: default behaviour, insert tab character
             else: #Some other modifiers + Tab: ignore

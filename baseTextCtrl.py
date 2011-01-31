@@ -546,8 +546,7 @@ import codeeditor
 class BaseTextCtrl(codeeditor.CodeEditor):
     """ The base text control class.
     Inherited by the shell class and the IEP editor.
-    The class implements autocompletion, calltips, and auto-help,
-    as well as styling and stuff like autoindentation.
+    The class implements autocompletion, calltips, and auto-help
     
     Inherits from QsciScintilla. I tried to clean up the rather dirty api
     by using more sensible names. Hereby I apply the following rules:
@@ -584,6 +583,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self._autoCompNameString = ''
 
         self.completer().highlighted.connect(self.updateHelp)
+        self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
+        self.setIndentWidth(iep.config.settings.defaultIndentWidth)
         
     
     def callTipShow(self, pos, text, hl1=0, hl2=0):
