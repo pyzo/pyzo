@@ -247,9 +247,13 @@ class IepEditor(BaseTextCtrl):
     somethingChanged = QtCore.pyqtSignal()
     
     def __init__(self, parent, *args, **kwargs):
+        
+        # Init filename and name (For if show event is called from other init)
+        self._filename = ''
+        self._name = '<TMP>'
+        
         BaseTextCtrl.__init__(self, parent, *args, **kwargs)
         self.showLineNumbers = True
-
         
         # View settings
         self.showWhitespace = iep.config.view.showWhiteSpace
@@ -264,9 +268,7 @@ class IepEditor(BaseTextCtrl):
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
-        # Init filename and name
-        self._filename = ''
-        self._name = '<TMP>'
+        
         
         # Set line endings to default
         self.lineEndings = iep.config.settings.defaultLineEndings

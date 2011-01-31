@@ -272,7 +272,7 @@ class BaseShell(BaseTextCtrl):
         # Paste normally
         return BaseTextCtrl.paste(self)
 
-    def dragEnterEvent(self):
+    def dragEnterEvent(self, event):
         """No dropping allowed"""
         pass
         
