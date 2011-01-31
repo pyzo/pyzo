@@ -199,7 +199,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
 
         #Connect signals
         self.connect(self._completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
-        self.cursorPositionChanged.connect(self.updateCurrentLineHighlight)
+        self.cursorPositionChanged.connect(self.update)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
     
     
@@ -368,6 +368,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
         self._longLineIndicator = int(value)
         self.hide(); self.show()
     
+    #NEW PROPERTY NAMES: indentWidth and indentUsingSpaces
+    
     #tab size
     @property
     def tabWidth(self):
@@ -409,10 +411,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
     @highlightCurrentLine.setter
     def highlightCurrentLine(self,value):
         self._highlightCurrentLine = bool(value)
-        if self._highlightCurrentLine:
-            self.updateCurrentLineHighlight()
-        else:
-            self.setExtraSelections([])
+        #self.update()
     
     #Completer
     @property
@@ -796,16 +795,42 @@ class CodeEditor(QtGui.QPlainTextEdit):
     
     def paintEvent(self,event):
         
+
+        
+        # Draw guides
+        self._paintCurrentLineHighlighter(event)
+        self._paintIndentationGuides(event)
+        self._paintLongLineIndicator(event)
+        
         #Draw the default QTextEdit, then update the lineNumberArea 
         QtGui.QPlainTextEdit.paintEvent(self,event)
         self._lineNumberArea.update(0, 0, 
                 self.getLineNumberAreaWidth(), self.height() )
+                
+    def _paintCurrentLineHighlighter(self,event):
+        """ _paintCurrentLineHighlighter(event)
         
-        # Draw guides
-        self._paintIndentationGuides(event)
-        self._paintLongLineIndicator(event)
-    
-    
+        Paints a rectangle spanning the current block (in case of line wrapping, this
+        measns multiple lines)
+        """
+        if not self.highlightCurrentLine:
+            return
+        
+        #Find the top of the current block, and the height
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.StartOfBlock)
+        top = self.cursorRect(cursor).top()
+        cursor.movePosition(cursor.EndOfBlock)
+        height = self.cursorRect(cursor).bottom() - top + 1
+        
+        margin = self.document().documentMargin()
+        painter = QtGui.QPainter()
+        painter.begin(self.viewport())
+        painter.fillRect(QtCore.QRect(margin, top, 
+            self.viewport().width() - 2*margin, height),
+            QtGui.QColor(Qt.yellow).lighter(160))
+        painter.end()
+        
     def _paintLineNumbers(self, event):
         """ _paintLineNumbers(event)
         
@@ -897,7 +922,6 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         # Init painter
         painter = QtGui.QPainter()
-        painter.setCompositionMode(painter.CompositionMode_DestinationOver)
         painter.begin(viewport)
         painter.setPen(QtGui.QColor('#DDF'))
         
@@ -913,6 +937,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
                     w = self.fontMetrics().width('i'*x) + doc.documentMargin()
                     w += 1 # Put it more under the block
+
                     painter.drawLine(QtCore.QLine(w, y3, w, y4))
  
             if y4>y2:
@@ -949,8 +974,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         
         # Draw long line indicator
         painter = QtGui.QPainter()
-        painter.setCompositionMode(painter.CompositionMode_DestinationOver)
-        painter.begin(viewport)
+        painter.begin(viewport)                
         painter.setPen(QtGui.QColor('#bbb'))
         painter.drawLine(QtCore.QLine(x, 0, x, self.height()) )
         painter.end()
