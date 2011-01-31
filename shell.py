@@ -33,36 +33,10 @@ class BaseShell(BaseTextCtrl):
     """
 
     
-    def __init__(self, parent):
-        BaseTextCtrl.__init__(self, parent)
+    def __init__(self, parent,**kwds):
+        super().__init__(parent, wrap = True, **kwds)
         
         self.setUndoRedoEnabled(False)
-#         # Tweak settings specific for shell
-#         self.setIndentationGuides(False)
-#         self.setMarginWidth(1,3)
-#         self.setWrapMode(self.WrapCharacter)
-#         self.setMarginLineNumbers(1,False)
-#         self.setEdgeMode(self.EDGE_LINE)
-#         self.setEdgeColumn(80)
-#         self.setHighlightCurrentLine(False)
-#         self.setEolMode(self.SC_EOL_LF)
-#         
-#         # Disable specif editing commands
-#         ctrl, shift = self.SCMOD_CTRL<<16, self.SCMOD_SHIFT<<16
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('D')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('L')+ ctrl+shift)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('T')+ ctrl+shift)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl)
-#         self.SendScintilla(self.SCI_CLEARCMDKEY, ord('U')+ ctrl+shift)
-        
-#         # Set shortcut
-#         keyseq = QtGui.QKeySequence('Ctrl+C')
-#         self._interruptShortcut = QtGui.QShortcut(keyseq, self)
-#         self._interruptShortcut.setContext(QtCore.Qt.WidgetShortcut)
-#         self._interruptShortcut.activated.connect(self.interrupt2)
-#         self._interruptShortcut.activatedAmbiguously.connect(self.interrupt2)
         
         # variables we need
         self._more = False

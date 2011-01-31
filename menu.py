@@ -513,7 +513,7 @@ class ViewMenu(BaseMenu):
         value = not bool( iep.config.view.wrapText ) 
         iep.config.view.wrapText = value
         for editor in iep.editors:
-            editor.wrap = value
+            editor.setWrap(value)
     
     def fun_braceMatch(self, value):
         """ Indicate matching braces and when no matching brace is found. """
@@ -544,7 +544,7 @@ class ViewMenu(BaseMenu):
                 value = 0
             iep.config.view.edgeColumn = value
             for editor in iep.editors:
-                editor.longLineIndicator = value
+                editor.setLongLineIndicatorPosition(value)
     
     def fun_indentGuides(self, value):
         """ Show vertical lines at each indentation level. """
@@ -554,7 +554,7 @@ class ViewMenu(BaseMenu):
             value = not bool( iep.config.view.showIndentGuides ) 
             iep.config.view.showIndentGuides = value
             for editor in iep.editors:
-                editor.showIndentationGuides = value
+                editor.setShowIndentationGuides(value)
     
     def fun_showWhiteSpace(self, value):
         """ Show tabs and spaces in the editor. """
@@ -565,7 +565,7 @@ class ViewMenu(BaseMenu):
         # apply
         iep.config.view.showWhiteSpace = value
         for editor in iep.editors:
-            editor.showWhitespace = value
+            editor.setShowWhitespace(value)
     
     def fun_showLineEndings(self, value):
         """ Show line endings in the editor. """
@@ -576,7 +576,7 @@ class ViewMenu(BaseMenu):
         # apply
         iep.config.view.showLineEndings = value
         for editor in iep.editors:
-            editor.showLineEndings = value
+            editor.setShowLineEndings(value)
     
     def fun_showWrapSymbols(self, value):
         """ Show wrap symbols in the editor. """
@@ -626,7 +626,7 @@ class ViewMenu(BaseMenu):
             value = not bool(iep.config.view.highlightCurrentLine)
             iep.config.view.highlightCurrentLine = value
             for editor in iep.editors:
-                editor.highlightCurrentLine = value
+                editor.setHighlightCurrentLine(value)
     
     def fun_codeFolding(self, value):
         """ Enable folding (hiding) pieces of code. """

@@ -570,8 +570,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
       when a string is given. 
     """
         
-    def __init__(self, parent):
-        codeeditor.CodeEditor.__init__(self,parent)
+    def __init__(self, parent,**kwds):
+        super().__init__(parent,**kwds)
 
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)
@@ -589,7 +589,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # The string with names given to SCI_AUTOCSHOW
         self._autoCompNameString = ''
 
-        self.completer.highlighted.connect(self.updateHelp)
+        self.completer().highlighted.connect(self.updateHelp)
         
     
     def callTipShow(self, pos, text, hl1=0, hl2=0):
