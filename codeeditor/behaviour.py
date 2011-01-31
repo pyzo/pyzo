@@ -117,8 +117,8 @@ class PythonAutoIndent:
                 indent=line[:len(line)-len(line.lstrip())]
                 if line.endswith(':'): #TODO: (multi-line) strings, comments
                     #TODO: check correct identation (no mixed space/tabs)
-                    if self.spaceTabs:
-                        indent+=' '*self.tabWidth
+                    if self.indentUsingSpaces():
+                        indent+=' '*self.indentWidth()
                     else:
                         indent+='\t'
                 cursor.insertText(indent)

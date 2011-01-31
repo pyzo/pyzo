@@ -345,7 +345,7 @@ class FindReplaceWidget(QtGui.QFrame):
                 # Hide if editor has focus
                 es = self.parent() # editor stack
                 editor = es.getCurrentEditor()
-                if editor.hasFocus():
+                if editor and editor.hasFocus():
                     self.hide()
     
     
