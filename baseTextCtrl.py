@@ -58,14 +58,6 @@ def normalizePath(path):
     drive, rest = os.path.splitdrive(path)
     fullpath = drive.upper() + sep
     
-#     if drive:
-#         # windows
-#         fullpath = drive.upper() + sep
-#     else:
-#         # posix/mac
-#         fullpath = sep
-#         parts = parts[2:] # as '/dev/foo/bar' becomes ['','dev','bar']
-    
     # make lowercase and split in parts    
     parts = rest.lower().split(os.sep)
     parts = [part for part in parts if part]

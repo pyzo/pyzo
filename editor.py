@@ -526,10 +526,7 @@ class IepEditor(BaseTextCtrl):
         self.document().setModified(False)
         
         # Go where we were (approximately)
-        #TODO:
-        #pos = self.getPositionFromLinenr(linenr) + index
-        #self.setPositionAndAnchor(pos)
-        #self.ensureCursorVisible()
+        self.gotoLine(linenr)
     
     
     def commentCode(self):

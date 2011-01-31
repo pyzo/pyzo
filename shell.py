@@ -371,20 +371,20 @@ class BaseShell(BaseTextCtrl):
         text = '\n'.join(lines2)
         return text
        
-    
-    def _limitNumberOfLines(self):
-        """ Reduces the amount of lines by 50% if above a certain threshold.
-        Does not reset the position of prompt or current position. 
-        """ 
-        L = self.length()
-        N = self.getLinenrFromPosition( L )
-        limit = iep.config.advanced.shellMaxLines
-        if N > limit:
-            # reduce text
-            pos = self.getPositionFromLinenr( int(N/2) )
-            self.setPosition(pos)
-            self.setAnchor(0)
-            self.removeSelectedText()
+    # todo: qt document class has buildin property for this
+#     def _limitNumberOfLines(self):
+#         """ Reduces the amount of lines by 50% if above a certain threshold.
+#         Does not reset the position of prompt or current position. 
+#         """ 
+#         L = self.length()
+#         N = self.getLinenrFromPosition( L )
+#         limit = iep.config.advanced.shellMaxLines
+#         if N > limit:
+#             # reduce text
+#             pos = self.getPositionFromLinenr( int(N/2) )
+#             self.setPosition(pos)
+#             self.setAnchor(0)
+#             self.removeSelectedText()
     
     
     def write(self, text):
