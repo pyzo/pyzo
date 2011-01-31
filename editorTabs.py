@@ -1019,9 +1019,7 @@ class EditorTabs(QtGui.QWidget):
     def dropEvent(self, event):
         """ Drop files in the list. """
         for qurl in event.mimeData().urls():
-            path = str( qurl.path() )
-            if sys.platform.startswith('win'):
-                path = path[1:]
+            path = str( qurl.toLocalFile() )
             if os.path.isfile(path):
                 self.loadFile(path)
             elif os.path.isdir(path):
