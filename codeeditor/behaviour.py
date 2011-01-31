@@ -122,3 +122,5 @@ class PythonAutoIndent:
                     else:
                         indent+='\t'
                 cursor.insertText(indent)
+                #This prevents jump to start of line when up key is pressed
+                self.setTextCursor(cursor)
