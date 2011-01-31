@@ -85,11 +85,10 @@ class IndentationGuides:
         cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
         
         # Get multiplication factor and indent width
-        if self.spaceTabs:
-            indentWidth = self.indentation
+        indentWidth = self.indentWidth()
+        if self.indentUsingSpaces():
             factor = 1 
         else:
-            indentWidth = self.tabWidth
             factor = indentWidth
         
         # Init painter

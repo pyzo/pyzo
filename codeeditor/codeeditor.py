@@ -122,33 +122,12 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         (python_syntax.MethodNameToken,(0x007F7F,'B')),
         (python_syntax.ClassNameToken,(0x0000FF,'B'))
         )
-    def __init__(self,*args):
+    def __init__(self,codeEditor,*args):
         QtGui.QSyntaxHighlighter.__init__(self,*args)
         #Init properties
-        self.indentation = False
-    ## Properties
-    @property
-    def indentation(self):
-        """
-        The number of spaces for each indentation level, or
-        0 when tabs are used for indentation
-        """
-        return self._indentation
-    
-    @indentation.setter
-    def indentation(self,value):
-        if (not value):
-            value = 0
-        self._indentation = int(value)
-        self.rehighlight()
-    
-    @property
-    def spaceTabs(self):
-        """ 
-        True when spaces are used and False when tabs are used
-        """
-        return bool(self.indentation)
-    
+        self._codeEditor = codeEditor
+        
+    ## Methods
     def getCurrentBlockUserData(self):
         """ getCurrentBlockUserData()
         
@@ -161,8 +140,8 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             self.setCurrentBlockUserData(bd)
         return bd
     
-    ## Methods
     def highlightBlock(self,line):
+        
         previousState=self.previousBlockState()
         
         self.setCurrentBlockState(0)
@@ -182,6 +161,9 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             if isinstance(token,python_syntax.ContinuationToken):
                 self.setCurrentBlockState(token.state)
         
+        #Get the indentation setting of the editor
+        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
+        
         # Get user data
         bd = self.getCurrentBlockUserData()
         
@@ -194,8 +176,8 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             format.setUnderlineColor(QtCore.Qt.red)
             format.setToolTip('Mixed tabs and spaces')
             self.setFormat(0,len(leadingWhitespace),format)
-        elif ('\t' in leadingWhitespace and self.spaceTabs) or \
-            (' ' in leadingWhitespace and not self.spaceTabs):
+        elif ('\t' in leadingWhitespace and indentUsingSpaces) or \
+            (' ' in leadingWhitespace and not indentUsingSpaces):
             #Whitespace differs from document setting
             bd.indentation = 0
             format=QtGui.QTextCharFormat()
@@ -215,7 +197,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 
         
 class CodeEditorBase(QtGui.QPlainTextEdit):
-    def __init__(self,**kwds):
+    def __init__(self,indentUsingSpaces = False, indentWidth = 4, **kwds):
         super().__init__(**kwds)
         
         # Set font (always monospace)
@@ -223,7 +205,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Create highlighter class
         # todo: attribute is not private
-        self.highlighter = Highlighter(self.document())
+        self.highlighter = Highlighter(self,self.document())
         
         #Default options
         option=self.document().defaultTextOption()
@@ -231,9 +213,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.document().setDefaultTextOption(option)
         
         #Init properties
-        self.indentation = 4
-        self.tabWidth = 4
-
+        self.setIndentUsingSpaces(indentUsingSpaces)
+        self.setIndentWidth(indentWidth)
+        
         self.cursorPositionChanged.connect(self.update) #TODO: this in highlightcurrentline?
 
     
@@ -306,41 +288,31 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     ## Properties
 
 
-    #NEW PROPERTY NAMES: indentWidth and indentUsingSpaces
-    
-    #tab size
-    @property
-    def tabWidth(self):
-        """Size of a tab stop in characters"""
-        return self._tabWidth
-        
-    @tabWidth.setter
-    def tabWidth(self,value):
-        self._tabWidth = int(value)
-        self.setTabStopWidth(self.fontMetrics().width('i')*self._tabWidth)
-        
-    @property
-    def spaceTabs(self):
+    def indentWidth(self):
         """
-        True when spaces are used and False when tabs are used
+        The width of a tab character, and also the amount of spaces to use for
+        indentation when indentUsingSpaces() is True
         """
-        return bool(self.indentation)
-    #indentation
-    @property
-    def indentation(self):
-        """
-        Number of spaces to insert when the tab key is pressed, or 
-        0 to insert tabs
-        """
-        return self._indentation
-    
-    @indentation.setter
-    def indentation(self,value):
-        if (not value): #Also support assignment by None or False etc
-            value = 0
-        self._indentation = int(value)
-        self.highlighter.indentation = self._indentation
+        return self.__indentWidth
 
+    def setIndentWidth(self, value):
+        value = int(value)
+        if value<=0:
+            raise ValueError("indentWidth must be >0")
+        self.__indentWidth = value
+        self.setTabStopWidth(self.fontMetrics().width('i'*self.__indentWidth))
+        
+    def indentUsingSpaces(self):
+        """
+        Selects whether to use spaces (if True) or tabs (if False) to indent
+        when the tab key is pressed
+        """
+        return self.__indentUsingSpaces
+ 
+    def setIndentUsingSpaces(self, value):
+        self.__indentUsingSpaces = bool(value)
+        self.highlighter.rehighlight()
+ 
     
     ## MISC
         
@@ -409,18 +381,18 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         cursor.movePosition(cursor.Right,cursor.KeepAnchor,len(leadingWhitespace))
         
         #Compute the new indentation length, expanding any existing tabs
-        indent = len(leadingWhitespace.expandtabs(self.tabWidth))
-        if self.spaceTabs:            
+        indent = len(leadingWhitespace.expandtabs(self.indentWidth()))
+        if self.indentUsingSpaces():            
             # Determine correction, so we can round to multiples of indentation
-            correction = indent % self.indentation
+            correction = indent % self.indentWidth()
             if correction and amount<0:
                 correction = - (self.indentation - correction) # Flip
             # Add the indentation tabs
-            indent += (self.indentation * amount) - correction
+            indent += (self.indentWidth() * amount) - correction
             cursor.insertText(' '*max(indent,0))
         else:
             # Convert indentation to number of tabs, and add one
-            indent = (indent // self.tabWidth) + amount
+            indent = (indent // self.indentWidth()) + amount
             cursor.insertText('\t' * max(indent,0))
             
     def dedentBlock(self,cursor):

@@ -34,7 +34,8 @@ view = dict:
 
 settings= dict:
     defaultStyle = 'python'
-    defaultIndentation = 4
+    defaultIndentWidth = 4
+    defaultIndentUsingSpaces = 1
     defaultLineEndings = '' # Set depending on OS
     #
     shellWrap80 = 1
