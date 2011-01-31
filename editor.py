@@ -246,24 +246,22 @@ class IepEditor(BaseTextCtrl):
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.pyqtSignal()
     
-    def __init__(self, parent, *args, **kwargs):
-        
-        # Init filename and name (For if show event is called from other init)
+    def __init__(self, parent, **kwds):
+        super().__init__(parent, showLineNumbers = True, **kwds)
+
+        # Init filename and name
         self._filename = ''
         self._name = '<TMP>'
         
-        BaseTextCtrl.__init__(self, parent, *args, **kwargs)
-        self.showLineNumbers = True
-        
         # View settings
-        self.showWhitespace = iep.config.view.showWhiteSpace
+        self.setShowWhitespace(iep.config.view.showWhiteSpace)
         #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
-        self.showLineEndings = iep.config.view.showLineEndings
-        self.showIndentationGuides  = iep.config.view.showIndentGuides
+        self.setShowLineEndings(iep.config.view.showLineEndings)
+        self.setShowIndentationGuides(iep.config.view.showIndentGuides)
         #
-        self.wrap = iep.config.view.wrapText
-        self.highlightCurrentLine = iep.config.view.highlightCurrentLine
-        self.longLineIndicator = iep.config.view.edgeColumn
+        self.setWrap(iep.config.view.wrapText)
+        self.setHighlightCurrentLine(iep.config.view.highlightCurrentLine)
+        self.setLongLineIndicatorPosition(iep.config.view.edgeColumn)
         #TODO: self.setFolding( int(view.codeFolding)*5 )        
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth

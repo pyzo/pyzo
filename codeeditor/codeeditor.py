@@ -1,12 +1,110 @@
+"""
+Extensible Code Editor
+
+
+"""
+
+"""
+WRITING EXTENSIONS FOR THE CODE EDITOR
+
+The Code Editor extension mechanism works solely based on inheritance.
+Extensions can override event handlers (e.g. paintEvent, keyPressEvent). Their
+default behaviour should be to call their super() event handler. This way,
+events propagate through the extensions following Python's method resolution
+order (http://www.python.org/download/releases/2.3/mro/).
+
+A 'fancy' code editor with extensions is created like:
+
+class FancyEditor( Extension1, Extension2, ... CodeEditorBase):
+    pass
+
+The order of the extensions does usually matter! If multiple Extensions process
+the same key press, the first one has the first chance to consume it.
+
+OVERRIDING __init__
+
+An extensions' __init__ method (if required) should look like this:
+class Extension:
+    def __init__(self, extensionParam1 = 1, extensionParam2 = 3, **kwds):
+        super().__init__(**kwds)
+        some_extension_init_stuff()
+        
+Note the following points:
+ - All parameters have default values
+ - the use of **kwds ensures that parametes that are not defined by this 
+   extension, are passed to the next extension(s) in line.
+ - The call to super().__init__ is the first thing to do, this ensures that at
+   least the CodeEditorBase and QPlainTextEdit, of which the CodeEditorBase is
+   derived, are initialized when the initialization of the extension is done
+
+OVERRIDING keyPressEvent
+
+When overriding keyPressEvent, the extension has several options when an event
+arrives:
+ - Ignore the event
+     In this case, call super().keyPressEvent(event) for other extensions or the
+     CodeEditorBase to process the event
+ - Consume the event
+     In order to prevent other next extensions or the CodeEditorBase to react
+     on the event, return without calling the super().keyPressEvent
+ - Do something based on the event, and do not let the event propagate
+     In this case, do whatever action is defined by the extension, and do not
+     call the super().keyPressEvent
+ - Do something based on the event, and let the event propagate
+     In this case, do whatever action is defined by the extension, and do call
+     the super().keyEvent
+
+In any case, the keyPressEvent should not return a value (i.e., return None).
+Furthermore, an extension may also want to perform some action *after* the
+event has been processed by the next extensions and the CodeEditorBase. In this
+case, perform that action after calling super().keyPressEvent
+
+OVERRIDING paintEvent
+
+Then overriding the paintEvent, the extension may want to paint either behind or
+in front of the CodeEditorBase text. In order to paint behind the text, first
+perform the painting, and then call super().paintEvent. In order to paint in
+front of the text, first call super().paintEvent, then perform the painting.
+
+As a result, the total paint order is as follows for the example of the
+FancyEditor defined above:
+- First the extensions that draw behind the text (i.e. paint before calling
+  super().paintEvent, in the order Extension1, Extension2, ...
+- then the CodeEditorBase, with the text
+- then the extensions that draw in front of the text (i.e. call 
+  super().paintEvent before painting), in the order ..., Extension2, Extension1
+  
+OVERRIDING OTHER EVENT HANDLERS
+
+When overriding other event handlers, be sure to call the super()'s event
+handler; either before or after your own actions, as appropriate
+
+OTHER ISSUES
+
+In order to avoid namespace clashes among the extensions, take the following
+into account:
+ - Private members should start with __ to make ensure no clashes will occur
+ - Public members / methods should have names that clearly indicate which
+   extension they belong to (e.g. not cancel but autocompleteCancel)
+ - Arguments of the __init__ method should also have clearly destictive names
+
+"""
 import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
-
 import keyword
 if __name__ == '__main__':
     import python_syntax
+    import appearance
+    import autocompletion
+    import behaviour
+    import calltip
 else:
     from . import python_syntax
+    from . import appearance
+    from . import autocompletion
+    from . import behaviour
+    from . import calltip
 
 class BlockData(QtGui.QTextBlockUserData):
     def __init__(self):
@@ -111,50 +209,14 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             bd.indentation = len(leadingWhitespace)
 
 
-class LineNumberArea(QtGui.QWidget):
-    """ This is the widget reponsible for drawing the line numbers.
-    """
-    
-    def __init__(self, codeEditor):
-        QtGui.QWidget.__init__(self, codeEditor)
-    
-    def codeEditor(self): 
-        """ codeEditor()
+
+
+
+
         
-        Get the associated code editor.
-        
-        """
-        return self.parent()
-    
-    
-    def paintEvent(self, event):
-        # The paint method is implemented at the code editor, near
-        # the paint methods for indent guides and long line indicator.
-        self.codeEditor()._paintLineNumbers(event)
-
-
-class CalltipLabel(QtGui.QLabel):
-    
-    def __init__(self):
-        QtGui.QLabel.__init__(self)
-        
-        # Start hidden
-        self.hide()
-        # Accept rich text
-        self.setTextFormat(QtCore.Qt.RichText)
-        # Set appearance
-        self.setStyleSheet("QLabel { background:#ff9; border:1px solid #000; }")
-        # Show as tooltip
-        self.setWindowFlags(QtCore.Qt.ToolTip)
-    
-    def enterEvent(self, event):
-        # Act a bit like a tooltip
-        self.hide()
-
-
-class CodeEditor(QtGui.QPlainTextEdit):
-    def __init__(self,*args,**kwds):
-        QtGui.QPlainTextEdit.__init__(self,*args,**kwds)
+class CodeEditorBase(QtGui.QPlainTextEdit):
+    def __init__(self,**kwds):
+        super().__init__(**kwds)
         
         # Set font (always monospace)
         self.setFont()
@@ -163,50 +225,17 @@ class CodeEditor(QtGui.QPlainTextEdit):
         # todo: attribute is not private
         self.highlighter = Highlighter(self.document())
         
-        # Create widget that draws the line numbers
-        self._lineNumberArea = LineNumberArea(self)
-        
-        # Autocompleter
-        self._completerModel=QtGui.QStringListModel(keyword.kwlist)
-        self._completer=QtGui.QCompleter(self._completerModel, self)
-        self._completer.setCaseSensitivity(Qt.CaseInsensitive)
-        self._completer.setWidget(self)
-        self._completerNames=[]
-        self._recentCompletions=[] #List of recently selected completions
-        
-        # Text position corresponding to first charcter of the word being completed
-        self._autocompleteStart=None
-        
-        # Create label for call tips
-        self._calltipLabel = CalltipLabel()
-        
-        
         #Default options
         option=self.document().defaultTextOption()
-        option.setFlags(option.IncludeTrailingSpaces|option.AddSpaceForLineAndParagraphSeparators)
+        option.setFlags(option.flags()|option.IncludeTrailingSpaces|option.AddSpaceForLineAndParagraphSeparators)
         self.document().setDefaultTextOption(option)
         
         #Init properties
-        self.wrap = True
-        self.showWhitespace = False
-        self.showLineEndings = False
-        self.showLineNumbers = False
-        self.showIndentationGuides = True
-        self.highlightCurrentLine = False
         self.indentation = 4
         self.tabWidth = 4
-        self.longLineIndicator = 80
 
-        #Connect signals
-        self.connect(self._completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
-        self.cursorPositionChanged.connect(self.update)
-        self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
-    
-    
-    
-    def focusOutEvent(self, event):
-        QtGui.QPlainTextEdit.focusOutEvent(self, event)
-        self._calltipLabel.hide()
+        self.cursorPositionChanged.connect(self.update) #TODO: this in highlightcurrentline?
+
     
     ## Font
     
@@ -276,98 +305,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
     
     ## Properties
 
-    #wrap
-    @property
-    def wrap(self):
-        option=self.document().defaultTextOption()
-        return not bool(option.wrapMode() == option.NoWrap)
-        
-    @wrap.setter
-    def wrap(self,value):
-        option=self.document().defaultTextOption()
-        if value:
-            option.setWrapMode(option.WrapAtWordBoundaryOrAnywhere)
-        else:
-            option.setWrapMode(option.NoWrap)
-        self.document().setDefaultTextOption(option)
-    
-    
-    #show line numbers
-    @property
-    def showLineNumbers(self):
-        return self._showLineNumbers
-    
-    @showLineNumbers.setter
-    def showLineNumbers(self,value):
-        self._showLineNumbers = bool(value)
-        if self._showLineNumbers:
-            self.updateLineNumberAreaWidth()
-            self._lineNumberArea.show()
-        else:
-            self.setViewportMargins(0,0,0,0)
-            self._lineNumberArea.hide()
-    
-    
-    #show indentation guides
-    @property
-    def showIndentationGuides(self):
-        return self._showIndentationGuides
-    
-    @showIndentationGuides.setter
-    def showIndentationGuides(self,value):
-        self._showIndentationGuides = bool(value)
-        self.hide(); self.show()
-    
-    
-    #show whitespace
-    @property
-    def showWhitespace(self):
-        """Show or hide whitespace markers"""
-        option=self.document().defaultTextOption()
-        return bool(option.flags() & option.ShowTabsAndSpaces)
-        
-    @showWhitespace.setter
-    def showWhitespace(self,value):
-        option=self.document().defaultTextOption()
-        if value:
-            option.setFlags(option.flags() | option.ShowTabsAndSpaces)
-        else:
-            option.setFlags(option.flags() & ~option.ShowTabsAndSpaces)
-        self.document().setDefaultTextOption(option)
-    
-    #show line endings
-    @property
-    def showLineEndings(self):
-        """Show or hide line ending markers"""
-        option=self.document().defaultTextOption()
-        return bool(option.flags() & option.ShowLineAndParagraphSeparators)
-        
-    @showLineEndings.setter
-    def showLineEndings(self,value):
-        option=self.document().defaultTextOption()
-        if value:
-            option.setFlags(option.flags() | option.ShowLineAndParagraphSeparators)
-        else:
-            option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
-        self.document().setDefaultTextOption(option)
-    
-    
-    @property
-    def longLineIndicator(self):
-        """ The position of the long line indicator 
-        (0 or False means not visible). 
-        """
-        return self._longLineIndicator
-    
-    @longLineIndicator.setter
-    def longLineIndicator(self,value):
-        if not isinstance(value, int):
-            raise ValueError('Long line indicator must be an int.')
-        if value < 0:
-            value = 0
-        self._longLineIndicator = int(value)
-        self.hide(); self.show()
-    
+
     #NEW PROPERTY NAMES: indentWidth and indentUsingSpaces
     
     #tab size
@@ -402,36 +340,8 @@ class CodeEditor(QtGui.QPlainTextEdit):
             value = 0
         self._indentation = int(value)
         self.highlighter.indentation = self._indentation
+
     
-    #highlight current line
-    @property
-    def highlightCurrentLine(self):
-        return self._highlightCurrentLine
-    
-    @highlightCurrentLine.setter
-    def highlightCurrentLine(self,value):
-        self._highlightCurrentLine = bool(value)
-        #self.update()
-    
-    #Completer
-    @property
-    def completer(self):
-        return self._completer
-    
-    #Recent completions
-    @property
-    def recentCompletions(self):
-        """ 
-        The list of recent auto-completions. This property may be set to a
-        list that is shared among several editors, in order to share the notion
-        of recent auto-completions
-        """
-        return self._recentCompletions
-    
-    @recentCompletions.setter
-    def recentCompletions(self,value):
-        self._recentCompletions = value
-        
     ## MISC
         
     def gotoLine(self,lineNumber):
@@ -442,19 +352,7 @@ class CodeEditor(QtGui.QPlainTextEdit):
         block = self.document().findBlockByNumber( lineNumber + 1)
         cursor.setPosition(block.position())
         self.setTextCursor(cursor)
-        
-    def _cursorIsInLeadingWhitespace(self,cursor = None):
-        """
-        Checks wether the given cursor is in the leading whitespace of a block, i.e.
-        before the first non-whitespace character. The cursor is not modified.
-        If the cursor is not given or is None, the current textCursor is used
-        """
-        if cursor is None:
-            cursor = self.textCursor()
-        
-        # Get the text of the current block up to the cursor
-        textBeforeCursor = cursor.block().text()[:cursor.positionInBlock()]
-        return textBeforeCursor.lstrip() == '' #If we trim it and it is empty, it's all whitespace
+    
         
     def doForSelectedBlocks(self,function):
         """
@@ -481,8 +379,10 @@ class CodeEditor(QtGui.QPlainTextEdit):
             
         editCursor.setPosition(screenCursor.selectionStart())
         editCursor.movePosition(editCursor.StartOfBlock)
-        # < : if selection end is at beginning of the block, don't include that one
-        while editCursor.position()<screenCursor.selectionEnd(): 
+        # < :if selection end is at beginning of the block, don't include that
+        #one, except when the selectionStart is same as selectionEnd
+        while editCursor.position()<screenCursor.selectionEnd() or \
+                editCursor.position()<=screenCursor.selectionStart(): 
             #Create a copy of the editCursor and call the user-supplied function
             editCursorCopy = QtGui.QTextCursor(editCursor)
             function(editCursorCopy)
@@ -555,554 +455,41 @@ class CodeEditor(QtGui.QPlainTextEdit):
     def setStyle(self,style):
         #TODO: to be implemented
         pass
-        
-#     def _lineNumberAreaPaintEvent(self,event):
-#         painter = QtGui.QPainter(self._lineNumberArea)
-#         cursor = self.cursorForPosition(self.viewport().pos())
-#         
-#         #Draw the background
-#         painter.fillRect(event.rect(),Qt.lightGray)
-#         
-#         # Init painter
-#         painter.setPen(Qt.black)
-#         painter.setFont(self.font())
-#         
-#         #Repainting always starts at the first block in the viewport,
-#         #regardless of the event.rect().y(). Just to keep it simple
-#         while True:
-#             blockNumber=cursor.block().blockNumber()
-#             
-#             y=self.cursorRect(cursor).y()+self.viewport().pos().y()+1 #Why +1?
-#             painter.drawText(0,y,self.getLineNumberAreaWidth()-2,50,
-#                 Qt.AlignRight,str(blockNumber+1))
-#             
-#             if y>event.rect().bottom():
-#                 break #Reached end of the repaint area
-#             if not cursor.block().next().isValid():
-#                 break #Reached end of the text
+
+    
+
+
+
+                
+
+# Order of superclasses: first the extensions, then CodeEditorBase
+# The first superclass is the first extension that gets to handle each key
 # 
-#             cursor.movePosition(cursor.NextBlock)
+class CodeEditor(
+    appearance.HighlightCurrentLine, 
+    appearance.IndentationGuides, 
+    appearance.LongLineIndicator, 
+    appearance.ShowWhitespace,
+    appearance.ShowLineEndings,
+    appearance.Wrap,
+    appearance.LineNumbers, 
+
+    autocompletion.AutoCompletion, #Escape: first remove autocompletion,
+    calltip.Calltip,               #then calltip
     
-    def getLineNumberAreaWidth(self):
-        """
-        Count the number of lines, compute the length of the longest line number
-        (in pixels)
-        """
-        if not self.showLineNumbers:
-            return 0
-        lastLineNumber = self.blockCount() 
-        return self.fontMetrics().width(str(lastLineNumber)) + 6 # margin
+    behaviour.Indentation,
+    behaviour.HomeKey,
+    behaviour.EndKey,
+    
+    behaviour.PythonAutoIndent,
+    
+    CodeEditorBase):  #CodeEditorBase must be the last one in the list
+    """
+    CodeEditor with all the extensions
+    """
+    pass
 
         
-    ##Custom signal handlers
-    def updateCurrentLineHighlight(self):
-        """Create a selection region that shows the current line"""
-        #Taken from the codeeditor.cpp example
-        if not self.highlightCurrentLine:
-            return
-        
-        selection = QtGui.QTextEdit.ExtraSelection()
-        lineColor = QtGui.QColor(Qt.yellow).lighter(160);
-
-        selection.format.setBackground(lineColor);
-        selection.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
-        selection.cursor = self.textCursor();
-        selection.cursor.clearSelection();
-        self.setExtraSelections([selection])
-    
-    
-    def updateLineNumberAreaWidth(self,count=None):
-        """ updateLineNumberAreaWidth()
-        
-        Update the line number area width. This requires to set the 
-        viewport margins, so there is space to draw the linenumber area
-        widget.
-        
-        """
-        if self.showLineNumbers:
-            self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
-    
-    
-    ## Autocompletion
-    def autocompleteShow(self,offset = 0,names = None):
-        """
-        Pop-up the autocompleter (if not already visible) and position it at current
-        cursor position minus offset. If names is given and not None, it is set
-        as the list of possible completions.
-        """
-        #Pop-up the autocompleteList
-        startcursor=self.textCursor()
-        startcursor.movePosition(startcursor.Left, n=offset)
-        
-        if not self.autocompleteActive() or \
-            startcursor.position() != self._autocompleteStart:
-
-            self._autocompleteStart=startcursor.position()
-
-            #Popup the autocompleter. Don't use .complete() since we want to
-            #position the popup manually
-            self._positionAutocompleter()
-            self._updateAutocompleterPrefix()
-            self._completer.popup().show()
-        
-
-        if names is not None:
-            #TODO: a more intelligent implementation that adds new items and removes
-            #old ones
-            if names != self._completerNames:
-                self._completerModel.setStringList(names)
-                self._completerNames = names
-
-        self._updateAutocompleterPrefix()
-    def autocompleteAccept(self):
-        pass
-    def autocompleteCancel(self):
-        self._completer.popup().hide()
-        self._autocompleteStart = None
-        
-    def onAutoComplete(self,text):
-        #Select the text from autocompleteStart until the current cursor
-        cursor=self.textCursor()
-        cursor.setPosition(self._autocompleteStart,cursor.KeepAnchor)
-        #Replace it with the selected text 
-        cursor.insertText(text)
-        self._autocompleteStart=None
-        self.autocompleteCancel() #Reset the completer
-        
-        #Update the recent completions list
-        if text in self._recentCompletions:
-            self._recentCompletions.remove(text)
-        self._recentCompletions.append(text)
-        
-    def autocompleteActive(self):
-        """ Returns whether an autocompletion list is currently shown. 
-        """
-        return self._autocompleteStart is not None
-    
-        
-    def _positionAutocompleter(self):
-        """Move the autocompleter list to a proper position"""
-        #Find the start of the autocompletion and move the completer popup there
-        cur=self.textCursor()
-        cur.setPosition(self._autocompleteStart)
-        position = self.cursorRect(cur).bottomLeft() + \
-            self.viewport().pos() #self.geometry().topLeft() +
-        self._completer.popup().move(self.mapToGlobal(position))
-        
-        #Set size
-        geometry = self._completer.popup().geometry()
-        geometry.setWidth(200)
-        geometry.setHeight(100)
-        self._completer.popup().setGeometry(geometry)
-    
-    def _updateAutocompleterPrefix(self):
-        """
-        Find the autocompletion prefix (the part of the word that has been 
-        entered) and send it to the completer
-        """
-        prefix=self.toPlainText()[self._autocompleteStart:
-        self.textCursor().position()]
-
-        self._completer.setCompletionPrefix(prefix)
-        model = self._completer.completionModel()
-        if model.rowCount():
-            #Iterate over the matches, find the one that was most recently used
-            #print (self._recentCompletions)
-            recentFound = -1
-            recentFoundRow = 0 #If no recent match, just select the first match
-            
-            for row in range(model.rowCount()):
-                data = model.data(model.index(row,0),self._completer.completionRole())
-                if not data in self._recentCompletions:
-                    continue
-                
-                index = self._recentCompletions.index(data)
-                if index > recentFound: #Later in the list = more recent
-                    recentFound, recentFoundRow = index, row
-
-            
-            self._completer.popup().setCurrentIndex(model.index(recentFoundRow,0));
-
-                
-        else:
-            #No match, just hide
-            self.autocompleteCancel()
-    
-    
-    ## Calltips
-    
-    def calltipShow(self, offset=0, richText='', highlightFunctionName=True):
-        """ calltipShow(offset=0, richText='', highlightFunctionName=True)
-        
-        Shows the given calltip.
-        
-        """
-        
-        # Process calltip text?
-        if highlightFunctionName:
-            i = richText.find('(')
-            if i>0:
-                richText = '<b>{}</b>{}'.format(richText[:i], richText[i:])
-        
-        # Get a cursor to establish the position to show the calltip
-        startcursor=self.textCursor()
-        startcursor.movePosition(startcursor.Left, n=offset)
-        
-        # Get position in pixel coordinates
-        rect = self.cursorRect(startcursor)
-        pos = rect.topLeft()
-        pos.setY( pos.y() - rect.height() )
-        #pos.setX( pos.x() + self.viewport().pos().x() + 1 )
-        pos = self.viewport().mapToGlobal(pos)
-        
-        # Set text and update font
-        self._calltipLabel.setText(richText)
-        self._calltipLabel.setFont(self.font())
-        
-        # Use a qt tooltip to show the calltip
-        if richText:
-            self._calltipLabel.move(pos)
-            self._calltipLabel.show()
-        else:
-            self._calltipLabel.hide()
-    
-    
-    def calltipCancel(self):
-        """ calltipCancel()
-        
-        Hides the calltip.
-        
-        """
-        self._calltipLabel.hide()
-    
-    def calltipActive(self):
-        """ calltipActive()
-        
-        Get whether the calltip is currently active.
-        
-        """
-        return self._calltipLabel.isVisible()
-    
-    
-    ##Overridden Event Handlers
-    def resizeEvent(self,event):
-        QtGui.QPlainTextEdit.resizeEvent(self,event)
-        rect=self.contentsRect()
-        #On resize, resize the lineNumberArea, too
-        self._lineNumberArea.setGeometry(rect.x(),rect.y(),
-            self.getLineNumberAreaWidth(),rect.height())
-    
-    
-    def paintEvent(self,event):
-        
-
-        
-        # Draw guides
-        self._paintCurrentLineHighlighter(event)
-        self._paintIndentationGuides(event)
-        self._paintLongLineIndicator(event)
-        
-        #Draw the default QTextEdit, then update the lineNumberArea 
-        QtGui.QPlainTextEdit.paintEvent(self,event)
-        self._lineNumberArea.update(0, 0, 
-                self.getLineNumberAreaWidth(), self.height() )
-                
-    def _paintCurrentLineHighlighter(self,event):
-        """ _paintCurrentLineHighlighter(event)
-        
-        Paints a rectangle spanning the current block (in case of line wrapping, this
-        measns multiple lines)
-        """
-        if not self.highlightCurrentLine:
-            return
-        
-        #Find the top of the current block, and the height
-        cursor = self.textCursor()
-        cursor.movePosition(cursor.StartOfBlock)
-        top = self.cursorRect(cursor).top()
-        cursor.movePosition(cursor.EndOfBlock)
-        height = self.cursorRect(cursor).bottom() - top + 1
-        
-        margin = self.document().documentMargin()
-        painter = QtGui.QPainter()
-        painter.begin(self.viewport())
-        painter.fillRect(QtCore.QRect(margin, top, 
-            self.viewport().width() - 2*margin, height),
-            QtGui.QColor(Qt.yellow).lighter(160))
-        painter.end()
-        
-    def _paintLineNumbers(self, event):
-        """ _paintLineNumbers(event)
-        
-        Paint the line numbers in the document margin.
-        Called by the LineNumberArea widget, but placed here because
-        it so much resembles the other paint handlers.
-        
-        """ 
-        
-        if not self.showLineNumbers:
-            return
-        
-        # Get doc and viewport
-        doc = self.document()
-        viewport = self.viewport()
-        
-        # Init painter
-        painter = QtGui.QPainter()
-        painter.begin(self._lineNumberArea)
-        
-        # Get which part to paint. Just do all to avoid glitches
-        w = self.getLineNumberAreaWidth()
-        y1, y2 = 0, self.height()
-        #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
-
-        # Get offset        
-        tmp = self._lineNumberArea.mapToGlobal(QtCore.QPoint(0,0))
-        offset = viewport.mapFromGlobal(tmp).y()
-        
-        #Draw the background        
-        painter.fillRect(QtCore.QRect(0, y1, w, y2), QtGui.QColor('#DDD'))
-        
-        # Get cursor
-        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
-        
-        # Init painter
-        painter.setPen(QtGui.QColor('#222'))
-        painter.setFont(self.font())
-        
-        #Repainting always starts at the first block in the viewport,
-        #regardless of the event.rect().y(). Just to keep it simple
-        while True:
-            blockNumber=cursor.block().blockNumber()
-            
-            y=self.cursorRect(cursor).y()#+self.viewport().pos().y()+1 #Why +1?
-            painter.drawText(0,y-offset,self.getLineNumberAreaWidth()-3,50,
-                Qt.AlignRight,str(blockNumber+1))
-            
-            if y>y2:
-                break #Reached end of the repaint area
-            if not cursor.block().next().isValid():
-                break #Reached end of the text
-            
-            cursor.movePosition(cursor.NextBlock)
-        
-        # Done
-        painter.end()
-    
-    
-    def _paintIndentationGuides(self, event):
-        """ _paintIndentationGuides(event)
-        
-        Paint the indentation guides, using the indentation info calculated
-        by the highlighter.
-        
-        """ 
-        if not self.showIndentationGuides:
-            return
-        
-        # Get doc and viewport
-        doc = self.document()
-        viewport = self.viewport()
-        
-        # Get which part to paint. Just do all to avoid glitches
-        w = self.getLineNumberAreaWidth()
-        y1, y2 = 0, self.height()
-        #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
-        
-        # Get cursor
-        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
-        
-        # Get multiplication factor and indent width
-        if self.spaceTabs:
-            indentWidth = self.indentation
-            factor = 1 
-        else:
-            indentWidth = self.tabWidth
-            factor = indentWidth
-        
-        # Init painter
-        painter = QtGui.QPainter()
-        painter.begin(viewport)
-        painter.setPen(QtGui.QColor('#DDF'))
-        
-        #Repainting always starts at the first block in the viewport,
-        #regardless of the event.rect().y(). Just to keep it simple
-        while True:
-            blockNumber=cursor.block().blockNumber()
-            y3=self.cursorRect(cursor).top()
-            y4=self.cursorRect(cursor).bottom()            
-            
-            bd = cursor.block().userData()            
-            if bd.indentation:
-                for x in range(indentWidth, bd.indentation * factor, indentWidth):
-                    w = self.fontMetrics().width('i'*x) + doc.documentMargin()
-                    w += 1 # Put it more under the block
-
-                    painter.drawLine(QtCore.QLine(w, y3, w, y4))
- 
-            if y4>y2:
-                break #Reached end of the repaint area
-            if not cursor.block().next().isValid():
-                break #Reached end of the text
-            
-            cursor.movePosition(cursor.NextBlock)
-        
-        # Done
-        painter.end()
-    
-    
-    
-    def _paintLongLineIndicator(self, event):
-        """ _paintLongLineIndicator()
-        
-        Paint the long line indicator.
-        
-        """
-        if not self.longLineIndicator:
-            return
-            
-        # Get doc and viewport
-        doc = self.document()
-        viewport = self.viewport()
-
-        # Get position of long line
-        fm = self.fontMetrics()
-        # width of ('i'*length) not length * (width of 'i') b/c of
-        # font kerning and rounding
-        x = fm.width('i' * self.longLineIndicator) + doc.documentMargin()
-        x += 1 # Otherwise it will hide the cursor (at least on Windows)
-        
-        # Draw long line indicator
-        painter = QtGui.QPainter()
-        painter.begin(viewport)                
-        painter.setPen(QtGui.QColor('#bbb'))
-        painter.drawLine(QtCore.QLine(x, 0, x, self.height()) )
-        painter.end()
-    
-
-    def keyPressEvent(self,event):
-        #TODO: backspacing over tabs
-        key = event.key()
-        modifiers = event.modifiers()
-        
-        if key == Qt.Key_Escape and modifiers == Qt.NoModifier:
-            self.autocompleteCancel()
-            self._calltipLabel.hide()
-            return
-        
-        #Tab key
-        if key == Qt.Key_Tab:
-            if modifiers == Qt.NoModifier:
-                if self.autocompleteActive():
-                    #Let the completer handle this one!
-                    event.ignore()
-                    return
-                    
-                elif self.textCursor().hasSelection(): #Tab pressed while some area was selected
-                    self.indentSelection()
-                    return
-                elif self._cursorIsInLeadingWhitespace():
-                    #If the cursor is in the leading whitespace, indent and move cursor to end of whitespace
-                    cursor = self.textCursor()
-                    self.indentBlock(cursor)
-                    self.setTextCursor(cursor)
-                    return
-                    
-                elif self.indentation:
-                    #Insert space-tabs
-                    cursor=self.textCursor()
-                    cursor.insertText(' '*(self.indentation-((cursor.columnNumber() + self.indentation )%self.indentation)))
-                    return
-                #else: default behaviour, insert tab character
-            else: #Some other modifiers + Tab: ignore
-                return
-
-        # If backspace is pressed in the leading whitespace, (except for at the first 
-        # position of the line), and there is no selection
-        # dedent that line and move cursor to end of whitespace
-        if key == Qt.Key_Backspace and modifiers == Qt.NoModifier and \
-                self._cursorIsInLeadingWhitespace() and not self.textCursor().atBlockStart() \
-                and not self.textCursor().hasSelection():
-            # Create a cursor, dedent the block and move screen cursor to the end of the whitespace
-            cursor = self.textCursor()
-            self.dedentBlock(cursor)
-            self.setTextCursor(cursor)
-            return
-        
-        # todo: Same for delete, I think not (what to do with the cursor?)
-    
-        
-        # Home
-        if key == Qt.Key_Home and modifiers in [Qt.NoModifier, Qt.ShiftModifier]:
-            # Prepare
-            cursor = self.textCursor()
-            shiftDown = modifiers == Qt.ShiftModifier
-            # Get leading whitespace
-            text = cursor.block().text()            
-            leadingWhitespace = text[:len(text)-len(text.lstrip())]
-            # Get current position and move to start of whitespace
-            i = cursor.positionInBlock()
-            cursor.movePosition(cursor.StartOfBlock, shiftDown)
-            cursor.movePosition(cursor.Right, shiftDown, len(leadingWhitespace))
-            # If we were alread there, move to start of block
-            if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.StartOfBlock, shiftDown)
-            # Done
-            self.setTextCursor(cursor)
-            event.accept()
-            return                             
-                
-        
-        # End
-        if key == Qt.Key_End and modifiers in [Qt.NoModifier, Qt.ShiftModifier]:
-            # Prepare
-            cursor = self.textCursor()
-            shiftDown = modifiers == Qt.ShiftModifier
-            # Get current position and move to end of line
-            i = cursor.positionInBlock()
-            cursor.movePosition(cursor.EndOfLine, shiftDown)
-            # If alread at end of line, move to end of block
-            if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.EndOfBlock, shiftDown)
-            # Done
-            self.setTextCursor(cursor)
-            event.accept()
-            return
-        
-        #Allowed keys that do not close the autocompleteList:
-        # alphanumeric and _ ans shift
-        # Backspace (until start of autocomplete word)
-        if self.autocompleteActive() and \
-            not event.text().isalnum() and event.text != '_' and \
-            event.key() != Qt.Key_Shift and not (
-            (key==Qt.Key_Backspace) and self.textCursor().position()>self._autocompleteStart):
-            self.autocompleteCancel()
-            
-        #Apply the key
-        QtGui.QPlainTextEdit.keyPressEvent(self,event)
-
-        #Auto-indent
-        if key in (Qt.Key_Enter,Qt.Key_Return):
-            cursor=self.textCursor()
-            previousBlock=cursor.block().previous()
-            if previousBlock.isValid():
-                line=previousBlock.text()
-                indent=line[:len(line)-len(line.lstrip())]
-                if line.endswith(':'): #TODO: (multi-line) strings, comments
-                    #TODO: check correct identation (no mixed space/tabs)
-                    if self.spaceTabs:
-                        indent+=' '*self.tabWidth
-                    else:
-                        indent+='\t'
-                cursor.insertText(indent)
-                
-        if self.autocompleteActive():
-            #While we type, the start of the autocompletion may move due to line
-            #wrapping, so reposition after every key stroke
-            self._positionAutocompleter()
-            self._updateAutocompleterPrefix()
-
-
 
 if __name__=='__main__':
     app=QtGui.QApplication([])
@@ -1115,15 +502,19 @@ if __name__=='__main__':
             elif key == Qt.Key_F2:
                 self.autocompleteCancel()
                 return
+            elif key == Qt.Key_F3:
+                self.calltipShow(0, 'test(foo, bar)')
+                return
             elif key == Qt.Key_Backtab: #Shift + Tab
                 self.dedentSelection()
+                return
            
-            CodeEditor.keyPressEvent(self,event)
-            self.calltipShow(0, 'test(foo, bar)')
+            super().keyPressEvent(event)
+            
         
-    e=TestEditor()
-    e.showLineNumbers = True
-    e.showWhitespace = True
+    e=TestEditor(highlightCurrentLine = True, longLineIndicatorPosition = 20,
+        showIndentationGuides = True, showWhitespace = True, 
+        showLineEndings = True, wrap = True, showLineNumbers = True)
     e.show()
     s=QtGui.QSplitter()
     s.addWidget(e)
