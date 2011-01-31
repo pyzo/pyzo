@@ -7,6 +7,7 @@ state = dict:
     find_matchCase = 0
     find_wholeWord = 0
     find_show = 0
+    find_autoHide = 1
     editorState = '' # What files where loaded and where the cursor was
     loadedTools = []
     windowState = '' # Of window and tools    
@@ -54,6 +55,7 @@ advanced = dict:
     autoCompDelay = 200
     titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
     homeAndEndWorkOnDisplayedLine = 0
+    find_autoHide_timeout = 10
   
 tools = dict:
     ieplogger = dict:
