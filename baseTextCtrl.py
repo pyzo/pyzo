@@ -563,8 +563,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
       when a string is given. 
     """
         
-    def __init__(self, parent,**kwds):
-        super().__init__(parent,**kwds)
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
 
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)

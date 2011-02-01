@@ -25,13 +25,16 @@ OVERRIDING __init__
 
 An extensions' __init__ method (if required) should look like this:
 class Extension:
-    def __init__(self, extensionParam1 = 1, extensionParam2 = 3, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, extensionParam1 = 1, extensionParam2 = 3, **kwds):
+        super().__init__(*args, **kwds)
         some_extension_init_stuff()
         
 Note the following points:
  - All parameters have default values
- - the use of **kwds ensures that parametes that are not defined by this 
+ - The use of *args passes all non-named arguments to its super(), which
+   will therefore end up at the QPlainTextEdit constructor. As a consequence,
+   the parameters of the exentsion can only be specified as named arguments
+ - The use of **kwds ensures that parametes that are not defined by this 
    extension, are passed to the next extension(s) in line.
  - The call to super().__init__ is the first thing to do, this ensures that at
    least the CodeEditorBase and QPlainTextEdit, of which the CodeEditorBase is
@@ -197,8 +200,8 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 
         
 class CodeEditorBase(QtGui.QPlainTextEdit):
-    def __init__(self,indentUsingSpaces = False, indentWidth = 4, **kwds):
-        super().__init__(**kwds)
+    def __init__(self,*args, indentUsingSpaces = False, indentWidth = 4, **kwds):
+        super().__init__(*args,**kwds)
         
         # Set font (always monospace)
         self.setFont()

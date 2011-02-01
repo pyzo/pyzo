@@ -19,8 +19,8 @@ class Calltip:
             # Act a bit like a tooltip
             self.hide()
             
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
         # Create label for call tips
         self.__calltipLabel = self.__CalltipLabel()
         
