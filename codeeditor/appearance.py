@@ -9,8 +9,8 @@ class HighlightCurrentLine:
     """
     Highlight the current line
     """
-    def __init__(self, highlightCurrentLine = False, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, highlightCurrentLine = False, **kwds):
+        super().__init__(*args, **kwds)
         self.setHighlightCurrentLine(highlightCurrentLine)
 
     def highlightCurrentLine(self):
@@ -50,8 +50,8 @@ class HighlightCurrentLine:
         super().paintEvent(event)
 
 class IndentationGuides:
-    def __init__(self, showIndentationGuides = False, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, showIndentationGuides = False, **kwds):
+        super().__init__(*args, **kwds)
         self.setShowIndentationGuides(showIndentationGuides)
 
     def showIndentationGuides(self):
@@ -122,8 +122,8 @@ class IndentationGuides:
         painter.end()
 
 class LongLineIndicator:
-    def __init__(self, longLineIndicatorPosition = 0, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, longLineIndicatorPosition = 0, **kwds):
+        super().__init__(*args, **kwds)
         self.setLongLineIndicatorPosition(longLineIndicatorPosition)
 
     def longLineIndicatorPosition(self):
@@ -166,8 +166,8 @@ class LongLineIndicator:
         super().paintEvent(event)
 
 class ShowWhitespace:
-    def __init__(self, showWhitespace = False, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, showWhitespace = False, **kwds):
+        super().__init__(*args, **kwds)
         self.setShowWhitespace(showWhitespace)
     def showWhitespace(self):
         """Show or hide whitespace markers"""
@@ -183,8 +183,8 @@ class ShowWhitespace:
         self.document().setDefaultTextOption(option)
 
 class ShowLineEndings:
-    def __init__(self, showLineEndings = False, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, showLineEndings = False, **kwds):
+        super().__init__(*args, **kwds)
         self.setShowLineEndings(showLineEndings)
 
     def showLineEndings(self):
@@ -261,8 +261,8 @@ class LineNumbers:
             # Done
             painter.end()
             
-    def __init__(self, showLineNumbers = False, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, showLineNumbers = False, **kwds):
+        super().__init__(*args, **kwds)
         # Create widget that draws the line numbers
         self.__lineNumberArea = self.__LineNumberArea(self)
         
@@ -317,8 +317,8 @@ class LineNumbers:
     
 
 class Wrap:
-    def __init__(self, wrap = False, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, wrap = False, **kwds):
+        super().__init__(*args, **kwds)
         self.setWrap(wrap)
         
     def wrap(self):

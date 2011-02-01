@@ -9,8 +9,8 @@ from PyQt4.QtCore import Qt
 import keyword
 
 class AutoCompletion:
-    def __init__(self,**kwds):
-        super().__init__(**kwds)
+    def __init__(self,*args, **kwds):
+        super().__init__(*args, **kwds)
         # Autocompleter
         self.__completerModel=QtGui.QStringListModel(keyword.kwlist)
         self.__completer=QtGui.QCompleter(self.__completerModel, self)
