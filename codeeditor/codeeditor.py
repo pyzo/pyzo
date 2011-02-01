@@ -386,7 +386,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             # Determine correction, so we can round to multiples of indentation
             correction = indent % self.indentWidth()
             if correction and amount<0:
-                correction = - (self.indentation - correction) # Flip
+                correction = - (self.indentWidth() - correction) # Flip
             # Add the indentation tabs
             indent += (self.indentWidth() * amount) - correction
             cursor.insertText(' '*max(indent,0))
