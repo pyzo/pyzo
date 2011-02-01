@@ -571,6 +571,14 @@ class ShellInfo:
         env.pop('TCL_LIBRARY','')
         env['PYTHONPATH'] = self.PYTHONPATH
         
+        #If the project manager is active, and has the check box
+        #'add path to Python path' set, set the PROJECTPATH variable
+        projectManager = iep.toolManager.getTool('iepprojectmanager')
+        if projectManager:
+            projectPath = projectManager.getAddToPythonPath()
+            if projectPath is not None:
+                env['iep_projectPath'] = projectPath
+        
         # Insert iep specific variables
         env['iep_gui'] = self.gui
         env['iep_startDir'] = self.startDir

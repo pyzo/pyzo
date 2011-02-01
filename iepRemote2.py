@@ -125,16 +125,24 @@ class IepInterpreter:
             iepBanner += '.\n'
         sys.stdout.write(iepBanner)
         
-        # Write tips message
-        sys.stdout.write('Type "help" for help, ' + 
-                            'type "?" for a list of *magic* commands.\n')
-        
-        
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
         thisPath = os.getcwd()
         if thisPath in sys.path:
             sys.path.remove(thisPath)
+            
+        projectPath = os.environ.get('iep_projectPath')
+        if projectPath is not None:
+            sys.stdout.write('Prepending the project path %r to sys.path\n' % 
+                projectPath)
+            #Actual prepending is done below, to put it before the script path
+        
+        # Write tips message
+        sys.stdout.write('Type "help" for help, ' + 
+                            'type "?" for a list of *magic* commands.\n')
+        
+        
+
         
         # Get whether we should (and can) run as script
         scriptFilename = os.environ.get('iep_scriptFile')
@@ -158,6 +166,8 @@ class IepInterpreter:
             theDir = os.path.abspath( os.path.dirname(scriptFilename) )
             if theDir not in sys.path:
                 sys.path.insert(0, theDir)
+            if projectPath is not None:
+                sys.path.insert(0,projectPath)
             
             # Go to script dir
             os.chdir( os.path.dirname(scriptFilename) )
@@ -179,7 +189,9 @@ class IepInterpreter:
             sys.argv.append('')
             # Insert current directory to path
             sys.path.insert(0, '')
-            
+            if projectPath is not None:
+                sys.path.insert(0,projectPath)
+                
             # Go to start dir
             startDir = os.environ.get('iep_startDir')
             if startDir and os.path.isdir(startDir):

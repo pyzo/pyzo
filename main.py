@@ -78,6 +78,10 @@ class MainWindow(QtGui.QMainWindow):
         # Insert editor, shell, and all the tools
         self._insertEditorAndShell()
         callLater(self.restoreWindowState)
+        
+        # Create the default shell (after the tools so it can use settings of
+        # the tools at startup)
+        callLater(iep.shells.addShell)
     
     
     def init1(self):
@@ -101,9 +105,9 @@ class MainWindow(QtGui.QMainWindow):
         iep.editors = EditorTabs(self)
         #self.setCentralWidget(iep.editors)
         
-        # Create shell stack and instantiate a default shell
+        # Create shell stack
         iep.shells = ShellStack(self)
-        iep.shells.addShell()
+        # The default shell is instantiated after the tools are loaded
         
         # Create statusbar and menu 
         # (keep a ref to the menuhelper so it is not destroyed)

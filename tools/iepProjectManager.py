@@ -11,6 +11,7 @@ class Project(ssdf.Struct):
     def __init__(self,name,path):
         self.name=name
         self.path=path
+        self.addToPath=False
     def __repr__(self):
         return "Project %s at %s" % (self.name,self.path)
 
@@ -209,11 +210,14 @@ class IepProjectManager(QtGui.QWidget):
         self.projectsList=ProjectsList()
         self.projectsList.setModel(self.projectsModel)
         
+        self.addToPathCheck=QtGui.QCheckBox('Preprend project dir to Python path')
+        self.addToPathCheck.setToolTip('Takes effect when the shell is restarted')
         self.dirList=QtGui.QTreeView()
         self.filterCombo=QtGui.QComboBox()
 
         self.layout=QtGui.QVBoxLayout()
         self.layout.addLayout(self.hLayout)
+        self.layout.addWidget(self.addToPathCheck)
         self.layout.addWidget(self.dirList,10)
         self.layout.addWidget(self.filterCombo)
         
@@ -242,11 +246,24 @@ class IepProjectManager(QtGui.QWidget):
         self.listDisclosureButton.toggled.connect(self.listDisclosed)
         self.addProjectButton.clicked.connect(self.addProjectClicked)
         self.removeProjectButton.clicked.connect(self.removeProjectClicked)
+        self.addToPathCheck.stateChanged.connect(self.addToPathStateChanged)
         
         #Apply previous selected project
+        self.activeProject = None
         self.projectChanged(self.config.activeproject)
         if self.config.listdisclosed:
             self.listDisclosureButton.toggle()
+    ## Methods
+    def getAddToPythonPath(self):
+        """
+        Returns the path to be added to the Python path when starting a shell
+        If a project is selected, which has the addToPath checkbox selected,
+        returns the path of the project. Otherwise, returns None
+        """
+        if self.activeProject and self.activeProject.addToPath:
+            return self.activeProject.path
+        else:
+            return None
         
     ## Project changed handlers
     def comboChangedEvent(self,newIndex):
@@ -265,11 +282,13 @@ class IepProjectManager(QtGui.QWidget):
         if projectIndex==-1 or projectIndex is None:
             #This happens when the model is reset
             self.dirList.setModel(None)
+            self.addToPathCheck.setEnabled(False)
+            self.activeProject = None
             return
         
         #Remember the previous selected project
         self.config.activeproject=projectIndex
-  
+    
         #Sync list and combo boxes
         self.projectsCombo.setCurrentIndex(projectIndex)
         self.projectsList.selectionModel().setCurrentIndex(self.projectsModel.index(projectIndex), 
@@ -278,7 +297,15 @@ class IepProjectManager(QtGui.QWidget):
         #Sync the dirList
         project=self.projectsModel.projectFromRow(projectIndex)
         if project is None:
+            self.addToPathCheck.setEnabled(False)
             return #Invalid project index
+        self.activeProject = project
+        
+        self.addToPathCheck.setEnabled(True)
+        if not hasattr(project,"addToPath"):
+            project.addToPath = False
+    
+        self.addToPathCheck.setChecked(project.addToPath)
     
         path=project.path
     
@@ -288,6 +315,11 @@ class IepProjectManager(QtGui.QWidget):
         self.dirList.setColumnHidden(3,True)
         
         self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(self.dirModel.index(path)))
+        
+    def addToPathStateChanged(self,state):
+        if not self.activeProject:
+            return
+        self.activeProject.addToPath = self.addToPathCheck.isChecked()
  
     ## Add/remove buttons
     def addProjectClicked(self):
