@@ -1238,6 +1238,7 @@ class HelpMenu(BaseMenu):
         
         addItem( MI('Tutorial', self.fun_tutorial) )
         addItem( MI('Website', self.fun_website) )
+        addItem( MI('Report issue', self.fun_reportIssue) )
         addItem( MI('Check for updates', self.fun_updates) )
         addItem( MI('View license', self.fun_license) )
         
@@ -1259,6 +1260,10 @@ class HelpMenu(BaseMenu):
         """ Open the official IEP website. """
         import webbrowser
         webbrowser.open("http://code.google.com/p/iep/")
+    def fun_reportIssue(self, value):
+        """ Report an issue on the offical IEP website. """
+        import webbrowser
+        webbrowser.open("http://code.google.com/p/iep/issues/list")
     
     def fun_updates(self, value):
         """ Check whether a newer version of IEP is available. """
