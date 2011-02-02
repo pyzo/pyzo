@@ -1301,27 +1301,40 @@ class Hijacked_qt4:
         import PyQt4
         from PyQt4 import QtGui, QtCore
         
-        # Create app class
-        class QHijackedApp(QtGui.QApplication):
-            def __init__(self):
-                QtGui.QApplication.__init__(self,[''])
-            def __call__(self, *args, **kwargs):
-                return QtGui.qApp
+        # Create class to replace QtGui.QApplication with
+        
+        class QHijackedApp(QtGui.QApplication):    
+            # Store real QtGui application class
+            real_QApplication = QtGui.QApplication
+            
+            def __new__(cls, *args, **kwargs):
+                # Get existing application object
+                app = cls.real_QApplication.instance()                 
+                # If it does not exist, create it
+                if app is None:
+                    app = super(cls.real_QApplication, cls).__new__(cls)
+                    QtGui.qApp = app
+                # Return app
+                return app
+            
+            def __init__(self, *args, **kwargs):
+                # Init if not already inited (prevent multiple inits)
+                if not hasattr(self, '_have_initet'):
+                    self.real_QApplication.__init__(self, *args, **kwargs)
+                    self._have_initet = True            
+            
             def exec_(self, *args, **kwargs):
                 pass
+
         
-        # Create app if one does not already exist
-        app = QtGui.QApplication.instance()
-        if app is None:
-            app = QHijackedApp()
-        
-        # Store the app instance to process events 
-        QtGui.QApplication = QtGui.qApp = app
-        self.app = app
+        # Replace app class and store the app instance to process events 
+        QtGui.QApplication =QHijackedApp
+        self.app = QHijackedApp()
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
         QtGui._in_event_loop = 'IEP'
+    
     
     def processEvents(self):
         self.app.flush()
