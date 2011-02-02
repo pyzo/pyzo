@@ -1332,7 +1332,8 @@ class Hijacked_qt4:
                 klass = type.__new__(meta, name, bases, dct)
                 return klass
         
-        class QHijackedApp(object):
+        QHijackedApp_base = QApplicationMetaClass('QHijackedApp_base', (object,), {})
+        class QHijackedApp(QHijackedApp_base):
             """ This is an iep-hijacked Qt application. You can subclass from
             this class and instantiate as many instances as you wish.
             This class is essentially an empty class, with all members
