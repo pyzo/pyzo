@@ -1301,35 +1301,51 @@ class Hijacked_qt4:
         import PyQt4
         from PyQt4 import QtGui, QtCore
         
-        # Create class to replace QtGui.QApplication with
+        # Instantiate QApplication and store reference of original app class
+        QtGui.qApp = self.app = QtGui.QApplication([''])
+        QtGui.real_QApplication = QtGui.QApplication
         
-        class QHijackedApp(QtGui.QApplication):    
-            # Store real QtGui application class
-            real_QApplication = QtGui.QApplication
-            
-            def __new__(cls, *args, **kwargs):
-                # Get existing application object
-                app = cls.real_QApplication.instance()                 
-                # If it does not exist, create it
-                if app is None:
-                    app = super(cls.real_QApplication, cls).__new__(cls)
-                    QtGui.qApp = app
-                # Return app
-                return app
-            
+        # Function to get members for a class, taking base classes into account
+        def collectClassMembers(cls, D):
+            for k in cls.__dict__: 
+                if not k.startswith('_'):
+                    D[k] = cls.__dict__[k]
+            for b in cls.__bases__:
+                collectClassMembers(b, D)
+            return D
+        
+        # Meta class that injects all member of the original QApplication 
+        # in the QHijackedApp class (and its derivatives).
+        class QApplicationMetaClass(type):
+            def __new__(meta, name, bases, dct):
+                # Collect all members of class, take inheritance into account
+                dict1 = dct.copy()
+                for b in bases:
+                    collectClassMembers(b, dict1)
+                # Dict used to update members
+                dict2 = collectClassMembers(QtGui.real_QApplication, {})
+                # Update members
+                for key in dict2:
+                    if key not in dict1:
+                        dct[key] = dict2[key]
+                # Create class and return
+                klass = type.__new__(meta, name, bases, dct)
+                return klass
+        
+        class QHijackedApp(object):
+            """ This is an iep-hijacked Qt application. You can subclass from
+            this class and instantiate as many instances as you wish.
+            This class is essentially an empty class, with all members
+            of the real QApplication injected in it.
+            """
+            __metaclass__ = QApplicationMetaClass
             def __init__(self, *args, **kwargs):
-                # Init if not already inited (prevent multiple inits)
-                if not hasattr(self, '_have_initet'):
-                    self.real_QApplication.__init__(self, *args, **kwargs)
-                    self._have_initet = True            
-            
+                pass
             def exec_(self, *args, **kwargs):
                 pass
-
         
-        # Replace app class and store the app instance to process events 
-        QtGui.QApplication =QHijackedApp
-        self.app = QHijackedApp()
+        # Replace app class
+        QtGui.QApplication = QHijackedApp
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
