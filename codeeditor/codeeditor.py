@@ -103,11 +103,11 @@ if __name__ == '__main__':
     import behaviour
     import calltip
 else:
-    from . import python_syntax
-    from . import appearance
-    from . import autocompletion
-    from . import behaviour
-    from . import calltip
+    from codeeditor import python_syntax
+    from codeeditor import appearance
+    from codeeditor import autocompletion
+    from codeeditor import behaviour
+    from codeeditor import calltip
 
 class BlockData(QtGui.QTextBlockUserData):
     def __init__(self):
