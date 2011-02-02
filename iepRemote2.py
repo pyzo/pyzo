@@ -1301,10 +1301,6 @@ class Hijacked_qt4:
         import PyQt4
         from PyQt4 import QtGui, QtCore
         
-        # Instantiate QApplication and store reference of original app class
-        QtGui.qApp = self.app = QtGui.QApplication([''])
-        QtGui.real_QApplication = QtGui.QApplication
-        
         # Function to get members for a class, taking base classes into account
         def collectClassMembers(cls, D):
             for k in cls.__dict__: 
@@ -1313,6 +1309,10 @@ class Hijacked_qt4:
             for b in cls.__bases__:
                 collectClassMembers(b, D)
             return D
+        
+        # Store the real application instance
+        if not hasattr(QtGui, 'real_QApplication'):
+            QtGui.real_QApplication = QtGui.QApplication
         
         # Meta class that injects all member of the original QApplication 
         # in the QHijackedApp class (and its derivatives).
@@ -1343,6 +1343,12 @@ class Hijacked_qt4:
                 pass
             def exec_(self, *args, **kwargs):
                 pass
+        
+        # Instantiate QApplication and store
+        app = QtGui.QApplication.instance()
+        if app is None:
+            app = QtGui.QApplication([''])
+        QtGui.qApp = self.app = app
         
         # Replace app class
         QtGui.QApplication = QHijackedApp
