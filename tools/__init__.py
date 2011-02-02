@@ -45,7 +45,7 @@ class ToolDockWidget(QtGui.QDockWidget):
     It sets all settings, initializes the tool widget, and notifies the
     tool manager on closing.
     """
-    
+        
     def __init__(self, parent, toolManager):
         QtGui.QDockWidget.__init__(self, parent)
         
@@ -77,7 +77,7 @@ class ToolDockWidget(QtGui.QDockWidget):
         self.reload(toolClass)
     
     
-    def closeEvent(self, event):
+    def closeEvent(self, event):        
         if self._toolManager:
             self._toolManager.onToolClose(self._toolId)
             self._toolManager = None
@@ -116,6 +116,7 @@ class ToolDescription:
             self.name = name
         else:
             self.name = self.id
+                
         # Set description
         self.description = description
         # Init instance to None, will be set when loaded
@@ -130,13 +131,17 @@ class ToolDescription:
         elif value:
             iep.toolManager.loadTool(self.id)
         else:
+            self.widget = None
             iep.toolManager.closeTool(self.id)
 
-
-class ToolManager:
+class ToolManager(QtCore.QObject):
     """ Manages the tools. """
     
-    def __init__(self):
+    # This signal indicates a change in the loaded tools
+    toolInstanceChange = QtCore.pyqtSignal()
+
+    def __init__(self, parent = None):
+        QtCore.QObject.__init__(self, parent)
         
         # list of ToolDescription instances
         self._toolInfo = None
@@ -220,6 +225,9 @@ class ToolManager:
                 toolDes.instance = self._activeTools[toolDes.id]
             else:
                 toolDes.instance = None
+        
+        # Emit update signal
+        self.toolInstanceChange.emit()
     
     
     def getToolInfo(self):
@@ -303,7 +311,7 @@ class ToolManager:
         else:
             name = toolId
         
-        # Make sure there is a confi entry for this tool
+        # Make sure there is a config entry for this tool
         if not hasattr(iep.config.tools, toolId):
             iep.config.tools[toolId] = ssdf.new()
         
@@ -315,7 +323,7 @@ class ToolManager:
         # Add to list
         self._activeTools[toolId] = dock
         self.updateToolInstances()
-    
+        
     
     def reloadTools(self):
         """ Reload all tools. """

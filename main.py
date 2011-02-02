@@ -192,8 +192,8 @@ class MainWindow(QtGui.QMainWindow):
             # We still have the default style
             pass
         
-        # Load toolss
-        if iep.config.state.loadedTools:            
+        # Load tools
+        if iep.config.state.loadedTools: 
             for toolId in iep.config.state.loadedTools:
                 iep.toolManager.loadTool(toolId)
         

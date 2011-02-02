@@ -912,10 +912,21 @@ class ToolsMenu(BaseMenu):
         addItem( MI('Reload tools', self.fun_reload) )
         addItem( None )
         
-        for tool in iep.toolManager.loadToolInfo():
-            addItem( MI(tool.name, tool.menuLauncher, 
-                       bool(tool.instance), tool.description) )
-    
+        #for tool in iep.toolManager.loadToolInfo():
+        #    addItem( MI(tool.name, tool.menuLauncher, 
+        #               bool(tool.instance), tool.description) )
+        
+        for tool in iep.toolManager.getToolInfo():
+            item = addItem( MI(tool.name, self.fun_launcher, 
+                               bool(tool.instance), tool.description) )
+            item.toggled.connect(tool.menuLauncher)
+        
+        # Rebuild the menu when the tool instances change
+        iep.toolManager.toolInstanceChange.connect(self.fill)
+
+    def fun_launcher(self, value):
+        pass
+        
     def fun_reload(self, value):
         """ Reload all tools (intended for helping tool development). """
         iep.toolManager.reloadTools()

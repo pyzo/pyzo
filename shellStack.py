@@ -560,6 +560,9 @@ class ShellInfoDialog(QtGui.QDialog):
         # Create tab widget
         self._tabs = CompactTabWidget(self, padding=(2,1,4,2))
         
+        # Auto-save on tab change
+        self._tabs.currentChanged.connect(self.apply)
+        
         # Introduce an entry if there's none
         if not iep.config.shellConfigs:
             w = ShellInfoDialogEntries(self._tabs)
