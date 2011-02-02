@@ -18,7 +18,7 @@ class HighlightCurrentLine:
     
     def setHighlightCurrentLine(self,value):
         self.__highlightCurrentLine = bool(value)
-        self.update()
+        self.viewport().update()
         
     def paintEvent(self,event):
         """ paintEvent(event)
@@ -48,6 +48,11 @@ class HighlightCurrentLine:
         painter.end()
         
         super().paintEvent(event)
+        
+        # for debugging paint events
+        #if 'log' not in self.__class__.__name__.lower():
+        #    print(height, event.rect().width())
+
 
 class IndentationGuides:
     def __init__(self, *args, showIndentationGuides = False, **kwds):
@@ -59,8 +64,8 @@ class IndentationGuides:
     
     def setShowIndentationGuides(self,value):
         self.__showIndentationGuides = bool(value)
-        self.update()  
-        
+        self.viewport().update() 
+    
     def paintEvent(self,event):
         """ paintEvent(event)
         
@@ -134,7 +139,7 @@ class LongLineIndicator:
     
     def setLongLineIndicatorPosition(self, value):
         self.__longLineIndicatorPosition = int(value)
-        self.update()
+        self.viewport().update()
         
     def paintEvent(self, event):    
         """ paintEvent(event)
