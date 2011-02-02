@@ -103,7 +103,7 @@ if __name__ == '__main__':
     import behaviour
     import calltip
 else:
-    from codeeditor import python_syntax
+    from codeeditor import parsers
     from codeeditor import appearance
     from codeeditor import autocompletion
     from codeeditor import behaviour
@@ -115,15 +115,38 @@ class BlockData(QtGui.QTextBlockUserData):
         self.indentation = None
 
     
+""" Notes on syntax highlighting.
+
+The syntax highlighting/parsing is performed using three "components".
+
+The base component are the token instances. Each token simply represents
+a row of characters in the text the belong to each-other and should
+be styled in the same way. There is a token class for each particular
+"thing" in the code, such as comments, strings, keywords, etc. Some
+tokens are specific to a particular language.
+
+There is a function that produces a set of tokens, when given a line of
+text and a state parameter. There is such a function for each language.
+These "parsers" are defined in the parsers subpackage.
+
+And lastly, there is the Highlighter class, that applies the parser function
+to obtain the set of tokens and using the names of these tokens applies
+styling. The styling can be defined by giving a dict that maps token names
+to style representations.
+
+"""
+# todo: move highlighter to separate module or keep here?
+
 class Highlighter(QtGui.QSyntaxHighlighter):
     formats=(
-        (python_syntax.StringToken,(0x7F007F,'')), 
-        (python_syntax.CommentToken,(0x007F00,'')),
-        (python_syntax.UnterminatedToken,(0,'')),
-        (python_syntax.KeywordToken,(0x00007F,'B')),
-        (python_syntax.NumberToken,(0x007F7F,'')),
-        (python_syntax.MethodNameToken,(0x007F7F,'B')),
-        (python_syntax.ClassNameToken,(0x0000FF,'B'))
+        (parsers.StringToken,(0x7F007F,'')), 
+        (parsers.CommentToken,(0x007F00,'')),
+        (parsers.UnterminatedToken,(0,'')),
+        (parsers.KeywordToken,(0x00007F,'B')),
+        (parsers.NumberToken,(0x007F7F,'')),
+        (parsers.MethodNameToken,(0x007F7F,'B')),
+        (parsers.ClassNameToken,(0x0000FF,'B')),
+        (parsers.CellCommentToken,(0x009F00,'B'))
         )
     def __init__(self,codeEditor,*args):
         QtGui.QSyntaxHighlighter.__init__(self,*args)
@@ -143,12 +166,16 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             self.setCurrentBlockUserData(bd)
         return bd
     
-    def highlightBlock(self,line):
+    def highlightBlock(self,line): 
         
         previousState=self.previousBlockState()
         
+        # todo: choose dynamically
+        tokenizeLine = parsers.tokenizeLinePython
+        #tokenizeLine = parsers.tokenizeLineStupid
+        
         self.setCurrentBlockState(0)
-        for token in python_syntax.tokenizeLine(line,previousState):
+        for token in tokenizeLine(line,previousState):
             for tokenType,format in self.formats:
                 if isinstance(token,tokenType):
                     color,style=format
@@ -161,7 +188,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                     self.setFormat(token.start,token.end-token.start,format)
                     
             #Handle line or string continuation
-            if isinstance(token,python_syntax.ContinuationToken):
+            if isinstance(token,parsers.ContinuationToken):
                 self.setCurrentBlockState(token.state)
         
         #Get the indentation setting of the editor
@@ -194,11 +221,6 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             bd.indentation = len(leadingWhitespace)
 
 
-
-
-
-
-        
 class CodeEditorBase(QtGui.QPlainTextEdit):
     def __init__(self,*args, indentUsingSpaces = False, indentWidth = 4, **kwds):
         super().__init__(*args,**kwds)
@@ -208,7 +230,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Create highlighter class
         # todo: attribute is not private
-        self.highlighter = Highlighter(self,self.document())
+        self.__highlighter = Highlighter(self, self.document())
         
         #Default options
         option=self.document().defaultTextOption()
@@ -290,6 +312,53 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         QtGui.QPlainTextEdit.setFont(self, font)
     
     
+    ## Syntax
+    
+    def setSyntaxParser(self, parserName):
+        """ setSyntaxParser(parserName)
+        
+        Set the parser to apply syntax highlighting, using
+        the parser name.
+        
+        """
+        raise NotImplementedError()
+    
+    def syntaxParser(self):
+        """ syntaxParser(parserName)
+        
+        Get the name of the parser used to apply syntax highlighting.
+        
+        """
+        raise NotImplementedError() 
+    
+    def setSyntaxStyle(self, style):
+        """ setSyntaxStyle(style)
+        
+        Set the syntax style. style is a dict with keys corresponding 
+        to the token names and values representing the styling for that
+        token.
+        
+        Keywords are passed ....? With special attribute name, or using
+        setSyntaxKeywords?
+        
+        """
+        raise NotImplementedError() 
+    
+    
+    def getSyntaxStyleInfo(self, parserName):
+        """ Returns for the given parser info about syntax styles.
+        It should give a list of all token names used, their default
+        style values, and description (token docstrings).
+        That way, making a dialog to set styles should be relatively easy.
+        
+        How? Maybe each syntax parser should only import the tokens that
+        it uses. A syntax-parser-manager could easily figure out what
+        tokens classes are present in the parses's module namespace.
+        """
+        # todo: this function, together with the fontNames() function 
+        # and maybe others should move to a separate module and be 
+        # exposed as loose functions to the end user. 
+        raise NotImplementedError() 
     ## Properties
 
 
@@ -316,7 +385,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
  
     def setIndentUsingSpaces(self, value):
         self.__indentUsingSpaces = bool(value)
-        self.highlighter.rehighlight()
+        self.__highlighter.rehighlight()
  
     
     ## MISC
