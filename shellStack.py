@@ -600,9 +600,12 @@ class ShellInfoDialog(QtGui.QDialog):
         mainLayout.addWidget(self._tabs,0)
         mainLayout.addLayout(buttonLayout,0)
         self.setLayout(mainLayout)
+    
+    
+    def showEvent(self, event):
+        QtGui.QDialog.showEvent(self, event)
         
         # Prevent resizing
-        self.show()
         size = self.size()
         self.setMaximumSize(size)
         self.setMinimumSize(size)
