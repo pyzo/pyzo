@@ -922,7 +922,9 @@ class ToolsMenu(BaseMenu):
             item.toggled.connect(tool.menuLauncher)
         
         # Rebuild the menu when the tool instances change
-        iep.toolManager.toolInstanceChange.connect(self.fill)
+        # todo: does this not create a new binding each time
+        # the menu is filled?
+        iep.toolManager.toolInstanceChange.connect(self.fun_update)
 
     def fun_launcher(self, value):
         pass
@@ -930,6 +932,9 @@ class ToolsMenu(BaseMenu):
     def fun_reload(self, value):
         """ Reload all tools (intended for helping tool development). """
         iep.toolManager.reloadTools()
+    
+    def fun_update(self):
+        iep.callLater(self.fill)
 
 
 class ShellMenu(BaseMenu):
