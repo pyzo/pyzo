@@ -2,11 +2,12 @@ import re
 import keyword
 
 class Token:
-    type = '?'
     def __init__(self,line,start,end):
         self.line=line
         self.start=start
         self.end=end
+        #The type of the class is the lower case class name minus 'Token'
+        self.type = self.__class__.__name__[:-5].lower() 
     def __str__(self):
         return self.line[self.start:self.end]
     def __len__(self):
@@ -40,22 +41,22 @@ class LineContinuationToken(ContinuationToken):
     pass
 
 class IdentifierToken(TextToken):
-    type = 'I'
+    pass
 
 class NonIdentifierToken(TextToken):
-    type = 'N'
+    pass
 
 class KeywordToken(IdentifierToken):
-    type = 'K'
+    pass
 
 class NumberToken(IdentifierToken):
-    type = '#'
+    pass
 
 class MethodNameToken(IdentifierToken):
-    type = 'M'
+    pass
     
 class ClassNameToken(IdentifierToken):
-    type = 'C'
+    pass
 
 alphanum='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
@@ -169,7 +170,7 @@ def tokenizeLine(line,previousState=0):
                     else:
                         yield IdentifierToken(*tokenArgs)
                     identifierState = 0
-                #yield KeywordToken(line,match.start(),match.end())
+
                 previousIdentifier=identifier
                 pos=match.end()
                 continue
