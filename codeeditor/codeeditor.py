@@ -219,8 +219,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.setIndentUsingSpaces(indentUsingSpaces)
         self.setIndentWidth(indentWidth)
         
-        self.cursorPositionChanged.connect(self.update) #TODO: this in highlightcurrentline?
-
+        # When the cursor position changes, invoke an update, so that
+        # the hihghlighting etc will work
+        self.cursorPositionChanged.connect(self.viewport().update) 
+    
     
     ## Font
     
