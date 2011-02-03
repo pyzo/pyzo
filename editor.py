@@ -506,7 +506,9 @@ class IepEditor(BaseTextCtrl):
         filename = self._filename
         
         # Remember where we are
-        linenr, index = self.getLinenrAndIndex()
+        cursor = self.textCursor()
+        linenr = cursor.blockNumber()
+        index = cursor.positionInBlock()
         
         # Load file (as bytes)
         with open(filename, 'rb') as f:

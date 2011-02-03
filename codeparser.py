@@ -112,7 +112,6 @@ class Parser(threading.Thread):
         
         # Get linenr and indent. These are used to establish the namespace
         # based on indentation.
-        #linenr, index = editor.getLinenrAndIndex()
         cursor = editor.textCursor()
         linenr = cursor.blockNumber()
         index = cursor.positionInBlock()
@@ -277,7 +276,6 @@ class Parser(threading.Thread):
             return None
         
         # Get linenr and indent
-        #linenr, index = editor.getLinenrAndIndex()
         cursor = editor.textCursor()
         linenr = cursor.blockNumber()
         index = cursor.positionInBlock()
