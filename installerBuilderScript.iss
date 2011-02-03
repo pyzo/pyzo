@@ -12,7 +12,7 @@ OutputDir=../
 OutputBaseFilename = iep-2.3.win32
 
 ChangesEnvironment = no
-DisableProgramGroupPage = yes
+DisableProgramGroupPage = no
 Compression=lzma
 SolidCompression=yes
 
