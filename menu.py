@@ -921,10 +921,8 @@ class ToolsMenu(BaseMenu):
                                bool(tool.instance), tool.description) )
             item.toggled.connect(tool.menuLauncher)
         
-        # Rebuild the menu when the tool instances change
-        # todo: does this not create a new binding each time
-        # the menu is filled?
-        iep.toolManager.toolInstanceChange.connect(self.fun_update)
+        # Rebuild the menu when the tool instances change, ensure unique connection
+        iep.toolManager.toolInstanceChange.connect(self.fun_update, type = QtCore.Qt.UniqueConnection)
 
     def fun_launcher(self, value):
         pass
