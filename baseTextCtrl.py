@@ -753,9 +753,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             # Is this valid python?
             if self._isValidPython():
                 # Obtain line from text
-                linenr, i = self.getLinenrAndIndex()
-                text = self.getLineString(linenr)
-                text = text[:i]
+                cursor = self.textCursor()
+                line = cursor.block().text()
+                text = line[:cursor.positionInBlock()]
                 # Obtain             
                 nameBefore, name = parseLine_autocomplete(text)
                 if nameBefore:

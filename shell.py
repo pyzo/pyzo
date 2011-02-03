@@ -329,7 +329,9 @@ class BaseShell(BaseTextCtrl):
             return text
         
         # Check how many chars are left at the line right now
-        linenr, index =  self.getLinenrAndIndex()
+        cursor = self.textCursor()
+        linenr = cursor.blockNumber()
+        index = cursor.positionInBlock()
         charsLeft = 80-index # Is reset to 80 as soon as we are on a next line
         
         # Perform hard-wrap
