@@ -138,22 +138,67 @@ to style representations.
 # todo: move highlighter to separate module or keep here?
 
 class Highlighter(QtGui.QSyntaxHighlighter):
-    formats=(
-        (parsers.StringToken,(0x7F007F,'')), 
-        (parsers.CommentToken,(0x007F00,'')),
-        (parsers.UnterminatedToken,(0,'')),
-        (parsers.KeywordToken,(0x00007F,'B')),
-        (parsers.NumberToken,(0x007F7F,'')),
-        (parsers.MethodNameToken,(0x007F7F,'B')),
-        (parsers.ClassNameToken,(0x0000FF,'B')),
-        (parsers.CellCommentToken,(0x009F00,'B'))
-        )
+    
     def __init__(self,codeEditor,*args):
         QtGui.QSyntaxHighlighter.__init__(self,*args)
+        
         #Init properties
         self._codeEditor = codeEditor
+        self._nameToFormat = {}
+        self._parser = parsers.ParserManager.getParserByName('python')
+        if self._parser:            
+            self.createFormats( self._parser.getDefaultStyle() )
         
-    ## Methods
+#         pp = parsers.ParserManager.getParserByName('python')
+#         print('-- token names --')
+#         for info in pp.getStyleInfo():
+#             print(info[0])
+#         print('-- end token names --')
+    
+    
+    def _getColorSave(self, color, default='#777'):
+        try:
+            return QtGui.QColor(color)
+        except Exception:
+            print('Invalid color', color)
+            return QtGui.QColor(default)
+    
+    
+    def createFormats(self, style):
+        
+        # Init dict
+        self._nameToFormat = {}
+        
+        # For each style (i.e. token)
+        for name in style:
+            styleFormat = style[name]
+            
+            # Init format
+            format = QtGui.QTextCharFormat()
+            self._nameToFormat[name] = format
+            
+            for key, val in styleFormat:
+                
+                # Process, be forgiving with names
+                if key in ['fore', 'front', 'color']:
+                    format.setForeground( self._getColorSave(val) )
+                elif key in ['back', 'bg', 'background', 'background-color']:
+                    format.setBackground( self._getColorSave(val) )
+                elif key in ['bold']:
+                    if val == 'yes':
+                        format.setFontWeight(QtGui.QFont.Bold)
+                elif key in ['underline']:
+                    if val=='yes':
+                        format.setUnderlineStyle (format.SingleUnderline)
+                    elif val=='dotted': 
+                        format.setUnderlineStyle (format.DotLine)
+                    elif val=='wave': 
+                        format.setUnderlineStyle (format.WaveUnderline)
+                else:
+                    print('Warning: unknown style element part "%s" in "%s".' % 
+                                                    (key, str(styleFormat)))
+    
+    
     def getCurrentBlockUserData(self):
         """ getCurrentBlockUserData()
         
@@ -166,32 +211,28 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             self.setCurrentBlockUserData(bd)
         return bd
     
+    
     def highlightBlock(self,line): 
         
         previousState=self.previousBlockState()
         
-        # todo: choose dynamically
-        tokenizeLine = parsers.tokenizeLinePython
-        #tokenizeLine = parsers.tokenizeLineStupid
+        # todo: choose parser dynamically
         
-        self.setCurrentBlockState(0)
-        for token in tokenizeLine(line,previousState):
-            for tokenType,format in self.formats:
-                if isinstance(token,tokenType):
-                    color,style=format
-                    format=QtGui.QTextCharFormat()
-                    format.setForeground(QtGui.QColor(color))
-                    if 'B' in style:
-                        format.setFontWeight(QtGui.QFont.Bold)
-                    #format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-                    #format.setUnderlineColor(QtCore.Qt.red)
-                    self.setFormat(token.start,token.end-token.start,format)
-                    
-            #Handle line or string continuation
-            if isinstance(token,parsers.ContinuationToken):
-                self.setCurrentBlockState(token.state)
+        if self._parser:
+            self.setCurrentBlockState(0)
+            for token in self._parser.parseLine(line,previousState):
+                # Get format
+                try:
+                    format = self._nameToFormat[token.name]
+                except KeyError:
+                    continue
+                # Set format
+                self.setFormat(token.start,token.end-token.start,format)
+                #Handle line or string continuation
+                if isinstance(token, parsers.tokens.ContinuationToken):
+                    self.setCurrentBlockState(token.state)
         
-        #Get the indentation setting of the editor
+        #Get the indentation setting of the editors
         indentUsingSpaces = self._codeEditor.indentUsingSpaces()
         
         # Get user data
