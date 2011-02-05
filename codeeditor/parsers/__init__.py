@@ -83,9 +83,8 @@ class Parser(object):
         tokenClasses = []
         for name in mod.__dict__:
             member = mod.__dict__[name]
-            if isinstance(member, type) and issubclass(member, tokens.Token):
-                if not isinstance(member, tokens.SpecialToken):
-                    tokenClasses.append(member)
+            if isinstance(member, type) and issubclass(member, tokens.DefaultToken):
+                tokenClasses.append(member)
         
         # Return as instances
         return [t() for t in tokenClasses]

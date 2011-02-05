@@ -5,6 +5,9 @@ Code editor extensions that change its appearance
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
+# todo: what about calling all extensions. CE_HighlightCurrentLine, 
+# or EXT_HighlightcurrentLine?
+
 class HighlightCurrentLine:
     """
     Highlight the current line
@@ -206,6 +209,7 @@ class ShowLineEndings:
         self.document().setDefaultTextOption(option)
 
 class LineNumbers:
+    # todo: Rob, ik weet niet hoor, maar dit vind ik best lelijk! :)
     class __LineNumberArea(QtGui.QWidget):
         """ This is the widget reponsible for drawing the line numbers.
         """
@@ -338,3 +342,30 @@ class Wrap:
         else:
             option.setWrapMode(option.NoWrap)
         self.document().setDefaultTextOption(option)
+
+
+
+class SyntaxHighlighting:
+    """ Notes on syntax highlighting.
+
+    The syntax highlighting/parsing is performed using three "components".
+    
+    The base component are the token instances. Each token simply represents
+    a row of characters in the text the belong to each-other and should
+    be styled in the same way. There is a token class for each particular
+    "thing" in the code, such as comments, strings, keywords, etc. Some
+    tokens are specific to a particular language.
+    
+    There is a function that produces a set of tokens, when given a line of
+    text and a state parameter. There is such a function for each language.
+    These "parsers" are defined in the parsers subpackage.
+    
+    And lastly, there is the Highlighter class, that applies the parser function
+    to obtain the set of tokens and using the names of these tokens applies
+    styling. The styling can be defined by giving a dict that maps token names
+    to style representations.
+    
+    """
+    def __init__(self, *args, showIndentationGuides = False, **kwds):
+        super().__init__(*args, **kwds)
+       

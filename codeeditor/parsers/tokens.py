@@ -7,11 +7,13 @@ to determine how these characters should be styled.
 
 """
 
+# todo: define tokens in style.py?
+
 # Many parsers need this
 ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
 
-from codeeditor.style import StyleDescription, StyleFormat
+from codeeditor.style import StyleFormat, StyleElementDescription
 
 
 class Token(object):
@@ -30,7 +32,6 @@ class Token(object):
     of the characters it is applied to.
     
     """ 
-    defaultStyle = 'fore:#000, bold:no, underline:no'
     
     def __init__(self, line='', start=0, end=0):
         self.line = line
@@ -54,11 +55,25 @@ class Token(object):
         """ The name of this token. Used to identify it and attach a style.
         """
         return self._name
+
+
+class ContinuationToken(Token):
+    """ Used to pass a number to the next block to process multi-line
+    comments etc. The meaning of the state is specific for the parser.
+    """
+    def __init__(self, line='', state=0):
+        Token.__init__(self, line, len(line), len(line))
+        self.state = state
+
+
+class DefaultToken(Token):
+    """ The default style of all characters. """
+    defaultStyle = 'fore:#000, bold:no, underline:no, italic:no'
     
     def getDefaultStyleFormat(self):
         elements = []
         def collect(cls):
-            if cls.__name__.endswith('Token'):
+            if hasattr(cls, 'defaultStyle'):
                 elements.append(cls.defaultStyle)
                 for c in cls.__bases__:
                     collect(c)
@@ -67,18 +82,28 @@ class Token(object):
         for e in reversed(elements):
             se.update(e)
         return se
+    
+    def description(self):
+        """ description()
+        
+        Returns a StyleElementDescription instance that describes the
+        style element that this token represents.
+        
+        """
+        format = self.getDefaultStyleFormat()
+        des = 'syntax: ' + self.__doc__
+        return StyleElementDescription(self.name, str(format), des)
 
 
-class StyledToken(StyleDescription, Token):
-    """ For all tokens that are styled. """
-    defaultStyle = 'fore:#000, bold:no, underline:no'
-# todo: implement this shit
-
-class CommentToken(Token):
+class CommentToken(DefaultToken):
     """ Characters representing a comment in the code. """
     defaultStyle = 'fore:#007F00'
 
-class StringToken(Token):
+class TodoCommentToken(CommentToken):
+    """ Characters representing a comment in the code. """
+    defaultStyle = 'italic'
+
+class StringToken(DefaultToken):
     """ Characters representing a textual string in the code. """
     defaultStyle = 'fore:#7F007F'
 
@@ -88,7 +113,7 @@ class UnterminatedStringToken(StringToken):
     defaultStyle = 'underline:dotted'
 
 
-class TextToken(Token):
+class TextToken(DefaultToken):
     """ Anything that is not a string or comment. """ 
     defaultStyle = 'fore:#000'
 
@@ -116,20 +141,3 @@ class ClassNameToken(IdentifierToken):
     """ Characters represening the name of a class. """
     defaultStyle = 'fore:#0000FF, bold:yes'
 
-
-## Special tokens
-
-class SpecialToken(Token):
-    """ Base class for special tokens, which are not for highlighting
-    text, but other tasks such as highligh color, linenunmber style, etc.
-    """
-    defaultStyle = ''
-
-
-class ContinuationToken(SpecialToken):
-    """ Used to pass a number to the next block to process multi-line
-    comments etc. The meaning of the state is specific for the parser.
-    """
-    def __init__(self, line='', state=0):
-        Token.__init__(self, line, len(line), len(line))
-        self.state = state

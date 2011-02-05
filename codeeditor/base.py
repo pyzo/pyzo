@@ -1,5 +1,5 @@
 """
-Extensible Code Editor
+The base code editor class.
 
 
 """
@@ -96,6 +96,7 @@ import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 import keyword
+
 if __name__ == '__main__':
     import python_syntax
     import appearance
@@ -104,39 +105,22 @@ if __name__ == '__main__':
     import calltip
 else:
     from codeeditor import parsers
-    from codeeditor import appearance
-    from codeeditor import autocompletion
-    from codeeditor import behaviour
-    from codeeditor import calltip
+    from codeeditor.extensions import appearance
+    from codeeditor.extensions import autocompletion
+    from codeeditor.extensions import behaviour
+    from codeeditor.extensions import calltip
+
 
 class BlockData(QtGui.QTextBlockUserData):
+    """ Class to represent the data for a block.
+    """
     def __init__(self):
         QtGui.QTextBlockUserData.__init__(self)
         self.indentation = None
 
     
-""" Notes on syntax highlighting.
-
-The syntax highlighting/parsing is performed using three "components".
-
-The base component are the token instances. Each token simply represents
-a row of characters in the text the belong to each-other and should
-be styled in the same way. There is a token class for each particular
-"thing" in the code, such as comments, strings, keywords, etc. Some
-tokens are specific to a particular language.
-
-There is a function that produces a set of tokens, when given a line of
-text and a state parameter. There is such a function for each language.
-These "parsers" are defined in the parsers subpackage.
-
-And lastly, there is the Highlighter class, that applies the parser function
-to obtain the set of tokens and using the names of these tokens applies
-styling. The styling can be defined by giving a dict that maps token names
-to style representations.
-
-"""
-# todo: move highlighter to separate module or keep here?
-
+# The highlighter should be part of the base class, because 
+# some extensions rely on them (e.g. the indent guuides).
 class Highlighter(QtGui.QSyntaxHighlighter):
     
     def __init__(self,codeEditor,*args):
@@ -180,20 +164,23 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             for key, val in styleFormat:
                 
                 # Process, be forgiving with names
-                if key in ['fore', 'front', 'color']:
+                if key == 'fore':
                     format.setForeground( self._getColorSave(val) )
-                elif key in ['back', 'bg', 'background', 'background-color']:
+                elif key == 'back':
                     format.setBackground( self._getColorSave(val) )
-                elif key in ['bold']:
+                elif key == 'bold':
                     if val == 'yes':
                         format.setFontWeight(QtGui.QFont.Bold)
-                elif key in ['underline']:
+                elif key == 'underline':
                     if val=='yes':
                         format.setUnderlineStyle (format.SingleUnderline)
-                    elif val=='dotted': 
+                    elif val in ['dotted', 'dots', 'dotline']: 
                         format.setUnderlineStyle (format.DotLine)
                     elif val=='wave': 
                         format.setUnderlineStyle (format.WaveUnderline)
+                elif key == 'italic':
+                    if val=='yes':
+                        format.setFontItalic(True)
                 else:
                     print('Warning: unknown style element part "%s" in "%s".' % 
                                                     (key, str(styleFormat)))
@@ -221,16 +208,18 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         if self._parser:
             self.setCurrentBlockState(0)
             for token in self._parser.parseLine(line,previousState):
-                # Get format
-                try:
-                    format = self._nameToFormat[token.name]
-                except KeyError:
-                    continue
-                # Set format
-                self.setFormat(token.start,token.end-token.start,format)
                 #Handle line or string continuation
                 if isinstance(token, parsers.tokens.ContinuationToken):
                     self.setCurrentBlockState(token.state)
+                else:
+                    # Get format
+                    try:
+                        format = self._nameToFormat[token.name]
+                    except KeyError:
+                        continue
+                    # Set format
+                    self.setFormat(token.start,token.end-token.start,format)
+                
         
         #Get the indentation setting of the editors
         indentUsingSpaces = self._codeEditor.indentUsingSpaces()
@@ -269,9 +258,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # Set font (always monospace)
         self.setFont()
         
-        # Create highlighter class
-        # todo: attribute is not private
-        self.__highlighter = Highlighter(self, self.document())
+        # Create highlighter class 
+        # (no double spaces, as we may need to acces it from other extensions)
+        self._highlighter = Highlighter(self, self.document())
         
         #Default options
         option=self.document().defaultTextOption()
@@ -353,7 +342,12 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         QtGui.QPlainTextEdit.setFont(self, font)
     
     
-    ## Syntax
+    ## Syntax / styling
+    
+    # todo: registerStyleElement, or register to class using decorators?
+    def registerStyleElement(self, styleElementDescription):
+        pass
+    
     
     def setSyntaxParser(self, parserName):
         """ setSyntaxParser(parserName)
@@ -416,7 +410,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             raise ValueError("indentWidth must be >0")
         self.__indentWidth = value
         self.setTabStopWidth(self.fontMetrics().width('i'*self.__indentWidth))
-        
+    
     def indentUsingSpaces(self):
         """
         Selects whether to use spaces (if True) or tabs (if False) to indent
@@ -426,7 +420,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
  
     def setIndentUsingSpaces(self, value):
         self.__indentUsingSpaces = bool(value)
-        self.__highlighter.rehighlight()
+        #self.__highlighter.rehighlight()
  
     
     ## MISC
