@@ -112,7 +112,7 @@ class IndentationGuides:
             y4=self.cursorRect(cursor).bottom()            
             
             bd = cursor.block().userData()            
-            if bd.indentation:
+            if bd and bd.indentation:
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
                     w = self.fontMetrics().width('i'*x) + doc.documentMargin()
                     w += 1 # Put it more under the block

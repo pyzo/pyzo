@@ -111,13 +111,22 @@ class ProjectsList(QtGui.QListView):
         QtGui.QListView.mousePressEvent(self,event) 
 
 
-class FileFilter(QtGui.QSortFilterProxyModel):
+class DirSortAndFilter(QtGui.QSortFilterProxyModel):
     """
-    Proxy model to filter a directory tree based on filename patterns
+    Proxy model to filter a directory tree based on filename patterns,
+    sort directories before files and sort dirs/files on name, case-insensitive 
     """
     def __init__(self):
         QtGui.QSortFilterProxyModel.__init__(self)
-        self.filter='!*.pyc'
+        self.filter=''
+        self.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.sort(0) #Column 0 = file/dir name
+    def lessThan(self,left,right):
+        if self.sourceModel().isDir(left) and \
+                not self.sourceModel().isDir(right):
+            return True
+        return QtGui.QSortFilterProxyModel.lessThan(self,left,right)
+        
     def filterAcceptsRow(self,sourceRow,sourceParent):
         #Overridden method to determine wether a row should be
         #shown or not. Check wether the item matches the filter
@@ -183,9 +192,9 @@ class IepProjectManager(QtGui.QWidget):
         self.projectsModel=ProjectsModel(self.config)
 
         #Init dir model and filtered dir model
-        self.dirModel=QtGui.QDirModel()       
-        self.dirModel.setSorting(QtCore.QDir.DirsFirst)
-        self.filteredDirModel=FileFilter()
+        self.dirModel=QtGui.QFileSystemModel()       
+        #TODO: self.dirModel.setSorting(QtCore.QDir.DirsFirst)
+        self.filteredDirModel=DirSortAndFilter()
         self.filteredDirModel.setSourceModel(self.dirModel)
                 
         #Init widgets and layout
@@ -232,6 +241,7 @@ class IepProjectManager(QtGui.QWidget):
         self.filterCombo.setInsertPolicy(self.filterCombo.NoInsert)
         for pattern in ['*', '!*.pyc','*.py *.pyw *.pyx *.pxd', '*.h *.c *.cpp']:
             self.filterCombo.addItem(pattern)
+        self.filterCombo.editTextChanged.connect(self.filterChanged)
         
         # Set file pattern line edit (in combobox)
         self.filterPattern = self.filterCombo.lineEdit()
@@ -242,7 +252,7 @@ class IepProjectManager(QtGui.QWidget):
         self.projectsCombo.currentIndexChanged.connect(self.comboChangedEvent)
         self.projectsList.selectionModel().currentChanged.connect(self.listChangedEvent)
         self.dirList.doubleClicked.connect(self.itemDoubleClicked)
-        self.filterCombo.editTextChanged.connect(self.filterChanged)
+        
         self.listDisclosureButton.toggled.connect(self.listDisclosed)
         self.addProjectButton.clicked.connect(self.addProjectClicked)
         self.removeProjectButton.clicked.connect(self.removeProjectClicked)
@@ -314,6 +324,7 @@ class IepProjectManager(QtGui.QWidget):
         self.dirList.setColumnHidden(2,True)
         self.dirList.setColumnHidden(3,True)
         
+        self.dirModel.setRootPath(path)
         self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(self.dirModel.index(path)))
         
     def addToPathStateChanged(self,state):
