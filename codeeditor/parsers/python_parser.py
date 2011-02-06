@@ -1,13 +1,32 @@
 import re
-import keyword
 from codeeditor.parsers import tokens, Parser
 from codeeditor.parsers.tokens import ALPHANUM
+
 
 # Import tokens in module namespace
 from codeeditor.parsers.tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
     KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
     ContinuationToken)
+
+# Keywords sets
+
+# Source: from keyword import kwlist; keyword.kwlist (Python 2.6.6)
+python2Keywords = {'and', 'as', 'assert', 'break', 'class', 'continue', 
+        'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 
+        'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 
+        'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'}
+
+# Source: from keyword import kwlist; keyword.kwlist (Python 3.1.2)
+python3Keywords = {'False', 'None', 'True', 'and', 'as', 'assert', 'break', 
+        'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 
+        'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 
+        'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 
+        'with', 'yield'}
+
+# Merge the two sets to get a general Python keyword list        
+pythonKeywords = python2Keywords | python3Keywords
+
 
 
 class MultilineStringToken(StringToken):
@@ -54,6 +73,8 @@ endProgs = {
 class PythonParser(Parser):
     """ Parser for Python in general (2.x or 3.x).
     """
+    #The list of keywords is overridden by the Python2/3 specific parsers
+    keywords = pythonKeywords 
     
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
@@ -154,8 +175,7 @@ class PythonParser(Parser):
                     identifier = match.group(1)
                     tokenArgs = line, match.start(), match.end()
                     
-                    #TODO: also include python2.x keywords
-                    if identifier in keyword.kwlist: 
+                    if identifier in self.keywords: 
                         if identifier == 'def':
                             identifierState = 3
                         elif identifier == 'class':
@@ -222,12 +242,12 @@ class PythonParser(Parser):
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.
     """
-    pass
+    keywords = python2Keywords
 
 class Python3Parser(PythonParser):
     """ Parser for Python 3.x code.
     """
-    pass
+    keywords = python3Keywords
 
     
 if __name__=='__main__':
