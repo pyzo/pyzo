@@ -66,6 +66,8 @@ class ContinuationToken(Token):
         self.state = state
 
 
+# The name is default token because it represents the default character format
+# The name of the class is used as the name of the style element description
 class DefaultToken(Token):
     """ The default style of all characters. """
     defaultStyle = 'fore:#000, bold:no, underline:no, italic:no'
