@@ -214,8 +214,8 @@ def big():
         f=e.font()
         f.setPointSize(25)
         e.setFont(f)
-        e.showLineNumbers = False
-        e.showLineNumbers = True
+        e.setShowLineNumbers(False)
+        e.setShowLineNumbers(True)
     for s in shells:
         f=s.font()
         f.setPointSize(25)
