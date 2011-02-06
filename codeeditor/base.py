@@ -140,7 +140,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 #         print('-- end token names --')
     
     
-    def _getColorSave(self, color, default='#777'):
+    def _getColorSafe(self, color, default='#777'):
         try:
             return QtGui.QColor(color)
         except Exception:
@@ -165,9 +165,9 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                 
                 # Process, be forgiving with names
                 if key == 'fore':
-                    format.setForeground( self._getColorSave(val) )
+                    format.setForeground( self._getColorSafe(val) )
                 elif key == 'back':
-                    format.setBackground( self._getColorSave(val) )
+                    format.setBackground( self._getColorSafe(val) )
                 elif key == 'bold':
                     if val == 'yes':
                         format.setFontWeight(QtGui.QFont.Bold)
