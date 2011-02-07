@@ -260,7 +260,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Create highlighter class 
         # (no double spaces, as we may need to acces it from other extensions)
-        self._highlighter = Highlighter(self, self.document())
+        self.__highlighter = Highlighter(self, self.document())
         
         #Default options
         option=self.document().defaultTextOption()
@@ -420,7 +420,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
  
     def setIndentUsingSpaces(self, value):
         self.__indentUsingSpaces = bool(value)
-        #self.__highlighter.rehighlight()
+        self.__highlighter.rehighlight()
  
     
     ## MISC

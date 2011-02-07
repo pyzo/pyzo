@@ -86,9 +86,7 @@ class StyleFormat:
                     stylePart += ':yes'
             
             # Get key value and strip and make lowecase
-            tmp = [i.strip().lower() for i in stylePart.split(':')]
-            key = tmp[0]
-            val = tmp[1]
+            key, _, val = [i.strip().lower() for i in stylePart.partition(':')]
             
             # Store in parts
             if key:
