@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" This script runs a test for the code editor component.
+"""
+
 import os, sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
