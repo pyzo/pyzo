@@ -29,6 +29,15 @@ sys.last_type = None
 sys.last_value = None
 sys.last_traceback = None
 
+# Set Python version as a float and get some names
+PYTHON_VERSION = sys.version_info[0] + sys.version_info[1]/10.0
+if PYTHON_VERSION < 3:
+    ustr = unicode
+    bstr = str
+else:
+    ustr = str
+    bstr = bytes
+
 
 class IepInterpreter:
     """ Closely emulate the interactive Python console.
@@ -477,6 +486,10 @@ class IepInterpreter:
         if contained_coding:
             source = '\n'.join(parts)
         
+        # Convert filename to UTF-8 if Python version < 3
+        if PYTHON_VERSION < 3:
+            filename = filename.encode('utf-8')
+        
         # Compile
         return self._compile(source, filename, mode, *args, **kwargs)
     
@@ -712,6 +725,8 @@ class IepInterpreter:
                 tbInfo = tblist[i]                
                 # Get filename and line number, init example
                 fname, lineno = correctFilenameAndLineno(tbInfo[0], tbInfo[1])
+                if not isinstance(fname, ustr):
+                    fname = fname.decode('utf-8')
                 example = tbInfo[3]
                 # Get source (if available) and split lines
                 source = None
