@@ -6,7 +6,10 @@ Code editor extensions that change its behaviour (i.e. how it reacts to keys)
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
-class HomeKey:
+from ..misc import ustr
+
+class HomeKey(object):
+    
     def keyPressEvent(self,event):
         # Home or shift + home
         if event.key() == Qt.Key_Home and \
@@ -15,7 +18,7 @@ class HomeKey:
             cursor = self.textCursor()
             shiftDown = event.modifiers() == Qt.ShiftModifier
             # Get leading whitespace
-            text = cursor.block().text()            
+            text = ustr(cursor.block().text())
             leadingWhitespace = text[:len(text)-len(text.lstrip())]
             # Get current position and move to start of whitespace
             i = cursor.positionInBlock()
@@ -27,9 +30,10 @@ class HomeKey:
             # Done
             self.setTextCursor(cursor)
         else:
-            super().keyPressEvent(event)
+            super(HomeKey, self).keyPressEvent(event)
 
-class EndKey:
+class EndKey(object):
+    
     def keyPressEvent(self,event):
         if event.key() == Qt.Key_End and \
                 event.modifiers() in (Qt.NoModifier, Qt.ShiftModifier):
@@ -45,9 +49,10 @@ class EndKey:
             # Done
             self.setTextCursor(cursor)
         else:
-            super().keyPressEvent(event)
+            super(EndKey, self).keyPressEvent(event)
 
-class Indentation:
+class Indentation(object):
+    
     def __cursorIsInLeadingWhitespace(self,cursor = None):
         """
         Checks wether the given cursor is in the leading whitespace of a block, i.e.
@@ -58,7 +63,7 @@ class Indentation:
             cursor = self.textCursor()
         
         # Get the text of the current block up to the cursor
-        textBeforeCursor = cursor.block().text()[:cursor.positionInBlock()]
+        textBeforeCursor = ustr(cursor.block().text())[:cursor.positionInBlock()]
         return textBeforeCursor.lstrip() == '' #If we trim it and it is empty, it's all whitespace
     def keyPressEvent(self,event):
         key = event.key()
@@ -100,20 +105,21 @@ class Indentation:
         
         # todo: Same for delete, I think not (what to do with the cursor?)
         
-        super().keyPressEvent(event)
+        super(Indentation, self).keyPressEvent(event)
         
         
         
-class PythonAutoIndent:
+class PythonAutoIndent(object):
+    
     def keyPressEvent(self,event):
-        super().keyPressEvent(event)
+        super(PythonAutoIndent, self).keyPressEvent(event)
         
         #This extension code is run *after* key is processed by QPlainTextEdit
         if event.key() in (Qt.Key_Enter,Qt.Key_Return):
             cursor=self.textCursor()
             previousBlock=cursor.block().previous()
             if previousBlock.isValid():
-                line=previousBlock.text()
+                line = ustr(previousBlock.text())
                 indent=line[:len(line)-len(line.lstrip())]
                 if line.endswith(':'): #TODO: (multi-line) strings, comments
                     #TODO: check correct identation (no mixed space/tabs)

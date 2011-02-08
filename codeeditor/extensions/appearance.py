@@ -5,24 +5,35 @@ Code editor extensions that change its appearance
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
+from ..misc import ce_option
+
 # todo: what about calling all extensions. CE_HighlightCurrentLine, 
 # or EXT_HighlightcurrentLine?
 
-class HighlightCurrentLine:
+class HighlightCurrentLine(object):
     """
     Highlight the current line
     """
-    def __init__(self, *args, highlightCurrentLine = False, **kwds):
-        super().__init__(*args, **kwds)
-        self.setHighlightCurrentLine(highlightCurrentLine)
-
+    
     def highlightCurrentLine(self):
+        """ highlightCurrentLine()
+        
+        Get whether to highlight the current line.
+        
+        """
         return self.__highlightCurrentLine
     
+    @ce_option(True)
     def setHighlightCurrentLine(self,value):
+        """ setHighlightCurrentLine(value)
+        
+        Set whether to highlight the current line.  
+        
+        """
         self.__highlightCurrentLine = bool(value)
         self.viewport().update()
-        
+    
+    
     def paintEvent(self,event):
         """ paintEvent(event)
         
@@ -32,7 +43,7 @@ class HighlightCurrentLine:
         Paints behind its super()
         """
         if not self.highlightCurrentLine():
-            super().paintEvent(event)
+            super(HighlightCurrentLine, self).paintEvent(event)
             return
         
         #Find the top of the current block, and the height
@@ -50,24 +61,33 @@ class HighlightCurrentLine:
             QtGui.QColor(Qt.yellow).lighter(160))
         painter.end()
         
-        super().paintEvent(event)
+        super(HighlightCurrentLine, self).paintEvent(event)
         
         # for debugging paint events
         #if 'log' not in self.__class__.__name__.lower():
         #    print(height, event.rect().width())
 
 
-class IndentationGuides:
-    def __init__(self, *args, showIndentationGuides = False, **kwds):
-        super().__init__(*args, **kwds)
-        self.setShowIndentationGuides(showIndentationGuides)
-
+class IndentationGuides(object):
+    
     def showIndentationGuides(self):
+        """ showIndentationGuides()
+        
+        Get whether to show indentation guides. 
+        
+        """
         return self.__showIndentationGuides
     
-    def setShowIndentationGuides(self,value):
+    @ce_option(True)
+    def setShowIndentationGuides(self, value):
+        """ setShowIndentationGuides(value)
+        
+        Set whether to show indentation guides.
+        
+        """
         self.__showIndentationGuides = bool(value)
         self.viewport().update() 
+    
     
     def paintEvent(self,event):
         """ paintEvent(event)
@@ -75,7 +95,7 @@ class IndentationGuides:
         Paint the indentation guides, using the indentation info calculated
         by the highlighter.
         """ 
-        super().paintEvent(event)
+        super(IndentationGuides, self).paintEvent(event)
 
         if not self.showIndentationGuides():
             return
@@ -129,28 +149,36 @@ class IndentationGuides:
         # Done
         painter.end()
 
-class LongLineIndicator:
-    def __init__(self, *args, longLineIndicatorPosition = 0, **kwds):
-        super().__init__(*args, **kwds)
-        self.setLongLineIndicatorPosition(longLineIndicatorPosition)
-
+class LongLineIndicator(object):
+    
     def longLineIndicatorPosition(self):
-        """ The position of the long line indicator 
-        (0 means not visible). 
+        """ longLineIndicatorPosition()
+        
+        Get the position of the long line indicator (aka edge column).
+        A value of 0 or smaller means that no indicator is shown.
+        
         """
         return self.__longLineIndicatorPosition
     
+    @ce_option(80)
     def setLongLineIndicatorPosition(self, value):
+        """ setLongLineIndicatorPosition(value)
+        
+        Set the position of the long line indicator (aka edge column).
+        A value of 0 or smaller means that no indicator is shown.
+        
+        """ 
         self.__longLineIndicatorPosition = int(value)
         self.viewport().update()
-        
+    
+    
     def paintEvent(self, event):    
         """ paintEvent(event)
         
         Paint the long line indicator. Paints behind its super()
         """    
         if self.longLineIndicatorPosition()<=0:
-            super().paintEvent(event)
+            super(LongLineIndicator, self).paintEvent(event)
             return
             
         # Get doc and viewport
@@ -171,17 +199,17 @@ class LongLineIndicator:
         painter.drawLine(QtCore.QLine(x, 0, x, viewport.height()) )
         painter.end()
         
-        super().paintEvent(event)
+        super(LongLineIndicator, self).paintEvent(event)
 
-class ShowWhitespace:
-    def __init__(self, *args, showWhitespace = False, **kwds):
-        super().__init__(*args, **kwds)
-        self.setShowWhitespace(showWhitespace)
+
+class ShowWhitespace(object):
+    
     def showWhitespace(self):
         """Show or hide whitespace markers"""
         option=self.document().defaultTextOption()
         return bool(option.flags() & option.ShowTabsAndSpaces)
-        
+    
+    @ce_option(False)
     def setShowWhitespace(self,value):
         option=self.document().defaultTextOption()
         if value:
@@ -190,16 +218,17 @@ class ShowWhitespace:
             option.setFlags(option.flags() & ~option.ShowTabsAndSpaces)
         self.document().setDefaultTextOption(option)
 
-class ShowLineEndings:
-    def __init__(self, *args, showLineEndings = False, **kwds):
-        super().__init__(*args, **kwds)
-        self.setShowLineEndings(showLineEndings)
 
+class ShowLineEndings(object):
+    
+    @ce_option(False)
     def showLineEndings(self):
-        """Show or hide line ending markers"""
+        """ Get whether line ending markers are shown. 
+        """
         option=self.document().defaultTextOption()
         return bool(option.flags() & option.ShowLineAndParagraphSeparators)
-        
+    
+    
     def setShowLineEndings(self,value):
         option=self.document().defaultTextOption()
         if value:
@@ -208,7 +237,7 @@ class ShowLineEndings:
             option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
         self.document().setDefaultTextOption(option)
 
-class LineNumbers:
+class LineNumbers(object):
     # todo: Rob, ik weet niet hoor, maar dit vind ik best lelijk! :)
     class __LineNumberArea(QtGui.QWidget):
         """ This is the widget reponsible for drawing the line numbers.
@@ -270,27 +299,32 @@ class LineNumbers:
             # Done
             painter.end()
             
-    def __init__(self, *args, showLineNumbers = False, **kwds):
-        super().__init__(*args, **kwds)
+    def __init__(self, *args, **kwds):
+        self.__lineNumberArea = None
+        super(LineNumbers, self).__init__(*args, **kwds)
         # Create widget that draws the line numbers
         self.__lineNumberArea = self.__LineNumberArea(self)
-        
-        self.setShowLineNumbers(showLineNumbers)
         # Issue an update when the amount of line numbers changes
         self.blockCountChanged.connect(self.__onBlockCountChanged)
-                
+        
+    
     def showLineNumbers(self):
         return self.__showLineNumbers
     
-    def setShowLineNumbers(self,value):
+    @ce_option(True)
+    def setShowLineNumbers(self, value):
         self.__showLineNumbers = bool(value)
-        if self.__showLineNumbers:
-            self.__onBlockCountChanged()
-            self.__lineNumberArea.show()
-        else:
-            self.setViewportMargins(0,0,0,0)
-            self.__lineNumberArea.hide()
-            
+        # Note that this method is called before the __init__ is finished,
+        # so that the __lineNumberArea is not yet created.
+        if self.__lineNumberArea:
+            if self.__showLineNumbers:
+                self.__onBlockCountChanged()
+                self.__lineNumberArea.show()
+            else:
+                self.setViewportMargins(0,0,0,0)
+                self.__lineNumberArea.hide()
+    
+    
     def getLineNumberAreaWidth(self):
         """
         Count the number of lines, compute the length of the longest line number
@@ -310,7 +344,7 @@ class LineNumbers:
             self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
     
     def resizeEvent(self,event):
-        super().resizeEvent(event)
+        super(LineNumbers, self).resizeEvent(event)
         
         #On resize, resize the lineNumberArea, too
         rect=self.contentsRect()
@@ -319,22 +353,20 @@ class LineNumbers:
             self.getLineNumberAreaWidth(),rect.height())
             
     def paintEvent(self,event):
-        super().paintEvent(event)
+        super(LineNumbers, self).paintEvent(event)
         #On repaint, update the complete line number area
         self.__lineNumberArea.update(0, 0, 
                 self.getLineNumberAreaWidth(), self.height() )
     
 
-class Wrap:
-    def __init__(self, *args, wrap = False, **kwds):
-        super().__init__(*args, **kwds)
-        self.setWrap(wrap)
-        
+class Wrap(object):
+    
     def wrap(self):
         """Enable or disable wrapping"""
         option=self.document().defaultTextOption()
         return not bool(option.wrapMode() == option.NoWrap)
-        
+    
+    @ce_option(True)
     def setWrap(self,value):
         option=self.document().defaultTextOption()
         if value:
@@ -345,7 +377,7 @@ class Wrap:
 
 
 
-class SyntaxHighlighting:
+class SyntaxHighlighting(object):
     """ Notes on syntax highlighting.
 
     The syntax highlighting/parsing is performed using three "components".
@@ -366,6 +398,5 @@ class SyntaxHighlighting:
     to style representations.
     
     """
-    def __init__(self, *args, showIndentationGuides = False, **kwds):
-        super().__init__(*args, **kwds)
+    pass
        

@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-class Calltip:
+class Calltip(object):
     class __CalltipLabel(QtGui.QLabel):
         def __init__(self):
             QtGui.QLabel.__init__(self)
@@ -20,10 +20,10 @@ class Calltip:
             self.hide()
             
     def __init__(self, *args, **kwds):
-        super().__init__(*args, **kwds)
+        super(Calltip, self).__init__(*args, **kwds)
         # Create label for call tips
         self.__calltipLabel = self.__CalltipLabel()
-        
+    
     def calltipShow(self, offset=0, richText='', highlightFunctionName=True):
         """ calltipShow(offset=0, richText='', highlightFunctionName=True)
         
@@ -78,7 +78,7 @@ class Calltip:
     
     
     def focusOutEvent(self, event):
-        super().focusOutEvent(event)
+        super(Calltip, self).focusOutEvent(event)
         self.__calltipLabel.hide()
 
     def keyPressEvent(self,event):
@@ -88,4 +88,4 @@ class Calltip:
             self.calltipCancel()
             return
             
-        super().keyPressEvent(event)
+        super(Calltip, self).keyPressEvent(event)

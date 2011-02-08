@@ -13,7 +13,8 @@ to determine how these characters should be styled.
 ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
 
-from codeeditor.style import StyleFormat, StyleElementDescription
+from ..style import StyleFormat, StyleElementDescription
+from ..misc import ustr, bstr
 
 
 class Token(object):
@@ -34,7 +35,7 @@ class Token(object):
     """ 
     
     def __init__(self, line='', start=0, end=0):
-        self.line = line
+        self.line = ustr(line)
         self.start = start
         self.end = end
         self._name = self.__class__.__name__[:-5].lower() 

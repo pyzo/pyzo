@@ -1,8 +1,8 @@
 import re
-from codeeditor.parsers import tokens, Parser
-from codeeditor.parsers.tokens import ALPHANUM
+from ..parsers import tokens, Parser
+from ..parsers.tokens import ALPHANUM
 
-from codeeditor.parsers.tokens import (CommentToken, StringToken, 
+from ..parsers.tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken, KeywordToken,
     NumberToken, ContinuationToken)
 
