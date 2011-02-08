@@ -29,6 +29,15 @@ sys.last_type = None
 sys.last_value = None
 sys.last_traceback = None
 
+# Set Python version as a float and get some names
+PYTHON_VERSION = sys.version_info[0] + sys.version_info[1]/10.0
+if PYTHON_VERSION < 3:
+    ustr = unicode
+    bstr = str
+else:
+    ustr = str
+    bstr = bytes
+
 
 class IepInterpreter:
     """ Closely emulate the interactive Python console.
@@ -121,18 +130,28 @@ class IepInterpreter:
         elif self.guiApp:
             iepBanner += ' with integrated event loop for ' 
             iepBanner += guiName.upper() + '.\n'
+        else:
+            iepBanner += '.\n'
         sys.stdout.write(iepBanner)
-        
-        # Write tips message
-        sys.stdout.write('Type "help" for help, ' + 
-                            'type "?" for a list of *magic* commands.\n')
-        
         
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
         thisPath = os.getcwd()
         if thisPath in sys.path:
             sys.path.remove(thisPath)
+            
+        projectPath = os.environ.get('iep_projectPath')
+        if projectPath is not None:
+            sys.stdout.write('Prepending the project path %r to sys.path\n' % 
+                projectPath)
+            #Actual prepending is done below, to put it before the script path
+        
+        # Write tips message
+        sys.stdout.write('Type "help" for help, ' + 
+                            'type "?" for a list of *magic* commands.\n')
+        
+        
+
         
         # Get whether we should (and can) run as script
         scriptFilename = os.environ.get('iep_scriptFile')
@@ -156,6 +175,8 @@ class IepInterpreter:
             theDir = os.path.abspath( os.path.dirname(scriptFilename) )
             if theDir not in sys.path:
                 sys.path.insert(0, theDir)
+            if projectPath is not None:
+                sys.path.insert(0,projectPath)
             
             # Go to script dir
             os.chdir( os.path.dirname(scriptFilename) )
@@ -177,7 +198,9 @@ class IepInterpreter:
             sys.argv.append('')
             # Insert current directory to path
             sys.path.insert(0, '')
-            
+            if projectPath is not None:
+                sys.path.insert(0,projectPath)
+                
             # Go to start dir
             startDir = os.environ.get('iep_startDir')
             if startDir and os.path.isdir(startDir):
@@ -446,22 +469,26 @@ class IepInterpreter:
         """
         
         # This method solves IEP issue 22
-        
+
         # Split in first two lines and the rest
-        parts = source.split('\n', 3)
+        parts = source.split('\n', 2)
         
         # Replace any coding definitions
         ci = 'coding is'
         contained_coding = False
         for i in range(len(parts)-1):
             tmp = parts[i]
-            if 'coding' in tmp:
+            if tmp and tmp[0] == '#' and 'coding' in tmp:
                 contained_coding = True
                 parts[i] = tmp.replace('coding=', ci).replace('coding:', ci)
         
         # Combine parts again (if necessary)
         if contained_coding:
             source = '\n'.join(parts)
+        
+        # Convert filename to UTF-8 if Python version < 3
+        if PYTHON_VERSION < 3:
+            filename = filename.encode('utf-8')
         
         # Compile
         return self._compile(source, filename, mode, *args, **kwargs)
@@ -585,6 +612,8 @@ class IepInterpreter:
                 # Get fname and lineno, and correct if required
                 fname, lineno = f.f_code.co_filename, f.f_lineno
                 fname, lineno = correctFilenameAndLineno(fname, lineno)
+                if not fname.startswith('<'):
+                    fname = os.path.abspath(fname)
                 # Build string
                 text = 'File "%s", line %i, in %s' % (
                                         fname, lineno, f.f_code.co_name)
@@ -696,6 +725,8 @@ class IepInterpreter:
                 tbInfo = tblist[i]                
                 # Get filename and line number, init example
                 fname, lineno = correctFilenameAndLineno(tbInfo[0], tbInfo[1])
+                if not isinstance(fname, ustr):
+                    fname = fname.decode('utf-8')
                 example = tbInfo[3]
                 # Get source (if available) and split lines
                 source = None
@@ -1285,27 +1316,63 @@ class Hijacked_qt4:
         import PyQt4
         from PyQt4 import QtGui, QtCore
         
-        # Create app class
-        class QHijackedApp(QtGui.QApplication):
-            def __init__(self):
-                QtGui.QApplication.__init__(self,[''])
-            def __call__(self, *args, **kwargs):
-                return QtGui.qApp
+        # Function to get members for a class, taking base classes into account
+        def collectClassMembers(cls, D):
+            for k in cls.__dict__: 
+                if not k.startswith('_'):
+                    D[k] = cls.__dict__[k]
+            for b in cls.__bases__:
+                collectClassMembers(b, D)
+            return D
+        
+        # Store the real application instance
+        if not hasattr(QtGui, 'real_QApplication'):
+            QtGui.real_QApplication = QtGui.QApplication
+        
+        # Meta class that injects all member of the original QApplication 
+        # in the QHijackedApp class (and its derivatives).
+        class QApplicationMetaClass(type):
+            def __new__(meta, name, bases, dct):
+                # Collect all members of class, take inheritance into account
+                dict1 = dct.copy()
+                for b in bases:
+                    collectClassMembers(b, dict1)
+                # Dict used to update members
+                dict2 = collectClassMembers(QtGui.real_QApplication, {})
+                # Update members
+                for key in dict2:
+                    if key not in dict1:
+                        dct[key] = dict2[key]
+                # Create class and return
+                klass = type.__new__(meta, name, bases, dct)
+                return klass
+        
+        QHijackedApp_base = QApplicationMetaClass('QHijackedApp_base', (object,), {})
+        class QHijackedApp(QHijackedApp_base):
+            """ This is an iep-hijacked Qt application. You can subclass from
+            this class and instantiate as many instances as you wish.
+            This class is essentially an empty class, with all members
+            of the real QApplication injected in it.
+            """
+            __metaclass__ = QApplicationMetaClass
+            def __init__(self, *args, **kwargs):
+                pass
             def exec_(self, *args, **kwargs):
                 pass
         
-        # Create app if one does not already exist
+        # Instantiate QApplication and store
         app = QtGui.QApplication.instance()
         if app is None:
-            app = QHijackedApp()
+            app = QtGui.QApplication([''])
+        QtGui.qApp = self.app = app
         
-        # Store the app instance to process events 
-        QtGui.QApplication = QtGui.qApp = app
-        self.app = app
+        # Replace app class
+        QtGui.QApplication = QHijackedApp
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
         QtGui._in_event_loop = 'IEP'
+    
     
     def processEvents(self):
         self.app.flush()
