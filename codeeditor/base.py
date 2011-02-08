@@ -92,28 +92,21 @@ into account:
  - Arguments of the __init__ method should also have clearly destictive names
 
 """
+
 import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
-if __name__ == '__main__':
-    from misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
-    from highlighter import Highlighter
-    from extensions import appearance
-    from extensions import appearance
-    from extensions import autocompletion
-    from extensions import behaviour
-    from extensions import calltip
-else:
-    from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
-    from .highlighter import Highlighter
-    from .extensions import appearance
-    from .extensions import autocompletion
-    from .extensions import behaviour
-    from .extensions import calltip
+from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
+from .highlighter import Highlighter
 
 
 class CodeEditorBase(QtGui.QPlainTextEdit):
+    """ The base code editor class. Implements some basic features required
+    by the extensions.
+    
+    """
+    
     def __init__(self,*args, **kwds):
         super(CodeEditorBase, self).__init__(*args)
         
@@ -121,10 +114,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.setFont()
         
         # Create highlighter class 
-        # (no double spaces, as we may need to acces it from other extensions)
         self.__highlighter = Highlighter(self, self.document())
         
-        #Default options
+        # Set some document options
         option = self.document().defaultTextOption()
         option.setFlags(    option.flags() | option.IncludeTrailingSpaces |
                             option.AddSpaceForLineAndParagraphSeparators )
@@ -134,9 +126,15 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # the hihghlighting etc will work
         self.cursorPositionChanged.connect(self.viewport().update) 
         
-        # Init options now
+        # Init options now. 
+        # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
+        # If an extension has an __init__ in which it first calls the 
+        # super().__init__, this __initOptions() function will be called, 
+        # while the extension's init is not yet finished.        
         self.__initOptions(kwds)
     
+    
+    ## Options
     
     def __getOptionMethods(self):
         """ Get a list of methods that are options. Each element in the
@@ -384,14 +382,15 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # and maybe others should move to a separate module and be 
         # exposed as loose functions to the end user. 
         raise NotImplementedError() 
-    ## Properties
+    
+    
+    ## Some basic options
     
     
     @ce_option(4)
     def indentWidth(self):
-        """
-        The width of a tab character, and also the amount of spaces to use for
-        indentation when indentUsingSpaces() is True
+        """ Get the width of a tab character, and also the amount of spaces
+        to use for indentation when indentUsingSpaces() is True.
         """
         return self.__indentWidth
 
@@ -405,22 +404,24 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     @ce_option(False)
     def indentUsingSpaces(self):
-        """
-        Selects whether to use spaces (if True) or tabs (if False) to indent
+        """Get whether to use spaces (if True) or tabs (if False) to indent
         when the tab key is pressed
         """
         return self.__indentUsingSpaces
- 
+    
     def setIndentUsingSpaces(self, value):
         self.__indentUsingSpaces = bool(value)
         self.__highlighter.rehighlight()
  
     
-    ## MISC
+    ## Misc
         
-    def gotoLine(self,lineNumber):
-        """
-        Move the cursor to the block given by the line number (first line is line number 1) and show that line
+    def gotoLine(self, lineNumber):
+        """ gotoLine(lineNumber)
+        
+        Move the cursor to the block given by the line number 
+        (first line is line number 1) and show that line.
+        
         """
         cursor = self.textCursor()
         block = self.document().findBlockByNumber( lineNumber + 1)
@@ -428,14 +429,16 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.setTextCursor(cursor)
     
         
-    def doForSelectedBlocks(self,function):
-        """
+    def doForSelectedBlocks(self, function):
+        """ doForSelectedBlocks(function)
+        
         Call the given function(cursor) for all blocks in the current selection
         A block is considered to be in the current selection if a part of it is in
         the current selection 
         
         The supplied cursor will be located at the beginning of each block. This
         cursor may be modified by the function as required
+        
         """
         
         #Note: a 'TextCursor' does not represent the actual on-screen cursor, so
@@ -468,12 +471,16 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             
         editCursor.endEditBlock()
     
-    def indentBlock(self,cursor,amount = 1):
-        """
-        Indent the block given by cursor
+    
+    def indentBlock(self, cursor, amount=1):
+        """ indentBlock(cursor, amount=1)
+        
+        Indent the block given by cursor.
+        
         The cursor specified is used to do the indentation; it is positioned
         at the beginning of the first non-whitespace position after completion
-        May be overridden to customize indentation
+        May be overridden to customize indentation.
+        
         """
         text = ustr(cursor.block().text())
         leadingWhitespace = text[:len(text)-len(text.lstrip())]
@@ -496,102 +503,43 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             # Convert indentation to number of tabs, and add one
             indent = (indent // self.indentWidth()) + amount
             cursor.insertText('\t' * max(indent,0))
-            
-    def dedentBlock(self,cursor):
-        """
-        Dedent the block given by cursor
-        Calls indentBlock with amount = -1
-        May be overridden to customize indentation
+    
+    
+    def dedentBlock(self, cursor):
+        """ dedentBlock(cursor)
+        
+        Dedent the block given by cursor.
+        
+        Calls indentBlock with amount = -1.
+        May be overridden to customize indentation.
+        
         """
         self.indentBlock(cursor, amount = -1)
-        
+    
+    
     def indentSelection(self):
-        """
+        """ indentSelection()
+        
         Called when the current line/selection is to be indented.
-        Calls indentLine(cursor) for each line in the selection
-        May be overridden to customize indentation
+        Calls indentLine(cursor) for each line in the selection.
+        May be overridden to customize indentation.
         
-        See also doForSelectedBlocks and indentBlock
+        See also doForSelectedBlocks and indentBlock.
+        
         """
-        
         self.doForSelectedBlocks(self.indentBlock)
+    
+    
     def dedentSelection(self):
-        """
+        """ dedentSelection()
+        
         Called when the current line/selection is to be dedented.
-        Calls dedentLine(cursor) for each line in the selection
-        May be overridden to customize indentation
+        Calls dedentLine(cursor) for each line in the selection.
+        May be overridden to customize indentation.
         
-        See also doForSelectedBlocks and dedentBlock
+        See also doForSelectedBlocks and dedentBlock.
+        
         """
-        
         self.doForSelectedBlocks(self.dedentBlock)
-        
-    def setStyle(self,style):
-        #TODO: to be implemented
-        pass
-
     
-
-
-
-                
-
-# Order of superclasses: first the extensions, then CodeEditorBase
-# The first superclass is the first extension that gets to handle each key
-# 
-class CodeEditor(
-    appearance.HighlightCurrentLine, 
-    appearance.IndentationGuides, 
-    appearance.LongLineIndicator, 
-    appearance.ShowWhitespace,
-    appearance.ShowLineEndings,
-    appearance.Wrap,
-    appearance.LineNumbers, 
-
-    autocompletion.AutoCompletion, #Escape: first remove autocompletion,
-    calltip.Calltip,               #then calltip
-    
-    behaviour.Indentation,
-    behaviour.HomeKey,
-    behaviour.EndKey,
-    
-    behaviour.PythonAutoIndent,
-    
-    CodeEditorBase):  #CodeEditorBase must be the last one in the list
-    """
-    CodeEditor with all the extensions
-    """
-    pass
-
-        
-
-if __name__=='__main__':
-    app=QtGui.QApplication([])
-    class TestEditor(CodeEditor):
-        def keyPressEvent(self,event):
-            key = event.key()
-            if key == Qt.Key_F1:
-                self.autocompleteShow()
-                return
-            elif key == Qt.Key_F2:
-                self.autocompleteCancel()
-                return
-            elif key == Qt.Key_F3:
-                self.calltipShow(0, 'test(foo, bar)')
-                return
-            elif key == Qt.Key_Backtab: #Shift + Tab
-                self.dedentSelection()
-                return
-           
-            super(TestEditor, self).keyPressEvent(event)
-    
-    e=TestEditor(highlightCurrentLine = True, longLineIndicatorPosition = 20,
-        showIndentationGuides = True, showWhitespace = True, 
-        showLineEndings = True, wrap = True, showLineNumbers = True)
-    e.show()
-    s=QtGui.QSplitter()
-    s.addWidget(e)
-    s.addWidget(QtGui.QLabel('test'))
-    s.show()
-    app.exec_()
 

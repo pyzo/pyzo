@@ -1,3 +1,9 @@
+""" Module misc
+
+Defined ustr (Unicode string) class and the option property decorator.
+
+"""
+
 import sys
 
 # Set Python version as a float and get some names
