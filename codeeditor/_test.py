@@ -1,9 +1,10 @@
-import os
+import os, sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
 # Go up one directory and then import the codeeditor package
 os.chdir('..') 
+sys.path.insert(0,'.')
 from codeeditor import CodeEditor
 
 if __name__=='__main__':
@@ -26,7 +27,7 @@ if __name__=='__main__':
                 self.dedentSelection()
                 return
            
-            super().keyPressEvent(event)
+            super(TestEditor, self).keyPressEvent(event)
             
     # Create editor instance    
     e = TestEditor(highlightCurrentLine = True, longLineIndicatorPosition = 20,

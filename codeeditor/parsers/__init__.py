@@ -18,20 +18,20 @@ Making a parser requires these things:
   * Place a module in the parsers directory, which has a name 
     ending in "_parser.py"
   * In the module implement one or more classes that inherit
-    from codeeditor.parsers.Parser (or a derived class), and 
+    from ..parsers.Parser (or a derived class), and 
     implement the parseLine method.
   * The module should import all the tokens in whiches to use 
-    from codeeditor.parsers.tokens. New tokens can also be
+    from ..parsers.tokens. New tokens can also be
     defined by subclassing one of the token classes.
   * In codeeditor/parsers/__init__.py, add the new module to the 
     list of imported parsers.
 
 """
 
-# Normal imports
+# Normal imports 
 import os, sys
 import zipfile
-from codeeditor.parsers import tokens
+from . import tokens
 
 
 # Base parser class (needs to be defined before importing parser modules

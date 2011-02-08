@@ -8,9 +8,9 @@ from PyQt4.QtCore import Qt
 
 import keyword
 
-class AutoCompletion:
+class AutoCompletion(object):
     def __init__(self,*args, **kwds):
-        super().__init__(*args, **kwds)
+        super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter
         self.__completerModel=QtGui.QStringListModel(keyword.kwlist)
         self.__completer=QtGui.QCompleter(self.__completerModel, self)
@@ -170,7 +170,7 @@ class AutoCompletion:
             self.autocompleteCancel()
         
         # Apply the key that was pressed
-        super().keyPressEvent(event)
+        super(AutoCompletion, self).keyPressEvent(event)
         
         if self.autocompleteActive():
             #While we type, the start of the autocompletion may move due to line

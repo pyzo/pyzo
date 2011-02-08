@@ -12,17 +12,17 @@ from codeeditor.parsers.tokens import (CommentToken, StringToken,
 # Keywords sets
 
 # Source: from keyword import kwlist; keyword.kwlist (Python 2.6.6)
-python2Keywords = {'and', 'as', 'assert', 'break', 'class', 'continue', 
+python2Keywords = set(['and', 'as', 'assert', 'break', 'class', 'continue', 
         'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 
         'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 
-        'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'}
+        'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'])
 
 # Source: from keyword import kwlist; keyword.kwlist (Python 3.1.2)
-python3Keywords = {'False', 'None', 'True', 'and', 'as', 'assert', 'break', 
+python3Keywords = set(['False', 'None', 'True', 'and', 'as', 'assert', 'break', 
         'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 
         'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 
         'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 
-        'with', 'yield'}
+        'with', 'yield'])
 
 # Merge the two sets to get a general Python keyword list        
 pythonKeywords = python2Keywords | python3Keywords

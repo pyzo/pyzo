@@ -95,165 +95,27 @@ into account:
 import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
-import keyword
 
 if __name__ == '__main__':
-    import python_syntax
-    import appearance
-    import autocompletion
-    import behaviour
-    import calltip
+    from misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
+    from highlighter import Highlighter
+    from extensions import appearance
+    from extensions import appearance
+    from extensions import autocompletion
+    from extensions import behaviour
+    from extensions import calltip
 else:
-    from codeeditor import parsers
-    from codeeditor.extensions import appearance
-    from codeeditor.extensions import autocompletion
-    from codeeditor.extensions import behaviour
-    from codeeditor.extensions import calltip
-
-
-class BlockData(QtGui.QTextBlockUserData):
-    """ Class to represent the data for a block.
-    """
-    def __init__(self):
-        QtGui.QTextBlockUserData.__init__(self)
-        self.indentation = None
-
-    
-# The highlighter should be part of the base class, because 
-# some extensions rely on them (e.g. the indent guuides).
-class Highlighter(QtGui.QSyntaxHighlighter):
-    
-    def __init__(self,codeEditor,*args):
-        QtGui.QSyntaxHighlighter.__init__(self,*args)
-        
-        #Init properties
-        self._codeEditor = codeEditor
-        self._nameToFormat = {}
-        self._parser = parsers.ParserManager.getParserByName('python')
-        if self._parser:            
-            self.createFormats( self._parser.getDefaultStyle() )
-        
-#         pp = parsers.ParserManager.getParserByName('python')
-#         print('-- token names --')
-#         for info in pp.getStyleInfo():
-#             print(info[0])
-#         print('-- end token names --')
-    
-    
-    def _getColorSafe(self, color, default='#777'):
-        try:
-            return QtGui.QColor(color)
-        except Exception:
-            print('Invalid color', color)
-            return QtGui.QColor(default)
-    
-    
-    def createFormats(self, style):
-        
-        # Init dict
-        self._nameToFormat = {}
-        
-        # For each style (i.e. token)
-        for name in style:
-            styleFormat = style[name]
-            
-            # Init format
-            format = QtGui.QTextCharFormat()
-            self._nameToFormat[name] = format
-            
-            for key, val in styleFormat:
-                
-                # Process, be forgiving with names
-                if key == 'fore':
-                    format.setForeground( self._getColorSafe(val) )
-                elif key == 'back':
-                    format.setBackground( self._getColorSafe(val) )
-                elif key == 'bold':
-                    if val == 'yes':
-                        format.setFontWeight(QtGui.QFont.Bold)
-                elif key == 'underline':
-                    if val=='yes':
-                        format.setUnderlineStyle (format.SingleUnderline)
-                    elif val in ['dotted', 'dots', 'dotline']: 
-                        format.setUnderlineStyle (format.DotLine)
-                    elif val=='wave': 
-                        format.setUnderlineStyle (format.WaveUnderline)
-                elif key == 'italic':
-                    if val=='yes':
-                        format.setFontItalic(True)
-                else:
-                    print('Warning: unknown style element part "%s" in "%s".' % 
-                                                    (key, str(styleFormat)))
-    
-    
-    def getCurrentBlockUserData(self):
-        """ getCurrentBlockUserData()
-        
-        Gets the BlockData object. Creates one if necesary.
-        
-        """
-        bd = self.currentBlockUserData()
-        if not isinstance(bd, BlockData):
-            bd = BlockData()
-            self.setCurrentBlockUserData(bd)
-        return bd
-    
-    
-    def highlightBlock(self,line): 
-        
-        previousState=self.previousBlockState()
-        
-        # todo: choose parser dynamically
-        
-        if self._parser:
-            self.setCurrentBlockState(0)
-            for token in self._parser.parseLine(line,previousState):
-                #Handle line or string continuation
-                if isinstance(token, parsers.tokens.ContinuationToken):
-                    self.setCurrentBlockState(token.state)
-                else:
-                    # Get format
-                    try:
-                        format = self._nameToFormat[token.name]
-                    except KeyError:
-                        continue
-                    # Set format
-                    self.setFormat(token.start,token.end-token.start,format)
-                
-        
-        #Get the indentation setting of the editors
-        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
-        
-        # Get user data
-        bd = self.getCurrentBlockUserData()
-        
-        leadingWhitespace=line[:len(line)-len(line.lstrip())]
-        if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
-            #Mixed whitespace
-            bd.indentation = 0
-            format=QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.red)
-            format.setToolTip('Mixed tabs and spaces')
-            self.setFormat(0,len(leadingWhitespace),format)
-        elif ('\t' in leadingWhitespace and indentUsingSpaces) or \
-            (' ' in leadingWhitespace and not indentUsingSpaces):
-            #Whitespace differs from document setting
-            bd.indentation = 0
-            format=QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.blue)
-            format.setToolTip('Whitespace differs from document setting')
-            self.setFormat(0,len(leadingWhitespace),format)
-        else:
-            # Store info for indentation guides
-            # amount of tabs or spaces
-            bd.indentation = len(leadingWhitespace)
+    from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
+    from .highlighter import Highlighter
+    from .extensions import appearance
+    from .extensions import autocompletion
+    from .extensions import behaviour
+    from .extensions import calltip
 
 
 class CodeEditorBase(QtGui.QPlainTextEdit):
-    def __init__(self,*args, indentUsingSpaces = False, indentWidth = 4, **kwds):
-        super().__init__(*args,**kwds)
+    def __init__(self,*args, **kwds):
+        super(CodeEditorBase, self).__init__(*args)
         
         # Set font (always monospace)
         self.setFont()
@@ -263,17 +125,145 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.__highlighter = Highlighter(self, self.document())
         
         #Default options
-        option=self.document().defaultTextOption()
-        option.setFlags(option.flags()|option.IncludeTrailingSpaces|option.AddSpaceForLineAndParagraphSeparators)
+        option = self.document().defaultTextOption()
+        option.setFlags(    option.flags() | option.IncludeTrailingSpaces |
+                            option.AddSpaceForLineAndParagraphSeparators )
         self.document().setDefaultTextOption(option)
-        
-        #Init properties
-        self.setIndentUsingSpaces(indentUsingSpaces)
-        self.setIndentWidth(indentWidth)
         
         # When the cursor position changes, invoke an update, so that
         # the hihghlighting etc will work
         self.cursorPositionChanged.connect(self.viewport().update) 
+        
+        # Init options now
+        self.__initOptions(kwds)
+    
+    
+    def __getOptionMethods(self):
+        """ Get a list of methods that are options. Each element in the
+        returned list is a two-element tuple with the setter and getter
+        method.
+        """
+        
+        # Collect members by walking the class bases
+        members = []
+        def collectMembers(cls, iter=1):
+            # Valid class?
+            if cls is object or cls is QtGui.QPlainTextEdit:
+                return
+            # Check members
+            for member in cls.__dict__.values():
+                if hasattr(member, DEFAULT_OPTION_NAME):
+                    members.append((cls, member))
+            # Recurse
+            for c in cls.__bases__:
+                collectMembers(c, iter+1)
+        collectMembers(self.__class__)
+        
+        # Check if setter and getter are present 
+        methods = []
+        for cls, member in members:
+            # Get name without set
+            name = member.__name__
+            if name.lower().startswith('set'):
+                name = name[3:]
+            # Get setter and getter name
+            name_set = 'set' + name[0].upper() + name[1:]
+            name_get = name[0].lower() + name[1:]
+            # Check if exists
+            D = cls.__dict__
+            if not (name_set in D and name_get in D):
+                continue
+            # Get members and set default on both
+            member_set, member_get = D[name_set], D[name_get]
+            defaultValue = member.__dict__[DEFAULT_OPTION_NAME]
+            member_set.__dict__[DEFAULT_OPTION_NAME] = defaultValue
+            member_get.__dict__[DEFAULT_OPTION_NAME] = defaultValue
+            # Add to list
+            methods.append((member_set, member_get))
+        
+        # Done
+        return methods
+    
+    
+    def __setOptions(self, methods, options):
+        """ Sets the options, given the list-of-tuples methods and an
+        options dict.
+        """
+        for member_set, member_get in methods:
+            
+            # Determine whether the value was given in options
+            valueIsGiven = False
+            valToSet = None
+            if member_set.__name__ in options:
+                valToSet = options[member_set.__name__]
+                valueIsGiven = True
+            elif member_get.__name__ in options:
+                valToSet = options[member_get.__name__]
+                valueIsGiven = True
+            
+            # Use given value
+            if valueIsGiven:
+                member_set(self, valToSet)
+    
+    
+    def __initOptions(self, options=None):
+        """ Init the options with their default values.
+        Also applies the docstrings of one to the other.
+        """
+        
+        # Make options an empty dict if not given
+        if not options:
+            options = {}
+        
+        # Get methods
+        methods = self.__getOptionMethods()
+        
+        
+        for member_set, member_get in methods:
+            
+            # Correct docstring if we can and should
+            if member_set.__doc__ and not member_get.__doc__:
+                doc = member_set.__doc__
+                doc = doc.replace('set', 'get').replace('Set', 'Get')
+                member_get.__doc__ = doc
+            elif member_get.__doc__ and not member_set.__doc__:
+                doc = member_get.__doc__
+                doc = doc.replace('get', 'set').replace('Get', 'Set')
+                member_set.__doc__ = doc
+            
+            # Set default value
+            defaultVal = member_set.__dict__[DEFAULT_OPTION_NAME]
+            if defaultVal != DEFAULT_OPTION_NONE:
+                member_set(self, defaultVal)
+        
+        # Also set using given opions?
+        if options:
+            self.__setOptions(methods, options)
+    
+    
+    def setOptions(self, options=None, **kwargs):
+        """ setOptions(options=None, **kwargs)
+        
+        Set the code editor options (e.g. highlightCurrentLine) using
+        a dict-like object, or using keyword arguments (options given
+        in the latter overrule opions in the first).
+        
+        """
+        
+        # Process options
+        if options:
+            D = {}            
+            for key in options:
+                D[key] = options[key]
+            D.update(kwargs)
+        else:
+            D = kwargs
+        
+        # Get methods
+        methods = self.__getOptionMethods()
+        
+        # Go
+        self.__setOptions(methods, D)
     
     
     ## Font
@@ -395,8 +385,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # exposed as loose functions to the end user. 
         raise NotImplementedError() 
     ## Properties
-
-
+    
+    
+    @ce_option(4)
     def indentWidth(self):
         """
         The width of a tab character, and also the amount of spaces to use for
@@ -411,6 +402,8 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.__indentWidth = value
         self.setTabStopWidth(self.fontMetrics().width('i'*self.__indentWidth))
     
+    
+    @ce_option(False)
     def indentUsingSpaces(self):
         """
         Selects whether to use spaces (if True) or tabs (if False) to indent
@@ -482,7 +475,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         at the beginning of the first non-whitespace position after completion
         May be overridden to customize indentation
         """
-        text = cursor.block().text()
+        text = ustr(cursor.block().text())
         leadingWhitespace = text[:len(text)-len(text.lstrip())]
         
         #Select the leading whitespace
@@ -590,9 +583,8 @@ if __name__=='__main__':
                 self.dedentSelection()
                 return
            
-            super().keyPressEvent(event)
-            
-        
+            super(TestEditor, self).keyPressEvent(event)
+    
     e=TestEditor(highlightCurrentLine = True, longLineIndicatorPosition = 20,
         showIndentationGuides = True, showWhitespace = True, 
         showLineEndings = True, wrap = True, showLineNumbers = True)
