@@ -7,8 +7,6 @@ to determine how these characters should be styled.
 
 """
 
-# todo: define tokens in style.py?
-
 # Many parsers need this
 ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
@@ -93,9 +91,10 @@ class DefaultToken(Token):
         style element that this token represents.
         
         """
+        name = 'syntax.' + self.name
         format = self.getDefaultStyleFormat()
         des = 'syntax: ' + self.__doc__
-        return StyleElementDescription(self.name, str(format), des)
+        return StyleElementDescription(name, str(format), des)
 
 
 class CommentToken(DefaultToken):
@@ -112,7 +111,6 @@ class StringToken(DefaultToken):
 
 class UnterminatedStringToken(StringToken):
     """ Characters belonging to an unterminated string. """
-    #defaultStyle = 'fore:#fff,back:#7F007F'
     defaultStyle = 'underline:dotted'
 
 

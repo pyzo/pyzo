@@ -33,7 +33,8 @@ endProgs = {
 class StupidParser(Parser):
     """ A stupid test parser.
     """
-
+    _keywords = ['aap', 'noot', 'mies', 'boom', 'roos', 'vis', 'vuur']
+    
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
         
@@ -84,7 +85,7 @@ class StupidParser(Parser):
                     identifier = match.group(1)
                     tokenArgs = line, match.start(), match.end()
                     
-                    if identifier in ['aap', 'noot', 'mies', 'boom', 'roos', 'vis', 'vuur']: 
+                    if identifier in _keywords: 
                         yield KeywordToken(*tokenArgs)
                     elif identifier[0] in '0123456789':
                         identifierState = 0

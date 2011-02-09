@@ -113,6 +113,10 @@ class StyleElementDescription:
         return self._name
     
     @property
+    def key(self):
+        return self._name.replace(' ', '').lower()
+    
+    @property
     def description(self):
         return self._description
     

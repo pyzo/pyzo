@@ -33,9 +33,9 @@ class MultilineStringToken(StringToken):
     """ Characters representing a multi-line string. """
     defaultStyle = 'fore:#7F0000'
 
-class CellCommentToken(CommentToken): # todo: move to python
+class CellCommentToken(CommentToken):
     """ Characters representing a cell separator comment: "##". """
-    defaultStyle = 'back:#F0FFF0, bold:yes, underline:yes'
+    defaultStyle = 'bold:yes, underline:yes'
 
 class LineContinuationToken(ContinuationToken):
     pass
@@ -74,7 +74,7 @@ class PythonParser(Parser):
     """ Parser for Python in general (2.x or 3.x).
     """
     #The list of keywords is overridden by the Python2/3 specific parsers
-    keywords = pythonKeywords 
+    _keywords = pythonKeywords 
     
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
@@ -175,7 +175,7 @@ class PythonParser(Parser):
                     identifier = match.group(1)
                     tokenArgs = line, match.start(), match.end()
                     
-                    if identifier in self.keywords: 
+                    if identifier in self._keywords: 
                         if identifier == 'def':
                             identifierState = 3
                         elif identifier == 'class':
@@ -242,12 +242,12 @@ class PythonParser(Parser):
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.
     """
-    keywords = python2Keywords
+    _keywords = python2Keywords
 
 class Python3Parser(PythonParser):
     """ Parser for Python 3.x code.
     """
-    keywords = python3Keywords
+    _keywords = python3Keywords
 
     
 if __name__=='__main__':
