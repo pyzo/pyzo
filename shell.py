@@ -34,7 +34,8 @@ class BaseShell(BaseTextCtrl):
 
     
     def __init__(self, parent,**kwds):
-        super().__init__(parent, wrap = True, **kwds)
+        super().__init__(parent, wrap=True, showLineNumbers=False, 
+            highlightCurrentLine=False, **kwds)
         
         self.setUndoRedoEnabled(False)
         
@@ -68,7 +69,7 @@ class BaseShell(BaseTextCtrl):
         # apply style
         # TODO: self.setStyle('')
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
-        
+    
     def onCursorPositionChanged(self):
         #If the end of the selection (or just the cursor if there is no selection)
         #is before the beginning of the line. make the document read-only
@@ -1478,7 +1479,7 @@ class PythonShell(BaseShell):
         self.write(msg3)
         
         # Set style to indicate dead-ness
-        self.setStyle('pythonshell_dead')
+        #self.setStyle('pythonshell_dead')
         self.setReadOnly(True)
         
         # Goto end such that the closing message is visible
