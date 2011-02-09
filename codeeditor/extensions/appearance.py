@@ -398,5 +398,20 @@ class SyntaxHighlighting(object):
     to style representations.
     
     """
-    pass
-       
+    
+    _styleElements = [  ('syntax.test1','#ddd,bold', 'this is a test'),
+                        ('syntax.test2','#ddd,bold', 'this is another test')]
+    
+    # todo: underlying __parser is string or Parser instance?
+    @ce_option('')
+    def parser(self):
+        """ Get the parser currently in use to parse the code for syntax
+        highlighting and source structure.
+        """
+        return self.__parser
+    
+    def setParser(self, parserName=''):
+        self.__parser = parserName
+    
+    
+    

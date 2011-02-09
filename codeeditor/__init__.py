@@ -12,7 +12,8 @@ from .extensions.appearance import (    HighlightCurrentLine,
                                         ShowWhitespace,
                                         ShowLineEndings,
                                         Wrap,
-                                        LineNumbers
+                                        LineNumbers,
+                                        SyntaxHighlighting
                                     )
 from .extensions.behaviour import (     Indentation,
                                         HomeKey,
@@ -43,6 +44,8 @@ class CodeEditor(
     EndKey,
     
     PythonAutoIndent,
+    
+    SyntaxHighlighting,
     
     CodeEditorBase):  #CodeEditorBase must be the last one in the list
     """

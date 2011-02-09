@@ -8,6 +8,7 @@ from PyQt4.QtCore import Qt
 
 import keyword
 
+# todo: use keywords from the parser
 class AutoCompletion(object):
     def __init__(self,*args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)

@@ -28,7 +28,8 @@ commentEndProg = re.compile(r'\*/')
 class CParser(Parser):
     """ A C parser.
     """
-
+    _keywords = ['int', 'const', 'char', 'void', 'short', 'long', 'case']
+    
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
         
@@ -42,7 +43,7 @@ class CParser(Parser):
         # 0: nothing special
         # 1: string
         # 2: multiline comment /* */
-                
+        
         # Enter the main loop that iterates over the tokens and skips strings
         previousIdentifier = ''
         while True:
@@ -82,7 +83,7 @@ class CParser(Parser):
                     identifier = match.group(1)
                     tokenArgs = line, match.start(), match.end()
                     
-                    if identifier in ['int', 'const', 'char', 'void', 'short', 'long', 'case']: 
+                    if identifier in self._keywords: 
                         yield KeywordToken(*tokenArgs)
                     elif identifier[0] in '0123456789':
                         identifierState = 0

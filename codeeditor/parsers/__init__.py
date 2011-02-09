@@ -39,9 +39,18 @@ class Parser(object):
     """ Base parser class. 
     All parsers should inherit from this class.
     """
+    _keywords = []
     
     def parseLine(self, line, previousState=0):
         raise NotImplementedError()
+    
+    def keywords(self):
+        """ keywords()
+        
+        Get a list of keywords valid for this parser.
+        
+        """
+        return self._keywords
     
     
     def getDefaultStyle(self):
@@ -105,7 +114,7 @@ from codeeditor.parsers import (    python_parser,
                                 )
 
 
-
+# todo: combine pareser manager with a generic code editor manager?
 class ParserManager:
     """ ParserManager
     

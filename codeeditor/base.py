@@ -99,6 +99,7 @@ from PyQt4.QtCore import Qt
 
 from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
 from .highlighter import Highlighter
+from .style import StyleElementDescription
 
 
 class CodeEditorBase(QtGui.QPlainTextEdit):
@@ -143,7 +144,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         """
         
         # Collect members by walking the class bases
-        members = []
+        members = set()
         def collectMembers(cls, iter=1):
             # Valid class?
             if cls is object or cls is QtGui.QPlainTextEdit:
@@ -151,7 +152,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             # Check members
             for member in cls.__dict__.values():
                 if hasattr(member, DEFAULT_OPTION_NAME):
-                    members.append((cls, member))
+                    members.add((cls, member))
             # Recurse
             for c in cls.__bases__:
                 collectMembers(c, iter+1)
@@ -187,21 +188,29 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         """ Sets the options, given the list-of-tuples methods and an
         options dict.
         """
+        
+        # Get list of keys so we can determine if invalid options were given
+        optionKeys = [key for key in options]
+        
         for member_set, member_get in methods:
             
             # Determine whether the value was given in options
             valueIsGiven = False
             valToSet = None
-            if member_set.__name__ in options:
-                valToSet = options[member_set.__name__]
-                valueIsGiven = True
-            elif member_get.__name__ in options:
-                valToSet = options[member_get.__name__]
-                valueIsGiven = True
+            for name in [member_set.__name__, member_get.__name__]:
+                if name in options:
+                    valToSet = options[name]
+                    valueIsGiven = True
+                    while name in optionKeys:
+                        optionKeys.remove(name)
             
             # Use given value
             if valueIsGiven:
                 member_set(self, valToSet)
+    
+        # Check if invalid keys were given
+        if optionKeys:
+            print("Warning, invalid options given :" + ', '.join(optionKeys))
     
     
     def __initOptions(self, options=None):
@@ -332,56 +341,80 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     ## Syntax / styling
     
-    # todo: registerStyleElement, or register to class using decorators?
-    def registerStyleElement(self, styleElementDescription):
+    
+    def __getStyleElementDescriptions(self):
+        """ Get a list of ...
+        """
+        
+        # Collect members by walking the class bases
+        elements = []
+        def collectElements(cls, iter=1):
+            # Valid class?
+            if cls is object or cls is QtGui.QPlainTextEdit:
+                return
+            # Check members
+            if hasattr(cls, '_styleElements'):
+                for element in cls._styleElements:
+                    elements.append(element)
+            # Recurse
+            for c in cls.__bases__:
+                collectElements(c, iter+1)
+        collectElements(self.__class__)
+        
+        # Make style element descriptions
+        elements2 = {}
+        for element in elements:
+            # Check
+            if isinstance(element, StyleElementDescription):
+                pass
+            elif isinstance(element, tuple):
+                element = StyleElementDescription(*element)
+            else:
+                print('Warning: invalid element: ' + repr(element))
+            # Store using the name as a key to prevent duplicates
+            elements2[element.key] = element
+        
+        # Done
+        return elements2
+    
+    # todo: classmethod or even a method on a static manager class
+    def getStyleDescriptions(self):
+        """ getStyleDescriptions()
+        
+        Get the descriptions of all style elements registered to this
+        class. If the syntax extension is uses, this includes all
+        syntax styles.
+        
+        """
         pass
     
     
-    def setSyntaxParser(self, parserName):
-        """ setSyntaxParser(parserName)
+    def setStyle(self, style):
+        """ setStyle(style)
         
-        Set the parser to apply syntax highlighting, using
-        the parser name.
+        Set the formatting per style element.
         
-        """
-        raise NotImplementedError()
-    
-    def syntaxParser(self):
-        """ syntaxParser(parserName)
+        The style consists of a dictionary that maps style names to
+        style formats. The style names are case insensitive and invariant 
+        to the use of spaces.
         
-        Get the name of the parser used to apply syntax highlighting.
+        Use getStyleDescriptions() to get information about the available
+        styles.
         
         """
-        raise NotImplementedError() 
-    
-    def setSyntaxStyle(self, style):
-        """ setSyntaxStyle(style)
+        invalidKeys = []
         
-        Set the syntax style. style is a dict with keys corresponding 
-        to the token names and values representing the styling for that
-        token.
+        # Set style elements
+        for key in style:
+            normKey = key.replace(' ', '').lower()
+            if normKey in self._style:
+                self._style[normKey] = style[key]
+            else:
+                invalidKeys.append(key)
         
-        Keywords are passed ....? With special attribute name, or using
-        setSyntaxKeywords?
-        
-        """
-        raise NotImplementedError() 
-    
-    
-    def getSyntaxStyleInfo(self, parserName):
-        """ Returns for the given parser info about syntax styles.
-        It should give a list of all token names used, their default
-        style values, and description (token docstrings).
-        That way, making a dialog to set styles should be relatively easy.
-        
-        How? Maybe each syntax parser should only import the tokens that
-        it uses. A syntax-parser-manager could easily figure out what
-        tokens classes are present in the parses's module namespace.
-        """
-        # todo: this function, together with the fontNames() function 
-        # and maybe others should move to a separate module and be 
-        # exposed as loose functions to the end user. 
-        raise NotImplementedError() 
+        # Give warning for invalid keys
+        if invalidKeys:
+            print("Warning, invalid style names given :" + ', '.join(invalidKeys))
     
     
     ## Some basic options
