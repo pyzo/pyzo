@@ -137,80 +137,74 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     ## Options
     
-    def __getOptionMethods(self):
-        """ Get a list of methods that are options. Each element in the
-        returned list is a two-element tuple with the setter and getter
-        method.
+    def __getOptionSetters(self):
+        """ Get a dict that maps (lowercase) option names to the setter
+        methods.
         """
         
-        # Collect members by walking the class bases
-        members = set()
-        def collectMembers(cls, iter=1):
-            # Valid class?
-            if cls is object or cls is QtGui.QPlainTextEdit:
-                return
-            # Check members
-            for member in cls.__dict__.values():
-                if hasattr(member, DEFAULT_OPTION_NAME):
-                    members.add((cls, member))
-            # Recurse
-            for c in cls.__bases__:
-                collectMembers(c, iter+1)
-        collectMembers(self.__class__)
+        # Get all names that can be options
+        allNames = set(dir(self))
+        nativeNames = set(dir(QtGui.QPlainTextEdit))
+        names = allNames.difference(nativeNames)
         
-        # Check if setter and getter are present 
-        methods = []
-        for cls, member in members:
+        # Init dict of setter members
+        setters = {}
+        
+        for name in names:
             # Get name without set
-            name = member.__name__
             if name.lower().startswith('set'):
                 name = name[3:]
             # Get setter and getter name
             name_set = 'set' + name[0].upper() + name[1:]
             name_get = name[0].lower() + name[1:]
-            # Check if exists
-            D = cls.__dict__
-            if not (name_set in D and name_get in D):
+            # Check if both present
+            if not (name_set in names and name_get in names):
                 continue
-            # Get members and set default on both
-            member_set, member_get = D[name_set], D[name_get]
-            defaultValue = member.__dict__[DEFAULT_OPTION_NAME]
+            # Get members
+            member_set = getattr(self, name_set)
+            member_get = getattr(self, name_get)
+            # Check if option decorator was used and get default value
+            for member in [member_set, member_get]:
+                if hasattr(member, DEFAULT_OPTION_NAME):
+                    defaultValue = member.__dict__[DEFAULT_OPTION_NAME]
+                    break
+            else:
+                continue
+            # Set default on both
             member_set.__dict__[DEFAULT_OPTION_NAME] = defaultValue
             member_get.__dict__[DEFAULT_OPTION_NAME] = defaultValue
             # Add to list
-            methods.append((member_set, member_get))
+            setters[name.lower()] = member_set
         
         # Done
-        return methods
+        return setters
     
     
-    def __setOptions(self, methods, options):
+    def __setOptions(self, setters, options):
         """ Sets the options, given the list-of-tuples methods and an
         options dict.
         """
         
-        # Get list of keys so we can determine if invalid options were given
-        optionKeys = [key for key in options]
+        # List of invalid keys
+        invalidKeys = []
         
-        for member_set, member_get in methods:
-            
-            # Determine whether the value was given in options
-            valueIsGiven = False
-            valToSet = None
-            for name in [member_set.__name__, member_get.__name__]:
-                if name in options:
-                    valToSet = options[name]
-                    valueIsGiven = True
-                    while name in optionKeys:
-                        optionKeys.remove(name)
-            
-            # Use given value
-            if valueIsGiven:
-                member_set(self, valToSet)
-    
+        # Set options
+        for key1 in options:
+            key2 = key1.lower()
+            # Allow using the setter name
+            if key2.startswith('set'):
+                key2 = key2[3:]
+            # Check if exists. If so, call!
+            if key2 in setters:
+                fun = setters[key2]
+                val = options[key1]
+                fun(val)
+            else:
+                invalidKeys.append(key1)
+        
         # Check if invalid keys were given
-        if optionKeys:
-            print("Warning, invalid options given :" + ', '.join(optionKeys))
+        if invalidKeys:
+            print("Warning, invalid options given: " + ', '.join(invalidKeys))
     
     
     def __initOptions(self, options=None):
@@ -222,30 +216,18 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         if not options:
             options = {}
         
-        # Get methods
-        methods = self.__getOptionMethods()
+        # Get setters
+        setters = self.__getOptionSetters()
         
-        
-        for member_set, member_get in methods:
-            
-            # Correct docstring if we can and should
-            if member_set.__doc__ and not member_get.__doc__:
-                doc = member_set.__doc__
-                doc = doc.replace('set', 'get').replace('Set', 'Get')
-                member_get.__doc__ = doc
-            elif member_get.__doc__ and not member_set.__doc__:
-                doc = member_get.__doc__
-                doc = doc.replace('get', 'set').replace('Get', 'Set')
-                member_set.__doc__ = doc
-            
-            # Set default value
+        # Set default value
+        for member_set in setters.values():
             defaultVal = member_set.__dict__[DEFAULT_OPTION_NAME]
             if defaultVal != DEFAULT_OPTION_NONE:
-                member_set(self, defaultVal)
+                member_set(defaultVal)
         
         # Also set using given opions?
         if options:
-            self.__setOptions(methods, options)
+            self.__setOptions(setters, options)
     
     
     def setOptions(self, options=None, **kwargs):
@@ -254,6 +236,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         Set the code editor options (e.g. highlightCurrentLine) using
         a dict-like object, or using keyword arguments (options given
         in the latter overrule opions in the first).
+        
+        The keys in the dict are case insensitive and one can use the
+        option's setter or getter name.
         
         """
         
@@ -266,11 +251,11 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         else:
             D = kwargs
         
-        # Get methods
-        methods = self.__getOptionMethods()
+        # Get setters
+        setters = self.__getOptionSetters()
         
         # Go
-        self.__setOptions(methods, D)
+        self.__setOptions(setters, D)
     
     
     ## Font
@@ -414,7 +399,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Give warning for invalid keys
         if invalidKeys:
-            print("Warning, invalid style names given :" + ', '.join(invalidKeys))
+            print("Warning, invalid style names given: " + ', '.join(invalidKeys))
     
     
     ## Some basic options
