@@ -187,7 +187,7 @@ class IconProvider(QtGui.QFileIconProvider):
                 path = type_or_info.absoluteFilePath()
                 if os.path.isdir(os.path.join(path, '.hg')):
                     icon = self._addOverlays(icon, iep.icons.overlay_hg)
-                elif os.path.isdir(os.path.join(path, '.hg')):
+                elif os.path.isdir(os.path.join(path, '.svn')):
                     icon = self._addOverlays(icon, iep.icons.overlay_svn)
                 # Done
                 return icon
