@@ -101,6 +101,7 @@ class StyleElementDescription:
     
     A style description is a simple placeholder for something
     that can be styled.
+    
     """
     
     def __init__(self, name, defaultFormat, description):
