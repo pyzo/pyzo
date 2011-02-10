@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 import iep
-import os.path
+import os
 import ssdf
 import fnmatch
 
@@ -169,7 +169,64 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
         self.filter=filter
         self.invalidateFilter()
         
+
+
+class IconProvider(QtGui.QFileIconProvider):
+    """ IconProvider that will give icons for files without any overlays.
+    (Because the overlays will be wrong)
+    It does this by creating dummy files with a corresponding extension and
+    obtaining the icon for that file.
+    """
+    def icon(self, type_or_info):
         
+        if isinstance(type_or_info, QtCore.QFileInfo):
+            if type_or_info.isDir():
+                # Use folder icon
+                icon = QtGui.QFileIconProvider.icon(self, self.Folder)
+                # Add overlay?
+                path = type_or_info.absoluteFilePath()
+                if os.path.isdir(os.path.join(path, '.hg')):
+                    icon = self._addOverlays(icon, iep.icons.overlay_hg)
+                elif os.path.isdir(os.path.join(path, '.hg')):
+                    icon = self._addOverlays(icon, iep.icons.overlay_svn)
+                # Done
+                return icon
+            else:
+                # Get extension
+                root, ext = os.path.splitext(type_or_info.fileName())
+                # Create dummy file in iep user dir
+                dir = os.path.join(iep.appDataDir, 'dummyFiles')
+                path = os.path.join(dir, 'dummy' + ext)
+                if not os.path.exists(dir):
+                    os.makedirs(dir)
+                f = open(path, 'wb')
+                f.close()
+                # Use that file
+                type_or_info = QtCore.QFileInfo(path)
+        
+        # Call base method
+        return QtGui.QFileIconProvider.icon(self, type_or_info)
+    
+    
+    def _addOverlays(self, icon, *overlays):
+        
+        # Get pixmap
+        pm0 = icon.pixmap(16,16)
+        
+        # Create painter
+        painter = QtGui.QPainter()
+        painter.begin(pm0)
+        
+        for overlay in overlays:
+            pm1 = overlay.pixmap(16,16)
+            painter.drawPixmap(0,0, pm1)
+        
+        # Finish
+        painter.end()
+        
+        # Done (return resulting icon)
+        return QtGui.QIcon(pm0)
+
 
 class IepProjectManager(QtGui.QWidget):
     def __init__(self,parent):
@@ -191,7 +248,8 @@ class IepProjectManager(QtGui.QWidget):
         self.projectsModel=ProjectsModel(self.config)
 
         #Init dir model and filtered dir model
-        self.dirModel=QtGui.QFileSystemModel()       
+        self.dirModel=QtGui.QFileSystemModel()
+        self.dirModel.setIconProvider(IconProvider())       
         #TODO: self.dirModel.setSorting(QtCore.QDir.DirsFirst)
         self.filteredDirModel=DirSortAndFilter()
         self.filteredDirModel.setSourceModel(self.dirModel)
