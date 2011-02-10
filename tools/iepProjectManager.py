@@ -120,13 +120,12 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
         QtGui.QSortFilterProxyModel.__init__(self)
         self.filter=''
         self.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.sort(0) #Column 0 = file/dir name
+        self.setDynamicSortFilter(True) #Update sorting when source changes
     def lessThan(self,left,right):
         if self.sourceModel().isDir(left) and \
                 not self.sourceModel().isDir(right):
             return True
         return QtGui.QSortFilterProxyModel.lessThan(self,left,right)
-        
     def filterAcceptsRow(self,sourceRow,sourceParent):
         #Overridden method to determine wether a row should be
         #shown or not. Check wether the item matches the filter
