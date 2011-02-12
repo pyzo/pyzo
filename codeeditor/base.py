@@ -99,7 +99,7 @@ from PyQt4.QtCore import Qt
 
 from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
 from .highlighter import Highlighter
-from .style import StyleElementDescription
+from .style import StyleFormat, StyleElementDescription
 
 
 class CodeEditorBase(QtGui.QPlainTextEdit):
@@ -127,12 +127,18 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # the hihghlighting etc will work
         self.cursorPositionChanged.connect(self.viewport().update) 
         
+        # Init styles to default values
+        self.__style = {}
+        for element in self.getStyleElementDescriptions():
+            self.__style[element.key] = element.defaultFormat
+        
         # Init options now. 
         # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
         # If an extension has an __init__ in which it first calls the 
         # super().__init__, this __initOptions() function will be called, 
         # while the extension's init is not yet finished.        
         self.__initOptions(kwds)
+        
     
     
     ## Options
@@ -327,9 +333,13 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     ## Syntax / styling
     
     
-    def __getStyleElementDescriptions(self):
-        """ Get a list of ...
-        """
+    @classmethod
+    def getStyleElementDescriptions(cls):
+        """ getStyleElementDescriptions()
+        
+        This classmethod returns a list of StyleElementDescription instances. 
+        
+        """ 
         
         # Collect members by walking the class bases
         elements = []
@@ -344,9 +354,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             # Recurse
             for c in cls.__bases__:
                 collectElements(c, iter+1)
-        collectElements(self.__class__)
+        collectElements(cls)
         
         # Make style element descriptions
+        # (Use a dict to ensure there are no duplicate keys)
         elements2 = {}
         for element in elements:
             # Check
@@ -360,21 +371,25 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             elements2[element.key] = element
         
         # Done
-        return elements2
+        return elements2.values()
     
-    # todo: classmethod or even a method on a static manager class
-    def getStyleDescriptions(self):
-        """ getStyleDescriptions()
+    
+    def getStyleElementFormat(self, name):
+        """ getStyleElementFormat(name)
         
-        Get the descriptions of all style elements registered to this
-        class. If the syntax extension is uses, this includes all
-        syntax styles.
+        Get the style format for the style element corresponding with
+        the given name. The name is case insensitive and invariant to
+        the use of spaces.
         
         """
-        pass
+        key = name.replace(' ','').lower()
+        try:
+            return self.__style[key]
+        except KeyError:
+            raise KeyError('Not a known style element name: "%s".' % name)
     
-    
-    def setStyle(self, style):
+    # todo: set style on instance or on class?
+    def setStyle(self, style=None, **kwargs):
         """ setStyle(style)
         
         Set the formatting per style element.
@@ -383,23 +398,41 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         style formats. The style names are case insensitive and invariant 
         to the use of spaces.
         
-        Use getStyleDescriptions() to get information about the available
-        styles.
+        For convenience, keyword arguments may also be used. In this case,
+        underscores are interpreted as dots.
+        
+        Use getStyleElementDescriptions() to get information about the
+        available styles and their default values.
         
         """
+        
+        # Combine user input
+        D = {}
+        if style:
+            for key in style:
+                D[key] = style[key]
+        if True:
+            for key in kwargs:
+                key2 = key.replace('_', '.')
+                D[key2] = kwargs[key]
+        
+        # List of given invalid style element names
         invalidKeys = []
         
         # Set style elements
-        for key in style:
+        for key in D:
             normKey = key.replace(' ', '').lower()
-            if normKey in self._style:
-                self._style[normKey] = style[key]
+            if normKey in self.__style:
+                self.__style[normKey] = StyleFormat(D[key])
             else:
                 invalidKeys.append(key)
         
         # Give warning for invalid keys
         if invalidKeys:
             print("Warning, invalid style names given: " + ', '.join(invalidKeys))
+        
+        # Make sure the style is applied
+        self.viewport().update()
     
     
     ## Some basic options

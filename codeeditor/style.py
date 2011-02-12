@@ -3,6 +3,44 @@
 Provides basic functionaliy for styling.
 
 """
+from PyQt4 import QtGui,QtCore
+from PyQt4.QtCore import Qt
+
+
+class StyleElementDescription:
+    """ StyleElementDescription(name, defaultFormat, description)
+    
+    Describes a style element by its name, description and default format.
+    
+    A style description is a simple placeholder for something
+    that can be styled.
+    
+    """
+    
+    def __init__(self, name, description, defaultFormat):
+        self._name = name
+        self._description = description
+        self._defaultFormat = StyleFormat(defaultFormat)
+    
+    def __repr__(self):
+        return '<"%s": "%s">' % (self.name, self.defaultFormat)
+    
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def key(self):
+        return self._name.replace(' ', '').lower()
+    
+    @property
+    def description(self):
+        return self._description
+    
+    @property
+    def defaultFormat(self):
+        return self._defaultFormat
+
 
 class StyleFormat:
     """ StyleFormat(format='')
@@ -14,17 +52,23 @@ class StyleFormat:
     Style formats can be combined using their update() method. 
     
     A style format consists of multiple parts, where each "part" consists
-    of a key and a value. The keys can be basically anything, depending
-    on what kind of thing is being styled. Some example keys are:
-      * fore: the foreground color
-      * back: the background color
-      * bold: whether the text should be bold
-      * underline: whether an underline should be used (and which one)
-      * italic: whether the text should be in italic
+    of a key and a value. The keys can be anything, depending
+    on what kind of thing is being styled. The value can be obtained using
+    the index operator (e.g. styleFomat['fore'])
+    
+    For a few special keys, properties are defined that return the Qt object
+    corresponding to the value:
+      * fore: (QColor) the foreground color
+      * back: (QColor) the background color
+      * bold: (bool) whether the text should be bold
+      * italic: (bool) whether the text should be in italic
+      * underline: (int) whether an underline should be used (and which one)
+      * linestyle: (int) what line style to use (e.g. for indent guides)
     
     The format neglects spaces and case. Parts are separated by commas 
     or semicolons. If only a key is given it's value is interpreted
-    as 'yes'. If only a color is given, its key is interpreted as 'fore'.
+    as 'yes'. If only a color is given, its key is interpreted as 'fore' 
+    and back. Colors should be given ising the '#' hex formatting.
     
     An example format string: 'fore:#334, bold, underline:dotLine'
     
@@ -39,6 +83,15 @@ class StyleFormat:
         self.update(format)
     
     
+    def _resetProperties(self):
+        self._fore = None
+        self._back = None
+        self._bold = None
+        self._italic = None
+        self._underline = None
+        self._linestyle = None
+    
+    
     def __str__(self):
         """ Get a (cleaned up) string representation of this style format. 
         """
@@ -51,6 +104,12 @@ class StyleFormat:
     def __repr__(self):
         return '<StyleFormat "%s">' % str(self)
     
+    
+    def __getitem__(self, key):
+        try:
+            return self._parts[key]
+        except KeyError:
+            raise KeyError('Invalid part key for style format.')
     
     def __iter__(self):
         """ Yields a series of tuples (key, val).
@@ -68,12 +127,16 @@ class StyleFormat:
         
         """
         
+        # Reset buffered values
+        self._resetProperties()
+        
         # Make a string, so we update the format with the given one
         if isinstance(format, StyleFormat):
             format = str(format)
         
-        # Split on ',' and ':', ignore spaces
-        styleParts = [p for p in format.replace(';',',').split(',')]
+        # Split on ',' and ',', ignore spaces
+        styleParts = [p for p in
+                        format.replace('=',':').replace(';',',').split(',')]
         
         for stylePart in styleParts:
             
@@ -81,7 +144,7 @@ class StyleFormat:
             # e.g. fore:#xxx, bold:yes, underline:no
             if not ':' in stylePart:
                 if stylePart.startswith('#'):
-                    stylePart = 'fore:' + stylePart
+                    stylePart = 'foreandback:' + stylePart
                 else:
                     stylePart += ':yes'
             
@@ -89,38 +152,75 @@ class StyleFormat:
             key, _, val = [i.strip().lower() for i in stylePart.partition(':')]
             
             # Store in parts
-            if key:
+            if key == 'foreandback':
+                self._parts['fore'] = val
+                self._parts['back'] = val
+            elif key:
                 self._parts[key] = val
-
-
-# todo: include category, or maybe name with dots?
-class StyleElementDescription:
-    """ StyleElementDescription(name, defaultFormat, description)
     
-    Describes a style element by its name, description and default format.
+    ## Properties
     
-    A style description is a simple placeholder for something
-    that can be styled.
-    
-    """
-    
-    def __init__(self, name, defaultFormat, description):
-        self._name = name
-        self._defaultFormat = defaultFormat
-        self._description = description
+    def _getValueSafe(self, key):
+        try:
+            return self._parts[key]
+        except KeyError:
+            return 'no'
     
     @property
-    def name(self):
-        return self._name
+    def fore(self):
+        if self._fore is None:
+            self._fore = QtGui.QColor(self._parts['fore'])
+        return self._fore
     
     @property
-    def key(self):
-        return self._name.replace(' ', '').lower()
+    def back(self):
+        if self._back is None:
+            self._back = QtGui.QColor(self._parts['back'])
+        return self._back
     
     @property
-    def description(self):
-        return self._description
+    def bold(self):
+        if self._bold is None:
+            if self._getValueSafe('bold') in ['yes', 'true']:
+                self._bold = True
+            else:
+                self._bold = False
+        return self._bols
     
     @property
-    def defaultFormat(self):
-        return self._defaultFormat
+    def italic(self):
+        if self._italic is None:
+            if self._getValueSafe('italic') in ['yes', 'true']:
+                self._italic = True
+            else:
+                self._italic = False
+        return self._italic
+    
+    @property
+    def underline(self):
+        if self._underline is None:
+            val = self._getValueSafe('underline')
+            if val in ['yes', 'true']:
+                self._underline = QtGui.QTextCharFormat.SingleUnderline
+            elif val in ['dotted', 'dots', 'dotline']: 
+                self._underline = QtGui.QTextCharFormat.DotLine
+            elif val in ['wave']: 
+                self._underline = QtGui.QTextCharFormat.WaveUnderline
+            else:
+                self._underline = False
+        return self._underline
+    
+    @property
+    def linestyle(self):
+        if self._linestyle is None:
+            val = self._getValueSafe('linestyle')
+            if val in ['yes', 'true']:
+                self._linestyle = Qt.SolidLine
+            elif val in ['dotted', 'dot', 'dots', 'dotline']: 
+                self._linestyle = Qt.DotLine
+            elif val in ['dashed', 'dash', 'dashes', 'dashline']: 
+                self._linestyle = Qt.DashLine
+            else:
+                self._linestyle = Qt.SolidLine # default to solid
+        return self._linestyle
+    
