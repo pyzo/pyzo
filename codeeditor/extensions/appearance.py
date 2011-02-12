@@ -15,6 +15,12 @@ class HighlightCurrentLine(object):
     Highlight the current line
     """
     
+    # Register style element
+    _styleElements = [  (   'Editor.Highlight current line',
+                            'The background color of the current line highlight.',
+                            'back:#ffff99', 
+                        ) ]
+    
     def highlightCurrentLine(self):
         """ highlightCurrentLine()
         
@@ -46,6 +52,9 @@ class HighlightCurrentLine(object):
             super(HighlightCurrentLine, self).paintEvent(event)
             return
         
+        # Get color
+        color = self.getStyleElementFormat('editor.highlightCurrentLine').back
+        
         #Find the top of the current block, and the height
         cursor = self.textCursor()
         cursor.movePosition(cursor.StartOfBlock)
@@ -58,7 +67,7 @@ class HighlightCurrentLine(object):
         painter.begin(self.viewport())
         painter.fillRect(QtCore.QRect(margin, top, 
             self.viewport().width() - 2*margin, height),
-            QtGui.QColor(Qt.yellow).lighter(160))
+            color)
         painter.end()
         
         super(HighlightCurrentLine, self).paintEvent(event)
@@ -69,6 +78,12 @@ class HighlightCurrentLine(object):
 
 
 class IndentationGuides(object):
+    
+    # Register style element
+    _styleElements = [  (   'Editor.Indentation guides',
+                            'The color and style of the indentation guides.',
+                            'fore:#DDF,linestyle:solid', 
+                        ) ]
     
     def showIndentationGuides(self):
         """ showIndentationGuides()
@@ -122,7 +137,12 @@ class IndentationGuides(object):
         # Init painter
         painter = QtGui.QPainter()
         painter.begin(viewport)
-        painter.setPen(QtGui.QColor('#DDF'))
+        
+        # Prepare pen
+        format = self.getStyleElementFormat('editor.IndentationGuides')
+        pen = QtGui.QPen(format.fore)
+        pen.setStyle(format.linestyle)
+        painter.setPen(pen)
         
         #Repainting always starts at the first block in the viewport,
         #regardless of the event.rect().y(). Just to keep it simple
@@ -149,7 +169,14 @@ class IndentationGuides(object):
         # Done
         painter.end()
 
+
 class LongLineIndicator(object):
+    
+    # Register style element
+    _styleElements = [  (   'Editor.Long line indicator',
+                            'The color and style of the long line indicator.',
+                            'fore:#BBB,linestyle:solid', 
+                        ) ]
     
     def longLineIndicatorPosition(self):
         """ longLineIndicatorPosition()
@@ -192,13 +219,21 @@ class LongLineIndicator(object):
         x = fm.width('i' * self.longLineIndicatorPosition()) + doc.documentMargin()
         x += 1 # Move it a little next to the cursor
         
-        # Draw long line indicator
+        # Prepate painter
         painter = QtGui.QPainter()
-        painter.begin(viewport)                
-        painter.setPen(QtGui.QColor('#bbb'))
+        painter.begin(viewport)
+        
+        # Prepare pen
+        format = self.getStyleElementFormat('editor.LongLineIndicator')
+        pen = QtGui.QPen(format.fore)
+        pen.setStyle(format.linestyle)
+        painter.setPen(pen)
+        
+        # Draw line and end painter
         painter.drawLine(QtCore.QLine(x, 0, x, viewport.height()) )
         painter.end()
         
+        # Propagate event
         super(LongLineIndicator, self).paintEvent(event)
 
 
@@ -238,7 +273,16 @@ class ShowLineEndings(object):
         self.document().setDefaultTextOption(option)
 
 class LineNumbers(object):
-    # todo: Rob, ik weet niet hoor, maar dit vind ik best lelijk! :)
+    
+    # Margin on both side of the line numbers
+    _LineNumberAreaMargin = 3
+    
+    # Register style element
+    _styleElements = [  (   'Editor.Line numbers',
+                            'The text- and background-color of the line numbers.',
+                            'fore:#222,back:#DDD', 
+                        ) ]
+    
     class __LineNumberArea(QtGui.QWidget):
         """ This is the widget reponsible for drawing the line numbers.
         """
@@ -257,6 +301,10 @@ class LineNumbers(object):
             doc = editor.document()
             viewport = editor.viewport()
             
+            # Get format and margin
+            format = editor.getStyleElementFormat('editor.LineNumbers')
+            margin = editor._LineNumberAreaMargin
+            
             # Init painter
             painter = QtGui.QPainter()
             painter.begin(self)
@@ -271,23 +319,39 @@ class LineNumbers(object):
             offset = viewport.mapFromGlobal(tmp).y()
             
             #Draw the background        
-            painter.fillRect(QtCore.QRect(0, y1, w, y2), QtGui.QColor('#DDD'))
+            painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
             
             # Get cursor
             cursor = editor.cursorForPosition(QtCore.QPoint(0,y1))
             
-            # Init painter
-            painter.setPen(QtGui.QColor('#222'))
-            painter.setFont(editor.font())
+            # Prepare fonts
+            font1 = editor.font()
+            font2 = editor.font()
+            font2.setBold(True)
+            currentBlockNumber = editor.textCursor().block().blockNumber()
+            
+            # Init painter with font and color
+            painter.setFont(font1)
+            painter.setPen(format.fore)
             
             #Repainting always starts at the first block in the viewport,
             #regardless of the event.rect().y(). Just to keep it simple
             while True:
-                blockNumber=cursor.block().blockNumber()
+                blockNumber = cursor.block().blockNumber()
                 
-                y=editor.cursorRect(cursor).y()#+self.viewport().pos().y()+1 #Why +1?
-                painter.drawText(0,y-offset,editor.getLineNumberAreaWidth()-3,50,
-                    Qt.AlignRight,str(blockNumber+1))
+                y = editor.cursorRect(cursor).y()
+                
+                # Set font to bold if line number is the current
+                if blockNumber == currentBlockNumber:
+                    painter.setFont(font2)
+                
+                painter.drawText(0, y-offset,
+                    editor.getLineNumberAreaWidth()-margin, 50,
+                    Qt.AlignRight, str(blockNumber+1))
+                
+                # Set font back
+                if blockNumber == currentBlockNumber:
+                    painter.setFont(font1)
                 
                 if y>y2:
                     break #Reached end of the repaint area
@@ -333,7 +397,8 @@ class LineNumbers(object):
         if not self.__showLineNumbers:
             return 0
         lastLineNumber = self.blockCount() 
-        return self.fontMetrics().width(str(lastLineNumber)) + 6 # margin
+        margin = self._LineNumberAreaMargin
+        return self.fontMetrics().width(str(lastLineNumber)) + 2*margin
         
     def __onBlockCountChanged(self,count = None):
         """
@@ -399,8 +464,7 @@ class SyntaxHighlighting(object):
     
     """
     
-    _styleElements = [  ('syntax.test1','#ddd,bold', 'this is a test'),
-                        ('syntax.test2','#ddd,bold', 'this is another test')]
+    #_styleElements = parsers.ParserManager.getParserByName('python').getDefaultStyle()
     
     # todo: underlying __parser is string or Parser instance?
     @ce_option('')
