@@ -97,7 +97,8 @@ import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
-from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option, ustr
+from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option
+from .misc import callLater, ustr
 from .highlighter import Highlighter
 from .style import StyleFormat, StyleElementDescription
 
@@ -229,7 +230,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         for member_set in setters.values():
             defaultVal = member_set.__dict__[DEFAULT_OPTION_NAME]
             if defaultVal != DEFAULT_OPTION_NONE:
-                member_set(defaultVal)
+                try:
+                    member_set(defaultVal)
+                except Exception as why:
+                    print('Error initing option ', member_set.__name__)
         
         # Also set using given opions?
         if options:
@@ -371,7 +375,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             elements2[element.key] = element
         
         # Done
-        return elements2.values()
+        return list(elements2.values())
     
     
     def getStyleElementFormat(self, name):
@@ -390,9 +394,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     # todo: set style on instance or on class?
     def setStyle(self, style=None, **kwargs):
-        """ setStyle(style)
+        """ setStyle(style=None, **kwargs)
         
-        Set the formatting per style element.
+        Updates the formatting per style element. 
         
         The style consists of a dictionary that maps style names to
         style formats. The style names are case insensitive and invariant 
@@ -403,6 +407,16 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         Use getStyleElementDescriptions() to get information about the
         available styles and their default values.
+        
+        Examples
+        --------
+        # To make the classname in underline, but keep the color and boldness:
+        setStyle(syntax_classname='underline') 
+        # To set all values for function names:
+        setStyle(syntax_functionname='#883,bold:no,italic:no') 
+        # To set line number and indent guides colors
+        setStyle({  'editor.LineNumbers':'fore:#000,back:#777', 
+                    'editor.indentationGuides':'#f88' })
         
         """
         
@@ -423,7 +437,8 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         for key in D:
             normKey = key.replace(' ', '').lower()
             if normKey in self.__style:
-                self.__style[normKey] = StyleFormat(D[key])
+                #self.__style[normKey] = StyleFormat(D[key])
+                self.__style[normKey].update(D[key])
             else:
                 invalidKeys.append(key)
         
@@ -433,7 +448,18 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Make sure the style is applied
         self.viewport().update()
+        self._rehighligh()
     
+    
+    def _rehighligh(self):
+        """ _rehighligh()
+        
+        Rehighlight the document. This is done by posting an event that
+        will trigger the highlighter to rehighlight. Therefore this method
+        can safely be used in an __init__.
+        
+        """
+        callLater(self.__highlighter.rehighlight)
     
     ## Some basic options
     

@@ -73,6 +73,7 @@ endProgs = {
 class PythonParser(Parser):
     """ Parser for Python in general (2.x or 3.x).
     """
+    _extensions = ['.py' , '.pyw']
     #The list of keywords is overridden by the Python2/3 specific parsers
     _keywords = pythonKeywords 
     

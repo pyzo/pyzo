@@ -6,6 +6,7 @@ from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
 from ..misc import ce_option
+from ..parsers import ParserManager
 
 # todo: what about calling all extensions. CE_HighlightCurrentLine, 
 # or EXT_HighlightcurrentLine?
@@ -464,18 +465,32 @@ class SyntaxHighlighting(object):
     
     """
     
-    #_styleElements = parsers.ParserManager.getParserByName('python').getDefaultStyle()
+    # Register all syntax style elements
+    _styleElements = ParserManager.getSyntaxStyleElementDescriptions()
     
     # todo: underlying __parser is string or Parser instance?
-    @ce_option('')
+    @ce_option('python')
     def parser(self):
-        """ Get the parser currently in use to parse the code for syntax
-        highlighting and source structure.
+        """ parser()
+        
+        Get the parser instance currently in use to parse the code for 
+        syntax highlighting and source structure. Can be None.
+        
         """
         return self.__parser
     
     def setParser(self, parserName=''):
-        self.__parser = parserName
-    
-    
-    
+        """ setParser(parserName='')
+        
+        Set the current parser by giving the parser name.
+        
+        """
+        # Set parser
+        if parserName:
+            self.__parser = ParserManager.getParserByName(parserName)
+        else:
+            self.__parser = None
+        
+        # Restyle
+        self._rehighligh()
+        

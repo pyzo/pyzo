@@ -103,24 +103,30 @@ class Highlighter(QtGui.QSyntaxHighlighter):
     
     def highlightBlock(self,line): 
         
-        # Mae sure this is a Unicode Python string
+        # Make sure this is a Unicode Python string
         line = ustr(line)
         
-        previousState=self.previousBlockState()
+        # Get previous state
+        previousState = self.previousBlockState()
+        
+        # Get parser and function to get format
+        parser = self._codeEditor.parser()
+        nameToFormat = self._codeEditor.getStyleElementFormat
         
         # todo: choose parser dynamically
         
-        if self._parser:
+        if parser:
             self.setCurrentBlockState(0)
-            for token in self._parser.parseLine(line,previousState):
-                #Handle line or string continuation
+            for token in parser.parseLine(line, previousState):
+                # Handle line or string continuation
                 if isinstance(token, parsers.tokens.ContinuationToken):
                     self.setCurrentBlockState(token.state)
                 else:
                     # Get format
                     try:
-                        format = self._nameToFormat[token.name]
+                        format = nameToFormat(token.name).textCharFormat
                     except KeyError:
+                        #print(repr(nameToFormat(token.name)))
                         continue
                     # Set format
                     self.setFormat(token.start,token.end-token.start,format)

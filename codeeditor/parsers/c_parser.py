@@ -28,6 +28,7 @@ commentEndProg = re.compile(r'\*/')
 class CParser(Parser):
     """ A C parser.
     """
+    _extensions = ['.c', '.h', '.cpp']
     _keywords = ['int', 'const', 'char', 'void', 'short', 'long', 'case']
     
     def parseLine(self, line, previousState=0):
