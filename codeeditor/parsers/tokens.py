@@ -36,7 +36,7 @@ class Token(object):
         self.line = ustr(line)
         self.start = start
         self.end = end
-        self._name = self.__class__.__name__[:-5].lower() 
+        self._name = self._getName()
     
     def __str__(self):
         return self.line[self.start:self.end]
@@ -54,6 +54,15 @@ class Token(object):
         """ The name of this token. Used to identify it and attach a style.
         """
         return self._name
+    
+    def _getName(self):
+        """ Get the name of this token. """
+        nameParts = ['Syntax']
+        if '_parser' in self.__module__:
+            language = self.__module__.split('_')[0]
+            nameParts.append( language[0].upper() + language[1:] )
+        nameParts.append( self.__class__.__name__[:-5].lower() )
+        return '.'.join(nameParts)
 
 
 class ContinuationToken(Token):
@@ -91,10 +100,9 @@ class DefaultToken(Token):
         style element that this token represents.
         
         """
-        name = 'syntax.' + self.name
         format = self.getDefaultStyleFormat()
         des = 'syntax: ' + self.__doc__
-        return StyleElementDescription(name, str(format), des)
+        return StyleElementDescription(self.name, des, str(format))
 
 
 class CommentToken(DefaultToken):

@@ -90,6 +90,7 @@ class StyleFormat:
         self._italic = None
         self._underline = None
         self._linestyle = None
+        self._textCharFormat = None
     
     
     def __str__(self):
@@ -185,7 +186,7 @@ class StyleFormat:
                 self._bold = True
             else:
                 self._bold = False
-        return self._bols
+        return self._bold
     
     @property
     def italic(self):
@@ -224,3 +225,14 @@ class StyleFormat:
                 self._linestyle = Qt.SolidLine # default to solid
         return self._linestyle
     
+    @property
+    def textCharFormat(self):
+        if self._textCharFormat is None:
+            self._textCharFormat = QtGui.QTextCharFormat()
+            self._textCharFormat.setForeground(self.fore)
+            self._textCharFormat.setUnderlineStyle(self.underline)
+            if self.bold:
+                self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
+            if self.italic:
+                self._textCharFormat.setFontItalic(True)
+        return self._textCharFormat

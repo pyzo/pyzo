@@ -5,6 +5,8 @@ Defined ustr (Unicode string) class and the option property decorator.
 """
 
 import sys
+from PyQt4 import QtGui,QtCore
+from queue import Queue, Empty
 
 # Set Python version as a float and get some names
 PYTHON_VERSION = sys.version_info[0] + sys.version_info[1]/10.0
@@ -54,4 +56,38 @@ def ce_option(arg1):
         default = arg1
         return decorator_fun
     
+
+class _CallbackEventHandler(QtCore.QObject):
+    """ Helper class to provide the callLater function. 
+    """
     
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        self.queue = Queue()
+
+    def customEvent(self, event):
+        while True:
+            try:
+                callback, args = self.queue.get_nowait()
+            except Empty:
+                break
+            try:
+                callback(*args)
+            except Exception as why:
+                print('callback failed: {}:\n{}'.format(callback, why))
+
+    def postEventWithCallback(self, callback, *args):
+        self.queue.put((callback, args))
+        QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+
+
+def callLater(callback, *args):
+    """ callLater(callback, *args)
+    
+    Post a callback to be called in the main thread. 
+    
+    """
+    _callbackEventHandler.postEventWithCallback(callback, *args)
+    
+# Create callback event handler instance and insert function in IEP namespace
+_callbackEventHandler = _CallbackEventHandler()   

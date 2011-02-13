@@ -39,10 +39,29 @@ class Parser(object):
     """ Base parser class. 
     All parsers should inherit from this class.
     """
+    _extensions = []
     _keywords = []
+    
     
     def parseLine(self, line, previousState=0):
         raise NotImplementedError()
+    
+    
+    def name(self):
+        """ name()
+        
+        Get the name of the parser.
+        
+        """
+        name = self.__class__.__name__.lower()
+        if name.endswith('parser'):
+            name = name[:-6]
+        return name
+    
+    
+    def __repr__(self):
+        return '<Parser for "%s">' % self.name()
+    
     
     def keywords(self):
         """ keywords()
@@ -51,6 +70,15 @@ class Parser(object):
         
         """
         return self._keywords
+    
+    
+    def filenameExtensions(self):
+        """ filenameExtensions()
+        
+        Get a list of filename extensions for which this parser
+        is appropriate.
+        """
+        return self._extensions
     
     
     def getDefaultStyle(self):
@@ -227,7 +255,7 @@ class ParserManager:
         Get a list of all available parsers.
         
         """
-        return cls._parserInstances.keys()
+        return list(cls._parserInstances.keys())
     
     
     @classmethod
@@ -250,7 +278,28 @@ class ParserManager:
             print('Warning: no parser known by the name "%s".'%parserName)
             print('I know these: ', cls._parserInstances.keys())
             return None
-
+    
+    
+    @classmethod
+    def getSyntaxStyleElementDescriptions(cls):
+        """ Get all style element descriptions corresponding to 
+        the tokens of all parsers.
+        """
+        descriptions = {}
+        for parser in cls._parserInstances.values():
+            for token in parser.getUsedTokens():
+                description = token.description()
+                descriptions[description.key] = description
+        
+        return list(descriptions.values())
+    
+    
+    # todo: define common extension in parsers
+    def suggestParserForGivenExtension(self, ext):
+        pass
+    
+    def registerExtension(self, ext, parserName):
+        pass
 
 
 try:
