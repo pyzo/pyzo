@@ -10,7 +10,7 @@ from PyQt4.QtCore import Qt
 class StyleElementDescription:
     """ StyleElementDescription(name, defaultFormat, description)
     
-    Describes a style element by its name, description and default format.
+    Describes a style element by its name, default format, and description.
     
     A style description is a simple placeholder for something
     that can be styled.
@@ -46,7 +46,8 @@ class StyleFormat:
     """ StyleFormat(format='')
     
     Represents the style format for a specific style element.
-    A "style" is a dictionary that maps names to StyleFormat instances.
+    A "style" is a dictionary that maps names (of style elements) 
+    to StyleFormat instances.
     
     The given format can be a string or another StyleFormat instance.
     Style formats can be combined using their update() method. 
@@ -64,11 +65,12 @@ class StyleFormat:
       * italic: (bool) whether the text should be in italic
       * underline: (int) whether an underline should be used (and which one)
       * linestyle: (int) what line style to use (e.g. for indent guides)
+      * textCharFOrmat: (QTextCharFormat) for the syntax styles
     
     The format neglects spaces and case. Parts are separated by commas 
     or semicolons. If only a key is given it's value is interpreted
     as 'yes'. If only a color is given, its key is interpreted as 'fore' 
-    and back. Colors should be given ising the '#' hex formatting.
+    and back. Colors should be given using the '#' hex formatting.
     
     An example format string: 'fore:#334, bold, underline:dotLine'
     
