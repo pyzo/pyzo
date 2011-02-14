@@ -1,10 +1,10 @@
 import re
-from codeeditor.parsers import tokens, Parser
+from codeeditor.parsers import tokens, Parser, BlockState
 from codeeditor.parsers.tokens import ALPHANUM
 
 from codeeditor.parsers.tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken, KeywordToken,
-    NumberToken, ContinuationToken)
+    NumberToken)
 
 
 # This regexp is used to find special stuff, such as comments, numbers and
@@ -52,10 +52,10 @@ class CParser(Parser):
             # First determine whether we should look for the end of a string,
             # or if we should process a token.
             if previousState == 1:
-                style = "'''"
+                endProg = stringEndProg
                 matchStart, matchEnd = 0, 0
             elif previousState == 2:
-                style = '"""'
+                endProg = commentEndProg
                 matchStart, matchEnd = 0, 0
             else:
                 
@@ -106,12 +106,13 @@ class CParser(Parser):
                     endProg = commentEndProg
                                     
                 else:
+                    # todo: style is not used
                     # We have matched a string-start
                     # Find the string style ( ' or " )
                     style = match.group(4) # The style is in match group 4
+                    endProg = stringEndProg
                     token = StringToken
-
-
+                
                 matchStart, matchEnd = match.start(), match.end()
             
             
@@ -123,13 +124,20 @@ class CParser(Parser):
             endMatch = endProg.search(line[matchEnd:])
             
             if not endMatch:
-                # The string does not end on this line
-                yield UnterminatedStringToken(line,matchStart,len(line))
+                if endProg is stringEndProg:
+                    # The string does not end on this line
+                    yield UnterminatedStringToken(line,matchStart,len(line))
+                    yield BlockState(1)
+                else:
+                    # The comment does not end on this line
+                    yield CommentToken(line,matchStart,len(line))
+                    yield BlockState(2)
                 return
             else:
                 # The string does end on this line
                 yield (token(line,matchStart,matchEnd+endMatch.end()))
                 pos = matchEnd + endMatch.end()
+
 
 if __name__=='__main__':
     parser = CParser()

@@ -1,10 +1,10 @@
 import re
-from ..parsers import tokens, Parser
+from ..parsers import tokens, Parser, BlockState
 from ..parsers.tokens import ALPHANUM
 
 from ..parsers.tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken, KeywordToken,
-    NumberToken, ContinuationToken)
+    NumberToken)
 
 
 # This regexp is used to find special stuff, such as comments, numbers and

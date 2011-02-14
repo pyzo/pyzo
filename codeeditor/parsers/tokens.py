@@ -27,6 +27,7 @@ class Token(object):
     of the characters it is applied to.
     
     """ 
+    defaultStyle = 'fore:#000, bold:no, underline:no, italic:no'
     
     def __init__(self, line='', start=0, end=0):
         self.line = ustr(line)
@@ -45,12 +46,6 @@ class Token(object):
         # are any characters (len!=0) and False if there are none
         return self.end - self.start
     
-    @property
-    def name(self):
-        """ The name of this token. Used to identify it and attach a style.
-        """
-        return self._name
-    
     def _getName(self):
         """ Get the name of this token. """
         nameParts = ['Syntax']
@@ -59,22 +54,6 @@ class Token(object):
             nameParts.append( language[0].upper() + language[1:] )
         nameParts.append( self.__class__.__name__[:-5].lower() )
         return '.'.join(nameParts)
-
-# todo: get rid of this? instead the parse yields an integer.
-class ContinuationToken(Token):
-    """ Used to pass a number to the next block to process multi-line
-    comments etc. The meaning of the state is specific for the parser.
-    """
-    def __init__(self, line='', state=0):
-        Token.__init__(self, line, len(line), len(line))
-        self.state = state
-
-
-# The name is default token because it represents the default character format
-# The name of the class is used as the name of the style element description
-class DefaultToken(Token):
-    """ The default style of all characters. """
-    defaultStyle = 'fore:#000, bold:no, underline:no, italic:no'
     
     def getDefaultStyleFormat(self):
         elements = []
@@ -89,6 +68,13 @@ class DefaultToken(Token):
             se.update(e)
         return se
     
+    @property
+    def name(self):
+        """ The name of this token. Used to identify it and attach a style.
+        """
+        return self._name
+    
+    @property
     def description(self):
         """ description()
         
@@ -101,7 +87,7 @@ class DefaultToken(Token):
         return StyleElementDescription(self.name, des, str(format))
 
 
-class CommentToken(DefaultToken):
+class CommentToken(Token):
     """ Characters representing a comment in the code. """
     defaultStyle = 'fore:#007F00'
 
@@ -109,7 +95,7 @@ class TodoCommentToken(CommentToken):
     """ Characters representing a comment in the code. """
     defaultStyle = 'italic'
 
-class StringToken(DefaultToken):
+class StringToken(Token):
     """ Characters representing a textual string in the code. """
     defaultStyle = 'fore:#7F007F'
 
@@ -118,7 +104,7 @@ class UnterminatedStringToken(StringToken):
     defaultStyle = 'underline:dotted'
 
 
-class TextToken(DefaultToken):
+class TextToken(Token):
     """ Anything that is not a string or comment. """ 
     defaultStyle = 'fore:#000'
 

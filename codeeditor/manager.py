@@ -181,7 +181,7 @@ class Manager:
         descriptions = {}
         for parser in cls._parserInstances.values():
             for token in parser.getUsedTokens():
-                description = token.description()
+                description = token.description
                 descriptions[description.key] = description
         
         return list(descriptions.values())

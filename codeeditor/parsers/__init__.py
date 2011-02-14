@@ -34,7 +34,36 @@ import os, sys
 from . import tokens
 
 
-# Base parser class (needs to be defined before importing parser modules
+class BlockState(object):
+    """ BlockState(state=0, info=None)
+    
+    The blockstate object should be used by parsers to
+    return the block state of the processed line. 
+    
+    This would typically be the last item to be yielded, but this
+    it may also be yielded befor the last yielded token. One can even
+    yield multiple of these items, in which case the last one considered
+    valid.
+    
+    """
+    def __init__(self, state=0, info=None):
+        self._state = int(state)
+        self._info = info
+    
+    @property
+    def state(self):
+        """ The integer value representing the block state.
+        """
+        return self._state
+    
+    @property
+    def info(self):
+        """ Get the information corresponding to the block.
+        """
+        return self._info
+
+
+# Base parser class (needs to be defined before importing parser modules)
 class Parser(object):
     """ Base parser class. 
     All parsers should inherit from this class.
@@ -106,8 +135,7 @@ class Parser(object):
         """
         descriptions = {}
         for token in self.getUsedTokens():
-            description = token.description()
-            descriptions[description.key] = description
+            descriptions[token.description.key] = token.description
         
         return list(descriptions.values())
     
@@ -130,8 +158,9 @@ class Parser(object):
         for name in mod.__dict__:
             member = mod.__dict__[name]
             if isinstance(member, type) and \
-                                    issubclass(member, tokens.DefaultToken):
-                tokenClasses.append(member)
+                                    issubclass(member, tokens.Token):
+                if member is not tokens.Token:
+                    tokenClasses.append(member) 
         
         # Return as instances
         return [t() for t in tokenClasses]
