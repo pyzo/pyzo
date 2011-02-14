@@ -82,8 +82,8 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         if parser:
             self.setCurrentBlockState(0)
             for token in parser.parseLine(line, previousState):
-                # Handle line or string continuation
-                if isinstance(token, parsers.tokens.ContinuationToken):
+                # Handle block state
+                if isinstance(token, parsers.BlockState):
                     self.setCurrentBlockState(token.state)
                 else:
                     # Get format

@@ -1,23 +1,22 @@
 import re
-from codeeditor.parsers import tokens, Parser
+from codeeditor.parsers import tokens, Parser, BlockState
 from codeeditor.parsers.tokens import ALPHANUM
 
 
 # Import tokens in module namespace
 from codeeditor.parsers.tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
-    KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
-    ContinuationToken)
+    KeywordToken, NumberToken, FunctionNameToken, ClassNameToken)
 
 # Keywords sets
 
-# Source: from keyword import kwlist; keyword.kwlist (Python 2.6.6)
+# Source: import keyword; keyword.kwlist (Python 2.6.6)
 python2Keywords = set(['and', 'as', 'assert', 'break', 'class', 'continue', 
         'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 
         'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 
         'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'])
 
-# Source: from keyword import kwlist; keyword.kwlist (Python 3.1.2)
+# Source: import keyword; keyword.kwlist (Python 3.1.2)
 python3Keywords = set(['False', 'None', 'True', 'and', 'as', 'assert', 'break', 
         'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 
         'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 
@@ -37,11 +36,6 @@ class CellCommentToken(CommentToken):
     """ Characters representing a cell separator comment: "##". """
     defaultStyle = 'bold:yes, underline:yes'
 
-class LineContinuationToken(ContinuationToken):
-    pass
-
-class StringContinuationToken(ContinuationToken):
-    pass
 
 
 # This regexp is used to find special stuff, such as comments, numbers and
@@ -148,7 +142,7 @@ class PythonParser(Parser):
                 # If no match, we are done processing the line
                 if not match:
                     if lineContinuation:
-                        yield LineContinuationToken(line,identifierState)
+                        yield BlockState(identifierState)
                     return
                 
                 # The rest is to establish what identifier we are dealing with
@@ -162,7 +156,7 @@ class PythonParser(Parser):
                     else:
                         yield CommentToken(line,matchStart,len(line))
                     if lineContinuation:
-                        yield LineContinuationToken(line,identifierState)
+                        yield BlockState(identifierState)
                     return
                 
                 # If there are non-whitespace characters after def or class,
@@ -223,10 +217,10 @@ class PythonParser(Parser):
                 # The string does not end on this line
                 if style == "'''":
                     yield MultilineStringToken(line,matchStart,len(line))
-                    yield StringContinuationToken(line,1)
+                    yield BlockState(1)
                 elif style == '"""':
                     yield MultilineStringToken(line,matchStart,len(line))
-                    yield StringContinuationToken(line,2)
+                    yield BlockState(2)
                 else:
                     yield UnterminatedStringToken(line,matchStart,len(line))
                 return
@@ -243,11 +237,15 @@ class PythonParser(Parser):
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.
     """
+     # The application should choose whether to set the Py 2 specific parser
+    _extensions = []
     _keywords = python2Keywords
 
 class Python3Parser(PythonParser):
     """ Parser for Python 3.x code.
     """
+    # The application should choose whether to set the Py 3 specific parser
+    _extensions = []
     _keywords = python3Keywords
 
     
