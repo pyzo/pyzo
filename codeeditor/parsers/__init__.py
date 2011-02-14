@@ -30,7 +30,7 @@ Making a parser requires these things:
 
 # Normal imports 
 import os, sys
-import zipfile
+#import zipfile
 from . import tokens
 
 
@@ -84,7 +84,7 @@ class Parser(object):
         Get a list of keywords valid for this parser.
         
         """
-        return self._keywords
+        return [k for k in self._keywords]
     
     
     def filenameExtensions(self):
@@ -94,7 +94,7 @@ class Parser(object):
         is appropriate.
         
         """
-        return self._extensions
+        return ['.'+e.lstrip('.').lower() for e in self._extensions]
     
     
     def getStyleElementDescriptions(cls):
@@ -151,171 +151,3 @@ from codeeditor.parsers import (    python_parser,
                                     c_parser,
                                 )
 
-
-# todo: combine pareser manager with a generic code editor manager?
-class ParserManager:
-    """ ParserManager
-    
-    Static class to obtain information about parsers.
-    
-    """
-    
-    # Static dict of all parsers
-    _parserInstances = {}
-    
-    
-#     @classmethod
-#     def collecrParsersDynamically(cls):
-#         """ insert the function is this module's namespace.
-#         """
-#         
-#         # Get the path of this subpackage
-#         path = __file__
-#         path = os.path.dirname( os.path.abspath(path) )
-#         
-#         # Determine if we're in a zipfile
-#         i = path.find('.zip')
-#         if i>0:
-#             # get list of files from zipfile
-#             path = path[:i+4]
-#             z = zipfile.ZipFile(path)
-#             files = [os.path.split(i)[-1] for i in z.namelist() 
-#                         if 'codeeditor' in i and 'parsers' in i]
-#         else:
-#             # get list of files from file system
-#             files = os.listdir(path)
-#         
-#         # Extract all parsers
-#         parserModules = []
-#         for file in files:            
-#             
-#             # Only python files
-#             if file.endswith('.pyc'):
-#                 if file[:-1] in files:
-#                     continue # Only try import once
-#             elif not file.endswith('.py'):
-#                 continue    
-#             # Only syntax files
-#             if '_parser.' not in file:
-#                 continue
-#             
-#             # Import module
-#             fullfile = os.path.join(path, file)
-#             modname = os.path.splitext(file)[0]
-#             print('modname', modname)
-#             mod = __import__("codeeditor.parsers."+modname, fromlist=[modname])
-#             parserModules.append(mod)
-#         
-#         print(parserModules)
-    
-
-    
-    @classmethod
-    def collectParsers(cls):
-        """ collectParsers()
-        
-        Collect all parser classes. This function is called on startup.
-        
-        """
-        
-        # Prepare (use a set to prevent duplicates)
-        foundParsers = set()
-        G = globals()
-        ModuleClass = os.__class__
-        
-        # Collect parser classes
-        for module_name in G:
-            # Check if it is indeed a module, and if it has the right name
-            if not isinstance(G[module_name], ModuleClass):
-                continue
-            if not module_name.endswith('_parser'):
-                continue
-            # Collect all valid classes from the module
-            moduleDict = G[module_name].__dict__
-            for name_in_module in moduleDict:
-                ob = moduleDict[name_in_module]                    
-                if isinstance(ob, type) and issubclass(ob, Parser):
-                    foundParsers.add(ob)
-        
-        # Put in list with the parser names as keys
-        parserInstances = {}
-        for parserClass in foundParsers:
-            name = parserClass.__name__
-            if name.endswith('Parser') and len(name)>6:
-                
-                # Get parser identifier name
-                name = name[:-6].lower()
-                
-                # Try instantiating the parser
-                try:
-                    parserInstances[name] = parserClass()
-                except Exception:
-                    # We cannot get the exception object in a Python2/Python3
-                    # compatible way
-                    print('Could not instantiate parser "%s".'%name)
-        
-        # Store
-        cls._parserInstances = parserInstances
-    
-    
-    @classmethod
-    def getParserNames(cls):
-        """ getParserNames()
-        
-        Get a list of all available parsers.
-        
-        """
-        return list(cls._parserInstances.keys())
-    
-    
-    @classmethod
-    def getParserByName(cls, parserName):
-        """ getParserByName(parserName)
-        
-        Get the parser object corresponding to the given name.
-        If no parser is known by the given name, a warning message
-        is printed and None is returned.
-        
-        """
-        
-        # Case insensitive
-        parserName = parserName.lower()
-        
-        # Return instantiated parser object.
-        if parserName in cls._parserInstances:
-            return cls._parserInstances[parserName]
-        else:
-            print('Warning: no parser known by the name "%s".'%parserName)
-            print('I know these: ', cls._parserInstances.keys())
-            return None
-    
-    
-    @classmethod
-    def getStyleElementDescriptionsForAllParsers(cls):
-        """ getStyleElementDescriptionsForAllParsers()
-        
-        Get all style element descriptions corresponding to 
-        the tokens of all parsers.
-        
-        """
-        descriptions = {}
-        for parser in cls._parserInstances.values():
-            for token in parser.getUsedTokens():
-                description = token.description()
-                descriptions[description.key] = description
-        
-        return list(descriptions.values())
-    
-    
-    # todo: define common extension in parsers
-    def suggestParserForGivenExtension(self, ext):
-        pass
-    
-    def registerExtension(self, ext, parserName):
-        pass
-
-
-try:
-    ParserManager.collectParsers()
-except Exception:
-    print('Error collecting parsers')

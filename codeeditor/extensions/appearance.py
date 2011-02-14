@@ -6,7 +6,7 @@ from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
 from ..misc import ce_option
-from ..parsers import ParserManager
+from ..manager import Manager
 
 # todo: what about calling all extensions. CE_HighlightCurrentLine, 
 # or EXT_HighlightcurrentLine?
@@ -469,10 +469,10 @@ class SyntaxHighlighting(object):
     """
     
     # Register all syntax style elements
-    _styleElements = ParserManager.getStyleElementDescriptionsForAllParsers()
+    _styleElements = Manager.getStyleElementDescriptionsForAllParsers()
     
-    # todo: empty string by default
-    @ce_option('python')
+    
+    @ce_option('')
     def parser(self):
         """ parser()
         
@@ -490,7 +490,7 @@ class SyntaxHighlighting(object):
         """
         # Set parser
         if parserName:
-            self.__parser = ParserManager.getParserByName(parserName)
+            self.__parser = Manager.getParserByName(parserName)
         else:
             self.__parser = None
         

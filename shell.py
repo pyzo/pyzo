@@ -35,7 +35,7 @@ class BaseShell(BaseTextCtrl):
     
     def __init__(self, parent,**kwds):
         super().__init__(parent, wrap=True, showLineNumbers=False, 
-            highlightCurrentLine=False, **kwds)
+            highlightCurrentLine=False, parser='python', **kwds)
         
         self.setUndoRedoEnabled(False)
         

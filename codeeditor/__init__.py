@@ -4,6 +4,7 @@ A full featured code editor component based on QPlainTextEdit.
 
 """
 
+from .manager import Manager
 from .base import CodeEditorBase
 
 from .extensions.appearance import (    HighlightCurrentLine, 
