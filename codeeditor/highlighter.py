@@ -6,6 +6,8 @@ check out indentation.
 
 """
 
+import time
+
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
@@ -28,64 +30,12 @@ class Highlighter(QtGui.QSyntaxHighlighter):
     def __init__(self,codeEditor,*args):
         QtGui.QSyntaxHighlighter.__init__(self,*args)
         
-        #Init properties
+        # Store reference to editor
         self._codeEditor = codeEditor
-        self._nameToFormat = {}
-        self._parser = parsers.ParserManager.getParserByName('python')
-        if self._parser:            
-            self.createFormats( self._parser.getDefaultStyle() )
         
-#         pp = parsers.ParserManager.getParserByName('python')
-#         print('-- token names --')
-#         for info in pp.getStyleInfo():
-#             print(info[0])
-#         print('-- end token names --')
-    
-    
-    def _getColorSafe(self, color, default='#777'):
-        try:
-            return QtGui.QColor(color)
-        except Exception:
-            print('Invalid color', color)
-            return QtGui.QColor(default)
-    
-    
-    def createFormats(self, style):
-        
-        # Init dict
-        self._nameToFormat = {}
-        
-        # For each style (i.e. token)
-        for name in style:
-            styleFormat = style[name]
-            
-            # Init format
-            format = QtGui.QTextCharFormat()
-            self._nameToFormat[name] = format
-            
-            for key, val in styleFormat:
-                
-                # Process, be forgiving with names
-                if key == 'fore':
-                    format.setForeground( self._getColorSafe(val) )
-                elif key == 'back':
-                    format.setBackground( self._getColorSafe(val) )
-                elif key == 'bold':
-                    if val == 'yes':
-                        format.setFontWeight(QtGui.QFont.Bold)
-                elif key == 'underline':
-                    if val=='yes':
-                        format.setUnderlineStyle (format.SingleUnderline)
-                    elif val in ['dotted', 'dots', 'dotline']: 
-                        format.setUnderlineStyle (format.DotLine)
-                    elif val=='wave': 
-                        format.setUnderlineStyle (format.WaveUnderline)
-                elif key == 'italic':
-                    if val=='yes':
-                        format.setFontItalic(True)
-                else:
-                    print('Warning: unknown style element part "%s" in "%s".' % 
-                                                    (key, str(styleFormat)))
+        # For timing
+        self._cumTime = 0
+        self._cumN = 0
     
     
     def getCurrentBlockUserData(self):
@@ -101,7 +51,19 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         return bd
     
     
-    def highlightBlock(self,line): 
+    def highlightBlock(self, line): 
+        """ highlightBlock(line)
+        
+        This method is automatically called when a line must be 
+        re-highlighted.
+        
+        If the code editor has an active parser. This method will use
+        it to perform syntax highlighting. If not, it will only 
+        check out the indentation.
+        
+        """
+        
+        t0 = time.time()
         
         # Make sure this is a Unicode Python string
         line = ustr(line)
@@ -109,11 +71,13 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         # Get previous state
         previousState = self.previousBlockState()
         
-        # Get parser and function to get format
-        parser = self._codeEditor.parser()
-        nameToFormat = self._codeEditor.getStyleElementFormat
+        # Get parser
+        parser = None
+        if hasattr(self._codeEditor, 'parser'):
+            parser = self._codeEditor.parser()
         
-        # todo: choose parser dynamically
+        # Get function to get format
+        nameToFormat = self._codeEditor.getStyleElementFormat
         
         if parser:
             self.setCurrentBlockState(0)
@@ -160,3 +124,14 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             # Store info for indentation guides
             # amount of tabs or spaces
             bd.indentation = len(leadingWhitespace)
+        
+        # Timing experiment
+        if False:
+            t1 = time.time()
+            self._cumTime += t1-t0
+            self._cumN += 1
+            if self._cumTime > 0.1:
+                if 'log' not in self.__class__.__name__.lower():
+                    print(self._cumN, self._cumTime/self._cumN)
+                self._cumTime = 0
+                self._cumN = 0

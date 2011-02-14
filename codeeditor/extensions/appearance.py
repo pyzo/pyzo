@@ -442,7 +442,10 @@ class Wrap(object):
         self.document().setDefaultTextOption(option)
 
 
-
+# todo: move this bit to base class? 
+# This functionality embedded in the highlighter and even has a designated
+# subpackage. I feel that it should be a part of the base editor.
+# Note: if we do this, remove the hasattr call in the highlighter.
 class SyntaxHighlighting(object):
     """ Notes on syntax highlighting.
 
@@ -466,9 +469,9 @@ class SyntaxHighlighting(object):
     """
     
     # Register all syntax style elements
-    _styleElements = ParserManager.getSyntaxStyleElementDescriptions()
+    _styleElements = ParserManager.getStyleElementDescriptionsForAllParsers()
     
-    # todo: underlying __parser is string or Parser instance?
+    # todo: empty string by default
     @ce_option('python')
     def parser(self):
         """ parser()
@@ -492,5 +495,5 @@ class SyntaxHighlighting(object):
             self.__parser = None
         
         # Restyle
-        self._rehighligh()
+        self.rehighligh()
         

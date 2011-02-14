@@ -44,6 +44,19 @@ class Parser(object):
     
     
     def parseLine(self, line, previousState=0):
+        """ parseLine(line, previousState=0)
+        
+        The method that should be implemented by the parser. The 
+        previousState argument can be used to determine how
+        the previous block ended (e.g. for multiline comments). It
+        is an integer, the meaning of which is only known to the
+        specific parser. 
+        
+        This method should yield token instances. The last token can
+        be a ContinuationToken to specify the previousState for the 
+        next block.
+        
+        """
         raise NotImplementedError()
     
     
@@ -60,6 +73,8 @@ class Parser(object):
     
     
     def __repr__(self):
+        """ String representation of the parser. 
+        """
         return '<Parser for "%s">' % self.name()
     
     
@@ -77,38 +92,32 @@ class Parser(object):
         
         Get a list of filename extensions for which this parser
         is appropriate.
+        
         """
         return self._extensions
     
     
-    def getDefaultStyle(self):
+    def getStyleElementDescriptions(cls):
+        """ getStyleElementDescriptions()
         
-        # Get tokens
-        tokenInstances = self.getUsedTokens()
+        This method returns a list of the StyleElementDescription 
+        instances used by this parser. 
         
-        # Collect style elements
-        style = {}
-        for tokenInstance in tokenInstances:
-            style[tokenInstance.name] = tokenInstance.getDefaultStyleFormat()
-        return style
-    
-    
-    def getStyleInfo(self):
+        """
+        descriptions = {}
+        for token in self.getUsedTokens():
+            description = token.description()
+            descriptions[description.key] = description
         
-        # Get tokens
-        tokenInstances = self.getUsedTokens()
-        
-        # Collect info of all tokens
-        tokenInfo = []
-        for tokenInstance in tokenInstances:
-            tmp = tokenInstance.name, tokenInstance.defaultStyle, tokenInstance.__doc__
-            tokenInfo.append(tmp)
-        
-        # Done
-        return tokenInfo
+        return list(descriptions.values())
     
     
     def getUsedTokens(self):
+        """ getUsedTokens()
+        
+        Get a a list of token instances used by this parser.
+        
+        """
         
         # Get module object of the parser
         try:
@@ -120,7 +129,8 @@ class Parser(object):
         tokenClasses = []
         for name in mod.__dict__:
             member = mod.__dict__[name]
-            if isinstance(member, type) and issubclass(member, tokens.DefaultToken):
+            if isinstance(member, type) and \
+                                    issubclass(member, tokens.DefaultToken):
                 tokenClasses.append(member)
         
         # Return as instances
@@ -281,9 +291,12 @@ class ParserManager:
     
     
     @classmethod
-    def getSyntaxStyleElementDescriptions(cls):
-        """ Get all style element descriptions corresponding to 
+    def getStyleElementDescriptionsForAllParsers(cls):
+        """ getStyleElementDescriptionsForAllParsers()
+        
+        Get all style element descriptions corresponding to 
         the tokens of all parsers.
+        
         """
         descriptions = {}
         for parser in cls._parserInstances.values():

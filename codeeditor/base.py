@@ -341,7 +341,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     def getStyleElementDescriptions(cls):
         """ getStyleElementDescriptions()
         
-        This classmethod returns a list of StyleElementDescription instances. 
+        This classmethod returns a list of the StyleElementDescription 
+        instances used by this class. This includes the descriptions for
+        the syntax highlighting of all parsers.
         
         """ 
         
@@ -392,7 +394,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         except KeyError:
             raise KeyError('Not a known style element name: "%s".' % name)
     
-    # todo: set style on instance or on class?
+    
     def setStyle(self, style=None, **kwargs):
         """ setStyle(style=None, **kwargs)
         
@@ -448,11 +450,21 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Make sure the style is applied
         self.viewport().update()
-        self._rehighligh()
+        self.rehighligh()
     
     
-    def _rehighligh(self):
-        """ _rehighligh()
+    def style(self):
+        """ style()
+        
+        Get a copy of the internal style dictionary, which maps style keys
+        to style element formats.
+        
+        """
+        return self.__style.copy()
+    
+    
+    def rehighligh(self):
+        """ rehighligh()
         
         Rehighlight the document. This is done by posting an event that
         will trigger the highlighter to rehighlight. Therefore this method
@@ -460,6 +472,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         """
         callLater(self.__highlighter.rehighlight)
+    
     
     ## Some basic options
     
