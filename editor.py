@@ -18,6 +18,7 @@ import re, codecs
 from PyQt4 import QtCore, QtGui
 qt = QtGui
 
+from codeeditor import Manager
 from baseTextCtrl import BaseTextCtrl, normalizePath
 import iep
 from iepLogging import print
@@ -228,13 +229,14 @@ def createEditor(parent, filename=None):
     if editor._filename:
         editor._modifyTime = os.path.getmtime(editor._filename)
     
-    # set style
-    #TODO:
-    #if editor._filename:
-    #    ext = os.path.splitext(editor._filename)[1]
-    #    editor.setStyle(ext)
-    #else:
-    #    editor.setStyle(iep.config.settings.defaultStyle)
+    # Set parser
+    if editor._filename:
+       ext = os.path.splitext(editor._filename)[1]
+       parser = Manager.suggestParserfromFilenameExtension(ext)
+       editor.setParser(parser)
+    else:
+        # todo: rename style -> parser
+        editor.setParser(iep.config.settings.defaultStyle)
     
     
     # return

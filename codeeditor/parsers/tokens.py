@@ -23,11 +23,7 @@ class Token(object):
     A token is a group of characters representing "something".
     What is represented, is specified by the subclass.
     
-    Each token class has a (static) member 'defaultStyle' indicating 
-    the default style of the token. For the formatting see this example:
-    "fore:#000, back:#fff, bold:yes, underline:no"
-    
-    Each token class should also have a docstring describing the meaning
+    Each token class should have a docstring describing the meaning
     of the characters it is applied to.
     
     """ 
@@ -64,7 +60,7 @@ class Token(object):
         nameParts.append( self.__class__.__name__[:-5].lower() )
         return '.'.join(nameParts)
 
-
+# todo: get rid of this? instead the parse yields an integer.
 class ContinuationToken(Token):
     """ Used to pass a number to the next block to process multi-line
     comments etc. The meaning of the state is specific for the parser.

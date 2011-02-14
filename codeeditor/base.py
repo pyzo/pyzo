@@ -99,6 +99,7 @@ from PyQt4.QtCore import Qt
 
 from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option
 from .misc import callLater, ustr
+from .manager import Manager
 from .highlighter import Highlighter
 from .style import StyleFormat, StyleElementDescription
 
@@ -270,42 +271,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     ## Font
     
-    def fontNames(self):
-        """ fontNames()
-        
-        Get a list of all monospace fonts available on this system.
-        
-        """
-        db = QtGui.QFontDatabase()
-        QFont, QFontInfo = QtGui.QFont, QtGui.QFontInfo
-        # fn = font_name (str)
-        return [fn for fn in db.families() if QFontInfo(QFont(fn)).fixedPitch()]
     
-    
-    def defaultFont(self):
-        """ defaultFont()
-        
-        Get the default (monospace font) for this system. Returns a QFont
-        object. 
-        
-        """
-        
-        # Get font size
-        f = QtGui.QFont()
-        size = f.pointSize()
-        
-        # Get font family
-        f = QtGui.QFont('this_font_name_must_not exist')
-        f.setStyleHint(f.TypeWriter, f.PreferDefault)
-        fi = QtGui.QFontInfo(f)
-        family = fi.family()
-        
-        # The default family seems to be Courier new on Mac
-        if sys.platform == 'darwin':            
-            family = 'Monaco'
-        
-        # Done
-        return QtGui.QFont(family, size)
     
     
     def setFont(self, font=None):
@@ -318,11 +284,11 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Check
         if font is None:
-            font = self.defaultFont()
+            font = Manager.defaultFont()
         elif isinstance(font, QtGui.QFont):
             pass
         elif isinstance(font, str):
-            font = QtGui.QFont(font, self.defaultFont().pointSize())
+            font = QtGui.QFont(font, manager.defaultFont().pointSize())
         else:
             raise ValueError("setFont accepts None, QFont or string.")
         
