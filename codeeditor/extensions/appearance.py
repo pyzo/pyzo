@@ -469,8 +469,7 @@ class SyntaxHighlighting(object):
     """
     
     # Register all syntax style elements
-    _styleElements = Manager.getStyleElementDescriptionsForAllParsers()
-    
+    _styleElements = Manager.getStyleElementDescriptionsForAllParsers() 
     
     @ce_option('')
     def parser(self):
@@ -495,5 +494,5 @@ class SyntaxHighlighting(object):
             self.__parser = None
         
         # Restyle
-        self.rehighligh()
+        self.styleChanged.emit()
         
