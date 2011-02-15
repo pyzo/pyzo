@@ -165,7 +165,23 @@ class Parser(object):
         # Return as instances
         return [t() for t in tokenClasses]
     
-
+    
+    def _isTodoItem(self, text):
+        """ _isTodoItem(text)
+        
+        Get whether the given text (which should be a comment) represents
+        a todo item. Todo items start with "todo", "2do" or "fixme", 
+        optionally with a colon at the end.
+        
+        """
+        # Get first word
+        word = text.lstrip().split(' ',1)[0].rstrip(':')
+        # Test
+        if word.lower() in ['todo', '2do', 'fixme']:
+            return True
+        else:
+            return False
+    
 
 ## Import parsers statically
 # We could load the parser dynamically from the source files in the 

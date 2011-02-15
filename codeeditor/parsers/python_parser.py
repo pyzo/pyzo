@@ -6,7 +6,8 @@ from codeeditor.parsers.tokens import ALPHANUM
 # Import tokens in module namespace
 from codeeditor.parsers.tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
-    KeywordToken, NumberToken, FunctionNameToken, ClassNameToken)
+    KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
+    TodoCommentToken)
 
 # Keywords sets
 
@@ -153,6 +154,8 @@ class PythonParser(Parser):
                     if ( line[matchStart:].startswith('##') and 
                             not line[:matchStart].strip() ):
                         yield CellCommentToken(line,matchStart,len(line))
+                    elif self._isTodoItem(line[matchStart+1:]):
+                        yield TodoCommentToken(line,matchStart,len(line))
                     else:
                         yield CommentToken(line,matchStart,len(line))
                     if lineContinuation:
