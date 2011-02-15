@@ -93,7 +93,7 @@ class CommentToken(Token):
 
 class TodoCommentToken(CommentToken):
     """ Characters representing a comment in the code. """
-    defaultStyle = 'italic'
+    defaultStyle = 'fore:#E00,italic'
 
 class StringToken(Token):
     """ Characters representing a textual string in the code. """
@@ -103,6 +103,7 @@ class UnterminatedStringToken(StringToken):
     """ Characters belonging to an unterminated string. """
     defaultStyle = 'underline:dotted'
 
+# todo: request from user: whitespace token
 
 class TextToken(Token):
     """ Anything that is not a string or comment. """ 
