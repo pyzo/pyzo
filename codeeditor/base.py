@@ -110,6 +110,14 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     """
     
+    # Style element for default text and editor background
+    _styleElements = [('Editor.text', 'The style of the default text. ' + 
+                        'One can set the background color here.',
+                        'fore:#000,back:#fff',)]
+    
+    # Signal emitted after style has changed
+    styleChanged = QtCore.pyqtSignal()
+    
     def __init__(self,*args, **kwds):
         super(CodeEditorBase, self).__init__(*args)
         
@@ -133,6 +141,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.__style = {}
         for element in self.getStyleElementDescriptions():
             self.__style[element.key] = element.defaultFormat
+        
+        # Connext style update
+        self.styleChanged.connect(self._afterSetStyle)
         
         # Init options now. 
         # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
@@ -412,31 +423,30 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Give warning for invalid keys
         if invalidKeys:
-            print("Warning, invalid style names given: " + ', '.join(invalidKeys))
+            print("Warning, invalid style names given: " + 
+                                                    ','.join(invalidKeys))
+        
+        # Notify the style changed
+        self.styleChanged.emit()
+    
+    
+    def _afterSetStyle(self):
+        """ _afterSetStyle()
+        
+        Method to call after the style has been set.
+        
+        """
+        
+        # Set text style using editor style sheet
+        format = self.getStyleElementFormat('editor.text')
+        ss = 'QPlainTextEdit{ color:%s; background-color:%s; }' %  (
+                            format['fore'], format['back'])
+        self.setStyleSheet(ss)
         
         # Make sure the style is applied
         self.viewport().update()
-        self.rehighligh()
-    
-    
-    def style(self):
-        """ style()
         
-        Get a copy of the internal style dictionary, which maps style keys
-        to style element formats.
-        
-        """
-        return self.__style.copy()
-    
-    
-    def rehighligh(self):
-        """ rehighligh()
-        
-        Rehighlight the document. This is done by posting an event that
-        will trigger the highlighter to rehighlight. Therefore this method
-        can safely be used in an __init__.
-        
-        """
+        # Re-highlight
         callLater(self.__highlighter.rehighlight)
     
     
