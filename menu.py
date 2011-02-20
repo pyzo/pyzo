@@ -185,7 +185,9 @@ class FileMenu(BaseMenu):
         addItem( MI('Open file', self.fun_open) )
         addItem( MI('Save file', self.fun_save) )
         addItem( MI('Save file as ...', self.fun_saveAs) )
+        addItem( MI('Save all', self.fun_saveAll) )
         addItem( MI('Close file', self.fun_closeFile) )
+        addItem( MI('Close all', self.fun_closeAllFiles) )
         addItem(None)
         addItem( MI('Style', self.fun_style, []) )
         addItem( MI('Indentation width', self.fun_indentWidth, []) )
@@ -219,10 +221,19 @@ class FileMenu(BaseMenu):
         """ Save the current file under another name. """
         iep.editors.saveFileAs()
     
+    def fun_saveAll(self, value):
+        """ Save all open files. """
+        for e in iep.editors:
+            iep.editors.saveFile(e)
+    
     def fun_closeFile(self, value):
         """ Close the current file. """
         iep.editors.closeFile()
     
+    def fun_closeAllFiles(self, value):
+        """ Close all files. """
+        for e in iep.editors:
+            iep.editors.closeFile(e)
     
     def fun_lineEndings(self, value):
         """ The line ending character used for the current file. """
