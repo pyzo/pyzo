@@ -179,18 +179,15 @@ class MainWindow(QtGui.QMainWindow):
         else:
             iep.defaultQtStyleName = 'Cleanlooks'
         
+        # Get native pallette (used when changing styles)
+        QtGui.qApp.nativePalette = QtGui.qApp.palette()
+        
         # Set style if there is no style yet
         if not iep.config.view.qtstyle:
             iep.config.view.qtstyle = iep.defaultQtStyleName 
         
         # Set qt style and test success
-        qstyle = app.setStyle(iep.config.view.qtstyle)
-        if qstyle:
-            # We succeeded in setting the style
-            app.setPalette(QtGui.QStyle.standardPalette(qstyle))
-        else:
-            # We still have the default style
-            pass
+        self.setQtStyle(iep.config.view.qtstyle)
         
         # Load tools
         if iep.config.state.loadedTools: 
@@ -202,6 +199,36 @@ class MainWindow(QtGui.QMainWindow):
             state = iep.config.state.windowState
             state = base64.decodebytes(state.encode('ascii'))
             self.restoreState(state)        
+    
+    
+    
+    def setQtStyle(self, stylename):
+        """ Set the style and the palette, based on the given style name.
+        Returns the QStyle instance.
+        """
+        
+        # Init
+        useStandardStyle = False
+        stylename2 = stylename
+        
+        # Handle special cleanlooks style
+        if stylename.lower().startswith('cleanlooks'):
+            stylename2 = stylename.rstrip('+')
+            if stylename2 != stylename:
+                useStandardStyle = True
+        
+        # Try changing the style
+        qstyle = QtGui.qApp.setStyle(stylename2)
+        
+        # Set palette
+        if qstyle:
+            if useStandardStyle:
+                QtGui.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
+            else:
+                QtGui.qApp.setPalette(QtGui.qApp.nativePalette)
+        
+        # Done
+        return qstyle
     
     
     def changeEvent(self, event):

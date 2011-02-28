@@ -672,6 +672,8 @@ class ViewMenu(BaseMenu):
         if value is None:
             # Create list of styles
             styleNames = [i for i in QtGui.QStyleFactory.keys()]
+            styleNames.append('Cleanlooks+')
+            styleNames.sort()
             # Add current, handle case
             M = dict([(name.lower(),name) for name in styleNames])
             iep.config.view.qtstyle = M.get(iep.config.view.qtstyle.lower(),'')
@@ -687,9 +689,7 @@ class ViewMenu(BaseMenu):
             # Store selected style
             iep.config.view.qtstyle = value
             # Set style and apply standard pallette
-            qstyle = QtGui.qApp.setStyle(value)
-            if qstyle:
-                QtGui.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
+            qstyle = iep.main.setQtStyle(value)
 
 
 class SettingsMenu(BaseMenu):
