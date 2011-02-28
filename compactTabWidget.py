@@ -40,7 +40,9 @@ QTabWidget::tab-bar {
  it reads QTabBar _not_ QTabWidget */
 QTabBar::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0 #DAD5CC, stop: 0.4 #D4D0C8, stop: 1.0 #A09B90);
+                stop: 0.0 rgba(220,220,220,128), 
+                stop: 0.4 rgba(200,200,200,128), 
+                stop: 1.0 rgba(100,100,100,128) );
     border: 1px solid #A09B90;
     border-bottom-color: #DAD5CC; /* same as the pane color */
     border-top-left-radius: 4px;
@@ -58,13 +60,18 @@ QTabBar::tab:last {
 
 /* Style the selected tab, hoovered tab, and other tabs. */
 QTabBar::tab:hover {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,                
-                stop: 0 #FAF5EC, stop: 0.4 #DAD5CC, stop: 1.0 #D4D0C8);
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                stop: 0.0 rgba(245,250,255,128), 
+                stop: 0.4 rgba(210,210,210,128), 
+                stop: 1.0 rgba(200,200,200,128) );
 }
 QTabBar::tab:selected {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0 #336, stop: 0.12 #336, 
-                stop: 0.120001 #FAF5EC, stop: 0.4 #DAD5CC, stop: 1.0 #D4D0C8);
+                stop: 0.0 rgba(0,0,128,128), 
+                stop: 0.12 rgba(0,0,128,128), 
+                stop: 0.120001 rgba(245,250,255,128), 
+                stop: 0.4 rgba(210,210,210,128), 
+                stop: 1.0 rgba(200,200,200,128) );
 }
 
 QTabBar::tab:selected {     
