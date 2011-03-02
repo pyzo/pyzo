@@ -122,7 +122,8 @@ def startIep():
     # Set to use pure QT drawing. 
     # On GTK this makes the fonts look better, on KDE or Mac not
     # On Windows it does not matter
-    # todo: Maybe it's also not required on GTK now?
+    # todo: Maybe it's also not required on GTK now? Not on Linux Mint at least
+    # still check on CentOS
     if not os.environ.get('KDE_FULL_SESSION') and sys.platform != 'darwin' and not sys.platform.startswith('win'):
         QtGui.QApplication.setDesktopSettingsAware(False)
    
