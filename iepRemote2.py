@@ -423,6 +423,10 @@ class IepInterpreter:
             self._codeCollection.storeSource(code, source)
             # Execute the code
             self.runcode(code)
+        
+        else:
+            # Incomplete code
+            self.write('Could not run code because it is incomplete.\n')
     
     
     def runfile(self, fname):
@@ -456,6 +460,9 @@ class IepInterpreter:
             self._codeCollection.storeSource(code, source)
             # Execute the code
             self.runcode(code)
+        else:
+            # Incomplete code
+            self.write('Could not run code because it is incomplete.\n')
     
     ## Misc
     
