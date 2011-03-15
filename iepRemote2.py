@@ -417,13 +417,13 @@ class IepInterpreter:
             
         except (OverflowError, SyntaxError, ValueError):
             self.showsyntaxerror(fname)
+            return
         
         if code:
             # Store the source using the (id of the) code object as a key
             self._codeCollection.storeSource(code, source)
             # Execute the code
             self.runcode(code)
-        
         else:
             # Incomplete code
             self.write('Could not run code because it is incomplete.\n')
@@ -454,6 +454,7 @@ class IepInterpreter:
         except (OverflowError, SyntaxError, ValueError):
             time.sleep(0.2) # Give stdout time to be send
             self.showsyntaxerror(fname)
+            return
         
         if code:
             # Store the source using the (id of the) code object as a key
