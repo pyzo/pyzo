@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 #   Copyright (c) 2010, Almar Klein
-#   All rights reserved.
 #
 #   This code is subject to the (new) BSD license:
 #
@@ -127,9 +127,83 @@ else:
     basestring = str
     simplestr = str
 
+# To store other classes
+PYTHON_CLASS_NAME = '_CLASS_NAME_'
+
+
+## Registering classes
+
+# Global dict with registered classes
+_registered_classes = {}
+
+
+def isCompatibleClass(cls):
+    """ isCompatibleClass(cls)
+    
+    Returns True if the given class is SSDF-compatible.
+    
+    """
+    return not isIncompatibleClass(cls)
+
+
+def isIncompatibleClass(cls):    
+    """ isIncompatibleClass(cls)
+    
+    Returns a string giving the reason why the given class 
+    if not SSDF-compatible. If the class is compatible, this 
+    function returns None.
+    
+    """
+    if not hasattr(cls, '__to_ssdf__'):
+        return 'class does not have __to_ssdf__ method'
+    if not hasattr(cls, '__from_ssdf__'):
+        return 'class does not have __from_ssdf__ classmethod'
+    if not isinstance(cls, type):
+        return 'class is not a type (does not inherit object on Python 2.x)'
+
+
+def register_class(*args):
+    """ register_class(class1, class2, class3, ...)
+    
+    Register one or more classes. Registered classes can be saved and 
+    restored from ssdf. 
+    
+    A class needs to implement two methods to qualify for registration:
+      * A method __to_ssdf__() that returns a ssdf.Stuct
+      * A classmethod __from_ssdf__(s) that accepts an ssdf.Struct and creates
+        an instance of that class.
+    
+    """
+    for cls in args:
+        incomp = isIncompatibleClass(cls)
+        
+        if incomp:
+            raise ValueError('Cannot register class %s: %s.' % (cls.__name__, incomp))
+        else:
+            _registered_classes[cls.__name__] = cls
 
 
 ## The class
+
+def isSsdfStruct(object):
+    """ isSsdfStruct(object)
+    
+    Returns whether the given object is an ssdf struct. 
+    
+    Rather than using isinstance, this function checks the 
+    class name and the module name in which it is defined. 
+    That way, this function returns True also when the struct
+    is from another ssdf module (for example in a subpackage).
+    
+    """
+    
+    # Get class name of dict
+    c = object.__class__
+    dictClassName = '%s.%s' % (c.__module__, c.__name__)
+    
+    # Check
+    return dictClassName.endswith('ssdf.Struct')
+
 
 class Struct(object):
     """ Struct(dictionary=None) 
@@ -156,7 +230,9 @@ class Struct(object):
         if a_dict is None:
             return
         
-        elif not isinstance(a_dict, (Struct, dict)):
+        
+        
+        if not isinstance(a_dict, (Struct, dict)) and not isSsdfStruct(a_dict):
             tmp = "Struct can only be initialized with a Struct or a dict."
             raise ValueError(tmp)
         else:
@@ -220,11 +296,17 @@ class Struct(object):
     def __len__(self):
         """ Return amount of fields in the Struct object. """
         return len(self.__dict__)
-        
+    
+    def __add__(self, other):
+        """ Enable adding two structs by combining their elemens. """
+        s = Struct()
+        s.__dict__.update(self.__dict__)
+        s.__dict__.update(other.__dict__)
+        return s
     
     def __repr__(self):
         """ Short string representation. """
-        return "<SSDF struct instance with %i fields>" % len(self)
+        return "<SSDF struct instance with %i elements>" % len(self)
 
 
     def __str__(self):
@@ -236,9 +318,9 @@ class Struct(object):
             c = max(c, len(key))
         
         # How many chars left (to print on less than 80 lines)
-        charsLeft = 79 - (c+3)
+        charsLeft = 79 - (c+4) # 2 spaces and ': '
         
-        s = ''
+        s = 'Elements in SSDF struct:\n'
         for key in self:
             tmp = "%s" % (key)
             value = self[key]
@@ -253,7 +335,7 @@ class Struct(object):
                     #valuestr = "<string with length %i>" % (typestr, len(value))
                 else:
                     valuestr = "<%s with length %i>" % (typestr, len(value))
-            s += tmp.rjust(c+1) + ": %s\n" % (valuestr)
+            s += tmp.rjust(c+2) + ": %s\n" % (valuestr)
         return s
 
 
@@ -346,8 +428,8 @@ def update(filename, struct_object, appName='ssdf.py', newline='\n'):
     # Insert stuff
     def insert(ob1,ob2):
         for name in ob2:
-            if ( name in ob1 and isinstance(ob1[name],Struct) and 
-                                 isinstance(ob2[name],Struct) ):
+            if ( name in ob1 and isSsdfStruct(ob1[name]) and 
+                                 isSsdfStruct(ob2[name]) ):
                 insert(ob1[name], ob2[name])
             else:
                 ob1[name] = ob2[name]
@@ -490,8 +572,18 @@ def _toString(name, value, indent):
     if value is None:
         lineObject.line += "Null"
     
+    # User specific 
+    elif isCompatibleClass(value.__class__):
+        
+        # Create struct
+        s = value.__to_ssdf__()        
+        s[PYTHON_CLASS_NAME] = value.__class__.__name__
+        
+        # Make string
+        lineObject = _toString(name, s, indent)
+    
     # Struct
-    elif isinstance(value, (Struct, dict)):            
+    elif isinstance(value, dict) or isSsdfStruct(value):            
         lineObject.line += "dict:"
         
         # Process children        
@@ -502,7 +594,8 @@ def _toString(name, value, indent):
             # We have the key, go get the value!
             val = value[key]
             # Skip methods, or anything else we can call
-            if hasattr(val,'__call__'): # py3.x does not have function callable
+            if hasattr(val,'__call__') and not hasattr(val, '__to_ssdf__'): 
+                # Note: py3.x does not have function callable
                 continue
             # Add!
             tmp = _toString(key, val, indent+2)
@@ -625,7 +718,8 @@ def _fromString(lineObject):
     elif line.startswith('Null') or line.startswith('None'):
         return name, None
     
-    elif line.startswith('dict:'):
+    elif line.startswith('dict:'):        
+        # Create struct
         value = Struct()
         for child in lineObject.children:
             key, val = _fromString(child)
@@ -634,6 +728,14 @@ def _fromString(lineObject):
             else:
                 tmp = child.linenr
                 print("SSDF Warning: unnamed element in dict on line %i."%tmp)
+        # Make class instance?
+        if PYTHON_CLASS_NAME in value:
+            className = value[PYTHON_CLASS_NAME]
+            if className in _registered_classes:
+                value = _registered_classes[className].__from_ssdf__(value)
+            else:
+                print("SSDF Warning: class %s not registered." % className)
+        # Return
         return name, value
     
     elif line.startswith('list:'):
@@ -701,7 +803,7 @@ def _fromString(lineObject):
         line = line.replace('\\\\','0x07') # temp
         
         # Find string using a regular expression
-        m = re.search("'.*?[^.\\\\]'|''", line)
+        m = re.search("'.*?[^\\\\]'|''", line)
         if not m:
             print("SSDF Warning: string not ended correctly on line %i."%linenr)
             return name, None
