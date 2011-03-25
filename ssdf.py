@@ -197,12 +197,14 @@ def isSsdfStruct(object):
     
     """
     
-    # Get class name of dict
-    c = object.__class__
-    dictClassName = '%s.%s' % (c.__module__, c.__name__)
-    
-    # Check
-    return dictClassName.endswith('ssdf.Struct')
+    if isinstance(object, Struct):
+        return True
+    else:
+        # Get class name of dict
+        c = object.__class__
+        dictClassName = '%s.%s' % (c.__module__, c.__name__)
+        # Check    
+        return dictClassName.endswith('ssdf.Struct')
 
 
 class Struct(object):
