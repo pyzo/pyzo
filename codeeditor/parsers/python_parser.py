@@ -72,6 +72,39 @@ class PythonParser(Parser):
     #The list of keywords is overridden by the Python2/3 specific parsers
     _keywords = pythonKeywords 
     
+    
+    def _identifierState(self, identifier=None):
+        """ Given an identifier returs the identifier state:
+        3 means the current identifier can be a function.
+        4 means the current identifier can be a class.
+        0 otherwise.
+        
+        This method enables storing the state during the line,
+        and helps the Cython parser to reuse the Python parser's code.
+        """
+        if identifier is None:
+            # Explicit get/reset
+            try:
+                state = self._idsState
+            except Exception:
+                state = 0
+            self._idsState = 0
+            return state
+        elif identifier == 'def':
+            # Set function state
+            self._idsState = 3
+            return 3
+        elif identifier == 'class':
+            # Set class state
+            self._idsState = 4
+            return 4
+        else:
+            # This one can be func or class, next one can't
+            state = self._idsState
+            self._idsState = 0
+            return state
+    
+    
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
         
@@ -81,14 +114,15 @@ class PythonParser(Parser):
         
         """ 
         
+        # Init
         pos = 0 # Position following the previous match
         
         #Handle line continuation after def or class
         #identifierState is 3 or 4 if the previous identifier was 3 or 4
         if previousState == 3 or previousState == 4: 
-            identifierState = previousState
+            self._identifierState({3:'def',4:'class'}[previousState])
         else:
-            identifierState = 0
+            self._identifierState(None)
         
         # identifierState and previousstate values:
         # 0: nothing special
@@ -98,7 +132,6 @@ class PythonParser(Parser):
         # 4: a class keyword
         
         # Enter the main loop that iterates over the tokens and skips strings
-        previousIdentifier = ''
         while True:
             
             # First determine whether we should look for the end of a string,
@@ -132,18 +165,18 @@ class PythonParser(Parser):
                     # If there are non-whitespace characters after def or class,
                     # cancel the identifierState
                     if strippedNonIdentifier != '\\':
-                        identifierState = 0
+                        self._identifierState(None)
                 else:
                     lineContinuation = False
                     # If there are non-whitespace characters after def or class,
                     # cancel the identifierState
                     if strippedNonIdentifier != '':
-                        identifierState = 0
+                        self._identifierState(None)
                 
                 # If no match, we are done processing the line
                 if not match:
                     if lineContinuation:
-                        yield BlockState(identifierState)
+                        yield BlockState(self._identifierState())
                     return
                 
                 # The rest is to establish what identifier we are dealing with
@@ -159,42 +192,38 @@ class PythonParser(Parser):
                     else:
                         yield CommentToken(line,matchStart,len(line))
                     if lineContinuation:
-                        yield BlockState(identifierState)
+                        yield BlockState(self._identifierState())
                     return
                 
                 # If there are non-whitespace characters after def or class,
                 # cancel the identifierState (this time, also if there is just a \
                 # since apparently it was not on the end of a line)
                 if strippedNonIdentifier != '':
-                    identifierState = 0
+                    self._identifierState(None)
                 
                 # Identifier ("a word or number") Find out whether it is a key word
                 if match.group(1) is not None:
                     identifier = match.group(1)
                     tokenArgs = line, match.start(), match.end()
                     
-                    if identifier in self._keywords: 
-                        if identifier == 'def':
-                            identifierState = 3
-                        elif identifier == 'class':
-                            identifierState = 4
-                        else:
-                            identifierState = 0
+                    # Set identifier state 
+                    identifierState = self._identifierState(identifier)
+                    
+                    if identifier in self._keywords:
                         yield KeywordToken(*tokenArgs)
                     elif identifier[0] in '0123456789':
-                        identifierState = 0
+                        self._identifierState(None)
                         yield NumberToken(*tokenArgs)
                     else:
-                        if identifierState == 3:
+                        if (identifierState==3 and
+                                line[match.end():].lstrip().startswith('(') ):
                             yield FunctionNameToken(*tokenArgs)
-                        elif identifierState == 4:
+                        elif identifierState==4:
                             yield ClassNameToken(*tokenArgs)
                         else:
                             yield IdentifierToken(*tokenArgs)
-                        identifierState = 0
                     
                     # Goto next round
-                    previousIdentifier = identifier
                     pos = match.end()
                     continue
                 
@@ -210,7 +239,7 @@ class PythonParser(Parser):
             
             # Reset states.
             previousState = 0 
-            identifierState = 0
+            self._identifierState(None)
             
             # Find the matching end in the rest of the line
             # Do not use the start parameter of search, since ^ does not work then

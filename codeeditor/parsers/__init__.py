@@ -192,6 +192,7 @@ class Parser(object):
 # In summary: it takes a lot of trouble, which can be avoided by just
 # listing all parsers here.
 from codeeditor.parsers import (    python_parser, 
+                                    cython_parser,
                                     stupid_parser, 
                                     c_parser,
                                 )
