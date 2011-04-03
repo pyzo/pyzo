@@ -6,6 +6,7 @@ from codeeditor.parsers.tokens import (CommentToken, StringToken,
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken, KeywordToken,
     NumberToken)
 
+# todo: compiler directives (or how do you call these things starting with #)
 
 class MultilineCommentToken(CommentToken):
     """ Characters representing a multi-line comment. """
@@ -54,46 +55,43 @@ class CParser(Parser):
         # or if we should process a token.
         if previousState == 1:
             token = StringToken(line, 0, 0)
-            endToken = self._findEndOfString(line, token)
-            # Yield token, finished?
-            yield token
-            if endToken:
-                yield endToken
-                return
-            else:
-                pos += token.end
+            tokens = self._findEndOfString(line, token)
+            # Process tokens
+            for token in tokens:
+                yield token
+                if isinstance(token, BlockState):
+                    return 
+            pos = token.end
         elif previousState == 2:
             token = MultilineCommentToken(line, 0, 0)
-            endToken = self._findEndOfComment(line, token)
-            # Yield token, finished?
-            yield token
-            if endToken:
-                yield endToken
-                return
-            else:
-                pos += token.end
+            tokens = self._findEndOfComment(line, token)
+            # Process tokens
+            for token in tokens:
+                yield token
+                if isinstance(token, BlockState):
+                    return 
+            pos = token.end
         
         # Enter the main loop that iterates over the tokens and skips strings
         while True:
             
-            # Get next token and maybe an end token
-            token = self._findNextToken(line, pos)
-            if not token:
+            # Get next tokens
+            tokens = self._findNextToken(line, pos)
+            if not tokens:
                 return
-            elif isinstance(token, StringToken):
-                endToken = self._findEndOfString(line, token)
-            elif isinstance(token, MultilineCommentToken):
-                endToken = self._findEndOfComment(line, token)
-            else:
-                endToken = None
+            elif isinstance(tokens[-1], StringToken):
+                moreTokens = self._findEndOfString(line, tokens[-1])
+                tokens = tokens[:-1] + moreTokens
+            elif isinstance(tokens[-1], MultilineCommentToken):
+                moreTokens = self._findEndOfComment(line, tokens[-1])
+                tokens = tokens[:-1] + moreTokens
             
-            # Yield token, finished?
-            yield token
-            if endToken:
-                yield endToken
-                return
-            else:
-                pos += token.end
+            # Process tokens
+            for token in tokens:
+                yield token
+                if isinstance(token, BlockState):
+                    return 
+            pos = token.end
     
     
     def _findEndOfComment(self, line, token):
@@ -107,10 +105,11 @@ class CParser(Parser):
         if endMatch:
             # The comment does end on this line
             token.end = endMatch.end()
+            return [token]
         else:
             # The comment does not end on this line
             token.end = len(line)
-            return BlockState(2)
+            return [token, BlockState(2)]
     
     
     def _findEndOfString(self, line, token):
@@ -128,10 +127,12 @@ class CParser(Parser):
         if endMatch:
             # The string does end on this line
             token.end = token.end + endMatch.end()
+            return [token]
         else:
             # The string does not end on this line
-            token.end = len(line)
-            return BlockState(1)
+            token = UnterminatedStringToken(line, token.start, token.end+len(line))
+            #return [token, BlockState(1)]
+            return [token]
     
     
     def _findNextToken(self, line, pos):
@@ -140,8 +141,11 @@ class CParser(Parser):
         Returns a token or None if no new tokens can be found.
         
         """
+        
+        # Init tokens, if positing too large, stop now
         if pos > len(line):
             return None
+        tokens = []
         
         # Find the start of the next string or comment
         match = tokenProg.search(line, pos)
@@ -153,11 +157,11 @@ class CParser(Parser):
         # Return the Non-Identifier token if non-null
         token = NonIdentifierToken(line,pos,nonIdentifierEnd)
         if token:
-            return token
+            tokens.append(token)
         
         # If no match, we are done processing the line
         if not match:
-            return None
+            return tokens
         
         # The rest is to establish what identifier we are dealing with
         
@@ -167,21 +171,24 @@ class CParser(Parser):
             tokenArgs = line, match.start(), match.end()
             
             if identifier in self._keywords: 
-                return KeywordToken(*tokenArgs)
+                tokens.append( KeywordToken(*tokenArgs) )
             elif identifier[0] in '0123456789':
                 identifierState = 0
-                return NumberToken(*tokenArgs)
+                tokens.append( NumberToken(*tokenArgs) )
             else:
-                return IdentifierToken(*tokenArgs)
+                tokens.append( IdentifierToken(*tokenArgs) )
         
         # Single line comment
         elif match.group(2) is not None:
-            return CommentToken(line,match.start(),len(line))
+            tokens.append( CommentToken(line,match.start(),len(line)) )
         elif match.group(3) is not None:
-            return MultilineCommentToken(line,match.start(),match.end())
+            tokens.append( MultilineCommentToken(line,match.start(),match.end()) )
         else:
             # We have matched a string-start
-            return StringToken(line,match.start(),match.end())
+            tokens.append( StringToken(line,match.start(),match.end()) )
+        
+        # Done
+        return tokens
 
 
 if __name__=='__main__':
