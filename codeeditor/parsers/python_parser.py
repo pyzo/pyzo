@@ -117,13 +117,6 @@ class PythonParser(Parser):
         # Init
         pos = 0 # Position following the previous match
         
-        #Handle line continuation after def or class
-        #identifierState is 3 or 4 if the previous identifier was 3 or 4
-        if previousState == 3 or previousState == 4: 
-            self._identifierState({3:'def',4:'class'}[previousState])
-        else:
-            self._identifierState(None)
-        
         # identifierState and previousstate values:
         # 0: nothing special
         # 1: multiline comment single qoutes
@@ -131,139 +124,181 @@ class PythonParser(Parser):
         # 3: a def keyword
         # 4: a class keyword
         
+        #Handle line continuation after def or class
+        #identifierState is 3 or 4 if the previous identifier was 3 or 4
+        if previousState == 3 or previousState == 4: 
+            self._identifierState({3:'def',4:'class'}[previousState])
+        else:
+            self._identifierState(None)
+        
+        if previousState in [1,2]:
+            token = MultilineStringToken(line, 0, 0)
+            token._style = ['', "'''", '"""'][previousState]
+            tokens = self._findEndOfString(line, token)
+            # Process tokens
+            for token in tokens:
+                yield token
+                if isinstance(token, BlockState):
+                    return 
+            pos = token.end
+        
+        
         # Enter the main loop that iterates over the tokens and skips strings
         while True:
             
-            # First determine whether we should look for the end of a string,
-            # or if we should process a token.
-            
-            if previousState == 1:
-                style = "'''"
-                matchStart, matchEnd = 0, 0
-            elif previousState == 2:
-                style = '"""'
-                matchStart, matchEnd = 0, 0
-            else:
-                
-                # Find the start of the next string or comment
-                match = tokenProg.search(line,pos)
-                
-                # Process the Non-Identifier between pos and match.start() 
-                # or end of line
-                nonIdentifierEnd = match.start() if match else len(line)
-                
-                # Yield the Non-Identifier token if non-null
-                token = NonIdentifierToken(line,pos,nonIdentifierEnd)
-                strippedNonIdentifier = str(token).strip()
-                if token:
-                    yield token
-                
-                # Do checks for line continuation and identifierState
-                # Is the last non-whitespace a line-continuation character?
-                if strippedNonIdentifier.endswith('\\'):
-                    lineContinuation = True
-                    # If there are non-whitespace characters after def or class,
-                    # cancel the identifierState
-                    if strippedNonIdentifier != '\\':
-                        self._identifierState(None)
-                else:
-                    lineContinuation = False
-                    # If there are non-whitespace characters after def or class,
-                    # cancel the identifierState
-                    if strippedNonIdentifier != '':
-                        self._identifierState(None)
-                
-                # If no match, we are done processing the line
-                if not match:
-                    if lineContinuation:
-                        yield BlockState(self._identifierState())
-                    return
-                
-                # The rest is to establish what identifier we are dealing with
-                
-                # Comment
-                if match.group() == '#':
-                    matchStart = match.start()
-                    if ( line[matchStart:].startswith('##') and 
-                            not line[:matchStart].strip() ):
-                        yield CellCommentToken(line,matchStart,len(line))
-                    elif self._isTodoItem(line[matchStart+1:]):
-                        yield TodoCommentToken(line,matchStart,len(line))
-                    else:
-                        yield CommentToken(line,matchStart,len(line))
-                    if lineContinuation:
-                        yield BlockState(self._identifierState())
-                    return
-                
-                # If there are non-whitespace characters after def or class,
-                # cancel the identifierState (this time, also if there is just a \
-                # since apparently it was not on the end of a line)
-                if strippedNonIdentifier != '':
-                    self._identifierState(None)
-                
-                # Identifier ("a word or number") Find out whether it is a key word
-                if match.group(1) is not None:
-                    identifier = match.group(1)
-                    tokenArgs = line, match.start(), match.end()
-                    
-                    # Set identifier state 
-                    identifierState = self._identifierState(identifier)
-                    
-                    if identifier in self._keywords:
-                        yield KeywordToken(*tokenArgs)
-                    elif identifier[0] in '0123456789':
-                        self._identifierState(None)
-                        yield NumberToken(*tokenArgs)
-                    else:
-                        if (identifierState==3 and
-                                line[match.end():].lstrip().startswith('(') ):
-                            yield FunctionNameToken(*tokenArgs)
-                        elif identifierState==4:
-                            yield ClassNameToken(*tokenArgs)
-                        else:
-                            yield IdentifierToken(*tokenArgs)
-                    
-                    # Goto next round
-                    pos = match.end()
-                    continue
-                
-                else:
-                    # We have matched a string-start
-                    # Find the string style ( ' or " or ''' or """)
-                    style = match.group(4) # The style is in match group 4
-                    matchStart, matchEnd = match.start(), match.end()
-            
-            
-            # If we get here, we are inside a string and should find the end,
-            # using the style that we stored.
-            
-            # Reset states.
-            previousState = 0 
-            self._identifierState(None)
-            
-            # Find the matching end in the rest of the line
-            # Do not use the start parameter of search, since ^ does not work then
-            endMatch = endProgs[style].search(line[matchEnd:])
-            
-            if not endMatch:
-                # The string does not end on this line
-                if style == "'''":
-                    yield MultilineStringToken(line,matchStart,len(line))
-                    yield BlockState(1)
-                elif style == '"""':
-                    yield MultilineStringToken(line,matchStart,len(line))
-                    yield BlockState(2)
-                else:
-                    yield UnterminatedStringToken(line,matchStart,len(line))
+            # Get next tokens
+            tokens = self._findNextToken(line, pos)
+            if not tokens:
                 return
+            elif isinstance(tokens[-1], StringToken):
+                moreTokens = self._findEndOfString(line, tokens[-1])
+                tokens = tokens[:-1] + moreTokens
+            
+            # Process tokens
+            for token in tokens:
+                yield token
+                if isinstance(token, BlockState):
+                    return 
+            pos = token.end
+    
+    
+    def _findEndOfString(self, line, token):
+        """ _findEndOfString(line, token)
+        
+        Find the end of a string. Returns (token, endToken). The first 
+        is the given token or a replacement (UnterminatedStringToken).
+        The latter is None, or the BlockState. If given, the line is
+        finished.
+        
+        """
+        
+        # Set state
+        self._identifierState(None)
+        
+        # Find the matching end in the rest of the line
+        # Do not use the start parameter of search, since ^ does not work then
+        style = token._style
+        endMatch = endProgs[style].search(line[token.end:])
+        
+        if endMatch:
+            # The string does end on this line
+            tokenArgs = line, token.start, token.end + endMatch.end()
+            if style in ['"""', "'''"]:
+                token = MultilineStringToken(*tokenArgs)
             else:
-                # The string does end on this line
-                if style in ['"""', "'''"]:
-                    yield (MultilineStringToken(line,matchStart,matchEnd+endMatch.end()))
+                token.end = token.end + endMatch.end()
+            return [token]
+        else:
+            # The string does not end on this line
+            tokenArgs = line, token.start, token.end + len(line)
+            if style == "'''":
+                return [MultilineStringToken(*tokenArgs), BlockState(1)]
+            elif style == '"""':
+                return [MultilineStringToken(*tokenArgs), BlockState(2)]
+            else:
+                return [UnterminatedStringToken(*tokenArgs)]
+    
+    
+    def _findNextToken(self, line, pos):
+        """ _findNextToken(line, pos):
+        
+        Returns a token or None if no new tokens can be found.
+        
+        """
+        
+        # Init tokens, if pos too large, were done
+        if pos > len(line):
+            return None
+        tokens = []
+        
+        # Find the start of the next string or comment
+        match = tokenProg.search(line, pos)
+        
+        # Process the Non-Identifier between pos and match.start() 
+        # or end of line
+        nonIdentifierEnd = match.start() if match else len(line)
+        
+        # Return the Non-Identifier token if non-null
+        # todo: here it goes wrong (allow returning more than one token?)
+        token = NonIdentifierToken(line,pos,nonIdentifierEnd)
+        strippedNonIdentifier = str(token).strip()
+        if token:
+            tokens.append(token)
+        
+        # Do checks for line continuation and identifierState
+        # Is the last non-whitespace a line-continuation character?
+        if strippedNonIdentifier.endswith('\\'):
+            lineContinuation = True
+            # If there are non-whitespace characters after def or class,
+            # cancel the identifierState
+            if strippedNonIdentifier != '\\':
+                self._identifierState(None)
+        else:
+            lineContinuation = False
+            # If there are non-whitespace characters after def or class,
+            # cancel the identifierState
+            if strippedNonIdentifier != '':
+                self._identifierState(None)
+        
+        # If no match, we are done processing the line
+        if not match:
+            if lineContinuation:
+                tokens.append( BlockState(self._identifierState()) )
+            return tokens
+        
+        # The rest is to establish what identifier we are dealing with
+        
+        # Comment
+        if match.group() == '#':
+            matchStart = match.start()
+            if ( line[matchStart:].startswith('##') and 
+                    not line[:matchStart].strip() ):
+                tokens.append( CellCommentToken(line,matchStart,len(line)) )
+            elif self._isTodoItem(line[matchStart+1:]):
+                tokens.append( TodoCommentToken(line,matchStart,len(line)) )
+            else:
+                tokens.append( CommentToken(line,matchStart,len(line)) )
+            if lineContinuation:
+                tokens.append( BlockState(self._identifierState()) )
+            return tokens
+        
+        # If there are non-whitespace characters after def or class,
+        # cancel the identifierState (this time, also if there is just a \
+        # since apparently it was not on the end of a line)
+        if strippedNonIdentifier != '':
+            self._identifierState(None)
+        
+        # Identifier ("a word or number") Find out whether it is a key word
+        if match.group(1) is not None:
+            identifier = match.group(1)
+            tokenArgs = line, match.start(), match.end()
+            
+            # Set identifier state 
+            identifierState = self._identifierState(identifier)
+            
+            if identifier in self._keywords:
+                tokens.append( KeywordToken(*tokenArgs) )
+            elif identifier[0] in '0123456789':
+                self._identifierState(None)
+                tokens.append( NumberToken(*tokenArgs) )
+            else:
+                if (identifierState==3 and
+                        line[match.end():].lstrip().startswith('(') ):
+                    tokens.append( FunctionNameToken(*tokenArgs) )
+                elif identifierState==4:
+                    tokens.append( ClassNameToken(*tokenArgs) )
                 else:
-                    yield (StringToken(line,matchStart,matchEnd+endMatch.end()))
-                pos = matchEnd + endMatch.end()
-
+                    tokens.append( IdentifierToken(*tokenArgs) )
+        
+        else:
+            # We have matched a string-start
+            # Find the string style ( ' or " or ''' or """)
+            token = StringToken(line, match.start(), match.end())
+            token._style = match.group(4) # The style is in match group 4
+            tokens.append( token )
+        
+        # Done
+        return tokens
 
 
 class Python2Parser(PythonParser):
