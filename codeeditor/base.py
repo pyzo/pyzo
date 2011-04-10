@@ -299,7 +299,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         elif isinstance(font, QtGui.QFont):
             pass
         elif isinstance(font, str):
-            font = QtGui.QFont(font, manager.defaultFont().pointSize())
+            font = QtGui.QFont(font, Manager.defaultFont().pointSize())
         else:
             raise ValueError("setFont accepts None, QFont or string.")
         
