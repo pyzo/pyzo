@@ -176,22 +176,26 @@ def save(filename, struct, mode=None):
     
     # Open file
     f = open(filename, 'wb')
+    try:
+        
+        # Get mode
+        mode = _get_mode(filename, mode)
+        
+        # Write
+        writer = _SSDFWriter()
+        if mode==1:
+            # Write code directive and header
+            header =  '# This Simple Structured Data Format (SSDF) file was '
+            header += 'created from Python on %s.\n' % time.asctime()
+            f.write('# -*- coding: utf-8 -*-\n'.encode('utf-8'))
+            f.write(header.encode('utf-8'))
+            # Write lines
+            writer.struct_to_text(struct, f)
+        elif mode==2:
+            writer.struct_to_binary(struct, f)
     
-    # Get mode
-    mode = _get_mode(filename, mode)
-    
-    # Write
-    writer = _SSDFWriter()
-    if mode==1:
-        # Write code directive and header
-        header =  '# This Simple Structured Data Format (SSDF) file was '
-        header += 'created from Python on %s.\n' % time.asctime()
-        f.write('# -*- coding: utf-8 -*-\n'.encode('utf-8'))
-        f.write(header.encode('utf-8'))
-        # Write lines
-        writer.struct_to_text(struct, f)
-    elif mode==2:
-        writer.struct_to_binary(struct, f)
+    finally:
+        f.close()
 
 
 def saves(struct):
@@ -252,24 +256,28 @@ def load(filename):
     
     # Open file
     f = open(filename, 'rb')
-    
-    # Get mode
     try:
-        firstfour = f.read(4).decode('utf-8')
-    except Exception:
-        raise ValueError('Not a valid ssdf file.')
-    if firstfour == 'BSDF':
-        mode = 2
-    else:
-        mode = 1 # This is an assumption.
     
-    # Read
-    f.seek(0)
-    reader = _SSDFReader()
-    if mode==1:
-        return reader.text_to_struct(f)
-    elif mode==2:
-        return reader.binary_to_struct(f)
+        # Get mode
+        try:
+            firstfour = f.read(4).decode('utf-8')
+        except Exception:
+            raise ValueError('Not a valid ssdf file.')
+        if firstfour == 'BSDF':
+            mode = 2
+        else:
+            mode = 1 # This is an assumption.
+        
+        # Read
+        f.seek(0)
+        reader = _SSDFReader()
+        if mode==1:
+            return reader.text_to_struct(f)
+        elif mode==2:
+            return reader.binary_to_struct(f)
+    
+    finally:
+        f.close()
 
 
 def loadb(bb):
@@ -809,13 +817,42 @@ class VirtualArray(object):
 
 ## File (like) objects
 
-class _VirtualFile:
+class _FileWithExtraMethods:
+    
+    def write_number(self, n):
+        if n < 255:
+            self.write( struct.pack(_SMALL_NUMBER_FMT, n) )
+        else:
+            self.write( struct.pack(_SMALL_NUMBER_FMT, 255) )
+            self.write( struct.pack(_LARGE_NUMBER_FMT, n) )
+    
+    def write_bytes(self, bb):
+        self.write_number(len(bb))
+        self.write(bb)
+    
+    def write_string(self, ss):
+        self.write_bytes(ss.encode('utf-8'))
+    
+    def read_number(self):
+        n, = struct.unpack(_SMALL_NUMBER_FMT, self.read(1))
+        if n == 255:
+            n, = struct.unpack(_LARGE_NUMBER_FMT, self.read(8))
+        return n
+    
+    def read_bytes(self):
+        n = self.read_number()
+        return self.read(n)
+    
+    def read_string(self):
+        return self.read_bytes().decode('utf-8')
+
+
+class _VirtualFile(_FileWithExtraMethods):
     """ _VirtualFile(bb=None)
     
-    Wraps a bytes instance or string instance to provide a file-like 
-    interface. Also represents a file like object to which bytes or strings
-    can be written, and the resulting string/bytes can be obtained using 
-    get_bytes(), get_text(), or get_text_as_bytes().
+    Wraps a bytes instance to provide a file-like interface. Also 
+    represents a file like object to which bytes can be written, and 
+    the resulting bytes can be obtained using get_bytes().
     
     """
     def __init__(self, bb=None):
@@ -839,16 +876,9 @@ class _VirtualFile:
     def get_bytes(self):
         return bytes().join(self._parts)
 
-    def get_text_as_bytes(self):
-        parts = [self._parts.encode('utf-8')]
-        return bytes().join(parts)
-    
-    def get_text(self):
-        return str().join(self._parts)
 
-
-class _CompressedFile:
-    """ _CompressedFile(file, header)
+class _CompressedFile(_FileWithExtraMethods):
+    """ _CompressedFile(file)
     
     Wraps a file object to transparantly support reading and writing
     data from/to a compressed file. 
@@ -860,7 +890,7 @@ class _CompressedFile:
     
     """
     
-    def __init__(self, f, header):
+    def __init__(self, f):
         
         # Store file
         self._file = f
@@ -872,31 +902,6 @@ class _CompressedFile:
         # For writing
         self._parts = []
         self._pp = 0 # parts pointer (is more like a counter)
-        
-        # Process header
-        try:
-            header_ok = self._check_header(header)
-        except Exception:
-            # Write mode
-            self._write_header(header)
-        else:
-            # Read mode
-            if not header_ok:
-                raise ValueError('Given file does not have the right header.')
-    
-    
-    def _check_header(self, header):
-        bb1 = header.encode('utf-8')
-        bb2 = self._file.read(len(bb1))
-        if bb1 == bb2:
-            return True
-        else:
-            return False
-    
-    
-    def _write_header(self, header):
-        bb1 = header.encode('utf-8')
-        self._file.write(bb1)
     
     
     def _read_new_partition(self):
@@ -990,21 +995,6 @@ class _CompressedFile:
             data = self._buffer[i1:i2]
         
         return data
-    
-    
-    def read_number(self):
-        n, = struct.unpack(_SMALL_NUMBER_FMT, self.read(1))
-        if n == 255:
-            n, = struct.unpack(_LARGE_NUMBER_FMT, self.read(8))
-        return n
-    
-    
-    def write_number(self, n):
-        if n < 255:
-            self.write( struct.pack(_SMALL_NUMBER_FMT, n) )
-        else:
-            self.write( struct.pack(_SMALL_NUMBER_FMT, 255) )
-            self.write( struct.pack(_LARGE_NUMBER_FMT, n) )
     
     
     def write(self, data):
@@ -1149,8 +1139,17 @@ class _SSDFReader:
         else:
             f = file_or_bytes
         
+        # Check header
+        bb1 = "BSDF".encode('utf-8')
+        try:
+            bb2 = f.read(len(bb1))
+        except Exception:
+            raise ValueError('Could not read header of binary SSDF file.')
+        if bb1 != bb2:
+            raise ValueError('Given SSDF bytes/file does not have the right header.')
+        
         # Create compressed file to read from
-        fc = _CompressedFile(f, header='BSDF')
+        fc = _CompressedFile(f)
         
         # Create blocks and build tree
         root = _BinaryBlock(-1, -1, type='D')
@@ -1294,8 +1293,11 @@ class _SSDFWriter:
         else:
             return_bytes = False
         
+        # Write header
+        f.write('BSDF'.encode('utf-8'))
+        
         # Make compressed file
-        fc = _CompressedFile(f, header='BSDF')
+        fc = _CompressedFile(f)
         
         # Create block object
         root = _BinaryBlock.from_object(-1, bytes(), object)
@@ -1450,33 +1452,24 @@ class _BinaryBlock(_Block):
     
     def _from_array(self, value):
         self._type = 'a'
-        # Write shape
-        bb = struct.pack('<b', len(value.shape))
+        f =_VirtualFile()
+        # Write shape and dtype
+        f.write_number(value.ndim)
         for s in value.shape:
-            bb += struct.pack('<Q', s)
-        # Write dtype
-        dtype_bb = str(value.dtype).encode('utf-8')
-        bb += struct.pack('<b', len(dtype_bb))
-        bb += dtype_bb
-        # Write header + data
+            f.write_number(s)
+        f.write_string(str(value.dtype))
+        # Write data
         # tostring() returns bytes, not a string on py3k
-        self._data = [bb, value.tostring()] 
+        self._data = [f.get_bytes(), value.tostring()] 
     
     def _to_array(self):
-        # Get shape
-        shape = []
-        ndim, = struct.unpack('<b', self._data[0:1])
-        i = 1
-        for j in range(ndim):
-            s, = struct.unpack('<Q', self._data[i:i+8])
-            shape.append(s)
-            i += 8
-        # Get dtype
-        dtypestr_len, = struct.unpack('<b', self._data[i:i+1])
-        i += 1
-        dtypestr = self._data[i:i+dtypestr_len].decode('utf-8')
-        i += dtypestr_len
+        f = _VirtualFile(self._data)
+        # Get shape and dtype
+        ndim = f.read_number()
+        shape = [f.read_number() for i in range(ndim)]
+        dtypestr = f.read_string()
         # Create numpy array or Virtual array
+        i = f._fp
         if not np:
             return VirtualArray(shape, dtypestr, self._data[i:])
         else:
