@@ -1260,12 +1260,14 @@ class HelpMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
-        
-        addItem( MI('Tutorial', self.fun_tutorial) )
+                
         addItem( MI('Website', self.fun_website) )
-        addItem( MI('Report issue', self.fun_reportIssue) )
-        addItem( MI('Check for updates', self.fun_updates) )
+        addItem( MI('Ask a question', self.fun_discussionGroup) )
+        addItem( MI('Report an issue', self.fun_reportIssue) )
+        addItem( None )
+        addItem( MI('Tutorial', self.fun_tutorial) )
         addItem( MI('View license', self.fun_license) )
+        addItem( MI('Check for updates', self.fun_updates) )
         
         if sys.platform=='darwin':
             #Hack to prevent 'special' about menu on mac
@@ -1289,6 +1291,10 @@ class HelpMenu(BaseMenu):
         """ Report an issue on the offical IEP website. """
         import webbrowser
         webbrowser.open("http://code.google.com/p/iep/issues/list")
+    def fun_discussionGroup(self, value):
+        """ Ask a question or open a discussion. """
+        import webbrowser
+        webbrowser.open("http://groups.google.com/group/iep_")
     
     def fun_updates(self, value):
         """ Check whether a newer version of IEP is available. """
