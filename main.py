@@ -52,6 +52,19 @@ class MainWindow(QtGui.QMainWindow):
         if iep.config.state.windowMaximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         
+        # Get native pallette (used when changing styles)
+        QtGui.qApp.nativePalette = QtGui.qApp.palette()
+
+        # Obtain default style
+        iep.defaultQtStyleName = str(QtGui.qApp.style().objectName())
+        # Other than gtk+, cleanlooks looks best (in my opinion)
+        if 'gtk' in iep.defaultQtStyleName.lower():
+            pass # Use default style
+        elif 'macintosh' in iep.defaultQtStyleName.lower():
+            pass # Use default style
+        else:
+            iep.defaultQtStyleName = 'Cleanlooks'
+        
         # Load icons now
         loadIcons()
         
@@ -89,7 +102,6 @@ class MainWindow(QtGui.QMainWindow):
         # Delayed imports
         from editorTabs import EditorTabs
         from shellStack import ShellStack
-        from menu import MenuHelper
         import codeparser
         import tools
         
@@ -116,7 +128,14 @@ class MainWindow(QtGui.QMainWindow):
         else:
             iep.status = None
             self.setStatusBar(None)
-        self._menuhelper = MenuHelper(self.menuBar())
+        
+        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
+            import menu
+            menu.buildMenus(self.menuBar())
+        else:
+            from menu_old import MenuHelper
+            self._menuhelper = MenuHelper(self.menuBar())
+
     
     
     def _insertEditorAndShell(self):
@@ -167,20 +186,6 @@ class MainWindow(QtGui.QMainWindow):
     def restoreWindowState(self):
         """ Restore toolss and positions of all windows. """
         import base64
-        
-        # Obtain default style
-        app = QtGui.qApp
-        iep.defaultQtStyleName = str(app.style().objectName())
-        # Other than gtk+, cleanlooks looks best (in my opinion)
-        if 'gtk' in iep.defaultQtStyleName.lower():
-            pass # Use default style
-        elif 'macintosh' in iep.defaultQtStyleName.lower():
-            pass # Use default style
-        else:
-            iep.defaultQtStyleName = 'Cleanlooks'
-        
-        # Get native pallette (used when changing styles)
-        QtGui.qApp.nativePalette = QtGui.qApp.palette()
         
         # Set style if there is no style yet
         if not iep.config.view.qtstyle:

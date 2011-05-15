@@ -119,13 +119,19 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
     def __init__(self):
         QtGui.QSortFilterProxyModel.__init__(self)
         self.filter=''
+        
+        # Specify sorting behaviour when comparing of two dirs or two files
+        # Sorting dirs before files is none in the lessThan function 
         self.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.setDynamicSortFilter(True) #Update sorting when source changes
+        self.sort(0) 
+
     def lessThan(self,left,right):
         if self.sourceModel().isDir(left) and \
                 not self.sourceModel().isDir(right):
             return True
+        # Comparing two dirs or two files: default behaviour
         return QtGui.QSortFilterProxyModel.lessThan(self,left,right)
+        
     def filterAcceptsRow(self,sourceRow,sourceParent):
         #Overridden method to determine wether a row should be
         #shown or not. Check wether the item matches the filter
@@ -178,7 +184,10 @@ class IconProvider(QtGui.QFileIconProvider):
     obtaining the icon for that file.
     """
     def icon(self, type_or_info):
-        
+        class MyFileInfo(QtCore.QFileInfo):
+            def __getattr__(self,attr):
+                print (attr)
+                return getattr(QtCore.QFileInfo,attr)
         if isinstance(type_or_info, QtCore.QFileInfo):
             if type_or_info.isDir():
                 # Use folder icon
@@ -202,7 +211,9 @@ class IconProvider(QtGui.QFileIconProvider):
                 f = open(path, 'wb')
                 f.close()
                 # Use that file
-                type_or_info = QtCore.QFileInfo(path)
+                type_or_info = QtCore.QFileInfo('test.py')
+                
+                 #path)
         
         # Call base method
         return QtGui.QFileIconProvider.icon(self, type_or_info)
@@ -279,6 +290,9 @@ class IepProjectManager(QtGui.QWidget):
         self.addToPathCheck=QtGui.QCheckBox('Preprend project dir to Python path')
         self.addToPathCheck.setToolTip('Takes effect when the shell is restarted')
         self.dirList=QtGui.QTreeView()
+        
+        # The lessThan function in DirSortAndFilter ensures dirs are before files
+        self.dirList.sortByColumn(0)
         self.filterCombo=QtGui.QComboBox()
 
         self.layout=QtGui.QVBoxLayout()

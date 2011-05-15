@@ -419,6 +419,14 @@ class FindReplaceWidget(QtGui.QFrame):
         self.find(False)
         # self._findText.setFocus()
     
+    def findSelection(self, event=None):
+        self.startFind()
+        self.findNext()
+    
+    def findSelectionBw(self, event=None):
+        self.startFind()
+        self.findPrevious()
+    
     def find(self, forward=True):
         """ The main find method.
         Returns True if a match was found. """
@@ -1369,6 +1377,11 @@ class EditorTabs(QtGui.QWidget):
         
         # Notify done
         return True
+        
+    def saveAllFiles(self):
+        """ Save all files"""
+        for editor in self:
+            self.saveFile(editor)
     
     
     ## Closing files / closing down
@@ -1443,6 +1456,10 @@ class EditorTabs(QtGui.QWidget):
             self._tabs.removeTab(editor)
         return result
      
+    def closeAllFiles(self):
+        """Close all files"""
+        for editor in self:
+            self.close(editor)
     
     def saveEditorState(self):
         """ Save the editor's state configuration.

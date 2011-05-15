@@ -22,7 +22,7 @@ qt = QtGui
 import iep
 from compactTabWidget import CompactTabWidget
 from iepLogging import print
-import webbrowser
+
 
 def unwrapText(text):
     """ Unwrap text to display in message boxes. This just removes all
@@ -44,282 +44,652 @@ def unwrapText(text):
     
     return text
 
-from PyQt4 import QtCore, QtGui
 
-class Menu(QtGui.QMenu):
-    def __init__(self, parent = None, name = None):
-        QtGui.QMenu.__init__(self, parent)
-        
-        # Make sure that the menu has a title
-        if name:
-            self.setTitle(name)
-        else:
-            raise ValueError
-        
-        # Action groups within the menu keep track of the selected value
-        self._groups = {}
-        
-        self.build()
-        
-    def build(self):
-        # To be overridden
-        raise NotImplementedError
+class MI:
+    """ Menu Item
+    A virtual menu item to help producing a menu. 
+    It can represent:
+    - an action - values is None
+    - a boolean - values is True or False, indicating the currents state
+    - a choice - values is a list of Strings, ending with the current
     
-    def addItem(self, properties, callback = None, value = None):
-        # Add the item, which can be anyting that QMenu accepts (strings, icons,
-        # menus, etc.)
-        if type(properties) == tuple:
-            a = self.addAction(*properties)
+    - if doc not given, func.__doc__ is used as 3ti
+    - if values is [], func(None) is called to obtain the 'values' property.
+    """
+    def __init__(self, text, func, values=None, doc=None):        
+        # Get text and func (always directly)
+        self.text = text
+        self.func = func
+        # Get doc
+        if doc is None:
+            self.tip = func.__doc__
         else:
-            a = self.addAction(properties)
-        
-        # Connect the menu item to its callback
-        if callback:
-            if value:
-                a.triggered.connect(lambda b, v = value: callback(v))
-            else:
-                a.triggered.connect(callback)
-        
-        return a
+            self.tip = doc
+        # Get values
+        if values is None:
+            self.values = None
+        elif values == []:
+            self.values = func(None)
+        else:
+            self.values = values
     
-    def addOptionItem(self, properties, callback = None, value = None, selected = False, group = None):
-        # Add the item, which can be anyting that QMenu accepts (strings, icons,
-        # menus, etc.)
-        if type(properties) == tuple:
-            a = self.addAction(*properties)
+    def _attachShortcut(self, action):
+        # set shortcut?
+        shortcuts = getShortcut(action)
+        tmp = []
+        for shortcut in shortcuts:
+            shortcut = shortcut.replace(' ','')
+            if shortcut:
+                tmp.append(shortcut)
+        if not tmp:
+            return
+        # attach
+        action.setShortcuts(tmp)
+    
+    
+    def createRealMenuItem(self, menu):
+        """ From this virtual menu item, create the actual menu
+        stuff to show to the user. """
+        
+        # depending on type ....
+        if self.values is None:
+            action = qt.QAction(menu)
+            action.func = self.func
+            action.value = True
+            action.setText(self.text)
+            self._attachShortcut(action)
+        elif self.values in [True, False, 0, 1]:
+            action = qt.QAction(menu)
+            action.func = self.func
+            action.value = not self.values
+            action.setCheckable(True)
+            action.setChecked(self.values)
+            action.setText(self.text)
+            self._attachShortcut(action)
+        elif isinstance(self.values, list):
+            action = qt.QMenu(menu)
+            action.setTitle(self.text)
+            for value in self.values[:-1]:
+                sub = qt.QAction(action)
+                sub.setText(str(value))
+                sub.setStatusTip(self.tip)
+                sub.setToolTip(self.tip)
+                sub.func = self.func
+                sub.value = value
+                sub.setCheckable(True) 
+                sub.setChecked( (value==self.values[-1]) )
+                self._attachShortcut(sub)
+                action.addAction(sub)
         else:
-            a = self.addAction(properties)
+            print(self.values)
+            raise Exception('Dont know what to do')
         
-        a.setCheckable(True)
-        a.setChecked(selected)
+        action.setStatusTip(self.tip)
+        action.setToolTip(self.tip)
+        return action
+
+
+class BaseMenu(qt.QMenu):
+    """ Base class for the menus File, Edit, Settings, etc. """
+    
+    def __init__(self, menuname, parent):
+        QtGui.QMenu.__init__(self, menuname, parent)
         
-        # Connect the menu item to its callback (toggled is a signal only
-        # emitted by checkable actions, and can also be called programmatically,
-        # e.g. in QActionGroup)
-        if callback:
-            if value == None:
-                a.toggled.connect(callback)
-            else:
-                def doCallback(b, g, v):
-                    if b:
-                        callback(v)
+        # keep a list at the menubar. We could use weakrefs, but the
+        # menu's in the menubar are never destroyed, so don't bother
+        if isinstance(parent, QtGui.QMenuBar):
+            if not hasattr(parent, '_menus'):
+                parent._menus = []
+            parent._menus.append(self)
+    
+    def showEvent(self, event):
+        """ Called right before menu is shown. The menu should update
+        its contents before actually showing. """
+        
+        # insert items to show
+        self.fill()
+        
+        # call base show callback
+        qt.QMenu.showEvent(self, event)
+    
+    def addItem(self, item):
+        """ Add a MI instance. """
+        
+        # produce real menu items
+        if isinstance(item, MI):
+            realitem = item.createRealMenuItem(self)
+        else:
+            realitem = None
+        # append
+        if isinstance(realitem, qt.QMenu):
+            self.addMenu(realitem)
+        elif isinstance(realitem, qt.QAction):
+            self.addAction(realitem)
+        else:
+            self.addSeparator()
+        # done
+        return realitem
+    
+    def fill(self):
+        """ Update the contents. """
+        # clear first
+        self.clear()
+    
+
+class FileMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('New file', self.fun_new) )
+        addItem( MI('Open file', self.fun_open) )
+        addItem( MI('Save file', self.fun_save) )
+        addItem( MI('Save file as ...', self.fun_saveAs) )
+        addItem( MI('Save all', self.fun_saveAll) )
+        addItem( MI('Close file', self.fun_closeFile) )
+        addItem( MI('Close all', self.fun_closeAllFiles) )
+        addItem(None)
+        addItem( MI('Style', self.fun_style, []) )
+        addItem( MI('Indentation width', self.fun_indentWidth, []) )
+        addItem( MI('Indentation style', self.fun_indentStyle, []) )
+        addItem( MI('Line endings', self.fun_lineEndings, []) )
+        addItem( MI('File encoding', self.fun_encoding, []) )
+        addItem(None)        
+        addItem( MI('Restart IEP', self.fun_restart) )
+        addItem( MI('Close IEP', self.fun_close) )
+        
+        #addItem( MI('TEST', self.fun_test) )
+    
+    
+    def fun_test(self, value):
+        """ Test something. """
+        iep.main.setWindowState(QtCore.Qt.WindowFullScreen)
+        
+    def fun_new(self, value):
+        """ Create a new (or temporary) file. """
+        iep.editors.newFile()
+    
+    def fun_open(self, value):
+        """ Open an existing file from disk. """
+        iep.editors.openFile()
+    
+    def fun_save(self, value):
+        """ Save the current file to disk. """
+        iep.editors.saveFile()
+    
+    def fun_saveAs(self, value):
+        """ Save the current file under another name. """
+        iep.editors.saveFileAs()
+    
+    def fun_saveAll(self, value):
+        """ Save all open files. """
+        for e in iep.editors:
+            iep.editors.saveFile(e)
+    
+    def fun_closeFile(self, value):
+        """ Close the current file. """
+        iep.editors.closeFile()
+    
+    def fun_closeAllFiles(self, value):
+        """ Close all files. """
+        for e in iep.editors:
+            iep.editors.closeFile(e)
+    
+    def fun_lineEndings(self, value):
+        """ The line ending character used for the current file. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            return ['LF', 'CR', 'CRLF', editor.lineEndingsHumanReadable]
+        else:
+            editor.lineEndings = value
+    
+    def fun_indentWidth(self, value):
+        """ The indentation width used for the current file. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            current = editor.indentWidth()
+            options = [2,3,4,5,6,7,8, current]           
+            return ['%d spaces' % i for i in options]
+        else:
+            # parse value
+            val = None
+
+            try:
+                val = int(value[:2])
+            except ValueError:
+                pass
+            # apply
+            if val is None:
+                val = iep.config.settings.defaultIndentWidth
+            
+            editor.setIndentWidth(val)
+    def fun_indentStyle(self,value):
+        """Use tabs or spaces for indentation"""
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            options = ['Spaces', 'Tabs']        
+            return options + [options[0 if editor.indentUsingSpaces() else 1]]
+        else:
+            # parse value
+            val = None
+
+            try:
+                val = {'Spaces': True, 'Tabs': False}[value]
+            except KeyError:
+                print ("%r" % val)
+                pass
+            # apply
+            if val is None:
+                val = iep.config.settings.defaultIndentUsingSpaces
+            
+            editor.setIndentUsingSpaces(val)
+    
+    def fun_style(self, value):
+        """ The styling used for the current style. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            #TODO: current = editor.getStyleName()
+            current = None
+            if not current:
+                current = 'default'
+            options = iep.styleManager.getStyleNames()
+            options.append(current)
+            return options
+        else:
+            editor.setStyle(value)
+    
+    def fun_encoding(self, value):
+        """ The file encoding of the current file. """
+        # get editor
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return ['no editor', '']
+        
+        if value is None:
+            # Dict with encoding aliases
+            D = {   'utf-8': 'utf-8 (Default)',
+                    'cp1250':'cp1250 (windows-1252)',
+                    'cp1251':'cp1251 (windows-1251)',
+                    'latin_1':'latin_1 (iso-8859-1)'
+                }
                 
-                a.toggled.connect(lambda b, g = group, v = value: doCallback(b, g, v))
-        
-        # Add the menu item to a action group, if specified
-        if group is not None:
-            if group not in self._groups:
-                #self._groups contains tuples (actiongroup, dict-of-actions)
-                self._groups[group] = (QtGui.QActionGroup(self), {})
+            # Encodings to list
+            encodings = [   'utf-8','ascii', 'latin_1',
+                            'cp1250', 'cp1251']
+            if editor.encoding not in encodings:
+                encodings.append(editor.encoding) # Add if not present
+            encodings.append(editor.encoding) # Add to mark the current
             
-            actionGroup,actions = self._groups[group]
-            actionGroup.addAction(a)
-            actions[value]=a
+            # Handle aliases
+            encodings2 = []
+            for encoding in encodings:
+                if encoding in D:
+                    encoding = D[encoding]
+                encodings2.append(encoding)
             
+            # Done
+            return encodings2
         
-        return a
-    
-    def setCheckedOption(self, group, value):
-        """ Set the selected value of a group. This will also activate the
-        callback function of the item that gets selected """
-        actionGroup,actions = self._groups[group]
-        if value in actions:
-            actions[value].setChecked(True)
-
-
-class IndentationMenu(Menu):
-    def build(self):
-        self.addOptionItem("Tabs", self.setStyle , False, False, "style")  #False value
-        self.addOptionItem("Spaces", self.setStyle , True, False, "style") #True value
-        self.addSeparator()
-        for i in range(2,9):
-            self.addOptionItem("%d spaces" % i,self.setWidth, i, False, "width")
-        
-        #self.setCheckedOption("style", True)
-        #self.setCheckedOption("width", 5)
-        
-    def setWidth(self, width):
-        editor = iep.editors.getCurrentEditor()
-        if editor is not None:
-            editor.setIndentWidth(width)
-
-    def setStyle(self, style):
-        editor = iep.editors.getCurrentEditor()
-        if editor is not None:
-            editor.setIndentUsingSpaces(style)
-        
-        
-class FileMenu(Menu):
-    def build(self):
-         
-        self.addAction("New", iep.editors.newFile)
-        self.addAction("Open", iep.editors.openFile)
-        self.addAction("Save", iep.editors.saveFile)
-        self.addAction("Save as", iep.editors.saveFileAs)
-        self.addAction("Save all", iep.editors.saveAllFiles)
-        self.addAction("Close", iep.editors.closeFile)
-        self.addAction("Close all", iep.editors.closeAllFiles)
-        
-        self.addSeparator()
-        #TODO: style
-        self.addMenu(IndentationMenu(self, "Indentation"))
-        #TODO: line endings, encoding
-        self.addSeparator()
-  
-        self.addAction("Restart IEP", iep.main.restart)
-        self.addAction("Quit IEP", iep.main.close)
-        
-class EditMenu(Menu):
-    def build(self):
-        
-        self.addItem("Undo", self._editItemCallback, "undo")
-        self.addItem("Redo", self._editItemCallback, "redo")
-        self.addSeparator()
-        self.addItem("Cut", self._editItemCallback, "cut")
-        self.addItem("Copy", self._editItemCallback, "copy")
-        self.addItem("Paste", self._editItemCallback, "paste")
-        self.addItem("Select all", self._editItemCallback, "selectAll")
-        self.addSeparator()
-        self.addItem("Indent lines", self._editItemCallback, "indentSelection")
-        self.addItem("Dedent lines", self._editItemCallback, "dedentSelection")
-        self.addSeparator()
-        self.addItem("Comment lines", self._editItemCallback, "commentCode")
-        self.addItem("Uncomment lines", self._editItemCallback, "uncommentCode")
-        self.addSeparator()
-        self.addItem("Find or replace", iep.editors._findReplace.startFind)
-        self.addItem("Find selection", iep.editors._findReplace.findSelection)
-        self.addItem("Find selection backward", iep.editors._findReplace.findSelectionBw)
-        self.addItem("Find next", iep.editors._findReplace.findNext)
-        self.addItem("Find previous", iep.editors._findReplace.findPrevious)
-        
-
-    def _editItemCallback(self, action):
-        widget = QtGui.qApp.focusWidget()
-        #If the widget has a 'name' attribute, call it
-        if hasattr(widget, action):
-            getattr(widget, action)()
-    
-class EdgeColumnMenu(Menu):
-    def build(self):
-        self.addOptionItem("None", self.changed,0, False, "edge")
-        for value in range(60,130,10):
-            self.addOptionItem(str(value), self.changed, value, False, "edge")
-        
-        self.setCheckedOption("edge", iep.config.view.edgeColumn)
-        
-    def changed(self, value):
-        iep.config.view.edgeColumn = value
-        for editor in iep.editors:
-            editor.setLongLineIndicatorPosition(value)
-
-class QtThemeMenu(Menu):
-    def build(self):
-        styleNames = list(QtGui.QStyleFactory.keys())
-        styleNames.append('Cleanlooks+')
-        styleNames.sort()
-        #Add all items to the menu and mark the default one
-        for styleName in styleNames:
-            title = styleName
-            if styleName.lower() == iep.defaultQtStyleName.lower():
-                title+=" (default)"
-            self.addOptionItem(title, self.changed, styleName.lower(), False, "style")
-            
-        #Select the one that is default from the iep config
-        self.setCheckedOption("style", iep.config.view.qtstyle.lower())
-    
-    def changed(self, style):
-        iep.config.view.qtstyle = style
-        iep.main.setQtStyle(style)
-            
-
-        
-class ViewMenu(Menu):
-    def build(self):
-        self.addItem("Select shell", self._selectShell)
-        self.addItem("Select editor", self._selectEditor)
-        self.addItem("Select previous file", iep.editors._tabs.selectPreviousItem)
-        self.addSeparator()
-        self.addEditorItem("Show whitespace", "showWhitespace")
-        self.addEditorItem("Show line endings", "showLineEndings")
-        self.addEditorItem("Show indentation guides", "showIndentationGuides")
-        self.addSeparator()
-        self.addEditorItem("Wrap long lines", "wrap")
-        self.addEditorItem("Highlight current line", "highlightCurrentLine")
-        self.addSeparator()
-        self.addMenu(EdgeColumnMenu(self, "Edge column"))
-        #TODO: zooming
-        self.addMenu(QtThemeMenu(self, "Qt theme"))
-
-
-    def addEditorItem(self, name, param):
-        """ Create a boolean item that reperesents a property of the editors,
-        whose value is stored in iep.config.view """
-        if hasattr(iep.config.view, param):
-            default = getattr(iep.config.view, param)
         else:
-            default = True
-            
-        self.addOptionItem(name, 
-            lambda x: self._configEditor(param, x),
-            selected = default)
-            
-    def _configEditor(self, param, value):
-        """
-        Callback for addEditorItem items
-        """
-        #Store this parameter in the config
-        setattr(iep.config.view, param, value)
-        #Apply to all editors, translate e.g. showWhitespace to setShowWhitespace
-        setter = 'set' + param[0].upper() + param[1:]
-        for editor in iep.editors:
-            getattr(editor,setter)(value)
-            
+            # Set encodin
+            value = value.split('(')[0].rstrip()
+            editor.encoding = value
+    
+    
+    def fun_close(self, value):
+        """ Close the application. """
+        iep.main.close()
+    
+    
+    def fun_restart(self, value):
+        """ Restart the application. """
+        iep.main.restart()
 
+
+
+
+class EditMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
         
-    def _selectShell(self):
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            shell.setFocus()
+        addItem( MI('Undo', self.fun_undo) )
+        addItem( MI('Redo', self.fun_redo) )
+        addItem( None )
+        addItem( MI('Cut', self.fun_cut) )
+        addItem( MI('Copy', self.fun_copy) )
+        addItem( MI('Paste', self.fun_paste) )
+        addItem( MI('Select all', self.fun_selectAll) )
+        addItem( None )
+        addItem( MI('Indent lines', self.fun_indent) )
+        addItem( MI('Dedent lines', self.fun_dedent) )
+        addItem( None )
+        addItem( MI('Comment lines', self.fun_comment) )
+        addItem( MI('Uncomment lines', self.fun_uncomment) )
+        addItem( None )
+        #TODO: addItem( MI('Move to matching brace', self.fun_moveToMatchingBrace))
+        #addItem( None )
+        addItem( MI('Find or replace', self.fun_findReplace) )
+        addItem( MI('Find selection', self.fun_findSelection) )
+        addItem( MI('Find selection backward', self.fun_findSelectionBw) )
+        addItem( MI('Find next', self.fun_findNext) )
+        addItem( MI('Find previous', self.fun_findPrevious) )
+    
+    
+    
+    def fun_cut(self, value):
+        """ Cut the selected text. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'cut'):
+            widget.cut()
+        
+    def fun_copy(self, value):
+        """ Copy the selected text. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'copy'):
+            widget.copy()
+    
+    def fun_paste(self, value):
+        """ Paste the text on the clipboard at the current cursor position. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'paste'):
+            widget.paste()
+    
+    def fun_selectAll(self, value):
+        """ Select the whole text. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'selectAll'):
+            widget.selectAll()
+    
+    def fun_undo(self, value):
+        """ Undo the last action. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'undo'):
+            widget.undo()
+    
+    def fun_redo(self, value):
+        """ Redo the last undone action """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'redo'):
+            widget.redo()
             
-    def _selectEditor(self):
+    def fun_dedent(self, value):
+        """ Dedent the selected lines"""
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'dedentSelection'):
+            widget.dedentSelection()
+            
+    def fun_indent(self, value):
+        """ Indent the selected lines"""
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'indentSelection'):
+            widget.indentSelection()
+            
+    def fun_comment(self, value):
+        """ Comment the selected lines. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'commentCode'):
+            widget.commentCode()
+    
+    def fun_uncomment(self, value):
+        """ Uncomment the selected lines. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'uncommentCode'):
+            widget.uncommentCode()
+    
+    def fun_moveToMatchingBrace(self, value):
+        """ Move the cursor to the brace matching the current brace. """
+        widget = QtGui.qApp.focusWidget()
+        if hasattr(widget,'moveToMatchingBrace'):
+            widget.moveToMatchingBrace()
+    
+    def fun_findReplace(self, value):
+        """ Show and select the find widget. """
+        iep.editors._findReplace.startFind()
+    
+    def fun_findSelection(self, value):
+        """ Set the selected text as search string and find next. """
+        iep.editors._findReplace.startFind()
+        iep.editors._findReplace.findNext()
+    
+    def fun_findSelectionBw(self, value):
+        """ Set the selected text as search string and find previous. """
+        iep.editors._findReplace.startFind()
+        iep.editors._findReplace.findPrevious()
+    
+    def fun_findNext(self, value):
+        """ Find the next match for the search string. """
+        iep.editors._findReplace.findNext()
+        
+    def fun_findPrevious(self, value):
+        """ Find the previous match for the search string. """
+        iep.editors._findReplace.findPrevious()
+    
+
+
+
+class ViewMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+        
+        addItem( MI('Select shell', self.fun_selectShell) )
+        addItem( MI('Select editor', self.fun_selectEditor) )
+        addItem( MI('Select previous file', self.fun_selectPrevious) )
+        addItem( None )
+        addItem( MI('Show whitespace', self.fun_showWhiteSpace, []) )
+        addItem( MI('Show line endings', self.fun_showLineEndings, []) )
+        #TODO: addItem( MI('Show wrap symbols', self.fun_showWrapSymbols, []) )
+        addItem( MI('Show indentation guides', self.fun_indentGuides, []) )
+        #addItem( MI('Show status bar', self.fun_showStatusBar, []) )
+        addItem( None )
+        addItem( MI('Wrap long lines', self.fun_wrap, []) )
+        addItem( MI('Highlight current line', self.fun_lineHighlight, []) )
+        #TODO: addItem( MI('Match braces', self.fun_braceMatch, []) )  
+        #TODO: addItem( MI('Enable code folding', self.fun_codeFolding, []) ) 
+        addItem( None )
+        addItem( MI('Edge column', self.fun_edgecolumn, []) )
+        #addItem( MI('Tab width (when using tabs)', self.fun_tabWidth, []) )
+        addItem( MI('Zooming', self.fun_zooming, []) )
+        addItem( MI('QT theme', self.fun_qtstyle, []) )
+    
+    
+    def fun_selectEditor(self, value):
+        """ Focus on the current editor. """
         editor = iep.editors.getCurrentEditor()
         if editor:
             editor.setFocus()
-
-class HelpMenu(Menu):
-    def build(self):
-        
-        self.addUrlItem("Website", "http://code.google.com/p/iep/")
-        self.addUrlItem("Ask a question", "http://groups.google.com/group/iep_")
-        self.addUrlItem("Report an issue", "http://code.google.com/p/iep/issues/list")
-        self.addSeparator()
-        self.addItem("Tutorial", lambda:
-            iep.editors.loadFile(os.path.join(iep.iepDir,"tutorial.py")))
-        self.addItem("View license", lambda:
-            iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
-        
-        self.addItem("Check for updates") #TODO
-        self.addItem("About IEP", lambda: None)
-        
-
-    def addUrlItem(self, name, url):
-        self.addItem(name, lambda: webbrowser.open(url))
-        
-
-def buildMenus(menuBar):
-    """
-    Build all the menus
-    """
     
-    menuBar.addMenu(FileMenu(menuBar, "File"))
-    menuBar.addMenu(EditMenu(menuBar, "Edit"))
-    menuBar.addMenu(ViewMenu(menuBar, "View"))
-    menuBar.addMenu(HelpMenu(menuBar, "Help"))
+    def fun_selectShell(self, value):
+        """ Focus on the current shell. """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            shell.setFocus()
+    
+    
+    def fun_showStatusBar(self, value):
+        """ Display the status bar at the bottom of the window. """ 
+        if value is None:
+            return bool(iep.config.view.showStatusbar)
+        value = not bool( iep.config.view.showStatusbar ) 
+        iep.config.view.showStatusbar = value
+        if value:
+            iep.status = iep.main.statusBar()
+        else:
+            iep.status = None
+            iep.main.setStatusBar(None)
+    
+    def fun_wrap(self, value):
+        """ Wrap lines that are too long to fit on the screen. """
+        if value is None:
+            return bool(iep.config.view.wrapText)
+        value = not bool( iep.config.view.wrapText ) 
+        iep.config.view.wrapText = value
+        for editor in iep.editors:
+            editor.setWrap(value)
+    
+    def fun_braceMatch(self, value):
+        """ Indicate matching braces and when no matching brace is found. """
+        if value is None:
+            return bool(iep.config.view.doBraceMatch)
+        else:
+            # get new value
+            value = not bool(iep.view.editor.doBraceMatch)
+            # apply
+            iep.config.view.doBraceMatch = value
+            value = {True:2,False:0}[value]
+            for editor in iep.editors:
+                editor.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                editor.setBraceMatching(value)
+            for shell in iep.shells:
+                shell.SendScintilla(editor.SCI_BRACEBADLIGHT, -1) # reset
+                shell.setBraceMatching(value)
+    
+    def fun_edgecolumn(self, value):
+        """ The position of the edge column indicator. """
+        if value is None:
+            theValue = iep.config.view.edgeColumn
+            if theValue <= 0:
+                theValue = 'None'
+            return ['None', 60, 70, 80, 90, 100, 110, 120, theValue]
+        else:
+            if value == 'None':
+                value = 0
+            iep.config.view.edgeColumn = value
+            for editor in iep.editors:
+                editor.setLongLineIndicatorPosition(value)
+    
+    def fun_indentGuides(self, value):
+        """ Show vertical lines at each indentation level. """
+        if value is None:
+            return bool(iep.config.view.showIndentGuides)
+        else:
+            value = not bool( iep.config.view.showIndentGuides ) 
+            iep.config.view.showIndentGuides = value
+            for editor in iep.editors:
+                editor.setShowIndentationGuides(value)
+    
+    def fun_showWhiteSpace(self, value):
+        """ Show tabs and spaces in the editor. """
+        if value is None:
+            return bool(iep.config.view.showWhiteSpace)
+        # for the sortcuts to work
+        value = not bool( iep.config.view.showWhiteSpace ) 
+        # apply
+        iep.config.view.showWhiteSpace = value
+        for editor in iep.editors:
+            editor.setShowWhitespace(value)
+    
+    def fun_showLineEndings(self, value):
+        """ Show line endings in the editor. """
+        if value is None:
+            return bool(iep.config.view.showLineEndings)
+        # for the sortcuts to work
+        value = not bool( iep.config.view.showLineEndings ) 
+        # apply
+        iep.config.view.showLineEndings = value
+        for editor in iep.editors:
+            editor.setShowLineEndings(value)
+    
+    def fun_showWrapSymbols(self, value):
+        """ Show wrap symbols in the editor. """
+        if value is None:
+            return bool(iep.config.view.showWrapSymbols)
+        # for the sortcuts to work
+        value = not bool( iep.config.view.showWrapSymbols ) 
+        # apply
+        iep.config.view.showWrapSymbols = value
+        for editor in iep.editors:
+            editor.setViewWrapSymbols(int(value)*1)
+    
+    def fun_tabWidth(self, value):
+        """ The amount of space for a tab (only if tabs are used). """
+        if value is None:
+            return [2,3,4,5,6,7,8,9,10, iep.config.view.tabWidth]
+        # store and apply
+        iep.config.view.tabWidth = value
 
+        for editor in iep.editors:
+            editor.tabWidth = value
+    
+    def fun_selectPrevious(self, value):
+        """ Select the previusly selected file. """
+        iep.editors._tabs.selectPreviousItem() 
+    
+    def fun_zooming(self, value):
+        """ Zoom in or out, or reset zooming. """
+        if value is None:
+            return ["Zoom in", "Zoom out", 'Zoom reset', 'this wont match']
+        else:
+            if "in" in value:
+                iep.config.view.zoom += 1
+            elif "out" in value:
+                iep.config.view.zoom -= 1
+            else:
+                iep.config.view.zoom = 0
+            # Apply
+            for e in iep.getAllScintillas():
+                e.zoomTo(iep.config.view.zoom)
+    
+    def fun_lineHighlight(self, value):
+        """ Whether the line containing the cursor should be highlighted. """
+        if value is None:
+            return bool(iep.config.view.highlightCurrentLine)
+        else:
+            value = not bool(iep.config.view.highlightCurrentLine)
+            iep.config.view.highlightCurrentLine = value
+            for editor in iep.editors:
+                editor.setHighlightCurrentLine(value)
+    
+    def fun_codeFolding(self, value):
+        """ Enable folding (hiding) pieces of code. """
+        if value is None:
+            return bool(iep.config.view.codeFolding)
+        else:
+            value = not iep.config.view.codeFolding
+            iep.config.view.codeFolding = value
+            for editor in iep.editors:                
+                editor.setFolding(value)
 
-
-BaseMenu=object
-
+    def fun_qtstyle(self, value):
+        """ The QT style to use. """
+        if value is None:
+            # Create list of styles
+            styleNames = [i for i in QtGui.QStyleFactory.keys()]
+            styleNames.append('Cleanlooks+')
+            styleNames.sort()
+            # Add current, handle case
+            M = dict([(name.lower(),name) for name in styleNames])
+            iep.config.view.qtstyle = M.get(iep.config.view.qtstyle.lower(),'')
+            styleNames.append(iep.config.view.qtstyle)
+            # Mark the default (and the current)
+            for i in range(len(styleNames)):
+                if styleNames[i].lower() == iep.defaultQtStyleName.lower():
+                    styleNames[i] += ' (default)'
+            return styleNames
+        else:
+            # Remove default string
+            value = value.split(' (default)')[0]
+            # Store selected style
+            iep.config.view.qtstyle = value
+            # Set style and apply standard pallette
+            qstyle = iep.main.setQtStyle(value)
 
 
 class SettingsMenu(BaseMenu):
@@ -886,8 +1256,45 @@ def expandVersion(version):
                 parts.append(ver)
         return '.'.join(parts)
 
-class xHelpMenu(BaseMenu):
-
+class HelpMenu(BaseMenu):
+    def fill(self):
+        BaseMenu.fill(self)
+        addItem = self.addItem
+                
+        addItem( MI('Website', self.fun_website) )
+        addItem( MI('Ask a question', self.fun_discussionGroup) )
+        addItem( MI('Report an issue', self.fun_reportIssue) )
+        addItem( None )
+        addItem( MI('Tutorial', self.fun_tutorial) )
+        addItem( MI('View license', self.fun_license) )
+        addItem( MI('Check for updates', self.fun_updates) )
+        
+        if sys.platform=='darwin':
+            #Hack to prevent 'special' about menu on mac
+            #since this makes the keymap dialog crash when the
+            #menus are rebuilt
+            addItem( MI(' About IEP', self.fun_about) )
+        else:
+            addItem( MI('About IEP', self.fun_about) )
+            
+    
+    
+    def fun_tutorial(self, value):
+        """ Open the tutorial file. """
+        iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+    
+    def fun_website(self, value):
+        """ Open the official IEP website. """
+        import webbrowser
+        webbrowser.open("http://code.google.com/p/iep/")
+    def fun_reportIssue(self, value):
+        """ Report an issue on the offical IEP website. """
+        import webbrowser
+        webbrowser.open("http://code.google.com/p/iep/issues/list")
+    def fun_discussionGroup(self, value):
+        """ Ask a question or open a discussion. """
+        import webbrowser
+        webbrowser.open("http://groups.google.com/group/iep_")
     
     def fun_updates(self, value):
         """ Check whether a newer version of IEP is available. """
@@ -929,7 +1336,9 @@ class xHelpMenu(BaseMenu):
             import webbrowser
             webbrowser.open("http://code.google.com/p/iep/downloads/list")
     
-
+    def fun_license(self, value):
+        """ Open the license text file. """
+        iep.editors.loadFile(os.path.join(iep.iepDir,'license.txt'))
     
     def fun_about(self, value):
         """ Show the about text for IEP. """
@@ -989,9 +1398,7 @@ class xHelpMenu(BaseMenu):
         m.setIconPixmap(im)
         m.exec_()
     
-    
 
-    
 class MenuHelper:
     """ The helper class for the menus.
     It inserts the menus in the menubar.
