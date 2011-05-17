@@ -737,8 +737,6 @@ class FileTabWidget(CompactTabWidget):
             item = tabBar.tabData(i)
             if item is None:
                 continue
-            if not isinstance(item, FileItem):
-                item = item.toPyObject() # Older version of Qt
             items.append(item)
         return items
    
@@ -748,10 +746,7 @@ class FileTabWidget(CompactTabWidget):
         """
         i = self.currentIndex()
         if i>=0:
-            item = self.tabBar().tabData(i)
-            if (item is not None) and (not isinstance(item, FileItem)):
-                item = item.toPyObject() # Older version of Qt
-            return item
+            return self.tabBar().tabData(i)
     
     
     def mainItem(self):
@@ -909,9 +904,13 @@ class FileTabWidget(CompactTabWidget):
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
-        
+
         # Store the item at the tab
         self.tabBar().setTabData(i, item)
+        
+        # Emit the currentChanged again (already emitted on addTab), because
+        # now the itemdata is actually set
+        self.currentChanged.emit(self.currentIndex()) 
         
         # Update
         if update:
@@ -1019,7 +1018,7 @@ class EditorTabs(QtGui.QWidget):
     """ 
     
     # Signal to notify that a different file was selected
-    changedSelected = QtCore.pyqtSignal()
+    currentChanged = QtCore.pyqtSignal()
     
     # Signal to notify that the parser has parsed the text (emit by parser)
     parserDone = QtCore.pyqtSignal()
@@ -1054,12 +1053,14 @@ class EditorTabs(QtGui.QWidget):
         # accept drops
         self.setAcceptDrops(True)
         
-        # restore state
-        self.restoreEditorState()
+        # restore state (call later so that the menu module can bind to the
+        # currentChanged signal first, in order to set tab/indentation
+        # checkmarks appropriately)
+        iep.callLater(self.restoreEditorState)
     
     
     def onCurrentChanged(self):
-        self.changedSelected.emit()
+        self.currentChanged.emit()
     
     
     def getCurrentEditor(self):
@@ -1108,13 +1109,12 @@ class EditorTabs(QtGui.QWidget):
         """ Create a new (unsaved) file. """
         
         # create editor
-        editor = createEditor(self, None)
-        
+        editor = createEditor(self, None)       
         # add to list
         item = FileItem(editor)
         self._tabs.addItem(item)
         self._tabs.setCurrentItem(item)
-        
+
         return item
     
     
