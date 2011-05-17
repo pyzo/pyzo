@@ -342,7 +342,7 @@ class ShellsMenu(Menu):
         
         for i, config in enumerate(iep.config.shellConfigs):
             self._shellCreateActions.append(
-                self.addItem('Create shell %s: %s' % (i, config.name),
+                self.addItem('Create shell %s: %s' % (i+1, config.name),
                     iep.shells.addShell, config)
                 )
                     
@@ -361,7 +361,216 @@ class ShellsMenu(Menu):
         d.exec_()
         # Update the shells items in the menu
         self.updateShells()
-            
+
+class RunMenu(Menu):
+    def build(self):
+        self.addItem('Run selected lines', self.runSelected)
+        self.addItem('Run cell', self.runCell)
+        #In the runFile calls, the parameter specifies (asFile, mainFile)
+        self.addItem('Run file', self.runFile,(False, False))
+        self.addItem('Run main file', self.runFile,(False, True))
+        self.addSeparator()
+        self.addItem('Run file as script', self.runFile, (True, False))
+        self.addItem('Run main file as script', self.runFile, (True, True))
+        self.addSeparator()
+        self.addItem('Help on running code', self.showHelp)
+    
+    
+    def showHelp(self, value):
+        """ Show more information about ways to run code. """
+        
+        # Get file item
+        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        
+        # Select line number
+        if fileItem:
+            linenr = 77
+            editor = fileItem._editor
+            editor.gotoLine(linenr)
+            iep.editors.getCurrentEditor().setFocus()
+    
+    
+    def getShellAndEditor(self, what, mainEditor=False):
+        """ Get the shell and editor. Shows a warning dialog when one of
+        these is not available.
+        """
+        # Init empty error message
+        msg = ''
+        # Get shell
+        shell = iep.shells.getCurrentShell()
+        if shell is None:
+            msg += "No shell to run code in. "
+        # Get editor
+        if mainEditor:
+            editor = iep.editors.getMainEditor()
+            if editor is None:
+                msg += "The is no main file selected."
+        else:
+            editor = iep.editors.getCurrentEditor()
+            if editor is None:
+                msg += "No editor selected."
+        # Show error dialog
+        if msg:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Could not run")
+            m.setText("Could not run " + what + ":\n\n" + msg)
+            m.setIcon(m.Warning)
+            m.exec_()
+        # Return
+        return shell, editor
+        
+
+    def runSelected(self, value):
+        """ Run the selected whole lines in the current shell. """
+        # Get editor and shell
+        shell, editor = self.getShellAndEditor('selected lines')
+        if not shell or not editor:
+            return
+        # Get position to sample between (only sample whole lines)
+        screenCursor = editor.textCursor() #Current selection in the editor
+        runCursor = editor.textCursor() #The part that should be run
+        
+        runCursor.setPosition(screenCursor.selectionStart())
+        runCursor.movePosition(runCursor.StartOfBlock) #This also moves the anchor
+        lineNumber = runCursor.blockNumber()
+        
+        runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
+        if not runCursor.atBlockStart():
+            #If the end of the selection is at the beginning of a block, don't extend it
+            runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
+        
+        # Sample code 
+        code = runCursor.selectedText().replace('\u2029', '\n') 
+        # Show the result to user and set back
+        editor.setTextCursor(runCursor)
+        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setTextCursor(screenCursor)
+        # Execute code
+        fname = editor.id() # editor._name or editor._filename
+        shell.executeCode(code, fname, lineNumber)
+    
+    def runCell(self, value):
+        """ Run the code between two cell separaters ('##'). """
+        #TODO: ignore ## in multi-line strings
+        
+        # Get editor and shell
+        shell, editor = self.getShellAndEditor('cell')
+        if not shell or not editor:
+            return 
+        # Get current cell
+        screenCursor = editor.textCursor() #Current selection in the editor
+        runCursor = editor.textCursor() #The part that should be run
+        
+        # Move up until the start of document or right after a line starting with ##
+        runCursor.movePosition(runCursor.StartOfBlock)
+        while True:
+            if not runCursor.block().previous().isValid():
+                break #Start of document
+            if runCursor.block().text().lstrip().startswith('##'):
+                # ## line, move to the line following this one
+                if not runCursor.block().next().isValid():
+                    #The user tried to execute the last line of a file which
+                    #started with ##. Do nothing
+                    return
+                runCursor.movePosition(runCursor.NextBlock)
+                break
+            runCursor.movePosition(runCursor.PreviousBlock)
+        
+        #This is the line number of the start
+        lineNumber = runCursor.blockNumber()
+        
+        #Move down until a line before one starting with ## or to end of document
+        while True:
+            if runCursor.block().text().lstrip().startswith('##'):
+                #This line starts with ##, move to the end of the previous one
+                runCursor.movePosition(runCursor.Left,runCursor.KeepAnchor)
+                break
+            if not runCursor.block().next().isValid():
+                #Last block of the document, move to the end of the line
+                runCursor.movePosition(runCursor.EndOfLine,runCursor.KeepAnchor)
+                break
+            runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
+        
+        
+        # Sample code 
+        code = runCursor.selectedText().replace('\u2029', '\n')
+        # Show the result to user and set back
+        editor.setTextCursor(runCursor)
+        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setTextCursor(screenCursor)
+        # Execute code
+        fname = editor.id() # editor._name or editor._filename
+        shell.executeCode(code, fname, lineNumber)
+    
+    
+    def _getCodeOfFile(self, editor):
+        # Obtain source code
+        text = editor.toPlainText()
+        # TODO:?? Show the result to user and set back
+        #i1, i2 = editor.getPosition(), editor.getAnchor()
+        #editor.setPosition(0); editor.setAnchor(editor.length())
+        #editor.update()
+        #editor.repaint()
+        #time.sleep(0.200)
+        #editor.setPosition(i1); editor.setAnchor(i2)
+        # Get filename and return 
+        fname = editor.id() # editor._name or editor._filename
+        return fname, text
+    
+    
+    def runFile(self, runMode, givenEditor = None):
+        """ Run a file
+         mode is a tuple (asScript, mainFile)
+         """
+        asScript, mainFile = runMode
+         
+        # Get editor and shell
+        description = 'main file' if mainFile else 'file'
+        if asScript:
+            description+= ' (as script)'
+        
+        shell, editor = self.getShellAndEditor(description, mainFile)
+        if givenEditor:
+            editor = givenEditor
+        if not shell or not editor:
+            return        
+        
+        if asScript:
+            # Go
+            self._runScript(editor, shell)
+        else:
+            # Obtain source code and fname
+            fname, text = self._getCodeOfFile(editor)
+            shell.executeCode(text, fname, -1)
+    
+
+    
+    
+    # todo: pass as code, not filename
+    def _runScript(self, editor, shell):
+        # Obtain fname and try running
+        err = ""
+        if editor._filename:
+            if iep.editors.saveFile(editor):
+                shell.restart(editor._filename)
+            else:
+                err = "Could not save the file."
+        else:
+            err = "Can only run scripts that are in the file system."
+        # If not success, notify
+        if err:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Could not run script.")
+            m.setText(err)
+            m.setIcon(m.Warning)
+            m.exec_()
+
+
+
 class ToolsMenu(Menu):
     def __init__(self, *args, **kwds):
         self._toolActions = []
@@ -414,6 +623,7 @@ def buildMenus(menuBar):
     menuBar.addMenu(EditMenu(menuBar, "Edit"))
     menuBar.addMenu(ViewMenu(menuBar, "View"))
     menuBar.addMenu(ShellsMenu(menuBar, "Shells"))
+    menuBar.addMenu(RunMenu(menuBar, "Run"))
     menuBar.addMenu(ToolsMenu(menuBar, "Tools"))
     menuBar.addMenu(HelpMenu(menuBar, "Help"))
 
@@ -644,268 +854,7 @@ class SettingsMenu(BaseMenu):
         # a file-changed message will appear
         iep.editors._findReplace._findText.setFocus()
         widget.setFocus()
-
-
-class xToolsMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Reload tools', self.fun_reload) )
-        addItem( None )
-        
-        #for tool in iep.toolManager.loadToolInfo():
-        #    addItem( MI(tool.name, tool.menuLauncher, 
-        #               bool(tool.instance), tool.description) )
-        
-        for tool in iep.toolManager.getToolInfo():
-            item = addItem( MI(tool.name, self.fun_launcher, 
-                               bool(tool.instance), tool.description) )
-            item.toggled.connect(tool.menuLauncher)
-        
-        # Rebuild the menu when the tool instances change, ensure unique connection
-        iep.toolManager.toolInstanceChange.connect(self.fun_update, type = QtCore.Qt.UniqueConnection)
-
-    def fun_launcher(self, value):
-        pass
-        
-    def fun_reload(self, value):
-        """ Reload all tools (intended for helping tool development). """
-        iep.toolManager.reloadTools()
     
-    def fun_update(self):
-        iep.callLater(self.fill)
-
-
-
-    
-class RunMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Run selected lines', self.fun_runSelected) )
-        addItem( MI('Run cell', self.fun_runCell) )
-        addItem( MI('Run file', self.fun_runFile) )
-        addItem( MI('Run main file', self.fun_runMainFile) )
-        addItem( None )
-        addItem( MI('Run file as script', self.fun_runFileAsScript))
-        addItem( MI('Run main file as script', self.fun_runMainFileAsScript))
-        addItem( None )
-        addItem( MI('Help on running code', self.fun_showHelp))
-    
-    
-    def fun_showHelp(self, value):
-        """ Show more information about ways to run code. """
-        
-        # Get file item
-        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
-        
-        # Select line number
-        if fileItem:
-            linenr = 90
-            editor = fileItem._editor
-            editor.gotoLine(linenr)
-            iep.editors.getCurrentEditor().setFocus()
-    
-    
-    def getShellAndEditor(self, what, mainEditor=False):
-        """ Get the shell and editor. Shows a warning dialog when one of
-        these is not available.
-        """
-        # Init empty error message
-        msg = ''
-        # Get shell
-        shell = iep.shells.getCurrentShell()
-        if shell is None:
-            msg += "No shell to run code in. "
-        # Get editor
-        if mainEditor:
-            editor = iep.editors.getMainEditor()
-            if editor is None:
-                msg += "The is no main file selected."
-        else:
-            editor = iep.editors.getCurrentEditor()
-            if editor is None:
-                msg += "No editor selected."
-        # Show error dialog
-        if msg:
-            m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Could not run")
-            m.setText("Could not run " + what + ":\n\n" + msg)
-            m.setIcon(m.Warning)
-            m.exec_()
-        # Return
-        return shell, editor
-        
-
-    def fun_runSelected(self, value):
-        """ Run the selected whole lines in the current shell. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('selected lines')
-        if not shell or not editor:
-            return
-        # Get position to sample between (only sample whole lines)
-        screenCursor = editor.textCursor() #Current selection in the editor
-        runCursor = editor.textCursor() #The part that should be run
-        
-        runCursor.setPosition(screenCursor.selectionStart())
-        runCursor.movePosition(runCursor.StartOfBlock) #This also moves the anchor
-        lineNumber = runCursor.blockNumber()
-        
-        runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
-        if not runCursor.atBlockStart():
-            #If the end of the selection is at the beginning of a block, don't extend it
-            runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
-        
-        # Sample code 
-        code = runCursor.selectedText().replace('\u2029', '\n') 
-        # Show the result to user and set back
-        editor.setTextCursor(runCursor)
-        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setTextCursor(screenCursor)
-        # Execute code
-        fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber)
-    
-    def fun_runCell(self, value):
-        """ Run the code between two cell separaters ('##'). """
-        #TODO: ignore ## in multi-line strings
-        
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('cell')
-        if not shell or not editor:
-            return 
-        # Get current cell
-        screenCursor = editor.textCursor() #Current selection in the editor
-        runCursor = editor.textCursor() #The part that should be run
-        
-        # Move up until the start of document or right after a line starting with ##
-        runCursor.movePosition(runCursor.StartOfBlock)
-        while True:
-            if not runCursor.block().previous().isValid():
-                break #Start of document
-            if runCursor.block().text().lstrip().startswith('##'):
-                # ## line, move to the line following this one
-                if not runCursor.block().next().isValid():
-                    #The user tried to execute the last line of a file which
-                    #started with ##. Do nothing
-                    return
-                runCursor.movePosition(runCursor.NextBlock)
-                break
-            runCursor.movePosition(runCursor.PreviousBlock)
-        
-        #This is the line number of the start
-        lineNumber = runCursor.blockNumber()
-        
-        #Move down until a line before one starting with ## or to end of document
-        while True:
-            if runCursor.block().text().lstrip().startswith('##'):
-                #This line starts with ##, move to the end of the previous one
-                runCursor.movePosition(runCursor.Left,runCursor.KeepAnchor)
-                break
-            if not runCursor.block().next().isValid():
-                #Last block of the document, move to the end of the line
-                runCursor.movePosition(runCursor.EndOfLine,runCursor.KeepAnchor)
-                break
-            runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
-        
-        
-        # Sample code 
-        code = runCursor.selectedText().replace('\u2029', '\n')
-        # Show the result to user and set back
-        editor.setTextCursor(runCursor)
-        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setTextCursor(screenCursor)
-        # Execute code
-        fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber)
-    
-    
-    def _getCodeOfFile(self, editor):
-        # Obtain source code
-        text = editor.toPlainText()
-        # TODO:?? Show the result to user and set back
-        #i1, i2 = editor.getPosition(), editor.getAnchor()
-        #editor.setPosition(0); editor.setAnchor(editor.length())
-        #editor.update()
-        #editor.repaint()
-        #time.sleep(0.200)
-        #editor.setPosition(i1); editor.setAnchor(i2)
-        # Get filename and return 
-        fname = editor.id() # editor._name or editor._filename
-        return fname, text
-    
-    
-    def fun_runFile(self, value, givenEditor=None):
-        """ Run the current file in the current shell. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('file')
-        if givenEditor:
-            editor = givenEditor
-        if not shell or not editor:
-            return        
-        # Obtain source code and fname
-        fname, text = self._getCodeOfFile(editor)
-        # Execute
-        shell.executeCode(text, fname, -1)
-    
-    def fun_runMainFile(self, value=None):
-        """ Run the main file in the current shell. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('main file', True)
-        if not shell or not editor:
-            return 
-        # Run code
-        fname, text = self._getCodeOfFile(editor)
-        shell.executeCode(text, fname, -1)
-    
-    
-    def fun_runFileAsScript(self, value, givenEditor=None):
-        """ Restart shell, and run the current file as a script. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('file (as script)')
-        if givenEditor:
-            editor = givenEditor
-        if not shell or not editor:
-            return        
-        # Go
-        self._runScript(editor, shell)
-    
-    
-    def fun_runMainFileAsScript(self, value):
-        """ Restart shell, and run the main file as a script. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('main file (as script)', True)
-        if not shell or not editor:
-            return 
-        # Go
-        self._runScript(editor, shell)
-    
-    
-    # todo: pass as code, not filename
-    def _runScript(self, editor, shell):
-        # Obtain fname and try running
-        err = ""
-        if editor._filename:
-            if iep.editors.saveFile(editor):
-                shell.restart(editor._filename)
-            else:
-                err = "Could not save the file."
-        else:
-            err = "Can only run scripts that are in the file system."
-        # If not success, notify
-        if err:
-            m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Could not run script.")
-            m.setText(err)
-            m.setIcon(m.Warning)
-            m.exec_()
-
 
 def expandVersion(version):        
         parts = []
