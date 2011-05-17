@@ -71,7 +71,7 @@ class IepSourceStructure(QtGui.QWidget):
         self._currentEditorId = 0
         
         # Bind to events
-        iep.editors.changedSelected.connect(self.onSelectedEditorChanged)
+        iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
         iep.editors.parserDone.connect(self.updateStructure)
         
         self._options.pressed.connect(self.onOptionsPress)
@@ -81,7 +81,7 @@ class IepSourceStructure(QtGui.QWidget):
         # When the tool is loaded, the editorStack is already done loading
         # all previous files and selected the appropriate file.
         self.onOptionsPress() # Create menu now
-        self.onSelectedEditorChanged()
+        self.onEditorsCurrentChanged()
     
     
     def onOptionsPress(self):
@@ -116,7 +116,7 @@ class IepSourceStructure(QtGui.QWidget):
         self.updateStructure()
     
     
-    def onSelectedEditorChanged(self):
+    def onEditorsCurrentChanged(self):
         """ Notify that the file is being parsed and make
         sure that not the structure of a previously selected
         file is shown. """

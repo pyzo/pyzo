@@ -125,19 +125,42 @@ class Menu(QtGui.QMenu):
         actionGroup,actions = self._groups[group]
         if value in actions:
             actions[value].setChecked(True)
+    def actionsForGroup(self, group):
+        """ Return an unordered list of all actions in a group """
+        actionGroup, actions = self._groups[group]
+        return list(actions.values())
 
 
 class IndentationMenu(Menu):
+    def __init__(self,*args,**kwds):
+        Menu.__init__(self,*args,**kwds)
+        iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
     def build(self):
-        self.addOptionItem("Tabs", self.setStyle , False, False, "style")  #False value
-        self.addOptionItem("Spaces", self.setStyle , True, False, "style") #True value
+        self.addOptionItem("Use tabs", self.setStyle , False, False, "style")  #False value
+        self.addOptionItem("Use spaces", self.setStyle , True, False, "style") #True value
         self.addSeparator()
         for i in range(2,9):
             self.addOptionItem("%d spaces" % i,self.setWidth, i, False, "width")
         
-        #self.setCheckedOption("style", True)
-        #self.setCheckedOption("width", 5)
+        # Items are selected and enabled via the onEditorsCurrentChanged slot    
+        self.setEnabled(False)
         
+    def setEnabled(self, enabled):
+        """ Enable or disable all items. If disabling, also uncheck all items """
+        for child in self.actionsForGroup("style") + self.actionsForGroup("width"):
+            child.setEnabled(enabled)
+            if not enabled:
+                child.setChecked(False)
+            
+    def onEditorsCurrentChanged(self):
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            self.setEnabled(False) #Disable / uncheck all options
+        else:
+            self.setEnabled(True)
+            self.setCheckedOption("style", editor.indentUsingSpaces())
+            self.setCheckedOption("width", editor.indentWidth())
+            
     def setWidth(self, width):
         editor = iep.editors.getCurrentEditor()
         if editor is not None:
@@ -285,6 +308,9 @@ class ViewMenu(Menu):
         editor = iep.editors.getCurrentEditor()
         if editor:
             editor.setFocus()
+
+class ToolsMenu(Menu):
+    pass
 
 class HelpMenu(Menu):
     def build(self):
@@ -545,7 +571,7 @@ class SettingsMenu(BaseMenu):
         widget.setFocus()
 
 
-class ToolsMenu(BaseMenu):
+class xToolsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
@@ -992,48 +1018,6 @@ class xHelpMenu(BaseMenu):
     
 
     
-class MenuHelper:
-    """ The helper class for the menus.
-    It inserts the menus in the menubar.
-    It catches any clicks made in the menus and makes the appropriate calls.
-    """
-    def __init__(self, menubar):
-        
-        # Define name-class menus
-        menus = [   ('File', FileMenu), 
-                    ('Edit', EditMenu), 
-                    ('View', ViewMenu),                    
-                    ('Settings', SettingsMenu),
-                    ('Shell', ShellMenu),
-                    ('Run', RunMenu),
-                    ('Tools', ToolsMenu),
-                    ('Help', HelpMenu),
-                ]
-        
-        # Init dict of menu instances
-        self._menus = {}
-        
-        # Create the menus
-        for menuName, menuClass in menus:
-            menu = menuClass(menuName, menubar)
-            self._menus[menuName] = menu
-            menubar.addMenu(menu)
-            menu.fill() # initialize so shortcuts work
-        
-        menubar.triggered.connect(self.onTrigger)        
-        menubar.hovered.connect(self.onHover)
-    
-    def onTrigger(self, action):
-        if hasattr(action,'func'):
-            #print('trigger:', action.text())
-            action.func(action.value)
-        else:
-            pass # the user clicked the file, edit, menus themselves.
-    
-    def onHover(self, action):
-        #print('hover:', action.text())
-        QtGui.QToolTip.hideText()
-        QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.toolTip())
     
 
 def getFullName(action):
