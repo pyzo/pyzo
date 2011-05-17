@@ -309,6 +309,59 @@ class ViewMenu(Menu):
         if editor:
             editor.setFocus()
 
+class ShellsMenu(Menu):
+    def __init__(self, *args, **kwds):
+        self._shellCreateActions = []
+        self._shellActions = []
+        Menu.__init__(self, *args, **kwds)
+        iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
+        
+    def onCurrentShellChanged(self):
+        """ Enable/disable shell actions based on wether a shell is available """
+        for shellAction in self._shellActions:
+            shellAction.setEnabled(bool(iep.shells.getCurrentShell()))
+            
+    def build(self):
+        """ Create the items for the shells menu """
+        self._shellActions = [
+            self.addItem('Interrupt current shell', self.shellAction, "interrupt"),
+            self.addItem('Terminate current shell', self.shellAction, "terminate"),
+            self.addItem('Restart current shell', self.shellAction, "restart"),
+            self.addItem('Clear screen', self.shellAction, "clearScreen"),
+            ]
+            
+        self.addSeparator()
+        self.addItem('Edit shell configurations...', self.editConfig)
+        # Add shell configs
+        self.updateShells()    
+    
+    def updateShells(self):
+        """ Remove, then add the items for the creation of each shell """
+        for action in self._shellCreateActions:
+            self.removeAction(action)
+        
+        for i, config in enumerate(iep.config.shellConfigs):
+            self._shellCreateActions.append(
+                self.addItem('Create shell %s: %s' % (i, config.name),
+                    iep.shells.addShell, config)
+                )
+                    
+
+    def shellAction(self, action):
+        """ Call the method specified by 'action' on the current shell """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            # Call the specified action
+            getattr(shell,action)()
+            
+    def editConfig(self):
+        """ Edit, add and remove configurations for the shells. """
+        from shellStack import ShellInfoDialog 
+        d = ShellInfoDialog()
+        d.exec_()
+        # Update the shells items in the menu
+        self.updateShells()
+            
 class ToolsMenu(Menu):
     pass
 
@@ -340,6 +393,7 @@ def buildMenus(menuBar):
     menuBar.addMenu(FileMenu(menuBar, "File"))
     menuBar.addMenu(EditMenu(menuBar, "Edit"))
     menuBar.addMenu(ViewMenu(menuBar, "View"))
+    menuBar.addMenu(ShellsMenu(menuBar, "Shells"))
     menuBar.addMenu(HelpMenu(menuBar, "Help"))
 
 
@@ -602,76 +656,6 @@ class xToolsMenu(BaseMenu):
         iep.callLater(self.fill)
 
 
-class ShellMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-#         addItem( MI('Run selected lines', self.fun_runSelected) )
-#         addItem( MI('Run cell', self.fun_runCell) )
-#         addItem( MI('Run file', self.fun_runFile) )
-#         addItem( MI('Run project main file', self.fun_runProject) )
-#         addItem( None )
-#         addItem( MI('Run file as script', self.fun_runFile2))
-#         addItem( MI('Run project main file as script', self.fun_runProject2))
-        
-        addItem( None )
-        
-        addItem( MI('Interrupt current shell', self.fun_interrupt) )
-        addItem( MI('Terminate current shell', self.fun_term) ) 
-        addItem( MI('Restart current shell', self.fun_restart) )
-        addItem( MI('Clear screen', self.fun_clearScreen) )       
-        addItem( None )
-        addItem( MI('Edit shell configurations ...', self.fun_config) )
-        
-        # Insert entry for each configuration, use the index as a reference
-        for index in range(len(iep.config.shellConfigs)):
-            name = iep.config.shellConfigs[index].name
-            text = 'Create shell {}: ({})'.format(index, name)
-            action = addItem( MI(text, self.fun_create) )
-            action.value = index
-    
-    
-    def fun_config(self, value):
-        """ Edit, add and remove configurations for the shells. """
-        from shellStack import ShellInfoDialog 
-        d = ShellInfoDialog()
-        d.exec_()
-    
-    
-    def fun_create(self, value):
-        """ Create a new Python shell. """
-        if isinstance(value, int) and value < len(iep.config.shellConfigs):
-            iep.shells.addShell( iep.config.shellConfigs[value] )
-        else:
-            iep.shells.addShell()
-    
-    
-    def fun_interrupt(self, value):
-        """ Send a keyboard interrupt signal to the current shell. """
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            shell.interrupt()
-        
-    def fun_term(self, value):
-        """ Terminate (or kill if necessary) the current shell. """
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            shell.terminate()
-    
-    def fun_restart(self, value):
-        """ Terminate and restart the current shell. """
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            shell.restart()
-    
-    def fun_clearScreen(self, value):
-        """ Clear all the previous output of the screen, leaving only
-        the prompt.
-        """
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            shell.clearScreen()
 
     
 class RunMenu(BaseMenu):
