@@ -363,7 +363,27 @@ class ShellsMenu(Menu):
         self.updateShells()
             
 class ToolsMenu(Menu):
-    pass
+    def __init__(self, *args, **kwds):
+        self._toolActions = []
+        Menu.__init__(self, *args, **kwds)
+    def build(self):
+        self.addItem('Reload tools', iep.toolManager.reloadTools)
+        self.addSeparator()
+
+        iep.toolManager.toolInstanceChange.connect(self.onToolInstanceChange)
+    def onToolInstanceChange(self):
+        # Remove all exisiting tools from the menu
+        for toolAction in self._toolActions:
+            self.removeAction(toolAction)
+        
+        # Add all tools, with checkmarks for those that are active
+        self._toolActions = [
+            self.addOptionItem(tool.name, tool.menuLauncher, 
+                selected = bool(tool.instance))
+            for tool in iep.toolManager.getToolInfo()
+            ]
+            
+
 
 class HelpMenu(Menu):
     def build(self):
@@ -394,6 +414,7 @@ def buildMenus(menuBar):
     menuBar.addMenu(EditMenu(menuBar, "Edit"))
     menuBar.addMenu(ViewMenu(menuBar, "View"))
     menuBar.addMenu(ShellsMenu(menuBar, "Shells"))
+    menuBar.addMenu(ToolsMenu(menuBar, "Tools"))
     menuBar.addMenu(HelpMenu(menuBar, "Help"))
 
 
