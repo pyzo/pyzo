@@ -17,12 +17,30 @@ import os, sys, re, time
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
-qt = QtGui
 
 import iep
 from compactTabWidget import CompactTabWidget
 from iepLogging import print
 import webbrowser
+
+
+class KeyMapper(QtCore.QObject):
+    # This class is accessable via iep.keyMapper
+    
+    # iep.keyMapper.keyMappingChanged is emitted when keybinding are changed
+    keyMappingChanged = QtCore.pyqtSignal()
+    
+    def setShortcut(self, action):
+        """
+        When an action is created or when keymappings are changed, this method
+        is called to set the shortcut of an action based on its menuPath
+        (which is the key in iep.config.shortcuts, e.g. shell__clear_screen)
+        """
+        if action.menuPath in iep.config.shortcuts:
+            shortcuts = iep.config.shortcuts[action.menuPath]
+            action.setShortcuts(shortcuts.split(','))
+            
+
 
 def unwrapText(text):
     """ Unwrap text to display in message boxes. This just removes all
@@ -59,8 +77,29 @@ class Menu(QtGui.QMenu):
         # Action groups within the menu keep track of the selected value
         self._groups = {}
         
-        self.build()
+        # menuPath is used to bind shortcuts, it is ,e.g. shell__clear_screen
+        if hasattr(parent,'menuPath'):
+            self.menuPath = parent.menuPath + '__'
+        else:
+            self.menuPath = '' #This is a top-level menu
+        self.menuPath += self._createMenuPathName(name)
         
+        self.build()
+    
+    def _createMenuPathName(self, name):
+        """
+        Convert a menu title into a menuPath component name
+        e.g. Interrupt current shell -> interrupt_current_shell
+        """
+        # hide anything between brackets
+        name = re.sub('\(.*\)', '', name)
+        # replace invalid chars
+        name = name.replace(' ', '_')
+        if name[0] in '0123456789_':
+            name = "_" + name
+        name = re.sub('[^a-zA-z_0-9]','',name)
+        return name.lower()
+    
     def build(self):
         # To be overridden
         raise NotImplementedError
@@ -80,8 +119,16 @@ class Menu(QtGui.QMenu):
             else:
                 a.triggered.connect(callback)
         
+        self._connectActionShortcut(a)              
         return a
-    
+
+    def _connectActionShortcut(self, a):
+        # Set the menupath, connect a shortcut to the given action a and connect to the keyMappingChanged signal
+        a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
+        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
+        iep.keyMapper.setShortcut(a)  
+
+
     def addOptionItem(self, properties, callback = None, value = None, selected = False, group = None):
         # Add the item, which can be anyting that QMenu accepts (strings, icons,
         # menus, etc.)
@@ -116,7 +163,7 @@ class Menu(QtGui.QMenu):
             actionGroup.addAction(a)
             actions[value]=a
             
-        
+        self._connectActionShortcut(a)          
         return a
     
     def setCheckedOption(self, group, value):
@@ -309,7 +356,7 @@ class ViewMenu(Menu):
         if editor:
             editor.setFocus()
 
-class ShellsMenu(Menu):
+class ShellMenu(Menu):
     def __init__(self, *args, **kwds):
         self._shellCreateActions = []
         self._shellActions = []
@@ -342,7 +389,7 @@ class ShellsMenu(Menu):
         
         for i, config in enumerate(iep.config.shellConfigs):
             self._shellCreateActions.append(
-                self.addItem('Create shell %s: %s' % (i+1, config.name),
+                self.addItem('Create shell %s: (%s)' % (i+1, config.name),
                     iep.shells.addShell, config)
                 )
                     
@@ -622,7 +669,7 @@ def buildMenus(menuBar):
     menuBar.addMenu(FileMenu(menuBar, "File"))
     menuBar.addMenu(EditMenu(menuBar, "Edit"))
     menuBar.addMenu(ViewMenu(menuBar, "View"))
-    menuBar.addMenu(ShellsMenu(menuBar, "Shells"))
+    menuBar.addMenu(ShellMenu(menuBar, "Shell"))
     menuBar.addMenu(RunMenu(menuBar, "Run"))
     menuBar.addMenu(ToolsMenu(menuBar, "Tools"))
     menuBar.addMenu(HelpMenu(menuBar, "Help"))
