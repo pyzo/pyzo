@@ -1376,6 +1376,7 @@ class HelpMenu(BaseMenu):
         <b>Developers</b><br>
         Almar Klein (almar.klein AT gmail DOT com)<br>
         Rob Reilink<br>
+        Ludo Visser<br>
         
         """
         # Insert information texts
