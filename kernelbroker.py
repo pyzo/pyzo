@@ -21,24 +21,23 @@ class KernelInfo:
         self.gui = 'none'    # The GUI toolkit to embed the event loop of
         self.startDir = ''   # The initial directory (when run not as script)
         
-        # The Python path. None means use default from environment.
-        # Paths should be separated by newlines.
+        # The Python path. None means use default from environment of the
+        # machine that runs the kernel. Paths should be separated by newlines.
         self.PYTHONPATH = None
         
         # The Startup script (when not run in script-mode). None means use 
-        # PYTHONSTARTUP from environment. Empty string means run nothing, 
-        # single line means file name, multiple line means source code.
+        # PYTHONSTARTUP from environment of the machine that runs the kernel. 
+        # Empty string means run nothing, single line means file name on
+        # machine that runs kernel, multiple line means source code.
         self.startupScript = None
-        
-        # ----- Dynamic parameters used when restarting -----
         
         # The full filename of the script to run. 
         # If given, the kernel should run in script-mode.
-        self.scriptFile = None
+        self.scriptFile = ''
         
         # The path of the current project, the kernel will prepend this 
-        # to the sys.path
-        self.projectPath = None
+        # to the sys.path.
+        self.projectPath = ''
     
     
     def tostring(self):
@@ -48,7 +47,7 @@ class KernelInfo:
 class KernelInfoPlus(KernelInfo):
     """ KernelInfoPlus
     
-    helps build the command to start the remote python process.
+    Helps build the command to start the remote python process.
     
     """
     
@@ -61,7 +60,7 @@ class KernelInfoPlus(KernelInfo):
             self.__dict__[key] = s[key]
         
         # Correct path when it contains spaces
-        if self.exe.count(' '):
+        if self.exe.count(' ') and self.exe[0] != '"':
             self.exe = '"' + self.exe + '"'
         
         # Set default startupScript?
@@ -78,7 +77,7 @@ class KernelInfoPlus(KernelInfo):
     def getCommand(self, port):
         """ getCommand(port)
         
-        Given the port of the channels interface, creates the 
+        Given the port of the socket to connect at, creates the 
         command to execute in order to invoke the remote shell.
         
         """
@@ -120,13 +119,10 @@ class KernelInfoPlus(KernelInfo):
         env.pop('TCL_LIBRARY','')
         env['PYTHONPATH'] = self.PYTHONPATH
         
-        # Store project path
-        if self.projectPath is not None:
-            env['iep_projectPath'] = self.projectPath
-        
         # Insert iep specific variables
         env['iep_gui'] = self.gui
         env['iep_startDir'] = self.startDir
+        env['iep_projectPath'] = self.projectPath
         
         # Depending on mode (interactive or script)
         if self.scriptFile:
@@ -169,24 +165,27 @@ class KernelBroker:
         # Get environment to use
         env = self._info.getEnviron()
         
+        # Get directory to start process in
+        cwd = iep.iepDir
+        
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        c = self._context.bind('localhost:IEP', max_tries=32, name='kernel')
+        c = self._context.bind('localhost:IEP', max_tries=256, name='kernel')
         
-        # Create channels. Stdout and stderr are the original (C-level) streams.
-        self._brokerChannel = yoton.PubChannel(self._context, 'stdBroker')
-        self._stdoutChannel = yoton.PubChannel(self._context, '_stdout')
-        self._stderrChannel = yoton.PubChannel(self._context, '_stderr')
-        self._statusChannel = yoton.PubstateChannel(self._context, 'status')
-        # todo: status -> kernel also has a status channel?
+        # Create channels. stdout and stderr are the original (C-level) streams.
+        self._brokerChannel = yoton.PubChannel(self._context, 'std-broker')
+        self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout-stderr')
+        self._heartbeatChannel = yoton.PubstateChannel(self._context, 
+                                            'heartbeat-status', yoton.OBJECT)
         
         # Get command to execute
         command = self._info.getCommand(c.port)
         
-        # Start process (open PYPES to detect errors when starting up)
-        self._process = subprocess.Popen(command, shell=True, 
-                                env=env, cwd=startDir,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)  
+        # Start process (open PYPE to detect errors printed to c-stdout/stderr)
+        self._process = subprocess.Popen(   command, shell=True, 
+                                            env=env, cwd=cwd,
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.STDOUT)  
         
         # Set timeout
         c.timeout = 0.5
@@ -194,6 +193,11 @@ class KernelBroker:
         # Bind to events
         c.closed.bind(self._onKernelClose)
         c.timedout.bind(self._onKernelTimedOut)
+        
+        # Create reader for stream
+        self._streamReader = StreamReader(self._process,
+                                    self._stdoutChannel, self._brokerChannel)
+        self._streamReader.start()
     
     
     def _onKernelClose(self, c, why):
@@ -201,16 +205,57 @@ class KernelBroker:
         """
         self._brokerChannel.send('Connection to kernel lost: {}'.format(why))
     
+    
     def _onKernelTimedOut(self, c, timedout):
         """ The kernel timed out (i.e. did not send heartbeat messages for
         a while. It is probably running extension code.
         """
         if timedout:
-            self._statusChannel.send('Ext')
+            self._heartbeatChannel.send(False)
         else:
-            self._statusChannel.send('Normal')
+            self._heartbeatChannel.send(True)
     
     
+    def hostForClient(self, address='localhost'):
+        """ hostForClient()
+        
+        Host a connection to the kernel. Returns the port number to connect to.
+        
+        """
+        # Create new connection
+        c = self._context.bind(address+':IEP+256', max_tries=256)
+        return c
+
+
+class StreamReader(threading.Thread):
+    """ StreamReader(process, channel)
+    
+    Reads stdout of process and send to a yoton channel.
+    
+    """
+    def __init__(self, process, stdoutChannel, brokerChannel):
+        self._process = process
+        self._stdoutChannel = stdoutChannel
+        self._brokerChannel = brokerChannel
+        self.deamon = True
+    
+    def run(self):
+        count = 4
+        while count>0:
+            # Read any stdout/stderr messages and route them via yoton.
+            msg = self._process.stdout.read() # <-- Blocks here
+            self._stdoutChannel.send(msg)
+            # Process dead?
+            if self._process.poll():
+                count -= 1
+            # Sleep
+            time.sleep(0.1)
+        
+        # Show message
+        # todo: test this
+        kernelConn = self._brokerChannel._context.connections_all['kernel']
+        if not kernelConn.is_connected:
+            self._brokerChannel.send('The process failed to start.')
 
 
 class Kernelmanager:
