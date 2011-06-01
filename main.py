@@ -131,6 +131,7 @@ class MainWindow(QtGui.QMainWindow):
         
         if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
             import menu
+            iep.keyMapper = menu.KeyMapper()
             menu.buildMenus(self.menuBar())
         else:
             from menu_old import MenuHelper

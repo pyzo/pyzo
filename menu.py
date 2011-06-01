@@ -17,12 +17,30 @@ import os, sys, re, time
 import unicodedata
 
 from PyQt4 import QtCore, QtGui
-qt = QtGui
 
 import iep
 from compactTabWidget import CompactTabWidget
 from iepLogging import print
 import webbrowser
+
+
+class KeyMapper(QtCore.QObject):
+    # This class is accessable via iep.keyMapper
+    
+    # iep.keyMapper.keyMappingChanged is emitted when keybinding are changed
+    keyMappingChanged = QtCore.pyqtSignal()
+    
+    def setShortcut(self, action):
+        """
+        When an action is created or when keymappings are changed, this method
+        is called to set the shortcut of an action based on its menuPath
+        (which is the key in iep.config.shortcuts, e.g. shell__clear_screen)
+        """
+        if action.menuPath in iep.config.shortcuts:
+            shortcuts = iep.config.shortcuts[action.menuPath]
+            action.setShortcuts(shortcuts.split(','))
+            
+
 
 def unwrapText(text):
     """ Unwrap text to display in message boxes. This just removes all
@@ -59,36 +77,75 @@ class Menu(QtGui.QMenu):
         # Action groups within the menu keep track of the selected value
         self._groups = {}
         
-        self.build()
+        # menuPath is used to bind shortcuts, it is ,e.g. shell__clear_screen
+        if hasattr(parent,'menuPath'):
+            self.menuPath = parent.menuPath + '__'
+        else:
+            self.menuPath = '' #This is a top-level menu
+        self.menuPath += self._createMenuPathName(name)
         
-    def build(self):
-        # To be overridden
-        raise NotImplementedError
+        self.build()
     
-    def addItem(self, properties, callback = None, value = None):
+    def _createMenuPathName(self, name):
+        """
+        Convert a menu title into a menuPath component name
+        e.g. Interrupt current shell -> interrupt_current_shell
+        """
+        # hide anything between brackets
+        name = re.sub('\(.*\)', '', name)
+        # replace invalid chars
+        name = name.replace(' ', '_')
+        if name[0] in '0123456789_':
+            name = "_" + name
+        name = re.sub('[^a-zA-z_0-9]','',name)
+        return name.lower()
+    def _addAction(self, properties):
+        """ call QMenu.addAction, but if properties is a tuple, unpack it """
         # Add the item, which can be anyting that QMenu accepts (strings, icons,
         # menus, etc.)
-        if type(properties) == tuple:
-            a = self.addAction(*properties)
+        if isinstance(properties, tuple):
+            return self.addAction(*properties)
         else:
-            a = self.addAction(properties)
-        
+            return self.addAction(properties)        
+    
+    def build(self):
+        """ Add all actions to the menu. To be overridden """
+        raise NotImplementedError
+
+    def _connectActionShortcut(self, a):
+        # Set the menupath, connect a shortcut to the given action a and connect to the keyMappingChanged signal
+        a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
+        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
+        iep.keyMapper.setShortcut(a) 
+    
+    
+    def addItem(self, properties, callback = None, value = None):
+        """
+        Add an item to the menu. If callback is given and not None,
+        connect triggered signal to the callback. If value is None or not
+        given, callback is called without parameteres, otherwise it is called
+        with value as parameter
+        """
+        a = self._addAction(properties)
+         
         # Connect the menu item to its callback
         if callback:
-            if value:
+            if value is not None:
                 a.triggered.connect(lambda b, v = value: callback(v))
             else:
                 a.triggered.connect(callback)
         
+        self._connectActionShortcut(a)              
         return a
-    
-    def addOptionItem(self, properties, callback = None, value = None, selected = False, group = None):
-        # Add the item, which can be anyting that QMenu accepts (strings, icons,
-        # menus, etc.)
-        if type(properties) == tuple:
-            a = self.addAction(*properties)
-        else:
-            a = self.addAction(properties)
+
+    def addGroupItem(self, properties, group = None, value = None, callback = None, selected = False):
+        """
+        Add a 'select-one' option to the menu. Items with equal group value form
+        a group. If callback is specified and not None, the callback is called 
+        for the new active item, with the value for that item as parameter
+        whenever the selection is changed
+        """
+        a = self._addAction(properties)
         
         a.setCheckable(True)
         a.setChecked(selected)
@@ -97,26 +154,45 @@ class Menu(QtGui.QMenu):
         # emitted by checkable actions, and can also be called programmatically,
         # e.g. in QActionGroup)
         if callback:
-            if value == None:
-                a.toggled.connect(callback)
+            def doCallback(b, v):
+                if b:
+                    callback(v)
+            
+            a.toggled.connect(lambda b, v = value: doCallback(b, v))
+        
+        # Add the menu item to a action group
+        if group not in self._groups:
+            #self._groups contains tuples (actiongroup, dict-of-actions)
+            self._groups[group] = (QtGui.QActionGroup(self), {})
+        
+        actionGroup,actions = self._groups[group]
+        actionGroup.addAction(a)
+        actions[value]=a
+            
+        self._connectActionShortcut(a)          
+        return a
+    
+    def addCheckItem(self, properties, callback = None, value = None, selected = False):
+        """
+        Add a true/false item to the menu. If callback is specified and not 
+        None, the callback is called when the item is changed. If value is not
+        specified or None, callback is called with the new state as parameter.
+        Otherwise, it is called with the new state and value as parameters
+        
+        """
+        a = self._addAction(properties)
+        
+        a.setCheckable(True)
+        a.setChecked(selected)
+        
+        # Connect the menu item to its callback
+        if callback:
+            if value is not None:
+                a.triggered.connect(lambda b, v = value: callback(b, v))
             else:
-                def doCallback(b, g, v):
-                    if b:
-                        callback(v)
-                
-                a.toggled.connect(lambda b, g = group, v = value: doCallback(b, g, v))
-        
-        # Add the menu item to a action group, if specified
-        if group is not None:
-            if group not in self._groups:
-                #self._groups contains tuples (actiongroup, dict-of-actions)
-                self._groups[group] = (QtGui.QActionGroup(self), {})
+                a.triggered.connect(callback)
             
-            actionGroup,actions = self._groups[group]
-            actionGroup.addAction(a)
-            actions[value]=a
-            
-        
+        self._connectActionShortcut(a)          
         return a
     
     def setCheckedOption(self, group, value):
@@ -125,29 +201,29 @@ class Menu(QtGui.QMenu):
         actionGroup,actions = self._groups[group]
         if value in actions:
             actions[value].setChecked(True)
-    def actionsForGroup(self, group):
-        """ Return an unordered list of all actions in a group """
-        actionGroup, actions = self._groups[group]
-        return list(actions.values())
-
 
 class IndentationMenu(Menu):
     def __init__(self,*args,**kwds):
+        self._items = []
         Menu.__init__(self,*args,**kwds)
         iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
     def build(self):
-        self.addOptionItem("Use tabs", self.setStyle , False, False, "style")  #False value
-        self.addOptionItem("Use spaces", self.setStyle , True, False, "style") #True value
+        self._items = [
+            self.addGroupItem("Use tabs", "style", False, self.setStyle),
+            self.addGroupItem("Use spaces", "style", True, self.setStyle)
+            ]
         self.addSeparator()
-        for i in range(2,9):
-            self.addOptionItem("%d spaces" % i,self.setWidth, i, False, "width")
-        
+        self._items += [
+            self.addGroupItem("%d spaces" % i, "width", i, self.setWidth)
+            for i in range(2,9)
+            ]
+
         # Items are selected and enabled via the onEditorsCurrentChanged slot    
         self.setEnabled(False)
         
     def setEnabled(self, enabled):
         """ Enable or disable all items. If disabling, also uncheck all items """
-        for child in self.actionsForGroup("style") + self.actionsForGroup("width"):
+        for child in self._items:
             child.setEnabled(enabled)
             if not enabled:
                 child.setChecked(False)
@@ -175,13 +251,13 @@ class IndentationMenu(Menu):
 class FileMenu(Menu):
     def build(self):
          
-        self.addAction("New", iep.editors.newFile)
-        self.addAction("Open", iep.editors.openFile)
-        self.addAction("Save", iep.editors.saveFile)
-        self.addAction("Save as", iep.editors.saveFileAs)
-        self.addAction("Save all", iep.editors.saveAllFiles)
-        self.addAction("Close", iep.editors.closeFile)
-        self.addAction("Close all", iep.editors.closeAllFiles)
+        self.addItem("New", iep.editors.newFile)
+        self.addItem("Open", iep.editors.openFile)
+        self.addItem("Save", iep.editors.saveFile)
+        self.addItem("Save as", iep.editors.saveFileAs)
+        self.addItem("Save all", iep.editors.saveAllFiles)
+        self.addItem("Close", iep.editors.closeFile)
+        self.addItem("Close all", iep.editors.closeAllFiles)
         
         self.addSeparator()
         #TODO: style
@@ -189,8 +265,8 @@ class FileMenu(Menu):
         #TODO: line endings, encoding
         self.addSeparator()
   
-        self.addAction("Restart IEP", iep.main.restart)
-        self.addAction("Quit IEP", iep.main.close)
+        self.addItem("Restart IEP", iep.main.restart)
+        self.addItem("Quit IEP", iep.main.close)
         
 class EditMenu(Menu):
     def build(self):
@@ -224,9 +300,9 @@ class EditMenu(Menu):
     
 class EdgeColumnMenu(Menu):
     def build(self):
-        self.addOptionItem("None", self.changed,0, False, "edge")
+        self.addGroupItem("None", "edge", 0, self.changed, 0)
         for value in range(60,130,10):
-            self.addOptionItem(str(value), self.changed, value, False, "edge")
+            self.addGroupItem(str(value), "edge", value, self.changed)
         
         self.setCheckedOption("edge", iep.config.view.edgeColumn)
         
@@ -245,7 +321,7 @@ class QtThemeMenu(Menu):
             title = styleName
             if styleName.lower() == iep.defaultQtStyleName.lower():
                 title+=" (default)"
-            self.addOptionItem(title, self.changed, styleName.lower(), False, "style")
+            self.addGroupItem(title, "style", styleName.lower(), self.changed)
             
         #Select the one that is default from the iep config
         self.setCheckedOption("style", iep.config.view.qtstyle.lower())
@@ -276,29 +352,26 @@ class ViewMenu(Menu):
 
     def addEditorItem(self, name, param):
         """ Create a boolean item that reperesents a property of the editors,
-        whose value is stored in iep.config.view """
+        whose value is stored in iep.config.view.param """
         if hasattr(iep.config.view, param):
             default = getattr(iep.config.view, param)
         else:
             default = True
             
-        self.addOptionItem(name, 
-            lambda x: self._configEditor(param, x),
-            selected = default)
+        self.addCheckItem(name, self._configEditor, param, default)
+        
             
-    def _configEditor(self, param, value):
+    def _configEditor(self, state, param):
         """
         Callback for addEditorItem items
         """
         #Store this parameter in the config
-        setattr(iep.config.view, param, value)
+        setattr(iep.config.view, param, state)
         #Apply to all editors, translate e.g. showWhitespace to setShowWhitespace
         setter = 'set' + param[0].upper() + param[1:]
         for editor in iep.editors:
-            getattr(editor,setter)(value)
-            
+            getattr(editor,setter)(state)
 
-        
     def _selectShell(self):
         shell = iep.shells.getCurrentShell()
         if shell:
@@ -309,7 +382,7 @@ class ViewMenu(Menu):
         if editor:
             editor.setFocus()
 
-class ShellsMenu(Menu):
+class ShellMenu(Menu):
     def __init__(self, *args, **kwds):
         self._shellCreateActions = []
         self._shellActions = []
@@ -339,13 +412,12 @@ class ShellsMenu(Menu):
         """ Remove, then add the items for the creation of each shell """
         for action in self._shellCreateActions:
             self.removeAction(action)
-        
-        for i, config in enumerate(iep.config.shellConfigs):
-            self._shellCreateActions.append(
-                self.addItem('Create shell %s: %s' % (i, config.name),
-                    iep.shells.addShell, config)
-                )
-                    
+            
+        self._shellCreateActions = [
+            self.addItem('Create shell %s: (%s)' % (i+1, config.name),
+                iep.shells.addShell, config)
+            for i, config in enumerate(iep.config.shellConfigs) ] 
+           
 
     def shellAction(self, action):
         """ Call the method specified by 'action' on the current shell """
@@ -361,7 +433,216 @@ class ShellsMenu(Menu):
         d.exec_()
         # Update the shells items in the menu
         self.updateShells()
-            
+
+class RunMenu(Menu):
+    def build(self):
+        self.addItem('Run selected lines', self.runSelected)
+        self.addItem('Run cell', self.runCell)
+        #In the runFile calls, the parameter specifies (asFile, mainFile)
+        self.addItem('Run file', self.runFile,(False, False))
+        self.addItem('Run main file', self.runFile,(False, True))
+        self.addSeparator()
+        self.addItem('Run file as script', self.runFile, (True, False))
+        self.addItem('Run main file as script', self.runFile, (True, True))
+        self.addSeparator()
+        self.addItem('Help on running code', self.showHelp)
+    
+    
+    def showHelp(self, value):
+        """ Show more information about ways to run code. """
+        
+        # Get file item
+        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        
+        # Select line number
+        if fileItem:
+            linenr = 77
+            editor = fileItem._editor
+            editor.gotoLine(linenr)
+            iep.editors.getCurrentEditor().setFocus()
+    
+    
+    def getShellAndEditor(self, what, mainEditor=False):
+        """ Get the shell and editor. Shows a warning dialog when one of
+        these is not available.
+        """
+        # Init empty error message
+        msg = ''
+        # Get shell
+        shell = iep.shells.getCurrentShell()
+        if shell is None:
+            msg += "No shell to run code in. "
+        # Get editor
+        if mainEditor:
+            editor = iep.editors.getMainEditor()
+            if editor is None:
+                msg += "The is no main file selected."
+        else:
+            editor = iep.editors.getCurrentEditor()
+            if editor is None:
+                msg += "No editor selected."
+        # Show error dialog
+        if msg:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Could not run")
+            m.setText("Could not run " + what + ":\n\n" + msg)
+            m.setIcon(m.Warning)
+            m.exec_()
+        # Return
+        return shell, editor
+        
+
+    def runSelected(self, value):
+        """ Run the selected whole lines in the current shell. """
+        # Get editor and shell
+        shell, editor = self.getShellAndEditor('selected lines')
+        if not shell or not editor:
+            return
+        # Get position to sample between (only sample whole lines)
+        screenCursor = editor.textCursor() #Current selection in the editor
+        runCursor = editor.textCursor() #The part that should be run
+        
+        runCursor.setPosition(screenCursor.selectionStart())
+        runCursor.movePosition(runCursor.StartOfBlock) #This also moves the anchor
+        lineNumber = runCursor.blockNumber()
+        
+        runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
+        if not runCursor.atBlockStart():
+            #If the end of the selection is at the beginning of a block, don't extend it
+            runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
+        
+        # Sample code 
+        code = runCursor.selectedText().replace('\u2029', '\n') 
+        # Show the result to user and set back
+        editor.setTextCursor(runCursor)
+        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setTextCursor(screenCursor)
+        # Execute code
+        fname = editor.id() # editor._name or editor._filename
+        shell.executeCode(code, fname, lineNumber)
+    
+    def runCell(self, value):
+        """ Run the code between two cell separaters ('##'). """
+        #TODO: ignore ## in multi-line strings
+        
+        # Get editor and shell
+        shell, editor = self.getShellAndEditor('cell')
+        if not shell or not editor:
+            return 
+        # Get current cell
+        screenCursor = editor.textCursor() #Current selection in the editor
+        runCursor = editor.textCursor() #The part that should be run
+        
+        # Move up until the start of document or right after a line starting with ##
+        runCursor.movePosition(runCursor.StartOfBlock)
+        while True:
+            if not runCursor.block().previous().isValid():
+                break #Start of document
+            if runCursor.block().text().lstrip().startswith('##'):
+                # ## line, move to the line following this one
+                if not runCursor.block().next().isValid():
+                    #The user tried to execute the last line of a file which
+                    #started with ##. Do nothing
+                    return
+                runCursor.movePosition(runCursor.NextBlock)
+                break
+            runCursor.movePosition(runCursor.PreviousBlock)
+        
+        #This is the line number of the start
+        lineNumber = runCursor.blockNumber()
+        
+        #Move down until a line before one starting with ## or to end of document
+        while True:
+            if runCursor.block().text().lstrip().startswith('##'):
+                #This line starts with ##, move to the end of the previous one
+                runCursor.movePosition(runCursor.Left,runCursor.KeepAnchor)
+                break
+            if not runCursor.block().next().isValid():
+                #Last block of the document, move to the end of the line
+                runCursor.movePosition(runCursor.EndOfLine,runCursor.KeepAnchor)
+                break
+            runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
+        
+        
+        # Sample code 
+        code = runCursor.selectedText().replace('\u2029', '\n')
+        # Show the result to user and set back
+        editor.setTextCursor(runCursor)
+        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
+        editor.repaint()
+        time.sleep(0.200)
+        editor.setTextCursor(screenCursor)
+        # Execute code
+        fname = editor.id() # editor._name or editor._filename
+        shell.executeCode(code, fname, lineNumber)
+    
+    
+    def _getCodeOfFile(self, editor):
+        # Obtain source code
+        text = editor.toPlainText()
+        # TODO:?? Show the result to user and set back
+        #i1, i2 = editor.getPosition(), editor.getAnchor()
+        #editor.setPosition(0); editor.setAnchor(editor.length())
+        #editor.update()
+        #editor.repaint()
+        #time.sleep(0.200)
+        #editor.setPosition(i1); editor.setAnchor(i2)
+        # Get filename and return 
+        fname = editor.id() # editor._name or editor._filename
+        return fname, text
+    
+    
+    def runFile(self, runMode, givenEditor = None):
+        """ Run a file
+         runMode is a tuple (asScript, mainFile)
+         """
+        asScript, mainFile = runMode
+         
+        # Get editor and shell
+        description = 'main file' if mainFile else 'file'
+        if asScript:
+            description+= ' (as script)'
+        
+        shell, editor = self.getShellAndEditor(description, mainFile)
+        if givenEditor:
+            editor = givenEditor
+        if not shell or not editor:
+            return        
+        
+        if asScript:
+            # Go
+            self._runScript(editor, shell)
+        else:
+            # Obtain source code and fname
+            fname, text = self._getCodeOfFile(editor)
+            shell.executeCode(text, fname, -1)
+    
+
+    
+    
+    # todo: pass as code, not filename
+    def _runScript(self, editor, shell):
+        # Obtain fname and try running
+        err = ""
+        if editor._filename:
+            if iep.editors.saveFile(editor):
+                shell.restart(editor._filename)
+            else:
+                err = "Could not save the file."
+        else:
+            err = "Can only run scripts that are in the file system."
+        # If not success, notify
+        if err:
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle("Could not run script.")
+            m.setText(err)
+            m.setIcon(m.Warning)
+            m.exec_()
+
+
+
 class ToolsMenu(Menu):
     def __init__(self, *args, **kwds):
         self._toolActions = []
@@ -378,7 +659,7 @@ class ToolsMenu(Menu):
         
         # Add all tools, with checkmarks for those that are active
         self._toolActions = [
-            self.addOptionItem(tool.name, tool.menuLauncher, 
+            self.addCheckItem(tool.name, tool.menuLauncher, 
                 selected = bool(tool.instance))
             for tool in iep.toolManager.getToolInfo()
             ]
@@ -409,21 +690,88 @@ def buildMenus(menuBar):
     """
     Build all the menus
     """
-    
-    menuBar.addMenu(FileMenu(menuBar, "File"))
-    menuBar.addMenu(EditMenu(menuBar, "Edit"))
-    menuBar.addMenu(ViewMenu(menuBar, "View"))
-    menuBar.addMenu(ShellsMenu(menuBar, "Shells"))
-    menuBar.addMenu(ToolsMenu(menuBar, "Tools"))
-    menuBar.addMenu(HelpMenu(menuBar, "Help"))
-
+    menus = [
+        FileMenu(menuBar, "File"),
+        EditMenu(menuBar, "Edit"),
+        ViewMenu(menuBar, "View"),
+        SettingsMenu(menuBar, "Settings"),
+        ShellMenu(menuBar, "Shell"),
+        RunMenu(menuBar, "Run"),
+        ToolsMenu(menuBar, "Tools"),
+        HelpMenu(menuBar, "Help")
+        ]
+    for menu in menus:
+        menuBar.addMenu(menu)
+    menuBar._menus = menus
 
 
 BaseMenu=object
 
+class SettingsMenu(Menu):
+    def build(self):
+        #TODO: auto indent is not linked to config settings
+        #TODO: call tips not yet implemented
+        self.addBoolSetting('Automatically indent', 'autoIndent',
+            lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
+        self.addBoolSetting('Enable autocompletion', 'autoComplete')
+        self.addBoolSetting('Autocomplete keywords', 'autoComplete_keywords')
+        self.addSeparator()
+        self.addItem('Edit key mappings...', lambda: KeymappingDialog().exec_())
+        self.addItem('Edit syntax styles...', self.editStyles)
+        self.addItem('Advanced settings...', self.advancedSettings)
+        
+    def editStyles(self, value):
+        """ Edit the style file. """
+        text = """
+        The syntax styling can be changed by editing the style
+        sheet, which will be opened after you press OK. 
+        \r\r
+        The changes will be applied as soon as you'll save the file.
+        """
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("Edit syntax styling")
+        m.setText(unwrapText(text))
+        m.setIcon(m.Information)
+        m.setStandardButtons(m.Ok | m.Cancel)
+        m.setDefaultButton(m.Ok)
+        result = m.exec_()
+        if result == m.Ok:
+            iep.editors.loadFile(os.path.join(iep.appDataDir,'styles.ssdf'))
+            
+    def advancedSettings(self, value):
+        """ How to edit the advanced settings. """
+        text = """
+        More settings are available via the logger-tool:
+        \r\r
+        - Advanced settings are stored in the struct "iep.config.advanced".
+          Type "print(iep.config.advanced)" to view all advanced settings.\r
+        - Call "iep.resetConfig()" to reset all settings.\r
+        - Call "iep.resetConfig(True)" to reset all settings and state.\r
+        - Call "iep.resetStyles() to reset the style sheet to the default.
+        \r\r
+        Note that most settings require a restart for the change to
+        take effect.
+        """
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("Advanced settings")
+        m.setText(unwrapText(text))
+        m.setIcon(m.Information)
+        m.exec_()
+    
+    def addBoolSetting(self, properties, key, callback = None):
+        def _callback(state, key):
+            setattr(iep.config.settings, key, state)
+            if callback is not None:
+                callback(state, key)
+                
+        self.addCheckItem(properties, 
+            _callback, 
+            key, 
+            getattr(iep.config.settings,key)) #Default value
+    
 
 
-class SettingsMenu(BaseMenu):
+class xSettingsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
@@ -525,21 +873,7 @@ class SettingsMenu(BaseMenu):
                 if hasattr(s, 'updateFontSizeToMatch80Columns'):
                     s.updateFontSizeToMatch80Columns()
     
-    def fun_autoComplete(self, value):
-        """ Show auto-completion list queried from editor and shell. """
-        if value is None:
-            return bool(iep.config.settings.autoComplete)
-        else:
-            value = not bool(iep.config.settings.autoComplete)
-            iep.config.settings.autoComplete = value
-    
-    def fun_autoComplete_kw(self, value):
-        """ Show Python keywords in the autocompletion list. """
-        if value is None:
-            return bool(iep.config.settings.autoComplete_keywords)
-        else:
-            value = not bool(iep.config.settings.autoComplete_keywords)
-            iep.config.settings.autoComplete_keywords = value
+
     
     def fun_autoComplete_case(self, value):
         """ Whether the autocompletion is case sensitive or not. """
@@ -598,44 +932,8 @@ class SettingsMenu(BaseMenu):
         dialog = KeymappingDialog()
         dialog.exec_()
     
-    def fun_editStyles(self, value):
-        """ Edit the style file. """
-        text = """
-        The syntax styling can be changed by editing the style
-        sheet, which will be opened after you press OK. 
-        \r\r
-        The changes will be applied as soon as you'll save the file.
-        """
-        m = QtGui.QMessageBox(self)
-        m.setWindowTitle("Edit syntax styling")
-        m.setText(unwrapText(text))
-        m.setIcon(m.Information)
-        m.setStandardButtons(m.Ok | m.Cancel)
-        m.setDefaultButton(m.Ok)
-        result = m.exec_()
-        if result == m.Ok:
-            iep.editors.loadFile(os.path.join(iep.appDataDir,'styles.ssdf'))
-    
-    def fun_advancedSettings(self, value):
-        """ How to edit the advanced settings. """
-        text = """
-        More settings are available via the logger-tool:
-        \r\r
-        - Advanced settings are stored in the struct "iep.config.advanced".
-          Type "print(iep.config.advanced)" to view all advanced settings.\r
-        - Call "iep.resetConfig()" to reset all settings.\r
-        - Call "iep.resetConfig(True)" to reset all settings and state.\r
-        - Call "iep.resetStyles() to reset the style sheet to the default.
-        \r\r
-        Note that most settings require a restart for the change to
-        take effect.
-        """
-        m = QtGui.QMessageBox(self)
-        m.setWindowTitle("Advanced settings")
-        m.setText(unwrapText(text))
-        m.setIcon(m.Information)
-        m.exec_()
-    
+
+
     def fun_saveSettings(self, value):
         """ Iep saves the settings when exiting, but you can also save now. """
         iep.main.saveConfig()
@@ -644,268 +942,7 @@ class SettingsMenu(BaseMenu):
         # a file-changed message will appear
         iep.editors._findReplace._findText.setFocus()
         widget.setFocus()
-
-
-class xToolsMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Reload tools', self.fun_reload) )
-        addItem( None )
-        
-        #for tool in iep.toolManager.loadToolInfo():
-        #    addItem( MI(tool.name, tool.menuLauncher, 
-        #               bool(tool.instance), tool.description) )
-        
-        for tool in iep.toolManager.getToolInfo():
-            item = addItem( MI(tool.name, self.fun_launcher, 
-                               bool(tool.instance), tool.description) )
-            item.toggled.connect(tool.menuLauncher)
-        
-        # Rebuild the menu when the tool instances change, ensure unique connection
-        iep.toolManager.toolInstanceChange.connect(self.fun_update, type = QtCore.Qt.UniqueConnection)
-
-    def fun_launcher(self, value):
-        pass
-        
-    def fun_reload(self, value):
-        """ Reload all tools (intended for helping tool development). """
-        iep.toolManager.reloadTools()
     
-    def fun_update(self):
-        iep.callLater(self.fill)
-
-
-
-    
-class RunMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Run selected lines', self.fun_runSelected) )
-        addItem( MI('Run cell', self.fun_runCell) )
-        addItem( MI('Run file', self.fun_runFile) )
-        addItem( MI('Run main file', self.fun_runMainFile) )
-        addItem( None )
-        addItem( MI('Run file as script', self.fun_runFileAsScript))
-        addItem( MI('Run main file as script', self.fun_runMainFileAsScript))
-        addItem( None )
-        addItem( MI('Help on running code', self.fun_showHelp))
-    
-    
-    def fun_showHelp(self, value):
-        """ Show more information about ways to run code. """
-        
-        # Get file item
-        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
-        
-        # Select line number
-        if fileItem:
-            linenr = 90
-            editor = fileItem._editor
-            editor.gotoLine(linenr)
-            iep.editors.getCurrentEditor().setFocus()
-    
-    
-    def getShellAndEditor(self, what, mainEditor=False):
-        """ Get the shell and editor. Shows a warning dialog when one of
-        these is not available.
-        """
-        # Init empty error message
-        msg = ''
-        # Get shell
-        shell = iep.shells.getCurrentShell()
-        if shell is None:
-            msg += "No shell to run code in. "
-        # Get editor
-        if mainEditor:
-            editor = iep.editors.getMainEditor()
-            if editor is None:
-                msg += "The is no main file selected."
-        else:
-            editor = iep.editors.getCurrentEditor()
-            if editor is None:
-                msg += "No editor selected."
-        # Show error dialog
-        if msg:
-            m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Could not run")
-            m.setText("Could not run " + what + ":\n\n" + msg)
-            m.setIcon(m.Warning)
-            m.exec_()
-        # Return
-        return shell, editor
-        
-
-    def fun_runSelected(self, value):
-        """ Run the selected whole lines in the current shell. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('selected lines')
-        if not shell or not editor:
-            return
-        # Get position to sample between (only sample whole lines)
-        screenCursor = editor.textCursor() #Current selection in the editor
-        runCursor = editor.textCursor() #The part that should be run
-        
-        runCursor.setPosition(screenCursor.selectionStart())
-        runCursor.movePosition(runCursor.StartOfBlock) #This also moves the anchor
-        lineNumber = runCursor.blockNumber()
-        
-        runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
-        if not runCursor.atBlockStart():
-            #If the end of the selection is at the beginning of a block, don't extend it
-            runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
-        
-        # Sample code 
-        code = runCursor.selectedText().replace('\u2029', '\n') 
-        # Show the result to user and set back
-        editor.setTextCursor(runCursor)
-        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setTextCursor(screenCursor)
-        # Execute code
-        fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber)
-    
-    def fun_runCell(self, value):
-        """ Run the code between two cell separaters ('##'). """
-        #TODO: ignore ## in multi-line strings
-        
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('cell')
-        if not shell or not editor:
-            return 
-        # Get current cell
-        screenCursor = editor.textCursor() #Current selection in the editor
-        runCursor = editor.textCursor() #The part that should be run
-        
-        # Move up until the start of document or right after a line starting with ##
-        runCursor.movePosition(runCursor.StartOfBlock)
-        while True:
-            if not runCursor.block().previous().isValid():
-                break #Start of document
-            if runCursor.block().text().lstrip().startswith('##'):
-                # ## line, move to the line following this one
-                if not runCursor.block().next().isValid():
-                    #The user tried to execute the last line of a file which
-                    #started with ##. Do nothing
-                    return
-                runCursor.movePosition(runCursor.NextBlock)
-                break
-            runCursor.movePosition(runCursor.PreviousBlock)
-        
-        #This is the line number of the start
-        lineNumber = runCursor.blockNumber()
-        
-        #Move down until a line before one starting with ## or to end of document
-        while True:
-            if runCursor.block().text().lstrip().startswith('##'):
-                #This line starts with ##, move to the end of the previous one
-                runCursor.movePosition(runCursor.Left,runCursor.KeepAnchor)
-                break
-            if not runCursor.block().next().isValid():
-                #Last block of the document, move to the end of the line
-                runCursor.movePosition(runCursor.EndOfLine,runCursor.KeepAnchor)
-                break
-            runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
-        
-        
-        # Sample code 
-        code = runCursor.selectedText().replace('\u2029', '\n')
-        # Show the result to user and set back
-        editor.setTextCursor(runCursor)
-        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setTextCursor(screenCursor)
-        # Execute code
-        fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber)
-    
-    
-    def _getCodeOfFile(self, editor):
-        # Obtain source code
-        text = editor.toPlainText()
-        # TODO:?? Show the result to user and set back
-        #i1, i2 = editor.getPosition(), editor.getAnchor()
-        #editor.setPosition(0); editor.setAnchor(editor.length())
-        #editor.update()
-        #editor.repaint()
-        #time.sleep(0.200)
-        #editor.setPosition(i1); editor.setAnchor(i2)
-        # Get filename and return 
-        fname = editor.id() # editor._name or editor._filename
-        return fname, text
-    
-    
-    def fun_runFile(self, value, givenEditor=None):
-        """ Run the current file in the current shell. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('file')
-        if givenEditor:
-            editor = givenEditor
-        if not shell or not editor:
-            return        
-        # Obtain source code and fname
-        fname, text = self._getCodeOfFile(editor)
-        # Execute
-        shell.executeCode(text, fname, -1)
-    
-    def fun_runMainFile(self, value=None):
-        """ Run the main file in the current shell. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('main file', True)
-        if not shell or not editor:
-            return 
-        # Run code
-        fname, text = self._getCodeOfFile(editor)
-        shell.executeCode(text, fname, -1)
-    
-    
-    def fun_runFileAsScript(self, value, givenEditor=None):
-        """ Restart shell, and run the current file as a script. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('file (as script)')
-        if givenEditor:
-            editor = givenEditor
-        if not shell or not editor:
-            return        
-        # Go
-        self._runScript(editor, shell)
-    
-    
-    def fun_runMainFileAsScript(self, value):
-        """ Restart shell, and run the main file as a script. """
-        # Get editor and shell
-        shell, editor = self.getShellAndEditor('main file (as script)', True)
-        if not shell or not editor:
-            return 
-        # Go
-        self._runScript(editor, shell)
-    
-    
-    # todo: pass as code, not filename
-    def _runScript(self, editor, shell):
-        # Obtain fname and try running
-        err = ""
-        if editor._filename:
-            if iep.editors.saveFile(editor):
-                shell.restart(editor._filename)
-            else:
-                err = "Could not save the file."
-        else:
-            err = "Can only run scripts that are in the file system."
-        # If not success, notify
-        if err:
-            m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Could not run script.")
-            m.setText(err)
-            m.setIcon(m.Warning)
-            m.exec_()
-
 
 def expandVersion(version):        
         parts = []
@@ -1066,6 +1103,23 @@ def getShortcut( fullName):
 
 ## Classes to enable editing the key mappings
 
+def translateShortcutToOSNames(shortcut):
+    """
+    Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
+    Meta -> Windows for windows
+    """
+    
+    if sys.platform == 'darwin':
+        replace = (('Ctrl+','\u2318'),('Shift+','\u21E7'),
+                    ('Alt+','\u2325'),('Meta+','^'))
+    else:
+        replace = ()
+    
+    for old, new in replace:
+        shortcut = shortcut.replace(old, new)
+        
+    return shortcut
+
 class KeyMapModel(QtCore.QAbstractItemModel):
     """ The model to view the structure of the menu and the shortcuts
     currently mapped. """
@@ -1076,24 +1130,8 @@ class KeyMapModel(QtCore.QAbstractItemModel):
     
     def setRootMenu(self, menu):
         """ Call this after starting. """
-        menu.fill()
         self._root = menu
-    def translateShortcutToOSNames(self,shortcut):
-        """
-        Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
-        Meta -> Windows for windows
-        """
-        
-        if sys.platform == 'darwin':
-            replace = (('Ctrl+','\u2318'),('Shift+','\u21E7'),
-                        ('Alt+','\u2325'),('Meta+','^'))
-        else:
-            replace = ()
-        
-        for old, new in replace:
-            shortcut = shortcut.replace(old, new)
-            
-        return shortcut
+
     def data(self, index, role):
         if not index.isValid() or role not in [0, 8]:
             return None
@@ -1117,8 +1155,8 @@ class KeyMapModel(QtCore.QAbstractItemModel):
                 if shortcuts[1]:
                     key2 = shortcuts[1]
         # translate to text for the user
-        key1 = self.translateShortcutToOSNames(key1)
-        key2 = self.translateShortcutToOSNames(key2)
+        key1 = translateShortcutToOSNames(key1)
+        key2 = translateShortcutToOSNames(key2)
         
         # obtain value
         value = [value,key1,key2][index.column()]
@@ -1214,13 +1252,26 @@ class KeyMapLineEdit(QtGui.QLineEdit):
     
     def __init__(self, *args, **kwargs):
         QtGui.QLineEdit.__init__(self, *args, **kwargs)
-        self.setText('<enter key combination here>')
+        self.clear()
+
         
         # keep a list of native keys, so that we can capture for example
         # "shift+]". If we would use text(), we can only capture "shift+}"
         # which is not a valid shortcut.
         self._nativeKeys = {}
-    
+
+    # Override setText, text and clear, so as to be able to set shortcuts like
+    # Ctrl+A, while the actually displayed value is an OS shortcut (e.g. on Mac
+    # Cmd-symbol + A)
+    def setText(self, text):
+        QtGui.QLineEdit.setText(self, translateShortcutToOSNames(text))
+        self._shortcut = text
+    def text(self):
+        return self._shortcut
+    def clear(self):
+        QtGui.QLineEdit.setText(self, '<enter key combination here>')
+        self._shortcut = ''
+            
     def focusInEvent(self, event):
         #self.clear()
         QtGui.QLineEdit.focusInEvent(self, event)
@@ -1349,10 +1400,10 @@ class KeyMapEditDialog(QtGui.QDialog):
         # set initial value
         if fullname in iep.config.shortcuts:
             current = iep.config.shortcuts[fullname]
-            if not current.count(','):
+            if ',' not in current:
                 current += ','
             current = current.split(',')
-            self._line.setText( current[int(not isprimary)] )
+            self._line.setText( current[0] if isprimary else current[1] )
             
         
     def onClear(self):
@@ -1475,8 +1526,8 @@ class KeymappingDialog(QtGui.QDialog):
     
     def closeEvent(self, event):
         # update key setting
-        for menu in iep.main.menuBar()._menus:
-            menu.fill()
+        iep.keyMapper.keyMappingChanged.emit()
+        
         event.accept()
     
     def onTabSelect(self):

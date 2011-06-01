@@ -206,18 +206,6 @@ loadConfig()
 # Init default style name (set in main.restoreIepState())
 defaultQtStyleName = ''
 
-def big():
-    for e in editors:
-        f=e.font()
-        f.setPointSize(25)
-        e.setFont(f)
-        e.setShowLineNumbers(False)
-        e.setShowLineNumbers(True)
-    for s in shells:
-        f=s.font()
-        f.setPointSize(25)
-        s.setFont(f)
-
 
 if __name__ == "__main__":
     startIep()

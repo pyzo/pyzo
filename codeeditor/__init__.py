@@ -19,6 +19,7 @@ from .extensions.appearance import (    HighlightCurrentLine,
 from .extensions.behaviour import (     Indentation,
                                         HomeKey,
                                         EndKey,
+                                        AutoIndent,
                                         PythonAutoIndent
                                    )
 from .extensions.autocompletion import AutoCompletion
@@ -44,6 +45,7 @@ class CodeEditor(
     HomeKey,
     EndKey,
     
+    AutoIndent,
     PythonAutoIndent,
     
     SyntaxHighlighting,
