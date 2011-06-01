@@ -1,0 +1,1 @@
+(lvi) Icans are still now in ../icons and here. Paths should be fixed in .ui files. The nicest solution is probably to generate a QRC file with all resources.
