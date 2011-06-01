@@ -6,7 +6,7 @@ Code editor extensions that change its behaviour (i.e. how it reacts to keys)
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
 
-from ..misc import ustr
+from ..misc import ustr, ce_option
 
 class HomeKey(object):
     
@@ -107,12 +107,36 @@ class Indentation(object):
         
         super(Indentation, self).keyPressEvent(event)
         
+class AutoIndent(object):
+    """
+    Auto indentation. This extension only adds the autoIndent property, for the
+    actual indentation, the editor should derive from some AutoIndenter object
+    """
+    
+    def autoIndent(self):
+        """ autoIndent()
+        
+        Get whether auto indentation is enabled.
+        
+        """
+        return self.__autoIndent
+    
+    @ce_option(True)
+    def setAutoIndent(self,value):
+        """ setAutoIndent(value)
+        
+        Set whether to enable auto indentation.  
+        
+        """
+        self.__autoIndent = bool(value)
         
         
 class PythonAutoIndent(object):
     
     def keyPressEvent(self,event):
         super(PythonAutoIndent, self).keyPressEvent(event)
+        if not self.autoIndent():
+            return
         
         #This extension code is run *after* key is processed by QPlainTextEdit
         if event.key() in (Qt.Key_Enter,Qt.Key_Return):
