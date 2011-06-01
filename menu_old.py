@@ -978,8 +978,8 @@ class ShellMenu(BaseMenu):
     
     def fun_config(self, value):
         """ Edit, add and remove configurations for the shells. """
-        from shellStack import ShellInfoDialog 
-        d = ShellInfoDialog()
+        from shellStack import ShellConfigDialog 
+        d = ShellConfigDialog()
         d.exec_()
     
     

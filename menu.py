@@ -356,8 +356,8 @@ class ShellsMenu(Menu):
             
     def editConfig(self):
         """ Edit, add and remove configurations for the shells. """
-        from shellStack import ShellInfoDialog 
-        d = ShellInfoDialog()
+        from shellStack import ShellConfigDialog 
+        d = ShellConfigDialog()
         d.exec_()
         # Update the shells items in the menu
         self.updateShells()
