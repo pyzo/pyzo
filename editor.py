@@ -255,10 +255,10 @@ class IepEditor(BaseTextCtrl):
         self._name = '<TMP>'
         
         # View settings
-        self.setShowWhitespace(iep.config.view.showWhiteSpace)
+        self.setShowWhitespace(iep.config.view.showWhitespace)
         #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
         self.setShowLineEndings(iep.config.view.showLineEndings)
-        self.setShowIndentationGuides(iep.config.view.showIndentGuides)
+        self.setShowIndentationGuides(iep.config.view.showIndentationGuides)
         #
         self.setWrap(iep.config.view.wrapText)
         self.setHighlightCurrentLine(iep.config.view.highlightCurrentLine)

@@ -1459,7 +1459,7 @@ class EditorTabs(QtGui.QWidget):
     def closeAllFiles(self):
         """Close all files"""
         for editor in self:
-            self.close(editor)
+            self.closeFile(editor)
     
     def saveEditorState(self):
         """ Save the editor's state configuration.
