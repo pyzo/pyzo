@@ -22,9 +22,6 @@ from iepLogging import print
 
 ssdf = iep.ssdf
 
-ShellCfgDlg, ShellCfgDlgBase = uic.loadUiType("gui/shells_dialog.ui")
-ShellCfgTab, ShellCfgTabBase = uic.loadUiType("gui/shell_tab.ui")
-
 class ShellStack(QtGui.QWidget):
     """ The shell stack widget provides a stack of shells,
     and makes sure they are of the correct width such that 
@@ -46,7 +43,12 @@ class ShellStack(QtGui.QWidget):
         self._boxLayout.setSpacing(0)
         
         # create tab widget
-        self._tabs = CompactTabWidget(self)
+        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
+            # New shell tab widget uses the new menu structure
+            self._tabs = ShellTabWidget(self)
+            #self._tabs = CompactTabWidget(self)
+        else:
+            self._tabs = CompactTabWidget(self)
         
         # add widgets
         self._boxLayout.addWidget(self._tabs, 1)
@@ -159,7 +161,17 @@ class ShellStack(QtGui.QWidget):
             return None
         else:
             return w
+
+class ShellTabWidget(CompactTabWidget):
+    def __init__(self, parent):
+        CompactTabWidget.__init__(self, parent)
     
+    def addCtxMenu(self):
+        # This can only be done after the menu builder is loaded
+        from menu import ShellContextMenu
+        self._menu = ShellContextMenu(self, "ShellCtxMenu")
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p)))
 
 class DebugControl(QtGui.QToolButton):
     """ A button that can be used for post mortem debuggin. 
@@ -285,7 +297,18 @@ class DebugControl(QtGui.QToolButton):
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
             editor.setTextCursor(cursor)
 
+## Shell configuration dialog
+
+# Load classes for configuration dialog and tabs
+ShellCfgDlg, ShellCfgDlgBase = uic.loadUiType("gui/shells_dialog.ui")
+ShellCfgTab, ShellCfgTabBase = uic.loadUiType("gui/shell_tab.ui")
+
 class ShellConfigTab(ShellCfgTab, ShellCfgTabBase):
+    """
+    Implements a shell configuration tab in the configuration dialog
+    """
+    
+    # Maps GUI toolkits to corresponding radiobuttons
     _tkButtons = {"none": "rbNone",
                   "tk": "rbTk",
                   "wx": "rbWx",
@@ -424,7 +447,11 @@ class ShellConfigTab(ShellCfgTab, ShellCfgTabBase):
         else:
             self.edtStartup.setText(self._customStartup)
 
-class ShellConfigDialog(ShellCfgDlg, ShellCfgDlgBase):    
+class ShellConfigDialog(ShellCfgDlg, ShellCfgDlgBase):  
+    """
+    Implements the shell configuration dialog.
+    """
+    
     def __init__(self, *args):
         ShellCfgDlgBase.__init__(self, *args)
         self.setupUi(self)

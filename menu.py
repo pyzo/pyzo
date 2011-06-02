@@ -394,7 +394,7 @@ class ShellMenu(Menu):
         for shellAction in self._shellActions:
             shellAction.setEnabled(bool(iep.shells.getCurrentShell()))
             
-    def build(self):
+    def build(self, isCtxMenu = False):
         """ Create the items for the shells menu """
         self._shellActions = [
             self.addItem('Interrupt current shell', self.shellAction, "interrupt"),
@@ -402,11 +402,12 @@ class ShellMenu(Menu):
             self.addItem('Restart current shell', self.shellAction, "restart"),
             self.addItem('Clear screen', self.shellAction, "clearScreen"),
             ]
-            
-        self.addSeparator()
-        self.addItem('Edit shell configurations...', self.editConfig)
-        # Add shell configs
-        self.updateShells()    
+        
+        if not isCtxMenu:
+            self.addSeparator()
+            self.addItem('Edit shell configurations...', self.editConfig)
+            # Add shell configs
+            self.updateShells()    
     
     def updateShells(self):
         """ Remove, then add the items for the creation of each shell """
@@ -433,6 +434,13 @@ class ShellMenu(Menu):
         d.exec_()
         # Update the shells items in the menu
         self.updateShells()
+
+class ShellContextMenu(ShellMenu):
+    def __init__(self, *args, **kwds):
+        ShellMenu.__init__(self, *args, **kwds)
+    
+    def build(self):
+        ShellMenu.build(self, isCtxMenu = True)
 
 class RunMenu(Menu):
     def build(self):
