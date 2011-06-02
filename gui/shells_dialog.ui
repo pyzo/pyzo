@@ -106,7 +106,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>add.png</normaloff>add.png</iconset>
+         <normaloff>icons/add.png</normaloff>icons/add.png</iconset>
        </property>
       </widget>
      </item>
@@ -117,7 +117,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>delete.png</normaloff>delete.png</iconset>
+         <normaloff>icons/delete.png</normaloff>icons/delete.png</iconset>
        </property>
       </widget>
      </item>
