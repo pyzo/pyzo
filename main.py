@@ -134,9 +134,6 @@ class MainWindow(QtGui.QMainWindow):
             import menu
             iep.keyMapper = menu.KeyMapper()
             menu.buildMenus(self.menuBar())
-            
-            # Add context menu to the shell tabs
-            iep.shells._tabs.addCtxMenu()
         else:
             from menu_old import MenuHelper
             self._menuhelper = MenuHelper(self.menuBar())

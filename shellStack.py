@@ -43,12 +43,7 @@ class ShellStack(QtGui.QWidget):
         self._boxLayout.setSpacing(0)
         
         # create tab widget
-        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            # New shell tab widget uses the new menu structure
-            self._tabs = ShellTabWidget(self)
-            #self._tabs = CompactTabWidget(self)
-        else:
-            self._tabs = CompactTabWidget(self)
+        self._tabs = CompactTabWidget(self)
         
         # add widgets
         self._boxLayout.addWidget(self._tabs, 1)
@@ -162,16 +157,6 @@ class ShellStack(QtGui.QWidget):
         else:
             return w
 
-class ShellTabWidget(CompactTabWidget):
-    def __init__(self, parent):
-        CompactTabWidget.__init__(self, parent)
-    
-    def addCtxMenu(self):
-        # This can only be done after the menu builder is loaded
-        from menu import ShellContextMenu
-        self._menu = ShellContextMenu(self, "ShellCtxMenu")
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p)))
 
 class DebugControl(QtGui.QToolButton):
     """ A button that can be used for post mortem debuggin. 

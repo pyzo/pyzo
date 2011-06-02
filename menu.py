@@ -4,7 +4,6 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-
 """ Module menu
 
 Implements a menu that can be edited very easily. Every menu item is 
@@ -441,6 +440,18 @@ class ShellContextMenu(ShellMenu):
     
     def build(self):
         ShellMenu.build(self, isCtxMenu = True)
+        
+        self.addSeparator()
+        self.addItem("Cut", self._editItemCallback, "cut")
+        self.addItem("Copy", self._editItemCallback, "copy")
+        self.addItem("Paste", self._editItemCallback, "paste")
+        self.addItem("Select all", self._editItemCallback, "selectAll")
+    
+    def _editItemCallback(self, action):
+        widget = QtGui.qApp.focusWidget()
+        #If the widget has a 'name' attribute, call it
+        if hasattr(widget, action):
+            getattr(widget, action)()
 
 class RunMenu(Menu):
     def build(self):
@@ -454,7 +465,7 @@ class RunMenu(Menu):
         self.addItem('Run main file as script', self.runFile, (True, True))
         self.addSeparator()
         self.addItem('Help on running code', self.showHelp)
-    
+
     
     def showHelp(self, value):
         """ Show more information about ways to run code. """
