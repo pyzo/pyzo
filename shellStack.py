@@ -13,7 +13,7 @@ and a dialog to edit the shell configurations.
 """
 
 import os, sys, time
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore, QtGui, uic
 
 import iep
 from compactTabWidget import CompactTabWidget
@@ -21,6 +21,9 @@ from shell import PythonShell
 from iepLogging import print
 
 ssdf = iep.ssdf
+
+ShellCfgDlg, ShellCfgDlgBase = uic.loadUiType("gui/shells_dialog.ui")
+ShellCfgTab, ShellCfgTabBase = uic.loadUiType("gui/shell_tab.ui")
 
 class ShellStack(QtGui.QWidget):
     """ The shell stack widget provides a stack of shells,
@@ -282,367 +285,204 @@ class DebugControl(QtGui.QToolButton):
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
             editor.setTextCursor(cursor)
 
-class ShellInfoDialogEntries(QtGui.QFrame):
-    """ A page in the tab widget of the shell configuration dialog. 
-    """
-    def __init__(self, parent):
-        QtGui.QFrame.__init__(self, parent)
+class ShellConfigTab(ShellCfgTab, ShellCfgTabBase):
+    _tkButtons = {"none": "rbNone",
+                  "tk": "rbTk",
+                  "wx": "rbWx",
+                  "qt4": "rbQt",
+                  "fltk": "rbFltk",
+                  "gtk": "rbGtk"}
+                         
+    def __init__(self, *args):
+        ShellCfgTabBase.__init__(self, *args)
+        self.setupUi(self)
         
-        # Give border
-        self.setStyleSheet('ShellInfoDialogEntries{ border: 1px solid #333; }')
+        # Holds the settings for this shell
+        self._info = None
         
-        # Init
-        offset1 = 20
-        offset2 = offset1
-        desWidth = offset2 - offset1 - 5  # Width of description text
-        y = 10
-        dy = 10
+        # Hold custom search path and startup script
+        self._customSearchPath = ""
+        self._customStartup = ""
         
-        def createLabel(y, name, description):
-            label = QtGui.QLabel(self)            
-            #label.setWordWrap(True)
-            label.setText('<b>'+name+':</b>  ' + description)            
-            #label.setMaximumWidth(desWidth)
-            label.move(offset2, y)
-            #label.show()
-            return 16
+        # Editing the name should change table title
+        self.edtName.editingFinished.connect(self.edtNameCallback)
         
-        # Create name entry
-        dyl = createLabel(y, 'Name', 'The name of this configuration.')
-        self._name = QtGui.QLineEdit(self)        
-        self._name.move(offset2, y+dyl)
-        y += dy + dyl + self._name.height()
-        
-        # Create executable entry
-        dyl = createLabel(y, 'Executable', 
-            'e.g. "/usr/python3.1" or "c:/program files/python24/python.exe."')
-        self._exe = QtGui.QComboBox(self)
-        self._exe.setEditable(True)
-        self._exe.setInsertPolicy(self._exe.InsertAtTop)
-        self._exe.move(offset2, y+dyl)
-        self._exe.resize(390-offset1, self._exe.height())
-        y += dy + dyl + self._exe.height()
-        
-        # Create GUI toolkit chooser
-        dx = 60
-        dyl = createLabel(y, 'GUI toolkit',
-            "The selected GUI's event loop is integrated in the interpreter.")
-        #
-        self._gui_none = QtGui.QRadioButton(self)
-        self._gui_none.move(offset2+dx*0, y+dyl)
-        self._gui_none.setText('None')
-        #
-        self._gui_tk = QtGui.QRadioButton(self)
-        self._gui_tk.move(offset2+dx*1, y+dyl)
-        self._gui_tk.setText('TK')
-        #
-        self._gui_wx = QtGui.QRadioButton(self)
-        self._gui_wx.move(offset2+dx*2, y+dyl)
-        self._gui_wx.setText('WX')
-        #
-        self._gui_qt4 = QtGui.QRadioButton(self)
-        self._gui_qt4.move(offset2+dx*3, y+dyl)
-        self._gui_qt4.setText('QT4')
-        #
-        self._gui_fltk = QtGui.QRadioButton(self)
-        self._gui_fltk.move(offset2+dx*4, y+dyl)
-        self._gui_fltk.setText('FLTK')
-        #
-        self._gui_gtk = QtGui.QRadioButton(self)
-        self._gui_gtk.move(offset2+dx*5, y+dyl)
-        self._gui_gtk.setText('GTK')
-        #        
-        y += dy + dyl + self._gui_none.height()
-        
-        # Create Pythonpath line edit
-        dyl = createLabel(y, 'PYTHONPATH', 
-            'Python module search path, one path per line.')
-        self._ppCheck = QtGui.QCheckBox(self)        
-        self._ppCheck.setText('Use system default')
-        self._ppCheck.move(offset2, y+dyl)
-        self._ppCheck.stateChanged.connect(self.pythonPathCheckBoxCallback)
-        #
-        self._ppList = QtGui.QTextEdit(self)
-        self._ppList.move(offset2, y + dyl + self._ppCheck.height())
-        self._ppList.resize(290, 60)
-        self._ppListCustom = '' # to store text
-        #
-        y += dy + dyl + self._ppCheck.height() + self._ppList.height()
-        
-        # Create run startup script checkbox
-        dyl = createLabel(y, 'PYTHONSTARTUP', 
-            '(Interactive mode only) Shells run this script on startup.')
-        self._startupCheck = QtGui.QCheckBox(self)
-        self._startupCheck.setText('Use system default')
-        self._startupCheck.stateChanged.connect(self.startupCheckBoxCallBack)
-        self._startupCheck.move(offset2, y+dyl)
-        self._startup = QtGui.QLineEdit(self)
-        self._startup.resize(390-offset1, self._startup.height())
-        self._startup.move(offset2, y + dyl + self._startupCheck.height())
-        y += dy + dyl + self._startupCheck.height() + self._startup.height()
-        
-        # Create initial directory edit
-        dyl = createLabel(y, 'Initial directory', 
-            '(Interactive mode only) Shells start here. e.g. "/home/almar/py".')
-        self._startdir = QtGui.QLineEdit(self)
-        self._startdir.move(offset2, y+dyl)
-        self._startdir.resize(290, self._startdir.height())
-        y += dy + dyl + self._startdir.height()
-        
-#         # Create close button
-#         #self._close = QtGui.QToolButton(self)
-#         self._close = QtGui.QPushButton(self)
-#         #style = QtGui.qApp.style()
-#         #self._close.setIcon( style.standardIcon(style.SP_DialogCloseButton) )
-#         self._close.setIcon( iep.icons.cross )
-#         closeSize = self._close.iconSize()
-#         #self._close.move(400-closeSize.width()-20, 10)
-#         self._close.move(offset1, y+16)
-#         self._close.setText('Remove this config')
-#         self._close.clicked.connect(self.onClose)
-#         y += self._close.height() + 30
-        
-        # Define size and show
-        size = 550, y
-        self.resize(*size)
-        self.setMaximumSize(*size)
-        self.setMinimumSize(*size)   
-        self.show()
-        
-        # Init values
-        self.setDefaults()
-        
-        # Editing the name should edit it in the tab
-        self._name.editingFinished.connect(self.setNameInTab)
+        # Set callback for checkboxes
+        self.chkSearchSysDef.toggled.connect(self.chkSearchSysDefCallback)
+        self.chkStartupSysDef.toggled.connect(self.chkStartupCallBack)
     
+    def setConfigInfo(self, info):
+        self._info = info
     
-    def pythonPathCheckBoxCallback(self, state):
-        
-        # Enable or disable
-        #self._ppList.setEnabled(not state)
-        self._ppList.setReadOnly(state)
-        tmp = [QtGui.QColor('#000'), QtGui.QColor('#777')][bool(state)]
-        self._ppList.setTextColor(tmp)
-        # Show text
-        if state:
-            self._ppListCustom = self._ppList.toPlainText()
-            pp = os.environ.get('PYTHONPATH','')
-            pp = pp.replace(os.pathsep,'\n').replace(',','\n')
-            self._ppList.setText(pp+'\n')
-        else:
-            self._ppList.setText(self._ppListCustom)
-    
-    def startupCheckBoxCallBack(self, state):
-        
-        # Enable or disable
-        self._startup.setEnabled(not state)
-        # Show text
-        if state:
-            self._startupCustom = self._startup.text()
-            pp = os.environ.get('PYTHONSTARTUP','')            
-            self._startup.setText(pp)
-        else:
-            self._startup.setText(self._startupCustom)
-    
-    
-    def setDefaults(self):
-        """ Set defaults. """
-        self._name.setText('Default')        
-        self._gui_tk.setChecked(True)
-        self._ppCheck.setChecked(True)
-        self._startupCheck.setChecked(True)
-        self._startdir.setText('')
-        
-        locations = findPythonExecutables()
-        locations.insert(0, 'python')
-        self._exe.clear()
-        for location in locations:
-            self._exe.addItem(location)
-        self._exe.setEditText('python') 
-    
-    
-    def onClose(self):        
-        # Get tab widget
-        tabs = self.parent().parent()
-        # Remove
-        tabs.removeTab( tabs.indexOf(self) )
-    
-    
-    def setNameInTab(self):        
+    def setTabTitle(self):
         tabWidget = self.parent().parent()
-        i = tabWidget.indexOf(self)
-        tabWidget.setTabText(i, self._name.text())
+        tabWidget.setTabText(tabWidget.indexOf(self), self._info.name)
     
-    
-    def setInfo(self, info):
-        """ Set the contents based on an ssdf item in the shellConfigs. """
-        try:
-            self._name.setText(info.name)
-            self.setNameInTab()
-            #
-            #self._exe.setText(info.exe)
-            self._exe.setEditText(info.exe)
-            #
-            if info.gui == 'tk':
-                self._gui_tk.setChecked(True)
-            elif info.gui == 'wx':
-                self._gui_wx.setChecked(True)
-            elif info.gui == 'qt4':
-                self._gui_qt4.setChecked(True)
-            elif info.gui == 'fltk':
-                self._gui_fltk.setChecked(True)
-            elif info.gui == 'gtk':
-                self._gui_gtk.setChecked(True)
-            else:
-                self._gui_none.setChecked(True)
-            #
-            self._ppListCustom = info.PYTHONPATH_custom
-            self._ppCheck.setChecked(not info.PYTHONPATH_useCustom)
-            self._ppListCustom = info.PYTHONPATH_custom
-            #
-            self._startupCustom = info.PYTHONSTARTUP_custom
-            self._startupCheck.setChecked(not info.PYTHONSTARTUP_useCustom)
-            self._startupCustom = info.PYTHONSTARTUP_custom
-            #
-            self._startdir.setText(info.startDir)
+    def setDefaults(self):        
+        # Name
+        self._info.name = "Default shell"
         
-        except Exception as why:
-            print('Error when setting info in shell config:', why)
+        # Executable
+        self._info.exe = findPythonExecutables()[0]
+        
+        # Toolkit
+        self._info.gui = "qt4"
+        
+        # Python search path
+        self._info.PYTHONPATH_custom = ""
+        self._info.PYTHONPATH_useCustom = False
+        
+        # Startup script
+        self._info.PYTHONSTARTUP_custom = ""
+        self._info.PYTHONSTARTUP_useCustom = False
+        
+        # Startup directory
+        self._info.startDir = ""
+        
+        # Update form fields
+        self.setInfo()
     
+    def setInfo(self):        
+        try:            
+            # Name
+            self.edtName.setText(self._info.name)
+            
+            # Set name in tab
+            self.setTabTitle()
+            
+            # Executable
+            locations = findPythonExecutables()
+            locations.insert(0, self._info.exe)
+            self.cbExe.clear()
+            for location in locations:
+                self.cbExe.addItem(location)
+            self.cbExe.setEditText(locations[0])
+            
+            # GUI toolkit            
+            rb = self._tkButtons[self._info.gui.lower()]
+            if hasattr(self, rb):
+                getattr(self, rb).setChecked(True)
+            
+            # Python search path
+            self.edtSearchPath.setText(self._info.PYTHONPATH_custom)
+            self.chkSearchSysDef.setChecked(not self._info.PYTHONPATH_useCustom)
+            
+            # Startup script
+            self.edtStartup.setText(self._info.PYTHONSTARTUP_custom)
+            self.chkStartupSysDef.setChecked(not self._info.PYTHONSTARTUP_useCustom)
+            
+            # Startup directory
+            self.edtStartDir.setText(self._info.startDir)
+        except Exception as why:
+            print("Error when setting info in shell config:", why)
+            print(self._info)
     
     def getInfo(self):
-        """ Get an ssdf struct based on the contents. """
-        info = ssdf.new()
-        #
-        info.name = self._name.text()
-        #
-        info.exe = self._exe.currentText()
-        #
-        if self._gui_tk.isChecked():
-            info.gui = 'tk'
-        elif self._gui_wx.isChecked():
-            info.gui = 'wx'
-        elif self._gui_qt4.isChecked():
-            info.gui = 'qt4'
-        elif self._gui_fltk.isChecked():
-            info.gui = 'fltk'
-        elif self._gui_gtk.isChecked():
-            info.gui = 'gtk'
-        else:
-            info.gui = ''
-        # store states
-        self._ppCheck.setChecked( not self._ppCheck.isChecked() )
-        self._ppCheck.setChecked( not self._ppCheck.isChecked() )
-        self._startupCheck.setChecked( not self._startupCheck.isChecked() )
-        self._startupCheck.setChecked( not self._startupCheck.isChecked() )
-        #   
-        info.PYTHONPATH_custom = self._ppListCustom
-        info.PYTHONPATH_useCustom = not self._ppCheck.isChecked()
-        #
-        info.PYTHONSTARTUP_custom = self._startupCustom
-        info.PYTHONSTARTUP_useCustom = not self._startupCheck.isChecked()
-        #
-        info.startDir = self._startdir.text()
-        # Done
-        return info
-
-
-class ShellInfoDialog(QtGui.QDialog):
-    """ Dialog to edit the shell configurations. """
-    
-    def __init__(self, *args):
-        QtGui.QDialog.__init__(self, *args)
+        # Name
+        self._info.name = self.edtName.text()
         
-        # Set title
-        self.setWindowTitle('IEP - shell configurations')
-        self.setWindowIcon(iep.icon)
+        # Executable
+        self._info.exe = self.cbExe.currentText()
+        
+        # GUI toolkit
+        self._info.gui = ""
+        for rb in self._tkButtons.keys():
+            if hasattr(self, self._tkButtons[rb]):
+                if getattr(self, self._tkButtons[rb]).isChecked():
+                    self._info.gui = rb
+        
+        # Python search path   
+        self._info.PYTHONPATH_custom = self._customSearchPath
+        self._info.PYTHONPATH_useCustom = not self.chkSearchSysDef.isChecked()
+        
+        # Startup script
+        self._info.PYTHONSTARTUP_custom = self._customStartup
+        self._info.PYTHONSTARTUP_useCustom = not self.chkStartupSysDef.isChecked()
+        
+        # Startup directory
+        self._info.startDir = self.edtStartDir.text()
+    
+    def edtNameCallback(self):
+        self._info.name = self.edtName.text()
+        self.setTabTitle()
+    
+    def chkSearchSysDefCallback(self, state):
+        if state:
+            # Store any custom set search path
+            self._customSearchPath = self.edtSearchPath.toPlainText()
+            path = os.environ.get("PYTHONPATH", "")
+            path = path.replace(os.pathsep, "\n").replace(",", "\n")
+            self.edtSearchPath.setText(path + "\n")
+        else:
+            self.edtSearchPath.setText(self._customSearchPath)
+    
+    def chkStartupCallBack(self, state):
+        if state:
+            self._customStartup = self.edtStartup.text()
+            startup = os.environ.get("PYTHONSTARTUP", "")
+            self.edtStartup.setText(startup)
+        else:
+            self.edtStartup.setText(self._customStartup)
+
+class ShellConfigDialog(ShellCfgDlg, ShellCfgDlgBase):    
+    def __init__(self, *args):
+        ShellCfgDlgBase.__init__(self, *args)
+        self.setupUi(self)
+        
+        # Connect OK button
+        self.buttonBox.accepted.connect(self.applyAndClose)
+        
+        # Connect add and remove buttons
+        self.btnAdd.clicked.connect(self.addShellConfig)
+        self.btnRemove.clicked.connect(self.removeShellConfig)
         
         # Create tab widget
-        self._tabs = CompactTabWidget(self, padding=(2,1,4,2))
-        
-        # Auto-save on tab change
-        self._tabs.currentChanged.connect(self.apply)
+        #self._tabs = CompactTabWidget(self, padding=(2,1,4,2))
         
         # Introduce an entry if there's none
         if not iep.config.shellConfigs:
-            w = ShellInfoDialogEntries(self._tabs)
-            self._tabs.addTab(w, 'Default')
+            self.addShellConfig()
+        else:
+            # Fill tabs
+            for config in iep.config.shellConfigs:
+                t = ShellConfigTab(self.wdtShellConfigs)
+                self.wdtShellConfigs.addTab(t, "---")
+                t.setConfigInfo(config)
+                t.setInfo()
         
-        # Fill tabs
-        for item in iep.config.shellConfigs:
-            w = ShellInfoDialogEntries(self._tabs)
-            self._tabs.addTab(w, '---')
-            w.setInfo(item) # sets the title
+        # Auto-save on tab change (after tabs have been added!)
+        self.wdtShellConfigs.currentChanged.connect(self.apply)
+    
+    def addShellConfig(self):
+        # Create new info entry
+        info = ssdf.new()
+        iep.config.shellConfigs.append(info)
         
-        # Enable making new tabs and closing tabs    
-        self._add = QtGui.QToolButton(self)        
-        self._tabs.setCornerWidget(self._add)
-        self._add.clicked.connect(self.onAdd)
-        self._add.setIcon(iep.icons.add)
-        self._add.setText('Add config')
-        self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        #
-        self._tabs.setTabsClosable(True)
-        self._tabs.tabCloseRequested.connect(self.onTabClose)
+        # Add new shell configuration tab
+        t = ShellConfigTab(self.wdtShellConfigs)
+        self.wdtShellConfigs.addTab(t, "---")
+        t.setConfigInfo(info)
+        t.setDefaults()
+        self.wdtShellConfigs.setCurrentIndex(self.wdtShellConfigs.indexOf(t))
+    
+    def removeShellConfig(self):        
+        # Try to figure out which shell config to delete
+        t = self.wdtShellConfigs.currentWidget()
+        ind = [i for i, info in enumerate(iep.config.shellConfigs) if info == t._info]
         
-        # Create buttons
-        cancelBut = QtGui.QPushButton("Cancel", self)        
-        okBut = QtGui.QPushButton("Done", self)
-        cancelBut.clicked.connect(self.close)
-        okBut.clicked.connect(self.applyAndClose)
-        # Layout for buttons
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.addStretch(1)
-        buttonLayout.addWidget(cancelBut)
-        buttonLayout.addSpacing(10)
-        buttonLayout.addWidget(okBut)
-        okBut.setDefault(True)
+        # Delete tab
+        self.wdtShellConfigs.removeTab(self.wdtShellConfigs.indexOf(t))
         
-        # Layout the widgets
-        mainLayout = QtGui.QVBoxLayout()
-        mainLayout.addWidget(self._tabs,0)
-        mainLayout.addLayout(buttonLayout,0)
-        self.setLayout(mainLayout)
+        # Delete corresponding info
+        iep.config.shellConfigs.pop(ind[0])
     
-    
-    def showEvent(self, event):
-        QtGui.QDialog.showEvent(self, event)
-        
-        # Prevent resizing
-        size = self.size()
-        self.setMaximumSize(size)
-        self.setMinimumSize(size)
-    
-    
-    def onTabClose(self, index):
-        self._tabs.removeTab( index )
-    
-    
-    def applyAndClose(self, event=None):
+    def applyAndClose(self):
         self.apply()
         self.close()
     
-    
-    def onAdd(self):
-        # Create widget and add to tabs
-        w = ShellInfoDialogEntries(self._tabs)            
-        self._tabs.addTab(w, 'new')
-        # Select
-        self._tabs.setCurrentWidget(w)
-        w.setFocus()
-    
-    
     def apply(self):
-        """ Apply changes for all tabs. """
-        
-        # Clear
-        iep.config.shellConfigs = []
-        
-        # Set new versions
-        for i in range(self._tabs.count()):
-            w = self._tabs.widget(i)
-            iep.config.shellConfigs.append( w.getInfo() )
-
+        for i in range(self.wdtShellConfigs.count()):
+            self.wdtShellConfigs.widget(i).getInfo()
 
 ## Find all python executables
 

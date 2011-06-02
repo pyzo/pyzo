@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>tabShellConfig</class>
+ <widget class="QWidget" name="tabShellConfig">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>550</width>
+    <height>450</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>550</width>
+    <height>450</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>550</width>
+    <height>450</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <property name="verticalSpacing">
+    <number>20</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="lblName">
+     <property name="text">
+      <string>Name:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="edtName">
+     <property name="minimumSize">
+      <size>
+       <width>350</width>
+       <height>22</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <layout class="QVBoxLayout" name="loLblExe">
+     <item>
+      <widget class="QLabel" name="lblExe">
+       <property name="text">
+        <string>Executable:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="1">
+    <layout class="QVBoxLayout" name="loExe">
+     <item>
+      <widget class="QComboBox" name="cbExe">
+       <property name="minimumSize">
+        <size>
+         <width>350</width>
+         <height>26</height>
+        </size>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="frame">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lblExeExample">
+       <property name="text">
+        <string>e.g. &quot;/usr/bin/python&quot; or &quot;c:\python\python.exe&quot;</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0">
+    <layout class="QVBoxLayout" name="loLblGui">
+     <item>
+      <widget class="QLabel" name="lblGui">
+       <property name="text">
+        <string>GUI Toolkit:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="1">
+    <layout class="QVBoxLayout" name="loGui">
+     <item>
+      <layout class="QHBoxLayout" name="loGuiOpts">
+       <item>
+        <widget class="QRadioButton" name="rbNone">
+         <property name="text">
+          <string>None</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rbTk">
+         <property name="text">
+          <string>Tk</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rbWx">
+         <property name="text">
+          <string>Wx</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rbQt">
+         <property name="text">
+          <string>Qt4</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rbFltk">
+         <property name="text">
+          <string>FLTK</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rbGtk">
+         <property name="text">
+          <string>Gtk</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="lbGuiDsc">
+       <property name="text">
+        <string>The GUI event loop is integrated in the interpreter</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="0">
+    <layout class="QVBoxLayout" name="loLblSearch">
+     <item>
+      <widget class="QLabel" name="lblSearchPath">
+       <property name="text">
+        <string>Python search path:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="1">
+    <layout class="QVBoxLayout" name="loSearch">
+     <item>
+      <widget class="QTextEdit" name="edtSearchPath">
+       <property name="minimumSize">
+        <size>
+         <width>350</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="tabChangesFocus">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="chkSearchSysDef">
+       <property name="text">
+        <string>Use system default</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0">
+    <layout class="QVBoxLayout" name="loLblStartup">
+     <item>
+      <widget class="QLabel" name="lblStartup">
+       <property name="text">
+        <string>Python startup script:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="1">
+    <layout class="QVBoxLayout" name="loStartup">
+     <item>
+      <widget class="QLineEdit" name="edtStartup">
+       <property name="minimumSize">
+        <size>
+         <width>350</width>
+         <height>22</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="chkStartupSysDef">
+       <property name="text">
+        <string>Use system default</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="lblInitDir">
+     <property name="text">
+      <string>Startup directory:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="edtStartDir">
+     <property name="minimumSize">
+      <size>
+       <width>350</width>
+       <height>22</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>edtName</tabstop>
+  <tabstop>cbExe</tabstop>
+  <tabstop>rbNone</tabstop>
+  <tabstop>rbTk</tabstop>
+  <tabstop>rbWx</tabstop>
+  <tabstop>rbQt</tabstop>
+  <tabstop>rbFltk</tabstop>
+  <tabstop>rbGtk</tabstop>
+  <tabstop>edtSearchPath</tabstop>
+  <tabstop>chkSearchSysDef</tabstop>
+  <tabstop>edtStartup</tabstop>
+  <tabstop>chkStartupSysDef</tabstop>
+  <tabstop>edtStartDir</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>chkStartupSysDef</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>edtStartup</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>351</x>
+     <y>395</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkSearchSysDef</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>edtSearchPath</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>351</x>
+     <y>315</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>245</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
