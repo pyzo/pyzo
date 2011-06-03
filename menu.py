@@ -249,7 +249,7 @@ class IndentationMenu(Menu):
         
 class FileMenu(Menu):
     def build(self):
-         
+        
         self.addItem("New", iep.editors.newFile)
         self.addItem("Open", iep.editors.openFile)
         self.addItem("Save", iep.editors.saveFile)
@@ -393,7 +393,7 @@ class ShellMenu(Menu):
         for shellAction in self._shellActions:
             shellAction.setEnabled(bool(iep.shells.getCurrentShell()))
             
-    def build(self, isCtxMenu = False):
+    def build(self):
         """ Create the items for the shells menu """
         self._shellActions = [
             self.addItem('Interrupt current shell', self.shellAction, "interrupt"),
@@ -402,11 +402,11 @@ class ShellMenu(Menu):
             self.addItem('Clear screen', self.shellAction, "clearScreen"),
             ]
         
-        if not isCtxMenu:
-            self.addSeparator()
-            self.addItem('Edit shell configurations...', self.editConfig)
-            # Add shell configs
-            self.updateShells()    
+        self.addSeparator()
+        self.addItem('Edit shell configurations...', self.editConfig)
+        
+        # Add shell configs
+        self.updateShells()    
     
     def updateShells(self):
         """ Remove, then add the items for the creation of each shell """
@@ -439,19 +439,54 @@ class ShellContextMenu(ShellMenu):
         ShellMenu.__init__(self, *args, **kwds)
     
     def build(self):
-        ShellMenu.build(self, isCtxMenu = True)
+        """ Build menu """
+        self.addItem('Interrupt', self._shellAction, "interrupt"),
+        self.addItem('Terminate', self._shellAction, "terminate"),
+        self.addItem('Restart', self._shellAction, "restart"),
+        self.addItem('Clear screen', self._shellAction, "clearScreen"),
         
         self.addSeparator()
         self.addItem("Cut", self._editItemCallback, "cut")
         self.addItem("Copy", self._editItemCallback, "copy")
         self.addItem("Paste", self._editItemCallback, "paste")
         self.addItem("Select all", self._editItemCallback, "selectAll")
+
+    def _shellAction(self, action):
+        """ Call the method specified by 'action' on the current shell """
+        shell = iep.shells.getCurrentShell()
+        if shell:
+            # Call the specified action
+            getattr(shell,action)()
     
     def _editItemCallback(self, action):
         widget = QtGui.qApp.focusWidget()
         #If the widget has a 'name' attribute, call it
         if hasattr(widget, action):
             getattr(widget, action)()
+
+class ShellTabContextMenu(ShellMenu):
+    def __init__(self, *args, **kwds):
+        ShellMenu.__init__(self, *args, **kwds)
+        _index = -1
+    
+    def setIndex(self, index):
+        self._index = index
+    
+    def build(self):
+        """ Build menu """
+        
+        self.addItem('Interrupt', self._shellAction, "interrupt"),
+        self.addItem('Terminate', self._shellAction, "terminate"),
+        self.addItem('Restart', self._shellAction, "restart"),
+        self.addItem('Clear screen', self._shellAction, "clearScreen"),
+
+    def _shellAction(self, action):
+        """ Call the method specified by 'action' on the selected shell """
+        
+        shell = iep.shells.getShellAt(self._index)
+        if shell:
+            # Call the specified action
+            getattr(shell,action)()
 
 class RunMenu(Menu):
     def build(self):

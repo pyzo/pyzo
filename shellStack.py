@@ -59,8 +59,8 @@ class ShellStack(QtGui.QWidget):
         
         # make callbacks
         self._tabs.currentChanged.connect(self.onCurrentChanged)
-        
     
+
     def __iter__(self):
         i = 0
         while i < self._tabs.count():
@@ -129,6 +129,35 @@ class ShellStack(QtGui.QWidget):
             # Send signal
             self.currentShellStateChanged.emit()
     
+    def addContextMenu(self):
+        """ Adds a context menu to the tab bar """
+        
+        # Uses new menu system, so check if it is enabled
+        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
+            from menu import ShellTabContextMenu
+            self._menu = ShellTabContextMenu(self, "ShellTabMenu")
+            self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+            self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
+
+    
+    def contextMenuTriggered(self, p):
+        """ Called when context menu is clicked """
+        
+        # Get index of shell belonging to the tab
+        index = self._tabs.tabBar().tabAt(p)
+        self._menu.setIndex(index)
+        
+        # Get shell at index
+        if index < 0:
+            shell = None
+        else:
+            shell = self.getShells()[index]
+        
+        # Show menu if shell is available
+        if shell:
+            p = self._tabs.tabBar().tabRect(index).bottomLeft()
+            self._menu.exec_(self._tabs.tabBar().mapToGlobal(p))
+
     
     def addShell(self, shellInfo=None):
         """ addShell()
@@ -157,6 +186,22 @@ class ShellStack(QtGui.QWidget):
         else:
             return w
 
+    def getShells(self):
+        """ Get all shell in stack as list """
+        
+        shells = []
+        for i in range(self._tabs.count()):
+            shell = self.getShellAt(i)
+            if shell is not None:
+                shells.append(shell)
+        
+        return shells
+    
+    def getShellAt(self, i):
+        """ Get shell at current tab index """
+        
+        return self._tabs.widget(i)
+    
 
 class DebugControl(QtGui.QToolButton):
     """ A button that can be used for post mortem debuggin. 

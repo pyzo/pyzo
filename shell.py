@@ -665,12 +665,13 @@ class PythonShell(BaseShell):
         # Add context menu
         if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
             from menu import ShellContextMenu
-            self._menu = ShellContextMenu(self, "ShellCtxMenu")
+            self._menu = ShellContextMenu(self, "ShellContextMenu")
             self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
             self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
         
         # Start!
         self.start()           
+    
     
     def start(self):
         """ Start the remote process. """
