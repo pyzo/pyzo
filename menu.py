@@ -132,7 +132,7 @@ class Menu(QtGui.QMenu):
             if value is not None:
                 a.triggered.connect(lambda b, v = value: callback(v))
             else:
-                a.triggered.connect(callback)
+                a.triggered.connect(lambda b: callback())
         
         self._connectActionShortcut(a)              
         return a

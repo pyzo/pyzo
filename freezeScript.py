@@ -52,6 +52,7 @@ excludes = ['_ssl', 'pyreadline', 'pdb',
      "matplotlib", 'doctest', 
     "scipy.linalg", "scipy.special", "Pyrex", 
     "numpy.core._dotblas",
+	"PyQt4.uic.port_v2", "PyQt4.QtWebKit"
     ]
 
 # Excludes for tk
@@ -189,7 +190,7 @@ if applicationBundle:
     tempDir=appDir+'temp'
     os.mkdir(tempDir)
     #Create the dmg
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX','-layout','SPUD','-megabytes','100',dmgTemp,'-srcfolder',tempDir,'-format','UDRW','-volname','IEP')!=0:
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX','-layout','SPUD','-megabytes','200',dmgTemp,'-srcfolder',tempDir,'-format','UDRW','-volname','IEP')!=0:
         sys.exit(1)
 
     #Mount the dmg
