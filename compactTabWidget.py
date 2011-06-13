@@ -113,6 +113,7 @@ class CompactTabBar(QtGui.QTabBar):
     
     # Add signal to be notified of double clicks on tabs
     tabDoubleClicked = QtCore.pyqtSignal(int)
+    barDoubleClicked = QtCore.pyqtSignal()
     
     def __init__(self, *args, padding=(4,4,6,6)):
         QtGui.QTabBar.__init__(self, *args)
@@ -193,7 +194,12 @@ class CompactTabBar(QtGui.QTabBar):
     
     def mouseDoubleClickEvent(self, event):
         i = self.tabAt(event.pos())
-        self.tabDoubleClicked.emit(i)
+        if i == -1:
+            # There was no tab under the cursor
+            self.barDoubleClicked.emit()
+        else:
+            # Tab was double clicked
+            self.tabDoubleClicked.emit(i)
     
     
     def setTabData(self, i, data):
