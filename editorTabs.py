@@ -1034,7 +1034,10 @@ class EditorTabs(QtGui.QWidget):
         self._tabs = FileTabWidget(self)       
         self._tabs.tabCloseRequested.connect(self.closeFile)
         self._tabs.currentChanged.connect(self.onCurrentChanged)
+        
+        # Double clicking a tab saves the file, clicking on the bar opens a new file
         self._tabs.tabBar().tabDoubleClicked.connect(self.saveFile)
+        self._tabs.tabBar().barDoubleClicked.connect(self.newFile)
         
         # Create find/replace widget
         self._findReplace = FindReplaceWidget(self)
