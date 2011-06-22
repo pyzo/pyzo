@@ -178,6 +178,10 @@ class KernelBroker:
         
         # Create context for the connection to the kernel and IDE's
         self._context = yoton.Context()
+        
+        # Create yoton-based timer
+        self._timer = yoton.Timer(self, 0.2, oneshot=False)
+        self._timer.bind(self._onTimerIteration)
     
     
     def startKernel(self):
@@ -252,11 +256,26 @@ class KernelBroker:
             self._heartbeatChannel.send(True)
 
 
+    def _onTimerIteration(self):
+        
+        # Test if process is dead
+        if self._process.poll():
+            
+            # Get the connection to the kernel
+            kernelConn = self._context.connections_all['kernel']
+            
+            # Show message
+            # todo: test this            
+            if not kernelConn.is_connected:
+                self._brokerChannel.send('The process failed to start.')
+
 
 class StreamReader(threading.Thread):
     """ StreamReader(process, channel)
     
     Reads stdout of process and send to a yoton channel.
+    This needs to be done in a separate thread because reading from
+    a PYPE blocks.
     
     """
     def __init__(self, process, stdoutChannel, brokerChannel):
@@ -276,13 +295,7 @@ class StreamReader(threading.Thread):
                 count -= 1
             # Sleep
             time.sleep(0.1)
-        
-        # Show message
-        # todo: test this
-        kernelConn = self._brokerChannel._context.connections_all['kernel']
-        if not kernelConn.is_connected:
-            self._brokerChannel.send('The process failed to start.')
-
+    
 
 class Kernelmanager:
     """ Kernelmanager
@@ -343,4 +356,3 @@ class Kernelmanager:
         
         # Done
         return infos
-    
