@@ -1,47 +1,78 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010, the IEP development team
+#
+# IEP is distributed under the terms of the (new) BSD License.
+# The full license can be found in 'license.txt'.
+
+""" Module kernelBroker
+
+This module implements the interface between IEP and the kernel.
+
+"""
+
 import os
 import subprocess
 import ssdf
 import yoton
-import iep # local IEP
+import iep # local IEP (can be on a different box than where the user is
 
 
-class KernelInfo:
+class KernelInfo(ssdf.Struct):
     """ KernelInfo
     
     Describes all information for a kernel. This class can be used at 
-    the IDE as well.
+    the IDE as well as the kernelbroker.
     
     """
-    def __init__(self):
+    def __init__(self, info=None):
         
         # ----- Fixed parameters that define a shell -----
         
         # Set defaults
         self.exe = 'python'  # The executable
         self.gui = 'none'    # The GUI toolkit to embed the event loop of
-        self.startDir = ''   # The initial directory (when run not as script)
+        self.startDir = ''   # The initial directory (for interactive-mode)
         
-        # The Python path. None means use default from environment of the
-        # machine that runs the kernel. Paths should be separated by newlines.
-        self.PYTHONPATH = None
+        # The Python path. Paths should be separated by newlines.
+        # '$PYTHONPATH' is replaced by environment variable by broker
+        self.PYTHONPATH = ''
         
-        # The Startup script (when not run in script-mode). None means use 
-        # PYTHONSTARTUP from environment of the machine that runs the kernel. 
-        # Empty string means run nothing, single line means file name on
-        # machine that runs kernel, multiple line means source code.
-        self.startupScript = None
+        # The Startup script (for interactive-mode).
+        # - '$PYTHONSTARTUP' uses the code in that file. Broker replaces this.
+        # - Empty string means run nothing, 
+        # - Single line means file name, multiple lines means source code.
+        self.startupScript = ''
         
         # The full filename of the script to run. 
         # If given, the kernel should run in script-mode.
+        # The kernel will check whether this file exists, and will
+        # revert to interactive mode if it doesn't.
         self.scriptFile = ''
         
         # The path of the current project, the kernel will prepend this 
         # to the sys.path.
         self.projectPath = ''
+        
+        
+        # Load info from ssdf struct. Make sure they are all strings
+        if info:
+            # Get struct
+            if ssdf.isstruct(info):
+                s = info
+            elif isinstance(info, str):
+                s = ssdf.loads(info)
+            else:
+                raise ValueError('Kernel info should be a string or ssdf struct.')
+            # Inject values
+            for key in s:
+                val = s[key]
+                if not val:
+                    val = ''
+                self[key] = val
     
     
     def tostring(self):
-        return ssdf.saves(self.__dict__)
+        return ssdf.saves(self)
 
 
 class KernelInfoPlus(KernelInfo):
@@ -51,29 +82,26 @@ class KernelInfoPlus(KernelInfo):
     
     """
     
-    def __init__(self, ss):
-        KernelInfo.__init__(self)
-        
-        # Load info from ssdf struct
-        s = ssdf.loads(ss)
-        for key in s:
-            self.__dict__[key] = s[key]
+    def __init__(self, info):
+        KernelInfo.__init__(self, info)
         
         # Correct path when it contains spaces
         if self.exe.count(' ') and self.exe[0] != '"':
             self.exe = '"' + self.exe + '"'
         
         # Set default startupScript?
-        if self.startupScript is None:
+        if self.startupScript == '$PYTHONSTARTUP':
             self.startupScript = os.environ.get('PYTHONSTARTUP','')
         
         # Set default PYTHONPATH
-        if self.PYTHONPATH is None:
-            self.PYTHONPATH = os.environ.get('PYTHONPATH','')
-        else:
-            self.PYTHONPATH = self.PYTHONPATH.replace('\n',os.pathsep)
+        ENV_PP = os.environ.get('PYTHONPATH','')
+        self.PYTHONPATH.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
+        self.PYTHONPATH.replace('$PYTHONPATH', '')
+        for i in range(3):
+            self.PYTHONPATH.replace('\n\n', '\n')
+        self.PYTHONPATH = self.PYTHONPATH.replace('\n', os.pathsep)
     
-    
+        
     def getCommand(self, port):
         """ getCommand(port)
         
@@ -123,35 +151,33 @@ class KernelInfoPlus(KernelInfo):
         env['iep_gui'] = self.gui
         env['iep_startDir'] = self.startDir
         env['iep_projectPath'] = self.projectPath
-        
-        # Depending on mode (interactive or script)
-        if self.scriptFile:
-            env['iep_scriptFile'] = self.scriptFile
-        else:
-            env['iep_scriptFile'] = ''
-            env['iep_startupScript'] = self.startupScript
+        env['iep_scriptFile'] = self.scriptFile
+        env['iep_startupScript'] = self.startupScript
         
         # Done
         return env
 
 
 class KernelBroker:
-    """ KernelBroker
+    """ KernelBroker(info)
     
     This class functions as a broker between a kernel process and zero or
     more IDE's (clients).
     
     """
     
-    def __init__(self, info):
-        
-        # Create context for the connection to the kernel and IDE's
-        self._context = yoton.Context()
+    def __init__(self, info, name=''):
         
         # Store info
         if not isinstance(info, KernelInfoPlus):
             info = KernelInfoPlus(info)
         self._info = info
+        
+        # Store name
+        self._name = name
+        
+        # Create context for the connection to the kernel and IDE's
+        self._context = yoton.Context()
     
     
     def startKernel(self):
@@ -170,21 +196,20 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        c = self._context.bind('localhost:IEP', max_tries=256, name='kernel')
+        c = self._context.bind('localhost:IEPKERNEL', max_tries=32, name='kernel')
         
-        # Create channels. stdout and stderr are the original (C-level) streams.
-        self._brokerChannel = yoton.PubChannel(self._context, 'std-broker')
-        self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout-stderr')
-        self._heartbeatChannel = yoton.PubstateChannel(self._context, 
+        # Create channels. Stdout is for the C-level stdout/stderr streams.
+        self._brokerChannel = yoton.PubChannel(self._context, 'broker-stream')
+        self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout')
                                             'heartbeat-status', yoton.OBJECT)
         
         # Get command to execute
         command = self._info.getCommand(c.port)
         
-        # Start process (open PYPE to detect errors printed to c-stdout/stderr)
+        # Start process
         self._process = subprocess.Popen(   command, shell=True, 
                                             env=env, cwd=cwd,
-                                            stdout=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
                                             stderr=subprocess.STDOUT)  
         
         # Set timeout
@@ -194,10 +219,16 @@ class KernelBroker:
         c.closed.bind(self._onKernelClose)
         c.timedout.bind(self._onKernelTimedOut)
         
-        # Create reader for stream
-        self._streamReader = StreamReader(self._process,
-                                    self._stdoutChannel, self._brokerChannel)
-        self._streamReader.start()
+    
+    def host(self, address='localhost'):
+        """ host()
+        
+        Host a connection for an IDE to connect to. Returns the port to which
+        the ide can connect.
+        
+        """
+        c = self._context.bind(address+':IEPBROKER', max_tries=32)
+        return c.port
     
     
     def _onKernelClose(self, c, why):
@@ -266,21 +297,55 @@ class Kernelmanager:
     and can connect to them via this broker.
     
     The IEP process runs an instance of this class that connects at 
-    localhost. At a later stage, we may provide binaries to create 
+    localhost. At a later stage, we may make it possible to create 
     a kernel-server at a remote machine.
     
     """
     
-    def __init__(self, public=0):
+    def __init__(self, public=False):
         
+        # Set whether other machines in this network may connect to our kernels
         self._public = public
-    
-    
-    def create_kernel(self):
         
+        # Init list of kernels
+        self._kernels = []
+    
+    
+    def create_kernel(self, info, name=None):
+        """ create_kernel(info, name=None)
+        
+        Create a new kernel. Returns the port number to connect to the
+        broker's context. 
+        
+        """
+        
+        # Set name if not given
+        if not name:
+            i = len(self._kernels) + 1
+            name = 'kernel %i' % i
+        
+        # Create kernel
+        kernel = KernelBroker(info, name)
+        self._kernels.append(kernel)
+        
+        # Start kernel and host a connection for the ide
+        kernel.startKernel()
+        port = kernel.host()
+        
+        # Done
+        return port
+    
     
     def get_kernel_list(self):
         
-    
-    def 
+        # Get info of each kernel as an ssdf struct
+        infos = []
+        for kernel in self._kernels:
+            info = kernel._info
+            info = ssdf.loads(info.tostring())
+            info.name = kernel._name
+            infos.append(info)
+        
+        # Done
+        return infos
     
