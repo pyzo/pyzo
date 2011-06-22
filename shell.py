@@ -634,11 +634,11 @@ class PythonShell(BaseShell):
         self._stderr = yoton.SubChannel(self._context, 'stderr')
         
         # More streams coming from the broker
-        self._cstdout = yoton.SubChannel(self._context, 'c-stdout')
+        self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
         self._brokerstream = yoton.SubChannel(self._context, 'broker-stream')
         
         # Channels for status and control
-        self._status = yoton.SubstateChannel(self._context, 'status')
+        self._heartbeat = yoton.SubstateChannel(self._context, 'heartbeat-status')
         self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus')
         self._control = yoton.PubChannel(self._context, 'control')
         
