@@ -196,11 +196,12 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        c = self._context.bind('localhost:IEPKERNEL', max_tries=32, name='kernel')
+        c = self._context.bind('localhost:IEP', max_tries=256, name='kernel')
         
         # Create channels. Stdout is for the C-level stdout/stderr streams.
         self._brokerChannel = yoton.PubChannel(self._context, 'broker-stream')
-        self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout')
+        self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout-stderr')
+        self._heartbeatChannel = yoton.PubstateChannel(self._context,
                                             'heartbeat-status', yoton.OBJECT)
         
         # Get command to execute
@@ -209,8 +210,7 @@ class KernelBroker:
         # Start process
         self._process = subprocess.Popen(   command, shell=True, 
                                             env=env, cwd=cwd,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
-                                            stderr=subprocess.STDOUT)  
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         
         # Set timeout
         c.timeout = 0.5
@@ -219,6 +219,11 @@ class KernelBroker:
         c.closed.bind(self._onKernelClose)
         c.timedout.bind(self._onKernelTimedOut)
         
+        # Create reader for stream
+        self._streamReader = StreamReader(self._process,
+                                    self._stdoutChannel, self._brokerChannel)
+        self._streamReader.start()
+    
     
     def host(self, address='localhost'):
         """ host()
@@ -227,7 +232,7 @@ class KernelBroker:
         the ide can connect.
         
         """
-        c = self._context.bind(address+':IEPBROKER', max_tries=32)
+        c = self._context.bind(address+':IEP+256', max_tries=32)
         return c.port
     
     
@@ -245,17 +250,7 @@ class KernelBroker:
             self._heartbeatChannel.send(False)
         else:
             self._heartbeatChannel.send(True)
-    
-    
-    def hostForClient(self, address='localhost'):
-        """ hostForClient()
-        
-        Host a connection to the kernel. Returns the port number to connect to.
-        
-        """
-        # Create new connection
-        c = self._context.bind(address+':IEP+256', max_tries=256)
-        return c
+
 
 
 class StreamReader(threading.Thread):
