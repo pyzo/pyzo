@@ -23,9 +23,41 @@ import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
 from iepLogging import print
+from kernelbroker import KernelInfo
 
 # todo: color stderr red and prompt blue, and input text Python!
 
+
+# todo: change shell config dialog to create in the new format
+def convertToNewKernelInfo(info):
+    
+    # First the easy ones
+    info2 = KernelInfo()
+    info2.exe = info.exe
+    info2.gui = info.gui
+    info2.name = info.name
+    info2.startDir = info.startDir
+    
+    # pythonpath
+    info2.PYTHONPATH = '$PYTHONPATH'
+    if info.PYTHONSTARTUP_useCustom:
+        info2.PYTHONPATH = info.PYTHONPATH_custom
+    
+    # startup script
+    info2.startupScript = '$PYTHONSTARTUP'
+    if info.PYTHONSTARTUP_useCustom:
+        info2.startupScript = info.PYTHONSTARTUP_custom
+    
+    # scriptFile is set by shell right after restarting
+    info2.scriptFile = ''
+    
+    #If the project manager is active, and has the check box
+    #'add path to Python path' set, set the PROJECTPATH variable
+    projectManager = iep.toolManager.getTool('iepprojectmanager')
+    if projectManager:
+        info2.projectPath = projectManager.getAddToPythonPath()
+    
+    return info2
 
 
 class BaseShell(BaseTextCtrl):
@@ -504,98 +536,6 @@ class RequestObject:
         self._posted = False
 
 
-class ShellInfo:
-    """ Helper class to build the command to start the remote python
-    process. 
-    """
-    def __init__(self, info=None):
-        
-        # Set defaults
-        self.exe = 'python'
-        self.gui = 'none'
-        self.PYTHONPATH = os.environ.get('PYTHONPATH','')            
-        self.PYTHONSTARTUP = os.environ.get('PYTHONSTARTUP','')
-        self.startDir = ''
-        
-        # Set info if given
-        if info:
-            try:
-                self.exe = info.exe
-                self.gui = info.gui
-                if info.PYTHONPATH_useCustom:
-                    self.PYTHONPATH = info.PYTHONPATH_custom.replace('\n',os.pathsep)
-                if info.PYTHONSTARTUP_useCustom:
-                    self.PYTHONSTARTUP = info.PYTHONSTARTUP_custom
-                self.startDir = info.startDir
-            except Exception:
-               pass
-        
-        # Correct path when it contains spaces
-        if self.exe.count(' '):
-            self.exe = '"' + self.exe + '"'
-    
-    
-    def getCommand(self, port):
-        """ Given the port of the channels interface, creates the 
-        command to execute in order to invoke the remote shell.
-        """
-        startScript = os.path.join( iep.iepDir, 'iepRemote1.py')
-        startScript = '"{}"'.format(startScript)
-        
-        # Build command
-        command = self.exe + ' ' + startScript + ' ' + str(port)
-        
-        if sys.platform.startswith('win'):
-            # as the author from Pype writes:
-            #if we don't run via a command shell, then either sometimes we
-            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.    
-            # The double quotes are important for it to work when the 
-            # executable is a path that contaiins spaces.
-            command = 'cmd /c "{}"'.format(command)
-        
-        # Done
-        return command
-    
-    
-    def getEnviron(self, scriptFilename=None):
-        """  Gets the environment to give to the remote process,
-        such that it can start up as the user wants to. 
-        If ScriptFilename is given, use that as the script file
-        to execute.
-        """ 
-        
-        # Prepare environment, remove references to tk libraries, 
-        # since they're wrong when frozen. Python will insert the
-        # correct ones if required.
-        env = os.environ.copy()
-        #
-        env.pop('TK_LIBRARY','') 
-        env.pop('TCL_LIBRARY','')
-        env['PYTHONPATH'] = self.PYTHONPATH
-        
-        #If the project manager is active, and has the check box
-        #'add path to Python path' set, set the PROJECTPATH variable
-        projectManager = iep.toolManager.getTool('iepprojectmanager')
-        if projectManager:
-            projectPath = projectManager.getAddToPythonPath()
-            if projectPath is not None:
-                env['iep_projectPath'] = projectPath
-        
-        # Insert iep specific variables
-        env['iep_gui'] = self.gui
-        env['iep_startDir'] = self.startDir
-        
-        # Depending on mode (interactive or script)
-        if scriptFilename:
-            env['iep_scriptFile'] = scriptFilename
-        else:
-            env['iep_scriptFile'] = ''
-            env['PYTHONSTARTUP'] = self.PYTHONSTARTUP
-        
-        # Done
-        return env
-
 
 class PythonShell(BaseShell):
     """ The PythonShell class implements the python part of the shell
@@ -616,10 +556,14 @@ class PythonShell(BaseShell):
         # Apply Python shell style
         #TODO: self.setStyle('pythonshell')
         
-        # Store info 
+        # Get standard info if not given. Store info
         if info is None and iep.config.shellConfigs:
             info = iep.config.shellConfigs[0]
-        self._shellInfo = ShellInfo(info)
+        if info:
+            self._info = convertToNewKernelInfo(info)
+        else:
+            self._info = KernelInfo(None)
+        
         
         # For the editor to keep track of attempted imports
         self._importAttempts = []
@@ -637,17 +581,12 @@ class PythonShell(BaseShell):
         self._builtins = []
         self._keywords = []
         
-        # Variables to buffer shell status (updated every time 
-        # a prompt is generated, and when it is asked for).
-        self._state = ''
-        self._debugState = ''
-        
-        # Define queue of requestObjects and insert a few requests
-        self._requestQueue = []
-        tmp = "','.join(__builtins__.__dict__.keys())"
-        self.postRequest('EVAL sys.version', self._setVersion)
-        self.postRequest('EVAL ' + tmp, self._setBuiltins)
-        self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
+#         # Define queue of requestObjects and insert a few requests
+#         self._requestQueue = []
+#         tmp = "','.join(__builtins__.__dict__.keys())"
+#         self.postRequest('EVAL sys.version', self._setVersion)
+#         self.postRequest('EVAL ' + tmp, self._setBuiltins)
+#         self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
         
         # Create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
@@ -666,18 +605,53 @@ class PythonShell(BaseShell):
         self.start()
     
     
+    def connectToKernel(self):
+        """ connectToKernel()
+        
+        Create kernel and connect to it.
+        
+        """
+        # todo: the broker can also do the restarting!
+        
+        # Set script file
+        info = ssdf.copy(self._info)
+        if self._pendingScriptFilename:
+            info.scriptFile = self._pendingScriptFilename
+        else:
+            info.scriptFile = ''
+        self._pendingScriptFilename = None
+        
+        # Create a kernel, the broker context will now be waiting ...
+        slot = iep.localKernelBroker.create_kernel(info)
+        
+        # Create yoton context and connect!
+        self._context = yoton.Context()
+        self._context.connect('localhost:%i'%slot)
+        
+        # Connect standard streams
+        self._stdin = yoton.PubChannel(self._context, 'stdin')
+        self._stdout = yoton.SubChannel(self._context, 'stdout')
+        self._stderr = yoton.SubChannel(self._context, 'stderr')
+        
+        # More streams coming from the broker
+        self._cstdout = yoton.SubChannel(self._context, 'c-stdout')
+        self._brokerstream = yoton.SubChannel(self._context, 'broker-stream')
+        
+        # Channels for status and control
+        self._status = yoton.SubstateChannel(self._context, 'status')
+        self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus')
+        self._control = yoton.PubChannel(self._context, 'control')
+        
+        # For introspection
+        self._request = yoton.RequestChannel(self._context, 'introspect')
+    
+    
     def start(self):
         """ Start the remote process. """
         
         # (re)set style
         #TODO: self.setStyle('pythonshell')
         self.setReadOnly(False)
-        
-        # (re)set state and debug state
-        self._debugState = ''
-        self._state = 'Initializing'
-        self.stateChanged.emit(self)
-        self.debugStateChanged.emit(self)
         
         # (re)set restart vatiable and a callback
         self._restart = False 
@@ -688,31 +662,6 @@ class PythonShell(BaseShell):
         # (re)set variable to terminate the process in increasingly rude ways
         self._killAttempts = 0
         
-        # Create multi channel connection
-        # Note that the request and response channels are reserved and should
-        # not be read/written by "anyone" other than the introspection thread.
-        self._channels = c = channels.Channels(3)
-        c.disconnectCallback = self._onDisconnect
-        # Standard streams
-        self._stdin = c.get_sending_channel(0)
-        self._stdout = c.get_receiving_channel(0)
-        self._stderr = c.get_receiving_channel(1)
-        # Control and status of interpreter
-        self._control = c.get_sending_channel(1)
-        self._status = c.get_receiving_channel(2)
-        # For introspection
-        self._request = c.get_sending_channel(2)
-        self._response = c.get_receiving_channel(3)
-        
-        # Host it (tries several port numbers, staring from 'IEP')
-        port = c.host('IEP', hostLocal=True)
-        
-        # Start process (open PYPES to detect errors when starting up)
-        command = self._shellInfo.getCommand(port)
-        env = self._shellInfo.getEnviron(self._pendingScriptFilename)
-        self._process = subprocess.Popen(command, 
-                                shell=True, env=env, cwd=iep.iepDir,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)  
         
         # Reset pending script
         self._pendingScriptFilename = None
