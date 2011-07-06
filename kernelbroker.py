@@ -182,6 +182,13 @@ class KernelBroker:
         # Create yoton-based timer
         self._timer = yoton.Timer(self, 0.2, oneshot=False)
         self._timer.bind(self._onTimerIteration)
+        
+        # Kernel connection
+        self._kernelCon = None
+        
+        # For terminating
+        self._killAttempts = 0
+        self._killTimer = 0
     
     
     def startKernel(self):
@@ -201,12 +208,17 @@ class KernelBroker:
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
         c = self._context.bind('localhost:IEP', max_tries=256, name='kernel')
+        self._kernelCon = c
         
         # Create channels. Stdout is for the C-level stdout/stderr streams.
         self._brokerChannel = yoton.PubChannel(self._context, 'broker-stream')
         self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout-stderr')
         self._heartbeatChannel = yoton.PubstateChannel(self._context,
                                             'heartbeat-status', yoton.OBJECT)
+        
+        # The IDE is in control
+        self._controlChannel = yoton.SubChannel(self._context, 'control')
+        self._controlChannel_pub = yoton.PubChannel(self._context, 'control')
         
         # Get command to execute
         command = self._info.getCommand(c.port)
@@ -260,14 +272,53 @@ class KernelBroker:
         
         # Test if process is dead
         if self._process.poll():
-            
-            # Get the connection to the kernel
-            kernelConn = self._context.connections_all['kernel']
-            
             # Show message
             # todo: test this            
-            if not kernelConn.is_connected:
+            if self._kernelCon and not self._kernelCon.is_connected:
                 self._brokerChannel.send('The process failed to start.')
+        
+        else:
+            # Process alive
+            
+            # Test control
+            for msg in self._controlChannel.recv_all():
+                if msg == 'INT':
+                    # On Linux we might interrupt from here. Is only advantegous
+                    # if this could interrupt extension code
+                    pass 
+                elif msg == 'TERM':
+                    # Start termination procedure
+    
+    
+    def _terminating(self):
+        """ _terminating()
+        
+        The timer callback method when the process is being terminated. 
+        Will try to terminate in increasingly more rude ways. 
+        
+        """
+        
+        if self._kernelCon.is_connected:
+            if self._killAttempts == 1:
+                # Waiting for process to stop by itself
+                
+                if time.time() - self._killTimer > 0.5:
+                    # Increase counter, next time will interrupt
+                    self._killAttempts += 1
+            
+            elif self._killAttempts < 6:
+                # Send an interrupt every 100 ms
+                if time.time() - self._killTimer > 0.1:
+                    self.interrupt()
+                    self._killTimer = time.time()
+                    self._killAttempts += 1
+            
+            elif self._killAttempts < 10:
+                # Ok, that's it, we're leaving!
+                
+                self._killAttempts = 10
+                self._killTimer = time.time()
+
 
 
 class StreamReader(threading.Thread):
