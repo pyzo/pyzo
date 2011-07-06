@@ -23,9 +23,13 @@ import channels
 import iep
 from baseTextCtrl import BaseTextCtrl
 from iepLogging import print
-from kernelbroker import KernelInfo
+from kernelbroker import KernelInfo, Kernelmanager
 
 # todo: color stderr red and prompt blue, and input text Python!
+
+
+# Instantiate a local kernel broker upon loading this module
+iep.localKernelBroker = Kernelmanager(public=False)
 
 
 # todo: change shell config dialog to create in the new format
@@ -1279,14 +1283,24 @@ class PythonShell(BaseShell):
             
             elif self._killAttempts < 10:
                 # Ok, that's it, we're leaving!
-                self._channels.kill()
+                pid = # todo: get pid
+                if hasattr(os,'kill'):
+                    import signal
+                    killsig = signal.SIGTERM
+                    if hasattr(signal, 'SIGKILL'):
+                        killsig = signal.SIGKILL
+                    os.kill(pid,killsig)
+                elif sys.platform.startswith('win'):
+                    import ctypes
+                    kernel32 = ctypes.windll.kernel32
+                    handle = kernel32.OpenProcess(1, 0, pid)
+                    kernel32.TerminateProcess(handle, 0)
+                    #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
                 self._killAttempts = 10
                 self._t = time.time()
             else:
                 if time.time()-self._t >0.5:
                     self._process.kill()
-
-    
     
     
     def poll_terminated(self):
