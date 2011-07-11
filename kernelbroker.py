@@ -10,12 +10,17 @@ This module implements the interface between IEP and the kernel.
 
 """
 
-import os
+import os, sys, time
 import subprocess
+import signal
+import threading
+
 import ssdf
 import yoton
 import iep # local IEP (can be on a different box than where the user is
 
+
+# Important: the yoton event loop should run somehow!
 
 class KernelInfo(ssdf.Struct):
     """ KernelInfo
@@ -164,9 +169,19 @@ class KernelBroker:
     This class functions as a broker between a kernel process and zero or
     more IDE's (clients).
     
+    This class has a single context assosiated with it, that lives as long
+    as this object. It is used to connect to a kernel process and to
+    0 or more IDE's (clients). The kernel process can be "restarted", meaning
+    that it is terminated and a new process started.
+    
+    If there is no kernel process AND no connections, this object is
+    destroyed.
+    
+    
     """
     
-    def __init__(self, info, name=''):
+    def __init__(self, manager, info, name=''):
+        self._manager = manager
         
         # Store info
         if not isinstance(info, KernelInfoPlus):
@@ -177,18 +192,73 @@ class KernelBroker:
         self._name = name
         
         # Create context for the connection to the kernel and IDE's
+        # This context is persistent (it stays as long as this KernelBroker
+        # instance is alive).
         self._context = yoton.Context()
         
         # Create yoton-based timer
         self._timer = yoton.Timer(self, 0.2, oneshot=False)
         self._timer.bind(self._onTimerIteration)
         
-        # Kernel connection
-        self._kernelCon = None
+        # Kernel process and connection (these are replaced on restarting)
+        self._reset()
         
         # For terminating
         self._killAttempts = 0
         self._killTimer = 0
+        
+        # For restarting after terminating
+        self._restart = False
+        self._pending_scriptFile = None
+    
+    
+    def __delete__(self):
+        print('KernelBroker cleaned up') # todo: test
+    
+    
+    def _reset(self, destroy=False):
+        """ _reset(destroy=False)
+        
+        Reset state. if destroy, does a full clean up.
+        
+        """
+        
+        # Set process and kernel connection to None
+        self._process = None
+        self._kernelCon = None
+        
+        if destroy == True:
+            
+            # Stop timer
+            self._timer.unbind(self._onTimerIteration)
+            self._timer = None
+            
+            # Clean up this kernelbroker instance
+            L = self._manager._kernels
+            while self in L:
+                L.remove(self)
+            
+            # Remove references
+            #
+            self._context = None
+            #
+            self._brokerChannel = None
+            self._stdoutChannel = None
+            self._heartbeatChannel = None
+            #
+            self._controlChannel = None
+            self._controlChannel_pub = None
+    
+    
+    
+    def startKernelIfConnected(self, timeout=10.0):
+        """ startKernelIfConnected(timout=10.0)
+        
+        Start the kernel as soon as there is a connection.
+        
+        """
+        self._process = time.time() + timeout
+        self._timer.start()
     
     
     def startKernel(self):
@@ -199,16 +269,23 @@ class KernelBroker:
         
         """
         
+        # Set scriptFile in info
+        info = KernelInfoPlus(self._info)
+        if self._pending_scriptFile:
+            info.scriptFile = self._pending_scriptFile
+        else:
+            info.scriptFile = ''
+        
         # Get environment to use
-        env = self._info.getEnviron()
+        env = info.getEnviron()
         
         # Get directory to start process in
         cwd = iep.iepDir
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        c = self._context.bind('localhost:IEP', max_tries=256, name='kernel')
-        self._kernelCon = c
+        self._kernelCon = self._context.bind('localhost:IEP', 
+                                                max_tries=256, name='kernel')
         
         # Create channels. Stdout is for the C-level stdout/stderr streams.
         self._brokerChannel = yoton.PubChannel(self._context, 'broker-stream')
@@ -221,7 +298,7 @@ class KernelBroker:
         self._controlChannel_pub = yoton.PubChannel(self._context, 'control')
         
         # Get command to execute
-        command = self._info.getCommand(c.port)
+        command = info.getCommand(self._kernelCon.port)
         
         # Start process
         self._process = subprocess.Popen(   command, shell=True, 
@@ -229,16 +306,26 @@ class KernelBroker:
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         
         # Set timeout
-        c.timeout = 0.5
+        self._kernelCon.timeout = 0.5
         
         # Bind to events
-        c.closed.bind(self._onKernelClose)
-        c.timedout.bind(self._onKernelTimedOut)
+        self._kernelCon.closed.bind(self._onKernelConnectionClose)
+        self._kernelCon.timedout.bind(self._onKernelTimedOut)
         
         # Create reader for stream
         self._streamReader = StreamReader(self._process,
                                     self._stdoutChannel, self._brokerChannel)
+        
+        # Start streamreader and timer
         self._streamReader.start()
+        self._timer.start()
+        
+        # Reset some variables
+        self._killAttempts = 0
+        self._restart = False
+        self._pending_scriptFile = None
+        
+        self._brokerChannel.send('Hi, this is your broker!')
     
     
     def host(self, address='localhost'):
@@ -252,42 +339,83 @@ class KernelBroker:
         return c.port
     
     
-    def _onKernelClose(self, c, why):
-        """ Connection with kernel lost. Tell clients why.
-        """
-        self._brokerChannel.send('Connection to kernel lost: {}'.format(why))
-    
-    
     def _onKernelTimedOut(self, c, timedout):
-        """ The kernel timed out (i.e. did not send heartbeat messages for
+        """ _onKernelTimedOut(c, timeout)
+        
+        The kernel timed out (i.e. did not send heartbeat messages for
         a while. It is probably running extension code.
+        
         """
         if timedout:
             self._heartbeatChannel.send(False)
         else:
             self._heartbeatChannel.send(True)
-
+    
 
     def _onTimerIteration(self):
+        """ _onTimerIteration()
         
-        # Test if process is dead
-        if self._process.poll():
-            # Show message
-            # todo: test this            
-            if self._kernelCon and not self._kernelCon.is_connected:
-                self._brokerChannel.send('The process failed to start.')
+        Periodically called.
         
-        else:
-            # Process alive
-            
-            # Test control
-            for msg in self._controlChannel.recv_all():
-                if msg == 'INT':
-                    # On Linux we might interrupt from here. Is only advantegous
-                    # if this could interrupt extension code
+        """
+        
+        # Waiting to get started; waiting for client to connect
+        if isinstance(self._process, float):
+            if self._context.connection_count:
+                self.startKernel()
+            elif self._process > time.time():
+                self._process = None
+            return
+        
+        # Is there even a process?
+        if self._process is None:
+            self._context.close()
+            self._context.flush
+            self._reset(True)
+            return
+        
+        elif self._process.poll():
+            # Test if process is dead
+            self._onKernelDied()
+            return
+        
+        
+        # Process alive ...
+        
+        # Are we in the process of terminating?
+        if self._killAttempts:
+            self._terminating()
+        
+        # handle control messages
+        for msg in self._controlChannel.recv_all():
+            if msg == 'INT':
+                # Kernel receives and acts
+                # todo: On Linux we might interrupt from here. Is only advantegous
+                # if this could interrupt extension code
+                pass 
+            elif msg == 'TERM':
+                # Start termination procedure
+                # Kernel will receive term and act (if it can). 
+                # If it wont, we will act in a second or so.
+                if self._killAttempts:
+                    # The user gave kill command while the kill process
+                    # is running. We could do an emidiate kill now,
+                    # or we let the terminate process run its course.
                     pass 
-                elif msg == 'TERM':
-                    # Start termination procedure
+                else:
+                    self._killAttempts = 1
+            elif msg.startswith('RESTART'):
+                # Restart: terminates kernel and then start a new one
+                self._restart = True
+                scriptFile = None
+                if ' ' in msg:
+                    scriptFile = msg.split(' ',1)[1]
+                self._pending_scriptFile = scriptFile
+                # Terminate
+                self._controlChannel_pub.send('TERM')
+                self._killAttempts = 1
+            else:
+                pass # Message is not for us
     
     
     def _terminating(self):
@@ -298,28 +426,88 @@ class KernelBroker:
         
         """
         
-        if self._kernelCon.is_connected:
-            if self._killAttempts == 1:
-                # Waiting for process to stop by itself
-                
-                if time.time() - self._killTimer > 0.5:
-                    # Increase counter, next time will interrupt
-                    self._killAttempts += 1
-            
-            elif self._killAttempts < 6:
-                # Send an interrupt every 100 ms
-                if time.time() - self._killTimer > 0.1:
-                    self.interrupt()
-                    self._killTimer = time.time()
-                    self._killAttempts += 1
-            
-            elif self._killAttempts < 10:
-                # Ok, that's it, we're leaving!
-                
-                self._killAttempts = 10
+        if self._killAttempts == 1:
+            # Waiting for process to stop by itself
+            if time.time() - self._killTimer > 0.5:
+                # Increase counter, next time will interrupt
+                self._killAttempts += 1
+        
+        elif self._killAttempts < 6:
+            # Send an interrupt every 100 ms
+            if time.time() - self._killTimer > 0.1:
+                self.interrupt()
                 self._killTimer = time.time()
-
-
+                self._killAttempts += 1
+        
+        elif self._killAttempts < 10:
+            # Ok, that's it, we're leaving!
+            
+            # Get pid and signal
+            pid = self._kernelCon.pid2
+            sigkill = signal.SIGTERM
+            if hasattr(signal,'SIGKILL'):
+                sigkill = signal.SIGKILL
+            # Kill
+            if hasattr(os,'kill'):
+                import signal
+                os.kill(pid, sigkill)
+            elif sys.platform.startswith('win'):
+                import ctypes
+                kernel32 = ctypes.windll.kernel32
+                handle = kernel32.OpenProcess(1, 0, pid)
+                kernel32.TerminateProcess(handle, 0)
+                #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
+            #
+            self._killAttempts = 10
+            self._killTimer = time.time()
+    
+    
+    def _onKernelConnectionClose(self, c, why):
+        """ _onKernelConnectionClose(c, why)
+        
+        Connection with kernel lost. Tell clients why.
+        
+        """
+        # Notify
+        self._brokerChannel.send('Connection to kernel lost: {}'.format(why))
+    
+    
+    def _onKernelDied(self):
+        """ _onKernelDied()
+        
+        Kernel process died. Clean up!
+        
+        """
+        
+        # Notify
+        if self._kernelCon and not self._kernelCon.is_connected:
+            self._brokerChannel.send('The process failed to start.')
+        else:
+            # Determine message
+            if self._killAttempts < 0:
+                msg = 'Process terminated twice?' # this should not happen
+            if self._killAttempts == 0:
+                msg = 'Process dropped.'
+            elif self._killAttempts == 1:
+                msg = 'Process terminated.'
+            elif self._killAttempts < 10:
+                msg = 'Process interrupted and terminated.'        
+            else:
+                msg = 'Process killed.'
+            #
+            self._brokerChannel.send(msg)
+        
+        # Signal that the connection is gone
+        self._killAttempts = -1
+    
+        # Cleanup (get rid of kernel process references)
+        self._reset()
+        
+        # Restart?
+        if self._restart:
+            self._restart = False
+            self.startKernel()
+    
 
 class StreamReader(threading.Thread):
     """ StreamReader(process, channel)
@@ -330,6 +518,8 @@ class StreamReader(threading.Thread):
     
     """
     def __init__(self, process, stdoutChannel, brokerChannel):
+        threading.Thread.__init__(self)
+        
         self._process = process
         self._stdoutChannel = stdoutChannel
         self._brokerChannel = brokerChannel
@@ -340,12 +530,15 @@ class StreamReader(threading.Thread):
         while count>0:
             # Read any stdout/stderr messages and route them via yoton.
             msg = self._process.stdout.read() # <-- Blocks here
+            if not isinstance(msg, str):
+                msg = msg.decode('utf-8', 'ignore')
             self._stdoutChannel.send(msg)
             # Process dead?
             if self._process.poll():
                 count -= 1
             # Sleep
             time.sleep(0.1)
+        print('exit streamreader')
     
 
 class Kernelmanager:
@@ -370,7 +563,7 @@ class Kernelmanager:
         self._kernels = []
     
     
-    def create_kernel(self, info, name=None):
+    def createKernel(self, info, name=None):
         """ create_kernel(info, name=None)
         
         Create a new kernel. Returns the port number to connect to the
@@ -384,18 +577,20 @@ class Kernelmanager:
             name = 'kernel %i' % i
         
         # Create kernel
-        kernel = KernelBroker(info, name)
+        kernel = KernelBroker(self, info, name)
         self._kernels.append(kernel)
         
-        # Start kernel and host a connection for the ide
-        kernel.startKernel()
+        # Host a connection for the ide
         port = kernel.host()
+        
+        # Tell broker to hstart
+        kernel.startKernelIfConnected()
         
         # Done
         return port
     
     
-    def get_kernel_list(self):
+    def getKernelList(self):
         
         # Get info of each kernel as an ssdf struct
         infos = []
