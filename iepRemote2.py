@@ -44,7 +44,7 @@ class IepInterpreter:
     Simular working as code.InteractiveConsole. Some code was copied, but
     the following things are changed:
     - prompts are printed in the err stream, like the default interpreter does
-    - uses an asynchronous read using the channels interface
+    - uses an asynchronous read using the yoton interface
     - support for hijacking GUI toolkits
     - can run large pieces of code
     - support post mortem debugging
@@ -183,7 +183,7 @@ class IepInterpreter:
             
             # Notify the running of the script
             sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
-            sys._status.write('STATE Busy')
+            sys._status.send('STATE Busy')
             
             # Run script
             scriptToRunOnStartup = scriptFilename
@@ -209,7 +209,7 @@ class IepInterpreter:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
             # Notify running script
-            sys._status.write('STATE Busy')
+            sys._status.send('STATE Busy')
             
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
@@ -249,7 +249,7 @@ class IepInterpreter:
                 time.sleep(0.010) # 10 ms
                 
                 # Read control stream and process
-                control = sys._control.read_one(False)
+                control = sys._control.recv(False)
                 if control:
                     self.parsecontrol(control)
                 
@@ -257,16 +257,16 @@ class IepInterpreter:
                 if sys.stdin.closed:
                     # Stop all deamon threads (or we wont really stop in <2.5)
                     self.ithread._stop = True
-                    self.channels.disconnect()
+                    sys._yoton_context.close()
                     # Break
                     self.write("\n")
                     break
                 
                 # Read a packet and process
-                line = sys.stdin.read_one(False)
+                line = sys.stdin.read(False)
                 if line:
                     # Set busy
-                    sys._status.write('STATE Busy')
+                    sys._status.send('STATE Busy')
                     self.newPrompt = True
                     
                     if line.startswith('\n') and len(line)>1:
@@ -300,7 +300,7 @@ class IepInterpreter:
                     more = 0
             except SystemExit:
                 # Close socket nicely
-                sys._channels.disconnect()
+                sys._yoton_context.close()
     
     
     def resetbuffer(self):
@@ -608,9 +608,9 @@ class IepInterpreter:
         
         # STATE
         if self._dbFrames:
-            sys._status.write('STATE Debug')
+            sys._status.send('STATE Debug')
         else:
-            sys._status.write('STATE Ready')
+            sys._status.send('STATE Ready')
         
         # DEBUG
         if self._dbFrames:
@@ -626,9 +626,9 @@ class IepInterpreter:
                 text = 'File "%s", line %i, in %s' % (
                                         fname, lineno, f.f_code.co_name)
                 stack.append(text)
-            sys._status.write('DEBUG ' + ';'.join(stack))
+            sys._status.send('DEBUG ' + ';'.join(stack))
         else:
-            sys._status.write('DEBUG ') # no debugging
+            sys._status.send('DEBUG ') # no debugging
     
     
     def showsyntaxerror(self, filename=None):
@@ -829,7 +829,7 @@ class IntroSpectionThread(threading.Thread):
             time.sleep(0.01)
             
             # read code (wait here)
-            line = self.request.read_one(True)
+            line = self.request.recv(True)
             if not line or self.request.closed or self._stop:
                 break # from thread
             

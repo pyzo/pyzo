@@ -19,11 +19,20 @@ code in it.
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import os, sys, time, subprocess
-import channels
+import yoton
 import iep
 from baseTextCtrl import BaseTextCtrl
 from iepLogging import print
 from kernelbroker import KernelInfo, Kernelmanager
+
+
+# Register timer for yoton
+iep.main._yoton_timer = QtCore.QTimer(iep.main)
+iep.main._yoton_timer.setInterval(20)  # ms
+iep.main._yoton_timer.setSingleShot(False)
+iep.main._yoton_timer.timeout.connect(yoton.process_events)
+iep.main._yoton_timer.start()
+
 
 # todo: color stderr red and prompt blue, and input text Python!
 
@@ -564,10 +573,9 @@ class PythonShell(BaseShell):
         if info is None and iep.config.shellConfigs:
             info = iep.config.shellConfigs[0]
         if info:
-            self._info = convertToNewKernelInfo(info)
+            info = convertToNewKernelInfo(info)
         else:
-            self._info = KernelInfo(None)
-        
+            info = KernelInfo(None)
         
         # For the editor to keep track of attempted imports
         self._importAttempts = []
@@ -592,6 +600,7 @@ class PythonShell(BaseShell):
 #         self.postRequest('EVAL ' + tmp, self._setBuiltins)
 #         self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
         
+        # todo: make yoton timer?
         # Create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(20)  # ms
@@ -602,52 +611,9 @@ class PythonShell(BaseShell):
         # Initialize timer callback
         self._pollMethod = None
         
-        # File to execute on startup (in script mode)
-        self._pendingScriptFilename = None
-        
         # Start!
+        self.connectToKernel(info)
         self.start()
-    
-    
-    def connectToKernel(self):
-        """ connectToKernel()
-        
-        Create kernel and connect to it.
-        
-        """
-        # todo: the broker can also do the restarting!
-        
-        # Set script file
-        info = ssdf.copy(self._info)
-        if self._pendingScriptFilename:
-            info.scriptFile = self._pendingScriptFilename
-        else:
-            info.scriptFile = ''
-        self._pendingScriptFilename = None
-        
-        # Create a kernel, the broker context will now be waiting ...
-        slot = iep.localKernelBroker.create_kernel(info)
-        
-        # Create yoton context and connect!
-        self._context = yoton.Context()
-        self._context.connect('localhost:%i'%slot)
-        
-        # Connect standard streams
-        self._stdin = yoton.PubChannel(self._context, 'stdin')
-        self._stdout = yoton.SubChannel(self._context, 'stdout')
-        self._stderr = yoton.SubChannel(self._context, 'stderr')
-        
-        # More streams coming from the broker
-        self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
-        self._brokerstream = yoton.SubChannel(self._context, 'broker-stream')
-        
-        # Channels for status and control
-        self._heartbeat = yoton.SubstateChannel(self._context, 'heartbeat-status')
-        self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus')
-        self._control = yoton.PubChannel(self._context, 'control')
-        
-        # For introspection
-        self._request = yoton.RequestChannel(self._context, 'introspect')
     
     
     def start(self):
@@ -657,54 +623,59 @@ class PythonShell(BaseShell):
         #TODO: self.setStyle('pythonshell')
         self.setReadOnly(False)
         
-        # (re)set restart vatiable and a callback
-        self._restart = False 
+#         # (re)set restart variable and a callback
+#         self._restart = False 
         
         # (re)set import attempts
         self._importAttempts[:] = []
-        
-        # (re)set variable to terminate the process in increasingly rude ways
-        self._killAttempts = 0
-        
-        
-        # Reset pending script
-        self._pendingScriptFilename = None
         
         # Set timer callback
         self._pollMethod = self.poll_running
     
     
-    def _setVersion(self, response, id):
-        """ Process the request for the version. """
-        self._version = response.split(' ',1)[0]
-    
-    def _setBuiltins(self, response, id):
-        """ Process the request for the list of buildins. """
-        self._builtins = response.split(',')
-    
-    def _setKeywords(self, response, id):
-        """ Process the request for the list of keywords. """
-        self._keywords = response.split(',')
-    
-    
-    def _setStatus(self, status):
-        """ Handle a new status. Store the state and notify listeners. """
+    def connectToKernel(self, info):
+        """ connectToKernel()
         
-        if status.startswith('STATE '):
-            state = status.split(' ',1)[1]
-            
-            # Store status and emit signal if necessary
-            if state != self._state:
-                self._state = state
-                self.stateChanged.emit(self)
+        Create kernel and connect to it.
         
-        elif status.startswith('DEBUG '):
-            debugState = status.split(' ',1)[1]
-            
-            # Store status and emit signal if necessary
-            if debugState != self._debugState:
-                self._debugState = debugState
-                self.debugStateChanged.emit(self)
+        """
+        
+        # Create yoton context
+        self._context = yoton.Context()
+        
+        # Connect standard streams
+        self._stdin = yoton.PubChannel(self._context, 'stdin')
+        self._stdout = yoton.SubChannel(self._context, 'stdout')
+        self._stderr = yoton.SubChannel(self._context, 'stderr')
+        
+        # More streams coming from the broker
+        self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
+        self._brokerChannel = yoton.SubChannel(self._context, 'broker-stream')
+        
+        # Channels for status and control
+        self._heartbeat = yoton.SubstateChannel(self._context, 'heartbeat-status')
+        self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus')
+        self._control = yoton.PubChannel(self._context, 'control')
+        
+        # For introspection
+        self._request = yoton.ReqChannel(self._context, 'introspect')
+        
+        # todo: Do a couple of requests to get version buildins etc.
+        
+        # Connect! The broker will only start the kernel AFTER
+        # we connect, so we do not miss out on anything.
+        slot = iep.localKernelBroker.createKernel(info)
+        self._brokerConnection = self._context.connect('localhost:%i'%slot)
+        self._brokerConnection.closed.bind(self._onConnectionClose)
+    
+    
+    @property
+    def _state(self):
+        return self._heartbeat.recv()
+    
+    @property
+    def _debugState(self):
+        return ""
     
     
     ## Introspection processing methods
@@ -725,7 +696,7 @@ class PythonShell(BaseShell):
         
         # Post request
         req = "SIGNATURE " + cto.name
-        self.postRequest(req, self._processCallTip_response, cto)
+#         self.postRequest(req, self._processCallTip_response, cto)
     
     
     def _processCallTip_response(self, response, cto):
@@ -773,7 +744,7 @@ class PythonShell(BaseShell):
         self._currentACO = aco
         # Poll name
         req = "ATTRIBUTES " + aco.name
-        self.postRequest(req, self._processAutoComp_response, aco)
+#         self.postRequest(req, self._processAutoComp_response, aco)
     
     
     def _processAutoComp_response(self, response, aco):
@@ -831,7 +802,7 @@ class PythonShell(BaseShell):
         arguments.
         """
         req = RequestObject(request, callback, id)
-        self._requestQueue.append(req)
+#         self._requestQueue.append(req)
     
     
     def postRequestAndReceive(self, request):
@@ -863,7 +834,7 @@ class PythonShell(BaseShell):
         """ executeCommand(text)
         Execute one-line command in the remote Python session. 
         """
-        self._stdin.write(text)
+        self._stdin.send(text)
     
     
     def executeCode(self, text, fname, lineno=0):
@@ -1200,6 +1171,7 @@ class PythonShell(BaseShell):
         To keep the shell up-to-date
         Call this periodically. 
         """
+        
         if self._pollMethod:
             self._pollMethod()
     
@@ -1215,7 +1187,7 @@ class PythonShell(BaseShell):
         # update scintilla much faster if multiple messages are printed
         # When printing a single message, self._t is very old, and the
         # message is printed emidiately
-        text = self._stdout.read(False)
+        text = self._stdout.recv(False)
         if text:
             self._buffer += text
         if self._buffer and (time.time()-self._t) > 0.2:
@@ -1223,84 +1195,51 @@ class PythonShell(BaseShell):
             self._buffer = ''
             self._t = time.time()
         
+        # Broker messages
+        text = self._brokerChannel.recv(False)
+        if text:
+            self.write(text)
+        #
+        text = self._cstdout.recv(False)
+        if text:
+            self.write(text)
+        
         # Check stderr
-        text = self._stderr.read_one(False)
+        text = self._stderr.recv(False)
         if text:
             self.writeErr(text)
         
-        # Process responses
-        if self._requestQueue:
-            response = self._response.read_last()
-            if response:
-                req = self._requestQueue.pop(0)
-                req._callback(response, req._id)
+#         # Process responses
+#         if self._requestQueue:
+#             response = self._response.read_last()
+#             if response:
+#                 req = self._requestQueue.pop(0)
+#                 req._callback(response, req._id)
         
-        # Process requests
-        # Post from the bottom of the queue and only if it's not posted.
-        # This way there's always only one request being processed. 
-        if self._requestQueue:
-            req = self._requestQueue[0]
-            if not req._posted:
-                self._request.write( req._request )
-                req._posted = True
+#         # Process requests
+#         # Post from the bottom of the queue and only if it's not posted.
+#         # This way there's always only one request being processed. 
+#         if self._requestQueue:
+#             req = self._requestQueue[0]
+#             if not req._posted:
+#                 self._request.write( req._request )
+#                 req._posted = True
         
-        # Check status
-        if self._version:
-            status = 'dummy'
-            while status:
-                status = self._status.read_one()
-                if status:
-                    self._setStatus(status)
-        else:
-            # The version has not been set, poll the process to
-            # check whether it's still there
-            if self._process.poll():
-                self._restart = False
-                print('Process stdout:', self._process.stdout.read())
-                print('Process stderr:', self._process.stderr.read())
-                self._afterDisconnect('The process failed to start.')
-    
-    
-    def poll_terminating(self):
-        """ The timer callback method when the process is being terminated. 
-        IEP will try to terminate in increasingly more rude ways. 
-        """
-        
-        if self._channels.is_connected:
-            if self._killAttempts == 1:
-                # Waiting for process to stop by itself
-                
-                if time.time() - self._t > 0.5:
-                    # Increase counter, next time will interrupt
-                    self._killAttempts += 1
-            
-            elif self._killAttempts < 6:
-                # Send an interrupt every 100 ms
-                if time.time() - self._t > 0.1:
-                    self.interrupt()
-                    self._t = time.time()
-                    self._killAttempts += 1
-            
-            elif self._killAttempts < 10:
-                # Ok, that's it, we're leaving!
-                pid = # todo: get pid
-                if hasattr(os,'kill'):
-                    import signal
-                    killsig = signal.SIGTERM
-                    if hasattr(signal, 'SIGKILL'):
-                        killsig = signal.SIGKILL
-                    os.kill(pid,killsig)
-                elif sys.platform.startswith('win'):
-                    import ctypes
-                    kernel32 = ctypes.windll.kernel32
-                    handle = kernel32.OpenProcess(1, 0, pid)
-                    kernel32.TerminateProcess(handle, 0)
-                    #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
-                self._killAttempts = 10
-                self._t = time.time()
-            else:
-                if time.time()-self._t >0.5:
-                    self._process.kill()
+#         # Check status
+#         if self._version:
+#             status = 'dummy'
+#             while status:
+#                 status = self._status.read_one()
+#                 if status:
+#                     self._setStatus(status)
+#         else:
+#             # The version has not been set, poll the process to
+#             # check whether it's still there
+#             if self._process.poll():
+#                 self._restart = False
+#                 print('Process stdout:', self._process.stdout.read())
+#                 print('Process stderr:', self._process.stderr.read())
+#                 self._afterDisconnect('The process failed to start.')
     
     
     def poll_terminated(self):
@@ -1326,7 +1265,7 @@ class PythonShell(BaseShell):
         Send a Keyboard interrupt signal to the main thread of the 
         remote process. 
         """
-        self._channels.interrupt()
+        self._control.send('INT')
     
     
     def restart(self, scriptFilename=None):
@@ -1335,10 +1274,10 @@ class PythonShell(BaseShell):
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
+        msg = 'RESTART'
         if scriptFilename:
-            self._pendingScriptFilename = scriptFilename
-        self._restart = True
-        self.terminate()
+            msg += ' ' + str(scriptFilename)
+        self._control.send(msg)
     
     
     def terminate(self):
@@ -1348,97 +1287,36 @@ class PythonShell(BaseShell):
         To be notified of the termination, connect to the "terminated"
         signal of the shell.
         """
-        
-        if self._killAttempts != 0:
-            # Alreay in the process of terminating, or done terminating
-            return
-        
-        # Try closing the process gently: by closing stdin
-        self._stdin.close()
-        self._request.close()
-        self._killAttempts = 1
-        self._t = time.time()
-        
-        # Keep track using an alternative polling function
-        self._pollMethod = self.poll_terminating
+        self._control.send('TERM')
     
-    
+        
     def terminateNow(self):
         """ terminateNow()
         Terminates the python process. Will terminate the shell in maximally
         1 second. When this function returns, the shell will have been
         terminated.
         """
-        # Try closing the process gently: by closing stdin
-        self._stdin.close()
-        self._request.close()
-        self._killAttempts = 1
-        self._t = time.time()
-        
-        # Terminate
-        while self._channels.is_connected:
-            time.sleep(0.02)
-            
-            if self._killAttempts == 1:
-                if time.time() - self._t > 0.5:
-                    self._killAttempts += 1
-            elif self._killAttempts < 5:
-                if time.time() - self._t > 0.1:
-                    self.interrupt()
-                    self._t = time.time()
-                    self._killAttempts += 1
-            elif self._killAttempts == 9:
-                # Ok, that's it, we're leaving!
-                self._channels.kill()
-                self._killAttempts = 10
-            else:
-                break
+        # todo: work around this, I guess the brokermanager could do this
+        print('terminateNow does not work!')
     
     
-    def _onDisconnect(self, why):
-        """ Called when the connection is lost.
-        """
-        
-        # Determine message
-        if self._killAttempts < 0:
-            msg = 'Process terminated twice?' # this should not happen
-        if self._killAttempts == 0:
-            msg = why#'Process dropped.'
-        elif self._killAttempts == 1:
-            msg = 'Process terminated.'
-        elif self._killAttempts < 10:
-            msg = 'Process interrupted and terminated.'        
-        else:
-            msg = 'Process killed.'
-        
-        # signal that the connection is gone
-        self._killAttempts = -1
-        
-        # We're now in a different thread, so use callLater to
-        # defer the timer to closing-mode
-        iep.callLater(self._afterDisconnect, msg)
-    
-    
-    def _afterDisconnect(self, msg= ''):
+    def _onConnectionClose(self, c, why):
         """ To be called after disconnecting (because that is detected
         from another thread.
         Replaces the timeout callback for the timer to go in closing mode.
         """
+        
         # New (empty prompt)
         self.stdoutCursor.movePosition(self.stdoutCursor.End)
         self.lineBeginCursor.movePosition(self.lineBeginCursor.End)
-
-        self.write('\n\n');
         
-        # Build second message
-        if self._restart:
-            msg2 = "Restarting ..."
-        else:
-            msg2 = "Waiting for focus to be removed."
+        self.write('\n\n');
+        self.write(why)
+        self.write('\n\n')
         
         # Notify via logger and in shell
-        msg3 = "===== {} {} ".format(msg, msg2).ljust(80, '=') + '\n\n'
-        print(msg)
+        msg = "Waiting for focus to be removed."
+        msg3 = "===== {} ".format(msg).ljust(80, '=') + '\n\n'
         self.write(msg3)
         
         # Set style to indicate dead-ness
@@ -1456,8 +1334,3 @@ class PythonShell(BaseShell):
         
         # Notify listeners
         self.terminated.emit(self)
-        
-        # Should we restart?
-        if self._restart:            
-            self.start()
-   
