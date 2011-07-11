@@ -14,6 +14,7 @@ import os, sys, time
 import subprocess
 import signal
 import threading
+import ctypes
 
 import ssdf
 import yoton
@@ -240,6 +241,7 @@ class KernelBroker:
             
             # Remove references
             #
+            self._context.destroy()
             self._context = None
             #
             self._brokerChannel = None
@@ -351,7 +353,7 @@ class KernelBroker:
         else:
             self._heartbeatChannel.send(True)
     
-
+    
     def _onTimerIteration(self):
         """ _onTimerIteration()
         
@@ -359,19 +361,20 @@ class KernelBroker:
         
         """
         
+        # Is there even a process?
+        if self._process is None:
+            print('kernel process stop')
+            self._context.close()
+            #self._context.flush
+            self._reset(True)
+            return
+        
         # Waiting to get started; waiting for client to connect
         if isinstance(self._process, float):
             if self._context.connection_count:
                 self.startKernel()
             elif self._process > time.time():
                 self._process = None
-            return
-        
-        # Is there even a process?
-        if self._process is None:
-            self._context.close()
-            self._context.flush
-            self._reset(True)
             return
         
         elif self._process.poll():
@@ -435,7 +438,7 @@ class KernelBroker:
         elif self._killAttempts < 6:
             # Send an interrupt every 100 ms
             if time.time() - self._killTimer > 0.1:
-                self.interrupt()
+                self._controlChannel_pub.send('INT')
                 self._killTimer = time.time()
                 self._killAttempts += 1
         
@@ -449,10 +452,8 @@ class KernelBroker:
                 sigkill = signal.SIGKILL
             # Kill
             if hasattr(os,'kill'):
-                import signal
                 os.kill(pid, sigkill)
             elif sys.platform.startswith('win'):
-                import ctypes
                 kernel32 = ctypes.windll.kernel32
                 handle = kernel32.OpenProcess(1, 0, pid)
                 kernel32.TerminateProcess(handle, 0)
@@ -602,3 +603,25 @@ class Kernelmanager:
         
         # Done
         return infos
+    
+    
+    def terminateAll(self):
+        """ terminateAll()
+        
+        Terminates all kernels. Required when shutting down IEP. 
+        When this function returns, all kernels will be terminated.
+        
+        """
+        for kernel in self._kernels:
+            
+            # Try closing the process gently: by closing stdin
+            kernel._controlChannel_pub.send('TERM')
+            kernel._killAttempts = 1
+            
+            # Terminate
+            while kernel._kernelCon.is_connected and kernel._killAttempts<10:
+                time.sleep(0.02)
+                kernel._terminating()
+            
+            # Clean up
+            kernel._reset(True)
