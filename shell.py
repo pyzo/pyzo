@@ -1289,16 +1289,6 @@ class PythonShell(BaseShell):
         """
         self._control.send('TERM')
     
-        
-    def terminateNow(self):
-        """ terminateNow()
-        Terminates the python process. Will terminate the shell in maximally
-        1 second. When this function returns, the shell will have been
-        terminated.
-        """
-        # todo: work around this, I guess the brokermanager could do this
-        print('terminateNow does not work!')
-    
     
     def _onConnectionClose(self, c, why):
         """ To be called after disconnecting (because that is detected

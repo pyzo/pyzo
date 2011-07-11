@@ -262,8 +262,9 @@ class MainWindow(QtGui.QMainWindow):
             event.accept()
         
         # Proceed with closing shells
+        iep.localKernelBroker.terminateAll()
         for shell in iep.shells:
-            shell.terminateNow()
+            shell._context.destroy()
     
     
     def restart(self):
