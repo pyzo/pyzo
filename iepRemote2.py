@@ -301,6 +301,8 @@ class IepInterpreter:
             except SystemExit:
                 # Close socket nicely
                 sys._yoton_context.close()
+                # Exit from interpreter
+                return
     
     
     def resetbuffer(self):

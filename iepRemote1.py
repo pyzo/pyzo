@@ -27,9 +27,6 @@ port = int(sys.argv[1])
 ct = yoton.Context()
 ct.connect('localhost:'+str(port), timeout=1.0)
 
-
-print('I am the Python!')
-
 # Create all channels
 sys.stdin = yoton.FileWrapper( yoton.SubChannel(ct, 'stdin') )
 sys.stdout = yoton.FileWrapper( yoton.PubChannel(ct, 'stdout') )
@@ -38,7 +35,6 @@ sys.stderr = yoton.FileWrapper( yoton.PubChannel(ct, 'stderr') )
 sys._control = yoton.SubChannel(ct, 'control')
 sys._status = yoton.PubstateChannel(ct, 'status')
 
-print('haha! this is your kernel!')
 
 ## Set Excepthook
 
@@ -54,7 +50,7 @@ def iep_excepthook(type, value, tb):
     time.sleep(0.3) # Give some time for the message to be send
 
 # Uncomment to detect error in the interpreter itself
-sys.excepthook = iep_excepthook
+#sys.excepthook = iep_excepthook
 
 
 ## Init interpreter and introspection tread
