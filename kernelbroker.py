@@ -205,8 +205,7 @@ class KernelBroker:
         self._reset()
         
         # For terminating.
-        self._killAttempts = 0
-        self._killTimer = 0
+        self._terminator = None
         
         # For restarting after terminating
         self._restart = False
@@ -323,7 +322,7 @@ class KernelBroker:
         self._timer.start()
         
         # Reset some variables
-        self._killAttempts = 0
+        self._terminator = None
         self._restart = False
         self._pending_scriptFile = None
         
@@ -363,7 +362,6 @@ class KernelBroker:
         
         # Is there even a process?
         if self._process is None:
-            print('kernel process stop')
             self._context.close()
             #self._context.flush
             self._reset(True)
@@ -387,8 +385,8 @@ class KernelBroker:
         # Process alive ...
         
         # Are we in the process of terminating?
-        if self._killAttempts:
-            self._terminating()
+        if self._terminator:
+            self._terminator.next()
         
         # handle control messages
         for msg in self._controlChannel.recv_all():
@@ -401,13 +399,13 @@ class KernelBroker:
                 # Start termination procedure
                 # Kernel will receive term and act (if it can). 
                 # If it wont, we will act in a second or so.
-                if self._killAttempts:
+                if self._terminator:
                     # The user gave kill command while the kill process
                     # is running. We could do an emidiate kill now,
                     # or we let the terminate process run its course.
                     pass 
                 else:
-                    self.terminate(1)
+                    self.terminate()
             elif msg.startswith('RESTART'):
                 # Restart: terminates kernel and then start a new one
                 self._restart = True
@@ -415,83 +413,18 @@ class KernelBroker:
                 if ' ' in msg:
                     scriptFile = msg.split(' ',1)[1]
                 self._pending_scriptFile = scriptFile
-                self.terminate()
+                self.terminate('for restart')
             else:
                 pass # Message is not for us
     
     
-    def terminate(self, attempt=0):
-        """ terminate(attempt=0)
+    def terminate(self, reason='by user', action='TERM', timeout=0.0):
+        """ terminate(reason='by user', action='TERM', timeout=0.0)
         
-        Terminate kernel. Set the amount of attemts currently done.
-        If not given, we'll do the first attempt.
-        
-        """
-        # Send term control signal, which the introspection thread
-        # will catch and use to close stdin, which the main thread
-        # will see as a signal to close down.
-        if attempt == 0:
-            self._controlChannel_pub.send('TERM')
-            attempt = 1
-        
-        # Set attempt and time
-        self._killAttempts = attempt
-        self._killTimer = time.time()
-    
-    
-    def _terminating(self):
-        """ _terminating()
-        
-        The timer callback method when the process is being terminated. 
-        Will try to terminate in increasingly more rude ways. 
+        Terminate kernel. 
         
         """
-        
-        # killAttempts 0, means normal situation
-        # killAttempts 1, means we asked kernel to shut down by closing stdin
-        # killAttempts 1-2, means we are interrupting the kernel
-        # killAttempts 10+ means we killed it
-        # killAttempts (1)3 means after interrupting
-        # killAttempts (1)4 means because connection closed
-        # killAttempts 20 means we detected the kernel dying
-        
-        
-        if self._killAttempts == 1:
-            # Waiting for process to stop by itself
-            if time.time() - self._killTimer > 0.5:
-                # Increase counter, next time will interrupt
-                self._killAttempts += 1
-        
-        elif self._killAttempts < 2:
-            # Send an interrupt every 100 ms, 5 times
-            if time.time() - self._killTimer > 0.1:
-                self._controlChannel_pub.send('INT')
-                self._killTimer = time.time()
-                self._killAttempts += .21
-        
-        elif self._killAttempts < 10:
-            # Ok, that's it, we're leaving!
-            
-            # Set to three if we just did the interrupt thing
-            if self._killAttempts < 3:
-                self._killAttempts = 3
-            
-            # Get pid and signal
-            pid = self._kernelCon.pid2
-            sigkill = signal.SIGTERM
-            if hasattr(signal,'SIGKILL'):
-                sigkill = signal.SIGKILL
-            # Kill
-            if hasattr(os,'kill'):
-                os.kill(pid, sigkill)
-            elif sys.platform.startswith('win'):
-                kernel32 = ctypes.windll.kernel32
-                handle = kernel32.OpenProcess(1, 0, pid)
-                kernel32.TerminateProcess(handle, 0)
-                #os.system("TASKKILL /PID " + str(os.getpid()) + " /F")
-            #
-            self._killAttempts += 10
-            self._killTimer = time.time()
+        self._terminator = KernelTerminator(self, reason, action, timeout)
     
     
     def _onKernelConnectionClose(self, c, why):
@@ -504,14 +437,8 @@ class KernelBroker:
         # can be lost without the kernel closing, is if the yoton context 
         # crashed or was stopped somehow. In both cases, we lost control,
         # and should put it down!
-        # Set to one, so it will take some time (trying INT's) and giving
-        # the 
-        # todo: make it such that we can distinguish. Wait with actual killing
-        if not self._killAttempts:
-            self.terminate(4)
-        
-        # Notify
-        #self._brokerChannel.send('Connection to kernel lost: {}'.format(why))
+        if not self._terminator:
+            self._terminator = self.terminate('connecton lost', 'KILL', 1.0)
     
     
     def _onKernelDied(self, returncode=0):
@@ -523,33 +450,16 @@ class KernelBroker:
         
         # If the kernel did not start yet, probably the command is invalid
         if self._kernelCon and self._kernelCon.is_waiting:
-            msg = 'The process failed to start (invalid command?).'
-        
+            msg = 'The process failed to start (invalid command?).'        
+        elif not self._terminator:
+            msg = 'Kernel process exited.'        
         else:
-            # Determine message
-            if self._killAttempts == 0:
-                msg = 'Process dropped.'
-            elif self._killAttempts == 1:
-                msg = 'Process terminated.'
-            elif self._killAttempts < 3:
-                msg = 'Process interrupted and terminated.'        
-            elif self._killAttempts == 13:
-                msg = 'Process killed.'
-            elif self._killAttempts == 14:
-                msg = 'Process killed because we lost the connection.'
-            elif self._killAttempts == 20:
-                msg = 'Process terminated twice?' # this should not happen
-            else:
-                msg = 'Process dropped (and dont know why: %i).' % self._killAttempts
-        
+            msg = self._terminator.getMessage('Kernel process')
         
         # Notify
         returncodeMsg = ' (%s)' % str(returncode) 
         self._brokerChannel.send(msg+returncodeMsg)
         
-        # Signal that we detected that the kernel died
-        self._killAttempts = 20
-    
         # Cleanup (get rid of kernel process references)
         self._reset()
         
@@ -558,6 +468,91 @@ class KernelBroker:
             self._restart = False
             self.startKernel()
     
+
+
+class KernelTerminator:
+    """ KernelTerminator(broker, reason='user terminated', action='TERM', timeout=0.0)
+    
+    Simple class to help terminating the kernel.
+    
+    """
+    def __init__(self, broker, reason='by user', action='TERM', timeout=0.0):
+        
+        # Init/store
+        self._broker = broker
+        self._reason = reason
+        self._next_action = ''
+        
+        # Go
+        self.do(action, timeout)    
+    
+    
+    def do(self, action, timeout):
+        self._prev_action = self._next_action
+        self._next_action = action
+        self._timeout = time.time() + timeout
+        if not timeout:
+            self.next() 
+    
+    
+    def next(self):
+        
+        # Get action
+        action = self._next_action
+        
+        if time.time() < self._timeout:
+            # Time did not pass yet
+            pass
+        
+        elif action == 'TERM':
+            self._broker._controlChannel_pub.send('TERM')
+            self.do('INT', 0.5)
+        
+        elif action == 'INT':
+            # Count
+            if not hasattr(self, '_count'):
+                self._count = 0
+            self._count +=1
+            # Handle
+            if self._count < 5:
+                self._broker._controlChannel_pub.send('INT')
+                self.do('INT', 0.1)
+            else:
+                self.do('KILL', 0)
+        
+        elif action == 'KILL':
+            # Get pid and signal
+            pid = self._broker._kernelCon.pid2
+            sigkill = signal.SIGTERM
+            if hasattr(signal,'SIGKILL'):
+                sigkill = signal.SIGKILL
+            # Kill
+            if hasattr(os,'kill'):
+                os.kill(pid, sigkill)
+            elif sys.platform.startswith('win'):
+                kernel32 = ctypes.windll.kernel32
+                handle = kernel32.OpenProcess(1, 0, pid)
+                kernel32.TerminateProcess(handle, 0)
+                #os.system("TASKKILL /PID " + str(pid) + " /F")
+            # Set what we did
+            self.do('NOTHING', 9999999999999999)
+    
+    
+    def getMessage(self, what):
+        # Get last performed action 
+        action = self._prev_action
+        
+        # Get nice string of that
+        D = {   '':     'exited',
+                'TERM': 'terminated', 
+                'INT':  'terminated (after interrupting)',
+                'KILL': 'killed'}
+        actionMsg = D.get(self._prev_action, 'stopped for unknown reason')
+        
+        # Compile stop-string
+        return '{} {} {}.'.format( what, actionMsg, self._reason)
+
+
 
 class StreamReader(threading.Thread):
     """ StreamReader(process, channel)
@@ -659,15 +654,16 @@ class Kernelmanager:
         When this function returns, all kernels will be terminated.
         
         """
-        for kernel in self._kernels:
+        for kernel in [kernel for kernel in self._kernels]:
             
             # Try closing the process gently: by closing stdin
-            kernel.terminate()
+            terminator = KernelTerminator(kernel, 'for closing down')
             
             # Terminate
-            while kernel._kernelCon.is_connected and kernel._killAttempts<10:
+            while (kernel._kernelCon.is_connected and 
+                    kernel._process and (kernel._process.poll() is None) ):
                 time.sleep(0.02)
-                kernel._terminating()
+                terminator.next()
             
             # Clean up
             kernel._reset(True)
