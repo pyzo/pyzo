@@ -1296,6 +1296,9 @@ class PythonShell(BaseShell):
         Replaces the timeout callback for the timer to go in closing mode.
         """
         
+        # Stop context
+        self._context.destroy()
+        
         # New (empty prompt)
         self.stdoutCursor.movePosition(self.stdoutCursor.End)
         self.lineBeginCursor.movePosition(self.lineBeginCursor.End)
