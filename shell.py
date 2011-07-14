@@ -647,6 +647,7 @@ class PythonShell(BaseShell):
         self._stdin = yoton.PubChannel(self._context, 'stdin')
         self._stdout = yoton.SubChannel(self._context, 'stdout')
         self._stderr = yoton.SubChannel(self._context, 'stderr')
+        self._stdin_echo = yoton.SubChannel(self._context, 'stdin-echo')
         
         # More streams coming from the broker
         self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
@@ -1194,6 +1195,11 @@ class PythonShell(BaseShell):
             self.write(self._buffer)
             self._buffer = ''
             self._t = time.time()
+        
+        # Broker messages
+        text = self._stdin_echo.recv(False)
+        if text:
+            self.write(text)
         
         # Broker messages
         text = self._brokerChannel.recv(False)
