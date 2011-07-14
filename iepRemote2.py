@@ -23,6 +23,7 @@ import threading
 import inspect
 import keyword # for autocomp
 import guisupport
+import yoton
 
 # Init last traceback information
 sys.last_type = None
@@ -183,7 +184,7 @@ class IepInterpreter:
             
             # Notify the running of the script
             sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
-            sys._status.send('STATE Busy')
+#             sys._status.send('STATE Busy')
             
             # Run script
             scriptToRunOnStartup = scriptFilename
@@ -209,12 +210,16 @@ class IepInterpreter:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
             # Notify running script
-            sys._status.send('STATE Busy')
+#             sys._status.send('STATE Busy')
             
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
                 scriptToRunOnStartup = filename
+        
+        # Get two channels
+        ch_stdin_echo = sys._yoton_context._ch_stdin_echo
+        ch_status = sys._yoton_context._ch_status
         
         
         # ENTER MAIN LOOP
@@ -243,15 +248,10 @@ class IepInterpreter:
                     else:
                         self.write(preamble+str(sys.ps1))
                     # Set status
-                    self.writeStatus()
+#                     self.writeStatus()
                 
                 # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
-                
-                # Read control stream and process
-                control = sys._control.recv(False)
-                if control:
-                    self.parsecontrol(control)
                 
                 # Are we still connected?
                 if sys.stdin.closed:
@@ -262,23 +262,37 @@ class IepInterpreter:
                     self.write("\n")
                     break
                 
-                # Read a packet and process
-                line = sys.stdin.read(False)
-                if line:
-                    # Set busy
-                    sys._status.send('STATE Busy')
-                    self.newPrompt = True
+                # Get channel to take a message from
+                ch = yoton.select_sub_channel(sys.stdin._channel)
+                
+                if ch is None:
+                    pass # No messages waiting
+                if ch is sys.stdin._channel:
+                    line = sys.stdin.read(False)
+                    ch_stdin_echo.send(line)
+                    # Read a packet and process
                     
-                    if line.startswith('\n') and len(line)>1:
-                        # Execute larger piece of code
-                        self.runlargecode(line)
-                        # Reset more stuff
-                        self.resetbuffer()
-                        more = False
-                    else:
-                        # Execute line
-                        line = line.rstrip("\n") # this is what push wants
-                        more = self.push(line)
+                    if line:
+                        # Set busy
+                        ch_status.send('Busy')
+                        self.newPrompt = True
+                        
+                        if line.startswith('\n') and len(line)>1:
+                            # Execute larger piece of code
+                            self.runlargecode(line)
+                            # Reset more stuff
+                            self.resetbuffer()
+                            more = False
+                        else:
+                            # Execute line
+                            line = line.rstrip("\n") # this is what push wants
+                            more = self.push(line)
+                
+#                 # Read control stream and process
+#                 control = sys._control.recv(False)
+#                 if control:
+#                     self.parsecontrol(control)
+                
                 
                 # Keep GUI toolkit up to date
                 if self.guiApp and time.time() - guitime > 0.019:

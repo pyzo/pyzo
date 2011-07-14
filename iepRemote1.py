@@ -20,20 +20,26 @@ import __main__ # we will run code in the __main__.__dict__ namespace
 
 ## Make connection object and get channels
 
-# Acquire port number (given as command line argument)
-port = int(sys.argv[1])
-
-# Create a yoton context and connect
+# Create a yoton context
 ct = yoton.Context()
-ct.connect('localhost:'+str(port), timeout=1.0)
+sys._yoton_context = ct
 
-# Create all channels
+# Create std channels
 sys.stdin = yoton.FileWrapper( yoton.SubChannel(ct, 'stdin') )
 sys.stdout = yoton.FileWrapper( yoton.PubChannel(ct, 'stdout') )
 sys.stderr = yoton.FileWrapper( yoton.PubChannel(ct, 'stderr') )
+
+# Create all other channels
+ct._ch_stdin_echo = yoton.PubChannel(ct, 'stdin-echo')
+ct._ch_status = yoton.PubstateChannel(ct, 'status')
+ct._ch_debug_status = yoton.PubstateChannel(ct, 'debug-status')
 #
-sys._control = yoton.SubChannel(ct, 'control')
-sys._status = yoton.PubstateChannel(ct, 'status')
+ct._ch_control = yoton.SubChannel(ct, 'control')
+ct._ch_introspect = yoton.RepChannel(ct, 'introspect')
+
+# Connect (port number given as command line argument)
+port = int(sys.argv[1])
+ct.connect('localhost:'+str(port), timeout=1.0)
 
 
 ## Set Excepthook
@@ -50,7 +56,7 @@ def iep_excepthook(type, value, tb):
     time.sleep(0.3) # Give some time for the message to be send
 
 # Uncomment to detect error in the interpreter itself
-#sys.excepthook = iep_excepthook
+sys.excepthook = iep_excepthook
 
 
 ## Init interpreter and introspection tread
@@ -72,7 +78,6 @@ __iep__.ithread.daemon = True
 
 # Store interpreter and channels on sys
 sys._iepInterpreter = __iep__
-sys._yoton_context = ct
 
 # Delete local variables
 del yoton, IntroSpectionThread, IepInterpreter, iep_excepthook
