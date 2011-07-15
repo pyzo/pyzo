@@ -509,7 +509,7 @@ class BaseShell(BaseTextCtrl):
         #self.setPositionAndAnchor(self._promptPos2)
         #tmp = self._wrapLines(command) + '\n'
         
-        commandCursor.insertText(command + '\n')
+#         commandCursor.insertText(command + '\n')
         
         #Resulting stdout text and the next edit-line are at end of document
         self.stdoutCursor.movePosition(self.stdoutCursor.End)
@@ -1183,37 +1183,17 @@ class PythonShell(BaseShell):
         process that we should write.
         """
         
-        # Check stdout
-        # Fill the buffer and release it at regular intervals, this will
-        # update scintilla much faster if multiple messages are printed
-        # When printing a single message, self._t is very old, and the
-        # message is printed emidiately
-        text = self._stdout.recv(False)
-        if text:
-            self._buffer += text
-        if self._buffer and (time.time()-self._t) > 0.2:
-            self.write(self._buffer)
-            self._buffer = ''
-            self._t = time.time()
+        # Check what subchannel has the latest message pending
+        sub = yoton.select_sub_channel(self._stdout, self._stderr, 
+                                self._stdin_echo, self._cstdout,
+                                self._brokerChannel, )
         
-        # Broker messages
-        text = self._stdin_echo.recv(False)
-        if text:
+        # Write alle pending messages that are later than any other message
+        if sub:
+            text = ''.join(sub.recv_selected())
             self.write(text)
+            #self.write(sub.recv(False))
         
-        # Broker messages
-        text = self._brokerChannel.recv(False)
-        if text:
-            self.write(text)
-        #
-        text = self._cstdout.recv(False)
-        if text:
-            self.write(text)
-        
-        # Check stderr
-        text = self._stderr.recv(False)
-        if text:
-            self.writeErr(text)
         
 #         # Process responses
 #         if self._requestQueue:
