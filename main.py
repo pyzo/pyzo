@@ -217,6 +217,10 @@ class MainWindow(QtGui.QMainWindow):
             if stylename2 != stylename:
                 useStandardStyle = True
         
+        # To recognize yoton
+        if 'yoton' in iep.iepDir:
+            stylename2 = 'Plastique'
+        
         # Try changing the style
         qstyle = QtGui.qApp.setStyle(stylename2)
         
