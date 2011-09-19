@@ -98,22 +98,25 @@ class BaseShell(BaseTextCtrl):
         
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
-        # self.+historyIndex is the current position in the history; it
-        # gets incremented as you retrieve the previous command,
-        # decremented as you retrieve the next, and reset when you hit
-        # Enter.  self._historyIndex == -1 means you're on the current
-        # command, not in the history.
         self._history = []
-        self._historyIndex = -1
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
         
         # Set minimum width so 80 lines do fit in smallest font size
         self.setMinimumWidth(200)
         
+        # Hard wrapping. QTextEdit allows hard wrapping at a specific column.
+        # Unfortunately, QPlainTextEdit does not.
+        self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
+        
+        # Limit number of lines
+        # todo: make customizable
+        self.setMaximumBlockCount(10*1000)
+        
         # apply style
         # TODO: self.setStyle('')
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
+    
     
     def onCursorPositionChanged(self):
         #If the end of the selection (or just the cursor if there is no selection)
@@ -122,12 +125,6 @@ class BaseShell(BaseTextCtrl):
             self.setReadOnly(True)
         else:
             self.setReadOnly(False)
-    
-
-    def resizeEvent(self, event):
-        """ When resizing the fontsize nust be kept right. """
-        BaseTextCtrl.resizeEvent(self, event)        
-        self.updateFontSizeToMatch80Columns()
     
     
     def mousePressEvent(self, event):
@@ -140,58 +137,6 @@ class BaseShell(BaseTextCtrl):
         pass
     
     
-    def updateWidgetSizeToMatch80Columns(self):
-        """ updateWidgetSizeToMatch80Columns()
-        (not used)
-        """
-        
-        # Get size it should be (but font needs to be monospaced!)
-        w = self.textWidth(32, "-"*80)
-        w += 21 # add scrollbar and margin
-        
-        # fix the width
-        self.setMinimumWidth(w)
-    
-    
-    def updateFontSizeToMatch80Columns(self, event=None):
-        """ updateFontSizeToMatch80Columns()
-        Tries to conform to the correct font size as dictated by
-        the style and zooming, but decreases the size as necessary
-        to fit 80 columns on screen.
-        """
-        return #TODO: re-implement
-        # Are we hidden?
-        if not self.isVisible():
-            return
-        
-        # Init zooming to users choice
-        zoom = iep.config.view.zoom
-        self.zoomTo(zoom)
-        
-        # Should we do this?
-        if not iep.config.settings.shellFit80:
-            return
-        
-        # Init variables
-        width = self.width()
-        w = width*2
-        
-        # Decrease size untill 80 columns fits
-        while w > width:
-            
-            # Get size it should be (but font needs to be monospaced!)
-            w = self.textWidth(32, "-"*80)
-            w += 26 # add scrollbar and margin
-            
-            # zoom out if necessary
-            if w > width:
-                zoom -= 1
-                self.zoomTo(zoom)
-            
-            # impose lower limit
-            if zoom < -10:
-                break
-
     ##Indentation: override code editor behaviour
     def indentSelection(self):
         pass
@@ -209,7 +154,6 @@ class BaseShell(BaseTextCtrl):
             
             # reset history needle
             self._historyNeedle = None
-            self._historyIndex = -1
             
             # process
             self.processLine()
@@ -232,34 +176,57 @@ class BaseShell(BaseTextCtrl):
         
         #Ensure to not backspace / go left beyond the prompt
         if event.key() in [Qt.Key_Backspace, Qt.Key_Left]:
+            self._historyNeedle = None
             if self.textCursor().position() == self.lineBeginCursor.position():
                 return  #Ignore the key, don't go beyond the prompt
 
 
         if event.key() in [Qt.Key_Up, Qt.Key_Down] and not \
                 self.autocompleteActive():
-            #TODO: searching with needle
+            
+            # needle
+            if self._historyNeedle is None:
+                # get partly-written-command
+                #
+                # Select text                
+                cursor = self.textCursor()
+                cursor.setPosition(self.lineBeginCursor.position())
+                cursor.movePosition(cursor.End,cursor.KeepAnchor)
+                # Update needle text
+                self._historyNeedle = cursor.selectedText()
+                self._historyStep = 0
+            
             #Browse through history
             if event.key() == Qt.Key_Up:
-                if self._historyIndex + 1 >= len(self._history):
-                    return #On top of history, ignore
-                self._historyIndex += 1
+                self._historyStep +=1
             else: # Key_Down
-                if self._historyIndex < 0:
-                    return #On bottom of history (allow -1 which will be an empty line)
-                self._historyIndex -= 1
+                self._historyStep -=1
+                if self._historyStep < 1:
+                    self._historyStep = 1
             
+            # find the command
+            count = 0
+            for c in self._history:
+                if c.startswith(self._historyNeedle):
+                    count+=1
+                    if count >= self._historyStep:
+                        break
+            else:
+                # found nothing-> reset
+                self._historyStep = 0
+                c = self._historyNeedle  
+            
+            # Replace text
             cursor = self.textCursor()
             cursor.setPosition(self.lineBeginCursor.position())
             cursor.movePosition(cursor.End,cursor.KeepAnchor)
-            #print (cursor.selectedText())
-            if self._historyIndex == -1:
-                cursor.removeSelectedText()
-            else:
-                cursor.insertText(self._history[self._historyIndex])
+            cursor.insertText(c)
             return
         
-        cursor=self.textCursor()
+        else:
+            # Reset needle
+            self._historyNeedle = None
+        
         #if a 'normal' key is pressed, ensure the cursor is at the edit line
         if event.text():
             self.ensureCursorAtEditLine()
@@ -341,13 +308,10 @@ class BaseShell(BaseTextCtrl):
         backspaces left at the start of the text, remove the appropriate
         amount of characters from the text.
         
-        Note that before running this function, the position and anchor
-        should be set to the right position!
-        
         Returns the new text.
         """
         # take care of backspaces
-        if text.count('\b'):
+        if '\b' in text:
             # while NOT a backspace at first position, or none found
             i=9999999999999
             while i>0:
@@ -357,56 +321,18 @@ class BaseShell(BaseTextCtrl):
             # how many are left? (they are all at the begining)
             nb = text.count('\b')
             text = text.lstrip('\b')
-            for i in range(nb):
-                self.SendScintilla(self.SCI_DELETEBACK)
+            #
+            if nb:
+                # Select what we remove and delete that
+                cursor = self.stdoutCursor
+                success = cursor.movePosition(cursor.Left, cursor.KeepAnchor, nb)
+                if success:
+                    cursor.deletePreviousChar()
+                # Ensure cursor has position and anchor in same place
+                cursor.setPosition(cursor.anchor())
         
+        # Return result
         return text
-    
-    
-    def _wrapLines(self, text):
-        """ Peform hard wrapping of the text to 80 characters.
-        We do this because Qscintilla becomes very slow when 
-        long lines are displayed.
-        The cursor should be at the position to add the text.
-        """
-    
-        # Should we do this?
-        if not iep.config.settings.shellWrap80:
-            return text
-        
-        # Check how many chars are left at the line right now
-        cursor = self.textCursor()
-        linenr = cursor.blockNumber()
-        index = cursor.positionInBlock()
-        charsLeft = 80-index # Is reset to 80 as soon as we are on a next line
-        
-        # Perform hard-wrap
-        lines = text.split('\n')
-        lines2 = []
-        for line in lines:
-            while len(line)>charsLeft:
-                lines2.append(line[:charsLeft])
-                line = line[charsLeft:]
-                charsLeft = 80
-            lines2.append(line)
-            charsLeft = 80
-        text = '\n'.join(lines2)
-        return text
-       
-    # todo: qt document class has buildin property for this
-#     def _limitNumberOfLines(self):
-#         """ Reduces the amount of lines by 50% if above a certain threshold.
-#         Does not reset the position of prompt or current position. 
-#         """ 
-#         L = self.length()
-#         N = self.getLinenrFromPosition( L )
-#         limit = iep.config.advanced.shellMaxLines
-#         if N > limit:
-#             # reduce text
-#             pos = self.getPositionFromLinenr( int(N/2) )
-#             self.setPosition(pos)
-#             self.setAnchor(0)
-#             self.removeSelectedText()
     
     
     def write(self, text):
@@ -414,56 +340,22 @@ class BaseShell(BaseTextCtrl):
         Write normal text (stdout) to the shell. The text is printed
         before the prompt.
         """
+        
         # Make sure there's text and make sure its a string
         if not text:
             return
         if isinstance(text, bytes):
             text = text.decode('utf-8')
-        #print (text)
-        #self.stdoutCursor.setKeepPositionOnInsert(False)
         
+        # Insert text in right place
         self.lineBeginCursor.setKeepPositionOnInsert(False)
-        self.stdoutCursor.insertText(text) #TODO: backspacing
-        self.lineBeginCursor.setKeepPositionOnInsert(True)
-
-        self.ensureCursorVisible()#TODO: only when cursor is at last line
-    
-    def writeErr(self, text):
-        """ writeErr(text)
-        Writes error messages (stderr) to the shell. If the text
-        does not end with a newline, the text is considered a
-        prompt and is printed behind the old prompt position
-        rather than befor it.
-        """
-        # Make sure there's text and make sure its a string
-        if not text:
-            return
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-
-        #While we're writing text, the lineBeginCursor should move with the
-        #inserted text
-        self.lineBeginCursor.setKeepPositionOnInsert(False)
-
-        if text.endswith('\n'):
-            # Normal error message
-            self.stdoutCursor.insertText(text) #TODO: backspacing
-        else:
-            # Prompt
-            # This shifts the lineBeginCursor appropriately 
-            # Keep the stdout cursor before the prompt
-            stdoutPos = self.stdoutCursor.position()
-            #Since the lineBeginCursor keeps its position on insert, but the
-            #anchor may move, clear the selection (i.e. place anchor at the cursor)
-            self.lineBeginCursor.clearSelection()
-            self.lineBeginCursor.insertText(text) #TODO: backspacing
-            self.stdoutCursor.setPosition(stdoutPos)
-            
-        # Revert keepPositionOnInsert to True
+        text = self._handleBackspaces(text)
+        self.stdoutCursor.insertText(text)
         self.lineBeginCursor.setKeepPositionOnInsert(True)
         
-        self.ensureCursorVisible()#TODO: only when cursor is at last line
-
+        # Make sure that cursor is visible (only when cursor is at edit line)
+        if not self.isReadOnly():
+            self.ensureCursorVisible()
     
     
     ## Executing stuff
@@ -504,12 +396,6 @@ class BaseShell(BaseTextCtrl):
                 if command in self._history:
                     self._history.remove(command)
                 self._history.insert(0,command)
-        
-        # TODO:# Limit text to add to 80 chars 
-        #self.setPositionAndAnchor(self._promptPos2)
-        #tmp = self._wrapLines(command) + '\n'
-        
-#         commandCursor.insertText(command + '\n')
         
         #Resulting stdout text and the next edit-line are at end of document
         self.stdoutCursor.movePosition(self.stdoutCursor.End)

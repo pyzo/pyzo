@@ -42,6 +42,10 @@ port = int(sys.argv[1])
 ct.connect('localhost:'+str(port), timeout=1.0)
 
 
+print('Hi, this is a remote thingy')
+time.sleep(0.2)
+
+
 ## Set Excepthook
 
 def iep_excepthook(type, value, tb):

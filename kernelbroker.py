@@ -93,7 +93,7 @@ class KernelInfoPlus(KernelInfo):
         
         # Correct path when it contains spaces
         if self.exe.count(' ') and self.exe[0] != '"':
-            self.exe = '"' + self.exe + '"'
+            self.exe = '"{}"'.format(self.exe)
         
         # Set default startupScript?
         if self.startupScript == '$PYTHONSTARTUP':
@@ -127,9 +127,7 @@ class KernelInfoPlus(KernelInfo):
             # as the author from Pype writes:
             #if we don't run via a command shell, then either sometimes we
             #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.    
-            # The double quotes are important for it to work when the 
-            # executable is a path that contaiins spaces.
+            # And I also see problems with Tk.                
             command = 'cmd /c "{}"'.format(command)
         
         # Done
@@ -285,7 +283,7 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        self._kernelCon = self._context.bind('localhost:IEP', 
+        self._kernelCon = self._context.bind('localhost:IEP2', 
                                                 max_tries=256, name='kernel')
         
         # Create channels. Stdout is for the C-level stdout/stderr streams.
@@ -326,7 +324,8 @@ class KernelBroker:
         self._restart = False
         self._pending_scriptFile = None
         
-        self._brokerChannel.send('Hi, this is your broker!')
+        self._brokerChannel.send('Hi, this is your broker!\n')
+        print(command)
     
     
     def host(self, address='localhost'):
