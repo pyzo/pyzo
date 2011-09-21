@@ -217,10 +217,11 @@ class IepInterpreter:
             if filename and os.path.isfile(filename):
                 scriptToRunOnStartup = filename
         
-        # Get two channels
+        # Get channels
         ch_stdin_echo = sys._yoton_context._ch_stdin_echo
         ch_status = sys._yoton_context._ch_status
-        
+        ch_std_code = sys._yoton_context._ch_std_code
+        ch_control = sys._yoton_context._ch_control
         
         # ENTER MAIN LOOP
         guitime = time.time()
@@ -247,8 +248,8 @@ class IepInterpreter:
                         self.write(preamble+str(sys.ps2))
                     else:
                         self.write(preamble+str(sys.ps1))
-                    # Set status
-#                     self.writeStatus()
+                    # Notify ready state
+                    ch_status.send('Ready')
                 
                 # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
@@ -263,36 +264,48 @@ class IepInterpreter:
                     break
                 
                 # Get channel to take a message from
-                ch = yoton.select_sub_channel(sys.stdin._channel)
+                ch = yoton.select_sub_channel(
+                        sys.stdin._channel, ch_std_code, ch_control)
                 
                 if ch is None:
                     pass # No messages waiting
-                if ch is sys.stdin._channel:
+                
+                elif ch is sys.stdin._channel:
+                    # Read input line
                     line = sys.stdin.read(False)
-                    ch_stdin_echo.send(line)
-                    # Read a packet and process
-                    
                     if line:
-                        # Set busy
+                        # Notify what we're doing
+                        ch_stdin_echo.send(line)
                         ch_status.send('Busy')
                         self.newPrompt = True
-                        
-                        if line.startswith('\n') and len(line)>1:
-                            # Execute larger piece of code
-                            self.runlargecode(line)
-                            # Reset more stuff
-                            self.resetbuffer()
-                            more = False
-                        else:
-                            # Execute line
-                            line = line.rstrip("\n") # this is what push wants
-                            more = self.push(line)
+                        # Execute line
+                        line = line.rstrip("\n") # this is what push wants
+                        more = self.push(line)
                 
-#                 # Read control stream and process
-#                 control = sys._control.recv(False)
-#                 if control:
-#                     self.parsecontrol(control)
+                elif ch is ch_std_code:
+                    # Read larger block of code
+                    msg = ch_std_code.recv(False)
+                    if msg:
+                        # Notify what we're doing
+                        # (runlargecode() sends on stdin-echo)
+                        ch_status.send('Busy')
+                        self.newPrompt = True
+                        # Execute code
+                        self.runlargecode(msg)
+                        # Reset more stuff
+                        self.resetbuffer()
+                        more = False
                 
+                elif ch is ch_control:
+                    # Read control command
+                    command = ch_control.recv(False)
+                    if command:
+                        # Do what we're asked to do
+                        self.parsecontrol(command)
+                
+                else:
+                    # This should not happen, but if it does, just flush!
+                    ch.recv(False)
                 
                 # Keep GUI toolkit up to date
                 if self.guiApp and time.time() - guitime > 0.019:
@@ -409,15 +422,22 @@ class IepInterpreter:
             self.showtraceback()
     
     
-    def runlargecode(self, text):
+    def runlargecode(self, msg):
         """ To execute larger pieces of code. """
         
-        # Split information
-        # (The last line contains filename + lineOffset about the code)
-        tmp = text.rsplit('\n', 2)
-        source = tmp[0][1:]  # remove first newline
-        fname = tmp[1]
-        lineno = int(tmp[2])
+        # Get information
+        source, fname, lineno = msg['source'], msg['fname'], msg['lineno']
+        
+        # Construct notification message
+        lineno1 = lineno + 1
+        lineno2 = lineno + source.count('\n')
+        if lineno1 == lineno2:
+            runtext = '(executing line %i of "%s")\n' % (lineno1, fname)
+        else:
+            runtext = '(executing lines %i to %i of "%s")\n' % (
+                                                    lineno1, lineno2, fname)
+        # Notify IDE
+        sys._yoton_context._ch_stdin_echo.send(runtext)
         
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
@@ -524,10 +544,7 @@ class IepInterpreter:
         (post mortem) debugging.
         """
         
-        if control == 'STATUS':
-            self.writeStatus()
-        
-        elif control == 'DEBUG START':
+        if control == 'DEBUG START':
             # Collect frames from the traceback
             tb = sys.last_traceback
             frames = []
@@ -543,7 +560,7 @@ class IepInterpreter:
                 self.locals = frame.f_locals
                 self.globals = frame.f_globals
                 # Notify IEP
-                self.writeStatus()
+                self.writeStatus() # todo: debug status?
             else:
                 self.write("No debug information available.\n")
         
@@ -628,23 +645,29 @@ class IepInterpreter:
         else:
             sys._status.send('STATE Ready')
         
-        # DEBUG
-        if self._dbFrames:
-            # Debug info
-            stack = [str(self._dbFrameIndex)]
-            for f in self._dbFrames:
-                # Get fname and lineno, and correct if required
-                fname, lineno = f.f_code.co_filename, f.f_lineno
-                fname, lineno = correctFilenameAndLineno(fname, lineno)
-                if not fname.startswith('<'):
-                    fname = os.path.abspath(fname)
-                # Build string
-                text = 'File "%s", line %i, in %s' % (
-                                        fname, lineno, f.f_code.co_name)
-                stack.append(text)
-            sys._status.send('DEBUG ' + ';'.join(stack))
-        else:
-            sys._status.send('DEBUG ') # no debugging
+        # Init info
+        frames = []
+        info = {}
+        info['index': self._dbFrameIndex]
+        info['frames': frames]
+        
+        # Fill info
+        for f in self._dbFrames:
+            # Get fname and lineno, and correct if required
+            fname, lineno = f.f_code.co_filename, f.f_lineno
+            fname, lineno = correctFilenameAndLineno(fname, lineno)
+            if not fname.startswith('<'):
+                fname2 = os.path.abspath(fname)
+                if os.path.ispath(fname2):
+                    fname = fname2
+            # Build string
+            text = 'File "%s", line %i, in %s' % (
+                                    fname, lineno, f.f_code.co_name)
+            frames.append(text)
+        
+        # Send info object
+        # todo: rename all channels and variables holding channels
+        sys._yoton_context._ch_debug_status.send(info)
     
     
     def showsyntaxerror(self, filename=None):

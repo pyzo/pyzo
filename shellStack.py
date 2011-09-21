@@ -188,7 +188,7 @@ class DebugControl(QtGui.QToolButton):
             # Initiate debugging
             shell = iep.shells.getCurrentShell()
             if shell:
-                shell.processLine('db start')    
+                shell._control.send('DEBUG START')
     
     
     def onTriggered(self, action):
@@ -200,23 +200,26 @@ class DebugControl(QtGui.QToolButton):
         
         if action._index < 1:
             # Stop debugging
-            shell.processLine('db stop')
+            shell._control.send('DEBUG STOP')
         else:
             # Change stack index
             if not action._isCurrent:
-                shell.processLine('db frame {}'.format(action._index))
+                shell.processLine('DEBUG FRAME {}'.format(action._index))
             # Open file and select line
             if True:
                 line = action.text().split(': ',1)[1]
                 self.debugFocus(line)
     
     
-    def setTrace(self, trace):
+    def setTrace(self, info):
         """ Set the stack trace. This method is called from
         the shell that receives the trace via its status channel
         directly from the interpreter. 
         If trace is None, removes the trace
         """
+        
+        # Get info
+        index, trace = info['index'], info['trace']
         
         if not trace:
             
@@ -225,9 +228,8 @@ class DebugControl(QtGui.QToolButton):
             self.setText('Debug')
         
         else:
-            
+            # todo: there might be an offset in the index
             # Get the current frame
-            current = int(trace[0])
             theAction = None
             
             # Create menu and add __main__
@@ -237,11 +239,11 @@ class DebugControl(QtGui.QToolButton):
             action._index = 0
             
             # Fill trace
-            for i in range(1, len(trace)):
-                action = menu.addAction('{}: {}'.format(i, trace[i]))
-                action._index = i
+            for i in range(len(trace)):
+                action = menu.addAction('{}: {}'.format(i+1, trace[i]))
+                action._index = i + 1
                 action._isCurrent = False
-                if i == current:
+                if i == index:
                     action._isCurrent = True
                     theAction = action
                     
@@ -281,6 +283,7 @@ class DebugControl(QtGui.QToolButton):
             cursor.movePosition(cursor.StartOfBlock)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
             editor.setTextCursor(cursor)
+
 
 class ShellInfoDialogEntries(QtGui.QFrame):
     """ A page in the tab widget of the shell configuration dialog. 

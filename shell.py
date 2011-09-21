@@ -475,6 +475,8 @@ class PythonShell(BaseShell):
         self._buffer = ''
         
         # Variables to store python version, builtins and keywords 
+        self._state = ''
+        self._debugState = {}
         self._version = ""
         self._builtins = []
         self._keywords = []
@@ -533,7 +535,9 @@ class PythonShell(BaseShell):
         self._stdin = yoton.PubChannel(self._context, 'stdin')
         self._stdout = yoton.SubChannel(self._context, 'stdout')
         self._stderr = yoton.SubChannel(self._context, 'stderr')
+        
         self._stdin_echo = yoton.SubChannel(self._context, 'stdin-echo')
+        self._std_code = yoton.PubChannel(self._context, 'std-code', yoton.OBJECT)
         
         # More streams coming from the broker
         self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
@@ -541,7 +545,8 @@ class PythonShell(BaseShell):
         
         # Channels for status and control
         self._heartbeat = yoton.SubstateChannel(self._context, 'heartbeat-status')
-        self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus')
+        self._status = yoton.SubstateChannel(self._context, 'status')
+        self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus', yoton.OBJECT)
         self._control = yoton.PubChannel(self._context, 'control')
         
         # For introspection
@@ -554,15 +559,6 @@ class PythonShell(BaseShell):
         slot = iep.localKernelBroker.createKernel(info)
         self._brokerConnection = self._context.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
-    
-    
-    @property
-    def _state(self):
-        return self._heartbeat.recv()
-    
-    @property
-    def _debugState(self):
-        return ""
     
     
     ## Introspection processing methods
@@ -768,7 +764,7 @@ class PythonShell(BaseShell):
             if indent < minIndent:
                 minIndent = indent 
         
-        # Copy all proper lines to a new array, 
+        # Copy all proper lines to a new list, 
         # remove minimal indentation, but only if we then would only remove 
         # spaces (in the case of commented lines)
         lines2 = []
@@ -781,17 +777,17 @@ class PythonShell(BaseShell):
                 line = line.lstrip(" ")
             lines2.append( line )
         
-        # Running while file?
-        runWholeFile = False
-        if lineno<0:
-            lineno = 0
-            runWholeFile = True
-        
-        # Append info line, than combine
-        lines2.insert(0,'') # code is recognized because starts with newline
-        lines2.append('') # The code needs to end with a newline
-        lines2.append(fname)
-        lines2.append(str(lineno))
+#         # Running while file?
+#         runWholeFile = False
+#         if lineno<0:
+#             lineno = 0
+#             runWholeFile = True
+#         
+#         # Append info line, than combine
+#         lines2.insert(0,'') # code is recognized because starts with newline
+#         lines2.append('') # The code needs to end with a newline
+#         lines2.append(fname)
+#         lines2.append(str(lineno))
         #
         text = "\n".join(lines2)
         
@@ -799,20 +795,21 @@ class PythonShell(BaseShell):
         if not fname.startswith('<'):
             fname = os.path.split(fname)[1]
         
-        # Write to shell to let user know we are running...
-        lineno1 = lineno + 1
-        lineno2 = lineno + len(lines)
-        if runWholeFile:
-            runtext = '[executing "{}"]\n'.format(fname)
-        elif lineno1 == lineno2:
-            runtext = '[executing line {} of "{}"]\n'.format(lineno1, fname)
-        else:
-            runtext = '[executing lines {} to {} of "{}"]\n'.format(
-                                            lineno1, lineno2, fname)
-        self.processLine(runtext, False)
+#         # Write to shell to let user know we are running...
+#         lineno1 = lineno + 1
+#         lineno2 = lineno + len(lines)
+#         if runWholeFile:
+#             runtext = '[executing "{}"]\n'.format(fname)
+#         elif lineno1 == lineno2:
+#             runtext = '[executing line {} of "{}"]\n'.format(lineno1, fname)
+#         else:
+#             runtext = '[executing lines {} to {} of "{}"]\n'.format(
+#                                             lineno1, lineno2, fname)
+#         self.processLine(runtext, False)
         
-        # Run!
-        self._stdin.write(text)
+        # Send message
+        msg = {'source':text, 'fname':fname, 'lineno':lineno}
+        self._std_code.send(msg)
     
     
     def modifyCommand(self, text):
@@ -1058,7 +1055,6 @@ class PythonShell(BaseShell):
         To keep the shell up-to-date
         Call this periodically. 
         """
-        
         if self._pollMethod:
             self._pollMethod()
     
@@ -1080,6 +1076,17 @@ class PythonShell(BaseShell):
             self.write(text)
             #self.write(sub.recv(False))
         
+        # Update status
+        # todo: include heartbeat info
+        state = self._status.recv()
+        if state != self._state:
+            self._state = state
+            self.stateChanged.emit(self)
+        
+        state = self._debugStatus.recv()
+        if state != self._debugState:
+            self._debugState = state
+            self.parent().parent().setTrace(state)
         
 #         # Process responses
 #         if self._requestQueue:
@@ -1112,6 +1119,8 @@ class PythonShell(BaseShell):
 #                 print('Process stdout:', self._process.stdout.read())
 #                 print('Process stderr:', self._process.stderr.read())
 #                 self._afterDisconnect('The process failed to start.')
+    
+
     
     
     def poll_terminated(self):

@@ -31,8 +31,9 @@ sys.stderr = yoton.FileWrapper( yoton.PubChannel(ct, 'stderr') )
 
 # Create all other channels
 ct._ch_stdin_echo = yoton.PubChannel(ct, 'stdin-echo')
+ct._ch_std_code = yoton.SubChannel(ct, 'std-code', yoton.OBJECT)
 ct._ch_status = yoton.PubstateChannel(ct, 'status')
-ct._ch_debug_status = yoton.PubstateChannel(ct, 'debug-status')
+ct._ch_debug_status = yoton.PubstateChannel(ct, 'debug-status', yoton.OBJECT)
 #
 ct._ch_control = yoton.SubChannel(ct, 'control')
 ct._ch_introspect = yoton.RepChannel(ct, 'introspect')
@@ -40,10 +41,6 @@ ct._ch_introspect = yoton.RepChannel(ct, 'introspect')
 # Connect (port number given as command line argument)
 port = int(sys.argv[1])
 ct.connect('localhost:'+str(port), timeout=1.0)
-
-
-print('Hi, this is a remote thingy')
-time.sleep(0.2)
 
 
 ## Set Excepthook
