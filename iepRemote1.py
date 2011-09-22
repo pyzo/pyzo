@@ -24,14 +24,18 @@ import __main__ # we will run code in the __main__.__dict__ namespace
 ct = yoton.Context()
 sys._yoton_context = ct
 
+# todo: chose better names for channels and their variables
+
 # Create std channels
 sys.stdin = yoton.FileWrapper( yoton.SubChannel(ct, 'stdin') )
 sys.stdout = yoton.FileWrapper( yoton.PubChannel(ct, 'stdout') )
 sys.stderr = yoton.FileWrapper( yoton.PubChannel(ct, 'stderr') )
+#
+ct._ch_std_code = yoton.SubChannel(ct, 'std-code', yoton.OBJECT)
+ct._ch_stdin_echo = yoton.PubChannel(ct, 'stdin-echo')
+ct._ch_std_prompt = yoton.PubChannel(ct, 'std-prompt')
 
 # Create all other channels
-ct._ch_stdin_echo = yoton.PubChannel(ct, 'stdin-echo')
-ct._ch_std_code = yoton.SubChannel(ct, 'std-code', yoton.OBJECT)
 ct._ch_status = yoton.PubstateChannel(ct, 'status')
 ct._ch_debug_status = yoton.PubstateChannel(ct, 'debug-status', yoton.OBJECT)
 #
