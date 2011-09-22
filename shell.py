@@ -404,7 +404,7 @@ class BaseShell(BaseTextCtrl):
         
         if execute:
             # Maybe modify the text given...
-            command = self.modifyCommand(command)
+            #command = self.modifyCommand(command)
             # Execute        
 
             self.executeCommand(command+'\n')
@@ -546,7 +546,7 @@ class PythonShell(BaseShell):
         # Channels for status and control
         self._heartbeat = yoton.SubstateChannel(self._context, 'heartbeat-status')
         self._status = yoton.SubstateChannel(self._context, 'status')
-        self._debugStatus = yoton.SubstateChannel(self._context, 'debugStatus', yoton.OBJECT)
+        self._debugStatus = yoton.SubstateChannel(self._context, 'debug-status', yoton.OBJECT)
         self._control = yoton.PubChannel(self._context, 'control')
         
         # For introspection
@@ -791,10 +791,10 @@ class PythonShell(BaseShell):
         #
         text = "\n".join(lines2)
         
-        # Get last bit of filename to print in "[executing ...."
-        if not fname.startswith('<'):
-            fname = os.path.split(fname)[1]
-        
+#         # Get last bit of filename to print in "[executing ...."
+#         if not fname.startswith('<'):
+#             fname = os.path.split(fname)[1]
+#         
 #         # Write to shell to let user know we are running...
 #         lineno1 = lineno + 1
 #         lineno2 = lineno + len(lines)
@@ -806,7 +806,7 @@ class PythonShell(BaseShell):
 #             runtext = '[executing lines {} to {} of "{}"]\n'.format(
 #                                             lineno1, lineno2, fname)
 #         self.processLine(runtext, False)
-        
+                
         # Send message
         msg = {'source':text, 'fname':fname, 'lineno':lineno}
         self._std_code.send(msg)
@@ -1083,10 +1083,11 @@ class PythonShell(BaseShell):
             self._state = state
             self.stateChanged.emit(self)
         
-        state = self._debugStatus.recv()
+        state = self._debugStatus.recv()        
         if state != self._debugState:
+            print('debugstate', state)
             self._debugState = state
-            self.parent().parent().setTrace(state)
+            self.debugStateChanged.emit(self)
         
 #         # Process responses
 #         if self._requestQueue:
