@@ -215,6 +215,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.setStyle(S)
     
     
+    def _setHighlighter(self, highlighterClass):
+        self.__highlighter = highlighterClass(self, self.document())
+    
+    
     ## Options
     
     def __getOptionSetters(self):

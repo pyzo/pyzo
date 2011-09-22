@@ -335,7 +335,7 @@ class BaseShell(BaseTextCtrl):
         return text
     
     
-    def write(self, text):
+    def write(self, text, prompt=0):
         """ write(text)
         Write normal text (stdout) to the shell. The text is printed
         before the prompt.
@@ -347,11 +347,26 @@ class BaseShell(BaseTextCtrl):
         if isinstance(text, bytes):
             text = text.decode('utf-8')
         
-        # Insert text in right place
-        self.lineBeginCursor.setKeepPositionOnInsert(False)
-        text = self._handleBackspaces(text)
-        self.stdoutCursor.insertText(text)
+        if prompt == 0:
+            # Insert text behind prompt (normal streams)
+            self.lineBeginCursor.setKeepPositionOnInsert(False)
+            text = self._handleBackspaces(text)
+            self.stdoutCursor.insertText(text)
+        elif prompt == 1:
+            # Insert text after prompt, prompt becomes null (input)
+            self.lineBeginCursor.setKeepPositionOnInsert(False)
+            self.lineBeginCursor.insertText(text)
+            self.stdoutCursor.setPosition(self.lineBeginCursor.position(), 0)
+        elif prompt == 2:
+            # Insert text after prompt, inserted text becomes new prompt
+            self.stdoutCursor.setPosition(self.lineBeginCursor.position(), 0)
+            self.stdoutCursor.setKeepPositionOnInsert(True)
+            self.lineBeginCursor.setKeepPositionOnInsert(False)
+            self.stdoutCursor.insertText(text)
+        
+        # Reset cursor states
         self.lineBeginCursor.setKeepPositionOnInsert(True)
+        elf.stdoutCursor.setKeepPositionOnInsert(False)
         
         # Make sure that cursor is visible (only when cursor is at edit line)
         if not self.isReadOnly():
@@ -502,6 +517,8 @@ class PythonShell(BaseShell):
         # Start!
         self.connectToKernel(info)
         self.start()
+        self._setHighlighter(PythonShellHighlighter)
+        
     
     
     def start(self):
@@ -538,6 +555,7 @@ class PythonShell(BaseShell):
         
         self._stdin_echo = yoton.SubChannel(self._context, 'stdin-echo')
         self._std_code = yoton.PubChannel(self._context, 'std-code', yoton.OBJECT)
+        self._std_prompt = yoton.SubChannel(ct, 'std-prompt')
         
         # More streams coming from the broker
         self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
@@ -1068,10 +1086,17 @@ class PythonShell(BaseShell):
         # Check what subchannel has the latest message pending
         sub = yoton.select_sub_channel(self._stdout, self._stderr, 
                                 self._stdin_echo, self._cstdout,
-                                self._brokerChannel, )
+                                self._brokerChannel, self._std_prompt )
         
         # Write alle pending messages that are later than any other message
         if sub:
+            # Get how to deal with prompt
+            prompt = 0
+            if sub is self._stdin_echo:
+                prompt = 1 
+            if sub is  self._std_prompt:
+                prompt = 2
+            # insert text
             text = ''.join(sub.recv_selected())
             self.write(text)
             #self.write(sub.recv(False))
@@ -1209,3 +1234,10 @@ class PythonShell(BaseShell):
         
         # Notify listeners
         self.terminated.emit(self)
+
+
+from codeeditor.highlighter import Highlighter
+class PythonShellHighlighter(Highlighter):
+    pass
+    
+    
