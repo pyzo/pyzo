@@ -221,7 +221,6 @@ class IepInterpreter:
         ch_stdin_echo = sys._yoton_context._ch_stdin_echo
         ch_status = sys._yoton_context._ch_status
         ch_std_code = sys._yoton_context._ch_std_code
-        ch_control = sys._yoton_context._ch_control
         
         # ENTER MAIN LOOP
         guitime = time.time()
@@ -265,25 +264,34 @@ class IepInterpreter:
                 
                 # Get channel to take a message from
                 ch = yoton.select_sub_channel(
-                        sys.stdin._channel, ch_std_code, ch_control)
+                        sys.stdin._channel, ch_std_code)
                 
                 if ch is None:
                     pass # No messages waiting
                 
                 elif ch is sys.stdin._channel:
-                    # Read input line
-                    line = sys.stdin.read(False)
+                    # Read input line (strip newlines)
+                    line = sys.stdin.read(False) # Command
                     if line:
+                        # Get clean command
+                        line1 = line.rstrip('\n')
                         # Notify what we're doing
-                        ch_stdin_echo.send(line)
+                        ch_stdin_echo.send(line1+'\n') # ensure new line
                         ch_status.send('Busy')
                         self.newPrompt = True
-                        # Execute line
-                        line = line.rstrip("\n") # this is what push wants
-                        more = self.push(line)
+                        
+                        # Process command, get code to execute
+                        line2 = self.parse_command(line1) 
+                        if line2:
+                            # Execute line
+                            line2 = line2
+                            more = self.push(line2)
+                        else:
+                            # A command was processed
+                            more = False
                 
                 elif ch is ch_std_code:
-                    # Read larger block of code
+                    # Read larger block of code (dict)
                     msg = ch_std_code.recv(False)
                     if msg:
                         # Notify what we're doing
@@ -295,13 +303,6 @@ class IepInterpreter:
                         # Reset more stuff
                         self.resetbuffer()
                         more = False
-                
-                elif ch is ch_control:
-                    # Read control command
-                    command = ch_control.recv(False)
-                    if command:
-                        # Do what we're asked to do
-                        self.parsecontrol(command)
                 
                 else:
                     # This should not happen, but if it does, just flush!
@@ -330,6 +331,116 @@ class IepInterpreter:
                 sys._yoton_context.close()
                 # Exit from interpreter
                 return
+    
+    
+    def parse_command(self, line):
+        
+        # Ignore empty lines
+        if not line:
+            return None
+        
+        # Case insensitive
+        control = line.upper().rstrip()
+        
+        if control == 'DB START':
+            # Collect frames from the traceback
+            tb = sys.last_traceback
+            frames = []
+            while tb:
+                frames.append(tb.tb_frame)
+                tb = tb.tb_next
+            # Enter debug mode if there was an error
+            if frames:
+                self._dbFrames = frames
+                self._dbFrameIndex = len(self._dbFrames)
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                # Notify IEP
+                self.writeStatus() # todo: debug status?
+            else:
+                self.write("No debug information available.\n")
+        
+        elif control.startswith('DB FRAME '):
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                # Set frame index
+                self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
+                if self._dbFrameIndex < 1:
+                    self._dbFrameIndex = 1
+                elif self._dbFrameIndex > len(self._dbFrames):
+                    self._dbFrameIndex = len(self._dbFrames)
+                # Set name and locals
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                self.writeStatus()
+        
+        elif control == 'DB UP':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                # Decrease frame index
+                self._dbFrameIndex -= 1
+                if self._dbFrameIndex < 1:
+                    self._dbFrameIndex = 1
+                # Set name and locals
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                self.writeStatus()
+        
+        elif control == 'DB DOWN':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                # Increase frame index
+                self._dbFrameIndex += 1
+                if self._dbFrameIndex > len(self._dbFrames):
+                    self._dbFrameIndex = len(self._dbFrames)
+                # Set name and locals
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                self.writeStatus()
+        
+        elif control == 'DB STOP':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                self.locals = self._main_locals
+                self.globals = None
+                self._dbFrames = []
+                self.writeStatus()
+        
+        elif control == 'DB WHERE':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                lines = []
+                for i in range(len(self._dbFrames)):
+                    frameIndex = i+1
+                    f = self._dbFrames[i]
+                    # Get fname and lineno, and correct if required
+                    fname, lineno = f.f_code.co_filename, f.f_lineno
+                    fname, lineno = correctFilenameAndLineno(fname, lineno)
+                    # Build string
+                    text = 'File "%s", line %i, in %s' % (
+                                            fname, lineno, f.f_code.co_name)
+                    if frameIndex == self._dbFrameIndex:
+                        lines.append('-> %i: %s'%(frameIndex, text))
+                    else:
+                        lines.append('   %i: %s'%(frameIndex, text))
+                lines.append('')
+                sys.stdout.write('\n'.join(lines))
+        
+        else:
+            return line
     
     
     def resetbuffer(self):
@@ -431,11 +542,14 @@ class IepInterpreter:
         # Construct notification message
         lineno1 = lineno + 1
         lineno2 = lineno + source.count('\n')
+        fname_show = fname
+        if not fname.startswith('<'):
+            fname_show = os.path.split(fname)[1]
         if lineno1 == lineno2:
-            runtext = '(executing line %i of "%s")\n' % (lineno1, fname)
+            runtext = '(executing line %i of "%s")\n' % (lineno1, fname_show)
         else:
             runtext = '(executing lines %i to %i of "%s")\n' % (
-                                                    lineno1, lineno2, fname)
+                                                lineno1, lineno2, fname_show)
         # Notify IDE
         sys._yoton_context._ch_stdin_echo.send(runtext)
         
@@ -538,94 +652,6 @@ class IepInterpreter:
         return self._compile(source, filename, mode, *args, **kwargs)
     
     
-    def parsecontrol(self, control):
-        """ Parse a command received on the control stream. 
-        This is used to request the status and to control the
-        (post mortem) debugging.
-        """
-        
-        if control == 'DEBUG START':
-            # Collect frames from the traceback
-            tb = sys.last_traceback
-            frames = []
-            while tb:
-                frames.append(tb.tb_frame)
-                tb = tb.tb_next
-            # Enter debug mode if there was an error
-            if frames:
-                self._dbFrames = frames
-                self._dbFrameIndex = len(self._dbFrames)
-                frame = self._dbFrames[self._dbFrameIndex-1]
-                self._dbFrameName = frame.f_code.co_name
-                self.locals = frame.f_locals
-                self.globals = frame.f_globals
-                # Notify IEP
-                self.writeStatus() # todo: debug status?
-            else:
-                self.write("No debug information available.\n")
-        
-        elif control.startswith('DEBUG') and not self._dbFrames:
-            # Ignoire other debug commands when not debugging
-            self.write("Not in debug mode.\n")
-        
-        elif control.startswith('DEBUG INDEX'):
-            # Set frame index
-            self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
-            if self._dbFrameIndex < 1:
-                self._dbFrameIndex = 1
-            elif self._dbFrameIndex > len(self._dbFrames):
-                self._dbFrameIndex = len(self._dbFrames)
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex-1]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG UP':
-            # Decrease frame index
-            self._dbFrameIndex -= 1
-            if self._dbFrameIndex < 1:
-                self._dbFrameIndex = 1
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex-1]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG DOWN':
-            # Increase frame index
-            self._dbFrameIndex += 1
-            if self._dbFrameIndex > len(self._dbFrames):
-                self._dbFrameIndex = len(self._dbFrames)
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex-1]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG STOP':
-            self.locals = self._main_locals
-            self.globals = None
-            self._dbFrames = []
-        
-        elif control == 'DEBUG WHERE':
-            lines = []
-            for i in range(len(self._dbFrames)):
-                frameIndex = i+1
-                f = self._dbFrames[i]
-                # Get fname and lineno, and correct if required
-                fname, lineno = f.f_code.co_filename, f.f_lineno
-                fname, lineno = correctFilenameAndLineno(fname, lineno)
-                # Build string
-                text = 'File "%s", line %i, in %s' % (
-                                        fname, lineno, f.f_code.co_name)
-                if frameIndex == self._dbFrameIndex:
-                    lines.append('-> %i: %s'%(frameIndex, text))
-                else:
-                    lines.append('   %i: %s'%(frameIndex, text))
-            lines.append('')
-            sys.stdout.write('\n'.join(lines))
-    
     ## Writing and error handling
     
     
@@ -639,35 +665,26 @@ class IepInterpreter:
         Writes STATE to Ready or Debug and writes DEBUG (info).
         """
         
-        # STATE
-        if self._dbFrames:
-            sys._status.send('STATE Debug')
-        else:
-            sys._status.send('STATE Ready')
-        
-        # Init info
+        # Collect frames info
         frames = []
-        info = {}
-        info['index': self._dbFrameIndex]
-        info['frames': frames]
-        
-        # Fill info
         for f in self._dbFrames:
             # Get fname and lineno, and correct if required
             fname, lineno = f.f_code.co_filename, f.f_lineno
             fname, lineno = correctFilenameAndLineno(fname, lineno)
             if not fname.startswith('<'):
                 fname2 = os.path.abspath(fname)
-                if os.path.ispath(fname2):
+                if os.path.isfile(fname2):
                     fname = fname2
             # Build string
             text = 'File "%s", line %i, in %s' % (
                                     fname, lineno, f.f_code.co_name)
             frames.append(text)
         
-        # Send info object
         # todo: rename all channels and variables holding channels
-        sys._yoton_context._ch_debug_status.send(info)
+        
+        # Send info object
+        state = {'index': self._dbFrameIndex, 'frames': frames}
+        sys._yoton_context._ch_debug_status.send(state)
     
     
     def showsyntaxerror(self, filename=None):
