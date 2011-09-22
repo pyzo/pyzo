@@ -152,6 +152,67 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # while the extension's init is not yet finished.        
         self.__initOptions(kwds)
         
+        # Define solarized colors
+        base03  = "#002b36"
+        base02  = "#073642"
+        base01  = "#586e75"
+        base00  = "#657b83"
+        base0   = "#839496"
+        base1   = "#93a1a1"
+        base2   = "#eee8d5"
+        base3   = "#fdf6e3"
+        yellow  = "#b58900"
+        orange  = "#cb4b16"
+        red     = "#dc322f"
+        magenta = "#d33682"
+        violet  = "#6c71c4"
+        blue    = "#268bd2"
+        cyan    = "#2aa198"
+        green   = "#859900"
+        black   = "#000000" # not really part of solarized
+        
+        test_color  = 90 + 0000 + 1
+        
+        # Define style
+        S  = {}
+        S["Syntax.keyword"] = "fore:%s, bold:yes, italic:no, underline:no" % green
+        S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % base02
+        S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % base02
+        
+        S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
+        S["Syntax.unterminatedstring"] = "fore:%s, bold:no, italic:no, underline:dotted" % violet
+        S["Syntax.Codeeditor.parsers.python.multilinestring"] = "fore:%s, bold:no, italic:no, underline:no" % blue
+        
+        S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % magenta
+        S["Syntax.comment"] ="fore:%s, bold:no, italic:no, underline:no" % orange
+        S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % red
+        S["Syntax.Codeeditor.parsers.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:yes" % orange
+                
+        S["Syntax.Codeeditor.parsers.c.multilinecomment"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
+        
+        if True:
+            S["Editor.text"] = "back:%s, fore:%s" % (base3, base01)
+            S['Syntax.identifier'] = "fore:%s, bold:no, italic:no, underline:no" % base01
+            S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % green
+            
+            S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % base2
+            S["Editor.Highlight current line"] = "back:%s" % base2
+            S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % base2
+            S["Editor.Line numbers"] = "back:%s, fore:%s" % (base2, base1)
+        else:
+            S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % base2
+            S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % base2
+        
+            S["Editor.text"] = "back:%s, fore:%s" % (base03, base1)
+            S['Syntax.identifier'] = "fore:%s, bold:no, italic:no, underline:no" % base1
+            S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % green
+            
+            S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % base02
+            S["Editor.Highlight current line"] = "back:%s" % base02
+            S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % base02
+            S["Editor.Line numbers"] = "back:%s, fore:%s" % (base02, base01)
+        
+        self.setStyle(S)
     
     
     ## Options
