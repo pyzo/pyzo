@@ -219,6 +219,7 @@ class IepInterpreter:
         
         # Get channels
         ch_stdin_echo = sys._yoton_context._ch_stdin_echo
+        ch_std_prompt = sys._yoton_context._ch_std_prompt
         ch_status = sys._yoton_context._ch_status
         ch_std_code = sys._yoton_context._ch_std_code
         
@@ -244,9 +245,10 @@ class IepInterpreter:
                     if self._dbFrames:
                         preamble = '('+self._dbFrameName+')'
                     if more:
-                        self.write(preamble+str(sys.ps2))
+                        #self.write(preamble+str(sys.ps2))
+                        ch_std_prompt.send(preamble+str(sys.ps2))
                     else:
-                        self.write(preamble+str(sys.ps1))
+                        ch_std_prompt.send(preamble+str(sys.ps1))
                     # Notify ready state
                     ch_status.send('Ready')
                 

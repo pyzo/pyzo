@@ -572,7 +572,7 @@ class StreamReader(threading.Thread):
     def run(self):
         while True:
             # Read any stdout/stderr messages and route them via yoton.
-            msg = self._process.stdout.read() # <-- Blocks here
+            msg = self._process.stdout.readline() # <-- Blocks here
             if not isinstance(msg, str):
                 msg = msg.decode('utf-8', 'ignore')
             self._stdoutChannel.send(msg)
@@ -581,6 +581,7 @@ class StreamReader(threading.Thread):
                 break
             # Sleep
             time.sleep(0.1)
+        self._brokerChannel.send('streamreader exit\n')
     
 
 class Kernelmanager:
