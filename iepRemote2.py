@@ -273,12 +273,10 @@ class IepInterpreter:
                 
                 elif ch is sys.stdin._channel:
                     # Read input line (strip newlines)
-                    line = sys.stdin.read(False) # Command
-                    if line:
-                        # Get clean command
-                        line1 = line.rstrip('\n')
+                    line1 = sys.stdin.read(False) # Command
+                    if line1:
                         # Notify what we're doing
-                        ch_stdin_echo.send(line1+'\n') # ensure new line
+                        ch_stdin_echo.send(line1)
                         ch_status.send('Busy')
                         self.newPrompt = True
                         
@@ -286,8 +284,7 @@ class IepInterpreter:
                         line2 = self.parse_command(line1) 
                         if line2:
                             # Execute line
-                            line2 = line2
-                            more = self.push(line2)
+                            more = self.push( line2.rstrip('\n') )
                         else:
                             # A command was processed
                             more = False
@@ -337,14 +334,14 @@ class IepInterpreter:
     
     def parse_command(self, line):
         
-        # Ignore empty lines
-        if not line:
-            return None
-        
-        # Case insensitive
+        # Clean and make case insensitive
         control = line.upper().rstrip()
         
-        if control == 'DB START':
+        if not control:
+            # Empty line; return original line, so it will be sent to push()
+            return line
+        
+        elif control == 'DB START':
             # Collect frames from the traceback
             tb = sys.last_traceback
             frames = []
@@ -442,6 +439,7 @@ class IepInterpreter:
                 sys.stdout.write('\n'.join(lines))
         
         else:
+            # Return original line
             return line
     
     

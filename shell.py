@@ -34,6 +34,10 @@ iep.main._yoton_timer.timeout.connect(yoton.process_events)
 iep.main._yoton_timer.start()
 
 
+# Short constants for cursor movement
+A_KEEP = QtGui.QTextCursor.KeepAnchor
+A_MOVE = QtGui.QTextCursor.MoveAnchor
+
 # todo: color stderr red and prompt blue, and input text Python!
 
 
@@ -167,14 +171,20 @@ class BaseShell(BaseTextCtrl):
             # process
             self.processLine()
             return
+        
+        if event.key() == Qt.Key_Escape:
+            # Escape clears command
+            if not ( self.autocompleteActive() or self.calltipActive() ): 
+                self.clearCommand()
             
         if event.key() == Qt.Key_Home:
             # Home goes to the prompt.
-            cursor=self.textCursor()
-            shift = event.modifiers() & Qt.ShiftModifier
-            cursor.setPosition(self._cursor2.position(),
-                cursor.KeepAnchor if shift else cursor.MoveAnchor)
-            
+            cursor = self.textCursor()
+            if event.modifiers() & Qt.ShiftModifier:
+                cursor.setPosition(self._cursor2.position(), A_KEEP)
+            else:
+                cursor.setPosition(self._cursor2.position(), A_MOVE)
+            #
             self.setTextCursor(cursor)
             self.autocompleteCancel()
             return
@@ -199,8 +209,8 @@ class BaseShell(BaseTextCtrl):
                 #
                 # Select text                
                 cursor = self.textCursor()
-                cursor.setPosition(self._cursor2.position())
-                cursor.movePosition(cursor.End,cursor.KeepAnchor)
+                cursor.setPosition(self._cursor2.position(), A_MOVE)
+                cursor.movePosition(cursor.End, A_KEEP)
                 # Update needle text
                 self._historyNeedle = cursor.selectedText()
                 self._historyStep = 0
@@ -227,8 +237,8 @@ class BaseShell(BaseTextCtrl):
             
             # Replace text
             cursor = self.textCursor()
-            cursor.setPosition(self._cursor2.position())
-            cursor.movePosition(cursor.End,cursor.KeepAnchor)
+            cursor.setPosition(self._cursor2.position(), A_MOVE)
+            cursor.movePosition(cursor.End, A_KEEP)
             cursor.insertText(c)
             return
         
@@ -242,10 +252,7 @@ class BaseShell(BaseTextCtrl):
         
         #Default behaviour: BaseTextCtrl
         BaseTextCtrl.keyPressEvent(self,event)
-        
-        
-        #TODO: escape to clear the current line? (Only if not handled by the
-        #default editor behaviour)
+    
 
     
     ## Cut / Copy / Paste / Drag & Drop
@@ -276,6 +283,10 @@ class BaseShell(BaseTextCtrl):
         """No dropping allowed"""
         pass
     
+    
+    ## Basic commands to control the shell
+    
+    
     def ensureCursorAtEditLine(self):
         """
         If the text cursor is before the beginning of the edit line,
@@ -283,18 +294,17 @@ class BaseShell(BaseTextCtrl):
         """
         cursor = self.textCursor()
         if cursor.position() < self._cursor2.position():
-            cursor.movePosition(cursor.End)
+            cursor.movePosition(cursor.End, A_MOVE)
             self.setTextCursor(cursor)
-    
-    ## Basic commands to control the shell
     
     
     def clearScreen(self):
         """ Clear all the previous output from the screen. """
-        #Select from current stdout cursor (begin of prompt) to start of document
-        self._cursor1.movePosition(self._cursor1.Start,
-            self._cursor1.KeepAnchor)
+        # Select from beginning of prompt to start of document
+        self._cursor1.clearSelection()
+        self._cursor1.movePosition(self._cursor1.Start, A_KEEP) # Keep anchor
         self._cursor1.removeSelectedText()
+        # Wrap up
         self.ensureCursorAtEditLine()
         self.ensureCursorVisible()
     
@@ -304,12 +314,13 @@ class BaseShell(BaseTextCtrl):
         the prompt, and ensure it's visible.
         """
         # Select from prompt end to length and delete selected text.
-        self.setPosition(self._promptPos2)
-        self.setAnchor(self.length())
-        self.removeSelectedText()
-        # Go to end and ensure visible
-        self.setPositionAndAnchor(self._promptPos2)
-        self.ensureCursorVisible()  
+        cursor = self.textCursor()
+        cursor.setPosition(self._cursor2.position(), A_MOVE)
+        cursor.movePosition(cursor.End, A_KEEP)
+        cursor.removeSelectedText()
+        # Wrap up
+        self.ensureCursorAtEditLine()
+        self.ensureCursorVisible()
     
     
     def _handleBackspaces(self, text):
@@ -333,22 +344,31 @@ class BaseShell(BaseTextCtrl):
             #
             if nb:
                 # Select what we remove and delete that
-                cursor1 = self._cursor1
-                success = cursor.movePosition(cursor1.Left, cursor1.KeepAnchor, nb)
-                if success:
-                    cursor1.deletePreviousChar()
-                # Ensure cursor has position and anchor in same place
-                cursor1.setPosition(cursor1.anchor())
+                self._cursor1.clearSelection()
+                self._cursor1.movePosition(self._cursor1.Left, A_KEEP, nb)
+                self._cursor1.removeSelectedText()
         
         # Return result
         return text
     
     
     def write(self, text, prompt=0, color=None):
-        """ write(text)
-        Write normal text (stdout) to the shell. The text is printed
-        before the prompt.
+        """ write(text, prompt=0, color=None)
+        
+        Write to the shell. 
+        
+        If prompt is 0 (default) the text is printed before the prompt. If 
+        prompt is 1, the text is printed after the prompt, the new prompt
+        becomes nul. If prompt is 2, the given text becomes the new prompt.
+        
+        The color of the text can also be specified (as a hex-string).
+        
         """
+        
+        # From The Qt docs: Note that a cursor always moves when text is 
+        # inserted before the current position of the cursor, and it always 
+        # keeps its position when text is inserted after the current position 
+        # of the cursor.
         
         # Make sure there's text and make sure its a string
         if not text:
@@ -361,30 +381,38 @@ class BaseShell(BaseTextCtrl):
         if color:
             format.setForeground(QtGui.QColor(color))
         
-        #if isinstance(self, PythonShell):
-        #    print('prompt',prompt)
+        #pos1, pos2 = self._cursor1.position(), self._cursor2.position()
+        
+        # Just in case, clear any selection of the cursors
+        self._cursor1.clearSelection()
+        self._cursor2.clearSelection()
         
         if prompt == 0:
             # Insert text behind prompt (normal streams)
+            self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
             text = self._handleBackspaces(text)
             self._cursor1.insertText(text, format)
         elif prompt == 1:
             # Insert command text after prompt, prompt becomes null (input)
             self._lastCommandCursor.setPosition(self._cursor2.position())
+            self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
             self._cursor2.insertText(text, format)
-            self._cursor1.setPosition(self._cursor2.position(), 0)
+            self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
         elif prompt == 2:
             # Insert text after prompt, inserted text becomes new prompt
-            self._cursor1.setPosition(self._cursor2.position(), 0)
+            self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
             self._cursor1.setKeepPositionOnInsert(True)
             self._cursor2.setKeepPositionOnInsert(False)
             self._cursor1.insertText(text, format)
         
-        # Reset cursor states
-        self._cursor2.setKeepPositionOnInsert(True)
+        #if isinstance(self, PythonShell):
+        #    print(prompt, '|', pos1, pos2, '|', self._cursor1.position(), self._cursor2.position(), text)
+        
+        # Reset cursor states for the user to type his/her commands
         self._cursor1.setKeepPositionOnInsert(False)
+        self._cursor2.setKeepPositionOnInsert(True)
         
         # Make sure that cursor is visible (only when cursor is at edit line)
         if not self.isReadOnly():
@@ -392,8 +420,10 @@ class BaseShell(BaseTextCtrl):
     
     
     ## Executing stuff
+    
     def processLine(self, line=None, execute=True):
         """ processLine(self, line=None, execute=True)
+       
         Process the given line or the current line at the prompt if not given.
         Called when the user presses enter.        
         
@@ -403,26 +433,21 @@ class BaseShell(BaseTextCtrl):
         """
         
         # Can we do this?
-        if self.isReadOnly():
+        if self.isReadOnly() and not line:
             return
-        
-        #Create cursor to modify the text document starting at start of edit line
-        commandCursor = self.textCursor()
-        commandCursor.setPosition(self._cursor2.position())
         
         if line:
             # remove newlines spaces and tabs
             command = line.rstrip()
         else:
-            #create a selection from begin of the edit line to end of the document
-            commandCursor.movePosition(commandCursor.End,commandCursor.KeepAnchor)
+            # Select command
+            cursor = self.textCursor()
+            cursor.setPosition(self._cursor2.position(), A_MOVE)
+            cursor.movePosition(cursor.End, A_KEEP)
             
-            #Sample the text from the prompt and remove it
-            command = commandCursor.selectedText().replace('\u2029', '\n') 
-            commandCursor.removeSelectedText()
-            
-            # remove newlines spaces and tabs
-            command = command.rstrip()
+            # Sample the text from the prompt and remove it
+            command = cursor.selectedText().replace('\u2029', '\n') .rstrip()
+            cursor.removeSelectedText()
             
             # Remember the command (but first remove to prevent duplicates)
             if command:
@@ -430,17 +455,10 @@ class BaseShell(BaseTextCtrl):
                     self._history.remove(command)
                 self._history.insert(0,command)
         
-        # Dont move cursors; only in write()!
-#         #Resulting stdout text and the next edit-line are at end of document
-#         self._cursor1.movePosition(self._cursor1.End)
-#         self._cursor2.movePosition(self._cursor2.End)
-        
-        
         if execute:
             # Maybe modify the text given...
-            #command = self.modifyCommand(command)
-            # Execute        
-
+            command = self.modifyCommand(command)
+            # Execute
             self.executeCommand(command+'\n')
     
     
@@ -458,7 +476,7 @@ class BaseShell(BaseTextCtrl):
         """
         # this is a stupid simulation version
         self.write("you executed: "+command+'\n')
-        self.writeErr(">>> ")
+        self.write(">>> ", prompt=2)
 
 
 class RequestObject:
@@ -848,7 +866,7 @@ class PythonShell(BaseShell):
         msg = {'source':text, 'fname':fname, 'lineno':lineno}
         self._std_code.send(msg)
     
-    
+    # todo: implement most magic commands in kernel
     def modifyCommand(self, text):
         """ To implement magic commands. """
         
@@ -872,6 +890,8 @@ class PythonShell(BaseShell):
         db where        - print the stack trace and indicate the current stack
         db focus        - open the file and show the line of the stack frame"""
         
+        
+        return text
         
         message = message.replace('\n','\\n')
         message = message.replace('"','\"')
@@ -1200,8 +1220,8 @@ class PythonShell(BaseShell):
         self._context.destroy()
         
         # New (empty prompt)
-        self._cursor1.movePosition(self._cursor1.End)
-        self._cursor2.movePosition(self._cursor2.End)
+        self._cursor1.movePosition(self._cursor1.End, A_MOVE)
+        self._cursor2.movePosition(self._cursor2.End, A_MOVE)
         
         self.write('\n\n');
         self.write(why)
@@ -1218,7 +1238,7 @@ class PythonShell(BaseShell):
         
         # Goto end such that the closing message is visible
         cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
+        cursor.movePosition(cursor.End, A_MOVE)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
         
