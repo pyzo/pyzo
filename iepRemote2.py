@@ -258,7 +258,7 @@ class IepInterpreter:
                 # Are we still connected?
                 if sys.stdin.closed:
                     # Stop all deamon threads (or we wont really stop in <2.5)
-                    self.ithread._stop = True
+                    self.introspector.set_mode_normal()
                     sys._yoton_context.close()
                     # Break
                     self.write("\n")
@@ -538,6 +538,7 @@ class IepInterpreter:
         
         # Get information
         source, fname, lineno = msg['source'], msg['fname'], msg['lineno']
+        source += '\n'
         
         # Construct notification message
         lineno1 = lineno + 1
@@ -858,81 +859,22 @@ class ExecutedSourceCollection(dict):
         return self.get(self._getId(codeObject), '')
 
 
-class IntroSpectionThread(threading.Thread):
-    """ IntroSpectionThread
-    Communicates with the IEP GUI, even if the main thread is busy.
+class IepIntrospector(yoton.RepChannel):
+    """ This is a RepChannel object that runs a thread to respond to 
+    requests from the IDE.
     """
     
-    def __init__(self, requestChannel, responseChannel, interpreter):
-        threading.Thread.__init__(self)
+    def _getNameSpace(self, name=''):
+        """ _getNameSpace(name='')
         
-        # store the two channel objects
-        self.request = requestChannel
-        self.response = responseChannel
-        self.interpreter = interpreter
-        
-        # flag to stop
-        self._stop = False
-    
-    
-    def run(self):
-        """ This is the "mainloop" of our introspection thread.
-        """ 
-        
-        while True:
-            
-            # sleep for a bit
-            time.sleep(0.01)
-            
-            # read code (wait here)
-            line = self.request.recv(True)
-            if not line or self.request.closed or self._stop:
-                break # from thread
-            
-            # get request and arg
-            tmp = line.split(" ",1)
-            try:
-                req = tmp[0]
-                arg = tmp[1]
-            except Exception:
-                self.response.write('<not a valid request>')
-                continue
-            
-            # process request
-            
-            if req == "EVAL":
-                self.enq_eval( arg )
-            
-            elif req == "SIGNATURE":
-                self.enq_signature(arg)
-                
-            elif req == "ATTRIBUTES":
-                self.enq_attributes(arg)
-            
-            elif req == "VARIABLES":
-                self.enq_variables_plus(arg)
-            
-            elif req == "HELP":
-                self.enq_help(arg)
-            
-            else:
-                self.response.write('<not a valid request>')
-                
-        print('IntrospectionThread stopped')
-    
-    
-    def getNameSpace(self, name=''):
-        """ Get the namespace to apply introspection in. 
-        This is necessary in order to be able to use inspect
-        in calling eval.
-        
-        if name is given, will find that name. For example sys.stdin.
+        Get the namespace to apply introspection in. 
+        If name is given, will find that name. For example sys.stdin.
         
         """
         
         # Get namespace
-        NS1 = self.interpreter.locals
-        NS2 = self.interpreter.globals
+        NS1 = sys._iepInterpreter.locals
+        NS2 = sys._iepInterpreter.globals
         if not NS2:
             NS = NS1
         else:
@@ -969,11 +911,14 @@ class IntroSpectionThread(threading.Thread):
                 return {}
     
     
-    def getSignature(self, objectName):
-        """ Get the signature of builtin, function or method.
+    def _getSignature(self, objectName):
+        """ _getSignature(objectName)
+        
+        Get the signature of builtin, function or method.
         Returns a tuple (signature_string, kind), where kind is a string
         of one of the above. When none of the above, both elements in
         the tuple are an empty string.
+        
         """
         
         # if a class, get init
@@ -1073,24 +1018,18 @@ class IntroSpectionThread(threading.Thread):
         return sigs, kind
     
     
-    def enq_signature(self, objectName):
+    # todo: variant that also says whether it's a property/function/class/other
+    def dir(self, objectName):
+        """ dir(objectName)
         
-        try:
-            text, kind = self.getSignature(objectName)
-        except Exception:
-            text = None
-            
-        # respond
-        if text:
-            self.response.write( text)
-        else:
-            self.response.write( "<error>" )
-    
-    
-    def enq_attributes(self, objectName):
+        Get list of attributes for the given name.
+        
+        """
+        #sys.__stdout__.write('handling '+objectName+'\n')
+        #sys.__stdout__.flush()
         
         # Get namespace
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         
         # Init names
         names = set()
@@ -1124,16 +1063,13 @@ class IntroSpectionThread(threading.Thread):
             names.update(d)
         
         # Respond
-        if names:
-            self.response.write( ",".join(list(names)) )
-        else:
-            self.response.write( "<error>" )
+        return list(names)
     
-    # todo: all introspection should go like this I think.
-    def enq_variables_plus(self, arg):
-        """ enq_variables_plus(arg)
+    
+    def dir2(self, objectName):
+        """ dir2(objectName)
         
-        get variable names in currently active namespace plus extra information.
+        Get variable names in currently active namespace plus extra information.
         Returns a list with strings, which each contain a (comma separated)
         list of elements: name, type, kind, repr.
         
@@ -1178,7 +1114,7 @@ class IntroSpectionThread(threading.Thread):
                 names.append(tmp)
             
             # Get locals
-            NS = self.getNameSpace(arg)
+            NS = self._getNameSpace(objectName)
             for name in NS.keys():
                 if not name.startswith('__'):
                     try:
@@ -1186,19 +1122,34 @@ class IntroSpectionThread(threading.Thread):
                     except Exception:
                         pass
             
-            # Respond
-            self.response.write("##IEP##".join(names))
+            return names
             
         except Exception:
-            #self.response.write( str(err)+'...'+name)
-            self.response.write( '<error>' )
+            return []
     
     
-    def enq_help(self,objectName):
-        """ get help on an object """
+    def signature(self, objectName):
+        """ signature(objectName)
+        
+        Get signature.
+        
+        """
+        try:
+            text, kind = self._getSignature(objectName)
+            return text
+        except Exception:
+            return None
+    
+    
+    def doc(self, objectName):
+        """ doc(objectName)
+        
+        Get documentation for an object.
+        
+        """
         
         # Get namespace
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         
         try:
             
@@ -1256,27 +1207,26 @@ class IntroSpectionThread(threading.Thread):
 #            text = "No help available." + str(why)
         
         # Done
-        self.response.write( text )
+        return text
     
     
-    def enq_eval(self, command):
-        """ do a command and send "str(result)" back. """
+    def eval(self, command):
+        """ eval(command)
+        
+        Evaluate a command and return result. 
+        
+        """
         
         # Get namespace
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         
         try:
             # here globals is None, so we can look into sys, time, etc...
-            d = eval(command, None, NS)
+            return eval(command, None, NS)
         except Exception:            
-            d = None
-        
-        # respond
-        if d:
-            self.response.write( str(d) )
-        else:
-            self.response.write( '<error>' )
+            return 'Error evaluating: ' + command
     
+
 
 ## GUI TOOLKIT HIJACKS
 

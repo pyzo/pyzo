@@ -195,7 +195,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         shell = iep.shells.getCurrentShell()
         if shell and name:
             req = "HELP " + name
-            shell.postRequest(req, self.queryDoc_response)
+            #shell.postRequest(req, self.queryDoc_response)
         elif not name:
             self.setText(initText)
     

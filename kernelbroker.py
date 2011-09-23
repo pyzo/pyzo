@@ -626,7 +626,7 @@ class Kernelmanager:
         # Host a connection for the ide
         port = kernel.host()
         
-        # Tell broker to hstart
+        # Tell broker to start as soon as the IDE connects with the broker
         kernel.startKernelIfConnected()
         
         # Done

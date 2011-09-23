@@ -78,7 +78,8 @@ class WorkspaceProxy(QtCore.QObject):
         
         shell = iep.shells.getCurrentShell()
         if shell:
-            shell.postRequest('VARIABLES '+self._name, self.processResponse)
+            pass
+            #shell.postRequest('VARIABLES '+self._name, self.processResponse)
     
     
     def goUp(self):
@@ -111,7 +112,8 @@ class WorkspaceProxy(QtCore.QObject):
             # Should never happen I think, but just to be sure
             self._variables = []
         elif shell._state.lower() != 'busy':
-            shell.postRequest('VARIABLES '+self._name, self.processResponse)
+            pass
+            #shell.postRequest('VARIABLES '+self._name, self.processResponse)
     
     
     def processResponse(self, response, id=None):

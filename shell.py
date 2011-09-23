@@ -26,7 +26,8 @@ from iepLogging import print
 from kernelbroker import KernelInfo, Kernelmanager
 
 
-# Register timer for yoton
+# Register timer to handle yoton event loop
+# todo: combine with poll timer?
 iep.main._yoton_timer = QtCore.QTimer(iep.main)
 iep.main._yoton_timer.setInterval(20)  # ms
 iep.main._yoton_timer.setSingleShot(False)
@@ -163,7 +164,7 @@ class BaseShell(BaseTextCtrl):
             # Enter: execute line
             # Remove calltip and autocomp if shown
             self.autocompleteCancel()
-            self.callTipCancel()
+            self.calltipCancel()
             
             # reset history needle
             self._historyNeedle = None
@@ -540,7 +541,6 @@ class PythonShell(BaseShell):
 #         self.postRequest('EVAL ' + tmp, self._setBuiltins)
 #         self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
         
-        # todo: make yoton timer?
         # Create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(20)  # ms
@@ -551,10 +551,12 @@ class PythonShell(BaseShell):
         # Initialize timer callback
         self._pollMethod = None
         
+        # Install different highlighter
+        self._setHighlighter(PythonShellHighlighter)
+        
         # Start!
         self.connectToKernel(info)
         self.start()
-        self._setHighlighter(PythonShellHighlighter)
         
     
     
@@ -606,17 +608,46 @@ class PythonShell(BaseShell):
         
         # For introspection
         self._request = yoton.ReqChannel(self._context, 'introspect')
-        
-        # todo: Do a couple of requests to get version buildins etc.
+        self._request.received.bind(self._reply_handler)
+        self._request.set_mode_event_driven()
         
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.
         slot = iep.localKernelBroker.createKernel(info)
         self._brokerConnection = self._context.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
+        
+        
+        # Ask for python version
+        def _setVersion(version):
+            if isinstance(version, str):
+                self._version = version.split(' ',1)[0]
+            self.stateChanged.emit(self)
+        self._request.later.eval(' sys.version', handler=_setVersion)
+        
+        # Ask for builtins
+        def _setKeywords(L):
+            if isinstance(L, list):
+                self._keywords = L
+        self._request.later.eval('keyword.kwlist', handler=_setKeywords)
+        
+        # Ask for builtins
+        def _setBuiltins(L):
+            if isinstance(L, list):
+                self._builtins = L
+        self._request.later.eval('dir(__builtins__)', handler=_setBuiltins)
+    
     
     
     ## Introspection processing methods
+    
+    def _reply_handler(self, *args, handler=None, **kwargs):
+        """ Called when a reply is received. The result is passed 
+        to another function.
+        """
+        if handler:
+            handler(*args, **kwargs)
+    
     
     def processCallTip(self, cto):
         """ Processes a calltip request using a CallTipObject instance. 
@@ -633,11 +664,11 @@ class PythonShell(BaseShell):
         self._currentCTO = cto
         
         # Post request
-        req = "SIGNATURE " + cto.name
-#         self.postRequest(req, self._processCallTip_response, cto)
+        handler = self._processCallTip_response
+        #self._request.later.signature(cto.name, handler=handler, cto=cto)
     
     
-    def _processCallTip_response(self, response, cto):
+    def _processCallTip_response(self, response, cto=None):
         """ Process response of shell to show signature. 
         """
         
@@ -650,7 +681,7 @@ class PythonShell(BaseShell):
             return
         
         # Invalid response
-        if response == '<error>':
+        if response is None:
             cto.textCtrl.autocompleteCancel()
             return
         
@@ -680,12 +711,13 @@ class PythonShell(BaseShell):
         # and store aco to see whether the response is still wanted.
         aco.setBuffer()
         self._currentACO = aco
-        # Poll name
-        req = "ATTRIBUTES " + aco.name
-#         self.postRequest(req, self._processAutoComp_response, aco)
+        
+        # Post request
+        handler = self._processAutoComp_response
+        self._request.later.dir(aco.name, handler=handler, aco=aco)
     
     
-    def _processAutoComp_response(self, response, aco):
+    def _processAutoComp_response(self, response, aco=None):
         """ Process the response of the shell for the auto completion. 
         """ 
         
@@ -699,8 +731,8 @@ class PythonShell(BaseShell):
         
         # Add result to the list
         foundNames = []
-        if response != '<error>':
-            foundNames = response.split(',')
+        if response is not None:
+            foundNames = response
         aco.addNames(foundNames)
         
         # Process list
@@ -721,8 +753,8 @@ class PythonShell(BaseShell):
                     # To be sure, decrease the experiration date on the buffer
                     aco.setBuffer(timeout=1)
                     # Repost request
-                    req = "ATTRIBUTES " + aco.name
-                    self.postRequest(req, self._processAutoComp_response, aco)
+                    handler = _processAutoComp_response
+                    self._request.later.dir(req, handler=handler, aco=aco)
         else:
             # If still required, show list, otherwise only store result
             if self._currentACO is aco:
@@ -731,41 +763,7 @@ class PythonShell(BaseShell):
                 aco.setBuffer()
     
     
-    ## Methods for communication and executing code
-    
-    def postRequest(self, request, callback, id=None):
-        """ postRequest(request, callback, id=None)
-        Post a request as a string. The given callback is called
-        when a response is received, with the response and id as 
-        arguments.
-        """
-        req = RequestObject(request, callback, id)
-#         self._requestQueue.append(req)
-    
-    
-    def postRequestAndReceive(self, request):
-        """ postRequestAndReceive(request)
-        Post a message and wait for it to be received.
-        Returns the response. If you can, use postRequest
-        and catch the response by specifying a callback.
-        """
-        
-        # If there's an item being processed right now ...
-        if self._requestQueue:
-            # ... make it be reposted when we're done.  
-            self._requestQueue[0]._posted = False
-            # Wait for any leftover messages to arrive
-            self._response.read_one(block=2.0)
-        
-        # Do request
-        self._request.write(request)
-        
-        # Wait for it to arrive
-        tmp = self._response.read_last(block=1.0)
-        if tmp is None:
-            raise RuntimeError('Request interrupted.')
-        else:
-            return tmp
+    ## Methods for executing code
     
     
     def executeCommand(self, text):

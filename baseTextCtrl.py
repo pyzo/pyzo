@@ -585,25 +585,6 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.completer().highlighted.connect(self.updateHelp)
         self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(iep.config.settings.defaultIndentWidth)
-        
-    
-    def callTipShow(self, pos, text, hl1=0, hl2=0):
-        """ callTipShow(pos, text, hl1, hl2)
-        Show text in a call tip at position pos. the text between hl1 and hl2
-        is highlighted. If hl2 is -1, highlights all untill the first '('.
-        """
-        return
-
-    
-    def callTipCancel(self):
-        """ Hide call tip. """
-        return
-
-    
-    def callTipActive(self):
-        """ Hide call tip. """
-        return
-
     
     
     def _isValidPython(self):
@@ -654,8 +635,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Only proceed if valid python
         if not self._isValidPython():
-            self.callTipCancel()
-            self.autoCompCancel()
+            self.calltipCancel()
+            self.autocompleteCancel()
             return
         
         # Get line up to cursor
@@ -705,7 +686,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 cto = CallTipObject(self, fullName, pos)
                 self.processCallTip(cto)
             else: 
-                self.callTipCancel()
+                self.calltipCancel()
         
         if self._delayTimer._tryAutoComp and iep.config.settings.autoComplete:
             # Parse the line, to see what (partial) name we need to complete
@@ -878,7 +859,7 @@ class CallTipObject:
         self.textCtrl._callTipBuffer_result = callTipText
     
     def _finish(self, callTipText):
-        self.textCtrl.callTipShow(self.pos, callTipText, 0, -1)
+        self.textCtrl.calltipShow(self.pos, callTipText, 0, -1)
 
 
 class AutoCompObject:
