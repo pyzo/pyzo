@@ -38,9 +38,7 @@ ct._ch_std_prompt = yoton.PubChannel(ct, 'std-prompt')
 # Create all other channels
 ct._ch_status = yoton.PubstateChannel(ct, 'status')
 ct._ch_debug_status = yoton.PubstateChannel(ct, 'debug-status', yoton.OBJECT)
-#
-ct._ch_control = yoton.SubChannel(ct, 'control')
-ct._ch_introspect = yoton.RepChannel(ct, 'introspect')
+
 
 # Connect (port number given as command line argument)
 port = int(sys.argv[1])
@@ -64,19 +62,16 @@ def iep_excepthook(type, value, tb):
 sys.excepthook = iep_excepthook
 
 
-## Init interpreter and introspection tread
+## Init interpreter and introspector request channel
 
 # Delay import, so we can detect syntax errors using the except hook
-from iepRemote2 import IepInterpreter, IntroSpectionThread
+from iepRemote2 import IepInterpreter, IepIntrospector
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
 
-# Create introspection thread instance
-# Make it a deamon thread, which implies that the program exits
-# even if its running.
-__iep__.ithread = IntroSpectionThread(ct, None, __iep__)
-__iep__.ithread.daemon = True
+# Create introspection req channel
+__iep__.introspector = IepIntrospector(ct, 'introspect')
 
 
 ## Clean up
@@ -85,13 +80,14 @@ __iep__.ithread.daemon = True
 sys._iepInterpreter = __iep__
 
 # Delete local variables
-del yoton, IntroSpectionThread, IepInterpreter, iep_excepthook
+del yoton, IepInterpreter, IepIntrospector, iep_excepthook
 del ct, port
 del os, sys, time
 
 # Delete stuff we do not want 
 del __file__
 
-# Enter the interpreter
-# __iep__.ithread.start()
+# Start introspector and enter the interpreter
+__iep__.introspector.set_mode_threaded()
 __iep__.interact()
+
