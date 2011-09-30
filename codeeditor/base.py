@@ -189,7 +189,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         
         S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore3
-        S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore4
+        S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % orange
         
         S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
         S["Syntax.unterminatedstring"] = "fore:%s, bold:no, italic:no, underline:dotted" % violet
@@ -198,7 +198,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
         S["Syntax.comment"] ="fore:%s, bold:no, italic:no, underline:no" % yellow
         S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
-        S["Syntax.Codeeditor.parsers.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:yes" % orange
+        S["Syntax.Codeeditor.parsers.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:yes" % yellow
         
             
         S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2
