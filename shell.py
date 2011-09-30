@@ -1279,10 +1279,11 @@ class PythonShellHighlighter(Highlighter):
         atLastPrompt, atCurrentPrompt = False, False
         if curBlock.position() == 0:
             pass
-        elif curBlock.position() >= cursor1.block().position():
-            atCurrentPrompt = True
         elif curBlock.position() == commandCursor.block().position():
             atLastPrompt = True
+        elif curBlock.position() >= cursor1.block().position():
+            atCurrentPrompt = True
+        
         
         if (atLastPrompt or atCurrentPrompt) and parser:
             if atCurrentPrompt:
