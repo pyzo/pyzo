@@ -930,7 +930,7 @@ class IepIntrospector(yoton.RepChannel):
         objectNames = ['.'.join(parts[-i:]) for i in range(1,len(parts)+1)]
         
         # find out what kind of function, or if a function at all!
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, NS)
         fun2 = eval("inspect.isfunction(%s)"%(objectName), None, NS)
         fun3 = eval("inspect.ismethod(%s)"%(objectName), None, NS)

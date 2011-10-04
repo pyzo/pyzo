@@ -493,6 +493,6 @@ class SyntaxHighlighting(object):
         else:
             self.__parser = None
         
-        # Restyle
-        self.styleChanged.emit()
+        # Restyle, use setStyle for lazy updating
+        self.setStyle()
         
