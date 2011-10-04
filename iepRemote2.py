@@ -19,6 +19,7 @@ occur in any othe packages to prevent import clashes.
 import os, sys, time
 from codeop import CommandCompiler
 import traceback
+import thread
 import threading
 import inspect
 import keyword # for autocomp
@@ -218,10 +219,12 @@ class IepInterpreter:
                 scriptToRunOnStartup = filename
         
         # Get channels
-        ch_stdin_echo = sys._yoton_context._ch_stdin_echo
-        ch_std_prompt = sys._yoton_context._ch_std_prompt
-        ch_status = sys._yoton_context._ch_status
-        ch_std_code = sys._yoton_context._ch_std_code
+        ctrl_command = sys._yoton_context._ctrl_command
+        ctrl_code = sys._yoton_context._ctrl_code
+        strm_echo = sys._yoton_context._strm_echo
+        strm_prompt = sys._yoton_context._strm_prompt
+        stat_interpreter = sys._yoton_context._stat_interpreter
+        
         
         # ENTER MAIN LOOP
         guitime = time.time()
@@ -245,12 +248,11 @@ class IepInterpreter:
                     if self._dbFrames:
                         preamble = '('+self._dbFrameName+')'
                     if more:
-                        #self.write(preamble+str(sys.ps2))
-                        ch_std_prompt.send(preamble+str(sys.ps2))
+                        strm_prompt.send(preamble+str(sys.ps2))
                     else:
-                        ch_std_prompt.send(preamble+str(sys.ps1))
+                        strm_prompt.send(preamble+str(sys.ps1))
                     # Notify ready state
-                    ch_status.send('Ready')
+                    stat_interpreter.send('Ready')
                 
                 # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
@@ -265,19 +267,18 @@ class IepInterpreter:
                     break
                 
                 # Get channel to take a message from
-                ch = yoton.select_sub_channel(
-                        sys.stdin._channel, ch_std_code)
+                ch = yoton.select_sub_channel(ctrl_command, ctrl_code)
                 
                 if ch is None:
                     pass # No messages waiting
                 
-                elif ch is sys.stdin._channel:
+                elif ch is ctrl_command:
                     # Read input line (strip newlines)
-                    line1 = sys.stdin.read(False) # Command
+                    line1 = ctrl_command.recv(False) # Command
                     if line1:
                         # Notify what we're doing
-                        ch_stdin_echo.send(line1)
-                        ch_status.send('Busy')
+                        strm_echo.send(line1)
+                        stat_interpreter.send('Busy')
                         self.newPrompt = True
                         
                         # Process command, get code to execute
@@ -289,13 +290,13 @@ class IepInterpreter:
                             # A command was processed
                             more = False
                 
-                elif ch is ch_std_code:
+                elif ch is ctrl_code:
                     # Read larger block of code (dict)
-                    msg = ch_std_code.recv(False)
+                    msg = ctrl_code.recv(False)
                     if msg:
                         # Notify what we're doing
                         # (runlargecode() sends on stdin-echo)
-                        ch_status.send('Busy')
+                        stat_interpreter.send('Busy')
                         self.newPrompt = True
                         # Execute code
                         self.runlargecode(msg)
@@ -552,7 +553,7 @@ class IepInterpreter:
             runtext = '(executing lines %i to %i of "%s")\n' % (
                                                 lineno1, lineno2, fname_show)
         # Notify IDE
-        sys._yoton_context._ch_stdin_echo.send(runtext)
+        sys._yoton_context._strm_echo.send(runtext)
         
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
@@ -681,11 +682,9 @@ class IepInterpreter:
                                     fname, lineno, f.f_code.co_name)
             frames.append(text)
         
-        # todo: rename all channels and variables holding channels
-        
         # Send info object
         state = {'index': self._dbFrameIndex, 'frames': frames}
-        sys._yoton_context._ch_debug_status.send(state)
+        sys._yoton_context._stat_debug.send(state)
     
     
     def showsyntaxerror(self, filename=None):
@@ -1226,6 +1225,28 @@ class IepIntrospector(yoton.RepChannel):
         except Exception:            
             return 'Error evaluating: ' + command
     
+    
+    def interrupt(self, command=None):
+        """ interrupt()
+        
+        Interrupt the main thread. This does not work if the main thread
+        is running extension code.
+        
+        A bit of a hack to do this in the introspector, but it's the
+        easeast way and prevents having to launch another thread just
+        to wait for an interrupt/terminare command.
+        
+        """
+        thread.interrupt_main()
+    
+    
+    def terminate(self, command=None):
+        """ terminate()
+        
+        Ask the kernel to terminate by closing the stdin.
+        
+        """
+        sys.stdin._channel.close()
 
 
 ## GUI TOOLKIT HIJACKS

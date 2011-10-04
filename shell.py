@@ -27,9 +27,10 @@ from kernelbroker import KernelInfo, Kernelmanager
 
 
 # Register timer to handle yoton event loop
-# todo: combine with poll timer?
+# todo: combine with poll timer? Or maybe better not.
+# todo: test process resources on old PC
 iep.main._yoton_timer = QtCore.QTimer(iep.main)
-iep.main._yoton_timer.setInterval(20)  # ms
+iep.main._yoton_timer.setInterval(10)  # ms
 iep.main._yoton_timer.setSingleShot(False)
 iep.main._yoton_timer.timeout.connect(yoton.process_events)
 iep.main._yoton_timer.start()
@@ -39,11 +40,8 @@ iep.main._yoton_timer.start()
 A_KEEP = QtGui.QTextCursor.KeepAnchor
 A_MOVE = QtGui.QTextCursor.MoveAnchor
 
-# todo: color stderr red and prompt blue, and input text Python!
-
-
 # Instantiate a local kernel broker upon loading this module
-iep.localKernelBroker = Kernelmanager(public=False)
+iep.localKernelManager = Kernelmanager(public=False)
 
 
 # todo: change shell config dialog to create in the new format
@@ -401,6 +399,11 @@ class BaseShell(BaseTextCtrl):
             self._cursor2.setKeepPositionOnInsert(False)
             self._cursor2.insertText(text, format)
             self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
+        elif prompt == 2 and text == '\b':
+            # Remove prompt
+            self._cursor1.setPosition(self._cursor2.position(), A_KEEP)
+            self._cursor1.removeSelectedText()
+            self._cursor2.setPosition(self._cursor1.position(), A_MOVE)
         elif prompt == 2:
             # Insert text after prompt, inserted text becomes new prompt
             self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
@@ -505,9 +508,6 @@ class PythonShell(BaseShell):
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
         
-        # Apply Python shell style
-        #TODO: self.setStyle('pythonshell')
-        
         # Get standard info if not given. Store info
         if info is None and iep.config.shellConfigs:
             info = iep.config.shellConfigs[0]
@@ -543,7 +543,7 @@ class PythonShell(BaseShell):
         
         # Create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(20)  # ms
+        self._timer.setInterval(50)  # ms
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
@@ -563,12 +563,8 @@ class PythonShell(BaseShell):
     def start(self):
         """ Start the remote process. """
         
-        # (re)set style
-        #TODO: self.setStyle('pythonshell')
+        # Reset read state
         self.setReadOnly(False)
-        
-#         # (re)set restart variable and a callback
-#         self._restart = False 
         
         # (re)set import attempts
         self._importAttempts[:] = []
@@ -585,36 +581,35 @@ class PythonShell(BaseShell):
         """
         
         # Create yoton context
-        self._context = yoton.Context()
+        self._context = ct = yoton.Context()
         
-        # Connect standard streams
-        self._stdin = yoton.PubChannel(self._context, 'stdin')
-        self._stdout = yoton.SubChannel(self._context, 'stdout')
-        self._stderr = yoton.SubChannel(self._context, 'stderr')
+        # Create stream channels        
+        self._strm_out = yoton.SubChannel(ct, 'strm-out')
+        self._strm_err = yoton.SubChannel(ct, 'strm-err')
+        self._strm_raw = yoton.SubChannel(ct, 'strm-raw')
+        self._strm_echo = yoton.SubChannel(ct, 'strm-echo')
+        self._strm_prompt = yoton.SubChannel(ct, 'strm-prompt')
+        self._strm_broker = yoton.SubChannel(ct, 'strm-broker')
         
-        self._stdin_echo = yoton.SubChannel(self._context, 'stdin-echo')
-        self._std_code = yoton.PubChannel(self._context, 'std-code', yoton.OBJECT)
-        self._std_prompt = yoton.SubChannel(self._context, 'std-prompt')
+        # Create control channels
+        self._ctrl_command = yoton.PubChannel(ct, 'ctrl-command')
+        self._ctrl_code = yoton.PubChannel(ct, 'ctrl-code', yoton.OBJECT)
+        self._ctrl_broker = yoton.PubChannel(ct, 'ctrl-broker')
         
-        # More streams coming from the broker
-        self._cstdout = yoton.SubChannel(self._context, 'c-stdout-stderr')
-        self._brokerChannel = yoton.SubChannel(self._context, 'broker-stream')
+        # Create status channels
+        self._stat_heartbeat = yoton.SubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        self._stat_interpreter = yoton.SubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+        self._stat_debug = yoton.SubstateChannel(ct, 'stat-debug', yoton.OBJECT)
         
-        # Channels for status and control
-        self._heartbeat = yoton.SubstateChannel(self._context, 'heartbeat-status')
-        self._status = yoton.SubstateChannel(self._context, 'status')
-        self._debugStatus = yoton.SubstateChannel(self._context, 'debug-status', yoton.OBJECT)
-        self._control = yoton.PubChannel(self._context, 'control')
-        
-        # For introspection
-        self._request = yoton.ReqChannel(self._context, 'introspect')
+        # Create introspection channel
+        self._request = yoton.ReqChannel(ct, 'reqp-introspect')
         self._request.received.bind(self._reply_handler)
         self._request.set_mode_event_driven()
         
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.
-        slot = iep.localKernelBroker.createKernel(info)
-        self._brokerConnection = self._context.connect('localhost:%i'%slot)
+        slot = iep.localKernelManager.createKernel(info)
+        self._brokerConnection = ct.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
         
         
@@ -770,7 +765,7 @@ class PythonShell(BaseShell):
         """ executeCommand(text)
         Execute one-line command in the remote Python session. 
         """
-        self._stdin.send(text)
+        self._ctrl_command.send(text)
     
     
     def executeCode(self, text, fname, lineno=0):
@@ -862,7 +857,7 @@ class PythonShell(BaseShell):
                 
         # Send message
         msg = {'source':text, 'fname':fname, 'lineno':lineno}
-        self._std_code.send(msg)
+        self._ctrl_code.send(msg)
     
     # todo: implement most magic commands in kernel
     def modifyCommand(self, text):
@@ -962,16 +957,16 @@ class PythonShell(BaseShell):
         
         elif text == 'db start':
             text = ''
-            self._control.write('DEBUG START')
+            self._ctrl_broker.write('DEBUG START')
         elif text == 'db stop':
             text = ''
-            self._control.write('DEBUG STOP')
+            self._ctrl_broker.write('DEBUG STOP')
         elif text == 'db up':
             text = ''
-            self._control.write('DEBUG UP')
+            self._ctrl_broker.write('DEBUG UP')
         elif text == 'db down':
             text = ''
-            self._control.write('DEBUG DOWN')
+            self._ctrl_broker.write('DEBUG DOWN')
         elif text.startswith('db frame '):
             index = text.split(' ',2)[2]
             try:
@@ -979,10 +974,10 @@ class PythonShell(BaseShell):
             except Exception:
                 return text
             text = ''
-            self._control.write('DEBUG INDEX ' + str(index))
+            self._ctrl_broker.write('DEBUG INDEX ' + str(index))
         elif text == 'db where':
             text = ''
-            self._control.write('DEBUG WHERE')
+            self._ctrl_broker.write('DEBUG WHERE')
         elif text == 'db focus':
             # If not debugging, cant focus
             if not self._debugState:
@@ -1121,25 +1116,25 @@ class PythonShell(BaseShell):
         """
         
         # Check what subchannel has the latest message pending
-        sub = yoton.select_sub_channel(self._stdout, self._stderr, 
-                                self._stdin_echo, self._cstdout,
-                                self._brokerChannel, self._std_prompt )
+        sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
+                                self._strm_echo, self._strm_raw,
+                                self._strm_broker, self._strm_prompt )
         
         # Write alle pending messages that are later than any other message
         if sub:
             # Get how to deal with prompt
             prompt = 0
-            if sub is self._stdin_echo:
+            if sub is self._strm_echo:
                 prompt = 1 
-            elif sub is  self._std_prompt:
+            elif sub is  self._strm_prompt:
                 prompt = 2
             # Get color
             color = None
-            if sub is self._brokerChannel:
+            if sub is self._strm_broker:
                 color = '#000'
-            elif sub is self._cstdout:
+            elif sub is self._strm_raw:
                 color = '#888888' # Halfway
-            elif sub is self._stderr:
+            elif sub is self._strm_err:
                 color = '#F00'
             # insert text
             text = ''.join(sub.recv_selected())
@@ -1148,12 +1143,12 @@ class PythonShell(BaseShell):
         
         # Update status
         # todo: include heartbeat info
-        state = self._status.recv()
+        state = self._stat_interpreter.recv()
         if state != self._state:
             self._state = state
             self.stateChanged.emit(self)
         
-        state = self._debugStatus.recv()        
+        state = self._stat_debug.recv()        
         if state != self._debugState:
             print('debugstate', state)
             self._debugState = state
@@ -1183,7 +1178,7 @@ class PythonShell(BaseShell):
         Send a Keyboard interrupt signal to the main thread of the 
         remote process. 
         """
-        self._control.send('INT')
+        self._ctrl_broker.send('INT')
     
     
     def restart(self, scriptFilename=None):
@@ -1195,7 +1190,7 @@ class PythonShell(BaseShell):
         msg = 'RESTART'
         if scriptFilename:
             msg += ' ' + str(scriptFilename)
-        self._control.send(msg)
+        self._ctrl_broker.send(msg)
     
     
     def terminate(self):
@@ -1205,7 +1200,7 @@ class PythonShell(BaseShell):
         To be notified of the termination, connect to the "terminated"
         signal of the shell.
         """
-        self._control.send('TERM')
+        self._ctrl_broker.send('TERM')
     
     
     def _onConnectionClose(self, c, why):
@@ -1246,7 +1241,7 @@ class PythonShell(BaseShell):
         # Notify listeners
         self.terminated.emit(self)
 
-#
+# todo: clean this up a bit
 ustr = str
 from codeeditor.highlighter import Highlighter
 from codeeditor import parsers

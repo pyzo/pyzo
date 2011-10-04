@@ -187,7 +187,7 @@ class DebugControl(QtGui.QToolButton):
             # Initiate debugging
             shell = iep.shells.getCurrentShell()
             if shell:
-                shell._stdin.send('DB START')
+                shell._ctrl_command.send('DB START')
     
     
     def onTriggered(self, action):
@@ -199,11 +199,11 @@ class DebugControl(QtGui.QToolButton):
         
         if action._index < 1:
             # Stop debugging
-            shell._stdin.send('DB STOP')
+            shell._ctrl_command.send('DB STOP')
         else:
             # Change stack index
             if not action._isCurrent:
-                shell._stdin.send('DB FRAME {}'.format(action._index))
+                shell._ctrl_command.send('DB FRAME {}'.format(action._index))
             # Open file and select line
             if True:
                 line = action.text().split(': ',1)[1]

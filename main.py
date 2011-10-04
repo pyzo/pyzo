@@ -266,7 +266,7 @@ class MainWindow(QtGui.QMainWindow):
             event.accept()
         
         # Proceed with closing shells
-        iep.localKernelBroker.terminateAll()
+        iep.localKernelManager.terminateAll()
         for shell in iep.shells:
             shell._context.destroy()
     
