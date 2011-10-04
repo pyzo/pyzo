@@ -1184,7 +1184,7 @@ class IepIntrospector(yoton.RepChannel):
                 h_text = ""
             
             # get and correct signature
-            h_fun, kind = self.getSignature(objectName)
+            h_fun, kind = self._getSignature(objectName)
             if kind == 'builtin' or not h_fun:
                 h_fun = ""  # signature already in docstring or not available
             

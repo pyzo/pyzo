@@ -1150,7 +1150,6 @@ class PythonShell(BaseShell):
         
         state = self._stat_debug.recv()        
         if state != self._debugState:
-            print('debugstate', state)
             self._debugState = state
             self.debugStateChanged.emit(self)
     
