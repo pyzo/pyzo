@@ -78,8 +78,7 @@ class WorkspaceProxy(QtCore.QObject):
         
         shell = iep.shells.getCurrentShell()
         if shell:
-            pass
-            #shell.postRequest('VARIABLES '+self._name, self.processResponse)
+            shell._request.later.dir2(self._name, handler=self.processResponse)
     
     
     def goUp(self):
@@ -112,24 +111,14 @@ class WorkspaceProxy(QtCore.QObject):
             # Should never happen I think, but just to be sure
             self._variables = []
         elif shell._state.lower() != 'busy':
-            pass
-            #shell.postRequest('VARIABLES '+self._name, self.processResponse)
+            shell._request.later.dir2(self._name, handler=self.processResponse)
     
     
-    def processResponse(self, response, id=None):
-        """ processResponse(response, id-None)
+    def processResponse(self, response):
+        """ processResponse(response)
         We got a response, update our list and notify the tree.
         """
-        
-        # Check
-        if not '##IEP##' in response:
-            print('Error getting VARIABLES:', response)
-            self._variables = []
-        else:
-            # Store variables
-            self._variables = [r for r in response.split('##IEP##') if r]
-        
-        # Signal
+        self._variables = response
         self.haveNewData.emit()
     
     

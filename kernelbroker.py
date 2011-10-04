@@ -621,7 +621,7 @@ class Kernelmanager:
         
         # Init list of kernels
         self._kernels = []
-        self._weak = []
+    
     
     def createKernel(self, info, name=None):
         """ create_kernel(info, name=None)
@@ -646,8 +646,6 @@ class Kernelmanager:
         # Tell broker to start as soon as the IDE connects with the broker
         kernel.startKernelIfConnected()
         
-        import weakref
-        self._weak.append(weakref.ref(kernel))
         # Done
         return port
     
