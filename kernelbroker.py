@@ -202,16 +202,36 @@ class KernelBroker:
         # Kernel process and connection (these are replaced on restarting)
         self._reset()
         
-        # For terminating.
-        self._terminator = None
-        
         # For restarting after terminating
         self._restart = False
         self._pending_scriptFile = None
     
     
-    def __delete__(self):
-        print('KernelBroker cleaned up') # todo: test
+    def _create_channels(self):
+        ct = self._context
+        
+        # Close any existing channels first
+        for channelName in ['strm-broker', 'strm-raw', 'strm-prompt',
+                            'ctrl-broker', 'stat-heartbeat', 'reqp-introspect']:
+            attrName = '_' + channelName.lower().replace('-', '_')
+            if hasattr(self, attrName):
+                getattr(self, attrName).close()
+        
+        # Create stream channels. 
+        # Stdout is for the C-level stdout/stderr streams.
+        self._strm_broker = yoton.PubChannel(ct, 'strm-broker')
+        self._strm_raw = yoton.PubChannel(ct, 'strm-raw')
+        self._strm_prompt = yoton.PubChannel(ct, 'strm-prompt')
+        
+        # Create control channel so that the IDE can control restarting etc.
+        self._ctrl_broker = yoton.SubChannel(ct, 'ctrl-broker')
+        
+        # Create status channel for heartbeat to detect running extension code
+        self._stat_heartbeat = yoton.PubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        
+        # Create introspect channel so we can interrupt and terminate
+        self._reqp_introspect = yoton.ReqChannel(ct, 'reqp-introspect')
+        self._reqp_introspect.set_mode_event_driven()
     
     
     def _reset(self, destroy=False):
@@ -224,6 +244,8 @@ class KernelBroker:
         # Set process and kernel connection to None
         self._process = None
         self._kernelCon = None
+        self._terminator = None
+        self._streamReader = None
         
         if destroy == True:
             
@@ -241,13 +263,13 @@ class KernelBroker:
             self._context.destroy()
             self._context = None
             #
-            self._brokerChannel = None
-            self._stdoutChannel = None
-            self._heartbeatChannel = None
+            self._strm_broker = None
+            self._strm_raw = None
+            self._stat_heartbeat = None
+            self._strm_prompt = None
             #
-            self._controlChannel = None
-            self._controlChannel_pub = None
-    
+            self._ctrl_broker = None
+            self._reqp_introspect = None
     
     
     def startKernelIfConnected(self, timeout=10.0):
@@ -268,6 +290,9 @@ class KernelBroker:
         
         """
         
+        # Create channels
+        self._create_channels()
+        
         # Set scriptFile in info
         info = KernelInfoPlus(self._info)
         if self._pending_scriptFile:
@@ -285,17 +310,7 @@ class KernelBroker:
         # (tries several port numbers, staring from 'IEP')
         self._kernelCon = self._context.bind('localhost:IEP2', 
                                                 max_tries=256, name='kernel')
-        
-        # Create channels. Stdout is for the C-level stdout/stderr streams.
-        self._brokerChannel = yoton.PubChannel(self._context, 'broker-stream')
-        self._stdoutChannel = yoton.PubChannel(self._context, 'c-stdout-stderr')
-        self._heartbeatChannel = yoton.PubstateChannel(self._context,
-                                            'heartbeat-status', yoton.OBJECT)
-        
-        # The IDE is in control
-        self._controlChannel = yoton.SubChannel(self._context, 'control')
-        self._controlChannel_pub = yoton.PubChannel(self._context, 'control')
-        
+       
         # Get command to execute
         command = info.getCommand(self._kernelCon.port)
         
@@ -313,19 +328,15 @@ class KernelBroker:
         
         # Create reader for stream
         self._streamReader = StreamReader(self._process,
-                                    self._stdoutChannel, self._brokerChannel)
+                                    self._strm_raw, self._strm_broker)
         
         # Start streamreader and timer
         self._streamReader.start()
         self._timer.start()
         
         # Reset some variables
-        self._terminator = None
         self._restart = False
         self._pending_scriptFile = None
-        
-        self._brokerChannel.send('Hi, this is your broker!\n')
-        print(command)
     
     
     def host(self, address='localhost'):
@@ -347,9 +358,9 @@ class KernelBroker:
         
         """
         if timedout:
-            self._heartbeatChannel.send(False)
+            self._stat_heartbeat.send(False)
         else:
-            self._heartbeatChannel.send(True)
+            self._stat_heartbeat.send(True)
     
     
     def _onTimerIteration(self):
@@ -388,23 +399,23 @@ class KernelBroker:
             self._terminator.next()
         
         # handle control messages
-        for msg in self._controlChannel.recv_all():
+        for msg in self._ctrl_broker.recv_all():
             if msg == 'INT':
                 # Kernel receives and acts
                 # todo: On Linux we might interrupt from here. Is only advantegous
                 # if this could interrupt extension code
-                pass 
+                self._reqp_introspect.later.interrupt()
             elif msg == 'TERM':
                 # Start termination procedure
                 # Kernel will receive term and act (if it can). 
                 # If it wont, we will act in a second or so.
                 if self._terminator:
                     # The user gave kill command while the kill process
-                    # is running. We could do an emidiate kill now,
+                    # is running. We could do an immediate kill now,
                     # or we let the terminate process run its course.
                     pass 
                 else:
-                    self.terminate()
+                    self.terminate('by user')
             elif msg.startswith('RESTART'):
                 # Restart: terminates kernel and then start a new one
                 self._restart = True
@@ -456,23 +467,29 @@ class KernelBroker:
             msg = self._terminator.getMessage('Kernel process')
         
         # Notify
-        returncodeMsg = ' (%s)' % str(returncode) 
-        self._brokerChannel.send(msg+returncodeMsg)
+        returncodeMsg = '\n%s (%s)\n\n' % (msg, str(returncode))
+        self._strm_broker.send(returncodeMsg)
+        
+        # Empty prompt
+        self._strm_prompt.send('\b') 
+        self._context.flush()
         
         # Cleanup (get rid of kernel process references)
         self._reset()
-        
+            
         # Restart?
         if self._restart:
             self._restart = False
             self.startKernel()
-    
 
 
 class KernelTerminator:
     """ KernelTerminator(broker, reason='user terminated', action='TERM', timeout=0.0)
     
-    Simple class to help terminating the kernel.
+    Simple class to help terminating the kernel. It has a next() method 
+    that should be periodically called. It keeps track whether the timeout
+    has passed and will undertake increaslingly ruder actions to terminate
+    the kernel.
     
     """
     def __init__(self, broker, reason='by user', action='TERM', timeout=0.0):
@@ -483,10 +500,10 @@ class KernelTerminator:
         self._next_action = ''
         
         # Go
-        self.do(action, timeout)    
+        self._do(action, timeout)    
     
     
-    def do(self, action, timeout):
+    def _do(self, action, timeout):
         self._prev_action = self._next_action
         self._next_action = action
         self._timeout = time.time() + timeout
@@ -504,8 +521,8 @@ class KernelTerminator:
             pass
         
         elif action == 'TERM':
-            self._broker._controlChannel_pub.send('TERM')
-            self.do('INT', 0.5)
+            self._broker._reqp_introspect.later.terminate()
+            self._do('INT', 0.5)
         
         elif action == 'INT':
             # Count
@@ -514,10 +531,10 @@ class KernelTerminator:
             self._count +=1
             # Handle
             if self._count < 5:
-                self._broker._controlChannel_pub.send('INT')
-                self.do('INT', 0.1)
+                self._broker._reqp_introspect.later.interrupt()
+                self._do('INT', 0.1)
             else:
-                self.do('KILL', 0)
+                self._do('KILL', 0)
         
         elif action == 'KILL':
             # Get pid and signal
@@ -534,7 +551,7 @@ class KernelTerminator:
                 kernel32.TerminateProcess(handle, 0)
                 #os.system("TASKKILL /PID " + str(pid) + " /F")
             # Set what we did
-            self.do('NOTHING', 9999999999999999)
+            self._do('NOTHING', 9999999999999999)
     
     
     def getMessage(self, what):
@@ -561,12 +578,12 @@ class StreamReader(threading.Thread):
     a PYPE blocks.
     
     """
-    def __init__(self, process, stdoutChannel, brokerChannel):
+    def __init__(self, process, strm_raw, strm_broker):
         threading.Thread.__init__(self)
         
         self._process = process
-        self._stdoutChannel = stdoutChannel
-        self._brokerChannel = brokerChannel
+        self._strm_raw = strm_raw
+        self._strm_broker = strm_broker
         self.deamon = True
     
     def run(self):
@@ -575,13 +592,13 @@ class StreamReader(threading.Thread):
             msg = self._process.stdout.readline() # <-- Blocks here
             if not isinstance(msg, str):
                 msg = msg.decode('utf-8', 'ignore')
-            self._stdoutChannel.send(msg)
+            self._strm_raw.send(msg)
             # Process dead?
             if not msg:# or self._process.poll() is not None:
                 break
             # Sleep
             time.sleep(0.1)
-        self._brokerChannel.send('streamreader exit\n')
+        #self._strm_broker.send('streamreader exit\n')
     
 
 class Kernelmanager:
@@ -604,7 +621,7 @@ class Kernelmanager:
         
         # Init list of kernels
         self._kernels = []
-    
+        self._weak = []
     
     def createKernel(self, info, name=None):
         """ create_kernel(info, name=None)
@@ -629,6 +646,8 @@ class Kernelmanager:
         # Tell broker to start as soon as the IDE connects with the broker
         kernel.startKernelIfConnected()
         
+        import weakref
+        self._weak.append(weakref.ref(kernel))
         # Done
         return port
     

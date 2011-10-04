@@ -11,6 +11,31 @@ Starting script for remote processes in iep.
 This script connects to the IEP ide using the yoton interface
 and imports remote2 to start the interpreter and introspection thread.
 
+Channels
+--------
+There are four groups of channels. The ctrl channels are streams from 
+the ide to the kernel and/or broker. The strm channels are streams to 
+the ide. The stat channels are status channels to the ide. The reqp 
+channels are req/rep channels. All channels are TEXT except for a
+few OBJECT channels.
+ 
+ctrl-command: the stdin to give commands to the interpreter
+ctrl-code (OBJECT): to let the interpreter execute blocks of code
+ctrl-broker: to control the broker (restarting etc)
+
+strm-out: the stdout of the interpreter
+strm-err: the stderr of the interpreter
+strm-raw: the C-level stdout and stderr of the interpreter (caputred by broker)
+strm-echo: the interpreters echos commands here
+strm-prompt: to send the prompts explicitly
+strm-broker: for the broker to send messages to the ide
+
+stat-interpreter (OBJECT): status of the interpreter (ready, busy, more)
+stat-debug (OBJECT): debug status
+stat-heartbeat (OBJECT): whether the broker receives heartbeat signals from the kernel
+
+reqp-introspect (OBJECT): To query information from the kernel (and for interruping)
+
 """
 
 import yoton
@@ -24,21 +49,24 @@ import __main__ # we will run code in the __main__.__dict__ namespace
 ct = yoton.Context()
 sys._yoton_context = ct
 
-# todo: chose better names for channels and their variables
+# Create control channels
+ct._ctrl_command = yoton.SubChannel(ct, 'ctrl-command')
+ct._ctrl_code = yoton.SubChannel(ct, 'ctrl-code')
 
-# Create std channels
-sys.stdin = yoton.FileWrapper( yoton.SubChannel(ct, 'stdin') )
-sys.stdout = yoton.FileWrapper( yoton.PubChannel(ct, 'stdout') )
-sys.stderr = yoton.FileWrapper( yoton.PubChannel(ct, 'stderr') )
-#
-ct._ch_std_code = yoton.SubChannel(ct, 'std-code', yoton.OBJECT)
-ct._ch_stdin_echo = yoton.PubChannel(ct, 'stdin-echo')
-ct._ch_std_prompt = yoton.PubChannel(ct, 'std-prompt')
+# Create stream channels
+ct._strm_out = yoton.PubChannel(ct, 'strm-out')
+ct._strm_err = yoton.PubChannel(ct, 'strm-err')
+ct._strm_echo = yoton.PubChannel(ct, 'strm-echo')
+ct._strm_prompt = yoton.PubChannel(ct, 'strm-prompt')
 
-# Create all other channels
-ct._ch_status = yoton.PubstateChannel(ct, 'status')
-ct._ch_debug_status = yoton.PubstateChannel(ct, 'debug-status', yoton.OBJECT)
+# Create status channels
+ct._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+ct._stat_debug = yoton.PubstateChannel(ct, 'stat-debug', yoton.OBJECT)
 
+# Create file objects for stdin, stdout, stderr
+sys.stdin = yoton.FileWrapper( ct._ctrl_command )
+sys.stdout = yoton.FileWrapper( ct._strm_out )
+sys.stderr = yoton.FileWrapper( ct._strm_err )
 
 # Connect (port number given as command line argument)
 port = int(sys.argv[1])
@@ -71,7 +99,7 @@ from iepRemote2 import IepInterpreter, IepIntrospector
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
 
 # Create introspection req channel
-__iep__.introspector = IepIntrospector(ct, 'introspect')
+__iep__.introspector = IepIntrospector(ct, 'reqp-introspect')
 
 
 ## Clean up
@@ -90,4 +118,3 @@ del __file__
 # Start introspector and enter the interpreter
 __iep__.introspector.set_mode_threaded()
 __iep__.interact()
-
