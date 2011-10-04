@@ -143,7 +143,8 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             self.__style[element.key] = element.defaultFormat
         
         # Connext style update
-        self.styleChanged.connect(self._afterSetStyle)
+        self.styleChanged.connect(self.__afterSetStyle)
+        self.__styleChangedPending = False
         
         # Init options now. 
         # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
@@ -342,9 +343,6 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     ## Font
     
-    
-    
-    
     def setFont(self, font=None):
         """ setFont(font=None)
         
@@ -444,6 +442,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         For convenience, keyword arguments may also be used. In this case,
         underscores are interpreted as dots.
         
+        This function can also be called without arguments to force the 
+        editor to restyle (and rehighlight) itself.
+        
         Use getStyleElementDescriptions() to get information about the
         available styles and their default values.
         
@@ -486,11 +487,24 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             print("Warning, invalid style names given: " + 
                                                     ','.join(invalidKeys))
         
-        # Notify the style changed
-        self.styleChanged.emit()
+        # Notify that style changed, adopt a lazy approach to make loading
+        # quicker.
+        if self.isVisible():
+            callLater(self.styleChanged.emit)
+            self.__styleChangedPending = False
+        else:
+            self.__styleChangedPending = True
     
     
-    def _afterSetStyle(self):
+    def showEvent(self, event):
+        super(CodeEditorBase, self).showEvent(event)
+        # Does the style need updating?
+        if self.__styleChangedPending:
+            callLater(self.styleChanged.emit)
+            self.__styleChangedPending = False
+    
+    
+    def __afterSetStyle(self):
         """ _afterSetStyle()
         
         Method to call after the style has been set.

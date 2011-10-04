@@ -424,7 +424,7 @@ class StyleManager(QtCore.QObject):
         # Are the default fonts set?
         if not self._faces:
             self.selectDefaultFonts(editor)
-		
+        
         # make lower case
         styleName = styleName.lower()
         if not styleName:
@@ -641,7 +641,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Get line up to cursor
         cursor = self.textCursor()
-        position = cursor.position()
+        positionInBlock = cursor.positionInBlock()
         cursor.setPosition(cursor.position()) #Move the anchor to the cursor pos
         cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
         text = cursor.selectedText().replace('\u2029', '\n') 
@@ -654,7 +654,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Store line and (re)start timer
         self._delayTimer._line = text
-        self._delayTimer._pos = position
+        self._delayTimer._pos = positionInBlock
         self._delayTimer._tryAutoComp = tryAutoComp
         self._delayTimer.start(iep.config.advanced.autoCompDelay)
     
@@ -680,10 +680,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 fullName = needle
                 if name:
                     fullName = name + '.' + needle
-                # Calculate position
-                pos = self._delayTimer._pos - len(line) + stats[0] - len(needle)
                 # Process
-                cto = CallTipObject(self, fullName, pos)
+                offset = len(line) - stats[0] + len(needle)
+                cto = CallTipObject(self, fullName, offset)
                 self.processCallTip(cto)
             else: 
                 self.calltipCancel()
@@ -824,11 +823,11 @@ class CallTipObject:
     """ Object to help the process of call tips. 
     An instance of this class is created for each call tip action.
     """
-    def __init__(self, textCtrl, name, pos):
+    def __init__(self, textCtrl, name, offset):
         self.textCtrl = textCtrl        
         self.name = name        
         self.bufferName = name
-        self.pos = pos
+        self.offset = offset
     
     def tryUsingBuffer(self):
         """ tryUsingBuffer()
@@ -859,7 +858,7 @@ class CallTipObject:
         self.textCtrl._callTipBuffer_result = callTipText
     
     def _finish(self, callTipText):
-        self.textCtrl.calltipShow(self.pos, callTipText, 0, -1)
+        self.textCtrl.calltipShow(self.offset, callTipText, True)
 
 
 class AutoCompObject:

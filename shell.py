@@ -665,7 +665,7 @@ class PythonShell(BaseShell):
         
         # Post request
         handler = self._processCallTip_response
-        #self._request.later.signature(cto.name, handler=handler, cto=cto)
+        self._request.later.signature(cto.name, handler=handler, cto=cto)
     
     
     def _processCallTip_response(self, response, cto=None):
@@ -753,7 +753,7 @@ class PythonShell(BaseShell):
                     # To be sure, decrease the experiration date on the buffer
                     aco.setBuffer(timeout=1)
                     # Repost request
-                    handler = _processAutoComp_response
+                    handler = self._processAutoComp_response
                     self._request.later.dir(req, handler=handler, aco=aco)
         else:
             # If still required, show list, otherwise only store result
