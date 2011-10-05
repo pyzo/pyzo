@@ -402,8 +402,6 @@ class KernelBroker:
         for msg in self._ctrl_broker.recv_all():
             if msg == 'INT':
                 # Kernel receives and acts
-                # todo: On Linux we might interrupt from here. Is only advantegous
-                # if this could interrupt extension code
                 self._reqp_introspect.later.interrupt()
             elif msg == 'TERM':
                 # Start termination procedure

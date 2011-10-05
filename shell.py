@@ -196,6 +196,8 @@ class BaseShell(BaseTextCtrl):
         if event.key() in [Qt.Key_Backspace, Qt.Key_Left]:
             self._historyNeedle = None
             if self.textCursor().position() == self._cursor2.position():
+                if event.key() == Qt.Key_Backspace:
+                    self.textCursor().removeSelectedText()
                 return  #Ignore the key, don't go beyond the prompt
 
 
@@ -749,7 +751,7 @@ class PythonShell(BaseShell):
                     aco.setBuffer(timeout=1)
                     # Repost request
                     handler = self._processAutoComp_response
-                    self._request.later.dir(req, handler=handler, aco=aco)
+                    self._request.later.dir(aco.name, handler=handler, aco=aco)
         else:
             # If still required, show list, otherwise only store result
             if self._currentACO is aco:
@@ -854,7 +856,7 @@ class PythonShell(BaseShell):
 #             runtext = '[executing lines {} to {} of "{}"]\n'.format(
 #                                             lineno1, lineno2, fname)
 #         self.processLine(runtext, False)
-                
+        
         # Send message
         msg = {'source':text, 'fname':fname, 'lineno':lineno}
         self._ctrl_code.send(msg)
