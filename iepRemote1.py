@@ -51,7 +51,7 @@ sys._yoton_context = ct
 
 # Create control channels
 ct._ctrl_command = yoton.SubChannel(ct, 'ctrl-command')
-ct._ctrl_code = yoton.SubChannel(ct, 'ctrl-code')
+ct._ctrl_code = yoton.SubChannel(ct, 'ctrl-code', yoton.OBJECT)
 
 # Create stream channels
 ct._strm_out = yoton.PubChannel(ct, 'strm-out')
