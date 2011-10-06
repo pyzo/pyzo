@@ -260,7 +260,7 @@ class IepInterpreter:
                 # Are we still connected?
                 if sys.stdin.closed:
                     # Stop all deamon threads (or we wont really stop in <2.5)
-                    self.introspector.set_mode_normal()
+                    self.introspector.set_mode('off')
                     sys._yoton_context.close()
                     # Break
                     self.write("\n")

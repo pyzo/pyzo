@@ -194,14 +194,18 @@ class IepInteractiveHelp(QtGui.QWidget):
         # Get shell and ask for the documentation
         shell = iep.shells.getCurrentShell()
         if shell and name:
-            shell._request.later.doc(name, handler=self.queryDoc_response)
+            future = shell._request.doc(name)
+            future.add_done_callback(self.queryDoc_response)
         elif not name:
             self.setText(initText)
     
     
-    def queryDoc_response(self, response):
+    def queryDoc_response(self, future):
         """ Process the response from the shell. """
         
+        if future.exception() or future.cancelled():
+            return
+        response = future.result()
         if not response:
             return
         

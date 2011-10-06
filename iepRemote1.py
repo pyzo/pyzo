@@ -116,5 +116,5 @@ del os, sys, time
 del __file__
 
 # Start introspector and enter the interpreter
-__iep__.introspector.set_mode_threaded()
+__iep__.introspector.set_mode('thread')
 __iep__.interact()
