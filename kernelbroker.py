@@ -101,13 +101,13 @@ class KernelInfoPlus(KernelInfo):
         
         # Set default PYTHONPATH
         ENV_PP = os.environ.get('PYTHONPATH','')
-        self.PYTHONPATH.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
-        self.PYTHONPATH.replace('$PYTHONPATH', '')
+        self.PYTHONPATH = self.PYTHONPATH.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
+        self.PYTHONPATH = self.PYTHONPATH.replace('$PYTHONPATH', '')
         for i in range(3):
-            self.PYTHONPATH.replace('\n\n', '\n')
+            self.PYTHONPATH = self.PYTHONPATH.replace('\n\n', '\n')
         self.PYTHONPATH = self.PYTHONPATH.replace('\n', os.pathsep)
     
-        
+    
     def getCommand(self, port):
         """ getCommand(port)
         

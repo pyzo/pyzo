@@ -139,11 +139,10 @@ class IepInterpreter:
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
         thisPath = os.getcwd()
-        if thisPath in sys.path:
+        while thisPath in sys.path:
             sys.path.remove(thisPath)
-            
         projectPath = os.environ.get('iep_projectPath')
-        if projectPath is not None:
+        if projectPath:
             sys.stdout.write('Prepending the project path %r to sys.path\n' % 
                 projectPath)
             #Actual prepending is done below, to put it before the script path
@@ -200,7 +199,7 @@ class IepInterpreter:
             sys.argv.append('')
             # Insert current directory to path
             sys.path.insert(0, '')
-            if projectPath is not None:
+            if projectPath:
                 sys.path.insert(0,projectPath)
                 
             # Go to start dir
