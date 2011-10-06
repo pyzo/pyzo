@@ -605,8 +605,6 @@ class PythonShell(BaseShell):
         
         # Create introspection channel
         self._request = yoton.ReqChannel(ct, 'reqp-introspect')
-        self._request.received.bind(self._reply_handler)
-        self._request.set_mode_event_driven()
         
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.
@@ -616,34 +614,32 @@ class PythonShell(BaseShell):
         
         
         # Ask for python version
-        def _setVersion(version):
+        def _setVersion(future):
+            version = future.result()
             if isinstance(version, str):
                 self._version = version.split(' ',1)[0]
             self.stateChanged.emit(self)
-        self._request.later.eval(' sys.version', handler=_setVersion)
+        future = self._request.eval('sys.version')
+        future.add_done_callback(_setVersion)
         
         # Ask for builtins
-        def _setKeywords(L):
+        def _setKeywords(future):
+            L = future.result()
             if isinstance(L, list):
                 self._keywords = L
-        self._request.later.eval('keyword.kwlist', handler=_setKeywords)
+        future = self._request.eval('keyword.kwlist')
+        future.add_done_callback(_setKeywords)
         
         # Ask for builtins
-        def _setBuiltins(L):
+        def _setBuiltins(future):
+            L = future.result()
             if isinstance(L, list):
                 self._builtins = L
-        self._request.later.eval('dir(__builtins__)', handler=_setBuiltins)
-    
+        future = self._request.eval('dir(__builtins__)')
+        future.add_done_callback(_setBuiltins)
     
     
     ## Introspection processing methods
-    
-    def _reply_handler(self, *args, handler=None, **kwargs):
-        """ Called when a reply is received. The result is passed 
-        to another function.
-        """
-        if handler:
-            handler(*args, **kwargs)
     
     
     def processCallTip(self, cto):
@@ -661,13 +657,25 @@ class PythonShell(BaseShell):
         self._currentCTO = cto
         
         # Post request
-        handler = self._processCallTip_response
-        self._request.later.signature(cto.name, handler=handler, cto=cto)
+        future = self._request.signature(cto.name)
+        future.add_done_callback(self._processCallTip_response)
+        future.cto = cto
     
     
-    def _processCallTip_response(self, response, cto=None):
+    def _processCallTip_response(self, future):
         """ Process response of shell to show signature. 
         """
+        
+        # Process future
+        if future.exception():
+            print('Introspect-exception: ', future.exception())
+            return 
+        elif future.cancelled():
+            print('Introspect cancelled')
+            return
+        else:
+            response = future.result()
+            cto = future.cto
         
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
@@ -710,13 +718,25 @@ class PythonShell(BaseShell):
         self._currentACO = aco
         
         # Post request
-        handler = self._processAutoComp_response
-        self._request.later.dir(aco.name, handler=handler, aco=aco)
+        future = self._request.dir(aco.name)
+        future.add_done_callback(self._processAutoComp_response)
+        future.aco = aco
     
     
-    def _processAutoComp_response(self, response, aco=None):
+    def _processAutoComp_response(self, future):
         """ Process the response of the shell for the auto completion. 
         """ 
+        
+        # Process future
+        if future.exception():
+            print('Introspect-exception: ', future.exception())
+            return
+        elif future.cancelled():
+            print('Introspect cancelled')
+            return
+        else:
+            response = future.result()
+            aco = future.aco
         
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
@@ -750,8 +770,9 @@ class PythonShell(BaseShell):
                     # To be sure, decrease the experiration date on the buffer
                     aco.setBuffer(timeout=1)
                     # Repost request
-                    handler = self._processAutoComp_response
-                    self._request.later.dir(aco.name, handler=handler, aco=aco)
+                    future = self._request.signature(aco.name)
+                    future.add_done_callback(self._processAutoComp_response)
+                    future.aco = aco
         else:
             # If still required, show list, otherwise only store result
             if self._currentACO is aco:

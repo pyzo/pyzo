@@ -196,7 +196,7 @@ class KernelBroker:
         self._context = yoton.Context()
         
         # Create yoton-based timer
-        self._timer = yoton.Timer(self, 0.2, oneshot=False)
+        self._timer = yoton.Timer(0.2, oneshot=False)
         self._timer.bind(self._onTimerIteration)
         
         # Kernel process and connection (these are replaced on restarting)
@@ -231,7 +231,6 @@ class KernelBroker:
         
         # Create introspect channel so we can interrupt and terminate
         self._reqp_introspect = yoton.ReqChannel(ct, 'reqp-introspect')
-        self._reqp_introspect.set_mode_event_driven()
     
     
     def _reset(self, destroy=False):
@@ -402,7 +401,7 @@ class KernelBroker:
         for msg in self._ctrl_broker.recv_all():
             if msg == 'INT':
                 # Kernel receives and acts
-                self._reqp_introspect.later.interrupt()
+                self._reqp_introspect.interrupt()
             elif msg == 'TERM':
                 # Start termination procedure
                 # Kernel will receive term and act (if it can). 
@@ -519,7 +518,7 @@ class KernelTerminator:
             pass
         
         elif action == 'TERM':
-            self._broker._reqp_introspect.later.terminate()
+            self._broker._reqp_introspect.terminate()
             self._do('INT', 0.5)
         
         elif action == 'INT':
@@ -529,7 +528,7 @@ class KernelTerminator:
             self._count +=1
             # Handle
             if self._count < 5:
-                self._broker._reqp_introspect.later.interrupt()
+                self._broker._reqp_introspect.interrupt()
                 self._do('INT', 0.1)
             else:
                 self._do('KILL', 0)
