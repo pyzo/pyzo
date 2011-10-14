@@ -22,11 +22,41 @@ from compactTabWidget import CompactTabWidget
 from iepLogging import print
 import webbrowser
 
+# todo: tooltips!
+
+ICONMAP = { 'file__new': iep.icons.page_white,
+            'file__open': iep.icons.folder,
+            'file__save': iep.icons.disk,
+            #'file__save_as': iep.icons.disk,
+            #'file__save_all': iep.icons.disk_multiple,
+            'file__close': iep.icons.cross,
+            #'file__close_all': iep.icons.cross,
+            'file__indentation': iep.icons.page_white_gear,
+            'file__syntax_parser': iep.icons.page_white_gear,
+            'file__line_endings': iep.icons.page_white_gear,
+            'file__encoding': iep.icons.page_white_gear,
+            'file__restart_iep': iep.icons.arrow_rotate_clockwise,
+            'file__quit_iep': iep.icons.cancel,
+            
+            'edit__undo': iep.icons.arrow_undo,
+            'edit__redo': iep.icons.arrow_redo,
+            'edit__cut': iep.icons.cut,
+            'edit__copy': iep.icons.page_white_stack,
+            'edit__paste': iep.icons.paste_plain,
+            'edit__indent_lines': iep.icons.text_indent,
+            'edit__dedent_lines': iep.icons.text_indent_remove,
+            'edit__comment_lines': iep.icons.comment_add,
+            'edit__uncomment_lines': iep.icons.comment_delete,
+            'edit__find_or_replace': iep.icons.find,
+           }
+
 
 class KeyMapper(QtCore.QObject):
-    # This class is accessable via iep.keyMapper
+    """
+    This class is accessable via iep.keyMapper
+    iep.keyMapper.keyMappingChanged is emitted when keybindings are changed
+    """
     
-    # iep.keyMapper.keyMappingChanged is emitted when keybinding are changed
     keyMappingChanged = QtCore.pyqtSignal()
     
     def setShortcut(self, action):
@@ -38,7 +68,6 @@ class KeyMapper(QtCore.QObject):
         if action.menuPath in iep.config.shortcuts:
             shortcuts = iep.config.shortcuts[action.menuPath]
             action.setShortcuts(shortcuts.split(','))
-            
 
 
 def unwrapText(text):
@@ -108,14 +137,30 @@ class Menu(QtGui.QMenu):
     
     
     def _addAction(self, properties):
-        """ call QMenu.addAction, but if properties is a tuple, unpack it """
+        """ _addAction(properties)
+        
+        Convenience function:
+          * Call QMenu.addAction, but if properties is a tuple, unpack it 
+        """
         # Add the item, which can be anyting that QMenu accepts (strings, icons,
         # menus, etc.)
         if isinstance(properties, tuple):
-            return self.addAction(*properties)
+            a = self.addAction(*properties)
         else:
-            return self.addAction(properties)        
-    
+            a = self.addAction(properties)        
+        
+        # Set menu path of action
+        a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
+        
+        # Register the action so its keymap is kept up to date
+        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
+        iep.keyMapper.setShortcut(a) 
+        
+        # Set icon if we must
+        if a.menuPath in ICONMAP:
+            a.setIcon(ICONMAP[a.menuPath])
+        
+        return a
     
     def build(self):
         """ 
@@ -124,12 +169,19 @@ class Menu(QtGui.QMenu):
         raise NotImplementedError
     
     
-    def _connectActionShortcut(self, a):
-        # Set the menupath, connect a shortcut to the given action a and connect to the keyMappingChanged signal
-        a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
-        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
-        iep.keyMapper.setShortcut(a) 
-    
+    def addMenu(self, menu):
+        """
+        Add a (sub)menu to this menu.
+        """
+        
+        # Add menu in the conventional way
+        QtGui.QMenu.addMenu(self, menu)
+        
+        # Set icon if we must
+        if menu.menuPath in ICONMAP:
+            menu.setIcon(ICONMAP[menu.menuPath])
+        
+        return menu
     
     def addItem(self, properties, callback=None, value=None):
         """
@@ -138,8 +190,10 @@ class Menu(QtGui.QMenu):
         given, callback is called without parameteres, otherwise it is called
         with value as parameter
         """
+        
+        # Add action 
         a = self._addAction(properties)
-         
+        
         # Connect the menu item to its callback
         if callback:
             if value is not None:
@@ -147,7 +201,6 @@ class Menu(QtGui.QMenu):
             else:
                 a.triggered.connect(lambda b: callback())
         
-        self._connectActionShortcut(a)              
         return a
     
     
@@ -170,7 +223,6 @@ class Menu(QtGui.QMenu):
             def doCallback(b, v):
                 if b:
                     callback(v)
-            
             a.toggled.connect(lambda b, v = value: doCallback(b, v))
         
         # Add the menu item to a action group
@@ -183,8 +235,7 @@ class Menu(QtGui.QMenu):
         actionGroup,actions = self._groups[group]
         actionGroup.addAction(a)
         actions[value]=a
-            
-        self._connectActionShortcut(a)          
+        
         return a
     
     
@@ -195,19 +246,10 @@ class Menu(QtGui.QMenu):
         specified or None, callback is called with the new state as parameter.
         Otherwise, it is called with the new state and value as parameters
         """
-        a = self._addAction(properties)
         
+        a = self.addItem(properties, callback, value)
         a.setCheckable(True)
         a.setChecked(selected)
-        
-        # Connect the menu item to its callback
-        if callback:
-            if value is not None:
-                a.triggered.connect(lambda b, v = value: callback(b, v))
-            else:
-                a.triggered.connect(callback)
-            
-        self._connectActionShortcut(a)          
         return a
     
     
@@ -304,7 +346,7 @@ class FileMenu(Menu):
         self._lineEndingMenu.setOptions(['LF', 'CR', 'CRLF'])
         
         # Create encoding menu
-        self._encodingMenu = GeneralOptionsMenu(self, "File encoding", self._setEncoding)
+        self._encodingMenu = GeneralOptionsMenu(self, "Encoding", self._setEncoding)
         
         # Bind to signal
         iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
@@ -444,26 +486,21 @@ class EditMenu(Menu):
             getattr(widget, action)()
 
 
-class QtThemeMenu(Menu):
+class ZoomMenu(Menu):
     def build(self):
-        styleNames = list(QtGui.QStyleFactory.keys())
-        styleNames.append('Cleanlooks+')
-        styleNames.sort()
-        # Add all items to the menu and mark the default one
-        for styleName in styleNames:
-            title = styleName
-            if styleName.lower() == iep.defaultQtStyleName.lower():
-                title+=" (default)"
-            self.addGroupItem("style", title, self.changed, styleName.lower())
-            
-        # Select the one that is default from the iep config
-        self.setCheckedOption("style", iep.config.view.qtstyle.lower())
+        self.addItem('Zoom in', self._setZoom, +1)
+        self.addItem('Zoom out', self._setZoom, -1)
+        self.addItem('Zoom reset', self._setZoom, 0)
     
-    def changed(self, style):
-        iep.config.view.qtstyle = style
-        iep.main.setQtStyle(style)
-
-
+    def _setZoom(self, value):
+        if not value:
+            iep.config.view.zoom = 0
+        else:
+            iep.config.view.zoom += value
+            iep.config.view.zoom = min(max(iep.config.view.zoom,-8),8)
+        # Apply
+        for editor in iep.editors:
+            editor.setZoom(iep.config.view.zoom)
 
 class ViewMenu(Menu):
     def build(self):
@@ -475,6 +512,19 @@ class ViewMenu(Menu):
         self._edgeColumMenu.setOptions(names, values)
         self._edgeColumMenu.setCheckedOption(None, iep.config.view.edgeColumn)
         
+        # Create qt theme menu
+        self._qtThemeMenu = GeneralOptionsMenu(self, "Qt theme", self._setQtTheme)
+        styleNames = list(QtGui.QStyleFactory.keys()) + ['Cleanlooks+']
+        styleNames.sort()
+        titles = [name for name in styleNames]
+        styleNames = [name.lower() for name in styleNames]
+        for i in range(len(titles)):
+            if titles[i].lower() == iep.defaultQtStyleName.lower():
+                titles[i] += " (default)"
+        self._qtThemeMenu.setOptions(titles, styleNames)
+        self._qtThemeMenu.setCheckedOption(None, iep.config.view.qtstyle.lower())
+        
+        # Build menu
         self.addItem("Select shell", self._selectShell)
         self.addItem("Select editor", self._selectEditor)
         self.addItem("Select previous file", iep.editors._tabs.selectPreviousItem)
@@ -487,8 +537,8 @@ class ViewMenu(Menu):
         self.addEditorItem("Highlight current line", "highlightCurrentLine")
         self.addSeparator()
         self.addMenu(self._edgeColumMenu)
-        #TODO: zooming
-        self.addMenu(QtThemeMenu(self, "Qt theme"))
+        self.addMenu(ZoomMenu(self, "Zooming"))
+        self.addMenu(self._qtThemeMenu)
     
     
     def addEditorItem(self, name, param):
@@ -527,6 +577,10 @@ class ViewMenu(Menu):
         iep.config.view.edgeColumn = value
         for editor in iep.editors:
             editor.setLongLineIndicatorPosition(value)
+    
+    def _setQtTheme(self, value):
+        iep.config.view.qtstyle = value
+        iep.main.setQtStyle(value)
 
 
 class ShellMenu(Menu):

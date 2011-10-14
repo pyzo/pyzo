@@ -122,6 +122,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         super(CodeEditorBase, self).__init__(*args)
         
         # Set font (always monospace)
+        self.__zoom = 0
         self.setFont()
         
         # Create highlighter class 
@@ -353,13 +354,17 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Check
         if font is None:
-            font = Manager.defaultFont()
+            font = Manager.defaultFont().family()
         elif isinstance(font, QtGui.QFont):
-            pass
+            font = font.family()
         elif isinstance(font, str):
-            font = QtGui.QFont(font, Manager.defaultFont().pointSize())
+            pass
         else:
             raise ValueError("setFont accepts None, QFont or string.")
+        
+        # Set size: default size + zoom
+        size = Manager.defaultFont().pointSize() + self.__zoom
+        font = QtGui.QFont(font, size)
         
         # Make sure it's monospace
         font.setStyleHint(font.TypeWriter, font.PreferDefault)
@@ -367,6 +372,17 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Set
         QtGui.QPlainTextEdit.setFont(self, font)
+    
+    
+    def setZoom(self, zoom):
+        """ setZoom(zoom)
+        
+        Set the zooming of the document. The font size is always the default
+        font size + the zoom factor.
+        
+        """
+        self.__zoom = int(zoom)
+        self.setFont(self.fontInfo().family())
     
     
     ## Syntax / styling
