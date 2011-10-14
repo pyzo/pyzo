@@ -61,9 +61,14 @@ def unwrapText(text):
     
     return text
 
-from PyQt4 import QtCore, QtGui
+
 
 class Menu(QtGui.QMenu):
+    """ Menu(parent=None, name=None)
+    
+    Base class for all menus. Has methods to add actions of all sorts.
+    
+    """
     def __init__(self, parent = None, name = None):
         QtGui.QMenu.__init__(self, parent)
         
@@ -83,7 +88,9 @@ class Menu(QtGui.QMenu):
             self.menuPath = '' #This is a top-level menu
         self.menuPath += self._createMenuPathName(name)
         
+        # Build the menu. Happens only once
         self.build()
+    
     
     def _createMenuPathName(self, name):
         """
@@ -98,6 +105,8 @@ class Menu(QtGui.QMenu):
             name = "_" + name
         name = re.sub('[^a-zA-z_0-9]','',name)
         return name.lower()
+    
+    
     def _addAction(self, properties):
         """ call QMenu.addAction, but if properties is a tuple, unpack it """
         # Add the item, which can be anyting that QMenu accepts (strings, icons,
@@ -107,10 +116,14 @@ class Menu(QtGui.QMenu):
         else:
             return self.addAction(properties)        
     
+    
     def build(self):
-        """ Add all actions to the menu. To be overridden """
+        """ 
+        Add all actions to the menu. To be overridden.
+        """
         raise NotImplementedError
-
+    
+    
     def _connectActionShortcut(self, a):
         # Set the menupath, connect a shortcut to the given action a and connect to the keyMappingChanged signal
         a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
@@ -118,7 +131,7 @@ class Menu(QtGui.QMenu):
         iep.keyMapper.setShortcut(a) 
     
     
-    def addItem(self, properties, callback = None, value = None):
+    def addItem(self, properties, callback=None, value=None):
         """
         Add an item to the menu. If callback is given and not None,
         connect triggered signal to the callback. If value is None or not
@@ -136,18 +149,19 @@ class Menu(QtGui.QMenu):
         
         self._connectActionShortcut(a)              
         return a
-
-    def addGroupItem(self, properties, group = None, value = None, callback = None, selected = False):
+    
+    
+    def addGroupItem(self, group, properties, callback=None, value=None):
         """
         Add a 'select-one' option to the menu. Items with equal group value form
         a group. If callback is specified and not None, the callback is called 
         for the new active item, with the value for that item as parameter
         whenever the selection is changed
         """
-        a = self._addAction(properties)
         
+        # Init action
+        a = self._addAction(properties)
         a.setCheckable(True)
-        a.setChecked(selected)
         
         # Connect the menu item to its callback (toggled is a signal only
         # emitted by checkable actions, and can also be called programmatically,
@@ -160,6 +174,8 @@ class Menu(QtGui.QMenu):
             a.toggled.connect(lambda b, v = value: doCallback(b, v))
         
         # Add the menu item to a action group
+        if group is None:
+            group = 'default'
         if group not in self._groups:
             #self._groups contains tuples (actiongroup, dict-of-actions)
             self._groups[group] = (QtGui.QActionGroup(self), {})
@@ -171,13 +187,13 @@ class Menu(QtGui.QMenu):
         self._connectActionShortcut(a)          
         return a
     
-    def addCheckItem(self, properties, callback = None, value = None, selected = False):
+    
+    def addCheckItem(self, properties, callback=None, value=None, selected=False):
         """
         Add a true/false item to the menu. If callback is specified and not 
         None, the callback is called when the item is changed. If value is not
         specified or None, callback is called with the new state as parameter.
         Otherwise, it is called with the new state and value as parameters
-        
         """
         a = self._addAction(properties)
         
@@ -194,79 +210,209 @@ class Menu(QtGui.QMenu):
         self._connectActionShortcut(a)          
         return a
     
+    
     def setCheckedOption(self, group, value):
-        """ Set the selected value of a group. This will also activate the
-        callback function of the item that gets selected """
-        actionGroup,actions = self._groups[group]
+        """ 
+        Set the selected value of a group. This will also activate the
+        callback function of the item that gets selected.
+        if group is None the default group is used.
+        """
+        if group is None:
+            group = 'default'
+        actionGroup, actions = self._groups[group]
         if value in actions:
             actions[value].setChecked(True)
 
+
+class GeneralOptionsMenu(Menu):
+    """ GeneralOptionsMenu(parent, name, callback, options=None)
+    
+    Menu to present the user with a list from which to select one item.
+    We need this a lot.
+    
+    """
+    
+    def __init__(self, parent=None, name=None, callback=None, options=None):
+        Menu.__init__(self, parent, name)
+        self._options_callback = callback
+        if options:
+            self.setOptions(options)
+    
+    def build(self):
+        pass # We build when the options are given
+    
+    def setOptions(self, options, values=None):
+        """ 
+        Set the list of options, clearing any existing options. The options
+        are added ad group items and registered to the callback given 
+        at initialization.
+        """
+        # Init
+        self.clear()
+        cb = self._options_callback
+        # Get values
+        if values is None:
+            values = options
+        for option, value in zip(options, values):
+            self.addGroupItem(None, option, cb, value)
+
+
 class IndentationMenu(Menu):
-    def __init__(self,*args,**kwds):
-        self._items = []
-        Menu.__init__(self,*args,**kwds)
-        iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
+    """
+    Menu for the user to control the type of indentation for a document:
+    tabs vs spaces and the amount of spaces.
+    Part of the File menu.
+    """
+        
     def build(self):
         self._items = [
-            self.addGroupItem("Use tabs", "style", False, self.setStyle),
-            self.addGroupItem("Use spaces", "style", True, self.setStyle)
+            self.addGroupItem("style", "Use tabs", self._setStyle, False),
+            self.addGroupItem("style", "Use spaces", self._setStyle, True)
             ]
         self.addSeparator()
         self._items += [
-            self.addGroupItem("%d spaces" % i, "width", i, self.setWidth)
+            self.addGroupItem("width", "%d spaces" % i, self._setWidth, i)
             for i in range(2,9)
             ]
-
-        # Items are selected and enabled via the onEditorsCurrentChanged slot    
-        self.setEnabled(False)
-        
-    def setEnabled(self, enabled):
-        """ Enable or disable all items. If disabling, also uncheck all items """
-        for child in self._items:
-            child.setEnabled(enabled)
-            if not enabled:
-                child.setChecked(False)
-            
-    def onEditorsCurrentChanged(self):
-        editor = iep.editors.getCurrentEditor()
-        if editor is None:
-            self.setEnabled(False) #Disable / uncheck all options
-        else:
-            self.setEnabled(True)
-            self.setCheckedOption("style", editor.indentUsingSpaces())
-            self.setCheckedOption("width", editor.indentWidth())
-            
-    def setWidth(self, width):
+    
+    def _setWidth(self, width):
         editor = iep.editors.getCurrentEditor()
         if editor is not None:
             editor.setIndentWidth(width)
 
-    def setStyle(self, style):
+    def _setStyle(self, style):
         editor = iep.editors.getCurrentEditor()
         if editor is not None:
             editor.setIndentUsingSpaces(style)
-        
-        
+
+
 class FileMenu(Menu):
     def build(self):
         
+        self._items = []
+        
+        # Create indent menu
+        self._indentMenu = IndentationMenu(self, "Indentation")
+        
+        # Create parser menu
+        import codeeditor
+        self._parserMenu = GeneralOptionsMenu(self, "Syntax parser", self._setParser)
+        self._parserMenu.setOptions(['None'] + codeeditor.Manager.getParserNames())
+        
+        # Create line ending menu
+        self._lineEndingMenu = GeneralOptionsMenu(self, "Line endings", self._setLineEndings)
+        self._lineEndingMenu.setOptions(['LF', 'CR', 'CRLF'])
+        
+        # Create encoding menu
+        self._encodingMenu = GeneralOptionsMenu(self, "File encoding", self._setEncoding)
+        
+        # Bind to signal
+        iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
+        
+        # Build menu file management stuff
         self.addItem("New", iep.editors.newFile)
         self.addItem("Open", iep.editors.openFile)
-        self.addItem("Save", iep.editors.saveFile)
-        self.addItem("Save as", iep.editors.saveFileAs)
-        self.addItem("Save all", iep.editors.saveAllFiles)
-        self.addItem("Close", iep.editors.closeFile)
-        self.addItem("Close all", iep.editors.closeAllFiles)
+        self._items += [    
+            self.addItem("Save", iep.editors.saveFile),
+            self.addItem("Save as", iep.editors.saveFileAs),
+            self.addItem("Save all", iep.editors.saveAllFiles),
+            self.addItem("Close", iep.editors.closeFile),
+            self.addItem("Close all", iep.editors.closeAllFiles),  ]
         
+        # Build file properties stuff
         self.addSeparator()
-        #TODO: style
-        self.addMenu(IndentationMenu(self, "Indentation"))
-        #TODO: line endings, encoding
+        self._items += [
+                    self.addMenu(self._indentMenu),
+                    self.addMenu(self._parserMenu),
+                    self.addMenu(self._lineEndingMenu), 
+                    self.addMenu(self._encodingMenu),]
+        
+        # Closing of app
         self.addSeparator()
-  
         self.addItem("Restart IEP", iep.main.restart)
         self.addItem("Quit IEP", iep.main.close)
         
+        # Start disabled
+        self.setEnabled(False)
+    
+    
+    def setEnabled(self, enabled):
+        """ Enable or disable all items. If disabling, also uncheck all items """
+        for child in self._items:
+            child.setEnabled(enabled)
+    
+    def onEditorsCurrentChanged(self):
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            self.setEnabled(False) #Disable / uncheck all editor-related options
+        else:
+            self.setEnabled(True)
+            # Update indentation
+            self._indentMenu.setCheckedOption("style", editor.indentUsingSpaces())
+            self._indentMenu.setCheckedOption("width", editor.indentWidth())
+            # Update parser
+            parserName = 'None'
+            if editor.parser():
+                parserName = editor.parser().name()
+            self._parserMenu.setCheckedOption(None, parserName )
+            # Update line ending
+            self._lineEndingMenu.setCheckedOption(None, editor.lineEndingsHumanReadable)
+            # Update encoding
+            self._updateEncoding(editor)
+    
+    def _setParser(self, value):
+        editor = iep.editors.getCurrentEditor()
+        if value.lower() == 'none':
+            value = None
+        if editor is not None:
+            editor.setParser(value)
+    
+    def _setLineEndings(self, value):
+        editor = iep.editors.getCurrentEditor()
+        editor.lineEndings = value
+    
+    def _updateEncoding(self, editor):
+        # Dict with encoding aliases (official to aliases)        
+        D  = {  'cp1250':  ('windows-1252', ),
+                'cp1251':  ('windows-1251', ),
+                'latin_1': ('iso-8859-1', 'iso8859-1', 'cp819', 'latin', 'latin1', 'L1')}
+        # Dict with aliases mapping to "official value"
+        Da = {}
+        for key in D:
+            for key2 in D[key]:
+                Da[key2] = key
+        
+        # Encodings to list
+        encodings = [   'utf-8','ascii', 'latin_1',
+                        'cp1250', 'cp1251']
+        
+        # Get current encoding (add if not present)
+        editorEncoding = editor.encoding
+        if editorEncoding in Da:
+            editorEncoding = Da[editorEncoding]
+        if editorEncoding not in encodings:
+            encodings.append(editorEncoding)
+        
+        # Handle aliases
+        encodingNames, encodingValues = [], []
+        for encoding in encodings:
+            encodingValues.append(encoding)
+            if encoding in D:
+                name = '%s (%s)' % (encoding, ', '.join(D[encoding]))
+                encodingNames.append(name)
+            else:
+                encodingNames.append(encoding)
+        
+        # Update
+        self._encodingMenu.setOptions(encodingNames, encodingValues)
+        self._encodingMenu.setCheckedOption(None, editorEncoding)
+    
+    def _setEncoding(self, value):
+        editor = iep.editors.getCurrentEditor()
+        if editor is not None:
+            editor.encoding = value
+
+
 class EditMenu(Menu):
     def build(self):
         
@@ -296,43 +442,39 @@ class EditMenu(Menu):
         #If the widget has a 'name' attribute, call it
         if hasattr(widget, action):
             getattr(widget, action)()
-    
-class EdgeColumnMenu(Menu):
-    def build(self):
-        self.addGroupItem("None", "edge", 0, self.changed, 0)
-        for value in range(60,130,10):
-            self.addGroupItem(str(value), "edge", value, self.changed)
-        
-        self.setCheckedOption("edge", iep.config.view.edgeColumn)
-        
-    def changed(self, value):
-        iep.config.view.edgeColumn = value
-        for editor in iep.editors:
-            editor.setLongLineIndicatorPosition(value)
+
 
 class QtThemeMenu(Menu):
     def build(self):
         styleNames = list(QtGui.QStyleFactory.keys())
         styleNames.append('Cleanlooks+')
         styleNames.sort()
-        #Add all items to the menu and mark the default one
+        # Add all items to the menu and mark the default one
         for styleName in styleNames:
             title = styleName
             if styleName.lower() == iep.defaultQtStyleName.lower():
                 title+=" (default)"
-            self.addGroupItem(title, "style", styleName.lower(), self.changed)
+            self.addGroupItem("style", title, self.changed, styleName.lower())
             
-        #Select the one that is default from the iep config
+        # Select the one that is default from the iep config
         self.setCheckedOption("style", iep.config.view.qtstyle.lower())
     
     def changed(self, style):
         iep.config.view.qtstyle = style
         iep.main.setQtStyle(style)
-            
 
-        
+
+
 class ViewMenu(Menu):
     def build(self):
+        
+        # Create edge column menu
+        self._edgeColumMenu = GeneralOptionsMenu(self, "Edge Column", self._setEdgeColumn)
+        values = [0] + [i for i in range(60,130,10)]
+        names = ["None"] + [str(i) for i in values[1:]]
+        self._edgeColumMenu.setOptions(names, values)
+        self._edgeColumMenu.setCheckedOption(None, iep.config.view.edgeColumn)
+        
         self.addItem("Select shell", self._selectShell)
         self.addItem("Select editor", self._selectEditor)
         self.addItem("Select previous file", iep.editors._tabs.selectPreviousItem)
@@ -344,11 +486,11 @@ class ViewMenu(Menu):
         self.addEditorItem("Wrap long lines", "wrap")
         self.addEditorItem("Highlight current line", "highlightCurrentLine")
         self.addSeparator()
-        self.addMenu(EdgeColumnMenu(self, "Edge column"))
+        self.addMenu(self._edgeColumMenu)
         #TODO: zooming
         self.addMenu(QtThemeMenu(self, "Qt theme"))
-
-
+    
+    
     def addEditorItem(self, name, param):
         """ Create a boolean item that reperesents a property of the editors,
         whose value is stored in iep.config.view.param """
@@ -358,8 +500,8 @@ class ViewMenu(Menu):
             default = True
             
         self.addCheckItem(name, self._configEditor, param, default)
-        
-            
+    
+    
     def _configEditor(self, state, param):
         """
         Callback for addEditorItem items
@@ -370,7 +512,7 @@ class ViewMenu(Menu):
         setter = 'set' + param[0].upper() + param[1:]
         for editor in iep.editors:
             getattr(editor,setter)(state)
-
+    
     def _selectShell(self):
         shell = iep.shells.getCurrentShell()
         if shell:
@@ -380,6 +522,12 @@ class ViewMenu(Menu):
         editor = iep.editors.getCurrentEditor()
         if editor:
             editor.setFocus()
+    
+    def _setEdgeColumn(self, value):
+        iep.config.view.edgeColumn = value
+        for editor in iep.editors:
+            editor.setLongLineIndicatorPosition(value)
+
 
 class ShellMenu(Menu):
     def __init__(self, *args, **kwds):
