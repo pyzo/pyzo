@@ -2,6 +2,14 @@
 
 Provides basic functionaliy for styling.
 
+Styling is done using a dictionary of StyleFormat instances. Each 
+such instance reprsents a certain element being styled (e.g. keywords, 
+line numbers, indentation guides). 
+
+All possible style elements are represented using StyleElementDescription 
+instances. These have a name, description and default format, which
+makes it easy to build a UI to allow the user to change the syle.
+
 """
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
@@ -58,7 +66,8 @@ class StyleFormat:
     the index operator (e.g. styleFomat['fore'])
     
     For a few special keys, properties are defined that return the Qt object
-    corresponding to the value:
+    corresponding to the value. These values are also buffered to enable
+    fast access. These keys are:
       * fore: (QColor) the foreground color
       * back: (QColor) the background color
       * bold: (bool) whether the text should be bold
@@ -74,7 +83,7 @@ class StyleFormat:
     
     An example format string: 'fore:#334, bold, underline:dotLine'
     
-    By calling str(styleFormatInstance) the string representing the 
+    By calling str(styleFormatInstance) the string representing of the 
     format can be obtained. By iterating over the instance, a series 
     of key-value pairs is obtained.
     

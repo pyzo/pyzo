@@ -424,7 +424,7 @@ class StyleManager(QtCore.QObject):
         # Are the default fonts set?
         if not self._faces:
             self.selectDefaultFonts(editor)
-		
+        
         # make lower case
         styleName = styleName.lower()
         if not styleName:
@@ -585,25 +585,6 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.completer().highlighted.connect(self.updateHelp)
         self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(iep.config.settings.defaultIndentWidth)
-        
-    
-    def callTipShow(self, pos, text, hl1=0, hl2=0):
-        """ callTipShow(pos, text, hl1, hl2)
-        Show text in a call tip at position pos. the text between hl1 and hl2
-        is highlighted. If hl2 is -1, highlights all untill the first '('.
-        """
-        return
-
-    
-    def callTipCancel(self):
-        """ Hide call tip. """
-        return
-
-    
-    def callTipActive(self):
-        """ Hide call tip. """
-        return
-
     
     
     def _isValidPython(self):
@@ -654,13 +635,13 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Only proceed if valid python
         if not self._isValidPython():
-            self.callTipCancel()
-            self.autoCompCancel()
+            self.calltipCancel()
+            self.autocompleteCancel()
             return
         
         # Get line up to cursor
         cursor = self.textCursor()
-        position = cursor.position()
+        positionInBlock = cursor.positionInBlock()
         cursor.setPosition(cursor.position()) #Move the anchor to the cursor pos
         cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
         text = cursor.selectedText().replace('\u2029', '\n') 
@@ -673,7 +654,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Store line and (re)start timer
         self._delayTimer._line = text
-        self._delayTimer._pos = position
+        self._delayTimer._pos = positionInBlock
         self._delayTimer._tryAutoComp = tryAutoComp
         self._delayTimer.start(iep.config.advanced.autoCompDelay)
     
@@ -699,13 +680,12 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 fullName = needle
                 if name:
                     fullName = name + '.' + needle
-                # Calculate position
-                pos = self._delayTimer._pos - len(line) + stats[0] - len(needle)
                 # Process
-                cto = CallTipObject(self, fullName, pos)
+                offset = len(line) - stats[0] + len(needle)
+                cto = CallTipObject(self, fullName, offset)
                 self.processCallTip(cto)
             else: 
-                self.callTipCancel()
+                self.calltipCancel()
         
         if self._delayTimer._tryAutoComp and iep.config.settings.autoComplete:
             # Parse the line, to see what (partial) name we need to complete
@@ -843,11 +823,11 @@ class CallTipObject:
     """ Object to help the process of call tips. 
     An instance of this class is created for each call tip action.
     """
-    def __init__(self, textCtrl, name, pos):
+    def __init__(self, textCtrl, name, offset):
         self.textCtrl = textCtrl        
         self.name = name        
         self.bufferName = name
-        self.pos = pos
+        self.offset = offset
     
     def tryUsingBuffer(self):
         """ tryUsingBuffer()
@@ -878,7 +858,7 @@ class CallTipObject:
         self.textCtrl._callTipBuffer_result = callTipText
     
     def _finish(self, callTipText):
-        self.textCtrl.callTipShow(self.pos, callTipText, 0, -1)
+        self.textCtrl.calltipShow(self.offset, callTipText, True)
 
 
 class AutoCompObject:

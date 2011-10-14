@@ -51,16 +51,16 @@ class IepLogger(BaseShell):
         # when loading the history.
         more = self._interpreter.push(command.rstrip('/n'))
         if more:
-            BaseShell.writeErr(self, sys.ps2)
+            BaseShell.write(self, sys.ps2)
         else:            
-            BaseShell.writeErr(self, sys.ps1)  
+            BaseShell.write(self, sys.ps1)  
     
     
     def writeErr(self, text):
         """ Overload so that when an error is printed, we can  
         insert a new prompt. """
         # Write normally
-        BaseShell.writeErr(self, text)
+        BaseShell.write(self, text)
         # Goto end
         cursor = self.textCursor()
         cursor.movePosition(cursor.End)
