@@ -143,7 +143,8 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             self.__style[element.key] = element.defaultFormat
         
         # Connext style update
-        self.styleChanged.connect(self._afterSetStyle)
+        self.styleChanged.connect(self.__afterSetStyle)
+        self.__styleChangedPending = False
         
         # Init options now. 
         # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
@@ -152,6 +153,66 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # while the extension's init is not yet finished.        
         self.__initOptions(kwds)
         
+        # Define solarized colors
+        base03  = "#002b36"
+        base02  = "#073642"
+        base01  = "#586e75"
+        base00  = "#657b83"
+        base0   = "#839496"
+        base1   = "#93a1a1"
+        base2   = "#eee8d5"
+        base3   = "#fdf6e3"
+        yellow  = "#b58900"
+        orange  = "#cb4b16"
+        red     = "#dc322f"
+        magenta = "#d33682"
+        violet  = "#6c71c4"
+        blue    = "#268bd2"
+        cyan    = "#2aa198"
+        green   = "#859900"
+        
+        if True: # Light vs dark
+            back1, back2, back3 = base3, base2, base1
+            fore1, fore2, fore3, fore4 = base00, base01, base02, base03
+        else:
+            back1, back2, back3 = base03, base02, base01
+            fore1, fore2, fore3, fore4 = base0, base1, base2, base3
+        
+        test_numbers  = 90 + 0000 + 1
+        # todo: proper testing of syntax style
+        
+        # Define style
+        S  = {}
+        S["Editor.text"] = "back:%s, fore:%s" % (back1, fore1)
+        S['Syntax.identifier'] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+        S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % fore2
+        S["Syntax.keyword"] = "fore:%s, bold:yes, italic:no, underline:no" % fore2
+        
+        
+        S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore3
+        S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % orange
+        
+        S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
+        S["Syntax.unterminatedstring"] = "fore:%s, bold:no, italic:no, underline:dotted" % violet
+        S["Syntax.Codeeditor.parsers.python.multilinestring"] = "fore:%s, bold:no, italic:no, underline:no" % blue
+        
+        S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
+        S["Syntax.comment"] ="fore:%s, bold:no, italic:no, underline:no" % yellow
+        S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
+        S["Syntax.Codeeditor.parsers.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:yes" % yellow
+        
+            
+        S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2
+        S["Editor.Highlight current line"] = "back:%s" % back2
+        S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % back2
+        S["Editor.Line numbers"] = "back:%s, fore:%s" % (back2, back3)
+        
+        # Apply style
+        self.setStyle(S)
+    
+    
+    def _setHighlighter(self, highlighterClass):
+        self.__highlighter = highlighterClass(self, self.document())
     
     
     ## Options
@@ -282,9 +343,6 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
     ## Font
     
-    
-    
-    
     def setFont(self, font=None):
         """ setFont(font=None)
         
@@ -384,6 +442,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         For convenience, keyword arguments may also be used. In this case,
         underscores are interpreted as dots.
         
+        This function can also be called without arguments to force the 
+        editor to restyle (and rehighlight) itself.
+        
         Use getStyleElementDescriptions() to get information about the
         available styles and their default values.
         
@@ -426,11 +487,24 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             print("Warning, invalid style names given: " + 
                                                     ','.join(invalidKeys))
         
-        # Notify the style changed
-        self.styleChanged.emit()
+        # Notify that style changed, adopt a lazy approach to make loading
+        # quicker.
+        if self.isVisible():
+            callLater(self.styleChanged.emit)
+            self.__styleChangedPending = False
+        else:
+            self.__styleChangedPending = True
     
     
-    def _afterSetStyle(self):
+    def showEvent(self, event):
+        super(CodeEditorBase, self).showEvent(event)
+        # Does the style need updating?
+        if self.__styleChangedPending:
+            callLater(self.styleChanged.emit)
+            self.__styleChangedPending = False
+    
+    
+    def __afterSetStyle(self):
         """ _afterSetStyle()
         
         Method to call after the style has been set.

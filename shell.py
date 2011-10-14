@@ -19,13 +19,61 @@ code in it.
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import os, sys, time, subprocess
-import channels
+import yoton
 import iep
 from baseTextCtrl import BaseTextCtrl
 from iepLogging import print
+from kernelbroker import KernelInfo, Kernelmanager
 
-# todo: color stderr red and prompt blue, and input text Python!
 
+# Register timer to handle yoton event loop
+# todo: combine with poll timer? Or maybe better not.
+# todo: test process resources on old PC
+iep.main._yoton_timer = QtCore.QTimer(iep.main)
+iep.main._yoton_timer.setInterval(10)  # ms
+iep.main._yoton_timer.setSingleShot(False)
+iep.main._yoton_timer.timeout.connect(yoton.process_events)
+iep.main._yoton_timer.start()
+
+
+# Short constants for cursor movement
+A_KEEP = QtGui.QTextCursor.KeepAnchor
+A_MOVE = QtGui.QTextCursor.MoveAnchor
+
+# Instantiate a local kernel broker upon loading this module
+iep.localKernelManager = Kernelmanager(public=False)
+
+
+# todo: change shell config dialog to create in the new format
+def convertToNewKernelInfo(info):
+    
+    # First the easy ones
+    info2 = KernelInfo()
+    info2.exe = info.exe
+    info2.gui = info.gui
+    info2.name = info.name
+    info2.startDir = info.startDir
+    
+    # pythonpath
+    info2.PYTHONPATH = '$PYTHONPATH'
+    if info.PYTHONSTARTUP_useCustom:
+        info2.PYTHONPATH = info.PYTHONPATH_custom
+    
+    # startup script
+    info2.startupScript = '$PYTHONSTARTUP'
+    if info.PYTHONSTARTUP_useCustom:
+        info2.startupScript = info.PYTHONSTARTUP_custom
+    
+    # scriptFile is set by shell right after restarting
+    info2.scriptFile = ''
+    
+    #If the project manager is active, and has the check box
+    #'add path to Python path' set, set the PROJECTPATH variable
+    projectManager = iep.toolManager.getTool('iepprojectmanager')
+    if projectManager:
+        info2.projectPath = projectManager.getAddToPythonPath()
+    
+    return info2
 
 
 class BaseShell(BaseTextCtrl):
@@ -41,48 +89,54 @@ class BaseShell(BaseTextCtrl):
         
         # variables we need
         self._more = False
-        self.stdoutCursor = self.textCursor() #Stays at the place where stdout is printed
-        self.lineBeginCursor = self.textCursor() #Stays at the beginning of the edit line
+        
+        # We use two cursors to keep track of where the prompt is
+        # cursor1 is in front, and cursor2 is at the end of the prompt.
+        # They can be in the same position.
+        # Further, we store a cursor that selects the last given command,
+        # so it can be styled.
+        self._cursor1 = self.textCursor()
+        self._cursor2 = self.textCursor()
+        self._lastCommandCursor = self.textCursor()
         
         # When inserting/removing text at the edit line (thus also while typing)
         # keep the lineBeginCursor at its place. Only when text is written before
         # the lineBeginCursor (i.e. in write and writeErr), this flag is
         # temporarily set to False
-        self.lineBeginCursor.setKeepPositionOnInsert(True)
+        self._cursor2.setKeepPositionOnInsert(True)
         
+        # Similarly, we use the _lastCommandCursor cursor really for pointing.
+        self._lastCommandCursor.setKeepPositionOnInsert(True)
         
         # Create the command history.  Commands are added into the
         # front of the list (ie. at index 0) as they are entered.
-        # self.+historyIndex is the current position in the history; it
-        # gets incremented as you retrieve the previous command,
-        # decremented as you retrieve the next, and reset when you hit
-        # Enter.  self._historyIndex == -1 means you're on the current
-        # command, not in the history.
         self._history = []
-        self._historyIndex = -1
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
         
         # Set minimum width so 80 lines do fit in smallest font size
         self.setMinimumWidth(200)
         
+        # Hard wrapping. QTextEdit allows hard wrapping at a specific column.
+        # Unfortunately, QPlainTextEdit does not.
+        self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
+        
+        # Limit number of lines
+        # todo: make customizable
+        self.setMaximumBlockCount(10*1000)
+        
         # apply style
         # TODO: self.setStyle('')
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
     
+    
     def onCursorPositionChanged(self):
         #If the end of the selection (or just the cursor if there is no selection)
         #is before the beginning of the line. make the document read-only
-        if self.textCursor().selectionEnd() < self.lineBeginCursor.position():
+        if self.textCursor().selectionEnd() < self._cursor2.position():
             self.setReadOnly(True)
         else:
             self.setReadOnly(False)
-    
-
-    def resizeEvent(self, event):
-        """ When resizing the fontsize nust be kept right. """
-        BaseTextCtrl.resizeEvent(self, event)        
-        self.updateFontSizeToMatch80Columns()
     
     
     def mousePressEvent(self, event):
@@ -95,58 +149,6 @@ class BaseShell(BaseTextCtrl):
         pass
     
     
-    def updateWidgetSizeToMatch80Columns(self):
-        """ updateWidgetSizeToMatch80Columns()
-        (not used)
-        """
-        
-        # Get size it should be (but font needs to be monospaced!)
-        w = self.textWidth(32, "-"*80)
-        w += 21 # add scrollbar and margin
-        
-        # fix the width
-        self.setMinimumWidth(w)
-    
-    
-    def updateFontSizeToMatch80Columns(self, event=None):
-        """ updateFontSizeToMatch80Columns()
-        Tries to conform to the correct font size as dictated by
-        the style and zooming, but decreases the size as necessary
-        to fit 80 columns on screen.
-        """
-        return #TODO: re-implement
-        # Are we hidden?
-        if not self.isVisible():
-            return
-        
-        # Init zooming to users choice
-        zoom = iep.config.view.zoom
-        self.zoomTo(zoom)
-        
-        # Should we do this?
-        if not iep.config.settings.shellFit80:
-            return
-        
-        # Init variables
-        width = self.width()
-        w = width*2
-        
-        # Decrease size untill 80 columns fits
-        while w > width:
-            
-            # Get size it should be (but font needs to be monospaced!)
-            w = self.textWidth(32, "-"*80)
-            w += 26 # add scrollbar and margin
-            
-            # zoom out if necessary
-            if w > width:
-                zoom -= 1
-                self.zoomTo(zoom)
-            
-            # impose lower limit
-            if zoom < -10:
-                break
-
     ##Indentation: override code editor behaviour
     def indentSelection(self):
         pass
@@ -160,23 +162,28 @@ class BaseShell(BaseTextCtrl):
             # Enter: execute line
             # Remove calltip and autocomp if shown
             self.autocompleteCancel()
-            self.callTipCancel()
+            self.calltipCancel()
             
             # reset history needle
             self._historyNeedle = None
-            self._historyIndex = -1
             
             # process
             self.processLine()
             return
+        
+        if event.key() == Qt.Key_Escape:
+            # Escape clears command
+            if not ( self.autocompleteActive() or self.calltipActive() ): 
+                self.clearCommand()
             
         if event.key() == Qt.Key_Home:
             # Home goes to the prompt.
-            cursor=self.textCursor()
-            shift = event.modifiers() & Qt.ShiftModifier
-            cursor.setPosition(self.lineBeginCursor.position(),
-                cursor.KeepAnchor if shift else cursor.MoveAnchor)
-            
+            cursor = self.textCursor()
+            if event.modifiers() & Qt.ShiftModifier:
+                cursor.setPosition(self._cursor2.position(), A_KEEP)
+            else:
+                cursor.setPosition(self._cursor2.position(), A_MOVE)
+            #
             self.setTextCursor(cursor)
             self.autocompleteCancel()
             return
@@ -187,44 +194,66 @@ class BaseShell(BaseTextCtrl):
         
         #Ensure to not backspace / go left beyond the prompt
         if event.key() in [Qt.Key_Backspace, Qt.Key_Left]:
-            if self.textCursor().position() == self.lineBeginCursor.position():
+            self._historyNeedle = None
+            if self.textCursor().position() == self._cursor2.position():
+                if event.key() == Qt.Key_Backspace:
+                    self.textCursor().removeSelectedText()
                 return  #Ignore the key, don't go beyond the prompt
 
 
         if event.key() in [Qt.Key_Up, Qt.Key_Down] and not \
                 self.autocompleteActive():
-            #TODO: searching with needle
+            
+            # needle
+            if self._historyNeedle is None:
+                # get partly-written-command
+                #
+                # Select text                
+                cursor = self.textCursor()
+                cursor.setPosition(self._cursor2.position(), A_MOVE)
+                cursor.movePosition(cursor.End, A_KEEP)
+                # Update needle text
+                self._historyNeedle = cursor.selectedText()
+                self._historyStep = 0
+            
             #Browse through history
             if event.key() == Qt.Key_Up:
-                if self._historyIndex + 1 >= len(self._history):
-                    return #On top of history, ignore
-                self._historyIndex += 1
+                self._historyStep +=1
             else: # Key_Down
-                if self._historyIndex < 0:
-                    return #On bottom of history (allow -1 which will be an empty line)
-                self._historyIndex -= 1
+                self._historyStep -=1
+                if self._historyStep < 1:
+                    self._historyStep = 1
             
-            cursor = self.textCursor()
-            cursor.setPosition(self.lineBeginCursor.position())
-            cursor.movePosition(cursor.End,cursor.KeepAnchor)
-            #print (cursor.selectedText())
-            if self._historyIndex == -1:
-                cursor.removeSelectedText()
+            # find the command
+            count = 0
+            for c in self._history:
+                if c.startswith(self._historyNeedle):
+                    count+=1
+                    if count >= self._historyStep:
+                        break
             else:
-                cursor.insertText(self._history[self._historyIndex])
+                # found nothing-> reset
+                self._historyStep = 0
+                c = self._historyNeedle  
+            
+            # Replace text
+            cursor = self.textCursor()
+            cursor.setPosition(self._cursor2.position(), A_MOVE)
+            cursor.movePosition(cursor.End, A_KEEP)
+            cursor.insertText(c)
             return
         
-        cursor=self.textCursor()
+        else:
+            # Reset needle
+            self._historyNeedle = None
+        
         #if a 'normal' key is pressed, ensure the cursor is at the edit line
         if event.text():
             self.ensureCursorAtEditLine()
         
         #Default behaviour: BaseTextCtrl
         BaseTextCtrl.keyPressEvent(self,event)
-        
-        
-        #TODO: escape to clear the current line? (Only if not handled by the
-        #default editor behaviour)
+    
 
     
     ## Cut / Copy / Paste / Drag & Drop
@@ -255,25 +284,28 @@ class BaseShell(BaseTextCtrl):
         """No dropping allowed"""
         pass
     
+    
+    ## Basic commands to control the shell
+    
+    
     def ensureCursorAtEditLine(self):
         """
         If the text cursor is before the beginning of the edit line,
         move it to the end of the edit line
         """
         cursor = self.textCursor()
-        if cursor.position() < self.lineBeginCursor.position():
-            cursor.movePosition(cursor.End)
+        if cursor.position() < self._cursor2.position():
+            cursor.movePosition(cursor.End, A_MOVE)
             self.setTextCursor(cursor)
-    
-    ## Basic commands to control the shell
     
     
     def clearScreen(self):
         """ Clear all the previous output from the screen. """
-        #Select from current stdout cursor (begin of prompt) to start of document
-        self.stdoutCursor.movePosition(self.stdoutCursor.Start,
-            self.stdoutCursor.KeepAnchor)
-        self.stdoutCursor.removeSelectedText()
+        # Select from beginning of prompt to start of document
+        self._cursor1.clearSelection()
+        self._cursor1.movePosition(self._cursor1.Start, A_KEEP) # Keep anchor
+        self._cursor1.removeSelectedText()
+        # Wrap up
         self.ensureCursorAtEditLine()
         self.ensureCursorVisible()
     
@@ -283,12 +315,13 @@ class BaseShell(BaseTextCtrl):
         the prompt, and ensure it's visible.
         """
         # Select from prompt end to length and delete selected text.
-        self.setPosition(self._promptPos2)
-        self.setAnchor(self.length())
-        self.removeSelectedText()
-        # Go to end and ensure visible
-        self.setPositionAndAnchor(self._promptPos2)
-        self.ensureCursorVisible()  
+        cursor = self.textCursor()
+        cursor.setPosition(self._cursor2.position(), A_MOVE)
+        cursor.movePosition(cursor.End, A_KEEP)
+        cursor.removeSelectedText()
+        # Wrap up
+        self.ensureCursorAtEditLine()
+        self.ensureCursorVisible()
     
     
     def _handleBackspaces(self, text):
@@ -296,13 +329,10 @@ class BaseShell(BaseTextCtrl):
         backspaces left at the start of the text, remove the appropriate
         amount of characters from the text.
         
-        Note that before running this function, the position and anchor
-        should be set to the right position!
-        
         Returns the new text.
         """
         # take care of backspaces
-        if text.count('\b'):
+        if '\b' in text:
             # while NOT a backspace at first position, or none found
             i=9999999999999
             while i>0:
@@ -312,118 +342,94 @@ class BaseShell(BaseTextCtrl):
             # how many are left? (they are all at the begining)
             nb = text.count('\b')
             text = text.lstrip('\b')
-            for i in range(nb):
-                self.SendScintilla(self.SCI_DELETEBACK)
+            #
+            if nb:
+                # Select what we remove and delete that
+                self._cursor1.clearSelection()
+                self._cursor1.movePosition(self._cursor1.Left, A_KEEP, nb)
+                self._cursor1.removeSelectedText()
         
+        # Return result
         return text
     
     
-    def _wrapLines(self, text):
-        """ Peform hard wrapping of the text to 80 characters.
-        We do this because Qscintilla becomes very slow when 
-        long lines are displayed.
-        The cursor should be at the position to add the text.
-        """
-    
-        # Should we do this?
-        if not iep.config.settings.shellWrap80:
-            return text
+    def write(self, text, prompt=0, color=None):
+        """ write(text, prompt=0, color=None)
         
-        # Check how many chars are left at the line right now
-        cursor = self.textCursor()
-        linenr = cursor.blockNumber()
-        index = cursor.positionInBlock()
-        charsLeft = 80-index # Is reset to 80 as soon as we are on a next line
+        Write to the shell. 
         
-        # Perform hard-wrap
-        lines = text.split('\n')
-        lines2 = []
-        for line in lines:
-            while len(line)>charsLeft:
-                lines2.append(line[:charsLeft])
-                line = line[charsLeft:]
-                charsLeft = 80
-            lines2.append(line)
-            charsLeft = 80
-        text = '\n'.join(lines2)
-        return text
-       
-    # todo: qt document class has buildin property for this
-#     def _limitNumberOfLines(self):
-#         """ Reduces the amount of lines by 50% if above a certain threshold.
-#         Does not reset the position of prompt or current position. 
-#         """ 
-#         L = self.length()
-#         N = self.getLinenrFromPosition( L )
-#         limit = iep.config.advanced.shellMaxLines
-#         if N > limit:
-#             # reduce text
-#             pos = self.getPositionFromLinenr( int(N/2) )
-#             self.setPosition(pos)
-#             self.setAnchor(0)
-#             self.removeSelectedText()
-    
-    
-    def write(self, text):
-        """ write(text)
-        Write normal text (stdout) to the shell. The text is printed
-        before the prompt.
+        If prompt is 0 (default) the text is printed before the prompt. If 
+        prompt is 1, the text is printed after the prompt, the new prompt
+        becomes nul. If prompt is 2, the given text becomes the new prompt.
+        
+        The color of the text can also be specified (as a hex-string).
+        
         """
+        
+        # From The Qt docs: Note that a cursor always moves when text is 
+        # inserted before the current position of the cursor, and it always 
+        # keeps its position when text is inserted after the current position 
+        # of the cursor.
+        
         # Make sure there's text and make sure its a string
         if not text:
             return
         if isinstance(text, bytes):
             text = text.decode('utf-8')
-        #print (text)
-        #self.stdoutCursor.setKeepPositionOnInsert(False)
         
-        self.lineBeginCursor.setKeepPositionOnInsert(False)
-        self.stdoutCursor.insertText(text) #TODO: backspacing
-        self.lineBeginCursor.setKeepPositionOnInsert(True)
-
-        self.ensureCursorVisible()#TODO: only when cursor is at last line
-    
-    def writeErr(self, text):
-        """ writeErr(text)
-        Writes error messages (stderr) to the shell. If the text
-        does not end with a newline, the text is considered a
-        prompt and is printed behind the old prompt position
-        rather than befor it.
-        """
-        # Make sure there's text and make sure its a string
-        if not text:
-            return
-        if isinstance(text, bytes):
-            text = text.decode('utf-8')
-
-        #While we're writing text, the lineBeginCursor should move with the
-        #inserted text
-        self.lineBeginCursor.setKeepPositionOnInsert(False)
-
-        if text.endswith('\n'):
-            # Normal error message
-            self.stdoutCursor.insertText(text) #TODO: backspacing
-        else:
-            # Prompt
-            # This shifts the lineBeginCursor appropriately 
-            # Keep the stdout cursor before the prompt
-            stdoutPos = self.stdoutCursor.position()
-            #Since the lineBeginCursor keeps its position on insert, but the
-            #anchor may move, clear the selection (i.e. place anchor at the cursor)
-            self.lineBeginCursor.clearSelection()
-            self.lineBeginCursor.insertText(text) #TODO: backspacing
-            self.stdoutCursor.setPosition(stdoutPos)
-            
-        # Revert keepPositionOnInsert to True
-        self.lineBeginCursor.setKeepPositionOnInsert(True)
+        # Prepare format
+        format = QtGui.QTextCharFormat()
+        if color:
+            format.setForeground(QtGui.QColor(color))
         
-        self.ensureCursorVisible()#TODO: only when cursor is at last line
-
+        #pos1, pos2 = self._cursor1.position(), self._cursor2.position()
+        
+        # Just in case, clear any selection of the cursors
+        self._cursor1.clearSelection()
+        self._cursor2.clearSelection()
+        
+        if prompt == 0:
+            # Insert text behind prompt (normal streams)
+            self._cursor1.setKeepPositionOnInsert(False)
+            self._cursor2.setKeepPositionOnInsert(False)
+            text = self._handleBackspaces(text)
+            self._cursor1.insertText(text, format)
+        elif prompt == 1:
+            # Insert command text after prompt, prompt becomes null (input)
+            self._lastCommandCursor.setPosition(self._cursor2.position())
+            self._cursor1.setKeepPositionOnInsert(False)
+            self._cursor2.setKeepPositionOnInsert(False)
+            self._cursor2.insertText(text, format)
+            self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
+        elif prompt == 2 and text == '\b':
+            # Remove prompt
+            self._cursor1.setPosition(self._cursor2.position(), A_KEEP)
+            self._cursor1.removeSelectedText()
+            self._cursor2.setPosition(self._cursor1.position(), A_MOVE)
+        elif prompt == 2:
+            # Insert text after prompt, inserted text becomes new prompt
+            self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
+            self._cursor1.setKeepPositionOnInsert(True)
+            self._cursor2.setKeepPositionOnInsert(False)
+            self._cursor1.insertText(text, format)
+        
+        #if isinstance(self, PythonShell):
+        #    print(prompt, '|', pos1, pos2, '|', self._cursor1.position(), self._cursor2.position(), text)
+        
+        # Reset cursor states for the user to type his/her commands
+        self._cursor1.setKeepPositionOnInsert(False)
+        self._cursor2.setKeepPositionOnInsert(True)
+        
+        # Make sure that cursor is visible (only when cursor is at edit line)
+        if not self.isReadOnly():
+            self.ensureCursorVisible()
     
     
     ## Executing stuff
+    
     def processLine(self, line=None, execute=True):
         """ processLine(self, line=None, execute=True)
+       
         Process the given line or the current line at the prompt if not given.
         Called when the user presses enter.        
         
@@ -433,26 +439,21 @@ class BaseShell(BaseTextCtrl):
         """
         
         # Can we do this?
-        if self.isReadOnly():
+        if self.isReadOnly() and not line:
             return
-        
-        #Create cursor to modify the text document starting at start of edit line
-        commandCursor = self.textCursor()
-        commandCursor.setPosition(self.lineBeginCursor.position())
         
         if line:
             # remove newlines spaces and tabs
             command = line.rstrip()
         else:
-            #create a selection from begin of the edit line to end of the document
-            commandCursor.movePosition(commandCursor.End,commandCursor.KeepAnchor)
+            # Select command
+            cursor = self.textCursor()
+            cursor.setPosition(self._cursor2.position(), A_MOVE)
+            cursor.movePosition(cursor.End, A_KEEP)
             
-            #Sample the text from the prompt and remove it
-            command = commandCursor.selectedText().replace('\u2029', '\n') 
-            commandCursor.removeSelectedText()
-            
-            # remove newlines spaces and tabs
-            command = command.rstrip()
+            # Sample the text from the prompt and remove it
+            command = cursor.selectedText().replace('\u2029', '\n') .rstrip()
+            cursor.removeSelectedText()
             
             # Remember the command (but first remove to prevent duplicates)
             if command:
@@ -460,22 +461,10 @@ class BaseShell(BaseTextCtrl):
                     self._history.remove(command)
                 self._history.insert(0,command)
         
-        # TODO:# Limit text to add to 80 chars 
-        #self.setPositionAndAnchor(self._promptPos2)
-        #tmp = self._wrapLines(command) + '\n'
-        
-        commandCursor.insertText(command + '\n')
-        
-        #Resulting stdout text and the next edit-line are at end of document
-        self.stdoutCursor.movePosition(self.stdoutCursor.End)
-        self.lineBeginCursor.movePosition(self.lineBeginCursor.End)
-        
-        
         if execute:
             # Maybe modify the text given...
             command = self.modifyCommand(command)
-            # Execute        
-
+            # Execute
             self.executeCommand(command+'\n')
     
     
@@ -493,7 +482,7 @@ class BaseShell(BaseTextCtrl):
         """
         # this is a stupid simulation version
         self.write("you executed: "+command+'\n')
-        self.writeErr(">>> ")
+        self.write(">>> ", prompt=2)
 
 
 class RequestObject:
@@ -503,98 +492,6 @@ class RequestObject:
         self._id = id
         self._posted = False
 
-
-class ShellInfo:
-    """ Helper class to build the command to start the remote python
-    process. 
-    """
-    def __init__(self, info=None):
-        
-        # Set defaults
-        self.exe = 'python'
-        self.gui = 'none'
-        self.PYTHONPATH = os.environ.get('PYTHONPATH','')            
-        self.PYTHONSTARTUP = os.environ.get('PYTHONSTARTUP','')
-        self.startDir = ''
-        
-        # Set info if given
-        if info:
-            try:
-                self.exe = info.exe
-                self.gui = info.gui
-                if info.PYTHONPATH_useCustom:
-                    self.PYTHONPATH = info.PYTHONPATH_custom.replace('\n',os.pathsep)
-                if info.PYTHONSTARTUP_useCustom:
-                    self.PYTHONSTARTUP = info.PYTHONSTARTUP_custom
-                self.startDir = info.startDir
-            except Exception:
-               pass
-        
-        # Correct path when it contains spaces
-        if self.exe.count(' '):
-            self.exe = '"' + self.exe + '"'
-    
-    
-    def getCommand(self, port):
-        """ Given the port of the channels interface, creates the 
-        command to execute in order to invoke the remote shell.
-        """
-        startScript = os.path.join( iep.iepDir, 'iepRemote1.py')
-        startScript = '"{}"'.format(startScript)
-        
-        # Build command
-        command = self.exe + ' ' + startScript + ' ' + str(port)
-        
-        if sys.platform.startswith('win'):
-            # as the author from Pype writes:
-            #if we don't run via a command shell, then either sometimes we
-            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.    
-            # The double quotes are important for it to work when the 
-            # executable is a path that contaiins spaces.
-            command = 'cmd /c "{}"'.format(command)
-        
-        # Done
-        return command
-    
-    
-    def getEnviron(self, scriptFilename=None):
-        """  Gets the environment to give to the remote process,
-        such that it can start up as the user wants to. 
-        If ScriptFilename is given, use that as the script file
-        to execute.
-        """ 
-        
-        # Prepare environment, remove references to tk libraries, 
-        # since they're wrong when frozen. Python will insert the
-        # correct ones if required.
-        env = os.environ.copy()
-        #
-        env.pop('TK_LIBRARY','') 
-        env.pop('TCL_LIBRARY','')
-        env['PYTHONPATH'] = self.PYTHONPATH
-        
-        #If the project manager is active, and has the check box
-        #'add path to Python path' set, set the PROJECTPATH variable
-        projectManager = iep.toolManager.getTool('iepprojectmanager')
-        if projectManager:
-            projectPath = projectManager.getAddToPythonPath()
-            if projectPath is not None:
-                env['iep_projectPath'] = projectPath
-        
-        # Insert iep specific variables
-        env['iep_gui'] = self.gui
-        env['iep_startDir'] = self.startDir
-        
-        # Depending on mode (interactive or script)
-        if scriptFilename:
-            env['iep_scriptFile'] = scriptFilename
-        else:
-            env['iep_scriptFile'] = ''
-            env['PYTHONSTARTUP'] = self.PYTHONSTARTUP
-        
-        # Done
-        return env
 
 
 class PythonShell(BaseShell):
@@ -613,13 +510,13 @@ class PythonShell(BaseShell):
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
         
-        # Apply Python shell style
-        #TODO: self.setStyle('pythonshell')
-        
-        # Store info 
+        # Get standard info if not given. Store info
         if info is None and iep.config.shellConfigs:
             info = iep.config.shellConfigs[0]
-        self._shellInfo = ShellInfo(info)
+        if info:
+            info = convertToNewKernelInfo(info)
+        else:
+            info = KernelInfo(None)
         
         # For the editor to keep track of attempted imports
         self._importAttempts = []
@@ -633,25 +530,22 @@ class PythonShell(BaseShell):
         self._buffer = ''
         
         # Variables to store python version, builtins and keywords 
+        self._state = ''
+        self._debugState = {}
         self._version = ""
         self._builtins = []
         self._keywords = []
         
-        # Variables to buffer shell status (updated every time 
-        # a prompt is generated, and when it is asked for).
-        self._state = ''
-        self._debugState = ''
-        
-        # Define queue of requestObjects and insert a few requests
-        self._requestQueue = []
-        tmp = "','.join(__builtins__.__dict__.keys())"
-        self.postRequest('EVAL sys.version', self._setVersion)
-        self.postRequest('EVAL ' + tmp, self._setBuiltins)
-        self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
+#         # Define queue of requestObjects and insert a few requests
+#         self._requestQueue = []
+#         tmp = "','.join(__builtins__.__dict__.keys())"
+#         self.postRequest('EVAL sys.version', self._setVersion)
+#         self.postRequest('EVAL ' + tmp, self._setBuiltins)
+#         self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
         
         # Create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(20)  # ms
+        self._timer.setInterval(50)  # ms
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
@@ -659,8 +553,8 @@ class PythonShell(BaseShell):
         # Initialize timer callback
         self._pollMethod = None
         
-        # File to execute on startup (in script mode)
-        self._pendingScriptFilename = None
+        # Install different highlighter
+        self._setHighlighter(PythonShellHighlighter)
         
         # Add context menu
         if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
@@ -670,98 +564,90 @@ class PythonShell(BaseShell):
             self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
         
         # Start!
+        self.connectToKernel(info)
         self.start()           
+        
     
     
     def start(self):
         """ Start the remote process. """
         
-        # (re)set style
-        #TODO: self.setStyle('pythonshell')
+        # Reset read state
         self.setReadOnly(False)
-        
-        # (re)set state and debug state
-        self._debugState = ''
-        self._state = 'Initializing'
-        self.stateChanged.emit(self)
-        self.debugStateChanged.emit(self)
-        
-        # (re)set restart vatiable and a callback
-        self._restart = False 
         
         # (re)set import attempts
         self._importAttempts[:] = []
-        
-        # (re)set variable to terminate the process in increasingly rude ways
-        self._killAttempts = 0
-        
-        # Create multi channel connection
-        # Note that the request and response channels are reserved and should
-        # not be read/written by "anyone" other than the introspection thread.
-        self._channels = c = channels.Channels(3)
-        c.disconnectCallback = self._onDisconnect
-        # Standard streams
-        self._stdin = c.get_sending_channel(0)
-        self._stdout = c.get_receiving_channel(0)
-        self._stderr = c.get_receiving_channel(1)
-        # Control and status of interpreter
-        self._control = c.get_sending_channel(1)
-        self._status = c.get_receiving_channel(2)
-        # For introspection
-        self._request = c.get_sending_channel(2)
-        self._response = c.get_receiving_channel(3)
-        
-        # Host it (tries several port numbers, staring from 'IEP')
-        port = c.host('IEP', hostLocal=True)
-        
-        # Start process (open PYPES to detect errors when starting up)
-        command = self._shellInfo.getCommand(port)
-        env = self._shellInfo.getEnviron(self._pendingScriptFilename)
-        self._process = subprocess.Popen(command, 
-                                shell=True, env=env, cwd=iep.iepDir,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)  
-        
-        # Reset pending script
-        self._pendingScriptFilename = None
         
         # Set timer callback
         self._pollMethod = self.poll_running
     
     
-    def _setVersion(self, response, id):
-        """ Process the request for the version. """
-        self._version = response.split(' ',1)[0]
-    
-    def _setBuiltins(self, response, id):
-        """ Process the request for the list of buildins. """
-        self._builtins = response.split(',')
-    
-    def _setKeywords(self, response, id):
-        """ Process the request for the list of keywords. """
-        self._keywords = response.split(',')
-    
-    
-    def _setStatus(self, status):
-        """ Handle a new status. Store the state and notify listeners. """
+    def connectToKernel(self, info):
+        """ connectToKernel()
         
-        if status.startswith('STATE '):
-            state = status.split(' ',1)[1]
-            
-            # Store status and emit signal if necessary
-            if state != self._state:
-                self._state = state
-                self.stateChanged.emit(self)
+        Create kernel and connect to it.
         
-        elif status.startswith('DEBUG '):
-            debugState = status.split(' ',1)[1]
-            
-            # Store status and emit signal if necessary
-            if debugState != self._debugState:
-                self._debugState = debugState
-                self.debugStateChanged.emit(self)
+        """
+        
+        # Create yoton context
+        self._context = ct = yoton.Context()
+        
+        # Create stream channels        
+        self._strm_out = yoton.SubChannel(ct, 'strm-out')
+        self._strm_err = yoton.SubChannel(ct, 'strm-err')
+        self._strm_raw = yoton.SubChannel(ct, 'strm-raw')
+        self._strm_echo = yoton.SubChannel(ct, 'strm-echo')
+        self._strm_prompt = yoton.SubChannel(ct, 'strm-prompt')
+        self._strm_broker = yoton.SubChannel(ct, 'strm-broker')
+        
+        # Create control channels
+        self._ctrl_command = yoton.PubChannel(ct, 'ctrl-command')
+        self._ctrl_code = yoton.PubChannel(ct, 'ctrl-code', yoton.OBJECT)
+        self._ctrl_broker = yoton.PubChannel(ct, 'ctrl-broker')
+        
+        # Create status channels
+        self._stat_heartbeat = yoton.SubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        self._stat_interpreter = yoton.SubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+        self._stat_debug = yoton.SubstateChannel(ct, 'stat-debug', yoton.OBJECT)
+        
+        # Create introspection channel
+        self._request = yoton.ReqChannel(ct, 'reqp-introspect')
+        
+        # Connect! The broker will only start the kernel AFTER
+        # we connect, so we do not miss out on anything.
+        slot = iep.localKernelManager.createKernel(info)
+        self._brokerConnection = ct.connect('localhost:%i'%slot)
+        self._brokerConnection.closed.bind(self._onConnectionClose)
+        
+        
+        # Ask for python version
+        def _setVersion(future):
+            version = future.result()
+            if isinstance(version, str):
+                self._version = version.split(' ',1)[0]
+            self.stateChanged.emit(self)
+        future = self._request.eval('sys.version')
+        future.add_done_callback(_setVersion)
+        
+        # Ask for builtins
+        def _setKeywords(future):
+            L = future.result()
+            if isinstance(L, list):
+                self._keywords = L
+        future = self._request.eval('keyword.kwlist')
+        future.add_done_callback(_setKeywords)
+        
+        # Ask for builtins
+        def _setBuiltins(future):
+            L = future.result()
+            if isinstance(L, list):
+                self._builtins = L
+        future = self._request.eval('dir(__builtins__)')
+        future.add_done_callback(_setBuiltins)
     
     
     ## Introspection processing methods
+    
     
     def processCallTip(self, cto):
         """ Processes a calltip request using a CallTipObject instance. 
@@ -778,13 +664,25 @@ class PythonShell(BaseShell):
         self._currentCTO = cto
         
         # Post request
-        req = "SIGNATURE " + cto.name
-        self.postRequest(req, self._processCallTip_response, cto)
+        future = self._request.signature(cto.name)
+        future.add_done_callback(self._processCallTip_response)
+        future.cto = cto
     
     
-    def _processCallTip_response(self, response, cto):
+    def _processCallTip_response(self, future):
         """ Process response of shell to show signature. 
         """
+        
+        # Process future
+        if future.exception():
+            print('Introspect-exception: ', future.exception())
+            return 
+        elif future.cancelled():
+            print('Introspect cancelled')
+            return
+        else:
+            response = future.result()
+            cto = future.cto
         
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
@@ -795,7 +693,7 @@ class PythonShell(BaseShell):
             return
         
         # Invalid response
-        if response == '<error>':
+        if response is None:
             cto.textCtrl.autocompleteCancel()
             return
         
@@ -825,14 +723,27 @@ class PythonShell(BaseShell):
         # and store aco to see whether the response is still wanted.
         aco.setBuffer()
         self._currentACO = aco
-        # Poll name
-        req = "ATTRIBUTES " + aco.name
-        self.postRequest(req, self._processAutoComp_response, aco)
+        
+        # Post request
+        future = self._request.dir(aco.name)
+        future.add_done_callback(self._processAutoComp_response)
+        future.aco = aco
     
     
-    def _processAutoComp_response(self, response, aco):
+    def _processAutoComp_response(self, future):
         """ Process the response of the shell for the auto completion. 
         """ 
+        
+        # Process future
+        if future.exception():
+            print('Introspect-exception: ', future.exception())
+            return
+        elif future.cancelled():
+            print('Introspect cancelled')
+            return
+        else:
+            response = future.result()
+            aco = future.aco
         
         # First see if this is still the right editor (can also be a shell)
         editor1 = iep.editors.getCurrentEditor()
@@ -844,8 +755,8 @@ class PythonShell(BaseShell):
         
         # Add result to the list
         foundNames = []
-        if response != '<error>':
-            foundNames = response.split(',')
+        if response is not None:
+            foundNames = response
         aco.addNames(foundNames)
         
         # Process list
@@ -866,8 +777,9 @@ class PythonShell(BaseShell):
                     # To be sure, decrease the experiration date on the buffer
                     aco.setBuffer(timeout=1)
                     # Repost request
-                    req = "ATTRIBUTES " + aco.name
-                    self.postRequest(req, self._processAutoComp_response, aco)
+                    future = self._request.signature(aco.name)
+                    future.add_done_callback(self._processAutoComp_response)
+                    future.aco = aco
         else:
             # If still required, show list, otherwise only store result
             if self._currentACO is aco:
@@ -876,48 +788,14 @@ class PythonShell(BaseShell):
                 aco.setBuffer()
     
     
-    ## Methods for communication and executing code
-    
-    def postRequest(self, request, callback, id=None):
-        """ postRequest(request, callback, id=None)
-        Post a request as a string. The given callback is called
-        when a response is received, with the response and id as 
-        arguments.
-        """
-        req = RequestObject(request, callback, id)
-        self._requestQueue.append(req)
-    
-    
-    def postRequestAndReceive(self, request):
-        """ postRequestAndReceive(request)
-        Post a message and wait for it to be received.
-        Returns the response. If you can, use postRequest
-        and catch the response by specifying a callback.
-        """
-        
-        # If there's an item being processed right now ...
-        if self._requestQueue:
-            # ... make it be reposted when we're done.  
-            self._requestQueue[0]._posted = False
-            # Wait for any leftover messages to arrive
-            self._response.read_one(block=2.0)
-        
-        # Do request
-        self._request.write(request)
-        
-        # Wait for it to arrive
-        tmp = self._response.read_last(block=1.0)
-        if tmp is None:
-            raise RuntimeError('Request interrupted.')
-        else:
-            return tmp
+    ## Methods for executing code
     
     
     def executeCommand(self, text):
         """ executeCommand(text)
         Execute one-line command in the remote Python session. 
         """
-        self._stdin.write(text)
+        self._ctrl_command.send(text)
     
     
     def executeCode(self, text, fname, lineno=0):
@@ -964,7 +842,7 @@ class PythonShell(BaseShell):
             if indent < minIndent:
                 minIndent = indent 
         
-        # Copy all proper lines to a new array, 
+        # Copy all proper lines to a new list, 
         # remove minimal indentation, but only if we then would only remove 
         # spaces (in the case of commented lines)
         lines2 = []
@@ -977,40 +855,41 @@ class PythonShell(BaseShell):
                 line = line.lstrip(" ")
             lines2.append( line )
         
-        # Running while file?
-        runWholeFile = False
-        if lineno<0:
-            lineno = 0
-            runWholeFile = True
-        
-        # Append info line, than combine
-        lines2.insert(0,'') # code is recognized because starts with newline
-        lines2.append('') # The code needs to end with a newline
-        lines2.append(fname)
-        lines2.append(str(lineno))
+#         # Running while file?
+#         runWholeFile = False
+#         if lineno<0:
+#             lineno = 0
+#             runWholeFile = True
+#         
+#         # Append info line, than combine
+#         lines2.insert(0,'') # code is recognized because starts with newline
+#         lines2.append('') # The code needs to end with a newline
+#         lines2.append(fname)
+#         lines2.append(str(lineno))
         #
         text = "\n".join(lines2)
         
-        # Get last bit of filename to print in "[executing ...."
-        if not fname.startswith('<'):
-            fname = os.path.split(fname)[1]
+#         # Get last bit of filename to print in "[executing ...."
+#         if not fname.startswith('<'):
+#             fname = os.path.split(fname)[1]
+#         
+#         # Write to shell to let user know we are running...
+#         lineno1 = lineno + 1
+#         lineno2 = lineno + len(lines)
+#         if runWholeFile:
+#             runtext = '[executing "{}"]\n'.format(fname)
+#         elif lineno1 == lineno2:
+#             runtext = '[executing line {} of "{}"]\n'.format(lineno1, fname)
+#         else:
+#             runtext = '[executing lines {} to {} of "{}"]\n'.format(
+#                                             lineno1, lineno2, fname)
+#         self.processLine(runtext, False)
         
-        # Write to shell to let user know we are running...
-        lineno1 = lineno + 1
-        lineno2 = lineno + len(lines)
-        if runWholeFile:
-            runtext = '[executing "{}"]\n'.format(fname)
-        elif lineno1 == lineno2:
-            runtext = '[executing line {} of "{}"]\n'.format(lineno1, fname)
-        else:
-            runtext = '[executing lines {} to {} of "{}"]\n'.format(
-                                            lineno1, lineno2, fname)
-        self.processLine(runtext, False)
-        
-        # Run!
-        self._stdin.write(text)
+        # Send message
+        msg = {'source':text, 'fname':fname, 'lineno':lineno}
+        self._ctrl_code.send(msg)
     
-    
+    # todo: implement most magic commands in kernel
     def modifyCommand(self, text):
         """ To implement magic commands. """
         
@@ -1034,6 +913,8 @@ class PythonShell(BaseShell):
         db where        - print the stack trace and indicate the current stack
         db focus        - open the file and show the line of the stack frame"""
         
+        
+        return text
         
         message = message.replace('\n','\\n')
         message = message.replace('"','\"')
@@ -1106,16 +987,16 @@ class PythonShell(BaseShell):
         
         elif text == 'db start':
             text = ''
-            self._control.write('DEBUG START')
+            self._ctrl_broker.write('DEBUG START')
         elif text == 'db stop':
             text = ''
-            self._control.write('DEBUG STOP')
+            self._ctrl_broker.write('DEBUG STOP')
         elif text == 'db up':
             text = ''
-            self._control.write('DEBUG UP')
+            self._ctrl_broker.write('DEBUG UP')
         elif text == 'db down':
             text = ''
-            self._control.write('DEBUG DOWN')
+            self._ctrl_broker.write('DEBUG DOWN')
         elif text.startswith('db frame '):
             index = text.split(' ',2)[2]
             try:
@@ -1123,10 +1004,10 @@ class PythonShell(BaseShell):
             except Exception:
                 return text
             text = ''
-            self._control.write('DEBUG INDEX ' + str(index))
+            self._ctrl_broker.write('DEBUG INDEX ' + str(index))
         elif text == 'db where':
             text = ''
-            self._control.write('DEBUG WHERE')
+            self._ctrl_broker.write('DEBUG WHERE')
         elif text == 'db focus':
             # If not debugging, cant focus
             if not self._debugState:
@@ -1264,87 +1145,43 @@ class PythonShell(BaseShell):
         process that we should write.
         """
         
-        # Check stdout
-        # Fill the buffer and release it at regular intervals, this will
-        # update scintilla much faster if multiple messages are printed
-        # When printing a single message, self._t is very old, and the
-        # message is printed emidiately
-        text = self._stdout.read(False)
-        if text:
-            self._buffer += text
-        if self._buffer and (time.time()-self._t) > 0.2:
-            self.write(self._buffer)
-            self._buffer = ''
-            self._t = time.time()
+        # Check what subchannel has the latest message pending
+        sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
+                                self._strm_echo, self._strm_raw,
+                                self._strm_broker, self._strm_prompt )
         
-        # Check stderr
-        text = self._stderr.read_one(False)
-        if text:
-            self.writeErr(text)
+        # Write alle pending messages that are later than any other message
+        if sub:
+            # Get how to deal with prompt
+            prompt = 0
+            if sub is self._strm_echo:
+                prompt = 1 
+            elif sub is  self._strm_prompt:
+                prompt = 2
+            # Get color
+            color = None
+            if sub is self._strm_broker:
+                color = '#000'
+            elif sub is self._strm_raw:
+                color = '#888888' # Halfway
+            elif sub is self._strm_err:
+                color = '#F00'
+            # insert text
+            text = ''.join(sub.recv_selected())
+            self.write(text, prompt, color)
+            #self.write(sub.recv(False))
         
-        # Process responses
-        if self._requestQueue:
-            response = self._response.read_last()
-            if response:
-                req = self._requestQueue.pop(0)
-                req._callback(response, req._id)
+        # Update status
+        # todo: include heartbeat info
+        state = self._stat_interpreter.recv()
+        if state != self._state:
+            self._state = state
+            self.stateChanged.emit(self)
         
-        # Process requests
-        # Post from the bottom of the queue and only if it's not posted.
-        # This way there's always only one request being processed. 
-        if self._requestQueue:
-            req = self._requestQueue[0]
-            if not req._posted:
-                self._request.write( req._request )
-                req._posted = True
-        
-        # Check status
-        if self._version:
-            status = 'dummy'
-            while status:
-                status = self._status.read_one()
-                if status:
-                    self._setStatus(status)
-        else:
-            # The version has not been set, poll the process to
-            # check whether it's still there
-            if self._process.poll():
-                self._restart = False
-                print('Process stdout:', self._process.stdout.read())
-                print('Process stderr:', self._process.stderr.read())
-                self._afterDisconnect('The process failed to start.')
-    
-    
-    def poll_terminating(self):
-        """ The timer callback method when the process is being terminated. 
-        IEP will try to terminate in increasingly more rude ways. 
-        """
-        
-        if self._channels.is_connected:
-            if self._killAttempts == 1:
-                # Waiting for process to stop by itself
-                
-                if time.time() - self._t > 0.5:
-                    # Increase counter, next time will interrupt
-                    self._killAttempts += 1
-            
-            elif self._killAttempts < 6:
-                # Send an interrupt every 100 ms
-                if time.time() - self._t > 0.1:
-                    self.interrupt()
-                    self._t = time.time()
-                    self._killAttempts += 1
-            
-            elif self._killAttempts < 10:
-                # Ok, that's it, we're leaving!
-                self._channels.kill()
-                self._killAttempts = 10
-                self._t = time.time()
-            else:
-                if time.time()-self._t >0.5:
-                    self._process.kill()
-
-    
+        state = self._stat_debug.recv()        
+        if state != self._debugState:
+            self._debugState = state
+            self.debugStateChanged.emit(self)
     
     
     def poll_terminated(self):
@@ -1370,7 +1207,7 @@ class PythonShell(BaseShell):
         Send a Keyboard interrupt signal to the main thread of the 
         remote process. 
         """
-        self._channels.interrupt()
+        self._ctrl_broker.send('INT')
     
     
     def restart(self, scriptFilename=None):
@@ -1379,10 +1216,10 @@ class PythonShell(BaseShell):
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
+        msg = 'RESTART'
         if scriptFilename:
-            self._pendingScriptFilename = scriptFilename
-        self._restart = True
-        self.terminate()
+            msg += ' ' + str(scriptFilename)
+        self._ctrl_broker.send(msg)
     
     
     def terminate(self):
@@ -1392,97 +1229,29 @@ class PythonShell(BaseShell):
         To be notified of the termination, connect to the "terminated"
         signal of the shell.
         """
-        
-        if self._killAttempts != 0:
-            # Alreay in the process of terminating, or done terminating
-            return
-        
-        # Try closing the process gently: by closing stdin
-        self._stdin.close()
-        self._request.close()
-        self._killAttempts = 1
-        self._t = time.time()
-        
-        # Keep track using an alternative polling function
-        self._pollMethod = self.poll_terminating
+        self._ctrl_broker.send('TERM')
     
     
-    def terminateNow(self):
-        """ terminateNow()
-        Terminates the python process. Will terminate the shell in maximally
-        1 second. When this function returns, the shell will have been
-        terminated.
-        """
-        # Try closing the process gently: by closing stdin
-        self._stdin.close()
-        self._request.close()
-        self._killAttempts = 1
-        self._t = time.time()
-        
-        # Terminate
-        while self._channels.is_connected:
-            time.sleep(0.02)
-            
-            if self._killAttempts == 1:
-                if time.time() - self._t > 0.5:
-                    self._killAttempts += 1
-            elif self._killAttempts < 5:
-                if time.time() - self._t > 0.1:
-                    self.interrupt()
-                    self._t = time.time()
-                    self._killAttempts += 1
-            elif self._killAttempts == 9:
-                # Ok, that's it, we're leaving!
-                self._channels.kill()
-                self._killAttempts = 10
-            else:
-                break
-    
-    
-    def _onDisconnect(self, why):
-        """ Called when the connection is lost.
-        """
-        
-        # Determine message
-        if self._killAttempts < 0:
-            msg = 'Process terminated twice?' # this should not happen
-        if self._killAttempts == 0:
-            msg = why#'Process dropped.'
-        elif self._killAttempts == 1:
-            msg = 'Process terminated.'
-        elif self._killAttempts < 10:
-            msg = 'Process interrupted and terminated.'        
-        else:
-            msg = 'Process killed.'
-        
-        # signal that the connection is gone
-        self._killAttempts = -1
-        
-        # We're now in a different thread, so use callLater to
-        # defer the timer to closing-mode
-        iep.callLater(self._afterDisconnect, msg)
-    
-    
-    def _afterDisconnect(self, msg= ''):
+    def _onConnectionClose(self, c, why):
         """ To be called after disconnecting (because that is detected
         from another thread.
         Replaces the timeout callback for the timer to go in closing mode.
         """
-        # New (empty prompt)
-        self.stdoutCursor.movePosition(self.stdoutCursor.End)
-        self.lineBeginCursor.movePosition(self.lineBeginCursor.End)
-
-        self.write('\n\n');
         
-        # Build second message
-        if self._restart:
-            msg2 = "Restarting ..."
-        else:
-            msg2 = "Waiting for focus to be removed."
+        # Stop context
+        self._context.destroy()
+        
+        # New (empty prompt)
+        self._cursor1.movePosition(self._cursor1.End, A_MOVE)
+        self._cursor2.movePosition(self._cursor2.End, A_MOVE)
+        
+        self.write('\n\n');
+        self.write(why)
+        self.write('\n\n')
         
         # Notify via logger and in shell
-        msg3 = "===== {} {} ".format(msg, msg2).ljust(80, '=') + '\n\n'
-        print(msg)
+        msg = "Waiting for focus to be removed."
+        msg3 = "===== {} ".format(msg).ljust(80, '=') + '\n\n'
         self.write(msg3)
         
         # Set style to indicate dead-ness
@@ -1491,7 +1260,7 @@ class PythonShell(BaseShell):
         
         # Goto end such that the closing message is visible
         cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
+        cursor.movePosition(cursor.End, A_MOVE)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
         
@@ -1500,8 +1269,102 @@ class PythonShell(BaseShell):
         
         # Notify listeners
         self.terminated.emit(self)
+
+# todo: clean this up a bit
+ustr = str
+from codeeditor.highlighter import Highlighter
+from codeeditor import parsers
+#
+class PythonShellHighlighter(Highlighter):
+    def highlightBlock(self, line): 
         
-        # Should we restart?
-        if self._restart:            
-            self.start()
-   
+        t0 = time.time()
+        
+        # Make sure this is a Unicode Python string
+        line = ustr(line)
+        
+        # Get previous state
+        previousState = self.previousBlockState()
+        
+        # Get parser
+        parser = None
+        if hasattr(self._codeEditor, 'parser'):
+            parser = self._codeEditor.parser()
+        
+        # Get function to get format
+        nameToFormat = self._codeEditor.getStyleElementFormat
+        
+        # Last line?
+        cursor1 = self._codeEditor._cursor1
+        cursor2 = self._codeEditor._cursor2
+        commandCursor = self._codeEditor._lastCommandCursor
+        curBlock = self.currentBlock()
+        #
+        atLastPrompt, atCurrentPrompt = False, False
+        if curBlock.position() == 0:
+            pass
+        elif curBlock.position() == commandCursor.block().position():
+            atLastPrompt = True
+        elif curBlock.position() >= cursor1.block().position():
+            atCurrentPrompt = True
+        
+        
+        if (atLastPrompt or atCurrentPrompt) and parser:
+            if atCurrentPrompt:
+                pos1, pos2 = cursor1.positionInBlock(), cursor2.positionInBlock()
+            else:
+                pos1, pos2 = 0, commandCursor.positionInBlock()
+            
+            self.setCurrentBlockState(0)
+            for token in parser.parseLine(line, previousState):
+                # Handle block state
+                if isinstance(token, parsers.BlockState):
+                    self.setCurrentBlockState(token.state)
+                else:
+                    # Get format
+                    try:
+                        format = nameToFormat(token.name).textCharFormat
+                    except KeyError:
+                        #print(repr(nameToFormat(token.name)))
+                        continue
+                    # Set format                    
+                    #format.setFontWeight(99)
+                    if token.start >= pos2:
+                        self.setFormat(token.start,token.end-token.start,format)
+                
+            # Set prompt to bold
+            if atCurrentPrompt:
+                format = QtGui.QTextCharFormat()
+                format.setFontWeight(99)
+                self.setFormat(pos1, pos2-pos1 ,format)
+        
+        #Get the indentation setting of the editors
+        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
+        
+        # Get user data
+        bd = self.getCurrentBlockUserData()
+        
+        leadingWhitespace=line[:len(line)-len(line.lstrip())]
+        if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
+            #Mixed whitespace
+            bd.indentation = 0
+            format=QtGui.QTextCharFormat()
+            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.red)
+            format.setToolTip('Mixed tabs and spaces')
+            self.setFormat(0,len(leadingWhitespace),format)
+        elif ('\t' in leadingWhitespace and indentUsingSpaces) or \
+            (' ' in leadingWhitespace and not indentUsingSpaces):
+            #Whitespace differs from document setting
+            bd.indentation = 0
+            format=QtGui.QTextCharFormat()
+            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.blue)
+            format.setToolTip('Whitespace differs from document setting')
+            self.setFormat(0,len(leadingWhitespace),format)
+        else:
+            # Store info for indentation guides
+            # amount of tabs or spaces
+            bd.indentation = len(leadingWhitespace)
+    
+    

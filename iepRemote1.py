@@ -8,34 +8,69 @@
 """ iepRemote1.py
 
 Starting script for remote processes in iep.
-This script connects to the IEP ide using the channles interface
+This script connects to the IEP ide using the yoton interface
 and imports remote2 to start the interpreter and introspection thread.
+
+Channels
+--------
+There are four groups of channels. The ctrl channels are streams from 
+the ide to the kernel and/or broker. The strm channels are streams to 
+the ide. The stat channels are status channels to the ide. The reqp 
+channels are req/rep channels. All channels are TEXT except for a
+few OBJECT channels.
+ 
+ctrl-command: the stdin to give commands to the interpreter
+ctrl-code (OBJECT): to let the interpreter execute blocks of code
+ctrl-broker: to control the broker (restarting etc)
+
+strm-out: the stdout of the interpreter
+strm-err: the stderr of the interpreter
+strm-raw: the C-level stdout and stderr of the interpreter (caputred by broker)
+strm-echo: the interpreters echos commands here
+strm-prompt: to send the prompts explicitly
+strm-broker: for the broker to send messages to the ide
+
+stat-interpreter (OBJECT): status of the interpreter (ready, busy, more)
+stat-debug (OBJECT): debug status
+stat-heartbeat (OBJECT): whether the broker receives heartbeat signals from the kernel
+
+reqp-introspect (OBJECT): To query information from the kernel (and for interruping)
 
 """
 
-from channels import Channels
+import yoton
 import sys, os, time
 import __main__ # we will run code in the __main__.__dict__ namespace
 
 
 ## Make connection object and get channels
 
-# Acquire port number (given as command line argument)
+# Create a yoton context
+ct = yoton.Context()
+sys._yoton_context = ct
+
+# Create control channels
+ct._ctrl_command = yoton.SubChannel(ct, 'ctrl-command')
+ct._ctrl_code = yoton.SubChannel(ct, 'ctrl-code', yoton.OBJECT)
+
+# Create stream channels
+ct._strm_out = yoton.PubChannel(ct, 'strm-out')
+ct._strm_err = yoton.PubChannel(ct, 'strm-err')
+ct._strm_echo = yoton.PubChannel(ct, 'strm-echo')
+ct._strm_prompt = yoton.PubChannel(ct, 'strm-prompt')
+
+# Create status channels
+ct._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+ct._stat_debug = yoton.PubstateChannel(ct, 'stat-debug', yoton.OBJECT)
+
+# Create file objects for stdin, stdout, stderr
+sys.stdin = yoton.FileWrapper( ct._ctrl_command )
+sys.stdout = yoton.FileWrapper( ct._strm_out )
+sys.stderr = yoton.FileWrapper( ct._strm_err )
+
+# Connect (port number given as command line argument)
 port = int(sys.argv[1])
-
-# Create channels instance that can be both interrupted and killed
-c = Channels(4, True, True)
-
-# Create all channels
-sys.stdin = c.get_receiving_channel(0)
-sys.stdout = c.get_sending_channel(0)
-sys.stderr = c.get_sending_channel(1)
-sys._control = c.get_receiving_channel(1)
-sys._status = c.get_sending_channel(2)
-
-# Connect
-#c.connect(port, timeOut=1, host='sas-p4-40') # Testing
-c.connect(port, timeOut=1)
+ct.connect('localhost:'+str(port), timeout=1.0)
 
 
 ## Set Excepthook
@@ -52,39 +87,34 @@ def iep_excepthook(type, value, tb):
     time.sleep(0.3) # Give some time for the message to be send
 
 # Uncomment to detect error in the interpreter itself
-# sys.excepthook = iep_excepthook
+sys.excepthook = iep_excepthook
 
 
-## Init interpreter and introspection tread
+## Init interpreter and introspector request channel
 
 # Delay import, so we can detect syntax errors using the except hook
-from iepRemote2 import IepInterpreter, IntroSpectionThread
+from iepRemote2 import IepInterpreter, IepIntrospector
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
 
-# Create introspection thread instance
-# Make it a deamon thread, which implies that the program exits
-# even if its running.
-__iep__.ithread = IntroSpectionThread(  
-    c.get_receiving_channel(2), c.get_sending_channel(3), __iep__)
-__iep__.ithread.daemon = True
+# Create introspection req channel
+__iep__.introspector = IepIntrospector(ct, 'reqp-introspect')
 
 
 ## Clean up
 
 # Store interpreter and channels on sys
 sys._iepInterpreter = __iep__
-sys._channels = c
 
 # Delete local variables
-del Channels, IntroSpectionThread, IepInterpreter, iep_excepthook
-del c, port
+del yoton, IepInterpreter, IepIntrospector, iep_excepthook
+del ct, port
 del os, sys, time
 
 # Delete stuff we do not want 
 del __file__
 
-# Enter the interpreter
-__iep__.ithread.start()
+# Start introspector and enter the interpreter
+__iep__.introspector.set_mode('thread')
 __iep__.interact()

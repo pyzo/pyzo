@@ -19,10 +19,12 @@ occur in any othe packages to prevent import clashes.
 import os, sys, time
 from codeop import CommandCompiler
 import traceback
+import thread
 import threading
 import inspect
 import keyword # for autocomp
 import guisupport
+import yoton
 
 # Init last traceback information
 sys.last_type = None
@@ -44,7 +46,7 @@ class IepInterpreter:
     Simular working as code.InteractiveConsole. Some code was copied, but
     the following things are changed:
     - prompts are printed in the err stream, like the default interpreter does
-    - uses an asynchronous read using the channels interface
+    - uses an asynchronous read using the yoton interface
     - support for hijacking GUI toolkits
     - can run large pieces of code
     - support post mortem debugging
@@ -137,11 +139,10 @@ class IepInterpreter:
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports
         thisPath = os.getcwd()
-        if thisPath in sys.path:
+        while thisPath in sys.path:
             sys.path.remove(thisPath)
-            
         projectPath = os.environ.get('iep_projectPath')
-        if projectPath is not None:
+        if projectPath:
             sys.stdout.write('Prepending the project path %r to sys.path\n' % 
                 projectPath)
             #Actual prepending is done below, to put it before the script path
@@ -183,7 +184,7 @@ class IepInterpreter:
             
             # Notify the running of the script
             sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
-            sys._status.write('STATE Busy')
+#             sys._status.send('STATE Busy')
             
             # Run script
             scriptToRunOnStartup = scriptFilename
@@ -198,7 +199,7 @@ class IepInterpreter:
             sys.argv.append('')
             # Insert current directory to path
             sys.path.insert(0, '')
-            if projectPath is not None:
+            if projectPath:
                 sys.path.insert(0,projectPath)
                 
             # Go to start dir
@@ -209,12 +210,19 @@ class IepInterpreter:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
             # Notify running script
-            sys._status.write('STATE Busy')
+#             sys._status.send('STATE Busy')
             
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
                 scriptToRunOnStartup = filename
+        
+        # Get channels
+        ctrl_command = sys._yoton_context._ctrl_command
+        ctrl_code = sys._yoton_context._ctrl_code
+        strm_echo = sys._yoton_context._strm_echo
+        strm_prompt = sys._yoton_context._strm_prompt
+        stat_interpreter = sys._yoton_context._stat_interpreter
         
         
         # ENTER MAIN LOOP
@@ -239,46 +247,65 @@ class IepInterpreter:
                     if self._dbFrames:
                         preamble = '('+self._dbFrameName+')'
                     if more:
-                        self.write(preamble+str(sys.ps2))
+                        strm_prompt.send(preamble+str(sys.ps2))
                     else:
-                        self.write(preamble+str(sys.ps1))
-                    # Set status
-                    self.writeStatus()
+                        strm_prompt.send(preamble+str(sys.ps1))
+                    # Notify ready state
+                    stat_interpreter.send('Ready')
                 
                 # Wait for a bit at each round
                 time.sleep(0.010) # 10 ms
                 
-                # Read control stream and process
-                control = sys._control.read_one(False)
-                if control:
-                    self.parsecontrol(control)
-                
                 # Are we still connected?
                 if sys.stdin.closed:
                     # Stop all deamon threads (or we wont really stop in <2.5)
-                    self.ithread._stop = True
-                    self.channels.disconnect()
+                    self.introspector.set_mode('off')
+                    sys._yoton_context.close()
                     # Break
                     self.write("\n")
                     break
                 
-                # Read a packet and process
-                line = sys.stdin.read_one(False)
-                if line:
-                    # Set busy
-                    sys._status.write('STATE Busy')
-                    self.newPrompt = True
-                    
-                    if line.startswith('\n') and len(line)>1:
-                        # Execute larger piece of code
-                        self.runlargecode(line)
+                # Get channel to take a message from
+                ch = yoton.select_sub_channel(ctrl_command, ctrl_code)
+                
+                if ch is None:
+                    pass # No messages waiting
+                
+                elif ch is ctrl_command:
+                    # Read input line (strip newlines)
+                    line1 = ctrl_command.recv(False) # Command
+                    if line1:
+                        # Notify what we're doing
+                        strm_echo.send(line1)
+                        stat_interpreter.send('Busy')
+                        self.newPrompt = True
+                        
+                        # Process command, get code to execute
+                        line2 = self.parse_command(line1) 
+                        if line2:
+                            # Execute line
+                            more = self.push( line2.rstrip('\n') )
+                        else:
+                            # A command was processed
+                            more = False
+                
+                elif ch is ctrl_code:
+                    # Read larger block of code (dict)
+                    msg = ctrl_code.recv(False)
+                    if msg:
+                        # Notify what we're doing
+                        # (runlargecode() sends on stdin-echo)
+                        stat_interpreter.send('Busy')
+                        self.newPrompt = True
+                        # Execute code
+                        self.runlargecode(msg)
                         # Reset more stuff
                         self.resetbuffer()
                         more = False
-                    else:
-                        # Execute line
-                        line = line.rstrip("\n") # this is what push wants
-                        more = self.push(line)
+                
+                else:
+                    # This should not happen, but if it does, just flush!
+                    ch.recv(False)
                 
                 # Keep GUI toolkit up to date
                 if self.guiApp and time.time() - guitime > 0.019:
@@ -300,7 +327,120 @@ class IepInterpreter:
                     more = 0
             except SystemExit:
                 # Close socket nicely
-                sys._channels.disconnect()
+                sys._yoton_context.close()
+                # Exit from interpreter
+                return
+    
+    
+    def parse_command(self, line):
+        
+        # Clean and make case insensitive
+        control = line.upper().rstrip()
+        
+        if not control:
+            # Empty line; return original line, so it will be sent to push()
+            return line
+        
+        elif control == 'DB START':
+            # Collect frames from the traceback
+            tb = sys.last_traceback
+            frames = []
+            while tb:
+                frames.append(tb.tb_frame)
+                tb = tb.tb_next
+            # Enter debug mode if there was an error
+            if frames:
+                self._dbFrames = frames
+                self._dbFrameIndex = len(self._dbFrames)
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                # Notify IEP
+                self.writeStatus() # todo: debug status?
+            else:
+                self.write("No debug information available.\n")
+        
+        elif control.startswith('DB FRAME '):
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                # Set frame index
+                self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
+                if self._dbFrameIndex < 1:
+                    self._dbFrameIndex = 1
+                elif self._dbFrameIndex > len(self._dbFrames):
+                    self._dbFrameIndex = len(self._dbFrames)
+                # Set name and locals
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                self.writeStatus()
+        
+        elif control == 'DB UP':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                # Decrease frame index
+                self._dbFrameIndex -= 1
+                if self._dbFrameIndex < 1:
+                    self._dbFrameIndex = 1
+                # Set name and locals
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                self.writeStatus()
+        
+        elif control == 'DB DOWN':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                # Increase frame index
+                self._dbFrameIndex += 1
+                if self._dbFrameIndex > len(self._dbFrames):
+                    self._dbFrameIndex = len(self._dbFrames)
+                # Set name and locals
+                frame = self._dbFrames[self._dbFrameIndex-1]
+                self._dbFrameName = frame.f_code.co_name
+                self.locals = frame.f_locals
+                self.globals = frame.f_globals
+                self.writeStatus()
+        
+        elif control == 'DB STOP':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                self.locals = self._main_locals
+                self.globals = None
+                self._dbFrames = []
+                self.writeStatus()
+        
+        elif control == 'DB WHERE':
+            if not self._dbFrames:
+                self.write("Not in debug mode.\n")
+            else:
+                lines = []
+                for i in range(len(self._dbFrames)):
+                    frameIndex = i+1
+                    f = self._dbFrames[i]
+                    # Get fname and lineno, and correct if required
+                    fname, lineno = f.f_code.co_filename, f.f_lineno
+                    fname, lineno = correctFilenameAndLineno(fname, lineno)
+                    # Build string
+                    text = 'File "%s", line %i, in %s' % (
+                                            fname, lineno, f.f_code.co_name)
+                    if frameIndex == self._dbFrameIndex:
+                        lines.append('-> %i: %s'%(frameIndex, text))
+                    else:
+                        lines.append('   %i: %s'%(frameIndex, text))
+                lines.append('')
+                sys.stdout.write('\n'.join(lines))
+        
+        else:
+            # Return original line
+            return line
     
     
     def resetbuffer(self):
@@ -393,15 +533,26 @@ class IepInterpreter:
             self.showtraceback()
     
     
-    def runlargecode(self, text):
+    def runlargecode(self, msg):
         """ To execute larger pieces of code. """
         
-        # Split information
-        # (The last line contains filename + lineOffset about the code)
-        tmp = text.rsplit('\n', 2)
-        source = tmp[0][1:]  # remove first newline
-        fname = tmp[1]
-        lineno = int(tmp[2])
+        # Get information
+        source, fname, lineno = msg['source'], msg['fname'], msg['lineno']
+        source += '\n'
+        
+        # Construct notification message
+        lineno1 = lineno + 1
+        lineno2 = lineno + source.count('\n')
+        fname_show = fname
+        if not fname.startswith('<'):
+            fname_show = os.path.split(fname)[1]
+        if lineno1 == lineno2:
+            runtext = '(executing line %i of "%s")\n' % (lineno1, fname_show)
+        else:
+            runtext = '(executing lines %i to %i of "%s")\n' % (
+                                                lineno1, lineno2, fname_show)
+        # Notify IDE
+        sys._yoton_context._strm_echo.send(runtext)
         
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
@@ -502,97 +653,6 @@ class IepInterpreter:
         return self._compile(source, filename, mode, *args, **kwargs)
     
     
-    def parsecontrol(self, control):
-        """ Parse a command received on the control stream. 
-        This is used to request the status and to control the
-        (post mortem) debugging.
-        """
-        
-        if control == 'STATUS':
-            self.writeStatus()
-        
-        elif control == 'DEBUG START':
-            # Collect frames from the traceback
-            tb = sys.last_traceback
-            frames = []
-            while tb:
-                frames.append(tb.tb_frame)
-                tb = tb.tb_next
-            # Enter debug mode if there was an error
-            if frames:
-                self._dbFrames = frames
-                self._dbFrameIndex = len(self._dbFrames)
-                frame = self._dbFrames[self._dbFrameIndex-1]
-                self._dbFrameName = frame.f_code.co_name
-                self.locals = frame.f_locals
-                self.globals = frame.f_globals
-                # Notify IEP
-                self.writeStatus()
-            else:
-                self.write("No debug information available.\n")
-        
-        elif control.startswith('DEBUG') and not self._dbFrames:
-            # Ignoire other debug commands when not debugging
-            self.write("Not in debug mode.\n")
-        
-        elif control.startswith('DEBUG INDEX'):
-            # Set frame index
-            self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
-            if self._dbFrameIndex < 1:
-                self._dbFrameIndex = 1
-            elif self._dbFrameIndex > len(self._dbFrames):
-                self._dbFrameIndex = len(self._dbFrames)
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex-1]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG UP':
-            # Decrease frame index
-            self._dbFrameIndex -= 1
-            if self._dbFrameIndex < 1:
-                self._dbFrameIndex = 1
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex-1]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG DOWN':
-            # Increase frame index
-            self._dbFrameIndex += 1
-            if self._dbFrameIndex > len(self._dbFrames):
-                self._dbFrameIndex = len(self._dbFrames)
-            # Set name and locals
-            frame = self._dbFrames[self._dbFrameIndex-1]
-            self._dbFrameName = frame.f_code.co_name
-            self.locals = frame.f_locals
-            self.globals = frame.f_globals
-        
-        elif control == 'DEBUG STOP':
-            self.locals = self._main_locals
-            self.globals = None
-            self._dbFrames = []
-        
-        elif control == 'DEBUG WHERE':
-            lines = []
-            for i in range(len(self._dbFrames)):
-                frameIndex = i+1
-                f = self._dbFrames[i]
-                # Get fname and lineno, and correct if required
-                fname, lineno = f.f_code.co_filename, f.f_lineno
-                fname, lineno = correctFilenameAndLineno(fname, lineno)
-                # Build string
-                text = 'File "%s", line %i, in %s' % (
-                                        fname, lineno, f.f_code.co_name)
-                if frameIndex == self._dbFrameIndex:
-                    lines.append('-> %i: %s'%(frameIndex, text))
-                else:
-                    lines.append('   %i: %s'%(frameIndex, text))
-            lines.append('')
-            sys.stdout.write('\n'.join(lines))
-    
     ## Writing and error handling
     
     
@@ -606,29 +666,24 @@ class IepInterpreter:
         Writes STATE to Ready or Debug and writes DEBUG (info).
         """
         
-        # STATE
-        if self._dbFrames:
-            sys._status.write('STATE Debug')
-        else:
-            sys._status.write('STATE Ready')
+        # Collect frames info
+        frames = []
+        for f in self._dbFrames:
+            # Get fname and lineno, and correct if required
+            fname, lineno = f.f_code.co_filename, f.f_lineno
+            fname, lineno = correctFilenameAndLineno(fname, lineno)
+            if not fname.startswith('<'):
+                fname2 = os.path.abspath(fname)
+                if os.path.isfile(fname2):
+                    fname = fname2
+            # Build string
+            text = 'File "%s", line %i, in %s' % (
+                                    fname, lineno, f.f_code.co_name)
+            frames.append(text)
         
-        # DEBUG
-        if self._dbFrames:
-            # Debug info
-            stack = [str(self._dbFrameIndex)]
-            for f in self._dbFrames:
-                # Get fname and lineno, and correct if required
-                fname, lineno = f.f_code.co_filename, f.f_lineno
-                fname, lineno = correctFilenameAndLineno(fname, lineno)
-                if not fname.startswith('<'):
-                    fname = os.path.abspath(fname)
-                # Build string
-                text = 'File "%s", line %i, in %s' % (
-                                        fname, lineno, f.f_code.co_name)
-                stack.append(text)
-            sys._status.write('DEBUG ' + ';'.join(stack))
-        else:
-            sys._status.write('DEBUG ') # no debugging
+        # Send info object
+        state = {'index': self._dbFrameIndex, 'frames': frames}
+        sys._yoton_context._stat_debug.send(state)
     
     
     def showsyntaxerror(self, filename=None):
@@ -802,81 +857,22 @@ class ExecutedSourceCollection(dict):
         return self.get(self._getId(codeObject), '')
 
 
-class IntroSpectionThread(threading.Thread):
-    """ IntroSpectionThread
-    Communicates with the IEP GUI, even if the main thread is busy.
+class IepIntrospector(yoton.RepChannel):
+    """ This is a RepChannel object that runs a thread to respond to 
+    requests from the IDE.
     """
     
-    def __init__(self, requestChannel, responseChannel, interpreter):
-        threading.Thread.__init__(self)
+    def _getNameSpace(self, name=''):
+        """ _getNameSpace(name='')
         
-        # store the two channel objects
-        self.request = requestChannel
-        self.response = responseChannel
-        self.interpreter = interpreter
-        
-        # flag to stop
-        self._stop = False
-    
-    
-    def run(self):
-        """ This is the "mainloop" of our introspection thread.
-        """ 
-        
-        while True:
-            
-            # sleep for a bit
-            time.sleep(0.01)
-            
-            # read code (wait here)
-            line = self.request.read_one(True)
-            if not line or self.request.closed or self._stop:
-                break # from thread
-            
-            # get request and arg
-            tmp = line.split(" ",1)
-            try:
-                req = tmp[0]
-                arg = tmp[1]
-            except Exception:
-                self.response.write('<not a valid request>')
-                continue
-            
-            # process request
-            
-            if req == "EVAL":
-                self.enq_eval( arg )
-            
-            elif req == "SIGNATURE":
-                self.enq_signature(arg)
-                
-            elif req == "ATTRIBUTES":
-                self.enq_attributes(arg)
-            
-            elif req == "VARIABLES":
-                self.enq_variables_plus(arg)
-            
-            elif req == "HELP":
-                self.enq_help(arg)
-            
-            else:
-                self.response.write('<not a valid request>')
-                
-        print('IntrospectionThread stopped')
-    
-    
-    def getNameSpace(self, name=''):
-        """ Get the namespace to apply introspection in. 
-        This is necessary in order to be able to use inspect
-        in calling eval.
-        
-        if name is given, will find that name. For example sys.stdin.
+        Get the namespace to apply introspection in. 
+        If name is given, will find that name. For example sys.stdin.
         
         """
         
         # Get namespace
-        NS1 = self.interpreter.locals
-        NS2 = self.interpreter.globals
+        NS1 = sys._iepInterpreter.locals
+        NS2 = sys._iepInterpreter.globals
         if not NS2:
             NS = NS1
         else:
@@ -913,11 +909,14 @@ class IntroSpectionThread(threading.Thread):
                 return {}
     
     
-    def getSignature(self, objectName):
-        """ Get the signature of builtin, function or method.
+    def _getSignature(self, objectName):
+        """ _getSignature(objectName)
+        
+        Get the signature of builtin, function or method.
         Returns a tuple (signature_string, kind), where kind is a string
         of one of the above. When none of the above, both elements in
         the tuple are an empty string.
+        
         """
         
         # if a class, get init
@@ -929,7 +928,7 @@ class IntroSpectionThread(threading.Thread):
         objectNames = ['.'.join(parts[-i:]) for i in range(1,len(parts)+1)]
         
         # find out what kind of function, or if a function at all!
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         fun1 = eval("inspect.isbuiltin(%s)"%(objectName), None, NS)
         fun2 = eval("inspect.isfunction(%s)"%(objectName), None, NS)
         fun3 = eval("inspect.ismethod(%s)"%(objectName), None, NS)
@@ -1017,24 +1016,18 @@ class IntroSpectionThread(threading.Thread):
         return sigs, kind
     
     
-    def enq_signature(self, objectName):
+    # todo: variant that also says whether it's a property/function/class/other
+    def dir(self, objectName):
+        """ dir(objectName)
         
-        try:
-            text, kind = self.getSignature(objectName)
-        except Exception:
-            text = None
-            
-        # respond
-        if text:
-            self.response.write( text)
-        else:
-            self.response.write( "<error>" )
-    
-    
-    def enq_attributes(self, objectName):
+        Get list of attributes for the given name.
+        
+        """
+        #sys.__stdout__.write('handling '+objectName+'\n')
+        #sys.__stdout__.flush()
         
         # Get namespace
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         
         # Init names
         names = set()
@@ -1068,16 +1061,13 @@ class IntroSpectionThread(threading.Thread):
             names.update(d)
         
         # Respond
-        if names:
-            self.response.write( ",".join(list(names)) )
-        else:
-            self.response.write( "<error>" )
+        return list(names)
     
-    # todo: all introspection should go like this I think.
-    def enq_variables_plus(self, arg):
-        """ enq_variables_plus(arg)
+    
+    def dir2(self, objectName):
+        """ dir2(objectName)
         
-        get variable names in currently active namespace plus extra information.
+        Get variable names in currently active namespace plus extra information.
         Returns a list with strings, which each contain a (comma separated)
         list of elements: name, type, kind, repr.
         
@@ -1122,7 +1112,7 @@ class IntroSpectionThread(threading.Thread):
                 names.append(tmp)
             
             # Get locals
-            NS = self.getNameSpace(arg)
+            NS = self._getNameSpace(objectName)
             for name in NS.keys():
                 if not name.startswith('__'):
                     try:
@@ -1130,19 +1120,34 @@ class IntroSpectionThread(threading.Thread):
                     except Exception:
                         pass
             
-            # Respond
-            self.response.write("##IEP##".join(names))
+            return names
             
         except Exception:
-            #self.response.write( str(err)+'...'+name)
-            self.response.write( '<error>' )
+            return []
     
     
-    def enq_help(self,objectName):
-        """ get help on an object """
+    def signature(self, objectName):
+        """ signature(objectName)
+        
+        Get signature.
+        
+        """
+        try:
+            text, kind = self._getSignature(objectName)
+            return text
+        except Exception:
+            return None
+    
+    
+    def doc(self, objectName):
+        """ doc(objectName)
+        
+        Get documentation for an object.
+        
+        """
         
         # Get namespace
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         
         try:
             
@@ -1178,7 +1183,7 @@ class IntroSpectionThread(threading.Thread):
                 h_text = ""
             
             # get and correct signature
-            h_fun, kind = self.getSignature(objectName)
+            h_fun, kind = self._getSignature(objectName)
             if kind == 'builtin' or not h_fun:
                 h_fun = ""  # signature already in docstring or not available
             
@@ -1200,27 +1205,48 @@ class IntroSpectionThread(threading.Thread):
 #            text = "No help available." + str(why)
         
         # Done
-        self.response.write( text )
+        return text
     
     
-    def enq_eval(self, command):
-        """ do a command and send "str(result)" back. """
+    def eval(self, command):
+        """ eval(command)
+        
+        Evaluate a command and return result. 
+        
+        """
         
         # Get namespace
-        NS = self.getNameSpace()
+        NS = self._getNameSpace()
         
         try:
             # here globals is None, so we can look into sys, time, etc...
-            d = eval(command, None, NS)
+            return eval(command, None, NS)
         except Exception:            
-            d = None
-        
-        # respond
-        if d:
-            self.response.write( str(d) )
-        else:
-            self.response.write( '<error>' )
+            return 'Error evaluating: ' + command
     
+    
+    def interrupt(self, command=None):
+        """ interrupt()
+        
+        Interrupt the main thread. This does not work if the main thread
+        is running extension code.
+        
+        A bit of a hack to do this in the introspector, but it's the
+        easeast way and prevents having to launch another thread just
+        to wait for an interrupt/terminare command.
+        
+        """
+        thread.interrupt_main()
+    
+    
+    def terminate(self, command=None):
+        """ terminate()
+        
+        Ask the kernel to terminate by closing the stdin.
+        
+        """
+        sys.stdin._channel.close()
+
 
 ## GUI TOOLKIT HIJACKS
 

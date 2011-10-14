@@ -121,8 +121,7 @@ class ShellStack(QtGui.QWidget):
         if shell is self.getCurrentShell():
             # Update debug info
             if shell._debugState:
-                debugState = shell._debugState.split(';')
-                self._tabs.cornerWidget().setTrace(debugState)
+                self._tabs.cornerWidget().setTrace(shell._debugState)
             else:
                 self._tabs.cornerWidget().setTrace(None)
             
@@ -233,7 +232,7 @@ class DebugControl(QtGui.QToolButton):
             # Initiate debugging
             shell = iep.shells.getCurrentShell()
             if shell:
-                shell.processLine('db start')    
+                shell.executeCommand('DB START\n')
     
     
     def onTriggered(self, action):
@@ -245,34 +244,39 @@ class DebugControl(QtGui.QToolButton):
         
         if action._index < 1:
             # Stop debugging
-            shell.processLine('db stop')
+            shell.executeCommand('DB STOP\n')
         else:
             # Change stack index
             if not action._isCurrent:
-                shell.processLine('db frame {}'.format(action._index))
+                shell.executeCommand('DB FRAME {}\n'.format(action._index))
             # Open file and select line
             if True:
                 line = action.text().split(': ',1)[1]
                 self.debugFocus(line)
     
     
-    def setTrace(self, trace):
+    def setTrace(self, info):
         """ Set the stack trace. This method is called from
         the shell that receives the trace via its status channel
         directly from the interpreter. 
         If trace is None, removes the trace
         """
         
-        if not trace:
+        # Get info
+        if info:
+            index, frames = info['index'], info['frames']
+        else:
+            index, frames = -1, []
+        
+        if not frames:
             
             # Remove trace
             self.setMenu(None)
             self.setText('Debug')
         
         else:
-            
+            # todo: there might be an offset in the index
             # Get the current frame
-            current = int(trace[0])
             theAction = None
             
             # Create menu and add __main__
@@ -282,11 +286,12 @@ class DebugControl(QtGui.QToolButton):
             action._index = 0
             
             # Fill trace
-            for i in range(1, len(trace)):
-                action = menu.addAction('{}: {}'.format(i, trace[i]))
-                action._index = i
+            for i in range(len(frames)):
+                thisIndex = i + 1
+                action = menu.addAction('{}: {}'.format(thisIndex, frames[i]))
+                action._index = thisIndex
                 action._isCurrent = False
-                if i == current:
+                if thisIndex == index:
                     action._isCurrent = True
                     theAction = action
                     
@@ -296,7 +301,7 @@ class DebugControl(QtGui.QToolButton):
                 menu.setDefaultAction(theAction)
                 #self.setText(theAction.text().ljust(20))
                 i = theAction._index
-                text = "Stack Trace ({}/{}):  ".format(i, len(trace)-1)
+                text = "Stack Trace ({}/{}):  ".format(i, len(frames)-1)
                 self.setText(text)
     
     
@@ -326,6 +331,7 @@ class DebugControl(QtGui.QToolButton):
             cursor.movePosition(cursor.StartOfBlock)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
             editor.setTextCursor(cursor)
+
 
 ## Shell configuration dialog
 
