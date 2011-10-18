@@ -24,13 +24,13 @@ import webbrowser
 
 # todo: tooltips!
 
-ICONMAP = { 'file__new': iep.icons.page_white,
-            'file__open': iep.icons.folder,
-            'file__save': iep.icons.disk,
-            #'file__save_as': iep.icons.disk,
-            #'file__save_all': iep.icons.disk_multiple,
-            'file__close': iep.icons.cross,
-            #'file__close_all': iep.icons.cross,
+ICONMAP = { 'file__new': iep.icons.page_add,
+            'file__open': iep.icons.folder_page,
+            'file__save': iep.icons.page_save,
+            'file__save_as': iep.icons.page_copy,
+            'file__save_all': iep.icons.disk_multiple,
+            'file__close': iep.icons.page_delete,
+            'file__close_all': iep.icons.delete,
             'file__indentation': iep.icons.page_white_gear,
             'file__syntax_parser': iep.icons.page_white_gear,
             'file__line_endings': iep.icons.page_white_gear,
@@ -43,11 +43,31 @@ ICONMAP = { 'file__new': iep.icons.page_white,
             'edit__cut': iep.icons.cut,
             'edit__copy': iep.icons.page_white_stack,
             'edit__paste': iep.icons.paste_plain,
+            'edit__select_all': iep.icons.sum,
             'edit__indent_lines': iep.icons.text_indent,
             'edit__dedent_lines': iep.icons.text_indent_remove,
             'edit__comment_lines': iep.icons.comment_add,
             'edit__uncomment_lines': iep.icons.comment_delete,
             'edit__find_or_replace': iep.icons.find,
+            
+            'view__select_shell': iep.icons.application_home,
+            'view__select_editor': iep.icons.application_edit,
+            'view__select_previous_file': iep.icons.application_double,
+            'view__edge_column': iep.icons.text_padding_right,
+            'view__zooming': iep.icons.magnifier,
+            'view__qt_theme': iep.icons.application_view_tile,
+            
+            'settings__edit_key_mappings': iep.icons.keyboard,
+            'settings__edit_syntax_styles': iep.icons.style,
+            'settings__advanced_settings': iep.icons.cog,
+            
+            'help__website': iep.icons.help,
+            'help__ask_a_question': iep.icons.comments,
+            'help__report_an_issue': iep.icons.error_add,
+            'help__tutorial': iep.icons.report,
+            'help__view_license': iep.icons.link,
+            'help__check_for_updates': iep.icons.application_go,
+            'help__about_iep': iep.icons.information,
            }
 
 
@@ -136,18 +156,23 @@ class Menu(QtGui.QMenu):
         return name.lower()
     
     
-    def _addAction(self, properties):
+    def _addAction(self, properties, selected=None):
         """ _addAction(properties)
         
         Convenience function:
           * Call QMenu.addAction, but if properties is a tuple, unpack it 
         """
+        
         # Add the item, which can be anyting that QMenu accepts (strings, icons,
         # menus, etc.)
         if isinstance(properties, tuple):
             a = self.addAction(*properties)
         else:
             a = self.addAction(properties)        
+        
+        if selected is not None:
+            a.setCheckable(True)
+            a.setChecked(selected)
         
         # Set menu path of action
         a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
@@ -247,9 +272,16 @@ class Menu(QtGui.QMenu):
         Otherwise, it is called with the new state and value as parameters
         """
         
-        a = self.addItem(properties, callback, value)
-        a.setCheckable(True)
-        a.setChecked(selected)
+        # Add action 
+        a = self._addAction(properties, selected)
+        
+        # Connect the menu item to its callback
+        if callback:
+            if value is not None:
+                a.triggered.connect(lambda b, v = value: callback(b,v))
+            else:
+                a.triggered.connect(lambda b: callback(b))
+        
         return a
     
     
@@ -455,6 +487,7 @@ class FileMenu(Menu):
             editor.encoding = value
 
 
+# todo: move to matching brace
 class EditMenu(Menu):
     def build(self):
         
@@ -487,6 +520,9 @@ class EditMenu(Menu):
 
 
 class ZoomMenu(Menu):
+    """
+    Small menu for the zooming. Part of the view menu.
+    """
     def build(self):
         self.addItem('Zoom in', self._setZoom, +1)
         self.addItem('Zoom out', self._setZoom, -1)
@@ -497,11 +533,14 @@ class ZoomMenu(Menu):
             iep.config.view.zoom = 0
         else:
             iep.config.view.zoom += value
-            iep.config.view.zoom = min(max(iep.config.view.zoom,-8),8)
         # Apply
         for editor in iep.editors:
-            editor.setZoom(iep.config.view.zoom)
+            iep.config.view.zoom = editor.setZoom(iep.config.view.zoom)
 
+
+# todo: brace matching
+# todo: code folding
+# todo: maybe move qt theme to settings
 class ViewMenu(Menu):
     def build(self):
         
@@ -540,10 +579,11 @@ class ViewMenu(Menu):
         self.addMenu(ZoomMenu(self, "Zooming"))
         self.addMenu(self._qtThemeMenu)
     
-    
     def addEditorItem(self, name, param):
-        """ Create a boolean item that reperesents a property of the editors,
-        whose value is stored in iep.config.view.param """
+        """ 
+        Create a boolean item that reperesents a property of the editors,
+        whose value is stored in iep.config.view.param 
+        """
         if hasattr(iep.config.view, param):
             default = getattr(iep.config.view, param)
         else:
@@ -551,14 +591,13 @@ class ViewMenu(Menu):
             
         self.addCheckItem(name, self._configEditor, param, default)
     
-    
     def _configEditor(self, state, param):
         """
         Callback for addEditorItem items
         """
-        #Store this parameter in the config
+        # Store this parameter in the config
         setattr(iep.config.view, param, state)
-        #Apply to all editors, translate e.g. showWhitespace to setShowWhitespace
+        # Apply to all editors, translate e.g. showWhitespace to setShowWhitespace
         setter = 'set' + param[0].upper() + param[1:]
         for editor in iep.editors:
             getattr(editor,setter)(state)
@@ -923,6 +962,7 @@ class ToolsMenu(Menu):
 
 
 class HelpMenu(Menu):
+    
     def build(self):
         
         self.addUrlItem("Website", "http://code.google.com/p/iep/")
@@ -934,13 +974,109 @@ class HelpMenu(Menu):
         self.addItem("View license", lambda:
             iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
         
-        self.addItem("Check for updates") #TODO
-        self.addItem("About IEP", lambda: None)
-        
-
+        self.addItem("Check for updates", self._checkUpdates)
+        self.addItem("About IEP", self._aboutIep)
+    
     def addUrlItem(self, name, url):
         self.addItem(name, lambda: webbrowser.open(url))
+    
+    def _checkUpdates(self):
+        """ Check whether a newer version of IEP is available. """
+        # Get versions available
+        import urllib.request, re
+        url = "http://code.google.com/p/iep/downloads/list"
+        text = str( urllib.request.urlopen(url).read() )
+        results = []
+        for pattern in ['iep-(.{1,9}?)\.source\.zip' ]:
+            results.extend( re.findall(pattern, text) )
+        # Select best
+        remoteVersion = ''
+        for result in results:
+            if expandVersion(result) > expandVersion(remoteVersion):
+                remoteVersion = result
+        if not remoteVersion:
+            remoteVersion = '?'
+        # Define message
+        text = """ 
+        Your version of IEP is: {}
+        The latest version available is: {}\n        
+        """.format(iep.__version__, remoteVersion)
+        # Show message box
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle("Check for the latest version.")
+        if remoteVersion == '?':
+            text += "Oops, could not determine the latest version."    
+        elif expandVersion(iep.__version__) < expandVersion(remoteVersion):
+            text += "Do you want to download the latest version?"    
+            m.setStandardButtons(m.Yes | m.Cancel)
+            m.setDefaultButton(m.Cancel)
+        else:
+            text += "Your version is up to date."    
+        m.setText(text)
+        m.setIcon(m.Information)
+        result = m.exec_()
+        # Goto webpage if user chose to
+        if result == m.Yes:
+            import webbrowser
+            webbrowser.open("http://code.google.com/p/iep/downloads/list")
+    
+    def _aboutIep(self):
+        aboutText = """
+        <h2>IEP: the Interactive Editor for Python</h2>
         
+        <b>Version info</b><br>
+        IEP version: <u>{}</u><br>
+        Platform: {}<br>
+        Python version: {}<br>
+        Qt version: {}<br>
+        PyQt version: {}<br>
+        <br>
+        
+        <b>IEP directories</b><br>
+        IEP source directory: {}<br>
+        IEP userdata directory: {}<br>
+        <br>
+        
+        <b>Acknowledgements</b><br>
+        IEP is written in Python 3 and uses the Qt4 widget
+        toolkit. IEP uses code and concepts that are inspired by 
+        IPython, Pype, and Spyder.
+        IEP uses a (modified) subset of the silk icon set, 
+        by Mark James (http://www.famfamfam.com/lab/icons/silk/).
+        <br><br>
+        
+        <b>License</b><br>
+        Copyright (c) 2010, the IEP development team<br>
+        IEP is distributed under the terms of the (new) BSD License.<br>
+        The full license can be found in 'license.txt'.
+        <br><br>
+        
+        <b>Developers</b><br>
+        Almar Klein<br>
+        Rob Reilink<br>
+        Ludo Visser<br>
+        
+        """
+        # Insert information texts
+        if iep.isFrozen():
+            versionText = iep.__version__ + ' (binary)'
+        else:
+            versionText = iep.__version__ + ' (source)'
+        aboutText = aboutText.format(versionText, 
+                        sys.platform, sys.version.split(' ')[0],
+                        QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR,
+                        iep.iepDir, iep.appDataDir)
+        
+        # Define icon and text
+        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
+        # Show message box
+        m = QtGui.QMessageBox(self)
+        m.setTextFormat(QtCore.Qt.RichText)
+        m.setWindowTitle("About IEP")
+        m.setText(unwrapText(aboutText))
+        m.setIconPixmap(im)
+        m.exec_()
+
 
 def buildMenus(menuBar):
     """
@@ -963,12 +1099,21 @@ def buildMenus(menuBar):
 
 BaseMenu=object
 
+# todo: syntax styles now uses a new system. Make dialog for it!
+# todo: put many settings in a settings dialog:
+# - autocomp use keywords
+# - autocomp case sensitive
+# - autocomp select chars
+# - Default parser / indentation (width and tabsOrSpaces) / line endings
+# - Shell wrapping to 80 columns?
+# - number of lines in shell
+# - more stuff from iep.config.advanced?
+
 class SettingsMenu(Menu):
     def build(self):
-        #TODO: auto indent is not linked to config settings
-        #TODO: call tips not yet implemented
         self.addBoolSetting('Automatically indent', 'autoIndent',
             lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
+        self.addBoolSetting('Enable calltips', 'autoCallTip')
         self.addBoolSetting('Enable autocompletion', 'autoComplete')
         self.addBoolSetting('Autocomplete keywords', 'autoComplete_keywords')
         self.addSeparator()
@@ -976,7 +1121,7 @@ class SettingsMenu(Menu):
         self.addItem('Edit syntax styles...', self.editStyles)
         self.addItem('Advanced settings...', self.advancedSettings)
         
-    def editStyles(self, value):
+    def editStyles(self):
         """ Edit the style file. """
         text = """
         The syntax styling can be changed by editing the style
@@ -993,8 +1138,8 @@ class SettingsMenu(Menu):
         result = m.exec_()
         if result == m.Ok:
             iep.editors.loadFile(os.path.join(iep.appDataDir,'styles.ssdf'))
-            
-    def advancedSettings(self, value):
+    
+    def advancedSettings(self):
         """ How to edit the advanced settings. """
         text = """
         More settings are available via the logger-tool:

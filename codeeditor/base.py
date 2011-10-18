@@ -380,10 +380,18 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         Set the zooming of the document. The font size is always the default
         font size + the zoom factor.
         
+        The final zoom is returned, this not be the same as the given
+        zoom factor if the given factor is too small.
+        
         """
-        self.__zoom = int(zoom)
+        # Set zoom (limit such that final pointSize >= 1)
+        size = Manager.defaultFont().pointSize()
+        self.__zoom = int(max(1-size,zoom))
+        # Set font
         self.setFont(self.fontInfo().family())
-    
+        # Return zoom
+        return self.__zoom
+        
     
     ## Syntax / styling
     
