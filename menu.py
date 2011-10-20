@@ -22,82 +22,107 @@ from compactTabWidget import CompactTabWidget
 from iepLogging import print
 import webbrowser
 
-# todo: tooltips!
+# todo: put in resource file
+_MENUMETAMAP = """
+tooltipMap = dict:
+    file__new = 'Create a new (or temporary) file.'
+    file__open = 'Open an existing file from disk.'
+    file__save = 'Save the current file to disk.'
+    file__save_as = 'Save the current file under another name.'
+    file__save_all = 'Save all open files.'
+    file__close = 'Close the current file.'
+    file__close_all = 'Close all files.'
+    file__indentation = 'The indentation used of the current file.'
+    file__syntax_parser = 'The syntax parser of the current file.'
+    file__line_endings = 'The line ending character of the current file.'
+    file__encoding = 'The character encoding of the current file.'
+    file__restart_iep = 'Restart the application.'
+    file__quit_iep = 'Close the application.'
 
-_ICONMAP = """
-file__new = 'page_add'
-file__open = 'folder_page'
-file__save = 'disk'
-file__save_as = 'disk_as'
-file__save_all = 'disk_multiple'
-file__close = 'page_delete'
-file__close_all = 'delete'
-file__indentation = 'page_white_gear'
-file__syntax_parser = 'page_white_gear'
-file__line_endings = 'page_white_gear'
-file__encoding = 'page_white_gear'
-file__restart_iep = 'arrow_rotate_clockwise'
-file__quit_iep = 'cancel'
 
-edit__undo = 'arrow_undo'
-edit__redo = 'arrow_redo'
-edit__cut = 'cut'
-edit__copy = 'page_white_copy'
-edit__paste = 'paste_plain'
-edit__select_all = 'sum'
-edit__indent_lines = 'text_indent'
-edit__dedent_lines = 'text_indent_remove'
-edit__comment_lines = 'comment_add'
-edit__uncomment_lines = 'comment_delete'
-edit__find_or_replace = 'find'
-
-view__select_shell = 'application_home'
-view__select_editor = 'application_edit'
-view__select_previous_file = 'application_double'
-view__edge_column = 'text_padding_right'
-view__zooming = 'magnifier'
-view__qt_theme = 'application_view_tile'
-
-settings__edit_key_mappings = 'keyboard'
-settings__edit_syntax_styles = 'style'
-settings__advanced_settings = 'cog'
-run__run_selected_lines = 'run_lines'
-
-shell__interrupt_current_shell = 'application_lightning'
-shell__terminate_current_shell = 'application_delete'
-shell__restart_current_shell = 'application_refresh'
-shell__clear_screen = 'application_eraser'
-shell__edit_shell_configurations = 'application_wrench'
-
-run__run_cell = 'run_cell'
-run__run_file = 'run_file'
-run__run_main_file = 'run_mainfile'
-run__run_file_as_script = 'run_file_script'
-run__run_main_file_as_script = 'run_mainfile_script'
-run__help_on_running_code = 'information'
-
-tools__reload_tools = 'plugin_refresh'
-
-help__website = 'help'
-help__ask_a_question = 'comments'
-help__report_an_issue = 'error_add'
-help__tutorial = 'report'
-help__view_license = 'link'
-help__check_for_updates = 'application_go'
-help__about_iep = 'information'
+iconMap = dict:
+    file__new = 'page_add'
+    file__open = 'folder_page'
+    file__save = 'disk'
+    file__save_as = 'disk_as'
+    file__save_all = 'disk_multiple'
+    file__close = 'page_delete'
+    file__close_all = 'delete'
+    file__indentation = 'page_white_gear'
+    file__syntax_parser = 'page_white_gear'
+    file__line_endings = 'page_white_gear'
+    file__encoding = 'page_white_gear'
+    file__restart_iep = 'arrow_rotate_clockwise'
+    file__quit_iep = 'cancel'
+    
+    edit__undo = 'arrow_undo'
+    edit__redo = 'arrow_redo'
+    edit__cut = 'cut'
+    edit__copy = 'page_white_copy'
+    edit__paste = 'paste_plain'
+    edit__select_all = 'sum'
+    edit__indent_lines = 'text_indent'
+    edit__dedent_lines = 'text_indent_remove'
+    edit__comment_lines = 'comment_add'
+    edit__uncomment_lines = 'comment_delete'
+    edit__find_or_replace = 'find'
+    
+    view__select_shell = 'application_home'
+    view__select_editor = 'application_edit'
+    view__select_previous_file = 'application_double'
+    view__edge_column = 'text_padding_right'
+    view__zooming = 'magnifier'
+    view__qt_theme = 'application_view_tile'
+    
+    settings__edit_key_mappings = 'keyboard'
+    settings__edit_syntax_styles = 'style'
+    settings__advanced_settings = 'cog'
+    run__run_selected_lines = 'run_lines'
+    
+    shell__interrupt = 'application_lightning'
+    shell__terminate = 'application_delete'
+    shell__restart = 'application_refresh'
+    shell__clear_screen = 'application_eraser'
+    shell__edit_shell_configurations = 'application_wrench'
+    
+    shelltabmenu__interrupt = 'application_lightning'
+    shelltabmenu__terminate = 'application_delete'
+    shelltabmenu__restart = 'application_refresh'
+    shelltabmenu__clear_screen = 'application_eraser'
+    
+    run__run_cell = 'run_cell'
+    run__run_file = 'run_file'
+    run__run_main_file = 'run_mainfile'
+    run__run_file_as_script = 'run_file_script'
+    run__run_main_file_as_script = 'run_mainfile_script'
+    run__help_on_running_code = 'information'
+    
+    tools__reload_tools = 'plugin_refresh'
+    
+    help__website = 'help'
+    help__ask_a_question = 'comments'
+    help__report_an_issue = 'error_add'
+    help__tutorial = 'report'
+    help__view_license = 'link'
+    help__check_for_updates = 'application_go'
+    help__about_iep = 'information'
 """
 
-# Create map of icons in a robust fashion 
+# Create map of icons and tooltips in a robust fashion 
 # (if an icon is missing or unreadable, it is simply not shown)
-def getIcons():
-    M = {}
-    s = iep.ssdf.loads(_ICONMAP)
-    for key in s:
-        iconName = s[key]
+def getIconAndTooltipMap():
+    Mi, Mt = {}, {}
+    s = iep.ssdf.loads(_MENUMETAMAP)
+    for key in s.iconMap:
+        iconName = s.iconMap[key]
         if iconName in iep.icons:
-            M[key] = iep.icons[iconName]
-    return M
-ICONMAP = getIcons()
+            Mi[key] = iep.icons[iconName]
+    for key in s.tooltipMap:
+        tooltip = s.tooltipMap[key]
+        if tooltip:
+            Mt[key] = tooltip
+    return Mi, Mt
+ICONMAP, TOOLTIPMAP = getIconAndTooltipMap()
 
 
 class KeyMapper(QtCore.QObject):
@@ -165,7 +190,7 @@ class Menu(QtGui.QMenu):
         else:
             self.menuPath = '' #This is a top-level menu
         self.menuPath += self._createMenuPathName(name)
-        
+                
         # Build the menu. Happens only once
         self.build()
     
@@ -210,9 +235,11 @@ class Menu(QtGui.QMenu):
         iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
         iep.keyMapper.setShortcut(a) 
         
-        # Set icon if we must
+        # Set icon and tooltip (if available)
         if a.menuPath in ICONMAP:
             a.setIcon(ICONMAP[a.menuPath])
+        if a.menuPath in TOOLTIPMAP:
+            a.setStatusTip(TOOLTIPMAP[a.menuPath])
         
         return a
     
@@ -229,11 +256,14 @@ class Menu(QtGui.QMenu):
         """
         
         # Add menu in the conventional way
-        QtGui.QMenu.addMenu(self, menu)
+        a = QtGui.QMenu.addMenu(self, menu)
+        a.menuPath = menu.menuPath
         
-        # Set icon if we must
-        if menu.menuPath in ICONMAP:
-            menu.setIcon(ICONMAP[menu.menuPath])
+        # Set icon and tooltip (if available)
+        if a.menuPath in ICONMAP:
+            a.setIcon(ICONMAP[a.menuPath])
+        if a.menuPath in TOOLTIPMAP:
+            a.setStatusTip(TOOLTIPMAP[a.menuPath])
         
         return menu
     
@@ -663,23 +693,23 @@ class ShellMenu(Menu):
         """ Enable/disable shell actions based on wether a shell is available """
         for shellAction in self._shellActions:
             shellAction.setEnabled(bool(iep.shells.getCurrentShell()))
-            
+    
     def build(self):
         """ Create the items for the shells menu """
         self._shellActions = [
-            self.addItem('Interrupt current shell', self.shellAction, "interrupt"),
-            self.addItem('Terminate current shell', self.shellAction, "terminate"),
-            self.addItem('Restart current shell', self.shellAction, "restart"),
-            self.addItem('Clear screen', self.shellAction, "clearScreen"),
+            self.addItem('Interrupt', self._shellAction, "interrupt"),
+            self.addItem('Terminate', self._shellAction, "terminate"),
+            self.addItem('Restart', self._shellAction, "restart"),
+            self.addItem('Clear screen', self._shellAction, "clearScreen"),
             ]
         
         self.addSeparator()
-        self.addItem('Edit shell configurations...', self.editConfig)
+        self.addItem('Edit shell configurations...', self._editConfig)
         
         # Add shell configs
-        self.updateShells()    
+        self._updateShells()    
     
-    def updateShells(self):
+    def _updateShells(self):
         """ Remove, then add the items for the creation of each shell """
         for action in self._shellCreateActions:
             self.removeAction(action)
@@ -691,23 +721,28 @@ class ShellMenu(Menu):
             action.setIcon(iep.icons.application_add)
             self._shellCreateActions.append(action)
     
-    def shellAction(self, action):
-        """ Call the method specified by 'action' on the current shell """
+    def _shellAction(self, action):
+        """ Call the method specified by 'action' on the current shell.
+        """
         shell = iep.shells.getCurrentShell()
         if shell:
             # Call the specified action
             getattr(shell,action)()
     
-    def editConfig(self):
+    def _editConfig(self):
         """ Edit, add and remove configurations for the shells. """
         from shellStack import ShellConfigDialog 
         d = ShellConfigDialog()
         d.exec_()
         # Update the shells items in the menu
-        self.updateShells()
+        self._updateShells()
 
-
+# todo: is there no way to combine menus, or reuse (parts of) them easier?
+# Frankly, I dont think it necessary to have the interrupt etc in the context menu
+# there should be one way to do it. Well in an IDE you mostly have 2 or 3, but
+# still, you already have the tab context menu, right?
 class ShellContextMenu(ShellMenu):
+    
     def __init__(self, *args, **kwds):
         ShellMenu.__init__(self, *args, **kwds)
     
@@ -737,6 +772,7 @@ class ShellContextMenu(ShellMenu):
         if hasattr(widget, action):
             getattr(widget, action)()
 
+
 class ShellTabContextMenu(ShellMenu):
     def __init__(self, *args, **kwds):
         ShellMenu.__init__(self, *args, **kwds)
@@ -748,11 +784,11 @@ class ShellTabContextMenu(ShellMenu):
     def build(self):
         """ Build menu """
         
-        self.addItem('Interrupt', self._shellAction, "interrupt"),
-        self.addItem('Terminate', self._shellAction, "terminate"),
-        self.addItem('Restart', self._shellAction, "restart"),
-        self.addItem('Clear screen', self._shellAction, "clearScreen"),
-
+        self.addItem('Interrupt', self._shellAction, "interrupt")
+        self.addItem('Terminate', self._shellAction, "terminate")
+        self.addItem('Restart', self._shellAction, "restart")
+        self.addItem('Clear screen', self._shellAction, "clearScreen")
+        
     def _shellAction(self, action):
         """ Call the method specified by 'action' on the selected shell """
         
@@ -761,21 +797,23 @@ class ShellTabContextMenu(ShellMenu):
             # Call the specified action
             getattr(shell,action)()
 
+
 class RunMenu(Menu):
+    
     def build(self):
-        self.addItem('Run selected lines', self.runSelected)
-        self.addItem('Run cell', self.runCell)
-        #In the runFile calls, the parameter specifies (asFile, mainFile)
-        self.addItem('Run file', self.runFile,(False, False))
-        self.addItem('Run main file', self.runFile,(False, True))
+        self.addItem('Run selected lines', self._runSelected)
+        self.addItem('Run cell', self._runCell)
+        #In the _runFile calls, the parameter specifies (asScript, mainFile)
+        self.addItem('Run file', self._runFile,(False, False))
+        self.addItem('Run main file', self._runFile,(False, True))
         self.addSeparator()
-        self.addItem('Run file as script', self.runFile, (True, False))
-        self.addItem('Run main file as script', self.runFile, (True, True))
+        self.addItem('Run file as script', self._runFile, (True, False))
+        self.addItem('Run main file as script', self._runFile, (True, True))
         self.addSeparator()
-        self.addItem('Help on running code', self.showHelp)
+        self.addItem('Help on running code', self._showHelp)
 
     
-    def showHelp(self, value):
+    def _showHelp(self):
         """ Show more information about ways to run code. """
         
         # Get file item
@@ -789,7 +827,7 @@ class RunMenu(Menu):
             iep.editors.getCurrentEditor().setFocus()
     
     
-    def getShellAndEditor(self, what, mainEditor=False):
+    def _getShellAndEditor(self, what, mainEditor=False):
         """ Get the shell and editor. Shows a warning dialog when one of
         these is not available.
         """
@@ -819,12 +857,14 @@ class RunMenu(Menu):
         return shell, editor
         
 
-    def runSelected(self, value):
-        """ Run the selected whole lines in the current shell. """
+    def _runSelected(self):
+        """ Run the selected whole lines in the current shell. 
+        """
         # Get editor and shell
-        shell, editor = self.getShellAndEditor('selected lines')
+        shell, editor = self._getShellAndEditor('selected lines')
         if not shell or not editor:
             return
+        
         # Get position to sample between (only sample whole lines)
         screenCursor = editor.textCursor() #Current selection in the editor
         runCursor = editor.textCursor() #The part that should be run
@@ -838,31 +878,29 @@ class RunMenu(Menu):
             #If the end of the selection is at the beginning of a block, don't extend it
             runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
         
-        # Sample code 
-        code = runCursor.selectedText().replace('\u2029', '\n') 
-        # Show the result to user and set back
-        editor.setTextCursor(runCursor)
-        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setTextCursor(screenCursor)
-        # Execute code
+        # Get source code
+        code = runCursor.selectedText().replace('\u2029', '\n')
+        # Notify user of what we execute
+        self._showWhatToExecute(editor, runCursor)
+        # Get filename and run code
         fname = editor.id() # editor._name or editor._filename
         shell.executeCode(code, fname, lineNumber)
     
-    def runCell(self, value):
-        """ Run the code between two cell separaters ('##'). """
+    def _runCell(self):
+        """ Run the code between two cell separaters ('##'). 
+        """
         #TODO: ignore ## in multi-line strings
+        # Maybe using source-structure information?
         
         # Get editor and shell
-        shell, editor = self.getShellAndEditor('cell')
+        shell, editor = self._getShellAndEditor('cell')
         if not shell or not editor:
             return 
-        # Get current cell
-        screenCursor = editor.textCursor() #Current selection in the editor
-        runCursor = editor.textCursor() #The part that should be run
         
-        # Move up until the start of document or right after a line starting with ##
+        # Get current cell
+        # Move up until the start of document 
+        # or right after a line starting with '##'  
+        runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         while True:
             if not runCursor.block().previous().isValid():
@@ -877,10 +915,11 @@ class RunMenu(Menu):
                 break
             runCursor.movePosition(runCursor.PreviousBlock)
         
-        #This is the line number of the start
+        # This is the line number of the start
         lineNumber = runCursor.blockNumber()
         
-        #Move down until a line before one starting with ## or to end of document
+        # Move down until a line before one starting with'##' 
+        # or to end of document
         while True:
             if runCursor.block().text().lstrip().startswith('##'):
                 #This line starts with ##, move to the end of the previous one
@@ -892,36 +931,42 @@ class RunMenu(Menu):
                 break
             runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
         
-        
-        # Sample code 
+        # Get source code
         code = runCursor.selectedText().replace('\u2029', '\n')
-        # Show the result to user and set back
-        editor.setTextCursor(runCursor)
-        editor.update() #TODO: this doesn't work yet (at lease Mac OS X)
-        editor.repaint()
-        time.sleep(0.200)
-        editor.setTextCursor(screenCursor)
-        # Execute code
+        # Notify user of what we execute
+        self._showWhatToExecute(editor, runCursor)
+        # Get filename and run code
         fname = editor.id() # editor._name or editor._filename
         shell.executeCode(code, fname, lineNumber)
     
+    def _showWhatToExecute(self, editor, runCursor=None):
+        # Get runCursor for whole document if not given
+        if runCursor is None:
+            runCursor = editor.textCursor()
+            runCursor.movePosition(runCursor.Start)
+            runCursor.movePosition(runCursor.End, 1)
+        # Store original cursor and set run cursor
+        textCursor = editor.textCursor()
+        editor.setTextCursor(runCursor)
+        # Make sure its visible. For some reasone we need to 
+        # repain twice on Linux and Mac
+        # todo: test if it works on the Mac too now
+        editor.repaint()
+        editor.repaint()
+        # Wait for a bit and set back
+        time.sleep(0.200) # ms
+        editor.setTextCursor(textCursor)
     
     def _getCodeOfFile(self, editor):
         # Obtain source code
         text = editor.toPlainText()
-        # TODO:?? Show the result to user and set back
-        #i1, i2 = editor.getPosition(), editor.getAnchor()
-        #editor.setPosition(0); editor.setAnchor(editor.length())
-        #editor.update()
-        #editor.repaint()
-        #time.sleep(0.200)
-        #editor.setPosition(i1); editor.setAnchor(i2)
+        # Show what we execute
+        self._showWhatToExecute(editor)
         # Get filename and return 
         fname = editor.id() # editor._name or editor._filename
         return fname, text
     
-    
-    def runFile(self, runMode, givenEditor = None):
+    def _runFile(self, runMode, givenEditor=None):
         """ Run a file
          runMode is a tuple (asScript, mainFile)
          """
@@ -930,9 +975,9 @@ class RunMenu(Menu):
         # Get editor and shell
         description = 'main file' if mainFile else 'file'
         if asScript:
-            description+= ' (as script)'
+            description += ' (as script)'
         
-        shell, editor = self.getShellAndEditor(description, mainFile)
+        shell, editor = self._getShellAndEditor(description, mainFile)
         if givenEditor:
             editor = givenEditor
         if not shell or not editor:
@@ -946,15 +991,12 @@ class RunMenu(Menu):
             fname, text = self._getCodeOfFile(editor)
             shell.executeCode(text, fname, -1)
     
-
-    
-    
-    # todo: pass as code, not filename
     def _runScript(self, editor, shell):
         # Obtain fname and try running
         err = ""
         if editor._filename:
             if iep.editors.saveFile(editor):
+                self._showWhatToExecute(editor)
                 shell.restart(editor._filename)
             else:
                 err = "Could not save the file."
@@ -967,7 +1009,6 @@ class RunMenu(Menu):
             m.setText(err)
             m.setIcon(m.Warning)
             m.exec_()
-
 
 
 class ToolsMenu(Menu):
@@ -1015,6 +1056,16 @@ class HelpMenu(Menu):
     def addUrlItem(self, name, url):
         self.addItem(name, lambda: webbrowser.open(url))
     
+    def _expandVersion(self, version):        
+        parts = []
+        for ver in version.split('.'):
+            try:
+                tmp = '%05i' % int(ver)
+                parts.append(tmp)
+            except ValueError: 
+                parts.append(ver)
+        return '.'.join(parts)    
+    
     def _checkUpdates(self):
         """ Check whether a newer version of IEP is available. """
         # Get versions available
@@ -1027,7 +1078,7 @@ class HelpMenu(Menu):
         # Select best
         remoteVersion = ''
         for result in results:
-            if expandVersion(result) > expandVersion(remoteVersion):
+            if self._expandVersion(result) > self._expandVersion(remoteVersion):
                 remoteVersion = result
         if not remoteVersion:
             remoteVersion = '?'
@@ -1041,7 +1092,7 @@ class HelpMenu(Menu):
         m.setWindowTitle("Check for the latest version.")
         if remoteVersion == '?':
             text += "Oops, could not determine the latest version."    
-        elif expandVersion(iep.__version__) < expandVersion(remoteVersion):
+        elif self._expandVersion(iep.__version__) < self._expandVersion(remoteVersion):
             text += "Do you want to download the latest version?"    
             m.setStandardButtons(m.Yes | m.Cancel)
             m.setDefaultButton(m.Cancel)
@@ -1130,7 +1181,28 @@ def buildMenus(menuBar):
     for menu in menus:
         menuBar.addMenu(menu)
     menuBar._menus = menus
-
+    
+    # Enable tooltips
+    def onHover(action):
+        # This ugly bit of code makes sure that the tooltip is refreshed
+        # (thus raised above the submenu). This happens only once and after
+        # ths submenu has become visible.
+        if action.menu():
+            if not hasattr(QtGui.QToolTip, '_lastAction'):
+                QtGui.QToolTip._lastAction = None
+                QtGui.QToolTip._haveRaisedTooltip = False
+            if action is QtGui.QToolTip._lastAction:
+                if ((not QtGui.QToolTip._haveRaisedTooltip) and 
+                            action.menu().isVisible()):
+                    QtGui.QToolTip.hideText()
+                    QtGui.QToolTip._haveRaisedTooltip = True
+            else:
+                QtGui.QToolTip._lastAction = action
+                QtGui.QToolTip._haveRaisedTooltip = False
+        # Set tooltip
+        QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.statusTip())
+    menuBar.hovered.connect(onHover)
+            
 
 BaseMenu=object
 
@@ -1153,10 +1225,10 @@ class SettingsMenu(Menu):
         self.addBoolSetting('Autocomplete keywords', 'autoComplete_keywords')
         self.addSeparator()
         self.addItem('Edit key mappings...', lambda: KeymappingDialog().exec_())
-        self.addItem('Edit syntax styles...', self.editStyles)
-        self.addItem('Advanced settings...', self.advancedSettings)
+        self.addItem('Edit syntax styles...', self._editStyles)
+        self.addItem('Advanced settings...', self._advancedSettings)
         
-    def editStyles(self):
+    def _editStyles(self):
         """ Edit the style file. """
         text = """
         The syntax styling can be changed by editing the style
@@ -1174,7 +1246,7 @@ class SettingsMenu(Menu):
         if result == m.Ok:
             iep.editors.loadFile(os.path.join(iep.appDataDir,'styles.ssdf'))
     
-    def advancedSettings(self):
+    def _advancedSettings(self):
         """ How to edit the advanced settings. """
         text = """
         More settings are available via the logger-tool:
@@ -1380,122 +1452,7 @@ class xSettingsMenu(BaseMenu):
         widget.setFocus()
     
 
-def expandVersion(version):        
-        parts = []
-        for ver in version.split('.'):
-            try:
-                tmp = '%05i' % int(ver)
-                parts.append(tmp)
-            except ValueError: 
-                parts.append(ver)
-        return '.'.join(parts)
 
-class xHelpMenu(BaseMenu):
-
-    
-    def fun_updates(self, value):
-        """ Check whether a newer version of IEP is available. """
-        # Get versions available
-        import urllib.request, re
-        url = "http://code.google.com/p/iep/downloads/list"
-        text = str( urllib.request.urlopen(url).read() )
-        results = []
-        for pattern in ['iep-(.{1,9}?)\.source\.zip' ]:
-            results.extend( re.findall(pattern, text) )
-        # Select best
-        remoteVersion = ''
-        for result in results:
-            if expandVersion(result) > expandVersion(remoteVersion):
-                remoteVersion = result
-        if not remoteVersion:
-            remoteVersion = '?'
-        # Define message
-        text = """ 
-        Your version of IEP is: {}
-        The latest version available is: {}\n        
-        """.format(iep.__version__, remoteVersion)
-        # Show message box
-        m = QtGui.QMessageBox(self)
-        m.setWindowTitle("Check for the latest version.")
-        if remoteVersion == '?':
-            text += "Oops, could not determine the latest version."    
-        elif expandVersion(iep.__version__) < expandVersion(remoteVersion):
-            text += "Do you want to download the latest version?"    
-            m.setStandardButtons(m.Yes | m.Cancel)
-            m.setDefaultButton(m.Cancel)
-        else:
-            text += "Your version is up to date."    
-        m.setText(text)
-        m.setIcon(m.Information)
-        result = m.exec_()
-        # Goto webpage if user chose to
-        if result == m.Yes:
-            import webbrowser
-            webbrowser.open("http://code.google.com/p/iep/downloads/list")
-    
-
-    
-    def fun_about(self, value):
-        """ Show the about text for IEP. """
-        
-        aboutText = """
-        <h2>IEP: the Interactive Editor for Python</h2>
-        
-        <b>Version info</b><br>
-        IEP version: <u>{}</u><br>
-        Platform: {}<br>
-        Python version: {}<br>
-        Qt version: {}<br>
-        PyQt version: {}<br>
-        <br>
-        
-        <b>IEP directories</b><br>
-        IEP source directory: {}<br>
-        IEP userdata directory: {}<br>
-        <br>
-        
-        <b>Acknowledgements</b><br>
-        IEP is written in Python 3 and uses the Qt4 widget
-        toolkit. IEP uses code and concepts that are inspired by 
-        IPython, Pype, and Spyder.
-        IEP uses a (modified) subset of the silk icon set, 
-        by Mark James (http://www.famfamfam.com/lab/icons/silk/).
-        <br><br>
-        
-        <b>License</b><br>
-        Copyright (c) 2010, the IEP development team<br>
-        IEP is distributed under the terms of the (new) BSD License.<br>
-        The full license can be found in 'license.txt'.
-        <br><br>
-        
-        <b>Developers</b><br>
-        Almar Klein (almar.klein AT gmail DOT com)<br>
-        Rob Reilink<br>
-        
-        """
-        # Insert information texts
-        if iep.isFrozen():
-            versionText = iep.__version__ + ' (binary)'
-        else:
-            versionText = iep.__version__ + ' (source)'
-        aboutText = aboutText.format(versionText, 
-                        sys.platform, sys.version.split(' ')[0],
-                        QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR,
-                        iep.iepDir, iep.appDataDir)
-        
-        # Define icon and text
-        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
-        # Show message box
-        m = QtGui.QMessageBox(self)
-        m.setTextFormat(QtCore.Qt.RichText)
-        m.setWindowTitle("About IEP")
-        m.setText(unwrapText(aboutText))
-        m.setIconPixmap(im)
-        m.exec_()
-    
-    
-
-    
     
 
 def getFullName(action):
