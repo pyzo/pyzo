@@ -52,7 +52,7 @@ excludes = ['_ssl', 'pyreadline', 'pdb',
      "matplotlib", 'doctest', 
     "scipy.linalg", "scipy.special", "Pyrex", 
     "numpy.core._dotblas",
-	"PyQt4.uic.port_v2", "PyQt4.QtWebKit"
+    "PyQt4.uic.port_v2", "PyQt4.QtWebKit"
     ]
 
 # Excludes for tk
@@ -64,7 +64,8 @@ excludes.append('numpy')
 
 # For qt to work
 # todo: remove Qsci, enable pyside?
-includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui"] 
+includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 
+    "PyQt4.uic", "PyQt4.uic.uiparser", "PyQt4.uic.Compiler.qobjectcreator"] 
 
 
 ## Go!
@@ -123,7 +124,13 @@ iconsDir  = srcDir + 'icons/'
 iconsDir2 = srcDir2 + 'icons/'
 if not os.path.isdir(iconsDir2):
     os.mkdir(iconsDir2)
-    
+
+# Create gui dir in frozen app
+guiDir  = srcDir + 'gui/'
+guiDir2 = srcDir2 + 'gui/'
+if not os.path.isdir(guiDir2):
+    os.mkdir(guiDir2)
+
 # Copy all source files
 for fname in os.listdir(srcDir):
     if os.path.isfile(srcDir+fname) and not fname.endswith('.pyc'):
@@ -133,7 +140,8 @@ for fname in os.listdir(toolsDir):
         shutil.copy(toolsDir+fname, toolsDir2+fname)
 for fname in os.listdir(iconsDir):
     shutil.copy(iconsDir+fname, iconsDir2+fname)
-
+for fname in os.listdir(guiDir):
+    shutil.copy(guiDir+fname, guiDir2+fname)
 
 # Remove dummy executable
 tmp1 = os.path.join(distDir,'iep_.exe')

@@ -336,8 +336,8 @@ class DebugControl(QtGui.QToolButton):
 ## Shell configuration dialog
 
 # Load classes for configuration dialog and tabs
-ShellCfgDlg, ShellCfgDlgBase = uic.loadUiType("gui/shells_dialog.ui")
-ShellCfgTab, ShellCfgTabBase = uic.loadUiType("gui/shell_tab.ui")
+ShellCfgDlg, ShellCfgDlgBase = uic.loadUiType(iep.iepDir + "/gui/shells_dialog.ui")
+ShellCfgTab, ShellCfgTabBase = uic.loadUiType(iep.iepDir + "/gui/shell_tab.ui")
 
 class ShellConfigTab(ShellCfgTab, ShellCfgTabBase):
     """
