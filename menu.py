@@ -24,51 +24,80 @@ import webbrowser
 
 # todo: tooltips!
 
-ICONMAP = { 'file__new': iep.icons.page_add,
-            'file__open': iep.icons.folder_page,
-            'file__save': iep.icons.page_save,
-            'file__save_as': iep.icons.page_copy,
-            'file__save_all': iep.icons.disk_multiple,
-            'file__close': iep.icons.page_delete,
-            'file__close_all': iep.icons.delete,
-            'file__indentation': iep.icons.page_white_gear,
-            'file__syntax_parser': iep.icons.page_white_gear,
-            'file__line_endings': iep.icons.page_white_gear,
-            'file__encoding': iep.icons.page_white_gear,
-            'file__restart_iep': iep.icons.arrow_rotate_clockwise,
-            'file__quit_iep': iep.icons.cancel,
-            
-            'edit__undo': iep.icons.arrow_undo,
-            'edit__redo': iep.icons.arrow_redo,
-            'edit__cut': iep.icons.cut,
-            'edit__copy': iep.icons.page_white_stack,
-            'edit__paste': iep.icons.paste_plain,
-            'edit__select_all': iep.icons.sum,
-            'edit__indent_lines': iep.icons.text_indent,
-            'edit__dedent_lines': iep.icons.text_indent_remove,
-            'edit__comment_lines': iep.icons.comment_add,
-            'edit__uncomment_lines': iep.icons.comment_delete,
-            'edit__find_or_replace': iep.icons.find,
-            
-            'view__select_shell': iep.icons.application_home,
-            'view__select_editor': iep.icons.application_edit,
-            'view__select_previous_file': iep.icons.application_double,
-            'view__edge_column': iep.icons.text_padding_right,
-            'view__zooming': iep.icons.magnifier,
-            'view__qt_theme': iep.icons.application_view_tile,
-            
-            'settings__edit_key_mappings': iep.icons.keyboard,
-            'settings__edit_syntax_styles': iep.icons.style,
-            'settings__advanced_settings': iep.icons.cog,
-            
-            'help__website': iep.icons.help,
-            'help__ask_a_question': iep.icons.comments,
-            'help__report_an_issue': iep.icons.error_add,
-            'help__tutorial': iep.icons.report,
-            'help__view_license': iep.icons.link,
-            'help__check_for_updates': iep.icons.application_go,
-            'help__about_iep': iep.icons.information,
-           }
+_ICONMAP = """
+file__new = 'page_add'
+file__open = 'folder_page'
+file__save = 'disk'
+file__save_as = 'disk_as'
+file__save_all = 'disk_multiple'
+file__close = 'page_delete'
+file__close_all = 'delete'
+file__indentation = 'page_white_gear'
+file__syntax_parser = 'page_white_gear'
+file__line_endings = 'page_white_gear'
+file__encoding = 'page_white_gear'
+file__restart_iep = 'arrow_rotate_clockwise'
+file__quit_iep = 'cancel'
+
+edit__undo = 'arrow_undo'
+edit__redo = 'arrow_redo'
+edit__cut = 'cut'
+edit__copy = 'page_white_copy'
+edit__paste = 'paste_plain'
+edit__select_all = 'sum'
+edit__indent_lines = 'text_indent'
+edit__dedent_lines = 'text_indent_remove'
+edit__comment_lines = 'comment_add'
+edit__uncomment_lines = 'comment_delete'
+edit__find_or_replace = 'find'
+
+view__select_shell = 'application_home'
+view__select_editor = 'application_edit'
+view__select_previous_file = 'application_double'
+view__edge_column = 'text_padding_right'
+view__zooming = 'magnifier'
+view__qt_theme = 'application_view_tile'
+
+settings__edit_key_mappings = 'keyboard'
+settings__edit_syntax_styles = 'style'
+settings__advanced_settings = 'cog'
+run__run_selected_lines = 'run_lines'
+
+shell__interrupt_current_shell = 'application_lightning'
+shell__terminate_current_shell = 'application_delete'
+shell__restart_current_shell = 'application_refresh'
+shell__clear_screen = 'application_eraser'
+shell__edit_shell_configurations = 'application_wrench'
+
+run__run_cell = 'run_cell'
+run__run_file = 'run_file'
+run__run_main_file = 'run_mainfile'
+run__run_file_as_script = 'run_file_script'
+run__run_main_file_as_script = 'run_mainfile_script'
+run__help_on_running_code = 'information'
+
+tools__reload_tools = 'plugin_refresh'
+
+help__website = 'help'
+help__ask_a_question = 'comments'
+help__report_an_issue = 'error_add'
+help__tutorial = 'report'
+help__view_license = 'link'
+help__check_for_updates = 'application_go'
+help__about_iep = 'information'
+"""
+
+# Create map of icons in a robust fashion 
+# (if an icon is missing or unreadable, it is simply not shown)
+def getIcons():
+    M = {}
+    s = iep.ssdf.loads(_ICONMAP)
+    for key in s:
+        iconName = s[key]
+        if iconName in iep.icons:
+            M[key] = iep.icons[iconName]
+    return M
+ICONMAP = getIcons()
 
 
 class KeyMapper(QtCore.QObject):
@@ -623,6 +652,7 @@ class ViewMenu(Menu):
 
 
 class ShellMenu(Menu):
+    
     def __init__(self, *args, **kwds):
         self._shellCreateActions = []
         self._shellActions = []
@@ -653,20 +683,21 @@ class ShellMenu(Menu):
         """ Remove, then add the items for the creation of each shell """
         for action in self._shellCreateActions:
             self.removeAction(action)
-            
-        self._shellCreateActions = [
-            self.addItem('Create shell %s: (%s)' % (i+1, config.name),
-                iep.shells.addShell, config)
-            for i, config in enumerate(iep.config.shellConfigs) ] 
-           
-
+        
+        self._shellCreateActions = []
+        for i, config in enumerate(iep.config.shellConfigs):
+            name = 'Create shell %s: (%s)' % (i+1, config.name)
+            action = self.addItem(name, iep.shells.addShell, config)
+            action.setIcon(iep.icons.application_add)
+            self._shellCreateActions.append(action)
+    
     def shellAction(self, action):
         """ Call the method specified by 'action' on the current shell """
         shell = iep.shells.getCurrentShell()
         if shell:
             # Call the specified action
             getattr(shell,action)()
-            
+    
     def editConfig(self):
         """ Edit, add and remove configurations for the shells. """
         from shellStack import ShellConfigDialog 
@@ -674,6 +705,7 @@ class ShellMenu(Menu):
         d.exec_()
         # Update the shells items in the menu
         self.updateShells()
+
 
 class ShellContextMenu(ShellMenu):
     def __init__(self, *args, **kwds):
@@ -939,26 +971,29 @@ class RunMenu(Menu):
 
 
 class ToolsMenu(Menu):
+    
     def __init__(self, *args, **kwds):
         self._toolActions = []
         Menu.__init__(self, *args, **kwds)
+    
     def build(self):
         self.addItem('Reload tools', iep.toolManager.reloadTools)
         self.addSeparator()
 
         iep.toolManager.toolInstanceChange.connect(self.onToolInstanceChange)
+    
     def onToolInstanceChange(self):
         # Remove all exisiting tools from the menu
         for toolAction in self._toolActions:
             self.removeAction(toolAction)
         
         # Add all tools, with checkmarks for those that are active
-        self._toolActions = [
-            self.addCheckItem(tool.name, tool.menuLauncher, 
-                selected = bool(tool.instance))
-            for tool in iep.toolManager.getToolInfo()
-            ]
-            
+        self._toolActions = []
+        for tool in iep.toolManager.getToolInfo():
+            action = self.addCheckItem(tool.name, tool.menuLauncher, 
+                                        selected=bool(tool.instance))
+            action.setIcon(iep.icons.plugin)
+            self._toolActions.append(action)
 
 
 class HelpMenu(Menu):
