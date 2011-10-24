@@ -705,6 +705,7 @@ class ShellMenu(Menu):
         
         self.addSeparator()
         self.addItem('Edit shell configurations...', self._editConfig)
+        self.addItem('Test configurations...', self._editConfig2)
         
         # Add shell configs
         self._updateShells()    
@@ -736,6 +737,14 @@ class ShellMenu(Menu):
         d.exec_()
         # Update the shells items in the menu
         self._updateShells()
+    
+    def _editConfig2(self):
+        """ Edit, add and remove configurations for the shells. """
+        from shellStack import ShellInfoDialog 
+        d = ShellInfoDialog()
+        d.exec_()
+        # Update the shells items in the menu
+        #self._updateShells()
 
 # todo: is there no way to combine menus, or reuse (parts of) them easier?
 # Frankly, I dont think it necessary to have the interrupt etc in the context menu
