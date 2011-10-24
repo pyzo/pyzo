@@ -103,7 +103,7 @@ iconMap = dict:
     help__ask_a_question = 'comments'
     help__report_an_issue = 'error_add'
     help__tutorial = 'report'
-    help__view_license = 'link'
+    help__view_license = 'script'
     help__check_for_updates = 'application_go'
     help__about_iep = 'information'
 """
