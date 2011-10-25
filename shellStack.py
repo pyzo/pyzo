@@ -12,7 +12,7 @@ and a dialog to edit the shell configurations.
 
 """
 
-import os, sys, time
+import os, sys, time, re
 from PyQt4 import QtCore, QtGui, uic
 
 import iep
@@ -548,6 +548,83 @@ class ShellConfigDialog(ShellCfgDlg, ShellCfgDlgBase):
             self.wdtShellConfigs.widget(i).getInfo()
 
 
+_LANGUAGE_EN = """
+shell_configurations = 'IEP - shell configurations'
+
+shell_name = 'Name: >> The name of this configuration'
+shell_executable = 'Executable: >> The Python executable. e.g. "/usr/python3.1" or "c:/python/python.exe."'
+shell_gui = 'GUI Toolkit: >> The selected GUI's event loop is integrated in the interpreter.'
+shell_pythonpath = 'Python search path: >> Python module search path (i.e. PYTHONPATH), one path per line.' 
+shell_pythonstartup = 'Python startup script: >> Shells run this script on startup (i.e. PYTHONSTARTUP), but not in script mode.' 
+shell_startdir = 'Startup directory: >> Shells start here. e.g. "/home/almar/py", but not in script mode.'
+"""
+
+_LANGUAGE_NL = """
+shell_configurations = 'IEP - shell configuraties (dope shizzle)'
+
+shell_name = 'Naam: >> De naam van deze shell configuratie'
+shell_executable = 'Applicatie: >> Het Python uitvoerbare bestand. b.v. "/usr/python3.1" of "c:/python/python.exe."'
+shell_gui = 'GUI Toolkit: >> De event-loop van de geselecteerde toolkit wordt geintegreerd in de shell.'
+shell_pythonpath = 'Python zoek pad: >> Python module zoek pad (PYTHONPATH), een map per regel.' 
+shell_pythonstartup = 'Python opstart script: >> De shell voert dit uit bij het opstarten (PYTHONSTARTUP), maar niet in script modus.' 
+shell_startdir = 'Opstart directory: >> De Shell start hier. b.v. "/home/almar/py", maar niet in script modus.'
+"""
+class Translater:
+
+    def __init__(self):
+        # todo: load from file instead of variable
+        self._D = ssdf.loads(_LANGUAGE_NL)
+    
+    def _cleanName(self, name):
+        # hide anything between brackets
+        name = re.sub('\(.*\)', '', name)
+        # replace invalid chars
+        name = name.replace(' ', '_')
+        if name[0] in '0123456789_':
+            name = "_" + name
+        name = re.sub('[^a-zA-z_0-9]','',name)
+        return name.lower()
+    
+    
+    def translate(self, name):
+        """ translate(name)
+        
+        Given a name, returns the translated name and corresponding tooltip.
+        
+        """
+        
+        key = self._cleanName(name)
+        if not key in self._D:
+            return name, ''
+        else:
+            # Get string
+            s = self._D[key].strip()
+            # Extract tooltip
+            if '>>' in s:
+                name, dummy, tt = s.partition('>>')
+                name, tt = name.rstrip(), tt.lstrip()
+            else:
+                name, tt = s, ''
+            # Done
+            return name, tt
+    
+    
+    def translateWidget(self, widget):
+        """
+        For labels and menu items. 
+        Get name from text(), translate and apply new name and tooltip.
+        Also attach signal such that the widget is auto updated if
+        the language is changed.
+        
+        Misschien dat deze methode ook de icoontjes kan toewijzen, zodat
+        ook dat op een generieke manier gebeurt.
+        
+        """
+        pass
+_translater = Translater()
+iep.translate = _translater.translate
+
+
 class ShellInfoTab(QtGui.QWidget):
     
     GUIS = ['None', 'TK', 'WX', 'QT4', 'FLTK', 'GTK']
@@ -560,13 +637,12 @@ class ShellInfoTab(QtGui.QWidget):
         
         # Name
         self._editName = QtGui.QLineEdit(parent)
-        self._addRow('Name:', self._editName, 'The name of this configuration.')
+        self._addRow('Shell name:', self._editName)
         # Exe
         self._editExe = QtGui.QComboBox(parent)
         self._editExe.setEditable(True)
         self._editExe.setInsertPolicy(self._editExe.InsertAtTop)
-        self._addRow('Executable:', self._editExe,
-            'The Python executable. e.g. "/usr/python3.1" or "c:/python/python.exe."')
+        self._addRow('Shell executable:', self._editExe)
         # GUI
         guiRadios = ['h']
         for guiName in self.GUIS:
@@ -574,26 +650,22 @@ class ShellInfoTab(QtGui.QWidget):
             guiRadios.append(w)
             wname = '_editGui' + guiName[0].upper() + guiName[1:].lower()
             setattr(self, wname, w)
-        self._addRow('GUI toolkit:', guiRadios,
-            "The selected GUI's event loop is integrated in the interpreter.")
+        self._addRow('Shell GUI:', guiRadios)
         # PATH
         self._editPathCheck = QtGui.QCheckBox('Use system default', parent)
         self._editPath = QtGui.QTextEdit(parent)
         self._editPath.setMaximumHeight(80)
         self._editPath.setMinimumWidth(400)
-        self._addRow('Python search path:', 
-            ['v', self._editPath, self._editPathCheck],
-            'Python module search path (i.e. PYTHONPATH), one path per line.')
+        self._addRow('shell PYTHONPATH:', 
+            ['v', self._editPath, self._editPathCheck])
         # Startup
         self._editStartupCheck = QtGui.QCheckBox('Use system default', parent)
         self._editStartup = QtGui.QLineEdit(parent)
-        self._addRow('Python startup script:', 
-            ['v', self._editStartup, self._editStartupCheck],
-            'Shells run this script on startup (i.e. PYTHONSTARTUP), but not in script mode.')
+        self._addRow('Shell PYTHONSTARTUP:', 
+                ['v', self._editStartup, self._editStartupCheck])
         # Initial directory
         self._editStartdir = QtGui.QLineEdit(parent)
-        self._addRow('Startup directory:', self._editStartdir,
-            'Shells start here. e.g. "/home/almar/py", but not in script mode.')
+        self._addRow('Shell startdir:', self._editStartdir)
         
         # Apply layout
         self._formLayout.setSpacing(15)
@@ -619,19 +691,19 @@ class ShellInfoTab(QtGui.QWidget):
                 widget.addWidget(w)
         
         # Create row
+        name, tooltip = iep.translate(name)
         label = QtGui.QLabel(name, self)
         label.setToolTip(tooltip)
         self._formLayout.addRow(label, widget)
     
     
-    def setTabTitle(self):
+    def setTabTitle(self, name):
         tabWidget = self.parent().parent()
-        tabWidget.setTabText(tabWidget.indexOf(self), self._info.name)
+        tabWidget.setTabText(tabWidget.indexOf(self), name)
     
     
-    def onEditNameChanged(self):
-        self._info.name = self._editName.text()
-        self.setTabTitle()
+    def onEditNameChanged(self): 
+        self.setTabTitle(self._editName.text())
     
     
     def onEditPathCheckChanged(self, state):
@@ -664,47 +736,39 @@ class ShellInfoTab(QtGui.QWidget):
             self._startup.setText(self._editStartupBuffer)
     
     
-    def setDefaults(self):        
+    def setInfo(self, info=None):
+        """ setInfo(info=None)
         
-        info = ssdf.new()
+        Set the shell config info. Set to defaults if info not given.
         
-        # Name
-        n = self.parent().parent().count() + 1
-        info.name = "Shell config %i" % n
+        """
         
-        # Executable
-        info.exe = 'python'
-        exes = findPythonExecutables()
-        if exes:
-            info.exe = exes[0]
-        
-        # Toolkit
-        info.gui = "None"
-        
-        # Python search path
-        info.PYTHONPATH_custom = ""
-        info.PYTHONPATH_useCustom = False
-        
-        # Startup script
-        info.PYTHONSTARTUP_custom = ""
-        info.PYTHONSTARTUP_useCustom = False
-        
-        # Startup directory
-        info.startDir = ""
-        
-        # Update form fields
-        self.setInfo(info)
-    
-    
-    def setInfo(self, info):
-        
-        # Store info
-        self._info = info
+        # Default?
+        if info is None:
+            info = ssdf.new()        
+            # Name
+            n = self.parent().parent().count()
+            info.name = "Shell config %i" % n
+            # Executable
+            info.exe = 'python'
+            exes = findPythonExecutables()
+            if exes:
+                info.exe = exes[0]
+            # Toolkit
+            info.gui = "None"
+            # Python search path
+            info.PYTHONPATH_custom = ""
+            info.PYTHONPATH_useCustom = False
+            # Startup script
+            info.PYTHONSTARTUP_custom = ""
+            info.PYTHONSTARTUP_useCustom = False
+            # Startup directory
+            info.startDir = ""
         
         try:            
             # Name
             self._editName.setText(info.name)
-            self.setTabTitle()
+            self.setTabTitle(info.name)
             
             # Executable
             locations = findPythonExecutables()
@@ -767,6 +831,8 @@ class ShellInfoTab(QtGui.QWidget):
         
         # Startup directory
         info.startDir = self._editStartdir.text()
+        
+        return info
 
 
 class ShellInfoDialog(QtGui.QDialog):
@@ -776,7 +842,7 @@ class ShellInfoDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, *args)
         
         # Set title
-        self.setWindowTitle('IEP - shell configurations')
+        self.setWindowTitle(iep.translate('shell configurations')[0])
         self.setWindowIcon(iep.icon)
         
         # Create tab widget
@@ -787,7 +853,7 @@ class ShellInfoDialog(QtGui.QDialog):
         if not iep.config.shellConfigs:
             w = ShellInfoTab(self._tabs)
             self._tabs.addTab(w, '---')
-            w.setDefaults()
+            w.setInfo()
         
         # Fill tabs
         for item in iep.config.shellConfigs:
@@ -835,7 +901,7 @@ class ShellInfoDialog(QtGui.QDialog):
         # Create widget and add to tabs
         w = ShellInfoTab(self._tabs)            
         self._tabs.addTab(w, '---')
-        w.setDefaults()
+        w.setInfo()
         # Select
         self._tabs.setCurrentWidget(w)
         w.setFocus()
