@@ -8,8 +8,8 @@
 import sys, os, code
 from PyQt4 import QtCore, QtGui
 import iep
-from shell import BaseShell
-from iepLogging import splitConsole
+from iepcore.shell import BaseShell
+from iepcore.iepLogging import splitConsole
 
 
 tool_name = "Logger"

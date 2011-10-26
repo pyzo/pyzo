@@ -38,8 +38,13 @@ reqp-introspect (OBJECT): To query information from the kernel (and for interrup
 
 """
 
+# First go down one directory ...
+import os
+os.chdir('..')
+
+import sys
+import time
 import yoton
-import sys, os, time
 import __main__ # we will run code in the __main__.__dict__ namespace
 
 
@@ -93,7 +98,7 @@ sys.excepthook = iep_excepthook
 ## Init interpreter and introspector request channel
 
 # Delay import, so we can detect syntax errors using the except hook
-from iepRemote2 import IepInterpreter, IepIntrospector
+from iepkernel.interpreter import IepInterpreter, IepIntrospector
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')

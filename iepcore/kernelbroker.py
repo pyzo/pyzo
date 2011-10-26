@@ -117,7 +117,7 @@ class KernelInfoPlus(KernelInfo):
         """
         
         # Get start script
-        startScript = os.path.join( iep.iepDir, 'iepRemote1.py')
+        startScript = os.path.join( iep.iepDir, 'iepkernel', 'start.py')
         startScript = '"{}"'.format(startScript)
         
         # Build command

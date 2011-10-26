@@ -100,9 +100,9 @@ class MainWindow(QtGui.QMainWindow):
     def init1(self):
         
         # Delayed imports
-        from editorTabs import EditorTabs
-        from shellStack import ShellStack
-        import codeparser
+        from iepcore.editorTabs import EditorTabs
+        from iepcore.shellTabs import ShellStack
+        from iepcore import codeparser
         import tools
         
         # Instantiate tool manager
@@ -131,15 +131,17 @@ class MainWindow(QtGui.QMainWindow):
             self.setStatusBar(None)
         
         if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            import menu
+            from iepcore import menu
             iep.keyMapper = menu.KeyMapper()
             menu.buildMenus(self.menuBar())
             
             # Add the context menu to the shell tab bar
             iep.shells.addContextMenu()
         else:
-            from menu_old import MenuHelper
+            from iepcore.menu_old import MenuHelper
             self._menuhelper = MenuHelper(self.menuBar())
+    
+    # todo: remove old menu
     
     def _insertEditorAndShell(self):
         """ Insert the editor and shell in the main window.

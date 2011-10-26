@@ -18,11 +18,11 @@ import os, sys, time, gc
 from PyQt4 import QtCore, QtGui
 
 import iep
-from compactTabWidget import CompactTabWidget
-from editor import createEditor
-from baseTextCtrl import normalizePath
-from baseTextCtrl import styleManager
-from iepLogging import print
+from iepcore.compactTabWidget import CompactTabWidget
+from iepcore.editor import createEditor
+from iepcore.baseTextCtrl import normalizePath
+from iepcore.baseTextCtrl import styleManager
+from iepcore.iepLogging import print
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 50
@@ -1485,7 +1485,7 @@ class EditorTabs(QtGui.QWidget):
             self._setCurrentOpenFilesAsString(iep.config.state.editorState)
         else:
             #self.newFile()
-            self.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+            self.loadFile(os.path.join(iep.iepDir,'resources','tutorial.py'))
         
         # The find/replace state is set in the corresponding class during init
     
