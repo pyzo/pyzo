@@ -26,7 +26,7 @@ class IepLogger(BaseShell):
         BaseShell.__init__(self, parent)
         
         # apply style        
-        #self.setStyle('loggerShell')
+        self.setParser(None)
         
         # Create interpreter to run code        
         locals = {'iep':iep, 'sys':sys, 'os':os}
@@ -36,7 +36,7 @@ class IepLogger(BaseShell):
         moreBanner = "This is the IEP logger shell." 
         self.write("Python %s on %s - %s\n\n" %
                        (sys.version[:5], sys.platform, moreBanner))
-        self.writeErr(sys.ps1)
+        self.write(sys.ps1, 2)
         
         # Split console
         history = splitConsole(self.write, self.writeErr)
@@ -49,24 +49,22 @@ class IepLogger(BaseShell):
         # the prompts to be logged by the history. Because if they
         # are, the text does not look good due to missing newlines
         # when loading the history.
+        
+        # "Echo" stdin
+        self.write(command, 1)
         more = self._interpreter.push(command.rstrip('/n'))
         if more:
-            BaseShell.write(self, sys.ps2)
+            self.write(sys.ps2, 2)
         else:            
-            BaseShell.write(self, sys.ps1)  
+            self.write(sys.ps1, 2)  
     
     
-    def writeErr(self, text):
-        """ Overload so that when an error is printed, we can  
-        insert a new prompt. """
-        # Write normally
-        BaseShell.write(self, text)
-        # Goto end
-        cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
-        self.setTextCursor(cursor)
-        
-        
+    def writeErr(self, msg):
+        """ This is what the logger uses to write errors.
+        """
+        self.write(msg, 0, '#C00')
+    
+    
     # Note that I did not (yet) implement calltips
     
     def processAutoComp(self, aco):
