@@ -16,7 +16,7 @@ import iep
 import os, sys, time
 import weakref
 import ssdf
-from iepLogging import print
+from iepcore.iepLogging import print
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui

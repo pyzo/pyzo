@@ -20,8 +20,8 @@ from PyQt4 import QtCore, QtGui
 qt = QtGui
 
 import iep
-from compactTabWidget import CompactTabWidget
-from iepLogging import print
+from iepcore.compactTabWidget import CompactTabWidget
+from iepcore.iepLogging import print
 
 
 def unwrapText(text):
@@ -978,7 +978,7 @@ class ShellMenu(BaseMenu):
     
     def fun_config(self, value):
         """ Edit, add and remove configurations for the shells. """
-        from shellStack import ShellConfigDialog 
+        from iepcore.shellTabs import ShellConfigDialog 
         d = ShellConfigDialog()
         d.exec_()
     
@@ -1038,7 +1038,8 @@ class RunMenu(BaseMenu):
         """ Show more information about ways to run code. """
         
         # Get file item
-        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        fileItem = iep.editors.loadFile(
+                        os.path.join(iep.iepDir, 'resources', 'tutorial.py'))
         
         # Select line number
         if fileItem:
@@ -1281,7 +1282,7 @@ class HelpMenu(BaseMenu):
     
     def fun_tutorial(self, value):
         """ Open the tutorial file. """
-        iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        iep.editors.loadFile(os.path.join(iep.iepDir,'resources','tutorial.py'))
     
     def fun_website(self, value):
         """ Open the official IEP website. """

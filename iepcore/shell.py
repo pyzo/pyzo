@@ -21,9 +21,9 @@ from PyQt4.QtCore import Qt
 import os, sys, time, subprocess
 import yoton
 import iep
-from baseTextCtrl import BaseTextCtrl
-from iepLogging import print
-from kernelbroker import KernelInfo, Kernelmanager
+from iepcore.baseTextCtrl import BaseTextCtrl
+from iepcore.iepLogging import print
+from iepcore.kernelbroker import KernelInfo, Kernelmanager
 
 
 # Register timer to handle yoton event loop
@@ -558,7 +558,7 @@ class PythonShell(BaseShell):
         
         # Add context menu
         if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            from menu import ShellContextMenu
+            from iepcore.menu import ShellContextMenu
             self._menu = ShellContextMenu(self, "ShellContextMenu")
             self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
             self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 

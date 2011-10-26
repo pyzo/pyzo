@@ -19,9 +19,9 @@ from PyQt4 import QtCore, QtGui
 qt = QtGui
 
 from codeeditor import Manager
-from baseTextCtrl import BaseTextCtrl, normalizePath
+from iepcore.baseTextCtrl import BaseTextCtrl, normalizePath
 import iep
-from iepLogging import print
+from iepcore.iepLogging import print
 
 
 # Set default line ending (if not set)

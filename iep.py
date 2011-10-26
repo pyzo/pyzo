@@ -66,7 +66,7 @@ def getResourceDirs():
         os.mkdir(toolDir)
     
     # Make sure the style file is there
-    styleFileName1 = os.path.join(iepDir, 'defaultStyles.ssdf')
+    styleFileName1 = os.path.join(iepDir, 'resources', 'defaultStyles.ssdf')
     styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')
     if not os.path.isfile(styleFileName2):
         import shutil        
@@ -82,7 +82,7 @@ def resetStyles():
     """
     import shutil
     # Copy file
-    styleFileName1 = os.path.join(iepDir, 'defaultStyles.ssdf')
+    styleFileName1 = os.path.join(iepDir, 'resources', 'defaultStyles.ssdf')
     styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')        
     shutil.copy(styleFileName1, styleFileName2)
     # Apply
@@ -98,7 +98,7 @@ def resetConfig(preserveState=True):
     its config on the next shutdown.
     """ 
     # Get filenames
-    configFileName1 = os.path.join(iepDir, 'defaultConfig.ssdf')
+    configFileName1 = os.path.join(iepDir, 'resources', 'defaultConfig.ssdf')
     configFileName2 = os.path.join(appDataDir, 'config.ssdf')        
     # Read, edit, write
     tmp = ssdf.load(configFileName1)
@@ -116,8 +116,8 @@ def startIep():
     """
     
     # Do some imports
-    import iepLogging # to start logging asap
-    from main import MainWindow
+    from iepcore import iepLogging # to start logging asap
+    from iepcore.main import MainWindow
     
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
@@ -153,7 +153,7 @@ def loadConfig(defaultsOnly=False):
     ssdf.clear(config)
     
     # Load default and inject in the iep.config
-    fname = os.path.join(iepDir, "defaultConfig.ssdf")
+    fname = os.path.join(iepDir, 'resources', 'defaultConfig.ssdf')
     defaultConfig = ssdf.load(fname)
     replaceFields(config, defaultConfig)
     

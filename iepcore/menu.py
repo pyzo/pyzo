@@ -18,8 +18,8 @@ import unicodedata
 from PyQt4 import QtCore, QtGui
 
 import iep
-from compactTabWidget import CompactTabWidget
-from iepLogging import print
+from iepcore.compactTabWidget import CompactTabWidget
+from iepcore.iepLogging import print
 import webbrowser
 
 # todo: put in resource file
@@ -732,7 +732,7 @@ class ShellMenu(Menu):
     
     def _editConfig(self):
         """ Edit, add and remove configurations for the shells. """
-        from shellStack import ShellConfigDialog 
+        from iepcore.shellTabs import ShellConfigDialog 
         d = ShellConfigDialog()
         d.exec_()
         # Update the shells items in the menu
@@ -740,7 +740,7 @@ class ShellMenu(Menu):
     
     def _editConfig2(self):
         """ Edit, add and remove configurations for the shells. """
-        from shellStack import ShellInfoDialog 
+        from iepcore.shellTabs import ShellInfoDialog 
         d = ShellInfoDialog()
         d.exec_()
         # Update the shells items in the menu
@@ -825,8 +825,11 @@ class RunMenu(Menu):
     def _showHelp(self):
         """ Show more information about ways to run code. """
         
+        # todo: use cell header to goto right line. 
+        # Or make another way to show information on a subject.
         # Get file item
-        fileItem = iep.editors.loadFile(os.path.join(iep.iepDir,'tutorial.py'))
+        fileItem = iep.editors.loadFile(
+                        os.path.join(iep.iepDir, 'resources', 'tutorial.py'))
         
         # Select line number
         if fileItem:
@@ -1055,7 +1058,7 @@ class HelpMenu(Menu):
         self.addUrlItem("Report an issue", "http://code.google.com/p/iep/issues/list")
         self.addSeparator()
         self.addItem("Tutorial", lambda:
-            iep.editors.loadFile(os.path.join(iep.iepDir,"tutorial.py")))
+            iep.editors.loadFile(os.path.join(iep.iepDir,"resources","tutorial.py")))
         self.addItem("View license", lambda:
             iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
         

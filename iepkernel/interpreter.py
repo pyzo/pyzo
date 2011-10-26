@@ -23,8 +23,8 @@ import thread
 import threading
 import inspect
 import keyword # for autocomp
-import guisupport
 import yoton
+from iepkernel import guisupport
 
 # Init last traceback information
 sys.last_type = None

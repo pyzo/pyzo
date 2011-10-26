@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 
-""" Module shellStack
+""" Module shellTabs
 
 Implements the stack of shells. Also implements the nifty debug button
 and a dialog to edit the shell configurations. 
@@ -16,9 +16,9 @@ import os, sys, time, re
 from PyQt4 import QtCore, QtGui, uic
 
 import iep
-from compactTabWidget import CompactTabWidget
-from shell import PythonShell
-from iepLogging import print
+from iepcore.compactTabWidget import CompactTabWidget
+from iepcore.shell import PythonShell
+from iepcore.iepLogging import print
 
 ssdf = iep.ssdf
 
@@ -133,7 +133,7 @@ class ShellStack(QtGui.QWidget):
         
         # Uses new menu system, so check if it is enabled
         if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            from menu import ShellTabContextMenu
+            from iepcore.menu import ShellTabContextMenu
             self._menu = ShellTabContextMenu(self, "ShellTabMenu")
             self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
             self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
