@@ -100,9 +100,11 @@ class BaseShell(BaseTextCtrl):
         self._lastCommandCursor = self.textCursor()
         
         # When inserting/removing text at the edit line (thus also while typing)
-        # keep the lineBeginCursor at its place. Only when text is written before
-        # the lineBeginCursor (i.e. in write and writeErr), this flag is
-        # temporarily set to False
+        # keep cursor2 at its place. Only when text is written before
+        # the prompt (i.e. in write), this flag is temporarily set to False. 
+        # Same for cursor1, because sometimes (when there is no prompt) it
+        # is at the same position.
+        self._cursor1.setKeepPositionOnInsert(True)
         self._cursor2.setKeepPositionOnInsert(True)
         
         # Similarly, we use the _lastCommandCursor cursor really for pointing.
@@ -402,7 +404,7 @@ class BaseShell(BaseTextCtrl):
             self._cursor2.insertText(text, format)
             self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
         elif prompt == 2 and text == '\b':
-            # Remove prompt
+            # Remove prompt (used when closing the kernel)
             self._cursor1.setPosition(self._cursor2.position(), A_KEEP)
             self._cursor1.removeSelectedText()
             self._cursor2.setPosition(self._cursor1.position(), A_MOVE)
@@ -417,7 +419,7 @@ class BaseShell(BaseTextCtrl):
         #    print(prompt, '|', pos1, pos2, '|', self._cursor1.position(), self._cursor2.position(), text)
         
         # Reset cursor states for the user to type his/her commands
-        self._cursor1.setKeepPositionOnInsert(False)
+        self._cursor1.setKeepPositionOnInsert(True)
         self._cursor2.setKeepPositionOnInsert(True)
         
         # Make sure that cursor is visible (only when cursor is at edit line)
