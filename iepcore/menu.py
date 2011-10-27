@@ -47,7 +47,7 @@ iconMap = dict:
     file__save_as = 'disk_as'
     file__save_all = 'disk_multiple'
     file__close = 'page_delete'
-    file__close_all = 'delete'
+    file__close_all = 'page_delete_all'
     file__indentation = 'page_white_gear'
     file__syntax_parser = 'page_white_gear'
     file__line_endings = 'page_white_gear'
@@ -67,7 +67,7 @@ iconMap = dict:
     edit__uncomment_lines = 'comment_delete'
     edit__find_or_replace = 'find'
     
-    view__select_shell = 'application_home'
+    view__select_shell = 'application_shell'
     view__select_editor = 'application_edit'
     view__select_previous_file = 'application_double'
     view__edge_column = 'text_padding_right'
