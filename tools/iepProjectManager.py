@@ -1,6 +1,7 @@
 from PyQt4 import QtCore, QtGui
 import iep
 import os
+import sys
 import ssdf
 import fnmatch
 
@@ -123,8 +124,14 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
         # Specify sorting behaviour when comparing of two dirs or two files
         # Sorting dirs before files is none in the lessThan function 
         self.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.sort(0) 
-
+        
+        # todo: does it now work everywhere??
+        # Not sure why, but on Windows & Linux it should be different than Mac
+        if sys.platform == 'darwin':
+            self.sort(0)
+        else:
+            self.setDynamicSortFilter(True)
+    
     def lessThan(self,left,right):
         if self.sourceModel().isDir(left) and \
                 not self.sourceModel().isDir(right):
@@ -139,19 +146,22 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
         #Get the fileinfo of the item
         item=self.sourceModel().index(sourceRow,0,sourceParent)
         fileInfo=self.sourceModel().fileInfo(item)
+        fileName=fileInfo.fileName()
+        
+        # Explicitlty hide files/dirs starting with a dot.
+        if fileName.startswith('.'):
+            return False
         
         #Show everything that's not a file
         if not fileInfo.isFile():
             return True
-        
-        fileName=fileInfo.fileName()
         
         #'default' is the return value when no filter matches. A 'hide' filter
         #(i.e. starting with '!') sets the default to 'show', a 'show' filter
         #(i.e. not starting with '!') sets the default to 'hide'
         
         default=True #Return True if there are no filters
-                
+        
         #Get the current filter spec and split it into separate filters
         filters=self.filter.replace(',',' ').split()          
         for filter in filters:
@@ -211,9 +221,7 @@ class IconProvider(QtGui.QFileIconProvider):
                 f = open(path, 'wb')
                 f.close()
                 # Use that file
-                type_or_info = QtCore.QFileInfo('test.py')
-                
-                 #path)
+                type_or_info = QtCore.QFileInfo(path)
         
         # Call base method
         return QtGui.QFileIconProvider.icon(self, type_or_info)
@@ -260,8 +268,9 @@ class IepProjectManager(QtGui.QWidget):
 
         #Init dir model and filtered dir model
         self.dirModel=QtGui.QFileSystemModel()
-        self.dirModel.setIconProvider(IconProvider())       
+        self.dirModel.setIconProvider(IconProvider())
         #TODO: self.dirModel.setSorting(QtCore.QDir.DirsFirst)
+        # todo: huh? QFileSystemModel.setSorting Does not exist
         self.filteredDirModel=DirSortAndFilter()
         self.filteredDirModel.setSourceModel(self.dirModel)
                 
@@ -483,6 +492,15 @@ class IepProjectManager(QtGui.QWidget):
         """Handler for if an item is double-clicked"""
         info=self.dirModel.fileInfo(self.filteredDirModel.mapToSource(item))
         if info.isFile():
-            #TODO: check extension associations
-            if info.suffix() in ['py','c','pyw','pyx','pxd','h','cpp','hpp']:
+            # todo: maybe open the file, read some bytes and see if there
+            # is an encoding tag or if it correctly decodes with utf-8.
+            # we could even do that in the filter, and simply not list binary
+            # files.
+            
+            # The user should be able to read in any reabable file. We can
+            # never specify all extension of readable files beforehand. So
+            # better specify reading the files of which we know to be binary.
+            #if info.suffix() in ['py','c','pyw','pyx','pxd','h','cpp','hpp']:
+            if info.suffix() not in ['pyc','pyo','png','jpg','ico']:
                 iep.editors.loadFile(info.absoluteFilePath())
+            
