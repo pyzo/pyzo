@@ -744,7 +744,7 @@ class ShellMenu(Menu):
         d = ShellInfoDialog()
         d.exec_()
         # Update the shells items in the menu
-        #self._updateShells()
+        self._updateShells()
 
 # todo: is there no way to combine menus, or reuse (parts of) them easier?
 # Frankly, I dont think it necessary to have the interrupt etc in the context menu

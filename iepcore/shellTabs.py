@@ -749,11 +749,13 @@ class ShellInfoTab(QtGui.QWidget):
             # Name
             n = self.parent().parent().count()
             info.name = "Shell config %i" % n
-            # Executable
+            # Executable. Simply use the command "python", except for Windows;
+            # I've experienced that the PATH is not always set. Use the last
+            # found executable instead (highest Python version).
             info.exe = 'python'
             exes = findPythonExecutables()
-            if exes:
-                info.exe = exes[0]
+            if exes and sys.platform.startswith('win'):
+                info.exe = exes[-1]
             # Toolkit
             info.gui = "None"
             # Python search path
@@ -774,7 +776,8 @@ class ShellInfoTab(QtGui.QWidget):
             locations = findPythonExecutables()
             if info.exe not in locations:
                 locations.insert(0, info.exe)
-            locations.insert(0, 'python')
+            if 'python' not in locations:
+                locations.insert(0, 'python')
             self._editExe.clear()
             for location in locations:
                 self._editExe.addItem(location)
