@@ -296,7 +296,7 @@ class IepProjectManager(QtGui.QWidget):
         self.projectsList=ProjectsList()
         self.projectsList.setModel(self.projectsModel)
         
-        self.addToPathCheck=QtGui.QCheckBox('Preprend project dir to Python path')
+        self.addToPathCheck=QtGui.QCheckBox('Prepend project dir to Python path')
         self.addToPathCheck.setToolTip('Takes effect when the shell is restarted')
         self.dirList=QtGui.QTreeView()
         
