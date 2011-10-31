@@ -149,6 +149,7 @@ class MainWindow(QtGui.QMainWindow):
         """
         # Set central widget
         self.setCentralWidget(iep.editors)
+        
         # Create floater for shell
         dock = QtGui.QDockWidget("Shells", self)
         dock.setObjectName('shells')

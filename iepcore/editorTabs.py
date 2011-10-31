@@ -598,6 +598,20 @@ class FileTabWidget(CompactTabWidget):
         # Bind signal to update items and keep track of history
         self.currentChanged.connect(self.updateItems)
         self.currentChanged.connect(self.trackHistory)
+        self.currentChanged.connect(self.setTitleInMainWindowWhenTabChanged)
+        self.setTitleInMainWindowWhenTabChanged(-1)
+    
+    
+    def setTitleInMainWindowWhenTabChanged(self, index):
+        
+        # Valid index?
+        if index<0 or index>=self.count():
+            iep.main.setWindowTitle('Interactive Editor for Python')
+        
+        # Remove current item from history
+        currentItem = self.currentItem()
+        if currentItem:
+            currentItem.editor.setTitleInMainWindow()
     
     
     ## Context menu
