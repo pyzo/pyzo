@@ -8,6 +8,20 @@ import fnmatch
 tool_name = "Project manager"
 tool_summary = "Manage project directories."
 
+
+class ProjectManagerMenu(QtGui.QMenu):
+    def __init__(self, parent):
+        QtGui.QMenu.__init__(self, parent)
+        
+        action = self.addAction('Add project')
+        action.setIcon(iep.icons.add)
+#         action.triggered.connect(self._add)
+        
+        action = self.addAction('Manage projects')
+        action.setIcon(iep.icons.star)
+#         action.triggered.connect(self._add)
+
+
 class Project(ssdf.Struct):
     def __init__(self,name,path):
         self.name=name
@@ -15,6 +29,7 @@ class Project(ssdf.Struct):
         self.addToPath=False
     def __repr__(self):
         return "Project %s at %s" % (self.name,self.path)
+    
 
 class ProjectsModel(QtCore.QAbstractListModel):
     def __init__(self,config):
@@ -25,16 +40,18 @@ class ProjectsModel(QtCore.QAbstractListModel):
     def data(self, index, role):
         if not index.isValid():
             return None
-        
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.projectFromIndex(index).name
         elif role == QtCore.Qt.UserRole:
             return self.projectFromIndex(index)
+        elif role == QtCore.Qt.DecorationRole:
+            return iep.icons.star
+    
     def setData(self,index,value,role):
         """Change the name of a project"""
         if not index.isValid():
             return False
-        if role == QtCore.Qt.EditRole:
+        elif role == QtCore.Qt.EditRole:
             self.projectFromIndex(index).name=value
             self.dataChanged.emit(index,index)
             return True
@@ -77,10 +94,61 @@ class ProjectsModel(QtCore.QAbstractListModel):
         self.endMoveRows()
 
 
+class ProjectItemMenu(QtGui.QMenu):
+    def __init__(self, parent):
+        QtGui.QMenu.__init__(self, parent)
+        
+        action = self.addAction('Add project')
+        action.setIcon(iep.icons.add)
+        action.triggered.connect(self._add)
+        
+        self.addSeparator()
+        
+        action = self.addAction('Move project up')
+        action.setIcon(iep.icons.arrow_redo)
+        action.triggered.connect(self._up)
+        
+        action = self.addAction('Move project down')
+        action.setIcon(iep.icons.arrow_undo)
+        action.triggered.connect(self._down)
+        
+        self.addSeparator()
+        
+        action = self.addAction('Rename project')
+        action.setIcon(iep.icons.text_replace)
+        action.triggered.connect(self._rename)
+       
+        action = self.addAction('Remove project')
+        action.setIcon(iep.icons.delete)
+        action.triggered.connect(self._delete)
+    
+    def _add(self):
+        self.parent().parent().addProjectClicked()
+    
+    def _up(self, dummy=None, delta=-1):
+        index = self.parent().currentIndex()
+        nprojects = len(self.parent().parent().config.projects)
+        if index.isValid():
+            row1 = index.row()
+            row2 = row1 + delta
+            if row2 >= 0 and row2 < nprojects:
+                self.parent().model().swapRows(row1,row2)
+    
+    def _down(self):
+        self._up(delta=1)
+    
+    def _rename(self):
+        self.parent().edit(self.parent().currentIndex())    
+    
+    def _delete(self):
+        self.parent().parent().removeProjectClicked()
+
+
 class ProjectsList(QtGui.QListView):
     def __init__(self):
         QtGui.QListView.__init__(self)
         self.draggingRow=None
+        
     def mouseMoveEvent(self,event):
         """
         If the user drags an item, swap rows if necessary
@@ -110,6 +178,11 @@ class ProjectsList(QtGui.QListView):
         """Register at which row a drag operation starts"""
         self.draggingRow=self.indexAt(event.pos()).row()
         QtGui.QListView.mousePressEvent(self,event) 
+    
+    def contextMenuEvent(self, event):
+        menu = ProjectItemMenu(self)
+        menu.move(event.globalX(), event.globalY())
+        menu.show()
 
 
 class DirSortAndFilter(QtGui.QSortFilterProxyModel):
@@ -276,8 +349,12 @@ class IepProjectManager(QtGui.QWidget):
                 
         #Init widgets and layout
         self.buttonLayout=QtGui.QVBoxLayout()
-        self.listDisclosureButton=QtGui.QPushButton('...')
+#         self.listDisclosureButton=QtGui.QPushButton('...')
+        self.listDisclosureButton = QtGui.QPushButton(self)
         self.listDisclosureButton.setCheckable(True)
+#         self.listDisclosureButton.setMenu(ProjectManagerMenu(self))
+        self.listDisclosureButton.setIcon(iep.icons.wrench)
+        self.listDisclosureButton.setIconSize(QtCore.QSize(16,16))
         
         #The following two buttons are only added when the list is disclosed
         self.addProjectButton=QtGui.QPushButton('+')
