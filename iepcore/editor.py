@@ -432,9 +432,6 @@ class IepEditor(BaseTextCtrl):
         if event:
             BaseTextCtrl.showEvent(self, event)
         
-        # Set title to display filename of this file
-        self.setTitleInMainWindow()
-        
         # Make parser update
         iep.parser.parseThis(self)
     
