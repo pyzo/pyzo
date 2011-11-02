@@ -348,6 +348,7 @@ class IepProjectManager(QtGui.QWidget):
         #TODO: using the default IconProvider bugs on mac, restoring window state fails
         
         self.dirModel.setIconProvider(IconProviderWindows())
+
         #TODO: self.dirModel.setSorting(QtCore.QDir.DirsFirst)
         # todo: huh? QFileSystemModel.setSorting Does not exist
         self.filteredDirModel=DirSortAndFilter()
