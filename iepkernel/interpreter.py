@@ -19,12 +19,16 @@ occur in any othe packages to prevent import clashes.
 import os, sys, time
 from codeop import CommandCompiler
 import traceback
-import thread
 import threading
 import inspect
 import keyword # for autocomp
 import yoton
 from iepkernel import guisupport
+
+try:
+    import thread # Python 2
+except ImportError:
+    import _thread as thread # Python 3
 
 # Init last traceback information
 sys.last_type = None
