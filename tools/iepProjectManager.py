@@ -8,6 +8,10 @@ import fnmatch
 tool_name = "Project manager"
 tool_summary = "Manage project directories."
 
+# todo: desired changes:
+# - Make project settings a separate dialog (add/delete/move/rename/preped project dir to python path)
+# - Search using separate search tool
+# - Popup menu with usefull actions
 
 class ProjectManagerMenu(QtGui.QMenu):
     def __init__(self, parent):
@@ -260,7 +264,7 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
         
 
 
-class IconProvider(QtGui.QFileIconProvider):
+class WindowsIconProvider(QtGui.QFileIconProvider):
     """ IconProvider that will give icons for files without any overlays.
     (Because the overlays will be wrong)
     It does this by creating dummy files with a corresponding extension and
@@ -341,9 +345,9 @@ class IepProjectManager(QtGui.QWidget):
 
         #Init dir model and filtered dir model
         self.dirModel=QtGui.QFileSystemModel()
-        self.dirModel.setIconProvider(IconProvider())
-        #TODO: self.dirModel.setSorting(QtCore.QDir.DirsFirst)
-        # todo: huh? QFileSystemModel.setSorting Does not exist
+        if sys.platform.startswith('win'):
+            self.dirModel.setIconProvider(WindowsIconProvider())
+
         self.filteredDirModel=DirSortAndFilter()
         self.filteredDirModel.setSourceModel(self.dirModel)
                 
