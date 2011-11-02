@@ -371,6 +371,7 @@ class LineNumbers(object):
         self.__lineNumberArea = self.__LineNumberArea(self)
         # Issue an update when the amount of line numbers changes
         self.blockCountChanged.connect(self.__onBlockCountChanged)
+        self.__onBlockCountChanged()
         
     
     def showLineNumbers(self):
