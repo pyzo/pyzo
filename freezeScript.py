@@ -52,7 +52,7 @@ excludes = ['_ssl', 'pyreadline', 'pdb',
      "matplotlib", 'doctest', 
     "scipy.linalg", "scipy.special", "Pyrex", 
     "numpy.core._dotblas",
-    "PyQt4.uic.port_v2", "PyQt4.QtWebKit"
+    "PyQt4.uic.port_v2"#, "PyQt4.QtWebKit"
     ]
 
 # Excludes for tk
@@ -64,9 +64,9 @@ excludes.append('numpy')
 
 # For qt to work
 # todo: remove Qsci, enable pyside?
-includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 
-    "PyQt4.uic", "PyQt4.uic.uiparser", "PyQt4.uic.Compiler.qobjectcreator"] 
-
+#includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 
+#    "PyQt4.uic", "PyQt4.uic.uiparser", "PyQt4.uic.Compiler.qobjectcreator"] 
+includes = ['PyQt4.uic']
 
 ## Go!
 # See http://cx-freeze.sourceforge.net/cx_Freeze.html for docs.
@@ -108,16 +108,21 @@ f.Freeze()
 
 ## Process source code and other resources
 
+#TODO: remove the repetition here!
+#TODO: prevent copying '.xxx' files
+
 # Create source dir in frozen app
 srcDir2 = distDir + 'source/'
-if not os.path.isdir(srcDir2):
-    os.mkdir(srcDir2)
 
-# Create tools dir in frozen app
-toolsDir  = srcDir + 'tools/'
-toolsDir2 = srcDir2 + 'tools/'
-if not os.path.isdir(toolsDir2):
-    os.mkdir(toolsDir2)
+#Copy all the source files
+for dir in ['','iepkernel/', 'yoton/', 'yoton/channels/', 'tools/']:
+    if not os.path.isdir(srcDir2+dir):
+        os.mkdir(srcDir2+dir)
+
+    for fname in os.listdir(srcDir+dir):
+        if os.path.isfile(srcDir+dir+fname) and not fname.endswith('.pyc') and not fname.startswith('.'):
+            shutil.copy(srcDir+dir+fname, srcDir2+dir+fname)
+
 
 # Create icons dir in frozen app
 iconsDir  = srcDir + 'icons/'
@@ -131,17 +136,19 @@ guiDir2 = srcDir2 + 'gui/'
 if not os.path.isdir(guiDir2):
     os.mkdir(guiDir2)
 
-# Copy all source files
-for fname in os.listdir(srcDir):
-    if os.path.isfile(srcDir+fname) and not fname.endswith('.pyc'):
-        shutil.copy(srcDir+fname, srcDir2+fname)
-for fname in os.listdir(toolsDir):    
-    if os.path.isfile(toolsDir+fname) and not fname.endswith('.pyc'):
-        shutil.copy(toolsDir+fname, toolsDir2+fname)
+# Create resources dir in frozen app
+resDir = srcDir + 'resources/'
+resDir2 = srcDir2 + 'resources/'
+
+if not os.path.isdir(resDir2):
+    os.mkdir(resDir2)
+
 for fname in os.listdir(iconsDir):
     shutil.copy(iconsDir+fname, iconsDir2+fname)
 for fname in os.listdir(guiDir):
     shutil.copy(guiDir+fname, guiDir2+fname)
+for fname in os.listdir(resDir):
+    shutil.copy(resDir+fname, resDir2+fname)
 
 # Remove dummy executable
 tmp1 = os.path.join(distDir,'iep_.exe')
@@ -188,7 +195,7 @@ if applicationBundle:
     shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
 
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
-    shutil.copytree('/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
+    shutil.copytree('/opt/local/lib/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
 
 
     #Package in a dmg
