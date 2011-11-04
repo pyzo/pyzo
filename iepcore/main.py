@@ -130,18 +130,14 @@ class MainWindow(QtGui.QMainWindow):
             iep.status = None
             self.setStatusBar(None)
         
-        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            from iepcore import menu
-            iep.keyMapper = menu.KeyMapper()
-            menu.buildMenus(self.menuBar())
-            
-            # Add the context menu to the shell tab bar
-            iep.shells.addContextMenu()
-        else:
-            from iepcore.menu_old import MenuHelper
-            self._menuhelper = MenuHelper(self.menuBar())
+
+        from iepcore import menu
+        iep.keyMapper = menu.KeyMapper()
+        menu.buildMenus(self.menuBar())
+        
+        # Add the context menu to the shell tab bar
+        iep.shells.addContextMenu()
     
-    # todo: remove old menu
     
     def _insertEditorAndShell(self):
         """ Insert the editor and shell in the main window.

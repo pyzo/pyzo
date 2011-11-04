@@ -119,7 +119,7 @@ def startIep():
     from iepcore import iepLogging # to start logging asap
     from iepcore.main import MainWindow
     
-    sys.path.append('./gui') #Allows ui-based widget to find custom widget code
+    sys.path.append(os.path.join(iepDir, 'gui')) #Allows ui-based widget to find custom widget code
     
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
