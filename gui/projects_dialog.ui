@@ -115,7 +115,11 @@
     </rect>
    </property>
    <property name="text">
-    <string>+</string>
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/accept.png</normaloff>icons/accept.png</iconset>
    </property>
   </widget>
   <widget class="QPushButton" name="btnRemove">
@@ -128,7 +132,11 @@
     </rect>
    </property>
    <property name="text">
-    <string>-</string>
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/delete.png</normaloff>icons/delete.png</iconset>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
