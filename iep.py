@@ -110,6 +110,29 @@ def resetConfig(preserveState=True):
     print("Replaced config file. Restart IEP to revert to the default config.")
 
 
+class Translator:
+    def __init__(self):
+        self._lastTranslated = 0, ''
+    
+    def __call__(self, context, text, disambiguation=None):
+        s = QtCore.QCoreApplication.translate(context, text, disambiguation)
+        self._lastTranslated = text, s
+        return s
+    
+    def original(self, s):
+        """ Get original text of the given string s, which should be
+        the last translated string. If s is not the result of the last
+        translation, returns s.
+        Used in the menu to get consistent strings to map hotkeys.
+        """
+        if self._lastTranslated[1] == s:
+            return self._lastTranslated[0]
+        else:
+            return s
+
+translate = Translator()
+
+
 def startIep():
     """ startIep()
     Run IEP.
@@ -129,17 +152,59 @@ def startIep():
     
     # Instantiate the application, and the main window
     QtGui.qApp = QtGui.QApplication([])
-    frame = MainWindow()
+    
+    # Choose language, get locale
+    locale = setLanguage(QtCore.QLocale.Dutch)
+    
+    # Create IEP, using the selected locale
+    frame = MainWindow(None, locale)
     
     # Enter the main loop
     QtGui.qApp.exec_()
+
+
+def setLanguage(languageId):
+    """ setLanguage(languageId)
+    Set the language for the app. Loads qt and iep translations.
+    Returns the QLocale instance to pass to the main widget.
+    
+    Translations recepy:
+      * pylupdate4 iep.pro
+      * translate (or let other people translate) .tr files using qt-linguist
+      * lrelease iep.pro
+    
+    """
+    
+    # Derive name, locale, and locale language name
+    languageName = QtCore.QLocale.languageToString(languageId)
+    locale = QtCore.QLocale(languageId)
+    localeName = locale.name().split('_')[0]
+    
+    # Get paths were language files are
+    qtTransPath = str(QtCore.QLibraryInfo.location(
+                    QtCore.QLibraryInfo.TranslationsPath))
+    iepTransPath = os.path.join(iepDir, 'resources')
+     
+    # Set Qt translations
+    # Note that the translator instances must be stored
+    # Note that the load() method is very forgiving with the file name
+    QtCore._translators = []
+    for what, where in [('qt', qtTransPath),('iep', iepTransPath)]:
+        trans = QtCore.QTranslator()
+        success = trans.load(what + '_' + localeName + '.tr', where)
+        print('loading %s %s: %s' % (what, languageName, ['failed', 'ok'][success]))
+        if success:
+            QtGui.QApplication.installTranslator(trans)
+            QtCore._translators.append(trans)
+    
+    return locale
 
 
 def loadConfig(defaultsOnly=False):
     """ loadConfig(defaultsOnly=False)
     Load default configuration file and that of the user (if it exists).
     Any missing fields in the user config are set to the defaults. 
-    """
+    """ 
     
     # Function to insert names from one config in another
     def replaceFields(base, new):
