@@ -529,7 +529,7 @@ class PythonShell(BaseShell):
         
         # Multi purpose time variable and a buffer
         self._t = time.time()
-        self._buffer = ''
+        self._write_buffer = None
         
         # Variables to store python version, builtins and keywords 
         self._state = ''
@@ -1147,13 +1147,28 @@ class PythonShell(BaseShell):
         process that we should write.
         """
         
-        # Check what subchannel has the latest message pending
-        sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
-                                self._strm_echo, self._strm_raw,
-                                self._strm_broker, self._strm_prompt )
+        if self._write_buffer:
+            # There is still data in the buffer
+            sub, M = self._write_buffer
+        else:
+            # Check what subchannel has the latest message pending
+            sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
+                                    self._strm_echo, self._strm_raw,
+                                    self._strm_broker, self._strm_prompt )
+            # Read messages from it
+            if sub:
+                M = sub.recv_selected()
         
-        # Write alle pending messages that are later than any other message
+        # Write all pending messages that are later than any other message
         if sub:
+            # Select messages to process
+            N = 256
+            M, buffer = M[:N], M[N:]
+            # Buffer the rest
+            if buffer:
+                self._write_buffer = sub, buffer
+            else:
+                self._write_buffer = None
             # Get how to deal with prompt
             prompt = 0
             if sub is self._strm_echo:
@@ -1168,10 +1183,9 @@ class PythonShell(BaseShell):
                 color = '#888888' # Halfway
             elif sub is self._strm_err:
                 color = '#F00'
-            # insert text
-            text = ''.join(sub.recv_selected())
-            self.write(text, prompt, color)
-            #self.write(sub.recv(False))
+            # Write
+            self.write(''.join(M), prompt, color)
+        
         
         # Update status
         # todo: include heartbeat info
