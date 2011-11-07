@@ -622,7 +622,7 @@ class Translater:
         """
         pass
 _translater = Translater()
-iep.translate = _translater.translate
+translate = _translater.translate
 
 
 class ShellInfoTab(QtGui.QWidget):
@@ -691,7 +691,7 @@ class ShellInfoTab(QtGui.QWidget):
                 widget.addWidget(w)
         
         # Create row
-        name, tooltip = iep.translate(name)
+        name, tooltip = translate(name)
         label = QtGui.QLabel(name, self)
         label.setToolTip(tooltip)
         self._formLayout.addRow(label, widget)
@@ -845,7 +845,7 @@ class ShellInfoDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, *args)
         
         # Set title
-        self.setWindowTitle(iep.translate('shell configurations')[0])
+        self.setWindowTitle(translate('shell configurations')[0])
         self.setWindowIcon(iep.icon)
         
         # Create tab widget

@@ -22,8 +22,13 @@ from queue import Queue, Empty
 
 class MainWindow(QtGui.QMainWindow):
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, locale=None):
         QtGui.QWidget.__init__(self, parent)
+        
+        # Set locale of main widget, so that qt strings are translated
+        # in the right way
+        if locale:
+            self.setLocale(locale)
         
         # Store myself
         iep.main = self

@@ -21,12 +21,13 @@ import iep
 from iepcore.compactTabWidget import CompactTabWidget
 from iepcore.iepLogging import print
 import webbrowser
+from iep import translate
 
-# todo: put in resource file
+# todo: put in resource file, or inside the menu defenitions??
 _MENUMETAMAP = """
 tooltipMap = dict:
-    file__new = 'Create a new (or temporary) file.'
-    file__open = 'Open an existing file from disk.'
+    #file__new = 'Create a new (or temporary) file.'
+    #file__open = 'Open an existing file from disk.'
     file__save = 'Save the current file to disk.'
     file__save_as = 'Save the current file under another name.'
     file__save_all = 'Save all open files.'
@@ -41,8 +42,8 @@ tooltipMap = dict:
 
 
 iconMap = dict:
-    file__new = 'page_add'
-    file__open = 'folder_page'
+    #file__new = 'page_add'
+    #file__open = 'folder_page'
     file__save = 'disk'
     file__save_as = 'disk_as'
     file__save_all = 'disk_multiple'
@@ -200,6 +201,8 @@ class Menu(QtGui.QMenu):
         Convert a menu title into a menuPath component name
         e.g. Interrupt current shell -> interrupt_current_shell
         """
+        # Get original
+        name = translate.original(name)
         # hide anything between brackets
         name = re.sub('\(.*\)', '', name)
         # replace invalid chars
@@ -222,13 +225,12 @@ class Menu(QtGui.QMenu):
         if isinstance(properties, tuple):
             a = self.addAction(*properties)
         else:
-            a = self.addAction(properties)        
+            a = self.addAction(properties)
         
         if selected is not None:
             a.setCheckable(True)
             a.setChecked(selected)
         
-        # Set menu path of action
         a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
         
         # Register the action so its keymap is kept up to date
@@ -399,12 +401,15 @@ class IndentationMenu(Menu):
         
     def build(self):
         self._items = [
-            self.addGroupItem("style", "Use tabs", self._setStyle, False),
-            self.addGroupItem("style", "Use spaces", self._setStyle, True)
+            self.addGroupItem("style", 
+                    translate("menu", "Use tabs"), self._setStyle, False),
+            self.addGroupItem("style", 
+                    translate("menu", "Use spaces"), self._setStyle, True)
             ]
         self.addSeparator()
+        spaces = translate("menu", "spaces", "plural of spacebar character")
         self._items += [
-            self.addGroupItem("width", "%d spaces" % i, self._setWidth, i)
+            self.addGroupItem("width", "%d %s" % (i, spaces), self._setWidth, i)
             for i in range(2,9)
             ]
     
@@ -425,32 +430,37 @@ class FileMenu(Menu):
         self._items = []
         
         # Create indent menu
-        self._indentMenu = IndentationMenu(self, "Indentation")
+        self._indentMenu = IndentationMenu(self, translate("menu", "Indentation"))
         
         # Create parser menu
         import codeeditor
-        self._parserMenu = GeneralOptionsMenu(self, "Syntax parser", self._setParser)
+        self._parserMenu = GeneralOptionsMenu(self, 
+                translate("menu", "Syntax parser"), self._setParser)
         self._parserMenu.setOptions(['None'] + codeeditor.Manager.getParserNames())
         
         # Create line ending menu
-        self._lineEndingMenu = GeneralOptionsMenu(self, "Line endings", self._setLineEndings)
+        self._lineEndingMenu = GeneralOptionsMenu(self, 
+                translate("menu", "Line endings"), self._setLineEndings)
         self._lineEndingMenu.setOptions(['LF', 'CR', 'CRLF'])
         
         # Create encoding menu
-        self._encodingMenu = GeneralOptionsMenu(self, "Encoding", self._setEncoding)
+        self._encodingMenu = GeneralOptionsMenu(self, 
+                translate("menu", "Encoding"), self._setEncoding)
         
         # Bind to signal
         iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
         
         # Build menu file management stuff
-        self.addItem("New", iep.editors.newFile)
-        self.addItem("Open", iep.editors.openFile)
+        self.addItem((iep.icons.page_add, translate('menu', 'New', 'file')),
+                        iep.editors.newFile)
+        self.addItem((iep.icons.folder_page, translate("menu", "Open")),
+                        iep.editors.openFile)
         self._items += [    
-            self.addItem("Save", iep.editors.saveFile),
-            self.addItem("Save as", iep.editors.saveFileAs),
-            self.addItem("Save all", iep.editors.saveAllFiles),
-            self.addItem("Close", iep.editors.closeFile),
-            self.addItem("Close all", iep.editors.closeAllFiles),  ]
+            self.addItem(translate("menu", "Save"), iep.editors.saveFile),
+            self.addItem(translate("menu", "Save as"), iep.editors.saveFileAs),
+            self.addItem(translate("menu", "Save all"), iep.editors.saveAllFiles),
+            self.addItem(translate("menu", "Close"), iep.editors.closeFile),
+            self.addItem(translate("menu", "Close all"), iep.editors.closeAllFiles),  ]
         
         # Build file properties stuff
         self.addSeparator()
@@ -462,8 +472,8 @@ class FileMenu(Menu):
         
         # Closing of app
         self.addSeparator()
-        self.addItem("Restart IEP", iep.main.restart)
-        self.addItem("Quit IEP", iep.main.close)
+        self.addItem(translate("menu", "Restart IEP"), iep.main.restart)
+        self.addItem(translate("menu","Quit IEP"), iep.main.close)
         
         # Start disabled
         self.setEnabled(False)
@@ -1181,8 +1191,8 @@ def buildMenus(menuBar):
     Build all the menus
     """
     menus = [
-        FileMenu(menuBar, "File"),
-        EditMenu(menuBar, "Edit"),
+        FileMenu(menuBar, translate("menu", "File")),
+        EditMenu(menuBar, translate("menu", "Edit")),
         ViewMenu(menuBar, "View"),
         SettingsMenu(menuBar, "Settings"),
         ShellMenu(menuBar, "Shell"),
