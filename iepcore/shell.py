@@ -1151,13 +1151,17 @@ class PythonShell(BaseShell):
             # There is still data in the buffer
             sub, M = self._write_buffer
         else:
-            # Check what subchannel has the latest message pending
-            sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
+            if hasattr(iep.config, 'stdout') and iep.config.stdout:
+                # Check what subchannel has the latest message pending
+                sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
                                     self._strm_echo, self._strm_raw,
                                     self._strm_broker, self._strm_prompt )
-            # Read messages from it
-            if sub:
-                M = sub.recv_selected()
+                # Read messages from it
+                if sub:
+                    M = sub.recv_selected()
+            else:
+                sub = None
+                M = []
         
         # Write all pending messages that are later than any other message
         if sub:
@@ -1184,6 +1188,8 @@ class PythonShell(BaseShell):
             elif sub is self._strm_err:
                 color = '#F00'
             # Write
+#             if sub is self._strm_out:
+#                 M = []
             self.write(''.join(M), prompt, color)
         
         
