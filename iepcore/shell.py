@@ -1207,7 +1207,7 @@ class PythonShell(BaseShell):
                 M = sub.recv_selected()
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
-                    M = self._handleBackspaces2(M)
+                    M = self._handleBackspacesOnList(M)
         
         # Write all pending messages that are later than any other message
         if sub:
