@@ -81,17 +81,20 @@ ct.connect('localhost:'+str(port), timeout=1.0)
 ## Set Excepthook
 
 def iep_excepthook(type, value, tb):
-    print("Uncaught exception in interpreter:")
-    print(value)
+    def writeErr(err):
+        sys.__stderr__.write(str(err)+'\n')
+        sys.__stderr__.flush()
+    writeErr("Uncaught exception in interpreter:")
+    writeErr(value)
     if not isinstance(value, (OverflowError, SyntaxError, ValueError)):
         while tb:
-            print("-> line %i of %s." % (
+            writeErr("-> line %i of %s." % (
                         tb.tb_frame.f_lineno, tb.tb_frame.f_code.co_filename) )
             tb = tb.tb_next
     import time
     time.sleep(0.3) # Give some time for the message to be send
 
-# # Uncomment to detect error in the interpreter itself
+# Uncomment to detect error in the interpreter itself
 # sys.excepthook = iep_excepthook
 
 

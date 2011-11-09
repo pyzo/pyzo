@@ -276,7 +276,7 @@ class MainWindow(QtGui.QMainWindow):
         # Proceed with closing shells
         iep.localKernelManager.terminateAll()
         for shell in iep.shells:
-            shell._context.destroy()
+            shell._context.close()
     
     
     def restart(self):

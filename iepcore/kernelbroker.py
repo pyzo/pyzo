@@ -259,7 +259,7 @@ class KernelBroker:
             
             # Remove references
             #
-            self._context.destroy()
+            self._context.close()
             self._context = None
             #
             self._strm_broker = None
