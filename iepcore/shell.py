@@ -326,6 +326,61 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorVisible()
     
     
+    def _handleBackspaces_split(self, text):
+        
+        # while NOT a backspace at first position, or none found
+        i = 9999999999999
+        while i>0:
+            i = text.rfind('\b',0,i)
+            if i>0 and text[i-1]!='\b':
+                text = text[0:i-1] + text[i+1:]
+        
+        # Strip the backspaces at the start
+        text2 = text.lstrip('\b')
+        n = len(text) - len(text2)
+        
+        # Done
+        return n, text2
+    
+    
+    def _handleBackspacesOnList(self, texts):
+        """ _handleBackspacesOnList(texts)
+        
+        Handle backspaces on a list of messages. When printing
+        progress, many messages will simply replace each-other, which
+        means we can process them much more effectively than when they're
+        combined in a list.
+        
+        """
+        # Init number of backspaces at the start
+        N = 0
+        
+        for i in range(len(texts)):
+            
+            # Remove backspaces in text and how many are left
+            n, text = self._handleBackspaces_split(texts[i])
+            texts[i] = text
+            
+            # Use remaining backspaces to remove backspaces in earlier texts
+            while n and i > 0:
+                i -= 1
+                text = texts[i]
+                if len(text) > n:
+                    texts[i] = text[:-n]
+                    n = 0
+                else:
+                    texts[i] = ''
+                    n -= len(text)
+            N += n
+        
+        # Insert tabs for start
+        if N:
+            texts[0] = '\b'*N + texts[0]
+        
+        # Return with empy elements popped
+        return [t for t in texts if t]
+    
+    
     def _handleBackspaces(self, text):
         """ Apply backspaced in the string itself and if there are
         backspaces left at the start of the text, remove the appropriate
@@ -335,16 +390,8 @@ class BaseShell(BaseTextCtrl):
         """
         # take care of backspaces
         if '\b' in text:
-            # while NOT a backspace at first position, or none found
-            i=9999999999999
-            while i>0:
-                i = text.rfind('\b',0,i)
-                if i>0 and text[i-1]!='\b':
-                    text = text[0:i-1] + text[i+1:]
-            # how many are left? (they are all at the begining)
-            nb = text.count('\b')
-            text = text.lstrip('\b')
-            #
+            # Remove backspaces and get how many were at the beginning
+            nb, text = self._handleBackspaces_split(text)
             if nb:
                 # Select what we remove and delete that
                 self._cursor1.clearSelection()
@@ -1151,17 +1198,16 @@ class PythonShell(BaseShell):
             # There is still data in the buffer
             sub, M = self._write_buffer
         else:
-            if hasattr(iep.config, 'stdout') and iep.config.stdout:
-                # Check what subchannel has the latest message pending
-                sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
-                                    self._strm_echo, self._strm_raw,
-                                    self._strm_broker, self._strm_prompt )
-                # Read messages from it
-                if sub:
-                    M = sub.recv_selected()
-            else:
-                sub = None
-                M = []
+            # Check what subchannel has the latest message pending
+            sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
+                                self._strm_echo, self._strm_raw,
+                                self._strm_broker, self._strm_prompt )
+            # Read messages from it
+            if sub:
+                M = sub.recv_selected()
+                # Optimization: handle backspaces on stack of messages
+                if sub is self._strm_out:
+                    M = self._handleBackspaces2(M)
         
         # Write all pending messages that are later than any other message
         if sub:
@@ -1188,8 +1234,6 @@ class PythonShell(BaseShell):
             elif sub is self._strm_err:
                 color = '#F00'
             # Write
-#             if sub is self._strm_out:
-#                 M = []
             self.write(''.join(M), prompt, color)
         
         
