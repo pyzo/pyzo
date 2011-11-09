@@ -1261,7 +1261,7 @@ class PythonShell(BaseShell):
         """
         
         # Stop context
-        self._context.destroy()
+        self._context.close()
         
         # New (empty prompt)
         self._cursor1.movePosition(self._cursor1.End, A_MOVE)

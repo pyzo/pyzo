@@ -262,11 +262,12 @@ class IepInterpreter:
                 
                 # Are we still connected?
                 if sys.stdin.closed:
-                    # Stop all deamon threads (or we wont really stop in <2.5)
+                    # Stop all deamon threads (or we wont really stop in <2.5s)
                     self.introspector.set_mode('off')
-                    sys._yoton_context.close()
-                    # Break
-                    self.write("\n")
+                    # Do not stop yoton context, because somehow this can 
+                    # cause the exit to hang
+                    #sys._yoton_context.close()
+                    # Exit from main loop
                     break
                 
                 # Get channel to take a message from
@@ -331,7 +332,7 @@ class IepInterpreter:
                     more = 0
             except SystemExit:
                 # Close socket nicely
-                sys._yoton_context.close()
+                # sys._yoton_context.close() # will hang the exit in py3k
                 # Exit from interpreter
                 return
     
