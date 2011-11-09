@@ -401,7 +401,14 @@ class KernelBroker:
         for msg in self._ctrl_broker.recv_all():
             if msg == 'INT':
                 # Kernel receives and acts
-                self._reqp_introspect.interrupt()
+                if sys.platform.startswith('win'):
+                    self._reqp_introspect.interrupt()
+                else:
+                    # Use POSIX to interrupt, which is more reliable
+                    # (the introspect thread might not get a chance)
+                    # but also does not work if running extension code
+                    pid = self._kernelCon.pid2
+                    os.kill(pid, signal.SIGINT)
             elif msg == 'TERM':
                 # Start termination procedure
                 # Kernel will receive term and act (if it can). 
