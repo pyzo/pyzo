@@ -119,7 +119,7 @@
    </property>
    <property name="icon">
     <iconset>
-     <normaloff>icons/accept.png</normaloff>icons/accept.png</iconset>
+     <normaloff>icons/add.png</normaloff>icons/add.png</iconset>
    </property>
   </widget>
   <widget class="QPushButton" name="btnRemove">
