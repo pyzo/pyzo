@@ -127,8 +127,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.shells = ShellStack(self)
         # The default shell is instantiated after the tools are loaded
 
-        # Create statusbar and menu 
-        # (keep a ref to the menuhelper so it is not destroyed)
+        # Create statusbar
         if iep.config.view.showStatusbar:
             iep.status = self.statusBar()
         else:
@@ -142,6 +141,9 @@ class MainWindow(QtGui.QMainWindow):
         
         # Add the context menu to the shell tab bar
         iep.shells.addContextMenu()
+        
+        # Add the context menu to the editor tab bar
+        iep.editors.addContextMenu()
     
     
     def _insertEditorAndShell(self):

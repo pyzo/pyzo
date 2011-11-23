@@ -817,6 +817,71 @@ class ShellTabContextMenu(ShellMenu):
             getattr(shell,action)()
 
 
+class EditorTabContextMenu(Menu):
+    def __init__(self, *args, **kwds):
+        Menu.__init__(self, *args, **kwds)
+        self._index = -1
+    
+    def setIndex(self, index):
+        self._index = index
+    
+    def build(self):
+        """ Build menu """
+
+        self.addItem("Save", self._fileAction, "saveFile")
+        self.addItem("Save as", self._fileAction, "saveFileAs")        
+        self.addItem("Close", self._fileAction, "closeFile")
+        self.addItem("Close other", self._fileAction, "close_other")
+        self.addItem("Rename", self._fileAction, "rename")
+        
+        self.addSeparator()
+        self.addItem("Pin/Unpin", self._fileAction, "pin")
+        self.addItem("Set/Unset as MAIN file", self._fileAction, "main")
+        
+        self.addSeparator()
+        self.addItem("Run", self._fileAction, "run")
+        self.addItem("Run as script", self._fileAction, "run_script")
+        
+        
+    def _fileAction(self, action):
+        """ Call the method specified by 'action' on the selected shell """
+        
+        item = iep.editors._tabs.getItemAt(self._index)
+        
+        if action in ["saveFile", "saveFileAs", "closeFile"]:
+            getattr(iep.editors, action)(item.editor)
+        elif action == "close_other":
+            items = iep.editors._tabs.items()
+            for i in reversed(range(iep.editors._tabs.count())):
+                if items[i] is item or items[i].pinned:
+                    continue
+                iep.editors._tabs.tabCloseRequested.emit(i)
+        elif action == "rename":
+            filename = item.filename
+            iep.editors.saveFileAs(item.editor)
+            try:
+                os.remove(filename)
+            except Exception:
+                pass
+        elif action == "pin":
+            item._pinned = not item._pinned
+        elif action == "main":
+            if iep.editors._tabs._mainFile == item.id:
+                iep.editors._tabs._mainFile = None
+            else:
+                iep.editors._tabs._mainFile = item.id
+        elif action == "run":
+            menu = iep.main.menuBar().findChild(RunMenu)
+            if menu:
+                menu._runFile((False, False), item.editor)
+        elif action == "run_script":
+            menu = iep.main.menuBar().findChild(RunMenu)
+            if menu:
+                menu._runFile((True, False), item.editor)
+            
+        iep.editors._tabs.updateItems()
+
+
 class RunMenu(Menu):
     
     def build(self):
@@ -1190,16 +1255,15 @@ def buildMenus(menuBar):
     """
     Build all the menus
     """
-    menus = [
-        FileMenu(menuBar, translate("menu", "File")),
-        EditMenu(menuBar, translate("menu", "Edit")),
-        ViewMenu(menuBar, "View"),
-        SettingsMenu(menuBar, "Settings"),
-        ShellMenu(menuBar, "Shell"),
-        RunMenu(menuBar, "Run"),
-        ToolsMenu(menuBar, "Tools"),
-        HelpMenu(menuBar, "Help")
-        ]
+    menus = [FileMenu(menuBar, translate("menu", "File")),
+             EditMenu(menuBar, translate("menu", "Edit")),
+             ViewMenu(menuBar, "View"),
+             SettingsMenu(menuBar, "Settings"),
+             ShellMenu(menuBar, "Shell"),
+             RunMenu(menuBar, "Run"),
+             ToolsMenu(menuBar, "Tools"),
+             HelpMenu(menuBar, "Help")
+            ]
     for menu in menus:
         menuBar.addMenu(menu)
     menuBar._menus = menus
