@@ -589,12 +589,7 @@ class FileTabWidget(CompactTabWidget):
         but.setIconSize(QtCore.QSize(16,16))
         but.clicked.connect(self.onClose)
         self.setCornerWidget(but)
-        
-        # Create context menu
-        self._menu = QtGui.QMenu()
-        self._menu.triggered.connect(self.contextMenuTriggered)
-        self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        
+                
         # Bind signal to update items and keep track of history
         self.currentChanged.connect(self.updateItems)
         self.currentChanged.connect(self.trackHistory)
@@ -612,130 +607,6 @@ class FileTabWidget(CompactTabWidget):
         currentItem = self.currentItem()
         if currentItem:
             currentItem.editor.setTitleInMainWindow()
-    
-    
-    ## Context menu
-    
-    def contextMenuEvent(self, event):
-    
-        # Get which tab to show the context menu of
-        tabBar = self.tabBar()
-        index = tabBar.tabAt(event.pos())
-        
-        # Define actions
-        generalActions = [ None, 'New file', 'Open file' ]
-        fileActions = [ 'Close file', 'Close all but this (and pinned)',
-                        'Save file', 'Save file as', 
-                        'Rename file', 'Delete file (from file system)', 
-                        None,                        
-                        'Pin file', 'Make this the MAIN file', None,
-                        'Run file', 'Run file as script'
-                        ] 
-        
-        # Get item and actions
-        actions = generalActions
-        if index<0:
-            item = None
-        else:
-            item = self.items()[index]
-            actions = fileActions + actions
-        
-        # Create menu
-        self._menu.clear()
-        for a in actions:
-            if not a:
-                self._menu.addSeparator()
-            else:
-                al = a.lower()
-                
-                # Tweak names
-                if 'main' in al and item.id == self._mainFile:
-                    a = 'Unm' + a[1:]
-                if 'pin file' in al and item.pinned:
-                    a = 'Unp' + a[1:]
-                
-                # Create action
-                action = self._menu.addAction(a)                
-                action._item = item
-                action._index = index
-                
-                # Set icon?
-                if 'close file' in a.lower():
-                    action.setIcon( iep.icons.cross )
-        
-        # Show
-        
-        if item:
-            pos = tabBar.mapToGlobal( tabBar.tabRect(index).bottomLeft() )
-        else:
-            pos = event.globalPos()
-            # Putting it below the tabbar seems a bit as if its wrongly placed
-        
-        self._menu.exec_(pos)
-    
-    
-    def contextMenuTriggered(self, action):
-        
-        # Get request and item
-        request = action.text().lower()
-        item = action._item
-        index = action._index
-        
-        # Parse
-        if 'new file' in request:
-            iep.editors.newFile()
-        elif 'open file' in request:
-            iep.editors.openFile()
-        
-        elif 'save file as' in request:
-            iep.editors.saveFileAs(item.editor)
-        elif 'save file' in request:
-            iep.editors.saveFile(item.editor)
-        elif 'rename' in request:
-            filename = item.filename
-            iep.editors.saveFileAs(item.editor)
-            try:
-                os.remove(filename)
-            except Exception:
-                pass
-        
-        elif 'run' in request and 'script' in request:
-            menu = iep.main._menuhelper._menus['Run']
-            menu.fun_runFileAsScript(None, item.editor)
-        elif 'run' in request:
-            menu = iep.main._menuhelper._menus['Run']
-            menu.fun_runFile(None, item.editor)
-        
-        elif 'pin file' in request:
-            item._pinned = not item._pinned
-        elif 'main' in request:
-            if self._mainFile == item.id:
-                self._mainFile = None
-            else:
-                self._mainFile = item.id
-        
-        elif 'close all' in request:
-            items = self.items()
-            for i in reversed(range(self.count())):
-                if items[i] is item or items[i].pinned:
-                    continue
-                self.tabCloseRequested.emit(i)
-        elif 'close' in request:
-            self.tabCloseRequested.emit(index)
-        elif 'delete' in request:
-            result = simpleDialog(item, "Delete", 
-                "Are you sure you want to delete the file from your file system?",
-                ['Delete', 'Cancel'], 'Cancel')
-            if result=='Delete':
-                filename = item.filename            
-                self.tabCloseRequested.emit(index)
-                try:
-                    os.remove(filename)
-                except Exception:
-                    pass
-        
-        # Update
-        self.updateItems()
     
     
     ## Item management
@@ -762,6 +633,8 @@ class FileTabWidget(CompactTabWidget):
         if i>=0:
             return self.tabBar().tabData(i)
     
+    def getItemAt(self, i):
+        return self.tabBar().tabData(i)
     
     def mainItem(self):
         """ Get the item corresponding to the "main" file. Returns None
@@ -1074,6 +947,28 @@ class EditorTabs(QtGui.QWidget):
         # currentChanged signal first, in order to set tab/indentation
         # checkmarks appropriately)
         iep.callLater(self.restoreEditorState)
+    
+    
+    def addContextMenu(self):
+        """ Adds a context menu to the tab bar """
+        
+        from iepcore.menu import EditorTabContextMenu
+        self._menu = EditorTabContextMenu(self, "EditorTabMenu")
+        self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)    
+    
+    
+    def contextMenuTriggered(self, p):
+        """ Called when context menu is clicked """
+        
+        # Get index of current tab
+        index = self._tabs.tabBar().tabAt(p)
+        self._menu.setIndex(index)
+        
+        # Show menu if item is available
+        if index >= 0:
+            p = self._tabs.tabBar().tabRect(index).bottomLeft()
+            self._menu.exec_(self._tabs.tabBar().mapToGlobal(p))
     
     
     def onCurrentChanged(self):

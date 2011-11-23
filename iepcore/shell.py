@@ -606,11 +606,10 @@ class PythonShell(BaseShell):
         self._setHighlighter(PythonShellHighlighter)
         
         # Add context menu
-        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            from iepcore.menu import ShellContextMenu
-            self._menu = ShellContextMenu(self, "ShellContextMenu")
-            self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-            self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
+        from iepcore.menu import ShellContextMenu
+        self._menu = ShellContextMenu(self, "ShellContextMenu")
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
         
         # Start!
         self.connectToKernel(info)

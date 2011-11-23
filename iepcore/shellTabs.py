@@ -130,13 +130,11 @@ class ShellStack(QtGui.QWidget):
     
     def addContextMenu(self):
         """ Adds a context menu to the tab bar """
-        
-        # Uses new menu system, so check if it is enabled
-        if 'useNewMenus' in iep.config.advanced and iep.config.advanced.useNewMenus:
-            from iepcore.menu import ShellTabContextMenu
-            self._menu = ShellTabContextMenu(self, "ShellTabMenu")
-            self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-            self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
+    
+        from iepcore.menu import ShellTabContextMenu
+        self._menu = ShellTabContextMenu(self, "ShellTabMenu")
+        self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
 
     
     def contextMenuTriggered(self, p):
@@ -146,14 +144,8 @@ class ShellStack(QtGui.QWidget):
         index = self._tabs.tabBar().tabAt(p)
         self._menu.setIndex(index)
         
-        # Get shell at index
-        if index < 0:
-            shell = None
-        else:
-            shell = self.getShells()[index]
-        
         # Show menu if shell is available
-        if shell:
+        if index >= 0:
             p = self._tabs.tabBar().tabRect(index).bottomLeft()
             self._menu.exec_(self._tabs.tabBar().mapToGlobal(p))
 
