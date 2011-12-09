@@ -46,6 +46,7 @@ class BlockState(object):
     valid.
     
     """
+    isToken = False
     def __init__(self, state=0, info=None):
         self._state = int(state)
         self._info = info
@@ -82,13 +83,12 @@ class Parser(object):
         specific parser. 
         
         This method should yield token instances. The last token can
-        be a ContinuationToken to specify the previousState for the 
+        be a BlockState to specify the previousState for the 
         next block.
         
         """
         raise NotImplementedError()
-    
-    
+            
     def name(self):
         """ name()
         
