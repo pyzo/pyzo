@@ -666,7 +666,9 @@ class ShellInfoTab(QtGui.QWidget):
         # Connect some signals
         self._editName.editingFinished.connect(self.onEditNameChanged)
         self._editPathCheck.stateChanged.connect(self.onEditPathCheckChanged)
+        self._editPath.textChanged.connect(self.onEditPathChanged)
         self._editStartupCheck.stateChanged.connect(self.onEditStartupCheckChanged)
+        self._editStartup.textEdited.connect(self.onEditStartupChanged)
     
     
     def _addRow(self, name, widget, tooltip=''):
@@ -698,6 +700,11 @@ class ShellInfoTab(QtGui.QWidget):
         self.setTabTitle(self._editName.text())
     
     
+    def onEditPathChanged(self):
+        if not self._editPathCheck.isChecked():
+            self._editPathBuffer = self._editPath.toPlainText()
+            
+    
     def onEditPathCheckChanged(self, state):
         
         # Enable or disable
@@ -715,6 +722,10 @@ class ShellInfoTab(QtGui.QWidget):
             self._editPath.setText(self._editPathBuffer)
     
     
+    def onEditStartupChanged(self):
+        if not self._editStartupCheck.isChecked():
+            self._editStartupBuffer = self._editStartup.text()
+    
     def onEditStartupCheckChanged(self, state):
         
         # Enable or disable
@@ -725,7 +736,7 @@ class ShellInfoTab(QtGui.QWidget):
             pp = os.environ.get('PYTHONSTARTUP','')            
             self._editStartup.setText(pp)
         else:
-            self._startup.setText(self._editStartupBuffer)
+            self._editStartup.setText(self._editStartupBuffer)
     
     
     def setInfo(self, info=None):
@@ -814,9 +825,9 @@ class ShellInfoTab(QtGui.QWidget):
             wName = '_editGui' + guiName[0].upper() + guiName[1:].lower()
             if hasattr(self, wName):
                 if getattr(self, wName).isChecked():
-                    info.gui = guiName
+                    info.gui = guiName.lower()
         
-        # Python search path   
+        # Python search path
         info.PYTHONPATH_custom = self._editPathBuffer
         info.PYTHONPATH_useCustom = not self._editPathCheck.isChecked()
         

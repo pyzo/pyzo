@@ -110,7 +110,9 @@ class IepInterpreter:
         guiName = os.environ.get('iep_gui', '')
         guiError = ''
         try:
-            if guiName == 'tk':
+            if guiName in ['', 'none', 'None']:
+                pass
+            elif guiName == 'tk':
                 self.guiApp = Hijacked_tk()
             elif guiName == 'wx':
                 self.guiApp = Hijacked_wx()
@@ -120,6 +122,8 @@ class IepInterpreter:
                 self.guiApp = Hijacked_fltk()
             elif guiName == 'gtk':
                 self.guiApp = Hijacked_gtk()
+            else:
+                guiError = 'Unkown gui: %s' % guiName
         except Exception: # Catch any error
             # Get exception info (we do it using sys.exc_info() because
             # we cannot catch the exception in a version independent way.

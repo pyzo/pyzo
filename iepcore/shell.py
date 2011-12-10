@@ -56,8 +56,8 @@ def convertToNewKernelInfo(info):
     
     # pythonpath
     info2.PYTHONPATH = '$PYTHONPATH'
-    if info.PYTHONSTARTUP_useCustom:
-        info2.PYTHONPATH = info.PYTHONPATH_custom
+    if info.PYTHONPATH_useCustom:
+        info2.PYTHONPATH = info.PYTHONPATH_custom + '\n$PYTHONPATH'
     
     # startup script
     info2.startupScript = '$PYTHONSTARTUP'
