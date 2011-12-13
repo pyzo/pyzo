@@ -110,27 +110,22 @@ def resetConfig(preserveState=True):
     print("Replaced config file. Restart IEP to revert to the default config.")
 
 
-class Translator:
-    def __init__(self):
-        self._lastTranslated = 0, ''
-    
-    def __call__(self, context, text, disambiguation=None):
-        s = QtCore.QCoreApplication.translate(context, text, disambiguation)
-        self._lastTranslated = text, s
-        return s
-    
-    def original(self, s):
-        """ Get original text of the given string s, which should be
-        the last translated string. If s is not the result of the last
-        translation, returns s.
-        Used in the menu to get consistent strings to map hotkeys.
-        """
-        if self._lastTranslated[1] == s:
-            return self._lastTranslated[0]
-        else:
-            return s
 
-translate = Translator()
+class Translation(str):
+    """ Derives from str class. Set .original property to indicate the original
+    text"""
+    pass
+        
+def translate(context, text,  disambiguation=None):   
+    s = Translation(QtCore.QCoreApplication.translate(context, text, disambiguation))
+    s.original = text
+    return s
+
+def untranslate(text):
+    if hasattr(text,'original'):
+        return text.original
+    return text
+
 
 
 def startIep():

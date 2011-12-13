@@ -190,7 +190,8 @@ class Menu(QtGui.QMenu):
             self.menuPath = parent.menuPath + '__'
         else:
             self.menuPath = '' #This is a top-level menu
-        self.menuPath += self._createMenuPathName(name)
+
+        self.menuPath += self._createMenuPathName(iep.untranslate(name))
                 
         # Build the menu. Happens only once
         self.build()
@@ -201,8 +202,6 @@ class Menu(QtGui.QMenu):
         Convert a menu title into a menuPath component name
         e.g. Interrupt current shell -> interrupt_current_shell
         """
-        # Get original
-        name = translate.original(name)
         # hide anything between brackets
         name = re.sub('\(.*\)', '', name)
         # replace invalid chars
@@ -222,16 +221,25 @@ class Menu(QtGui.QMenu):
         
         # Add the item, which can be anyting that QMenu accepts (strings, icons,
         # menus, etc.)
-        if isinstance(properties, tuple):
-            a = self.addAction(*properties)
-        else:
-            a = self.addAction(properties)
+        if not isinstance(properties, tuple):
+            properties = (properties,)
+            
+        a = self.addAction(*properties)
+        
         
         if selected is not None:
             a.setCheckable(True)
             a.setChecked(selected)
-        
-        a.menuPath = self.menuPath + '__' + self._createMenuPathName(a.text())
+
+        # Find the original (untranslated) name for this menu item
+        original = a.text()
+        for p in properties:
+            if hasattr(p, 'original'):
+                original = p.original
+                break
+                
+        a.menuPath = self.menuPath + '__' + self._createMenuPathName(original)
+
         
         # Register the action so its keymap is kept up to date
         iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
@@ -1541,28 +1549,6 @@ class xSettingsMenu(BaseMenu):
 
     
 
-def getFullName(action):
-    """ Get the full name of the action. 
-    This is the key in the iep.config.shortcuts dict
-    """
-    item = action
-    text = action.text()
-    if not text:
-        text = ''
-    while isinstance(item.parent(), QtGui.QMenu):
-        item = item.parent()
-        try:
-            text = item.title() + '__' + text
-        except Exception:
-            print('error getting name',text, item.title())
-    # hide anything between brackets
-    text = re.sub('\(.*\)', '', text)
-    # replace invalid chars
-    text = text.replace(' ', '_')
-    if text[0] in '0123456789':
-        text = "_"+text
-    text = re.sub('[^a-zA-z_0-9]','',text,999)
-    return text.lower()
 
 
 def getShortcut( fullName):
@@ -1570,7 +1556,7 @@ def getShortcut( fullName):
     from the iep.config.shortcuts dict. A tuple is returned
     representing the two shortcuts. """
     if isinstance(fullName, QtGui.QAction):
-        fullName = getFullName(fullName)
+        fullName = fullName.menuPath # the menuPath property is set in Menu._addAction
     shortcut = '', ''
     if fullName in iep.config.shortcuts:
         shortcut = iep.config.shortcuts[fullName]
@@ -2029,7 +2015,6 @@ class KeymappingDialog(QtGui.QDialog):
         if isinstance(item, QtGui.QAction) and item.text():
             # create prompt dialog
             dlg = KeyMapEditDialog(self)
-            fullname = getFullName(item)
-            dlg.setFullName( fullname, shortCutId==1 )
+            dlg.setFullName( item.menuPath, shortCutId==1 )
             # show it
             dlg.exec_()
