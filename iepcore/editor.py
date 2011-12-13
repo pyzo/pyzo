@@ -526,7 +526,20 @@ class IepEditor(BaseTextCtrl):
         # Go where we were (approximately)
         self.gotoLine(linenr)
     
-    
+    def deleteLines(self):
+        cursor = self.textCursor()
+        # Find start and end of selection
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        # Expand selection: from start of first block to start of next block
+        cursor.setPosition(start)
+        cursor.movePosition(cursor.StartOfBlock)
+        cursor.setPosition(end, cursor.KeepAnchor)
+        cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        
+        cursor.removeSelectedText()
+        
+        
     def commentCode(self):
         """
         Comment the lines that are currently selected
