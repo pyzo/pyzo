@@ -313,7 +313,10 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorAtEditLine()
         self.ensureCursorVisible()
     
-    
+    def deleteLines(self):
+        """ Called from the menu option "delete lines", just execute self.clearCommand() """
+        self.clearCommand()
+        
     def clearCommand(self):
         """ Clear the current command, move the cursor right behind
         the prompt, and ensure it's visible.
