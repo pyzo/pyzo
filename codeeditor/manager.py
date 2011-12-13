@@ -154,7 +154,9 @@ class Manager:
         is printed and None is returned.
         
         """
-        
+        if not parserName:
+            return parsers.Parser() #Default dummy parser
+            
         # Case insensitive
         parserName = parserName.lower()
         
@@ -164,7 +166,7 @@ class Manager:
         else:
             print('Warning: no parser known by the name "%s".'%parserName)
             print('I know these: ', cls._parserInstances.keys())
-            return None
+            return parsers.Parser() #Default dummy parser
     
     
     @classmethod
