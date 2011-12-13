@@ -68,6 +68,7 @@ class BlockState(object):
 class Parser(object):
     """ Base parser class. 
     All parsers should inherit from this class.
+    This base class generates a 'TextToken' for each line
     """
     _extensions = []
     _keywords = []
@@ -87,7 +88,8 @@ class Parser(object):
         next block.
         
         """
-        raise NotImplementedError()
+        
+        yield tokens.TextToken(line,0,len(line))
             
     def name(self):
         """ name()

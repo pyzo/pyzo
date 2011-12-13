@@ -489,11 +489,8 @@ class SyntaxHighlighting(object):
         
         """
         # Set parser
-        if parserName:
-            self.__parser = Manager.getParserByName(parserName)
-        else:
-            self.__parser = None
-        
+        self.__parser = Manager.getParserByName(parserName)
+
         # Restyle, use setStyle for lazy updating
         self.setStyle()
         
