@@ -127,7 +127,8 @@ class AutoCompletion(object):
     def __updateAutocompleterPrefix(self):
         """
         Find the autocompletion prefix (the part of the word that has been 
-        entered) and send it to the completer
+        entered) and send it to the completer. Update the selected completion
+        (out of several possiblilties) which is best suited
         """
         prefix=self.toPlainText()[self.__autocompleteStart:
         self.textCursor().position()]
@@ -135,22 +136,34 @@ class AutoCompletion(object):
         self.__completer.setCompletionPrefix(prefix)
         model = self.__completer.completionModel()
         if model.rowCount():
-            #Iterate over the matches, find the one that was most recently used
-            #print (self._recentCompletions)
-            recentFound = -1
-            recentFoundRow = 0 #If no recent match, just select the first match
+            # Create a list of all possible completions, and select the one
+            # which is best suited. Use the one which is highest in the
+            # __recentCompletions list, but prefer completions with matching
+            # case if they exists
             
-            for row in range(model.rowCount()):
-                data = model.data(model.index(row,0),self.__completer.completionRole())
-                if not data in self.__recentCompletions:
-                    continue
-                
-                index = self.__recentCompletions.index(data)
-                if index > recentFound: #Later in the list = more recent
-                    recentFound, recentFoundRow = index, row
+            # Create a list of (row, value) tuples of all possible completions
+            completions = [
+                (row, model.data(model.index(row,0),self.__completer.completionRole()))
+                for row in range(model.rowCount())
+                ]
+            
+            # Define a function to get the position in the __recentCompletions
+            def completionIndex(data):
+                try:
+                    return self.__recentCompletions.index(data)
+                except ValueError:
+                    return -1
+            
+            # Sort twice; the last sort has priority over the first
+            
+            # Sort on most recent completions
+            completions.sort(key = lambda c: completionIndex(c[1]), reverse = True)
+            # Sort on matching case (prefer matching case)
+            completions.sort(key = lambda c: c[1].startswith(prefix), reverse = True)
 
-            
-            self.__completer.popup().setCurrentIndex(model.index(recentFoundRow,0));
+            # apply the best match
+            bestMatchRow = completions[0][0]
+            self.__completer.popup().setCurrentIndex(model.index(bestMatchRow,0));
 
                 
         else:
