@@ -8,12 +8,22 @@ from PyQt4.QtCore import Qt
 
 import keyword
 
+#TODO: use this CompletionListModel to style the completion suggestions (class names, method names, keywords etc)
+class CompletionListModel(QtGui.QStringListModel):
+    def data(self, index, role):
+        if role == Qt.ForegroundRole:
+            # data = str(QtGui.QStringListModel.data(self, index, QtCore.Qt.DisplayRole))
+            # return QtGui.QBrush(Qt.red)
+            return None
+        else:
+            return QtGui.QStringListModel.data(self, index, role)
+
 # todo: use keywords from the parser
 class AutoCompletion(object):
     def __init__(self,*args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter
-        self.__completerModel=QtGui.QStringListModel(keyword.kwlist)
+        self.__completerModel=CompletionListModel(keyword.kwlist)
         self.__completer=QtGui.QCompleter(self.__completerModel, self)
         self.__completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.__completer.setWidget(self)
@@ -165,7 +175,7 @@ class AutoCompletion(object):
         # alphanumeric and _ ans shift
         # Backspace (until start of autocomplete word)
         if self.autocompleteActive() and \
-            not event.text().isalnum() and event.text != '_' and \
+            not event.text().isalnum() and event.text() != '_' and \
             key != Qt.Key_Shift and not (
             (key==Qt.Key_Backspace) and self.textCursor().position()>self.__autocompleteStart):
             self.autocompleteCancel()
