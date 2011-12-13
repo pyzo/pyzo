@@ -17,6 +17,7 @@ import os, sys, time
 import weakref
 import ssdf
 from iepcore.iepLogging import print
+import codeeditor.parsers.tokens as Tokens
 
 from PyQt4 import QtCore, QtGui
 qt = QtGui
@@ -77,115 +78,74 @@ def normalizePath(path):
     return fullpath[:-len(sep)]
 
 
-# valid chars to make a name
-namechars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
-namekeys = [ord(i) for i in namechars]
-
-
-# todo: a regexp on the reverse string? Only for beauty, 
-# this is no performance bottleneck or anything
-def parseLine_autocomplete(text):
-    """ Given a line of code (from start to cursor position) 
+def parseLine_autocomplete(tokens):
+    """ Given a list of tokens (from start to cursor position) 
     returns a tuple (base, name).    
     autocomp_parse("eat = banan") -> "", "banan"
       ...("eat = food.fruit.ban") -> "food.fruit", "ban"
     When no match found, both elements are an empty string.
     """
-    #TODO: use the syntax tokens to do this processing
-    
-    # is the line commented? The STC_P is 0 in commented lines...
-    i = text.rfind("#")
-    if i>=0 and text[:i].count("\"") % 2==0 and text[:i].count("\'") % 2==0:
+    if not len(tokens):
         return "",""
     
-    # Helper variable
-    in_list = 0
-    
-    i_base = 0
-    for i in range(len(text)-1,-1,-1):
-        c = text[i]
+    if isinstance(tokens[-1],Tokens.NonIdentifierToken) and str(tokens[-1])=='.':
+        name = ''
+    elif isinstance(tokens[-1],(Tokens.IdentifierToken,Tokens.KeywordToken)):
+        name = str(tokens[-1])
+    else:
+        return '',''
         
-        if c=='.':
-            if i_base==0:
-                i_base = i        
-        elif c in ["'", '"']:
-            # a string                
-            if i_base == i+1: # dot after it
-                return "''", text[i_base+1:]
-            else:
-                return "",""
-        elif c==']':
-            # may be a list
-            if i_base == i+1 and i>0 and text[i-1]=='[': 
-                return "[]", text[i_base+1:]
-            else:
-                in_list += 1
-        elif c == '[':
-            # Allow looking in lists, if using simple indexing
-            if in_list > 0:
-                in_list  -= 1
-            else:
-                break
-        elif not c in namechars:
+    needle = ''
+    #Now go through the remaining tokens in reverse order
+    for token in tokens[-2::-1]:
+        if isinstance(token,Tokens.NonIdentifierToken) and str(token)=='.':
+            needle = str(token) + needle
+        elif isinstance(token,(Tokens.IdentifierToken,Tokens.KeywordToken)):
+            needle = str(token) + needle
+        else:
             break
-    else:
-        # we need to decrease this extra bit when the loop fully unrolled
-        i-=1 
+    
+    if needle.endswith('.'):
+        needle = needle[:-1]
         
-    # almost done...
-    if i_base == 0:
-        return "", text[i+1:]
-    else:
-        return text[i+1:i_base], text[i_base+1:]
+    return needle, name
 
 
-
-def parseLine_signature(text):
-    """ Given a line of code (from start to cursor position) 
+def parseLine_signature(tokens):
+    """ Given a list of tokens (from start to cursor position) 
     returns a tuple (name, needle, stats).
     stats is another tuple: 
     - location of end bracket
     - amount of kommas till cursor (taking nested brackets into account)
     """
-    #TODO: use the syntax tokens to do this processing
-    # find braces
-    level = 1  # for braces    
-    for i in range(len(text)-1,-1,-1):
-        c = text[i]
-        if c == ")": level += 1
-        elif c == "(": level -= 1        
-        if level == 0:
-            break
-            
-    if not i>0:
-        return "","",(0,0)
-    
-    # now find the amount of valid komma's to calculate which element at cursor
-    kommaCount = 0
-    l1 = 1  # for braces
-    l2=l3=l4=l5 = 0 # square brackets, curly brackets, qoutes, double quotes    
-    for ii in range(i+1,len(text)):
-        c = text[ii:ii+1]
-        if c == "'": l4 = (not l4)
-        elif c == '"': l5 = (not l5) 
-        if l4 or l5:
+    openBraces = [] #Positions at which braces are opened
+    for token in tokens:
+        if not isinstance(token,Tokens.NonIdentifierToken):
             continue
-        if c == ",":
-            if l1 == 1 and l2==0 and l3==0:
-                kommaCount += 1        
-        elif c == "(": l1 += 1
-        elif c == ")": l1 -= 1        
-        elif c in "[": l2 += 1
-        elif c in "]": l2 -= 1
-        elif c in "{": l3 += 1
-        elif c in "}": l3 -= 1               
+        for i,c in enumerate(str(token)):
+            if c=='(':
+                openBraces.append(token.start + i)
+            elif c==')':
+                if len(openBraces): openBraces.pop()
     
-    # found it?
-    if i>0:
-        name, needle = parseLine_autocomplete(text[:i])
-        return name, needle, (i, kommaCount)
-    else:
-        return "","", (0,0)
+    if len(openBraces):
+        i = openBraces[-1]
+        # Now trim the token list up to (but not inculding) position of openBraces
+        tokens = list(filter(lambda token: token.start < i, tokens))
+        
+        # Trim the last token
+        if len(tokens):
+            tokens[-1].end = i
+        
+        name, needle = parseLine_autocomplete(tokens)
+
+        return name, needle, (i,0) #TODO: implement stats
+        
+        
+    return "","",(0,0)
+                
+
+ 
 
 
 class StyleManager(QtCore.QObject):
@@ -595,21 +555,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         """
         #TODO:
         return True
-        # The lexer should be Python
-        lexlang = self.SendScintilla(self.SCI_GETLEXER)
-        if lexlang != self.SCLEX_PYTHON:
-            return False
-        
-        # The style must be "default"
-        curstyle = self.getStyleAt(self.getPosition())
-        if curstyle not in [0,10,11]:
-            return False
-        
-        # When at the end of a comment, _isValidPython will fail, but 
-        # parseLine_autocomplete will still detect this
-        
-        # all good
-        return True  
+
     
     
     def introspect(self, tryAutoComp=False):
@@ -633,28 +579,33 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         which are implemented in the editor and shell classes.
         """
         
-        # Only proceed if valid python
-        if not self._isValidPython():
-            self.calltipCancel()
-            self.autocompleteCancel()
-            return
-        
-        # Get line up to cursor
+        # Find the tokens up to the cursor
         cursor = self.textCursor()
-        positionInBlock = cursor.positionInBlock()
-        cursor.setPosition(cursor.position()) #Move the anchor to the cursor pos
-        cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
-        text = cursor.selectedText().replace('\u2029', '\n') 
         
+        # In order to find the tokens, we need the userState from the highlighter
+        if cursor.block().previous().isValid():
+            previousState = cursor.block().previous().userState()
+        else:
+            previousState = 0
+        
+        text = cursor.block().text()[:cursor.positionInBlock()]
+        
+        tokensUptoCursor = list(
+                filter(lambda token:token.isToken, #filter to remove BlockStates
+                self.parser().parseLine(text, previousState)))
+        
+        # TODO: Only proceed if valid python (no need to check for comments/
+        # strings, this is done by the processing of the tokens). Check for python style
+       
         # Is the char valid for auto completion?
         if tryAutoComp:
-            if not text or not ( text[-1] in namechars or text[-1]=='.' ):
+            if not text or not ( text[-1] in (Tokens.ALPHANUM + "._") ):
                 self.autocompleteCancel()
                 tryAutoComp = False
         
         # Store line and (re)start timer
-        self._delayTimer._line = text
-        self._delayTimer._pos = positionInBlock
+        self._delayTimer._tokensUptoCursor = tokensUptoCursor
+        self._delayTimer._pos = cursor.positionInBlock()
         self._delayTimer._tryAutoComp = tryAutoComp
         self._delayTimer.start(iep.config.advanced.autoCompDelay)
     
@@ -664,16 +615,13 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
         """ 
-        
-        # Retrieve the line of text that we stored
-        line = self._delayTimer._line
-        if not line:
-            return
-        
+  
+        tokens = self._delayTimer._tokensUptoCursor
+           
         if iep.config.settings.autoCallTip:
             # Parse the line, to get the name of the function we should calltip
             # if the name is empty/None, we should not show a signature
-            name, needle, stats = parseLine_signature(line)
+            name, needle, stats = parseLine_signature(tokens)
             
             if needle:
                 # Compose actual name
@@ -681,7 +629,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 if name:
                     fullName = name + '.' + needle
                 # Process
-                offset = len(line) - stats[0] + len(needle)
+                offset = self._delayTimer._pos - stats[0] + len(needle)
                 cto = CallTipObject(self, fullName, offset)
                 self.processCallTip(cto)
             else: 
@@ -689,21 +637,21 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         if self._delayTimer._tryAutoComp and iep.config.settings.autoComplete:
             # Parse the line, to see what (partial) name we need to complete
-            name, needle = parseLine_autocomplete(line)
+            name, needle = parseLine_autocomplete(tokens)
             
             if name or needle:
-                # Try to do auto completion
-                aco = AutoCompObject(self, name, needle)
-                self.processAutoComp(aco)
+               # Try to do auto completion
+               aco = AutoCompObject(self, name, needle)
+               self.processAutoComp(aco)
     
     
     def processCallTip(self, cto):
-        """ Dummy processing. """
+        """ Overridden in derive class """
         pass
     
     
     def processAutoComp(self, aco):
-        """ Dummy processing. """
+        """ Overridden in derive class """
         pass
     
     
