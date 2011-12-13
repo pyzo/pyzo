@@ -28,7 +28,7 @@ class Token(object):
     
     """ 
     defaultStyle = 'fore:#000, bold:no, underline:no, italic:no'
-    
+    isToken = True # For the BlockState object, which is also returned by the parsers, this is False
     def __init__(self, line='', start=0, end=0):
         self.line = ustr(line)
         self.start = start
