@@ -243,6 +243,8 @@ class BaseShell(BaseTextCtrl):
             cursor.setPosition(self._cursor2.position(), A_MOVE)
             cursor.movePosition(cursor.End, A_KEEP)
             cursor.insertText(c)
+            
+            self.ensureCursorAtEditLine()
             return
         
         else:
