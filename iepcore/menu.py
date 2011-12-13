@@ -453,11 +453,11 @@ class FileMenu(Menu):
         # Build menu file management stuff
         self.addItem((iep.icons.page_add, translate('menu', 'New', 'file')),
                         iep.editors.newFile)
-        self.addItem((iep.icons.folder_page, translate("menu", "Open")),
+        self.addItem((iep.icons.folder_page, translate("menu", "Open...")),
                         iep.editors.openFile)
         self._items += [    
             self.addItem(translate("menu", "Save"), iep.editors.saveFile),
-            self.addItem(translate("menu", "Save as"), iep.editors.saveFileAs),
+            self.addItem(translate("menu", "Save as..."), iep.editors.saveFileAs),
             self.addItem(translate("menu", "Save all"), iep.editors.saveAllFiles),
             self.addItem(translate("menu", "Close"), iep.editors.closeFile),
             self.addItem(translate("menu", "Close all"), iep.editors.closeAllFiles),  ]
