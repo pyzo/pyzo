@@ -646,12 +646,12 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     
     
     def processCallTip(self, cto):
-        """ Dummy processing. """
+        """ Overridden in derive class """
         pass
     
     
     def processAutoComp(self, aco):
-        """ Dummy processing. """
+        """ Overridden in derive class """
         pass
     
     
