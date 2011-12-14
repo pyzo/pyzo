@@ -839,7 +839,8 @@ class EditorTabContextMenu(Menu):
         self.addItem("Save", self._fileAction, "saveFile")
         self.addItem("Save as", self._fileAction, "saveFileAs")        
         self.addItem("Close", self._fileAction, "closeFile")
-        self.addItem("Close other", self._fileAction, "close_other")
+        self.addItem("Close others", self._fileAction, "close_others")
+        self.addItem("Close all", self._fileAction, "close_all")
         self.addItem("Rename", self._fileAction, "rename")
         
         self.addSeparator()
@@ -858,12 +859,15 @@ class EditorTabContextMenu(Menu):
         
         if action in ["saveFile", "saveFileAs", "closeFile"]:
             getattr(iep.editors, action)(item.editor)
-        elif action == "close_other":
+        elif action == "close_others" or action == "close_all":
+            if action == "close_all":
+                item = None #The item not to be closed is not there
             items = iep.editors._tabs.items()
             for i in reversed(range(iep.editors._tabs.count())):
                 if items[i] is item or items[i].pinned:
                     continue
                 iep.editors._tabs.tabCloseRequested.emit(i)
+            
         elif action == "rename":
             filename = item.filename
             iep.editors.saveFileAs(item.editor)

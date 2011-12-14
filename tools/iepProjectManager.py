@@ -4,7 +4,9 @@ import os
 import sys
 import ssdf
 import fnmatch
-
+import iepcore.menu
+from iep import translate
+import subprocess
 
 tool_name = "Project manager"
 tool_summary = "Manage project directories."
@@ -427,6 +429,11 @@ class IepProjectManager(QtGui.QWidget):
         #Apply previous selected project
         self.activeProject = None
         self.projectChanged(self.config.activeproject)
+        
+        #Attach the context menu
+        self.dirList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.dirList.customContextMenuRequested.connect(self.contextMenuTriggered)  
+        
 
     ## Methods
     def showConfigDialog(self):
@@ -480,7 +487,19 @@ class IepProjectManager(QtGui.QWidget):
             else:
                 return self.activeProject.path
                 
+    ## Context menu handler
         
+    def contextMenuTriggered(self, p):
+        """ Called when context menu is clicked """
+        idx = self.dirList.indexAt(p)
+        if not idx.isValid():
+            return
+        idx = self.dirList.model().mapToSource(idx)
+        if not idx.isValid():
+            return
+        path = self.dirModel.filePath(idx)
+        
+        PopupMenu(path, self).exec_(self.dirList.mapToGlobal(p))
         
         
         
@@ -548,4 +567,27 @@ class IepProjectManager(QtGui.QWidget):
             #if info.suffix() in ['py','c','pyw','pyx','pxd','h','cpp','hpp']:
             if info.suffix() not in ['pyc','pyo','png','jpg','ico']:
                 iep.editors.loadFile(info.absoluteFilePath())
+                
+class PopupMenu(iepcore.menu.Menu):
+    def __init__(self, path, parent):
+        iepcore.menu.Menu.__init__(self, parent, " ")
+        self._path = path
+    def build(self):
+        #TODO: implement 'open outside iep' on linux
+        
+        if sys.platform == 'darwin':
+            self.addItem(translate("menu", "Open outside iep"), self._openOutsideMac)
+            self.addItem(translate("menu", "Reveal in Finder"), self._showInFinder)
+        if sys.platform.startswith('win'):
+            self.addItem(translate("menu", "Open outside iep"), self._openOutsideWin)
+        self.addItem(translate("menu", "Copy path"), self._copyPath)
             
+    def _openOutsideMac(self):
+        subprocess.call(('open', self._path))
+    def _showInFinder(self):
+        subprocess.call(('open', '-R', self._path))
+    def _openOutsideWin(self):
+        subprocess.call(('start', self._path))
+    def _copyPath(self):
+        QtGui.qApp.clipboard().setText(self._path)
+        
