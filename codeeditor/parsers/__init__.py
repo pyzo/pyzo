@@ -195,7 +195,6 @@ class Parser(object):
 # listing all parsers here.
 from codeeditor.parsers import (    python_parser, 
                                     cython_parser,
-                                    stupid_parser, 
                                     c_parser,
                                 )
 
