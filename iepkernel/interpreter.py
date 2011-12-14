@@ -17,6 +17,7 @@ occur in any othe packages to prevent import clashes.
 """
 
 import os, sys, time
+import struct
 from codeop import CommandCompiler
 import traceback
 import threading
@@ -102,8 +103,13 @@ class IepInterpreter:
         """
         
         # Write Python banner
+        NBITS = 8 * struct.calcsize("P")
+        platform = sys.platform
+        if platform.startswith('win'):
+            platform = 'Windows'
+        platform = '%s (%i bits)' % (platform, NBITS) 
         sys.stdout.write("Python %s on %s.\n" %
-            (sys.version.split('[')[0].rstrip(), sys.platform))
+            (sys.version.split('[')[0].rstrip(), platform))
         
         # Integrate event loop of GUI toolkit
         self.guiApp = None
