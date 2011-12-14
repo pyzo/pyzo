@@ -1203,7 +1203,12 @@ class EditorTabs(QtGui.QWidget):
         if editor._filename:
             startdir = os.path.dirname(editor._filename)
         else:
-            startdir = self._lastpath            
+            startdir = self._lastpath 
+            # Try the project manager to suggest a path
+            projectManager = iep.toolManager.getTool('iepprojectmanager')
+            if projectManager:
+                startdir = projectManager.getDefaultSavePath()
+
         if not os.path.isdir(startdir):
             startdir = ''
         
