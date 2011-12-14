@@ -2,7 +2,7 @@ import re
 from codeeditor.parsers import tokens, Parser, BlockState
 from codeeditor.parsers.tokens import ALPHANUM
 
-from codeeditor.parsers.tokens import (CommentToken, StringToken, 
+from codeeditor.parsers.tokens import (Token, CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken, KeywordToken,
     NumberToken)
 
@@ -12,6 +12,10 @@ class MultilineCommentToken(CommentToken):
     """ Characters representing a multi-line comment. """
     defaultStyle = 'fore:#007F00'
 
+class CharToken(Token):
+    """ Single-quoted char """
+    defaultStyle = 'fore:#7F007F'
+
 
 # This regexp is used to find special stuff, such as comments, numbers and
 # strings.
@@ -19,7 +23,8 @@ tokenProg = re.compile(
     '([' + ALPHANUM + '_]+)|' +	# Identifiers/numbers (group 1) or
     '(\/\/)|' +                   # Single line comment (group 2)
     '(\/\*)|' +                   # Comment (group 3) or
-    '(\')|(\")'                 # Char / string (group 4/5)
+    '(\'\\\\?.\')|' +  # char (group 4)
+    '(\")'                 # string (group 5)
     )
 
 
@@ -117,8 +122,6 @@ class CParser(Parser):
         """
         
         # todo: distinguish between single and double quote strings
-        # todo: why would you need the ^ in regexp
-        # todo: C and C++ do not have multilinge strings afaik, or do they?
         
         # Find the matching end in the rest of the line
         # Do not use the start parameter of search, since ^ does not work then
@@ -130,9 +133,12 @@ class CParser(Parser):
             return [token]
         else:
             # The string does not end on this line
-            token = UnterminatedStringToken(line, token.start, token.end+len(line))
-            #return [token, BlockState(1)]
-            return [token]
+            if line.strip().endswith("\\"): #Multi line string
+                token = StringToken(line, token.start, len(line))
+                return [token, BlockState(1)]
+            else:
+                return [UnterminatedStringToken(line, token.start, len(line))]
+
     
     
     def _findNextToken(self, line, pos):
@@ -183,6 +189,8 @@ class CParser(Parser):
             tokens.append( CommentToken(line,match.start(),len(line)) )
         elif match.group(3) is not None:
             tokens.append( MultilineCommentToken(line,match.start(),match.end()) )
+        elif match.group(4) is not None: # Char
+            tokens.append( CharToken(line,match.start(),match.end()) )
         else:
             # We have matched a string-start
             tokens.append( StringToken(line,match.start(),match.end()) )
