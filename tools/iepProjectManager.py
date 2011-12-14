@@ -448,6 +448,41 @@ class IepProjectManager(QtGui.QWidget):
             return self.activeProject.path
         else:
             return None
+    
+    def getDefaultSavePath(self):
+        """
+        Returns the path to be used as default when saving a new file in iep
+        
+        Returns '' if the path cannot be determined (e.g. no current project)
+        """
+        if not self.activeProject:
+            return ''
+            
+        # Get the index of the selected item in the dir list
+        idx = self.dirList.selectionModel().currentIndex()
+        if not idx.isValid():
+            return self.activeProject.path
+        
+        # Transform to the source model
+        idx = self.dirList.model().mapToSource(idx)
+        if not idx.isValid():
+            return self.activeProject.path
+
+
+        if self.dirModel.isDir(idx):
+            # If it is a dir, return its path
+            return self.dirModel.filePath(idx)
+        else:
+            # If it is not a dir, return the path of its parent
+            idx = self.dirModel.parent(idx)
+            if idx.isValid():
+                return self.dirModel.filePath(idx)
+            else:
+                return self.activeProject.path
+                
+        
+        
+        
         
     ## Project changed handlers
     def comboChangedEvent(self,newIndex):
@@ -485,6 +520,9 @@ class IepProjectManager(QtGui.QWidget):
         
         self.dirModel.setRootPath(path)
         self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(self.dirModel.index(path)))
+        
+        #Clear the selected item (which is still from the previous project)
+        self.dirList.selectionModel().clear() 
         
         
     
