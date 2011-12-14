@@ -32,10 +32,6 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         
         # Store reference to editor
         self._codeEditor = codeEditor
-        
-        # For timing
-        self._cumTime = 0
-        self._cumN = 0
     
     
     def getCurrentBlockUserData(self):
@@ -62,8 +58,6 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         check out the indentation.
         
         """
-        
-        t0 = time.time()
         
         # Make sure this is a Unicode Python string
         line = ustr(line)
@@ -124,14 +118,3 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             # Store info for indentation guides
             # amount of tabs or spaces
             bd.indentation = len(leadingWhitespace)
-        
-        # Timing experiment
-        if False:
-            t1 = time.time()
-            self._cumTime += t1-t0
-            self._cumN += 1
-            if self._cumTime > 0.1:
-                if 'log' not in self.__class__.__name__.lower():
-                    print(self._cumN, self._cumTime/self._cumN)
-                self._cumTime = 0
-                self._cumN = 0
