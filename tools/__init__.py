@@ -151,7 +151,6 @@ class ToolManager(QtCore.QObject):
     def loadToolInfo(self):
         """ (re)load the tool information. 
         """
-        
         # Get paths to load files from
         toolDir1 = os.path.join(iep.iepDir, 'tools')
         toolDir2 = os.path.join(iep.appDataDir, 'tools')
@@ -220,7 +219,7 @@ class ToolManager(QtCore.QObject):
     def updateToolInstances(self):
         """ Make tool instances up to date, so that it can be seen what
         tools are now active. """
-        for toolDes in self._toolInfo:
+        for toolDes in self.getToolInfo():
             if toolDes.id in self._activeTools:
                 toolDes.instance = self._activeTools[toolDes.id]
             else:
@@ -356,7 +355,7 @@ class ToolManager(QtCore.QObject):
     def getLoadedTools(self):
         """ Get a list with id's of loaded tools. """
         tmp = []
-        for toolDes in self._toolInfo:
+        for toolDes in self.getToolInfo():
             if toolDes.id in self._activeTools:
                 tmp.append(toolDes.id)
         return tmp

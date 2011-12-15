@@ -1120,8 +1120,10 @@ class ToolsMenu(Menu):
         self.addItem('Reload tools', iep.toolManager.reloadTools)
         self.addSeparator()
 
+        self.onToolInstanceChange() # Build initial menu
         iep.toolManager.toolInstanceChange.connect(self.onToolInstanceChange)
-    
+
+        
     def onToolInstanceChange(self):
         # Remove all exisiting tools from the menu
         for toolAction in self._toolActions:

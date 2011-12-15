@@ -111,7 +111,7 @@ class MainWindow(QtGui.QMainWindow):
         import tools
         
         # Instantiate tool manager
-        iep.toolManager = toolManager = tools.ToolManager()
+        iep.toolManager = tools.ToolManager()
         
         # Instantiate and start source-code parser
         if iep.parser is None:
@@ -138,6 +138,8 @@ class MainWindow(QtGui.QMainWindow):
         from iepcore import menu
         iep.keyMapper = menu.KeyMapper()
         menu.buildMenus(self.menuBar())
+        
+
         
         # Add the context menu to the shell tab bar
         iep.shells.addContextMenu()
@@ -212,7 +214,7 @@ class MainWindow(QtGui.QMainWindow):
         if iep.config.state.windowState:
             state = iep.config.state.windowState
             state = base64.decodebytes(state.encode('ascii'))
-            self.restoreState(state)        
+            self.restoreState(state)      
     
     
     
