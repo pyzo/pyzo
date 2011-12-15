@@ -163,7 +163,7 @@
   <customwidget>
    <class>DraggableList</class>
    <extends>QListView</extends>
-   <header>draggablelist.h</header>
+   <header>gui/draggablelist.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

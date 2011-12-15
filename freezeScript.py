@@ -146,7 +146,8 @@ if not os.path.isdir(resDir2):
 for fname in os.listdir(iconsDir):
     shutil.copy(iconsDir+fname, iconsDir2+fname)
 for fname in os.listdir(guiDir):
-    shutil.copy(guiDir+fname, guiDir2+fname)
+    if not os.path.isdir(guiDir+fname):
+        shutil.copy(guiDir+fname, guiDir2+fname)
 for fname in os.listdir(resDir):
     shutil.copy(resDir+fname, resDir2+fname)
 
