@@ -223,20 +223,16 @@ class DirSortAndFilter(QtGui.QSortFilterProxyModel):
         # Specify sorting behaviour when comparing of two dirs or two files
         # Sorting dirs before files is none in the lessThan function 
         self.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        
-        # todo: does it now work everywhere??
-        # Not sure why, but on Windows & Linux it should be different than Mac
-        if sys.platform == 'darwin':
-            self.sort(0)
-        else:
-            self.setDynamicSortFilter(True)
+        self.sort(0)
+        self.setDynamicSortFilter(True)
     
     def lessThan(self,left,right):
-        if self.sourceModel().isDir(left) and \
-                not self.sourceModel().isDir(right):
-            return True
-        # Comparing two dirs or two files: default behaviour
-        return QtGui.QSortFilterProxyModel.lessThan(self,left,right)
+        if self.sourceModel().isDir(left) == self.sourceModel().isDir(right):
+            # Comparing two dirs or two files: default behaviour
+            return QtGui.QSortFilterProxyModel.lessThan(self,left,right)
+                
+        # Comparing a dir and a file
+        return self.sourceModel().isDir(left)           
         
     def filterAcceptsRow(self,sourceRow,sourceParent):
         #Overridden method to determine wether a row should be
