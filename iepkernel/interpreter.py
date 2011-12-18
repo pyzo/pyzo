@@ -268,7 +268,7 @@ class IepInterpreter:
                     stat_interpreter.send('Ready')
                 
                 # Wait for a bit at each round
-                time.sleep(0.010) # 10 ms
+                time.sleep(0.05) # 50 ms
                 
                 # Are we still connected?
                 if sys.stdin.closed:
@@ -544,7 +544,7 @@ class IepInterpreter:
             else:
                 exec(code, self.locals)
         except Exception:
-            time.sleep(0.1) # Give stdout some time to send data
+            time.sleep(0.2) # Give stdout some time to send data
             self.showtraceback()
     
     

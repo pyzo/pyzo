@@ -26,11 +26,17 @@ from iepcore.iepLogging import print
 from iepcore.kernelbroker import KernelInfo, Kernelmanager
 
 
+# Yoton event-loop interval. Is global; there is one time for IEP
+POLL_YOTON_INTERVAL = 50 # 50 ms 20 Hz
+
+# Interval for polling messages. Timer for each kernel. I found
+# that this one does not affect performance much
+POLL_TIMER_INTERVAL = 200 # 200 ms 5Hz
+
+
 # Register timer to handle yoton event loop
-# todo: combine with poll timer? Or maybe better not.
-# todo: test process resources on old PC
 iep.main._yoton_timer = QtCore.QTimer(iep.main)
-iep.main._yoton_timer.setInterval(10)  # ms
+iep.main._yoton_timer.setInterval(POLL_YOTON_INTERVAL)  # ms
 iep.main._yoton_timer.setSingleShot(False)
 iep.main._yoton_timer.timeout.connect(yoton.process_events)
 iep.main._yoton_timer.start()
@@ -599,7 +605,7 @@ class PythonShell(BaseShell):
         
         # Create timer to keep polling any results
         self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(50)  # ms
+        self._timer.setInterval(POLL_TIMER_INTERVAL)  # ms
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
