@@ -19,6 +19,7 @@ import iep
 from iepcore.compactTabWidget import CompactTabWidget
 from iepcore.shell import PythonShell
 from iepcore.iepLogging import print
+from iepcore.menu import ShellTabContextMenu
 
 ssdf = iep.ssdf
 
@@ -131,8 +132,8 @@ class ShellStack(QtGui.QWidget):
     def addContextMenu(self):
         """ Adds a context menu to the tab bar """
     
-        from iepcore.menu import ShellTabContextMenu
-        self._menu = ShellTabContextMenu(self, "ShellTabMenu")
+
+        
         self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
 
@@ -142,12 +143,13 @@ class ShellStack(QtGui.QWidget):
         
         # Get index of shell belonging to the tab
         index = self._tabs.tabBar().tabAt(p)
-        self._menu.setIndex(index)
+        shell = self.getShellAt(index)
         
         # Show menu if shell is available
         if index >= 0:
             p = self._tabs.tabBar().tabRect(index).bottomLeft()
-            self._menu.exec_(self._tabs.tabBar().mapToGlobal(p))
+            ShellTabContextMenu(shell = shell, parent = self).exec_(
+                self._tabs.tabBar().mapToGlobal(p))
 
     
     def addShell(self, shellInfo=None):
@@ -161,6 +163,13 @@ class ShellStack(QtGui.QWidget):
         # Focus on it
         self._tabs.setCurrentWidget(shell)
         shell.setFocus()
+        
+    def removeShell(self, shell):
+        """ removeShell()
+        Remove an existing shell tab from the widget"""
+        index = self._tabs.indexOf(shell)
+        if index >= 0:
+            self._tabs.removeTab(index)
     
     
     def getCurrentShell(self):
