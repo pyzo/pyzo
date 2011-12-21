@@ -24,7 +24,7 @@ import iep
 from iepcore.baseTextCtrl import BaseTextCtrl
 from iepcore.iepLogging import print
 from iepcore.kernelbroker import KernelInfo, Kernelmanager
-
+from iepcore.menu import ShellContextMenu
 
 # Register timer to handle yoton event loop
 # todo: combine with poll timer? Or maybe better not.
@@ -563,6 +563,8 @@ class PythonShell(BaseShell):
     
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
+        self._userClose = False # Sets when user requests closing via close()
+        self._terminated = False # whether the remote kernel has terminated
         
         # Get standard info if not given. Store info
         if info is None and iep.config.shellConfigs:
@@ -611,8 +613,7 @@ class PythonShell(BaseShell):
         self._setHighlighter(PythonShellHighlighter)
         
         # Add context menu
-        from iepcore.menu import ShellContextMenu
-        self._menu = ShellContextMenu(self, "ShellContextMenu")
+        self._menu = ShellContextMenu(shell = self, parent = self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
         
@@ -624,6 +625,9 @@ class PythonShell(BaseShell):
     
     def start(self):
         """ Start the remote process. """
+        
+        self._userClose = False # Sets when user requests closing via close()
+        self._terminated = False # whether the remote kernel has terminated
         
         # Reset read state
         self.setReadOnly(False)
@@ -1253,24 +1257,7 @@ class PythonShell(BaseShell):
             self._debugState = state
             self.debugStateChanged.emit(self)
     
-    
-    def poll_terminated(self):
-        """ The timer callback method when the process is terminated.
-        Will wait for the focus to be removed and close the shell widget.
-        """
-        
-        if not self.hasFocus():            
-            
-            # Remove from tab widget
-            tabWidget = iep.shells._tabs
-            index = tabWidget.indexOf(self)
-            if index >= 0:
-                tabWidget.removeTab(index)
-            
-            # close
-            self._pollMethod = None
-            self.close()
-    
+   
     
     def interrupt(self):
         """ interrupt()
@@ -1286,6 +1273,7 @@ class PythonShell(BaseShell):
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
+        #TODO: restart after shell was terminated
         msg = 'RESTART'
         if scriptFilename:
             msg += ' ' + str(scriptFilename)
@@ -1300,7 +1288,20 @@ class PythonShell(BaseShell):
         signal of the shell.
         """
         self._ctrl_broker.send('TERM')
-    
+        
+    def close(self):
+        """ close()
+        If the shell is running, terminates the python process using 
+        self.terminate(), and the shell will be closed upon termination
+        
+        If the shell is already terminated, close the shell imediately
+        """
+        if self._terminated:
+            iep.shells.removeShell(self)
+        else:
+            self._userClose = True
+            self.terminate()
+        
     
     def _onConnectionClose(self, c, why):
         """ To be called after disconnecting (because that is detected
@@ -1319,11 +1320,6 @@ class PythonShell(BaseShell):
         self.write(why)
         self.write('\n\n')
         
-        # Notify via logger and in shell
-        msg = "Waiting for focus to be removed."
-        msg3 = "===== {} ".format(msg).ljust(80, '=') + '\n\n'
-        self.write(msg3)
-        
         # Set style to indicate dead-ness
         #self.setStyle('pythonshell_dead')
         self.setReadOnly(True)
@@ -1334,11 +1330,13 @@ class PythonShell(BaseShell):
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
         
-        # Replace timer callback
-        self._pollMethod = self.poll_terminated
-        
         # Notify listeners
         self.terminated.emit(self)
+        self._terminated = True
+        
+        # If the termination was done because the user requested a close, close the shell
+        if self._userClose:
+            iep.shells.removeShell(self)
 
 # todo: clean this up a bit
 ustr = str
