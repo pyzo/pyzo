@@ -102,6 +102,9 @@ class IepInterpreter:
         """ Interact! (start the mainloop)
         """
         
+        # Set debug status 
+        self.writeStatus()
+        
         # Write Python banner
         NBITS = 8 * struct.calcsize("P")
         platform = sys.platform
@@ -165,9 +168,7 @@ class IepInterpreter:
         sys.stdout.write('Type "help" for help, ' + 
                             'type "?" for a list of *magic* commands.\n')
         
-        
-
-        
+                
         # Get whether we should (and can) run as script
         scriptFilename = os.environ.get('iep_scriptFile')
         if scriptFilename:
