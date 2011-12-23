@@ -198,7 +198,6 @@ class IepInterpreter:
             
             # Notify the running of the script
             sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
-#             sys._status.send('STATE Busy')
             
             # Run script
             scriptToRunOnStartup = scriptFilename
@@ -223,9 +222,6 @@ class IepInterpreter:
             else:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
-            # Notify running script
-#             sys._status.send('STATE Busy')
-            
             # Run startup script (if set)
             filename = os.environ.get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
@@ -249,6 +245,7 @@ class IepInterpreter:
                 # Run startup script inside the loop (only the first time)
                 # so that keyboard interrupt will work
                 if scriptToRunOnStartup:
+                    stat_interpreter.send('Busy') 
                     scriptToRunOnStartup, tmp = None, scriptToRunOnStartup
                     self.runfile(tmp)
                 
