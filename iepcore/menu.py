@@ -84,12 +84,13 @@ iconMap = dict:
     shell__terminate = 'application_delete'
     shell__restart = 'application_refresh'
     shell__clear_screen = 'application_eraser'
+    shell__close = 'cancel'
     shell__edit_shell_configurations = 'application_wrench'
-    
-    shelltabmenu__interrupt = 'application_lightning'
-    shelltabmenu__terminate = 'application_delete'
-    shelltabmenu__restart = 'application_refresh'
-    shelltabmenu__clear_screen = 'application_eraser'
+    shell__cut = 'cut'
+    shell__copy = 'page_white_copy'
+    shell__paste = 'paste_plain'
+    shell__select_all = 'sum'
+
     
     run__run_cell = 'run_cell'
     run__run_file = 'run_file'
@@ -701,10 +702,10 @@ class ViewMenu(Menu):
 
 class ShellMenu(Menu):
     
-    def __init__(self, *args, **kwds):
+    def __init__(self, parent = None, name="Shell", *args, **kwds):
         self._shellCreateActions = []
         self._shellActions = []
-        Menu.__init__(self, *args, **kwds)
+        Menu.__init__(self, parent, name, *args, **kwds)
         iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         
     def onCurrentShellChanged(self):
@@ -712,14 +713,27 @@ class ShellMenu(Menu):
         for shellAction in self._shellActions:
             shellAction.setEnabled(bool(iep.shells.getCurrentShell()))
     
-    def build(self):
-        """ Create the items for the shells menu """
-        self._shellActions = [
+    def buildShellActions(self):
+        """ Create the menu items which are also avaliable in the
+        ShellTabContextMenu
+        
+        Returns a list of all items added"""
+        return [
             self.addItem('Interrupt', self._shellAction, "interrupt"),
             self.addItem('Terminate', self._shellAction, "terminate"),
+            self.addItem('Close', self._shellAction, "close"),
             self.addItem('Restart', self._shellAction, "restart"),
             self.addItem('Clear screen', self._shellAction, "clearScreen"),
             ]
+    def getShell(self):
+        """ Returns the shell on which to apply the menu actions. Default is
+        the current shell, this is overridden in the shell/shell tab context
+        menus"""
+        return iep.shells.getCurrentShell()
+        
+    def build(self):
+        """ Create the items for the shells menu """
+        self._shellActions = self.buildShellActions()
         
         self.addSeparator()
         self.addItem('Edit shell configurations...', self._editConfig)
@@ -743,7 +757,7 @@ class ShellMenu(Menu):
     def _shellAction(self, action):
         """ Call the method specified by 'action' on the current shell.
         """
-        shell = iep.shells.getCurrentShell()
+        shell = self.getShell()
         if shell:
             # Call the specified action
             getattr(shell,action)()
@@ -764,65 +778,37 @@ class ShellMenu(Menu):
         # Update the shells items in the menu
         self._updateShells()
 
-# todo: is there no way to combine menus, or reuse (parts of) them easier?
-# Frankly, I dont think it necessary to have the interrupt etc in the context menu
-# there should be one way to do it. Well in an IDE you mostly have 2 or 3, but
-# still, you already have the tab context menu, right?
 class ShellContextMenu(ShellMenu):
-    
-    def __init__(self, *args, **kwds):
+    """ This is the context menu for the shell """
+    def __init__(self, shell, *args, **kwds):
         ShellMenu.__init__(self, *args, **kwds)
-    
+        self._shell = shell
     def build(self):
         """ Build menu """
-        self.addItem('Interrupt', self._shellAction, "interrupt"),
-        self.addItem('Terminate', self._shellAction, "terminate"),
-        self.addItem('Restart', self._shellAction, "restart"),
-        self.addItem('Clear screen', self._shellAction, "clearScreen"),
-        
+        self.buildShellActions()
+                
         self.addSeparator()
         self.addItem("Cut", self._editItemCallback, "cut")
         self.addItem("Copy", self._editItemCallback, "copy")
         self.addItem("Paste", self._editItemCallback, "paste")
         self.addItem("Select all", self._editItemCallback, "selectAll")
 
-    def _shellAction(self, action):
-        """ Call the method specified by 'action' on the current shell """
-        shell = iep.shells.getCurrentShell()
-        if shell:
-            # Call the specified action
-            getattr(shell,action)()
+    def getShell(self):
+        """ Shell actions of this menu operate on the shell specified in the constructor """
+        return self._shell
     
     def _editItemCallback(self, action):
-        widget = QtGui.qApp.focusWidget()
         #If the widget has a 'name' attribute, call it
-        if hasattr(widget, action):
-            getattr(widget, action)()
+        getattr(self._shell, action)()
 
 
-class ShellTabContextMenu(ShellMenu):
-    def __init__(self, *args, **kwds):
-        ShellMenu.__init__(self, *args, **kwds)
-        _index = -1
-    
-    def setIndex(self, index):
-        self._index = index
-    
+class ShellTabContextMenu(ShellContextMenu):
+    """ The context menu for the shell tab is similar to the shell context menu,
+    but only has the shell actions defined in ShellMenu.buildShellActions()"""
     def build(self):
         """ Build menu """
+        self.buildShellActions()
         
-        self.addItem('Interrupt', self._shellAction, "interrupt")
-        self.addItem('Terminate', self._shellAction, "terminate")
-        self.addItem('Restart', self._shellAction, "restart")
-        self.addItem('Clear screen', self._shellAction, "clearScreen")
-        
-    def _shellAction(self, action):
-        """ Call the method specified by 'action' on the selected shell """
-        
-        shell = iep.shells.getShellAt(self._index)
-        if shell:
-            # Call the specified action
-            getattr(shell,action)()
 
 
 class EditorTabContextMenu(Menu):

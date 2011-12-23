@@ -18,8 +18,11 @@ the ide to the kernel and/or broker. The strm channels are streams to
 the ide. The stat channels are status channels to the ide. The reqp 
 channels are req/rep channels. All channels are TEXT except for a
 few OBJECT channels.
- 
-ctrl-command: the stdin to give commands to the interpreter
+
+#TODO:
+ctrl-in: the stdin to give commands (and also raw_input) to the interpreter  
+ctrl-command: to give magic/debug etc. commands to the interpreter
+
 ctrl-code (OBJECT): to let the interpreter execute blocks of code
 ctrl-broker: to control the broker (restarting etc)
 
@@ -114,6 +117,7 @@ __iep__.introspector = IepIntrospector(ct, 'reqp-introspect')
 
 # Store interpreter and channels on sys
 sys._iepInterpreter = __iep__
+__iep__.os = os #For magic commands that need os access
 
 # Delete local variables
 del yoton, IepInterpreter, IepIntrospector, iep_excepthook
