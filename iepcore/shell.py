@@ -958,9 +958,6 @@ class PythonShell(BaseShell):
         cd              - import os; print(os.getcwd())
         cd X            - import os; os.chdir("X"); print(os.getcwd())
         ls              - import os; print(os.popen("dir").read())
-        open X          - open file, module, or file that defines X
-        opendir Xs      - open all files in directory X 
-        timeit X        - times execution of command X
         who             - list variables in current workspace
         whos            - list variables plus their class and representation
         db start        - start post mortem debugging
@@ -969,30 +966,13 @@ class PythonShell(BaseShell):
         db frame X      - go to the Xth stack frame
         db where        - print the stack trace and indicate the current stack
         db focus        - open the file and show the line of the stack frame"""
-        
-        
-        return text
-        
-        message = message.replace('\n','\\n')
-        message = message.replace('"','\"')
-        
-        # Define convenience functions
-        def remoteEval(command):
-            return self.postRequestAndReceive('EVAL ' + command)
-        def justify(text, width, margin):
-            if len(text)>width:
-                text = text[:width-3]+'...'
-            text = text.ljust(width+margin, ' ')
-            return text
-        def prepareTextForRemotePrinting(text):
-            # Escape backslah, quotes and newlines
-            text = text.replace("\\",  "\\\\")
-            text = text.replace("'", "\\'").replace('"', '\\"')
-            text = text.replace("\n", "\\n")
-            return text
-        
+        # TODO: reimplement:
+        """
+        open X          - open file, module, or file that defines X
+        opendir Xs      - open all files in directory X      
+        """   
         if text=="?":
-            text = "print('{}')".format(message)
+            text = "print(%r)" % message
         
         elif text.startswith("??"):
             text = 'help({})'.format(text[2:])
@@ -1006,41 +986,39 @@ class PythonShell(BaseShell):
         elif text.endswith("?"):
             text = 'print({}.__doc__)'.format(text[:-1])
         
-        elif text == "timeit":
-            text = 'print("Time execution duration, usage:\\n'
-            text += 'timeit fun # where fun is a callable\\n'
-            text += 'timeit \'expression\' # where fun is a callable\\n'
-            text += 'timeit 20 fun # tests 20 passes\\n'
-            text += 'For more advanced use, see the timeit module.")\n'
-            
-        elif text.startswith("timeit "):
-            command = text[7:]
-            # Get number of iterations
-            N = 1
-            tmp =  command.split(' ',1)
-            if len(tmp)==2:
-                try:
-                    N = int(tmp[0])
-                    command = tmp[1]
-                except Exception:
-                    pass
-            # Compile command
-            text = 'import timeit; t=timeit.Timer({}); '.format(command)
-            text += 'print(str( t.timeit({})/{} ) '.format(N,N)
-            text += '+" seconds on average for {} iterations." )'.format(N)
+#         elif text == "timeit":
+#             text = 'print("Time execution duration, usage:\\n'
+#             text += 'timeit fun # where fun is a callable\\n'
+#             text += 'timeit \'expression\' # where fun is a callable\\n'
+#             text += 'timeit 20 fun # tests 20 passes\\n'
+#             text += 'For more advanced use, see the timeit module.")\n'
+#             
+#         elif text.startswith("timeit "):
+#             command = text[7:]
+#             # Get number of iterations
+#             N = 1
+#             tmp =  command.split(' ',1)
+#             if len(tmp)==2:
+#                 try:
+#                     N = int(tmp[0])
+#                     command = tmp[1]
+#                 except Exception:
+#                     pass
+#             # Compile command
+#             text = 'import timeit; t=timeit.Timer({}); '.format(command)
+#             text += 'print(str( t.timeit({})/{} ) '.format(N,N)
+#             text += '+" seconds on average for {} iterations." )'.format(N)
         
         elif text=='cd' or text.startswith("cd ") and '=' not in text:
-            tmp = text[3:].strip()
-            if tmp:
-                text = 'import os;os.chdir("{}");print(os.getcwd())'.format(tmp)
+            path = text[3:].strip()
+            if path:
+                text = '__iep__.os.chdir("{}");print(__iep__.os.getcwd())'.format(tmp)
             else:
-                text = 'import os;print(os.getcwd())'
+                text = 'print __iep__.os.getcwd()'
                 
-        elif text=='ls':
-            if sys.platform.startswith('win'):
-                text = 'import os;print(os.popen("dir").read())'
-            else:
-                text = 'import os;print(os.popen("ls").read())'
+        elif text=='ls' or text.startswith("ls ") and '=' not in text:
+            path = text[3:].strip()
+            text = r'print "\n".join(sorted(filter(lambda p: not p.startswith("."),__iep__.os.listdir(%r or __iep__.os.getcwd()))))' % path
         
         elif text == 'db start':
             text = ''
@@ -1079,62 +1057,47 @@ class PythonShell(BaseShell):
             else:
                 text = ''
         
-        elif text.startswith('open ') or text.startswith('opendir '):
-            # get what to open            
-            objectName = text.split(' ',1)[1]
-            # query
-            pn = remoteEval('os.getcwd()')
-            fn = os.path.join(pn,objectName) # will also work if given abs path
-            if text.startswith('opendir '):                
-                iep.editors.loadDir(fn)
-                msg = "Opening dir '{}'."
-            elif os.path.isfile(fn):
-                # Load file
-                iep.editors.loadFile(fn)
-                msg = "Opening file '{}'."
-            elif remoteEval(objectName) == '<error>':
-                # Given name is not an object
-                msg = "Not a valid object: '{}'.".format(objectName)
-            else:   
-                # Try loading file in which object is defined
-                fn = remoteEval('{}.__file__'.format(objectName))
-                if fn == '<error>':
-                    # Get module                    
-                    moduleName = remoteEval('{}.__module__'.format(objectName))
-                    tmp = 'sys.modules["{}"].__file__'
-                    fn = remoteEval(tmp.format(moduleName))                    
-                if fn != '<error>':
-                    # Make .py from .pyc
-                    if fn.endswith('.pyc'):
-                        fn = fn[:-1]
-                    # Try loading
-                    iep.editors.loadFile(fn)
-                    msg = "Opening file that defines '{}'.".format(objectName)
-                else:
-                    msg = "Could not open the file for that object."
-            # ===== Post process
-            if msg and '{}' in msg:
-                msg = msg.format(fn.replace('\\', '/'))
-            if msg:
-                text = 'print("{}")'.format(msg)
+#         elif text.startswith('open ') or text.startswith('opendir '):
+#             # get what to open            
+#             objectName = text.split(' ',1)[1]
+#             # query
+#             pn = remoteEval('os.getcwd()')
+#             fn = os.path.join(pn,objectName) # will also work if given abs path
+#             if text.startswith('opendir '):                
+#                 iep.editors.loadDir(fn)
+#                 msg = "Opening dir '{}'."
+#             elif os.path.isfile(fn):
+#                 # Load file
+#                 iep.editors.loadFile(fn)
+#                 msg = "Opening file '{}'."
+#             elif remoteEval(objectName) == '<error>':
+#                 # Given name is not an object
+#                 msg = "Not a valid object: '{}'.".format(objectName)
+#             else:   
+#                 # Try loading file in which object is defined
+#                 fn = remoteEval('{}.__file__'.format(objectName))
+#                 if fn == '<error>':
+#                     # Get module                    
+#                     moduleName = remoteEval('{}.__module__'.format(objectName))
+#                     tmp = 'sys.modules["{}"].__file__'
+#                     fn = remoteEval(tmp.format(moduleName))                    
+#                 if fn != '<error>':
+#                     # Make .py from .pyc
+#                     if fn.endswith('.pyc'):
+#                         fn = fn[:-1]
+#                     # Try loading
+#                     iep.editors.loadFile(fn)
+#                     msg = "Opening file that defines '{}'.".format(objectName)
+#                 else:
+#                     msg = "Could not open the file for that object."
+#             # ===== Post process
+#             if msg and '{}' in msg:
+#                 msg = msg.format(fn.replace('\\', '/'))
+#             if msg:
+#                 text = 'print("{}")'.format(msg)
         
         elif text == 'who':
-            # Get list of names
-            names = remoteEval('",".join(dir())')
-            names = names.split(',')
-            # Compile list
-            text = ''
-            for name in names:
-                if name.startswith('__'):
-                    continue
-                # Make right length                
-                name = justify(name, 18, 2)
-                # Add to text
-                text += name  
-            if text:            
-                text = 'print("Your variables are:\\n{}")'.format(text)
-            else:
-                text = 'print("There are no variables defined in this scope.")'
+            text = r'__iep__.write((",".join(filter(lambda v: not v.startswith("__"), dir())) or "No variables defined") + "\n")'
         
         elif text == 'whos':
             # Get list of names
