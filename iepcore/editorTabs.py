@@ -1370,7 +1370,14 @@ class EditorTabs(QtGui.QWidget):
         
         # ok, close...
         if result:
-            self._tabs.removeTab(editor)
+            if editor._name.startswith("<tmp"):
+                # Temp file, try to find its index
+                for i in range(len(self._tabs.items())):
+                    if self._tabs.getItemAt(i).editor is editor:
+                        self._tabs.removeTab(i)
+                        break
+            else:
+                self._tabs.removeTab(editor)
         return result
      
     def closeAllFiles(self):
