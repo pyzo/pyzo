@@ -46,6 +46,14 @@ else:
     bstr = bytes
 
 
+def environ_get(key):
+    """ get value from environment, Unicode aware. """
+    value = os.environ.get(key)
+    if value and PYTHON_VERSION < 3:
+        value = value.decode('utf-8')
+    return value
+
+
 class IepInterpreter:
     """ Closely emulate the interactive Python console.
     Simular working as code.InteractiveConsole. Some code was copied, but
@@ -158,7 +166,7 @@ class IepInterpreter:
         thisPath = os.getcwd()
         while thisPath in sys.path:
             sys.path.remove(thisPath)
-        projectPath = os.environ.get('iep_projectPath')
+        projectPath = environ_get('iep_projectPath')
         if projectPath:
             sys.stdout.write('Prepending the project path %r to sys.path\n' % 
                 projectPath)
@@ -170,7 +178,7 @@ class IepInterpreter:
         
                 
         # Get whether we should (and can) run as script
-        scriptFilename = os.environ.get('iep_scriptFile')
+        scriptFilename = environ_get('iep_scriptFile')
         if scriptFilename:
             if not os.path.isfile(scriptFilename):
                 sys.stdout.write('Invalid script file: "'+scriptFilename+'"\n')
@@ -217,14 +225,14 @@ class IepInterpreter:
                 sys.path.insert(0,projectPath)
                 
             # Go to start dir
-            startDir = os.environ.get('iep_startDir')
+            startDir = environ_get('iep_startDir')
             if startDir and os.path.isdir(startDir):
                 os.chdir(startDir)
             else:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
             # Run startup script (if set)
-            filename = os.environ.get('PYTHONSTARTUP')
+            filename = environ_get('PYTHONSTARTUP')
             if filename and os.path.isfile(filename):
                 scriptToRunOnStartup = filename
         
