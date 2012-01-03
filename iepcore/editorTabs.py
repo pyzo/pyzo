@@ -427,7 +427,7 @@ class FindReplaceWidget(QtGui.QFrame):
         self.startFind()
         self.findPrevious()
     
-    def find(self, forward=True):
+    def find(self, forward=True, wrapAround=True):
         """ The main find method.
         Returns True if a match was found. """
         
@@ -469,7 +469,7 @@ class FindReplaceWidget(QtGui.QFrame):
         
         if not result.isNull():
             editor.setTextCursor(result)
-        else:
+        elif wrapAround:
             self.notifyPassBeginEnd()
             #Move cursor to start or end of document
             if forward:
@@ -480,13 +480,13 @@ class FindReplaceWidget(QtGui.QFrame):
             result = editor.document().find(needle, cursor, flags)
             if not result.isNull():
                 editor.setTextCursor(result)
-            
+        
         # done
         editor.setFocus(True)
         return not result.isNull()
     
     
-    def replaceOne(self,event=None):
+    def replaceOne(self,event=None, wrapAround=True):
         """ If the currently selected text matches the find string,
         replaces that text. Then it finds and selects the next match.
         Returns True if a next match was found.
@@ -524,7 +524,7 @@ class FindReplaceWidget(QtGui.QFrame):
             cursor.insertText( replacement )
         
         # next!
-        return self.find()
+        return self.find(wrapAround=wrapAround)
     
     
     def replaceAll(self,event=None):
@@ -543,7 +543,7 @@ class FindReplaceWidget(QtGui.QFrame):
         cursor = editor.textCursor()
         cursor.movePosition(cursor.Start)
         editor.setTextCursor(cursor)
-        while self.replaceOne():
+        while self.replaceOne(wrapAround=False):
             pass
         
         # reset position
