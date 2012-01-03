@@ -46,14 +46,6 @@ else:
     bstr = bytes
 
 
-def environ_get(key):
-    """ get value from environment, Unicode aware. """
-    value = os.environ.get(key)
-    if value and PYTHON_VERSION < 3:
-        value = value.decode('utf-8')
-    return value
-
-
 class IepInterpreter:
     """ Closely emulate the interactive Python console.
     Simular working as code.InteractiveConsole. Some code was copied, but
@@ -110,8 +102,14 @@ class IepInterpreter:
         """ Interact! (start the mainloop)
         """
         
-        # Set debug status 
+        # Reset debug status to
         self.writeStatus()
+        
+        # Get startup info
+        while sys._yoton_context._stat_startup.recv() is None:
+            time.sleep(0.02)
+        startup_info = sys._yoton_context._stat_startup.recv()
+        
         
         # Write Python banner
         NBITS = 8 * struct.calcsize("P")
@@ -124,7 +122,7 @@ class IepInterpreter:
         
         # Integrate event loop of GUI toolkit
         self.guiApp = None
-        guiName = os.environ.get('iep_gui', '')
+        guiName = startup_info['gui']
         guiError = ''
         try:
             if guiName in ['', 'none', 'None']:
@@ -166,7 +164,7 @@ class IepInterpreter:
         thisPath = os.getcwd()
         while thisPath in sys.path:
             sys.path.remove(thisPath)
-        projectPath = environ_get('iep_projectPath')
+        projectPath = startup_info['projectPath']
         if projectPath:
             sys.stdout.write('Prepending the project path %r to sys.path\n' % 
                 projectPath)
@@ -176,9 +174,8 @@ class IepInterpreter:
         sys.stdout.write('Type "help" for help, ' + 
                             'type "?" for a list of *magic* commands.\n')
         
-                
         # Get whether we should (and can) run as script
-        scriptFilename = environ_get('iep_scriptFile')
+        scriptFilename = startup_info['scriptFile']
         if scriptFilename:
             if not os.path.isfile(scriptFilename):
                 sys.stdout.write('Invalid script file: "'+scriptFilename+'"\n')
@@ -225,14 +222,14 @@ class IepInterpreter:
                 sys.path.insert(0,projectPath)
                 
             # Go to start dir
-            startDir = environ_get('iep_startDir')
+            startDir = startup_info['startDir']
             if startDir and os.path.isdir(startDir):
                 os.chdir(startDir)
             else:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
             # Run startup script (if set)
-            filename = environ_get('PYTHONSTARTUP')
+            filename = startup_info['startupScript']
             if filename and os.path.isfile(filename):
                 scriptToRunOnStartup = filename
         
