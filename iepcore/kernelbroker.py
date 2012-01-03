@@ -151,15 +151,24 @@ class KernelInfoPlus(KernelInfo):
         env.pop('TCL_LIBRARY','')
         env['PYTHONPATH'] = self.PYTHONPATH
         
-        # Insert iep specific variables
-        env['iep_gui'] = self.gui
-        env['iep_startDir'] = self.startDir
-        env['iep_projectPath'] = self.projectPath
-        env['iep_scriptFile'] = self.scriptFile
-        env['iep_startupScript'] = self.startupScript
+#         # Insert iep specific variables
+#         env['iep_gui'] = self.gui
+#         env['iep_startDir'] = self.startDir
+#         env['iep_projectPath'] = self.projectPath
+#         env['iep_scriptFile'] = self.scriptFile
+#         env['iep_startupScript'] = self.startupScript
         
         # Done
         return env
+    
+    def getStartInfo(self):
+        info = {}
+        info['gui'] = self.gui
+        info['startDir'] = self.startDir
+        info['projectPath'] = self.projectPath
+        info['scriptFile'] = self.scriptFile
+        info['startupScript'] = self.startupScript
+        return info
 
 
 class KernelBroker:
@@ -212,7 +221,8 @@ class KernelBroker:
         
         # Close any existing channels first
         for channelName in ['strm-broker', 'strm-raw', 'strm-prompt',
-                            'ctrl-broker', 'stat-heartbeat', 'reqp-introspect']:
+                            'ctrl-broker', 'stat-startup', 'stat-heartbeat', 
+                            'reqp-introspect']:
             attrName = '_' + channelName.lower().replace('-', '_')
             if hasattr(self, attrName):
                 getattr(self, attrName).close()
@@ -225,6 +235,9 @@ class KernelBroker:
         
         # Create control channel so that the IDE can control restarting etc.
         self._ctrl_broker = yoton.SubChannel(ct, 'ctrl-broker')
+        
+        # Status channel to pass startup parameters to the kernel
+        self._stat_startup = yoton.PubstateChannel(ct, 'stat-startup', yoton.OBJECT)
         
         # Create status channel for heartbeat to detect running extension code
         self._stat_heartbeat = yoton.PubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
@@ -264,6 +277,7 @@ class KernelBroker:
             #
             self._strm_broker = None
             self._strm_raw = None
+            self._stat_startup = None
             self._stat_heartbeat = None
             self._strm_prompt = None
             #
@@ -299,6 +313,9 @@ class KernelBroker:
         else:
             info.scriptFile = ''
         
+        # Send info stuff
+        self._stat_startup.send(info.getStartInfo())
+        
         # Get environment to use
         env = info.getEnviron()
         
@@ -309,7 +326,7 @@ class KernelBroker:
         # (tries several port numbers, staring from 'IEP')
         self._kernelCon = self._context.bind('localhost:IEP2', 
                                                 max_tries=256, name='kernel')
-       
+        
         # Get command to execute
         command = info.getCommand(self._kernelCon.port)
         
@@ -317,7 +334,7 @@ class KernelBroker:
         self._process = subprocess.Popen(   command, shell=True, 
                                             env=env, cwd=cwd,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        
+                
         # Set timeout
         self._kernelCon.timeout = 0.5
         
