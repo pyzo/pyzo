@@ -27,11 +27,11 @@ from iepcore.kernelbroker import KernelInfo, Kernelmanager
 from iepcore.menu import ShellContextMenu
 
 # Yoton event-loop interval. Is global; there is one time for IEP
-POLL_YOTON_INTERVAL = 50 # 50 ms 20 Hz
+POLL_YOTON_INTERVAL = 30 # 30 ms 33 Hz
 
 # Interval for polling messages. Timer for each kernel. I found
 # that this one does not affect performance much
-POLL_TIMER_INTERVAL = 200 # 200 ms 5Hz
+POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 
 
 # Register timer to handle yoton event loop
