@@ -721,7 +721,7 @@ class ShellMenu(Menu):
         return [
             self.addItem('Interrupt', self._shellAction, "interrupt"),
             self.addItem('Terminate', self._shellAction, "terminate"),
-            self.addItem('Close', self._shellAction, "close"),
+            self.addItem('Close', self._shellAction, "closeShell"),
             self.addItem('Restart', self._shellAction, "restart"),
             self.addItem('Clear screen', self._shellAction, "clearScreen"),
             ]

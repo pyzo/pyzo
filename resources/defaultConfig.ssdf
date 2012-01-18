@@ -95,6 +95,7 @@ shortcuts = dict:
     view__select_editor = 'F2,'
     shell__interrupt = 'Ctrl+I,Pause'
     shell__terminate = 'Ctrl+K,'
+    shell__close = 'Alt+K'
     view__wrap_long_lines = ','
     view__zooming__zoom_out = 'Ctrl+-,'
     run__run_selected_lines = 'F9,'
