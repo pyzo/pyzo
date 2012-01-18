@@ -559,18 +559,15 @@ class PythonShell(BaseShell):
     by connecting to a remote process that runs a Python interpreter.
     """
     
-    # Emits when the remote process is terminated
-    terminated = QtCore.pyqtSignal(BaseShell) # PythonShell is not yet defd
-    
     # Emits when the status string has changed
     stateChanged = QtCore.pyqtSignal(BaseShell)
     debugStateChanged = QtCore.pyqtSignal(BaseShell)
     
-    
+    # todo: maybe have a status to see whether the kernel is alive or not.
+    # todo: color the background "dead" when the kernel is not alive
+
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
-        self._userClose = False # Sets when user requests closing via close()
-        self._terminated = False # whether the remote kernel has terminated
         
         # Get standard info if not given. Store info
         if info is None and iep.config.shellConfigs:
@@ -631,9 +628,6 @@ class PythonShell(BaseShell):
     
     def start(self):
         """ Start the remote process. """
-        
-        self._userClose = False # Sets when user requests closing via close()
-        self._terminated = False # whether the remote kernel has terminated
         
         # Reset read state
         self.setReadOnly(False)
@@ -1226,7 +1220,6 @@ class PythonShell(BaseShell):
             self._debugState = state
             self.debugStateChanged.emit(self)
     
-   
     
     def interrupt(self):
         """ interrupt()
@@ -1242,7 +1235,6 @@ class PythonShell(BaseShell):
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
-        #TODO: restart after shell was terminated
         msg = 'RESTART'
         if scriptFilename:
             msg += ' ' + str(scriptFilename)
@@ -1257,40 +1249,57 @@ class PythonShell(BaseShell):
         signal of the shell.
         """
         self._ctrl_broker.send('TERM')
+    
+    
+    def closeShell(self): # do not call it close(); that is a reserved method.
+        """ closeShell()
         
-    def close(self):
-        """ close()
-        If the shell is running, terminates the python process using 
-        self.terminate(), and the shell will be closed upon termination
+        Very simple. This closes the shell. If possible, we will first
+        tell the broker to terminate the kernel.
         
-        If the shell is already terminated, close the shell imediately
+        The broker will be cleaned up if there are no clients connected
+        and if there is no active kernel. In a multi-user environment,
+        we should thus be able to close the shell without killing the
+        kernel. But in a closed 1-to-1 environment we really want to 
+        prevent loose brokers and kernels dangling around.
+        
+        In both cases however, it is the responsibility of the broker to
+        terminate the kernel, and the shell will simply assume that this
+        will work :) 
+        
         """
-        if self._terminated:
-            iep.shells.removeShell(self)
-        else:
-            self._userClose = True
-            self.terminate()
         
+        # If we can, try to tell the broker to terminate the kernel
+        if self._context and self._context.connection_count:
+            self.terminate()
+            self._context.flush()
+            self._context.close()
+        
+        # Adios
+        iep.shells.removeShell(self)
+    
     
     def _onConnectionClose(self, c, why):
         """ To be called after disconnecting (because that is detected
         from another thread.
-        Replaces the timeout callback for the timer to go in closing mode.
+        In general, the broker will not close the connection, so it can
+        be considered an error-state if this function is called.
         """
         
         # Stop context
-        self._context.close()
+        if self._context:
+            self._context.close()
         
         # New (empty prompt)
         self._cursor1.movePosition(self._cursor1.End, A_MOVE)
         self._cursor2.movePosition(self._cursor2.End, A_MOVE)
         
         self.write('\n\n');
+        self.write('Lost connection with broker:\n')
         self.write(why)
         self.write('\n\n')
         
         # Set style to indicate dead-ness
-        #self.setStyle('pythonshell_dead')
         self.setReadOnly(True)
         
         # Goto end such that the closing message is visible
@@ -1298,14 +1307,7 @@ class PythonShell(BaseShell):
         cursor.movePosition(cursor.End, A_MOVE)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
-        
-        # Notify listeners
-        self.terminated.emit(self)
-        self._terminated = True
-        
-        # If the termination was done because the user requested a close, close the shell
-        if self._userClose:
-            iep.shells.removeShell(self)
+
 
 # todo: clean this up a bit
 ustr = str

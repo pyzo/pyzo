@@ -182,9 +182,7 @@ class KernelBroker:
     0 or more IDE's (clients). The kernel process can be "restarted", meaning
     that it is terminated and a new process started.
     
-    If there is no kernel process AND no connections, this object is
-    destroyed.
-    
+    The broker is cleaned up if there is no kernel process AND no connections.
     
     """
     
@@ -212,7 +210,7 @@ class KernelBroker:
         self._reset()
         
         # For restarting after terminating
-        self._restart = False
+        self._pending_restart = None 
         self._pending_scriptFile = None
     
     
@@ -249,7 +247,8 @@ class KernelBroker:
     def _reset(self, destroy=False):
         """ _reset(destroy=False)
         
-        Reset state. if destroy, does a full clean up.
+        Reset state. if destroy, does a full clean up, closing the context
+        and removing itself from the KernelManager's list.
         
         """
         
@@ -259,7 +258,7 @@ class KernelBroker:
         self._terminator = None
         self._streamReader = None
         
-        if destroy == True:
+        if destroy==True:
             
             # Stop timer
             self._timer.unbind(self._onTimerIteration)
@@ -272,7 +271,8 @@ class KernelBroker:
             
             # Remove references
             #
-            self._context.close()
+            if self._context is not None:
+                self._context.close()
             self._context = None
             #
             self._strm_broker = None
@@ -351,7 +351,7 @@ class KernelBroker:
         self._timer.start()
         
         # Reset some variables
-        self._restart = False
+        self._pending_restart = None
         self._pending_scriptFile = None
     
     
@@ -386,11 +386,12 @@ class KernelBroker:
         
         """
         
-        # Is there even a process?
-        if self._process is None:
-            self._context.close()
-            #self._context.flush
-            self._reset(True)
+        hasProcess = self._process is not None
+        hasClients = self._context and self._context.connection_count > 0
+        
+        # Should we clean the whole thing up? 
+        if not (hasProcess or hasClients):
+            self._reset(True) # Also unregisters this timer callback
             return
         
         # Waiting to get started; waiting for client to connect
@@ -401,24 +402,23 @@ class KernelBroker:
                 self._process = None
             return
         
-        # Test if process is dead
-        process_returncode = self._process.poll()
-        if process_returncode is not None:
-            self._onKernelDied(process_returncode)
-            return
-        
-        
-        # Process alive ...
-        
-        # Are we in the process of terminating?
-        if self._terminator:
-            self._terminator.next()
+        if self._process is not None:
+            # Test if process is dead
+            process_returncode = self._process.poll()
+            if process_returncode is not None:
+                self._onKernelDied(process_returncode)
+                return
+            # Are we in the process of terminating?
+            if self._terminator:
+                self._terminator.next()
         
         # handle control messages
         for msg in self._ctrl_broker.recv_all():
             if msg == 'INT':
+                if self._process is None:
+                    self._strm_broker.send('Cannot interrupt: process is dead.\n')
                 # Kernel receives and acts
-                if sys.platform.startswith('win'):
+                elif sys.platform.startswith('win'):
                     self._reqp_introspect.interrupt()
                 else:
                     # Use POSIX to interrupt, which is more reliable
@@ -430,7 +430,10 @@ class KernelBroker:
                 # Start termination procedure
                 # Kernel will receive term and act (if it can). 
                 # If it wont, we will act in a second or so.
-                if self._terminator:
+                if self._process is None:
+                    self._strm_broker.send('Cannot terminate: process is dead.\n')
+                    continue
+                elif self._terminator:
                     # The user gave kill command while the kill process
                     # is running. We could do an immediate kill now,
                     # or we let the terminate process run its course.
@@ -438,13 +441,20 @@ class KernelBroker:
                 else:
                     self.terminate('by user')
             elif msg.startswith('RESTART'):
-                # Restart: terminates kernel and then start a new one
-                self._restart = True
+                # Almost the same as terminate, but now we have a pending action
+                self._pending_restart = True
+                #
                 scriptFile = None
                 if ' ' in msg:
                     scriptFile = msg.split(' ',1)[1]
                 self._pending_scriptFile = scriptFile
-                self.terminate('for restart')
+                #
+                if self._process is None:
+                    self.startKernel()
+                elif self._terminator:
+                    pass
+                else:
+                    self.terminate('for restart')
             else:
                 pass # Message is not for us
     
@@ -487,21 +497,21 @@ class KernelBroker:
         else:
             msg = self._terminator.getMessage('Kernel process')
         
-        # Notify
-        returncodeMsg = '\n%s (%s)\n\n' % (msg, str(returncode))
-        self._strm_broker.send(returncodeMsg)
-        
-        # Empty prompt
-        self._strm_prompt.send('\b') 
-        self._context.flush()
+        if self._context.connection_count:
+            # Notify
+            returncodeMsg = '\n%s (%s)\n\n' % (msg, str(returncode))
+            self._strm_broker.send(returncodeMsg)
+            # Empty prompt
+            self._strm_prompt.send('\b') 
+            self._context.flush()
         
         # Cleanup (get rid of kernel process references)
         self._reset()
             
-        # Restart?
-        if self._restart:
-            self._restart = False
+        # Handle any pending action
+        if self._pending_restart:
             self.startKernel()
+
 
 
 class KernelTerminator:
