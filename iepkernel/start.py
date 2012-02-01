@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 
-""" iepRemote1.py
+""" iepkernel/start.py
 
 Starting script for remote processes in iep.
 This script connects to the IEP ide using the yoton interface
@@ -19,9 +19,11 @@ the ide. The stat channels are status channels to the ide. The reqp
 channels are req/rep channels. All channels are TEXT except for a
 few OBJECT channels.
 
-#TODO:
+We keep the kernel as stupid as we can. Therefore the code for magic 
+commands is defined by the IDE.
+
 ctrl-in: the stdin to give commands (and also raw_input) to the interpreter  
-ctrl-command: to give magic/debug etc. commands to the interpreter
+ctrl-command (OBJECT): to give magic/debug etc. commands to the interpreter
 
 ctrl-code (OBJECT): to let the interpreter execute blocks of code
 ctrl-broker: to control the broker (restarting etc)
@@ -58,6 +60,7 @@ ct = yoton.Context()
 sys._yoton_context = ct
 
 # Create control channels
+ct._ctrl_in = yoton.SubChannel(ct, 'ctrl-in', yoton.OBJECT)
 ct._ctrl_command = yoton.SubChannel(ct, 'ctrl-command')
 ct._ctrl_code = yoton.SubChannel(ct, 'ctrl-code', yoton.OBJECT)
 
@@ -73,7 +76,7 @@ ct._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJEC
 ct._stat_debug = yoton.PubstateChannel(ct, 'stat-debug', yoton.OBJECT)
 
 # Create file objects for stdin, stdout, stderr
-sys.stdin = yoton.FileWrapper( ct._ctrl_command )
+sys.stdin = yoton.FileWrapper( ct._ctrl_in )
 sys.stdout = yoton.FileWrapper( ct._strm_out )
 sys.stderr = yoton.FileWrapper( ct._strm_err )
 
@@ -105,7 +108,8 @@ def iep_excepthook(type, value, tb):
 ## Init interpreter and introspector request channel
 
 # Delay import, so we can detect syntax errors using the except hook
-from iepkernel.interpreter import IepInterpreter, IepIntrospector
+from iepkernel.interpreter import IepInterpreter
+from iepkernel.introspection import IepIntrospector
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
