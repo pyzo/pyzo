@@ -731,11 +731,11 @@ class PythonShell(BaseShell):
         """
         
         # Process future
-        if future.exception():
+        if future.cancelled():
+            #print('Introspect cancelled')  # No kernel
+            return
+        elif future.exception():
             print('Introspect-exception: ', future.exception())
-            return 
-        elif future.cancelled():
-            print('Introspect cancelled')
             return
         else:
             response = future.result()
@@ -792,11 +792,11 @@ class PythonShell(BaseShell):
         """ 
         
         # Process future
-        if future.exception():
-            print('Introspect-exception: ', future.exception())
+        if future.cancelled():
+            #print('Introspect cancelled') # No living kernel
             return
-        elif future.cancelled():
-            print('Introspect cancelled')
+        elif future.exception():
+            print('Introspect-exception: ', future.exception())
             return
         else:
             response = future.result()

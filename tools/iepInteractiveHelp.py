@@ -203,11 +203,17 @@ class IepInteractiveHelp(QtGui.QWidget):
     def queryDoc_response(self, future):
         """ Process the response from the shell. """
         
-        if future.exception() or future.cancelled():
+        # Process future
+        if future.cancelled():
+            #print('Introspect cancelled') # No living kernel
             return
-        response = future.result()
-        if not response:
+        elif future.exception():
+            print('Introspect-queryDoc-exception: ', future.exception())
             return
+        else:
+            response = future.result()
+            if not response:
+                return
         
         try:
             # Get parts

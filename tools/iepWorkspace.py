@@ -120,13 +120,19 @@ class WorkspaceProxy(QtCore.QObject):
         """ processResponse(response)
         We got a response, update our list and notify the tree.
         """
-        if future.exception() or future.cancelled():
-            response = []
+        
+        response = []
+        
+        # Process future
+        if future.cancelled():
+            pass #print('Introspect cancelled') # No living kernel
+        elif future.exception():
+            print('Introspect-queryDoc-exception: ', future.exception())
         else:
             response = future.result()
+        
         self._variables = response
         self.haveNewData.emit()
-    
     
 
 
