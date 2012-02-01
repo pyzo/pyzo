@@ -18,7 +18,7 @@ import ctypes
 
 import ssdf
 import yoton
-import iep # local IEP (can be on a different box than where the user is
+import iep # local IEP (can be on a different box than where the user is)
 
 
 # Important: the yoton event loop should run somehow!
@@ -386,8 +386,13 @@ class KernelBroker:
         
         """
         
+        # Get some important status info
         hasProcess = self._process is not None
-        hasClients = self._context and self._context.connection_count > 0
+        hasKernelConnection = bool(self._kernelCon and self._kernelCon.is_connected)
+        hasClients = False
+        if self._context:
+            hasClients = self._context.connection_count > int(hasKernelConnection)
+        
         
         # Should we clean the whole thing up? 
         if not (hasProcess or hasClients):
@@ -402,14 +407,15 @@ class KernelBroker:
                 self._process = None
             return
         
-        if self._process is not None:
+        # If we have a process ...
+        if self._process:
             # Test if process is dead
             process_returncode = self._process.poll()
             if process_returncode is not None:
                 self._onKernelDied(process_returncode)
                 return
             # Are we in the process of terminating?
-            if self._terminator:
+            elif self._terminator:
                 self._terminator.next()
         
         # handle control messages
@@ -479,7 +485,7 @@ class KernelBroker:
         # crashed or was stopped somehow. In both cases, we lost control,
         # and should put it down!
         if not self._terminator:
-            self._terminator = self.terminate('connecton lost', 'KILL', 1.0)
+            self.terminate('because connecton was lost', 'KILL', 0.5)
     
     
     def _onKernelDied(self, returncode=0):
@@ -493,7 +499,12 @@ class KernelBroker:
         if self._kernelCon and self._kernelCon.is_waiting:
             msg = 'The process failed to start (invalid command?).'        
         elif not self._terminator:
-            msg = 'Kernel process exited.'        
+            msg = 'Kernel process exited.'
+        elif not self._terminator._prev_action: 
+            # We did not actually take any terminating action
+            # This happens, because if the kernel is killed, the connection
+            # closes which triggers a terminate sequence (with a delay).
+            msg = 'Kernel process exited.'
         else:
             msg = self._terminator.getMessage('Kernel process')
         
@@ -507,7 +518,7 @@ class KernelBroker:
         
         # Cleanup (get rid of kernel process references)
         self._reset()
-            
+        
         # Handle any pending action
         if self._pending_restart:
             self.startKernel()
