@@ -522,18 +522,7 @@ class BaseShell(BaseTextCtrl):
                 self._history.insert(0,command)
         
         if execute:
-            # Maybe modify the text given...
-            command = self.modifyCommand(command)
-            # Execute
             self.executeCommand(command+'\n')
-    
-    
-    def modifyCommand(self, command):
-        """ Give the inheriting shell the change to modify/replace the
-        command, enabling magic commands. 
-        Should be overridden. 
-        """
-        return command
     
     
     def executeCommand(self, command):
@@ -950,27 +939,7 @@ class PythonShell(BaseShell):
     def modifyCommand(self, text):
         """ To implement magic commands. """
         
-        message = """ *magic* commands that are evaluated in the IEP shell, 
-        before sending the command to the remote process:
-        ?               - show this message
-        ?X or X?        - print(X.__doc__)
-        ??X or X??      - help(X)
-        cd              - import os; print(os.getcwd())
-        cd X            - import os; os.chdir("X"); print(os.getcwd())
-        ls              - import os; print(os.popen("dir").read())
-        who             - list variables in current workspace
-        whos            - list variables plus their class and representation
-        db start        - start post mortem debugging
-        db stop         - stop debugging
-        db up/down      - go up or down the stack frames
-        db frame X      - go to the Xth stack frame
-        db where        - print the stack trace and indicate the current stack
-        db focus        - open the file and show the line of the stack frame"""
-        # TODO: reimplement:
-        """
-        open X          - open file, module, or file that defines X
-        opendir Xs      - open all files in directory X      
-        """   
+        
         if text=="?":
             text = "print(%r)" % message
         

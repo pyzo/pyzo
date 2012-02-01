@@ -19,11 +19,7 @@ the ide. The stat channels are status channels to the ide. The reqp
 channels are req/rep channels. All channels are TEXT except for a
 few OBJECT channels.
 
-We keep the kernel as stupid as we can. Therefore the code for magic 
-commands is defined by the IDE.
-
-ctrl-in: the stdin to give commands (and also raw_input) to the interpreter  
-ctrl-command (OBJECT): to give magic/debug etc. commands to the interpreter
+ctrl-command: to give simple commands to the interpreter (ala stdin)
 
 ctrl-code (OBJECT): to let the interpreter execute blocks of code
 ctrl-broker: to control the broker (restarting etc)
@@ -60,7 +56,6 @@ ct = yoton.Context()
 sys._yoton_context = ct
 
 # Create control channels
-ct._ctrl_in = yoton.SubChannel(ct, 'ctrl-in', yoton.OBJECT)
 ct._ctrl_command = yoton.SubChannel(ct, 'ctrl-command')
 ct._ctrl_code = yoton.SubChannel(ct, 'ctrl-code', yoton.OBJECT)
 
@@ -76,7 +71,7 @@ ct._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJEC
 ct._stat_debug = yoton.PubstateChannel(ct, 'stat-debug', yoton.OBJECT)
 
 # Create file objects for stdin, stdout, stderr
-sys.stdin = yoton.FileWrapper( ct._ctrl_in )
+sys.stdin = yoton.FileWrapper( ct._ctrl_command )
 sys.stdout = yoton.FileWrapper( ct._strm_out )
 sys.stderr = yoton.FileWrapper( ct._strm_err )
 
@@ -102,7 +97,7 @@ def iep_excepthook(type, value, tb):
     time.sleep(0.3) # Give some time for the message to be send
 
 # Uncomment to detect error in the interpreter itself
-# sys.excepthook = iep_excepthook
+sys.excepthook = iep_excepthook
 
 
 ## Init interpreter and introspector request channel
