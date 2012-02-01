@@ -23,7 +23,7 @@ import traceback
 import inspect # Must be in this namespace
 import yoton
 from iepkernel import guiintegration
-
+from iepkernel.magic import Magician
 
 # Init last traceback information
 sys.last_type = None
@@ -77,6 +77,7 @@ class IepInterpreter:
         
         # Create compiler
         self._compile = CommandCompiler()
+        
         
         # Define prompts
         try:
@@ -228,7 +229,6 @@ class IepInterpreter:
                 scriptToRunOnStartup = filename
         
         # Get channels
-        ctrl_in = sys._yoton_context._ctrl_in
         ctrl_command = sys._yoton_context._ctrl_command
         ctrl_code = sys._yoton_context._ctrl_code
         strm_echo = sys._yoton_context._strm_echo
@@ -237,6 +237,7 @@ class IepInterpreter:
         
         
         # ENTER MAIN LOOP
+        magician = Magician()
         guitime = time.time()
         more = 0
         self.newPrompt = True
@@ -279,35 +280,27 @@ class IepInterpreter:
                     break
                 
                 # Get channel to take a message from
-                ch = yoton.select_sub_channel(ctrl_in, ctrl_command, ctrl_code)
+                ch = yoton.select_sub_channel(ctrl_command, ctrl_code)
                 
                 if ch is None:
                     pass # No messages waiting
                 
-                elif ch is ctrl_in:
-                    # Plain one-liner to execute
-                    line = ctrl_in.recv(False)
-                    if line:
-                        # Notify what we're doing
-                        strm_echo.send(line)
-                        stat_interpreter.send('Busy')
-                        self.newPrompt = True
-                        # Execute line
-                        more = self.push( line.rstrip('\n') )
-                
                 elif ch is ctrl_command:
                     # Read command 
-                    command = ctrl_command.recv(False) # Command
-                    if command:
+                    line1 = ctrl_command.recv(False) # Command
+                    if line1:
+                        # Convert command
+                        line2, line3 = magician.convert_command(line1)
                         # Notify what we're doing
-                        strm_echo.send(command['command'])
+                        strm_echo.send(line2)
                         stat_interpreter.send('Busy')
                         self.newPrompt = True
                         # Execute actual code
-                        self.runsource(command['code'])
-                        # Reset
-                        self.resetbuffer()
-                        more = False
+                        if line3:
+                            more = self.push(line3)
+                        else:
+                            more = False
+                            self.resetbuffer()
                 
                 elif ch is ctrl_code:
                     # Read larger block of code (dict)
@@ -350,117 +343,6 @@ class IepInterpreter:
                 # sys._yoton_context.close() # will hang the exit in py3k
                 # Exit from interpreter
                 return
-    
-    
-    def parse_command(self, line):
-        
-        # Clean and make case insensitive
-        control = line.upper().rstrip()
-        
-        if not control:
-            # Empty line; return original line, so it will be sent to push()
-            return line
-        
-        elif control == 'DB START':
-            # Collect frames from the traceback
-            tb = sys.last_traceback
-            frames = []
-            while tb:
-                frames.append(tb.tb_frame)
-                tb = tb.tb_next
-            # Enter debug mode if there was an error
-            if frames:
-                self._dbFrames = frames
-                self._dbFrameIndex = len(self._dbFrames)
-                frame = self._dbFrames[self._dbFrameIndex-1]
-                self._dbFrameName = frame.f_code.co_name
-                self.locals = frame.f_locals
-                self.globals = frame.f_globals
-                # Notify IEP
-                self.writeStatus() # todo: debug status?
-            else:
-                self.write("No debug information available.\n")
-        
-        elif control.startswith('DB FRAME '):
-            if not self._dbFrames:
-                self.write("Not in debug mode.\n")
-            else:
-                # Set frame index
-                self._dbFrameIndex = int(control.rsplit(' ',1)[-1])
-                if self._dbFrameIndex < 1:
-                    self._dbFrameIndex = 1
-                elif self._dbFrameIndex > len(self._dbFrames):
-                    self._dbFrameIndex = len(self._dbFrames)
-                # Set name and locals
-                frame = self._dbFrames[self._dbFrameIndex-1]
-                self._dbFrameName = frame.f_code.co_name
-                self.locals = frame.f_locals
-                self.globals = frame.f_globals
-                self.writeStatus()
-        
-        elif control == 'DB UP':
-            if not self._dbFrames:
-                self.write("Not in debug mode.\n")
-            else:
-                # Decrease frame index
-                self._dbFrameIndex -= 1
-                if self._dbFrameIndex < 1:
-                    self._dbFrameIndex = 1
-                # Set name and locals
-                frame = self._dbFrames[self._dbFrameIndex-1]
-                self._dbFrameName = frame.f_code.co_name
-                self.locals = frame.f_locals
-                self.globals = frame.f_globals
-                self.writeStatus()
-        
-        elif control == 'DB DOWN':
-            if not self._dbFrames:
-                self.write("Not in debug mode.\n")
-            else:
-                # Increase frame index
-                self._dbFrameIndex += 1
-                if self._dbFrameIndex > len(self._dbFrames):
-                    self._dbFrameIndex = len(self._dbFrames)
-                # Set name and locals
-                frame = self._dbFrames[self._dbFrameIndex-1]
-                self._dbFrameName = frame.f_code.co_name
-                self.locals = frame.f_locals
-                self.globals = frame.f_globals
-                self.writeStatus()
-        
-        elif control == 'DB STOP':
-            if not self._dbFrames:
-                self.write("Not in debug mode.\n")
-            else:
-                self.locals = self._main_locals
-                self.globals = None
-                self._dbFrames = []
-                self.writeStatus()
-        
-        elif control == 'DB WHERE':
-            if not self._dbFrames:
-                self.write("Not in debug mode.\n")
-            else:
-                lines = []
-                for i in range(len(self._dbFrames)):
-                    frameIndex = i+1
-                    f = self._dbFrames[i]
-                    # Get fname and lineno, and correct if required
-                    fname, lineno = f.f_code.co_filename, f.f_lineno
-                    fname, lineno = correctFilenameAndLineno(fname, lineno)
-                    # Build string
-                    text = 'File "%s", line %i, in %s' % (
-                                            fname, lineno, f.f_code.co_name)
-                    if frameIndex == self._dbFrameIndex:
-                        lines.append('-> %i: %s'%(frameIndex, text))
-                    else:
-                        lines.append('   %i: %s'%(frameIndex, text))
-                lines.append('')
-                sys.stdout.write('\n'.join(lines))
-        
-        else:
-            # Return original line
-            return line
     
     
     def resetbuffer(self):
@@ -691,7 +573,7 @@ class IepInterpreter:
         for f in self._dbFrames:
             # Get fname and lineno, and correct if required
             fname, lineno = f.f_code.co_filename, f.f_lineno
-            fname, lineno = correctFilenameAndLineno(fname, lineno)
+            fname, lineno = self.correctFilenameAndLineno(fname, lineno)
             if not fname.startswith('<'):
                 fname2 = os.path.abspath(fname)
                 if os.path.isfile(fname2):
@@ -727,7 +609,7 @@ class IepInterpreter:
                 # unpack information
                 msg, (dummy_filename, lineno, offset, line) = value
                 # correct line-number
-                fname, lineno = correctFilenameAndLineno(filename, lineno)
+                fname, lineno = self.correctFilenameAndLineno(filename, lineno)
             except:
                 # Not the format we expect; leave it alone
                 pass
@@ -807,7 +689,7 @@ class IepInterpreter:
             for i in range(len(tblist)):
                 tbInfo = tblist[i]                
                 # Get filename and line number, init example
-                fname, lineno = correctFilenameAndLineno(tbInfo[0], tbInfo[1])
+                fname, lineno = self.correctFilenameAndLineno(tbInfo[0], tbInfo[1])
                 if not isinstance(fname, ustr):
                     fname = fname.decode('utf-8')
                 example = tbInfo[3]
@@ -845,22 +727,20 @@ class IepInterpreter:
             frames = None
     
     
-    
-
-def correctFilenameAndLineno(fname, lineno):
-    """ Given a filename and lineno, this function returns
-    a modified (if necessary) version of the two. 
-    As example:
-    "foo.py+7", 22  -> "foo.py", 29
-    """
-    j = fname.find('+')
-    if j>0:
-        try:
-            lineno += int(fname[j+1:])
-            fname = fname[:j]
-        except ValueError:
-            pass
-    return fname, lineno
+    def correctFilenameAndLineno(self, fname, lineno):
+        """ Given a filename and lineno, this function returns
+        a modified (if necessary) version of the two. 
+        As example:
+        "foo.py+7", 22  -> "foo.py", 29
+        """
+        j = fname.find('+')
+        if j>0:
+            try:
+                lineno += int(fname[j+1:])
+                fname = fname[:j]
+            except ValueError:
+                pass
+        return fname, lineno
 
 
 class ExecutedSourceCollection(dict):
