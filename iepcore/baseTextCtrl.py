@@ -604,8 +604,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 tryAutoComp = False
         
         # Store line and (re)start timer
+        cursor.setKeepPositionOnInsert(True)
         self._delayTimer._tokensUptoCursor = tokensUptoCursor
-        self._delayTimer._pos = cursor.positionInBlock()
+        self._delayTimer._cursor = cursor
         self._delayTimer._tryAutoComp = tryAutoComp
         self._delayTimer.start(iep.config.advanced.autoCompDelay)
     
@@ -629,7 +630,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 if name:
                     fullName = name + '.' + needle
                 # Process
-                offset = self._delayTimer._pos - stats[0] + len(needle)
+                offset = self._delayTimer._cursor.positionInBlock() - stats[0] + len(needle)
                 cto = CallTipObject(self, fullName, offset)
                 self.processCallTip(cto)
             else: 
