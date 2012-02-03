@@ -937,82 +937,8 @@ class PythonShell(BaseShell):
     
     # todo: implement most magic commands in kernel
     def modifyCommand(self, text):
-        """ To implement magic commands. """
         
-        
-        if text=="?":
-            text = "print(%r)" % message
-        
-        elif text.startswith("??"):
-            text = 'help({})'.format(text[2:])
-            
-        elif text.endswith("??"):
-            text = 'help({})'.format(text[:-2])
-            
-        elif text.startswith("?"):
-            text = 'print({}.__doc__)'.format(text[1:])
-            
-        elif text.endswith("?"):
-            text = 'print({}.__doc__)'.format(text[:-1])
-        
-#         elif text == "timeit":
-#             text = 'print("Time execution duration, usage:\\n'
-#             text += 'timeit fun # where fun is a callable\\n'
-#             text += 'timeit \'expression\' # where fun is a callable\\n'
-#             text += 'timeit 20 fun # tests 20 passes\\n'
-#             text += 'For more advanced use, see the timeit module.")\n'
-#             
-#         elif text.startswith("timeit "):
-#             command = text[7:]
-#             # Get number of iterations
-#             N = 1
-#             tmp =  command.split(' ',1)
-#             if len(tmp)==2:
-#                 try:
-#                     N = int(tmp[0])
-#                     command = tmp[1]
-#                 except Exception:
-#                     pass
-#             # Compile command
-#             text = 'import timeit; t=timeit.Timer({}); '.format(command)
-#             text += 'print(str( t.timeit({})/{} ) '.format(N,N)
-#             text += '+" seconds on average for {} iterations." )'.format(N)
-        
-        elif text=='cd' or text.startswith("cd ") and '=' not in text:
-            path = text[3:].strip()
-            if path:
-                text = '__iep__.os.chdir("{}");print(__iep__.os.getcwd())'.format(tmp)
-            else:
-                text = 'print __iep__.os.getcwd()'
-                
-        elif text=='ls' or text.startswith("ls ") and '=' not in text:
-            path = text[3:].strip()
-            text = r'print "\n".join(sorted(filter(lambda p: not p.startswith("."),__iep__.os.listdir(%r or __iep__.os.getcwd()))))' % path
-        
-        elif text == 'db start':
-            text = ''
-            self._ctrl_broker.write('DEBUG START')
-        elif text == 'db stop':
-            text = ''
-            self._ctrl_broker.write('DEBUG STOP')
-        elif text == 'db up':
-            text = ''
-            self._ctrl_broker.write('DEBUG UP')
-        elif text == 'db down':
-            text = ''
-            self._ctrl_broker.write('DEBUG DOWN')
-        elif text.startswith('db frame '):
-            index = text.split(' ',2)[2]
-            try:
-                index = int(index)
-            except Exception:
-                return text
-            text = ''
-            self._ctrl_broker.write('DEBUG INDEX ' + str(index))
-        elif text == 'db where':
-            text = ''
-            self._ctrl_broker.write('DEBUG WHERE')
-        elif text == 'db focus':
+        if text == 'db focus':
             # If not debugging, cant focus
             if not self._debugState:
                 return 'print("Not in debug mode.")'
@@ -1064,55 +990,7 @@ class PythonShell(BaseShell):
 #                 msg = msg.format(fn.replace('\\', '/'))
 #             if msg:
 #                 text = 'print("{}")'.format(msg)
-        
-        elif text == 'who':
-            text = r'__iep__.write((",".join(filter(lambda v: not v.startswith("__"), dir())) or "No variables defined") + "\n")'
-        
-        elif text == 'whos':
-            # Get list of names
-            names = remoteEval('",".join(dir())')
-            names = names.split(',')
-            # Select names
-            names = [name for name in names if not name.startswith('__')]
-            # Get class and repr for all names at once
-            if names:
-                # Define list comprehensions (the one for the class is huge!)
-                nameString = ','.join(names)
-                classGetter = '[str(c) for c in '
-                classGetter += '[a[1] or a[0].__class__.__name__ for a in '
-                classGetter += '[(b, not hasattr(b,"__class__")) for b in [{}]'
-                classGetter += ']]]'
-                reprGetter = '[repr(name) for name in [{}]]'
-                #
-                classGetter = classGetter.format(nameString)
-                reprGetter = reprGetter.format(nameString)
-                # Use special seperator that is unlikely to be used, ever.
-                namesClass = remoteEval('"##IEP##".join({})'.format(classGetter))
-                namesRepr = remoteEval('"##IEP##".join({})'.format(reprGetter))
-                namesClass = namesClass.split('##IEP##')
-                namesRepr = namesRepr.split('##IEP##')
-            # Compile list
-            text = ''
-            for name, nameClass, nameRepr in zip(names, namesClass, namesRepr):
-                # Post process nameclass
-                if nameClass == 'True':
-                    nameClass = ''
-                # Make right length
-                name = justify(name, 18, 2)
-                nameClass = justify(nameClass, 18, 2)
-                nameRepr = justify(nameRepr, 38, 2)
-                # Add to text
-                text += name + nameClass + nameRepr + '\n'
-            if text:
-                # Define header
-                preamble = "VARIABLE: ".ljust(20,' ') + "TYPE: ".ljust(20,' ') 
-                preamble += "REPRESENTATION: ".ljust(20,' ') + '\n'
-                # Combine and print
-                text = preamble + text[:-2]
-                text = 'print("{}")'.format(prepareTextForRemotePrinting(text))
-            else:
-                text = 'print("There are no variables defined in this scope.")'
-            
+       
         # Return modified version (or original)
         return text
     
