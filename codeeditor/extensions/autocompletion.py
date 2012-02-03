@@ -23,7 +23,7 @@ class AutoCompletion(object):
     def __init__(self,*args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter
-        self.__completerModel=CompletionListModel(keyword.kwlist)
+        self.__completerModel=QtGui.QStringListModel(keyword.kwlist)
         self.__completer=QtGui.QCompleter(self.__completerModel, self)
         self.__completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.__completer.setWidget(self)
@@ -34,7 +34,7 @@ class AutoCompletion(object):
         self.__autocompleteStart=None
         
         #Connect signals
-        self.connect(self.__completer,QtCore.SIGNAL("activated(QString)"),self.onAutoComplete)
+        self.__completer.activated.connect(self.onAutoComplete)
     
     ## Properties
     def recentCompletionsList(self):
@@ -64,9 +64,10 @@ class AutoCompletion(object):
         startcursor.movePosition(startcursor.Left, n=offset)
         
         if not self.autocompleteActive() or \
-            startcursor.position() != self.__autocompleteStart:
+            startcursor.position() != self.__autocompleteStart.position():
 
-            self.__autocompleteStart=startcursor.position()
+            self.__autocompleteStart=startcursor
+            self.__autocompleteStart.setKeepPositionOnInsert(True)
 
             #Popup the autocompleter. Don't use .complete() since we want to
             #position the popup manually
@@ -92,10 +93,9 @@ class AutoCompletion(object):
     def onAutoComplete(self,text):
         #Select the text from autocompleteStart until the current cursor
         cursor=self.textCursor()
-        cursor.setPosition(self.__autocompleteStart,cursor.KeepAnchor)
+        cursor.setPosition(self.__autocompleteStart.position(),cursor.KeepAnchor)
         #Replace it with the selected text 
         cursor.insertText(text)
-        self.__autocompleteStart=None
         self.autocompleteCancel() #Reset the completer
         
         #Update the recent completions list
@@ -112,8 +112,8 @@ class AutoCompletion(object):
     def __positionAutocompleter(self):
         """Move the autocompleter list to a proper position"""
         #Find the start of the autocompletion and move the completer popup there
-        cur=self.textCursor()
-        cur.setPosition(self.__autocompleteStart)
+        cur=QtGui.QTextCursor(self.__autocompleteStart) #Copy __autocompleteStart
+
         position = self.cursorRect(cur).bottomLeft() + \
             self.viewport().pos() #self.geometry().topLeft() +
         self.__completer.popup().move(self.mapToGlobal(position))
@@ -130,9 +130,15 @@ class AutoCompletion(object):
         entered) and send it to the completer. Update the selected completion
         (out of several possiblilties) which is best suited
         """
-        prefix=self.toPlainText()[self.__autocompleteStart:
-        self.textCursor().position()]
-
+        if not self.autocompleteActive():
+            self.__completer.popup().hide() #TODO: why is this required?
+            return
+        
+        #Select the text from autocompleteStart until the current cursor
+        cursor=self.textCursor()
+        cursor.setPosition(self.__autocompleteStart.position(),cursor.KeepAnchor)
+        
+        prefix=cursor.selectedText()
         self.__completer.setCompletionPrefix(prefix)
         model = self.__completer.completionModel()
         if model.rowCount():
@@ -190,7 +196,7 @@ class AutoCompletion(object):
         if self.autocompleteActive() and \
             not event.text().isalnum() and event.text() != '_' and \
             key != Qt.Key_Shift and not (
-            (key==Qt.Key_Backspace) and self.textCursor().position()>self.__autocompleteStart):
+            (key==Qt.Key_Backspace) and self.textCursor().position()>self.__autocompleteStart.position()):
             self.autocompleteCancel()
         
         # Apply the key that was pressed
