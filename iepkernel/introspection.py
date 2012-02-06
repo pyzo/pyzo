@@ -4,8 +4,9 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-import sys, time
+import os, sys, time
 import yoton
+import inspect
 
 try:
     import thread # Python 2
