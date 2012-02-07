@@ -20,7 +20,6 @@ channels are req/rep channels. All channels are TEXT except for a
 few OBJECT channels.
 
 ctrl-command: to give simple commands to the interpreter (ala stdin)
-
 ctrl-code (OBJECT): to let the interpreter execute blocks of code
 ctrl-broker: to control the broker (restarting etc)
 
@@ -30,6 +29,7 @@ strm-raw: the C-level stdout and stderr of the interpreter (caputred by broker)
 strm-echo: the interpreters echos commands here
 strm-prompt: to send the prompts explicitly
 strm-broker: for the broker to send messages to the ide
+strm-action (OBJECT): for the kernel to push actions to the ide
 
 stat-interpreter (OBJECT): status of the interpreter (ready, busy, more)
 stat-debug (OBJECT): debug status
@@ -64,6 +64,7 @@ ct._strm_out = yoton.PubChannel(ct, 'strm-out')
 ct._strm_err = yoton.PubChannel(ct, 'strm-err')
 ct._strm_echo = yoton.PubChannel(ct, 'strm-echo')
 ct._strm_prompt = yoton.PubChannel(ct, 'strm-prompt')
+ct._strm_action = yoton.PubChannel(ct, 'strm-action', yoton.OBJECT)
 
 # Create status channels
 ct._stat_startup = yoton.SubstateChannel(ct, 'stat-startup', yoton.OBJECT)

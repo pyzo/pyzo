@@ -289,15 +289,15 @@ class IepInterpreter:
                     # Read command 
                     line1 = ctrl_command.recv(False) # Command
                     if line1:
-                        # Convert command
-                        line2, line3 = magician.convert_command(line1)
                         # Notify what we're doing
-                        strm_echo.send(line2)
+                        strm_echo.send(line1)
                         stat_interpreter.send('Busy')
                         self.newPrompt = True
+                        # Convert command
+                        line2 = magician.convert_command(line1)
                         # Execute actual code
-                        if line3:
-                            more = self.push(line3)
+                        if line2:
+                            more = self.push(line2)
                         else:
                             more = False
                             self.resetbuffer()

@@ -645,6 +645,7 @@ class PythonShell(BaseShell):
         self._strm_echo = yoton.SubChannel(ct, 'strm-echo')
         self._strm_prompt = yoton.SubChannel(ct, 'strm-prompt')
         self._strm_broker = yoton.SubChannel(ct, 'strm-broker')
+        self._strm_action = yoton.SubChannel(ct, 'strm-action', yoton.OBJECT)
         
         # Create control channels
         self._ctrl_command = yoton.PubChannel(ct, 'ctrl-command')
@@ -1054,6 +1055,12 @@ class PythonShell(BaseShell):
             # Write
             self.write(''.join(M), prompt, color)
         
+        
+        # Do any actions?
+        action = self._strm_action.recv(False)
+        if action:
+            if action['action'] == 'open':
+                iep.editors.loadFile(action['path'])
         
         # Update status
         # todo: include heartbeat info
