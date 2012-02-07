@@ -21,6 +21,8 @@ MESSAGE = """List of *magic* commands:
     who             - list variables in current workspace
     whos            - list variables plus their class and representation
     timeit X        - times execution of command X
+    open X          - open file X or the Python module that defines object X
+    run X           - run file X
     db start        - start post mortem debugging
     db stop         - stop debugging
     db up/down      - go up or down the stack frames
@@ -29,11 +31,6 @@ MESSAGE = """List of *magic* commands:
     db focus        - open the file and show the line of the stack frame
 """
 
-# TODO: reimplement:
-"""
-open X          - open file, module, or file that defines X
-opendir Xs      - open all files in directory X      
-"""   
 
 TIMEIT_MESSAGE = """Time execution duration. Usage:
     timeit fun  # where fun is a callable
@@ -42,7 +39,6 @@ TIMEIT_MESSAGE = """Time execution duration. Usage:
     For more advanced use, see the timeit module.
 """
 
-# todo: either not allow changing the echo command, or do any printing via print statement. The only way I think it may be useful is in reliably passing a filename for the ide to open (db focus, open X)
 
 class Magician:
     
@@ -65,19 +61,30 @@ class Magician:
         """ convert_command(line)
         
         Convert a given command from a magic command to Python code.
-        Returns a two element tuple that contains the command to display
-        and the command to execute.
+        Returns the converted command if it was a magic command, or 
+        the original otherwise.
         
         """
-        # Make robust, converted functions can pass None to use the original
-        res = self._convert_command(line)
+        # Get converted command, catch and report errors
+        try:
+            res = self._convert_command(line)
+        except Exception:
+            msg = 'Error in handling magic function'
+            # Try informing about line number
+            type, value, tb = sys.exc_info()
+            if tb and tb.tb_next and tb.tb_next.tb_next:
+                msg += ' (line %s)' % str(tb.tb_next.tb_next.tb_lineno)
+            # Clear
+            del tb
+            # Write
+            print(msg)
+            return ''
         
-        if isinstance(res, tuple):
-            return res[0], res[1]  # Pass shown line and command
-        elif res:
-            return line, res # Pass only the command
+        # Process
+        if res is None:
+            return line
         else:
-            return line, line # Pass nothing
+            return res
     
     
     def _convert_command(self, line):
@@ -89,7 +96,7 @@ class Magician:
         command = line.upper().rstrip()
         
         if not command:
-            return line  # Empty line; return original line
+            return
         
         elif command == '?':
             return 'print(%s)' % repr(MESSAGE)
@@ -122,6 +129,12 @@ class Magician:
         
         elif command == 'WHOS':
             return self.whos(line, command)
+        
+        elif command.startswith('OPEN '):
+            return self.open(line, command)
+        
+        elif command.startswith('RUN '):
+            return self.run(line, command)
     
     
     def debug(self, line, command):
@@ -227,18 +240,24 @@ class Magician:
                 sys.stdout.write('\n'.join(lines))
         
         # Done (no code to execute)
-        return line, ''
+        return ''
     
     
     def cd(self, line, command):
         if command == 'CD' or command.startswith("CD ") and '=' not in command:
             path = line[3:].strip()
             if path:
-                os.chdir(path)
+                try:
+                    os.chdir(path)
+                except Exception:
+                    print('Could not change to directory "%s".' % path)
+                    return ''
                 newPath = os.getcwd()
             else:
                 newPath = os.getcwd()
-            return 'print(%s)\n' % repr(newPath)
+            # Done
+            print(repr(newPath))
+            return ''
     
     def ls(self, line, command):
         if command == 'LS' or command.startswith("LS ") and '=' not in command:
@@ -247,7 +266,9 @@ class Magician:
                 path = os.getcwd()
             L = [p for p in os.listdir(path) if not p.startswith('.')]
             text = '\n'.join(sorted(L))
-            return 'print(%s)\n' % repr(text)
+            # Done
+            print(text)
+            return ''
     
     
     def timeit(self, line, command):
@@ -276,10 +297,10 @@ class Magician:
         L = self._eval('dir()\n')
         L = [k for k in L if not k.startswith('__')]
         if L:
-            text = ', '.join(L)
+            print(', '.join(L))
         else:
-            text = "There are no variables defined in this scope."
-        return 'print(%s)\n' % repr(text)
+            print("There are no variables defined in this scope.")
+        return ''
     
     
     def _justify(self, line, width, offset):
@@ -295,8 +316,8 @@ class Magician:
         L = [k for k in L if not k.startswith('__')]
         # Anny variables?
         if not L:
-            text = "There are no variables defined in this scope."
-            return 'print(%s)\n' % repr(text)
+            print("There are no variables defined in this scope.")
+            return ''
         else:
             text = "VARIABLE: ".ljust(20,' ') + "TYPE: ".ljust(20,' ') 
             text += "REPRESENTATION: ".ljust(20,' ') + '\n'
@@ -310,4 +331,80 @@ class Magician:
             text += self._justify(name,20,2) + self._justify(cls,20,2)
             text += self._justify(rep,40,2) + '\n'
         # Done
-        return 'print(%s)\n' % repr(text)
+        print(text)
+        return ''
+    
+    
+    def open(self, line, command):
+        
+        # Get what to open            
+        name = line.split(' ',1)[1].strip()
+        fname = ''
+        
+        # Is it a file name?
+        tmp = os.path.join(os.getcwd(), name)
+        #
+        if name[0] in '"\'' and name[-1] in '"\'': # Explicitly given
+            fname = name[1:-1]
+        elif os.path.isfile(tmp):
+            fname = tmp
+        elif os.path.isfile(name):
+            fname = name
+        
+        else:
+            # Then it maybe is an object
+            
+            # Get the object
+            try:
+                ob = self._eval(name)
+            except NameError:
+                print('There is not object known as "%s"' % name)
+                return ''
+            
+            # Get its file name
+            if hasattr(ob, '__file__'):
+                fname = ob.__file__
+            elif hasattr(ob, '__module__'):
+                tmp = sys.modules[ob.__module__]
+                if hasattr(tmp, '__file__'):
+                    fname = tmp.__file__
+            
+            # Make .py from .pyc
+            if fname.endswith('.pyc') or fname.endswith('.pyo'):
+                fname = fname[:-1]
+            
+        # Almost done
+        if not fname:
+            print('Could not determine file name for object "%s".' % name)
+        else:            
+            action = {'action': 'open', 'path': fname}
+            sys._yoton_context._strm_action.send(action)
+        #
+        return ''
+    
+    
+    def run(self, line, command):
+        
+        # Get what to open            
+        name = line.split(' ',1)[1].strip()
+        fname = ''
+        
+        # Enable dealing with qoutes
+        if name[0] in '"\'' and name[-1] in '"\'':
+            name = name[1:-1]
+        
+        # Is it a file name?
+        tmp = os.path.join(os.getcwd(), name)
+        #
+        if os.path.isfile(tmp):
+            fname = tmp
+        elif os.path.isfile(name):
+            fname = name
+        
+        # Go run!
+        if not fname:
+            print('Could not find file to run "%s".' % name)
+        else:
+            sys._iepInterpreter.runfile(fname)
+        #
+        return ''
