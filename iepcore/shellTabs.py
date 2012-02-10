@@ -20,6 +20,7 @@ from iepcore.compactTabWidget import CompactTabWidget
 from iepcore.shell import PythonShell
 from iepcore.iepLogging import print
 from iepcore.menu import ShellTabContextMenu
+from iepcore.icons import ShellTabToolButton
 
 ssdf = iep.ssdf
 
@@ -102,6 +103,11 @@ class ShellStack(QtGui.QWidget):
             # Show status in tab text            
             i = self._tabs.indexOf(shell)
             self._tabs.setTabText(i, stateText)
+            
+            # Update icon of the tab
+            but = self._tabs.tabBar().tabButton(i, 0)
+            if but:
+                but.updateIcon(shell._state)
         
         if shell is self.getCurrentShell():
             
@@ -155,8 +161,12 @@ class ShellStack(QtGui.QWidget):
     def addShell(self, shellInfo=None):
         """ addShell()
         Add a shell to the widget. """
+        
+        # Create shell and add tab
         shell = PythonShell(self._tabs, shellInfo)
-        self._tabs.addTab(shell, 'Python')
+        i = self._tabs.addTab(shell, 'Python')
+        # Create button for icon
+        self._tabs.tabBar().setTabButton(i, 0, ShellTabToolButton())
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)

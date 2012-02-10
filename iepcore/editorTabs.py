@@ -23,6 +23,7 @@ from iepcore.editor import createEditor
 from iepcore.baseTextCtrl import normalizePath
 from iepcore.baseTextCtrl import styleManager
 from iepcore.iepLogging import print
+from iepcore.icons import EditorTabToolButton
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 50
@@ -550,23 +551,7 @@ class FindReplaceWidget(QtGui.QFrame):
         editor.setTextCursor(cursor)
 
 
-class TabToolButton(QtGui.QToolButton):
-    def __init__(self, icon):
-        QtGui.QToolButton.__init__(self)
-        
-        # Init
-        self.setIconSize(QtCore.QSize(16,16))
-        self.setStyleSheet("QToolButton{ border: none; }")                
-        
-        # Set icon now
-        self.setIcon(icon)
-    
-    def mousePressEvent(self, event):
-        # Ignore event so that the tabbar will change to that tab
-        event.ignore()
-    
 
-    
 class FileTabWidget(CompactTabWidget):
     """ FileTabWidget(parent)
     
@@ -788,10 +773,12 @@ class FileTabWidget(CompactTabWidget):
         
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
+        self.tabBar().setTabButton(i, 0, EditorTabToolButton())
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
-
+        item.editor.blockCountChanged.connect(self.updateItems)
+        
         # Store the item at the tab
         self.tabBar().setTabData(i, item)
         
@@ -849,55 +836,16 @@ class FileTabWidget(CompactTabWidget):
             else:
                 tabBar.setTabTextColor(i, QtGui.QColor('#444'))
             
+            # Get number of blocks
+            nBlocks = item.editor.blockCount()
+            if nBlocks == 1 and not item.editor.toPlainText():
+                nBlocks = 0
+            
             # Update appearance of icon
-            if True:
-                
-                # Select base pixmap and pen color
-                if item.dirty:
-                    pm0 = iep.icons.page_white_dirty.pixmap(16,16)
-                    penColor = '#f00'                    
-                else:
-                    pm0 = iep.icons.page_white.pixmap(16,16)
-                    penColor = '#444'
-                
-                # Create painter
-                painter = QtGui.QPainter()
-                painter.begin(pm0)
-                
-                # Paint lines
-                pen = QtGui.QPen()
-                pen.setColor(QtGui.QColor(penColor))
-                painter.setPen(pen)
-                for y in range(4,13,2):
-                    end = 9
-                    if y>6: end = 12
-                    painter.drawLine(4,y,end,y)
-                
-                # Add star-overlay?
-                if self._mainFile == item.id:
-                    pm1 = iep.icons.overlay_star.pixmap(16,16)
-                    painter.drawPixmap(0,0, pm1)
-                
-                # Add pin-overlay?
-                if item.pinned:
-                    #pm1 = iep.icons.overlay_link.pixmap(16,16)
-                    pm1 = iep.icons.overlay_thumbnail.pixmap(16,16)
-                    painter.drawPixmap(0,0, pm1)
-                
-                # Add dirty overlay?
-                if item.dirty:
-                    pm1 = iep.icons.overlay_disk.pixmap(16,16)
-                    painter.drawPixmap(0,0, pm1)
-                
-                # Finish
-                painter.end()
-                
-                # Show icon using tool button. That will make the space
-                # between icon and text much smaller for some reason.
-                #tabBar.setTabIcon(i, QtGui.QIcon(pm0))
-                but = TabToolButton(QtGui.QIcon(pm0))
-                tabBar.setTabButton(i, 0, but)
-                
+            but = tabBar.tabButton(i, 0)
+            but.updateIcon(item.dirty, self._mainFile==item.id, 
+                        item.pinned, nBlocks)
+
 
 class EditorTabs(QtGui.QWidget):
     """ The EditorTabs instance manages the open files and corresponding
