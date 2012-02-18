@@ -54,6 +54,10 @@ class IconArtist:
             pm = QtGui.QPixmap(16, 16)
             pm.fill(QtGui.QColor(0,0,0,0))
             return pm
+        elif isinstance(icon, tuple):
+            pm = QtGui.QPixmap(icon[0], icon[1])
+            pm.fill(QtGui.QColor(0,0,0,0))
+            return pm
         elif isinstance(icon, QtGui.QPixmap):
             return icon
         elif isinstance(icon, QtGui.QIcon):
@@ -94,26 +98,112 @@ class IconArtist:
         Add a point to the icon.
         """
         self._painter.drawPoint(x, y)
-
-
-class EditorTabToolButton(QtGui.QToolButton):
     
-    """ Button for the tabs of the editors. This is just a 
-    tight wrapper for the icon.
+    def addMenuArrow(self, strength=100):
+        """ addMenuArrow()
+        Adds a menu arrow to the icon to let the user know the icon
+        is clickable.
+        """
+        x, y = 0, 12
+        a1, a2 = int(strength/2), strength
+        # Zeroth line of 3+2
+        self.setPenColor((0,0,0,a1))
+        self.addPoint(x+0,y-1); self.addPoint(x+4,y-1);
+        self.setPenColor((0,0,0,a2))
+        self.addPoint(x+1,y-1); self.addPoint(x+2,y-1); self.addPoint(x+3,y-1);
+        # First line of 3+2
+        self.setPenColor((0,0,0,a1))
+        self.addPoint(x+0,y+0); self.addPoint(x+4,y+0);
+        self.setPenColor((0,0,0,a2))
+        self.addPoint(x+1,y+0); self.addPoint(x+2,y+0); self.addPoint(x+3,y+0);
+        # Second line of 3
+        self.addPoint(x+1,y+1); self.addPoint(x+2,y+1); self.addPoint(x+3,y+1)
+        # Third line of 1+2
+        self.addPoint(x+2,y+2)
+        self.setPenColor((0,0,0,a1))
+        self.addPoint(x+1,y+2); self.addPoint(x+3,y+2)
+        # Fourth line of 1
+        self.setPenColor((0,0,0,a2))
+        self.addPoint(x+2,y+3);
+
+
+class TabToolButton(QtGui.QToolButton):
+    """ TabToolButton
+    
+    Tool button that wraps the icon in a slightly larger icon that
+    contains a small arrow that lights up when hovering over the icon.
+    
+    The button itself is not drawn. If the icon is clicked, the
+    customContextMenuRequested signal of the "grandparent" is emitted. In 
+    this way we realize a suble icon that can be clicked on to show a menu. 
+    
     """
     
     def __init__(self):
         QtGui.QToolButton.__init__(self)
         
         # Init
-        self.setIconSize(QtCore.QSize(16,16))
+        self.setIconSize(QtCore.QSize(21,16))
         self.setStyleSheet("QToolButton{ border: none; }")
+        
+        # Create arrow pixmaps
+        self._menuarrow1 = self._createMenuArrowPixmap(0)
+        self._menuarrow2 = self._createMenuArrowPixmap(70)
+        self._menuarrow = self._menuarrow1
+        
+        # Variable to keep icon
+        self._icon = None
     
     
     def mousePressEvent(self, event):
         # Ignore event so that the tabbar will change to that tab
-        event.ignore()
+        event.accept()
+        tabs = self.parent().parent()
+        pos = self.mapTo(tabs, event.pos())
+        tabs.customContextMenuRequested.emit(pos)
     
+    
+    def enterEvent(self, event):
+        QtGui.QToolButton.enterEvent(self, event)
+        self._menuarrow = self._menuarrow2
+        self.setIcon()
+    
+    
+    def leaveEvent(self, event):
+        QtGui.QToolButton.leaveEvent(self, event)
+        self._menuarrow = self._menuarrow1
+        self.setIcon()
+    
+    
+    def setIcon(self, icon=None):
+        
+        # Store icon if given, otherwise use buffered version
+        if icon is not None:
+            self._icon = icon
+        
+        # Compose icon by superimposing the menuarrow pixmap
+        artist = IconArtist((21, 16))
+        if self._icon:
+            artist.addLayer(self._icon, 5, 0)
+        artist.addLayer(self._menuarrow, 0,0)
+        icon = artist.finish()
+        
+        # Set icon
+        QtGui.QToolButton.setIcon(self, icon)
+    
+    
+    def _createMenuArrowPixmap(self, strength):
+        artist = IconArtist()
+        artist.addMenuArrow(strength)
+        return artist.finish().pixmap(16,16)
+
+
+
+class EditorTabToolButton(TabToolButton):
+    
+    """ Button for the tabs of the editors. This is just a 
+    tight wrapper for the icon.
+    """
     
     def updateIcon(self, isDirty, isMain, isPinned, nBlocks=10001):
         
@@ -161,7 +251,7 @@ class EditorTabToolButton(QtGui.QToolButton):
 
 
 
-class ShellTabToolButton(QtGui.QToolButton):
+class ShellTabToolButton(TabToolButton):
     
     """ Button for the tabs of the shells. This is just a 
     tight wrapper for the icon.
@@ -182,11 +272,7 @@ class ShellTabToolButton(QtGui.QToolButton):
     
     
     def __init__(self):
-        QtGui.QToolButton.__init__(self)
-        
-        # Init
-        self.setIconSize(QtCore.QSize(16,16))
-        self.setStyleSheet("QToolButton{ border: none; }")
+        TabToolButton.__init__(self)
         
         # Motion properties
         self._index = 0
@@ -201,11 +287,6 @@ class ShellTabToolButton(QtGui.QToolButton):
         self._timer.setInterval(150)
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.onTimer)
-    
-    
-    def mousePressEvent(self, event):
-        # Ignore event so that the tabbar will change to that tab
-        event.ignore()
     
     
     def _createBlobPixmap(self):
