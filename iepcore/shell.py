@@ -611,8 +611,7 @@ class PythonShell(BaseShell):
         
         # Start!
         self.connectToKernel(info)
-        self.start()           
-        
+        self.start()
     
     
     def start(self):

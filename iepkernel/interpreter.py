@@ -255,7 +255,7 @@ class IepInterpreter:
                 # Prompt is allowed to be an object with __str__ method
                 if self.newPrompt:
                     self.newPrompt = False
-                    # Write prompt
+                    # Write prompt (note that the second "if" is not an "elif"!
                     preamble = ''
                     if self._dbFrames:
                         preamble = '('+self._dbFrameName+')'
@@ -263,8 +263,13 @@ class IepInterpreter:
                         strm_prompt.send(preamble+str(sys.ps2))
                     else:
                         strm_prompt.send(preamble+str(sys.ps1))
-                    # Notify ready state
-                    stat_interpreter.send('Ready')
+                    # Determine state
+                    if self._dbFrames:
+                        stat_interpreter.send('Debug')
+                    elif more:
+                        stat_interpreter.send('More')
+                    else:
+                        stat_interpreter.send('Ready')
                 
                 # Wait for a bit at each round
                 time.sleep(0.05) # 50 ms
