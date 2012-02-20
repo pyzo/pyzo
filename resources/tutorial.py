@@ -17,8 +17,8 @@ uses a set of pluggable tools to help the programmer in various ways.
 
 ## The editor
 """
-The editor is where your code is located; it is the central component
-of IEP. 
+The editor (this window) is where your code is located; it is the central
+component of IEP. 
 
 To the left of the editor is a list of open files. The files
 can be organized in projects, and are stacked vertically so you can
@@ -49,7 +49,7 @@ Another notable feature is that IEP can integrate the event loop of
 five different GUI toolkits, thus enabling interactive plotting with
 Visvis or Matplotlib. IEP does this in a way that is compatible with
 the guisupport.py module, which makes it easy to write apps that
-run good in IEP or standalone. (The application instance of the GUI
+run well in IEP or standalone. (The application instance of the GUI
 toolkit is given an "_in_event_loop" attribute.)
   
 Via "Shell > Edit shell configurations", you can edit and add shell
@@ -168,7 +168,7 @@ def getNumber():
 
 def foo():
     spam = 'yum'
-    egs = 7 
+    eggs = 7 
     value = bar()
     
 def bar():
