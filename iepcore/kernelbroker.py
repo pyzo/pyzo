@@ -220,7 +220,7 @@ class KernelBroker:
         # Close any existing channels first
         for channelName in ['strm-broker', 'strm-raw', 'strm-prompt',
                             'ctrl-broker', 'stat-startup', 'stat-heartbeat', 
-                            'reqp-introspect']:
+                            'reqp-introspect', 'stat-interpreter']:
             attrName = '_' + channelName.lower().replace('-', '_')
             if hasattr(self, attrName):
                 getattr(self, attrName).close()
@@ -236,6 +236,9 @@ class KernelBroker:
         
         # Status channel to pass startup parameters to the kernel
         self._stat_startup = yoton.PubstateChannel(ct, 'stat-startup', yoton.OBJECT)
+        
+        # We use the stat-interpreter to set the status to dead when kernel dies
+        self._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
         
         # Create status channel for heartbeat to detect running extension code
         self._stat_heartbeat = yoton.PubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
@@ -278,6 +281,7 @@ class KernelBroker:
             self._strm_broker = None
             self._strm_raw = None
             self._stat_startup = None
+            self._stat_interpreter = None
             self._stat_heartbeat = None
             self._strm_prompt = None
             #
@@ -503,7 +507,7 @@ class KernelBroker:
         elif not self._terminator._prev_action: 
             # We did not actually take any terminating action
             # This happens, because if the kernel is killed, the connection
-            # closes which triggers a terminate sequence (with a delay).
+            # closes which triggers a terminate sequence (but with a delay).
             msg = 'Kernel process exited.'
         else:
             msg = self._terminator.getMessage('Kernel process')
@@ -512,8 +516,9 @@ class KernelBroker:
             # Notify
             returncodeMsg = '\n%s (%s)\n\n' % (msg, str(returncode))
             self._strm_broker.send(returncodeMsg)
-            # Empty prompt
-            self._strm_prompt.send('\b') 
+            # Empty prompt and signal dead
+            self._strm_prompt.send('\b')
+            self._stat_interpreter.send('Dead')
             self._context.flush()
         
         # Cleanup (get rid of kernel process references)

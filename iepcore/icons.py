@@ -281,6 +281,7 @@ class ShellTabToolButton(TabToolButton):
         
         # Prepare blob pixmap
         self._blob = self._createBlobPixmap()
+        self._legs = self._createLegsPixmap()
         
         # Create timer
         self._timer = QtCore.QTimer(self)
@@ -300,6 +301,19 @@ class ShellTabToolButton(TabToolButton):
         artist.setPenColor((0,150,0, 100))
         artist.addPoint(0,0); artist.addPoint(2,0)
         artist.addPoint(0,2); artist.addPoint(2,2)
+        return artist.finish().pixmap(16,16)
+    
+    
+    def _createLegsPixmap(self):
+        artist = IconArtist()
+        x,y = self.POSITION
+        artist.setPenColor((0,50,0,150))
+        artist.addPoint(x+1,y-1); artist.addPoint(x+1,y-2); artist.addPoint(x+0,y-2)
+        artist.addPoint(x+3,y+1); artist.addPoint(x+4,y+1); artist.addPoint(x+4,y+2)
+        artist.addPoint(x+2,y+3); artist.addPoint(x+2,y+4)
+        artist.addPoint(x+0,y+3); artist.addPoint(x+0,y+4)
+        artist.addPoint(x-1,y+2); artist.addPoint(x-2,y+2)
+        artist.addPoint(x-1,y+0); artist.addPoint(x-2,y+0)
         return artist.finish().pixmap(16,16)
     
     
@@ -351,12 +365,14 @@ class ShellTabToolButton(TabToolButton):
             # Turn of timer
             self._timer.stop()
             # Draw
-            if self._status == 'ready':
+            if self._status in ['ready', 'more']:
                 self.drawReady()
             elif self._status == 'debug':
                 self.drawDebug()
+            elif self._status == 'dead':
+                self.drawDead()
             else:
-                self.drawReady()
+                self.drawDead()
         
         elif self._level == 1:
             # Draw
@@ -397,6 +413,15 @@ class ShellTabToolButton(TabToolButton):
         """
         artist = IconArtist("application")        
         artist.addLayer(self._blob, *self.POSITION)
+        artist.addLayer(self._legs)
+        self.setIcon(artist.finish())
+    
+    
+    def drawDead(self):
+        """ drawDead()
+        Draw static empty icon for when the kernel is dead.
+        """
+        artist = IconArtist("application")
         self.setIcon(artist.finish())
     
     
