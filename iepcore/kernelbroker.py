@@ -204,7 +204,7 @@ class KernelBroker:
         
         # Create yoton-based timer
         self._timer = yoton.Timer(0.2, oneshot=False)
-        self._timer.bind(self._onTimerIteration)
+        self._timer.bind(self.mainLoopIter)
         
         # Kernel process and connection (these are replaced on restarting)
         self._reset()
@@ -212,6 +212,9 @@ class KernelBroker:
         # For restarting after terminating
         self._pending_restart = None 
         self._pending_scriptFile = None
+    
+    
+    ## Startup and teardown
     
     
     def _create_channels(self):
@@ -264,7 +267,7 @@ class KernelBroker:
         if destroy==True:
             
             # Stop timer
-            self._timer.unbind(self._onTimerIteration)
+            self._timer.unbind(self.mainLoopIter)
             self._timer = None
             
             # Clean up this kernelbroker instance
@@ -338,7 +341,7 @@ class KernelBroker:
         self._process = subprocess.Popen(   command, shell=True, 
                                             env=env, cwd=cwd,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                
+        
         # Set timeout
         self._kernelCon.timeout = 0.5
         
@@ -359,8 +362,8 @@ class KernelBroker:
         self._pending_scriptFile = None
     
     
-    def host(self, address='localhost'):
-        """ host()
+    def hostConnectionForIDE(self, address='localhost'):
+        """ hostConnectionForIDE()
         
         Host a connection for an IDE to connect to. Returns the port to which
         the ide can connect.
@@ -368,6 +371,9 @@ class KernelBroker:
         """
         c = self._context.bind(address+':IEP+256', max_tries=32)
         return c.port
+    
+    
+    ## Callbacks
     
     
     def _onKernelTimedOut(self, c, timedout):
@@ -383,10 +389,89 @@ class KernelBroker:
             self._stat_heartbeat.send(True)
     
     
-    def _onTimerIteration(self):
-        """ _onTimerIteration()
+    def _onKernelConnectionClose(self, c, why):
+        """ _onKernelConnectionClose(c, why)
         
-        Periodically called.
+        Connection with kernel lost. Tell clients why.
+        
+        """
+        # The only reasonable way that the connection
+        # can be lost without the kernel closing, is if the yoton context 
+        # crashed or was stopped somehow. In both cases, we lost control,
+        # and should put it down!
+        if not self._terminator:
+            self.terminate('because connecton was lost', 'KILL', 0.5)
+    
+    
+    def _onKernelDied(self, returncode=0):
+        """ _onKernelDied()
+        
+        Kernel process died. Clean up!
+        
+        """
+        
+        # If the kernel did not start yet, probably the command is invalid
+        if self._kernelCon and self._kernelCon.is_waiting:
+            msg = 'The process failed to start (invalid command?).'        
+        elif not self.isTerminating():
+            msg = 'Kernel process exited.'
+        elif not self._terminator._prev_action: 
+            # We did not actually take any terminating action
+            # This happens, because if the kernel is killed from outside, 
+            # _onKernelConnectionClose() triggers a terminate sequence 
+            # (but with a delay).
+            # Note the "The" to be able to distinguish this case
+            msg = 'The kernel process exited.' 
+        else:
+            msg = self._terminator.getMessage('Kernel process')
+        
+        if self._context.connection_count:
+            # Notify
+            returncodeMsg = '\n%s (%s)\n\n' % (msg, str(returncode))
+            self._strm_broker.send(returncodeMsg)
+            # Empty prompt and signal dead
+            self._strm_prompt.send('\b')
+            self._stat_interpreter.send('Dead')
+            self._context.flush()
+        
+        # Cleanup (get rid of kernel process references)
+        self._reset()
+        
+        # Handle any pending action
+        if self._pending_restart:
+            self.startKernel()
+    
+    
+    ## Main loop and termination
+    
+    
+    def terminate(self, reason='by user', action='TERM', timeout=0.0):
+        """ terminate(reason='by user', action='TERM', timeout=0.0)
+        
+        Initiate termination procedure for the current kernel.
+        
+        """
+        
+        # The terminatation procedure is started by creating
+        # a KernelTerminator instance. This instance's iteration method
+        # iscalled from _mailLoopIter().
+        self._terminator = KernelTerminator(self, reason, action, timeout)
+    
+    
+    def isTerminating(self):
+        """ isTerminating()
+        
+        Get whether the termination procedure has been initiated. This
+        simply checks whether there is a self._terminator instance.
+        
+        """
+        return bool(self._terminator)
+    
+        
+    def mainLoopIter(self):
+        """ mainLoopIter()
+        
+        Periodically called. Kind of the main loop iteration for this kernel.
         
         """
         
@@ -419,115 +504,70 @@ class KernelBroker:
                 self._onKernelDied(process_returncode)
                 return
             # Are we in the process of terminating?
-            elif self._terminator:
+            elif self.isTerminating():
                 self._terminator.next()
+        elif self.isTerminating():
+            # We cannot have a terminator if we have no process
+            self._terminator = None
         
         # handle control messages
         for msg in self._ctrl_broker.recv_all():
             if msg == 'INT':
-                if self._process is None:
-                    self._strm_broker.send('Cannot interrupt: process is dead.\n')
-                # Kernel receives and acts
-                elif sys.platform.startswith('win'):
-                    self._reqp_introspect.interrupt()
-                else:
-                    # Use POSIX to interrupt, which is more reliable
-                    # (the introspect thread might not get a chance)
-                    # but also does not work if running extension code
-                    pid = self._kernelCon.pid2
-                    os.kill(pid, signal.SIGINT)
+                self._commandInterrupt()
             elif msg == 'TERM':
-                # Start termination procedure
-                # Kernel will receive term and act (if it can). 
-                # If it wont, we will act in a second or so.
-                if self._process is None:
-                    self._strm_broker.send('Cannot terminate: process is dead.\n')
-                    continue
-                elif self._terminator:
-                    # The user gave kill command while the kill process
-                    # is running. We could do an immediate kill now,
-                    # or we let the terminate process run its course.
-                    pass 
-                else:
-                    self.terminate('by user')
+                self._commandTerminate()
             elif msg.startswith('RESTART'):
-                # Almost the same as terminate, but now we have a pending action
-                self._pending_restart = True
-                #
-                scriptFile = None
-                if ' ' in msg:
-                    scriptFile = msg.split(' ',1)[1]
-                self._pending_scriptFile = scriptFile
-                #
-                if self._process is None:
-                    self.startKernel()
-                elif self._terminator:
-                    pass
-                else:
-                    self.terminate('for restart')
+                self._commandRestart(msg)
             else:
                 pass # Message is not for us
     
     
-    def terminate(self, reason='by user', action='TERM', timeout=0.0):
-        """ terminate(reason='by user', action='TERM', timeout=0.0)
-        
-        Terminate kernel. 
-        
-        """
-        self._terminator = KernelTerminator(self, reason, action, timeout)
-    
-    
-    def _onKernelConnectionClose(self, c, why):
-        """ _onKernelConnectionClose(c, why)
-        
-        Connection with kernel lost. Tell clients why.
-        
-        """
-        # The only reasonable way that the connection
-        # can be lost without the kernel closing, is if the yoton context 
-        # crashed or was stopped somehow. In both cases, we lost control,
-        # and should put it down!
-        if not self._terminator:
-            self.terminate('because connecton was lost', 'KILL', 0.5)
-    
-    
-    def _onKernelDied(self, returncode=0):
-        """ _onKernelDied()
-        
-        Kernel process died. Clean up!
-        
-        """
-        
-        # If the kernel did not start yet, probably the command is invalid
-        if self._kernelCon and self._kernelCon.is_waiting:
-            msg = 'The process failed to start (invalid command?).'        
-        elif not self._terminator:
-            msg = 'Kernel process exited.'
-        elif not self._terminator._prev_action: 
-            # We did not actually take any terminating action
-            # This happens, because if the kernel is killed, the connection
-            # closes which triggers a terminate sequence (but with a delay).
-            msg = 'Kernel process exited.'
+    def _commandInterrupt(self):
+        if self._process is None:
+            self._strm_broker.send('Cannot interrupt: process is dead.\n')
+        # Kernel receives and acts
+        elif sys.platform.startswith('win'):
+            self._reqp_introspect.interrupt()
         else:
-            msg = self._terminator.getMessage('Kernel process')
-        
-        if self._context.connection_count:
-            # Notify
-            returncodeMsg = '\n%s (%s)\n\n' % (msg, str(returncode))
-            self._strm_broker.send(returncodeMsg)
-            # Empty prompt and signal dead
-            self._strm_prompt.send('\b')
-            self._stat_interpreter.send('Dead')
-            self._context.flush()
-        
-        # Cleanup (get rid of kernel process references)
-        self._reset()
-        
-        # Handle any pending action
-        if self._pending_restart:
-            self.startKernel()
+            # Use POSIX to interrupt, which is more reliable
+            # (the introspect thread might not get a chance)
+            # but also does not work if running extension code
+            pid = self._kernelCon.pid2
+            os.kill(pid, signal.SIGINT)
+    
+    
+    def _commandTerminate(self):
+        # Start termination procedure
+        # Kernel will receive term and act (if it can). 
+        # If it wont, we will act in a second or so.
+        if self._process is None:
+            self._strm_broker.send('Cannot terminate: process is dead.\n')
+        elif self.isTerminating():
+            # The user gave kill command while the kill process
+            # is running. We could do an immediate kill now,
+            # or we let the terminate process run its course.
+            pass 
+        else:
+            self.terminate('by user')
 
+
+    def _commandRestart(self, msg):
+        # Almost the same as terminate, but now we have a pending action
+        self._pending_restart = True
+        
+        # Get script file to run and store
+        scriptFile = None
+        if ' ' in msg:
+            scriptFile = msg.split(' ',1)[1]
+        self._pending_scriptFile = scriptFile
+        
+        # Restart now, wait, or initiate termination procedure?
+        if self._process is None:
+            self.startKernel()
+        elif self.isTerminating():
+            pass # Already terminating
+        else:
+            self.terminate('for restart')
 
 
 class KernelTerminator:
@@ -688,7 +728,7 @@ class Kernelmanager:
         self._kernels.append(kernel)
         
         # Host a connection for the ide
-        port = kernel.host()
+        port = kernel.hostConnectionForIDE()
         
         # Tell broker to start as soon as the IDE connects with the broker
         kernel.startKernelIfConnected()
