@@ -153,26 +153,43 @@ class TabToolButton(QtGui.QToolButton):
         
         # Variable to keep icon
         self._icon = None
+        
+        # Variable to keep track of when the mouse was pressed, so that
+        # we can allow dragging as well as clicking the menu.
+        self._menuPressed = False
     
     
     def mousePressEvent(self, event):
         # Ignore event so that the tabbar will change to that tab
-        event.accept()
-        tabs = self.parent().parent()
-        pos = self.mapTo(tabs, event.pos())
-        tabs.customContextMenuRequested.emit(pos)
+        event.ignore()
+        self._menuPressed = event.pos()
     
+    def mouseMoveEvent(self, event):
+        QtGui.QToolButton.mouseMoveEvent(self, event)
+        if self._menuPressed:
+            dragDist = QtGui.QApplication.startDragDistance()
+            if (event.pos()-self._menuPressed).manhattanLength() >= dragDist:
+                self._menuPressed = False
+    
+    def mouseReleaseEvent(self, event):
+        event.ignore()
+        if self._menuPressed:
+            tabs = self.parent().parent()
+            pos = self.mapTo(tabs, event.pos())
+            tabs.customContextMenuRequested.emit(pos)
     
     def enterEvent(self, event):
         QtGui.QToolButton.enterEvent(self, event)
         self._menuarrow = self._menuarrow2
         self.setIcon()
+        self._menuPressed = False
     
     
     def leaveEvent(self, event):
         QtGui.QToolButton.leaveEvent(self, event)
         self._menuarrow = self._menuarrow1
         self.setIcon()
+        self._menuPressed = False
     
     
     def setIcon(self, icon=None):
