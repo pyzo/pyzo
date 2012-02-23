@@ -276,7 +276,7 @@ class IepInterpreter:
                 time.sleep(0.05) # 50 ms
                 
                 # Are we still connected?
-                if sys.stdin.closed:
+                if sys.stdin.closed or not sys._yoton_context.connection_count:
                     # Stop all deamon threads (or we wont really stop in <2.5s)
                     self.introspector.set_mode('off')
                     # Do not stop yoton context, because somehow this can 
