@@ -392,6 +392,9 @@ class IepIntrospector(yoton.RepChannel):
         easeast way and prevents having to launch another thread just
         to wait for an interrupt/terminare command.
         
+        Note that on POSIX we can send an OS INT signal, which is faster
+        and maybe more effective in some situations.
+        
         """
         thread.interrupt_main()
     
