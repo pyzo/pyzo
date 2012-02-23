@@ -23,7 +23,7 @@ from iepcore.editor import createEditor
 from iepcore.baseTextCtrl import normalizePath
 from iepcore.baseTextCtrl import styleManager
 from iepcore.iepLogging import print
-from iepcore.icons import EditorTabToolButton
+from iepcore.icons import EditorTabToolButton, TabCloseButton
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 50
@@ -568,12 +568,12 @@ class FileTabWidget(CompactTabWidget):
         # Init item history
         self._itemHistory = []
         
-        # Create a corner widget
-        but = QtGui.QToolButton()
-        but.setIcon( iep.icons.cross )
-        but.setIconSize(QtCore.QSize(16,16))
-        but.clicked.connect(self.onClose)
-        self.setCornerWidget(but)
+#         # Create a corner widget
+#         but = QtGui.QToolButton()
+#         but.setIcon( iep.icons.cross )
+#         but.setIconSize(QtCore.QSize(16,16))
+#         but.clicked.connect(self.onClose)
+#         self.setCornerWidget(but)
                 
         # Bind signal to update items and keep track of history
         self.currentChanged.connect(self.updateItems)
@@ -774,6 +774,7 @@ class FileTabWidget(CompactTabWidget):
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
         self.tabBar().setTabButton(i, 0, EditorTabToolButton())
+        #self.tabBar().setTabButton(i, 1, TabCloseButton())
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
