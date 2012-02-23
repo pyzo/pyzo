@@ -48,6 +48,18 @@ import time
 import yoton
 import __main__ # we will run code in the __main__.__dict__ namespace
 
+# todo: try to make the kernel kill itsel if it detects that it is not
+# connected to the kernelbroker
+
+# todo: bug that on IEP startup the shell sometimes says 
+# "The kernel process exited. (1)" We know this:
+# - The kernel has successfully connected to the context, otherwise we
+#   would have gotten an "process failed to start message"
+# - There is an error code, so the kernel exited with an error
+# - Arg, the excepthook did not work after the variables are cleaned up,
+#   because it has a reference to sys! Added import statement, so that
+#   from now on a trace should be printed.
+   
 
 ## Make connection object and get channels
 
@@ -84,6 +96,7 @@ ct.connect('localhost:'+str(port), timeout=1.0)
 ## Set Excepthook
 
 def iep_excepthook(type, value, tb):
+    import sys
     def writeErr(err):
         sys.__stderr__.write(str(err)+'\n')
         sys.__stderr__.flush()

@@ -272,6 +272,7 @@ class IepInterpreter:
                         stat_interpreter.send('Ready')
                 
                 # Wait for a bit at each round
+                # todo: this seems like a bit long!
                 time.sleep(0.05) # 50 ms
                 
                 # Are we still connected?
@@ -326,6 +327,7 @@ class IepInterpreter:
                     ch.recv(False)
                 
                 # Keep GUI toolkit up to date
+                # todo: make timeout user-settable?
                 if self.guiApp and time.time() - guitime > 0.019:
                     self.guiApp.processEvents()
                     guitime = time.time()
