@@ -127,8 +127,84 @@ class IconArtist:
         self.addPoint(x+2,y+3);
 
 
-class TabToolButton(QtGui.QToolButton):
-    """ TabToolButton
+class TabCloseButton(QtGui.QToolButton):
+    """ TabCloseButton
+    
+    This class implements a very compact close button to be used in tabs.
+    It allows managing tab (the closing part of it) in a fast and intuitive
+    fashion.
+    
+    """
+    
+    SIZE = 5,8
+    
+    def __init__(self):
+        QtGui.QToolButton.__init__(self)
+        
+        # Init
+        self.setIconSize(QtCore.QSize(*self.SIZE))
+        self.setStyleSheet("QToolButton{ border:none; padding:0px; margin:0px; }")
+        self.setIcon(self.getCrossIcon1())
+    
+    def mousePressEvent(self, event):
+        # Get tabs
+        tabs = self.parent().parent()
+        # Get index from position
+        pos = self.mapTo(tabs, event.pos())
+        index = tabs.tabBar().tabAt(pos)
+        # Close it
+        tabs.tabCloseRequested.emit(index)
+        
+    def enterEvent(self, event):
+        QtGui.QToolButton.enterEvent(self, event)
+        self.setIcon(self.getCrossIcon2())
+    
+    def leaveEvent(self, event):
+        QtGui.QToolButton.leaveEvent(self, event)
+        self.setIcon(self.getCrossIcon1())
+        
+    def _createCrossPixmap(self, alpha):
+        artist = IconArtist(self.SIZE)
+        #
+        artist.setPenColor((0,0,0,alpha))
+        #
+        artist.addPoint(0,0); artist.addPoint(1,1)  
+        artist.addPoint(2,2); artist.addPoint(3,3)
+        artist.addPoint(4,4); 
+        artist.addPoint(0,4); artist.addPoint(1,3)
+        artist.addPoint(3,1); artist.addPoint(4,0)
+        #
+        artist.setPenColor((0,0,0,int(0.5*alpha)))
+        #
+        artist.addPoint(1,0); artist.addPoint(0,1)  
+        artist.addPoint(2,1); artist.addPoint(1,2)
+        artist.addPoint(3,2); artist.addPoint(2,3)
+        artist.addPoint(4,3); artist.addPoint(3,4)
+        #
+        artist.addPoint(0,3); artist.addPoint(1,4)
+        artist.addPoint(3,0); artist.addPoint(4,1)
+        #
+        return artist.finish().pixmap(*self.SIZE)
+    
+    def getCrossIcon1(self):
+        if hasattr(self, '_cross1'):
+            pm = self._cross1
+        else:
+            pm = self._createCrossPixmap(80)
+        return QtGui.QIcon(pm)
+    
+    def getCrossIcon2(self):
+        if hasattr(self, '_cross2'):
+            pm = self._cross2
+        else:
+            pm = self._createCrossPixmap(240)
+        # Set
+        return QtGui.QIcon(pm)
+
+
+
+class ToolButtonWithMenuIndication(QtGui.QToolButton):
+    """ ToolButtonWithMenuIndication
     
     Tool button that wraps the icon in a slightly larger icon that
     contains a small arrow that lights up when hovering over the icon.
@@ -139,11 +215,13 @@ class TabToolButton(QtGui.QToolButton):
     
     """
     
+    SIZE = 21, 16
+    
     def __init__(self):
         QtGui.QToolButton.__init__(self)
         
         # Init
-        self.setIconSize(QtCore.QSize(21,16))
+        self.setIconSize(QtCore.QSize(*self.SIZE))
         self.setStyleSheet("QToolButton{ border: none; }")
         
         # Create arrow pixmaps
@@ -157,7 +235,6 @@ class TabToolButton(QtGui.QToolButton):
         # Variable to keep track of when the mouse was pressed, so that
         # we can allow dragging as well as clicking the menu.
         self._menuPressed = False
-    
     
     def mousePressEvent(self, event):
         # Ignore event so that the tabbar will change to that tab
@@ -177,13 +254,12 @@ class TabToolButton(QtGui.QToolButton):
             tabs = self.parent().parent()
             pos = self.mapTo(tabs, event.pos())
             tabs.customContextMenuRequested.emit(pos)
-    
+        
     def enterEvent(self, event):
         QtGui.QToolButton.enterEvent(self, event)
         self._menuarrow = self._menuarrow2
         self.setIcon()
         self._menuPressed = False
-    
     
     def leaveEvent(self, event):
         QtGui.QToolButton.leaveEvent(self, event)
@@ -199,7 +275,7 @@ class TabToolButton(QtGui.QToolButton):
             self._icon = icon
         
         # Compose icon by superimposing the menuarrow pixmap
-        artist = IconArtist((21, 16))
+        artist = IconArtist(self.SIZE)
         if self._icon:
             artist.addLayer(self._icon, 5, 0)
         artist.addLayer(self._menuarrow, 0,0)
@@ -215,8 +291,161 @@ class TabToolButton(QtGui.QToolButton):
         return artist.finish().pixmap(16,16)
 
 
+class TabToolButtonWithCloseButton(QtGui.QToolButton):
+    """ TabToolButtonWithCloseButton
+    
+    Tool button that wraps the icon in a slightly larger icon that
+    contains a small cross that can be used to invoke a close request.
+    
+    """
+    
+    SIZE = 22, 16
+    CROSS_OFFSET = 0, 2
+    
+    def __init__(self):
+        QtGui.QToolButton.__init__(self)
+        
+        # Init
+        self.setIconSize(QtCore.QSize(*self.SIZE))
+        self.setStyleSheet("QToolButton{ border: none; }")
+        
+        # Variable to keep icon
+        self._icon = None
+        self._cross = self.getCrossPixmap1()
+        
+        # For mouse tracking inside icon
+        self.setMouseTracking(True)
+        self._overCross = False
+    
+    def _isOverCross(self, pos):
+        x1, x2 = self.CROSS_OFFSET[0], self.CROSS_OFFSET[0]+5+1
+        y1, y2 = self.CROSS_OFFSET[1], self.CROSS_OFFSET[1]+5+1
+        if pos.x()>=x1 and pos.x()<=x2 and pos.y()>=y1 and pos.y()<=y2:
+            return True
+        else:
+            return False
+        
+    
+    def mousePressEvent(self, event):
+        # Ignore event so that the tabbar will change to that tab
+        event.ignore()
+        if self._isOverCross(event.pos()):
+            # Get tabs
+            tabs = self.parent().parent()
+            # Get index from position
+            pos = self.mapTo(tabs, event.pos())
+            index = tabs.tabBar().tabAt(pos)
+            # Close it
+            tabs.tabCloseRequested.emit(index)
+    
+    def mouseMoveEvent(self, event):
+        QtGui.QToolButton.mouseMoveEvent(self, event)
+        new_overCross = self._isOverCross(event.pos())
+        if new_overCross != self._overCross:
+            self._overCross = new_overCross
+            if new_overCross:
+                self._cross = self.getCrossPixmap2()
+            else:
+                self._cross = self.getCrossPixmap1()
+            self.setIcon()
+    
+    def leaveEvent(self, event):
+        if self._overCross:
+            self._overCross =  False
+            self._cross = self.getCrossPixmap1()
+            self.setIcon()
+    
+    
+    def setIcon(self, icon=None):
+        
+        # Store icon if given, otherwise use buffered version
+        if icon is not None:
+            self._icon = icon
+        
+        # Compose icon by superimposing the menuarrow pixmap
+        artist = IconArtist(self.SIZE)
+        if self._icon:
+            if self.CROSS_OFFSET[0] > 8:
+                artist.addLayer(self._icon, 0,0)
+            else:
+                artist.addLayer(self._icon, 6,0)
+        artist.addLayer(self._cross, *self.CROSS_OFFSET)
+        icon = artist.finish()
+        
+        # Set icon
+        QtGui.QToolButton.setIcon(self, icon)
+    
+    
+    def _createMenuArrowPixmap(self, strength):
+        artist = IconArtist()
+        artist.addMenuArrow(strength)
+        return artist.finish().pixmap(16,16)
+    
+    
+    def _createCrossPixmap(self, alpha):
+        artist = IconArtist((5,5))
+        #
+        artist.setPenColor((0,0,0,alpha))
+        #
+        artist.addPoint(0,0); artist.addPoint(1,1)  
+        artist.addPoint(2,2); artist.addPoint(3,3)
+        artist.addPoint(4,4); 
+        artist.addPoint(0,4); artist.addPoint(1,3)
+        artist.addPoint(3,1); artist.addPoint(4,0)
+        #
+        artist.setPenColor((0,0,0,int(0.5*alpha)))
+        #
+        artist.addPoint(1,0); artist.addPoint(0,1)  
+        artist.addPoint(2,1); artist.addPoint(1,2)
+        artist.addPoint(3,2); artist.addPoint(2,3)
+        artist.addPoint(4,3); artist.addPoint(3,4)
+        #
+        artist.addPoint(0,3); artist.addPoint(1,4)
+        artist.addPoint(3,0); artist.addPoint(4,1)
+        #
+        return artist.finish().pixmap(5,5)
+    
+    
+    def getCrossPixmap1(self):
+        if hasattr(self, '_cross1'):
+            pm = self._cross1
+        else:
+            pm = self._createCrossPixmap(80)
+        return pm
+    
+    def getCrossPixmap2(self):
+        if hasattr(self, '_cross2'):
+            pm = self._cross2
+        else:
+            pm = self._createCrossPixmap(240)
+        # Set
+        return pm
 
-class EditorTabToolButton(TabToolButton):
+
+
+class TabToolButton(QtGui.QToolButton):
+    """ TabToolButton
+    
+    Base menu for editor and shell tabs.
+    
+    """
+    
+    SIZE = 16, 16
+    
+    def __init__(self):
+        QtGui.QToolButton.__init__(self)
+        
+        # Init
+        self.setIconSize(QtCore.QSize(*self.SIZE))
+        self.setStyleSheet("QToolButton{ border: none; }")
+    
+    def mousePressEvent(self, event):
+        # Ignore event so that the tabbar will change to that tab
+        event.ignore()
+
+
+
+class EditorTabToolButton(TabToolButtonWithCloseButton):
     
     """ Button for the tabs of the editors. This is just a 
     tight wrapper for the icon.
