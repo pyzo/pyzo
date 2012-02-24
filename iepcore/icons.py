@@ -567,6 +567,7 @@ class ShellTabToolButton(TabToolButton):
         """ updateIcon(status)
         Public method to set what state the icon must show.
         """
+        
         # Normalize and store
         if isinstance(status, str):
             status = status.lower()
@@ -574,8 +575,19 @@ class ShellTabToolButton(TabToolButton):
         
         # Handle
         if status == 'busy':
-            if not self._level:
-                self._level, self._index = 1, 0
+            self._index = 0
+            if self._level == 2:
+                self._index = self.MAP2to1[self._index]
+            self._level = 1
+            
+        elif status == 'very busy':
+            self._index = 0
+            if self._level == 1:
+                self._index = self.MAP1to2[self._index]
+            self._level = 2
+        
+        else:
+            self._level = 0
         
         # At least one timer iteration
         self._timer.start()
@@ -624,24 +636,14 @@ class ShellTabToolButton(TabToolButton):
             # Draw
             self.drawInMotion()
             # Next, this is always intermediate
+            self._nextIndex()
             self._count += 1
-            if self._count < self.MAX_ITERS_IN_LEVEL_1:
-                self._nextIndex()
-            else:
-                self._count = 0
-                if self._status in ['busy']:
-                    self._level, self._index = 2, self.MAP1to2[self._index]
-                else:
-                    self._level, self._index = 0, 0
         
         elif self._level == 2:
             # Draw
             self.drawInMotion()
             # Next
-            if self._status in ['busy']:
-                self._nextIndex()
-            else:
-                self._level, self._index = 1, self.MAP2to1[self._index]
+            self._nextIndex()
     
     
     def drawReady(self):

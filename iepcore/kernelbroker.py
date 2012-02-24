@@ -244,7 +244,7 @@ class KernelBroker:
         self._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
         
         # Create status channel for heartbeat to detect running extension code
-        self._stat_heartbeat = yoton.PubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        #self._stat_heartbeat = yoton.PubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
         
         # Create introspect channel so we can interrupt and terminate
         self._reqp_introspect = yoton.ReqChannel(ct, 'reqp-introspect')
@@ -384,9 +384,11 @@ class KernelBroker:
         
         """
         if timedout:
-            self._stat_heartbeat.send(False)
+            #self._stat_heartbeat.send(False)
+            self._stat_interpreter.send('Very busy')
         else:
-            self._stat_heartbeat.send(True)
+            #self._stat_heartbeat.send(True)
+            self._stat_interpreter.send('Busy')
     
     
     def _onKernelConnectionClose(self, c, why):

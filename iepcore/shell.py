@@ -652,7 +652,7 @@ class PythonShell(BaseShell):
         self._ctrl_broker = yoton.PubChannel(ct, 'ctrl-broker')
         
         # Create status channels
-        self._stat_heartbeat = yoton.SubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        #self._stat_heartbeat = yoton.SubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
         self._stat_interpreter = yoton.SubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
         self._stat_debug = yoton.SubstateChannel(ct, 'stat-debug', yoton.OBJECT)
         

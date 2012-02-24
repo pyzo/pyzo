@@ -94,7 +94,8 @@ class ShellStack(QtGui.QWidget):
         if True:
             
             # Determine the text to display in the tab
-            if shell._state == 'Ready':
+            # Icon should say enough!
+            if True:#shell._state == 'Ready':
                 stateText = 'Python {}'.format(shell._version)
             else:
                 tmp = 'Python {} ({})'
