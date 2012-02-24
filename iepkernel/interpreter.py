@@ -263,7 +263,11 @@ class IepInterpreter:
                         strm_prompt.send(preamble+str(sys.ps2))
                     else:
                         strm_prompt.send(preamble+str(sys.ps1))
-                    # Determine state
+                
+                if True:
+                    # Determine state. The message is really only send
+                    # when the state is different. Note that the kernelbroker
+                    # can also set the state ("Very busy", "Busy", "Dead")
                     if self._dbFrames:
                         stat_interpreter.send('Debug')
                     elif more:
