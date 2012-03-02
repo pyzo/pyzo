@@ -34,6 +34,9 @@ POLL_YOTON_INTERVAL = 30 # 30 ms 33 Hz
 POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 
 
+# todo: make customizable
+MAXBLOCKCOUNT = 10*1000
+
 # Register timer to handle yoton event loop
 iep.main._yoton_timer = QtCore.QTimer(iep.main)
 iep.main._yoton_timer.setInterval(POLL_YOTON_INTERVAL)  # ms
@@ -130,8 +133,7 @@ class BaseShell(BaseTextCtrl):
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         
         # Limit number of lines
-        # todo: make customizable
-        self.setMaximumBlockCount(10*1000)
+        self.setMaximumBlockCount(MAXBLOCKCOUNT)
         
         # apply style
         # TODO: self.setStyle('')
@@ -480,9 +482,16 @@ class BaseShell(BaseTextCtrl):
         self._cursor1.setKeepPositionOnInsert(True)
         self._cursor2.setKeepPositionOnInsert(True)
         
-        # Make sure that cursor is visible (only when cursor is at edit line)
+        
         if not self.isReadOnly():
+            # Make sure that cursor is visible (only when cursor is at edit line)
             self.ensureCursorVisible()
+        
+        elif self.blockCount() == MAXBLOCKCOUNT:
+            # Scroll along with the text if lines are popped from the top
+            n = text.count('\n')
+            sb = self.verticalScrollBar()
+            sb.setValue(sb.value()-n) 
     
     
     ## Executing stuff
