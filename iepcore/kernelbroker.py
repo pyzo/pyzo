@@ -29,25 +29,50 @@ class KernelInfo(ssdf.Struct):
     Describes all information for a kernel. This class can be used at 
     the IDE as well as the kernelbroker.
     
+    This information goes a long way from the iep config file to the
+    kernel. The list iep.config.shellConfigs2 contains the configs
+    for all kernels. These objects are edited in-place by the 
+    shell config.
+    
+    The shell keeps a reference of the shell config used to start the
+    kernel. On each restart all information is resend. In this way,
+    if a user changes a setting in the shell config, it is updated
+    when the shell restarts.
+    
+    The broker also keeps a copy of the shell config. In this way,
+    the shell might send no config information (or only partially
+    update the config information) on a restart. This is not so
+    relevant now, but it can be when we are running multiple people
+    on a single kernel, and there is only one user who has the 
+    original config.
+    
     """
     def __init__(self, info=None):
         
         # ----- Fixed parameters that define a shell -----
         
-        # Set defaults
-        self.exe = 'python'  # The executable
-        self.gui = 'none'    # The GUI toolkit to embed the event loop of
-        self.startDir = ''   # The initial directory (for interactive-mode)
+        # scriptFile is used to define the mode. If given, we run in 
+        # script-mode. Otherwise we run in interactive mode.
+        
+        # The name of this shell config. Can be used to name the kernel
+        self.name = ''
+        
+        # The executable. This can be '/usr/bin/python3.1' or 
+        # 'c:/program files/python2.6/python.exe', etc.
+        self.exe = 'python'
+        
+        # The GUI toolkit to embed the event loop of. 
+        self.gui = 'none'
         
         # The Python path. Paths should be separated by newlines.
         # '$PYTHONPATH' is replaced by environment variable by broker
-        self.PYTHONPATH = ''
+        self.pythonPath = ''
         
-        # The Startup script (for interactive-mode).
-        # - '$PYTHONSTARTUP' uses the code in that file. Broker replaces this.
-        # - Empty string means run nothing, 
-        # - Single line means file name, multiple lines means source code.
-        self.startupScript = ''
+        # The path of the current project, the kernel will prepend this 
+        # to the sys.path. The broker could prepend to PYTHONPATH, but
+        # in this way it is more explicit (kernel can tell the user that
+        # the project path was prepended).
+        self.projectPath = ''
         
         # The full filename of the script to run. 
         # If given, the kernel should run in script-mode.
@@ -55,20 +80,31 @@ class KernelInfo(ssdf.Struct):
         # revert to interactive mode if it doesn't.
         self.scriptFile = ''
         
-        # The path of the current project, the kernel will prepend this 
-        # to the sys.path.
-        self.projectPath = ''
+        # Interactive-mode only:
+        
+        # The initial directory. Only used for interactive-mode; in
+        # script-mode the initial directory is the dir of the script.
+        self.startDir = '' 
+        
+        # The Startup script (only used for interactive-mode).
+        # - Empty string means run nothing, 
+        # - Single line means file name
+        # - multiple lines means source code.
+        # - '$PYTHONSTARTUP' uses the code in that file. Broker replaces this.
+        self.startupScript = ''
         
         
         # Load info from ssdf struct. Make sure they are all strings
         if info:
             # Get struct
-            if ssdf.isstruct(info):
+            if isinstance(info, dict):
+                s = info
+            elif ssdf.isstruct(info):
                 s = info
             elif isinstance(info, str):
                 s = ssdf.loads(info)
             else:
-                raise ValueError('Kernel info should be a string or ssdf struct.')
+                raise ValueError('Kernel info should be a string or ssdf struct, not %s' % str(type(info)))
             # Inject values
             for key in s:
                 val = s[key]
@@ -81,94 +117,60 @@ class KernelInfo(ssdf.Struct):
         return ssdf.saves(self)
 
 
-class KernelInfoPlus(KernelInfo):
-    """ KernelInfoPlus
+def getCommandFromKernelInfo(info, port):
+    info = KernelInfo(info)
     
-    Helps build the command to start the remote python process.
+    # Correct path when it contains spaces
+    exe = info.exe
+    if exe.count(' ') and exe[0] != '"':
+        exe = '"{}"'.format(exe)
     
-    """
+    # Get start script
+    startScript = os.path.join( iep.iepDir, 'iepkernel', 'start.py')
+    startScript = '"{}"'.format(startScript)
     
-    def __init__(self, info):
-        KernelInfo.__init__(self, info)
-        
-        # Correct path when it contains spaces
-        if self.exe.count(' ') and self.exe[0] != '"':
-            self.exe = '"{}"'.format(self.exe)
-        
-        # Set default startupScript?
-        if self.startupScript == '$PYTHONSTARTUP':
-            self.startupScript = os.environ.get('PYTHONSTARTUP','')
-        
-        # Set default PYTHONPATH
-        ENV_PP = os.environ.get('PYTHONPATH','')
-        self.PYTHONPATH = self.PYTHONPATH.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
-        self.PYTHONPATH = self.PYTHONPATH.replace('$PYTHONPATH', '')
-        for i in range(3):
-            self.PYTHONPATH = self.PYTHONPATH.replace('\n\n', '\n')
-        self.PYTHONPATH = self.PYTHONPATH.replace('\n', os.pathsep)
+    # Build command
+    command = exe + ' ' + startScript + ' ' + str(port)
     
+    if sys.platform.startswith('win'):
+        # as the author from Pype writes:
+        #if we don't run via a command shell, then either sometimes we
+        #don't get wx GUIs, or sometimes we can't kill the subprocesses.
+        # And I also see problems with Tk.                
+        command = 'cmd /c "{}"'.format(command)
     
-    def getCommand(self, port):
-        """ getCommand(port)
-        
-        Given the port of the socket to connect at, creates the 
-        command to execute in order to invoke the remote shell.
-        
-        """
-        
-        # Get start script
-        startScript = os.path.join( iep.iepDir, 'iepkernel', 'start.py')
-        startScript = '"{}"'.format(startScript)
-        
-        # Build command
-        command = self.exe + ' ' + startScript + ' ' + str(port)
-        
-        if sys.platform.startswith('win'):
-            # as the author from Pype writes:
-            #if we don't run via a command shell, then either sometimes we
-            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.                
-            command = 'cmd /c "{}"'.format(command)
-        
-        # Done
-        return command
+    # Done
+    return command
+
+
+def getEnvFromKernelInfo(info):
+    info = KernelInfo(info)
     
+    pythonPath = info.pythonPath
     
-    def getEnviron(self):
-        """  getEnviron()
-        
-        Gets the environment to give to the remote process,
-        such that it can start up as the user wants to. 
-        
-        """ 
-        
-        # Prepare environment, remove references to tk libraries, 
-        # since they're wrong when frozen. Python will insert the
-        # correct ones if required.
-        env = os.environ.copy()
-        #
-        env.pop('TK_LIBRARY','') 
-        env.pop('TCL_LIBRARY','')
-        env['PYTHONPATH'] = self.PYTHONPATH
-        
-#         # Insert iep specific variables
-#         env['iep_gui'] = self.gui
-#         env['iep_startDir'] = self.startDir
-#         env['iep_projectPath'] = self.projectPath
-#         env['iep_scriptFile'] = self.scriptFile
-#         env['iep_startupScript'] = self.startupScript
-        
-        # Done
-        return env
+    # Set default pythonPath
+    ENV_PP = os.environ.get('PYTHONPATH','')
+    pythonPath = pythonPath.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
+    pythonPath = pythonPath.replace('$PYTHONPATH', '')
+    for i in range(3):
+        pythonPath = pythonPath.replace('\n\n', '\n')
+    pythonPath = pythonPath.strip().replace('\n', os.pathsep)
     
-    def getStartInfo(self):
-        info = {}
-        info['gui'] = self.gui
-        info['startDir'] = self.startDir
-        info['projectPath'] = self.projectPath
-        info['scriptFile'] = self.scriptFile
-        info['startupScript'] = self.startupScript
-        return info
+    # Add empty string to Pythopath, so that we can import yoton
+    pythonPath = os.pathsep + pythonPath
+    
+    # Prepare environment, remove references to tk libraries, 
+    # since they're wrong when frozen. Python will insert the
+    # correct ones if required.
+    env = os.environ.copy()
+    #
+    env.pop('TK_LIBRARY','')
+    env.pop('TCL_LIBRARY','')
+    env['PYTHONPATH'] = pythonPath
+    
+    # Done
+    return env
+
 
 
 class KernelBroker:
@@ -189,12 +191,14 @@ class KernelBroker:
     def __init__(self, manager, info, name=''):
         self._manager = manager
         
-        # Store info
-        if not isinstance(info, KernelInfoPlus):
-            info = KernelInfoPlus(info)
-        self._info = info
+        # Store info that defines the kernel
+        self._originalInfo = KernelInfo(info)
         
-        # Store name
+        # Make a copy for the current version. This copy is re-created on
+        # each restart
+        self._info = ssdf.copy(self._originalInfo)
+        
+        # Store name (or should the name be defined in the info struct)
         self._name = name
         
         # Create context for the connection to the kernel and IDE's
@@ -210,8 +214,7 @@ class KernelBroker:
         self._reset()
         
         # For restarting after terminating
-        self._pending_restart = None 
-        self._pending_scriptFile = None
+        self._pending_restart = None
     
     
     ## Startup and teardown
@@ -313,18 +316,13 @@ class KernelBroker:
         # Create channels
         self._create_channels()
         
-        # Set scriptFile in info
-        info = KernelInfoPlus(self._info)
-        if self._pending_scriptFile:
-            info.scriptFile = self._pending_scriptFile
-        else:
-            info.scriptFile = ''
+        # Create info dict
+        info = {}
+        for key in self._info:
+            info[key] = self._info[key]
         
-        # Send info stuff
-        self._stat_startup.send(info.getStartInfo())
-        
-        # Get environment to use
-        env = info.getEnviron()
+        # Send info stuff so that the kernel has access to the information
+        self._stat_startup.send(info)
         
         # Get directory to start process in
         cwd = iep.iepDir
@@ -334,8 +332,9 @@ class KernelBroker:
         self._kernelCon = self._context.bind('localhost:IEP2', 
                                                 max_tries=256, name='kernel')
         
-        # Get command to execute
-        command = info.getCommand(self._kernelCon.port)
+        # Get command to execute, and environment to use
+        command = getCommandFromKernelInfo(self._info, self._kernelCon.port)
+        env = getEnvFromKernelInfo(self._info)
         
         # Start process
         self._process = subprocess.Popen(   command, shell=True, 
@@ -359,7 +358,6 @@ class KernelBroker:
         
         # Reset some variables
         self._pending_restart = None
-        self._pending_scriptFile = None
     
     
     def hostConnectionForIDE(self, address='localhost'):
@@ -557,11 +555,12 @@ class KernelBroker:
         # Almost the same as terminate, but now we have a pending action
         self._pending_restart = True
         
-        # Get script file to run and store
-        scriptFile = None
-        if ' ' in msg:
-            scriptFile = msg.split(' ',1)[1]
-        self._pending_scriptFile = scriptFile
+        # Recreate the info struct
+        self._info = ssdf.copy(self._originalInfo)
+        # Update the info struct
+        new_info = ssdf.loads(msg.split('RESTART',1)[1])
+        for key in new_info:
+            self._info[key] = new_info[key]
         
         # Restart now, wait, or initiate termination procedure?
         if self._process is None:
@@ -570,6 +569,7 @@ class KernelBroker:
             pass # Already terminating
         else:
             self.terminate('for restart')
+
 
 
 class KernelTerminator:
