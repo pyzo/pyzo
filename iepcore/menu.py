@@ -736,8 +736,9 @@ class ShellMenu(Menu):
         self._shellActions = self.buildShellActions()
         
         self.addSeparator()
-        self.addItem('Edit shell configurations...', self._editConfig)
-        self.addItem('Test configurations...', self._editConfig2)
+#         self.addItem('Edit shell configurations...', self._editConfig)
+        self.addItem('Edit shell configurations...', self._editConfig2)
+        self.addSeparator()
         
         # Add shell configs
         self._updateShells()    
@@ -748,7 +749,7 @@ class ShellMenu(Menu):
             self.removeAction(action)
         
         self._shellCreateActions = []
-        for i, config in enumerate(iep.config.shellConfigs):
+        for i, config in enumerate(iep.config.shellConfigs2):
             name = 'Create shell %s: (%s)' % (i+1, config.name)
             action = self.addItem(name, iep.shells.addShell, config)
             action.setIcon(iep.icons.application_add)
@@ -772,7 +773,7 @@ class ShellMenu(Menu):
     
     def _editConfig2(self):
         """ Edit, add and remove configurations for the shells. """
-        from iepcore.shellTabs import ShellInfoDialog 
+        from iepcore.shellInfoDialog import ShellInfoDialog 
         d = ShellInfoDialog()
         d.exec_()
         # Update the shells items in the menu

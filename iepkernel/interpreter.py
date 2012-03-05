@@ -104,6 +104,7 @@ class IepInterpreter:
         while sys._yoton_context._stat_startup.recv() is None:
             time.sleep(0.02)
         startup_info = sys._yoton_context._stat_startup.recv()
+        self.startup_info = startup_info
         
         
         # Write Python banner
@@ -155,10 +156,13 @@ class IepInterpreter:
         sys.stdout.write(iepBanner)
         
         # Remove "THIS" directory from the PYTHONPATH
-        # to prevent unwanted imports
+        # to prevent unwanted imports. Same for iepkernel dir
         thisPath = os.getcwd()
-        while thisPath in sys.path:
-            sys.path.remove(thisPath)
+        for p in [thisPath, os.path.join(thisPath,'iepkernel')]:
+            while p in sys.path:
+                sys.path.remove(p)
+        
+        # Apped project path if given
         projectPath = startup_info['projectPath']
         if projectPath:
             sys.stdout.write('Prepending the project path %r to sys.path\n' % 
@@ -225,6 +229,10 @@ class IepInterpreter:
             
             # Run startup script (if set)
             filename = startup_info['startupScript']
+            # Should we use the default startupScript?
+            if filename == '$PYTHONSTARTUP':
+                filename = os.environ.get('PYTHONSTARTUP','')
+            # Check if it exists
             if filename and os.path.isfile(filename):
                 scriptToRunOnStartup = filename
         
