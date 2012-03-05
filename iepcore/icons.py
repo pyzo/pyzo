@@ -291,7 +291,30 @@ class ToolButtonWithMenuIndication(QtGui.QToolButton):
         return artist.finish().pixmap(16,16)
 
 
-class TabToolButtonWithCloseButton(QtGui.QToolButton):
+
+class TabToolButton(QtGui.QToolButton):
+    """ TabToolButton
+    
+    Base menu for editor and shell tabs.
+    
+    """
+    
+    SIZE = 16, 16
+    
+    def __init__(self):
+        QtGui.QToolButton.__init__(self)
+        
+        # Init
+        self.setIconSize(QtCore.QSize(*self.SIZE))
+        self.setStyleSheet("QToolButton{ border: none; }")
+    
+    def mousePressEvent(self, event):
+        # Ignore event so that the tabbar will change to that tab
+        event.ignore()
+
+
+
+class TabToolButtonWithCloseButton(TabToolButton):
     """ TabToolButtonWithCloseButton
     
     Tool button that wraps the icon in a slightly larger icon that
@@ -303,11 +326,7 @@ class TabToolButtonWithCloseButton(QtGui.QToolButton):
     CROSS_OFFSET = 0, 2
     
     def __init__(self):
-        QtGui.QToolButton.__init__(self)
-        
-        # Init
-        self.setIconSize(QtCore.QSize(*self.SIZE))
-        self.setStyleSheet("QToolButton{ border: none; }")
+        TabToolButton.__init__(self)
         
         # Variable to keep icon
         self._icon = None
@@ -316,6 +335,7 @@ class TabToolButtonWithCloseButton(QtGui.QToolButton):
         # For mouse tracking inside icon
         self.setMouseTracking(True)
         self._overCross = False
+    
     
     def _isOverCross(self, pos):
         x1, x2 = self.CROSS_OFFSET[0], self.CROSS_OFFSET[0]+5+1
@@ -327,8 +347,11 @@ class TabToolButtonWithCloseButton(QtGui.QToolButton):
         
     
     def mousePressEvent(self, event):
-        # Ignore event so that the tabbar will change to that tab
-        event.ignore()
+        # Accept event so that the tabbar will NOT change to that tab
+        event.accept()
+    
+    def mouseReleaseEvent(self, event):
+        event.accept()
         if self._isOverCross(event.pos()):
             # Get tabs
             tabs = self.parent().parent()
@@ -420,28 +443,6 @@ class TabToolButtonWithCloseButton(QtGui.QToolButton):
             pm = self._createCrossPixmap(240)
         # Set
         return pm
-
-
-
-class TabToolButton(QtGui.QToolButton):
-    """ TabToolButton
-    
-    Base menu for editor and shell tabs.
-    
-    """
-    
-    SIZE = 16, 16
-    
-    def __init__(self):
-        QtGui.QToolButton.__init__(self)
-        
-        # Init
-        self.setIconSize(QtCore.QSize(*self.SIZE))
-        self.setStyleSheet("QToolButton{ border: none; }")
-    
-    def mousePressEvent(self, event):
-        # Ignore event so that the tabbar will change to that tab
-        event.ignore()
 
 
 

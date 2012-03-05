@@ -66,16 +66,14 @@ tools = dict:
         showTypes = ['def', 'cell', 'todo', 'class']
         level = 3
 
-shellConfigs = list:
+shellConfigs2 = list:
     dict:
-        name = 'default'
+        name = 'Shell config 1'
         exe = 'python'
         gui = ''
         startDir = ''
-        PYTHONSTARTUP_custom = ''
-        PYTHONSTARTUP_useCustom = 0
-        PYTHONPATH_custom = ''
-        PYTHONPATH_useCustom = 0
+        pythonPath = '$PYTHONPATH'
+        startupScript = '$PYTHONSTARTUP'
 
 shortcuts = dict:
     edit__paste = 'Ctrl+V,Shift+Insert'
