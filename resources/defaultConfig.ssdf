@@ -69,7 +69,7 @@ tools = dict:
 shellConfigs2 = list:
     dict:
         name = 'Shell config 1'
-        exe = 'python'
+        exe = '' # Will be filled in by the shell if empty
         gui = ''
         startDir = ''
         pythonPath = '$PYTHONPATH'

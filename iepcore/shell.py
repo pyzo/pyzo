@@ -26,6 +26,8 @@ from iepcore.baseTextCtrl import BaseTextCtrl
 from iepcore.iepLogging import print
 from iepcore.kernelbroker import KernelInfo, Kernelmanager
 from iepcore.menu import ShellContextMenu
+from iepcore.shellInfoDialog import findPythonExecutables
+
 
 # Yoton event-loop interval. Is global; there is one time for IEP
 POLL_YOTON_INTERVAL = 30 # 30 ms 33 Hz
@@ -61,6 +63,16 @@ def finishKernelInfo(info, scriptFile=None):
     and the projectPath set.
     
     """ 
+
+    # Set executable to default if it is empty
+    # Note that we do this on the original struct object.
+    if not info.exe:
+        exes = findPythonExecutables()
+        if exes and sys.platform.startswith('win'):
+            info.exe = exes[-1]
+        else:
+            info.exe = 'python'
+    
     # Make a copy, we do not want to change the original
     info = ssdf.copy(info)
     
