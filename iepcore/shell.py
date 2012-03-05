@@ -21,6 +21,7 @@ from PyQt4.QtCore import Qt
 import os, sys, time, subprocess
 import yoton
 import iep
+import ssdf
 from iepcore.baseTextCtrl import BaseTextCtrl
 from iepcore.iepLogging import print
 from iepcore.kernelbroker import KernelInfo, Kernelmanager
@@ -50,36 +51,32 @@ A_MOVE = QtGui.QTextCursor.MoveAnchor
 iep.localKernelManager = Kernelmanager(public=False)
 
 
-# todo: change shell config dialog to create in the new format
-def convertToNewKernelInfo(info):
+def finishKernelInfo(info, scriptFile=None):
+    """ finishKernelInfo(info, scriptFile=None)
     
-    # First the easy ones
-    info2 = KernelInfo()
-    info2.exe = info.exe
-    info2.gui = info.gui
-    info2.name = info.name
-    info2.startDir = info.startDir
+    Get a copy of the kernel info struct, with the scriptFile
+    and the projectPath set.
     
-    # pythonpath
-    info2.PYTHONPATH = '$PYTHONPATH'
-    if info.PYTHONPATH_useCustom:
-        info2.PYTHONPATH = info.PYTHONPATH_custom + '\n$PYTHONPATH'
+    """ 
+    # Make a copy, we do not want to change the original
+    info = ssdf.copy(info)
     
-    # startup script
-    info2.startupScript = '$PYTHONSTARTUP'
-    if info.PYTHONSTARTUP_useCustom:
-        info2.startupScript = info.PYTHONSTARTUP_custom
-    
-    # scriptFile is set by shell right after restarting
-    info2.scriptFile = ''
+    # Set scriptFile (if '', the kernel will run in interactive mode)
+    if scriptFile:
+        info.scriptFile = scriptFile
+    else:
+        info.scriptFile = ''
     
     #If the project manager is active, and has the check box
     #'add path to Python path' set, set the PROJECTPATH variable
     projectManager = iep.toolManager.getTool('iepprojectmanager')
     if projectManager:
-        info2.projectPath = projectManager.getAddToPythonPath()
+        info.projectPath = projectManager.getAddToPythonPath()
+    else:
+        info.projectPath = ''
     
-    return info2
+    return info
+
 
 
 class BaseShell(BaseTextCtrl):
@@ -558,13 +555,14 @@ class PythonShell(BaseShell):
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
         
-        # Get standard info if not given. Store info
-        if info is None and iep.config.shellConfigs:
-            info = iep.config.shellConfigs[0]
-        if info:
-            info = convertToNewKernelInfo(info)
-        else:
+        # Get standard info if not given.
+        if info is None and iep.config.shellConfigs2:
+            info = iep.config.shellConfigs2[0]
+        if not info:
             info = KernelInfo(None)
+        
+        # Store info so we can reuse it on a restart
+        self._info = info
         
         # For the editor to keep track of attempted imports
         self._importAttempts = []
@@ -661,7 +659,7 @@ class PythonShell(BaseShell):
         
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.
-        slot = iep.localKernelManager.createKernel(info)
+        slot = iep.localKernelManager.createKernel(finishKernelInfo(info))
         self._brokerConnection = ct.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
         
@@ -1082,15 +1080,18 @@ class PythonShell(BaseShell):
         self._ctrl_broker.send('INT')
     
     
-    def restart(self, scriptFilename=None):
-        """ restart(scriptFilename=None)
+    def restart(self, scriptFile=None):
+        """ restart(scriptFile=None)
         Terminate the shell, after which it is restarted. 
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
-        msg = 'RESTART'
-        if scriptFilename:
-            msg += ' ' + str(scriptFilename)
+        
+        # Get info
+        info = finishKernelInfo(self._info, scriptFile)
+        
+        # Create message and send
+        msg = 'RESTART\n' + ssdf.saves(info)
         self._ctrl_broker.send(msg)
     
     

@@ -39,14 +39,14 @@ reqp-introspect (OBJECT): To query information from the kernel (and for interrup
 
 """
 
-# First go down one directory ...
-import os
-os.chdir('..')
+# This file is executed with the active directory one up from this file.
 
+import os
 import sys
 import time
 import yoton
 import __main__ # we will run code in the __main__.__dict__ namespace
+
 
 # todo: bug that on IEP startup the shell sometimes says 
 # "The kernel process exited. (1)" We know this:
