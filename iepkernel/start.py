@@ -107,8 +107,11 @@ def iep_excepthook(type, value, tb):
     import time
     time.sleep(0.3) # Give some time for the message to be send
 
-# Uncomment to detect error in the interpreter itself
-sys.excepthook = iep_excepthook
+# Uncomment to detect error in the interpreter itself.
+# But better not use it by default. For instance errors in qt events
+# are also catched by this function. I think that is because it would
+# allow you to show such exceptions in an error dialog.
+#sys.excepthook = iep_excepthook
 
 
 ## Init interpreter and introspector request channel
