@@ -119,6 +119,98 @@ class Hijacked_qt(Hijacked_base):
     """
     
     def __init__(self):
+        import types
+        
+        # Try importing qt        
+        QtGui, QtCore = self.importCoreAndGui()
+        
+        # Store the real application class
+        if not hasattr(QtGui, 'real_QApplication'):
+            QtGui.real_QApplication = QtGui.QApplication
+                
+        
+        class QApplication_hijacked(QtGui.QApplication):
+            """ QApplication_hijacked(*args, **kwargs)
+            
+            Hijacked QApplication class. This class has a __new__() 
+            method that always returns the global application 
+            instance, i.e. QtGui.qApp.
+            
+            The QtGui.qApp instance is an instance of the original
+            QtGui.QApplication, as well as from this Hijacked class.
+            It's exec_() methods is replaced by a dummy method.
+            
+            You can subclass this class; the global application instance
+            will be given the methods and attributes so it will behave 
+            like the subclass. However, the produced app instance is not
+            an instance of that subclass.
+            
+            """
+            
+            def __init__(self, *args, **kwargs):
+                if QtGui.qApp is None:
+                    # Invoke the init
+                    QtGui.QApplication.__init__(self, [''])
+                    # Register ourselves
+                    QtGui.qApp = self
+            
+            def __new__(cls, *args, **kwargs):
+                
+                # Behave as normal as possible if the app does not yet exist
+                if QtGui.qApp is None:
+                    theApp = QtGui.QApplication.__new__(cls, [''])
+                else:
+                    theApp = QtGui.qApp
+                
+                # Add attributes of class to the instance
+                for key in dir(cls):
+                    # Skip all magic methods except __init__
+                    if key.startswith('__') and key != '__init__':
+                        continue
+                    # Skip attributes that we already have
+                    val = getattr(cls, key)
+                    if hasattr(QApplication_hijacked, key):
+                        if val is getattr(QApplication_hijacked, key):
+                            continue
+                    # Make method?
+                    if hasattr(val, '__call__'):
+                        val = types.MethodType(val, theApp)
+                    # Set attribute
+                    setattr(theApp, key, val)
+                
+                # Call init function (in case the usere overloaded it)
+                theApp.__init__(*args, **kwargs)
+                
+                # Return global app object (modified to the users needs)
+                return theApp
+            
+            def exec_(self, *args, **kwargs):
+                """ This function does nothing.
+                """
+                pass
+        
+        
+        # Instantiate application object 
+        self.app = QApplication_hijacked()
+        
+        # Replace app class
+        QtGui.QApplication = QApplication_hijacked
+        
+        # Notify that we integrated the event loop
+        self.app._in_event_loop = 'IEP'
+        QtGui._in_event_loop = 'IEP'
+    
+    
+    def processEvents(self):
+        self.app.flush()
+        self.app.processEvents()
+
+
+class Hijacked_qt_old(Hijacked_base):
+    """ Common functionality for pyqt and pyside
+    """
+    
+    def __init__(self):
         # Try importing qt        
         QtGui, QtCore = self.importCoreAndGui()
         
