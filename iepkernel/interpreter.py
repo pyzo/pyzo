@@ -127,8 +127,10 @@ class IepInterpreter:
                 self.guiApp = guiintegration.Hijacked_tk()
             elif guiName == 'wx':
                 self.guiApp = guiintegration.Hijacked_wx()
-            elif guiName == 'qt4':
-                self.guiApp = guiintegration.Hijacked_qt4()
+            elif guiName == 'pyside':
+                self.guiApp = guiintegration.Hijacked_pyside()
+            elif guiName in ['pyqt4', 'qt4']:
+                self.guiApp = guiintegration.Hijacked_pyqt4()
             elif guiName == 'fltk':
                 self.guiApp = guiintegration.Hijacked_fltk()
             elif guiName == 'gtk':
