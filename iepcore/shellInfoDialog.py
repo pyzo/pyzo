@@ -79,25 +79,44 @@ class ShellInfo_exe(QtGui.QComboBox):
 
 
 class ShellInfo_gui(QtGui.QComboBox):
-    GUIS = ['None', 'TK', 'WX', 'QT4', 'FLTK', 'GTK']
+    
+    # For (backward) compatibility
+    COMPAT = {'QT4':'PYQT4'}
+    
+    # GUI names
+    GUIS = [    ('None', 'no GUI support'), 
+                ('PYSIDE', 'LGLP licensed wrapper to Qt (recommended)'),
+                ('QT4', 'GPL/commercial licensed wrapper to Qt (recommended)'), 
+                ('TK', 'Tk widget toolkit'), 
+                ('WX', 'wxPython'), 
+                ('FLTK', 'The fast light toolkit'), 
+                ('GTK', 'GIMP Toolkit'),
+            ]
+    
+    # GUI descriptions
     
     def setTheText(self, value):
+        
+        # Process value
+        value = value.upper()
+        value = self.COMPAT.get(value, value)
         
         # Set options
         ii = 0
         self.clear()
         for i in range(len(self.GUIS)):
-            gui = self.GUIS[i]
-            if value.upper() == gui.upper():
+            gui, des = self.GUIS[i]
+            if value == gui.upper():
                 ii = i
-            self.addItem(gui)
+            self.addItem('%s  -  %s' % (gui, des))
         
         # Set current text
         self.setCurrentIndex(ii)
     
     
     def getTheText(self):
-        return self.currentText().lower()
+        text = self.currentText().lower()
+        return text.partition('-')[0].strip()
 
 
 

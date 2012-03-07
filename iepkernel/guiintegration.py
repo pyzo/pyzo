@@ -114,14 +114,13 @@ class Hijacked_fltk2(Hijacked_base):
         self.app.wait(0) 
 
 
-class Hijacked_qt4(Hijacked_base):
-    """ Hijack the pyqt4 mainloop.
+class Hijacked_qt(Hijacked_base):
+    """ Common functionality for pyqt and pyside
     """
     
     def __init__(self):
         # Try importing qt        
-        import PyQt4
-        from PyQt4 import QtGui, QtCore
+        QtGui, QtCore = self.importCoreAndGui()
         
         # Function to get members for a class, taking base classes into account
         def collectClassMembers(cls, D):
@@ -184,6 +183,28 @@ class Hijacked_qt4(Hijacked_base):
     def processEvents(self):
         self.app.flush()
         self.app.processEvents()
+
+
+class Hijacked_pyqt4(Hijacked_qt):
+    """ Hijack the PyQt4 mainloop.
+    """
+    
+    def importCoreAndGui(self):
+        # Try importing qt        
+        import PyQt4
+        from PyQt4 import QtGui, QtCore
+        return QtGui, QtCore
+    
+    
+class Hijacked_pyside(Hijacked_qt):
+    """ Hijack the PySide mainloop.
+    """
+    
+    def importCoreAndGui(self):
+        # Try importing qt        
+        import PySide
+        from PySide import QtGui, QtCore
+        return QtGui, QtCore
 
 
 class Hijacked_wx(Hijacked_base):
