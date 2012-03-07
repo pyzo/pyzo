@@ -86,7 +86,7 @@ class ShellInfo_gui(QtGui.QComboBox):
     # GUI names
     GUIS = [    ('None', 'no GUI support'), 
                 ('PYSIDE', 'LGLP licensed wrapper to Qt (recommended)'),
-                ('QT4', 'GPL/commercial licensed wrapper to Qt (recommended)'), 
+                ('PYQT4', 'GPL/commercial licensed wrapper to Qt (recommended)'), 
                 ('TK', 'Tk widget toolkit'), 
                 ('WX', 'wxPython'), 
                 ('FLTK', 'The fast light toolkit'), 
