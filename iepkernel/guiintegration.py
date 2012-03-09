@@ -135,7 +135,7 @@ class Hijacked_qt(Hijacked_base):
         # Store the real application class
         if not hasattr(QtGui, 'real_QApplication'):
             QtGui.real_QApplication = QtGui.QApplication
-                
+        
         
         class QApplication_hijacked(QtGui.QApplication):
             """ QApplication_hijacked(*args, **kwargs)
@@ -145,52 +145,55 @@ class Hijacked_qt(Hijacked_base):
             instance, i.e. QtGui.qApp.
             
             The QtGui.qApp instance is an instance of the original
-            QtGui.QApplication, as well as from this Hijacked class.
-            It's exec_() methods is replaced by a dummy method.
+            QtGui.QApplication, but with its __init__() and exec_() 
+            methods replaced.
             
             You can subclass this class; the global application instance
             will be given the methods and attributes so it will behave 
-            like the subclass. However, the produced app instance is not
-            an instance of that subclass.
+            like the subclass.
             
             """
             
-            def __init__(self, *args, **kwargs):
-                if QtGui.qApp is None:
-                    # Invoke the init
-                    QtGui.QApplication.__init__(self, [''])
-                    # Register ourselves
-                    QtGui.qApp = self
-            
             def __new__(cls, *args, **kwargs):
                 
-                # Behave as normal as possible if the app does not yet exist
-                if QtGui.qApp is None:
-                    theApp = QtGui.QApplication.__new__(cls, [''])
-                else:
-                    theApp = QtGui.qApp
+                # Get the singleton application instance
+                theApp = QApplication_hijacked.instance()
                 
-                # Add attributes of class to the instance
+                # Instantiate an original QApplication instance if we need to
+                if theApp is None:
+                    theApp = QtGui.real_QApplication(*args, **kwargs)
+                    QtGui.qApp = theApp
+                
+                # Add attributes of cls to the instance to make it
+                # behave as if it were an instance of that class
                 for key in dir(cls):
                     # Skip all magic methods except __init__
                     if key.startswith('__') and key != '__init__':
                         continue
                     # Skip attributes that we already have
                     val = getattr(cls, key)
-                    if hasattr(QApplication_hijacked, key):
-                        if val is getattr(QApplication_hijacked, key):
+                    if hasattr(theApp.__class__, key):
+                        if hash(val) == hash(getattr(theApp.__class__, key)):
                             continue
                     # Make method?
                     if hasattr(val, '__call__'):
-                        val = types.MethodType(val, theApp)
-                    # Set attribute
-                    setattr(theApp, key, val)
+                        if hasattr(val, 'im_func'):
+                            val = val.im_func # Python 2.x
+                        val = types.MethodType(val, theApp.__class__)
+                    # Set attribute on app instance (not the class!)
+                    try:
+                        setattr(theApp, key, val)
+                    except Exception:
+                        pass # tough luck
                 
-                # Call init function (in case the usere overloaded it)
+                # Call init function (in case the user overloaded it)
                 theApp.__init__(*args, **kwargs)
                 
                 # Return global app object (modified to the users needs)
                 return theApp
+            
+            def __init__(self, *args, **kwargs):
+               pass
             
             def exec_(self, *args, **kwargs):
                 """ This function does nothing, except printing a
@@ -202,7 +205,7 @@ class Hijacked_qt(Hijacked_base):
         
         
         # Instantiate application object 
-        self.app = QApplication_hijacked()
+        self.app = QApplication_hijacked([''])
         
         # Replace app class
         QtGui.QApplication = QApplication_hijacked
