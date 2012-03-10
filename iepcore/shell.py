@@ -671,9 +671,9 @@ class PythonShell(BaseShell):
         self._ctrl_broker = yoton.PubChannel(ct, 'ctrl-broker')
         
         # Create status channels
-        #self._stat_heartbeat = yoton.SubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
-        self._stat_interpreter = yoton.SubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
-        self._stat_debug = yoton.SubstateChannel(ct, 'stat-debug', yoton.OBJECT)
+        #self._stat_heartbeat = yoton.StateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+        self._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
         
         # Create introspection channel
         self._request = yoton.ReqChannel(ct, 'reqp-introspect')
