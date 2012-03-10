@@ -241,13 +241,13 @@ class KernelBroker:
         self._ctrl_broker = yoton.SubChannel(ct, 'ctrl-broker')
         
         # Status channel to pass startup parameters to the kernel
-        self._stat_startup = yoton.PubstateChannel(ct, 'stat-startup', yoton.OBJECT)
+        self._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
         
         # We use the stat-interpreter to set the status to dead when kernel dies
-        self._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+        self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
         
         # Create status channel for heartbeat to detect running extension code
-        #self._stat_heartbeat = yoton.PubstateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        #self._stat_heartbeat = yoton.StateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
         
         # Create introspect channel so we can interrupt and terminate
         self._reqp_introspect = yoton.ReqChannel(ct, 'reqp-introspect')

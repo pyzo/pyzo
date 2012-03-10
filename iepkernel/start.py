@@ -76,9 +76,9 @@ ct._strm_prompt = yoton.PubChannel(ct, 'strm-prompt')
 ct._strm_action = yoton.PubChannel(ct, 'strm-action', yoton.OBJECT)
 
 # Create status channels
-ct._stat_startup = yoton.SubstateChannel(ct, 'stat-startup', yoton.OBJECT)
-ct._stat_interpreter = yoton.PubstateChannel(ct, 'stat-interpreter', yoton.OBJECT)
-ct._stat_debug = yoton.PubstateChannel(ct, 'stat-debug', yoton.OBJECT)
+ct._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
+ct._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+ct._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
 
 # Create file objects for stdin, stdout, stderr
 sys.stdin = yoton.FileWrapper( ct._ctrl_command )
