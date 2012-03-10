@@ -479,6 +479,7 @@ def findPythonExecutables():
     else:
         return findPythonExecutables_posix()
 
+
 def findPythonExecutables_win():
     import winreg
     
@@ -492,8 +493,8 @@ def findPythonExecutables_win():
     # Get info about subkeys
     nsub, nval, modified = winreg.QueryInfoKey(key)
     
-    # Query all
-    versions = []
+    # Query Python versions from registry
+    versions = set()
     for i in range(nsub):
         try:
             # Get name and subkey 
@@ -501,21 +502,36 @@ def findPythonExecutables_win():
             subkey = winreg.OpenKey(key, name + '\\InstallPath', 0, winreg.KEY_READ)
             # Get install location and store
             location = winreg.QueryValue(subkey, '')
-            versions.append(location)
+            versions.add(location)
             # Close
             winreg.CloseKey(subkey)
         except Exception:
             pass
     
-    # Append "python.exe"
-    versions = [os.path.join(v, 'python.exe') for v in versions]
-    
     # Close keys
     winreg.CloseKey(key)
     winreg.CloseKey(base)
     
+    # Query Python versions from file system
+    for rootname in ['c:/', 'C:/program files/', 'C:/program files (x86)/']:
+        if not os.path.isdir(rootname):
+            continue
+        for dname in os.listdir(rootname):
+            if dname.lower().startswith('python'):
+                versions.add(os.path.join(rootname, dname))
+    
+    # Normalize all paths, and remove trailing backslashes
+    versions = set([os.path.normcase(v).strip('\\') for v in versions])
+    
+    # Append "python.exe" and check if that file exists
+    versions2 = []
+    for dname in sorted(versions,key=lambda x:x[-2:]):
+        exename = os.path.join(dname, 'python.exe')
+        if os.path.isfile(exename):
+            versions2.append(exename)
+    
     # Done
-    return versions
+    return versions2
 
 
 def findPythonExecutables_posix():
