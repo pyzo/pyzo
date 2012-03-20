@@ -205,6 +205,7 @@ class KernelBroker:
         # This context is persistent (it stays as long as this KernelBroker
         # instance is alive).
         self._context = yoton.Context()
+        self._kernelCon = None
         
         # Create yoton-based timer
         self._timer = yoton.Timer(0.2, oneshot=False)
@@ -329,7 +330,7 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        self._kernelCon = self._context.bind('localhost:IEP2', 
+        self._kernelCon = self._context.bind('localhost:IEP', 
                                                 max_tries=256, name='kernel')
         
         # Get command to execute, and environment to use
@@ -341,7 +342,9 @@ class KernelBroker:
                                             env=env, cwd=cwd,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         
-        # Set timeout
+        # Set timeout for connection, i.e. after how much time of 
+        # unresponsive ness is the kernel found to be running extension code
+        # Better set this before connecting
         self._kernelCon.timeout = 0.5
         
         # Bind to events
@@ -395,6 +398,12 @@ class KernelBroker:
         Connection with kernel lost. Tell clients why.
         
         """
+        
+        # If we receive this event while the current kernel connection
+        # is not the one that generated the event, ignore it.
+        if self._kernelCon is not c:
+            return
+        
         # The only reasonable way that the connection
         # can be lost without the kernel closing, is if the yoton context 
         # crashed or was stopped somehow. In both cases, we lost control,
@@ -681,7 +690,10 @@ class StreamReader(threading.Thread):
             msg = self._process.stdout.readline() # <-- Blocks here
             if not isinstance(msg, str):
                 msg = msg.decode('utf-8', 'ignore')
-            self._strm_raw.send(msg)
+            try:
+                self._strm_raw.send(msg)
+            except IOError:
+                pass # Channel is closed
             # Process dead?
             if not msg:# or self._process.poll() is not None:
                 break
@@ -766,7 +778,7 @@ class Kernelmanager:
             terminator = KernelTerminator(kernel, 'for closing down')
             
             # Terminate
-            while (kernel._kernelCon.is_connected and 
+            while (kernel._kernelCon and kernel._kernelCon.is_connected and 
                     kernel._process and (kernel._process.poll() is None) ):
                 time.sleep(0.02)
                 terminator.next()

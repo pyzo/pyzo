@@ -47,7 +47,6 @@ import time
 import yoton
 import __main__ # we will run code in the __main__.__dict__ namespace
 
-
 # todo: bug that on IEP startup the shell sometimes says 
 # "The kernel process exited. (1)" We know this:
 # - The kernel has successfully connected to the context, otherwise we
@@ -80,14 +79,16 @@ ct._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
 ct._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
 ct._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
 
+# Connect (port number given as command line argument)
+# Important to do this *before* replacing the stdout etc, because if an
+# error occurs here, it will be printed in the shell.
+port = int(sys.argv[1])
+ct.connect('localhost:'+str(port), timeout=1.0)
+
 # Create file objects for stdin, stdout, stderr
 sys.stdin = yoton.FileWrapper( ct._ctrl_command )
 sys.stdout = yoton.FileWrapper( ct._strm_out )
 sys.stderr = yoton.FileWrapper( ct._strm_err )
-
-# Connect (port number given as command line argument)
-port = int(sys.argv[1])
-ct.connect('localhost:'+str(port), timeout=1.0)
 
 
 ## Set Excepthook
