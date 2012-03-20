@@ -687,15 +687,20 @@ class PythonShell(BaseShell):
         
         # Ask for python version
         def _setVersion(future):
+            if future.cancelled():
+                return
             version = future.result()
-            if isinstance(version, str):
-                self._version = version.split(' ',1)[0]
+            if isinstance(version, tuple):
+                version = [str(v) for v in version]
+                self._version = '.'.join(version[:2])
             self.stateChanged.emit(self)
-        future = self._request.eval('sys.version')
+        future = self._request.eval('tuple(sys.version_info)')
         future.add_done_callback(_setVersion)
         
         # Ask for builtins
         def _setKeywords(future):
+            if future.cancelled():
+                return
             L = future.result()
             if isinstance(L, list):
                 self._keywords = L
@@ -704,6 +709,8 @@ class PythonShell(BaseShell):
         
         # Ask for builtins
         def _setBuiltins(future):
+            if future.cancelled():
+                return
             L = future.result()
             if isinstance(L, list):
                 self._builtins = L
