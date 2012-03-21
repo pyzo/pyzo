@@ -330,11 +330,11 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'IEP')
-        self._kernelCon = self._context.bind('localhost:IEP', 
+        self._kernelCon = self._context.bind('localhost:IEP2', 
                                                 max_tries=256, name='kernel')
         
         # Get command to execute, and environment to use
-        command = getCommandFromKernelInfo(self._info, self._kernelCon.port)
+        command = getCommandFromKernelInfo(self._info, self._kernelCon.port1)
         env = getEnvFromKernelInfo(self._info)
         
         # Start process
@@ -371,7 +371,7 @@ class KernelBroker:
         
         """
         c = self._context.bind(address+':IEP+256', max_tries=32)
-        return c.port
+        return c.port1
     
     
     ## Callbacks
