@@ -665,6 +665,12 @@ class PythonShell(BaseShell):
         self._strm_broker = yoton.SubChannel(ct, 'strm-broker')
         self._strm_action = yoton.SubChannel(ct, 'strm-action', yoton.OBJECT)
         
+        # Set channels to sync mode. This means that if the IEP cannot process
+        # the messages fast enough, the sending side is blocked for a short
+        # while. We don't want our users to miss any messages.
+        for c in [self._strm_out, self._strm_err]:
+            c.set_sync_mode(True)
+        
         # Create control channels
         self._ctrl_command = yoton.PubChannel(ct, 'ctrl-command')
         self._ctrl_code = yoton.PubChannel(ct, 'ctrl-code', yoton.OBJECT)
@@ -1048,7 +1054,9 @@ class PythonShell(BaseShell):
                                 self._strm_broker, self._strm_prompt )
             # Read messages from it
             if sub:
+                # todo: change back to handle multiple packages!
                 M = sub.recv_selected()
+#                 M = [sub.recv()]
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
                     M = self._handleBackspacesOnList(M)
