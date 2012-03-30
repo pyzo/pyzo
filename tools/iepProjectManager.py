@@ -583,7 +583,7 @@ class PopupMenu(iepcore.menu.Menu):
     def _showInFinder(self):
         subprocess.call(('open', '-R', self._path))
     def _openOutsideWin(self):
-        subprocess.call(('start', self._path))
+        subprocess.call(('start', self._path), shell=True)
     def _copyPath(self):
         QtGui.qApp.clipboard().setText(self._path)
         
