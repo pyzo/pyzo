@@ -30,7 +30,7 @@ from iepcore.shellInfoDialog import findPythonExecutables
 
 
 # Yoton event-loop interval. Is global; there is one time for IEP
-POLL_YOTON_INTERVAL = 30 # 30 ms 33 Hz
+# POLL_YOTON_INTERVAL = 30 # 30 ms 33 Hz
 
 # Interval for polling messages. Timer for each kernel. I found
 # that this one does not affect performance much
@@ -40,12 +40,31 @@ POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 # todo: make customizable
 MAXBLOCKCOUNT = 10*1000
 
-# Register timer to handle yoton event loop
-iep.main._yoton_timer = QtCore.QTimer(iep.main)
-iep.main._yoton_timer.setInterval(POLL_YOTON_INTERVAL)  # ms
-iep.main._yoton_timer.setSingleShot(False)
-iep.main._yoton_timer.timeout.connect(yoton.process_events)
-iep.main._yoton_timer.start()
+# # Register timer to handle yoton event loop
+# iep.main._yoton_timer = QtCore.QTimer(iep.main)
+# iep.main._yoton_timer.setInterval(POLL_YOTON_INTERVAL)  # ms
+# iep.main._yoton_timer.setSingleShot(False)
+# iep.main._yoton_timer.timeout.connect(yoton.process_events)
+# iep.main._yoton_timer.start()
+
+
+class YotonEmbedder(QtCore.QObject):
+    """ Embed the Yoton event loop.
+    """
+    
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        yoton.app.embed_event_loop(self.postYotonEvent)
+    
+    def postYotonEvent(self):
+        QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+    
+    def customEvent(self, event):
+        """ This is what gets called by Qt.
+        """
+        yoton.process_events(False)
+
+yotonEmbedder = YotonEmbedder()
 
 
 # Short constants for cursor movement
@@ -691,6 +710,14 @@ class PythonShell(BaseShell):
         self._brokerConnection.closed.bind(self._onConnectionClose)
         
         
+#         # Detect incoming messages 
+#         for c in [self._strm_out, self._strm_err, self._strm_raw, 
+#                 self._strm_echo, self._strm_prompt, self._strm_broker,
+#                 self._strm_action,
+#                 self._stat_interpreter, self._stat_debug]:
+#             c.received.bind(self.poll)
+        
+        
         # Ask for python version
         def _setVersion(future):
             if future.cancelled():
@@ -1029,7 +1056,7 @@ class PythonShell(BaseShell):
     
     ## The polling methods and terminating methods
     
-    def poll(self):
+    def poll(self, channel=None):
         """ poll()
         To keep the shell up-to-date
         Call this periodically. 
