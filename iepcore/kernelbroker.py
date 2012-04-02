@@ -272,6 +272,7 @@ class KernelBroker:
             
             # Stop timer
             self._timer.unbind(self.mainLoopIter)
+            self._timer.stop()
             self._timer = None
             
             # Clean up this kernelbroker instance
