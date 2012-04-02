@@ -57,7 +57,10 @@ class YotonEmbedder(QtCore.QObject):
         yoton.app.embed_event_loop(self.postYotonEvent)
     
     def postYotonEvent(self):
-        QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+        try:
+            QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+        except Exception:
+            pass # If IEP is shutting down, the app may be None
     
     def customEvent(self, event):
         """ This is what gets called by Qt.
