@@ -78,7 +78,7 @@ class Magician:
             del tb
             # Write
             print(msg)
-            return ''
+            return None
         
         # Process
         if res is None:
