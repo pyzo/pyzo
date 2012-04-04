@@ -313,9 +313,9 @@ class IepInterpreter:
                         stat_interpreter.send('Busy')
                         self.newPrompt = True
                         # Convert command
-                        line2 = magician.convert_command(line1)
+                        line2 = magician.convert_command(line1.rstrip('\n'))
                         # Execute actual code
-                        if line2:
+                        if line2 is not None:
                             more = self.push(line2)
                         else:
                             more = False
