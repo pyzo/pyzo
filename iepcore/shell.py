@@ -543,8 +543,8 @@ class BaseShell(BaseTextCtrl):
             return
         
         if line:
-            # remove newlines spaces and tabs
-            command = line.rstrip()
+            # remove trailing newline(s)
+            command = line.rstrip('\n')
         else:
             # Select command
             cursor = self.textCursor()
@@ -552,7 +552,7 @@ class BaseShell(BaseTextCtrl):
             cursor.movePosition(cursor.End, A_KEEP)
             
             # Sample the text from the prompt and remove it
-            command = cursor.selectedText().replace('\u2029', '\n') .rstrip()
+            command = cursor.selectedText().replace('\u2029', '\n') .rstrip('\n')
             cursor.removeSelectedText()
             
             # Remember the command (but first remove to prevent duplicates)
