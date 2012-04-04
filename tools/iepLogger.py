@@ -52,7 +52,7 @@ class IepLogger(BaseShell):
         
         # "Echo" stdin
         self.write(command, 1)
-        more = self._interpreter.push(command.rstrip('/n'))
+        more = self._interpreter.push(command.rstrip('\n'))
         if more:
             self.write(sys.ps2, 2)
         else:            
