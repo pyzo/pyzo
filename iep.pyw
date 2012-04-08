@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.1
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright (c) 2010, the IEP development team
 #

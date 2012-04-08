@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.1
+#!/usr/bin/env python3
 # Copyright (c) 2010, the IEP development team
 #
 # IEP is distributed under the terms of the (new) BSD License.
