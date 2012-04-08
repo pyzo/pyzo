@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="nl_NL">
+<context>
+    <name>Dialog</name>
+    <message>
+        <location filename="gui/shells_dialog.ui" line="26"/>
+        <source>IEP - Shell Configurations</source>
+        <translation>IEP Shell configuraties - haha</translation>
+    </message>
+</context>
+<context>
+    <name>menu</name>
+    <message>
+        <location filename="iepcore/menu.py" line="1198"/>
+        <source>File</source>
+        <translation>Bestand</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="1199"/>
+        <source>Edit</source>
+        <translation>Bewerken</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="458"/>
+        <source>New</source>
+        <comment>file</comment>
+        <translation>Nieuw</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="460"/>
+        <source>Open</source>
+        <translation>Open</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="463"/>
+        <source>Save</source>
+        <translation>Opslaan</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="464"/>
+        <source>Save as</source>
+        <translation>Opslaan als</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="408"/>
+        <source>Use tabs</source>
+        <translation>Gebruik tabs</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="410"/>
+        <source>Use spaces</source>
+        <translation>Gebruik spaties</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="441"/>
+        <source>Syntax parser</source>
+        <translation>Syntax parser</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="446"/>
+        <source>Line endings</source>
+        <translation>Regel eindes</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="451"/>
+        <source>Encoding</source>
+        <translation>Encodering</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="465"/>
+        <source>Save all</source>
+        <translation>Allen opslaan</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="466"/>
+        <source>Close</source>
+        <translation>Sluiten</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="467"/>
+        <source>Close all</source>
+        <translation>Allen sluiten</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="479"/>
+        <source>Restart IEP</source>
+        <translation>IEP herstarten</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="480"/>
+        <source>Quit IEP</source>
+        <translation>IEP sluiten</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="414"/>
+        <source>spaces</source>
+        <comment>plural of spacebar character</comment>
+        <translation>spaties</translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="437"/>
+        <source>Indentation</source>
+        <translation>Indentatie</translation>
+    </message>
+</context>
+<context>
+    <name>tabShellConfig</name>
+    <message>
+        <location filename="gui/shell_tab.ui" line="26"/>
+        <source>Form</source>
+        <translation>Formulier</translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="35"/>
+        <source>Name:</source>
+        <translation>Naam:</translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="54"/>
+        <source>Executable:</source>
+        <translation>Applicatie:</translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="81"/>
+        <source>e.g. &quot;/usr/bin/python&quot; or &quot;c:\python\python.exe&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="92"/>
+        <source>GUI Toolkit:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="105"/>
+        <source>None</source>
+        <translation>Geen</translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="112"/>
+        <source>Tk</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="119"/>
+        <source>Wx</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="126"/>
+        <source>Qt4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="133"/>
+        <source>FLTK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="140"/>
+        <source>Gtk</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="149"/>
+        <source>The GUI event loop is integrated in the interpreter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="160"/>
+        <source>Python search path:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="222"/>
+        <source>Use system default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="201"/>
+        <source>Python startup script:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="gui/shell_tab.ui" line="231"/>
+        <source>Startup directory:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+</TS>
