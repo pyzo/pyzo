@@ -225,12 +225,7 @@ class KernelBroker:
         ct = self._context
         
         # Close any existing channels first
-        for channelName in ['strm-broker', 'strm-raw', 'strm-prompt',
-                            'ctrl-broker', 'stat-startup', 'stat-heartbeat', 
-                            'reqp-introspect', 'stat-interpreter']:
-            attrName = '_' + channelName.lower().replace('-', '_')
-            if hasattr(self, attrName):
-                getattr(self, attrName).close()
+        self._context.close_channels()
         
         # Create stream channels. 
         # Stdout is for the C-level stdout/stderr streams.
