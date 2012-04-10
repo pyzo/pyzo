@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui,uic
+from PyQt4 import QtCore, QtGui
 import iep
 import os
 import sys
@@ -11,32 +11,138 @@ import subprocess
 tool_name = "Project manager"
 tool_summary = "Manage project directories."
 
+# todo: idea to create a single tool for file browsing, and project manager
+# with search functionality. And maybe even source structure? See LEO project
+
 # todo: desired changes:
 # - Search using separate search tool
 # - Popup menu with usefull actions
 
-# Load classes for configuration dialog and tabs
-ProjectsCfgDlg, ProjectsCfgDlgBase = uic.loadUiType(iep.iepDir + "/gui/projects_dialog.ui")
 
-      
-class ProjectsConfigDialog(ProjectsCfgDlg, ProjectsCfgDlgBase):
+## The Config dialog
+
+class DraggableList(QtGui.QListView):
+    def __init__(self, *args, **kwds):
+        QtGui.QListView.__init__(self, *args, **kwds)
+        self.draggingRow=None
+        
+    def mouseMoveEvent(self,event):
+        """
+        If the user drags an item, swap rows if necessary
+        """
+        pos=event.pos()
+        index=self.indexAt(pos)
+        if not index.isValid():
+            return
+        
+        #Find ot the new position of the row
+        rect=self.visualRect(index)
+        newRow=index.row()
+        if pos.y()>rect.y()+rect.height()/2:
+            #Below the horizontal center line of the item
+            newRow+=1
+        if newRow>self.draggingRow:
+            #Moving below the original position
+            newRow-=1
+            
+        if newRow!=self.draggingRow:
+            self.model().swapRows(newRow,self.draggingRow)
+            self.draggingRow=newRow
+            
+        #TODO: when the order is changed, the ProjectManager should update
+        #config.activeproject
+    
+    def mousePressEvent(self,event):
+        """Register at which row a drag operation starts"""
+        self.draggingRow=self.indexAt(event.pos()).row()
+        QtGui.QListView.mousePressEvent(self,event) 
+
+
+class ProjectsConfigDialog(QtGui.QDialog):
     def __init__(self, projectManager, *args, **kwds):
-        ProjectsCfgDlgBase.__init__(self, *args, **kwds)
-        self.setupUi(self)
+        QtGui.QDialog.__init__(self, *args, **kwds)
+       
+        # Set size and title
+        size = 540, 300
+        self.setMinimumSize(*size)
+        self.setWindowTitle(iep.translate('Projects', 'Manage projects'))
+        self.setWindowIcon(iep.icon)
+        
+        # Create widgets and layout
+        self._createWidgets()
+        
+        # Store project manager and attach model for the list of projects
         self._projectManager = projectManager
         self._projectsModel = projectManager.projectsModel
         self._activeProject = None
         self.lstProjects.setModel(self._projectsModel)
         
+        # Signals
+        self.btnAdd.clicked.connect(self.addProject)
+        self.btnRemove.clicked.connect(self.removeProject)
+        self.btnDone.clicked.connect(self.close)
+        self.txtDescription.textEdited.connect(self.onDescriptionChanged)
+        self.chkAddToPath.stateChanged.connect(self.onAddToPathChanged)
         self.lstProjects.selectionModel().currentChanged.connect(self.onProjectChanged)
-        
         # Update description label when project name is changed
         self.lstProjects.model().dataChanged.connect(
             lambda i1,i2: self.txtDescription.setText(self._activeProject.name))
+    
+    
+    def _createWidgets(self):
         
-        self.txtDescription.textEdited.connect(self.onDescriptionChanged)
-        self.chkAddToPath.stateChanged.connect(self.onAddToPathChanged)
+        # Create list object and label
+        self.lblProjects = QtGui.QLabel('Projects (drag to change the order):', self)
+        self.lstProjects = DraggableList(self)
         
+        # Create add and remove buttons
+        self.btnAdd = QtGui.QPushButton('New project', self)
+        self.btnAdd.setIcon(iep.icons.add)
+        self.btnRemove = QtGui.QPushButton('Remove selected', self)
+        self.btnRemove.setIcon(iep.icons.delete)
+        
+        
+        # Create fields for description and path
+        self.lblDescription = QtGui.QLabel('Description:', self)
+        self.txtDescription = QtGui.QLineEdit(self)
+        self.lblPath = QtGui.QLabel('Path:', self)
+        self.txtPath = QtGui.QLineEdit(self)
+        self.chkAddToPath = QtGui.QCheckBox('Add path to Python path', self)
+        
+        # Done button
+        self.btnDone = QtGui.QPushButton("Done", self)
+        self.btnDone.setDefault(True)
+        
+        # Layout
+        L2 = QtGui.QHBoxLayout()
+        L2.addWidget(self.btnAdd)
+        L2.addStretch(1.0)
+        L2.addWidget(self.btnRemove)
+        #
+        L1 = QtGui.QVBoxLayout()
+        L1.addWidget(self.lblProjects)
+        L1.addWidget(self.lstProjects)
+        L1.addLayout(L2)
+        #
+        L4 = QtGui.QHBoxLayout()
+        L4.addStretch(1.0)
+        L4.addWidget(self.btnDone)
+        #
+        L3 = QtGui.QVBoxLayout()
+        L3.addWidget(self.lblDescription)
+        L3.addWidget(self.txtDescription)
+        L3.addWidget(self.lblPath)
+        L3.addWidget(self.txtPath)
+        L3.addWidget(self.chkAddToPath)
+        L3.addStretch(1.0)
+        L3.addLayout(L4)
+        #
+        theLayout = QtGui.QHBoxLayout(self)
+        theLayout.addLayout(L1)
+        theLayout.addLayout(L3)
+        self.setLayout(theLayout)
+    
+    
     def onProjectChanged(self,current,previous):
         if not current.isValid():
             self.projectChanged(-1)

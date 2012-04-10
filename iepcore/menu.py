@@ -1081,7 +1081,8 @@ class RunMenu(Menu):
         # Obtain fname and try running
         err = ""
         if editor._filename:
-            if iep.editors.saveFile(editor):
+            saveOk = iep.editors.saveFile(editor) # Always try to save
+            if saveOk or not editor.document().isModified():
                 self._showWhatToExecute(editor)
                 shell.restart(editor._filename)
             else:

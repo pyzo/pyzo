@@ -13,7 +13,7 @@ and a dialog to edit the shell configurations.
 """
 
 import os, sys, time, re
-from PyQt4 import QtCore, QtGui, uic
+from PyQt4 import QtCore, QtGui
 
 import iep
 from iepcore.compactTabWidget import CompactTabWidget
