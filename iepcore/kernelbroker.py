@@ -240,10 +240,7 @@ class KernelBroker:
         self._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
         
         # We use the stat-interpreter to set the status to dead when kernel dies
-        self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
-        
-        # Create status channel for heartbeat to detect running extension code
-        #self._stat_heartbeat = yoton.StateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
+        self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
         
         # Create introspect channel so we can interrupt and terminate
         self._reqp_introspect = yoton.ReqChannel(ct, 'reqp-introspect')
@@ -285,7 +282,6 @@ class KernelBroker:
             self._strm_raw = None
             self._stat_startup = None
             self._stat_interpreter = None
-            self._stat_heartbeat = None
             self._strm_prompt = None
             #
             self._ctrl_broker = None
@@ -381,10 +377,8 @@ class KernelBroker:
         
         """
         if timedout:
-            #self._stat_heartbeat.send(False)
             self._stat_interpreter.send('Very busy')
         else:
-            #self._stat_heartbeat.send(True)
             self._stat_interpreter.send('Busy')
     
     
