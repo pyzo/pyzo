@@ -699,8 +699,7 @@ class PythonShell(BaseShell):
         self._ctrl_broker = yoton.PubChannel(ct, 'ctrl-broker')
         
         # Create status channels
-        #self._stat_heartbeat = yoton.StateChannel(ct, 'stat-heartbeat', yoton.OBJECT)
-        self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+        self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
         self._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
         
         # Create introspection channel
@@ -1122,8 +1121,11 @@ class PythonShell(BaseShell):
         # Do any actions?
         action = self._strm_action.recv(False)
         if action:
-            if action['action'] == 'open':
-                iep.editors.loadFile(action['path'])
+            if action.startswith('open '):
+                fname = action.split(' ',1)[1]
+                iep.editors.loadFile(fname)
+            else:
+                print('Unkown action: %s' % action)
         
         # Update status
         # todo: include heartbeat info

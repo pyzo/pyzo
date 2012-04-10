@@ -94,26 +94,19 @@ class ShellStack(QtGui.QWidget):
         """
         if True:
             
-            # Determine the text to display in the tab
-            # Icon should say enough!
-            if True:#shell._state == 'Ready':
-                stateText = 'Python {}'.format(shell._version)
-            else:
-                tmp = 'Python {} ({})'
-                stateText = tmp.format(shell._version, shell._state)
-            
-            # Show status in tab text            
+            # Show status in tab text. Only display version info  
+            stateText = 'Python {}'.format(shell._version)         
             i = self._tabs.indexOf(shell)
             self._tabs.setTabText(i, stateText)
             
-            # Update icon of the tab
+            # Update icon of the tab (this shows busy, dead, etc.)
             but = self._tabs.tabBar().tabButton(i, 0)
             if but:
                 but.updateIcon(shell._state)
         
         if shell is self.getCurrentShell():
             
-            # Update icon
+            # Update application icon
             if shell._state in ['Busy']:
                 iep.main.setWindowIcon(iep.iconRunning)
             else:

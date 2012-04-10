@@ -447,7 +447,6 @@ class TabToolButtonWithCloseButton(TabToolButton):
 
 
 class EditorTabToolButton(TabToolButtonWithCloseButton):
-    
     """ Button for the tabs of the editors. This is just a 
     tight wrapper for the icon.
     """
@@ -499,7 +498,6 @@ class EditorTabToolButton(TabToolButtonWithCloseButton):
 
 
 class ShellTabToolButton(TabToolButton):
-    
     """ Button for the tabs of the shells. This is just a 
     tight wrapper for the icon.
     """

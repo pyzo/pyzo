@@ -15,9 +15,8 @@ Channels
 --------
 There are four groups of channels. The ctrl channels are streams from 
 the ide to the kernel and/or broker. The strm channels are streams to 
-the ide. The stat channels are status channels to the ide. The reqp 
-channels are req/rep channels. All channels are TEXT except for a
-few OBJECT channels.
+the ide. The stat channels are status channels. The reqp channels are 
+req/rep channels. All channels are TEXT except for a few OBJECT channels.
 
 ctrl-command: to give simple commands to the interpreter (ala stdin)
 ctrl-code (OBJECT): to let the interpreter execute blocks of code
@@ -25,19 +24,22 @@ ctrl-broker: to control the broker (restarting etc)
 
 strm-out: the stdout of the interpreter
 strm-err: the stderr of the interpreter
-strm-raw: the C-level stdout and stderr of the interpreter (caputred by broker)
+strm-raw: the C-level stdout and stderr of the interpreter (captured by broker)
 strm-echo: the interpreters echos commands here
 strm-prompt: to send the prompts explicitly
 strm-broker: for the broker to send messages to the ide
-strm-action (OBJECT): for the kernel to push actions to the ide
+strm-action: for the kernel to push actions to the ide
 
-stat-interpreter (OBJECT): status of the interpreter (ready, busy, more)
+stat-interpreter): status of the interpreter (ready, busy, very busy, more, etc)
 stat-debug (OBJECT): debug status
-stat-heartbeat (OBJECT): whether the broker receives heartbeat signals from the kernel
+stat-startup (OBJECT): Used to pass startup parameters to the kernel
 
 reqp-introspect (OBJECT): To query information from the kernel (and for interruping)
 
 """
+
+# todo: structure the interpreter, magician, Context, etc, in a better way
+# maybe make some parts more accessible, such as setting the GUI event cycle time
 
 # This file is executed with the active directory one up from this file.
 
@@ -66,9 +68,9 @@ ct._strm_prompt = yoton.PubChannel(ct, 'strm-prompt')
 ct._strm_action = yoton.PubChannel(ct, 'strm-action', yoton.OBJECT)
 
 # Create status channels
-ct._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
-ct._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter', yoton.OBJECT)
+ct._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
 ct._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
+ct._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
 
 # Connect (port number given as command line argument)
 # Important to do this *before* replacing the stdout etc, because if an
