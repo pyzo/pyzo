@@ -12,7 +12,7 @@ Implements shell configuration dialog.
 """
 
 import os, sys, time, re
-from PyQt4 import QtCore, QtGui, uic
+from PyQt4 import QtCore, QtGui
 
 import iep
 from iepcore.iepLogging import print

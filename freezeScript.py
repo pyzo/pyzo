@@ -64,9 +64,8 @@ excludes.append('numpy')
 
 # For qt to work
 # todo: remove Qsci, enable pyside?
-#includes = ['sip', "PyQt4.QtCore", "PyQt4.QtGui", 
-#    "PyQt4.uic", "PyQt4.uic.uiparser", "PyQt4.uic.Compiler.qobjectcreator"] 
-includes = ['PyQt4.uic']
+includes = []
+#includes.append('PyQt4.uic')
 
 ## Go!
 # See http://cx-freeze.sourceforge.net/cx_Freeze.html for docs.
