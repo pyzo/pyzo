@@ -378,7 +378,7 @@ class Magician:
             print('Could not determine file name for object "%s".' % name)
         else:
             action = 'open %s' % os.path.abspath(fname)
-            sys._yoton_context._strm_action.send(action)
+            sys._iepInterpreter.context._strm_action.send(action)
         #
         return ''
     

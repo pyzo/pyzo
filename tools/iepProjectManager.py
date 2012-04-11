@@ -13,6 +13,8 @@ tool_summary = "Manage project directories."
 
 # todo: idea to create a single tool for file browsing, and project manager
 # with search functionality. And maybe even source structure? See LEO project
+# Store expanded/collapsed state of *all* directories accross sessions
+# Same for level of detail in the source structure
 
 # todo: desired changes:
 # - Search using separate search tool

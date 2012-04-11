@@ -41,15 +41,33 @@ else:
 
 
 class IepInterpreter:
-    """ Closely emulate the interactive Python console.
-    Simular working as code.InteractiveConsole. Some code was copied, but
-    the following things are changed:
-    - prompts are printed in the err stream, like the default interpreter does
-    - uses an asynchronous read using the yoton interface
-    - support for hijacking GUI toolkits
-    - can run large pieces of code
-    - support post mortem debugging
+    """ IepInterpreter
+    
+    The IEP interpreter is the part that makes the IEP kernel interactive.
+    It executes code, integrates the GUI toolkit, parses magic commands, etc.
+    The IEP interpreter has been designed to emulate the standard interactive
+    Python console as much as possible, but with a lot of extra goodies.
+    
+    There is one instance of this class, stored at sys._iepInterpreter and
+    at the __iep__ variable in the global namespace.
+    
+    The global instance has a couple of interesting attributes:
+      * context: the yoton Context instance at the kernel (has all channels)
+      * introspector: the introspector instance (a subclassed yoton.RepChannel)
+      * magician: the object that handles the magic commands
+      * guiApp: a wrapper for the integrated GUI application
+      * sleeptime: the amount of time (in seconds) to sleep at each iteration
+    
     """
+    
+    # Simular working as code.InteractiveConsole. Some code was copied, but
+    # the following things are changed:
+    # - prompts are printed in the err stream, like the default interpreter does
+    # - uses an asynchronous read using the yoton interface
+    # - support for hijacking GUI toolkits
+    # - can run large pieces of code
+    # - support post mortem debugging
+    # - support for magic commands
     
     def __init__(self, locals, filename="<console>"):
         
@@ -58,7 +76,7 @@ class IepInterpreter:
         self.globals = None
         
         # Store filename
-        self.filename = filename
+        self._filename = filename
         
         # Store ref of locals that is our main
         self._main_locals = locals
@@ -73,11 +91,16 @@ class IepInterpreter:
         self._codeCollection = ExecutedSourceCollection()
         
         # Init buffer to deal with multi-line command in the shell
-        self.buffer = []
+        self._buffer = []
+        
+        # Init sleep time (0.001 result in 0% CPU usage at my Windows laptop)
+        self.sleeptime = 0.01 # 100 Hz
         
         # Create compiler
         self._compile = CommandCompiler()
         
+        # Instantiate magician
+        self.magician = Magician()
         
         # Define prompts
         try:
@@ -88,24 +111,35 @@ class IepInterpreter:
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-    
-    
-    ## Base of interpreter
+        
+        # Remove "THIS" directory from the PYTHONPATH
+        # to prevent unwanted imports. Same for iepkernel dir
+        thisPath = os.getcwd()
+        for p in [thisPath, os.path.join(thisPath,'iepkernel')]:
+            while p in sys.path:
+                sys.path.remove(p)
     
     
     def interact(self):    
         """ Interact! (start the mainloop)
         """
+        self._prepare()
+        self._mainloop()
+    
+    
+    def _prepare(self):
+        """ Prepare for running the main loop.
+        Here we do some initialization like obtaining the startup info,
+        creating the GUI application wrapper, etc.
+        """
         
-        # Reset debug status to
-        self.writeStatus()
+        # Reset debug status
+        self.writestatus()
         
         # Get startup info
-        while sys._yoton_context._stat_startup.recv() is None:
+        while self.context._stat_startup.recv() is None:
             time.sleep(0.02)
-        startup_info = sys._yoton_context._stat_startup.recv()
-        self.startup_info = startup_info
-        
+        self.startup_info = startup_info = self.context._stat_startup.recv()
         
         # Write Python banner
         NBITS = 8 * struct.calcsize("P")
@@ -116,9 +150,10 @@ class IepInterpreter:
         sys.stdout.write("Python %s on %s.\n" %
             (sys.version.split('[')[0].rstrip(), platform))
         
+        
         # Integrate event loop of GUI toolkit
         self.guiApp = None
-        guiName = startup_info['gui']
+        self.guiName = guiName = startup_info['gui']
         guiError = ''
         try:
             if guiName in ['', 'none', 'None']:
@@ -157,14 +192,8 @@ class IepInterpreter:
             iepBanner += '.\n'
         sys.stdout.write(iepBanner)
         
-        # Remove "THIS" directory from the PYTHONPATH
-        # to prevent unwanted imports. Same for iepkernel dir
-        thisPath = os.getcwd()
-        for p in [thisPath, os.path.join(thisPath,'iepkernel')]:
-            while p in sys.path:
-                sys.path.remove(p)
         
-        # Apped project path if given
+        # Append project path if given
         projectPath = startup_info['projectPath']
         if projectPath:
             sys.stdout.write('Prepending the project path %r to sys.path\n' % 
@@ -175,6 +204,7 @@ class IepInterpreter:
         sys.stdout.write('Type "help" for help, ' + 
                             'type "?" for a list of *magic* commands.\n')
         
+        
         # Get whether we should (and can) run as script
         scriptFilename = startup_info['scriptFile']
         if scriptFilename:
@@ -183,7 +213,7 @@ class IepInterpreter:
                 scriptFilename = None
         
         # Init script to run on startup
-        scriptToRunOnStartup = None
+        self._scriptToRunOnStartup = None
         
         if scriptFilename:
             # RUN AS SCRIPT
@@ -207,7 +237,7 @@ class IepInterpreter:
             sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
             
             # Run script
-            scriptToRunOnStartup = scriptFilename
+            self._scriptToRunOnStartup = scriptFilename
         
         else:
             # RUN INTERACTIVELY
@@ -236,35 +266,39 @@ class IepInterpreter:
                 filename = os.environ.get('PYTHONSTARTUP','')
             # Check if it exists
             if filename and os.path.isfile(filename):
-                scriptToRunOnStartup = filename
+                self._scriptToRunOnStartup = filename
+    
+    
+    def _mainloop(self):
+        """ The actual main loop of the interpreter.
+        """
         
-        # Get channels
-        ctrl_command = sys._yoton_context._ctrl_command
-        ctrl_code = sys._yoton_context._ctrl_code
-        strm_echo = sys._yoton_context._strm_echo
-        strm_prompt = sys._yoton_context._strm_prompt
-        stat_interpreter = sys._yoton_context._stat_interpreter
+        # Get channels as local variables
+        ctrl_command = self.context._ctrl_command
+        ctrl_code = self.context._ctrl_code
+        strm_echo = self.context._strm_echo
+        strm_prompt = self.context._strm_prompt
+        stat_interpreter = self.context._stat_interpreter
         
-        
-        # ENTER MAIN LOOP
-        magician = Magician()
-        guitime = time.time()
+        # To keep track of whether to send a new prompt, and whether more
+        # code is expected.
         more = 0
-        self.newPrompt = True
+        newPrompt = True
+        
         while True:
             try:
                 
                 # Run startup script inside the loop (only the first time)
                 # so that keyboard interrupt will work
-                if scriptToRunOnStartup:
+                if self._scriptToRunOnStartup:
                     stat_interpreter.send('Busy') 
-                    scriptToRunOnStartup, tmp = None, scriptToRunOnStartup
+                    self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
                     self.runfile(tmp)
                 
                 # Set status and prompt?
                 # Prompt is allowed to be an object with __str__ method
-                if self.newPrompt:
-                    self.newPrompt = False
+                if newPrompt:
+                    newPrompt = False
                     # Write prompt (note that the second "if" is not an "elif"!
                     preamble = ''
                     if self._dbFrames:
@@ -285,12 +319,9 @@ class IepInterpreter:
                     else:
                         stat_interpreter.send('Ready')
                 
-                # Wait for a bit at each round
-                # todo: this seems like a bit long!
-                time.sleep(0.05) # 50 ms
                 
                 # Are we still connected?
-                if sys.stdin.closed or not sys._yoton_context.connection_count:
+                if sys.stdin.closed or not self.context.connection_count:
                     # Exit from main loop
                     break
                 
@@ -307,15 +338,15 @@ class IepInterpreter:
                         # Notify what we're doing
                         strm_echo.send(line1)
                         stat_interpreter.send('Busy')
-                        self.newPrompt = True
+                        newPrompt = True
                         # Convert command
-                        line2 = magician.convert_command(line1.rstrip('\n'))
+                        line2 = self.magician.convert_command(line1.rstrip('\n'))
                         # Execute actual code
                         if line2 is not None:
-                            more = self.push(line2)
+                            more = self.pushline(line2)
                         else:
                             more = False
-                            self.resetbuffer()
+                            self._resetbuffer()
                 
                 elif ch is ctrl_code:
                     # Read larger block of code (dict)
@@ -324,11 +355,11 @@ class IepInterpreter:
                         # Notify what we're doing
                         # (runlargecode() sends on stdin-echo)
                         stat_interpreter.send('Busy')
-                        self.newPrompt = True
+                        newPrompt = True
                         # Execute code
                         self.runlargecode(msg)
                         # Reset more stuff
-                        self.resetbuffer()
+                        self._resetbuffer()
                         more = False
                 
                 else:
@@ -336,59 +367,62 @@ class IepInterpreter:
                     ch.recv(False)
                 
                 # Keep GUI toolkit up to date
-                # todo: make timeout user-settable?
-                if self.guiApp and time.time() - guitime > 0.019:
+                if self.guiApp:
                     self.guiApp.processEvents()
-                    guitime = time.time()
+                
+                # Wait for a bit at each round
+                time.sleep(self.sleeptime) # 50 ms
+            
             
             except KeyboardInterrupt:
                 self.write("\nKeyboardInterrupt\n")
-                self.resetbuffer()
+                self._resetbuffer()
                 more = 0
             except TypeError:
                 # For some reason, when wx is hijacked, keyboard interrupts
                 # result in a TypeError.
                 # I tried to find the source, but did not find it. If anyone
                 # has an idea, please e-mail me!
-                if guiName == 'wx':
+                if self.guiName == 'wx':
                     self.write("\nKeyboard Interrupt\n") # space to see difference
-                    self.resetbuffer()
+                    self._resetbuffer()
                     more = 0
             except SystemExit:
-                # Close socket nicely (no need, it will shutdown gracefully)
-                #sys._yoton_context.close()
                 # Exit from interpreter
                 return
     
     
-    def resetbuffer(self):
+    ## Running code in various ways
+    # In all cases there is a call for compilecode and a call to execcode
+    
+    def _resetbuffer(self):
         """Reset the input buffer."""
-        self.buffer = []
+        self._buffer = []
     
     
-    def push(self, line):
+    def pushline(self, line):
         """Push a line to the interpreter.
         
         The line should not have a trailing newline; it may have
         internal newlines.  The line is appended to a buffer and the
-        interpreter's runsource() method is called with the
+        interpreter's _runlines() method is called with the
         concatenated contents of the buffer as source.  If this
         indicates that the command was executed or invalid, the buffer
         is reset; otherwise, the command is incomplete, and the buffer
         is left as it was after the line was appended.  The return
         value is 1 if more input is required, 0 if the line was dealt
-        with in some way (this is the same as runsource()).
+        with in some way (this is the same as _runlines()).
         
         """
-        self.buffer.append(line)
-        source = "\n".join(self.buffer)
-        more = self.runsource(source, self.filename)
+        self._buffer.append(line)
+        source = "\n".join(self._buffer)
+        more = self._runlines(source, self._filename)
         if not more:
-            self.resetbuffer()
+            self._resetbuffer()
         return more
     
     
-    def runsource(self, source, filename="<input>", symbol="single"):
+    def _runlines(self, source, filename="<input>", symbol="single"):
         """Compile and run some source in the interpreter.
         
         Arguments are as for compile_command().
@@ -403,7 +437,7 @@ class IepInterpreter:
         compile_command() returned None.  Nothing happens.
         
         3) The input is complete; compile_command() returned a code
-        object.  The code is executed by calling self.runcode() (which
+        object.  The code is executed by calling self.execcode() (which
         also handles run-time exceptions, except for SystemExit).
         
         The return value is True in case 2, False in the other cases (unless
@@ -413,7 +447,7 @@ class IepInterpreter:
         
         """
         try:
-            code = self.compile(source, filename, symbol)
+            code = self.compilecode(source, filename, symbol)
         except (OverflowError, SyntaxError, ValueError):
             # Case 1
             self.showsyntaxerror(filename)
@@ -424,31 +458,8 @@ class IepInterpreter:
             return True
         
         # Case 3
-        self.runcode(code)
+        self.execcode(code)
         return False
-    
-    
-    def runcode(self, code):
-        """Execute a code object.
-        
-        When an exception occurs, self.showtraceback() is called to
-        display a traceback.  All exceptions are caught except
-        SystemExit, which is reraised.
-        
-        A note about KeyboardInterrupt: this exception may occur
-        elsewhere in this code, and may not always be caught.  The
-        caller should be prepared to deal with it.
-        
-        The globals variable is used when in debug mode.
-        """
-        try:
-            if self._dbFrames:
-                exec(code, self.globals, self.locals)
-            else:
-                exec(code, self.locals)
-        except Exception:
-            time.sleep(0.2) # Give stdout some time to send data
-            self.showtraceback()
     
     
     def runlargecode(self, msg):
@@ -470,7 +481,7 @@ class IepInterpreter:
             runtext = '(executing lines %i to %i of "%s")\n' % (
                                                 lineno1, lineno2, fname_show)
         # Notify IDE
-        sys._yoton_context._strm_echo.send(runtext)
+        self.context._strm_echo.send(runtext)
         
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
@@ -482,7 +493,7 @@ class IepInterpreter:
         code = None
         try:            
             # Compile
-            code = self.compile(source, fname, "exec")          
+            code = self.compilecode(source, fname, "exec")          
             
         except (OverflowError, SyntaxError, ValueError):
             self.showsyntaxerror(fname)
@@ -492,7 +503,7 @@ class IepInterpreter:
             # Store the source using the (id of the) code object as a key
             self._codeCollection.storeSource(code, source)
             # Execute the code
-            self.runcode(code)
+            self.execcode(code)
         else:
             # Incomplete code
             self.write('Could not run code because it is incomplete.\n')
@@ -519,7 +530,7 @@ class IepInterpreter:
         code = None
         try:            
             # Compile
-            code = self.compile(source, fname, "exec")
+            code = self.compilecode(source, fname, "exec")
         except (OverflowError, SyntaxError, ValueError):
             time.sleep(0.2) # Give stdout time to be send
             self.showsyntaxerror(fname)
@@ -529,15 +540,13 @@ class IepInterpreter:
             # Store the source using the (id of the) code object as a key
             self._codeCollection.storeSource(code, source)
             # Execute the code
-            self.runcode(code)
+            self.execcode(code)
         else:
             # Incomplete code
             self.write('Could not run code because it is incomplete.\n')
     
-    ## Misc
     
-    
-    def compile(self, source, filename, mode, *args, **kwargs):
+    def compilecode(self, source, filename, mode, *args, **kwargs):
         """ Compile source code.
         Will mangle coding definitions on first two lines. 
         
@@ -571,15 +580,38 @@ class IepInterpreter:
         return self._compile(source, filename, mode, *args, **kwargs)
     
     
+    def execcode(self, code):
+        """Execute a code object.
+        
+        When an exception occurs, self.showtraceback() is called to
+        display a traceback.  All exceptions are caught except
+        SystemExit, which is reraised.
+        
+        A note about KeyboardInterrupt: this exception may occur
+        elsewhere in this code, and may not always be caught.  The
+        caller should be prepared to deal with it.
+        
+        The globals variable is used when in debug mode.
+        """
+        try:
+            if self._dbFrames:
+                exec(code, self.globals, self.locals)
+            else:
+                exec(code, self.locals)
+        except Exception:
+            time.sleep(0.2) # Give stdout some time to send data
+            self.showtraceback()
+    
+    
     ## Writing and error handling
     
     
     def write(self, text):
-        """ Write errors and prompts. """
+        """ Write errors. """
         sys.stderr.write( text )
     
     
-    def writeStatus(self):
+    def writestatus(self):
         """ Write the status when in ready state.
         Writes STATE to Ready or Debug and writes DEBUG (info).
         """
@@ -589,7 +621,7 @@ class IepInterpreter:
         for f in self._dbFrames:
             # Get fname and lineno, and correct if required
             fname, lineno = f.f_code.co_filename, f.f_lineno
-            fname, lineno = self.correctFilenameAndLineno(fname, lineno)
+            fname, lineno = self.correctfilenameandlineno(fname, lineno)
             if not fname.startswith('<'):
                 fname2 = os.path.abspath(fname)
                 if os.path.isfile(fname2):
@@ -601,7 +633,7 @@ class IepInterpreter:
         
         # Send info object
         state = {'index': self._dbFrameIndex, 'frames': frames}
-        sys._yoton_context._stat_debug.send(state)
+        self.context._stat_debug.send(state)
     
     
     def showsyntaxerror(self, filename=None):
@@ -625,7 +657,7 @@ class IepInterpreter:
                 # unpack information
                 msg, (dummy_filename, lineno, offset, line) = value
                 # correct line-number
-                fname, lineno = self.correctFilenameAndLineno(filename, lineno)
+                fname, lineno = self.correctfilenameandlineno(filename, lineno)
             except:
                 # Not the format we expect; leave it alone
                 pass
@@ -705,7 +737,7 @@ class IepInterpreter:
             for i in range(len(tblist)):
                 tbInfo = tblist[i]                
                 # Get filename and line number, init example
-                fname, lineno = self.correctFilenameAndLineno(tbInfo[0], tbInfo[1])
+                fname, lineno = self.correctfilenameandlineno(tbInfo[0], tbInfo[1])
                 if not isinstance(fname, ustr):
                     fname = fname.decode('utf-8')
                 example = tbInfo[3]
@@ -743,7 +775,7 @@ class IepInterpreter:
             frames = None
     
     
-    def correctFilenameAndLineno(self, fname, lineno):
+    def correctfilenameandlineno(self, fname, lineno):
         """ Given a filename and lineno, this function returns
         a modified (if necessary) version of the two. 
         As example:
