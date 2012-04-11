@@ -38,9 +38,6 @@ reqp-introspect (OBJECT): To query information from the kernel (and for interrup
 
 """
 
-# todo: structure the interpreter, magician, Context, etc, in a better way
-# maybe make some parts more accessible, such as setting the GUI event cycle time
-
 # This file is executed with the active directory one up from this file.
 
 import os
@@ -52,9 +49,8 @@ import __main__ # we will run code in the __main__.__dict__ namespace
 
 ## Make connection object and get channels
 
-# Create a yoton context
+# Create a yoton context. All channels are stored at the context.
 ct = yoton.Context()
-sys._yoton_context = ct
 
 # Create control channels
 ct._ctrl_command = yoton.SubChannel(ct, 'ctrl-command')
@@ -116,16 +112,16 @@ from iepkernel.introspection import IepIntrospector
 
 # Create interpreter instance and give dict in which to run all code
 __iep__ = IepInterpreter( __main__.__dict__, '<console>')
+sys._iepInterpreter = __iep__
 
-# Create introspection req channel
+# Store context
+__iep__.context = ct
+
+# Create introspection req channel (store at interpreter instance)
 __iep__.introspector = IepIntrospector(ct, 'reqp-introspect')
 
 
 ## Clean up
-
-# Store interpreter and channels on sys
-sys._iepInterpreter = __iep__
-__iep__.os = os #For magic commands that need os access
 
 # Delete local variables
 del yoton, IepInterpreter, IepIntrospector, iep_excepthook
@@ -135,6 +131,9 @@ del os, sys, time
 # Delete stuff we do not want 
 del __file__
 
+
+## Start and stop
+
 # Start introspector and enter the interpreter
 __iep__.introspector.set_mode('thread')
 __iep__.interact()
@@ -142,5 +141,4 @@ __iep__.interact()
 # Nicely exit by closing context (closes channels and connections). If we do 
 # not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
 __iep__.introspector.set_mode(0)
-import sys
-sys._yoton_context.close()
+__iep__.context.close()
