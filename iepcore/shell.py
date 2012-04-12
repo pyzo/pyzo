@@ -18,15 +18,21 @@ code in it.
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
+
 import os, sys, time, subprocess
 import yoton
 import iep
 import ssdf
+
+from codeeditor.highlighter import Highlighter
+from codeeditor import parsers
+
 from iepcore.baseTextCtrl import BaseTextCtrl
 from iepcore.iepLogging import print
 from iepcore.kernelbroker import KernelInfo, Kernelmanager
 from iepcore.menu import ShellContextMenu
 from iepcore.shellInfoDialog import findPythonExecutables
+
 
 
 # Interval for polling messages. Timer for each kernel. I found
@@ -36,6 +42,8 @@ POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 # todo: make customizable
 MAXBLOCKCOUNT = 10*1000
 
+
+# todo: we could make command shells to, with autocompletion and coloring...
 
 class YotonEmbedder(QtCore.QObject):
     """ Embed the Yoton event loop.
@@ -105,6 +113,104 @@ def finishKernelInfo(info, scriptFile=None):
 
 
 
+class ShellHighlighter(Highlighter):
+    """ This highlighter implements highlighting for a shell;
+    only the input lines are highlighted with this highlighter.
+    """
+    
+    def highlightBlock(self, line): 
+        
+        t0 = time.time()
+        
+        # Make sure this is a Unicode Python string
+        line = str(line)
+        
+        # Get previous state
+        previousState = self.previousBlockState()
+        
+        # Get parser
+        parser = None
+        if hasattr(self._codeEditor, 'parser'):
+            parser = self._codeEditor.parser()
+        
+        # Get function to get format
+        nameToFormat = self._codeEditor.getStyleElementFormat
+        
+        # Last line?
+        cursor1 = self._codeEditor._cursor1
+        cursor2 = self._codeEditor._cursor2
+        commandCursor = self._codeEditor._lastCommandCursor
+        curBlock = self.currentBlock()
+        #
+        atLastPrompt, atCurrentPrompt = False, False
+        if curBlock.position() == 0:
+            pass
+        elif curBlock.position() == commandCursor.block().position():
+            atLastPrompt = True
+        elif curBlock.position() >= cursor1.block().position():
+            atCurrentPrompt = True
+        
+        
+        if (atLastPrompt or atCurrentPrompt) and parser:
+            if atCurrentPrompt:
+                pos1, pos2 = cursor1.positionInBlock(), cursor2.positionInBlock()
+            else:
+                pos1, pos2 = 0, commandCursor.positionInBlock()
+            
+            self.setCurrentBlockState(0)
+            for token in parser.parseLine(line, previousState):
+                # Handle block state
+                if isinstance(token, parsers.BlockState):
+                    self.setCurrentBlockState(token.state)
+                else:
+                    # Get format
+                    try:
+                        format = nameToFormat(token.name).textCharFormat
+                    except KeyError:
+                        #print(repr(nameToFormat(token.name)))
+                        continue
+                    # Set format                    
+                    #format.setFontWeight(99)
+                    if token.start >= pos2:
+                        self.setFormat(token.start,token.end-token.start,format)
+                
+            # Set prompt to bold
+            if atCurrentPrompt:
+                format = QtGui.QTextCharFormat()
+                format.setFontWeight(99)
+                self.setFormat(pos1, pos2-pos1 ,format)
+        
+        #Get the indentation setting of the editors
+        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
+        
+        # Get user data
+        bd = self.getCurrentBlockUserData()
+        
+        leadingWhitespace=line[:len(line)-len(line.lstrip())]
+        if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
+            #Mixed whitespace
+            bd.indentation = 0
+            format=QtGui.QTextCharFormat()
+            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.red)
+            format.setToolTip('Mixed tabs and spaces')
+            self.setFormat(0,len(leadingWhitespace),format)
+        elif ('\t' in leadingWhitespace and indentUsingSpaces) or \
+            (' ' in leadingWhitespace and not indentUsingSpaces):
+            #Whitespace differs from document setting
+            bd.indentation = 0
+            format=QtGui.QTextCharFormat()
+            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.blue)
+            format.setToolTip('Whitespace differs from document setting')
+            self.setFormat(0,len(leadingWhitespace),format)
+        else:
+            # Store info for indentation guides
+            # amount of tabs or spaces
+            bd.indentation = len(leadingWhitespace)
+
+
+
 class BaseShell(BaseTextCtrl):
     """ The BaseShell implements functionality to make a generic shell.
     """
@@ -114,6 +220,10 @@ class BaseShell(BaseTextCtrl):
         super().__init__(parent, wrap=True, showLineNumbers=False, 
             highlightCurrentLine=False, parser='python', **kwds)
         
+        # Use a special highlighter that only highlights the input.
+        self._setHighlighter(ShellHighlighter)
+        
+        # No undo in shells
         self.setUndoRedoEnabled(False)
         
         # variables we need
@@ -420,7 +530,7 @@ class BaseShell(BaseTextCtrl):
     
     
     def _handleBackspaces(self, text):
-        """ Apply backspaced in the string itself and if there are
+        """ Apply backspaces in the string itself and if there are
         backspaces left at the start of the text, remove the appropriate
         amount of characters from the text.
         
@@ -447,7 +557,7 @@ class BaseShell(BaseTextCtrl):
         
         If prompt is 0 (default) the text is printed before the prompt. If 
         prompt is 1, the text is printed after the prompt, the new prompt
-        becomes nul. If prompt is 2, the given text becomes the new prompt.
+        becomes null. If prompt is 2, the given text becomes the new prompt.
         
         The color of the text can also be specified (as a hex-string).
         
@@ -500,20 +610,16 @@ class BaseShell(BaseTextCtrl):
             self._cursor2.setKeepPositionOnInsert(False)
             self._cursor1.insertText(text, format)
         
-        #if isinstance(self, PythonShell):
-        #    print(prompt, '|', pos1, pos2, '|', self._cursor1.position(), self._cursor2.position(), text)
-        
         # Reset cursor states for the user to type his/her commands
         self._cursor1.setKeepPositionOnInsert(True)
         self._cursor2.setKeepPositionOnInsert(True)
         
-        
+        # Make sure that cursor is visible (only when cursor is at edit line)
         if not self.isReadOnly():
-            # Make sure that cursor is visible (only when cursor is at edit line)
             self.ensureCursorVisible()
         
+        # Scroll along with the text if lines are popped from the top
         elif self.blockCount() == MAXBLOCKCOUNT:
-            # Scroll along with the text if lines are popped from the top
             n = text.count('\n')
             sb = self.verticalScrollBar()
             sb.setValue(sb.value()-n) 
@@ -568,14 +674,6 @@ class BaseShell(BaseTextCtrl):
         self.write(">>> ", prompt=2)
 
 
-class RequestObject:
-    def __init__(self, request, callback, id=None):
-        self._request = request
-        self._callback = callback
-        self._id = id
-        self._posted = False
-
-
 
 class PythonShell(BaseShell):
     """ The PythonShell class implements the python part of the shell
@@ -585,9 +683,6 @@ class PythonShell(BaseShell):
     # Emits when the status string has changed
     stateChanged = QtCore.pyqtSignal(BaseShell)
     debugStateChanged = QtCore.pyqtSignal(BaseShell)
-    
-    # todo: maybe have a status to see whether the kernel is alive or not.
-    # todo: color the background "dead" when the kernel is not alive
 
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
@@ -608,58 +703,48 @@ class PythonShell(BaseShell):
         self._currentCTO = None
         self._currentACO = None
         
-        # Multi purpose time variable and a buffer
-        self._t = time.time()
+        # Write buffer to store messages in for writing
         self._write_buffer = None
         
-        # Variables to store python version, builtins and keywords 
-        self._state = ''
-        self._debugState = {}
-        self._version = ""
-        self._builtins = []
-        self._keywords = []
-        
-#         # Define queue of requestObjects and insert a few requests
-#         self._requestQueue = []
-#         tmp = "','.join(__builtins__.__dict__.keys())"
-#         self.postRequest('EVAL sys.version', self._setVersion)
-#         self.postRequest('EVAL ' + tmp, self._setBuiltins)
-#         self.postRequest("EVAL ','.join(keyword.kwlist)", self._setKeywords)
-        
         # Create timer to keep polling any results
+        # todo: Maybe use yoton events to process messages as they arrive.
+        # I tried this briefly, but it seemd to be less efficient because 
+        # messages are not so much bach-processed anymore. We should decide
+        # on either method.
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(POLL_TIMER_INTERVAL)  # ms
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
         
-        # Initialize timer callback
-        self._pollMethod = None
-        
-        # Install different highlighter
-        self._setHighlighter(PythonShellHighlighter)
-        
         # Add context menu
-        self._menu = ShellContextMenu(shell = self, parent = self)
+        self._menu = ShellContextMenu(shell=self, parent=self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
         
         # Start!
+        self.resetVariables()
         self.connectToKernel(info)
-        self.start()
     
     
-    def start(self):
-        """ Start the remote process. """
+    def resetVariables(self):
+        """ Resets some variables. """
         
         # Reset read state
         self.setReadOnly(False)
         
+        # Variables to store state, python version, builtins and keywords 
+        self._state = ''
+        self._debugState = {}
+        self._version = ""
+        self._builtins = []
+        self._keywords = []
+        
         # (re)set import attempts
         self._importAttempts[:] = []
         
-        # Set timer callback
-        self._pollMethod = self.poll_running
+        # Update
+        self.stateChanged.emit(self)
     
     
     def connectToKernel(self, info):
@@ -695,8 +780,10 @@ class PythonShell(BaseShell):
         # Create status channels
         self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
         self._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
+        self._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
+        self._stat_startup.received.bind(self._onReceivedStartupInfo)
         
-        # Create introspection channel
+        # Create introspection request channel
         self._request = yoton.ReqChannel(ct, 'reqp-introspect')
         
         # Connect! The broker will only start the kernel AFTER
@@ -705,7 +792,7 @@ class PythonShell(BaseShell):
         self._brokerConnection = ct.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
         
-        
+        # todo: see polling vs events
 #         # Detect incoming messages 
 #         for c in [self._strm_out, self._strm_err, self._strm_raw, 
 #                 self._strm_echo, self._strm_prompt, self._strm_broker,
@@ -713,38 +800,28 @@ class PythonShell(BaseShell):
 #                 self._stat_interpreter, self._stat_debug]:
 #             c.received.bind(self.poll)
         
+    
+    def _onReceivedStartupInfo(self, channel):
+        startup_info = channel.recv()
         
-        # Ask for python version
-        def _setVersion(future):
-            if future.cancelled():
-                return
-            version = future.result()
-            if isinstance(version, tuple):
-                version = [str(v) for v in version]
-                self._version = '.'.join(version[:2])
-            self.stateChanged.emit(self)
-        future = self._request.eval('tuple(sys.version_info)')
-        future.add_done_callback(_setVersion)
+        # Set version
+        version = startup_info.get('version', None)
+        if isinstance(version, tuple):
+            version = [str(v) for v in version]
+            self._version = '.'.join(version[:2])
         
-        # Ask for builtins
-        def _setKeywords(future):
-            if future.cancelled():
-                return
-            L = future.result()
-            if isinstance(L, list):
-                self._keywords = L
-        future = self._request.eval('keyword.kwlist')
-        future.add_done_callback(_setKeywords)
+        # Set keywords
+        L = startup_info.get('keywords', None)
+        if isinstance(L, list):
+            self._keywords = L
         
-        # Ask for builtins
-        def _setBuiltins(future):
-            if future.cancelled():
-                return
-            L = future.result()
-            if isinstance(L, list):
-                self._builtins = L
-        future = self._request.eval('dir(__builtins__)')
-        future.add_done_callback(_setBuiltins)
+        # Set builtins
+        L = startup_info.get('builtins', None)
+        if isinstance(L, list):
+            self._builtins = L
+        
+        # Notify
+        self.stateChanged.emit(self)
     
     
     ## Introspection processing methods
@@ -956,115 +1033,19 @@ class PythonShell(BaseShell):
                 line = line.lstrip(" ")
             lines2.append( line )
         
-#         # Running while file?
-#         runWholeFile = False
-#         if lineno<0:
-#             lineno = 0
-#             runWholeFile = True
-#         
-#         # Append info line, than combine
-#         lines2.insert(0,'') # code is recognized because starts with newline
-#         lines2.append('') # The code needs to end with a newline
-#         lines2.append(fname)
-#         lines2.append(str(lineno))
-        #
-        text = "\n".join(lines2)
-        
-#         # Get last bit of filename to print in "[executing ...."
-#         if not fname.startswith('<'):
-#             fname = os.path.split(fname)[1]
-#         
-#         # Write to shell to let user know we are running...
-#         lineno1 = lineno + 1
-#         lineno2 = lineno + len(lines)
-#         if runWholeFile:
-#             runtext = '[executing "{}"]\n'.format(fname)
-#         elif lineno1 == lineno2:
-#             runtext = '[executing line {} of "{}"]\n'.format(lineno1, fname)
-#         else:
-#             runtext = '[executing lines {} to {} of "{}"]\n'.format(
-#                                             lineno1, lineno2, fname)
-#         self.processLine(runtext, False)
         
         # Send message
+        text = "\n".join(lines2)
         msg = {'source':text, 'fname':fname, 'lineno':lineno}
         self._ctrl_code.send(msg)
-    
-    # todo: implement most magic commands in kernel
-    def modifyCommand(self, text):
-        
-        if text == 'db focus':
-            # If not debugging, cant focus
-            if not self._debugState:
-                return 'print("Not in debug mode.")'
-            # Get line from state
-            debugState = self._debugState.split(';')
-            i = int(debugState[0])
-            # Focus
-            error = iep.shells._tabs.cornerWidget().debugFocus(debugState[i])
-            if error:
-                text = 'print "{}"'.format(error)
-            else:
-                text = ''
-        
-#         elif text.startswith('open ') or text.startswith('opendir '):
-#             # get what to open            
-#             objectName = text.split(' ',1)[1]
-#             # query
-#             pn = remoteEval('os.getcwd()')
-#             fn = os.path.join(pn,objectName) # will also work if given abs path
-#             if text.startswith('opendir '):                
-#                 iep.editors.loadDir(fn)
-#                 msg = "Opening dir '{}'."
-#             elif os.path.isfile(fn):
-#                 # Load file
-#                 iep.editors.loadFile(fn)
-#                 msg = "Opening file '{}'."
-#             elif remoteEval(objectName) == '<error>':
-#                 # Given name is not an object
-#                 msg = "Not a valid object: '{}'.".format(objectName)
-#             else:   
-#                 # Try loading file in which object is defined
-#                 fn = remoteEval('{}.__file__'.format(objectName))
-#                 if fn == '<error>':
-#                     # Get module                    
-#                     moduleName = remoteEval('{}.__module__'.format(objectName))
-#                     tmp = 'sys.modules["{}"].__file__'
-#                     fn = remoteEval(tmp.format(moduleName))                    
-#                 if fn != '<error>':
-#                     # Make .py from .pyc
-#                     if fn.endswith('.pyc'):
-#                         fn = fn[:-1]
-#                     # Try loading
-#                     iep.editors.loadFile(fn)
-#                     msg = "Opening file that defines '{}'.".format(objectName)
-#                 else:
-#                     msg = "Could not open the file for that object."
-#             # ===== Post process
-#             if msg and '{}' in msg:
-#                 msg = msg.format(fn.replace('\\', '/'))
-#             if msg:
-#                 text = 'print("{}")'.format(msg)
-       
-        # Return modified version (or original)
-        return text
     
     
     ## The polling methods and terminating methods
     
     def poll(self, channel=None):
         """ poll()
-        To keep the shell up-to-date
+        To keep the shell up-to-date.
         Call this periodically. 
-        """
-        if self._pollMethod:
-            self._pollMethod()
-    
-    
-    def poll_running(self):
-        """  The timer callback method when the process is running.
-        Check if we have received anything from the remote
-        process that we should write.
         """
         
         if self._write_buffer:
@@ -1077,9 +1058,8 @@ class PythonShell(BaseShell):
                                 self._strm_broker, self._strm_prompt )
             # Read messages from it
             if sub:
-                # todo: change back to handle multiple packages!
                 M = sub.recv_selected()
-#                 M = [sub.recv()]
+                #M = [sub.recv()] # Slow version (for testing)
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
                     M = self._handleBackspacesOnList(M)
@@ -1122,12 +1102,12 @@ class PythonShell(BaseShell):
                 print('Unkown action: %s' % action)
         
         # Update status
-        # todo: include heartbeat info
         state = self._stat_interpreter.recv()
         if state != self._state:
             self._state = state
             self.stateChanged.emit(self)
         
+        # Update debug status
         state = self._stat_debug.recv()        
         if state != self._debugState:
             self._debugState = state
@@ -1155,6 +1135,9 @@ class PythonShell(BaseShell):
         # Create message and send
         msg = 'RESTART\n' + ssdf.saves(info)
         self._ctrl_broker.send(msg)
+        
+        # Reset
+        self.resetVariables()
     
     
     def terminate(self):
@@ -1188,7 +1171,7 @@ class PythonShell(BaseShell):
         # If we can, try to tell the broker to terminate the kernel
         if self._context and self._context.connection_count:
             self.terminate()
-            self._context.flush()
+            self._context.flush() # Important, make sure the message is send!
             self._context.close()
         
         # Adios
@@ -1196,8 +1179,7 @@ class PythonShell(BaseShell):
     
     
     def _onConnectionClose(self, c, why):
-        """ To be called after disconnecting (because that is detected
-        from another thread.
+        """ To be called after disconnecting.
         In general, the broker will not close the connection, so it can
         be considered an error-state if this function is called.
         """
@@ -1223,103 +1205,5 @@ class PythonShell(BaseShell):
         cursor.movePosition(cursor.End, A_MOVE)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
-
-
-# todo: clean this up a bit
-ustr = str
-from codeeditor.highlighter import Highlighter
-from codeeditor import parsers
-#
-class PythonShellHighlighter(Highlighter):
-    def highlightBlock(self, line): 
-        
-        t0 = time.time()
-        
-        # Make sure this is a Unicode Python string
-        line = ustr(line)
-        
-        # Get previous state
-        previousState = self.previousBlockState()
-        
-        # Get parser
-        parser = None
-        if hasattr(self._codeEditor, 'parser'):
-            parser = self._codeEditor.parser()
-        
-        # Get function to get format
-        nameToFormat = self._codeEditor.getStyleElementFormat
-        
-        # Last line?
-        cursor1 = self._codeEditor._cursor1
-        cursor2 = self._codeEditor._cursor2
-        commandCursor = self._codeEditor._lastCommandCursor
-        curBlock = self.currentBlock()
-        #
-        atLastPrompt, atCurrentPrompt = False, False
-        if curBlock.position() == 0:
-            pass
-        elif curBlock.position() == commandCursor.block().position():
-            atLastPrompt = True
-        elif curBlock.position() >= cursor1.block().position():
-            atCurrentPrompt = True
-        
-        
-        if (atLastPrompt or atCurrentPrompt) and parser:
-            if atCurrentPrompt:
-                pos1, pos2 = cursor1.positionInBlock(), cursor2.positionInBlock()
-            else:
-                pos1, pos2 = 0, commandCursor.positionInBlock()
-            
-            self.setCurrentBlockState(0)
-            for token in parser.parseLine(line, previousState):
-                # Handle block state
-                if isinstance(token, parsers.BlockState):
-                    self.setCurrentBlockState(token.state)
-                else:
-                    # Get format
-                    try:
-                        format = nameToFormat(token.name).textCharFormat
-                    except KeyError:
-                        #print(repr(nameToFormat(token.name)))
-                        continue
-                    # Set format                    
-                    #format.setFontWeight(99)
-                    if token.start >= pos2:
-                        self.setFormat(token.start,token.end-token.start,format)
-                
-            # Set prompt to bold
-            if atCurrentPrompt:
-                format = QtGui.QTextCharFormat()
-                format.setFontWeight(99)
-                self.setFormat(pos1, pos2-pos1 ,format)
-        
-        #Get the indentation setting of the editors
-        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
-        
-        # Get user data
-        bd = self.getCurrentBlockUserData()
-        
-        leadingWhitespace=line[:len(line)-len(line.lstrip())]
-        if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
-            #Mixed whitespace
-            bd.indentation = 0
-            format=QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.red)
-            format.setToolTip('Mixed tabs and spaces')
-            self.setFormat(0,len(leadingWhitespace),format)
-        elif ('\t' in leadingWhitespace and indentUsingSpaces) or \
-            (' ' in leadingWhitespace and not indentUsingSpaces):
-            #Whitespace differs from document setting
-            bd.indentation = 0
-            format=QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.blue)
-            format.setToolTip('Whitespace differs from document setting')
-            self.setFormat(0,len(leadingWhitespace),format)
-        else:
-            # Store info for indentation guides
-            # amount of tabs or spaces
-            bd.indentation = len(leadingWhitespace)
-    
+  
     
