@@ -144,6 +144,7 @@ class IndentationGuides(object):
         pen = QtGui.QPen(format.fore)
         pen.setStyle(format.linestyle)
         painter.setPen(pen)
+        offset = doc.documentMargin() + self.contentOffset().x()
         
         #Repainting always starts at the first block in the viewport,
         #regardless of the event.rect().y(). Just to keep it simple
@@ -155,10 +156,10 @@ class IndentationGuides(object):
             bd = cursor.block().userData()            
             if bd and bd.indentation:
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
-                    w = self.fontMetrics().width('i'*x) + doc.documentMargin()
+                    w = self.fontMetrics().width('i'*x) + offset
                     w += 1 # Put it more under the block
-
-                    painter.drawLine(QtCore.QLine(w, y3, w, y4))
+                    if w > 0: # if scrolled horizontally it can become < 0
+                        painter.drawLine(QtCore.QLine(w, y3, w, y4))
  
             if y4>y2:
                 break #Reached end of the repaint area
@@ -217,7 +218,8 @@ class LongLineIndicator(object):
         fm = self.fontMetrics()
         # width of ('i'*length) not length * (width of 'i') b/c of
         # font kerning and rounding
-        x = fm.width('i' * self.longLineIndicatorPosition()) + doc.documentMargin()
+        x = fm.width('i' * self.longLineIndicatorPosition())
+        x += doc.documentMargin() + self.contentOffset().x()
         x += 1 # Move it a little next to the cursor
         
         # Prepate painter

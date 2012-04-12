@@ -260,7 +260,7 @@ class IepEditor(BaseTextCtrl):
         self.setShowLineEndings(iep.config.view.showLineEndings)
         self.setShowIndentationGuides(iep.config.view.showIndentationGuides)
         #
-        self.setWrap(iep.config.view.wrapText)
+        self.setWrap(bool(iep.config.view.wrap))
         self.setHighlightCurrentLine(iep.config.view.highlightCurrentLine)
         self.setLongLineIndicatorPosition(iep.config.view.edgeColumn)
         #TODO: self.setFolding( int(view.codeFolding)*5 )        
