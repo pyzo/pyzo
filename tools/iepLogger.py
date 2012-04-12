@@ -26,8 +26,14 @@ class IepLogger(BaseShell):
         BaseShell.__init__(self, parent)
         
         # Set style to Python, or autocompletion does not work
-        # todo: use same technique as in PythonShell to make stdout uncoloured
         self.setParser('python')
+        
+        # Change background color to make the logger look different from shell
+        # Use color as if all lines are highlighted
+        f1 = self.getStyleElementFormat('Editor.text')
+        f2 = self.getStyleElementFormat('Editor.Highlight current line')
+        newStyle = 'back:%s, fore:%s' % (f2.back.name(), f1.fore.name())
+        self.setStyle(editor_text=newStyle)
         
         # Create interpreter to run code        
         locals = {'iep':iep, 'sys':sys, 'os':os}

@@ -20,7 +20,9 @@ import os, sys, time
 import struct
 from codeop import CommandCompiler
 import traceback
+import keyword
 import inspect # Must be in this namespace
+
 import yoton
 from iepkernel import guiintegration
 from iepkernel.magic import Magician
@@ -136,10 +138,16 @@ class IepInterpreter:
         # Reset debug status
         self.writestatus()
         
-        # Get startup info
+        # Get startup info (get a copy, or setting the new version wont trigger!)
         while self.context._stat_startup.recv() is None:
             time.sleep(0.02)
-        self.startup_info = startup_info = self.context._stat_startup.recv()
+        self.startup_info = startup_info = self.context._stat_startup.recv().copy()
+        
+        # Set startup info (with additional info)
+        startup_info['version'] = tuple(sys.version_info)
+        startup_info['keywords'] = keyword.kwlist
+        startup_info['builtins'] = dir(__builtins__)
+        self.context._stat_startup.send(startup_info)
         
         # Write Python banner
         NBITS = 8 * struct.calcsize("P")
