@@ -25,8 +25,9 @@ class IepLogger(BaseShell):
     def __init__(self, parent):
         BaseShell.__init__(self, parent)
         
-        # apply style        
-        self.setParser(None)
+        # Set style to Python, or autocompletion does not work
+        # todo: use same technique as in PythonShell to make stdout uncoloured
+        self.setParser('python')
         
         # Create interpreter to run code        
         locals = {'iep':iep, 'sys':sys, 'os':os}
