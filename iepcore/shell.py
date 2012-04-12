@@ -29,23 +29,12 @@ from iepcore.menu import ShellContextMenu
 from iepcore.shellInfoDialog import findPythonExecutables
 
 
-# Yoton event-loop interval. Is global; there is one time for IEP
-# POLL_YOTON_INTERVAL = 30 # 30 ms 33 Hz
-
 # Interval for polling messages. Timer for each kernel. I found
 # that this one does not affect performance much
 POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 
-
 # todo: make customizable
 MAXBLOCKCOUNT = 10*1000
-
-# # Register timer to handle yoton event loop
-# iep.main._yoton_timer = QtCore.QTimer(iep.main)
-# iep.main._yoton_timer.setInterval(POLL_YOTON_INTERVAL)  # ms
-# iep.main._yoton_timer.setSingleShot(False)
-# iep.main._yoton_timer.timeout.connect(yoton.process_events)
-# iep.main._yoton_timer.start()
 
 
 class YotonEmbedder(QtCore.QObject):
@@ -166,24 +155,40 @@ class BaseShell(BaseTextCtrl):
         # Limit number of lines
         self.setMaximumBlockCount(MAXBLOCKCOUNT)
         
-        # apply style
-        # TODO: self.setStyle('')
+        # Keep track of position, so we can disable editing if the cursor
+        # is before the prompt
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
     
     
     def onCursorPositionChanged(self):
         #If the end of the selection (or just the cursor if there is no selection)
         #is before the beginning of the line. make the document read-only
-        if self.textCursor().selectionEnd() < self._cursor2.position():
+        cursor = self.textCursor()
+        promptpos = self._cursor2.position()
+        if cursor.position() < promptpos or cursor.anchor() < promptpos:
             self.setReadOnly(True)
         else:
             self.setReadOnly(False)
+    
+    
+    def ensureCursorAtEditLine(self):
+        """
+        If the text cursor is before the beginning of the edit line,
+        move it to the end of the edit line
+        """
+        cursor = self.textCursor()
+        promptpos = self._cursor2.position()
+        if cursor.position() < promptpos or cursor.anchor() < promptpos:
+            cursor.movePosition(cursor.End, A_MOVE) # Move to end of document
+            self.setTextCursor(cursor)
+            self.onCursorPositionChanged()
     
     
     def mousePressEvent(self, event):
         """ Disable right MB and middle MB (which pastes by default). """
         if event.button() != QtCore.Qt.MidButton:
             BaseTextCtrl.mousePressEvent(self, event)
+    
     
     def contextMenuEvent(self, event):
         """ Do not show context menu. """
@@ -329,17 +334,6 @@ class BaseShell(BaseTextCtrl):
     
     
     ## Basic commands to control the shell
-    
-    
-    def ensureCursorAtEditLine(self):
-        """
-        If the text cursor is before the beginning of the edit line,
-        move it to the end of the edit line
-        """
-        cursor = self.textCursor()
-        if cursor.position() < self._cursor2.position():
-            cursor.movePosition(cursor.End, A_MOVE)
-            self.setTextCursor(cursor)
     
     
     def clearScreen(self):
