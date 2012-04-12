@@ -858,10 +858,11 @@ class EditorTabContextMenu(Menu):
         elif action == "rename":
             filename = item.filename
             iep.editors.saveFileAs(item.editor)
-            try:
-                os.remove(filename)
-            except Exception:
-                pass
+            if item.filename != filename:
+                try:
+                    os.remove(filename)
+                except Exception:
+                    pass
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":
