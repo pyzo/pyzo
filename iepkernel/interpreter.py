@@ -144,9 +144,12 @@ class IepInterpreter:
         self.startup_info = startup_info = self.context._stat_startup.recv().copy()
         
         # Set startup info (with additional info)
+        builtins = __builtins__
+        if not isinstance(builtins, dict):
+            builtins = builtins.__dict__
+        startup_info['builtins'] = [builtin for builtin in builtins.keys()]
         startup_info['version'] = tuple(sys.version_info)
         startup_info['keywords'] = keyword.kwlist
-        startup_info['builtins'] = dir(__builtins__)
         self.context._stat_startup.send(startup_info)
         
         # Write Python banner
