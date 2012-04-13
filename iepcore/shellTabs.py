@@ -332,7 +332,8 @@ class DebugControl(QtGui.QToolButton):
         else:
             editor = result._editor
             # Goto line and select it
-            editor.gotoLine(linenr)
+            blocknr = linenr - 1
+            editor.gotoLine(blocknr)
             cursor = editor.textCursor()
             cursor.movePosition(cursor.StartOfBlock)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
