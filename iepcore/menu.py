@@ -989,8 +989,6 @@ class RunMenu(Menu):
         runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         while True:
-            if not runCursor.block().previous().isValid():
-                break #Start of document
             if runCursor.block().text().lstrip().startswith('##'):
                 # ## line, move to the line following this one
                 if not runCursor.block().next().isValid():
@@ -999,6 +997,8 @@ class RunMenu(Menu):
                     return
                 runCursor.movePosition(runCursor.NextBlock)
                 break
+            if not runCursor.block().previous().isValid():
+                break #Start of document
             runCursor.movePosition(runCursor.PreviousBlock)
         
         # This is the line number of the start
