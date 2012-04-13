@@ -882,8 +882,7 @@ class EditorTabContextMenu(Menu):
         iep.editors._tabs.updateItems()
 
 
-class RunMenu(Menu):
-    
+class RunMenu(Menu):       
     def build(self):
         self.addItem('Run selected lines', self._runSelected)
         self.addItem('Run cell', self._runCell)
@@ -1032,17 +1031,9 @@ class RunMenu(Menu):
             runCursor = editor.textCursor()
             runCursor.movePosition(runCursor.Start)
             runCursor.movePosition(runCursor.End, 1)
-        # Store original cursor and set run cursor
-        textCursor = editor.textCursor()
-        editor.setTextCursor(runCursor)
-        # Make sure its visible. For some reasone we need to 
-        # repain twice on Linux and Mac
-        # todo: test if it works on the Mac too now
-        editor.repaint()
-        editor.repaint()
-        # Wait for a bit and set back
-        time.sleep(0.200) # ms
-        editor.setTextCursor(textCursor)
+        
+        editor.showRunCursor(runCursor)
+
     
     def _getCodeOfFile(self, editor):
         # Obtain source code

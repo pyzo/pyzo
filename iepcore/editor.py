@@ -282,7 +282,9 @@ class IepEditor(BaseTextCtrl):
         
         # To see whether the doc has changed to update the parser.
         self.textChanged.connect(self._onModified)
-    
+        
+        # This timer is used to hide the marker that shows which code is executed
+        self._showRunCursorTimer = QtCore.QTimer()
     
     ## Properties
     
@@ -339,6 +341,20 @@ class IepEditor(BaseTextCtrl):
     
     
     ##
+    def showRunCursor(self, cursor):
+        """
+        Momentarily highlight a piece of code to show that this is being executed
+        """
+        
+        extraSelection = QtGui.QTextEdit.ExtraSelection()
+        extraSelection.cursor = cursor
+        extraSelection.format.setBackground(QtCore.Qt.gray)
+        self.setExtraSelections([extraSelection])
+        
+        self._showRunCursorTimer.singleShot(200, lambda: self.setExtraSelections([]))
+
+
+    
     def gotoLine(self,lineNumber):
         """Move the cursor to the given lineNumber (0-based) and center
         the cursor vertically"""
