@@ -158,7 +158,7 @@ class Magician:
                 interpreter.locals = frame.f_locals
                 interpreter.globals = frame.f_globals
                 # Notify IEP
-                interpreter.writeStatus() # todo: debug status?
+                interpreter.writestatus() # todo: debug status?
             else:
                 interpreter.write("No debug information available.\n")
         
@@ -177,7 +177,7 @@ class Magician:
                 interpreter._dbFrameName = frame.f_code.co_name
                 interpreter.locals = frame.f_locals
                 interpreter.globals = frame.f_globals
-                interpreter.writeStatus()
+                interpreter.writestatus()
         
         elif command == 'DB UP':
             if not interpreter._dbFrames:
@@ -192,7 +192,7 @@ class Magician:
                 interpreter._dbFrameName = frame.f_code.co_name
                 interpreter.locals = frame.f_locals
                 interpreter.globals = frame.f_globals
-                interpreter.writeStatus()
+                interpreter.writestatus()
         
         elif command == 'DB DOWN':
             if not interpreter._dbFrames:
@@ -207,7 +207,7 @@ class Magician:
                 interpreter._dbFrameName = frame.f_code.co_name
                 interpreter.locals = frame.f_locals
                 interpreter.globals = frame.f_globals
-                interpreter.writeStatus()
+                interpreter.writestatus()
         
         elif command == 'DB STOP':
             if not interpreter._dbFrames:
@@ -216,7 +216,7 @@ class Magician:
                 interpreter.locals = interpreter._main_locals
                 interpreter.globals = None
                 interpreter._dbFrames = []
-                interpreter.writeStatus()
+                interpreter.writestatus()
         
         elif command == 'DB WHERE':
             if not interpreter._dbFrames:
@@ -228,7 +228,7 @@ class Magician:
                     f = interpreter._dbFrames[i]
                     # Get fname and lineno, and correct if required
                     fname, lineno = f.f_code.co_filename, f.f_lineno
-                    fname, lineno = interpreter.correctFilenameAndLineno(fname, lineno)
+                    fname, lineno = interpreter.correctfilenameandlineno(fname, lineno)
                     # Build string
                     text = 'File "%s", line %i, in %s' % (
                                             fname, lineno, f.f_code.co_name)
