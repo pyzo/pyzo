@@ -123,7 +123,8 @@ class ShellInfo_gui(QtGui.QComboBox):
 class ShellInfo_pythonPath(QtGui.QVBoxLayout):
     
     def __init__(self, parent):
-        QtGui.QVBoxLayout.__init__(self, parent)
+        # Do not pass parent, because is a sublayout
+        QtGui.QVBoxLayout.__init__(self) 
         
         # Create two sub-widgets
         self._check = QtGui.QCheckBox('Use system default', parent)
@@ -198,7 +199,8 @@ class ShellInfo_pythonPath(QtGui.QVBoxLayout):
 class ShellInfo_startupScript(QtGui.QVBoxLayout):
     
     def __init__(self, parent):
-        QtGui.QVBoxLayout.__init__(self, parent)
+        # Do not pass parent, because is a sublayout
+        QtGui.QVBoxLayout.__init__(self)
         
         # Create two sub-widgets
         self._check = QtGui.QCheckBox('Use system default', parent)
@@ -423,7 +425,7 @@ class ShellInfoDialog(QtGui.QDialog):
         
         
         # Layout the widgets
-        mainLayout = QtGui.QVBoxLayout()
+        mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.addSpacing(8)
         mainLayout.addWidget(self._tabs,0)
         mainLayout.addLayout(buttonLayout,0)
