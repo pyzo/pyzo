@@ -23,7 +23,7 @@ from iepcore.editor import createEditor
 from iepcore.baseTextCtrl import normalizePath
 from iepcore.baseTextCtrl import styleManager
 from iepcore.iepLogging import print
-from iepcore.icons import EditorTabToolButton, TabCloseButton
+from iepcore.icons import EditorTabToolButton
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 50
@@ -774,7 +774,6 @@ class FileTabWidget(CompactTabWidget):
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
         self.tabBar().setTabButton(i, 0, EditorTabToolButton())
-        #self.tabBar().setTabButton(i, 1, TabCloseButton())
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)

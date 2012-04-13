@@ -127,6 +127,7 @@ class IconArtist:
         self.addPoint(x+2,y+3);
 
 
+# todo: not used; remove me?
 class TabCloseButton(QtGui.QToolButton):
     """ TabCloseButton
     
@@ -202,7 +203,7 @@ class TabCloseButton(QtGui.QToolButton):
         return QtGui.QIcon(pm)
 
 
-
+# todo: not used; remove me?
 class ToolButtonWithMenuIndication(QtGui.QToolButton):
     """ ToolButtonWithMenuIndication
     
@@ -347,12 +348,16 @@ class TabToolButtonWithCloseButton(TabToolButton):
         
     
     def mousePressEvent(self, event):
-        # Accept event so that the tabbar will NOT change to that tab
-        event.accept()
+        if self._isOverCross(event.pos()):
+            # Accept event so that the tabbar will NOT change to that tab
+            event.accept()
+        else:
+            event.ignore()
+    
     
     def mouseReleaseEvent(self, event):
-        event.accept()
         if self._isOverCross(event.pos()):
+            event.accept()
             # Get tabs
             tabs = self.parent().parent()
             # Get index from position
@@ -360,6 +365,9 @@ class TabToolButtonWithCloseButton(TabToolButton):
             index = tabs.tabBar().tabAt(pos)
             # Close it
             tabs.tabCloseRequested.emit(index)
+        else:
+            event.ignore()
+    
     
     def mouseMoveEvent(self, event):
         QtGui.QToolButton.mouseMoveEvent(self, event)
