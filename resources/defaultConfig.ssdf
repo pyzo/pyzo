@@ -22,7 +22,7 @@ view = dict:
     showIndentationGuides = 1
     showStatusbar = 0
     #
-    wrapText = 1
+    wrap = 1
     highlightCurrentLine = 1
     doBraceMatch = 1  # Both in editor and shell
     codeFolding = 0
