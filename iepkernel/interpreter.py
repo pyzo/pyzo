@@ -95,7 +95,8 @@ class IepInterpreter:
         # Init buffer to deal with multi-line command in the shell
         self._buffer = []
         
-        # Init sleep time (0.001 result in 0% CPU usage at my Windows laptop)
+        # Init sleep time. 0.001 result in 0% CPU usage at my laptop (Windows),
+        # but 8% CPU usage at my older laptop (on Linux).
         self.sleeptime = 0.01 # 100 Hz
         
         # Create compiler
