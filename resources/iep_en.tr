@@ -1,106 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="en_US">
-<context>
-    <name>Dialog</name>
-    <message>
-        <location filename="gui/shells_dialog.ui" line="26"/>
-        <source>IEP - Shell Configurations</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
+<!DOCTYPE TS>
+<TS version="2.0" language="en_US">
 <context>
     <name>menu</name>
     <message>
-        <location filename="iepcore/menu.py" line="408"/>
+        <location filename="iepcore/menu.py" line="416"/>
         <source>Use tabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="410"/>
+        <location filename="iepcore/menu.py" line="418"/>
         <source>Use spaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="414"/>
+        <location filename="iepcore/menu.py" line="422"/>
         <source>spaces</source>
         <comment>plural of spacebar character</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="437"/>
+        <location filename="iepcore/menu.py" line="445"/>
         <source>Indentation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="441"/>
+        <location filename="iepcore/menu.py" line="449"/>
         <source>Syntax parser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="446"/>
+        <location filename="iepcore/menu.py" line="454"/>
         <source>Line endings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="451"/>
+        <location filename="iepcore/menu.py" line="459"/>
         <source>Encoding</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="458"/>
+        <location filename="iepcore/menu.py" line="466"/>
         <source>New</source>
         <comment>file</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="460"/>
-        <source>Open</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="iepcore/menu.py" line="463"/>
+        <location filename="iepcore/menu.py" line="471"/>
         <source>Save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="464"/>
-        <source>Save as</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="iepcore/menu.py" line="465"/>
+        <location filename="iepcore/menu.py" line="473"/>
         <source>Save all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="466"/>
+        <location filename="iepcore/menu.py" line="474"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="467"/>
+        <location filename="iepcore/menu.py" line="475"/>
         <source>Close all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="479"/>
+        <location filename="iepcore/menu.py" line="487"/>
         <source>Restart IEP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="480"/>
+        <location filename="iepcore/menu.py" line="488"/>
         <source>Quit IEP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="1198"/>
+        <location filename="iepcore/menu.py" line="1255"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="iepcore/menu.py" line="1199"/>
+        <location filename="iepcore/menu.py" line="1256"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="468"/>
+        <source>Open...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iepcore/menu.py" line="472"/>
+        <source>Save as...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>menu3</name>
+    <message>
+        <location filename="iepcore/menu.py" line="180"/>
+        <source>The big test</source>
+        <comment>lala</comment>
+        <translation type="unfinished">This is a test </translation>
     </message>
 </context>
 <context>
@@ -108,82 +110,37 @@
     <message>
         <location filename="gui/shell_tab.ui" line="26"/>
         <source>Form</source>
-        <translation type="unfinished">Formulier</translation>
+        <translation type="obsolete">Formulier</translation>
     </message>
     <message>
         <location filename="gui/shell_tab.ui" line="35"/>
         <source>Name:</source>
-        <translation type="unfinished">Naam:</translation>
+        <translation type="obsolete">Naam:</translation>
     </message>
     <message>
         <location filename="gui/shell_tab.ui" line="54"/>
         <source>Executable:</source>
-        <translation type="unfinished">Applicatie:</translation>
+        <translation type="obsolete">Applicatie:</translation>
     </message>
     <message>
         <location filename="gui/shell_tab.ui" line="81"/>
         <source>e.g. &quot;/usr/bin/python&quot; or &quot;c:\python\python.exe&quot;</source>
-        <translation type="unfinished">b.v. &quot;/usr/bin/python&quot; of &quot;c:\python\python.exe&quot;</translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="92"/>
-        <source>GUI Toolkit:</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">b.v. &quot;/usr/bin/python&quot; of &quot;c:\python\python.exe&quot;</translation>
     </message>
     <message>
         <location filename="gui/shell_tab.ui" line="105"/>
         <source>None</source>
-        <translation type="unfinished">Geen</translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="112"/>
-        <source>Tk</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="119"/>
-        <source>Wx</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="126"/>
-        <source>Qt4</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="133"/>
-        <source>FLTK</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="140"/>
-        <source>Gtk</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="149"/>
-        <source>The GUI event loop is integrated in the interpreter</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Geen</translation>
     </message>
     <message>
         <location filename="gui/shell_tab.ui" line="160"/>
         <source>Python search path:</source>
-        <translation type="unfinished">Python zoek pad:</translation>
+        <translation type="obsolete">Python zoek pad:</translation>
     </message>
     <message>
         <location filename="gui/shell_tab.ui" line="222"/>
         <source>Use system default</source>
-        <translation type="unfinished">Gebruik standaard</translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="201"/>
-        <source>Python startup script:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="gui/shell_tab.ui" line="231"/>
-        <source>Startup directory:</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Gebruik standaard</translation>
     </message>
 </context>
 </TS>
