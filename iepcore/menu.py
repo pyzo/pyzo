@@ -23,108 +23,91 @@ from iepcore.iepLogging import print
 import webbrowser
 from iep import translate
 
-# todo: put in resource file, or inside the menu defenitions??
-_MENUMETAMAP = """
-tooltipMap = dict:
-    #file__new = 'Create a new (or temporary) file.'
-    #file__open = 'Open an existing file from disk.'
-    file__save = 'Save the current file to disk.'
-    file__save_as = 'Save the current file under another name.'
-    file__save_all = 'Save all open files.'
-    file__close = 'Close the current file.'
-    file__close_all = 'Close all files.'
-    file__indentation = 'The indentation used of the current file.'
-    file__syntax_parser = 'The syntax parser of the current file.'
-    file__line_endings = 'The line ending character of the current file.'
-    file__encoding = 'The character encoding of the current file.'
-    file__restart_iep = 'Restart the application.'
-    file__quit_iep = 'Close the application.'
 
 
-iconMap = dict:
-    #file__new = 'page_add'
-    #file__open = 'folder_page'
-    file__save = 'disk'
-    file__save_as = 'disk_as'
-    file__save_all = 'disk_multiple'
-    file__close = 'page_delete'
-    file__close_all = 'page_delete_all'
-    file__indentation = 'page_white_gear'
-    file__syntax_parser = 'page_white_gear'
-    file__line_endings = 'page_white_gear'
-    file__encoding = 'page_white_gear'
-    file__restart_iep = 'arrow_rotate_clockwise'
-    file__quit_iep = 'cancel'
+def buildMenus(menuBar):
+    """
+    Build all the menus
+    """
+    menus = [FileMenu(menuBar, translate("menu", "File")),
+             EditMenu(menuBar, translate("menu", "Edit")),
+             ViewMenu(menuBar, translate("menu", "View")),
+             SettingsMenu(menuBar, translate("menu", "Settings")),
+             ShellMenu(menuBar, translate("menu", "Shell")),
+             RunMenu(menuBar, translate("menu", "Run")),
+             ToolsMenu(menuBar, translate("menu", "Tools")),
+             HelpMenu(menuBar, translate("menu", "Help")),
+            ]
+    for menu in menus:
+        menuBar.addMenu(menu)
+    menuBar._menus = menus
     
-    edit__undo = 'arrow_undo'
-    edit__redo = 'arrow_redo'
-    edit__cut = 'cut'
-    edit__copy = 'page_white_copy'
-    edit__paste = 'paste_plain'
-    edit__select_all = 'sum'
-    edit__indent_line = 'text_indent'
-    edit__dedent_line = 'text_indent_remove'
-    edit__comment_line = 'comment_add'
-    edit__uncomment_line = 'comment_delete'
-    edit__find_or_replace = 'find'
-    
-    view__select_shell = 'application_shell'
-    view__select_editor = 'application_edit'
-    view__select_previous_file = 'application_double'
-    view__edge_column = 'text_padding_right'
-    view__zooming = 'magnifier'
-    view__qt_theme = 'application_view_tile'
-    
-    settings__edit_key_mappings = 'keyboard'
-    settings__edit_syntax_styles = 'style'
-    settings__advanced_settings = 'cog'
-    run__run_selected_lines = 'run_lines'
-    
-    shell__interrupt = 'application_lightning'
-    shell__terminate = 'application_delete'
-    shell__restart = 'application_refresh'
-    shell__clear_screen = 'application_eraser'
-    shell__close = 'cancel'
-    shell__edit_shell_configurations = 'application_wrench'
-    shell__cut = 'cut'
-    shell__copy = 'page_white_copy'
-    shell__paste = 'paste_plain'
-    shell__select_all = 'sum'
+    # Enable tooltips
+    def onHover(action):
+        # This ugly bit of code makes sure that the tooltip is refreshed
+        # (thus raised above the submenu). This happens only once and after
+        # ths submenu has become visible.
+        if action.menu():
+            if not hasattr(QtGui.QToolTip, '_lastAction'):
+                QtGui.QToolTip._lastAction = None
+                QtGui.QToolTip._haveRaisedTooltip = False
+            if action is QtGui.QToolTip._lastAction:
+                if ((not QtGui.QToolTip._haveRaisedTooltip) and 
+                            action.menu().isVisible()):
+                    QtGui.QToolTip.hideText()
+                    QtGui.QToolTip._haveRaisedTooltip = True
+            else:
+                QtGui.QToolTip._lastAction = action
+                QtGui.QToolTip._haveRaisedTooltip = False
+        # Set tooltip
+        QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.statusTip())
+    menuBar.hovered.connect(onHover)
 
-    
-    run__run_cell = 'run_cell'
-    run__run_file = 'run_file'
-    run__run_main_file = 'run_mainfile'
-    run__run_file_as_script = 'run_file_script'
-    run__run_main_file_as_script = 'run_mainfile_script'
-    run__help_on_running_code = 'information'
-    
-    tools__reload_tools = 'plugin_refresh'
-    
-    help__website = 'help'
-    help__ask_a_question = 'comments'
-    help__report_an_issue = 'error_add'
-    help__tutorial = 'report'
-    help__view_license = 'script'
-    help__check_for_updates = 'application_go'
-    help__about_iep = 'information'
-"""
 
-# Create map of icons and tooltips in a robust fashion 
-# (if an icon is missing or unreadable, it is simply not shown)
-def getIconAndTooltipMap():
-    Mi, Mt = {}, {}
-    s = iep.ssdf.loads(_MENUMETAMAP)
-    for key in s.iconMap:
-        iconName = s.iconMap[key]
-        if iconName in iep.icons:
-            Mi[key] = iep.icons[iconName]
-    for key in s.tooltipMap:
-        tooltip = s.tooltipMap[key]
-        if tooltip:
-            Mt[key] = tooltip
-    return Mi, Mt
-ICONMAP, TOOLTIPMAP = getIconAndTooltipMap()
+# todo: syntax styles now uses a new system. Make dialog for it!
+# todo: put many settings in an advanced settings dialog:
+# - autocomp use keywords
+# - autocomp case sensitive
+# - autocomp select chars
+# - Default parser / indentation (width and tabsOrSpaces) / line endings
+# - Shell wrapping to 80 columns?
+# - number of lines in shell
+# - more stuff from iep.config.advanced?
+
+
+def getShortcut(fullName):
+    """ Given the full name or an action, get the shortcut
+    from the iep.config.shortcuts dict. A tuple is returned
+    representing the two shortcuts. """
+    if isinstance(fullName, QtGui.QAction):
+        fullName = fullName.menuPath # the menuPath property is set in Menu._addAction
+    shortcut = '', ''
+    if fullName in iep.config.shortcuts:
+        shortcut = iep.config.shortcuts[fullName]
+        if shortcut.count(','):
+            shortcut = tuple(shortcut.split(','))
+        else:
+            shortcut = shortcut, ''
+    return shortcut
+
+
+def translateShortcutToOSNames(shortcut):
+    """
+    Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
+    Meta -> Windows for windows
+    """
+    
+    if sys.platform == 'darwin':
+        replace = (('Ctrl+','\u2318'),('Shift+','\u21E7'),
+                    ('Alt+','\u2325'),('Meta+','^'))
+    else:
+        replace = ()
+    
+    for old, new in replace:
+        shortcut = shortcut.replace(old, new)
+        
+    return shortcut
+    
 
 
 class KeyMapper(QtCore.QObject):
@@ -173,8 +156,14 @@ class Menu(QtGui.QMenu):
     
     Base class for all menus. Has methods to add actions of all sorts.
     
+    The add* methods all have the name and icon as first two arguments.
+    This is not so consistent with the Qt API for addAction, but it allows
+    for cleaner code to add items; the first item can be quite long because
+    it is a translation. In the current API, the second and subsequent 
+    arguments usually fit nicely on the second line.
+    
     """
-    def __init__(self, parent = None, name = None):
+    def __init__(self, parent=None, name=None):
         QtGui.QMenu.__init__(self, parent)
         
         # Make sure that the menu has a title
@@ -182,6 +171,10 @@ class Menu(QtGui.QMenu):
             self.setTitle(name)
         else:
             raise ValueError
+        
+        # Set tooltip too?
+        if hasattr(name, 'tt'):
+            self.setStatusTip(name.tt)
         
         # Action groups within the menu keep track of the selected value
         self._groups = {}
@@ -191,8 +184,12 @@ class Menu(QtGui.QMenu):
             self.menuPath = parent.menuPath + '__'
         else:
             self.menuPath = '' #This is a top-level menu
-
-        self.menuPath += self._createMenuPathName(iep.untranslate(name))
+        
+        # Get key for this menu
+        key = name
+        if hasattr(name, 'key'):
+            key = name.key
+        self.menuPath += self._createMenuPathName(key)
                 
         # Build the menu. Happens only once
         self.build()
@@ -213,44 +210,34 @@ class Menu(QtGui.QMenu):
         return name.lower()
     
     
-    def _addAction(self, properties, selected=None):
-        """ _addAction(properties)
-        
-        Convenience function:
-          * Call QMenu.addAction, but if properties is a tuple, unpack it 
+    def _addAction(self, text, icon, selected=None):
+        """ Convenience function that makes the right call to addAction().
         """
         
-        # Add the item, which can be anyting that QMenu accepts (strings, icons,
-        # menus, etc.)
-        if not isinstance(properties, tuple):
-            properties = (properties,)
-            
-        a = self.addAction(*properties)
+        # Add the action
+        if icon is None:
+            a = self.addAction(text)
+        else:
+            a = self.addAction(icon, text)
         
-        
+        # Checkable?
         if selected is not None:
             a.setCheckable(True)
             a.setChecked(selected)
-
-        # Find the original (untranslated) name for this menu item
-        original = a.text()
-        for p in properties:
-            if hasattr(p, 'original'):
-                original = p.original
-                break
-                
-        a.menuPath = self.menuPath + '__' + self._createMenuPathName(original)
-
+        
+        # Set tooltip if we can find it
+        if hasattr(text, 'tt'):
+            a.setStatusTip(text.tt)
+        
+        # Find the key (untranslated name) for this menu item
+        key = a.text()
+        if hasattr(text, 'key'):
+            key = text.key
+        a.menuPath = self.menuPath + '__' + self._createMenuPathName(key)
         
         # Register the action so its keymap is kept up to date
         iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
         iep.keyMapper.setShortcut(a) 
-        
-        # Set icon and tooltip (if available)
-        if a.menuPath in ICONMAP:
-            a.setIcon(ICONMAP[a.menuPath])
-        if a.menuPath in TOOLTIPMAP:
-            a.setStatusTip(TOOLTIPMAP[a.menuPath])
         
         return a
     
@@ -261,7 +248,7 @@ class Menu(QtGui.QMenu):
         raise NotImplementedError
     
     
-    def addMenu(self, menu):
+    def addMenu(self, menu, icon=None):
         """
         Add a (sub)menu to this menu.
         """
@@ -270,15 +257,13 @@ class Menu(QtGui.QMenu):
         a = QtGui.QMenu.addMenu(self, menu)
         a.menuPath = menu.menuPath
         
-        # Set icon and tooltip (if available)
-        if a.menuPath in ICONMAP:
-            a.setIcon(ICONMAP[a.menuPath])
-        if a.menuPath in TOOLTIPMAP:
-            a.setStatusTip(TOOLTIPMAP[a.menuPath])
+        # Set icon
+        if icon is not None:
+            a.setIcon(icon)
         
         return menu
     
-    def addItem(self, properties, callback=None, value=None):
+    def addItem(self, text, icon=None, callback=None, value=None):
         """
         Add an item to the menu. If callback is given and not None,
         connect triggered signal to the callback. If value is None or not
@@ -287,7 +272,7 @@ class Menu(QtGui.QMenu):
         """
         
         # Add action 
-        a = self._addAction(properties)
+        a = self._addAction(text, icon)
         
         # Connect the menu item to its callback
         if callback:
@@ -299,7 +284,7 @@ class Menu(QtGui.QMenu):
         return a
     
     
-    def addGroupItem(self, group, properties, callback=None, value=None):
+    def addGroupItem(self, text, icon=None, callback=None, value=None, group=None):
         """
         Add a 'select-one' option to the menu. Items with equal group value form
         a group. If callback is specified and not None, the callback is called 
@@ -308,7 +293,7 @@ class Menu(QtGui.QMenu):
         """
         
         # Init action
-        a = self._addAction(properties)
+        a = self._addAction(text, icon)
         a.setCheckable(True)
         
         # Connect the menu item to its callback (toggled is a signal only
@@ -334,7 +319,7 @@ class Menu(QtGui.QMenu):
         return a
     
     
-    def addCheckItem(self, properties, callback=None, value=None, selected=False):
+    def addCheckItem(self, text, icon=None, callback=None, value=None, selected=False):
         """
         Add a true/false item to the menu. If callback is specified and not 
         None, the callback is called when the item is changed. If value is not
@@ -343,7 +328,7 @@ class Menu(QtGui.QMenu):
         """
         
         # Add action 
-        a = self._addAction(properties, selected)
+        a = self._addAction(text, icon, selected)
         
         # Connect the menu item to its callback
         if callback:
@@ -398,7 +383,7 @@ class GeneralOptionsMenu(Menu):
         if values is None:
             values = options
         for option, value in zip(options, values):
-            self.addGroupItem(None, option, cb, value)
+            self.addGroupItem(option, None, cb, value)
 
 
 class IndentationMenu(Menu):
@@ -410,15 +395,15 @@ class IndentationMenu(Menu):
         
     def build(self):
         self._items = [
-            self.addGroupItem("style", 
-                    translate("menu", "Use tabs"), self._setStyle, False),
-            self.addGroupItem("style", 
-                    translate("menu", "Use spaces"), self._setStyle, True)
+            self.addGroupItem(translate("menu", "Use tabs"), 
+                None, self._setStyle, False, group="style"),
+            self.addGroupItem(translate("menu", "Use spaces"), 
+                None, self._setStyle, True, group="style")
             ]
         self.addSeparator()
         spaces = translate("menu", "spaces", "plural of spacebar character")
         self._items += [
-            self.addGroupItem("width", "%d %s" % (i, spaces), self._setWidth, i)
+            self.addGroupItem("%d %s" % (i, spaces), None, self._setWidth, i, group="width")
             for i in range(2,9)
             ]
     
@@ -435,54 +420,67 @@ class IndentationMenu(Menu):
 
 class FileMenu(Menu):
     def build(self):
+        icons = iep.icons
         
         self._items = []
         
         # Create indent menu
-        self._indentMenu = IndentationMenu(self, translate("menu", "Indentation"))
+        t = translate("menu", "Indentation ::: The indentation used of the current file.")
+        self._indentMenu = IndentationMenu(self, t)
         
         # Create parser menu
         import codeeditor
-        self._parserMenu = GeneralOptionsMenu(self, 
-                translate("menu", "Syntax parser"), self._setParser)
+        t = translate("menu", "Syntax parser ::: The syntax parser of the current file.")
+        self._parserMenu = GeneralOptionsMenu(self, t, self._setParser)
         self._parserMenu.setOptions(['None'] + codeeditor.Manager.getParserNames())
         
         # Create line ending menu
-        self._lineEndingMenu = GeneralOptionsMenu(self, 
-                translate("menu", "Line endings"), self._setLineEndings)
+        t = translate("menu", "Line endings ::: The line ending character of the current file.")
+        self._lineEndingMenu = GeneralOptionsMenu(self, t, self._setLineEndings)
         self._lineEndingMenu.setOptions(['LF', 'CR', 'CRLF'])
         
         # Create encoding menu
-        self._encodingMenu = GeneralOptionsMenu(self, 
-                translate("menu", "Encoding"), self._setEncoding)
+        t = translate("menu", "Encoding ::: The character encoding of the current file.")
+        self._encodingMenu = GeneralOptionsMenu(self, t, self._setEncoding)
         
         # Bind to signal
         iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
         
+        
         # Build menu file management stuff
-        self.addItem((iep.icons.page_add, translate('menu', 'New', 'file')),
-                        iep.editors.newFile)
-        self.addItem((iep.icons.folder_page, translate("menu", "Open...")),
-                        iep.editors.openFile)
-        self._items += [    
-            self.addItem(translate("menu", "Save"), iep.editors.saveFile),
-            self.addItem(translate("menu", "Save as..."), iep.editors.saveFileAs),
-            self.addItem(translate("menu", "Save all"), iep.editors.saveAllFiles),
-            self.addItem(translate("menu", "Close"), iep.editors.closeFile),
-            self.addItem(translate("menu", "Close all"), iep.editors.closeAllFiles),  ]
+        self.addItem(translate('menu', 'New ::: Create a new (or temporary) file.'),
+            icons.page_add, iep.editors.newFile)
+        self.addItem(translate("menu", "Open... ::: Open an existing file from disk."),
+            icons.folder_page, iep.editors.openFile)
+        #
+        self._items += [ 
+            self.addItem(translate("menu", "Save ::: Save the current file to disk."),
+                icons.disk, iep.editors.saveFile),
+            self.addItem(translate("menu", "Save as... ::: Save the current file under another name."),
+                icons.disk_as, iep.editors.saveFileAs),
+            self.addItem(translate("menu", "Save all ::: Save all open files."),
+                icons.disk_multiple, iep.editors.saveAllFiles),
+            self.addItem(translate("menu", "Close ::: Close the current file."),
+                icons.page_delete, iep.editors.closeFile),
+            self.addItem(translate("menu", "Close all ::: Close all files."),
+                icons.page_delete_all, iep.editors.closeAllFiles),  
+            ]
         
         # Build file properties stuff
         self.addSeparator()
         self._items += [
-                    self.addMenu(self._indentMenu),
-                    self.addMenu(self._parserMenu),
-                    self.addMenu(self._lineEndingMenu), 
-                    self.addMenu(self._encodingMenu),]
+                    self.addMenu(self._indentMenu, icons.page_white_gear),
+                    self.addMenu(self._parserMenu, icons.page_white_gear),
+                    self.addMenu(self._lineEndingMenu, icons.page_white_gear), 
+                    self.addMenu(self._encodingMenu, icons.page_white_gear),
+                    ]
         
         # Closing of app
         self.addSeparator()
-        self.addItem(translate("menu", "Restart IEP"), iep.main.restart)
-        self.addItem(translate("menu","Quit IEP"), iep.main.close)
+        self.addItem(translate("menu", "Restart IEP ::: Restart the application."), 
+            icons.arrow_rotate_clockwise, iep.main.restart)
+        self.addItem(translate("menu","Quit IEP ::: Close the application."), 
+            icons.cancel, iep.main.close)
         
         # Start disabled
         self.setEnabled(False)
@@ -568,28 +566,45 @@ class FileMenu(Menu):
 # todo: move to matching brace
 class EditMenu(Menu):
     def build(self):
+        icons = iep.icons
         
-        self.addItem("Undo", self._editItemCallback, "undo")
-        self.addItem("Redo", self._editItemCallback, "redo")
+        self.addItem(translate("menu", "Undo ::: Undo the latest editing action."),
+            icons.arrow_undo, self._editItemCallback, "undo")
+        self.addItem(translate("menu", "Redo ::: Redo the last undone editong action."), 
+            icons.arrow_redo, self._editItemCallback, "redo")
         self.addSeparator()
-        self.addItem("Cut", self._editItemCallback, "cut")
-        self.addItem("Copy", self._editItemCallback, "copy")
-        self.addItem("Paste", self._editItemCallback, "paste")
-        self.addItem("Select all", self._editItemCallback, "selectAll")
+        self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
+            icons.cut, self._editItemCallback, "cut")
+        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."), 
+            icons.page_white_copy, self._editItemCallback, "copy")
+        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
+            icons.paste_plain, self._editItemCallback, "paste")
+        self.addItem(translate("menu", "Select all ::: Select all text."), 
+            icons.sum, self._editItemCallback, "selectAll")
         self.addSeparator()
-        self.addItem("Indent line", self._editItemCallback, "indentSelection")
-        self.addItem("Dedent line", self._editItemCallback, "dedentSelection")
-        self.addItem("Comment line", self._editItemCallback, "commentCode")
-        self.addItem("Uncomment line", self._editItemCallback, "uncommentCode")
-        self.addItem("Delete line", self._editItemCallback, "deleteLines")
+        self.addItem(translate("menu", "Indent line(s) ::: Indent the selected line(s)."), 
+            icons.text_indent, self._editItemCallback, "indentSelection")
+        self.addItem(translate("menu", "Dedent line(s) ::: Unindent the selected line(s)."), 
+            icons.text_indent_remove, self._editItemCallback, "dedentSelection")
+        self.addItem(translate("menu", "Comment line(s) ::: Comment the selected line(s)."), 
+            icons.comment_add, self._editItemCallback, "commentCode")
+        self.addItem(translate("menu", "Uncomment line(s) ::: Uncomment the selected lines(s)."), 
+            icons.comment_delete, self._editItemCallback, "uncommentCode")
+        self.addItem(translate("menu", "Delete line(s) ::: Delete the selected lines."), 
+            None, self._editItemCallback, "deleteLines")
         self.addSeparator()
-        self.addItem("Find or replace", iep.editors._findReplace.startFind)
-        self.addItem("Find selection", iep.editors._findReplace.findSelection)
-        self.addItem("Find selection backward", iep.editors._findReplace.findSelectionBw)
-        self.addItem("Find next", iep.editors._findReplace.findNext)
-        self.addItem("Find previous", iep.editors._findReplace.findPrevious)
-        
-
+        self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
+            icons.find, iep.editors._findReplace.startFind)
+        self.addItem(translate("menu", "Find selection ::: Find the next occurance of the selected text."), 
+            None, iep.editors._findReplace.findSelection)
+        self.addItem(translate("menu", "Find selection backward ::: Find the previous occurance of the selected text."), 
+            None, iep.editors._findReplace.findSelectionBw)
+        self.addItem(translate("menu", "Find next ::: Find the next occurance of the search string."), 
+            None, iep.editors._findReplace.findNext)
+        self.addItem(translate("menu", "Find previous ::: Find the previous occurance of the search string."), 
+            None, iep.editors._findReplace.findPrevious)
+    
+    
     def _editItemCallback(self, action):
         widget = QtGui.qApp.focusWidget()
         #If the widget has a 'name' attribute, call it
@@ -602,9 +617,9 @@ class ZoomMenu(Menu):
     Small menu for the zooming. Part of the view menu.
     """
     def build(self):
-        self.addItem('Zoom in', self._setZoom, +1)
-        self.addItem('Zoom out', self._setZoom, -1)
-        self.addItem('Zoom reset', self._setZoom, 0)
+        self.addItem(translate("menu", 'Zoom in'), None, self._setZoom, +1)
+        self.addItem(translate("menu", 'Zoom out'), None, self._setZoom, -1)
+        self.addItem(translate("menu", 'Zoom reset'), None, self._setZoom, 0)
     
     def _setZoom(self, value):
         if not value:
@@ -617,20 +632,23 @@ class ZoomMenu(Menu):
 
 
 # todo: brace matching
-# todo: code folding
+# todo: code folding?
 # todo: maybe move qt theme to settings
 class ViewMenu(Menu):
     def build(self):
+        icons = iep.icons
         
         # Create edge column menu
-        self._edgeColumMenu = GeneralOptionsMenu(self, "Edge Column", self._setEdgeColumn)
+        t = translate("menu", "Edge Column ::: The location of the long-line-indicator.")
+        self._edgeColumMenu = GeneralOptionsMenu(self, t, self._setEdgeColumn)
         values = [0] + [i for i in range(60,130,10)]
         names = ["None"] + [str(i) for i in values[1:]]
         self._edgeColumMenu.setOptions(names, values)
         self._edgeColumMenu.setCheckedOption(None, iep.config.view.edgeColumn)
         
         # Create qt theme menu
-        self._qtThemeMenu = GeneralOptionsMenu(self, "Qt theme", self._setQtTheme)
+        t = translate("menu", "Qt theme ::: The styling of the user interface widgets.")
+        self._qtThemeMenu = GeneralOptionsMenu(self, t, self._setQtTheme)
         styleNames = list(QtGui.QStyleFactory.keys()) + ['Cleanlooks+']
         styleNames.sort()
         titles = [name for name in styleNames]
@@ -642,22 +660,30 @@ class ViewMenu(Menu):
         self._qtThemeMenu.setCheckedOption(None, iep.config.view.qtstyle.lower())
         
         # Build menu
-        self.addItem("Select shell", self._selectShell)
-        self.addItem("Select editor", self._selectEditor)
-        self.addItem("Select previous file", iep.editors._tabs.selectPreviousItem)
+        self.addItem(translate("menu", "Select shell ::: Focus the cursor on the current shell."), 
+            icons.application_shell, self._selectShell)
+        self.addItem(translate("menu", "Select editor ::: Focus the cursor on the current editor."), 
+            icons.application_edit, self._selectEditor)
+        self.addItem(translate("menu", "Select previous file ::: Select the previously selected file."), 
+            icons.application_double, iep.editors._tabs.selectPreviousItem)
         self.addSeparator()
-        self.addEditorItem("Show whitespace", "showWhitespace")
-        self.addEditorItem("Show line endings", "showLineEndings")
-        self.addEditorItem("Show indentation guides", "showIndentationGuides")
+        self.addEditorItem(translate("menu", "Show whitespace ::: Show spaces and tabs."), 
+            None, "showWhitespace")
+        self.addEditorItem(translate("menu", "Show line endings ::: Show the end of each line."), 
+            None, "showLineEndings")
+        self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."), 
+            None, "showIndentationGuides")
         self.addSeparator()
-        self.addEditorItem("Wrap long lines", "wrap")
-        self.addEditorItem("Highlight current line", "highlightCurrentLine")
+        self.addEditorItem(translate("menu", "Wrap long lines ::: Wrap lines that do not fit on the screen (i.e. no horizontal scrolling)."), 
+            None, "wrap")
+        self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."), 
+            None, "highlightCurrentLine")
         self.addSeparator()
-        self.addMenu(self._edgeColumMenu)
-        self.addMenu(ZoomMenu(self, "Zooming"))
-        self.addMenu(self._qtThemeMenu)
+        self.addMenu(self._edgeColumMenu, icons.text_padding_right)
+        self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
+        self.addMenu(self._qtThemeMenu, icons.application_view_tile)
     
-    def addEditorItem(self, name, param):
+    def addEditorItem(self, name, icon, param):
         """ 
         Create a boolean item that reperesents a property of the editors,
         whose value is stored in iep.config.view.param 
@@ -667,7 +693,7 @@ class ViewMenu(Menu):
         else:
             default = True
             
-        self.addCheckItem(name, self._configEditor, param, default)
+        self.addCheckItem(name, icon, self._configEditor, param, default)
     
     def _configEditor(self, state, param):
         """
@@ -702,7 +728,7 @@ class ViewMenu(Menu):
 
 class ShellMenu(Menu):
     
-    def __init__(self, parent = None, name="Shell", *args, **kwds):
+    def __init__(self, parent=None, name="Shell", *args, **kwds):
         self._shellCreateActions = []
         self._shellActions = []
         Menu.__init__(self, parent, name, *args, **kwds)
@@ -718,13 +744,20 @@ class ShellMenu(Menu):
         ShellTabContextMenu
         
         Returns a list of all items added"""
+        icons = iep.icons
         return [
-            self.addItem('Interrupt', self._shellAction, "interrupt"),
-            self.addItem('Terminate', self._shellAction, "terminate"),
-            self.addItem('Close', self._shellAction, "closeShell"),
-            self.addItem('Restart', self._shellAction, "restart"),
-            self.addItem('Clear screen', self._shellAction, "clearScreen"),
+            self.addItem(translate("menu", 'Interrupt ::: Interrupt the current running code (does not work for extension code).'), 
+                icons.application_lightning, self._shellAction, "interrupt"),
+            self.addItem(translate("menu", 'Terminate ::: Terminate the interpreter, leaving the shell open.'), 
+                icons.application_delete, self._shellAction, "terminate"),
+            self.addItem(translate("menu", 'Close ::: Terminate the interpreter and close the shell.'), 
+                icons.cancel, self._shellAction, "closeShell"),
+            self.addItem(translate("menu", 'Restart ::: Terminate and restart the interpreter.'), 
+                icons.application_refresh, self._shellAction, "restart"),
+            self.addItem(translate("menu", 'Clear screen ::: Clear the screen.'), 
+                icons.application_eraser, self._shellAction, "clearScreen"),
             ]
+    
     def getShell(self):
         """ Returns the shell on which to apply the menu actions. Default is
         the current shell, this is overridden in the shell/shell tab context
@@ -736,8 +769,8 @@ class ShellMenu(Menu):
         self._shellActions = self.buildShellActions()
         
         self.addSeparator()
-#         self.addItem('Edit shell configurations...', self._editConfig)
-        self.addItem('Edit shell configurations...', self._editConfig2)
+        self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
+            iep.icons.application_wrench, self._editConfig2)
         self.addSeparator()
         
         # Add shell configs
@@ -751,8 +784,8 @@ class ShellMenu(Menu):
         self._shellCreateActions = []
         for i, config in enumerate(iep.config.shellConfigs2):
             name = 'Create shell %s: (%s)' % (i+1, config.name)
-            action = self.addItem(name, iep.shells.addShell, config)
-            action.setIcon(iep.icons.application_add)
+            action = self.addItem(name, 
+                iep.icons.application_add, iep.shells.addShell, config)
             self._shellCreateActions.append(action)
     
     def _shellAction(self, action):
@@ -779,21 +812,30 @@ class ShellMenu(Menu):
         # Update the shells items in the menu
         self._updateShells()
 
+
+
 class ShellContextMenu(ShellMenu):
     """ This is the context menu for the shell """
     def __init__(self, shell, *args, **kwds):
         ShellMenu.__init__(self, *args, **kwds)
         self._shell = shell
+    
     def build(self):
         """ Build menu """
         self.buildShellActions()
-                
+        icons = iep.icons
+        
+        # This is a subset of the edit menu. Copied manually.
         self.addSeparator()
-        self.addItem("Cut", self._editItemCallback, "cut")
-        self.addItem("Copy", self._editItemCallback, "copy")
-        self.addItem("Paste", self._editItemCallback, "paste")
-        self.addItem("Select all", self._editItemCallback, "selectAll")
-
+        self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
+            icons.cut, self._editItemCallback, "cut")
+        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."), 
+            icons.page_white_copy, self._editItemCallback, "copy")
+        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
+            icons.paste_plain, self._editItemCallback, "paste")
+        self.addItem(translate("menu", "Select all ::: Select all text."), 
+            icons.sum, self._editItemCallback, "selectAll")
+    
     def getShell(self):
         """ Shell actions of this menu operate on the shell specified in the constructor """
         return self._shell
@@ -822,23 +864,36 @@ class EditorTabContextMenu(Menu):
     
     def build(self):
         """ Build menu """
-
-        self.addItem("Save", self._fileAction, "saveFile")
-        self.addItem("Save as", self._fileAction, "saveFileAs")        
-        self.addItem("Close", self._fileAction, "closeFile")
-        self.addItem("Close others", self._fileAction, "close_others")
-        self.addItem("Close all", self._fileAction, "close_all")
-        self.addItem("Rename", self._fileAction, "rename")
+        icons = iep.icons
+        
+        # Copied (and edited) manually from the File memu
+        self.addItem(translate("menu", "Save ::: Save the current file to disk."),
+            icons.disk, self._fileAction, "saveFile")
+        self.addItem(translate("menu", "Save as... ::: Save the current file under another name."),
+            icons.disk_as, self._fileAction, "saveFileAs")
+        self.addItem(translate("menu", "Close ::: Close the current file."),
+            icons.page_delete, self._fileAction, "closeFile")
+        self.addItem(translate("menu", "Close others::: Close all files but this one."),
+            None, self._fileAction, "closeFile")
+        self.addItem(translate("menu", "Close all ::: Close all files."),
+            icons.page_delete_all, self._fileAction, "close_all")
+        self.addItem(translate("menu", "Rename ::: Rename this file."),
+            None, self._fileAction, "rename")
         
         self.addSeparator()
-        self.addItem("Pin/Unpin", self._fileAction, "pin")
-        self.addItem("Set/Unset as MAIN file", self._fileAction, "main")
+        # todo: remove feature to pin files?
+        self.addItem(translate("menu", "Pin/Unpin ::: Pinned files get closed less easily."), 
+            None, self._fileAction, "pin")
+        self.addItem(translate("menu", "Set/Unset as MAIN file ::: The main file can be run while another file is selected."), 
+            icons.star, self._fileAction, "main")
         
         self.addSeparator()
-        self.addItem("Run", self._fileAction, "run")
-        self.addItem("Run as script", self._fileAction, "run_script")
-        
-        
+        self.addItem(translate("menu", "Run ::: Run the code in this file."), 
+            icons.run_file, self._fileAction, "run")
+        self.addItem(translate("menu", "Run as script ::: Run this file as a script (restarts the interpreter)."), 
+            icons.run_file_script, self._fileAction, "run_script")
+    
+    
     def _fileAction(self, action):
         """ Call the method specified by 'action' on the selected shell """
         
@@ -884,16 +939,25 @@ class EditorTabContextMenu(Menu):
 
 class RunMenu(Menu):       
     def build(self):
-        self.addItem('Run selected lines', self._runSelected)
-        self.addItem('Run cell', self._runCell)
+        icons = iep.icons
+        
+        self.addItem(translate("menu", 'Run selected lines ::: Run the selected editor\'s selected lines in the current shell.'), 
+            icons.run_lines, self._runSelected)
+        self.addItem(translate("menu", 'Run cell ::: Run the current editors\'s cell in the current shell.'), 
+            icons.run_cell, self._runCell)
         #In the _runFile calls, the parameter specifies (asScript, mainFile)
-        self.addItem('Run file', self._runFile,(False, False))
-        self.addItem('Run main file', self._runFile,(False, True))
+        self.addItem(translate("menu", 'Run file ::: Run the current file in the current shell.'), 
+            icons.run_file, self._runFile,(False, False))
+        self.addItem(translate("menu", 'Run main file ::: Run the main file in the current shell.'), 
+            icons.run_mainfile, self._runFile,(False, True))
         self.addSeparator()
-        self.addItem('Run file as script', self._runFile, (True, False))
-        self.addItem('Run main file as script', self._runFile, (True, True))
+        self.addItem(translate("menu", 'Run file as script ::: Run the current file as a script.'), 
+            icons.run_file_script, self._runFile, (True, False))
+        self.addItem(translate("menu", 'Run main file as script ::: Run the main file as a script.'), 
+            icons.run_mainfile_script, self._runFile, (True, True))
         self.addSeparator()
-        self.addItem('Help on running code', self._showHelp)
+        self.addItem(translate("menu", 'Help on running code ::: Open the tutorial at the section about running code.'), 
+            icons.information, self._showHelp)
 
     
     def _showHelp(self):
@@ -935,7 +999,7 @@ class RunMenu(Menu):
         # Show error dialog
         if msg:
             m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Could not run")
+            m.setWindowTitle(translate("menu dialog", "Could not run"))
             m.setText("Could not run " + what + ":\n\n" + msg)
             m.setIcon(m.Warning)
             m.exec_()
@@ -1084,7 +1148,7 @@ class RunMenu(Menu):
         # If not success, notify
         if err:
             m = QtGui.QMessageBox(self)
-            m.setWindowTitle("Could not run script.")
+            m.setWindowTitle(translate("menu dialog", "Could not run script."))
             m.setText(err)
             m.setIcon(m.Warning)
             m.exec_()
@@ -1097,7 +1161,8 @@ class ToolsMenu(Menu):
         Menu.__init__(self, *args, **kwds)
     
     def build(self):
-        self.addItem('Reload tools', iep.toolManager.reloadTools)
+        self.addItem(translate("menu", 'Reload tools ::: For people who develop tools.'), 
+            iep.icons.plugin_refresh, iep.toolManager.reloadTools)
         self.addSeparator()
 
         self.onToolInstanceChange() # Build initial menu
@@ -1112,30 +1177,35 @@ class ToolsMenu(Menu):
         # Add all tools, with checkmarks for those that are active
         self._toolActions = []
         for tool in iep.toolManager.getToolInfo():
-            action = self.addCheckItem(tool.name, tool.menuLauncher, 
-                                        selected=bool(tool.instance))
-            action.setIcon(iep.icons.plugin)
+            action = self.addCheckItem(tool.name, iep.icons.plugin, 
+                tool.menuLauncher, selected=bool(tool.instance))
             self._toolActions.append(action)
 
 
 class HelpMenu(Menu):
     
     def build(self):
+        icons = iep.icons
         
-        self.addUrlItem("Website", "http://code.google.com/p/iep/")
-        self.addUrlItem("Ask a question", "http://groups.google.com/group/iep_")
-        self.addUrlItem("Report an issue", "http://code.google.com/p/iep/issues/list")
+        self.addUrlItem(translate("menu", "Website ::: Open the IEP website in your browser."), 
+            icons.help, "http://iep.pyzo.org")
+        self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
+            icons.comments, "http://groups.google.com/group/iep_")
+        self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in IEP, or do you have a feature request?"), 
+            icons.error_add, "http://code.google.com/p/iep/issues/list")
         self.addSeparator()
-        self.addItem("Tutorial", lambda:
-            iep.editors.loadFile(os.path.join(iep.iepDir,"resources","tutorial.py")))
-        self.addItem("View license", lambda:
-            iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
+        self.addItem(translate("menu", "Tutorial ::: Get started quickly."), 
+            icons.report, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"resources","tutorial.py")))
+        self.addItem(translate("menu", "View license ::: Legal stuff."), 
+            icons.script, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
         
-        self.addItem("Check for updates", self._checkUpdates)
-        self.addItem("About IEP", self._aboutIep)
+        self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
+            icons.application_go, self._checkUpdates)
+        self.addItem(translate("menu", "About IEP ::: More information about IEP."), 
+            icons.information, self._aboutIep)
     
-    def addUrlItem(self, name, url):
-        self.addItem(name, lambda: webbrowser.open(url))
+    def addUrlItem(self, name, icon, url):
+        self.addItem(name, icon, lambda: webbrowser.open(url))
     
     def _expandVersion(self, version):        
         parts = []
@@ -1170,7 +1240,7 @@ class HelpMenu(Menu):
         """.format(iep.__version__, remoteVersion)
         # Show message box
         m = QtGui.QMessageBox(self)
-        m.setWindowTitle("Check for the latest version.")
+        m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
         if remoteVersion == '?':
             text += "Oops, could not determine the latest version."    
         elif self._expandVersion(iep.__version__) < self._expandVersion(remoteVersion):
@@ -1239,92 +1309,48 @@ class HelpMenu(Menu):
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setTextFormat(QtCore.Qt.RichText)
-        m.setWindowTitle("About IEP")
+        m.setWindowTitle(translate("menu dialog", "About IEP"))
         m.setText(unwrapText(aboutText))
         m.setIconPixmap(im)
         m.exec_()
 
 
-def buildMenus(menuBar):
-    """
-    Build all the menus
-    """
-    menus = [FileMenu(menuBar, translate("menu", "File")),
-             EditMenu(menuBar, translate("menu", "Edit")),
-             ViewMenu(menuBar, "View"),
-             SettingsMenu(menuBar, "Settings"),
-             ShellMenu(menuBar, "Shell"),
-             RunMenu(menuBar, "Run"),
-             ToolsMenu(menuBar, "Tools"),
-             HelpMenu(menuBar, "Help")
-            ]
-    for menu in menus:
-        menuBar.addMenu(menu)
-    menuBar._menus = menus
-    
-    # Enable tooltips
-    def onHover(action):
-        # This ugly bit of code makes sure that the tooltip is refreshed
-        # (thus raised above the submenu). This happens only once and after
-        # ths submenu has become visible.
-        if action.menu():
-            if not hasattr(QtGui.QToolTip, '_lastAction'):
-                QtGui.QToolTip._lastAction = None
-                QtGui.QToolTip._haveRaisedTooltip = False
-            if action is QtGui.QToolTip._lastAction:
-                if ((not QtGui.QToolTip._haveRaisedTooltip) and 
-                            action.menu().isVisible()):
-                    QtGui.QToolTip.hideText()
-                    QtGui.QToolTip._haveRaisedTooltip = True
-            else:
-                QtGui.QToolTip._lastAction = action
-                QtGui.QToolTip._haveRaisedTooltip = False
-        # Set tooltip
-        QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.statusTip())
-    menuBar.hovered.connect(onHover)
-            
-
-BaseMenu=object
-
-# todo: syntax styles now uses a new system. Make dialog for it!
-# todo: put many settings in a settings dialog:
-# - autocomp use keywords
-# - autocomp case sensitive
-# - autocomp select chars
-# - Default parser / indentation (width and tabsOrSpaces) / line endings
-# - Shell wrapping to 80 columns?
-# - number of lines in shell
-# - more stuff from iep.config.advanced?
 
 class SettingsMenu(Menu):
     def build(self):
-        self.addBoolSetting('Automatically indent', 'autoIndent',
-            lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
-        self.addBoolSetting('Enable calltips', 'autoCallTip')
-        self.addBoolSetting('Enable autocompletion', 'autoComplete')
-        self.addBoolSetting('Autocomplete keywords', 'autoComplete_keywords')
-        self.addSeparator()
-        self.addItem('Edit key mappings...', lambda: KeymappingDialog().exec_())
-        self.addItem('Edit syntax styles...', self._editStyles)
-        self.addItem('Advanced settings...', self._advancedSettings)
+        icons = iep.icons
         
+        self.addBoolSetting(translate("menu", 'Automatically indent ::: Indent when pressing enter after a colon.'),
+            'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
+        self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'), 
+            'autoCallTip')
+        self.addBoolSetting(translate("menu", 'Enable autocompletion ::: Show autocompletion with known names.'), 
+            'autoComplete')
+        self.addBoolSetting(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'), 
+            'autoComplete_keywords')
+        
+        self.addSeparator()
+        self.addItem(translate("menu", 'Edit key mappings... ::: Edit the shortcuts for menu items.'), 
+            icons.keyboard, lambda: KeymappingDialog().exec_())
+        self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'), 
+            icons.style, self._editStyles)
+        self.addItem(translate("menu", 'Advanced settings... ::: Configure IEP even further.'), 
+            icons.cog, self._advancedSettings)
+    
     def _editStyles(self):
         """ Edit the style file. """
         text = """
-        The syntax styling can be changed by editing the style
-        sheet, which will be opened after you press OK. 
-        \r\r
-        The changes will be applied as soon as you'll save the file.
+        In this beta release, editing style files is not yet possible.
+        You're stuck with the one we selected. It's based on the solarized
+        theme (http://ethanschoonover.com/solarized) isn't it pretty?
         """
         m = QtGui.QMessageBox(self)
-        m.setWindowTitle("Edit syntax styling")
+        m.setWindowTitle(translate("menu dialog", "Edit syntax styling"))
         m.setText(unwrapText(text))
         m.setIcon(m.Information)
         m.setStandardButtons(m.Ok | m.Cancel)
         m.setDefaultButton(m.Ok)
         result = m.exec_()
-        if result == m.Ok:
-            iep.editors.loadFile(os.path.join(iep.appDataDir,'styles.ssdf'))
     
     def _advancedSettings(self):
         """ How to edit the advanced settings. """
@@ -1335,39 +1361,34 @@ class SettingsMenu(Menu):
           Type "print(iep.config.advanced)" to view all advanced settings.\r
         - Call "iep.resetConfig()" to reset all settings.\r
         - Call "iep.resetConfig(True)" to reset all settings and state.\r
-        - Call "iep.resetStyles() to reset the style sheet to the default.
         \r\r
         Note that most settings require a restart for the change to
         take effect.
         """
         m = QtGui.QMessageBox(self)
-        m.setWindowTitle("Advanced settings")
+        m.setWindowTitle(translate("menu dialog", "Advanced settings"))
         m.setText(unwrapText(text))
         m.setIcon(m.Information)
         m.exec_()
     
-    def addBoolSetting(self, properties, key, callback = None):
+    def addBoolSetting(self, name, key, callback = None):
         def _callback(state, key):
             setattr(iep.config.settings, key, state)
             if callback is not None:
                 callback(state, key)
                 
-        self.addCheckItem(properties, 
-            _callback, 
-            key, 
+        self.addCheckItem(name, None, _callback, key, 
             getattr(iep.config.settings,key)) #Default value
     
 
-
+# Remains of old settings menu. Leave here because some settings should some day be 
+# accessible via a dialog (advanced settings).
+BaseMenu=object
 class xSettingsMenu(BaseMenu):
     def fill(self):
         BaseMenu.fill(self)
         addItem = self.addItem
         
-        addItem( MI('Automatically indent', self.fun_autoIndent, []) )        
-        addItem( MI('Enable call tips', self.fun_callTip, []) )
-        addItem( MI('Enable auto completion', self.fun_autoComplete, []) )
-        addItem( MI('Autocomplete keywords', self.fun_autoComplete_kw, []) )
         addItem( MI('Autocomplete case sensitive', self.fun_autoComplete_case, []) )
         addItem( MI('Autocomplete select chars', self.fun_autoComplete_fillups, []) )
         addItem( None )
@@ -1375,16 +1396,7 @@ class xSettingsMenu(BaseMenu):
         addItem( MI('Default indentation width', self.fun_defaultIndentWidth, []) )
         addItem( MI('Default indentation style', self.fun_defaultIndentStyle, []) )
         addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
-        addItem( None )
-        addItem( MI('Shell wraps to 80 columns', self.fun_shellWrap80, []) )
-        addItem( MI('Shell always fits 80 columns', self.fun_shellFit80, []) )
-        addItem( None )
-        addItem( MI('Edit key mappings ...', self.fun_keymap) )
-        addItem( MI('Edit syntax styles ...', self.fun_editStyles) )
-        addItem( MI('Advanced settings ...', self.fun_advancedSettings) )
-        #addItem( MI('Save settings now', self.fun_saveSettings) )
-        
-    
+ 
     def fun_defaultStyle(self, value):
         """ The style used for new files. """
         if value is None:
@@ -1442,26 +1454,6 @@ class xSettingsMenu(BaseMenu):
             # store
             iep.config.settings.defaultLineEndings = value
     
-    def fun_shellWrap80(self, value):
-        """ The shell performs hard wrapping of long lines to 80 columns. """
-        if value is None:
-            return bool(iep.config.settings.shellWrap80)
-        else:
-            value = not bool(iep.config.settings.shellWrap80)
-            iep.config.settings.shellWrap80 = value
-    
-    def fun_shellFit80(self, value):
-        """ Decrease the shell font size so that at least 80 columns fit. """
-        if value is None:
-            return bool(iep.config.settings.shellFit80)
-        else:
-            value = not bool(iep.config.settings.shellFit80)
-            iep.config.settings.shellFit80 = value
-            for s in iep.getAllScintillas():
-                if hasattr(s, 'updateFontSizeToMatch80Columns'):
-                    s.updateFontSizeToMatch80Columns()
-    
-
     
     def fun_autoComplete_case(self, value):
         """ Whether the autocompletion is case sensitive or not. """
@@ -1498,78 +1490,10 @@ class xSettingsMenu(BaseMenu):
             tmp = iep.config.settings.autoComplete_fillups
             for e in iep.getAllScintillas():                
                 e.SendScintilla(e.SCI_AUTOCSETFILLUPS, tmp)
-    
-    def fun_callTip(self, value):
-        """ Show a call tip for functions and methods. """
-        if value is None:
-            return bool(iep.config.settings.autoCallTip)
-        else:
-            value = not bool(iep.settings.settings.autoCallTip)
-            iep.config.settings.autoCallTip = value
-    
-    def fun_autoIndent(self, value):
-        """ Enable auto-indentation (python style only). """
-        if value is None:
-            return bool(iep.config.settings.autoIndent)
-        else:
-            value = not bool(iep.config.settings.autoIndent)
-            iep.config.settings.autoIndent = value
-    
-    def fun_keymap(self, value):
-        """ Edit the keymappings for the menu. """
-        dialog = KeymappingDialog()
-        dialog.exec_()
-    
-
-
-    def fun_saveSettings(self, value):
-        """ Iep saves the settings when exiting, but you can also save now. """
-        iep.main.saveConfig()
-        widget = QtGui.qApp.focusWidget()
-        # set focus away and back, if the open file is config.ssdf, 
-        # a file-changed message will appear
-        iep.editors._findReplace._findText.setFocus()
-        widget.setFocus()
-    
-
-
-    
-
-
-
-def getShortcut( fullName):
-    """ Given the full name or an action, get the shortcut
-    from the iep.config.shortcuts dict. A tuple is returned
-    representing the two shortcuts. """
-    if isinstance(fullName, QtGui.QAction):
-        fullName = fullName.menuPath # the menuPath property is set in Menu._addAction
-    shortcut = '', ''
-    if fullName in iep.config.shortcuts:
-        shortcut = iep.config.shortcuts[fullName]
-        if shortcut.count(','):
-            shortcut = tuple(shortcut.split(','))
-        else:
-            shortcut = shortcut, ''
-    return shortcut
+ 
 
 ## Classes to enable editing the key mappings
 
-def translateShortcutToOSNames(shortcut):
-    """
-    Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
-    Meta -> Windows for windows
-    """
-    
-    if sys.platform == 'darwin':
-        replace = (('Ctrl+','\u2318'),('Shift+','\u21E7'),
-                    ('Alt+','\u2325'),('Meta+','^'))
-    else:
-        replace = ()
-    
-    for old, new in replace:
-        shortcut = shortcut.replace(old, new)
-        
-    return shortcut
 
 class KeyMapModel(QtCore.QAbstractItemModel):
     """ The model to view the structure of the menu and the shortcuts
@@ -1792,7 +1716,7 @@ class KeyMapEditDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, *args)
         
         # set title
-        self.setWindowTitle('IEP - Edit shortcut mapping')
+        self.setWindowTitle(translate("menu dialog", 'Edit shortcut mapping'))
         self.setWindowIcon(iep.icon)
         
         # set size
@@ -1938,7 +1862,7 @@ class KeymappingDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, *args)
         
         # set title
-        self.setWindowTitle('IEP - Shortcut mappings')
+        self.setWindowTitle(translate("menu dialog", 'Shortcut mappings'))
         self.setWindowIcon(iep.icon)
         
         # set size

@@ -66,6 +66,7 @@ def getResourceDirs():
         os.mkdir(toolDir)
     
     # Make sure the style file is there
+    # todo: remove this whole stuff, including StyleManager etc.
     styleFileName1 = os.path.join(iepDir, 'resources', 'defaultStyles.ssdf')
     styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')
     if not os.path.isfile(styleFileName2):
@@ -112,19 +113,40 @@ def resetConfig(preserveState=True):
 
 
 class Translation(str):
-    """ Derives from str class. Set .original property to indicate the original
-    text"""
+    """ Derives from str class. The translate function returns an instance
+    of this class and assigns extra atrributes:
+      * original: the original text passed to the translation
+      * tt: the tooltip text 
+      * key: the original text without tooltip (used by menus as a key)
+    
+    We adopt a simple system to include tooltip text in the same
+    translation as the label text. By including ":::" in the text,
+    the text after that identifier is considered the tooltip.
+    The text returned by the translate function is always the 
+    string without tooltip, but the text object has an attribute
+    "tt" that stores the tooltip text. In this way, if you do not
+    use this feature or do not know about this feature, everything
+    keeps working as expected.
+    """
     pass
-        
-def translate(context, text,  disambiguation=None):   
-    s = Translation(QtCore.QCoreApplication.translate(context, text, disambiguation))
-    s.original = text
-    return s
 
-def untranslate(text):
-    if hasattr(text,'original'):
-        return text.original
-    return text
+def translate(context, text, disambiguation=None):  
+    def splitMainAndTt(s):
+        if ':::' in s:
+            parts = s.split(':::', 1)
+            return parts[0].rstrip(), parts[1].lstrip()
+        else:
+            return s, ''
+    
+    # Get translation and split tooltip
+    newtext = QtCore.QCoreApplication.translate(context, text, disambiguation)
+    s, tt = splitMainAndTt(newtext)
+    # Create translation object (string with extra attributes)
+    translation = Translation(s)
+    translation.original = text
+    translation.tt = tt
+    translation.key = splitMainAndTt(text)[0].strip()
+    return translation
 
 
 
