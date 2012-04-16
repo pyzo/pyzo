@@ -254,6 +254,11 @@ class KernelBroker:
         
         """
         
+        # Close connection (it might be in a wait state if the process
+        # failed to start)
+        if self._kernelCon is not None:
+            self._kernelCon.close()
+        
         # Set process and kernel connection to None
         self._process = None
         self._kernelCon = None
