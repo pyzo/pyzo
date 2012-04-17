@@ -74,7 +74,7 @@ def simpleDialog(item, action, question, options, defaultOption):
             button = dlg.addButton(option, dlg.AcceptRole)
         buttons[button] = option
         # Set as default?
-        if option_lower == defaultOption:
+        if option_lower == defaultOption.lower():
             dlg.setDefaultButton(button)
     
     # get result
@@ -1139,13 +1139,14 @@ class EditorTabs(QtGui.QWidget):
     
     def saveFileAs(self, editor=None):
         """ Create a dialog for the user to select a file. 
+        returns: True if succesfull, False if fails
         """
         
         # get editor
         if editor is None:
             editor = self.getCurrentEditor()
         if editor is None:
-            return
+            return False
         
         # get startdir
         if editor._filename:
@@ -1177,13 +1178,14 @@ class EditorTabs(QtGui.QWidget):
         
         # proceed or cancel
         if filename:
-            self.saveFile(editor, filename)
+            return self.saveFile(editor, filename)
         else:
-            pass
+            return False # Cancel was pressed
     
     
     def saveFile(self, editor=None, filename=None):
         """ Save the file. 
+        returns: True if succesfull, False if fails
         """
         
         # get editor
@@ -1196,20 +1198,14 @@ class EditorTabs(QtGui.QWidget):
                 item = self._tabs.items()[index]
                 editor = item.editor
         if editor is None:
-            return
-        
-        # get editor
-        if editor is None:
-            editor = self.getCurrentEditor()
-        if editor is None:
-            return
+            return False
         
         # get filename
         if filename is None:
             filename = editor._filename
         if not filename:
-            self.saveFileAs(editor)
-            return
+            return self.saveFileAs(editor)
+
         
         # let the editor do the low level stuff...
         try:
@@ -1224,7 +1220,7 @@ class EditorTabs(QtGui.QWidget):
             m.setIcon(m.Warning)
             m.exec_()
             # Return now            
-            return
+            return False
         
         # get actual normalized filename
         filename = editor._filename
@@ -1274,8 +1270,7 @@ class EditorTabs(QtGui.QWidget):
             
             # Get result and act            
             if result == 'save':
-                self.saveFile(editor)
-                return 2
+                return 2 if self.saveFile(editor) else 0
             elif result == 'discard':
                 return 3
             else: # cancel
