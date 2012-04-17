@@ -17,6 +17,7 @@ from PyQt4 import QtCore, QtGui
 import iep
 from iepcore.iepLogging import print
 from iepcore.kernelbroker import KernelInfo
+from iep import translate
 
 
 ## Implement widgets that have a common interface
@@ -127,7 +128,7 @@ class ShellInfo_pythonPath(QtGui.QVBoxLayout):
         QtGui.QVBoxLayout.__init__(self) 
         
         # Create two sub-widgets
-        self._check = QtGui.QCheckBox('Use system default', parent)
+        self._check = QtGui.QCheckBox(translate('shell', 'Use system default'), parent)
         self._edit = QtGui.QTextEdit(parent)
         self._edit.setMaximumHeight(80)
         self._edit.setMinimumWidth(400)
@@ -203,7 +204,7 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
         QtGui.QVBoxLayout.__init__(self)
         
         # Create two sub-widgets
-        self._check = QtGui.QCheckBox('Use system default', parent)
+        self._check = QtGui.QCheckBox(translate('shell', 'Use system default'), parent)
         self._edit = QtGui.QLineEdit(parent)
         
         # Layout
@@ -275,9 +276,13 @@ class ShellInfo_startDir(ShellInfoLineEdit):
 
 class ShellInfoTab(QtGui.QWidget):
     
-    INFO_KEYS = ['name', 'exe', 'gui', 'pythonPath', 'startupScript', 'startDir']
-    
-    # todo: translations should work somehow
+    INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'), 
+                    translate('shell', 'exe ::: The Python executable.'), 
+                    translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'), 
+                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages.'), 
+                    translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
+                    translate('shell', 'startDir ::: The start directory (not in script mode).')
+                ]
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
@@ -288,24 +293,20 @@ class ShellInfoTab(QtGui.QWidget):
         # Collect classes of widgets to instantiate
         classes = []
         defaultInfo = KernelInfo()
-        for key in self.INFO_KEYS:
-            className = 'ShellInfo_' + key
+        for t in self.INFO_KEYS:
+            className = 'ShellInfo_' + t.key
             cls = globals()[className]
-            classes.append((key, cls))
+            classes.append((t, cls))
         
         # Instantiate all classes
         self._shellInfoWidgets = {}
-        for key, cls in classes:
+        for t, cls in classes:
             # Instantiate and store
             instance = cls(self)
-            self._shellInfoWidgets[key] = instance
-            
-            # Get name and tooltip
-            name = iep.translate('Shell', key)
-            tooltip = ''
+            self._shellInfoWidgets[t.key] = instance
             # Create label 
-            label = QtGui.QLabel(name, self)
-            label.setToolTip(tooltip)
+            label = QtGui.QLabel(t, self)
+            label.setToolTip(t.tt)
             # Add to layout
             self._formLayout.addRow(label, instance)
         
@@ -381,7 +382,7 @@ class ShellInfoDialog(QtGui.QDialog):
         self.setModal(True)
         
         # Set title
-        self.setWindowTitle(iep.translate('Shell', 'Shell configurations'))
+        self.setWindowTitle(iep.translate('shell', 'Shell configurations'))
         self.setWindowIcon(iep.icon)
         
         # Create tab widget
@@ -406,7 +407,7 @@ class ShellInfoDialog(QtGui.QDialog):
         self._add.clicked.connect(self.onAdd)
         self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self._add.setIcon(iep.icons.add)
-        self._add.setText('Add config')
+        self._add.setText(translate('shell', 'Add config'))
         #
         self._tabs.setTabsClosable(True)
         self._tabs.tabCloseRequested.connect(self.onTabClose)
@@ -473,7 +474,7 @@ class ShellInfoDialog(QtGui.QDialog):
 
 
 ## Find all python executables
-
+# todo: use new version that will probably be part of pyzolib
 
 def findPythonExecutables():
     if sys.platform.startswith('win'):

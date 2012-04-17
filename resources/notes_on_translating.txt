@@ -1,9 +1,48 @@
-Todo: how does it work in Pyside?
+Notes on translating
+====================
 
-The pylupdate4 tool parses the source code of the files specified in iep.pro
-and detects usages of a translate() function call.
+todo: How does it work in Pyside?
 
-From the PyQt website:
+In short
+--------
+
+Apply the following steps:
+  
+  * Run "pylupdate4 iep.pro"
+  * Translate the .tr files using Qt linguist
+  * (Run "pylupdate4 -noobsolete iep.pro" to remove old entries)
+  * Run "lrelease iep.pro"
+
+The pylupdate4 tool parses the source code of the files specified 
+in iep.pro and detects usages of any "translate()" function call.
+
+
+For translaters
+---------------
+
+We send translaters a .tr file, which they translate using Qt linguist
+and then send back to us.
+
+
+About tooltips
+--------------
+
+I like tooltips. And I think its best to specify them in the same string
+as the text/label that they apply to. In IEP we use the convention that
+a translation string can contain tooltips by writing three colons followed
+by the tooltip text: ``"This is a label ::: This is the tooltip text"``
+
+The iep.translate function returns a string object that contains only
+the label text, but which has an attribute called "tt" that contains
+the tooltip text (or an empty string).
+
+In this way, in places where you do not need a tooltip, things behave as
+normal. In cases where you need a tooltip, things are now easier (especially
+for the translater).
+
+
+From the PyQt website
+---------------------
 
   * The programmer uses pylupdate4 to create or update a .ts translation 
     file for each language that the application is to be translated into. 
@@ -18,4 +57,3 @@ From the PyQt website:
     used by the application. If an application cannot find an appropriate .qm 
     file, or a particular string hasn’t been translated, then the strings used 
     in the original source code are used instead.
-
