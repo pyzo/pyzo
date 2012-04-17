@@ -15,6 +15,7 @@ function which is also defined here.
 import os, sys, time
 import ssdf
 import iep
+from iepcore.icons import IconArtist
 
 from PyQt4 import QtCore, QtGui
 from queue import Queue, Empty
@@ -346,12 +347,15 @@ def loadIcons():
     iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
     
     # Construct another icon to show when the current shell is busy
-    iep.iconRunning = QtGui.QIcon() 
-    tmp = os.path.join(iconDir,'iep{}_running.png')
-    iep.iconRunning.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
-    iep.iconRunning.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
-    iep.iconRunning.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
-    
+    artist = IconArtist(iep.icon) # extracts the 16x16 version
+    artist.setPenColor('#0B0')
+    for x in range(11, 16):
+        d = x-11 # runs from 0 to 4
+        artist.addLine(x,6+d,x,15-d)
+    pm = artist.finish().pixmap(16,16)
+    #
+    iep.iconRunning = QtGui.QIcon(iep.icon)
+    iep.iconRunning.addPixmap(pm) # Change only 16x16 icon
     
     # Construct other icons
     iep.icons = ssdf.new()
