@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2012, the codeeditor development team
+#
+# IEP is distributed under the terms of the (new) BSD License.
+# The full license can be found in 'license.txt'.
+
 import re
 from codeeditor.parsers import tokens, Parser, BlockState
 from codeeditor.parsers.tokens import ALPHANUM

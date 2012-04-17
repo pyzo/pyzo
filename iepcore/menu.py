@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010, the IEP development team
+# Copyright (C) 2012, the IEP development team
 #
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
@@ -874,7 +874,7 @@ class EditorTabContextMenu(Menu):
         self.addItem(translate("menu", "Close ::: Close the current file."),
             icons.page_delete, self._fileAction, "closeFile")
         self.addItem(translate("menu", "Close others::: Close all files but this one."),
-            None, self._fileAction, "closeFile")
+            None, self._fileAction, "close_others")
         self.addItem(translate("menu", "Close all ::: Close all files."),
             icons.page_delete_all, self._fileAction, "close_all")
         self.addItem(translate("menu", "Rename ::: Rename this file."),
@@ -1283,7 +1283,7 @@ class HelpMenu(Menu):
         <br><br>
         
         <b>License</b><br>
-        Copyright (c) 2010, the IEP development team<br>
+        Copyright (C) 2012, the IEP development team<br>
         IEP is distributed under the terms of the (new) BSD License.<br>
         The full license can be found in 'license.txt'.
         <br><br>
