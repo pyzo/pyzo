@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010, the IEP development team
+# Copyright (C) 2012, the IEP development team
 #
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
@@ -171,7 +171,10 @@ def startIep():
     QtGui.qApp = QtGui.QApplication([])
     
     # Choose language, get locale
-    locale = setLanguage(QtCore.QLocale.Dutch)
+    # todo: Turn back on so we can find all strings that we should translate
+    # Also implement way to allow user to select the language
+    locale = None
+    #locale = setLanguage(QtCore.QLocale.Dutch)
     
     # Create IEP, using the selected locale
     frame = MainWindow(None, locale)
@@ -184,12 +187,6 @@ def setLanguage(languageId):
     """ setLanguage(languageId)
     Set the language for the app. Loads qt and iep translations.
     Returns the QLocale instance to pass to the main widget.
-    
-    Translations recepy:
-      * pylupdate4 iep.pro
-      * translate (or let other people translate) .tr files using qt-linguist
-      * lrelease iep.pro
-    
     """
     
     # Derive name, locale, and locale language name
