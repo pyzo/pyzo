@@ -617,7 +617,7 @@ class IepInterpreter:
     
     ## Writing and error handling
     
-    
+    # todo: remove this method
     def write(self, text):
         """ Write errors. """
         sys.stderr.write( text )

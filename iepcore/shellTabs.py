@@ -281,7 +281,6 @@ class DebugControl(QtGui.QToolButton):
             self.setText('Debug')
         
         else:
-            # todo: there might be an offset in the index
             # Get the current frame
             theAction = None
             
