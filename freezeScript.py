@@ -114,7 +114,9 @@ f.Freeze()
 srcDir2 = distDir + 'source/'
 
 #Copy all the source files
-for dir in ['','iepkernel/', 'yoton/', 'yoton/channels/', 'tools/']:
+for dir in ['','iepkernel/', 'iepcore/', 'tools/',
+    'codeeditor/', 'codeeditor/extensions/', 'codeeditor/parsers/',
+    'yoton/', 'yoton/channels/']:
     if not os.path.isdir(srcDir2+dir):
         os.mkdir(srcDir2+dir)
 
