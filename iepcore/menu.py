@@ -1207,16 +1207,6 @@ class HelpMenu(Menu):
     def addUrlItem(self, name, icon, url):
         self.addItem(name, icon, lambda: webbrowser.open(url))
     
-    def _expandVersion(self, version):        
-        parts = []
-        for ver in version.split('.'):
-            try:
-                tmp = '%05i' % int(ver)
-                parts.append(tmp)
-            except ValueError: 
-                parts.append(ver)
-        return '.'.join(parts)    
-    
     def _checkUpdates(self):
         """ Check whether a newer version of IEP is available. """
         # Get versions available
@@ -1226,29 +1216,23 @@ class HelpMenu(Menu):
         results = []
         for pattern in ['iep-(.{1,9}?)\.source\.zip' ]:
             results.extend( re.findall(pattern, text) )
-        # Select best
-        remoteVersion = ''
-        for result in results:
-            if self._expandVersion(result) > self._expandVersion(remoteVersion):
-                remoteVersion = result
-        if not remoteVersion:
-            remoteVersion = '?'
+        # Produce single string with all versions ...
+        versions = ', '.join(set(results))
+        if not versions:
+            versions = '?'
         # Define message
-        text = """ 
-        Your version of IEP is: {}
-        The latest version available is: {}\n        
-        """.format(iep.__version__, remoteVersion)
+        text = "Your version of IEP is: {}\n" 
+        text += "Available versions are: {}\n\n"         
+        text = text.format(iep.__version__, versions)
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
-        if remoteVersion == '?':
-            text += "Oops, could not determine the latest version."    
-        elif self._expandVersion(iep.__version__) < self._expandVersion(remoteVersion):
-            text += "Do you want to download the latest version?"    
+        if versions == '?':
+            text += "Oops, could not determine available versions.\n\n"    
+        if True:
+            text += "Do you want to open the download page?\n"    
             m.setStandardButtons(m.Yes | m.Cancel)
             m.setDefaultButton(m.Cancel)
-        else:
-            text += "Your version is up to date."    
         m.setText(text)
         m.setIcon(m.Information)
         result = m.exec_()
