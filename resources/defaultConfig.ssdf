@@ -1,0 +1,118 @@
+# This Simple Structured Data Format (SSDF) file contains the default 
+# configuration for IEP. The user configuration is stored in the IEP
+# application data directory.
+
+state = dict:
+    find_regExp = 0
+    find_matchCase = 0
+    find_wholeWord = 0
+    find_show = 0
+    find_autoHide = 1
+    editorState = '' # What files where loaded and where the cursor was
+    loadedTools = []
+    windowState = '' # Of window and tools    
+    windowPos = []
+    windowSize = [800, 600]
+    windowMaximized = 0
+
+view = dict:       
+    showWhitespace = 0
+    showLineEndings = 0
+    showWrapSymbols = 0
+    showIndentationGuides = 1
+    showStatusbar = 0
+    #
+    wrap = 1
+    highlightCurrentLine = 1
+    doBraceMatch = 1  # Both in editor and shell
+    codeFolding = 0
+    #
+    qtstyle = ''
+    edgeColumn = 80    
+    zoom = 0  # Both for editor and shell
+    tabWidth = 4
+
+settings= dict:
+    defaultStyle = 'python'
+    defaultIndentWidth = 4
+    defaultIndentUsingSpaces = 1
+    defaultLineEndings = '' # Set depending on OS
+    #
+    shellWrap80 = 1
+    shellFit80 = 0
+    #
+    autoIndent = 1
+    autoCallTip = 1
+    autoComplete_keywords = 1
+    autoComplete = 1
+    autoComplete_caseSensitive = 0
+    autoComplete_fillups = '\n'
+
+advanced = dict:
+    shellMaxLines = 10000
+    editorStackBarWidth = 128
+    editorStackBarSpacing = 0
+    fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
+    autoCompDelay = 200
+    titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
+    homeAndEndWorkOnDisplayedLine = 0
+    find_autoHide_timeout = 10
+  
+tools = dict:
+    ieplogger = dict:
+    iepinteractivehelp = dict:
+        noNewlines = 1
+    iepsourcestructure = dict:
+        showTypes = ['def', 'cell', 'todo', 'class']
+        level = 3
+
+shellConfigs2 = list:
+    dict:
+        name = 'Shell config 1'
+        exe = '' # Will be filled in by the shell if empty
+        gui = ''
+        startDir = ''
+        pythonPath = '$PYTHONPATH'
+        startupScript = '$PYTHONSTARTUP'
+
+shortcuts = dict:
+    edit__paste = 'Ctrl+V,Shift+Insert'
+    view__zooming__zoom_in = 'Ctrl+=,'
+    edit__select_all = 'Ctrl+A,'
+    shell__restart = 'Ctrl+Shift+K,'
+    run__run_file_as_script = 'Ctrl+F5,'
+    edit__move_to_matching_brace = 'Ctrl+],'
+    run__run_project_main_file = 'F6,'
+    edit__find_next = 'F3,'
+    edit__find_selection_backward = 'Ctrl+Shift+F3,'
+    edit__find_or_replace = 'Ctrl+F,'
+    edit__find_previous = 'Shift+F3,'
+    shell__create_shell_1_ = 'Ctrl+P,'
+    file__new = 'Ctrl+N,'
+    run__run_cell = 'Ctrl+Enter,Ctrl+Return'
+    view__select_editor = 'F2,'
+    shell__interrupt = 'Ctrl+I,Pause'
+    shell__terminate = 'Ctrl+K,'
+    shell__close = 'Alt+K'
+    view__wrap_long_lines = ','
+    view__zooming__zoom_out = 'Ctrl+-,'
+    run__run_selected_lines = 'F9,'
+    shell__restart_shell_and_run_project_main_file = 'F7,'
+    edit__copy = 'Ctrl+C,Ctrl+Insert'
+    edit__redo = 'Ctrl+Y,'
+    edit__undo = 'Ctrl+Z,'
+    run__run_project_main_file_as_script = 'Ctrl+F6,'
+    file__close = 'Ctrl+W,'
+    edit__find_selection = 'Ctrl+F3,'
+    edit__uncomment_lines = 'Ctrl+T,'
+    view__zooming__zoom_reset = 'Ctrl+\\,'
+    run__run_file = 'F5,'
+    file__save = 'Ctrl+S,'
+    file__save_as_ = 'Ctrl+Shift+S,'
+    view__select_previous_file = 'Ctrl+Tab,'
+    edit__comment_lines = 'Ctrl+R,'
+    view__select_shell = 'F1,Ctrl+0'
+    edit__cut = 'Ctrl+X,Shift+Delete'
+    file__open = 'Ctrl+O,'
+    shell__clear_screen = 'Ctrl+L,'
+    edit__dedent_lines = 'Shift+Tab,'
