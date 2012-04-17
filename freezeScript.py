@@ -21,7 +21,7 @@ The frozen application is created in a sibling directory of the source.
 
 """
 
-import sys, os, shutil
+import sys, os, stat, shutil
 import subprocess
 from cx_Freeze import Executable, Freezer, setup
 
@@ -167,7 +167,12 @@ if applicationBundle:
         #Do the processing for any found file or dir, the tools will just
         #fail for files for which it does not apply
         filepath=os.path.join(distDir,file)
-
+        
+        #Ensure write permissions
+        mode = os.stat(filepath).st_mode
+        if not (mode & stat.S_IWUSR):
+            os.chmod(filepath, mode | stat.S_IWUSR)
+            
         #Let the library itself know its place
         subprocess.call(('install_name_tool','-id','@executable_path/'+file,filepath))
 
@@ -199,29 +204,11 @@ if applicationBundle:
 
 
     #Package in a dmg
-    dmgFile=appDir+'IEP.dmg'
-    dmgTemp=appDir+'temp.dmg'
+    dmgFile=appDir+'iep.dmg'
 
-    tempDir=appDir+'temp'
-    os.mkdir(tempDir)
-    #Create the dmg
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX','-layout','SPUD','-megabytes','200',dmgTemp,'-srcfolder',tempDir,'-format','UDRW','-volname','IEP')!=0:
-        sys.exit(1)
-
-    #Mount the dmg
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','attach',dmgTemp,'-noautoopen','-quiet','-mountpoint',tempDir)!=0:
-        sys.exit(1)
-
-    #Copy the app
-    shutil.copytree(appDir+'iep.app',tempDir+'/IEP.app')
-
-    #Unount the dmg
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','detach',tempDir,'-force')!=0:
-        sys.exit(1)
-    os.rmdir(tempDir)
-
-    #Convert the dmg to compressed, read=only
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','convert',dmgTemp,'-format','UDZO','-imagekey','zlib-level=9','-o',dmgFile)!=0:
-        sys.exit(1)
-    os.unlink(dmgTemp)
+    # Create the dmg
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
+        '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
+        '-srcfolder',appDir,'-volname', 'iep')!=0:
+        raise OSError('creation of the dmg failed')
 
