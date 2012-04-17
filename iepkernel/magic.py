@@ -158,7 +158,7 @@ class Magician:
                 interpreter.locals = frame.f_locals
                 interpreter.globals = frame.f_globals
                 # Notify IEP
-                interpreter.writestatus() # todo: debug status?
+                interpreter.writestatus()
             else:
                 interpreter.write("No debug information available.\n")
         
