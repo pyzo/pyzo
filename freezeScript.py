@@ -130,10 +130,10 @@ if not os.path.isdir(iconsDir2):
     os.mkdir(iconsDir2)
 
 # Create gui dir in frozen app
-guiDir  = srcDir + 'gui/'
-guiDir2 = srcDir2 + 'gui/'
-if not os.path.isdir(guiDir2):
-    os.mkdir(guiDir2)
+#guiDir  = srcDir + 'gui/'
+#guiDir2 = srcDir2 + 'gui/'
+#if not os.path.isdir(guiDir2):
+#    os.mkdir(guiDir2)
 
 # Create resources dir in frozen app
 resDir = srcDir + 'resources/'
@@ -144,9 +144,9 @@ if not os.path.isdir(resDir2):
 
 for fname in os.listdir(iconsDir):
     shutil.copy(iconsDir+fname, iconsDir2+fname)
-for fname in os.listdir(guiDir):
-    if not os.path.isdir(guiDir+fname):
-        shutil.copy(guiDir+fname, guiDir2+fname)
+#for fname in os.listdir(guiDir):
+#    if not os.path.isdir(guiDir+fname):
+#        shutil.copy(guiDir+fname, guiDir2+fname)
 for fname in os.listdir(resDir):
     shutil.copy(resDir+fname, resDir2+fname)
 
