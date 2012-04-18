@@ -2,8 +2,8 @@
 """ 
 Welcome to the tutorial for IEP! This tutorial should get you 
 familiarized with IEP in just a few minutes. If you feel this tutorial
-contains error or lacks some information, please let me know via
-almar.klein at gmail dot com.
+contains errors or lacks some information, please let us know via
+a.klein at science-applied dot nl.
 
 IEP is a cross-platform Python IDE focused on interactivity and
 introspection, which makes it very suitable for scientific computing. 
@@ -20,18 +20,16 @@ uses a set of pluggable tools to help the programmer in various ways.
 The editor (this window) is where your code is located; it is the central
 component of IEP. 
 
-To the left of the editor is a list of open files. The files
-can be organized in projects, and are stacked vertically so you can
-access your files easily. You can drag files to change their order, or
-move them to a (different) project.
-
-Using the right mouse button, files can be created, saved, closed, etc. 
+In the editor, each open file is represented as a tab. By right-clicking on
+a tab, files can be run, saved, closed, etc. 
 
 The right mouse button also enables to make a file the MAIN FILE of
-a project. This file can be easily recognized by its bold face, and
-it enables running the file more easily (as we will see later in this
+a project. This file can be recognized by its star symbol and its blue filename,
+and it enables running the file more easily (as we will see later in this
 tutorial).
 
+For larger projects, the Project manager tool can be used to manage your files
+(also described later in this tutorial)
 """
 
 
@@ -39,7 +37,7 @@ tutorial).
 """
 The other main component is the window that holds the shells. When IEP
 starts, a default shell is created. You can add more shells that run
-simultaneously, and which can be of different Python versions.
+simultaneously, and which may be of different Python versions.
 
 It is good to know that the shells run in a sub-process, such that
 when it is busy, IEP itself stays responsive, which allows you to 
@@ -47,10 +45,7 @@ keep coding and even run code in another shell.
 
 Another notable feature is that IEP can integrate the event loop of
 five different GUI toolkits, thus enabling interactive plotting with
-Visvis or Matplotlib. IEP does this in a way that is compatible with
-the guisupport.py module, which makes it easy to write apps that
-run well in IEP or standalone. (The application instance of the GUI
-toolkit is given an "_in_event_loop" attribute.)
+e.g., Visvis or Matplotlib.
   
 Via "Shell > Edit shell configurations", you can edit and add shell
 configurations. This allows you to for example select the initial
@@ -94,8 +89,7 @@ also the "Run" menu).
 
 Additionally, you can run the current file or the current project's
 main file as a script. This will first restart the shell to provide
-a clean environment. The shell is also initialized differently, see
-below.
+a clean environment. The shell is also initialized differently:
 
 Things done on shell startup in INTERACTIVE MODE:
   * sys.argv = ['']
@@ -109,6 +103,8 @@ Things done on shell startup in SCRIPT MODE:
   * sys.path is prepended with the directory containing the script.
   * The working dir is set to the directory containing the script.  
 
+Depending on the settings of the Project mananger, the current project
+directory may also be inserted in sys.path.
 """
 
 a = 3
@@ -120,10 +116,10 @@ print('The answer is ' + str(a+b))
 """
 Almost all functionality of IEP can be accessed via the menu. For more
 advanced/specific stuff, you can use the logger tool (see also 
-Settings > Advanced)
+Settings > Advanced settings)
 
 All actions in the menu can be accessed via a shortcut. Change the 
-shortcuts using the shortcut editor: Menu > Settings > Change shortcuts.
+shortcuts using the shortcut editor: Settings > Edit key mappings.
   
 """
 
@@ -143,7 +139,7 @@ as autocompletion, calltips, interactive help and source structure.
 IEP supports post-mortem debugging, which means that after something 
 went wrong, you can inspect the stack trace to find the error.
 
-The easiest way to start debugging is to press the "Post mortem" button
+The easiest way to start debugging is to press the "Debug" button
 at the upper right corner of the shells.
 
 Once in debug mode, the button becomes expandable, allowing you to
@@ -153,7 +149,7 @@ in that frame available in the shell. If possible, IEP will also show
 the source file belonging to that frame, and select the line where the
 error occurred.
 
-Debugging can also be controlled via magic commands, type "?" in the
+Debugging can also be controlled via magic commands, enter "?" in the
 shell for more information.
 
 Below follows an example that you can run to test the debugging.
@@ -179,4 +175,28 @@ def bar():
     return total
 
 foo()
+
+## The Project manager
+"""
+For working on projects, the Project manager tool can help you to keep
+an overview of all your files. To open up the Project manager tool, 
+select it from the menu (Tools > Project manager).
+
+To add, remove, or edit your projects, click the button with the
+wrench icon. In the dialog, select 'New project' to add a project and
+select the directory where your project is located. When the project
+is added, you can change the Project description (name). 
+
+You can select wether the project path is added to the Python 
+sys.path. This feature allows you to import project modules from the
+shell, or from scripts which are not in the project root directory.
+Note that this feature requires a restart of the shell to take effect
+(Shell > Restart)
+
+The Project manager allows you to switch between your projects easily
+using the selection box at the top. The tree view shows the files and
+directories in your project. Files can be hidden using the filter that
+is specified at the bottom of the Project manager, e.g. !*.pyc to hide
+all files that have the extension pyc.
+"""
 
