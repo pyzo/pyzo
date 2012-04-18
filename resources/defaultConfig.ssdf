@@ -77,7 +77,7 @@ shellConfigs2 = list:
 
 shortcuts = dict:
     edit__comment = 'Ctrl+R,'
-    edit__copy = 'Ctrl+C,'
+    edit__copy = 'Ctrl+C,Ctrl+Insert'
     edit__cut = 'Ctrl+X,Shift+Delete'
     edit__dedent = 'Shift+Tab,'
     edit__delete_line = 'Ctrl+D,'
@@ -87,7 +87,7 @@ shortcuts = dict:
     edit__find_selection = 'Ctrl+F3,'
     edit__find_selection_backward = 'Ctrl+Shift+F3,'
     edit__indent = 'Tab,'
-    edit__paste = 'Ctrl+V,'
+    edit__paste = 'Ctrl+V,Shift+Insert'
     edit__redo = 'Ctrl+Y,'
     edit__select_all = 'Ctrl+A,'
     edit__uncomment = 'Ctrl+T,'
