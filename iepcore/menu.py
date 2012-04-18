@@ -60,7 +60,10 @@ def buildMenus(menuBar):
                 QtGui.QToolTip._lastAction = action
                 QtGui.QToolTip._haveRaisedTooltip = False
         # Set tooltip
-        QtGui.QToolTip.showText(QtGui.QCursor.pos(), action.statusTip())
+        tt = action.statusTip()
+        if hasattr(action, '_shortcutsText'):
+            tt = tt + ' ({})'.format(action._shortcutsText) # Add shortcuts text in it
+        QtGui.QToolTip.showText(QtGui.QCursor.pos(), tt)
     menuBar.hovered.connect(onHover)
 
 
@@ -125,11 +128,12 @@ class KeyMapper(QtCore.QObject):
         (which is the key in iep.config.shortcuts, e.g. shell__clear_screen)
         """
         if action.menuPath in iep.config.shortcuts:
+            # Set shortcut so Qt can do its magic
             shortcuts = iep.config.shortcuts[action.menuPath]
             action.setShortcuts(shortcuts.split(','))
-            return shortcuts
-        else:
-            return ''
+            # Also store shortcut text (used in display of tooltip
+            shortcuts = shortcuts.replace(',',', ').replace('  ', ' ')
+            action._shortcutsText = shortcuts.rstrip(', ')
 
 
 def unwrapText(text):
@@ -228,39 +232,22 @@ class Menu(QtGui.QMenu):
             a.setCheckable(True)
             a.setChecked(selected)
         
+         # Set tooltip if we can find it
+        if hasattr(text, 'tt'):
+            a.setStatusTip(text.tt)
+        
         # Find the key (untranslated name) for this menu item
         key = a.text()
         if hasattr(text, 'key'):
             key = text.key
         a.menuPath = self.menuPath + '__' + self._createMenuPathName(key)
         
-        # Store tooltip if we can find it (set in updateShortcut)
-        self._tt = ''
-        if hasattr(text, 'tt'):
-            self._tt = text.tt
-        
         # Register the action so its keymap is kept up to date
-        iep.keyMapper.keyMappingChanged.connect(lambda: self.updateShortcut(a))
-        self.updateShortcut(a, True)
+        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
+        iep.keyMapper.setShortcut(a)
         
         return a
     
-    def updateShortcut(self, a, updateStatusTip=False):
-        # todo: when updateStatusTip is True when the keyMappingChanged
-        # signal is emitted, we get a segfault (at least on Linux).
-        
-        # Apply shortcut (make result look nicer)
-        shortcuts = iep.keyMapper.setShortcut(a)
-        shortcuts = shortcuts.rstrip(', ')
-        shortcuts = shortcuts.replace(',',', ').replace('  ', ' ')
-        
-        # Set tooltip and show shortcuts in it
-        if updateStatusTip:
-            if shortcuts:
-                tt = self._tt + ' ({})'.format(shortcuts) 
-            else:
-                tt = self._tt
-            a.setStatusTip(tt)
     
     def build(self):
         """ 
