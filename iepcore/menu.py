@@ -582,15 +582,15 @@ class EditMenu(Menu):
         self.addItem(translate("menu", "Select all ::: Select all text."), 
             icons.sum, self._editItemCallback, "selectAll")
         self.addSeparator()
-        self.addItem(translate("menu", "Indent line(s) ::: Indent the selected line(s)."), 
+        self.addItem(translate("menu", "Indent ::: Indent the selected line."), 
             icons.text_indent, self._editItemCallback, "indentSelection")
-        self.addItem(translate("menu", "Dedent line(s) ::: Unindent the selected line(s)."), 
+        self.addItem(translate("menu", "Dedent ::: Unindent the selected line."), 
             icons.text_indent_remove, self._editItemCallback, "dedentSelection")
-        self.addItem(translate("menu", "Comment line(s) ::: Comment the selected line(s)."), 
+        self.addItem(translate("menu", "Comment ::: Comment the selected line."), 
             icons.comment_add, self._editItemCallback, "commentCode")
-        self.addItem(translate("menu", "Uncomment line(s) ::: Uncomment the selected lines(s)."), 
+        self.addItem(translate("menu", "Uncomment ::: Uncomment the selected line."), 
             icons.comment_delete, self._editItemCallback, "uncommentCode")
-        self.addItem(translate("menu", "Delete line(s) ::: Delete the selected lines."), 
+        self.addItem(translate("menu", "Delete line ::: Delete the selected line."), 
             None, self._editItemCallback, "deleteLines")
         self.addSeparator()
         self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 

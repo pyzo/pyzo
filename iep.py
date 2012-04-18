@@ -236,6 +236,10 @@ def loadConfig(defaultsOnly=False):
     defaultConfig = ssdf.load(fname)
     replaceFields(config, defaultConfig)
     
+    # Platform specific keybinding: on Mac, Ctrl+Tab (actually Cmd+Tab) is a system shortcut
+    if sys.platform == 'darwin':
+        config.shortcuts.view__select_previous_file = 'Alt+Tab,'
+    
     # Load user config and inject in iep.config
     fname = os.path.join(appDataDir, "config.ssdf")
     if os.path.isfile(fname):
