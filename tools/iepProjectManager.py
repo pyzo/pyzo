@@ -688,11 +688,15 @@ class PopupMenu(iepcore.menu.Menu):
         #TODO: implement 'open outside iep' on linux
         
         if sys.platform == 'darwin':
-            self.addItem(translate("menu", "Open outside iep"), self._openOutsideMac)
-            self.addItem(translate("menu", "Reveal in Finder"), self._showInFinder)
+            self.addItem(translate("projectmanager", "Open outside iep"), 
+                None, self._openOutsideMac)
+            self.addItem(translate("projectmanager", "Reveal in Finder"), 
+                None, self._showInFinder)
         if sys.platform.startswith('win'):
-            self.addItem(translate("menu", "Open outside iep"), self._openOutsideWin)
-        self.addItem(translate("menu", "Copy path"), self._copyPath)
+            self.addItem(translate("projectmanager", "Open outside iep"),
+                None, self._openOutsideWin)
+        self.addItem(translate("projectmanager", "Copy path"), 
+            None, self._copyPath)
             
     def _openOutsideMac(self):
         subprocess.call(('open', self._path))
