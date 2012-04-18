@@ -127,6 +127,9 @@ class KeyMapper(QtCore.QObject):
         if action.menuPath in iep.config.shortcuts:
             shortcuts = iep.config.shortcuts[action.menuPath]
             action.setShortcuts(shortcuts.split(','))
+            return shortcuts
+        else:
+            return ''
 
 
 def unwrapText(text):
@@ -225,21 +228,39 @@ class Menu(QtGui.QMenu):
             a.setCheckable(True)
             a.setChecked(selected)
         
-        # Set tooltip if we can find it
-        if hasattr(text, 'tt'):
-            a.setStatusTip(text.tt)
-        
         # Find the key (untranslated name) for this menu item
         key = a.text()
         if hasattr(text, 'key'):
             key = text.key
         a.menuPath = self.menuPath + '__' + self._createMenuPathName(key)
         
+        # Store tooltip if we can find it (set in updateShortcut)
+        self._tt = ''
+        if hasattr(text, 'tt'):
+            self._tt = text.tt
+        
         # Register the action so its keymap is kept up to date
-        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
-        iep.keyMapper.setShortcut(a) 
+        iep.keyMapper.keyMappingChanged.connect(lambda: self.updateShortcut(a))
+        self.updateShortcut(a, True)
         
         return a
+    
+    def updateShortcut(self, a, updateStatusTip=False):
+        # todo: when updateStatusTip is True when the keyMappingChanged
+        # signal is emitted, we get a segfault (at least on Linux).
+        
+        # Apply shortcut (make result look nicer)
+        shortcuts = iep.keyMapper.setShortcut(a)
+        shortcuts = shortcuts.rstrip(', ')
+        shortcuts = shortcuts.replace(',',', ').replace('  ', ' ')
+        
+        # Set tooltip and show shortcuts in it
+        if updateStatusTip:
+            if shortcuts:
+                tt = self._tt + ' ({})'.format(shortcuts) 
+            else:
+                tt = self._tt
+            a.setStatusTip(tt)
     
     def build(self):
         """ 
