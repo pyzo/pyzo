@@ -89,7 +89,7 @@ class ProjectsConfigDialog(QtGui.QDialog):
         self.btnAdd.clicked.connect(self.addProject)
         self.btnRemove.clicked.connect(self.removeProject)
         self.btnDone.clicked.connect(self.close)
-        self.txtDescription.textEdited.connect(self.onDescriptionChanged)
+        self.txtDescription.editingFinished.connect(self.onDescriptionChanged)
         self.chkAddToPath.stateChanged.connect(self.onAddToPathChanged)
         self.lstProjects.selectionModel().currentChanged.connect(self.onProjectChanged)
         # Update description label when project name is changed
@@ -115,6 +115,7 @@ class ProjectsConfigDialog(QtGui.QDialog):
         self.txtDescription = QtGui.QLineEdit(self)
         self.lblPath = QtGui.QLabel('Path:', self)
         self.txtPath = QtGui.QLineEdit(self)
+        self.txtPath.setReadOnly(True)
         self.chkAddToPath = QtGui.QCheckBox('Add path to Python path', self)
         
         # Done button
@@ -503,6 +504,7 @@ class IepProjectManager(QtGui.QWidget):
         self.hLayout.addLayout(self.buttonLayout,0)
   
         self.dirList=QtGui.QTreeView()
+        self.dirList.setHeaderHidden(True)
         
         # The lessThan function in DirSortAndFilter ensures dirs are before files
         self.dirList.sortByColumn(0)
