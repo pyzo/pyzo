@@ -13,6 +13,7 @@ function which is also defined here.
 """
 
 import os, sys, time
+import base64
 import ssdf
 import iep
 from iepcore.icons import IconArtist
@@ -45,34 +46,11 @@ class MainWindow(QtGui.QMainWindow):
         # Set window atrributes
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
-        # Set layout as it was the previous time
-        if iep.config.state.windowPos:
-            xy = iep.config.state.windowPos
-            r = QtGui.qApp.desktop().visibleRegion()
-            if r.contains(QtCore.QPoint(*xy)):
-                self.move(*iep.config.state.windowPos)
-            else:
-                print('Not setting stored windowPos because its not on screen.')
-        if iep.config.state.windowSize:
-            self.resize(*iep.config.state.windowSize)
-        if iep.config.state.windowMaximized:
-            self.setWindowState(QtCore.Qt.WindowMaximized)
-        
-        # Get native pallette (used when changing styles)
-        QtGui.qApp.nativePalette = QtGui.qApp.palette()
-
-        # Obtain default style
-        iep.defaultQtStyleName = str(QtGui.qApp.style().objectName())
-        # Other than gtk+, cleanlooks looks best (in my opinion)
-        if 'gtk' in iep.defaultQtStyleName.lower():
-            pass # Use default style
-        elif 'macintosh' in iep.defaultQtStyleName.lower():
-            pass # Use default style
-        else:
-            iep.defaultQtStyleName = 'Cleanlooks'
-        
         # Load icons now
         loadIcons()
+        
+        # Set qt style and test success
+        self.setQtStyle(None) # None means init!
         
         # Set label and icon
         self.setWindowTitle("IEP (loading ...)")
@@ -82,28 +60,40 @@ class MainWindow(QtGui.QMainWindow):
         # to suggest that it will be filled (which it will)
         self.setStyleSheet( 'QMainWindow { background-color: #285078;} ')
         
-        # Show empty window
+        # Restore window geometry before drawing for the first time,
+        # such that the window is in the right place
+        self.resize(800, 600) # default size
+        self.restoreWindowState(geometryOnly=True)
+        
+        # Show empty window and disable updates for a while
         self.show()
         QtGui.qApp.processEvents()
+        QtGui.qApp.flush()
         self.setUpdatesEnabled(False)
         
-        # Fill the window
-        self.init1()
+        # Populate the window (imports more code)
+        self._populate()
         
-        # Set mainwindow back to normal
+        # Restore state while updates are disabled. This doesnt set the
+        # state correctly, but at least approximately correct, and thereby
+        # prevents flicker.
+        self.restoreWindowState()
+        
+        # Show window again with normal background, and enable updates
         self.setStyleSheet('')
         self.setUpdatesEnabled(True)
+        self.show() 
         
-        # Insert editor, shell, and all the tools
-        self._insertEditorAndShell()
-        callLater(self.restoreWindowState)
-        
-        # Create the default shell (after the tools so it can use settings of
-        # the tools at startup)
-        callLater(iep.shells.addShell)
+        # Restore one more time, but in a short while. 
+        # If we do not do this, the state is not set corerctly (see issue 95)
+        self._initTimer = QtCore.QTimer()
+        self._initTimer.timeout.connect(self.restoreWindowState)
+        self._initTimer.setInterval(10.0) # 10 ms
+        self._initTimer.setSingleShot(True)
+        self._initTimer.start()
     
-    
-    def init1(self):
+      
+    def _populate(self):
         
         # Delayed imports
         from iepcore.editorTabs import EditorTabs
@@ -121,13 +111,28 @@ class MainWindow(QtGui.QMainWindow):
         
         # Create editor stack and make the central widget
         iep.editors = EditorTabs(self)
-        #self.setCentralWidget(iep.editors)
+        self.setCentralWidget(iep.editors)
         
-
+        
+        # Create floater for shell
+        self._shellDock = dock = QtGui.QDockWidget("Shells", self)
+        dock.setObjectName('shells')
+        if sys.platform == 'darwin':
+            #TODO: moving the shells SEGFAULTS on Mac. disable it for now
+            # todo: maybe its fixed now?
+            dock.setFeatures(dock.NoDockWidgetFeatures)
+        else:
+            dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
+        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
+        
         # Create shell stack
         iep.shells = ShellStack(self)
-        # The default shell is instantiated after the tools are loaded
-
+        dock.setWidget(iep.shells)
+        
+        # Create the default shell when returning to the event queue
+        callLater(iep.shells.addShell)
+        
+        
         # Create statusbar
         if iep.config.view.showStatusbar:
             iep.status = self.statusBar()
@@ -135,96 +140,92 @@ class MainWindow(QtGui.QMainWindow):
             iep.status = None
             self.setStatusBar(None)
         
-
+        # Create menu
         from iepcore import menu
         iep.keyMapper = menu.KeyMapper()
         menu.buildMenus(self.menuBar())
         
-
-        
-        # Add the context menu to the shell tab bar
+        # Add the context menu to the shell and editor
         iep.shells.addContextMenu()
-        
-        # Add the context menu to the editor tab bar
         iep.editors.addContextMenu()
-    
-    
-    def _insertEditorAndShell(self):
-        """ Insert the editor and shell in the main window.
-        The first as the central widget, the other in a dock widget.
-        """
-        # Set central widget
-        self.setCentralWidget(iep.editors)
-        
-        # Create floater for shell
-        dock = QtGui.QDockWidget("Shells", self)
-        dock.setObjectName('shells')
-        if sys.platform == 'darwin':
-            #TODO: moving the shells SEGFAULTS on Mac. disable it for now
-            dock.setFeatures(dock.NoDockWidgetFeatures)
-        else:
-            dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
-
-        self._shellDock = dock
-
-        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
-        # Insert
-        dock.setWidget(iep.shells)
-    
-    
-    def saveWindowState(self):
-        """ Save which tools are loaded and all window positions. """
-        import base64
-        
-        # store window position
-        if self.windowState() == QtCore.Qt.WindowMaximized:
-            iep.config.state.windowMaximized = 1
-            # left,right, width, height stored when maximized
-        else:
-            iep.config.state.windowMaximized = 0 
-            iep.config.state.windowPos = self.x(), self.y()
-            iep.config.state.windowSize = self.width(), self.height()
-        
-        # Save tool list
-        tools = iep.toolManager.getLoadedTools()
-        iep.config.state.loadedTools = tools
-        
-        # Get state and make unicode string
-        state = bytes(self.saveState())
-        state = base64.encodebytes(state).decode('ascii')
-        iep.config.state.windowState = state
-    
-    
-    def restoreWindowState(self):
-        """ Restore toolss and positions of all windows. """
-        import base64
-        
-        # Set style if there is no style yet
-        if not iep.config.view.qtstyle:
-            iep.config.view.qtstyle = iep.defaultQtStyleName 
-        
-        # Set qt style and test success
-        self.setQtStyle(iep.config.view.qtstyle)
         
         # Load tools
         if iep.config.state.loadedTools: 
             for toolId in iep.config.state.loadedTools:
                 iep.toolManager.loadTool(toolId)
-        
-        # Restore state
-        if iep.config.state.windowState:
-            state = iep.config.state.windowState
-            state = base64.decodebytes(state.encode('ascii'))
-            self.restoreState(state)      
     
     
-    
-    def setQtStyle(self, stylename):
-        """ Set the style and the palette, based on the given style name.
-        Returns the QStyle instance.
+    def saveWindowState(self):
+        """ Save:
+            * which tools are loaded 
+            * geometry of the top level windows
+            * layout of dockwidgets and toolbars
         """
         
+        # Save tool list
+        tools = iep.toolManager.getLoadedTools()
+        iep.config.state.loadedTools = tools
+        
+        # Store window geometry
+        geometry = bytes(self.saveGeometry())
+        geometry = base64.encodebytes(geometry).decode('ascii')
+        iep.config.state.windowGeometry = geometry
+        
+        # Store window state
+        state = bytes(self.saveState())
+        state = base64.encodebytes(state).decode('ascii')
+        iep.config.state.windowState = state
+    
+    
+    def restoreWindowState(self, geometryOnly=False):
+        """ Restore tools and positions of all windows. """
+        
+        # Restore layout of dock widgets and toolbars
+        # On Linux this can mess up the geometry.
+        if iep.config.state.windowState and not geometryOnly:
+            state = iep.config.state.windowState
+            state = base64.decodebytes(state.encode('ascii'))
+            self.restoreState(state)
+        
+        # Restore window geometry
+        if iep.config.state.windowGeometry:
+            geometry = iep.config.state.windowGeometry
+            geometry = base64.decodebytes(geometry.encode('ascii'))
+            self.restoreGeometry(geometry)  
+        
+        
+    
+    def setQtStyle(self, stylename=None):
+        """ Set the style and the palette, based on the given style name.
+        If stylename is None or not given will do some initialization.
+        If bool(stylename) evaluates to False will use the default style
+        for this system. Returns the QStyle instance.
+        """
+        
+        if stylename is None:
+            # Initialize
+            
+            # Get native pallette (used below)
+            QtGui.qApp.nativePalette = QtGui.qApp.palette()
+            
+            # Obtain default style name
+            iep.defaultQtStyleName = str(QtGui.qApp.style().objectName())
+            
+            # Other than gtk+ and mac, cleanlooks looks best (in my opinion)
+            if 'gtk' in iep.defaultQtStyleName.lower():
+                pass # Use default style
+            elif 'macintosh' in iep.defaultQtStyleName.lower():
+                pass # Use default style
+            else:
+                iep.defaultQtStyleName = 'Cleanlooks'
+            
+            # Set style if there is no style yet
+            if not iep.config.view.qtstyle:
+                iep.config.view.qtstyle = iep.defaultQtStyleName 
+        
         # Init
+        if not stylename:
+            stylename = iep.config.view.qtstyle
         useStandardStyle = False
         stylename2 = stylename
         
@@ -248,20 +249,6 @@ class MainWindow(QtGui.QMainWindow):
         return qstyle
     
     
-    def changeEvent(self, event):
-        
-        # Capture window state change events
-        if event.type() == QtCore.QEvent.WindowStateChange:
-            ok = [QtCore.Qt.WindowNoState, QtCore.Qt.WindowActive]
-            if event.oldState() in ok:
-                # Store layout if now non-maximized
-                iep.config.state.windowPos = self.x(), self.y()
-                iep.config.state.windowSize = self.width(), self.height()
-        
-        # Proceed normally
-        QtGui.QMainWindow.changeEvent(self, event)
-    
-    
     def closeEvent(self, event):
         """ Override close event handler. """
         
@@ -282,6 +269,9 @@ class MainWindow(QtGui.QMainWindow):
         iep.localKernelManager.terminateAll()
         for shell in iep.shells:
             shell._context.close()
+        
+        # Close as normal
+        QtGui.QMainWindow.closeEvent(self, event)
     
     
     def restart(self):
