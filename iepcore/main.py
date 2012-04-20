@@ -115,14 +115,16 @@ class MainWindow(QtGui.QMainWindow):
         
         
         # Create floater for shell
-        self._shellDock = dock = QtGui.QDockWidget("Shells", self)
-        dock.setObjectName('shells')
+        self._shellDock = dock = QtGui.QDockWidget(self)
         if sys.platform == 'darwin':
             #TODO: moving the shells SEGFAULTS on Mac. disable it for now
             # todo: maybe its fixed now?
             dock.setFeatures(dock.NoDockWidgetFeatures)
+            # dock.setFeatures(dock.DockWidgetFloatable | dock.DockWidgetMovable)
         else:
-            dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable)
+            dock.setFeatures(dock.DockWidgetMovable)
+        dock.setObjectName('shells')
+        dock.setWindowTitle('Shells')
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
         
         # Create shell stack
