@@ -10,10 +10,8 @@ state = dict:
     find_autoHide = 1
     editorState = '' # What files where loaded and where the cursor was
     loadedTools = []
-    windowState = '' # Of window and tools    
-    windowPos = []
-    windowSize = [800, 600]
-    windowMaximized = 0
+    windowState = '' # Of window and tools  
+    windowGeometry = '' # Position and size of window, whether maximized, etc.
 
 view = dict:       
     showWhitespace = 0
