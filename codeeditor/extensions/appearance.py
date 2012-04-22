@@ -377,8 +377,9 @@ class LineNumbers(object):
         super(LineNumbers, self).__init__(*args, **kwds)
         # Create widget that draws the line numbers
         self.__lineNumberArea = self.__LineNumberArea(self)
-        # Issue an update when the amount of line numbers changes
+        # Issue an update when the font or amount of line numbers changes
         self.blockCountChanged.connect(self.__onBlockCountChanged)
+        self.fontChanged.connect(self.__onBlockCountChanged)
         self.__onBlockCountChanged()
         
     

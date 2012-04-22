@@ -637,6 +637,11 @@ class ZoomMenu(Menu):
         # Apply
         for editor in iep.editors:
             iep.config.view.zoom = editor.setZoom(iep.config.view.zoom)
+        for shell in iep.shells:
+            iep.config.view.zoom = shell.setZoom(iep.config.view.zoom)
+        logger = iep.toolManager.getTool('ieplogger')
+        if logger:
+            logger.setZoom(iep.config.view.zoom)
 
 
 # todo: brace matching

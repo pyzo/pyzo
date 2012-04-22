@@ -124,6 +124,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     # Signal emitted after style has changed
     styleChanged = QtCore.pyqtSignal()
     
+    # Signal emitted after font (or font size) has changed
+    fontChanged = QtCore.pyqtSignal()
+    
+    
     def __init__(self,*args, **kwds):
         super(CodeEditorBase, self).__init__(*args)
         
@@ -374,10 +378,11 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Make sure it's monospace
         font.setStyleHint(font.TypeWriter, font.PreferDefault)
-        # todo: can be done smarter, return resulting font, implement zooming
         
-        # Set
+        # Set, emit and return
         QtGui.QPlainTextEdit.setFont(self, font)
+        self.fontChanged.emit()
+        return font
     
     
     def setZoom(self, zoom):
@@ -386,7 +391,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         Set the zooming of the document. The font size is always the default
         font size + the zoom factor.
         
-        The final zoom is returned, this not be the same as the given
+        The final zoom is returned, this may not be the same as the given
         zoom factor if the given factor is too small.
         
         """
