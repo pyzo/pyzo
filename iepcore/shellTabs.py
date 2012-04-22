@@ -34,7 +34,8 @@ class ShellStack(QtGui.QWidget):
     # When the current shell changes.
     currentShellChanged = QtCore.pyqtSignal()
     
-    # When the current shells state (or debug state) changes. 
+    # When the current shells state (or debug state) changes,
+    # or when a new prompt is received. 
     # Also fired when the current shell changes.
     currentShellStateChanged = QtCore.pyqtSignal() 
     

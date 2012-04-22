@@ -680,10 +680,13 @@ class PythonShell(BaseShell):
     by connecting to a remote process that runs a Python interpreter.
     """
     
-    # Emits when the status string has changed
+    # Emits when the status string has changed or when receiving a new prompt
     stateChanged = QtCore.pyqtSignal(BaseShell)
+    
+    # Emits when the debug status is changed
     debugStateChanged = QtCore.pyqtSignal(BaseShell)
-
+    
+    
     def __init__(self, parent, info):
         BaseShell.__init__(self, parent)
         
@@ -1063,6 +1066,9 @@ class PythonShell(BaseShell):
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
                     M = self._handleBackspacesOnList(M)
+            # New prompt?
+            if sub is self._strm_prompt:
+                self.stateChanged.emit(self)
         
         # Write all pending messages that are later than any other message
         if sub:
