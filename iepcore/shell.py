@@ -550,6 +550,20 @@ class BaseShell(BaseTextCtrl):
         return text
     
     
+    def _splitLinesForPrinting(self, text):
+        """ Given a text, split the text in lines. Lines that are extremely
+        long are split in pieces of 80 characters to increase performance for 
+        wrapping. This is kind of a failsafe for when the user accidentally
+        prints a bitmap or huge list. See issue 98.
+        """
+        for line in text.splitlines(True):
+            if len(line) > 1024: # about 12 lines of 80 chars
+                parts = [line[i:i+80] for i in range(0, len(line), 80)]
+                yield '\n'.join(parts)
+            else:
+                yield line
+    
+    
     def write(self, text, prompt=0, color=None):
         """ write(text, prompt=0, color=None)
         
@@ -590,7 +604,13 @@ class BaseShell(BaseTextCtrl):
             self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
             text = self._handleBackspaces(text)
-            self._cursor1.insertText(text, format)
+            if len(text) < 1024:
+                # Insert text 
+                self._cursor1.insertText(text, format)
+            else:
+                # Insert per line (very long lines are split in smaller ones)
+                for line in self._splitLinesForPrinting(text):
+                    self._cursor1.insertText(line, format)
         elif prompt == 1:
             # Insert command text after prompt, prompt becomes null (input)
             self._lastCommandCursor.setPosition(self._cursor2.position())
@@ -1063,6 +1083,21 @@ class PythonShell(BaseShell):
             if sub:
                 M = sub.recv_selected()
                 #M = [sub.recv()] # Slow version (for testing)
+#                 # Refuse too large messages
+#                 M2 = []
+#                 mLimit = 100
+#                 for m in M:
+#                     if len(m) > mLimit:
+#                         mm = [m[i:i+mLimit] for i in range(0, len(m), mLimit)]
+#                         M2.extend(mm)
+#                     else:
+#                         M2.append(m)
+#                 M = M2
+#                         
+# #                 for i in range(len(M)):
+# #                     ncharsM = len(M[i]) / float(1000000)
+# #                     if ncharsM > 5:
+# #                         M[i] = '<Refusing to print %1.1f million characters>' % ncharsM
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
                     M = self._handleBackspacesOnList(M)
