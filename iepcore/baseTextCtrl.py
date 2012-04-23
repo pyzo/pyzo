@@ -525,7 +525,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
     def __init__(self, *args, **kwds):
         super().__init__(*args, **kwds)
-
+        
+        # Set zooming
+        self.setZoom(iep.config.view.zoom)
+        
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)
         self._delayTimer.setSingleShot(True)
@@ -541,7 +544,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # The string with names given to SCI_AUTOCSHOW
         self._autoCompNameString = ''
-
+    
         self.completer().highlighted.connect(self.updateHelp)
         self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(iep.config.settings.defaultIndentWidth)
