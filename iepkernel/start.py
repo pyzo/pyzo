@@ -76,8 +76,8 @@ ct.connect('localhost:'+str(port), timeout=1.0)
 
 # Create file objects for stdin, stdout, stderr
 sys.stdin = yoton.FileWrapper( ct._ctrl_command )
-sys.stdout = yoton.FileWrapper( ct._strm_out )
-sys.stderr = yoton.FileWrapper( ct._strm_err )
+sys.stdout = yoton.FileWrapper( ct._strm_out, 256 )
+sys.stderr = yoton.FileWrapper( ct._strm_err, 256 )
 
 
 ## Set Excepthook
