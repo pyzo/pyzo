@@ -859,7 +859,8 @@ class SearchThread(threading.Thread):
             # Search indices where the pattern occurs
             indices = []
             if regExp:
-                for match in re.finditer(pattern, text):
+                # todo: also allow case insensitivity
+                for match in re.finditer(pattern, text, re.MULTILINE | re.UNICODE):
                     indices.append( match.start() )
             else:
                 i = 0
