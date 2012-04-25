@@ -183,8 +183,8 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         green   = "#859900"
         
         if True: # Light vs dark
-            back1, back2, back3 = base3, base2, base1 # real solarised
-            #back1, back2, back3 = "#fff", base2, base1 # crispier
+            #back1, back2, back3 = base3, base2, base1 # real solarised
+            back1, back2, back3 = "#fff", base2, base1 # crispier
             fore1, fore2, fore3, fore4 = base00, base01, base02, base03
         else:
             back1, back2, back3 = base03, base02, base01
