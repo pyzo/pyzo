@@ -181,12 +181,7 @@ class ShellInfo_pythonPath(QtGui.QVBoxLayout):
             
             # Set text using system environment
             pp = os.environ.get('PYTHONPATH','')
-            pp = pp.replace(os.pathsep,'\n').replace(',','\n')
-            pp = pp.replace('\n\n','\n').strip()
-            if pp:
-                self._edit.setText('$PYTHONPATH:\n%s\n'%pp)
-            else:
-                self._edit.setText('$PYTHONPATH (is empty)')
+            self._edit.setText('$PYTHONPATH (="%s")' % pp)
         
         # Store value
         self._value = value
@@ -279,7 +274,7 @@ class ShellInfoTab(QtGui.QWidget):
     INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'), 
                     translate('shell', 'exe ::: The Python executable.'), 
                     translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'), 
-                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages.'), 
+                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'), 
                     translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
                     translate('shell', 'startDir ::: The start directory (not in script mode).')
                 ]
