@@ -148,14 +148,16 @@ def getEnvFromKernelInfo(info):
     
     pythonPath = info.pythonPath
     
-    # Set default pythonPath
+    # Set default pythonPath (replace only first occurance of $PYTHONPATH
     ENV_PP = os.environ.get('PYTHONPATH','')
     pythonPath = pythonPath.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
     pythonPath = pythonPath.replace('$PYTHONPATH', '')
-    for i in range(3):
-        pythonPath = pythonPath.replace('\n\n', '\n')
-    pythonPath = pythonPath.strip().replace('\n', os.pathsep)
-    
+    # Split paths, allow newlines and os.pathsep
+    for splitChar in '\n\r' + os.pathsep:
+        pythonPath = pythonPath.replace(splitChar, '\n')
+    pythonPaths = [p.strip() for p in pythonPath.split('\n') if p]
+    # Recombine using the OS's path separator
+    pythonPath = os.pathsep.join(pythonPaths)
     # Add empty string to Pythopath, so that we can import yoton
     pythonPath = os.pathsep + pythonPath
     
