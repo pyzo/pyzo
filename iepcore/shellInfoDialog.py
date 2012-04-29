@@ -181,7 +181,8 @@ class ShellInfo_pythonPath(QtGui.QVBoxLayout):
             
             # Set text using system environment
             pp = os.environ.get('PYTHONPATH','')
-            self._edit.setText('$PYTHONPATH (="%s")' % pp)
+            pp = pp.replace(os.pathsep, '\n  ').strip()
+            self._edit.setText('$PYTHONPATH (\n  %s\n)' % pp)
         
         # Store value
         self._value = value
