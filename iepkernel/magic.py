@@ -239,6 +239,9 @@ class Magician:
                 lines.append('')
                 sys.stdout.write('\n'.join(lines))
         
+        else:
+            sys.stdout.write('Unknown debug command.\n')
+        
         # Done (no code to execute)
         return ''
     
