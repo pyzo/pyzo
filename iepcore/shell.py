@@ -1083,21 +1083,6 @@ class PythonShell(BaseShell):
             if sub:
                 M = sub.recv_selected()
                 #M = [sub.recv()] # Slow version (for testing)
-#                 # Refuse too large messages
-#                 M2 = []
-#                 mLimit = 100
-#                 for m in M:
-#                     if len(m) > mLimit:
-#                         mm = [m[i:i+mLimit] for i in range(0, len(m), mLimit)]
-#                         M2.extend(mm)
-#                     else:
-#                         M2.append(m)
-#                 M = M2
-#                         
-# #                 for i in range(len(M)):
-# #                     ncharsM = len(M[i]) / float(1000000)
-# #                     if ncharsM > 5:
-# #                         M[i] = '<Refusing to print %1.1f million characters>' % ncharsM
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
                     M = self._handleBackspacesOnList(M)
