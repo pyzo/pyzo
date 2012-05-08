@@ -1144,7 +1144,7 @@ class RunMenu(Menu):
         else:
             # Obtain source code and fname
             fname, text = self._getCodeOfFile(editor)
-            shell.executeCode(text, fname, -1)
+            shell.executeCode(text, fname)
     
     def _runScript(self, editor, shell):
         # Obtain fname and try running
