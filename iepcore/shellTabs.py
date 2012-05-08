@@ -307,7 +307,7 @@ class DebugControl(QtGui.QToolButton):
                 menu.setDefaultAction(theAction)
                 #self.setText(theAction.text().ljust(20))
                 i = theAction._index
-                text = "Stack Trace ({}/{}):  ".format(i, len(frames)-1)
+                text = "Stack Trace ({}/{}):  ".format(i, len(frames))
                 self.setText(text)
     
     
