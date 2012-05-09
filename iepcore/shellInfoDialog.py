@@ -120,21 +120,25 @@ class ShellInfo_gui(QtGui.QComboBox):
         return text.partition('-')[0].strip()
 
 
+
 class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
+    
+    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin'
     
     def __init__(self, parent, widget, systemValue):
         # Do not pass parent, because is a sublayout
         QtGui.QVBoxLayout.__init__(self) 
         
-        # Create checkbox widget
-        t = translate('shell', 'Use system default')
-        self._check = QtGui.QCheckBox(t, parent)
-        self._check.stateChanged.connect(self.onCheckChanged)
-        
         # Layout
         self.setSpacing(1)
-        for w in [widget, self._check]:
-            self.addWidget(w)
+        self.addWidget(widget)
+        
+        # Create checkbox widget
+        if not self.DISABLE_SYSTEM_DEFAULT:
+            t = translate('shell', 'Use system default')
+            self._check = QtGui.QCheckBox(t, parent)
+            self._check.stateChanged.connect(self.onCheckChanged)
+            self.addWidget(self._check)
         
         # The actual value of this shell config attribute
         self._value = ''
@@ -147,12 +151,42 @@ class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
         self._bufferedValue = ''
     
     
+    def onEditChanged(self):
+       if self.DISABLE_SYSTEM_DEFAULT or not self._check.isChecked():
+           self._value = self.getWidgetText()
+    
+    
     def onCheckChanged(self, state):
         if state:
             self._bufferedValue = self._value
             self.setTheText(self._systemValue)
         else:
             self.setTheText(self._bufferedValue)
+    
+    
+    def setTheText(self, value):
+        
+        if self.DISABLE_SYSTEM_DEFAULT:
+            # Just set the value
+            self._edit.setReadOnly(False)
+            self.setWidgetText(value)
+        
+        elif value != self._systemValue:
+            # Value given, enable edit
+            self._check.setChecked(False)
+            self._edit.setReadOnly(False)
+            # Set the text
+            self.setWidgetText(value)
+        
+        else:
+            # Use system default, disable edit widget
+            self._check.setChecked(True)
+            self._edit.setReadOnly(True)
+            # Set text using system environment
+            self.setWidgetText(None)
+        
+        # Store value
+        self._value = value
     
     
     def getTheText(self):
@@ -174,34 +208,17 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         ShellinfoWithSystemDefault.__init__(self, parent, self._edit, '$PYTHONPATH') 
     
     
-    def onEditChanged(self):
-       if not self._check.isChecked():
-           self._value = self._edit.toPlainText()
+    def getWidgetText(self):
+        return self._edit.toPlainText()
     
     
-    def setTheText(self, value):
-        
-        if value != '$PYTHONPATH':
-            # Value given, enable edit
-            self._check.setChecked(False)
-            self._edit.setReadOnly(False)
-            #self._edit.setTextColor(QtGui.QColor('#000'))
-            # Set the text
-            self._edit.setText(value)
-        
-        else:
-            # Use system default, disable edit widget
-            self._check.setChecked(True)
-            self._edit.setReadOnly(True)
-            #self._edit.setTextColor(QtGui.QColor('#777'))
-            
-            # Set text using system environment
+    def setWidgetText(self, value=None):
+        if value is None:
             pp = os.environ.get('PYTHONPATH','')
             pp = pp.replace(os.pathsep, '\n  ').strip()
-            self._edit.setText('$PYTHONPATH (\n  %s\n)' % pp)
+            value = '$PYTHONPATH (\n  %s\n)' % pp
         
-        # Store value
-        self._value = value
+        self._edit.setText(value)
 
 
 
@@ -217,34 +234,20 @@ class ShellInfo_startupScript(ShellinfoWithSystemDefault):
         ShellinfoWithSystemDefault.__init__(self, parent, self._edit, '$PYTHONSTARTUP') 
     
     
-    def onEditChanged(self):
-       if not self._check.isChecked():
-            self._value = self._edit.text()
+    def getWidgetText(self):
+        return self._edit.text()
     
     
-    def setTheText(self, value):
-        
-        if value != '$PYTHONSTARTUP':
-            # Value given, enable edit
-            self._check.setChecked(False)
-            self._edit.setReadOnly(False)
-            # Set the text
-            self._edit.setText(value)
-        
-        else:
-            # No value, use system default, disable edit widget
-            self._check.setChecked(True)
-            self._edit.setReadOnly(True)
-            
-            # Set text using system environment
+    def setWidgetText(self, value=None):
+        if value is None:
             pp = os.environ.get('PYTHONSTARTUP','').strip()
             if pp:          
-                self._edit.setText('$PYTHONSTARTUP ("%s")'%pp)
+                value = '$PYTHONSTARTUP ("%s")' % pp
             else:
-                self._edit.setText('$PYTHONSTARTUP (is empty)')
+                value = '$PYTHONSTARTUP (is empty)'
         
-        # Store value
-        self._value = value
+        self._edit.setText(value)
+
 
 
 class ShellInfo_startDir(ShellInfoLineEdit):
