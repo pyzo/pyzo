@@ -123,7 +123,7 @@ class ShellInfo_gui(QtGui.QComboBox):
 
 class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
     
-    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin'
+    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
     
     def __init__(self, parent, widget, systemValue):
         # Do not pass parent, because is a sublayout
