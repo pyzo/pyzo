@@ -120,42 +120,58 @@ class ShellInfo_gui(QtGui.QComboBox):
         return text.partition('-')[0].strip()
 
 
-
-class ShellInfo_pythonPath(QtGui.QVBoxLayout):
+class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
     
-    def __init__(self, parent):
+    def __init__(self, parent, widget, systemValue):
         # Do not pass parent, because is a sublayout
         QtGui.QVBoxLayout.__init__(self) 
         
-        # Create two sub-widgets
-        self._check = QtGui.QCheckBox(translate('shell', 'Use system default'), parent)
-        self._edit = QtGui.QTextEdit(parent)
-        self._edit.setMaximumHeight(80)
-        self._edit.setMinimumWidth(400)
+        # Create checkbox widget
+        t = translate('shell', 'Use system default')
+        self._check = QtGui.QCheckBox(t, parent)
+        self._check.stateChanged.connect(self.onCheckChanged)
         
         # Layout
         self.setSpacing(1)
-        for w in [self._edit, self._check]:
+        for w in [widget, self._check]:
             self.addWidget(w)
         
         # The actual value of this shell config attribute
         self._value = ''
         
-        # A buffered version, so that clicking the text box does not
-        # remove the paths at once
-        self._bufferedValue = ''
+        # The value of self._value if the system default is selected
+        self._systemValue = systemValue
         
-        # Bind signals
-        self._check.stateChanged.connect(self.onCheckChanged)
-        self._edit.textChanged.connect(self.onEditChanged)
+        # A buffered version, so that clicking the text box does not
+        # remove the value at once
+        self._bufferedValue = ''
     
     
     def onCheckChanged(self, state):
         if state:
             self._bufferedValue = self._value
-            self.setTheText('$PYTHONPATH')
+            self.setTheText(self._systemValue)
         else:
             self.setTheText(self._bufferedValue)
+    
+    
+    def getTheText(self):
+        return self._value
+
+
+
+class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
+    
+    def __init__(self, parent):
+        
+        # Create sub-widget
+        self._edit = QtGui.QTextEdit(parent)
+        self._edit.setMaximumHeight(80)
+        self._edit.setMinimumWidth(400)
+        self._edit.textChanged.connect(self.onEditChanged)
+        
+        # Instantiate
+        ShellinfoWithSystemDefault.__init__(self, parent, self._edit, '$PYTHONPATH') 
     
     
     def onEditChanged(self):
@@ -186,46 +202,19 @@ class ShellInfo_pythonPath(QtGui.QVBoxLayout):
         
         # Store value
         self._value = value
-    
-    
-    def getTheText(self):
-        return self._value
 
 
 
-class ShellInfo_startupScript(QtGui.QVBoxLayout):
+class ShellInfo_startupScript(ShellinfoWithSystemDefault):
     
     def __init__(self, parent):
-        # Do not pass parent, because is a sublayout
-        QtGui.QVBoxLayout.__init__(self)
         
-        # Create two sub-widgets
-        self._check = QtGui.QCheckBox(translate('shell', 'Use system default'), parent)
+        # Create sub-widget
         self._edit = QtGui.QLineEdit(parent)
-        
-        # Layout
-        self.setSpacing(1)
-        for w in [self._edit, self._check]:
-            self.addWidget(w)
-        
-        # The actual value of this shell config attribute
-        self._value = ''
-        
-        # A buffered version, so that clicking the text box does not
-        # remove the paths at once
-        self._bufferedValue = ''
-        
-        # Bind signals
-        self._check.stateChanged.connect(self.onCheckChanged)
         self._edit.textEdited.connect(self.onEditChanged)
-    
-    
-    def onCheckChanged(self, state):
-        if state:
-            self._bufferedValue = self._value
-            self.setTheText('$PYTHONSTARTUP')
-        else:
-            self.setTheText(self._bufferedValue)
+        
+        # Instantiate
+        ShellinfoWithSystemDefault.__init__(self, parent, self._edit, '$PYTHONSTARTUP') 
     
     
     def onEditChanged(self):
@@ -256,11 +245,6 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
         
         # Store value
         self._value = value
-    
-    
-    def getTheText(self):
-        return self._value
-
 
 
 class ShellInfo_startDir(ShellInfoLineEdit):
