@@ -2,6 +2,12 @@
 # configuration for IEP. The user configuration is stored in the IEP
 # application data directory.
 
+# Some parameters are named xxx2. This was done in case the representation
+# of a parameter was changed, or if we wanted to "refresh" the parameter for
+# another reason. This enables using the same config file for all versions, 
+# which means that users that start using a new version dont have to recreate
+# all their settings each time.
+
 state = dict:
     find_regExp = 0
     find_matchCase = 0
