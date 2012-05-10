@@ -894,6 +894,8 @@ class EditorTabs(QtGui.QWidget):
         # restore state (call later so that the menu module can bind to the
         # currentChanged signal first, in order to set tab/indentation
         # checkmarks appropriately)
+        # todo: Resetting the scrolling would work better if set after
+        # the widgets are properly sized.
         iep.callLater(self.restoreEditorState)
     
     
@@ -1328,6 +1330,7 @@ class EditorTabs(QtGui.QWidget):
         for editor in self:
             self.closeFile(editor)
     
+    
     def saveEditorState(self):
         """ Save the editor's state configuration.
         """
@@ -1337,7 +1340,7 @@ class EditorTabs(QtGui.QWidget):
         iep.config.state.find_wholeWord = fr._wholeWord.isChecked()
         iep.config.state.find_show = fr.isVisible()
         #
-        iep.config.state.editorState = self._getCurrentOpenFilesAsString()
+        iep.config.state.editorState2 = self._getCurrentOpenFilesAsSsdfList()
     
     
     def restoreEditorState(self):
@@ -1345,8 +1348,8 @@ class EditorTabs(QtGui.QWidget):
         """
         
         # Restore opened editors
-        if iep.config.state.editorState:
-            self._setCurrentOpenFilesAsString(iep.config.state.editorState)
+        if iep.config.state.editorState2:
+            self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
         else:
             #self.newFile()
             self.loadFile(os.path.join(iep.iepDir,'resources','tutorial.py'))
@@ -1354,8 +1357,8 @@ class EditorTabs(QtGui.QWidget):
         # The find/replace state is set in the corresponding class during init
     
     
-    def _getCurrentOpenFilesAsString(self):
-        """ Get the state as it currently is as a string.
+    def _getCurrentOpenFilesAsSsdfList(self):
+        """ Get the state as it currently is as an ssdf list.
         The state entails all open files and their structure in the
         projects. The being collapsed of projects and their main files.
         The position of the cursor in the editors.
@@ -1374,9 +1377,10 @@ class EditorTabs(QtGui.QWidget):
             
             # Init info
             info = []
-            # Add filename and line number
+            # Add filename, line number, and scroll distance
             info.append(ed._filename)
-            info.append(str(ed.textCursor().position()))
+            info.append(int(ed.textCursor().position()))
+            info.append(int(ed.verticalScrollBar().value()))
             # Add whether pinned or main file
             if item.pinned:
                 info.append('pinned')
@@ -1384,7 +1388,7 @@ class EditorTabs(QtGui.QWidget):
                 info.append('main')
             
             # Add to state
-            state.append( '>'.join(info) )
+            state.append( tuple(info) )
         
         # Get history
         history = [item for item in self._tabs._itemHistory]
@@ -1393,50 +1397,49 @@ class EditorTabs(QtGui.QWidget):
             if isinstance(item, FileItem):
                 ed = item._editor
                 if ed._filename:
-                    state.append( 'hist>'+ed._filename )
+                    state.append( (ed._filename, 'hist') )
         
         # Done
-        return ",".join(state)
+        return state
     
     
-    def _setCurrentOpenFilesAsString(self, state):
+    def _setCurrentOpenFilesAsSsdfList(self, state):
         """ Set the state of the editor in terms of opened files.
-        The input should be a string as returned by 
-        ._getCurrentOpenFilesAsString().
+        The input should be a list object as returned by 
+        ._getCurrentOpenFilesAsSsdfList().
         """
         
-        # Make list
-        state = state.split(",")
+        # Init dict
         fileItems = {}
         
         # Process items
         for item in state:
-            parts = item.split('>')
-            if item[0] in '+-':
-                continue # Was a project
-            elif item.startswith('hist'):
+            fname = item[0]
+            if item[1] == 'hist':
                 # select item (to make the history right)
-                if parts[1] in fileItems:
-                    self._tabs.setCurrentItem( fileItems[parts[1]] )
-            elif parts[0]:
-                # a file item
-                itm = self.loadFile(parts[0])
+                if fname in fileItems:
+                    self._tabs.setCurrentItem( fileItems[fname] )
+            elif fname:
+                # a file item, create editor-item and store
+                itm = self.loadFile(fname)
+                fileItems[fname] = itm
+                # set position
                 if itm:
-                    # set position and make sure it is visible
-                    ed = itm.editor
-                    pos = int(parts[1])
-                    cursor = ed.textCursor()
-                    cursor.setPosition(pos)
-                    ed.setTextCursor(cursor)
-                    ed.centerCursor() #TODO: this does not work yet
-                    
-                    # set main and/or pinned?
-                    if 'main' in parts:
-                        self._tabs._mainFile = itm.id
-                    if 'pinned' in parts:
-                        itm._pinned = True
-                    # store item
-                    fileItems[parts[0]] = itm
+                    try:
+                        ed = itm.editor
+                        cursor = ed.textCursor()
+                        cursor.setPosition(int(item[1]))
+                        ed.setTextCursor(cursor)
+                        # set scrolling
+                        ed.verticalScrollBar().setValue(int(item[2]))
+                        #ed.centerCursor() #TODO: this does not work properly yet
+                        # set main and/or pinned?
+                        if 'main' in item:
+                            self._tabs._mainFile = itm.id
+                        if 'pinned' in item:
+                            itm._pinned = True
+                    except Exception as err:
+                        print('Could not set position for %s' % fname, err)
     
     
     def closeAll(self):
