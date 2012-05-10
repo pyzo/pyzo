@@ -67,7 +67,7 @@ shellConfigs2 = list:
         pythonPath = '$PYTHONPATH'
         startupScript = '$PYTHONSTARTUP'
 
-shortcuts = dict:
+shortcuts2 = dict:
     edit__comment = 'Ctrl+R,'
     edit__copy = 'Ctrl+C,Ctrl+Insert'
     edit__cut = 'Ctrl+X,Shift+Delete'

@@ -80,13 +80,13 @@ def buildMenus(menuBar):
 
 def getShortcut(fullName):
     """ Given the full name or an action, get the shortcut
-    from the iep.config.shortcuts dict. A tuple is returned
+    from the iep.config.shortcuts2 dict. A tuple is returned
     representing the two shortcuts. """
     if isinstance(fullName, QtGui.QAction):
         fullName = fullName.menuPath # the menuPath property is set in Menu._addAction
     shortcut = '', ''
-    if fullName in iep.config.shortcuts:
-        shortcut = iep.config.shortcuts[fullName]
+    if fullName in iep.config.shortcuts2:
+        shortcut = iep.config.shortcuts2[fullName]
         if shortcut.count(','):
             shortcut = tuple(shortcut.split(','))
         else:
@@ -125,11 +125,11 @@ class KeyMapper(QtCore.QObject):
         """
         When an action is created or when keymappings are changed, this method
         is called to set the shortcut of an action based on its menuPath
-        (which is the key in iep.config.shortcuts, e.g. shell__clear_screen)
+        (which is the key in iep.config.shortcuts2, e.g. shell__clear_screen)
         """
-        if action.menuPath in iep.config.shortcuts:
+        if action.menuPath in iep.config.shortcuts2:
             # Set shortcut so Qt can do its magic
-            shortcuts = iep.config.shortcuts[action.menuPath]
+            shortcuts = iep.config.shortcuts2[action.menuPath]
             action.setShortcuts(shortcuts.split(','))
             # Also store shortcut text (used in display of tooltip
             shortcuts = shortcuts.replace(',',', ').replace('  ', ' ')
@@ -1770,8 +1770,8 @@ class KeyMapEditDialog(QtGui.QDialog):
         self._intro = "Set the {} shortcut for:\n{}".format(primSec,tmp)
         self._label.setText(self._intro)
         # set initial value
-        if fullname in iep.config.shortcuts:
-            current = iep.config.shortcuts[fullname]
+        if fullname in iep.config.shortcuts2:
+            current = iep.config.shortcuts2[fullname]
             if ',' not in current:
                 current += ','
             current = current.split(',')
@@ -1791,7 +1791,7 @@ class KeyMapEditDialog(QtGui.QDialog):
             self._label.setText(self._intro)
             return
         
-        for key in iep.config.shortcuts:
+        for key in iep.config.shortcuts2:
             # get shortcut and test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
             primSec = ''
@@ -1814,7 +1814,7 @@ class KeyMapEditDialog(QtGui.QDialog):
         shortcut = self._line.text()
         
         # remove shortcut if present elsewhere
-        keys = [key for key in iep.config.shortcuts] # copy
+        keys = [key for key in iep.config.shortcuts2] # copy
         for key in keys:
             # get shortcut, test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
@@ -1830,20 +1830,20 @@ class KeyMapEditDialog(QtGui.QDialog):
                 tmp = ','.join(tmp)
                 tmp = tmp.replace(' ','')
                 if len(tmp)==1:
-                    del iep.config.shortcuts[key]
+                    del iep.config.shortcuts2[key]
                 else:
-                    iep.config.shortcuts[key] = tmp
+                    iep.config.shortcuts2[key] = tmp
         
         # insert shortcut
         if self._fullname:
             # get current and make list of size two
-            if self._fullname in iep.config.shortcuts:
+            if self._fullname in iep.config.shortcuts2:
                 current = list(getShortcut(self._fullname))
             else:
                 current = ['', '']
             # update the list
             current[int(not self._isprimary)] = shortcut
-            iep.config.shortcuts[self._fullname] = ','.join(current)
+            iep.config.shortcuts2[self._fullname] = ','.join(current)
         
         # close
         self.close()
