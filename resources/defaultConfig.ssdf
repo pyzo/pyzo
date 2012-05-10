@@ -35,10 +35,6 @@ settings= dict:
     defaultIndentWidth = 4
     defaultIndentUsingSpaces = 1
     defaultLineEndings = '' # Set depending on OS
-    #
-    shellWrap80 = 1
-    shellFit80 = 0
-    #
     autoIndent = 1
     autoCallTip = 1
     autoComplete_keywords = 1
@@ -48,8 +44,6 @@ settings= dict:
 
 advanced = dict:
     shellMaxLines = 10000
-    editorStackBarWidth = 128
-    editorStackBarSpacing = 0
     fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
     autoCompDelay = 200
     titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'

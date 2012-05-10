@@ -39,8 +39,8 @@ from iepcore.shellInfoDialog import findPythonExecutables
 # that this one does not affect performance much
 POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 
-# todo: make customizable
-MAXBLOCKCOUNT = 10*1000
+# Maximum number of lines in the shell
+MAXBLOCKCOUNT = iep.config.advanced.shellMaxLines
 
 
 # todo: we could make command shells to, with autocompletion and coloring...
