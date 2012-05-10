@@ -1337,10 +1337,14 @@ class SettingsMenu(Menu):
     def _editStyles(self):
         """ Edit the style file. """
         text = """
-        In this beta release, editing style files is not yet possible.
-        You're stuck with the one we selected. It's based on the solarized
-        theme (http://ethanschoonover.com/solarized) isn't it pretty?
-        """
+        In this 3.0 release, chosing or editing the syntax style is not yet
+        available. We selected a style which we like a lot. It's based on the
+        solarized theme (http://ethanschoonover.com/solarized) isn't it pretty?
+        \r\r
+        In case you really want to change the style, you can change the 
+        source code at:\r
+        {}
+        """.format(os.path.join(iep.iepDir, 'codeeditor', 'base.py'))
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Edit syntax styling"))
         m.setText(unwrapText(text))
