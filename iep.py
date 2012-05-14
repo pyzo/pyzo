@@ -16,7 +16,7 @@ import ssdf  # import ssdf or the suplied copy if not available
 from PyQt4 import QtCore, QtGui
 
 # Set version number
-__version__ = '3.0.beta'
+__version__ = '3.0'
 
 
 ## Define some functions
