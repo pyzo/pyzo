@@ -23,7 +23,7 @@ component of IEP.
 In the editor, each open file is represented as a tab. By right-clicking on
 a tab, files can be run, saved, closed, etc. 
 
-The right mouse button also enables to make a file the MAIN FILE of
+The right mouse button also enables one to make a file the MAIN FILE of
 a project. This file can be recognized by its star symbol and its blue filename,
 and it enables running the file more easily (as we will see later in this
 tutorial).
@@ -56,7 +56,7 @@ directory, or use a custom PYTHONPATH.
 
 ## The tools
 """
-Via the "Tools" menu, one can select what tools to use. The tools can
+Via the "Tools" menu, one can select which tools to use. The tools can
 be positioned in any way you want, and can also be un-docked.
 
 Try the "Source Structure" tool to see the outline of this tutorial!
@@ -144,7 +144,7 @@ at the upper right corner of the shells.
 
 Once in debug mode, the button becomes expandable, allowing you to
 see the stack trace and go to any frame you like. (Starting debug mode
-brings you to the bottom frame). Changing a frame will make all objects
+brings you to the bottom frame.) Changing a frame will make all objects
 in that frame available in the shell. If possible, IEP will also show
 the source file belonging to that frame, and select the line where the
 error occurred.
