@@ -33,29 +33,33 @@ class Hijacked_base:
 
 
 class Hijacked_tk(Hijacked_base):    
-    """ Tries to import Tkinter and returns a withdrawn Tkinter root
-    window.  If Tkinter is already imported or not available, this
+    """ Tries to import tkinter and returns a withdrawn tkinter root
+    window.  If tkinter is already imported or not available, this
     returns None.  
-    Modifies Tkinter's mainloop with a dummy so when a module calls
+    Modifies tkinter's mainloop with a dummy so when a module calls
     mainloop, it does not block.
     """    
     def __init__(self):
         
-        # Try importing        
-        import Tkinter
+        # Try importing
+        import sys
+        if sys.version[0] == 3:
+            import tkinter
+        else:
+            import Tkinter as tkinter
         
         # Replace mainloop. Note that a root object obtained with
-        # Tkinter.Tk() has a mainloop method, which will simply call
-        # Tkinter.mainloop().
+        # tkinter.Tk() has a mainloop method, which will simply call
+        # tkinter.mainloop().
         def dummy_mainloop(*args,**kwargs):
             print(mainloopWarning)
-        Tkinter.Misc.mainloop = dummy_mainloop
-        Tkinter.mainloop = dummy_mainloop
-        
+        tkinter.Misc.mainloop = dummy_mainloop
+        tkinter.mainloop = dummy_mainloop
+                
         # Create tk "main window" that has a Tcl interpreter.
         # Withdraw so it's not shown. This object can be used to
         # process events for any other windows.
-        r = Tkinter.Tk()
+        r = tkinter.Tk()
         r.withdraw()
         
         # Store the app instance to process events
@@ -63,7 +67,7 @@ class Hijacked_tk(Hijacked_base):
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
-        Tkinter._in_event_loop = 'IEP'
+        tkinter._in_event_loop = 'IEP'
     
     def processEvents(self):
         self.app.update()
