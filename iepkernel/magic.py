@@ -365,6 +365,7 @@ class Magician:
                 return ''
             
             # Get its file name
+            fname is None
             if hasattr(ob, '__file__'):
                 fname = ob.__file__
             elif hasattr(ob, '__module__'):
@@ -373,9 +374,13 @@ class Magician:
                     fname = tmp.__file__
             
             # Make .py from .pyc
-            if fname.endswith('.pyc') or fname.endswith('.pyo'):
+            if fname and fname.endswith('.pyc') or fname.endswith('.pyo'):
+                fname2 = fname
                 fname = fname[:-1]
-            
+                if not os.path.isfile(fname):
+                    print('Could not find source file for "%s".' % fname2)
+                    return ''
+        
         # Almost done
         if not fname:
             print('Could not determine file name for object "%s".' % name)
