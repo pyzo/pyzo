@@ -613,6 +613,9 @@ class IepInterpreter:
         except Exception:
             time.sleep(0.2) # Give stdout some time to send data
             self.showtraceback()
+        except KeyboardInterrupt: # is a BaseException, not an Exception
+            time.sleep(0.2)
+            self.showtraceback()
     
     
     ## Writing and error handling
