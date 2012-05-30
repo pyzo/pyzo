@@ -100,8 +100,8 @@ into account:
 """
 
 import sys
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from .qt import QtGui,QtCore
+Qt = QtCore.Qt
 
 from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option
 from .misc import callLater, ustr
@@ -122,10 +122,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
                         'fore:#000,back:#fff',)]
     
     # Signal emitted after style has changed
-    styleChanged = QtCore.pyqtSignal()
+    styleChanged = QtCore.Signal()
     
     # Signal emitted after font (or font size) has changed
-    fontChanged = QtCore.pyqtSignal()
+    fontChanged = QtCore.Signal()
     
     
     def __init__(self,*args, **kwds):

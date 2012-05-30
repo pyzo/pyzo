@@ -13,7 +13,7 @@ and a dialog to edit the shell configurations.
 """
 
 import os, sys, time, re
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 
 import iep
 from iepcore.compactTabWidget import CompactTabWidget
@@ -32,12 +32,12 @@ class ShellStack(QtGui.QWidget):
     """
     
     # When the current shell changes.
-    currentShellChanged = QtCore.pyqtSignal()
+    currentShellChanged = QtCore.Signal()
     
     # When the current shells state (or debug state) changes,
     # or when a new prompt is received. 
     # Also fired when the current shell changes.
-    currentShellStateChanged = QtCore.pyqtSignal() 
+    currentShellStateChanged = QtCore.Signal() 
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
@@ -101,7 +101,7 @@ class ShellStack(QtGui.QWidget):
             self._tabs.setTabText(i, stateText)
             
             # Update icon of the tab (this shows busy, dead, etc.)
-            but = self._tabs.tabBar().tabButton(i, 0)
+            but = self._tabs.tabBar().tabButton(i, QtGui.QTabBar.LeftSide)
             if but:
                 but.updateIcon(shell._state)
         
@@ -162,7 +162,7 @@ class ShellStack(QtGui.QWidget):
         shell = PythonShell(self._tabs, shellInfo)
         i = self._tabs.addTab(shell, 'Python')
         # Create button for icon
-        self._tabs.tabBar().setTabButton(i, 0, ShellTabToolButton())
+        self._tabs.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, ShellTabToolButton())
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)

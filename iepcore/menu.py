@@ -15,7 +15,7 @@ shortcuts.
 import os, sys, re, time
 import unicodedata
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 
 import iep
 from iepcore.compactTabWidget import CompactTabWidget
@@ -119,7 +119,7 @@ class KeyMapper(QtCore.QObject):
     iep.keyMapper.keyMappingChanged is emitted when keybindings are changed
     """
     
-    keyMappingChanged = QtCore.pyqtSignal()
+    keyMappingChanged = QtCore.Signal()
     
     def setShortcut(self, action):
         """
@@ -1624,7 +1624,7 @@ class KeyMapLineEdit(QtGui.QLineEdit):
     shift, function keys and other keys.
     """
     
-    textUpdate = QtCore.pyqtSignal()
+    textUpdate = QtCore.Signal()
     
     def __init__(self, *args, **kwargs):
         QtGui.QLineEdit.__init__(self, *args, **kwargs)

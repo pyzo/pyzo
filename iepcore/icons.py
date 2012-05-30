@@ -12,7 +12,7 @@ that show information to the user in a very effective, yet subtle manner.
 
 """
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep
 
 

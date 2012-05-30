@@ -14,8 +14,8 @@ check out indentation.
 
 import time
 
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from .qt import QtGui, QtCore
+Qt = QtCore.Qt
 
 from . import parsers
 from .misc import ustr

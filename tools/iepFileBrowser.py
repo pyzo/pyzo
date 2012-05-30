@@ -9,7 +9,7 @@ import sys, os, time
 import threading
 import re
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep 
 
 tool_name = "File browser"
@@ -167,7 +167,7 @@ class PathInput(QtGui.QLineEdit):
     """ Line edit for selecting a path.
     """
     
-    dirChanged = QtCore.pyqtSignal(str)
+    dirChanged = QtCore.Signal(str)
     
     def __init__(self, parent):
         QtGui.QLineEdit.__init__(self, parent)
@@ -388,7 +388,7 @@ class PathInput(QtGui.QLineEdit):
 
 class LineEditWithClearButton(QtGui.QLineEdit):
     
-    cleared = QtCore.pyqtSignal()
+    cleared = QtCore.Signal()
     
     def __init__(self, parent):
         QtGui.QLineEdit.__init__(self, parent)
@@ -897,7 +897,7 @@ class SearchThread(threading.Thread):
 
 class IepFileBrowser(QtGui.QWidget):
     
-    somethingChanged = QtCore.pyqtSignal()
+    somethingChanged = QtCore.Signal()
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)

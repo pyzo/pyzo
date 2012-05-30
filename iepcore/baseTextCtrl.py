@@ -19,7 +19,7 @@ import ssdf
 from iepcore.iepLogging import print
 import codeeditor.parsers.tokens as Tokens
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 qt = QtGui
 
 
@@ -151,7 +151,7 @@ def parseLine_signature(tokens):
 class StyleManager(QtCore.QObject):
     """ Singleton class for managing the styles of the text control. """
     
-    styleUpdate = QtCore.pyqtSignal()
+    styleUpdate = QtCore.Signal()
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -907,11 +907,11 @@ class AutoCompObject:
 if __name__=="__main__":
     app = QtGui.QApplication([])
     win = BaseTextCtrl(None)
-    win.setStyle('.py')
+#     win.setStyle('.py')
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
     tmp += "a\u20acb\n"
-    win.setText(tmp)    
+    win.setPlainText(tmp)    
     win.show()
     styleManager.loadStyles() # this is not required (but do now for testing)
     app.exec_()

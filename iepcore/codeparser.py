@@ -15,7 +15,7 @@ structure of a source file in for example a tree widget.
 #TODO: replace this module, get data from the syntax highlighter in the code editor
 
 import time, threading, re
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep
 
 

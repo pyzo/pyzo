@@ -13,7 +13,7 @@ This is the entry module, it servers as a root for the other modules.
 
 import sys, os
 import ssdf  # import ssdf or the suplied copy if not available
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 
 # Set version number
 __version__ = '3.0'

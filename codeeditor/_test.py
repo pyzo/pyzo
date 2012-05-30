@@ -5,8 +5,8 @@
 """
 
 import os, sys
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from qt import QtGui, QtCore
+Qt = QtCore.Qt
 
 # Go up one directory and then import the codeeditor package
 os.chdir('..') 

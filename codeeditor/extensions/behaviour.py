@@ -9,8 +9,8 @@ Code editor extensions that change its behaviour (i.e. how it reacts to keys)
 """
 
 
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from ..qt import QtGui,QtCore
+Qt = QtCore.Qt
 
 from ..misc import ustr, ce_option
 

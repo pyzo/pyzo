@@ -7,7 +7,7 @@
 
 import sys, os, time
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep 
 
 tool_name = "Workspace"
@@ -41,7 +41,7 @@ class WorkspaceProxy(QtCore.QObject):
     
     """
     
-    haveNewData = QtCore.pyqtSignal()
+    haveNewData = QtCore.Signal()
     
     def __init__(self):
         QtCore.QObject.__init__(self)

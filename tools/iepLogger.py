@@ -6,7 +6,7 @@
 
 
 import sys, os, code
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep
 from iepcore.shell import BaseShell
 from iepcore.iepLogging import splitConsole

@@ -15,7 +15,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 """
 
 import os, sys, time, gc
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 
 import iep
 from iepcore.compactTabWidget import CompactTabWidget
@@ -150,7 +150,7 @@ class FindReplaceWidget(QtGui.QFrame):
     """ A widget to find and replace text. """
     
     def __init__(self, *args):
-        QtGui.QWidget.__init__(self, *args)
+        QtGui.QFrame.__init__(self, *args)
         
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         
@@ -773,7 +773,7 @@ class FileTabWidget(CompactTabWidget):
         
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
-        self.tabBar().setTabButton(i, 0, EditorTabToolButton())
+        self.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, EditorTabToolButton())
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
@@ -842,7 +842,7 @@ class FileTabWidget(CompactTabWidget):
                 nBlocks = 0
             
             # Update appearance of icon
-            but = tabBar.tabButton(i, 0)
+            but = tabBar.tabButton(i, QtGui.QTabBar.LeftSide)
             but.updateIcon(item.dirty, self._mainFile==item.id, 
                         item.pinned, nBlocks)
 
@@ -853,10 +853,10 @@ class EditorTabs(QtGui.QWidget):
     """ 
     
     # Signal to notify that a different file was selected
-    currentChanged = QtCore.pyqtSignal()
+    currentChanged = QtCore.Signal()
     
     # Signal to notify that the parser has parsed the text (emit by parser)
-    parserDone = QtCore.pyqtSignal()
+    parserDone = QtCore.Signal()
     
     
     def __init__(self, parent):
@@ -1349,7 +1349,8 @@ class EditorTabs(QtGui.QWidget):
         
         # Restore opened editors
         if iep.config.state.editorState2:
-            self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
+            pass
+            #self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
         else:
             #self.newFile()
             self.loadFile(os.path.join(iep.iepDir,'resources','tutorial.py'))

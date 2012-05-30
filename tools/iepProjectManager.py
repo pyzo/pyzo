@@ -4,7 +4,7 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep
 import os
 import sys
@@ -507,7 +507,7 @@ class IepProjectManager(QtGui.QWidget):
         self.dirList.setHeaderHidden(True)
         
         # The lessThan function in DirSortAndFilter ensures dirs are before files
-        self.dirList.sortByColumn(0)
+        self.dirList.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.filterCombo=QtGui.QComboBox()
 
         self.layout=QtGui.QVBoxLayout()

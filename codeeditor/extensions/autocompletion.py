@@ -9,8 +9,8 @@ Code editor extensions that provides autocompleter functionality
 """
 
 
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from ..qt import QtGui,QtCore
+Qt = QtCore.Qt
 
 import keyword
 

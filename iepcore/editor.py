@@ -15,7 +15,7 @@ file loading/saving /reloading stuff.
 import os, sys
 import re, codecs
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 qt = QtGui
 
 from codeeditor import Manager
@@ -224,7 +224,6 @@ def createEditor(parent, filename=None):
         elif indentWidth:
             editor.setIndentWidth(indentWidth)
             editor.setIndentUsingSpaces(True)
-    
 
     if editor._filename:
         editor._modifyTime = os.path.getmtime(editor._filename)
@@ -245,7 +244,7 @@ def createEditor(parent, filename=None):
 class IepEditor(BaseTextCtrl):
     
     # called when dirty changed or filename changed, etc
-    somethingChanged = QtCore.pyqtSignal()
+    somethingChanged = QtCore.Signal()
     
     def __init__(self, parent, **kwds):
         super().__init__(parent, showLineNumbers = True, **kwds)
