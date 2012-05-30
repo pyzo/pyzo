@@ -16,8 +16,8 @@ code in it.
 
 """
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from codeeditor.qt import QtCore, QtGui
+Qt = QtCore.Qt
 
 import os, sys, time, subprocess
 import yoton
@@ -701,10 +701,10 @@ class PythonShell(BaseShell):
     """
     
     # Emits when the status string has changed or when receiving a new prompt
-    stateChanged = QtCore.pyqtSignal(BaseShell)
+    stateChanged = QtCore.Signal(BaseShell)
     
     # Emits when the debug status is changed
-    debugStateChanged = QtCore.pyqtSignal(BaseShell)
+    debugStateChanged = QtCore.Signal(BaseShell)
     
     
     def __init__(self, parent, info):

@@ -10,7 +10,7 @@ See docs of the tab widget.
 
 """
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import sys
 
 if sys.version_info[0] < 3:
@@ -112,8 +112,8 @@ class CompactTabBar(QtGui.QTabBar):
     """
     
     # Add signal to be notified of double clicks on tabs
-    tabDoubleClicked = QtCore.pyqtSignal(int)
-    barDoubleClicked = QtCore.pyqtSignal()
+    tabDoubleClicked = QtCore.Signal(int)
+    barDoubleClicked = QtCore.Signal()
     
     def __init__(self, *args, padding=(4,4,6,6)):
         QtGui.QTabBar.__init__(self, *args)

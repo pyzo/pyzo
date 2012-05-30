@@ -11,7 +11,7 @@ Defined ustr (Unicode string) class and the option property decorator.
 """
 
 import sys
-from PyQt4 import QtGui,QtCore
+from .qt import QtGui, QtCore
 from queue import Queue, Empty
 
 # Set Python version as a float and get some names

@@ -7,7 +7,7 @@
 
 import time
 import urllib.request, urllib.parse
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 
 import iep
 ssdf = iep.ssdf
@@ -25,8 +25,8 @@ class WebView(QtGui.QTextBrowser):
     the mouse wheel. 
     """
     
-    loadStarted = QtCore.pyqtSignal()
-    loadFinished = QtCore.pyqtSignal(bool)
+    loadStarted = QtCore.Signal()
+    loadFinished = QtCore.Signal(bool)
     
     def __init__(self, parent):
         QtGui.QTextBrowser.__init__(self, parent)

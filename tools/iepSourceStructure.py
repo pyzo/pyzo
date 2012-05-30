@@ -6,7 +6,7 @@
 
 
 import time
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep
 ssdf = iep.ssdf
 

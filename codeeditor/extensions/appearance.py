@@ -8,8 +8,8 @@
 Code editor extensions that change its appearance
 """
 
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from ..qt import QtGui,QtCore
+Qt = QtCore.Qt
 
 from ..misc import ce_option
 from ..manager import Manager

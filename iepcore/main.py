@@ -18,14 +18,14 @@ import ssdf
 import iep
 from iepcore.icons import IconArtist
 
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 from queue import Queue, Empty
 
 
 class MainWindow(QtGui.QMainWindow):
     
     def __init__(self, parent=None, locale=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QMainWindow.__init__(self, parent)
         
         # Set locale of main widget, so that qt strings are translated
         # in the right way
@@ -169,13 +169,15 @@ class MainWindow(QtGui.QMainWindow):
         iep.config.state.loadedTools = tools
         
         # Store window geometry
-        geometry = bytes(self.saveGeometry())
-        geometry = base64.encodebytes(geometry).decode('ascii')
+        geometry = str( self.saveGeometry().toBase64() )
+        #state = bytes(self.saveGeometry())
+        #geometry = base64.encodebytes(geometry).decode('ascii')
         iep.config.state.windowGeometry = geometry
         
         # Store window state
-        state = bytes(self.saveState())
-        state = base64.encodebytes(state).decode('ascii')
+        state = str( self.saveState().toBase64() )
+        #state = bytes(self.saveState())
+        #state = base64.encodebytes(state).decode('ascii')
         iep.config.state.windowState = state
     
     
@@ -334,9 +336,9 @@ def loadIcons():
     # Construct normal iep icon
     iep.icon = QtGui.QIcon() 
     tmp = os.path.join(iconDir,'iep{}.png')
-    iep.icon.addFile(tmp.format(16), QtCore.QSize(16,16), 0, 0)
-    iep.icon.addFile(tmp.format(32), QtCore.QSize(32,32), 0, 0)
-    iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48), 0, 0)
+    iep.icon.addFile(tmp.format(16), QtCore.QSize(16,16))
+    iep.icon.addFile(tmp.format(32), QtCore.QSize(32,32))
+    iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48))
     
     # Construct another icon to show when the current shell is busy
     artist = IconArtist(iep.icon) # extracts the 16x16 version
@@ -348,6 +350,9 @@ def loadIcons():
     #
     iep.iconRunning = QtGui.QIcon(iep.icon)
     iep.iconRunning.addPixmap(pm) # Change only 16x16 icon
+    
+    # Create dummy icon
+    dummyIcon = IconArtist().finish()
     
     # Construct other icons
     iep.icons = ssdf.new()
@@ -361,11 +366,12 @@ def loadIcons():
                 ffname = os.path.join(iconDir,fname)
                 # Create icon
                 icon = QtGui.QIcon() 
-                icon.addFile(ffname, QtCore.QSize(16,16), 0, 0)
+                icon.addFile(ffname, QtCore.QSize(16,16))
                 # Store
                 iep.icons[name] = icon
-            except Exception:
-                print('Could not load icon ', fname)
+            except Exception as err:
+                iep.icons[name] = dummyIcon
+                print('Could not load icon %s: %s' % (fname, str(err)))
 
 
 class _CallbackEventHandler(QtCore.QObject):

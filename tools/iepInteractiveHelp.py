@@ -6,7 +6,7 @@
 
 
 import sys, os, time, re
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep 
 
 tool_name = "Interactive Help"

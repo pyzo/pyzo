@@ -34,7 +34,7 @@ displayed in the statusbar.
 # - pythonpath editor, startupfile editor (or as part of IEP?)
 
 import os, sys, imp
-from PyQt4 import QtCore, QtGui
+from codeeditor.qt import QtCore, QtGui
 import iep
 
 ssdf = iep.ssdf
@@ -138,7 +138,7 @@ class ToolManager(QtCore.QObject):
     """ Manages the tools. """
     
     # This signal indicates a change in the loaded tools
-    toolInstanceChange = QtCore.pyqtSignal()
+    toolInstanceChange = QtCore.Signal()
 
     def __init__(self, parent = None):
         QtCore.QObject.__init__(self, parent)

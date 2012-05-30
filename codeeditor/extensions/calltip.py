@@ -4,8 +4,8 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from ..qt import QtCore, QtGui
+Qt = QtCore.Qt
 
 class Calltip(object):
     _styleElements = [('Editor.calltip', 'The style of the calltip. ',

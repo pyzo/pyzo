@@ -17,8 +17,8 @@ instances. These have a name, description and default format, which
 makes it easy to build a UI to allow the user to change the syle.
 
 """
-from PyQt4 import QtGui,QtCore
-from PyQt4.QtCore import Qt
+from .qt import QtGui, QtCore
+Qt = QtCore.Qt
 
 
 class StyleElementDescription:
@@ -245,9 +245,10 @@ class StyleFormat:
     @property
     def textCharFormat(self):
         if self._textCharFormat is None:
-            self._textCharFormat = QtGui.QTextCharFormat()
+            self._textCharFormat = tcf = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
-            self._textCharFormat.setUnderlineStyle(self.underline)
+            us = [tcf.NoUnderline, tcf.SingleUnderline][self.underline]
+            self._textCharFormat.setUnderlineStyle(us)
             if self.bold:
                 self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
             if self.italic:
