@@ -1349,8 +1349,7 @@ class EditorTabs(QtGui.QWidget):
         
         # Restore opened editors
         if iep.config.state.editorState2:
-            pass
-            #self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
+            self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
         else:
             #self.newFile()
             self.loadFile(os.path.join(iep.iepDir,'resources','tutorial.py'))

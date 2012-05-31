@@ -169,15 +169,15 @@ class MainWindow(QtGui.QMainWindow):
         iep.config.state.loadedTools = tools
         
         # Store window geometry
-        geometry = str( self.saveGeometry().toBase64() )
-        #state = bytes(self.saveGeometry())
-        #geometry = base64.encodebytes(geometry).decode('ascii')
+        #geometry = str( self.saveGeometry().toBase64() )
+        geometry = bytes(self.saveGeometry())
+        geometry = base64.encodebytes(geometry).decode('ascii')
         iep.config.state.windowGeometry = geometry
         
         # Store window state
-        state = str( self.saveState().toBase64() )
-        #state = bytes(self.saveState())
-        #state = base64.encodebytes(state).decode('ascii')
+        #state = str( self.saveState().toBase64() )
+        state = bytes(self.saveState())
+        state = base64.encodebytes(state).decode('ascii')
         iep.config.state.windowState = state
     
     
@@ -187,15 +187,23 @@ class MainWindow(QtGui.QMainWindow):
         # Restore layout of dock widgets and toolbars
         # On Linux this can mess up the geometry.
         if iep.config.state.windowState and not geometryOnly:
-            state = iep.config.state.windowState
-            state = base64.decodebytes(state.encode('ascii'))
-            self.restoreState(state)
+            try:
+                state = iep.config.state.windowState
+                state = base64.decodebytes(state.encode('ascii'))
+                #state = QtCore.QByteArray.fromBase64(iep.config.state.windowState)
+                self.restoreState(state)
+            except Exception as err:
+                print('Could not restore window state: ' + str(err))
         
         # Restore window geometry
         if iep.config.state.windowGeometry:
-            geometry = iep.config.state.windowGeometry
-            geometry = base64.decodebytes(geometry.encode('ascii'))
-            self.restoreGeometry(geometry)  
+            try:
+                geometry = iep.config.state.windowGeometry
+                geometry = base64.decodebytes(geometry.encode('ascii'))
+                #geometry = QtCore.QByteArray.fromBase64(iep.config.state.windowGeometry)
+                self.restoreGeometry(geometry)  
+            except Exception as err:
+                print('Could not restore window geomerty: ' + str(err))
         
         
     
