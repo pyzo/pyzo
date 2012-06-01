@@ -247,7 +247,9 @@ class StyleFormat:
         if self._textCharFormat is None:
             self._textCharFormat = tcf = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
-            us = [tcf.NoUnderline, tcf.SingleUnderline][self.underline]
+            us = [  tcf.NoUnderline, tcf.SingleUnderline, tcf.DashUnderline,
+                    tcf.DotLine, tcf.DashDotLine, tcf.DashDotDotLine, 
+                    tcf.WaveUnderline, tcf.SpellCheckUnderline][self.underline]
             self._textCharFormat.setUnderlineStyle(us)
             if self.bold:
                 self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
