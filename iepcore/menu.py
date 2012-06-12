@@ -48,17 +48,17 @@ def buildMenus(menuBar):
         # (thus raised above the submenu). This happens only once and after
         # ths submenu has become visible.
         if action.menu():
-            if not hasattr(QtGui.QToolTip, '_lastAction'):
-                QtGui.QToolTip._lastAction = None
-                QtGui.QToolTip._haveRaisedTooltip = False
-            if action is QtGui.QToolTip._lastAction:
-                if ((not QtGui.QToolTip._haveRaisedTooltip) and 
+            if not hasattr(menuBar, '_lastAction'):
+                menuBar._lastAction = None
+                menuBar._haveRaisedTooltip = False
+            if action is menuBar._lastAction:
+                if ((not menuBar._haveRaisedTooltip) and 
                             action.menu().isVisible()):
                     QtGui.QToolTip.hideText()
-                    QtGui.QToolTip._haveRaisedTooltip = True
+                    menuBar._haveRaisedTooltip = True
             else:
-                QtGui.QToolTip._lastAction = action
-                QtGui.QToolTip._haveRaisedTooltip = False
+                menuBar._lastAction = action
+                menuBar._haveRaisedTooltip = False
         # Set tooltip
         tt = action.statusTip()
         if hasattr(action, '_shortcutsText'):
