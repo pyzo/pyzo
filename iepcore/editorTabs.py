@@ -773,7 +773,8 @@ class FileTabWidget(CompactTabWidget):
         
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
-        self.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, EditorTabToolButton())
+        tabBut = EditorTabToolButton(self.tabBar())
+        self.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, tabBut)
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)

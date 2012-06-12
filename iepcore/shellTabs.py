@@ -162,7 +162,8 @@ class ShellStack(QtGui.QWidget):
         shell = PythonShell(self._tabs, shellInfo)
         i = self._tabs.addTab(shell, 'Python')
         # Create button for icon
-        self._tabs.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, ShellTabToolButton())
+        tabBut = ShellTabToolButton(self._tabs.tabBar())
+        self._tabs.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, tabBut)
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)

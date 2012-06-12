@@ -302,8 +302,8 @@ class TabToolButton(QtGui.QToolButton):
     
     SIZE = 16, 16
     
-    def __init__(self):
-        QtGui.QToolButton.__init__(self)
+    def __init__(self, *args):
+        QtGui.QToolButton.__init__(self, *args)
         
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -326,8 +326,8 @@ class TabToolButtonWithCloseButton(TabToolButton):
     SIZE = 22, 16
     CROSS_OFFSET = 0, 2
     
-    def __init__(self):
-        TabToolButton.__init__(self)
+    def __init__(self, *args):
+        TabToolButton.__init__(self, *args)
         
         # Variable to keep icon
         self._icon = None
@@ -524,8 +524,8 @@ class ShellTabToolButton(TabToolButton):
     MAX_ITERS_IN_LEVEL_1 = 2
     
     
-    def __init__(self):
-        TabToolButton.__init__(self)
+    def __init__(self, *args):
+        TabToolButton.__init__(self, *args)
         
         # Motion properties
         self._index = 0
