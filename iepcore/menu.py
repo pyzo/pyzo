@@ -1263,7 +1263,7 @@ class HelpMenu(Menu):
         Platform: {}<br>
         Python version: {}<br>
         Qt version: {}<br>
-        PyQt version: {}<br>
+        {} version: {}<br>
         <br>
         
         <b>IEP directories</b><br>
@@ -1272,7 +1272,7 @@ class HelpMenu(Menu):
         <br>
         
         <b>Acknowledgements</b><br>
-        IEP is written in Python 3 and uses the Qt4 widget
+        IEP is written in Python 3 and uses the Qt widget
         toolkit. IEP uses code and concepts that are inspired by 
         IPython, Pype, and Spyder.
         IEP uses a (modified) subset of the silk icon set, 
@@ -1291,6 +1291,16 @@ class HelpMenu(Menu):
         Ludo Visser<br>
         
         """
+        # Determine if this is PyQt4 or Pyside
+        if hasattr(QtCore, 'PYQT_VERSION_STR'):
+            qtWrapper = 'PyQt4'
+            qtVersion = QtCore.QT_VERSION_STR
+            qtWrapperVersion = QtCore.PYQT_VERSION_STR
+        else:
+            import PySide
+            qtWrapper = 'PySide'
+            qtVersion = QtCore.__version__
+            qtWrapperVersion = PySide.__version__
         # Insert information texts
         if iep.isFrozen():
             versionText = iep.__version__ + ' (binary)'
@@ -1298,7 +1308,7 @@ class HelpMenu(Menu):
             versionText = iep.__version__ + ' (source)'
         aboutText = aboutText.format(versionText, 
                         sys.platform, sys.version.split(' ')[0],
-                        QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR,
+                        qtVersion, qtWrapper, qtWrapperVersion,
                         iep.iepDir, iep.appDataDir)
         
         # Define icon and text
