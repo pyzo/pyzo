@@ -285,9 +285,9 @@ class Menu(QtGui.QMenu):
         # Connect the menu item to its callback
         if callback:
             if value is not None:
-                a.triggered.connect(lambda b, v = value: callback(v))
+                a.triggered.connect(lambda b=False, v=value: callback(v))
             else:
-                a.triggered.connect(lambda b: callback())
+                a.triggered.connect(lambda b=False: callback())
         
         return a
     
