@@ -23,12 +23,13 @@ class HomeKey(object):
             # Prepare
             cursor = self.textCursor()
             shiftDown = event.modifiers() == Qt.ShiftModifier
+            moveMode = [cursor.MoveAnchor, cursor.KeepAnchor][shiftDown]
             # Get leading whitespace
             text = ustr(cursor.block().text())
             leadingWhitespace = text[:len(text)-len(text.lstrip())]
             # Get current position and move to start of whitespace
             i = cursor.positionInBlock()
-            cursor.movePosition(cursor.StartOfBlock, shiftDown)
+            cursor.movePosition(cursor.StartOfBlock, moveMode)
             cursor.movePosition(cursor.Right, shiftDown, len(leadingWhitespace))
             # If we were alread there, move to start of block
             if cursor.positionInBlock() == i:
