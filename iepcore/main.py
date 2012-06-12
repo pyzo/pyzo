@@ -92,7 +92,7 @@ class MainWindow(QtGui.QMainWindow):
         self._initTimer.setSingleShot(True)
         self._initTimer.start()
     
-      
+    
     def _populate(self):
         
         # Delayed imports
@@ -203,12 +203,14 @@ class MainWindow(QtGui.QMainWindow):
         # Restore window geometry
         if iep.config.state.windowGeometry:
             try:
+                # todo: this does not work well. I should rethink the whole
+                # startup of geometry state to work well on PyQt and Pyside
+                self.showNormal()
                 geometry = iep.config.state.windowGeometry
                 geometry = base64.decodebytes(geometry.encode('ascii'))
                 self.restoreGeometry(geometry)  
             except Exception as err:
                 print('Could not restore window geomerty: ' + str(err))
-        
         
     
     def setQtStyle(self, stylename=None):
