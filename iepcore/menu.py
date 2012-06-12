@@ -285,9 +285,9 @@ class Menu(QtGui.QMenu):
         # Connect the menu item to its callback
         if callback:
             if value is not None:
-                a.triggered.connect(lambda b=False, v=value: callback(v))
+                a.triggered.connect(lambda b=None, v=value: callback(v))
             else:
-                a.triggered.connect(lambda b=False: callback())
+                a.triggered.connect(lambda b=None: callback())
         
         return a
     
@@ -311,7 +311,7 @@ class Menu(QtGui.QMenu):
             def doCallback(b, v):
                 if b:
                     callback(v)
-            a.toggled.connect(lambda b, v = value: doCallback(b, v))
+            a.toggled.connect(lambda b=None, v=value: doCallback(a.isChecked(), v))
         
         # Add the menu item to a action group
         if group is None:
@@ -341,9 +341,9 @@ class Menu(QtGui.QMenu):
         # Connect the menu item to its callback
         if callback:
             if value is not None:
-                a.triggered.connect(lambda b, v = value: callback(b,v))
+                a.triggered.connect(lambda b=None, v=value: callback(a.isChecked(),v))
             else:
-                a.triggered.connect(lambda b: callback(b))
+                a.triggered.connect(lambda b=None: callback(a.isChecked()))
         
         return a
     
