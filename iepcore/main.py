@@ -169,14 +169,20 @@ class MainWindow(QtGui.QMainWindow):
         iep.config.state.loadedTools = tools
         
         # Store window geometry
-        #geometry = str( self.saveGeometry().toBase64() )
-        geometry = bytes(self.saveGeometry())
+        geometry = self.saveGeometry()
+        try:
+            geometry = bytes(geometry) # PyQt4
+        except:
+            geometry = bytes().join(geometry) # PySide
         geometry = base64.encodebytes(geometry).decode('ascii')
         iep.config.state.windowGeometry = geometry
         
         # Store window state
-        #state = str( self.saveState().toBase64() )
-        state = bytes(self.saveState())
+        state = self.saveState()
+        try:
+            state = bytes(state) # PyQt4
+        except:
+            state = bytes().join(state) # PySide
         state = base64.encodebytes(state).decode('ascii')
         iep.config.state.windowState = state
     
