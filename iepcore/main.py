@@ -196,7 +196,6 @@ class MainWindow(QtGui.QMainWindow):
             try:
                 state = iep.config.state.windowState
                 state = base64.decodebytes(state.encode('ascii'))
-                #state = QtCore.QByteArray.fromBase64(iep.config.state.windowState)
                 self.restoreState(state)
             except Exception as err:
                 print('Could not restore window state: ' + str(err))
@@ -206,7 +205,6 @@ class MainWindow(QtGui.QMainWindow):
             try:
                 geometry = iep.config.state.windowGeometry
                 geometry = base64.decodebytes(geometry.encode('ascii'))
-                #geometry = QtCore.QByteArray.fromBase64(iep.config.state.windowGeometry)
                 self.restoreGeometry(geometry)  
             except Exception as err:
                 print('Could not restore window geomerty: ' + str(err))

@@ -483,7 +483,7 @@ class FindReplaceWidget(QtGui.QFrame):
                 editor.setTextCursor(result)
         
         # done
-        editor.setFocus(True)
+        editor.setFocus()
         return not result.isNull()
     
     
