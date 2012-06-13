@@ -1004,6 +1004,8 @@ class EditorTabs(QtGui.QWidget):
         if True:
             filenames = QtGui.QFileDialog.getOpenFileNames(self,
                 msg, startdir, filter)
+            if isinstance(filenames, tuple): # PySide
+                filenames = filenames[0]
         else:
             # Example how to preselect files, can be used when the users
             # opens a file in a project to select all files currently not
@@ -1173,6 +1175,8 @@ class EditorTabs(QtGui.QWidget):
         filter += "All (*.*)"
         filename = QtGui.QFileDialog.getSaveFileName(self,
             msg, startdir, filter)
+        if isinstance(filename, tuple): # PySide
+            filename = filename[0]
         
         # give python extension if it has no extension
         head, tail = os.path.split(filename)
