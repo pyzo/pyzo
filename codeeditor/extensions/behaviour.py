@@ -30,10 +30,10 @@ class HomeKey(object):
             # Get current position and move to start of whitespace
             i = cursor.positionInBlock()
             cursor.movePosition(cursor.StartOfBlock, moveMode)
-            cursor.movePosition(cursor.Right, shiftDown, len(leadingWhitespace))
+            cursor.movePosition(cursor.Right, moveMode, len(leadingWhitespace))
             # If we were alread there, move to start of block
             if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.StartOfBlock, shiftDown)
+                cursor.movePosition(cursor.StartOfBlock, moveMode)
             # Done
             self.setTextCursor(cursor)
         else:
@@ -47,12 +47,13 @@ class EndKey(object):
             # Prepare
             cursor = self.textCursor()
             shiftDown = event.modifiers() == Qt.ShiftModifier
+            moveMode = [cursor.MoveAnchor, cursor.KeepAnchor][shiftDown]
             # Get current position and move to end of line
             i = cursor.positionInBlock()
-            cursor.movePosition(cursor.EndOfLine, shiftDown)
+            cursor.movePosition(cursor.EndOfLine, moveMode)
             # If alread at end of line, move to end of block
             if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.EndOfBlock, shiftDown)
+                cursor.movePosition(cursor.EndOfBlock, moveMode)
             # Done
             self.setTextCursor(cursor)
         else:
