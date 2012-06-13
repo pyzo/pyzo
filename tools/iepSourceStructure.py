@@ -157,7 +157,7 @@ class IepSourceStructure(QtGui.QWidget):
         editor.gotoLine(item.linenr-1)
         
         # Give focus
-        iep.callLater(editor.setFocus, True)
+        iep.callLater(editor.setFocus)
 
     
     def updateStructure(self):
