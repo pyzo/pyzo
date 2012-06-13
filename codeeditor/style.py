@@ -225,7 +225,7 @@ class StyleFormat:
             elif val in ['wave']: 
                 self._underline = QtGui.QTextCharFormat.WaveUnderline
             else:
-                self._underline = False
+                self._underline = QtGui.QTextCharFormat.NoUnderline
         return self._underline
     
     @property
@@ -247,10 +247,7 @@ class StyleFormat:
         if self._textCharFormat is None:
             self._textCharFormat = tcf = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
-            us = [  tcf.NoUnderline, tcf.SingleUnderline, tcf.DashUnderline,
-                    tcf.DotLine, tcf.DashDotLine, tcf.DashDotDotLine, 
-                    tcf.WaveUnderline, tcf.SpellCheckUnderline][self.underline]
-            self._textCharFormat.setUnderlineStyle(us)
+            self._textCharFormat.setUnderlineStyle(self.underline)
             if self.bold:
                 self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
             if self.italic:
