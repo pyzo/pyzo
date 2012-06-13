@@ -49,6 +49,19 @@ class MainWindow(QtGui.QMainWindow):
         # Load icons now
         loadIcons()
         
+        # Create timer to repeatedly set the state of the dockwidgets.
+        # If we do not do this, the state is not set corerctly (see issue 95)
+        # I'm not sure why, but this is needed. On PyQt4 it was enough
+        # to do this after 10 ms, on PySide the delay had to be about 
+        # half a second. So we apply a dirty but effective trick: 
+        # For two seconds, we repeatedly set the state.
+        self._initTimer = QtCore.QTimer()
+        self._initTimer.timeout.connect(self.restoreState)
+        self._initTimer.setInterval(200) # ms
+        self._initTimer.setSingleShot(False)
+        self._initTimer._timeout = time.time() + 2.0
+        self._initTimer.start() # First call will be *after* this function ends
+        
         # Set qt style and test success
         self.setQtStyle(None) # None means init!
         
@@ -63,7 +76,7 @@ class MainWindow(QtGui.QMainWindow):
         # Restore window geometry before drawing for the first time,
         # such that the window is in the right place
         self.resize(800, 600) # default size
-        self.restoreWindowState(geometryOnly=True)
+        self.restoreGeometry()
         
         # Show empty window and disable updates for a while
         self.show()
@@ -74,23 +87,14 @@ class MainWindow(QtGui.QMainWindow):
         # Populate the window (imports more code)
         self._populate()
         
-        # Restore state while updates are disabled. This doesnt set the
-        # state correctly, but at least approximately correct, and thereby
-        # prevents flicker.
-        self.restoreWindowState()
+        # Restore state while updates are disabled. 
+        self.restoreState()
         
         # Show window again with normal background, and enable updates
         self.setStyleSheet('')
         self.setUpdatesEnabled(True)
-        self.show() 
         
-        # Restore one more time, but in a short while. 
-        # If we do not do this, the state is not set corerctly (see issue 95)
-        self._initTimer = QtCore.QTimer()
-        self._initTimer.timeout.connect(self.restoreWindowState)
-        self._initTimer.setInterval(10.0) # 10 ms
-        self._initTimer.setSingleShot(True)
-        self._initTimer.start()
+        # Note that after this, restoreState will be called a couple of times.
     
     
     def _populate(self):
@@ -187,31 +191,41 @@ class MainWindow(QtGui.QMainWindow):
         iep.config.state.windowState = state
     
     
-    def restoreWindowState(self, geometryOnly=False):
-        """ Restore tools and positions of all windows. """
+    def restoreGeometry(self, value=None):
+        # Restore window position and whether it is maximized
         
+        if value is not None:
+            return super().restoreGeometry(value)
+        
+        # No value give, try to get it from the config
+        if iep.config.state.windowGeometry:
+            try:
+                geometry = iep.config.state.windowGeometry
+                geometry = base64.decodebytes(geometry.encode('ascii'))
+                self.restoreGeometry(geometry)  
+            except Exception as err:
+                print('Could not restore window geomerty: ' + str(err))
+    
+    
+    def restoreState(self, value=None):
         # Restore layout of dock widgets and toolbars
-        # On Linux this can mess up the geometry.
-        if iep.config.state.windowState and not geometryOnly:
+        
+        if value is not None:
+            return super().restoreState(value)
+        
+         # Turn init timer off?
+        if self._initTimer._timeout < time.time():
+            self._initTimer.stop()
+        
+        # No value give, try to get it from the config
+        if iep.config.state.windowState:
             try:
                 state = iep.config.state.windowState
                 state = base64.decodebytes(state.encode('ascii'))
                 self.restoreState(state)
             except Exception as err:
                 print('Could not restore window state: ' + str(err))
-        
-        # Restore window geometry
-        if iep.config.state.windowGeometry:
-            try:
-                # todo: this does not work well. I should rethink the whole
-                # startup of geometry state to work well on PyQt and Pyside
-                self.showNormal()
-                geometry = iep.config.state.windowGeometry
-                geometry = base64.decodebytes(geometry.encode('ascii'))
-                self.restoreGeometry(geometry)  
-            except Exception as err:
-                print('Could not restore window geomerty: ' + str(err))
-        
+    
     
     def setQtStyle(self, stylename=None):
         """ Set the style and the palette, based on the given style name.

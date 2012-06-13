@@ -650,7 +650,9 @@ class IepProjectManager(QtGui.QWidget):
         self.dirList.setColumnHidden(3,True)
         
         self.dirModel.setRootPath(path)
-        self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(self.dirModel.index(path)))
+        index = self.dirModel.index(path)
+        if index.isValid() and index.model() is self.dirModel:
+            self.dirList.setRootIndex(self.filteredDirModel.mapFromSource(index))
         
         #Clear the selected item (which is still from the previous project)
         self.dirList.selectionModel().clear() 
