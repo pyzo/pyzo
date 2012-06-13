@@ -29,15 +29,16 @@ class AutoCompletion(object):
     def __init__(self,*args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter
-        self.__completerModel=QtGui.QStringListModel(keyword.kwlist)
-        self.__completer=QtGui.QCompleter(self.__completerModel, self)
+        self.__completerModel = QtGui.QStringListModel(keyword.kwlist)
+        self.__completer = QtGui.QCompleter(self)
+        self.__completer.setModel(self.__completerModel)
         self.__completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.__completer.setWidget(self)
-        self.__completerNames=[]
-        self.__recentCompletions=[] #List of recently selected completions
+        self.__completerNames = []
+        self.__recentCompletions = [] #List of recently selected completions
         
         # Text position corresponding to first charcter of the word being completed
-        self.__autocompleteStart=None
+        self.__autocompleteStart = None
         
         #Connect signals
         self.__completer.activated.connect(self.onAutoComplete)
@@ -80,18 +81,18 @@ class AutoCompletion(object):
             self.__positionAutocompleter()
             self.__updateAutocompleterPrefix()
             self.__completer.popup().show()
-        
-
+            
         if names is not None:
             #TODO: a more intelligent implementation that adds new items and removes
             #old ones
             if names != self.__completerNames:
                 self.__completerModel.setStringList(names)
                 self.__completerNames = names
-
         self.__updateAutocompleterPrefix()
+    
     def autocompleteAccept(self):
         pass
+    
     def autocompleteCancel(self):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
