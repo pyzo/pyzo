@@ -1107,7 +1107,7 @@ class RunMenu(Menu):
         if runCursor is None:
             runCursor = editor.textCursor()
             runCursor.movePosition(runCursor.Start)
-            runCursor.movePosition(runCursor.End, 1)
+            runCursor.movePosition(runCursor.End, runCursor.KeepAnchor)
         
         editor.showRunCursor(runCursor)
 
