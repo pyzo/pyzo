@@ -762,6 +762,8 @@ class PythonShell(BaseShell):
         self._version = ""
         self._builtins = []
         self._keywords = []
+        self._startup_info = {}
+        self._start_time = 0
         
         # (re)set import attempts
         self._importAttempts[:] = []
@@ -826,6 +828,12 @@ class PythonShell(BaseShell):
     
     def _onReceivedStartupInfo(self, channel):
         startup_info = channel.recv()
+        
+        # Store the whole dict
+        self._startup_info = startup_info
+        
+        # Store when we received this
+        self._start_time = time.time()
         
         # Set version
         version = startup_info.get('version', None)
