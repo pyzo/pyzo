@@ -100,7 +100,7 @@ class TabData:
 
 
 class CompactTabBar(QtGui.QTabBar):
-    """ CompactTabBar(parent, *args, padding=(4,4,6,6))
+    """ CompactTabBar(parent, *args, padding=(4,4,6,6), preventEqualTexts=True)
     
     Tab bar corresponcing to the CompactTabWidget.
     
@@ -109,13 +109,17 @@ class CompactTabBar(QtGui.QTabBar):
     for top, bottom, left, right. When a tab has a button,
     the padding is the space between button and text.
     
+    With preventEqualTexts to True, will reduce the amount of eliding if
+    two tabs have (partly) the same name, so that they can always be
+    distinguished.
+    
     """
     
     # Add signal to be notified of double clicks on tabs
     tabDoubleClicked = QtCore.Signal(int)
     barDoubleClicked = QtCore.Signal()
     
-    def __init__(self, *args, padding=(4,4,6,6)):
+    def __init__(self, *args, padding=(4,4,6,6), preventEqualTexts=True):
         QtGui.QTabBar.__init__(self, *args)
         
         # Put tab widget in document mode
@@ -125,6 +129,9 @@ class CompactTabBar(QtGui.QTabBar):
         self.setDrawBase(False)
         if sys.platform == 'darwin':
             self.setAutoFillBackground(True)
+        
+        # Set whether we want to prevent eliding for names that start the same.
+        self._preventEqualTexts = preventEqualTexts
         
         # Allow moving tabs around
         self.setMovable(True)
@@ -398,8 +405,8 @@ class CompactTabBar(QtGui.QTabBar):
             # Get name
             name = name0 = self._compactTabBarData(i).name
             
-            # Check if we can reduce the name size
-            if (w+1) < len(name0):
+            # Check if we can reduce the name size, correct w if necessary
+            if ( (w+1) < len(name0) ) and self._preventEqualTexts:
                 
                 # Increase w untill there are no names that start the same
                 allNames = self._getAllNames()

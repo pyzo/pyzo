@@ -47,7 +47,7 @@ class ShellStack(QtGui.QWidget):
         self._boxLayout.setSpacing(0)
         
         # create tab widget
-        self._tabs = CompactTabWidget(self)
+        self._tabs = CompactTabWidget(self, padding=(4,2,0,4), preventEqualTexts=False)
         
         # add widgets
         self._boxLayout.addWidget(self._tabs, 1)
@@ -95,10 +95,28 @@ class ShellStack(QtGui.QWidget):
         """
         if True:
             
-            # Show status in tab text. Only display version info  
-            stateText = 'Python {}'.format(shell._version)         
+            # Build text for tab 
+            tabText = 'Python {}'.format(shell._version)  
+            gui = shell._startup_info.get('gui')
+            if gui:
+                tabText += ' with ' + gui
+            
+            # Build text for tooltip
+            tabToolTip = tabText + ' (%s)' % shell._state
+            if False:#shell._start_time:
+                # This does not work, because the onShellStateChange is
+                # not called often enough. But we might include this
+                # code somewhere later ...
+                e = time.time() - shell._start_time
+                hh = e //60; e = e % 60
+                mm = e //60; 
+                ss = e % 60
+                tabToolTip += ' - runtime: %02i:%02i:%02i' % (hh, mm, ss)
+            
+            # Set tab text and tooltip
             i = self._tabs.indexOf(shell)
-            self._tabs.setTabText(i, stateText)
+            self._tabs.setTabText(i, tabText)
+            self._tabs.setTabToolTip(i, tabToolTip)
             
             # Update icon of the tab (this shows busy, dead, etc.)
             but = self._tabs.tabBar().tabButton(i, QtGui.QTabBar.LeftSide)
