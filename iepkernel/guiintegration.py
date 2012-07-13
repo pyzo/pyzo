@@ -43,7 +43,7 @@ class Hijacked_tk(Hijacked_base):
         
         # Try importing
         import sys
-        if sys.version[0] == 3:
+        if sys.version[0] == '3':
             import tkinter
         else:
             import Tkinter as tkinter
