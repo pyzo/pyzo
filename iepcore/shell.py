@@ -22,7 +22,7 @@ Qt = QtCore.Qt
 import os, sys, time, subprocess
 import yoton
 import iep
-import ssdf
+from pyzolib import ssdf
 
 from codeeditor.highlighter import Highlighter
 from codeeditor import parsers

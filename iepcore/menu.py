@@ -14,6 +14,7 @@ shortcuts.
 
 import os, sys, re, time
 import unicodedata
+from pyzolib import paths
 
 from codeeditor.qt import QtCore, QtGui
 
@@ -1302,7 +1303,7 @@ class HelpMenu(Menu):
             qtVersion = QtCore.__version__
             qtWrapperVersion = PySide.__version__
         # Insert information texts
-        if iep.isFrozen():
+        if paths.is_frozen():
             versionText = iep.__version__ + ' (binary)'
         else:
             versionText = iep.__version__ + ' (source)'

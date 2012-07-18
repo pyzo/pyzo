@@ -37,7 +37,7 @@ import os, sys, imp
 from codeeditor.qt import QtCore, QtGui
 import iep
 
-ssdf = iep.ssdf
+from pyzolib import ssdf
 
 
 class ToolDockWidget(QtGui.QDockWidget):

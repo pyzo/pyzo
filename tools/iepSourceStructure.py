@@ -8,7 +8,6 @@
 import time
 from codeeditor.qt import QtCore, QtGui
 import iep
-ssdf = iep.ssdf
 
 tool_name = "Source Structure"
 tool_summary = "Shows the structure of your source code."

@@ -22,8 +22,6 @@ from iepcore.iepLogging import print
 from iepcore.menu import ShellTabContextMenu
 from iepcore.icons import ShellTabToolButton
 
-ssdf = iep.ssdf
-
 
 class ShellStack(QtGui.QWidget):
     """ The shell stack widget provides a stack of shells,

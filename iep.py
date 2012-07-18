@@ -12,7 +12,7 @@ This is the entry module, it servers as a root for the other modules.
 """
 
 import sys, os
-import ssdf  # import ssdf or the suplied copy if not available
+from pyzolib import ssdf, paths
 from codeeditor.qt import QtCore, QtGui
 
 # Set version number
@@ -22,49 +22,26 @@ __version__ = '3.0'
 ## Define some functions
 
 
-def isFrozen():
-    """ isFrozen()
-    Find out whether this IEP is a frozen application
-    (using cx_freeze, bbfreeze, py2exe) by finding out what was
-    the executable name to start the application.
-    """
-    ex = os.path.split(sys.executable)[1]
-    ex = os.path.splitext(ex)[0]
-    if ex.lower().startswith('python'): # because can be python3 on Linux
-        return False
-    else:
-        return True
-
-
 def getResourceDirs():
     """ getResourceDirs()
-    Get the directories to the resources: (iepDir, userDir, appDataDir).
+    Get the directories to the resources: (iepDir, appDataDir).
     Also makes sure that the appDataDir has a "tools" directory and
     a style file.
     """
     
-    # Get directory where IEP is located
-    if isFrozen():
-        # Set in iep.pyw
-        iepDir = os.path.abspath( sys.path[0] )
-        #iepDir = os.path.abspath( os.path.dirname(sys.executable) )
-        #iepDir = os.path.join(iepDir, 'source')
-    else:
-        iepDir = os.path.abspath( os.path.dirname(__file__) )
-
-    # Define user dir and appDataDir
-    userDir = os.path.expanduser('~')    
-    appDataDir = os.path.join(userDir, '.iep')
-    if sys.platform.startswith('win') and 'APPDATA' in os.environ:
-        appDataDir = os.path.join( os.environ['APPDATA'], 'iep' )
+    # Get root of the IEP code. If frozen its in a subdir of the app dir 
+    iepDir = paths.application_dir()
+    if paths.is_frozen():
+        iepDir = os.path.join(iepDir, 'source')
     
-    # Make sure it exists, as well as a tools directory
-    if not os.path.isdir(appDataDir):
-        os.mkdir(appDataDir)
+    # Get where the application data is stored
+    appDataDir = paths.appdata_dir('iep', roaming=True)
+    
+    # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, 'tools')
     if not os.path.isdir(toolDir):
         os.mkdir(toolDir)
-    
+
     # Make sure the style file is there
     # todo: remove this whole stuff, including StyleManager etc.
     styleFileName1 = os.path.join(iepDir, 'resources', 'defaultStyles.ssdf')
@@ -73,8 +50,7 @@ def getResourceDirs():
         import shutil        
         shutil.copy(styleFileName1, styleFileName2)
     
-    # Done
-    return iepDir, userDir, appDataDir
+    return iepDir, appDataDir
 
 
 def resetStyles():
@@ -276,11 +252,11 @@ parser = None # The source parser
 status = None # The statusbar (or None)
 styleManager = None # Object that manages syntax styles
 
+# Get directories of interest
+iepDir, appDataDir = getResourceDirs()
+
 # Whether the config file should be saved
 _saveConfigFile = True
-
-# Get the paths
-iepDir, userDir, appDataDir = getResourceDirs()
 
 # Create ssdf in module namespace, and fill it
 config = ssdf.new()

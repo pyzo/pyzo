@@ -10,7 +10,6 @@ import urllib.request, urllib.parse
 from codeeditor.qt import QtCore, QtGui
 
 import iep
-ssdf = iep.ssdf
 
 tool_name = "Web browser"
 tool_summary = "A very simple web browser."
