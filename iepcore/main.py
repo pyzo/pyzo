@@ -14,7 +14,7 @@ function which is also defined here.
 
 import os, sys, time
 import base64
-import ssdf
+from pyzolib import ssdf, paths
 import iep
 from iepcore.icons import IconArtist
 
@@ -316,7 +316,7 @@ class MainWindow(QtGui.QMainWindow):
             # Get args
             args = [arg for arg in sys.argv]
             
-            if not iep.isFrozen():
+            if not paths.is_frozen():
                 # Prepend the executable name (required on Linux)
                 lastBit = os.path.basename(sys.executable)
                 args.insert(0, lastBit)

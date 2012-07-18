@@ -15,7 +15,7 @@ is common for both shells and editors.
 import iep
 import os, sys, time
 import weakref
-import ssdf
+from pyzolib import ssdf
 from iepcore.iepLogging import print
 import codeeditor.parsers.tokens as Tokens
 
@@ -186,7 +186,6 @@ class StyleManager(QtCore.QObject):
             print("warning: style file not found.")
             return
         # load file
-        import ssdf
         self._styles = ssdf.load(filename)
         # Try building style tree and emit signal on success
         if self.buildStyleTree():

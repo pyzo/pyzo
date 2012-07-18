@@ -8,7 +8,7 @@ from codeeditor.qt import QtCore, QtGui
 import iep
 import os
 import sys
-import ssdf
+from pyzolib import ssdf
 import fnmatch
 import iepcore.menu
 from iep import translate

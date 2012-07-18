@@ -16,7 +16,7 @@ import signal
 import threading
 import ctypes
 
-import ssdf
+from pyzolib import ssdf
 import yoton
 import iep # local IEP (can be on a different box than where the user is)
 
