@@ -41,32 +41,8 @@ def getResourceDirs():
     toolDir = os.path.join(appDataDir, 'tools')
     if not os.path.isdir(toolDir):
         os.mkdir(toolDir)
-
-    # Make sure the style file is there
-    # todo: remove this whole stuff, including StyleManager etc.
-    styleFileName1 = os.path.join(iepDir, 'resources', 'defaultStyles.ssdf')
-    styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')
-    if not os.path.isfile(styleFileName2):
-        import shutil        
-        shutil.copy(styleFileName1, styleFileName2)
     
     return iepDir, appDataDir
-
-
-def resetStyles():
-    """ resetStyles()
-    Replaces the style file with the default and re-applies the styles.
-    """
-    import shutil
-    # Copy file
-    styleFileName1 = os.path.join(iepDir, 'resources', 'defaultStyles.ssdf')
-    styleFileName2 = os.path.join(appDataDir, 'styles.ssdf')        
-    shutil.copy(styleFileName1, styleFileName2)
-    # Apply
-    try:
-        styleManager.loadStyles()
-    except NameError:
-        pass
 
 
 def resetConfig(preserveState=True):
@@ -248,7 +224,6 @@ main = None # The mainwindow
 icon = None # The icon 
 parser = None # The source parser
 status = None # The statusbar (or None)
-styleManager = None # Object that manages syntax styles
 
 # Get directories of interest
 iepDir, appDataDir = getResourceDirs()

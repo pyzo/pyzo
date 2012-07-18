@@ -21,7 +21,6 @@ import iep
 from iepcore.compactTabWidget import CompactTabWidget
 from iepcore.editor import createEditor
 from iepcore.baseTextCtrl import normalizePath
-from iepcore.baseTextCtrl import styleManager
 from iepcore.iepLogging import print
 from iepcore.icons import EditorTabToolButton
 
@@ -1237,11 +1236,7 @@ class EditorTabs(QtGui.QWidget):
         print("saved file: {} ({})".format(filename, editor.lineEndingsHumanReadable))
         self._tabs.updateItems()
         
-        # special case, we edited the style file!
-        if filename == styleManager._filename:
-            # reload styles
-            styleManager.loadStyles()
-            # editors are send a signal by the style manager
+        # todo: this is where we once detected whether the file being saved was a style file.
         
         # Notify done
         return True
