@@ -42,6 +42,8 @@ class DummyStd:
         return self._closed    
     def close(self):
         self._closed = False
+    def flush(self):
+        pass
 
 
 original_print = print
