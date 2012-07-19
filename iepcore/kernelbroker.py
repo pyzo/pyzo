@@ -208,6 +208,7 @@ class KernelBroker:
         # instance is alive).
         self._context = yoton.Context()
         self._kernelCon = None
+        self._ctrl_broker = None
         
         # Create yoton-based timer
         self._timer = yoton.Timer(0.2, oneshot=False)
@@ -517,15 +518,16 @@ class KernelBroker:
             self._terminator = None
         
         # handle control messages
-        for msg in self._ctrl_broker.recv_all():
-            if msg == 'INT':
-                self._commandInterrupt()
-            elif msg == 'TERM':
-                self._commandTerminate()
-            elif msg.startswith('RESTART'):
-                self._commandRestart(msg)
-            else:
-                pass # Message is not for us
+        if self._ctrl_broker:
+            for msg in self._ctrl_broker.recv_all():
+                if msg == 'INT':
+                    self._commandInterrupt()
+                elif msg == 'TERM':
+                    self._commandTerminate()
+                elif msg.startswith('RESTART'):
+                    self._commandRestart(msg)
+                else:
+                    pass # Message is not for us
     
     
     def _commandInterrupt(self):
