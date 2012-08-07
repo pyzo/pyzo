@@ -1091,7 +1091,7 @@ class RunMenu(Menu):
                 break
             if not runCursor.block().next().isValid():
                 #Last block of the document, move to the end of the line
-                runCursor.movePosition(runCursor.EndOfLine,runCursor.KeepAnchor)
+                runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
                 break
             runCursor.movePosition(runCursor.NextBlock,runCursor.KeepAnchor)
         
