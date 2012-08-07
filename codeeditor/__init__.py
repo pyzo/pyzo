@@ -25,6 +25,7 @@ from .extensions.appearance import (    HighlightCurrentLine,
 from .extensions.behaviour import (     Indentation,
                                         HomeKey,
                                         EndKey,
+                                        NumpadPeriodKey,
                                         AutoIndent,
                                         PythonAutoIndent
                                    )
@@ -50,6 +51,7 @@ class CodeEditor(
     Indentation,
     HomeKey,
     EndKey,
+    NumpadPeriodKey,
     
     AutoIndent,
     PythonAutoIndent,
