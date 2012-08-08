@@ -34,8 +34,8 @@ def getResourceDirs():
     if paths.is_frozen():
         iepDir = os.path.join(iepDir, 'source')
     
-    # Get where the application data is stored
-    appDataDir = paths.appdata_dir('iep', roaming=True)
+    # Get where the application data is stored (use old behavior on Mac)
+    appDataDir = paths.appdata_dir('iep', roaming=True, macAsLinux=True)
     
     # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, 'tools')
