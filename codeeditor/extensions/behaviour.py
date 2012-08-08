@@ -59,6 +59,25 @@ class EndKey(object):
         else:
             super(EndKey, self).keyPressEvent(event)
 
+class NumpadPeriodKey(object):
+    """
+    If the numpad decimal separator key is pressed, always insert
+    a period (.) even if due to localization that key is mapped to a
+    comma (,). When editing code, period is the decimal separator
+    independent of localization
+    """
+    def keyPressEvent(self,event):
+        # Check for numpad comma
+        if event.key() == QtCore.Qt.Key_Comma and \
+                event.modifiers() & QtCore.Qt.KeypadModifier:
+                    
+            # Create a new QKeyEvent to substitute the original one
+            event = QtGui.QKeyEvent(event.type(), QtCore.Qt.Key_Period,
+                event.modifiers(), '.', event.isAutoRepeat(), event.count())
+            
+        super(NumpadPeriodKey, self).keyPressEvent(event)
+
+
 class Indentation(object):
     
     def __cursorIsInLeadingWhitespace(self,cursor = None):
