@@ -75,7 +75,7 @@ port = int(sys.argv[1])
 ct.connect('localhost:'+str(port), timeout=1.0)
 
 # Create file objects for stdin, stdout, stderr
-sys.stdin = yoton.FileWrapper( ct._ctrl_command )
+sys.stdin = yoton.FileWrapper( ct._ctrl_command, echo=ct._strm_echo )
 sys.stdout = yoton.FileWrapper( ct._strm_out, 256 )
 sys.stderr = yoton.FileWrapper( ct._strm_err, 256 )
 

@@ -40,6 +40,8 @@ class AutoCompletion(object):
         # Text position corresponding to first charcter of the word being completed
         self.__autocompleteStart = None
         
+        self.__autocompleteDebug = False
+        
         #Connect signals
         self.__completer.activated.connect(self.onAutoComplete)
     
@@ -70,6 +72,9 @@ class AutoCompletion(object):
         startcursor=self.textCursor()
         startcursor.movePosition(startcursor.Left, n=offset)
         
+        if self.__autocompleteDebug:
+            print('autocompleteShow called')
+        
         if not self.autocompleteActive() or \
             startcursor.position() != self.__autocompleteStart.position():
 
@@ -82,6 +87,9 @@ class AutoCompletion(object):
             self.__updateAutocompleterPrefix()
             self.__completer.popup().show()
             
+            if self.__autocompleteDebug:
+                print('self.__completer.popup().show() called')
+        
         if names is not None:
             #TODO: a more intelligent implementation that adds new items and removes
             #old ones
