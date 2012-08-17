@@ -14,8 +14,6 @@ Support for PyQt4, WxPython, FLTK, GTK, TK.
 
 """
 
-from iepkernel import guisupport
-
 
 mainloopWarning = """
 Note: not entering main loop. The GUI app is integrated with the IEP event
@@ -350,9 +348,14 @@ class Hijacked_wx(Hijacked_base):
             # Unable to find either wxPython version 2.4 or >= 2.5."
             raise ImportError
         
-        # Store the app instance to process events    
+        # Store package wx
         self.wx = wx
-        self.app = guisupport.get_app_wx()
+        
+        # Get and store the app instance to process events 
+        app = wx.GetApp()
+        if app is None:
+            app = wx.App(False)
+        self.app = app
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
