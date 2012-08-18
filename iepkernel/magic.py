@@ -144,7 +144,10 @@ class Magician:
         
         if command == 'DB START':
             # Collect frames from the traceback
-            tb = sys.last_traceback
+            try:
+                tb = sys.last_traceback
+            except AttributeError:
+                tb = None
             frames = []
             while tb:
                 frames.append(tb.tb_frame)
