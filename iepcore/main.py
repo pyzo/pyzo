@@ -101,7 +101,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Delayed imports
         from iepcore.editorTabs import EditorTabs
-        from iepcore.shellTabs import ShellStack
+        from iepcore.shellStack import ShellStackWidget
         from iepcore import codeparser
         import tools
         
@@ -126,7 +126,7 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
         
         # Create shell stack
-        iep.shells = ShellStack(self)
+        iep.shells = ShellStackWidget(self)
         dock.setWidget(iep.shells)
         
         # Create the default shell when returning to the event queue
@@ -145,8 +145,7 @@ class MainWindow(QtGui.QMainWindow):
         iep.keyMapper = menu.KeyMapper()
         menu.buildMenus(self.menuBar())
         
-        # Add the context menu to the shell and editor
-        iep.shells.addContextMenu()
+        # Add the context menu to the editor
         iep.editors.addContextMenu()
         
         # Load tools
