@@ -458,7 +458,7 @@ class CompactTabWidget(QtGui.QTabWidget):
         
         # Set tab bar
         self.setTabBar(CompactTabBar(self, **kwargs))
-        
+                
         # Draw tabs at the top by default
         self.setTabPosition(QtGui.QTabWidget.North)
     

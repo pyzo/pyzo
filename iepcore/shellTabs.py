@@ -40,33 +40,35 @@ class ShellStack(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
-        # create sizer
-        self._boxLayout = QtGui.QHBoxLayout(self)
-        self._boxLayout.setSpacing(0)
+        # create toolbar
+        self._toolbar = QtGui.QToolBar(self)
+        self._toolbar.setMaximumHeight(25)
+        self._cbShells = QtGui.QComboBox(self._toolbar)
+        self._cbShells.setEditable(False)
+        self._cbShells.setMinimumContentsLength(25)
+        self._dbc = DebugControl(self._toolbar)
+        self._toolbar.addWidget(self._cbShells)
+        self._toolbar.addWidget(self._dbc)
         
-        # create tab widget
-        self._tabs = CompactTabWidget(self, padding=(4,2,0,4), preventEqualTexts=False)
+        # create stack
+        self._stack = QtGui.QStackedWidget(self)
         
-        # add widgets
-        self._boxLayout.addWidget(self._tabs, 1)
-        #self._boxLayout.addStretch(1)
-        
-        # set layout
-        self.setLayout(self._boxLayout)
-        
-        # Create debug control (which is not layed out)
-        dbc = DebugControl(self)
-        self._tabs.setCornerWidget(dbc, QtCore.Qt.TopRightCorner)
-        #dbc.move(0,0)
+        # widget layout
+        layout = QtGui.QVBoxLayout()
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._toolbar)
+        layout.addWidget(self._stack)
+        self.setLayout(layout)
         
         # make callbacks
-        self._tabs.currentChanged.connect(self.onCurrentChanged)
+        self._cbShells.currentIndexChanged.connect(self.onCurrentChanged)
     
 
     def __iter__(self):
         i = 0
-        while i < self._tabs.count():
-            w = self._tabs.widget(i)
+        while i < self._cbShells.count():
+            w = self._stack.widget(i)
             i += 1
             yield w 
     
@@ -74,11 +76,13 @@ class ShellStack(QtGui.QWidget):
     def onCurrentChanged(self, index):
         """ When another shell is selected, update some things. 
         """
+        
         # Update state info
         if index<0:
             iep.main.setWindowIcon(iep.icon)
         else:
-            shell = self._tabs.widget(index)
+            self._stack.setCurrentIndex(index)
+            shell = self._stack.widget(index)
             if shell:
                 self.onShellStateChange(shell)
                 self.onShellDebugStateChange(shell)
@@ -91,38 +95,18 @@ class ShellStack(QtGui.QWidget):
         """ Called when the shell state changes, and is called
         by onCurrentChanged. Sets the mainwindow's icon if busy.
         """
-        if True:
-            
-            # Build text for tab 
-            tabText = 'Python {}'.format(shell._version)  
-            gui = shell._startup_info.get('gui')
-            if gui:
-                tabText += ' with ' + gui
-            
-            # Build text for tooltip
-            tabToolTip = tabText + ' (%s)' % shell._state
-            if False:#shell._start_time:
-                # This does not work, because the onShellStateChange is
-                # not called often enough. But we might include this
-                # code somewhere later ...
-                e = time.time() - shell._start_time
-                hh = e //60; e = e % 60
-                mm = e //60; 
-                ss = e % 60
-                tabToolTip += ' - runtime: %02i:%02i:%02i' % (hh, mm, ss)
-            
-            # Set tab text and tooltip
-            i = self._tabs.indexOf(shell)
-            self._tabs.setTabText(i, tabText)
-            self._tabs.setTabToolTip(i, tabToolTip)
-            
-            # Update icon of the tab (this shows busy, dead, etc.)
-            but = self._tabs.tabBar().tabButton(i, QtGui.QTabBar.LeftSide)
-            if but:
-                but.updateIcon(shell._state)
+        
+        # Build text for combobox
+        text = 'Python {}'.format(shell._version)  
+        gui = shell._startup_info.get('gui')
+        if gui:
+            text += ' with ' + gui
+        
+        # Set tab text and tooltip
+        i = self._stack.indexOf(shell)
+        self._cbShells.setItemText(i, text)
         
         if shell is self.getCurrentShell():
-            
             # Update application icon
             if shell._state in ['Busy']:
                 iep.main.setWindowIcon(iep.iconRunning)
@@ -137,28 +121,27 @@ class ShellStack(QtGui.QWidget):
         """ Called when the shell debug state changes, and is called
         by onCurrentChanged. Sets the debug button.
         """
+        
         if shell is self.getCurrentShell():
             # Update debug info
             if shell._debugState:
-                self._tabs.cornerWidget().setTrace(shell._debugState)
+                self._dbc.setTrace(shell._debugState)
             else:
-                self._tabs.cornerWidget().setTrace(None)
+                self._dbc.setTrace(None)
             
             # Send signal
             self.currentShellStateChanged.emit()
     
     def addContextMenu(self):
         """ Adds a context menu to the tab bar """
-    
-
-        
+        return
         self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
 
     
     def contextMenuTriggered(self, p):
         """ Called when context menu is clicked """
-        
+        return
         # Get index of shell belonging to the tab
         index = self._tabs.tabBar().tabAt(p)
         shell = self.getShellAt(index)
@@ -174,34 +157,41 @@ class ShellStack(QtGui.QWidget):
         """ addShell()
         Add a shell to the widget. """
         
-        # Create shell and add tab
-        shell = PythonShell(self._tabs, shellInfo)
-        i = self._tabs.addTab(shell, 'Python')
+        # Create shell and add item to combobox
+        shell = PythonShell(self._stack, shellInfo)
+        i = self._stack.addWidget(shell)
+        self._cbShells.addItem('Python')
+        self._cbShells.setCurrentIndex(i)
+        
         # Create button for icon
-        tabBut = ShellTabToolButton(self._tabs.tabBar())
-        self._tabs.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, tabBut)
+#         tabBut = ShellTabToolButton(self._tabs.tabBar())
+#         self._tabs.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, tabBut)
+        
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)
+        
         # Focus on it
-        self._tabs.setCurrentWidget(shell)
+        self._stack.setCurrentWidget(shell)
         shell.setFocus()
         
     def removeShell(self, shell):
         """ removeShell()
         Remove an existing shell tab from the widget"""
-        index = self._tabs.indexOf(shell)
+        
+        index = self._stack.indexOf(shell)
         if index >= 0:
-            self._tabs.removeTab(index)
+            self._stack.removeWidget(shell)
     
     
     def getCurrentShell(self):
         """ getCurrentShell()
         Get the currently active shell.
         """
+        
         w = None
-        if self._tabs.count():
-            w = self._tabs.currentWidget()
+        if self._stack.count():
+            w = self._stack.currentWidget()
         if not w:
             return None
         elif hasattr(w, '_disconnectPhase'):
@@ -213,7 +203,7 @@ class ShellStack(QtGui.QWidget):
         """ Get all shell in stack as list """
         
         shells = []
-        for i in range(self._tabs.count()):
+        for i in range(self._stack.count()):
             shell = self.getShellAt(i)
             if shell is not None:
                 shells.append(shell)
@@ -221,9 +211,10 @@ class ShellStack(QtGui.QWidget):
         return shells
     
     def getShellAt(self, i):
+        return
         """ Get shell at current tab index """
         
-        return self._tabs.widget(i)
+        return self._stack.widget(i)
     
 
 class DebugControl(QtGui.QToolButton):
