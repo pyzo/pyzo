@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 
-""" Module shellTabs
+""" Module shellStack
 
 Implements the stack of shells. Also implements the nifty debug button
 and a dialog to edit the shell configurations. 
@@ -23,7 +23,7 @@ from iepcore.menu import ShellTabContextMenu
 from iepcore.icons import ShellTabToolButton
 
 
-class ShellStack(QtGui.QWidget):
+class ShellStackWidget(QtGui.QWidget):
     """ The shell stack widget provides a stack of shells,
     and makes sure they are of the correct width such that 
     they have exactly 80 columns. 
@@ -131,26 +131,6 @@ class ShellStack(QtGui.QWidget):
             
             # Send signal
             self.currentShellStateChanged.emit()
-    
-    def addContextMenu(self):
-        """ Adds a context menu to the tab bar """
-        return
-        self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
-
-    
-    def contextMenuTriggered(self, p):
-        """ Called when context menu is clicked """
-        return
-        # Get index of shell belonging to the tab
-        index = self._tabs.tabBar().tabAt(p)
-        shell = self.getShellAt(index)
-        
-        # Show menu if shell is available
-        if index >= 0:
-            p = self._tabs.tabBar().tabRect(index).bottomLeft()
-            ShellTabContextMenu(shell = shell, parent = self).exec_(
-                self._tabs.tabBar().mapToGlobal(p))
 
     
     def addShell(self, shellInfo=None):
@@ -163,10 +143,6 @@ class ShellStack(QtGui.QWidget):
         self._cbShells.addItem('Python')
         self._cbShells.setCurrentIndex(i)
         
-        # Create button for icon
-#         tabBut = ShellTabToolButton(self._tabs.tabBar())
-#         self._tabs.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, tabBut)
-        
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)
@@ -174,10 +150,11 @@ class ShellStack(QtGui.QWidget):
         # Focus on it
         self._stack.setCurrentWidget(shell)
         shell.setFocus()
-        
+    
+    
     def removeShell(self, shell):
         """ removeShell()
-        Remove an existing shell tab from the widget"""
+        Remove an existing shell from the widget"""
         
         index = self._stack.indexOf(shell)
         if index >= 0:
@@ -198,7 +175,8 @@ class ShellStack(QtGui.QWidget):
             return None
         else:
             return w
-
+    
+    
     def getShells(self):
         """ Get all shell in stack as list """
         
@@ -209,6 +187,7 @@ class ShellStack(QtGui.QWidget):
                 shells.append(shell)
         
         return shells
+    
     
     def getShellAt(self, i):
         return
