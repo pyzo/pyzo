@@ -67,7 +67,7 @@ class ShellStackWidget(QtGui.QWidget):
 
     def __iter__(self):
         i = 0
-        while i < self._cbShells.count():
+        while i < self._stack.count():
             w = self._stack.widget(i)
             i += 1
             yield w 
@@ -81,9 +81,15 @@ class ShellStackWidget(QtGui.QWidget):
         if index<0:
             iep.main.setWindowIcon(iep.icon)
         else:
-            self._stack.setCurrentIndex(index)
-            shell = self._stack.widget(index)
+            shell_id = self._cbShells.itemData(index)
+            shell = None
+            for s in self:
+                if id(s) == shell_id:
+                    shell = s
+                    break
+
             if shell:
+                self._stack.setCurrentWidget(shell)
                 self.onShellStateChange(shell)
                 self.onShellDebugStateChange(shell)
         
@@ -103,8 +109,7 @@ class ShellStackWidget(QtGui.QWidget):
             text += ' with ' + gui
         
         # Set tab text and tooltip
-        i = self._stack.indexOf(shell)
-        self._cbShells.setItemText(i, text)
+        self._cbShells.setItemText(self._cbShells.findData(id(shell)), text)
         
         if shell is self.getCurrentShell():
             # Update application icon
@@ -138,17 +143,16 @@ class ShellStackWidget(QtGui.QWidget):
         Add a shell to the widget. """
         
         # Create shell and add item to combobox
-        shell = PythonShell(self._stack, shellInfo)
-        i = self._stack.addWidget(shell)
-        self._cbShells.addItem('Python')
-        self._cbShells.setCurrentIndex(i)
+        shell = PythonShell(self, shellInfo)
+        index = self._stack.addWidget(shell)
+        self._cbShells.addItem('Python', id(shell))
         
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)
         
         # Focus on it
-        self._stack.setCurrentWidget(shell)
+        self._cbShells.setCurrentIndex(self._cbShells.findData(id(shell)))
         shell.setFocus()
     
     
@@ -157,8 +161,8 @@ class ShellStackWidget(QtGui.QWidget):
         Remove an existing shell from the widget"""
         
         index = self._stack.indexOf(shell)
-        if index >= 0:
-            self._stack.removeWidget(shell)
+        self._cbShells.removeItem(self._cbShells.findData(id(shell)))
+        self._stack.removeWidget(shell)
     
     
     def getCurrentShell(self):
