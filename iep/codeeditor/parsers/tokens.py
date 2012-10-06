@@ -57,6 +57,7 @@ class Token(object):
         nameParts = ['Syntax']
         if '_parser' in self.__module__:
             language = self.__module__.split('_')[0]
+            language = language.split('.')[-1]
             nameParts.append( language[0].upper() + language[1:] )
         nameParts.append( self.__class__.__name__[:-5].lower() )
         return '.'.join(nameParts)
