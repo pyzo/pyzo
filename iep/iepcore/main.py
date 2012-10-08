@@ -148,6 +148,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Add the context menu to the editor
         iep.editors.addContextMenu()
+        iep.shells.addContextMenu()
         
         # Load tools
         if iep.config.state.loadedTools: 
