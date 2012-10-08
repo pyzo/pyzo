@@ -93,6 +93,7 @@ class ShellStackWidget(QtGui.QWidget):
         # create toolbar
         self._toolbar = QtGui.QToolBar(self)
         self._toolbar.setMaximumHeight(25)
+        self._toolbar.setIconSize(QtCore.QSize(16,16))
         
         # create stack
         self._stack = QtGui.QStackedWidget(self)
@@ -105,6 +106,16 @@ class ShellStackWidget(QtGui.QWidget):
         self._toolbar.addSeparator()
         self._toolbar.addWidget(self._dbc)
         
+#         # Add actions to toolbar
+#         for name, icon in [ ('interrupt', iep.icons.application_lightning),
+#                             ('terminate', iep.icons.application_delete),
+#                             ('closeShell', iep.icons.cancel),
+#                             ('restart', iep.icons.application_refresh),
+#                             ('clearScreen', iep.icons.application_eraser),
+#                         ]:
+#             action = self._toolbar.addAction(icon, name)
+#             action.triggered.connect(lambda b=None, v=name: self.onShellAction(v))
+        
         # widget layout
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
@@ -116,7 +127,13 @@ class ShellStackWidget(QtGui.QWidget):
         # make callbacks
         self._stack.currentChanged.connect(self.onCurrentChanged)
     
+    
+    def onShellAction(self, action):
+        shell = self.getCurrentShell()
+        if shell:
+            getattr(shell, action)()
 
+    
     def __iter__(self):
         i = 0
         while i < self._stack.count():
@@ -237,8 +254,12 @@ class ShellStackWidget(QtGui.QWidget):
         # Also give it a context menu
         self._shellButton.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._shellButton.customContextMenuRequested.connect(self.contextMenuTriggered)
-
-    
+        
+        # Add actions
+        for action in iep.main.menuBar()._menumap['shell']._shellActions:
+            action = self._toolbar.addAction(action)
+        # todo: move debug button to back
+        
     def contextMenuTriggered(self, p):
         """ Called when context menu is clicked """
         

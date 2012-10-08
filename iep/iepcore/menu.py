@@ -30,18 +30,20 @@ def buildMenus(menuBar):
     """
     Build all the menus
     """
-    menus = [FileMenu(menuBar, translate("menu", "File")),
-             EditMenu(menuBar, translate("menu", "Edit")),
-             ViewMenu(menuBar, translate("menu", "View")),
-             SettingsMenu(menuBar, translate("menu", "Settings")),
-             ShellMenu(menuBar, translate("menu", "Shell")),
-             RunMenu(menuBar, translate("menu", "Run")),
-             ToolsMenu(menuBar, translate("menu", "Tools")),
-             HelpMenu(menuBar, translate("menu", "Help")),
-            ]
-    for menu in menus:
+    menumap = {'file': FileMenu(menuBar, translate("menu", "File")),
+             'edit': EditMenu(menuBar, translate("menu", "Edit")),
+             'view': ViewMenu(menuBar, translate("menu", "View")),
+             'settings': SettingsMenu(menuBar, translate("menu", "Settings")),
+             'shell': ShellMenu(menuBar, translate("menu", "Shell")),
+             'run': RunMenu(menuBar, translate("menu", "Run")),
+             'tools': ToolsMenu(menuBar, translate("menu", "Tools")),
+             'help': HelpMenu(menuBar, translate("menu", "Help")),
+            }
+    menuBar._menumap = menumap
+    menuBar._menus = list(menumap.values())
+    for menu in menuBar._menus:
         menuBar.addMenu(menu)
-    menuBar._menus = menus
+    
     
     # Enable tooltips
     def onHover(action):
