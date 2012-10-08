@@ -30,20 +30,22 @@ def buildMenus(menuBar):
     """
     Build all the menus
     """
-    menumap = {'file': FileMenu(menuBar, translate("menu", "File")),
-             'edit': EditMenu(menuBar, translate("menu", "Edit")),
-             'view': ViewMenu(menuBar, translate("menu", "View")),
-             'settings': SettingsMenu(menuBar, translate("menu", "Settings")),
-             'shell': ShellMenu(menuBar, translate("menu", "Shell")),
-             'run': RunMenu(menuBar, translate("menu", "Run")),
-             'tools': ToolsMenu(menuBar, translate("menu", "Tools")),
-             'help': HelpMenu(menuBar, translate("menu", "Help")),
-            }
-    menuBar._menumap = menumap
-    menuBar._menus = list(menumap.values())
+    from collections import OrderedDict 
+    menus = [ FileMenu(menuBar, translate("menu", "File")),
+                EditMenu(menuBar, translate("menu", "Edit")),
+                ViewMenu(menuBar, translate("menu", "View")),
+                SettingsMenu(menuBar, translate("menu", "Settings")),
+                ShellMenu(menuBar, translate("menu", "Shell")),
+                RunMenu(menuBar, translate("menu", "Run")),
+                ToolsMenu(menuBar, translate("menu", "Tools")),
+                HelpMenu(menuBar, translate("menu", "Help")),
+            ]
+    menuBar._menumap = {}
+    menuBar._menus = menus
     for menu in menuBar._menus:
         menuBar.addMenu(menu)
-    
+        menuName = menu.__class__.__name__.lower().split('menu')[0]
+        menuBar._menumap[menuName] = menu
     
     # Enable tooltips
     def onHover(action):
@@ -763,16 +765,16 @@ class ShellMenu(Menu):
         Returns a list of all items added"""
         icons = iep.icons
         return [
+            self.addItem(translate("menu", 'Clear screen ::: Clear the screen.'), 
+                icons.application_eraser, self._shellAction, "clearScreen"),
             self.addItem(translate("menu", 'Interrupt ::: Interrupt the current running code (does not work for extension code).'), 
                 icons.application_lightning, self._shellAction, "interrupt"),
+            self.addItem(translate("menu", 'Restart ::: Terminate and restart the interpreter.'), 
+                icons.application_refresh, self._shellAction, "restart"),
             self.addItem(translate("menu", 'Terminate ::: Terminate the interpreter, leaving the shell open.'), 
                 icons.application_delete, self._shellAction, "terminate"),
             self.addItem(translate("menu", 'Close ::: Terminate the interpreter and close the shell.'), 
                 icons.cancel, self._shellAction, "closeShell"),
-            self.addItem(translate("menu", 'Restart ::: Terminate and restart the interpreter.'), 
-                icons.application_refresh, self._shellAction, "restart"),
-            self.addItem(translate("menu", 'Clear screen ::: Clear the screen.'), 
-                icons.application_eraser, self._shellAction, "clearScreen"),
             ]
     
     def getShell(self):
