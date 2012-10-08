@@ -104,17 +104,7 @@ class ShellStackWidget(QtGui.QWidget):
         #
         self._toolbar.addWidget(self._shellButton)
         self._toolbar.addSeparator()
-        self._toolbar.addWidget(self._dbc)
-        
-#         # Add actions to toolbar
-#         for name, icon in [ ('interrupt', iep.icons.application_lightning),
-#                             ('terminate', iep.icons.application_delete),
-#                             ('closeShell', iep.icons.cancel),
-#                             ('restart', iep.icons.application_refresh),
-#                             ('clearScreen', iep.icons.application_eraser),
-#                         ]:
-#             action = self._toolbar.addAction(icon, name)
-#             action.triggered.connect(lambda b=None, v=name: self.onShellAction(v))
+        # self._toolbar.addWidget(self._dbc) -> delayed, see addContextMenu()
         
         # widget layout
         layout = QtGui.QVBoxLayout()
@@ -127,12 +117,6 @@ class ShellStackWidget(QtGui.QWidget):
         # make callbacks
         self._stack.currentChanged.connect(self.onCurrentChanged)
     
-    
-    def onShellAction(self, action):
-        shell = self.getCurrentShell()
-        if shell:
-            getattr(shell, action)()
-
     
     def __iter__(self):
         i = 0
@@ -258,8 +242,10 @@ class ShellStackWidget(QtGui.QWidget):
         # Add actions
         for action in iep.main.menuBar()._menumap['shell']._shellActions:
             action = self._toolbar.addAction(action)
-        # todo: move debug button to back
-        
+        # Delayed-add debug control button
+        self._toolbar.addWidget(self._dbc)
+    
+    
     def contextMenuTriggered(self, p):
         """ Called when context menu is clicked """
         
@@ -269,6 +255,13 @@ class ShellStackWidget(QtGui.QWidget):
         if shell:
             p = self._shellButton.mapToGlobal(self._shellButton.rect().bottomLeft())
             ShellTabContextMenu(shell=shell, parent=self).exec_(p)
+    
+    
+    def onShellAction(self, action):
+        shell = self.getCurrentShell()
+        if shell:
+            getattr(shell, action)()
+
 
 
 class ShellControl(QtGui.QToolButton):
