@@ -16,17 +16,67 @@ import os, sys, time, re
 from iep.codeeditor.qt import QtCore, QtGui
 
 import iep
+from iep import translate
 from iep.iepcore.compactTabWidget import CompactTabWidget
 from iep.iepcore.shell import PythonShell
 from iep.iepcore.iepLogging import print
-from iep.iepcore.menu import ShellTabContextMenu
-from iep.iepcore.icons import ShellTabToolButton
+from iep.iepcore.menu import ShellTabContextMenu, ShellButtonMenu
+from iep.iepcore.icons import ShellIconMaker
+
+
+def shellTitle(shell, gui=False, state=False, runtime=False):
+    """ Given a shell instance, build the text title to represent it.
+    """ 
+    
+    # Build text title
+    if shell._version:
+        titleText = 'Python {}'.format(shell._version) 
+    else:
+        titleText = "Python (initializing)"
+    
+    # Build gui text
+    gui_ = shell._startup_info.get('gui')
+    if gui_ and shell._version:
+        guiText = ' with ' + gui_
+    else:
+        guiText = ''
+    
+    # Build state text
+    stateText = shell._state or ''
+    if stateText.lower() == 'none':
+        stateText = ''
+    elif stateText:
+        stateText = ' (%s)' % stateText
+    
+    # Build text for elapsed time
+    e = time.time() - shell._start_time
+    mm = e //60; e = e % 60
+    hh = e //60; 
+    ss = e % 60
+    runtimeText = ' - runtime: %i:%02i:%02i' % (hh, mm, ss)
+    
+    # Build text
+    text = titleText
+    if gui:
+        text += guiText
+    if state:
+        text += stateText
+    if runtime:
+        text  += runtimeText
+    
+    # Done
+    return text
 
 
 class ShellStackWidget(QtGui.QWidget):
-    """ The shell stack widget provides a stack of shells,
-    and makes sure they are of the correct width such that 
-    they have exactly 80 columns. 
+    """ The shell stack widget provides a stack of shells.
+    
+    It wrapps a QStackedWidget that contains the shell objects. This 
+    stack is used as a reference to synchronize the shell selection with.
+    We keep track of what is the current selected shell and apply updates
+    if necessary. Therefore, changing the current shell in the stack
+    should be enough to invoke a full update.
+    
     """
     
     # When the current shell changes.
@@ -43,15 +93,17 @@ class ShellStackWidget(QtGui.QWidget):
         # create toolbar
         self._toolbar = QtGui.QToolBar(self)
         self._toolbar.setMaximumHeight(25)
-        self._cbShells = QtGui.QComboBox(self._toolbar)
-        self._cbShells.setEditable(False)
-        self._cbShells.setMinimumContentsLength(25)
-        self._dbc = DebugControl(self._toolbar)
-        self._toolbar.addWidget(self._cbShells)
-        self._toolbar.addWidget(self._dbc)
         
         # create stack
         self._stack = QtGui.QStackedWidget(self)
+        
+        # Populate toolbar
+        self._shellButton = ShellControl(self._toolbar, self._stack)
+        self._dbc = DebugControl(self._toolbar)
+        #
+        self._toolbar.addWidget(self._shellButton)
+        self._toolbar.addSeparator()
+        self._toolbar.addWidget(self._dbc)
         
         # widget layout
         layout = QtGui.QVBoxLayout()
@@ -62,7 +114,7 @@ class ShellStackWidget(QtGui.QWidget):
         self.setLayout(layout)
         
         # make callbacks
-        self._cbShells.currentIndexChanged.connect(self.onCurrentChanged)
+        self._stack.currentChanged.connect(self.onCurrentChanged)
     
 
     def __iter__(self):
@@ -73,27 +125,38 @@ class ShellStackWidget(QtGui.QWidget):
             yield w 
     
     
+    def addShell(self, shellInfo=None):
+        """ addShell()
+        Add a shell to the widget. """
+        
+        # Create shell and add to stack
+        shell = PythonShell(self, shellInfo)
+        index = self._stack.addWidget(shell)
+        # Bind to signals
+        shell.stateChanged.connect(self.onShellStateChange)
+        shell.debugStateChanged.connect(self.onShellDebugStateChange)
+        # Select it and focus on it (invokes onCurrentChanged)
+        self._stack.setCurrentWidget(shell)
+        shell.setFocus()
+    
+    
+    def removeShell(self, shell):
+        """ removeShell()
+        Remove an existing shell from the widget
+        """
+        self._stack.removeWidget(shell)
+    
+    
     def onCurrentChanged(self, index):
         """ When another shell is selected, update some things. 
         """
         
-        # Update state info
-        if index<0:
-            iep.main.setWindowIcon(iep.icon)
-        else:
-            shell_id = self._cbShells.itemData(index)
-            shell = None
-            for s in self:
-                if id(s) == shell_id:
-                    shell = s
-                    break
-
-            if shell:
-                self._stack.setCurrentWidget(shell)
-                self.onShellStateChange(shell)
-                self.onShellDebugStateChange(shell)
-        
-        # Signal
+        # Get current
+        shell = self.getCurrentShell()
+        # Call functions
+        self.onShellStateChange(shell)
+        self.onShellDebugStateChange(shell)
+        # Emit Signal
         self.currentShellChanged.emit()
     
     
@@ -102,22 +165,15 @@ class ShellStackWidget(QtGui.QWidget):
         by onCurrentChanged. Sets the mainwindow's icon if busy.
         """
         
-        # Build text for combobox
-        text = 'Python {}'.format(shell._version)  
-        gui = shell._startup_info.get('gui')
-        if gui:
-            text += ' with ' + gui
-        
-        # Set tab text and tooltip
-        self._cbShells.setItemText(self._cbShells.findData(id(shell)), text)
-        
-        if shell is self.getCurrentShell():
+        # Keep shell button and its menu up-to-date
+        self._shellButton.updateShellMenu(shell)
+       
+        if shell is self.getCurrentShell(): # can be None
             # Update application icon
-            if shell._state in ['Busy']:
+            if shell and shell._state in ['Busy']:
                 iep.main.setWindowIcon(iep.iconRunning)
             else:
                 iep.main.setWindowIcon(iep.icon)
-            
             # Send signal
             self.currentShellStateChanged.emit()
     
@@ -129,40 +185,12 @@ class ShellStackWidget(QtGui.QWidget):
         
         if shell is self.getCurrentShell():
             # Update debug info
-            if shell._debugState:
+            if shell and shell._debugState:
                 self._dbc.setTrace(shell._debugState)
             else:
                 self._dbc.setTrace(None)
-            
             # Send signal
             self.currentShellStateChanged.emit()
-
-    
-    def addShell(self, shellInfo=None):
-        """ addShell()
-        Add a shell to the widget. """
-        
-        # Create shell and add item to combobox
-        shell = PythonShell(self, shellInfo)
-        index = self._stack.addWidget(shell)
-        self._cbShells.addItem('Python', id(shell))
-        
-        # Bind to signals
-        shell.stateChanged.connect(self.onShellStateChange)
-        shell.debugStateChanged.connect(self.onShellDebugStateChange)
-        
-        # Focus on it
-        self._cbShells.setCurrentIndex(self._cbShells.findData(id(shell)))
-        shell.setFocus()
-    
-    
-    def removeShell(self, shell):
-        """ removeShell()
-        Remove an existing shell from the widget"""
-        
-        index = self._stack.indexOf(shell)
-        self._cbShells.removeItem(self._cbShells.findData(id(shell)))
-        self._stack.removeWidget(shell)
     
     
     def getCurrentShell(self):
@@ -174,8 +202,6 @@ class ShellStackWidget(QtGui.QWidget):
         if self._stack.count():
             w = self._stack.currentWidget()
         if not w:
-            return None
-        elif hasattr(w, '_disconnectPhase'):
             return None
         else:
             return w
@@ -198,7 +224,118 @@ class ShellStackWidget(QtGui.QWidget):
         """ Get shell at current tab index """
         
         return self._stack.widget(i)
+
     
+    def addContextMenu(self):
+        # A bit awkward... but the ShellMenu needs the ShellStack, so it
+        # can only be initialized *after* the shellstack is created ...
+        
+        # Give shell tool button a menu
+        self._shellButton.setMenu(ShellButtonMenu(self, 'Shell button menu'))
+        self._shellButton.menu().aboutToShow.connect(self._shellButton._elapsedTimesTimer.start)
+        
+        # Also give it a context menu
+        self._shellButton.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._shellButton.customContextMenuRequested.connect(self.contextMenuTriggered)
+
+    
+    def contextMenuTriggered(self, p):
+        """ Called when context menu is clicked """
+        
+        # Get index of shell belonging to the tab
+        shell = self.getCurrentShell()
+        
+        if shell:
+            p = self._shellButton.mapToGlobal(self._shellButton.rect().bottomLeft())
+            ShellTabContextMenu(shell=shell, parent=self).exec_(p)
+
+
+class ShellControl(QtGui.QToolButton):
+    """ A button that can be used to select a shell and start a new shell.
+    """
+    
+    def __init__(self, parent, shellStack):
+        QtGui.QToolButton.__init__(self, parent)
+        
+        # Store reference of shell stack
+        self._shellStack = shellStack
+        
+        # Keep reference of actions corresponding to shells
+        self._shellActions = []
+        
+        # Set text and tooltip
+        self.setText('Warming up ...')
+        self.setToolTip("Click to select shell.")
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.setPopupMode(self.InstantPopup)
+        
+        # Set icon
+        self._iconMaker = ShellIconMaker(self)
+        self._iconMaker.updateIcon('busy') # Busy initializing
+        
+        # Create timer
+        self._elapsedTimesTimer = QtCore.QTimer(self)
+        self._elapsedTimesTimer.setInterval(200)
+        self._elapsedTimesTimer.setSingleShot(False)
+        self._elapsedTimesTimer.timeout.connect(self.onElapsedTimesTimer)
+    
+    
+    def updateShellMenu(self, shellToUpdate=None):
+        """ Update the shell menu. Ensure that there is a menu item
+        for each shell. If shellToUpdate is given, updates the corresponding
+        menu item.
+        """ 
+        menu = self.menu()
+        
+        # Get shells now active
+        currentShell = self._shellStack.currentWidget() 
+        shells = [self._shellStack.widget(i) for i in range(self._shellStack.count())]
+        
+        # Synchronize actions. Remove invalid actions
+        for action in self._shellActions:
+            # Check match with shells
+            if action._shell in shells:
+                shells.remove(action._shell)  
+            else:
+                menu.removeAction(action)
+            # Update checked state
+            if action._shell is currentShell and currentShell:
+                action.setChecked(True)
+            else:
+                action.setChecked(False)
+            # Update text if necessary
+            if action._shell is shellToUpdate:
+                action.setText(shellTitle(shellToUpdate, True, True, True))
+        
+        # Any items left in shells need a menu item
+        # Dont give them an icon, or the icon is used as checkbox thingy
+        for shell in shells:
+            text = shellTitle(shell)
+            action = menu.addItem(text, None, self._shellStack.setCurrentWidget, shell)
+            action._shell = shell
+            action.setCheckable(True)
+            self._shellActions.append(action)
+        
+        # Is the shell being updated the current?
+        if currentShell is shellToUpdate and currentShell is not None:
+            self._iconMaker.updateIcon(currentShell._state)
+            self.setText(shellTitle(currentShell, True))
+        elif currentShell is None:
+            self._iconMaker.updateIcon('')
+            self.setText('No shell selected')
+    
+    
+    def onElapsedTimesTimer(self):
+        # Automatically turn timer off is menu is hidden
+        if not self.menu().isVisible():
+            self._elapsedTimesTimer.stop()
+            return
+        
+        # Update text for each shell action
+        for action in self._shellActions:
+            action.setText(shellTitle(action._shell, True, True, True))
+
+
 
 class DebugControl(QtGui.QToolButton):
     """ A button that can be used for post mortem debuggin. 

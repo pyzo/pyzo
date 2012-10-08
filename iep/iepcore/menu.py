@@ -254,7 +254,7 @@ class Menu(QtGui.QMenu):
         """ 
         Add all actions to the menu. To be overridden.
         """
-        raise NotImplementedError
+        pass
     
     
     def addMenu(self, menu, icon=None):
@@ -747,7 +747,8 @@ class ShellMenu(Menu):
         self._shellActions = []
         Menu.__init__(self, parent, name, *args, **kwds)
         iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
-        
+        self.aboutToShow.connect(self._updateShells)  
+    
     def onCurrentShellChanged(self):
         """ Enable/disable shell actions based on wether a shell is available """
         for shellAction in self._shellActions:
@@ -788,7 +789,7 @@ class ShellMenu(Menu):
         self.addSeparator()
         
         # Add shell configs
-        self._updateShells()    
+        self._updateShells()
     
     def _updateShells(self):
         """ Remove, then add the items for the creation of each shell """
@@ -810,23 +811,38 @@ class ShellMenu(Menu):
             # Call the specified action
             getattr(shell,action)()
     
-    def _editConfig(self):
-        """ Edit, add and remove configurations for the shells. """
-        from iep.iepcore.shellTabs import ShellConfigDialog 
-        d = ShellConfigDialog()
-        d.exec_()
-        # Update the shells items in the menu
-        self._updateShells()
-    
     def _editConfig2(self):
         """ Edit, add and remove configurations for the shells. """
         from iep.iepcore.shellInfoDialog import ShellInfoDialog 
         d = ShellInfoDialog()
         d.exec_()
-        # Update the shells items in the menu
-        self._updateShells()
 
 
+class ShellButtonMenu(ShellMenu):
+    def build(self):
+        self._shellActions = []
+        
+        self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
+            iep.icons.application_wrench, self._editConfig2)
+        
+        submenu = Menu(self, translate("menu", 'New shell ... ::: Create new shell to run code in.'))
+        self._newShellMenu = self.addMenu(submenu, iep.icons.application_add)
+        
+        self.addSeparator()
+    
+    def _updateShells(self):
+        """ Remove, then add the items for the creation of each shell """
+        for action in self._shellCreateActions:
+            self._newShellMenu.removeAction(action)
+        
+        self._shellCreateActions = []
+        for i, config in enumerate(iep.config.shellConfigs2):
+            name = 'Create shell %s: (%s)' % (i+1, config.name)
+            action = self._newShellMenu.addItem(name, 
+                iep.icons.application_add, iep.shells.addShell, config)
+            self._shellCreateActions.append(action)
+
+    
 
 class ShellContextMenu(ShellMenu):
     """ This is the context menu for the shell """
@@ -857,6 +873,9 @@ class ShellContextMenu(ShellMenu):
     def _editItemCallback(self, action):
         #If the widget has a 'name' attribute, call it
         getattr(self._shell, action)()
+    
+    def _updateShells(self):
+        pass
 
 
 class ShellTabContextMenu(ShellContextMenu):
@@ -865,7 +884,9 @@ class ShellTabContextMenu(ShellContextMenu):
     def build(self):
         """ Build menu """
         self.buildShellActions()
-        
+    
+    def _updateShells(self):
+        pass
 
 
 class EditorTabContextMenu(Menu):

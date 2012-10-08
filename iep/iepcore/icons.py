@@ -505,9 +505,8 @@ class EditorTabToolButton(TabToolButtonWithCloseButton):
 
 
 
-class ShellTabToolButton(TabToolButton):
-    """ Button for the tabs of the shells. This is just a 
-    tight wrapper for the icon.
+class ShellIconMaker:
+    """ Object that can make an icon for the shells
     """
     
     POSITION = (6,7) # absolute position of center of wheel.
@@ -524,8 +523,9 @@ class ShellTabToolButton(TabToolButton):
     MAX_ITERS_IN_LEVEL_1 = 2
     
     
-    def __init__(self, *args):
-        TabToolButton.__init__(self, *args)
+    def __init__(self, objectWithIcon):
+        
+        self._objectWithIcon = objectWithIcon
         
         # Motion properties
         self._index = 0
@@ -537,10 +537,14 @@ class ShellTabToolButton(TabToolButton):
         self._legs = self._createLegsPixmap()
         
         # Create timer
-        self._timer = QtCore.QTimer(self)
+        self._timer = QtCore.QTimer(None)
         self._timer.setInterval(150)
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.onTimer)
+    
+    
+    def setIcon(self, icon):
+        self._objectWithIcon.setIcon(icon)
     
     
     def _createBlobPixmap(self):
@@ -706,4 +710,5 @@ class ShellTabToolButton(TabToolButton):
         
         # Done
         self.setIcon(artist.finish())
+
     
