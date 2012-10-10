@@ -1,4 +1,4 @@
 # FORMS = 
-SOURCES = iepcore/menu.py iepcore/editorTabs.py iepcore/shellInfoDialog.py
-SOURCES += iepcore/shellTabs.py
-TRANSLATIONS = resources/iep_nl.tr
+SOURCES = iep/iepcore/menu.py iepcore/editorTabs.py iepcore/shellInfoDialog.py
+SOURCES += iep/iepcore/shellTabs.py
+TRANSLATIONS = iep/resources/iep_nl.tr
