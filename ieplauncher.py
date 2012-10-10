@@ -7,27 +7,17 @@
 
 """ ieplauncher.py script
 
-This is a script used to startup IEP. Added for convenience; you might 
-just as well run iep/__main__.py.
+This is a script used to startup IEP. Added for convenience.
+
+IEP can be installed as a package, but it does not have to. You can
+start IEP in a few different ways:
+  * execute this script (ieplauncher.py)
+  * execute the iep directory (Python will seek out iep/__main__.py)
+  * execute the iep package ("python -m iep")
+
+Only in the latter must IEP be installed.
 
 """
 
 import iep
 iep.startIep()
-
-# import os, sys
-# from pyzolib import paths
-# 
-# # Determine the directory of the application
-# iepDir = paths.application_dir()
-# 
-# # If frozen, we will actually load IEP from source, which is in a
-# # subdirectory. Set the iepDir accordingly and add to sys.path
-# if paths.is_frozen():
-#     iepDir = os.path.join(iepDir, 'source')
-#     sys.path.insert(0, iepDir)
-# 
-# # Start iep. Do an import that cx_freeze won't detect, so we can make
-# # a frozen app that uses plain source code.
-# exec("import iep")
-# iep.startIep()
