@@ -85,6 +85,7 @@ shortcuts2 = dict:
     edit__find_selection = 'Ctrl+F3,'
     edit__find_selection_backward = 'Ctrl+Shift+F3,'
     edit__indent = 'Tab,'
+    edit__justify_commentdocstring = 'Ctrl+J,'
     edit__paste = 'Ctrl+V,Shift+Insert'
     edit__redo = 'Ctrl+Y,'
     edit__select_all = 'Ctrl+A,'
