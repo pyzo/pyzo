@@ -24,45 +24,42 @@ from iep.iepcore.menu import ShellTabContextMenu, ShellButtonMenu
 from iep.iepcore.icons import ShellIconMaker
 
 
-def shellTitle(shell, gui=False, state=False, runtime=False):
+def shellTitle(shell, moreinfo=False):
     """ Given a shell instance, build the text title to represent it.
     """ 
     
-    # Build text title
+    # Get name
+    nameText = shell._info.name
+    
+    # Build version text
     if shell._version:
-        titleText = 'Python {}'.format(shell._version) 
+        versionText = 'v{}'.format(shell._version) 
     else:
-        titleText = "Python (initializing)"
+        versionText = 'v?'
     
     # Build gui text
-    gui_ = shell._startup_info.get('gui')
-    if gui_ and shell._version:
-        guiText = ' with ' + gui_
+    guiText = shell._startup_info.get('gui')
+    guiText = guiText or ''
+    if guiText.lower() in ['none', '']:
+        guiText = 'without gui'
     else:
-        guiText = ''
+        guiText = 'with ' + guiText
     
     # Build state text
     stateText = shell._state or ''
-    if stateText.lower() == 'none':
-        stateText = ''
-    elif stateText:
-        stateText = ' (%s)' % stateText
     
     # Build text for elapsed time
-    e = time.time() - shell._start_time
-    mm = e //60; e = e % 60
-    hh = e //60; 
-    ss = e % 60
-    runtimeText = ' - runtime: %i:%02i:%02i' % (hh, mm, ss)
+    elapsed = time.time() - shell._start_time
+    hh = elapsed//3600
+    mm = (elapsed - hh*3600)//60
+    ss = elapsed - hh*3600 - mm*60
+    runtimeText = 'runtime: %i:%02i:%02i' % (hh, mm, ss)
     
     # Build text
-    text = titleText
-    if gui:
-        text += guiText
-    if state:
-        text += stateText
-    if runtime:
-        text  += runtimeText
+    if not moreinfo:
+        text = nameText
+    else:
+        text = "'%s' (%s %s) - %s, %s" % (nameText, versionText, guiText, stateText, runtimeText)
     
     # Done
     return text
@@ -319,7 +316,7 @@ class ShellControl(QtGui.QToolButton):
                 action.setChecked(False)
             # Update text if necessary
             if action._shell is shellToUpdate:
-                action.setText(shellTitle(shellToUpdate, True, True, True))
+                action.setText(shellTitle(shellToUpdate, True))
         
         # Any items left in shells need a menu item
         # Dont give them an icon, or the icon is used as checkbox thingy
@@ -333,7 +330,7 @@ class ShellControl(QtGui.QToolButton):
         # Is the shell being updated the current?
         if currentShell is shellToUpdate and currentShell is not None:
             self._iconMaker.updateIcon(currentShell._state)
-            self.setText(shellTitle(currentShell, True))
+            self.setText(shellTitle(currentShell))
         elif currentShell is None:
             self._iconMaker.updateIcon('')
             self.setText('No shell selected')
@@ -347,7 +344,7 @@ class ShellControl(QtGui.QToolButton):
         
         # Update text for each shell action
         for action in self._shellActions:
-            action.setText(shellTitle(action._shell, True, True, True))
+            action.setText(shellTitle(action._shell, True))
 
 
 
