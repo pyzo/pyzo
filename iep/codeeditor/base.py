@@ -717,4 +717,30 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         """
         self.doForSelectedBlocks(self.dedentBlock)
     
-
+    
+    def justifyText(self, linewidth=70):
+        """ justifyText(linewidth=70)
+        """
+        from .textutils import TextReshaper
+        
+        # Get cursor
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return
+        
+        # Make selection include whole lines
+        pos1, pos2 = cursor.position(), cursor.anchor()
+        pos1, pos2 = min(pos1, pos2), max(pos1, pos2)
+        cursor.setPosition(pos1, cursor.MoveAnchor)
+        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
+        cursor.setPosition(pos2, cursor.KeepAnchor)
+        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        
+        # Use reshaper to create replacement text
+        reshaper = TextReshaper(linewidth)
+        reshaper.pushText(cursor.selectedText())
+        newText = reshaper.popText()
+        
+        # Update the selection
+        #self.setTextCursor(cursor) for testing
+        cursor.insertText(newText)
