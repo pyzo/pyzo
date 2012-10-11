@@ -125,14 +125,15 @@ class TextReshaper:
         # Process words one by one...
         for word in strippedline2.split(' '):
             self._addWordToBuffer(word)
+            currentLineWidth = self._charsInBuffer + len(self._currentPrefix)
             
-            if self._charsInBuffer < self.lw:
+            if currentLineWidth < self.lw:
                 # Not enough words in buffer yet
                 pass 
             elif len(self._wordBuffer) > 1:
                 # Enough words to compose a line
-                marginWith = self._charsInBuffer - self.lw
-                marginWithout = self.lw - (self._charsInBuffer - len(word))
+                marginWith = currentLineWidth - self.lw
+                marginWithout = self.lw - (currentLineWidth - len(word))
                 if marginWith < marginWithout and marginWith < self.margin:
                     # add all buffered words
                     self._flush()
