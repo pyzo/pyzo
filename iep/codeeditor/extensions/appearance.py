@@ -481,7 +481,6 @@ class SyntaxHighlighting(object):
     # Register all syntax style elements
     _styleElements = Manager.getStyleElementDescriptionsForAllParsers() 
     
-    @ce_option('')
     def parser(self):
         """ parser()
         
@@ -489,8 +488,13 @@ class SyntaxHighlighting(object):
         syntax highlighting and source structure. Can be None.
         
         """
-        return self.__parser
+        try:
+            return self.__parser
+        except AttributeError:
+            return None
     
+    
+    @ce_option(None)
     def setParser(self, parserName=''):
         """ setParser(parserName='')
         

@@ -45,7 +45,6 @@ def normalizePath(path):
     # normalize
     path = os.path.abspath(path)  # make sure it is defined from the drive up
     path = os.path.normpath(path)
-    sep = os.sep
     
     # If does not exist, return as is.
     # This also happens if the path's case is incorrect and the
@@ -57,25 +56,24 @@ def normalizePath(path):
     
     # split drive name from the rest
     drive, rest = os.path.splitdrive(path)
-    fullpath = drive.upper() + sep
+    fullpath = drive.upper() + os.sep
     
     # make lowercase and split in parts    
     parts = rest.lower().split(os.sep)
     parts = [part for part in parts if part]
     
     for part in parts:
-        # print( fullpath,part)
         options = [x for x in os.listdir(fullpath) if x.lower()==part]
         if len(options) > 1:
             print("Error normalizing path: Ambiguous path names!")
             return path
-        elif len(options) < 1:
-            print("Invalid path: "+fullpath+part)
+        elif not options:
+            print("Invalid path (part %s) in %s" % (part, fullpath))
             return path
-        fullpath += options[0] + sep
+        fullpath = os.path.join(fullpath, options[0])
     
     # remove last sep
-    return fullpath[:-len(sep)]
+    return fullpath
 
 
 def parseLine_autocomplete(tokens):
