@@ -473,6 +473,12 @@ class IepProjectManager(QtGui.QWidget):
         if not hasattr(self.config,'listdisclosed'):
             self.config.listdisclosed=True
         
+        # Create example?
+        if not self.config.projects:
+            exampleProject = Project('Example', os.path.expanduser('~'))
+            self.config.projects.append(exampleProject)
+            self.config.activeproject = 0
+        
         #Init projects model
         self.projectsModel=ProjectsModel(self.config)
 
