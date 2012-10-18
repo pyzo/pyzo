@@ -85,6 +85,12 @@ class ProjectsConfigDialog(QtGui.QDialog):
         self._activeProject = None
         self.lstProjects.setModel(self._projectsModel)
         
+        # Workaround for PySide bug 1041 
+        #  - QAbstractItemModel has wrong ownership policy for selectionModel()
+        # Instantiate a new selectionModel in Python so Python retains ownerships
+        self.lstProjects.setSelectionModel(
+                QtGui.QItemSelectionModel(self.lstProjects.model()))
+        
         # Signals
         self.btnAdd.clicked.connect(self.addProject)
         self.btnRemove.clicked.connect(self.removeProject)
