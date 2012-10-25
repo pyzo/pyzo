@@ -30,7 +30,6 @@ def buildMenus(menuBar):
     """
     Build all the menus
     """
-    from collections import OrderedDict 
     menus = [ FileMenu(menuBar, translate("menu", "File")),
                 EditMenu(menuBar, translate("menu", "Edit")),
                 ViewMenu(menuBar, translate("menu", "View")),
