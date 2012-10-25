@@ -39,22 +39,17 @@ def determineEncoding(bb):
     codec could not be determined, uses UTF-8.
     """
     
-    # Get first two lines
-    parts = bb.split(b'\n', 2)
-    
-    # Init to default encoding
+    # Init
+    firstTwoLines = bb.split(b'\n', 2)[:2]
     encoding = 'UTF-8'
     
-    # Determine encoding from first two lines
-    for i in range(len(parts)-1):
+    for line in firstTwoLines:        
         
-        # Get line
+        # Try to make line a string
         try:
-            line = parts[i].decode('ASCII')
+            line = line.decode('ASCII').strip()
         except Exception:
             continue 
-        
-        # Search for encoding directive
         
         # Has comment?
         if line and line[0] == '#':
