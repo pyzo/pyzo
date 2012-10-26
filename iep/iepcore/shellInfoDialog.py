@@ -366,8 +366,7 @@ class ShellInfoDialog(QtGui.QDialog):
         
         # Set title
         self.setWindowTitle(iep.translate('shell', 'Shell configurations'))
-        self.setWindowIcon(iep.icon)
-        
+                
         # Create tab widget
         self._tabs = QtGui.QTabWidget(self)
         self._tabs.setMovable(True)

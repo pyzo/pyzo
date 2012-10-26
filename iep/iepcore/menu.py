@@ -1339,7 +1339,7 @@ class HelpMenu(Menu):
                         iep.iepDir, iep.appDataDir)
         
         # Define icon and text
-        im = QtGui.QPixmap( os.path.join(iep.iepDir,'icons/iep48.png') )         
+        im = QtGui.QPixmap( os.path.join(iep.iepDir,'resources', 'appicons', 'ieplogo48.png') )
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setTextFormat(QtCore.Qt.RichText)
@@ -1755,7 +1755,6 @@ class KeyMapEditDialog(QtGui.QDialog):
         
         # set title
         self.setWindowTitle(translate("menu dialog", 'Edit shortcut mapping'))
-        self.setWindowIcon(iep.icon)
         
         # set size
         size = 400,140
@@ -1901,8 +1900,7 @@ class KeymappingDialog(QtGui.QDialog):
         
         # set title
         self.setWindowTitle(translate("menu dialog", 'Shortcut mappings'))
-        self.setWindowIcon(iep.icon)
-        
+                
         # set size
         size = 600,400
         offset = 0
