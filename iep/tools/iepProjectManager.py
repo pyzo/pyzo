@@ -74,8 +74,7 @@ class ProjectsConfigDialog(QtGui.QDialog):
         size = 540, 300
         self.setMinimumSize(*size)
         self.setWindowTitle(iep.translate('Projects', 'Manage projects'))
-        self.setWindowIcon(iep.icon)
-        
+                
         # Create widgets and layout
         self._createWidgets()
         

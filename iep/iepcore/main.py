@@ -350,18 +350,31 @@ def loadIcons():
     Load all icons in the icon dir.
     """
     
-    # Construct icon (if we'd load the .ico that contains a 16x16, 32x32
-    # and 48x48 image, only the largest is loaded)
-    
-    # Get directory containing all icons
+    # Get directories containing the icons
     iconDir = os.path.join(iep.iepDir, 'resources', 'icons')
+    appiconDir =  os.path.join(iep.iepDir, 'resources', 'appicons')
     
-    # Construct normal iep icon
-    iep.icon = QtGui.QIcon() 
-    tmp = os.path.join(iconDir,'iep{}.png')
-    iep.icon.addFile(tmp.format(16), QtCore.QSize(16,16))
-    iep.icon.addFile(tmp.format(32), QtCore.QSize(32,32))
-    iep.icon.addFile(tmp.format(48), QtCore.QSize(48,48))
+    # Determine template for filename of the application icon-files.
+    # Use the Pyzo logo if the executable was "pyzo", otherwise use
+    # default IEP logo.
+    appname = os.path.split(sys.executable)[1].split('.')[0].lower()
+    if appname == 'pyzo':
+        fnameT = 'pyzologo{}.png'
+    else:
+        fnameT = 'ieplogo{}.png'
+    
+    # Construct application icon. Include a range of resolutions. Note that
+    # Qt somehow does not use the highest possible res on Linux/Gnome(?), even
+    # the logo of qt-designer when alt-tabbing looks a bit ugly.
+    iep.icon = QtGui.QIcon()
+    for sze in [16, 32, 48, 64, 128, 256]:
+        fname = os.path.join(appiconDir, fnameT.format(sze))
+        if os.path.isfile(fname):
+            iep.icon.addFile(fname, QtCore.QSize(sze, sze))
+    
+    # Set as application icon. This one is used as the default for all
+    # windows of the application.
+    QtGui.qApp.setWindowIcon(iep.icon)
     
     # Construct another icon to show when the current shell is busy
     artist = IconArtist(iep.icon) # extracts the 16x16 version
@@ -374,10 +387,9 @@ def loadIcons():
     iep.iconRunning = QtGui.QIcon(iep.icon)
     iep.iconRunning.addPixmap(pm) # Change only 16x16 icon
     
-    # Create dummy icon
-    dummyIcon = IconArtist().finish()
     
     # Construct other icons
+    dummyIcon = IconArtist().finish()
     iep.icons = ssdf.new()
     for fname in os.listdir(iconDir):
         if fname.startswith('iep'):
