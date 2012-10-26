@@ -298,11 +298,58 @@ class LineNumbers(object):
         
         def __init__(self, codeEditor):
             QtGui.QWidget.__init__(self, codeEditor)
-
+            self.setCursor(QtCore.Qt.PointingHandCursor)
+            self._pressedY = None
+            self._lineNrChoser = None
+        
+        def _getY(self, pos):
+            tmp = self.mapToGlobal(pos)
+            return self.parent().viewport().mapFromGlobal(tmp).y()
+        
+        def mousePressEvent(self, event):
+            self._pressedY = self._getY(event.pos())
+        
+        def mouseReleaseEvent(self, event):
+            self._handleWholeBlockSelection( self._getY(event.pos()) )
+        
+        def mouseMoveEvent(self, event):
+            self._handleWholeBlockSelection( self._getY(event.pos()) )
+            
+        def _handleWholeBlockSelection(self, y2):
+            # Get y1 and sort (y1, y2)
+            y1 = self._pressedY
+            if y1 is None: y1 = y2
+            y1, y2 = min(y1, y2), max(y1, y2)
+            
+            # Get cursor and two cursors corresponding to selected blocks
+            editor = self.parent()
+            cursor = editor.textCursor()
+            c1 = editor.cursorForPosition(QtCore.QPoint(0,y1))
+            c2 = editor.cursorForPosition(QtCore.QPoint(0,y2))
+            
+            # Make these two cursors select the whole block
+            c1.movePosition(c1.StartOfBlock, c1.MoveAnchor)
+            c2.movePosition(c2.EndOfBlock, c2.MoveAnchor)
+            
+            # Apply selection
+            cursor.setPosition(c1.position(), cursor.MoveAnchor)
+            cursor.setPosition(c2.position(), cursor.KeepAnchor)
+            editor.setTextCursor(cursor)
+        
+        def mouseDoubleClickEvent(self, event):
+            # Create line number choser if needed
+            if self._lineNrChoser is None:
+                self._lineNrChoser = LineNumbers.LineNumberChoser(self.parent())
+            # Modify its position
+            x, y = self.width()+4, event.pos().y()
+            self._lineNrChoser.move(QtCore.QPoint(x,y))
+            # Show/reset line number choser
+            currentLineNr = self.parent().textCursor().blockNumber()+1
+            self._lineNrChoser.reset(currentLineNr)
+        
         def paintEvent(self, event):
             editor = self.parent()
-
-                
+            
             if not editor.showLineNumbers():
                 return
             
@@ -371,7 +418,42 @@ class LineNumbers(object):
             
             # Done
             painter.end()
+    
+    class LineNumberChoser(QtGui.QSpinBox):
+        def __init__(self, parent):
+            QtGui.QSpinBox.__init__(self, parent)
             
+            self._editor = parent
+            
+            ss = "QSpinBox { border: 2px solid #789; border-radius: 3px; padding: 4px; }"
+            self.setStyleSheet(ss)
+            
+            self.setPrefix('Go to: ')
+            self.setAccelerated (True)
+            self.setButtonSymbols(self.NoButtons)
+            self.setCorrectionMode(self.CorrectToNearestValue)
+            self.valueChanged.connect(self.onValueChanged)
+        
+        def reset(self, currentLineNumber):
+            self.setRange(1, self._editor.blockCount())
+            self.setValue(currentLineNumber)
+            self.selectAll()
+            self.setFocus()
+            self.show()
+            self.raise_()
+        
+        def focusOutEvent(self, event):
+            self.hide()
+        
+        def keyPressEvent(self, event):
+            if event.key() in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+                self._editor.setFocus() # Moves focus away, thus hiding self
+            else:
+                QtGui.QSpinBox.keyPressEvent(self, event)
+        
+        def onValueChanged(self, nr):
+            self._editor.gotoLine(nr-1) # A better name would have been gotoBlock
+    
     def __init__(self, *args, **kwds):
         self.__lineNumberArea = None
         super(LineNumbers, self).__init__(*args, **kwds)
