@@ -590,20 +590,36 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
  
     
     ## Misc
-        
+    
     def gotoLine(self, lineNumber):
         """ gotoLine(lineNumber)
         
         Move the cursor to the block given by the line number 
-        (first line is line number 1) and show that line.
+        (first line is number 1) and show that line.
         
         """
-        cursor = self.textCursor()
-        block = self.document().findBlockByNumber( lineNumber + 1)
-        cursor.setPosition(block.position())
-        self.setTextCursor(cursor)
+        return self.gotoBlock(lineNumber-1)
     
+    
+    def gotoBlock(self, blockNumber):
+        """ gotoBlock(blockNumber)
         
+        Move the cursor to the block given by the block number 
+        (first block is number 0) and show that line.
+        
+        """
+        # Two implementatios. I know that the latter works, so lets
+        # just use that.
+        
+        cursor = self.textCursor()
+        #block = self.document().findBlockByNumber( blockNumber )
+        #cursor.setPosition(block.position())
+        cursor.movePosition(cursor.Start) # move to begin of the document
+        cursor.movePosition(cursor.NextBlock,n=blockNumber) # n blocks down
+        
+        self.setTextCursor(cursor)
+        self.centerCursor()
+    
     def doForSelectedBlocks(self, function):
         """ doForSelectedBlocks(function)
         

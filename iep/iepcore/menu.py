@@ -604,6 +604,8 @@ class EditMenu(Menu):
             icons.comment_delete, self._editItemCallback, "uncommentCode")
         self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."), 
             icons.text_align_justify, self._editItemCallback, "justifyText")
+        self.addItem(translate("menu", "Go to line ::: Go to a specific line number."), 
+            None, self._editItemCallback, "gotoLinePopup")
         self.addItem(translate("menu", "Delete line ::: Delete the selected line."), 
             None, self._editItemCallback, "deleteLines")
         self.addSeparator()
