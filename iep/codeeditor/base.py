@@ -741,8 +741,6 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Get cursor
         cursor = self.textCursor()
-        if not cursor.hasSelection():
-            return
         
         # Make selection include whole lines
         pos1, pos2 = cursor.position(), cursor.anchor()
