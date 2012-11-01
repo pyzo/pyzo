@@ -536,9 +536,8 @@ class Browser(QtGui.QTreeWidget):
         
             # Select a line number?
             if fileItem and hasattr(item, '_linenr'):
-                linenr = item._linenr - 1
                 editor = fileItem._editor
-                editor.gotoLine(linenr)
+                editor.gotoLine(item._linenr)
         
         # Give focus
         iep.editors.getCurrentEditor().setFocus()

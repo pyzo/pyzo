@@ -337,15 +337,20 @@ class LineNumbers(object):
             editor.setTextCursor(cursor)
         
         def mouseDoubleClickEvent(self, event):
+            self.showLineNumberChoser()
+        
+        def showLineNumberChoser(self):
             # Create line number choser if needed
             if self._lineNrChoser is None:
                 self._lineNrChoser = LineNumbers.LineNumberChoser(self.parent())
-            # Modify its position
-            x, y = self.width()+4, event.pos().y()
+            # Get editor and cursor
+            editor = self.parent()
+            cursor = editor.textCursor()
+            # Get (x,y) pos and apply
+            x, y = self.width()+4, editor.cursorRect(cursor).y()
             self._lineNrChoser.move(QtCore.QPoint(x,y))
             # Show/reset line number choser
-            currentLineNr = self.parent().textCursor().blockNumber()+1
-            self._lineNrChoser.reset(currentLineNr)
+            self._lineNrChoser.reset(cursor.blockNumber()+1)
         
         def paintEvent(self, event):
             editor = self.parent()
@@ -428,17 +433,24 @@ class LineNumbers(object):
             ss = "QSpinBox { border: 2px solid #789; border-radius: 3px; padding: 4px; }"
             self.setStyleSheet(ss)
             
-            self.setPrefix('Go to: ')
+            self.setPrefix('Go to line: ')
             self.setAccelerated (True)
             self.setButtonSymbols(self.NoButtons)
             self.setCorrectionMode(self.CorrectToNearestValue)
+            
+            # Signal for when value changes, and flag to disbale it once
+            self._ignoreSignalOnceFlag = False
             self.valueChanged.connect(self.onValueChanged)
         
         def reset(self, currentLineNumber):
+            # Set value to (given) current line number
+            self._ignoreSignalOnceFlag = True
             self.setRange(1, self._editor.blockCount())
             self.setValue(currentLineNumber)
+            # Select text and focus so that the user can simply start typing
             self.selectAll()
             self.setFocus()
+            # Make visible
             self.show()
             self.raise_()
         
@@ -452,7 +464,10 @@ class LineNumbers(object):
                 QtGui.QSpinBox.keyPressEvent(self, event)
         
         def onValueChanged(self, nr):
-            self._editor.gotoLine(nr-1) # A better name would have been gotoBlock
+            if self._ignoreSignalOnceFlag:
+                self._ignoreSignalOnceFlag = False
+            else:
+                self._editor.gotoLine(nr)
     
     def __init__(self, *args, **kwds):
         self.__lineNumberArea = None
@@ -464,6 +479,12 @@ class LineNumbers(object):
         self.fontChanged.connect(self.__onBlockCountChanged)
         self.__onBlockCountChanged()
         
+    
+    def gotoLinePopup(self):
+        """ Popup the little widget to quickly goto a certain line.
+        Can also be achieved by double-clicking the line number area.
+        """
+        self.__lineNumberArea.showLineNumberChoser()
     
     def showLineNumbers(self):
         return self.__showLineNumbers

@@ -347,18 +347,6 @@ class IepEditor(BaseTextCtrl):
         self.setExtraSelections([extraSelection])
         
         self._showRunCursorTimer.singleShot(200, lambda: self.setExtraSelections([]))
-
-
-    
-    def gotoLine(self,lineNumber):
-        """Move the cursor to the given lineNumber (0-based) and center
-        the cursor vertically"""
-        cursor=self.textCursor()
-        cursor.movePosition(cursor.Start) #move to begin of the document
-        cursor.movePosition(cursor.NextBlock,n=lineNumber) #n lines down
-        self.setTextCursor(cursor)
-        
-        self.centerCursor()
     
     
     def id(self):
@@ -517,7 +505,7 @@ class IepEditor(BaseTextCtrl):
         
         # Remember where we are
         cursor = self.textCursor()
-        linenr = cursor.blockNumber()
+        linenr = cursor.blockNumber() + 1
         index = cursor.positionInBlock()
         
         # Load file (as bytes)
