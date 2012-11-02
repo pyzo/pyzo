@@ -15,6 +15,7 @@ import os, sys, time, re
 from iep.codeeditor.qt import QtCore, QtGui
 
 import iep
+from iep.iepcore.compactTabWidget import CompactTabWidget
 from iep.iepcore.iepLogging import print
 from iep.iepcore.kernelbroker import KernelInfo
 from iep import translate
@@ -293,6 +294,18 @@ class ShellInfoTab(QtGui.QWidget):
             # Add to layout
             self._formLayout.addRow(label, instance)
         
+        # Add delete button  
+        
+        t = translate('shell', 'Delete ::: Delete this shell configuration')
+        label = QtGui.QLabel('', self)        
+        instance = QtGui.QPushButton(iep.icons.cancel, t, self)
+        instance.setToolTip(t.tt)
+        instance.clicked.connect(self.parent().parent().onTabClose)
+        deleteLayout = QtGui.QHBoxLayout()
+        deleteLayout.addWidget(instance, 0)
+        deleteLayout.addStretch(1)
+        # Add to layout
+        self._formLayout.addRow(label, deleteLayout)
         
         # Apply layout
         self._formLayout.setSpacing(15)
@@ -366,9 +379,10 @@ class ShellInfoDialog(QtGui.QDialog):
         
         # Set title
         self.setWindowTitle(iep.translate('shell', 'Shell configurations'))
-                
         # Create tab widget
-        self._tabs = QtGui.QTabWidget(self)
+        #self._tabs = QtGui.QTabWidget(self) 
+        self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
+        self._tabs.setDocumentMode(False)
         self._tabs.setMovable(True)
         
         # Introduce an entry if there's none
@@ -391,7 +405,7 @@ class ShellInfoDialog(QtGui.QDialog):
         self._add.setIcon(iep.icons.add)
         self._add.setText(translate('shell', 'Add config'))
         #
-        self._tabs.setTabsClosable(True)
+        #self._tabs.setTabsClosable(True)
         self._tabs.tabCloseRequested.connect(self.onTabClose)
         
         # Create buttons
@@ -417,8 +431,8 @@ class ShellInfoDialog(QtGui.QDialog):
         # Prevent resizing
         self.show()
         size = self.size()
-        self.setMaximumSize(size)
         self.setMinimumSize(size)
+        self.setMaximumHeight(size.height())
 
     
     def onAdd(self):
@@ -431,7 +445,9 @@ class ShellInfoDialog(QtGui.QDialog):
         w.setFocus()
     
     
-    def onTabClose(self, index):
+    def onTabClose(self, index=None):
+        if index is None:
+            index = self._tabs.currentIndex()
         self._tabs.removeTab( index )
     
     
