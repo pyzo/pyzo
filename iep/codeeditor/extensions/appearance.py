@@ -155,7 +155,6 @@ class IndentationGuides(object):
         #Repainting always starts at the first block in the viewport,
         #regardless of the event.rect().y(). Just to keep it simple
         while True:
-            blockNumber=cursor.block().blockNumber()
             y3=self.cursorRect(cursor).top()
             y4=self.cursorRect(cursor).bottom()            
             
@@ -183,9 +182,9 @@ class FullUnderlines(object):
     def paintEvent(self,event):
         """ paintEvent(event)
         
-        Paint a horizontal line where there was a syntax format that
-        has underline:full. The locations for these were stored at
-        self._fullUnderlines by the highlighter.
+        Paint a horizontal line for the blocks for which there is a
+        syntax format that has underline:full. Whether this is the case
+        is stored at the blocks user data.
         
         """ 
         super(FullUnderlines, self).paintEvent(event)
@@ -199,22 +198,30 @@ class FullUnderlines(object):
         painter.begin(viewport)
         
         # Prepare
+        y1, y2 = 0, self.height()
+        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
         margin = self.document().documentMargin()
-        cursor = self.textCursor()
         w = self.viewport().width()
         
-        for blocknr, format in self._fullUnderlines.items():
-            # Apply pen
-            pen = QtGui.QPen(format.fore)
-            pen.setStyle(format.linestyle)
-            painter.setPen(pen)
-            # Prepare cursor to get y
-            cursor.movePosition(cursor.Start)
-            cursor.movePosition(cursor.NextBlock, n=blocknr)
-            cursor.movePosition(cursor.StartOfBlock)
-            y = self.cursorRect(cursor).bottom()
-            # Paint
-            painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
+        
+        while True:
+            y = self.cursorRect(cursor).bottom() 
+            
+            bd = cursor.block().userData()            
+            if bd and bd.fullUnderlineFormat is not None:
+                # Apply pen
+                pen = QtGui.QPen(bd.fullUnderlineFormat.fore)
+                pen.setStyle(bd.fullUnderlineFormat.linestyle)
+                painter.setPen(pen)
+                # Paint
+                painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
+            
+            # Next block (or not)
+            if y > y2:
+                break #Reached end of the repaint area
+            if not cursor.block().next().isValid():
+                break #Reached end of the text
+            cursor.movePosition(cursor.NextBlock)
         
         # Done
         painter.end()

@@ -27,6 +27,7 @@ class BlockData(QtGui.QTextBlockUserData):
     def __init__(self):
         QtGui.QTextBlockUserData.__init__(self)
         self.indentation = None
+        self.fullUnderlineFormat = None
 
 
 # The highlighter should be part of the base class, because 
@@ -97,21 +98,17 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                     # Set format
                     self.setFormat(token.start,token.end-token.start,charFormat)
                     # Is this a cell?
-                    if not fullLineFormat and styleFormat._parts.get('underline','') == 'full':
+                    if (fullLineFormat is None) and styleFormat._parts.get('underline','') == 'full':
                         fullLineFormat = styleFormat
-        
-        # Handle underlines
-        blocknr = self.currentBlock().blockNumber()
-        if fullLineFormat:
-            self._codeEditor._fullUnderlines[blocknr] = fullLineFormat
-        elif blocknr in self._codeEditor._fullUnderlines:
-            del self._codeEditor._fullUnderlines[blocknr]
-        
-        #Get the indentation setting of the editors
-        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
         
         # Get user data
         bd = self.getCurrentBlockUserData()
+        
+        # Handle underlines
+        bd.fullUnderlineFormat = fullLineFormat
+        
+        # Get the indentation setting of the editors
+        indentUsingSpaces = self._codeEditor.indentUsingSpaces()
         
         leadingWhitespace=line[:len(line)-len(line.lstrip())]
         if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
