@@ -79,6 +79,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         # Get function to get format
         nameToFormat = self._codeEditor.getStyleElementFormat
         
+        fullLineFormat = None
         if parser:
             self.setCurrentBlockState(0)
             for token in parser.parseLine(line, previousState):
@@ -88,13 +89,23 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                 else:
                     # Get format
                     try:
-                        format = nameToFormat(token.name).textCharFormat
+                        styleFormat = nameToFormat(token.name)
+                        charFormat = styleFormat.textCharFormat
                     except KeyError:
                         #print(repr(nameToFormat(token.name)))
                         continue
                     # Set format
-                    self.setFormat(token.start,token.end-token.start,format)
-                
+                    self.setFormat(token.start,token.end-token.start,charFormat)
+                    # Is this a cell?
+                    if not fullLineFormat and styleFormat._parts.get('underline','') == 'full':
+                        fullLineFormat = styleFormat
+        
+        # Handle underlines
+        blocknr = self.currentBlock().blockNumber()
+        if fullLineFormat:
+            self._codeEditor._fullUnderlines[blocknr] = fullLineFormat
+        elif blocknr in self._codeEditor._fullUnderlines:
+            del self._codeEditor._fullUnderlines[blocknr]
         
         #Get the indentation setting of the editors
         indentUsingSpaces = self._codeEditor.indentUsingSpaces()
