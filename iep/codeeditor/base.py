@@ -135,9 +135,6 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.__zoom = 0
         self.setFont()
         
-        # Define dictionary for lines with a full underline
-        self._fullUnderlines = {}
-        
         # Create highlighter class 
         self.__highlighter = Highlighter(self, self.document())
         
