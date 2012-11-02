@@ -1089,19 +1089,23 @@ class RunMenu(Menu):
         if not shell or not editor:
             return 
         
+        cellName = ''
+        
         # Get current cell
         # Move up until the start of document 
         # or right after a line starting with '##'  
         runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         while True:
-            if runCursor.block().text().lstrip().startswith('##'):
+            line = runCursor.block().text().lstrip()
+            if line.startswith('##'):
                 # ## line, move to the line following this one
                 if not runCursor.block().next().isValid():
                     #The user tried to execute the last line of a file which
                     #started with ##. Do nothing
                     return
                 runCursor.movePosition(runCursor.NextBlock)
+                cellName = line.lstrip('#').strip()
                 break
             if not runCursor.block().previous().isValid():
                 break #Start of document
@@ -1109,6 +1113,8 @@ class RunMenu(Menu):
         
         # This is the line number of the start
         lineNumber = runCursor.blockNumber()
+        if len(cellName) > 20:
+            cellName = cellName[:17]+'...'
         
         # Move down until a line before one starting with'##' 
         # or to end of document
@@ -1129,7 +1135,7 @@ class RunMenu(Menu):
         self._showWhatToExecute(editor, runCursor)
         # Get filename and run code
         fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber)
+        shell.executeCode(code, fname, lineNumber, cellName)
     
     def _showWhatToExecute(self, editor, runCursor=None):
         # Get runCursor for whole document if not given

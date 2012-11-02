@@ -479,6 +479,7 @@ class IepInterpreter:
         
         # Get information
         source, fname, lineno = msg['source'], msg['fname'], msg['lineno']
+        cellName = msg.get('cellName', '')
         source += '\n'
         
         # Construct notification message
@@ -487,7 +488,9 @@ class IepInterpreter:
         fname_show = fname
         if not fname.startswith('<'):
             fname_show = os.path.split(fname)[1]
-        if lineno1 == lineno2:
+        if cellName:
+            runtext = '(executing cell "%s" (line %i of "%s"))\n' % (cellName, lineno1, fname_show)
+        elif lineno1 == lineno2:
             runtext = '(executing line %i of "%s")\n' % (lineno1, fname_show)
         else:
             runtext = '(executing lines %i to %i of "%s")\n' % (

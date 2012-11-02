@@ -1007,8 +1007,8 @@ class PythonShell(BaseShell):
         self._ctrl_command.send(text)
     
     
-    def executeCode(self, text, fname, lineno=0):
-        """ executeCode(text, fname, lineno)
+    def executeCode(self, text, fname, lineno=0, cellName=None):
+        """ executeCode(text, fname, lineno, cellName=None)
         Execute (run) a large piece of code in the remote shell.
         text: the source code to execute
         filename: the file from which the source comes
@@ -1067,7 +1067,7 @@ class PythonShell(BaseShell):
         
         # Send message
         text = "\n".join(lines2)
-        msg = {'source':text, 'fname':fname, 'lineno':lineno}
+        msg = {'source':text, 'fname':fname, 'lineno':lineno, 'cellName': cellName}
         self._ctrl_code.send(msg)
     
     
