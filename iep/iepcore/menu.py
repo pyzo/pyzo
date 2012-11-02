@@ -1540,7 +1540,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
     currently mapped. """
     
     def __init__(self, *args):
-        QtCore.QAbstractListModel.__init__(self,*args)
+        QtCore.QAbstractItemModel.__init__(self, *args)
         self._root = None
     
     def setRootMenu(self, menu):
