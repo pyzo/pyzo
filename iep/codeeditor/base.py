@@ -135,6 +135,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.__zoom = 0
         self.setFont()
         
+        # Define dictionary for lines with a full underline
+        self._fullUnderlines = {}
+        
         # Create highlighter class 
         self.__highlighter = Highlighter(self, self.document())
         
@@ -211,7 +214,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
         S["Syntax.comment"] ="fore:%s, bold:no, italic:no, underline:no" % yellow
         S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
-        S["Syntax.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:yes" % yellow
+        S["Syntax.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:full" % yellow
         
             
         S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2

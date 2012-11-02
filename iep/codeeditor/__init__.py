@@ -14,6 +14,7 @@ from .manager import Manager
 from .base import CodeEditorBase
 
 from .extensions.appearance import (    HighlightCurrentLine, 
+                                        FullUnderlines,
                                         IndentationGuides,
                                         LongLineIndicator,
                                         ShowWhitespace,
@@ -38,6 +39,7 @@ from .extensions.calltip import Calltip
 # 
 class CodeEditor(
     HighlightCurrentLine, 
+    FullUnderlines,
     IndentationGuides, 
     LongLineIndicator,
     ShowWhitespace, 

@@ -178,6 +178,48 @@ class IndentationGuides(object):
         painter.end()
 
 
+class FullUnderlines(object):
+    
+    def paintEvent(self,event):
+        """ paintEvent(event)
+        
+        Paint a horizontal line where there was a syntax format that
+        has underline:full. The locations for these were stored at
+        self._fullUnderlines by the highlighter.
+        
+        """ 
+        super(FullUnderlines, self).paintEvent(event)
+    
+        # Get doc and viewport
+        doc = self.document()
+        viewport = self.viewport()
+        
+        # Init painter
+        painter = QtGui.QPainter()
+        painter.begin(viewport)
+        
+        # Prepare
+        margin = self.document().documentMargin()
+        cursor = self.textCursor()
+        w = self.viewport().width()
+        
+        for blocknr, format in self._fullUnderlines.items():
+            # Apply pen
+            pen = QtGui.QPen(format.fore)
+            pen.setStyle(format.linestyle)
+            painter.setPen(pen)
+            # Prepare cursor to get y
+            cursor.movePosition(cursor.Start)
+            cursor.movePosition(cursor.NextBlock, n=blocknr)
+            cursor.movePosition(cursor.StartOfBlock)
+            y = self.cursorRect(cursor).bottom()
+            # Paint
+            painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
+        
+        # Done
+        painter.end()
+
+
 class LongLineIndicator(object):
     
     # Register style element
