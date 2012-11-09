@@ -18,6 +18,7 @@ state = dict:
     loadedTools = []
     windowState = '' # Of window and tools  
     windowGeometry = '' # Position and size of window, whether maximized, etc.
+    newUser = 1 # So we can guide new users a bit
 
 view = dict:       
     showWhitespace = 0

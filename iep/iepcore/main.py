@@ -95,8 +95,14 @@ class MainWindow(QtGui.QMainWindow):
         self.setStyleSheet('')
         self.setUpdatesEnabled(True)
         
+        # Present user with wizard if he/she is new.
+        if iep.config.state.newUser:
+            from iep.iepcore.iepwizard import IEPWizard
+            w = IEPWizard(self)
+            w.show() # Use show() instead of exec_() so the user can interact with IEP
+        
         # Note that after this, restoreState will be called a couple of times.
-    
+        
     
     def _populate(self):
         
