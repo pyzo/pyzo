@@ -214,10 +214,6 @@ class MainWindow(QtGui.QMainWindow):
         if value is not None:
             return super().restoreState(value)
         
-         # Turn init timer off?
-        if self._initTimer._timeout < time.time():
-            self._initTimer.stop()
-        
         # No value give, try to get it from the config
         if iep.config.state.windowState:
             try:
@@ -226,6 +222,16 @@ class MainWindow(QtGui.QMainWindow):
                 self.restoreState(state)
             except Exception as err:
                 print('Could not restore window state: ' + str(err))
+        
+        # Turn init timer off?
+        if self._initTimer._timeout < time.time():
+            self._initTimer.stop()
+            
+            # Load basic tools if new user
+            # Do this after the last restoreState() call
+            if iep.config.state.newUser and not iep.config.state.loadedTools:
+                iep.toolManager.loadTool('iepsourcestructure')
+                iep.toolManager.loadTool('iepprojectmanager')
     
     
     def setQtStyle(self, stylename=None):
