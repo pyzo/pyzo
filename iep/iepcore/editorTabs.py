@@ -1351,8 +1351,7 @@ class EditorTabs(QtGui.QWidget):
         if iep.config.state.editorState2:
             self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
         else:
-            #self.newFile()
-            self.loadFile(os.path.join(iep.iepDir,'resources','tutorial.py'))
+            self.newFile()
         
         # The find/replace state is set in the corresponding class during init
     

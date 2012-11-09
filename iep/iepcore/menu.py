@@ -998,26 +998,15 @@ class RunMenu(Menu):
         self.addItem(translate("menu", 'Run main file as script ::: Run the main file as a script.'), 
             icons.run_mainfile_script, self._runFile, (True, True))
         self.addSeparator()
-        self.addItem(translate("menu", 'Help on running code ::: Open the tutorial at the section about running code.'), 
+        self.addItem(translate("menu", 'Help on running code ::: Open the IEP wizard at the page about running code.'), 
             icons.information, self._showHelp)
 
     
     def _showHelp(self):
         """ Show more information about ways to run code. """
-        
-        # todo: use cell header to goto right line. 
-        # Or make another way to show information on a subject.
-        # Get file item
-        fileItem = iep.editors.loadFile(
-                        os.path.join(iep.iepDir, 'resources', 'tutorial.py'))
-        
-        # Select line number
-        if fileItem:
-            linenr = 77
-            editor = fileItem._editor
-            editor.gotoLine(linenr)
-            iep.editors.getCurrentEditor().setFocus()
-    
+        from iep.iepcore.iepwizard import IEPWizard
+        w = IEPWizard(self)
+        w.show('RuncodeWizardPage1') # Start wizard at page about running code
     
     def _getShellAndEditor(self, what, mainEditor=False):
         """ Get the shell and editor. Shows a warning dialog when one of
@@ -1242,8 +1231,8 @@ class HelpMenu(Menu):
         self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in IEP, or do you have a feature request?"), 
             icons.error_add, "http://code.google.com/p/iep/issues/list")
         self.addSeparator()
-        self.addItem(translate("menu", "Tutorial ::: Get started quickly."), 
-            icons.report, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"resources","tutorial.py")))
+        self.addItem(translate("menu", "IEP wizard ::: Get started quickly."), 
+            icons.wand, self._showIepWizard)
         self.addItem(translate("menu", "View license ::: Legal stuff."), 
             icons.script, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
         
@@ -1254,6 +1243,11 @@ class HelpMenu(Menu):
     
     def addUrlItem(self, name, icon, url):
         self.addItem(name, icon, lambda: webbrowser.open(url))
+    
+    def _showIepWizard(self):
+        from iep.iepcore.iepwizard import IEPWizard
+        w = IEPWizard(self)
+        w.show() # Use show() instead of exec_() so the user can interact with IEP
     
     def _checkUpdates(self):
         """ Check whether a newer version of IEP is available. """
