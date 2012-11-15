@@ -53,6 +53,13 @@ class ShellInfo_name(ShellInfoLineEdit):
 
 class ShellInfo_exe(QtGui.QComboBox):
     
+    def __init__(self, *args):
+        QtGui.QComboBox.__init__(self, *args)
+        # Uncomment this to also select the matching GUI toolkit if [default]
+        # is selected. Note that adding a new config will always init with
+        # the matching GUI toolkit.
+        #self.activated.connect(self.onActivated)
+    
     def _interpreterName(self, p):
         if p.is_pyzo:
             return '[v%s at Pyzo] %s' % (p.version, p.path)
@@ -96,10 +103,18 @@ class ShellInfo_exe(QtGui.QComboBox):
     def getTheText(self):
         #return self.currentText().split('(')[0].rstrip()
         value = self.currentText()
-        if value.startswith('[') and ']' in value:
+        if value.startswith('[default]'):
+            value = '[default]'
+        elif value.startswith('[') and ']' in value:
             value = value.split(']')[1]
         return value.lstrip()
-
+    
+    def onActivated(self, index=None):
+        # Select GUI corresponding to default interpreter if it was selected. 
+        defaultGui = iep.defaultInterpreterGui()
+        if defaultGui and self.currentText().startswith('[default]'):
+            guicombobox = self.parent()._shellInfoWidgets['gui']
+            guicombobox.setTheText(defaultGui)
 
 
 class ShellInfo_gui(QtGui.QComboBox):
@@ -353,6 +368,7 @@ class ShellInfoTab(QtGui.QWidget):
             # Set the executable to default. This is a placeholder that
             # is replaced (in shell.py) by a iep.defaultInterpreterExe()
             info.exe = '[default]'
+            info.gui = iep.defaultInterpreterGui() or 'none'
         
         # Store info
         self._info = info

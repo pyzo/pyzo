@@ -290,10 +290,12 @@ pyzo_mode = False
 
 # Init default exe for the executable (can be set, e.g. by Pyzo)
 _defaultInterpreterExe = None
-def setDefaultInterpreterExe(newValue):
+_defaultInterpreterGui = None
+def setDefaultInterpreter(exe, gui=None):
     global _defaultInterpreterExe
-    assert isinstance(newValue, str)
-    _defaultInterpreterExe = newValue
+    assert isinstance(exe, str)
+    _defaultInterpreterExe = exe
+    _defaultInterpreterGui = gui
 def defaultInterpreterExe():
     global _defaultInterpreterExe
     if _defaultInterpreterExe is None and sys.platform.startswith('win'):
@@ -307,3 +309,5 @@ def defaultInterpreterExe():
     if _defaultInterpreterExe is None:
         _defaultInterpreterExe = 'python'
     return _defaultInterpreterExe
+def defaultInterpreterGui():
+    return _defaultInterpreterGui
