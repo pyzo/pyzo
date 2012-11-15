@@ -53,30 +53,52 @@ class ShellInfo_name(ShellInfoLineEdit):
 
 class ShellInfo_exe(QtGui.QComboBox):
     
+    def _interpreterName(self, p):
+        if p.is_pyzo:
+            return '[v%s at Pyzo] %s' % (p.version, p.path)
+        else:
+            return '[v%s] %s' % (p.version, p.path)
+    
     def setTheText(self, value):
         
-        # Get options
-        exes = findPythonExecutables()
-        if value not in exes:
-            exes.insert(0, value)
-        if 'python' not in exes:
-            exes.insert(0, 'python')
-        
-        # Set some settings
+        # Init
+        self.clear()
         self.setEditable(True)
         self.setInsertPolicy(self.InsertAtTop)
         
-        # Set options
-        self.clear()
-        for exe in exes:
-            self.addItem(exe)
+        # Get known interpreters (sorted by version)
+        from pyzolib.interpreters import get_interpreters
+        interpreters = list(reversed(get_interpreters('2.4')))
+        exes = [p.path for p in interpreters]
+        
+        # Get name for default interpreter
+        defaultName = '[default] (%s)' % iep.defaultInterpreterExe()
+        
+        # Hande current value
+        if value == '[default]':
+            value = defaultName
+        elif value in exes:
+            value = self._interpreterName( interpreters[exes.index(value)] )
+        else:
+            self.addItem(value)
+        
+        # Add default value
+        self.addItem(defaultName)
+        
+        # Add all found interpreters
+        for p in interpreters:
+            self.addItem(self._interpreterName(p))
         
         # Set current text
         self.setEditText(value)
     
     
     def getTheText(self):
-        return self.currentText()
+        #return self.currentText().split('(')[0].rstrip()
+        value = self.currentText()
+        if value.startswith('[') and ']' in value:
+            value = value.split(']')[1]
+        return value.lstrip()
 
 
 
@@ -328,12 +350,9 @@ class ShellInfoTab(QtGui.QWidget):
             # Name
             n = self.parent().parent().count()
             info.name = "Shell config %i" % n
-            # Executable. Simply use the command "python", except for Windows;
-            # I've experienced that the PATH is not always set. Use the last
-            # found executable instead (highest Python version).
-            exes = findPythonExecutables()
-            if exes and sys.platform.startswith('win'):
-                info.exe = exes[-1]
+            # Set the executable to default. This is a placeholder that
+            # is replaced (in shell.py) by a iep.defaultInterpreterExe()
+            info.exe = '[default]'
         
         # Store info
         self._info = info
@@ -469,86 +488,3 @@ class ShellInfoDialog(QtGui.QDialog):
         for i in range(self._tabs.count()):
             w = self._tabs.widget(i)
             iep.config.shellConfigs2.append( w.getInfo() )
-
-
-## Find all python executables
-# todo: use new version that will probably be part of pyzolib
-
-def findPythonExecutables():
-    if sys.platform.startswith('win'):
-        return findPythonExecutables_win()
-    else:
-        return findPythonExecutables_posix()
-
-
-def findPythonExecutables_win():
-    import winreg
-    
-    # Open base key
-    base = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-    try:
-        key = winreg.OpenKey(base, 'SOFTWARE\\Python\\PythonCore', 0, winreg.KEY_READ)
-    except Exception:
-        return []
-    
-    # Get info about subkeys
-    nsub, nval, modified = winreg.QueryInfoKey(key)
-    
-    # Query Python versions from registry
-    versions = set()
-    for i in range(nsub):
-        try:
-            # Get name and subkey 
-            name =  winreg.EnumKey(key, i)
-            subkey = winreg.OpenKey(key, name + '\\InstallPath', 0, winreg.KEY_READ)
-            # Get install location and store
-            location = winreg.QueryValue(subkey, '')
-            versions.add(location)
-            # Close
-            winreg.CloseKey(subkey)
-        except Exception:
-            pass
-    
-    # Close keys
-    winreg.CloseKey(key)
-    winreg.CloseKey(base)
-    
-    # Query Python versions from file system
-    for rootname in ['c:/', 'C:/program files/', 'C:/program files (x86)/']:
-        if not os.path.isdir(rootname):
-            continue
-        for dname in os.listdir(rootname):
-            if dname.lower().startswith('python'):
-                versions.add(os.path.join(rootname, dname))
-    
-    # Normalize all paths, and remove trailing backslashes
-    versions = set([os.path.normcase(v).strip('\\') for v in versions])
-    
-    # Append "python.exe" and check if that file exists
-    versions2 = []
-    for dname in sorted(versions,key=lambda x:x[-2:]):
-        exename = os.path.join(dname, 'python.exe')
-        if os.path.isfile(exename):
-            versions2.append(exename)
-    
-    # Done
-    return versions2
-
-
-def findPythonExecutables_posix():
-    found=[]
-    for searchpath in ['/usr/bin','/usr/local/bin','/opt/local/bin']: 
-        # Get files
-        try:
-            files = os.listdir(searchpath)
-        except Exception:
-            continue
-        
-        # Search for python executables
-        for fname in files:
-            if fname.startswith('python') and not fname.count('config'):
-                found.append( os.path.join(searchpath, fname) )
-    # Done
-    return found
-
-

@@ -284,3 +284,22 @@ loadConfig()
 # Init default style name (set in main.restoreIepState())
 defaultQtStyleName = ''
 
+# Init default exe for the executable (can be set, e.g. by Pyzo)
+_defaultInterpreterExe = None
+def setDefaultInterpreterExe(newValue):
+    global _defaultInterpreterExe
+    assert isinstance(newValue, str)
+    _defaultInterpreterExe = newValue
+def defaultInterpreterExe():
+    global _defaultInterpreterExe
+    if _defaultInterpreterExe is None and sys.platform.startswith('win'):
+        try:
+            from pyzolib.interpreters import get_interpreters
+            interpreters = list(reversed(get_interpreters('2.4')))
+            if interpreters:
+                _defaultInterpreterExe = interpreters[0].path
+        except Exception as err:
+            print(err)
+    if _defaultInterpreterExe is None:
+        _defaultInterpreterExe = 'python'
+    return _defaultInterpreterExe
