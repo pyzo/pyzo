@@ -284,6 +284,10 @@ loadConfig()
 # Init default style name (set in main.restoreIepState())
 defaultQtStyleName = ''
 
+# Init pyzo_mode. In pyzo_mode, IEP will use a different logo and possibly
+# expose certain features in the future.
+pyzo_mode = False
+
 # Init default exe for the executable (can be set, e.g. by Pyzo)
 _defaultInterpreterExe = None
 def setDefaultInterpreterExe(newValue):

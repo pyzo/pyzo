@@ -367,10 +367,8 @@ def loadIcons():
     appiconDir =  os.path.join(iep.iepDir, 'resources', 'appicons')
     
     # Determine template for filename of the application icon-files.
-    # Use the Pyzo logo if the executable was "pyzo", otherwise use
-    # default IEP logo.
-    appname = os.path.split(sys.executable)[1].split('.')[0].lower()
-    if appname == 'pyzo':
+    # Use the Pyzo logo if in pyzo_mode.
+    if iep.pyzo_mode:
         fnameT = 'pyzologo{}.png'
     else:
         fnameT = 'ieplogo{}.png'
