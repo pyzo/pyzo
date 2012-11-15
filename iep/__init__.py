@@ -293,6 +293,7 @@ _defaultInterpreterExe = None
 _defaultInterpreterGui = None
 def setDefaultInterpreter(exe, gui=None):
     global _defaultInterpreterExe
+    global _defaultInterpreterGui
     assert isinstance(exe, str)
     _defaultInterpreterExe = exe
     _defaultInterpreterGui = gui
@@ -310,4 +311,5 @@ def defaultInterpreterExe():
         _defaultInterpreterExe = 'python'
     return _defaultInterpreterExe
 def defaultInterpreterGui():
+    global _defaultInterpreterGui 
     return _defaultInterpreterGui
