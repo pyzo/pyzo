@@ -31,7 +31,6 @@ from iep.iepcore.baseTextCtrl import BaseTextCtrl
 from iep.iepcore.iepLogging import print
 from iep.iepcore.kernelbroker import KernelInfo, Kernelmanager
 from iep.iepcore.menu import ShellContextMenu
-from iep.iepcore.shellInfoDialog import findPythonExecutables
 
 
 
@@ -86,14 +85,14 @@ def finishKernelInfo(info, scriptFile=None):
     # Set executable to default if it is empty
     # Note that we do this on the original struct object.
     if not info.exe:
-        exes = findPythonExecutables()
-        if exes and sys.platform.startswith('win'):
-            info.exe = exes[-1]
-        else:
-            info.exe = 'python'
+        info.exe = '[default]'
     
     # Make a copy, we do not want to change the original
     info = ssdf.copy(info)
+    
+    # Apply default exe
+    if info.exe in ['[default]', '<default>']:
+        info.exe = iep.defaultInterpreterExe()
     
     # Set scriptFile (if '', the kernel will run in interactive mode)
     if scriptFile:
