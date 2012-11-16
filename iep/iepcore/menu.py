@@ -215,7 +215,7 @@ class Menu(QtGui.QMenu):
         name = re.sub('\(.*\)', '', name)
         # replace invalid chars
         name = name.replace(' ', '_')
-        if name[0] in '0123456789_':
+        if name and name[0] in '0123456789_':
             name = "_" + name
         name = re.sub('[^a-zA-z_0-9]','',name)
         return name.lower()
