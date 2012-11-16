@@ -158,7 +158,10 @@ class FindReplaceWidget(QtGui.QFrame):
         layout.setSpacing(0)
         self.setLayout(layout)
         
-        # create widgets
+        # Create some widgets first to realize a correct tab order
+        self._hidebut = QtGui.QToolButton(self)
+        self._findText = QtGui.QLineEdit(self)
+        self._replaceText = QtGui.QLineEdit(self)
         
         if True:
             # Create sub layouts
@@ -167,7 +170,6 @@ class FindReplaceWidget(QtGui.QFrame):
             layout.addLayout(vsubLayout, 0)
             
             # Add button
-            self._hidebut = QtGui.QToolButton(self)
             self._hidebut.setFont( QtGui.QFont('helvetica',7) )
             self._hidebut.setToolTip("Hide search widget (Escape)")
             self._hidebut.setIcon( iep.icons.cancel )
@@ -188,7 +190,6 @@ class FindReplaceWidget(QtGui.QFrame):
             layout.addLayout(vsubLayout, 0)
             
             # Add find text
-            self._findText = QtGui.QLineEdit(self)
             self._findText.setToolTip("Find pattern")
             vsubLayout.addWidget(self._findText, 0)
             
@@ -222,7 +223,6 @@ class FindReplaceWidget(QtGui.QFrame):
             layout.addLayout(vsubLayout, 0)
             
             # Add replace text
-            self._replaceText = QtGui.QLineEdit(self)
             self._replaceText.setToolTip("Replace pattern")
             vsubLayout.addWidget(self._replaceText, 0)
             
@@ -294,7 +294,7 @@ class FindReplaceWidget(QtGui.QFrame):
         for but in [self._findPrev, self._findNext, 
                     self._replaceAll, self._replace,
                     self._caseCheck, self._wholeWord, self._regExp]:
-            but.setFocusPolicy(QtCore.Qt.ClickFocus)
+            #but.setFocusPolicy(QtCore.Qt.ClickFocus)
             but.clicked.connect(self.autoHideTimerReset)
         
         # create timer objects
@@ -359,25 +359,12 @@ class FindReplaceWidget(QtGui.QFrame):
             editor.setFocus()
     
     
-    def focusNextPrevChild(self, next):
-        """ Focus is between the two text fields. Checkboxes are only for
-        clicking.
-        """
-        if self._findText.hasFocus():
-            self._replaceText.setFocus()
-        elif self._replaceText.hasFocus():
-            self._findText.setFocus()
-        else:
-            return False
-        return True
-    
-    
     def event(self, event):
         """ Handle tab key and escape key. For the tab key we need to
         overload event instead of KeyPressEvent.
         """
         if isinstance(event, QtGui.QKeyEvent):
-            if event.key() == QtCore.Qt.Key_Tab:
+            if event.key() in (QtCore.Qt.Key_Tab, QtCore.Qt.Key_Backtab):
                 event.accept() # focusNextPrevChild is called by Qt
                 return True
             elif event.key() == QtCore.Qt.Key_Escape:
