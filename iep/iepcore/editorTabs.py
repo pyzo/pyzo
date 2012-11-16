@@ -359,15 +359,34 @@ class FindReplaceWidget(QtGui.QFrame):
             editor.setFocus()
     
     
-    def keyPressEvent(self, event):
-        """ To capture escape. """
-        
-        if event.key() == QtCore.Qt.Key_Escape:
-            self.hideMe()
-            event.ignore()
+    def focusNextPrevChild(self, next):
+        """ Focus is between the two text fields. Checkboxes are only for
+        clicking.
+        """
+        if self._findText.hasFocus():
+            self._replaceText.setFocus()
+        elif self._replaceText.hasFocus():
+            self._findText.setFocus()
         else:
-            event.accept()
+            return False
+        return True
     
+    
+    def event(self, event):
+        """ Handle tab key and escape key. For the tab key we need to
+        overload event instead of KeyPressEvent.
+        """
+        if isinstance(event, QtGui.QKeyEvent):
+            if event.key() == QtCore.Qt.Key_Tab:
+                event.accept() # focusNextPrevChild is called by Qt
+                return True
+            elif event.key() == QtCore.Qt.Key_Escape:
+                self.hideMe()
+                event.accept()
+                return True
+        # Otherwise ... handle in default manner
+        return QtGui.QFrame.event(self, event)
+        
     
     def handleReplacePossible(self, state):
         """ Disable replacing when using regular expressions.
