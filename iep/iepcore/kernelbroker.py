@@ -55,14 +55,17 @@ class KernelInfo(ssdf.Struct):
         # script-mode. Otherwise we run in interactive mode.
         
         # The name of this shell config. Can be used to name the kernel
-        self.name = ''
+        self.name = 'Python'
         
         # The executable. This can be '/usr/bin/python3.1' or 
         # 'c:/program files/python2.6/python.exe', etc.
-        self.exe = 'python'
+        # The "[default]" is a placeholder text that is replaced at the last
+        # moment with iep.defaultInterpreterExe()
+        self.exe = '[default]'
         
         # The GUI toolkit to embed the event loop of. 
-        self.gui = 'none'
+        # Instantiate with a value that is settable
+        self.gui = iep.defaultInterpreterGui() or 'none'
         
         # The Python path. Paths should be separated by newlines.
         # '$PYTHONPATH' is replaced by environment variable by broker
@@ -120,8 +123,12 @@ class KernelInfo(ssdf.Struct):
 def getCommandFromKernelInfo(info, port):
     info = KernelInfo(info)
     
-    # Correct path when it contains spaces
+    # Apply default exe
     exe = info.exe
+    if exe in ('[default]', '<default>'):
+        exe = iep.defaultInterpreterExe()
+    
+    # Correct path when it contains spaces
     if exe.count(' ') and exe[0] != '"':
         exe = '"{}"'.format(exe)
     

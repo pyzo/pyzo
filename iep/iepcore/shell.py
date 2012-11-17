@@ -90,10 +90,6 @@ def finishKernelInfo(info, scriptFile=None):
     # Make a copy, we do not want to change the original
     info = ssdf.copy(info)
     
-    # Apply default exe
-    if info.exe in ['[default]', '<default>']:
-        info.exe = iep.defaultInterpreterExe()
-    
     # Set scriptFile (if '', the kernel will run in interactive mode)
     if scriptFile:
         info.scriptFile = scriptFile

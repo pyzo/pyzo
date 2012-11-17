@@ -79,6 +79,7 @@ class ShellInfo_exe(QtGui.QComboBox):
         exes = [p.path for p in interpreters]
         
         # Get name for default interpreter
+        # note: the filled in name will not be correct if working remotely
         defaultName = '[default] (%s)' % iep.defaultInterpreterExe()
         
         # Hande current value
@@ -313,7 +314,6 @@ class ShellInfoTab(QtGui.QWidget):
         
         # Collect classes of widgets to instantiate
         classes = []
-        defaultInfo = KernelInfo()
         for t in self.INFO_KEYS:
             className = 'ShellInfo_' + t.key
             cls = globals()[className]
@@ -364,11 +364,8 @@ class ShellInfoTab(QtGui.QWidget):
             info = KernelInfo()
             # Name
             n = self.parent().parent().count()
-            info.name = "Shell config %i" % n
-            # Set the executable to default. This is a placeholder that
-            # is replaced (in shell.py) by a iep.defaultInterpreterExe()
-            info.exe = '[default]'
-            info.gui = iep.defaultInterpreterGui() or 'none'
+            if n > 1:
+                info.name = "Shell config %i" % n
         
         # Store info
         self._info = info
