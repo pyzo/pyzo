@@ -21,7 +21,7 @@ class IEPWizard(QtGui.QWizard):
         QtGui.QWizard.__init__(self, parent)
         
         # Set some appearance stuff
-        self.setMinimumSize(500, 400)
+        self.setMinimumSize(600, 500)
         self.setWindowTitle('Getting started with IEP')
         self.setWizardStyle(self.ModernStyle)
         
@@ -240,8 +240,8 @@ class RuncodeWizardPage2(BaseIEPWizardPage):
         
         Things done on shell startup in <b>script mode</b>:
         <ul>
-        <li>__file__ = <script_filename></li>
-        <li>sys.argv = [ <script_filename> ]</li>
+        <li>__file__ = <i>script_filename</i></li>
+        <li>sys.argv = [ <i>script_filename</i> ]</li>
         <li>sys.path is prepended with the directory containing the script</li>
         <li>The working dir is set to the directory containing the script</li> 
         </ul>
