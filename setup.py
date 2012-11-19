@@ -50,7 +50,9 @@ setup(
                 'iep.yoton', 'iep.yoton.channels',  'iep.yoton.tests',
                ],
     package_dir = {'iep': 'iep'},
-    package_data = {'iep': [ 'license.txt', 'resources/*.*', 'resources/icons/*.*', 'resources/appicons/*.*']},
+    package_data = {'iep': ['license.txt', 'resources/*.*', 
+                            'resources/icons/*.*', 'resources/appicons/*.*', 
+                            'resources/images/*.*']},
     zip_safe = False,
     
     classifiers=[
