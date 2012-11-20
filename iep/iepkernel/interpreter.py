@@ -165,22 +165,22 @@ class IepInterpreter:
         
         # Integrate event loop of GUI toolkit
         self.guiApp = None
-        self.guiName = guiName = startup_info['gui']
+        self.guiName = guiName = startup_info['gui'].upper()
         guiError = ''
         try:
-            if guiName in ['', 'none', 'None']:
+            if guiName in ['', 'NONE']:
                 pass
-            elif guiName == 'tk':
+            elif guiName == 'TK':
                 self.guiApp = guiintegration.Hijacked_tk()
-            elif guiName == 'wx':
+            elif guiName == 'WX':
                 self.guiApp = guiintegration.Hijacked_wx()
-            elif guiName == 'pyside':
+            elif guiName == 'PYSIDE':
                 self.guiApp = guiintegration.Hijacked_pyside()
-            elif guiName in ['pyqt4', 'qt4']:
+            elif guiName in ['PYQT4', 'QT4']:
                 self.guiApp = guiintegration.Hijacked_pyqt4()
-            elif guiName == 'fltk':
+            elif guiName == 'FLTK':
                 self.guiApp = guiintegration.Hijacked_fltk()
-            elif guiName == 'gtk':
+            elif guiName == 'GTK':
                 self.guiApp = guiintegration.Hijacked_gtk()
             else:
                 guiError = 'Unkown gui: %s' % guiName
@@ -190,7 +190,7 @@ class IepInterpreter:
             type, value, tb = sys.exc_info()
             tb = None
             guiError = 'Failed to integrate event loop for %s: %s' % (
-                guiName.upper(), str(value))
+                guiName, str(value))
         
         # Write IEP part of banner (including what GUI loop is integrated)
         if True:
@@ -199,7 +199,7 @@ class IepInterpreter:
             iepBanner += '. ' + guiError + '\n'
         elif self.guiApp:
             iepBanner += ' with integrated event loop for ' 
-            iepBanner += guiName.upper() + '.\n'
+            iepBanner += guiName + '.\n'
         else:
             iepBanner += '.\n'
         sys.stdout.write(iepBanner)
@@ -395,7 +395,7 @@ class IepInterpreter:
                 # result in a TypeError.
                 # I tried to find the source, but did not find it. If anyone
                 # has an idea, please e-mail me!
-                if self.guiName == 'wx':
+                if self.guiName == 'WX':
                     self.write("\nKeyboard Interrupt\n") # space to see difference
                     self._resetbuffer()
                     more = 0
