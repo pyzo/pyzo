@@ -414,9 +414,9 @@ class ShellInfoDialog(QtGui.QDialog):
         # Set title
         self.setWindowTitle(iep.translate('shell', 'Shell configurations'))
         # Create tab widget
-        #self._tabs = QtGui.QTabWidget(self) 
-        self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
-        self._tabs.setDocumentMode(False)
+        self._tabs = QtGui.QTabWidget(self) 
+        #self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
+        #self._tabs.setDocumentMode(False)
         self._tabs.setMovable(True)
         
         # Get known interpreters (sorted them by version)
