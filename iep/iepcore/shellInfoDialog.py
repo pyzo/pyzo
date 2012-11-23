@@ -339,6 +339,7 @@ class ShellInfoTab(QtGui.QWidget):
         label = QtGui.QLabel('', self)        
         instance = QtGui.QPushButton(iep.icons.cancel, t, self)
         instance.setToolTip(t.tt)
+        instance.setAutoDefault(False)
         instance.clicked.connect(self.parent().parent().onTabClose)
         deleteLayout = QtGui.QHBoxLayout()
         deleteLayout.addWidget(instance, 0)
