@@ -73,9 +73,11 @@ class ShellInfo_exe(QtGui.QComboBox):
         self.setEditable(True)
         self.setInsertPolicy(self.InsertAtTop)
         
-        # Get known interpreters (sorted by version)
-        from pyzolib.interpreters import get_interpreters
-        interpreters = list(reversed(get_interpreters('2.4')))
+        # Get known interpreters from shellDialog (which are sorted by version)
+        shellDialog = self
+        while not isinstance(shellDialog, ShellInfoDialog):
+            shellDialog = shellDialog.parent()        
+        interpreters = shellDialog.interpreters
         exes = [p.path for p in interpreters]
         
         # Get name for default interpreter
@@ -417,6 +419,11 @@ class ShellInfoDialog(QtGui.QDialog):
         self._tabs.setDocumentMode(False)
         self._tabs.setMovable(True)
         
+        # Get known interpreters (sorted them by version)
+        # Do this here so we only need to do it once ...
+        from pyzolib.interpreters import get_interpreters
+        self.interpreters = list(reversed(get_interpreters('2.4')))
+        
         # Introduce an entry if there's none
         if not iep.config.shellConfigs2:
             w = ShellInfoTab(self._tabs)
@@ -452,7 +459,6 @@ class ShellInfoDialog(QtGui.QDialog):
         buttonLayout.addSpacing(10)
         buttonLayout.addWidget(okBut)
         
-        
         # Layout the widgets
         mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.addSpacing(8)
@@ -465,7 +471,8 @@ class ShellInfoDialog(QtGui.QDialog):
         size = self.size()
         self.setMinimumSize(size)
         self.setMaximumHeight(size.height())
-
+        
+    
     
     def onAdd(self):
         # Create widget and add to tabs
