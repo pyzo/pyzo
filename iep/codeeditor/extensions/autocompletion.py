@@ -128,16 +128,27 @@ class AutoCompletion(object):
         """Move the autocompleter list to a proper position"""
         #Find the start of the autocompletion and move the completer popup there
         cur=QtGui.QTextCursor(self.__autocompleteStart) #Copy __autocompleteStart
-
-        position = self.cursorRect(cur).bottomLeft() + \
-            self.viewport().pos() #self.geometry().topLeft() +
-        self.__completer.popup().move(self.mapToGlobal(position))
         
-        #Set size
+        # Set size
         geometry = self.__completer.popup().geometry()
         geometry.setWidth(200)
         geometry.setHeight(100)
         self.__completer.popup().setGeometry(geometry)
+        
+        # Initial choice for position of the completer
+        position = self.cursorRect(cur).bottomLeft() + self.viewport().pos()
+        
+        # Check if the completer is going to go off the screen
+        desktop_geometry = QtGui.qApp.desktop().geometry()
+        global_position = self.mapToGlobal(position)
+        if global_position.y() + geometry.height() > desktop_geometry.height():
+            # Move the completer to above the current line
+            position = self.cursorRect(cur).topLeft() + self.viewport().pos()
+            global_position = self.mapToGlobal(position)
+            global_position -= QtCore.QPoint(0, geometry.height())
+        
+        self.__completer.popup().move(global_position)
+    
     
     def __updateAutocompleterPrefix(self):
         """
