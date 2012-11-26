@@ -165,8 +165,10 @@ def getEnvFromKernelInfo(info):
     pythonPaths = [p.strip() for p in pythonPath.split('\n') if p]
     # Recombine using the OS's path separator
     pythonPath = os.pathsep.join(pythonPaths)
-    # Add empty string to Pythopath, so that we can import yoton
-    pythonPath = os.pathsep + pythonPath
+    # Add entry to Pythopath, so that we can import yoton
+    # Note: an empty entry might cause trouble if the start-directory is 
+    # somehow overriden (see issue 128).
+    pythonPath = iep.iepDir + os.pathsep + pythonPath 
     
     # Prepare environment, remove references to tk libraries, 
     # since they're wrong when frozen. Python will insert the
