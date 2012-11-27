@@ -28,6 +28,29 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, locale=None):
         QtGui.QMainWindow.__init__(self, parent)
         
+        # Init window title
+        self.setWindowTitle("IEP (loading ...)")
+        
+        # Restore window geometry before drawing for the first time,
+        # such that the window is in the right place
+        self.resize(800, 600) # default size
+        self.restoreGeometry()
+        iep.pyzo_mode = 3
+        # Change background of main window to create a splash-screen-efefct
+        iconImage = 'pyzologo256.png'*bool(iep.pyzo_mode) or 'ieplogo256.png'
+        self.setStyleSheet( """QMainWindow { 
+                            background-color: #268bd2;
+                            background-image: url("%s");
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            }
+                            """ % os.path.join(iep.iepDir, 'resources','appicons', iconImage))
+       
+        # Show empty window and disable updates for a while
+        self.show()
+        self.paintNow()
+        self.setUpdatesEnabled(False)
+        
         # Set locale of main widget, so that qt strings are translated
         # in the right way
         if locale:
@@ -47,62 +70,52 @@ class MainWindow(QtGui.QMainWindow):
         # Set window atrributes
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
-        # Load icons now
+        # Load icons, after wich we can set the window icon
         loadIcons()
-        
-        # Create timer to repeatedly set the state of the dockwidgets.
-        # If we do not do this, the state is not set corerctly (see issue 95)
-        # I'm not sure why, but this is needed. On PyQt4 it was enough
-        # to do this after 10 ms, on PySide the delay had to be about 
-        # half a second. So we apply a dirty but effective trick: 
-        # For two seconds, we repeatedly set the state.
-        self._initTimer = QtCore.QTimer()
-        self._initTimer.timeout.connect(self.restoreState)
-        self._initTimer.setInterval(200) # ms
-        self._initTimer.setSingleShot(False)
-        self._initTimer._timeout = time.time() + 2.0
-        self._initTimer.start() # First call will be *after* this function ends
+        self.setWindowIcon(iep.icon)
         
         # Set qt style and test success
         self.setQtStyle(None) # None means init!
         
-        # Set label and icon
-        self.setWindowTitle("IEP (loading ...)")
-        self.setWindowIcon(iep.icon)
-        
-        # Change background color to a kind of darkish python-blue,
-        # to suggest that it will be filled (which it will)
-        self.setStyleSheet( 'QMainWindow { background-color: #285078;} ')
-        
-        # Restore window geometry before drawing for the first time,
-        # such that the window is in the right place
-        self.resize(800, 600) # default size
-        self.restoreGeometry()
-        
-        # Show empty window and disable updates for a while
-        self.show()
-        QtGui.qApp.processEvents()
-        QtGui.qApp.flush()
-        self.setUpdatesEnabled(False)
-        
         # Populate the window (imports more code)
         self._populate()
         
-        # Restore state while updates are disabled. 
-        self.restoreState()
-        
-        # Show window again with normal background, and enable updates
+        # Revert to normal background, and enable updates
         self.setStyleSheet('')
         self.setUpdatesEnabled(True)
+        
+        # Restore window state, force updating, and restore again
+        self.restoreState()
+        self.paintNow()
+        self.restoreState()
+        
+        # Load basic tools if new user
+        if iep.config.state.newUser and not iep.config.state.loadedTools:
+            iep.toolManager.loadTool('iepsourcestructure')
+            iep.toolManager.loadTool('iepprojectmanager')
         
         # Present user with wizard if he/she is new.
         if iep.config.state.newUser:
             from iep.iepcore.iepwizard import IEPWizard
             w = IEPWizard(self)
             w.show() # Use show() instead of exec_() so the user can interact with IEP
-        
-        # Note that after this, restoreState will be called a couple of times.
-        
+    
+    
+    # To force drawing ourselves
+    def paintEvent(self, event):
+        QtGui.QMainWindow.paintEvent(self, event)
+        self._ispainted = True
+    
+    def paintNow(self):
+        """ Enforce a repaint and keep calling processEvents until
+        we are repainted.
+        """
+        self._ispainted = False
+        self.update()
+        while not self._ispainted:   
+            QtGui.qApp.flush()
+            QtGui.qApp.processEvents()
+            time.sleep(0.01)
     
     def _populate(self):
         
@@ -222,16 +235,6 @@ class MainWindow(QtGui.QMainWindow):
                 self.restoreState(state)
             except Exception as err:
                 print('Could not restore window state: ' + str(err))
-        
-        # Turn init timer off?
-        if self._initTimer._timeout < time.time():
-            self._initTimer.stop()
-            
-            # Load basic tools if new user
-            # Do this after the last restoreState() call
-            if iep.config.state.newUser and not iep.config.state.loadedTools:
-                iep.toolManager.loadTool('iepsourcestructure')
-                iep.toolManager.loadTool('iepprojectmanager')
     
     
     def setQtStyle(self, stylename=None):
