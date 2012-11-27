@@ -1042,7 +1042,7 @@ class RunMenu(Menu):
         """ Run the selected whole lines in the current shell. 
         """
         # Get editor and shell
-        shell, editor = self._getShellAndEditor('selected lines')
+        shell, editor = self._getShellAndEditor('selection')
         if not shell or not editor:
             return
         

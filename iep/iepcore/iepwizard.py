@@ -209,9 +209,12 @@ class RuncodeWizardPage1(BaseIEPWizardPage):
     _description = """
         IEP supports several ways to run source code in the editor. (see the "Run" menu).
         <ul>
-        <li><b>Run selected lines:</b> if a line is partially selected, the whole
-            line is executed. If there is no selection, IEP will run the
-            current line. </li>
+        <li><b>Run selection:</b> if there is no selected text, the
+            current line is executed; if the selection is on a single
+            line, the selection is evaluated; if the selection spans
+            multiple lines, IEP will run the the (complete) selected
+            lines.
+            </li>
         <li><b>Run cell:</b> a cell is everything between two commands starting
             with '##'.</li> 
         <li><b>Run file:</b> this runs all the code in the current file.  </li>
