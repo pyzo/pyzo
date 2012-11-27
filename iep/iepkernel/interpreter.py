@@ -24,7 +24,7 @@ import keyword
 import inspect # Must be in this namespace
 
 import yoton
-from iepkernel import guiintegration
+from iepkernel import guiintegration, printDirect
 from iepkernel.magic import Magician
 
 # Init last traceback information
@@ -153,13 +153,13 @@ class IepInterpreter:
         startup_info['keywords'] = keyword.kwlist
         self.context._stat_startup.send(startup_info)
         
-        # Write Python banner
+        # Write Python banner (to stdout)
         NBITS = 8 * struct.calcsize("P")
         platform = sys.platform
         if platform.startswith('win'):
             platform = 'Windows'
         platform = '%s (%i bits)' % (platform, NBITS) 
-        sys.stdout.write("Python %s on %s.\n" %
+        printDirect("Python %s on %s.\n" %
             (sys.version.split('[')[0].rstrip(), platform))
         
         
@@ -202,18 +202,18 @@ class IepInterpreter:
             iepBanner += guiName + '.\n'
         else:
             iepBanner += '.\n'
-        sys.stdout.write(iepBanner)
+        printDirect(iepBanner)
         
         
         # Append project path if given
         projectPath = startup_info['projectPath']
         if projectPath:
-            sys.stdout.write('Prepending the project path %r to sys.path\n' % 
+            printDirect('Prepending the project path %r to sys.path\n' % 
                 projectPath)
             #Actual prepending is done below, to put it before the script path
         
         # Write tips message
-        sys.stdout.write('Type "help" for help, ' + 
+        printDirect('Type "help" for help, ' + 
                             'type "?" for a list of *magic* commands.\n')
         
         
@@ -221,7 +221,7 @@ class IepInterpreter:
         scriptFilename = startup_info['scriptFile']
         if scriptFilename:
             if not os.path.isfile(scriptFilename):
-                sys.stdout.write('Invalid script file: "'+scriptFilename+'"\n')
+                printDirect('Invalid script file: "'+scriptFilename+'"\n')
                 scriptFilename = None
         
         # Init script to run on startup
@@ -246,7 +246,7 @@ class IepInterpreter:
             os.chdir( os.path.dirname(scriptFilename) )
             
             # Notify the running of the script
-            sys.stdout.write('[Running script: "'+scriptFilename+'"]\n')
+            printDirect('[Running script: "'+scriptFilename+'"]\n')
             
             # Run script
             self._scriptToRunOnStartup = scriptFilename
@@ -531,14 +531,14 @@ class IepInterpreter:
         try:
             source = open(fname, 'rb').read().decode('UTF-8')
         except Exception:
-            sys.stdout.write('Could not read script (decoding using UTF-8): "' + fname + '"\n')
+            printDirect('Could not read script (decoding using UTF-8): "' + fname + '"\n')
             return
         try:
             source = source.replace('\r\n', '\n').replace('\r','\n')
             if source[-1] != '\n':
                 source += '\n'
         except Exception:        
-            sys.stdout.write('Could not execute script: "' + fname + '"\n')
+            printDirect('Could not execute script: "' + fname + '"\n')
             return
         
         # Try compiling the source
