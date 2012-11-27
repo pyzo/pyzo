@@ -1351,7 +1351,7 @@ class HelpMenu(Menu):
                         iep.iepDir, iep.appDataDir)
         
         # Define icon and text
-        im = QtGui.QPixmap( os.path.join(iep.iepDir,'resources', 'appicons', 'ieplogo48.png') )
+        im = QtGui.QPixmap( os.path.join(iep.iepDir,'resources', 'appicons', 'ieplogo64.png') )
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setTextFormat(QtCore.Qt.RichText)

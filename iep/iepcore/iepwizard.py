@@ -117,7 +117,7 @@ class BaseIEPWizardPage(QtGui.QWizardPage):
 class IntroWizardPage(BaseIEPWizardPage):
     
     _title = 'Welcome to the Interactive Editor for Python!'
-    _image_filename = 'ieplogo48.png'
+    _image_filename = 'ieplogo128.png'
     _description = """
         This wizard helps you get familiarized with the workings of IEP.
         <br/><br/>
@@ -286,7 +286,7 @@ class ToolsWizardPage2(BaseIEPWizardPage):
 class FinalPage(BaseIEPWizardPage):
     
     _title = 'Get coding!'
-    _image_filename = 'ieplogo48.png'
+    _image_filename = 'ieplogo128.png'
     _description = """
         This concludes the IEP wizard.
         Now, get coding and have fun!
