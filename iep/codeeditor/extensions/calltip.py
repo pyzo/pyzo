@@ -130,7 +130,7 @@ class Calltip(object):
             self.__noshow = True
             return
         
-        if event.key() == Qt.Key_ParenRight:
+        if event.key() in [Qt.Key_ParenLeft, Qt.Key_ParenRight]:
             self.__noshow = False
         
         # Proceed processing the keystrike
