@@ -6,6 +6,8 @@
 
 """ 
 Magic commands for the IEP kernel.
+No need to use printDirect here, magic commands are just like normal Python
+commands, in the sense that they print something etc.
 """
 
 import sys

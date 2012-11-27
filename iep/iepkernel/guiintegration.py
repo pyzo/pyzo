@@ -14,6 +14,7 @@ Support for PyQt4, WxPython, FLTK, GTK, TK.
 
 """
 
+from iepkernel import printDirect
 
 mainloopWarning = """
 Note: not entering main loop. The GUI app is integrated with the IEP event
@@ -50,7 +51,7 @@ class Hijacked_tk(Hijacked_base):
         # tkinter.Tk() has a mainloop method, which will simply call
         # tkinter.mainloop().
         def dummy_mainloop(*args,**kwargs):
-            print(mainloopWarning)
+            printDirect(mainloopWarning)
         tkinter.Misc.mainloop = dummy_mainloop
         tkinter.mainloop = dummy_mainloop
                 
@@ -87,7 +88,7 @@ class Hijacked_fltk(Hijacked_base):
         
         # Replace mainloop with a dummy
         def dummyrun(*args,**kwargs):
-            print(mainloopWarning)
+            printDirect(mainloopWarning)
         fl.Fl.run = types.MethodType(dummyrun, fl.Fl)
         
         # Store the app instance to process events
@@ -110,7 +111,7 @@ class Hijacked_fltk2(Hijacked_base):
         
         # Replace mainloop with a dummy
         def dummyrun(*args,**kwargs):
-            print(mainloopWarning)    
+            printDirect(mainloopWarning)    
         fl.run = dummyrun    
         
         # Return the app instance to process events
@@ -137,7 +138,6 @@ class Hijacked_qt(Hijacked_base):
         # Store the real application class
         if not hasattr(QtGui, 'real_QApplication'):
             QtGui.real_QApplication = QtGui.QApplication
-        
         
         class QApplication_hijacked(QtGui.QApplication):
             """ QApplication_hijacked(*args, **kwargs)
@@ -203,7 +203,7 @@ class Hijacked_qt(Hijacked_base):
                 quite hard if an object goes out of scope, and the error
                 is not obvious.
                 """
-                print(mainloopWarning)
+                printDirect(mainloopWarning)
         
         
         # Instantiate application object 
@@ -272,7 +272,7 @@ class Hijacked_qt_old(Hijacked_base):
             def __init__(self, *args, **kwargs):
                 pass
             def exec_(self, *args, **kwargs):
-                print(mainloopWarning)
+                printDirect(mainloopWarning)
         
         # Instantiate QApplication and store
         app = QtGui.QApplication.instance()
@@ -330,7 +330,7 @@ class Hijacked_wx(Hijacked_base):
         
         # Create dummy mainloop to replace original mainloop
         def dummy_mainloop(*args, **kw):
-            print(mainloopWarning)
+            printDirect(mainloopWarning)
         
         # Depending on version, replace mainloop
         ver = wx.__version__
@@ -387,7 +387,7 @@ class Hijacked_gtk(Hijacked_base):
         
         # Replace mainloop with a dummy
         def dummy_mainloop(*args, **kwargs):
-            print(mainloopWarning)        
+            printDirect(mainloopWarning)        
         gtk.mainloop = dummy_mainloop
         gtk.main = dummy_mainloop
         
