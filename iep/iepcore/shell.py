@@ -677,6 +677,7 @@ class BaseShell(BaseTextCtrl):
                 self._history.insert(0,command)
         
         if execute:
+            command = command.replace('\r\n', '\n')
             self.executeCommand(command+'\n')
     
     
