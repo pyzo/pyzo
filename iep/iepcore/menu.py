@@ -1052,20 +1052,30 @@ class RunMenu(Menu):
         
         runCursor.setPosition(screenCursor.selectionStart())
         runCursor.movePosition(runCursor.StartOfBlock) #This also moves the anchor
-        lineNumber = runCursor.blockNumber()
-        
+        lineNumber1 = runCursor.blockNumber()
+    
         runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
         if not runCursor.atBlockStart():
             #If the end of the selection is at the beginning of a block, don't extend it
             runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
+        lineNumber2 = runCursor.blockNumber()
         
-        # Get source code
-        code = runCursor.selectedText().replace('\u2029', '\n')
-        # Notify user of what we execute
-        self._showWhatToExecute(editor, runCursor)
-        # Get filename and run code
-        fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber)
+        # Does this look like a statement?
+        isStatement = lineNumber1 == lineNumber2 and screenCursor.hasSelection()
+        
+        if isStatement:
+            # Get source code of statement
+            code = screenCursor.selectedText().replace('\u2029', '\n').strip()
+            # Execute statement
+            shell.executeCommand(code+'\n')
+        else:
+            # Get source code
+            code = runCursor.selectedText().replace('\u2029', '\n')
+            # Notify user of what we execute
+            self._showWhatToExecute(editor, runCursor)
+            # Get filename and run code
+            fname = editor.id() # editor._name or editor._filename
+            shell.executeCode(code, fname, lineNumber1)
     
     def _runCell(self):
         """ Run the code between two cell separaters ('##'). 
