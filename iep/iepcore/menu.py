@@ -983,7 +983,7 @@ class RunMenu(Menu):
     def build(self):
         icons = iep.icons
         
-        self.addItem(translate("menu", 'Run selected lines ::: Run the selected editor\'s selected lines in the current shell.'), 
+        self.addItem(translate("menu", 'Run selection ::: Run the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'), 
             icons.run_lines, self._runSelected)
         self.addItem(translate("menu", 'Run cell ::: Run the current editors\'s cell in the current shell.'), 
             icons.run_cell, self._runCell)
