@@ -355,7 +355,7 @@ class IepInterpreter:
                         line2 = self.magician.convert_command(line1.rstrip('\n'))
                         # Execute actual code
                         if line2 is not None:
-                            for line3 in line2.splitlines(True):
+                            for line3 in line2.splitlines():
                                 more = self.pushline(line3)
                         else:
                             more = False
