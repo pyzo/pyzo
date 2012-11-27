@@ -34,6 +34,10 @@ class Calltip(object):
         self.__calltipLabel = self.__CalltipLabel()
         # Be notified of style updates
         self.styleChanged.connect(self.__afterSetStyle)
+        
+        # Prevents calltips from being shown immediately after pressing
+        # the escape key.
+        self.__noshow = False
     
     
     def __afterSetStyle(self):
@@ -60,6 +64,11 @@ class Calltip(object):
             default False.
         
         """
+        
+        # Do not show the calltip if it was deliberately hidden by the
+        # user.
+        if self.__noshow:
+            return
         
         # Process calltip text?
         if highlightFunctionName:
@@ -118,7 +127,11 @@ class Calltip(object):
         if event.key() == Qt.Key_Escape and event.modifiers() == Qt.NoModifier \
                 and self.calltipActive():
             self.calltipCancel()
+            self.__noshow = True
             return
+        
+        if event.key() == Qt.Key_ParenRight:
+            self.__noshow = False
         
         # Proceed processing the keystrike
         super(Calltip, self).keyPressEvent(event)
