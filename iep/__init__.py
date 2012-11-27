@@ -245,7 +245,7 @@ def startIep():
     #at once, which will conflict
     QtGui.QApplication.setLibraryPaths([])
     
-    # Instantiate the application, and the main window
+    # Instantiate the application
     QtGui.qApp = QtGui.QApplication([])
     
     # Choose language, get locale
@@ -254,7 +254,7 @@ def startIep():
     locale = None
     #locale = setLanguage(QtCore.QLocale.Dutch)
     
-    # Create IEP, using the selected locale
+    # Create main window, using the selected locale
     frame = MainWindow(None, locale)
     
     # Enter the main loop
