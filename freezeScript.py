@@ -31,7 +31,7 @@ baseDir = os.path.abspath('') + '/'
 srcDir = baseDir + 'iep/'
 distDir = baseDir + 'frozen/'
 scriptFiles = [srcDir + '__main__.py']
-iconFile = srcDir + 'icons/iep.ico'
+iconFile = srcDir + 'resources/appicons/ieplogo.ico'
 
 # On MAC, build an application bundle
 if sys.platform=='darwin':
@@ -74,7 +74,8 @@ includes = PySideModules
 ## Freeze
 
 # Clear first
-shutil.rmtree(distDir)
+if os.path.isdir(distDir):
+    shutil.rmtree(distDir)
 os.makedirs(distDir)
 
 
@@ -86,8 +87,7 @@ for scriptFile in scriptFiles:
                             targetName = 'iep.exe',
                             icon=iconFile,
                             appendScriptToExe = True,
-                            base = 'Win32GUI', # this is what hides the console
-                            includeMSVCR = True,
+                            base = 'Win32GUI', # this is what hides the console                            
                             )
     else:
         ex = Executable(    scriptFile, 
@@ -101,6 +101,7 @@ f = Freezer(    executables,
                 excludes = excludes,
                 targetDir = distDir,
                 copyDependentFiles = True,
+                includeMSVCR = True,
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
                 compress=False,
