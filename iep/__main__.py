@@ -25,17 +25,26 @@ import sys
 import shutil
 
 
-try:
+if hasattr(sys, 'frozen') and sys.frozen:
+    # Enable loading from source
+    from pyzolib import paths
+    sys.path.insert(0, os.path.join(paths.application_dir(), 'source'))
+    # Import
     import iep
-except ImportError:
-    # Very probably run as a script, either the package or the __main__
-    # directly. Add parent directory to sys.path and try again.
-    thisDir = os.path.abspath(os.path.dirname(__file__))
-    sys.path.insert(0, os.path.split(thisDir)[0])
+
+else:
+    # Try importing
     try:
         import iep
     except ImportError:
-        raise ImportError('Could not import IEP in either way.')
+        # Very probably run as a script, either the package or the __main__
+        # directly. Add parent directory to sys.path and try again.
+        thisDir = os.path.abspath(os.path.dirname(__file__))
+        sys.path.insert(0, os.path.split(thisDir)[0])
+        try:
+            import iep
+        except ImportError:
+            raise ImportError('Could not import IEP in either way.')
 
 # Start IEP
 iep.startIep()

@@ -27,13 +27,13 @@ from cx_Freeze import Executable, Freezer, setup
 
 # Define app name and such
 name = "iep"
-baseDir = './'
-srcDir = './'
-distDir = baseDir+'../frozen/'
-scriptFiles = [srcDir + 'iep.pyw', srcDir + 'iep_.pyw']
+baseDir = os.path.abspath('') + '/'
+srcDir = baseDir + 'iep/'
+distDir = baseDir + 'frozen/'
+scriptFiles = [srcDir + '__main__.py']
 iconFile = srcDir + 'icons/iep.ico'
 
-#On MAC, build an application bundle
+# On MAC, build an application bundle
 if sys.platform=='darwin':
     contentsDir=distDir+name+'.app/Contents/'
     resourcesDir=contentsDir+'Resources/'
@@ -43,6 +43,7 @@ if sys.platform=='darwin':
 else:
     applicationBundle=False
 
+sys.path.append('')
 
 
 ## Includes and excludes
@@ -63,30 +64,34 @@ excludes.extend(tk_excludes)
 excludes.append('numpy')
 
 # For qt to work
-# todo: remove Qsci, enable pyside?
-includes = []
-#includes.append('PyQt4.uic')
+PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
+PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
+#
+excludes.extend(PyQtModules)
+includes = PySideModules
 
-## Go!
-# See http://cx-freeze.sourceforge.net/cx_Freeze.html for docs.
 
-# NOTE: I had to add "import sys" to freezer.py for it to work and prevent
-# the "None object has no atribute modules" error message
-# The statement should be added right before "sys.modules[__name__] = m".
+## Freeze
 
-sys.path.append('')
+# Clear first
+shutil.rmtree(distDir)
+os.makedirs(distDir)
+
 
 executables = {}
 for scriptFile in scriptFiles:
     
     if sys.platform.startswith('win'):
         ex = Executable(    scriptFile, 
+                            targetName = 'iep.exe',
                             icon=iconFile,
                             appendScriptToExe = True,
                             base = 'Win32GUI', # this is what hides the console
+                            includeMSVCR = True,
                             )
     else:
         ex = Executable(    scriptFile, 
+                            targetName = 'iep',
                         )
     executables[ex] = True
 
@@ -107,50 +112,32 @@ f.Freeze()
 
 ## Process source code and other resources
 
-#TODO: remove the repetition here!
-#TODO: prevent copying '.xxx' files
+# taken from pyzo_build:
+def copydir_smart(path1, path2):
+    """ like shutil.copytree, but ...
+      * ignores __pycache__directories
+      * ignores hg, svn and git directories
+    """
+    # Ensure destination directory does exist
+    if not os.path.isdir(path2):
+        os.makedirs(path2)
+    # Itereate over elements
+    count = 0
+    for sub in os.listdir(path1):
+        fullsub1 = os.path.join(path1, sub)
+        fullsub2 = os.path.join(path2, sub)
+        if sub in ['__pycache__', '.hg', '.svn', '.git']:
+            continue
+        elif os.path.isdir(fullsub1):
+            count += copydir_smart(fullsub1, fullsub2)
+        elif os.path.isfile(fullsub1):
+            shutil.copy(fullsub1, fullsub2)
+            count += 1
+    # Return number of copies files
+    return count
 
-# Create source dir in frozen app
-srcDir2 = distDir + 'source/'
-
-#Copy all the source files
-for dir in ['','iepkernel/', 'iepcore/', 'tools/',
-    'codeeditor/', 'codeeditor/extensions/', 'codeeditor/parsers/',
-    'yoton/', 'yoton/channels/']:
-    if not os.path.isdir(srcDir2+dir):
-        os.mkdir(srcDir2+dir)
-
-    for fname in os.listdir(srcDir+dir):
-        if os.path.isfile(srcDir+dir+fname) and not fname.endswith('.pyc') and not fname.startswith('.'):
-            shutil.copy(srcDir+dir+fname, srcDir2+dir+fname)
-
-
-# Create icons dir in frozen app
-iconsDir  = srcDir + 'icons/'
-iconsDir2 = srcDir2 + 'icons/'
-if not os.path.isdir(iconsDir2):
-    os.mkdir(iconsDir2)
-
-# Create gui dir in frozen app
-#guiDir  = srcDir + 'gui/'
-#guiDir2 = srcDir2 + 'gui/'
-#if not os.path.isdir(guiDir2):
-#    os.mkdir(guiDir2)
-
-# Create resources dir in frozen app
-resDir = srcDir + 'resources/'
-resDir2 = srcDir2 + 'resources/'
-
-if not os.path.isdir(resDir2):
-    os.mkdir(resDir2)
-
-for fname in os.listdir(iconsDir):
-    shutil.copy(iconsDir+fname, iconsDir2+fname)
-#for fname in os.listdir(guiDir):
-#    if not os.path.isdir(guiDir+fname):
-#        shutil.copy(guiDir+fname, guiDir2+fname)
-for fname in os.listdir(resDir):
-    shutil.copy(resDir+fname, resDir2+fname)
+# Copy the whole IEP package
+copydir_smart(os.path.join(srcDir), os.path.join(distDir, 'source', 'iep'))
 
 # Remove dummy executable
 tmp1 = os.path.join(distDir,'iep_.exe')
@@ -159,6 +146,7 @@ for fname in [tmp1, tmp2]:
     if os.path.isfile(fname):
         os.remove(fname)
 
+# todo: this is now in cx_Freeze right?
 if applicationBundle:
     #Change the absolute paths in all library files to relative paths
     #This should be a cx_freeze task, but cx_freeze doesn't do it
@@ -197,9 +185,9 @@ if applicationBundle:
     #Copy the icon
     if not os.path.isdir(resourcesDir):
         os.mkdir(resourcesDir)
-    shutil.copy(srcDir+'Icons/iep.icns',resourcesDir+'iep.icns')
+    shutil.copy(srcDir+'resources/appicons/ieplogo.icns',resourcesDir+'iep.icns')
     #Copy the Info.plist file
-    shutil.copy(srcDir+'Info.plist',contentsDir+'Info.plist')
+    shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
 
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
     shutil.copytree('/opt/local/lib/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
