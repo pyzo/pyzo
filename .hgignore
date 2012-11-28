@@ -2,3 +2,4 @@ syntax: glob
 *.pyc
 .DS_Store
 build/*
+frozen/*
