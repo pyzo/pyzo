@@ -1234,12 +1234,14 @@ class HelpMenu(Menu):
     def build(self):
         icons = iep.icons
         
-        self.addUrlItem(translate("menu", "Website ::: Open the IEP website in your browser."), 
+        self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
+            icons.help, "http://www.pyzo.org")
+        self.addUrlItem(translate("menu", "IEP Website ::: Open the IEP website in your browser."), 
             icons.help, "http://iep.pyzo.org")
         self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
-            icons.comments, "http://groups.google.com/group/iep_")
+            icons.comments, "http://pyzo.org/community.html#discussion-fora-and-email-lists")
         self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in IEP, or do you have a feature request?"), 
-            icons.error_add, "http://code.google.com/p/iep/issues/list")
+            icons.error_add, "http://pyzo.org/issues.html")
         self.addSeparator()
         self.addItem(translate("menu", "IEP wizard ::: Get started quickly."), 
             icons.wand, self._showIepWizard)
