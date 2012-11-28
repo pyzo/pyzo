@@ -38,13 +38,15 @@ class MainWindow(QtGui.QMainWindow):
         
         # Change background of main window to create a splash-screen-efefct
         iconImage = 'pyzologo256.png' if iep.pyzo_mode else 'ieplogo256.png'
+        iconImage = os.path.join(iep.iepDir, 'resources','appicons', iconImage)
+        iconImage = iconImage.replace(os.path.sep, '/') # Fix for Windows
         self.setStyleSheet( """QMainWindow { 
                             background-color: #268bd2;
-                            background-image: url(%r);
+                            background-image: url("%s");
                             background-repeat: no-repeat;
                             background-position: center;
                             }
-                            """ % os.path.join(iep.iepDir, 'resources','appicons', iconImage))
+                            """ % iconImage)
         
         # Show empty window and disable updates for a while
         self.show()
