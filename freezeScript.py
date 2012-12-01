@@ -19,6 +19,14 @@ program files directory of windows7.
 
 The frozen application is created in a sibling directory of the source.
 
+For distribution:
+  * Write release notes
+  * Update __version__
+  * Build binaries for Windows, Linux and Mac
+  * Upload binaries to iep website
+  * Upload source to pypi
+  * Announce
+  
 """
 
 import sys, os, stat, shutil
@@ -147,6 +155,36 @@ for fname in [tmp1, tmp2]:
     if os.path.isfile(fname):
         os.remove(fname)
 
+# Create settings folder and put in a file
+os.mkdir(os.path.join(distDir, '_settings'))
+
+SETTINGS_TEXT = """
+Portable settings folder
+------------------------
+This folder can be used to let the application and the libaries that
+it uses to store configuration files local to the executable. One use
+case is having this app on a USB drive that you use on different
+computers.
+
+This functionality is enabled if the folder is named "settings" and is
+writable by the application (i.e. should not be in "c:\program files\..." 
+or "/usr/..."). This functionality can be deactivated by renaming
+it (e.g. prepending an underscore). To reset config files, clear the
+contents of this folder (but do not remove the folder itself).
+
+Note that some libraries may ignore this functionality and use the
+normal system configuration directory instead.
+
+This "standard" was discussed between the authors of WinPython,
+PortablePython and Pyzo. Developers can use the appdata_dir() function
+from https://code.google.com/p/pyzolib/source/browse/paths.py to
+use this standard. For more info, contact either of us.
+
+""".lstrip()
+with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
+    file.write(SETTINGS_TEXT.encode('utf-8'))
+
+
 ## Post processing
 
 # todo: these 2 function are from pzyo_build, move them to pyzolib
@@ -165,7 +203,7 @@ def _get_command_to_set_search_path():
         utilname = 'patchelf'
         import PySide
         utilCommand = os.path.join(os.path.dirname(PySide.__file__), utilname)
-    
+        utilCommand = utilCommand if os.path.isfile(utilCommand) else None
     # Store and return
     _search_path_command = utilCommand
     return utilCommand
@@ -188,6 +226,8 @@ def set_search_path(path, *args):
     # Prepare
     args = [arg for arg in args if arg]
     command = _get_command_to_set_search_path()
+    if command is None:
+        return
     
     if sys.platform.startswith('linux'):
         # Create search path value
