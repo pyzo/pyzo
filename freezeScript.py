@@ -75,8 +75,12 @@ excludes.append('numpy')
 PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
 #
-excludes.extend(PyQtModules)
-includes = PySideModules
+if sys.platform == 'darwin':
+	excludes.extend(PySideModules)
+	includes = PyQtModules
+else:
+	excludes.extend(PyQtModules)
+	includes = PySideModules
 
 
 ## Freeze
@@ -109,7 +113,7 @@ f = Freezer(    executables,
                 excludes = excludes,
                 targetDir = distDir,
                 copyDependentFiles = True,
-                includeMSVCR = True,
+#                includeMSVCR = True,
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
                 compress=False,
@@ -304,7 +308,7 @@ if applicationBundle:
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
 
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
-    shutil.copytree('/opt/local/lib/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
+    shutil.copytree('/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
 
 
     #Package in a dmg
