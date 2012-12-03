@@ -18,6 +18,9 @@ For distribution:
   * Upload binaries to iep website
   * Upload source to pypi
   * Announce
+    
+  * Add tag to released commit
+  * Incease version number to dev
   
 """
 
