@@ -8,16 +8,8 @@
 This script can be run as a script (no need to do distutils stuff...)
 
 Iep is frozen in such a way that it still uses the plain source code.
-Therefore iep.pyw imports iep.py using the "exec" function. We create
-two executables, one from iep.pyw, and one from iep_.pyw, that does
-import iep.py explcitily and is therefore completely frozen. The effect
-is that all modules that iep uses, are all available without having to
-explicitly include them in this script.
-
-Note that .pyc files are created even if the frozen app is inside the 
-program files directory of windows7.
-
-The frozen application is created in a sibling directory of the source.
+This is achieved by putting the IEP package in a subdirectory called
+"source". This source directory is added to sys.path by __main__.py.
 
 For distribution:
   * Write release notes
@@ -76,11 +68,11 @@ PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
 #
 if sys.platform == 'darwin':
-	excludes.extend(PySideModules)
-	includes = PyQtModules
+    excludes.extend(PySideModules)
+    includes = PyQtModules
 else:
-	excludes.extend(PyQtModules)
-	includes = PySideModules
+    excludes.extend(PyQtModules)
+    includes = PySideModules
 
 
 ## Freeze
@@ -113,7 +105,7 @@ f = Freezer(    executables,
                 excludes = excludes,
                 targetDir = distDir,
                 copyDependentFiles = True,
-#                includeMSVCR = True,
+                includeMSVCR = True,
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
                 compress=False,
