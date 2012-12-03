@@ -66,13 +66,7 @@ tools = dict:
         level = 3
 
 shellConfigs2 = list:
-    dict:
-        name = 'Shell config 1'
-        exe = '' # Will be filled in by the shell if empty
-        gui = ''
-        startDir = ''
-        pythonPath = '$PYTHONPATH'
-        startupScript = '$PYTHONSTARTUP'
+    # Empty, let IEP create one on startup
 
 shortcuts2 = dict:
     edit__comment = 'Ctrl+R,'

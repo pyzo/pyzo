@@ -101,7 +101,11 @@ class MainWindow(QtGui.QMainWindow):
             from iep.iepcore.iepwizard import IEPWizard
             w = IEPWizard(self)
             w.show() # Use show() instead of exec_() so the user can interact with IEP
-    
+        
+        # Create new shell config if there is None
+        if not iep.config.shellConfigs2:
+            from iep.iepcore.kernelbroker import KernelInfo
+            iep.config.shellConfigs2.append( KernelInfo() )
     
     # To force drawing ourselves
     def paintEvent(self, event):
