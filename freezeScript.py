@@ -105,6 +105,7 @@ for scriptFile in scriptFiles:
 
 f = Freezer(    executables, 
                 includes = includes,
+                binIncludes = ['libssl.so', 'libcrypto.so'],
                 excludes = excludes,
                 targetDir = distDir,
                 copyDependentFiles = True,
