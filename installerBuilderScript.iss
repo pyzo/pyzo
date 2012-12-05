@@ -7,7 +7,7 @@ AppVerName=iep version X.Y.Z
 DefaultDirName={pf}\iep
 DefaultGroupName=iep
 
-SourceDir=../frozen/
+SourceDir=frozen/
 OutputDir=../
 OutputBaseFilename = iep-X.Y.Z.win32
 
