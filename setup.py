@@ -47,7 +47,7 @@ setup(
     
     packages = ['iep', 'iep.iepcore', 'iep.iepkernel', 'iep.tools', 
                 'iep.codeeditor', 'iep.codeeditor.parsers', 'iep.codeeditor.extensions',
-                'iep.yoton', 'iep.yoton.channels',  'iep.yoton.tests',
+                'iep.yoton', 'iep.yoton.channels',
                ],
     package_dir = {'iep': 'iep'},
     package_data = {'iep': ['license.txt', 'resources/*.*', 
