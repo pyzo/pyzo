@@ -930,9 +930,9 @@ class EditorTabContextMenu(Menu):
             icons.star, self._fileAction, "main")
         
         self.addSeparator()
-        self.addItem(translate("menu", "Run ::: Run the code in this file."), 
+        self.addItem(translate("menu", "Run file ::: Run the code in this file."), 
             icons.run_file, self._fileAction, "run")
-        self.addItem(translate("menu", "Run as script ::: Run this file as a script (restarts the interpreter)."), 
+        self.addItem(translate("menu", "Run file as script ::: Run this file as a script (restarts the interpreter)."), 
             icons.run_file_script, self._fileAction, "run_script")
     
     
