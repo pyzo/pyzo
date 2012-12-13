@@ -485,9 +485,8 @@ class ShellInfoDialog(QtGui.QDialog):
         w.setFocus()
     
     
-    def onTabClose(self, index=None):
-        if index is None:
-            index = self._tabs.currentIndex()
+    def onTabClose(self):
+        index = self._tabs.currentIndex()
         self._tabs.removeTab( index )
     
     
