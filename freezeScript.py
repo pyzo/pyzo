@@ -187,77 +187,15 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 
 ## Post processing
 
-# todo: these 2 function are from pzyo_build, move them to pyzolib
-_search_path_command = None
-def _get_command_to_set_search_path():
-    """ Get the command to change the RPATH of executables and dynamic
-    libraries. If necessary, copy the utility to the scripts dir.
-    """
-    # Do we have it from a previous time?
-    global _search_path_command
-    if _search_path_command is not None:
-        return _search_path_command
-    # Get name of the utility
-    utilCommand = None
-    if sys.platform.startswith('linux'):
-        utilname = 'patchelf'
-        import PySide
-        utilCommand = os.path.join(os.path.dirname(PySide.__file__), utilname)
-        utilCommand = utilCommand if os.path.isfile(utilCommand) else None
-    # Store and return
-    _search_path_command = utilCommand
-    return utilCommand
-
-def set_search_path(path, *args):
-    """ set_search_path(path, args)
-    For the given library/executable, set the search path to the
-    relative paths specified in args.
-    
-    For Linux: The RPATH is the path to search for its dependencies.
-    http://enchildfone.wordpress.com/2010/03/23/a-description-of-rpath-origin-ld_library_path-and-portable-linux-binaries/
-    
-    For Mac: I read that there is something similar (using otool?)
-    
-    For Windows: not supported in any way. Windows searches next to the
-    library and then in system paths.
-    
-    """
-    
-    # Prepare
-    args = [arg for arg in args if arg]
-    command = _get_command_to_set_search_path()
-    if command is None:
-        return
-    
-    if sys.platform.startswith('linux'):
-        # Create search path value
-        rpath = '$ORIGIN'
-        for p in args:
-            rpath += ':$ORIGIN/%s' % p
-        # Modify rpath using a call to patchelf utility
-        import subprocess
-        cmd = [command, '--set-rpath', rpath, path]
-        subprocess.check_call(cmd)
-        print('  Set RPATH for %r' % os.path.basename(path))
-        #print('  Set RPATH for %r: %r' % (os.path.basename(path), rpath))
-        
-    elif sys.platform.startswith('darwin'):
-        pass # todo: implement me
-        
-    elif sys.platform.startswith('win'):
-        raise RuntimeError('Windows has no way of setting the search path on a library or exe.')
-    else:
-        raise RuntimeError('Do not know how to set search path of library or exe on %s' % sys.platform)
-
 
 # Set search path of dynamic libraries
+from pyzolib import dllutils
 if sys.platform.startswith('linux'):
-    #
     for entry in os.listdir(distDir):
         entry = os.path.join(distDir, entry)
         if os.path.isfile(entry):
             if entry.endswith('.so') or '.so.' in entry:
-                set_search_path(entry, '')
+                dllutils.set_search_path(entry, '')                
 
 
 # todo: this is now in cx_Freeze right?
