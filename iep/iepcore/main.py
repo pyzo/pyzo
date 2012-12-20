@@ -28,8 +28,13 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, locale=None):
         QtGui.QMainWindow.__init__(self, parent)
         
-        # Init window title
-        self.setWindowTitle("IEP (loading ...)")
+        # Init window title and application icon
+        # Set title to something nice. On Ubuntu 12.10 this text is what
+        # is being shown at the fancy title bar (since it's not properly 
+        # updated)
+        self.setWindowTitle("The Interactive Editor for Python")
+        loadAppIcons()
+        self.setWindowIcon(iep.icon)
         
         # Restore window geometry before drawing for the first time,
         # such that the window is in the right place
@@ -72,9 +77,8 @@ class MainWindow(QtGui.QMainWindow):
         # Set window atrributes
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
-        # Load icons, after wich we can set the window icon
+        # Load icons
         loadIcons()
-        self.setWindowIcon(iep.icon)
         
         # Set qt style and test success
         self.setQtStyle(None) # None means init!
@@ -366,13 +370,11 @@ class MainWindow(QtGui.QMainWindow):
             a.menuLauncher(not a.menuLauncher(None))
 
 
-def loadIcons():
-    """ loadIcons()
-    Load all icons in the icon dir.
+def loadAppIcons():
+    """ loadAppIcons()
+    Load the application iconsr.
     """
-    
-    # Get directories containing the icons
-    iconDir = os.path.join(iep.iepDir, 'resources', 'icons')
+    # Get directory containing the icons
     appiconDir =  os.path.join(iep.iepDir, 'resources', 'appicons')
     
     # Determine template for filename of the application icon-files.
@@ -405,7 +407,14 @@ def loadIcons():
     #
     iep.iconRunning = QtGui.QIcon(iep.icon)
     iep.iconRunning.addPixmap(pm) # Change only 16x16 icon
-    
+
+
+def loadIcons():
+    """ loadIcons()
+    Load all icons in the icon dir.
+    """
+    # Get directory containing the icons
+    iconDir = os.path.join(iep.iepDir, 'resources', 'icons')
     
     # Construct other icons
     dummyIcon = IconArtist().finish()
