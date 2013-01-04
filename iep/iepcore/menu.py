@@ -1055,7 +1055,7 @@ class RunMenu(Menu):
         lineNumber1 = runCursor.blockNumber()
     
         runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
-        if not runCursor.atBlockStart():
+        if not (screenCursor.hasSelection() and runCursor.atBlockStart()):
             #If the end of the selection is at the beginning of a block, don't extend it
             runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
         lineNumber2 = runCursor.blockNumber()
