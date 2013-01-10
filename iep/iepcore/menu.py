@@ -1368,6 +1368,18 @@ class SettingsMenu(Menu):
     def build(self):
         icons = iep.icons
         
+        # Create language menu
+        from iep.util.locale import LANGUAGES, LANGUAGE_SYNONYMS
+        # Update language setting if necessary
+        cur = iep.config.settings.language
+        iep.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
+        # Create menu        
+        t = translate("menu", "Select language ::: The language used by IEP.")
+        self._languageMenu = GeneralOptionsMenu(self, t, self.__selectLanguage)
+        values = [key for key in sorted(LANGUAGES)]
+        self._languageMenu.setOptions(values, values)
+        self._languageMenu.setCheckedOption(None, iep.config.settings.language)
+        
         self.addBoolSetting(translate("menu", 'Automatically indent ::: Indent when pressing enter after a colon.'),
             'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
         self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'), 
@@ -1382,6 +1394,7 @@ class SettingsMenu(Menu):
             icons.keyboard, lambda: KeymappingDialog().exec_())
         self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'), 
             icons.style, self._editStyles)
+        self.addMenu(self._languageMenu, icons.flag_green)
         self.addItem(translate("menu", 'Advanced settings... ::: Configure IEP even further.'), 
             icons.cog, self._advancedSettings)
     
@@ -1432,6 +1445,23 @@ class SettingsMenu(Menu):
         self.addCheckItem(name, None, _callback, key, 
             getattr(iep.config.settings,key)) #Default value
     
+    def _selectLanguage(self, languageName):
+        # Skip if the same
+        if iep.config.settings.language == languageName:
+            return
+        # Save new language
+        iep.config.settings.language = languageName
+        # Notify user
+        text = translate('menu', """
+        The language has been changed. \r
+        IEP needs to restart for the change to take effect.
+        """)
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle(translate("menu dialog", "Language changed"))
+        m.setText(unwrapText(text))
+        m.setIcon(m.Information)
+        m.exec_()
+
 
 # Remains of old settings menu. Leave here because some settings should some day be 
 # accessible via a dialog (advanced settings).
