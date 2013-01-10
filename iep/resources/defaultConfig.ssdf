@@ -38,6 +38,7 @@ view = dict:
     tabWidth = 4
 
 settings= dict:
+    language = ''
     defaultStyle = 'python'
     defaultIndentWidth = 4
     defaultIndentUsingSpaces = 1
