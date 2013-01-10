@@ -138,6 +138,72 @@ def translate(context, text, disambiguation=None):
     return translation
 
 
+
+## Development tools
+import subprocess
+
+def linguist(lang):
+    """ linguist(lang)
+    Open linguist with the language file as specified by lang.
+    Lang can be 'nl', 'en_UK', etc. This function is intended for
+    translators.
+    """
+    # Get file to open
+    fname = 'iep_{}.tr'.format(lang)
+    filename = os.path.join(iep.iepDir, 'resources', fname)
+    if not os.path.isfile(filename):
+        raise ValueError('Could not find {}'.format(fname))
+    
+    # Get Command for linguist
+    pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
+    ISWIN = sys.platform.startswith('win')
+    exe = os.path.join(pysideDir, 'linguist' + '.exe' * ISWIN)
+    
+    # Spawn process
+    return subprocess.Popen([exe , filename])
+
+
+def lupdate():
+    """ For developers. From iep.pro create the .tr files
+    """
+    # Get file to open
+    fname = 'iep.pro'
+    filename = os.path.realpath(os.path.join(iep.iepDir, '..', fname))
+    if not os.path.isfile(filename):
+        raise ValueError('Could not find {}. This function must run from the source repo.'.format(fname))
+   
+    # Get Command for python lupdate
+    pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
+    ISWIN = sys.platform.startswith('win')
+    exe = os.path.join(pysideDir, 'pyside-lupdate' + '.exe' * ISWIN)
+    
+    # Spawn process
+    cmd = [exe, '-noobsolete', '-verbose', filename]
+    m = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    print(m.decode('utf-8'))
+
+
+def lrelease():
+    """ For developers. From iep.pro and the .tr files, create the .qr files.
+    """
+    # Get file to open
+    fname = 'iep.pro'
+    filename = os.path.realpath(os.path.join(iep.iepDir, '..', fname))
+    if not os.path.isfile(filename):
+        raise ValueError('Could not find {}. This function must run from the source repo.'.format(fname))
+   
+    # Get Command for lrelease
+    pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
+    ISWIN = sys.platform.startswith('win')
+    exe = os.path.join(pysideDir, 'lrelease' + '.exe' * ISWIN)
+    
+    # Spawn process
+    cmd = [exe, filename]
+    m = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    print(m.decode('utf-8'))
+
+
+
 if __name__ == '__main__':
     # Print names of translator files
     
