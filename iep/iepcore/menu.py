@@ -1375,7 +1375,7 @@ class SettingsMenu(Menu):
         iep.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
         # Create menu        
         t = translate("menu", "Select language ::: The language used by IEP.")
-        self._languageMenu = GeneralOptionsMenu(self, t, self.__selectLanguage)
+        self._languageMenu = GeneralOptionsMenu(self, t, self._selectLanguage)
         values = [key for key in sorted(LANGUAGES)]
         self._languageMenu.setOptions(values, values)
         self._languageMenu.setCheckedOption(None, iep.config.settings.language)
