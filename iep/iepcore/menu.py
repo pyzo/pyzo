@@ -660,7 +660,7 @@ class ViewMenu(Menu):
         icons = iep.icons
         
         # Create edge column menu
-        t = translate("menu", "Edge Column ::: The location of the long-line-indicator.")
+        t = translate("menu", "Location of long line indicator ::: The location of the long-line-indicator.")
         self._edgeColumMenu = GeneralOptionsMenu(self, t, self._setEdgeColumn)
         values = [0] + [i for i in range(60,130,10)]
         names = ["None"] + [str(i) for i in values[1:]]
