@@ -1452,8 +1452,8 @@ class SettingsMenu(Menu):
         # Save new language
         iep.config.settings.language = languageName
         # Notify user
-        text = translate('menu', """
-        The language has been changed. \r
+        text = translate('menu dialog', """
+        The language has been changed. 
         IEP needs to restart for the change to take effect.
         """)
         m = QtGui.QMessageBox(self)
