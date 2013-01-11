@@ -65,6 +65,7 @@ def setLanguage(languageName):
     iepTransPath = os.path.join(iep.iepDir, 'resources')
     
     # Get possible names for language files
+    # (because Qt's .tr files may not have the language component.)
     localeName1 = locale.name()
     localeName2 = localeName1.split('_')[0]
     
@@ -142,14 +143,17 @@ def translate(context, text, disambiguation=None):
 ## Development tools
 import subprocess
 
-def linguist(lang):
-    """ linguist(lang)
-    Open linguist with the language file as specified by lang.
-    Lang can be 'nl', 'en_UK', etc. This function is intended for
-    translators.
+def linguist(languageName):
+    """ linguist(languageName)
+    Open linguist with the language file as specified by lang. The
+    languageName can be one of the fields as visible in the language
+    list in the menu. This function is intended for translators.
     """
+    # Get locale
+    locale = getLocale(languageName)
+    
     # Get file to open
-    fname = 'iep_{}.tr'.format(lang)
+    fname = 'iep_{}.tr'.format(locale.name())
     filename = os.path.join(iep.iepDir, 'resources', fname)
     if not os.path.isfile(filename):
         raise ValueError('Could not find {}'.format(fname))
@@ -184,7 +188,7 @@ def lupdate():
 
 
 def lrelease():
-    """ For developers. From iep.pro and the .tr files, create the .qr files.
+    """ For developers. From iep.pro and the .tr files, create the .qm files.
     """
     # Get file to open
     fname = 'iep.pro'
