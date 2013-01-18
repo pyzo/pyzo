@@ -18,6 +18,13 @@ start IEP in a few different ways:
 Only in the latter must IEP be installed.
 
 """
+try:
+	# faulthandler helps debugging hard crashes, it is included in py3.3
+	import faulthandler
+	faulthandler.enable()
+except ImportError:
+	pass
+
 
 import iep
 iep.startIep()
