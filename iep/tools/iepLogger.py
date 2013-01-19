@@ -35,8 +35,13 @@ class IepLogger(BaseShell):
         newStyle = 'back:%s, fore:%s' % (f2.back.name(), f1.fore.name())
         self.setStyle(editor_text=newStyle)
         
-        # Create interpreter to run code        
+        # Create namespace for logger interpreter
         locals = {'iep':iep, 'sys':sys, 'os':os}
+        # Include linguist tools
+        for name in ['linguist', 'lrelease', 'lupdate']:
+            locals[name] = getattr(iep.util.locale, name)
+        
+        # Create interpreter to run code        
         self._interpreter = code.InteractiveConsole(locals, "<logger>")
         
         # Show welcome text

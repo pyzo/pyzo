@@ -660,7 +660,7 @@ class ViewMenu(Menu):
         icons = iep.icons
         
         # Create edge column menu
-        t = translate("menu", "Edge Column ::: The location of the long-line-indicator.")
+        t = translate("menu", "Location of long line indicator ::: The location of the long-line-indicator.")
         self._edgeColumMenu = GeneralOptionsMenu(self, t, self._setEdgeColumn)
         values = [0] + [i for i in range(60,130,10)]
         names = ["None"] + [str(i) for i in values[1:]]
@@ -1055,7 +1055,7 @@ class RunMenu(Menu):
         lineNumber1 = runCursor.blockNumber()
     
         runCursor.setPosition(screenCursor.selectionEnd(),runCursor.KeepAnchor)
-        if not runCursor.atBlockStart():
+        if not (screenCursor.hasSelection() and runCursor.atBlockStart()):
             #If the end of the selection is at the beginning of a block, don't extend it
             runCursor.movePosition(runCursor.EndOfBlock,runCursor.KeepAnchor)
         lineNumber2 = runCursor.blockNumber()
@@ -1368,6 +1368,18 @@ class SettingsMenu(Menu):
     def build(self):
         icons = iep.icons
         
+        # Create language menu
+        from iep.util.locale import LANGUAGES, LANGUAGE_SYNONYMS
+        # Update language setting if necessary
+        cur = iep.config.settings.language
+        iep.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
+        # Create menu        
+        t = translate("menu", "Select language ::: The language used by IEP.")
+        self._languageMenu = GeneralOptionsMenu(self, t, self._selectLanguage)
+        values = [key for key in sorted(LANGUAGES)]
+        self._languageMenu.setOptions(values, values)
+        self._languageMenu.setCheckedOption(None, iep.config.settings.language)
+        
         self.addBoolSetting(translate("menu", 'Automatically indent ::: Indent when pressing enter after a colon.'),
             'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
         self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'), 
@@ -1382,6 +1394,7 @@ class SettingsMenu(Menu):
             icons.keyboard, lambda: KeymappingDialog().exec_())
         self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'), 
             icons.style, self._editStyles)
+        self.addMenu(self._languageMenu, icons.flag_green)
         self.addItem(translate("menu", 'Advanced settings... ::: Configure IEP even further.'), 
             icons.cog, self._advancedSettings)
     
@@ -1432,6 +1445,23 @@ class SettingsMenu(Menu):
         self.addCheckItem(name, None, _callback, key, 
             getattr(iep.config.settings,key)) #Default value
     
+    def _selectLanguage(self, languageName):
+        # Skip if the same
+        if iep.config.settings.language == languageName:
+            return
+        # Save new language
+        iep.config.settings.language = languageName
+        # Notify user
+        text = translate('menu dialog', """
+        The language has been changed. 
+        IEP needs to restart for the change to take effect.
+        """)
+        m = QtGui.QMessageBox(self)
+        m.setWindowTitle(translate("menu dialog", "Language changed"))
+        m.setText(unwrapText(text))
+        m.setIcon(m.Information)
+        m.exec_()
+
 
 # Remains of old settings menu. Leave here because some settings should some day be 
 # accessible via a dialog (advanced settings).

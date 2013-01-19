@@ -1005,7 +1005,7 @@ class EditorTabs(QtGui.QWidget):
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
         filter += "C (*.c *.h *.cpp *.c++);;"
         #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
-        filter += "All (*.*)"
+        filter += "All (*)"
         if True:
             filenames = QtGui.QFileDialog.getOpenFileNames(self,
                 msg, startdir, filter)
