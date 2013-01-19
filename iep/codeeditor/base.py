@@ -662,7 +662,34 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             
         editCursor.endEditBlock()
     
-    
+    def doForVisibleBlocks(self, function):
+        """ doForVisibleBlocks(function)
+        
+        Call the given function(cursor) for all blocks that are currently
+        visible. This is used by several appearence extensions that
+        paint per block.
+        
+        The supplied cursor will be located at the beginning of each block. This
+        cursor may be modified by the function as required
+        
+        """
+
+        # Start cursor at top line.
+        cursor = self.cursorForPosition(QtCore.QPoint(0,0))
+        cursor.movePosition(cursor.StartOfBlock)
+
+        while True:            
+            # Call the function with a copy of the cursor
+            function(QtGui.QTextCursor(cursor))
+            
+            # Go to the next block (or not if we are done)
+            y = self.cursorRect(cursor).bottom() 
+            if y > self.height():
+                break #Reached end of the repaint area
+            if not cursor.block().next().isValid():
+                break #Reached end of the text
+            cursor.movePosition(cursor.NextBlock)
+        
     def indentBlock(self, cursor, amount=1):
         """ indentBlock(cursor, amount=1)
         

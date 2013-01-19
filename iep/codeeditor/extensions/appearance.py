@@ -126,14 +126,8 @@ class IndentationGuides(object):
         doc = self.document()
         viewport = self.viewport()
         
-        # Get which part to paint. Just do all to avoid glitches
         w = self.getLineNumberAreaWidth()
-        y1, y2 = 0, self.height()
-        #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
-        
-        # Get cursor
-        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
-        
+                
         # Get multiplication factor and indent width
         indentWidth = self.indentWidth()
         if self.indentUsingSpaces():
@@ -152,9 +146,7 @@ class IndentationGuides(object):
         painter.setPen(pen)
         offset = doc.documentMargin() + self.contentOffset().x()
         
-        #Repainting always starts at the first block in the viewport,
-        #regardless of the event.rect().y(). Just to keep it simple
-        while True:
+        def paintIndentationGuides(cursor):
             y3=self.cursorRect(cursor).top()
             y4=self.cursorRect(cursor).bottom()            
             
@@ -166,16 +158,10 @@ class IndentationGuides(object):
                     if w > 0: # if scrolled horizontally it can become < 0
                         painter.drawLine(QtCore.QLine(w, y3, w, y4))
  
-            if y4>y2:
-                break #Reached end of the repaint area
-            if not cursor.block().next().isValid():
-                break #Reached end of the text
-            
-            cursor.movePosition(cursor.NextBlock)
+        self.doForVisibleBlocks(paintIndentationGuides)
         
         # Done
         painter.end()
-
 
 class FullUnderlines(object):
     
@@ -188,25 +174,16 @@ class FullUnderlines(object):
         
         """ 
         super(FullUnderlines, self).paintEvent(event)
-    
-        # Get doc and viewport
-        doc = self.document()
-        viewport = self.viewport()
-        
-        # Init painter
+   
         painter = QtGui.QPainter()
-        painter.begin(viewport)
-        
-        # Prepare
-        y1, y2 = 0, self.height()
-        cursor = self.cursorForPosition(QtCore.QPoint(0,y1))
+        painter.begin(self.viewport())
+ 
         margin = self.document().documentMargin()
         w = self.viewport().width()
-        
-        
-        while True:
+   
+        def paintUnderline(cursor):
             y = self.cursorRect(cursor).bottom() 
-            
+
             bd = cursor.block().userData()            
             if bd and bd.fullUnderlineFormat is not None:
                 # Apply pen
@@ -214,17 +191,45 @@ class FullUnderlines(object):
                 pen.setStyle(bd.fullUnderlineFormat.linestyle)
                 painter.setPen(pen)
                 # Paint
-                painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
+                painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))            
             
-            # Next block (or not)
-            if y > y2:
-                break #Reached end of the repaint area
-            if not cursor.block().next().isValid():
-                break #Reached end of the text
-            cursor.movePosition(cursor.NextBlock)
+        self.doForVisibleBlocks(paintUnderline)
         
-        # Done
         painter.end()
+
+class CodeFolding(object):
+    def paintEvent(self,event):
+        """ paintEvent(event)
+        
+        """ 
+        super(CodeFolding, self).paintEvent(event)
+   
+        return # Code folding code is not yet complete
+   
+        painter = QtGui.QPainter()
+        painter.begin(self.viewport())
+ 
+        margin = self.document().documentMargin()
+        w = self.viewport().width()
+   
+   
+        def paintCodeFolders(cursor):
+            y = self.cursorRect(cursor).top() 
+            h = self.cursorRect(cursor).height()
+            rect = QtCore.QRect(margin, y, h, h)
+            text = cursor.block().text()           
+            if text.rstrip().endswith(':'):
+                painter.drawRect(rect)
+                painter.drawText(rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter, "-")
+                # Apply pen
+                
+                # Paint
+                #painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))            
+            
+        self.doForVisibleBlocks(paintCodeFolders)
+        
+        painter.end()
+        
 
 
 class LongLineIndicator(object):
@@ -295,6 +300,8 @@ class LongLineIndicator(object):
         super(LongLineIndicator, self).paintEvent(event)
 
 
+
+
 class ShowWhitespace(object):
     
     def showWhitespace(self):
@@ -329,6 +336,8 @@ class ShowLineEndings(object):
         else:
             option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
         self.document().setDefaultTextOption(option)
+
+
 
 class LineNumbers(object):
     
