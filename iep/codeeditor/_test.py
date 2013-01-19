@@ -8,7 +8,8 @@ import os, sys
 from qt import QtGui, QtCore
 Qt = QtCore.Qt
 
-# Go up one directory and then import the codeeditor package
+## Go up one directory and then import the codeeditor package
+
 os.chdir('..') 
 sys.path.insert(0,'.')
 from codeeditor import CodeEditor
