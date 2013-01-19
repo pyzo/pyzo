@@ -1,19 +1,18 @@
 Notes on translating
 ====================
 
-todo: How does it work in Pyside?
-
 In short
 --------
 
-Apply the following steps:
+Apply the following steps (in the IEP logger shell):
   
-  * Run "pylupdate4 iep.pro"
-  * Translate the .tr files using Qt linguist
-  * (Run "pylupdate4 -noobsolete iep.pro" to remove old entries)
-  * Run "lrelease iep.pro"
+  * Run lupdate() to update .tr files
+  * Translators run linguist(TheirLanguage) to launch Qt linguist 
+  * Translators write translations (stored in one .tr file per language)
+  * Translators send modified version of .tr file back to us
+  * Run lrelease()
 
-The pylupdate4 tool parses the source code of the files specified 
+The lupdate tool parses the source code of the files specified 
 in iep.pro and detects usages of any "translate()" function call.
 
 

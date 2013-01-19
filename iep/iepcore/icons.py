@@ -441,7 +441,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         if hasattr(self, '_cross1'):
             pm = self._cross1
         else:
-            pm = self._createCrossPixmap(80)
+            pm = self._createCrossPixmap(50)
         return pm
     
     def getCrossPixmap2(self):
@@ -711,4 +711,3 @@ class ShellIconMaker:
         # Done
         self.setIcon(artist.finish())
 
-    
