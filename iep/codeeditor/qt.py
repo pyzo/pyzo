@@ -1,7 +1,10 @@
-
+import sys
 # Simple module to allow using both PySide and PyQt4
 
 try:
+    if sys.platform == 'darwin':
+        raise ImportError # PySide causes crashes on Mac OS X
+        
     from PySide import QtCore, QtGui
 except ImportError:
     try:
