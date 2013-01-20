@@ -187,7 +187,7 @@ class ToolManager(QtCore.QObject):
             toolSummary = ""
             # read file to find name or summary
             linecount = 0
-            for line in open(file):
+            for line in open(file, encoding='utf-8'):
                 linecount += 1
                 if linecount > 50:
                     break
