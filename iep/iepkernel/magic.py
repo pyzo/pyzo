@@ -94,6 +94,14 @@ class Magician:
         # Get interpreter
         interpreter = sys._iepInterpreter
         
+        # Check if it is a variable
+        command = line.rstrip()
+        if ' ' not in command:
+            if command in interpreter.locals:
+                return
+            if interpreter.globals and command in interpreter.globals:
+                return
+        
         # Clean and make case insensitive
         command = line.upper().rstrip()
         
