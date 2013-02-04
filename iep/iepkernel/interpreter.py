@@ -401,8 +401,8 @@ class IepInterpreter:
                     self._resetbuffer()
                     more = 0
             except SystemExit:
-                # Exit from interpreter
-                return
+                # Exit from interpreter (essentially SystemExit falls through)
+                raise
     
     
     ## Running code in various ways
