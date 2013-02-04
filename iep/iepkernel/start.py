@@ -136,9 +136,19 @@ del __file__
 
 # Start introspector and enter the interpreter
 __iep__.introspector.set_mode('thread')
-__iep__.interact()
 
-# Nicely exit by closing context (closes channels and connections). If we do 
-# not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
-__iep__.introspector.set_mode(0)
-__iep__.context.close()
+try:
+    __iep__.interact()
+    
+finally:
+    # Restore original streams, so that SystemExit behaves as intended
+    sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+    # Flush pending messages
+    try:
+        __iep__.context.flush(0.1)
+    except Exception:
+        pass
+    # Nicely exit by closing context (closes channels and connections). If we do 
+    # not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
+    __iep__.introspector.set_mode(0)
+    __iep__.context.close()
