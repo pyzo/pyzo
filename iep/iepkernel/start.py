@@ -142,13 +142,20 @@ try:
     
 finally:
     # Restore original streams, so that SystemExit behaves as intended
-    sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
-    # Flush pending messages
+    import sys
+    try:   
+        sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+    except Exception:
+        pass
+    # Flush pending messages (raises exception if times out)
     try:
         __iep__.context.flush(0.1)
     except Exception:
         pass
     # Nicely exit by closing context (closes channels and connections). If we do 
     # not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
-    __iep__.introspector.set_mode(0)
-    __iep__.context.close()
+    try:
+        __iep__.introspector.set_mode(0)
+        __iep__.context.close()
+    except Exception:
+        pass
