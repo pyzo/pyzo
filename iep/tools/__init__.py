@@ -103,20 +103,22 @@ class ToolDockWidget(QtGui.QDockWidget):
             old.deleteLater()
     
 
+
 class ToolDescription:
     """ Provides a description of a tool and has a reference to
     the tool dock instance if it is loaded.
     """
     
-    def __init__(self, moduleName, name='', description=''):
+    def __init__(self, modulePath, name='', description=''):
         # Set names
-        self.id = os.path.split(os.path.splitext(moduleName)[0])[1].lower()
-        self.moduleName = moduleName
+        self.modulePath = modulePath
+        self.moduleName = os.path.splitext(os.path.basename(modulePath))[0]
+        self.id = self.moduleName.lower()
         if name:
             self.name = name
         else:
             self.name = self.id
-                
+        
         # Set description
         self.description = description
         # Init instance to None, will be set when loaded
@@ -133,6 +135,8 @@ class ToolDescription:
         else:
             self.widget = None
             iep.toolManager.closeTool(self.id)
+
+
 
 class ToolManager(QtCore.QObject):
     """ Manages the tools. """
@@ -179,10 +183,17 @@ class ToolManager(QtCore.QObject):
         # Iterate over tool modules
         newlist = []
         for file in toolfiles:
-            if file.endswith('__.py') or not file.endswith('.py'):
+            modulePath = file
+            
+            # Check
+            if os.path.isdir(file):
+                file = os.path.join(file, '__init__.py')  # A package perhaps
+                if not os.path.isfile(file):
+                    continue
+            elif file.endswith('__.py') or not file.endswith('.py'):
                 continue
+            
             #
-            toolModule = file
             toolName = ""
             toolSummary = ""
             # read file to find name or summary
@@ -207,7 +218,7 @@ class ToolManager(QtCore.QObject):
                     pass
             
             # Add stuff
-            tmp = ToolDescription(toolModule, toolName, toolSummary)
+            tmp = ToolDescription(modulePath, toolName, toolSummary)
             newlist.append(tmp)
         
         # Store and return
@@ -249,19 +260,26 @@ class ToolManager(QtCore.QObject):
         if self._toolInfo is None:
             self.loadToolInfo()
         
-        # Get module name
+        # Get module name and path
         for toolDes in self._toolInfo:
             if toolDes.id == toolId:
                 moduleName = toolDes.moduleName
+                modulePath = toolDes.modulePath
                 break
         else:
             print("WARNING: could not find module for tool", repr(toolId))
             return None
-            
-        # Load module (doing it this was always reloads)
+        
+        # Remove from sys.modules, to force the module to reload
+        for key in [key for key in sys.modules]:
+            if key.startswith('ieptools.'+moduleName):
+                del sys.modules[key]
+        
+        # Load module
         try:
-            mod = imp.load_source('tools.'+toolId, moduleName)
-        except ImportError as why:
+            m_file, m_fname, m_des = imp.find_module(moduleName, [os.path.dirname(modulePath)])        
+            mod = imp.load_module('ieptools.'+moduleName, m_file, m_fname, m_des)
+        except Exception as why:
             print("Invalid tool " + toolId +":", why)
             return None
         
@@ -272,7 +290,7 @@ class ToolManager(QtCore.QObject):
                 className = member
                 break
         else:       
-            print("Invalid tool, Classname must match module name!")
+            print("Invalid tool, Classname must match module name '%s'!" % toolId)
             return None
         
         # Does it inherit from QWidget?
