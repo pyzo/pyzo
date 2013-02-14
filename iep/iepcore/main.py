@@ -322,6 +322,11 @@ class MainWindow(QtGui.QMainWindow):
         for shell in iep.shells:
             shell._context.close()
         
+        # Close tools
+        for toolname in iep.toolManager.getLoadedTools():
+            tool = iep.toolManager.getTool(toolname) 
+            tool.close()
+        
         # Close as normal
         QtGui.QMainWindow.closeEvent(self, event)
     
