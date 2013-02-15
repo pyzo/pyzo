@@ -310,6 +310,14 @@ class ToolManager(QtCore.QObject):
         # A tool id should always be lower case
         toolId = toolId.lower()
         
+        # Close old one
+        if toolId in self._activeTools:
+            old = self._activeTools[toolId].widget()            
+            self._activeTools[toolId].setWidget(QtGui.QWidget(iep.main))
+            if old:
+                old.close()
+                old.deleteLater()
+        
         # Get tool class (returns None on failure)
         toolClass = self.getToolClass(toolId)
         if toolClass is None:

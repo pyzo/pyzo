@@ -629,8 +629,11 @@ class Tree(QtGui.QTreeWidget):
         if isinstance(item, (DriveItem, DirItem)):
             self.setPath(item.path())
         elif isinstance(item, FileItem):
-            pass
-            # todo: open that file! 
+            # todo: someday we should be able to simply pass the proxy object to the editors
+            # so that we can open files on any file system
+            path = item.path()
+            if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
+                iep.editors.loadFile(path)
     
     
     def _storeSelectionState(self):
