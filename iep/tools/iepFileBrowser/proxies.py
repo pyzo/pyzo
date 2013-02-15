@@ -299,6 +299,21 @@ class BaseFSProxy(threading.Thread):
     
     def run(self):
         
+        try:
+            try: 
+                self._run()
+            except Exception as err:
+                if Empty is None or self._lock is None:
+                    pass  # Shutting down ...
+                else:
+                    print('Exception in proxy thread: ' + str(err))
+        
+        except Exception:
+            pass  # Interpreter is shutting down
+    
+    
+    def _run(self):
+        
         last_sleep = time.time()
         
         while True:
