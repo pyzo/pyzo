@@ -281,11 +281,12 @@ class Projects(QtGui.QWidget):
     def setPath(self, path):
         self._path = path
         # Find project index
-        projectIndex = 0
+        projectIndex, L = 0, 0
+        pathn = path.normcase()
         for i in range(self._combo.count()):
-            if path.normcase() == self._combo.itemData(i):
-                projectIndex = i
-                break
+            projectPath = self._combo.itemData(i)
+            if pathn.startswith(projectPath) and len(projectPath) > L:
+                projectIndex, L = i, len(projectPath)
         # Select project or not ...
         self._combo.setCurrentIndex(projectIndex)
         if projectIndex:
