@@ -31,7 +31,7 @@ class Browser(QtGui.QWidget):
         self._up = QtGui.QToolButton(self)
         self._up.setIcon( iep.icons.folder_parent )  # folder_parent bullet_arrow_up
         self._up.setStyleSheet("QToolButton { padding: 0px; }");
-        self._up.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        #self._up.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self._up.setIconSize(QtCore.QSize(18,18))
         
         # Create path input/display lineEdit
@@ -80,20 +80,25 @@ class Browser(QtGui.QWidget):
         #layout.setSpacing(6)
         self.setLayout(layout)
         #
-        layout.addWidget(self._projects)
-        #
         subLayout = QtGui.QHBoxLayout()
-        subLayout.setSpacing(2)
-        subLayout.addWidget(self._up)
-        subLayout.addWidget(self._pathEdit)
+        subLayout.addWidget(self._up, 0)
+        subLayout.addStretch(1)
+        subLayout.addWidget(self._projects, 8)
         layout.addLayout(subLayout)
+        #
+        #subLayout = QtGui.QHBoxLayout()
+        #subLayout.setSpacing(2)
+        #subLayout.addWidget(self._up)
+        layout.addWidget(self._pathEdit)
+        #layout.addLayout(subLayout)
         #
         layout.addWidget(self._tree)
         #
-        layout.addWidget(self._nameFilter)
-        #
-        layout.addWidget(self._searchFilter)
-        
+        subLayout = QtGui.QHBoxLayout()
+        subLayout.setSpacing(2)
+        subLayout.addWidget(self._nameFilter, 5)
+        subLayout.addWidget(self._searchFilter, 4)
+        layout.addLayout(subLayout)
     
     def closeEvent(self, event):
         #print('Closing browser, stopping file system proxy')
@@ -258,7 +263,7 @@ class Projects(QtGui.QWidget):
         
         # Layout
         layout = QtGui.QHBoxLayout(self)
-        self.setLayout(layout)
+        self.setLayout(layout)        
         layout.addWidget(self._but)
         layout.addWidget(self._combo)
         layout.setSpacing(2)
@@ -406,6 +411,7 @@ class NameFilter(QtGui.QComboBox):
         self.setEditable(True)
         self.setCompleter(None)
         self.setInsertPolicy(self.NoInsert)
+        self.setMinimumSize(50, self.sizeHint().height())
         
         # Add common patterns
         for pattern in ['*', '!*.pyc', 
