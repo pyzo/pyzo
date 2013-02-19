@@ -10,6 +10,10 @@ tool_summary = "Browse the files in your projects."
 
 """ File browser tool
 
+A powerfull tool for managing your projects in a lightweight manner.
+It has a few file management utilities as well.
+
+
 Config
 ======
 
@@ -28,13 +32,9 @@ The config consists of three fields:
 # todo: List!
 """
   * see easily which files are opened (so it can be used as a secondary tab bar)
-    maybe even use same icon, maybe not.
   * make visible the "current file" (if applicable)
   * single click on an file that is open selects it in the editor?
-  * context menu to: create files/dirs, rename/delete files, run scripts?, etc.
-  * More stuff to make it a proper file manager.
-  * if in a subdir of a project, is the project active?
-  * Only remember expanded dirs when a subdir of a starred dir?
+  * context menu items to run scripts  
   * Support for multiple browsers.
   
 """
@@ -80,14 +80,19 @@ class IepFileBrowser(QtGui.QWidget):
         # Make Path instances and remove invalid dirs. Also normalize case, 
         # should not be necessary, but maybe the config was manually edited.
         expandedDirs, starredDirs = [], []
-        for p in set([str(p) for p in self.config.expandedDirs]):
-            if os.path.isdir(p):
-                expandedDirs.append( Path(p).normcase() )
         for d in self.config.starredDirs:
             if 'path' in d and 'name' in d and 'addToPythonpath' in d:
                 if os.path.isdir(d.path):
                     d.path = Path(d.path).normcase()
                     starredDirs.append(d)
+        for p in set([str(p) for p in self.config.expandedDirs]):
+            if os.path.isdir(p):
+                p = Path(p).normcase()
+                # Add if it is a subdir of a starred dir
+                for d in starredDirs:
+                    if p.startswith(d.path):
+                        expandedDirs.append(p)
+                        break
         self.config.expandedDirs, self.config.starredDirs = expandedDirs, starredDirs
         
         # Create browser(s).
