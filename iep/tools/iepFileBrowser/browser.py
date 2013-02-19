@@ -41,12 +41,12 @@ class Browser(QtGui.QWidget):
         # Create name filter
         self._nameFilter = NameFilter(self)
         #self._nameFilter.lineEdit().setToolTip('File filter pattern')  
-        self._nameFilter.setToolTip('Filename filter')  
+        self._nameFilter.setToolTip(translate('filebrowser', 'Filename filter'))  
         self._nameFilter.setPlaceholderText(self._nameFilter.toolTip())
         
         # Create search filter
         self._searchFilter = SearchFilter(self)
-        self._searchFilter.setToolTip('Search in files')
+        self._searchFilter.setToolTip(translate('filebrowser', 'Search in files'))
         self._searchFilter.setPlaceholderText(self._searchFilter.toolTip())
         
         # Signals to sync path. 
@@ -259,6 +259,7 @@ class PathInput(LineEditWithToolButtons):
         #self.textChanged.connect(self.onTextEdited)
         #self.cursorPositionChanged.connect(self.onTextEdited)
     
+    
     def setPath(self, path):
         """ Set the path to display. Does nothing if this widget has focus.
         """
@@ -299,89 +300,6 @@ class PathInput(LineEditWithToolButtons):
     def onTextEdited(self, dummy=None):
         text = self.text()
         if self.checkValid():            
-            self.dirChanged.emit(Path(text))
-    
-    
-    def focusOutEvent(self, event=None):
-        """ focusOutEvent(event)
-        On focusing out, make sure that the set path is correct.
-        """
-        if event is not None:
-            QtGui.QLineEdit.focusOutEvent(self, event)
-        
-        path = self.parent()._tree.path()
-        self.setPath(path)
-
-
-
-class _PathInput(QtGui.QLineEdit):
-    """ Line edit for selecting a path.
-    """
-    
-    dirChanged = QtCore.Signal(Path) # Emitted when the user changes the path (and is valid)
-    
-    def __init__(self, parent):
-        QtGui.QLineEdit.__init__(self, parent)
-        
-        # To receive focus events
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        
-        # Set completion mode
-        self.setCompleter(QtGui.QCompleter())
-        c = self.completer()
-        c.setCompletionMode(c.InlineCompletion)
-        
-        # Set dir model to completer
-        dirModel = QtGui.QDirModel(c)
-        dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
-        c.setModel(dirModel)
-        
-        # Connect signals
-        #c.activated.connect(self.onActivated)
-        self.textEdited.connect(self.onTextEdited)
-        #self.textChanged.connect(self.onTextEdited)
-        #self.cursorPositionChanged.connect(self.onTextEdited)
-    
-    def setPath(self, path):
-        """ Set the path to display. Does nothing if this widget has focus.
-        """
-        if not self.hasFocus():
-            self.setText(path)
-            self.checkValid() # Reset style if it was invalid first
-    
-    
-    def checkValid(self):
-        # todo: This kind of violates the abstraction of the file system
-        # ok for now, but we should find a different approach someday
-        # Check
-        text = self.text()
-        dir = Path(text)
-        isvalid = text and dir.isdir and os.path.isabs(dir)
-        # Apply styling
-        if isvalid:
-            self.setStyleSheet('')
-        else:
-            self.setStyleSheet('QLineEdit {font-style:italic;}')
-        # Return
-        return isvalid
-    
-    
-    def event(self, event):
-        # Capture key events to explicitly apply the completion and
-        # invoke checking whether the current text is a valid directory.
-        if isinstance(event, QtGui.QKeyEvent):
-            qt = QtCore.Qt
-            if event.key() in [qt.Key_Tab, qt.Key_Enter, qt.Key_Return]:
-                self.setText(self.text()) # Apply completion
-                self.onTextEdited() # Check if this is a valid dir
-                return True
-        return super().event(event)
-            
-    
-    
-    def onTextEdited(self, dummy=None):
-        text = self.text()
-        if self.checkValid():
             self.dirChanged.emit(Path(text))
     
     
@@ -483,9 +401,10 @@ class Projects(QtGui.QWidget):
             self._combo.addItem(d.name, d['path'])
         # Insert dummy item
         if starredDirs:
-            self._combo.insertItem(0, 'Bookmarks:', '') # No-project item
+            self._combo.insertItem(0, translate('filebrowser', 'Projects:'), '') # No-project item
         else:
-            self._combo.addItem('Click the star to bookmark the current dir', '')
+            self._combo.addItem(
+                translate('filebrowser', 'Click the star to create a project'), '')
     
     
     def buildMenu(self):
@@ -681,9 +600,9 @@ class SearchFilter(LineEditWithToolButtons):
         menu = self._menu
         menu.clear()
         
-        map = [ ('searchMatchCase', False, translate("search", "Match case")),
-                ('searchRegExp', False, translate("search", "RegExp")),
-                ('searchSubDirs', True, translate("search", "Search in subdirs"))
+        map = [ ('searchMatchCase', False, translate("filebrowser", "Match case")),
+                ('searchRegExp', False, translate("filebrowser", "RegExp")),
+                ('searchSubDirs', True, translate("filebrowser", "Search in subdirs"))
               ]
         
         # Fill menu
