@@ -128,6 +128,10 @@ class Browser(QtGui.QWidget):
         for item in items:
             self._tree.addTopLevelItem(item)
     
+    def currentProject(self):
+        """ Return the ssdf dict for the current project, or None.
+        """
+        return self._projects.currentDict()
 
 
 class LineEditWithToolButtons(QtGui.QLineEdit):
@@ -437,7 +441,7 @@ class Projects(QtGui.QWidget):
         layout.setContentsMargins(0,0,0,0)
     
     
-    def _currentDict(self):
+    def currentDict(self):
         """ Return the current project-dict, or None.
         """ 
         path = self._combo.itemData(self._combo.currentIndex())
@@ -494,29 +498,32 @@ class Projects(QtGui.QWidget):
         action.setCheckable(False)
         
         # Add action to change name
-        action = menu.addAction(translate('filebrowser', 'Change project name ...'))
+        action = menu.addAction(translate('filebrowser', 'Change project name'))
         action._id = 'name'
         action.setCheckable(False)
+        
+        menu.addSeparator()
         
         # Add check action for adding to Pythonpath
         action = menu.addAction(translate('filebrowser', 'Add path to Python path'))
         action._id = 'pythonpath'
-        d = self._currentDict()
+        d = self.currentDict()
         action.setCheckable(True)
         checked = bool( d and d['addToPythonpath'] )
         action.setChecked(checked)
     
     
     def onMenuTriggered(self, action):
-        d = self._currentDict()
+        d = self.currentDict()
         if not d:
             return
         
         if action._id == 'remove':
             # Remove this project
             starredDirs = self.parent().config.starredDirs
+            pathn = self._path.normcase()
             for d in starredDirs:
-                if self._path.normcase() == d.path:
+                if pathn.startswith(d.path):
                     starredDirs.remove(d)
                     break
         
