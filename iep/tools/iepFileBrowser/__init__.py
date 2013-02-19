@@ -103,6 +103,21 @@ class IepFileBrowser(QtGui.QWidget):
         layout.setContentsMargins(4,4,4,4)
     
     
+    def getAddToPythonPath(self):
+        """
+        Returns the path to be added to the Python path when starting a shell
+        If a project is selected, which has the addToPath checkbox selected,
+        returns the path of the project. Otherwise, returns None
+        """
+        # Select browser
+        browser = self._browsers[0]
+        # Select active project
+        d = browser.currentProject()
+        if d and d.addToPythonpath:
+            return d.path
+        return None
+    
+    
     def closeEvent(self, event):
         # Close all browsers so they can clean up the file system proxies
         for browser in self._browsers:
