@@ -21,25 +21,27 @@ from queue import Queue, Empty
 
 
 class Task:
-    """ Task(param=None)
+    """ Task(**params)
     
-    A task object. Accepts one parameter (for performance reasons).
+    A task object. Accepts params as keyword arguments.
     When overloading, dont forget to set __slots__.
     
     Overload and implement the 'process' method to create a task.
     Then use pushTask on a pathProxy object. Use the 'result' method to 
     obtain the result (or raise an error).
     """
-    __slots__ = ['_param', '_result', '_error']
+    __slots__ = ['_params', '_result', '_error']
     
-    def __init__(self, param=None):       
-        self._param = param
+    def __init__(self, **params):
+        if not params:
+            params = None
+        self._params = params
         self._result = None
         self._error = None
     
-    def process(self, proxy, param):
-        """ process(pathProxy, param):
-        This is the methood that represents the task. Overload this to make
+    def process(self, proxy, **params):
+        """ process(pathProxy, **params):
+        This is the method that represents the task. Overload this to make
         the task do what is intended.
         """ 
         pass
@@ -48,9 +50,11 @@ class Task:
         """ Run the task. Don't overload or use this.
         """
         try:
-            self._result = self.process(proxy, self._param)
-        except Exception as err:
+            params = self._params or {}
+            self._result = self.process(proxy, **params)
+        except Exception as err:            
             self._error = 'Task failed: {}:\n{}'.format(self, str(err))
+            print(self._error)
     
     def result(self):
         """ Get the result. Raises an error if the task failed.
@@ -377,12 +381,20 @@ class BaseFSProxy(threading.Thread):
     def modified(self, path):
         raise NotImplemented() # Should rerurn None if it does not exist
     
+    def fileSize(self, path):
+        raise NotImplemented() # Should rerurn None if it does not exist
+    
     def read(self, path):
         raise NotImplemented() # Should rerurn None if it does not exist
     
-    def fileSize(self, path):
-        raise NotImplemented() # Should rerurn None if it does not exist
-
+    def write(self, path, bb):
+        raise NotImplemented()
+    
+    def remove(self, path):
+        raise NotImplemented()
+    
+    def createDir(self, path):
+        raise NotImplemented()
 
 
 import os
@@ -405,11 +417,24 @@ class NativeFSProxy(BaseFSProxy):
         if os.path.isfile(path):
             return os.path.getmtime(path)
     
+    def fileSize(self, path):
+        if os.path.isfile(path):
+            return os.path.getsize(path)
+    
     def read(self, path):
         if os.path.isfile(path):
             return open(path, 'rb').read()
     
-    def fileSize(self, path):
+    def write(self, path, bb):
+        with open(path, 'wb') as f:
+            f.write(bb)
+    
+    def remove(self, path):
         if os.path.isfile(path):
-            return os.path.getsize(path)
-
+            os.remove(path)
+        elif os.path.isdir(path):
+            os.rmdir(path)
+    
+    def createDir(self, path):
+        if not os.path.isdir(path):
+            os.makedirs(path)

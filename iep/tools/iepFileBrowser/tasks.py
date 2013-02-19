@@ -13,10 +13,7 @@ from . import proxies
 class SearchTask(proxies.Task):
     __slots__ = []
     
-    def process(self, proxy, param):
-        return self._process(proxy, **param)
-    
-    def _process(self, proxy, pattern=None, matchCase=False, regExp=False, **rest):
+    def process(self, proxy, pattern=None, matchCase=False, regExp=False, **rest):
         
         # Quick test
         if not pattern:
@@ -149,7 +146,7 @@ class SearchTask(proxies.Task):
 class DocstringTask(proxies.Task):
     __slots__ = []
     
-    def process(self, proxy, param):
+    def process(self, proxy):
         path = proxy.path()
         fsProxy = proxy._fsProxy
         
@@ -201,3 +198,56 @@ class DocstringTask(proxies.Task):
             doc = 'No docstring detected'
         
         return doc
+
+
+
+class RenameTask(proxies.Task):
+    __slots__ = []
+    
+    def process(self, proxy, newpath=None, removeold=False):
+        path = proxy.path()
+        fsProxy = proxy._fsProxy
+        
+        if not newpath:
+            return
+        
+        # Read bytes
+        bb = fsProxy.read(path)
+        if bb is None:
+            return
+        
+        # write back with new name
+        fsProxy.write(newpath, bb)
+        
+        # Delete old file
+        if removeold:
+            fsProxy.remove(path)        
+            # The fsProxy will detect that this file is now deleted
+
+
+class CreateTask(proxies.Task):
+    __slots__ = []
+    
+    def process(self, proxy, newpath=None, file=True):
+        path = proxy.path()
+        fsProxy = proxy._fsProxy
+        
+        if not newpath:
+            return
+        
+        if file:
+            fsProxy.write(newpath, b'')
+        else:
+            fsProxy.createDir(newpath)
+
+
+class RemoveTask(proxies.Task):
+    __slots__ = []
+    
+    def process(self, proxy):
+        path = proxy.path()
+        fsProxy = proxy._fsProxy
+        
+        # Remove
+        fsProxy.remove(path)
+        # The fsProxy will detect that this file is now deleted

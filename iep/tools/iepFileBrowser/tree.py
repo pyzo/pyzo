@@ -9,6 +9,7 @@ Defines the tree widget to display the contents of a selected directory.
 import os
 import sys
 import time
+import subprocess
 import fnmatch
 from pyzolib.path import Path
 
@@ -16,7 +17,7 @@ from PySide import QtCore, QtGui
 import iep
 from iep import translate
 
-from .tasks import SearchTask, DocstringTask
+from . import tasks
 from .utils import hasHiddenAttribute, getMounts
 
 # How to name the list of drives/mounts (i.e. 'my computer')
@@ -203,6 +204,7 @@ class BrowserItem(QtGui.QTreeWidgetItem):
         self._proxy.changed.connect(self.onChanged)
         self._proxy.deleted.connect(self.onDeleted)
         self._proxy.errored.connect(self.onErrored)
+        self._proxy.taskFinished.connect(self.onTaskFinished)
     
     def path(self):
         return self._proxy.path()
@@ -235,6 +237,11 @@ class BrowserItem(QtGui.QTreeWidgetItem):
     def onErrored(self, err):
         self.clear()
         self._createDummyItem('Error: ' + err)
+
+    def onTaskFinished(self, task):
+        # Getting the result raises exception if an error occured.
+        # Which is what we want; so it is visible in the logger shell
+        task.result()
 
 
 
@@ -312,7 +319,7 @@ class DirItem(BrowserItem):
         tree = self.treeWidget()
         tree.createItems(self)
 
-
+ 
 
 class FileItem(BrowserItem):
     """ Tree widget item for files.
@@ -320,7 +327,6 @@ class FileItem(BrowserItem):
     
     def __init__(self, parent, pathProxy):
         BrowserItem.__init__(self, parent, pathProxy)
-        self._proxy.taskFinished.connect(self.onTaskFinished)
         self._timeSinceLastDocString = 0
     
     def setFileIcon(self):
@@ -359,13 +365,14 @@ class FileItem(BrowserItem):
         self._timeSinceLastDocString = time.time()
         # Create task
         if self.path().lower().endswith('.py'):
-            self._proxy.pushTask(DocstringTask())
+            self._proxy.pushTask(tasks.DocstringTask())
     
     def onChanged(self):
         pass
     
     def onTaskFinished(self, task):
-        if isinstance(task, DocstringTask):
+        
+        if isinstance(task, tasks.DocstringTask):
             result = task.result()
             if result:
                 #self.setToolTip(0, result)
@@ -374,6 +381,9 @@ class FileItem(BrowserItem):
                 pos = tree.mapFromGlobal(QtGui.QCursor.pos())
                 if tree.itemAt(pos) is self:
                     QtGui.QToolTip.showText(QtGui.QCursor.pos(), result)
+        else:
+            BrowserItem.onTaskFinished(self, task)
+
 
 
 class SearchItem(QtGui.QTreeWidgetItem):
@@ -481,7 +491,7 @@ class TemporaryFileItem:
         tree._temporaryItems.add(self)
         
     def search(self, searchFilter):
-        self._proxy.pushTask(SearchTask(searchFilter))
+        self._proxy.pushTask(tasks.SearchTask(**searchFilter))
     
     def onSearchResult(self, task):
         # Disband now
@@ -534,7 +544,6 @@ class Tree(QtGui.QTreeWidget):
         self._temporaryItems = set()
         
         # Define context menu
-        self._menu = QtGui.QMenu(self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenuTriggered)  
         
@@ -693,23 +702,144 @@ class Tree(QtGui.QTreeWidget):
     
     def contextMenuTriggered(self, p):
         """ Called when context menu is clicked """
-        # Init
-        # todo: call showMenu on the item, which uses IEP's menus, so first put what we have now in IEP
-        menu = self._menu
+        # Init        
         item = self.itemAt(p)
+        if isinstance(item, FileItem) or isinstance(item, DirItem):
+            # Create and show menu
+            menu = PopupMenu(self, item)
+            menu.exec_(self.mapToGlobal(p))
+
+
+
+class PopupMenu(iep.iepcore.menu.Menu):
+    def __init__(self, parent, item):
+        self._item = item
+        iep.iepcore.menu.Menu.__init__(self, parent, " ")
+    
+    def build(self):
         
-        if not item:
-            return
-        elif isinstance(item, FileItem):
-            menu.clear()
-            action = menu.addAction(translate('filebrowser', 'Open with native application'))
-            action = menu.addAction(translate('filebrowser', 'Copy path'))
-            action = menu.addAction(translate('filebrowser', 'Rename file'))
-            action = menu.addAction(translate('filebrowser', 'Delete file'))
-        elif isinstance(item, DirItem):
-            menu.clear()
-            action = menu.addAction(translate('filebrowser', 'Rename directory'))
-            action = menu.addAction(translate('filebrowser', 'Delete directory'))
+        #TODO: implement 'open outside iep' on linux
+                
+        if isinstance(self._item, FileItem):
+            self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
         
-        # Show menu
-        menu.exec_(self.mapToGlobal(p))
+        # Create items for open and copy path
+        if sys.platform == 'darwin':
+            self.addItem(translate("filebrowser", "Open outside iep"), 
+                None, self._openOutsideMac)
+            self.addItem(translate("filebrowser", "Reveal in Finder"), 
+                None, self._showInFinder)
+        if sys.platform.startswith('win'):
+            self.addItem(translate("filebrowser", "Open outside iep"),
+                None, self._openOutsideWin)
+        self.addItem(translate("projectmanager", "Copy path"), 
+            None, self._copyPath)
+        
+        self.addSeparator()
+        
+        # Create items for file management
+        if isinstance(self._item, FileItem):
+            self.addItem(translate("filebrowser", "Rename"), None, self.onRename)
+            self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
+            #self.addItem(translate("filebrowser", "Duplicate"), None, self.onDuplicate)
+        
+        if isinstance(self._item, DirItem):
+            self.addItem(translate("filebrowser", "Create new file"), None, self.onCreateFile)
+            self.addItem(translate("filebrowser", "Create new directory"), None, self.onCreateDir)
+            self.addSeparator()
+            self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
+    
+    
+    def _openOutsideMac(self):
+        subprocess.call(('open', self._item.path()))
+    
+    def _showInFinder(self):
+        subprocess.call(('open', '-R', self._item.path()))
+    
+    def _openOutsideWin(self):
+        subprocess.call(('start', self._item.path()), shell=True)
+    
+    def _copyPath(self):
+        QtGui.qApp.clipboard().setText(self._item.path())
+    
+    
+    def onDuplicate(self):
+        return self._duplicateOrRename(False)
+        
+    def onRename(self):
+        return self._duplicateOrRename(True)
+        
+    def onCreateFile(self):
+        self._createDirOrFile(True)
+    
+    def onCreateDir(self):
+        self._createDirOrFile(False)
+    
+    
+    def _createDirOrFile(self, file=True):
+                
+        # Get title and label
+        if file:
+            title = translate("filebrowser", "Create new file")
+            label = translate("filebrowser", "Give the new name for the file")
+        else:
+            title = translate("filebrowser", "Create new directory")
+            label = translate("filebrowser", "Give the name for the new directory")
+        
+        # Ask for new filename
+        s = QtGui.QInputDialog.getText(self.parent(), title,
+                    label + ':\n%s' % self._item.path(),
+                    QtGui.QLineEdit.Normal,
+                    'new name'
+                )
+        if isinstance(s, tuple):
+            s = s[0] if s[1] else ''
+        
+        # Push rename task
+        if s:
+            newpath = os.path.join(self._item.path(), s)
+            task = tasks.CreateTask(newpath=newpath, file=file)
+            self._item._proxy.pushTask(task)
+    
+    
+    def _duplicateOrRename(self, rename):
+        
+        # Get dirname and filename
+        dirname, filename = os.path.split(self._item.path())
+        
+        # Get title and label
+        if rename:
+            title = translate("filebrowser", "Rename")
+            label = translate("filebrowser", "Give the new name for the file")
+        else:
+            title = translate("filebrowser", "Duplicate")
+            label = translate("filebrowser", "Give the name for the new file")
+            filename = 'Copy of ' + filename
+        
+        # Ask for new filename
+        s = QtGui.QInputDialog.getText(self.parent(), title,
+                    label + ':\n%s' % self._item.path(),
+                    QtGui.QLineEdit.Normal,
+                    filename
+                )
+        if isinstance(s, tuple):
+            s = s[0] if s[1] else ''
+        
+        # Push rename task
+        if s:
+            newpath = os.path.join(dirname, s)
+            task = tasks.RenameTask(newpath=newpath, removeold=rename)
+            self._item._proxy.pushTask(task)
+    
+    
+    def onDelete(self):
+        # Ask for new filename
+        b = QtGui.QMessageBox.question(self.parent(), 
+                    translate("filebrowser", "Delete"), 
+                    translate("filebrowser", "Are you sure that you want to delete") + 
+                    ':\n%s' % self._item.path(),
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.Cancel,
+                )       
+        # Push delete task
+        if b is QtGui.QMessageBox.Yes:            
+            self._item._proxy.pushTask(tasks.RemoveTask())

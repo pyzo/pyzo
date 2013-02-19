@@ -282,7 +282,8 @@ class PathInput(LineEditWithToolButtons):
     def event(self, event):
         # Capture key events to explicitly apply the completion and
         # invoke checking whether the current text is a valid directory.
-        if isinstance(event, QtGui.QKeyEvent):
+        # Test if QtGui is not None (can happen when reloading tools)
+        if QtGui and isinstance(event, QtGui.QKeyEvent):
             qt = QtCore.Qt
             if event.key() in [qt.Key_Tab, qt.Key_Enter, qt.Key_Return]:
                 self.setText(self.text()) # Apply completion
