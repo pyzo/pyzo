@@ -80,7 +80,7 @@ class IepFileBrowser(QtGui.QWidget):
         # Make Path instances and remove invalid dirs. Also normalize case, 
         # should not be necessary, but maybe the config was manually edited.
         expandedDirs, starredDirs = [], []
-        for p in set(self.config.expandedDirs):
+        for p in set([str(p) for p in self.config.expandedDirs]):
             if os.path.isdir(p):
                 expandedDirs.append( Path(p).normcase() )
         for d in self.config.starredDirs:
