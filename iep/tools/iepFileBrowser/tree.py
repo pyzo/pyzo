@@ -8,6 +8,7 @@ Defines the tree widget to display the contents of a selected directory.
 
 import os
 import sys
+import time
 import fnmatch
 from pyzolib.path import Path
 
@@ -248,6 +249,10 @@ class DriveItem(BrowserItem):
     def setFileIcon(self):
         # Use folder icon
         self.setIcon(0, iep.icons.drive)
+    
+    def onActivated(self):
+        self.treeWidget().setPath(self.path())
+
 
 
 class DirItem(BrowserItem):
@@ -269,6 +274,9 @@ class DirItem(BrowserItem):
             overlays.append(iep.icons.overlay_star)
         icon = addIconOverlays(icon, *overlays)
         self.setIcon(0, icon)
+    
+    def onActivated(self):
+        self.treeWidget().setPath(self.path())
     
     def onExpanded(self):
         # Update list of expanded dirs
@@ -313,6 +321,7 @@ class FileItem(BrowserItem):
     def __init__(self, parent, pathProxy):
         BrowserItem.__init__(self, parent, pathProxy)
         self._proxy.taskFinished.connect(self.onTaskFinished)
+        self._timeSinceLastDocString = 0
     
     def setFileIcon(self):
         # Create dummy file in iep user dir
@@ -332,7 +341,23 @@ class FileItem(BrowserItem):
         self.setHidden(True)
         self._proxy.setSearch(needle, **kwargs)
     
+    def onActivated(self):
+        # todo: someday we should be able to simply pass the proxy object to the editors
+        # so that we can open files on any file system
+        path = self.path()
+        if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
+            # Load and get editor
+            fileItem = iep.editors.loadFile(path)
+            editor = fileItem._editor
+            # Give focus
+            iep.editors.getCurrentEditor().setFocus()
+    
     def onClicked(self):
+        # Limit sending events to prevent flicker when double clicking
+        if time.time() - self._timeSinceLastDocString < 0.5:
+            return
+        self._timeSinceLastDocString = time.time()
+        # Create task
         if self.path().lower().endswith('.py'):
             self._proxy.pushTask(DocstringTask())
     
@@ -354,12 +379,24 @@ class FileItem(BrowserItem):
 class SearchItem(QtGui.QTreeWidgetItem):
     """ Tree widget item for search items.
     """
-    def __init__(self, parent, text):
+    def __init__(self, parent, linenr, text):
         QtGui.QTreeWidgetItem.__init__(self, parent)
-        self.setText(0, text)
+        self._linenr = linenr
+        self.setText(0, 'Line %i: %s' % (linenr, text))
     
     def path(self):
         return self.parent().path()
+    
+    def onActivated(self):
+        path = self.path()
+        if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
+            # Load and get editor
+            fileItem = iep.editors.loadFile(path)
+            editor = fileItem._editor
+            # Goto line
+            editor.gotoLine(self._linenr)
+            # Give focus
+            iep.editors.getCurrentEditor().setFocus()
 
 
 
@@ -456,7 +493,7 @@ class TemporaryFileItem:
         if result:
             item = FileItem(self._tree, self._proxy)
             for r in result:
-                SearchItem(item, 'Line %i: %s'%r)
+                SearchItem(item, *r)
         # Update counter
         searchInfoItem = self._tree.topLevelItem(0)
         if isinstance(searchInfoItem, SearchInfoItem):
@@ -626,14 +663,8 @@ class Tree(QtGui.QTreeWidget):
         """ When an item is "activated", make that the new directory,
         or open that file.
         """
-        if isinstance(item, (DriveItem, DirItem)):
-            self.setPath(item.path())
-        elif isinstance(item, FileItem):
-            # todo: someday we should be able to simply pass the proxy object to the editors
-            # so that we can open files on any file system
-            path = item.path()
-            if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
-                iep.editors.loadFile(path)
+        if hasattr(item, 'onActivated'):
+            item.onActivated()
     
     
     def _storeSelectionState(self):
