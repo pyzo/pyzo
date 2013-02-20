@@ -162,9 +162,10 @@ class LineEditWithToolButtons(QtGui.QLineEdit):
         button.setCursor(QtCore.Qt.ArrowCursor)
         button.setPopupMode(button.InstantPopup)
         # Customize alignment
-        if willHaveMenu and sys.platform.startswith('win'):
+        if willHaveMenu:
             button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-            button.setText(' ')
+            if sys.platform.startswith('win'):
+                button.setText(' ')
         # Update self
         self._updateGeometry()
         return button
