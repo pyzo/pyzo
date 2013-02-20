@@ -718,22 +718,22 @@ class PopupMenu(iep.iepcore.menu.Menu):
     
     def build(self):
         
-        #TODO: implement 'open outside iep' on linux
-                
+        isplat = sys.platform.startswith
+        
+        # The normal "open" function
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
         
         # Create items for open and copy path
-        if sys.platform == 'darwin':
+        if isplat('win') or isplat('darwin') or isplat('linux'):
             self.addItem(translate("filebrowser", "Open outside iep"), 
-                None, self._openOutsideMac)
+                None, self._openOutsideIep)
+        if isplat('darwin'):            
             self.addItem(translate("filebrowser", "Reveal in Finder"), 
                 None, self._showInFinder)
-        if sys.platform.startswith('win'):
-            self.addItem(translate("filebrowser", "Open outside iep"),
-                None, self._openOutsideWin)
-        self.addItem(translate("projectmanager", "Copy path"), 
-            None, self._copyPath)
+        if True:
+            self.addItem(translate("projectmanager", "Copy path"), 
+                None, self._copyPath)
         
         self.addSeparator()
         
@@ -742,22 +742,25 @@ class PopupMenu(iep.iepcore.menu.Menu):
             self.addItem(translate("filebrowser", "Rename"), None, self.onRename)
             self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
             #self.addItem(translate("filebrowser", "Duplicate"), None, self.onDuplicate)
-        
         if isinstance(self._item, DirItem):
             self.addItem(translate("filebrowser", "Create new file"), None, self.onCreateFile)
             self.addItem(translate("filebrowser", "Create new directory"), None, self.onCreateDir)
             self.addSeparator()
             self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
     
-    
-    def _openOutsideMac(self):
-        subprocess.call(('open', self._item.path()))
+        
+    def _openOutsideIep(self):
+        if sys.platform.startswith('darwin'):
+            subprocess.call(('open', self._item.path()))
+        elif sys.platform.startswith('win'):
+            subprocess.call(('start', self._item.path()), shell=True)
+        elif sys.platform.startswith('linux'):
+            # xdg-open is available on all Freedesktop.org compliant distros
+            # http://superuser.com/questions/38984/linux-equivalent-command-for-open-command-on-mac-windows
+            subprocess.call(('xdg-open', self._item.path()))
     
     def _showInFinder(self):
         subprocess.call(('open', '-R', self._item.path()))
-    
-    def _openOutsideWin(self):
-        subprocess.call(('start', self._item.path()), shell=True)
     
     def _copyPath(self):
         QtGui.qApp.clipboard().setText(self._item.path())
