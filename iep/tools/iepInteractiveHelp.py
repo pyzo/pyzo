@@ -59,9 +59,11 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._printBut = QtGui.QPushButton("Print", self)
         
         # Create options button
-        self._options = QtGui.QPushButton(self)
-        self._options.setText('Options')
-        self._options.setToolTip("Set the options for this tool.")
+        self._options = QtGui.QToolButton(self)
+        self._options.setIcon(iep.icons.wrench)
+        self._options.setIconSize(QtCore.QSize(16,16))
+        self._options.setPopupMode(self._options.InstantPopup)
+        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         
         # Create options menu
         self._options._menu = QtGui.QMenu()
