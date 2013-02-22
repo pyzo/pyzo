@@ -8,7 +8,7 @@
 Module for locale stuff like language and translations.
 """
 
-import os, sys
+import os, sys, time
 from iep.codeeditor.qt import QtCore, QtGui
 
 import iep
@@ -22,6 +22,7 @@ LANGUAGES = {
     # == (QtCore.QLocale.English, QtCore.QLocale.UnitedStates),
     #'English (UK)': (QtCore.QLocale.English, QtCore.QLocale.UnitedKingdom),
     'Dutch': QtCore.QLocale.Dutch,
+    'German': QtCore.QLocale.German,
     }
 
 
@@ -143,6 +144,39 @@ def translate(context, text, disambiguation=None):
 ## Development tools
 import subprocess
 
+LHELP = """
+Language help - info for translaters
+
+For translating, you will need a set of working Qt language tools: 
+pyside-lupdate, linguist, lrelease. On Windows, these should come
+with your PySide installation. On (Ubuntu) Linux, you can install
+these with 'sudo apt-get install pyside-tools qt4-dev-tools'.
+
+You also need to run IEP from source as checked out from the repo
+(e.g. by running ieplauncher.py).
+
+To create a new language:
+  * the file 'iep/util/locale.py' should be edited to add the language
+    to the LANGUAGES dict
+  * run 'linguist(your_lang)' to initialize the .tr file
+  * the file 'iep/iep.pro' should be edited to include the new .tr file
+
+To update a language:
+  * run 'lupdate()'
+  * run 'linguist(your_lang)'
+  * make all the translations and save
+  * run lrelease() and restart IEP to see translations
+  * repeat if necessary
+
+"""
+
+def lhelp():
+    """ lhelp()
+    Print help text on using the language tools.
+    """
+    print(LHELP)
+
+
 def linguist(languageName):
     """ linguist(languageName)
     Open linguist with the language file as specified by lang. The
@@ -161,7 +195,10 @@ def linguist(languageName):
     # Get Command for linguist
     pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
-    exe = os.path.join(pysideDir, 'linguist' + '.exe' * ISWIN)
+    exe_ = 'linguist' + '.exe' * ISWIN
+    exe = os.path.join(pysideDir, exe_)
+    if not os.path.isfile(exe):
+       exe = exe_
     
     # Spawn process
     return subprocess.Popen([exe , filename])
@@ -179,12 +216,21 @@ def lupdate():
     # Get Command for python lupdate
     pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
-    exe = os.path.join(pysideDir, 'pyside-lupdate' + '.exe' * ISWIN)
+    exe_ = 'pyside-lupdate' + '.exe' * ISWIN
+    exe = os.path.join(pysideDir, exe_)
+    if not os.path.isfile(exe):
+       exe = exe_
     
     # Spawn process
     cmd = [exe, '-noobsolete', '-verbose', filename]
-    m = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-    print(m.decode('utf-8'))
+    p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while p.poll() is None:
+        time.sleep(0.1)
+    output =  p.stdout.read().decode('utf-8')
+    if p.returncode:
+        raise RuntimeError('lupdate failed (%i): %s' % (p.returncode, output))
+    else:
+        print(output)
 
 
 def lrelease():
@@ -199,13 +245,21 @@ def lrelease():
     # Get Command for lrelease
     pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
-    exe = os.path.join(pysideDir, 'lrelease' + '.exe' * ISWIN)
+    exe_ = 'lrelease' + '.exe' * ISWIN
+    exe = os.path.join(pysideDir, exe_)
+    if not os.path.isfile(exe):
+       exe = exe_
     
     # Spawn process
     cmd = [exe, filename]
-    m = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-    print(m.decode('utf-8'))
-
+    p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while p.poll() is None:
+        time.sleep(0.1)
+    output =  p.stdout.read().decode('utf-8')
+    if p.returncode:
+        raise RuntimeError('lrelease failed (%i): %s' % (p.returncode, output))
+    else:
+        print(output)
 
 
 if __name__ == '__main__':

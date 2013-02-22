@@ -23,6 +23,7 @@ from iep.iepcore.editor import createEditor
 from iep.iepcore.baseTextCtrl import normalizePath
 from iep.iepcore.iepLogging import print
 from iep.iepcore.icons import EditorTabToolButton
+from iep import translate
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 50
@@ -171,7 +172,7 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add button
             self._hidebut.setFont( QtGui.QFont('helvetica',7) )
-            self._hidebut.setToolTip("Hide search widget (Escape)")
+            self._hidebut.setToolTip(translate('search', 'Hide search widget (Escape)'))
             self._hidebut.setIcon( iep.icons.cancel )
             self._hidebut.setIconSize(QtCore.QSize(16,16))
             vsubLayout.addWidget(self._hidebut, 0)
@@ -190,15 +191,15 @@ class FindReplaceWidget(QtGui.QFrame):
             layout.addLayout(vsubLayout, 0)
             
             # Add find text
-            self._findText.setToolTip("Find pattern")
+            self._findText.setToolTip(translate('search', 'Find pattern'))
             vsubLayout.addWidget(self._findText, 0)
             
             vsubLayout.addLayout(hsubLayout)
             
             # Add previous button
             self._findPrev = QtGui.QToolButton(self) 
-            self._findPrev.setText('Previous')
-            self._findPrev.setToolTip("Find previous occurance of the pattern")
+            t = translate('search', 'Previous ::: Find previous occurance of the pattern.')
+            self._findPrev.setText(t);  self._findPrev.setToolTip(t.tt)
             
             hsubLayout.addWidget(self._findPrev, 0)
             
@@ -206,8 +207,8 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add next button
             self._findNext = QtGui.QToolButton(self)
-            self._findNext.setText('Next')
-            self._findNext.setToolTip("Find next occurance of the pattern")
+            t = translate('search', 'Next ::: Find next occurance of the pattern.')
+            self._findNext.setText(t);  self._findNext.setToolTip(t.tt)
             #self._findNext.setDefault(True) # Not possible with tool buttons
             hsubLayout.addWidget(self._findNext, 0)
         
@@ -222,24 +223,24 @@ class FindReplaceWidget(QtGui.QFrame):
             hsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
             
-            # Add replace text
-            self._replaceText.setToolTip("Replace pattern")
+            # Add replace text        
+            self._replaceText.setToolTip(translate('search', 'Replace pattern'))
             vsubLayout.addWidget(self._replaceText, 0)
             
             vsubLayout.addLayout(hsubLayout)
             
             # Add replace-all button
             self._replaceAll = QtGui.QToolButton(self) 
-            self._replaceAll.setText("Repl. all")
-            self._replaceAll.setToolTip("Replace all matches in current document")
+            t = translate('search', 'Repl. all ::: Replace all matches in current document.')
+            self._replaceAll.setText(t);  self._replaceAll.setToolTip(t.tt)
             hsubLayout.addWidget(self._replaceAll, 0)
             
             hsubLayout.addStretch(1)
             
             # Add replace button
             self._replace = QtGui.QToolButton(self)
-            self._replace.setText("Replace")
-            self._replace.setToolTip("Replace this match")
+            t = translate('search', 'Replace ::: Replace this match.')
+            self._replace.setText(t);  self._replace.setToolTip(t.tt)
             hsubLayout.addWidget(self._replace, 0)
         
         
@@ -253,13 +254,15 @@ class FindReplaceWidget(QtGui.QFrame):
             layout.addLayout(vsubLayout, 0)
             
             # Add match-case checkbox
-            self._caseCheck = QtGui.QCheckBox("Match case", self)
-            self._caseCheck.setToolTip("Find words that match case")
+            t = translate('search', 'Match case ::: Find words that match case.')
+            self._caseCheck = QtGui.QCheckBox(t, self)
+            self._caseCheck.setToolTip(t.tt)
             vsubLayout.addWidget(self._caseCheck, 0)
             
             # Add regexp checkbox
-            self._regExp = QtGui.QCheckBox("RegExp", self)
-            self._regExp.setToolTip("Find using regular expressions")
+            t = translate('search', 'RegExp ::: Find using regular expressions.')
+            self._regExp = QtGui.QCheckBox(t, self)
+            self._regExp.setToolTip(t.tt)
             vsubLayout.addWidget(self._regExp, 0)
         
         if True:
@@ -270,14 +273,16 @@ class FindReplaceWidget(QtGui.QFrame):
             layout.addLayout(vsubLayout, 0)
             
             # Add whole-word checkbox
-            self._wholeWord = QtGui.QCheckBox("Whole words", self)
-            self._wholeWord.setToolTip("Find only whole words")
+            t = translate('search', 'Whole words ::: Find only whole words.')
+            self._wholeWord = QtGui.QCheckBox(t, self)
+            self._wholeWord.setToolTip(t.tt)
             self._wholeWord.resize(60, 16)
             vsubLayout.addWidget(self._wholeWord, 0)
             
             # Add autohide dropbox
-            self._autoHide = QtGui.QCheckBox("Auto hide", self)
-            self._autoHide.setToolTip("Hide search/replace when unused for 10s")
+            t = translate('search', 'Auto hide ::: Hide search/replace when unused for 10 s.')
+            self._autoHide = QtGui.QCheckBox(t, self)
+            self._autoHide.setToolTip(t.tt)
             self._autoHide.resize(60, 16)
             vsubLayout.addWidget(self._autoHide, 0)
         

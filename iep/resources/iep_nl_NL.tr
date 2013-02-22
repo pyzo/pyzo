@@ -1,6 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="nl_NL">
 <context>
+    <name>filebrowser</name>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="44"/>
+        <source>Filename filter</source>
+        <translation>Bestandsnaam filter</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="49"/>
+        <source>Search in files</source>
+        <translation>Zoek in bestanden</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="405"/>
+        <source>Projects:</source>
+        <translation>Projecten:</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="408"/>
+        <source>Click the star to create a project</source>
+        <translation>Klik op de ster om een project te maken</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="416"/>
+        <source>Remove project</source>
+        <translation>Verwijder project</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="421"/>
+        <source>Change project name</source>
+        <translation>Verander de naam van dit project</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="428"/>
+        <source>Add path to Python path</source>
+        <translation>Voeg directory toe aan Pythonpath</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="453"/>
+        <source>Project name</source>
+        <translation>Project naam</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="454"/>
+        <source>New project name:</source>
+        <translation>Nieuwe project naam:</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="604"/>
+        <source>Match case</source>
+        <translation>Hoofdlettergevoelig</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="605"/>
+        <source>RegExp</source>
+        <translation>RegExp</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="606"/>
+        <source>Search in subdirs</source>
+        <translation>Zoek in subdirectories</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="725"/>
+        <source>Open</source>
+        <translation>Openen</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="729"/>
+        <source>Open outside iep</source>
+        <translation>Openen buiten IEP</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="732"/>
+        <source>Reveal in Finder</source>
+        <translation>Laat zien in Finder</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="816"/>
+        <source>Rename</source>
+        <translation>Hernoemen</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="841"/>
+        <source>Delete</source>
+        <translation>Verwijderen</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="787"/>
+        <source>Create new file</source>
+        <translation>Maak nieuw bestand</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="790"/>
+        <source>Create new directory</source>
+        <translation>Maak nieuwe directorie</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="817"/>
+        <source>Give the new name for the file</source>
+        <translation>Geef de nieuwe naam voor het bestand</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="793"/>
+        <source>Give the name for the new directory</source>
+        <translation>Geef de naam voor de directorie</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="819"/>
+        <source>Duplicate</source>
+        <translation>Dupliceren</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="820"/>
+        <source>Give the name for the new file</source>
+        <translation>Geef de naam van het nieuwe bestand</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="843"/>
+        <source>Are you sure that you want to delete</source>
+        <translation>Weet je zeker dat je wilt verwijderen</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="735"/>
+        <source>Copy path</source>
+        <translation>Kopier directorie</translation>
+    </message>
+</context>
+<context>
     <name>menu</name>
     <message>
         <location filename="iep/iepcore/menu.py" line="33"/>
@@ -229,11 +357,6 @@
         <translation>Reset zoom</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="664"/>
-        <source>Edge Column ::: The location of the long-line-indicator.</source>
-        <translation>Verticale hulplijn ::: The lokatie van de verticale hupl lijn.</translation>
-    </message>
-    <message>
         <location filename="iep/iepcore/menu.py" line="672"/>
         <source>Qt theme ::: The styling of the user interface widgets.</source>
         <translation>Qt thema ::: De stijl van de gebruikersinterface.</translation>
@@ -311,7 +434,7 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="832"/>
         <source>Edit shell configurations... ::: Add new shell configs and edit interpreter properties.</source>
-        <translation>Aanpassenl shellconfiguraties... ::: Voeg shell configuraties toe en pas de eigenschappen aan.</translation>
+        <translation>Aanpassen shell configuraties... ::: Voeg shell configuraties toe en pas de eigenschappen aan.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="835"/>
@@ -468,6 +591,11 @@
         <source>Select language ::: The language used by IEP.</source>
         <translation>Selecteer taal ::: De taal gebruikt door IEP</translation>
     </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="664"/>
+        <source>Location of long line indicator ::: The location of the long-line-indicator.</source>
+        <translation>Locatie van de lange-regel indicator</translation>
+    </message>
 </context>
 <context>
     <name>menu dialog</name>
@@ -523,6 +651,117 @@
         IEP needs to restart for the change to take effect.
         </source>
         <translation>De taal is aangepast. IEP moet herstarten om de aanpassing zichtbaar te maken.</translation>
+    </message>
+</context>
+<context>
+    <name>search</name>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="175"/>
+        <source>Hide search widget (Escape)</source>
+        <translation>Verber zoek scherm (Escape)</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="194"/>
+        <source>Find pattern</source>
+        <translation>Zoekpatroon</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="202"/>
+        <source>Previous ::: Find previous occurance of the pattern.</source>
+        <translation>Vorige ::: Vind de vorige instantie van het zoekpatroon.  </translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="211"/>
+        <source>Next ::: Find next occurance of the pattern.</source>
+        <translation>Volgende :::Vind de volgende instantie van het zoekpatroon.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="227"/>
+        <source>Replace pattern</source>
+        <translation>Vervangpatroon</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="235"/>
+        <source>Repl. all ::: Replace all matches in current document.</source>
+        <translation>Verv. alles ::: Vervang alle instanties in het huidige document.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="243"/>
+        <source>Replace ::: Replace this match.</source>
+        <translation>Vervang ::: Vervang de huidige instantie.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="258"/>
+        <source>Match case ::: Find words that match case.</source>
+        <translation>Hoofdlettergevoelig ::: Houd rekening met hoofdletters bij het zoeken.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="264"/>
+        <source>RegExp ::: Find using regular expressions.</source>
+        <translation>RegExp ::: Zoek met regular expressions.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="277"/>
+        <source>Whole words ::: Find only whole words.</source>
+        <translation>Hele woorden ::: Vind alleen hele woorden.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/editorTabs.py" line="284"/>
+        <source>Auto hide ::: Hide search/replace when unused for 10 s.</source>
+        <translation>Automatisch verbergen ::: Verberg het zoek/vervang scherm als het 10 s ongebruikt is.</translation>
+    </message>
+</context>
+<context>
+    <name>shell</name>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="180"/>
+        <source>Use system default</source>
+        <translation>Gebruik standaard van het systeem</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="303"/>
+        <source>name ::: The name of this configuration.</source>
+        <translation>naam ::: De naam van deze configuratie.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="304"/>
+        <source>exe ::: The Python executable.</source>
+        <translation>exe ::: Het Python executable bestand. </translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="305"/>
+        <source>gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).</source>
+        <translation>gui ::: Welke GUI toolkit geintegreerd wordt (b.v. voor interactief plotten). </translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="306"/>
+        <source>pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.</source>
+        <translation>pythonPath ::: Een lijst met directories om te zoeken naar modules. Elke directorie moet op een nieuwe regel.</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="307"/>
+        <source>startupScript ::: The script to run at startup (not in script mode).</source>
+        <translation>opstartscript ::: Het script dat uitgevoerd wordt bij het opstarten (niet in script modus).</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="311"/>
+        <source>startDir ::: The start directory (not in script mode).</source>
+        <translation>start directorie ::: De directorie waar gestart wordt (niet in script modus). </translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="339"/>
+        <source>Delete ::: Delete this shell configuration</source>
+        <translation>Verwijderen ::: Verwijder deze shell configuratie</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="416"/>
+        <source>Shell configurations</source>
+        <translation>Shell configuraties</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="446"/>
+        <source>Add config</source>
+        <translation>Config toevoegen</translation>
     </message>
 </context>
 </TS>
