@@ -732,7 +732,7 @@ class PopupMenu(iep.iepcore.menu.Menu):
             self.addItem(translate("filebrowser", "Reveal in Finder"), 
                 None, self._showInFinder)
         if True:
-            self.addItem(translate("projectmanager", "Copy path"), 
+            self.addItem(translate("filebrowser", "Copy path"), 
                 None, self._copyPath)
         
         self.addSeparator()
