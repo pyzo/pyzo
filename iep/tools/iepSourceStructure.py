@@ -27,6 +27,12 @@ class IepSourceStructure(QtGui.QWidget):
         if not hasattr(self._config, 'level'):
             self._config.level = 2
         
+        # Create icon for slider
+        self._sliderIcon = QtGui.QToolButton(self)
+        self._sliderIcon.setIcon(iep.icons.text_align_right)
+        self._sliderIcon.setIconSize(QtCore.QSize(16,16))
+        self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        
         # Create slider
         self._slider = QtGui.QSlider(QtCore.Qt.Horizontal, self)
         self._slider.setTickPosition(QtGui.QSlider.TicksBelow)
@@ -37,9 +43,14 @@ class IepSourceStructure(QtGui.QWidget):
         self._slider.valueChanged.connect(self.updateStructure)
         
         # Create options button
-        self._options = QtGui.QPushButton(self)
-        self._options.setText('Options')
-        self._options.setToolTip("What elements to show.")
+        #self._options = QtGui.QPushButton(self)
+        #self._options.setText('Options'))        
+        #self._options.setToolTip("What elements to show.")
+        self._options = QtGui.QToolButton(self)
+        self._options.setIcon(iep.icons.filter)
+        self._options.setIconSize(QtCore.QSize(16,16))
+        self._options.setPopupMode(self._options.InstantPopup)
+        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         
         # Create options menu
         self._options._menu = QtGui.QMenu()
@@ -59,6 +70,7 @@ class IepSourceStructure(QtGui.QWidget):
         # Set layout
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._tree, 1)
+        self._sizer2.addWidget(self._sliderIcon, 0)
         self._sizer2.addWidget(self._slider, 4)
         self._sizer2.addStretch(1)
         self._sizer2.addWidget(self._options, 2)
