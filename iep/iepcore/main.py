@@ -102,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Present user with wizard if he/she is new.
         if iep.config.state.newUser:
-            from iep.iepcore.iepwizard import IEPWizard
+            from iep.util.iepwizard import IEPWizard
             w = IEPWizard(self)
             w.show() # Use show() instead of exec_() so the user can interact with IEP
         

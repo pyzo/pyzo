@@ -764,4 +764,253 @@
         <translation>Config toevoegen</translation>
     </message>
 </context>
+<context>
+    <name>wizard</name>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="40"/>
+        <source>Getting started with IEP</source>
+        <translation>Beginnen met IEP</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="161"/>
+        <source>Welcome to the Interactive Editor for Python!</source>
+        <translation>Welkom bij de Interactieve Editor voor Python!</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="254"/>
+        <source>IEP consists of two main components</source>
+        <translation>IEP bestaat uit twee componenten </translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="266"/>
+        <source>The editor is where you write your code</source>
+        <translation>De editor is waar je je code schrijft</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="281"/>
+        <source>The shell is where your code gets executed</source>
+        <translation>De shell is waar de code uitgevoerd wordt</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="297"/>
+        <source>Configuring shells</source>
+        <translation>Shells configureren</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="312"/>
+        <source>Running code</source>
+        <translation>Code uitvoeren</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="333"/>
+        <source>Interactive mode vs running as script</source>
+        <translation>Interactieve modus versus script modus</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="352"/>
+        <source>Tools for your convenience</source>
+        <translation>Gereedschap</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="367"/>
+        <source>Recommended tools</source>
+        <translation>Aanbevolen gereedschap</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="382"/>
+        <source>Get coding!</source>
+        <translation>Begin met coden!</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="94"/>
+        <source>Step</source>
+        <translation>Stap</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="176"/>
+        <source>This wizard can be opened using &apos;Help &gt; IEP wizard&apos;</source>
+        <translation>Deze wizard kan je ook openen via &apos;Help &gt; IEP wizard&apos;</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="177"/>
+        <source>Show this wizard on startup</source>
+        <translation>Laat deze wizard zien als IEP opstart</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="182"/>
+        <source>Select language</source>
+        <translation>Selecteer taal</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="233"/>
+        <source>
+        The language has been changed for this wizard.
+        IEP needs to restart for the change to take effect application-wide.
+        </source>
+        <translation>De taal is veranderd voor deze wizard. 
+Om de nieuwe taal voor de hele applicatie actief te maken moet deze herstart worden. </translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="234"/>
+        <source>Language changed</source>
+        <translation>Taal aangepast</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="163"/>
+        <source>This wizard helps you get familiarized with the workings of IEP.</source>
+        <translation>Deze wizard helpt je op de weg met IEP.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="168"/>
+        <source>IEP is a cross-platform Python IDE
+        focused on *interactivity* and *introspection*, which makes it
+        very suitable for scientific computing. Its practical design
+        is aimed at *simplicity* and *efficiency*.</source>
+        <translation>IEP is een cross-platform Python IDE gericht op *interactiviteit* en *introspectie*, wat het erg geschikt
+maakt voor wetenschappelijke toepassingen. IEP&apos;s praktische ontwerp is gericht op *simpelheid* en *efficientie*.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="259"/>
+        <source>or you can write code in the *editor* and execute that.</source>
+        <translation>of je kan je code in the *editor* schrijven en deze vervolgens uitvoeren.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="270"/>
+        <source>In the *editor*, each open file is represented as a tab. By
+        right-clicking on a tab, files can be run, saved, closed, etc.</source>
+        <translation>In the *editor* wordt elk geopend bestand gerepresenteerd met een tab. Door met de rechtermuisknop op een tab te
+klikken, kunnen bestanden worden uitgevoerd, opgeslagen, afgesloten, etc.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="274"/>
+        <source>The right mouse button also enables one to make a file the 
+        *main file* of a project. This file can be recognized by its star
+        symbol, and it enables running the file more easily.</source>
+        <translation>The rechtermuisknop maakt het ook mogelijk om een file te markeren als de *main file* van je project. 
+Dit bestand kan je herkennen aan het ster-symbool, en kan vervolgens uitgevoerd w</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="286"/>
+        <source>When IEP starts, a default *shell* is created. You can add more
+        shells that run simultaneously, and which may be of different
+        Python versions.</source>
+        <translation>Als IEP start, wordt er een standaard *shell* gemaakt. Je kan zelf shells toevoegen, welke
+simultaan draaien en ook van verschillende Python versies kunnen zijn.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="290"/>
+        <source>Shells run in a sub-process, such that when it is busy, IEP
+        itself stays responsive, allowing you to keep coding and even
+        run code in another shell.</source>
+        <translation>Shells draaien in een sub-process, zodat als ze actief zijn, IEP zelf goed werkbaar blijft.
+Je kan dus gewoon verder programmeren en zelfs code uitvoeren in een andere shell.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="301"/>
+        <source>IEP can integrate the event loop of five different *GUI toolkits*,
+        thus enabling interactive plotting with e.g. Visvis or Matplotlib.</source>
+        <translation>IEP kan de event-loops van vijf verschillende *GUI toolkits* integreren. Daarmee is het mogelijk
+om bijvoorbeeld interactieve plotjes te maken, zoals met Visvis of Matplotlib.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="305"/>
+        <source>Via &apos;Shell &gt; Edit shell configurations&apos;, you can edit and add
+        *shell configurations*. This allows you to for example select the
+        initial directory, or use a custom Pythonpath.</source>
+        <translation>Via &apos;Shell &gt; Aanpasses shell configuraties&apos; kan je *shell configuraties* aanpassen en toevoegen. Zo kun je bijvoorbeeld
+de start directorie insteller, of het Pythonpath.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="315"/>
+        <source>IEP supports several ways to run source code in the editor. (see the &apos;Run&apos; menu).</source>
+        <translation>IEP ondersteund verschillende manieren om code van de editor uit te voeren (zie ook het &apos;Uitvoeren&apos; menu).</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="320"/>
+        <source>*Run selection:* if there is no selected text, the current line 
+        is executed; if the selection is on a single line, the selection
+        is evaluated; if the selection spans multiple lines, IEP will
+        run the the (complete) selected lines.</source>
+        <translation>*Voer selectie uit:* als er geen selectie is wordt de huidige regel uitgevoerd; als de selectie een enkele regel beslaat, wordt de selectie geevalueerd; als de selectie meerde regels beslaat, zal IEP die regels (volledig) uitvoeren.      </translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="322"/>
+        <source>*Run cell:* a cell is everything between two lines starting with &apos;##&apos;.</source>
+        <translation>*Voer cell uit:* een cell is alle code tussen twee regels die met &apos;##&apos; beginnen.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="324"/>
+        <source>*Run file:* run all the code in the current file.</source>
+        <translation>*Voer bestand uit:* alle code in het huidige bestand wordt uitgevoerd.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="326"/>
+        <source>*Run project main file:* run the code in the current project&apos;s main file.</source>
+        <translation>*Voer project main bestand uit:* alle code in de huidige main file wordt uitgevoerd.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="342"/>
+        <source>In interactive mode, sys.path[0] is an empty string (i.e. the current dir),
+        and sys.argv is set to [&apos;&apos;].</source>
+        <translation>In interactieve modus is sys.path[0] een lege string (ofwel de huidige dir), en sys.argv wordt [&apos;&apos;].</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="345"/>
+        <source>In script mode, __file__ and sys.argv[0] are set to the scripts filename, 
+        sys.path[0] and the working dir are set to the directory containing the script.</source>
+        <translation>In script modus worden __file__ en sys.argv[0] gezet naar de bestandsnaam van het script.
+sys.path[0] en de start directorie worden gezet naar de directorie waar het script in staat.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="356"/>
+        <source>Via the *Tools menu*, one can select which tools to use. The tools can
+        be positioned in any way you want, and can also be un-docked.</source>
+        <translation>Via het *gereedschap menu* kan je eenvoudig selecteren wel gereedschap je wilt gebruiken. Het gereedschap besaat uit kleine schermen die naar eigen voorkeur gepositioneerd kunnen worden.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="360"/>
+        <source>Note that the tools system is designed such that it&apos;s easy to
+        create your own tools. Look at the online wiki for more information,
+        or use one of the existing tools as an example.</source>
+        <translation>Het gereedschapsysteem is zo ontworpen dat het vrij eenvoudig is om ook zelf gereedschap te maken. Kijk 
+op de online wiki.voor meer informatie.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="370"/>
+        <source>We especially recommend the following tools:</source>
+        <translation>We raden met name de volgende gereedschappen aan:</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="372"/>
+        <source>The *Source structure tool* gives an outline of the source code.</source>
+        <translation>De *Sourc structure* geeft de structuur van de broncode aan.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="375"/>
+        <source>The *File browser tool* helps keep an overview of all files
+        in a directory. To manage your projects, click the star icon.</source>
+        <translation>De *File browser* geeft een overzicht van alle bestanden in een directorie. Klik op het ster-icoon om je project te markeren en managen.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="385"/>
+        <source>This concludes the IEP wizard. Now, get coding and have fun!</source>
+        <translation>Hiermee eindigd de IEP wizard. Veel programmeerplezier!</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="257"/>
+        <source>You can execute commands directly in the *shell*,</source>
+        <translation>Je kan commandos direct in the *shell* uitvoeren.</translation>
+    </message>
+    <message>
+        <location filename="iep/util/iepwizard.py" line="339"/>
+        <source>You can run the current file or the main file normally, or as a script. 
+        When run as script, the shell is restared to provide a clean
+        environment. The shell is also initialized differently so that it
+        closely resembles a normal script execution.</source>
+        <translation>Je kan het huidige bestand of de main file normaal uitvoeren, of als script.
+In het laatste geval wordt de shell eerst herstart om een schone omgeving te realizeren. 
+Ook wordt de shell anders geinitializeerd zodat het gedrag overeenkomt met het
+normaal uitvoeren van een script in Python.</translation>
+    </message>
+</context>
 </TS>
