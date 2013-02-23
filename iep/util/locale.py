@@ -70,18 +70,21 @@ def setLanguage(languageName):
     localeName1 = locale.name()
     localeName2 = localeName1.split('_')[0]
     
-    # The default language 
-    # todo: must we not uninstall any existing translators?
+    # Uninstall translators
+    if not hasattr(QtCore, '_translators'):
+        QtCore._translators = []
+    for trans in QtCore._translators:
+        QtGui.QApplication.removeTranslator(trans)
+    
+    # The default language     
     if localeName1 == 'C':
         return locale
     
     # Set Qt translations
     # Note that the translator instances must be stored
     # Note that the load() method is very forgiving with the file name
-    QtCore._translators = []
     for what, where in [('qt', qtTransPath),('iep', iepTransPath)]:
         trans = QtCore.QTranslator()
-        
         # Try loading both names
         for localeName in [localeName1, localeName2]:
             success = trans.load(what + '_' + localeName + '.tr', where)

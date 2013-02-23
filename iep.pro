@@ -4,6 +4,8 @@ SOURCES += iep/iepcore/editorTabs.py
 SOURCES += iep/iepcore/shellInfoDialog.py
 SOURCES += iep/iepcore/shellStack.py
 
+SOURCES += iep/util/iepwizard.py
+
 SOURCES += iep/tools/iepFileBrowser/browser.py
 SOURCES += iep/tools/iepFileBrowser/tree.py
 

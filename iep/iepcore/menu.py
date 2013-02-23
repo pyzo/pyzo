@@ -1004,7 +1004,7 @@ class RunMenu(Menu):
     
     def _showHelp(self):
         """ Show more information about ways to run code. """
-        from iep.iepcore.iepwizard import IEPWizard
+        from iep.util.iepwizard import IEPWizard
         w = IEPWizard(self)
         w.show('RuncodeWizardPage1') # Start wizard at page about running code
     
@@ -1257,7 +1257,7 @@ class HelpMenu(Menu):
         self.addItem(name, icon, lambda: webbrowser.open(url))
     
     def _showIepWizard(self):
-        from iep.iepcore.iepwizard import IEPWizard
+        from iep.util.iepwizard import IEPWizard
         w = IEPWizard(self)
         w.show() # Use show() instead of exec_() so the user can interact with IEP
     
