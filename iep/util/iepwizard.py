@@ -39,6 +39,7 @@ class IEPWizard(QtGui.QWizard):
         self.setMinimumSize(600, 500)
         self.setWindowTitle(translate('wizard', 'Getting started with IEP'))
         self.setWizardStyle(self.ModernStyle)
+        self.setButtonText(self.CancelButton, 'Stop')
         
         # Set logo
         pm = QtGui.QPixmap()
