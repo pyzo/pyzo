@@ -622,7 +622,7 @@ class IepProjectManager(QtGui.QWidget):
             return
         path = self.dirModel.filePath(idx)
         
-        PopupMenu(path, self).exec_(self.dirList.mapToGlobal(p))
+        PopupMenu(path, self).popup(self.dirList.mapToGlobal(p))
         
         
         

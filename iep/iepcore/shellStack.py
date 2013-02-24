@@ -251,7 +251,7 @@ class ShellStackWidget(QtGui.QWidget):
         
         if shell:
             p = self._shellButton.mapToGlobal(self._shellButton.rect().bottomLeft())
-            ShellTabContextMenu(shell=shell, parent=self).exec_(p)
+            ShellTabContextMenu(shell=shell, parent=self).popup(p)
     
     
     def onShellAction(self, action):

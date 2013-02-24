@@ -929,7 +929,7 @@ class EditorTabs(QtGui.QWidget):
         # Show menu if item is available
         if index >= 0:
             p = self._tabs.tabBar().tabRect(index).bottomLeft()
-            self._menu.exec_(self._tabs.tabBar().mapToGlobal(p))
+            self._menu.popup(self._tabs.tabBar().mapToGlobal(p))
     
     
     def onCurrentChanged(self):
