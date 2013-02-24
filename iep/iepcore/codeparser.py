@@ -81,6 +81,12 @@ class Parser(threading.Thread):
         
         # Set deamon
         self.daemon = True
+        self._exit = False
+    
+    
+    def stop(self, timeout=1.0):
+        self._exit = True
+        self.join(timeout)
     
     
     def parseThis(self, editor):
@@ -317,6 +323,10 @@ class Parser(threading.Thread):
         try:
             while True:
                 time.sleep(0.1)
+                
+                if self._exit:
+                    return
+                
                 if self._job:
                     
                     # Savely obtain job
@@ -396,7 +406,7 @@ class Parser(threading.Thread):
             linelen = len(line)
             
             # Should we stop?
-            if self._job:
+            if self._job or self._exit:
                 break
             
             # Remove indentation

@@ -284,11 +284,12 @@ class BaseFSProxy(threading.Thread):
         self._q.put(pathProxy)
         self._interrupt = True
     
-    def stop(self):
+    def stop(self, timeout=1.0):
         with self._lock:
             self._exit = True
             self._interrupt = True
             self._pathProxies.clear()
+        self.join(timeout)
     
     def dir(self, path):
         """ Convenience function to create a new DirProxy object.

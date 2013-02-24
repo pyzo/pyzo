@@ -691,9 +691,15 @@ class StreamReader(threading.Thread):
         self._strm_raw = strm_raw
         self._strm_broker = strm_broker
         self.deamon = True
+        self._exit = False
+    
+    def stop(self, timeout=1.0):
+        self._exit = True
+        self.join(timeout)
     
     def run(self):
-        while True:
+        while not self._exit:
+            time.sleep(0.1)
             # Read any stdout/stderr messages and route them via yoton.
             msg = self._process.stdout.readline() # <-- Blocks here
             if not isinstance(msg, str):
@@ -704,9 +710,7 @@ class StreamReader(threading.Thread):
                 pass # Channel is closed
             # Process dead?
             if not msg:# or self._process.poll() is not None:
-                break
-            # Sleep
-            time.sleep(0.1)
+                break            
         #self._strm_broker.send('streamreader exit\n')
     
 
