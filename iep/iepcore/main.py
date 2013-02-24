@@ -349,8 +349,14 @@ class MainWindow(QtGui.QMainWindow):
 #             time.sleep(0.1)
 #         print('Number of threads alive:', threading.activeCount())
         
-        # Close as normal
+        # Proceed as normal
         QtGui.QMainWindow.closeEvent(self, event)
+        
+        # Harder exit to prevent segfault. Not really a solution,
+        # but it does the job until Pyside gets fixed.
+        if sys.version_info >= (3,3,0) and not restarting:
+            if hasattr(os, '_exit'):
+                os._exit(0)
     
     
     def restart(self):
