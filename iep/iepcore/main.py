@@ -28,6 +28,8 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, locale=None):
         QtGui.QMainWindow.__init__(self, parent)
         
+        self._closeflag = 0  # Used during closing/restarting
+        
         # Init window title and application icon
         # Set title to something nice. On Ubuntu 12.10 this text is what
         # is being shown at the fancy title bar (since it's not properly 
@@ -304,17 +306,20 @@ class MainWindow(QtGui.QMainWindow):
     def closeEvent(self, event):
         """ Override close event handler. """
         
+        # Are we restaring?
+        restarting = time.time() - self._closeflag < 1.0
+        
         # Save settings
         iep.saveConfig()
         
         # Proceed with closing...
         result = iep.editors.closeAll()
         if not result:
-            self._didClose = False
+            self._closeflag = False
             event.ignore()
             return
         else:
-            self._didClose = True
+            self._closeflag = True
             event.accept()
         
         # Proceed with closing shells
@@ -327,6 +332,23 @@ class MainWindow(QtGui.QMainWindow):
             tool = iep.toolManager.getTool(toolname) 
             tool.close()
         
+        # Stop all threads (this should really only be daemon threads)
+        import threading
+        for thread in threading.enumerate():
+            if hasattr(thread, 'stop'):
+                try:
+                    thread.stop(0.1)
+                except Exception:
+                    pass
+        
+#         # Wait for threads to die ... 
+#         # This should not be necessary, but I used it in the hope that it
+#         # would prevent the segfault on Python3.3. It didn't.
+#         timeout = time.time() + 0.5
+#         while threading.activeCount() > 1 and time.time() < timeout:
+#             time.sleep(0.1)
+#         print('Number of threads alive:', threading.activeCount())
+        
         # Close as normal
         QtGui.QMainWindow.closeEvent(self, event)
     
@@ -334,10 +356,12 @@ class MainWindow(QtGui.QMainWindow):
     def restart(self):
         """ Restart IEP. """
         
+        self._closeflag = time.time()
+        
         # Close
         self.close()
         
-        if self._didClose:
+        if self._closeflag:
             # Get args
             args = [arg for arg in sys.argv]
             
