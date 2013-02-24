@@ -749,7 +749,7 @@ class PythonShell(BaseShell):
         # Add context menu
         self._menu = ShellContextMenu(shell=self, parent=self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(lambda p: self._menu.exec_(self.mapToGlobal(p))) 
+        self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p))) 
         
         # Start!
         self.resetVariables()

@@ -370,7 +370,7 @@ class MainWindow(QtGui.QMainWindow):
             action.menuLauncher = tool.menuLauncher
         
         # Show menu and process result
-        a = menu.exec_(QtGui.QCursor.pos())
+        a = menu.popup(QtGui.QCursor.pos())
         if a:
             a.menuLauncher(not a.menuLauncher(None))
 
