@@ -13,7 +13,7 @@ import subprocess
 import fnmatch
 from pyzolib.path import Path
 
-from PySide import QtCore, QtGui
+from . import QtCore, QtGui
 import iep
 from iep import translate
 

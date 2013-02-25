@@ -3,7 +3,7 @@ import sys
 
 from pyzolib.path import Path
 from pyzolib import ssdf
-from PySide import QtCore, QtGui
+from . import QtCore, QtGui
 
 import iep
 from iep import translate
