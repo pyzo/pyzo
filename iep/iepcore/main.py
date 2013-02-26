@@ -320,7 +320,7 @@ class MainWindow(QtGui.QMainWindow):
             return
         else:
             self._closeflag = True
-            event.accept()
+            #event.accept()  # Had to comment on Windows+py3.3 to prevent error
         
         # Proceed with closing shells
         iep.localKernelManager.terminateAll()
