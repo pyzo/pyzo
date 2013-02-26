@@ -349,7 +349,10 @@ class KernelBroker:
         # Start process
         self._process = subprocess.Popen(   command, shell=True, 
                                             env=env, cwd=cwd,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                            stdin=subprocess.PIPE,  # Fixes issue 165
+                                            stdout=subprocess.PIPE, 
+                                            stderr=subprocess.STDOUT 
+                                        )
         
         # Set timeout for connection, i.e. after how much time of 
         # unresponsive ness is the kernel found to be running extension code
