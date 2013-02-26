@@ -192,6 +192,9 @@ class ToolManager(QtCore.QObject):
                     continue
             elif file.endswith('__.py') or not file.endswith('.py'):
                 continue
+            elif file.endswith('iepFileBrowser.py'):
+                # Skip old file browser (the file can be there from a previous install) 
+                continue  
             
             #
             toolName = ""
