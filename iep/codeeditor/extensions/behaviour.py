@@ -92,6 +92,7 @@ class Indentation(object):
         # Get the text of the current block up to the cursor
         textBeforeCursor = ustr(cursor.block().text())[:cursor.positionInBlock()]
         return textBeforeCursor.lstrip() == '' #If we trim it and it is empty, it's all whitespace
+    
     def keyPressEvent(self,event):
         key = event.key()
         modifiers = event.modifiers()
@@ -132,6 +133,19 @@ class Indentation(object):
         
         # todo: Same for delete, I think not (what to do with the cursor?)
         
+        # Auto-unindent
+        if event.key() == Qt.Key_Delete:
+            cursor = self.textCursor()
+            if not cursor.hasSelection():
+                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+                if not cursor.hasSelection() and cursor.block().next().isValid():
+                    cursor.beginEditBlock()
+                    cursor.movePosition(cursor.NextBlock)
+                    self.indentBlock(cursor, -99)  # dedent as much as we can
+                    cursor.deletePreviousChar()
+                    cursor.endEditBlock()
+                    return
+        
         super(Indentation, self).keyPressEvent(event)
         
 class AutoIndent(object):
@@ -166,6 +180,7 @@ class PythonAutoIndent(object):
             return
         
         #This extension code is run *after* key is processed by QPlainTextEdit
+        
         if event.key() in (Qt.Key_Enter,Qt.Key_Return):
             cursor=self.textCursor()
             previousBlock=cursor.block().previous()
