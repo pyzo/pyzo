@@ -37,6 +37,9 @@ class AutoCompletion(object):
         self.__completerNames = []
         self.__recentCompletions = [] #List of recently selected completions
         
+        # geometry
+        self.__popupSize = 300, 100
+        
         # Text position corresponding to first charcter of the word being completed
         self.__autocompleteStart = None
         
@@ -62,6 +65,14 @@ class AutoCompletion(object):
         
 
     ## Autocompletion
+    
+    def setAutocompletPopupSize(self, width, height):
+        """
+        Set the size (width, heigth) of the automcompletion popup window.
+        """
+        self.__popupSize = width, height
+    
+    
     def autocompleteShow(self,offset = 0,names = None):
         """
         Pop-up the autocompleter (if not already visible) and position it at current
@@ -123,7 +134,7 @@ class AutoCompletion(object):
         """
         return self.__autocompleteStart is not None
     
-        
+    
     def __positionAutocompleter(self):
         """Move the autocompleter list to a proper position"""
         #Find the start of the autocompletion and move the completer popup there
@@ -131,8 +142,8 @@ class AutoCompletion(object):
         
         # Set size
         geometry = self.__completer.popup().geometry()
-        geometry.setWidth(200)
-        geometry.setHeight(100)
+        geometry.setWidth(self.__popupSize[0])
+        geometry.setHeight(self.__popupSize[1])
         self.__completer.popup().setGeometry(geometry)
         
         # Initial choice for position of the completer
