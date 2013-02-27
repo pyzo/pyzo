@@ -226,7 +226,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     
         self.completer().highlighted.connect(self.updateHelp)
         self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
-        self.setIndentWidth(iep.config.settings.defaultIndentWidth)
+        self.setIndentWidth(iep.config.settings.defaultIndentWidth) 
+        self.setAutocompletPopupSize(*iep.config.view.autoComplete_popupSize) 
     
     
     def _isValidPython(self):
