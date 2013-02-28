@@ -70,7 +70,7 @@ excludes.append('numpy')
 PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
 #
-if sys.platform == 'darwin':
+if False and sys.platform == 'darwin':
     excludes.extend(PySideModules)
     includes = PyQtModules
 else:
