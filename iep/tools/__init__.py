@@ -275,7 +275,7 @@ class ToolManager(QtCore.QObject):
         
         # Remove from sys.modules, to force the module to reload
         for key in [key for key in sys.modules]:
-            if key.startswith('ieptools.'+moduleName):
+            if key and key.startswith('ieptools.'+moduleName):
                 del sys.modules[key]
         
         # Load module
