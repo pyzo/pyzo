@@ -77,6 +77,8 @@ else:
     excludes.extend(PyQtModules)
     includes = PySideModules
 
+# For Pyzolib dependencies
+includes.extend(['pyzolib.paths', 'pyzolib.path', 'pyzolib.interpreters'])
 
 ## Freeze
 
