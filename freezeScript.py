@@ -78,7 +78,7 @@ else:
     includes = PySideModules
 
 # For Pyzolib dependencies
-includes.extend(['pyzolib.paths', 'pyzolib.path', 'pyzolib.interpreters'])
+includes.extend(['pyzolib.paths', 'pyzolib.path', 'pyzolib.ssdf', 'pyzolib.interpreters'])
 
 ## Freeze
 
