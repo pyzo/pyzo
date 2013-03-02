@@ -328,6 +328,9 @@ class FileItem(BrowserItem):
     def __init__(self, parent, pathProxy):
         BrowserItem.__init__(self, parent, pathProxy)
         self._timeSinceLastDocString = 0
+        
+        if self.path().lower().endswith('.py'):
+            self._createDummyItem('Loading high level structure ...')
     
     def setFileIcon(self):
         # Create dummy file in iep user dir
@@ -358,6 +361,16 @@ class FileItem(BrowserItem):
             # Give focus
             iep.editors.getCurrentEditor().setFocus()
     
+    def onExpanded(self):
+        # Create task to retrieve high level structure
+        if self.path().lower().endswith('.py'):
+            self._proxy.pushTask(tasks.PeekTask())
+    
+    def onCollapsed(self):
+        self.clear()
+        if self.path().lower().endswith('.py'):
+            self._createDummyItem('Loading high level structure ...')
+    
     def onClicked(self):
         # Limit sending events to prevent flicker when double clicking
         if time.time() - self._timeSinceLastDocString < 0.5:
@@ -381,12 +394,20 @@ class FileItem(BrowserItem):
                 pos = tree.mapFromGlobal(QtGui.QCursor.pos())
                 if tree.itemAt(pos) is self:
                     QtGui.QToolTip.showText(QtGui.QCursor.pos(), result)
+        elif isinstance(task, tasks.PeekTask):
+            result = task.result()
+            self.clear()
+            if result:
+                for r in result:
+                    SubFileItem(self, *r)
+            else:
+                self._createDummyItem('No classes or functions found.')
         else:
             BrowserItem.onTaskFinished(self, task)
 
 
 
-class SearchItem(QtGui.QTreeWidgetItem):
+class SubFileItem(QtGui.QTreeWidgetItem):
     """ Tree widget item for search items.
     """
     def __init__(self, parent, linenr, text):
@@ -503,7 +524,7 @@ class TemporaryFileItem:
         if result:
             item = FileItem(self._tree, self._proxy)
             for r in result:
-                SearchItem(item, *r)
+                SubFileItem(item, *r)
         # Update counter
         searchInfoItem = self._tree.topLevelItem(0)
         if isinstance(searchInfoItem, SearchInfoItem):

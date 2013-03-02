@@ -69,7 +69,7 @@ class SearchTask(proxies.Task):
         try:
             return bb.decode('utf-8')
         except UnicodeDecodeError:
-            # todo: right now we only do Unicode
+            # todo: right now we only do utf-8
             return None
     
     
@@ -143,6 +143,96 @@ class SearchTask(proxies.Task):
 
 
 
+class PeekTask(proxies.Task):
+    """ To peek the high level structure of a task.
+    """
+    __slots__ = []
+    
+    stringStart = re.compile('("""|\'\'\'|"|\')|#')
+    endProgs = {
+        "'": re.compile(r"(^|[^\\])(\\\\)*'"),
+        '"': re.compile(r'(^|[^\\])(\\\\)*"'),
+        "'''": re.compile(r"(^|[^\\])(\\\\)*'''"),
+        '"""': re.compile(r'(^|[^\\])(\\\\)*"""')
+        }
+    
+    definition = re.compile(r'^(def|class)\s*(\w*)')
+    
+    def process(self, proxy):
+        path = proxy.path()
+        fsProxy = proxy._fsProxy
+        
+        # Search only Python files
+        if not path.lower().endswith('.py'):
+            return None
+        
+        # Get text
+        bb = fsProxy.read(path)
+        if bb is None:
+            return
+        try:
+            text = bb.decode('utf-8')
+            del bb
+        except UnicodeDecodeError:
+            # todo: right now we only do utf-8
+            return
+        
+        # Parse
+        return list(self._parseLines(text.splitlines()))
+    
+    def _parseLines(self, lines):
+        
+        stringEndProg = None
+        
+        linenr = 0
+        for line in lines:
+            linenr += 1
+            
+            # If we are in a triple-quoted multi-line string, find the end
+            if stringEndProg == None:
+                pos = 0
+            else:
+                endMatch = stringEndProg.search(line)
+                if endMatch is None:
+                    continue
+                else:
+                    pos = endMatch.end()
+                    stringEndProg = None
+            
+            # Now process all tokens
+            while True:
+                match = self.stringStart.search(line, pos)
+                
+                if pos == 0: # If we are at the start of the line, see if we have a top-level class or method definition
+                    end = len(line) if match is None else match.start()
+                    definitionMatch = self.definition.search(line[:end])
+                    if definitionMatch is not None:
+                        if definitionMatch.group(1) == 'def':
+                            yield (linenr, 'def ' + definitionMatch.group(2))
+                        else:
+                            yield (linenr, 'class ' + definitionMatch.group(2))
+                    
+                if match is None:
+                    break # Go to next line
+                if match.group()=="#":
+                    # comment
+                    # yield 'C:'
+                    break # Go to next line
+                else:
+                    endMatch = self.endProgs[match.group()].search(line[match.end():])
+                    if endMatch is None:
+                        if len(match.group()) == 3 or line.endswith('\\'):
+                            # Multi-line string
+                            stringEndProg = self.endProgs[match.group()]
+                            break
+                        else: # incorrect end of single-quoted string
+                            break
+                        
+                    # yield 'S:' + (match.group() + line[match.end():][:endMatch.end()])
+                    pos = match.end() + endMatch.end()
+        
+
+
 class DocstringTask(proxies.Task):
     __slots__ = []
     
@@ -162,7 +252,7 @@ class DocstringTask(proxies.Task):
             text = bb.decode('utf-8')
             del bb
         except UnicodeDecodeError:
-            # todo: right now we only do Unicode
+            # todo: right now we only do utf-8
             return
         
         # Find docstring
