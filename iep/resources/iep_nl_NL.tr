@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="nl_NL">
+<!DOCTYPE TS>
+<TS version="2.0" language="nl_NL">
 <context>
     <name>filebrowser</name>
     <message>
@@ -13,119 +14,129 @@
         <translation>Zoek in bestanden</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="405"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="420"/>
         <source>Projects:</source>
         <translation>Projecten:</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="408"/>
-        <source>Click the star to create a project</source>
-        <translation>Klik op de ster om een project te maken</translation>
-    </message>
-    <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="416"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="431"/>
         <source>Remove project</source>
         <translation>Verwijder project</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="421"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="436"/>
         <source>Change project name</source>
         <translation>Verander de naam van dit project</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="428"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="443"/>
         <source>Add path to Python path</source>
         <translation>Voeg directory toe aan Pythonpath</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="453"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="463"/>
         <source>Project name</source>
         <translation>Project naam</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="454"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="464"/>
         <source>New project name:</source>
         <translation>Nieuwe project naam:</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="604"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="610"/>
         <source>Match case</source>
         <translation>Hoofdlettergevoelig</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="605"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="611"/>
         <source>RegExp</source>
         <translation>RegExp</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="606"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="612"/>
         <source>Search in subdirs</source>
         <translation>Zoek in subdirectories</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="725"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="754"/>
         <source>Open</source>
         <translation>Openen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="729"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="758"/>
         <source>Open outside iep</source>
         <translation>Openen buiten IEP</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="732"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="761"/>
         <source>Reveal in Finder</source>
         <translation>Laat zien in Finder</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="816"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="856"/>
         <source>Rename</source>
         <translation>Hernoemen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="841"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="881"/>
         <source>Delete</source>
         <translation>Verwijderen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="787"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="827"/>
         <source>Create new file</source>
         <translation>Maak nieuw bestand</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="790"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="830"/>
         <source>Create new directory</source>
         <translation>Maak nieuwe directorie</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="817"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="857"/>
         <source>Give the new name for the file</source>
         <translation>Geef de nieuwe naam voor het bestand</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="793"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="833"/>
         <source>Give the name for the new directory</source>
         <translation>Geef de naam voor de directorie</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="819"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="859"/>
         <source>Duplicate</source>
         <translation>Dupliceren</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="820"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="860"/>
         <source>Give the name for the new file</source>
         <translation>Geef de naam van het nieuwe bestand</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="843"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="883"/>
         <source>Are you sure that you want to delete</source>
         <translation>Weet je zeker dat je wilt verwijderen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="735"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="764"/>
         <source>Copy path</source>
         <translation>Kopier directorie</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="423"/>
+        <source>Click star to bookmark current dir</source>
+        <translation>Klik de ster om de huidige dir op te slaan</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="747"/>
+        <source>Unstar this dir</source>
+        <translation>Verwijder deze dir uit de projecten</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="749"/>
+        <source>Star this dir</source>
+        <translation>Voeg deze dir toe aan de projecten</translation>
     </message>
 </context>
 <context>
@@ -822,7 +833,7 @@
         <translation>Begin met coden!</translation>
     </message>
     <message>
-        <location filename="iep/util/iepwizard.py" line="94"/>
+        <location filename="iep/util/iepwizard.py" line="95"/>
         <source>Step</source>
         <translation>Stap</translation>
     </message>

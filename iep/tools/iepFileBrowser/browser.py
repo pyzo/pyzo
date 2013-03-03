@@ -114,6 +114,21 @@ class Browser(QtGui.QWidget):
         """
         return [d.path for d in self.parent().config.starredDirs]
     
+    def addStarredDir(self, path):
+        newProject = ssdf.new()
+        newProject.path = path.normcase() # Normalize case!
+        newProject.name = path.basename
+        newProject.addToPythonpath = False
+        self.parent().config.starredDirs.append(newProject)
+    
+    def removeStarredDir(self, path):
+        starredDirs = self.parent().config.starredDirs
+        pathn = path.normcase()
+        for d in starredDirs:
+            if pathn.startswith(d.path):
+                starredDirs.remove(d)
+                break
+    
     def test(self, sort=False):
         items = []
         for i in range(self._tree.topLevelItemCount()):
@@ -405,7 +420,7 @@ class Projects(QtGui.QWidget):
             self._combo.insertItem(0, translate('filebrowser', 'Projects:'), '') # No-project item
         else:
             self._combo.addItem(
-                translate('filebrowser', 'Click the star to create a project'), '')
+                translate('filebrowser', 'Click star to bookmark current dir'), '')
     
     
     def buildMenu(self):
@@ -440,12 +455,7 @@ class Projects(QtGui.QWidget):
         
         if action._id == 'remove':
             # Remove this project
-            starredDirs = self.parent().config.starredDirs
-            pathn = self._path.normcase()
-            for d in starredDirs:
-                if pathn.startswith(d.path):
-                    starredDirs.remove(d)
-                    break
+            self.parent().removeStarredDir(self._path)
         
         elif action._id == 'name':
             # Open dialog to ask for name
@@ -471,11 +481,7 @@ class Projects(QtGui.QWidget):
             self.buildMenu()
         else:
             # Not starred right now, create new project!
-            newProject = ssdf.new()
-            newProject.path = self._path.normcase() # Normalize case!
-            newProject.name = self._path.basename
-            newProject.addToPythonpath = False
-            self.parent().config.starredDirs.append(newProject)
+            self.parent().addStarredDir(self._path)
         # Update
         self.updateProjectList()
         self.setPath(self._path)
