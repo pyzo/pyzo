@@ -617,7 +617,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         cursor.movePosition(cursor.Start) # move to begin of the document
         cursor.movePosition(cursor.NextBlock,n=blockNumber) # n blocks down
         
-        self.setTextCursor(cursor)
+        try:
+            self.setTextCursor(cursor)
+        except Exception:
+            pass # File is smaller then the caller thought
         self.centerCursor()
     
     def doForSelectedBlocks(self, function):
