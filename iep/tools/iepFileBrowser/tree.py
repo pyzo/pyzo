@@ -741,6 +741,14 @@ class PopupMenu(iep.iepcore.menu.Menu):
         
         isplat = sys.platform.startswith
         
+        # The star object
+        if isinstance(self._item, DirItem):
+            if self._item._starred:
+                self.addItem(translate("filebrowser", "Unstar this dir"), None, self._star)
+            else:
+                self.addItem(translate("filebrowser", "Star this dir"), None, self._star)
+            self.addSeparator()
+        
         # The normal "open" function
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
@@ -769,7 +777,18 @@ class PopupMenu(iep.iepcore.menu.Menu):
             self.addSeparator()
             self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
     
-        
+    
+    def _star(self):
+        # Prepare
+        browser = self.parent().parent()
+        path = self._item.path()
+        if self._item._starred:
+            browser.removeStarredDir(path)
+        else:
+            browser.addStarredDir(path)
+        # Refresh
+        self.parent().setPath(self.parent().path())
+    
     def _openOutsideIep(self):
         if sys.platform.startswith('darwin'):
             subprocess.call(('open', self._item.path()))
