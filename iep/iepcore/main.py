@@ -483,18 +483,13 @@ def loadFonts():
     # Get database object
     db = QtGui.QFontDatabase()
     
-    files = os.listdir(fontDir)
-#     files1 = [f for f in files if 'bold' not in f.lower()]
-#     files2 = [f for f in files if 'bold' in f.lower()]
-#     for files in [files1, files2]:
-    for fname in files:
+    for fname in os.listdir(fontDir):
         if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
             try:
                 db.addApplicationFont( os.path.join(fontDir, fname) )
             except Exception as err:
                 print('Could not load font %s: %s' % (fname, str(err)))
-            else:
-                print('Loaded %s' % fname)
+
 
 class _CallbackEventHandler(QtCore.QObject):
     """ Helper class to provide the callLater function. 
