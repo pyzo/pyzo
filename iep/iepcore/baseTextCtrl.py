@@ -205,7 +205,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     def __init__(self, *args, **kwds):
         super().__init__(*args, **kwds)
         
-        # Set zooming
+        # Set font and zooming
+        self.setFont(iep.config.view.fontname)
         self.setZoom(iep.config.view.zoom)
         
         # Create timer for autocompletion delay

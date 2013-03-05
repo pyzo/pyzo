@@ -79,8 +79,9 @@ class MainWindow(QtGui.QMainWindow):
         # Set window atrributes
         self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
         
-        # Load icons
+        # Load icons and fonts
         loadIcons()
+        loadFonts()
         
         # Set qt style and test success
         self.setQtStyle(None) # None means init!
@@ -471,6 +472,29 @@ def loadIcons():
                 iep.icons[name] = dummyIcon
                 print('Could not load icon %s: %s' % (fname, str(err)))
 
+
+def loadFonts():
+    """ loadFonts()
+    Load all fonts that come with IEP.
+    """
+    # Get directory containing the icons
+    fontDir = os.path.join(iep.iepDir, 'resources', 'fonts')
+    
+    # Get database object
+    db = QtGui.QFontDatabase()
+    
+    files = os.listdir(fontDir)
+#     files1 = [f for f in files if 'bold' not in f.lower()]
+#     files2 = [f for f in files if 'bold' in f.lower()]
+#     for files in [files1, files2]:
+    for fname in files:
+        if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
+            try:
+                db.addApplicationFont( os.path.join(fontDir, fname) )
+            except Exception as err:
+                print('Could not load font %s: %s' % (fname, str(err)))
+            else:
+                print('Loaded %s' % fname)
 
 class _CallbackEventHandler(QtCore.QObject):
     """ Helper class to provide the callLater function. 

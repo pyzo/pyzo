@@ -362,22 +362,33 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         """
         
-        # Check
+        defaultFont = Manager.defaultFont()
+        
+        # Get font object
         if font is None:
-            font = Manager.defaultFont().family()
+            font = defaultFont
         elif isinstance(font, QtGui.QFont):
-            font = font.family()
-        elif isinstance(font, str):
             pass
+        elif isinstance(font, str):
+            font = QtGui.QFont(font)
         else:
             raise ValueError("setFont accepts None, QFont or string.")
         
-        # Set size: default size + zoom
-        size = Manager.defaultFont().pointSize() + self.__zoom
-        font = QtGui.QFont(font, size)
-        
-        # Make sure it's monospace
+        # Hint Qt that it should be monospace
         font.setStyleHint(font.TypeWriter, font.PreferDefault)
+        
+        # Get family, fall back to default if qt could not produce monospace
+        fontInfo = QtGui.QFontInfo(font)
+        if fontInfo.fixedPitch():
+            family = fontInfo.family() 
+        else:
+            family = defaultFont.family()
+        
+        # Get size: default size + zoom
+        size = defaultFont.pointSize() + self.__zoom
+        
+        # Create font instance
+        font = QtGui.QFont(family, size)
         
         # Set, emit and return
         QtGui.QPlainTextEdit.setFont(self, font)
@@ -402,7 +413,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.setFont(self.fontInfo().family())
         # Return zoom
         return self.__zoom
-        
+    
     
     ## Syntax / styling
     
