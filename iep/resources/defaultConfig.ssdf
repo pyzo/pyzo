@@ -35,6 +35,7 @@ view = dict:
     #
     qtstyle = ''
     edgeColumn = 80    
+    fontname = 'DejaVu Sans Mono'
     zoom = 0  # Both for editor and shell
     tabWidth = 4
 
