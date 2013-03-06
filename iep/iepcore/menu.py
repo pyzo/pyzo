@@ -1016,6 +1016,8 @@ class RunMenu(Menu):
             icons.run_lines, self._runSelected)
         self.addItem(translate("menu", 'Run cell ::: Run the current editors\'s cell in the current shell.'), 
             icons.run_cell, self._runCell)
+        self.addItem(translate("menu", 'Run cell and advance ::: Run the current editors\'s cell and advance to the next cell.'), 
+            icons.run_cell, self._runCellAdvance)
         #In the _runFile calls, the parameter specifies (asScript, mainFile)
         self.addItem(translate("menu", 'Run file ::: Run the current file in the current shell.'), 
             icons.run_file, self._runFile,(False, False))
@@ -1106,7 +1108,10 @@ class RunMenu(Menu):
             fname = editor.id() # editor._name or editor._filename
             shell.executeCode(code, fname, lineNumber1)
     
-    def _runCell(self):
+    def _runCellAdvance(self):
+        self._runCell(True)
+    
+    def _runCell(self, advance=False):
         """ Run the code between two cell separaters ('##'). 
         """
         #TODO: ignore ## in multi-line strings
@@ -1164,6 +1169,14 @@ class RunMenu(Menu):
         # Get filename and run code
         fname = editor.id() # editor._name or editor._filename
         shell.executeCode(code, fname, lineNumber, cellName)
+        
+        # Advance
+        if advance:
+            cursor = editor.textCursor()
+            cursor.setPosition(runCursor.position())
+            cursor.movePosition(cursor.NextBlock)
+            editor.setTextCursor(cursor)
+    
     
     def _showWhatToExecute(self, editor, runCursor=None):
         # Get runCursor for whole document if not given
