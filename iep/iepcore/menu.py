@@ -925,6 +925,54 @@ class ShellTabContextMenu(ShellContextMenu):
         pass
 
 
+
+class EditorContextMenu(Menu):
+    """ This is the context menu for the editor """
+    def __init__(self, editor, name='EditorContextMenu' ):
+        self._editor = editor
+        Menu.__init__(self, editor, name)
+        
+    
+    def build(self):
+        """ Build menu """
+        icons = iep.icons
+        
+        # This is a subset of the edit menu. Copied manually.
+        self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
+            icons.cut, self._editItemCallback, "cut")
+        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."), 
+            icons.page_white_copy, self._editItemCallback, "copy")
+        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
+            icons.paste_plain, self._editItemCallback, "paste")
+        self.addItem(translate("menu", "Select all ::: Select all text."), 
+            icons.sum, self._editItemCallback, "selectAll")
+        self.addSeparator()
+        self.addItem(translate("menu", "Indent ::: Indent the selected line."), 
+            icons.text_indent, self._editItemCallback, "indentSelection")
+        self.addItem(translate("menu", "Dedent ::: Unindent the selected line."), 
+            icons.text_indent_remove, self._editItemCallback, "dedentSelection")
+        self.addItem(translate("menu", "Comment ::: Comment the selected line."), 
+            icons.comment_add, self._editItemCallback, "commentCode")
+        self.addItem(translate("menu", "Uncomment ::: Uncomment the selected line."), 
+            icons.comment_delete, self._editItemCallback, "uncommentCode")
+        self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."), 
+            icons.text_align_justify, self._editItemCallback, "justifyText")
+        
+        # This is a subset of the run menu. Copied manually.
+        self.addSeparator()
+        self.addItem(translate("menu", 'Run selection ::: Run the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'), 
+            icons.run_lines, self._runSelected)
+    
+    
+    def _editItemCallback(self, action):
+        #If the widget has a 'name' attribute, call it
+        getattr(self._editor, action)()
+    
+    def _runSelected(self):
+        runMenu = iep.main.menuBar()._menumap['run']
+        runMenu._runSelected()
+
+
 class EditorTabContextMenu(Menu):
     def __init__(self, *args, **kwds):
         Menu.__init__(self, *args, **kwds)
