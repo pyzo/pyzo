@@ -652,6 +652,34 @@ class ZoomMenu(Menu):
             logger.setZoom(iep.config.view.zoom)
 
 
+class FontMenu(Menu):
+    def __init__(self, parent=None, name="Font", *args, **kwds):
+        Menu.__init__(self, parent, name, *args, **kwds)
+        self.aboutToShow.connect(self._updateFonts)  
+    
+    def _updateFonts(self):
+        self.clear()
+        # Build list with known available monospace fonts
+        names = iep.codeeditor.Manager.fontNames()
+        defaultName =  'DejaVu Sans Mono'
+        for name in sorted(names):
+            txt = name+' (default)' if name == defaultName else name
+            self.addGroupItem(txt, None, self._selectFont, value=name)
+        # Select the current one
+        self.setCheckedOption(None, iep.config.view.fontname)
+    
+    def _selectFont(self, name):
+        iep.config.view.fontname = name
+        # Apply
+        for editor in iep.editors:
+            editor.setFont(iep.config.view.fontname)
+        for shell in iep.shells:
+            shell.setFont(iep.config.view.fontname)
+        logger = iep.toolManager.getTool('ieplogger')
+        if logger:
+            logger.setFont(iep.config.view.fontname)
+
+
 # todo: brace matching
 # todo: code folding?
 # todo: maybe move qt theme to settings
@@ -701,6 +729,7 @@ class ViewMenu(Menu):
             None, "highlightCurrentLine")
         self.addSeparator()
         self.addMenu(self._edgeColumMenu, icons.text_padding_right)
+        self.addMenu(FontMenu(self, translate("menu", "Font")), icons.style)
         self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
         self.addMenu(self._qtThemeMenu, icons.application_view_tile)
     
