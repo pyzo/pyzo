@@ -94,6 +94,7 @@ shortcuts2 = dict:
     file__open = 'Ctrl+O,'
     file__save = 'Ctrl+S,'
     run__run_cell = 'Ctrl+Return,Ctrl+Enter'
+    run__run_cell_and_advance = 'Ctrl+Shift+Return,Ctrl+Shift+Enter'
     run__run_file = 'Ctrl+E,F5'
     run__run_file_as_script = 'Ctrl+Shift+E,Ctrl+F5'
     run__run_main_file = 'Ctrl+M,F6'
