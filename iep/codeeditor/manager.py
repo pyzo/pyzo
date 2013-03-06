@@ -30,6 +30,8 @@ class Manager:
     
     """
     
+    _defaultFontFamily = 'dummy_font_family_name'
+    
     # Static dict of all parsers
     _parserInstances = {}
     _fileExtensions = {}
@@ -249,27 +251,34 @@ class Manager:
     
     
     @classmethod
+    def setDefaultFontFamily(cls, name):
+        """ setDefaultFontFamily(name)
+        
+        Set the default (monospace) font family name for this system. 
+        This should be set only once during startup.
+        
+        """
+        cls._defaultFontFamily = name
+    
+    
+    @classmethod
     def defaultFont(cls):
         """ defaultFont()
         
-        Get the default (monospace font) for this system. Returns a QFont
+        Get the default (monospace) font for this system. Returns a QFont
         object. 
         
         """
-        
-        # Get font size
+    
+        # Get font size that makes sense for this system
         f = QtGui.QFont()
         size = f.pointSize()
         
-        # Get font family
-        f = QtGui.QFont('this_font_name_must_not exist')
+        # Get font family 
+        f = QtGui.QFont(cls._defaultFontFamily)
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
-        
-        # The default family seems to be Courier new on Mac
-        if sys.platform == 'darwin':            
-            family = 'Monaco'
         
         # Done
         return QtGui.QFont(family, size)

@@ -483,6 +483,10 @@ def loadFonts():
     # Get database object
     db = QtGui.QFontDatabase()
     
+    # Set default font
+    iep.codeeditor.Manager.setDefaultFontFamily('DejaVu Sans Mono')
+    
+    # Load fonts that are in the fonts directory
     for fname in os.listdir(fontDir):
         if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
             try:
