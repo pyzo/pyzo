@@ -325,11 +325,12 @@ class FileItem(BrowserItem):
     """ Tree widget item for files.
     """
     
-    def __init__(self, parent, pathProxy):
+    def __init__(self, parent, pathProxy, mode='normal'):
         BrowserItem.__init__(self, parent, pathProxy)
+        self._mode = mode
         self._timeSinceLastDocString = 0
         
-        if self.path().lower().endswith('.py'):
+        if self._mode=='normal' and self.path().lower().endswith('.py'):
             self._createDummyItem('Loading high level structure ...')
     
     def setFileIcon(self):
@@ -362,14 +363,16 @@ class FileItem(BrowserItem):
             iep.editors.getCurrentEditor().setFocus()
     
     def onExpanded(self):
-        # Create task to retrieve high level structure
-        if self.path().lower().endswith('.py'):
-            self._proxy.pushTask(tasks.PeekTask())
+        if self._mode == 'normal':
+            # Create task to retrieve high level structure
+            if self.path().lower().endswith('.py'):
+                self._proxy.pushTask(tasks.PeekTask())
     
     def onCollapsed(self):
-        self.clear()
-        if self.path().lower().endswith('.py'):
-            self._createDummyItem('Loading high level structure ...')
+        if self._mode == 'normal':
+            self.clear()
+            if self.path().lower().endswith('.py'):
+                self._createDummyItem('Loading high level structure ...')
     
     def onClicked(self):
         # Limit sending events to prevent flicker when double clicking
@@ -522,7 +525,7 @@ class TemporaryFileItem:
         result = task.result()
         # Process contents
         if result:
-            item = FileItem(self._tree, self._proxy)
+            item = FileItem(self._tree, self._proxy, 'search')  # Search mode
             for r in result:
                 SubFileItem(item, *r)
         # Update counter
