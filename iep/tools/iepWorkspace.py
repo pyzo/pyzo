@@ -198,7 +198,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
             action._item = item
         
         # Show
-        self._menu.popup(QtGui.QCursor.pos())
+        self._menu.popup(QtGui.QCursor.pos()+QtCore.QPoint(3,3))
     
     
     def contextMenuTriggered(self, action):

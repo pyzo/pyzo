@@ -101,7 +101,7 @@ class MainWindow(QtGui.QMainWindow):
         # Load basic tools if new user
         if iep.config.state.newUser and not iep.config.state.loadedTools:
             iep.toolManager.loadTool('iepsourcestructure')
-            iep.toolManager.loadTool('iepprojectmanager')
+            iep.toolManager.loadTool('iepfilebrowser')
         
         # Present user with wizard if he/she is new.
         if iep.config.state.newUser:

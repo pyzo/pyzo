@@ -123,6 +123,20 @@ class IepFileBrowser(QtGui.QWidget):
         return None
     
     
+    def getDefaultSavePath(self):
+        """
+        Returns the path to be used as default when saving a new file in iep.
+        Or None if the no path could be determined
+        """
+        # Select current browser
+        browser = self._browsers[0]
+        # Select its path
+        path = browser._tree.path()
+        # Return
+        if os.path.isabs(path) and os.path.isdir(path):
+            return path
+    
+    
     def closeEvent(self, event):
         # Close all browsers so they can clean up the file system proxies
         for browser in self._browsers:
