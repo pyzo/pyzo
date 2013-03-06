@@ -224,7 +224,19 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # The string with names given to SCI_AUTOCSHOW
         self._autoCompNameString = ''
-    
+        
+        # Set autocomp accept keys
+        qtKeys = []
+        for key in iep.config.settings.autoComplete_acceptKeys:
+            if len(key) > 1:
+                key = 'Key_' + key[0].upper() + key[1:].lower()
+                qtkey = getattr(QtCore.Qt, key, None)
+            else:
+                qtkey = ord(key)
+            if qtkey:
+                qtKeys.append(qtkey)
+        self.setAutoCompletionAcceptKeys(*qtKeys)
+        
         self.completer().highlighted.connect(self.updateHelp)
         self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(iep.config.settings.defaultIndentWidth) 
