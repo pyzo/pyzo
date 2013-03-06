@@ -731,7 +731,7 @@ class Tree(QtGui.QTreeWidget):
         if isinstance(item, FileItem) or isinstance(item, DirItem):
             # Create and show menu
             menu = PopupMenu(self, item)
-            menu.popup(self.mapToGlobal(p))
+            menu.popup(self.mapToGlobal(p+QtCore.QPoint(3,3)))
 
 
 

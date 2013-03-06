@@ -99,20 +99,13 @@ def finishKernelInfo(info, scriptFile=None):
     #If the file browser is active, and has the check box
     #'add path to Python path' set, set the PROJECTPATH variable
     fileBrowser = iep.toolManager.getTool('iepfilebrowser')
+    projectManager = iep.toolManager.getTool('iepprojectmanager')
+    info.projectPath = ''
     if fileBrowser:
         info.projectPath = fileBrowser.getAddToPythonPath()
-    else:
-        info.projectPath = ''
-        
+    if projectManager and not info.projectPath:
         # Only process project manager tool if file browser did not set a path.
-        
-        #If the project manager is active, and has the check box
-        #'add path to Python path' set, set the PROJECTPATH variable
-        projectManager = iep.toolManager.getTool('iepprojectmanager')
-        if projectManager:
-            info.projectPath = projectManager.getAddToPythonPath()
-        else:
-            info.projectPath = ''
+        info.projectPath = projectManager.getAddToPythonPath()
     
     return info
 
