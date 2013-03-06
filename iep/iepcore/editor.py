@@ -19,6 +19,7 @@ from iep.codeeditor.qt import QtCore, QtGui
 qt = QtGui
 
 from iep.codeeditor import Manager
+from iep.iepcore.menu import EditorContextMenu
 from iep.iepcore.baseTextCtrl import BaseTextCtrl, normalizePath
 from iep.iepcore.iepLogging import print
 import iep
@@ -263,7 +264,6 @@ class IepEditor(BaseTextCtrl):
         # dito for zoom and tabWidth
         
         
-        
         # Set line endings to default
         self.lineEndings = iep.config.settings.defaultLineEndings
         
@@ -280,6 +280,12 @@ class IepEditor(BaseTextCtrl):
         
         # This timer is used to hide the marker that shows which code is executed
         self._showRunCursorTimer = QtCore.QTimer()
+        
+        # Add context menu (the offset is to prevent accidental auto-clicking)
+        self._menu = EditorContextMenu(self)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p)+QtCore.QPoint(0,3))) 
+    
     
     ## Properties
     
