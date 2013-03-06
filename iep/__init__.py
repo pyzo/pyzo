@@ -40,12 +40,12 @@ Some key features
   * Various handy *tools*, plus the ability to make your own.
   * Matlab-style *cell notation* to mark code sections (by starting a line
     with '##').
-  * Highly customizable using the menu.
+  * Highly customizable.
 
 """
 
 # Set version number
-__version__ = '3.1.dev'
+__version__ = '3.2beta'
 
 
  # Fix for issue 137 (apply before importing PySide, just to be safe)
