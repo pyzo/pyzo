@@ -462,6 +462,17 @@ class IconProviderWindows(QtGui.QFileIconProvider):
         return QtGui.QIcon(pm0)
 
 
+
+class DeprLabel(QtGui.QLabel):
+    def __init__(self, parent):
+        QtGui.QLabel.__init__(self, parent)
+        self.setWordWrap(True)
+        self.setText('Note: the project manager will be depracated in future versions of IEP. Use the file browser instead (click to hide)')
+        self.setStyleSheet("QLabel { background-color:#BBF; padding:3px;}")
+    def mousePressEvent(self, event):
+        self.hide()
+
+
 class IepProjectManager(QtGui.QWidget):
     def __init__(self,parent):
         QtGui.QWidget.__init__(self,parent)
@@ -497,7 +508,7 @@ class IepProjectManager(QtGui.QWidget):
         # todo: huh? QFileSystemModel.setSorting Does not exist
         self.filteredDirModel=DirSortAndFilter()
         self.filteredDirModel.setSourceModel(self.dirModel)
-                
+        
         #Init widgets and layout
         self.buttonLayout=QtGui.QVBoxLayout()
         self.configButton = QtGui.QPushButton(self)
@@ -522,6 +533,7 @@ class IepProjectManager(QtGui.QWidget):
         self.filterCombo=QtGui.QComboBox()
 
         self.layout=QtGui.QVBoxLayout()
+        self.layout.addWidget(DeprLabel(self))
         self.layout.addLayout(self.hLayout)
         self.layout.addWidget(self.dirList,10)
         self.layout.addWidget(self.filterCombo)
