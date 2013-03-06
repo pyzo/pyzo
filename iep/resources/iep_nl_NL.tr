@@ -59,67 +59,67 @@
         <translation>Zoek in subdirectories</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="754"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="757"/>
         <source>Open</source>
         <translation>Openen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="758"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="761"/>
         <source>Open outside iep</source>
         <translation>Openen buiten IEP</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="761"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="764"/>
         <source>Reveal in Finder</source>
         <translation>Laat zien in Finder</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="856"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="859"/>
         <source>Rename</source>
         <translation>Hernoemen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="881"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="884"/>
         <source>Delete</source>
         <translation>Verwijderen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="827"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="830"/>
         <source>Create new file</source>
         <translation>Maak nieuw bestand</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="830"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="833"/>
         <source>Create new directory</source>
         <translation>Maak nieuwe directorie</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="857"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="860"/>
         <source>Give the new name for the file</source>
         <translation>Geef de nieuwe naam voor het bestand</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="833"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="836"/>
         <source>Give the name for the new directory</source>
         <translation>Geef de naam voor de directorie</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="859"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="862"/>
         <source>Duplicate</source>
         <translation>Dupliceren</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="860"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="863"/>
         <source>Give the name for the new file</source>
         <translation>Geef de naam van het nieuwe bestand</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="883"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="886"/>
         <source>Are you sure that you want to delete</source>
         <translation>Weet je zeker dat je wilt verwijderen</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="764"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="767"/>
         <source>Copy path</source>
         <translation>Kopier directorie pad</translation>
     </message>
@@ -129,12 +129,12 @@
         <translation>Klik de ster om de huidige dir op te slaan</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="747"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="750"/>
         <source>Unstar this dir</source>
         <translation>Verwijder deze dir uit de projecten</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="749"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="752"/>
         <source>Star this dir</source>
         <translation>Voeg deze dir toe aan de projecten</translation>
     </message>
@@ -228,12 +228,12 @@
         <translation>Open ::: Open een bestaand bestand.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="941"/>
+        <location filename="iep/iepcore/menu.py" line="989"/>
         <source>Save ::: Save the current file to disk.</source>
         <translation>Opslaan ::: Sla het huidige bestand op.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="943"/>
+        <location filename="iep/iepcore/menu.py" line="991"/>
         <source>Save as... ::: Save the current file under another name.</source>
         <translation>Opslaan als ... ::: Sla het huidige bestand op onder een andere naam.</translation>
     </message>
@@ -243,12 +243,12 @@
         <translation>Alles opslaan ::: Sla alle geopende bestanden op.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="945"/>
+        <location filename="iep/iepcore/menu.py" line="993"/>
         <source>Close ::: Close the current file.</source>
         <translation>Sluiten ::: Sluit het huidige bestand.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="949"/>
+        <location filename="iep/iepcore/menu.py" line="997"/>
         <source>Close all ::: Close all files.</source>
         <translation>Alles sluiten ::: Sluit alle geopende bestanden.</translation>
     </message>
@@ -273,47 +273,47 @@
         <translation>Opnieuw doen ::: Doe de laatste ongedaan gemaakte bewerking opnieuw.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="896"/>
+        <location filename="iep/iepcore/menu.py" line="941"/>
         <source>Cut ::: Cut the selected text.</source>
         <translation>Knippen</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="898"/>
+        <location filename="iep/iepcore/menu.py" line="943"/>
         <source>Copy ::: Copy the selected text to the clipboard.</source>
         <translation>Kopieren</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="900"/>
+        <location filename="iep/iepcore/menu.py" line="945"/>
         <source>Paste ::: Paste the text that is now on the clipboard.</source>
         <translation>Plakken</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="902"/>
+        <location filename="iep/iepcore/menu.py" line="947"/>
         <source>Select all ::: Select all text.</source>
         <translation>Alles selecteren</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="597"/>
+        <location filename="iep/iepcore/menu.py" line="950"/>
         <source>Indent ::: Indent the selected line.</source>
         <translation>Inspringen ::: Spring de geselecteerde regel in.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="599"/>
+        <location filename="iep/iepcore/menu.py" line="952"/>
         <source>Dedent ::: Unindent the selected line.</source>
         <translation>Terugspringen ::: Zet het inspringen een stap kleiner.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="601"/>
+        <location filename="iep/iepcore/menu.py" line="954"/>
         <source>Comment ::: Comment the selected line.</source>
         <translation>Commentaar ::: Voeg een commentaar teken toe aan de geselecteerde regel.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="603"/>
+        <location filename="iep/iepcore/menu.py" line="956"/>
         <source>Uncomment ::: Uncomment the selected line.</source>
         <translation>Verwijder commentaar ::: Verwijder een commentaar teken van de huidige regel.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="605"/>
+        <location filename="iep/iepcore/menu.py" line="958"/>
         <source>Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters.</source>
         <translation>Uitlijnen commentaar of docstring ::: Hervorm de geselecteerde tekst door het uit te lijnen op 70 karakters.</translation>
     </message>
@@ -453,152 +453,152 @@
         <translation>Nieuwe shell ... ::: Maak een nieuwe shell aan om code in uit te voeren.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="947"/>
+        <location filename="iep/iepcore/menu.py" line="995"/>
         <source>Close others::: Close all files but this one.</source>
         <translation>Anderen sluiten ::: Sluit alle bestanden behalve deze.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="951"/>
+        <location filename="iep/iepcore/menu.py" line="999"/>
         <source>Rename ::: Rename this file.</source>
         <translation>Hernoemen ::: Hernoem dit bestand.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="956"/>
+        <location filename="iep/iepcore/menu.py" line="1004"/>
         <source>Pin/Unpin ::: Pinned files get closed less easily.</source>
         <translation>Vastpinnen/ontpinnen :::Pin dit bestand vast.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="958"/>
+        <location filename="iep/iepcore/menu.py" line="1006"/>
         <source>Set/Unset as MAIN file ::: The main file can be run while another file is selected.</source>
         <translation>Stel dit bestand in als MAIN bestand/gewoon bestand.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="962"/>
+        <location filename="iep/iepcore/menu.py" line="1010"/>
         <source>Run file ::: Run the code in this file.</source>
         <translation>Voer bestand uit ::: Voer de code in dit bestand uit.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="964"/>
+        <location filename="iep/iepcore/menu.py" line="1012"/>
         <source>Run file as script ::: Run this file as a script (restarts the interpreter).</source>
         <translation>Voer bestand uit als script ::: Voer de code in dit bestand uit als script (dit herstart de interpreter).</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1015"/>
+        <location filename="iep/iepcore/menu.py" line="1063"/>
         <source>Run selection ::: Run the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
         <translation>Voer selectie uit ::: Uitvoeren van: huidig geselecteerde regels, geselecteerde woorden op een regel, of de huidige regel als er geen selectie is.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1017"/>
+        <location filename="iep/iepcore/menu.py" line="1065"/>
         <source>Run cell ::: Run the current editors&apos;s cell in the current shell.</source>
         <translation>Voer cel uit ::: Voer de huidige cel uit in de huidige shell.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1020"/>
+        <location filename="iep/iepcore/menu.py" line="1070"/>
         <source>Run file ::: Run the current file in the current shell.</source>
         <translation>Voer bestand uit ::: Voer het hyidige bestand uit in de huidige shell.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1022"/>
+        <location filename="iep/iepcore/menu.py" line="1072"/>
         <source>Run main file ::: Run the main file in the current shell.</source>
         <translation>Voer main bestand uit.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1025"/>
+        <location filename="iep/iepcore/menu.py" line="1075"/>
         <source>Run file as script ::: Run the current file as a script.</source>
         <translation>Voer bestand uit als script ::: Voer het huidige bestand uit als een script.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1027"/>
+        <location filename="iep/iepcore/menu.py" line="1077"/>
         <source>Run main file as script ::: Run the main file as a script.</source>
         <translation>Voer main bestand uit als script ::: Voer het main bestand uit als een script.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1030"/>
+        <location filename="iep/iepcore/menu.py" line="1080"/>
         <source>Help on running code ::: Open the IEP wizard at the page about running code.</source>
         <translation>Hulp over het uitvoeren van code ::: Opent de IEP wizard op de pagina over het uitvoeren van code.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1240"/>
+        <location filename="iep/iepcore/menu.py" line="1301"/>
         <source>Reload tools ::: For people who develop tools.</source>
         <translation>Herlaad gereedschap.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1266"/>
+        <location filename="iep/iepcore/menu.py" line="1327"/>
         <source>Pyzo Website ::: Open the Pyzo website in your browser.</source>
         <translation>Pyzo website</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1268"/>
+        <location filename="iep/iepcore/menu.py" line="1329"/>
         <source>IEP Website ::: Open the IEP website in your browser.</source>
         <translation>IEP website</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1270"/>
+        <location filename="iep/iepcore/menu.py" line="1331"/>
         <source>Ask a question ::: Need help?</source>
         <translation>Stel een vraag</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1272"/>
+        <location filename="iep/iepcore/menu.py" line="1333"/>
         <source>Report an issue ::: Did you found a bug in IEP, or do you have a feature request?</source>
         <translation>Rapporteer een probleem</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1275"/>
+        <location filename="iep/iepcore/menu.py" line="1336"/>
         <source>IEP wizard ::: Get started quickly.</source>
         <translation>IEP wizard</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1277"/>
+        <location filename="iep/iepcore/menu.py" line="1338"/>
         <source>View license ::: Legal stuff.</source>
         <translation>Licentie inzien</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1280"/>
+        <location filename="iep/iepcore/menu.py" line="1341"/>
         <source>Check for updates ::: Are you using the latest version?</source>
         <translation>Kijk of er updates zijn</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1282"/>
+        <location filename="iep/iepcore/menu.py" line="1343"/>
         <source>About IEP ::: More information about IEP.</source>
         <translation>Over IEP</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1412"/>
+        <location filename="iep/iepcore/menu.py" line="1473"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>Automatisch inspringen ::: Inspringen bij een nieuwe regel na een dubbele punt.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1414"/>
+        <location filename="iep/iepcore/menu.py" line="1475"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>Pas uitvoertips toe ::: Laat uitvoertips zien.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1416"/>
+        <location filename="iep/iepcore/menu.py" line="1477"/>
         <source>Enable autocompletion ::: Show autocompletion with known names.</source>
         <translation>Pas autocompletion toe ::: Laat de autocompletion met bekende namen zien.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1418"/>
+        <location filename="iep/iepcore/menu.py" line="1479"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>Autocomplete keywords ::: De autocomple lijst laat ook keywords zien.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1422"/>
+        <location filename="iep/iepcore/menu.py" line="1483"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>Bewerk  sneltoetsen...</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1424"/>
+        <location filename="iep/iepcore/menu.py" line="1485"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>Bewerk syntax stijlen...</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1427"/>
+        <location filename="iep/iepcore/menu.py" line="1488"/>
         <source>Advanced settings... ::: Configure IEP even further.</source>
         <translation>Geavanceerde instellingen...</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1407"/>
+        <location filename="iep/iepcore/menu.py" line="1468"/>
         <source>Select language ::: The language used by IEP.</source>
         <translation>Selecteer taal ::: De taal gebruikt door IEP</translation>
     </message>
@@ -612,56 +612,61 @@
         <source>Font</source>
         <translation>Lettertype</translation>
     </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1067"/>
+        <source>Run cell and advance ::: Run the current editors&apos;s cell and advance to the next cell.</source>
+        <translation>Voer cel uit en ga naar volgende cel</translation>
+    </message>
 </context>
 <context>
     <name>menu dialog</name>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1062"/>
+        <location filename="iep/iepcore/menu.py" line="1112"/>
         <source>Could not run</source>
         <translation>Kon niet uitvoeren</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1227"/>
+        <location filename="iep/iepcore/menu.py" line="1288"/>
         <source>Could not run script.</source>
         <translation>Kon script niet uitvoeren.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1312"/>
+        <location filename="iep/iepcore/menu.py" line="1373"/>
         <source>Check for the latest version.</source>
         <translation>Check laatste versie.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1389"/>
+        <location filename="iep/iepcore/menu.py" line="1450"/>
         <source>About IEP</source>
         <translation>Over IEP</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1442"/>
+        <location filename="iep/iepcore/menu.py" line="1503"/>
         <source>Edit syntax styling</source>
         <translation>Pas syntax stijlen aan</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1463"/>
+        <location filename="iep/iepcore/menu.py" line="1524"/>
         <source>Advanced settings</source>
         <translation>Geavanceerde instellingen</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1830"/>
+        <location filename="iep/iepcore/menu.py" line="1891"/>
         <source>Edit shortcut mapping</source>
         <translation>Pas sneltoetsen aan</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1975"/>
+        <location filename="iep/iepcore/menu.py" line="2036"/>
         <source>Shortcut mappings</source>
         <translation>Sneltoets lijst</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1489"/>
+        <location filename="iep/iepcore/menu.py" line="1550"/>
         <source>Language changed</source>
         <translation>Taal aangepast</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1488"/>
+        <location filename="iep/iepcore/menu.py" line="1549"/>
         <source>
         The language has been changed. 
         IEP needs to restart for the change to take effect.
