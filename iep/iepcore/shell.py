@@ -313,17 +313,22 @@ class BaseShell(BaseTextCtrl):
     def keyPressEvent(self,event):
         
         if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
-            # Enter: execute line
-            # Remove calltip and autocomp if shown
-            self.autocompleteCancel()
-            self.calltipCancel()
             
-            # reset history needle
-            self._historyNeedle = None
-            
-            # process
-            self.processLine()
-            return
+            # First check if autocompletion triggered
+            if self.potentiallyAutoComplete(event):
+                return
+            else:
+                # Enter: execute line
+                # Remove calltip and autocomp if shown
+                self.autocompleteCancel()
+                self.calltipCancel()
+                
+                # reset history needle
+                self._historyNeedle = None
+                
+                # process
+                self.processLine()
+                return
         
         if event.key() == Qt.Key_Escape:
             # Escape clears command

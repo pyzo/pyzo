@@ -45,8 +45,18 @@ class AutoCompletion(object):
         
         self.__autocompleteDebug = False
         
+        self.__autocompletionAcceptKeys = (Qt.Key_Tab,)
+        
         #Connect signals
+        self.__highlightedCompletion = None
         self.__completer.activated.connect(self.onAutoComplete)
+        self.__completer.highlighted.connect(self._setHighlightedCompletion)
+    
+    def _setHighlightedCompletion(self, value):
+        """ Keeping track of the highlighted item allows us
+        to 'manually' perform an autocompletion.
+        """
+        self.__highlightedCompletion = value
     
     ## Properties
     def recentCompletionsList(self):
@@ -63,7 +73,14 @@ class AutoCompletion(object):
     def completer(self):
         return self.__completer
         
-
+    
+    def setAutoCompletionAcceptKeys(self, *keys):
+        """ Set the keys that can accept an autocompletion.
+        Like Tab, or Enter. Defaut Tab.
+        """
+        self.__autocompletionAcceptKeys = keys
+    
+    
     ## Autocompletion
     
     def setAutocompletPopupSize(self, width, height):
@@ -116,7 +133,9 @@ class AutoCompletion(object):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
         
-    def onAutoComplete(self,text):
+    def onAutoComplete(self, text=None):
+        if text is None:
+            text = self.__highlightedCompletion
         #Select the text from autocompleteStart until the current cursor
         cursor=self.textCursor()
         cursor.setPosition(self.__autocompleteStart.position(),cursor.KeepAnchor)
@@ -213,6 +232,30 @@ class AutoCompletion(object):
             #No match, just hide
             self.autocompleteCancel()
     
+    
+    def potentiallyAutoComplete(self, event):
+        """ potentiallyAutoComplete(event)
+        Given a keyEvent, check if we should perform an autocompletion.
+        Returns 0 if no autocompletion was performed. Return 1 if
+        autocompletion was performed, but the key event should be processed
+        as normal. Return 2 if the autocompletion was performed, and the key
+        should be consumed.
+        """
+        if self.autocompleteActive():
+            if event.key() in self.__autocompletionAcceptKeys:
+                if event.key() <= 128:
+                    self.onAutoComplete()  # No arg: select last highlighted
+                    self.autocompleteCancel()
+                    event.ignore()
+                    return 1  # Let key have effect as normal
+                elif event.modifiers() == Qt.NoModifier:
+                    # The key 
+                    self.onAutoComplete()  # No arg: select last highlighted
+                    self.autocompleteCancel()
+                    return 2  # Key should be consumed
+        return 0
+    
+    
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()
@@ -221,11 +264,8 @@ class AutoCompletion(object):
             self.autocompleteCancel()
             return #Consume the key
         
-        if key == Qt.Key_Tab and modifiers == Qt.NoModifier:
-            if self.autocompleteActive():
-                #Let the completer handle this one!
-                event.ignore()
-                return #Don't call the super() keyPressEvent
+        if self.potentiallyAutoComplete(event) > 1:
+            return  #Consume
         
         #Allowed keys that do not close the autocompleteList:
         # alphanumeric and _ ans shift
