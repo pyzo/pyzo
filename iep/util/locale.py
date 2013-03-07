@@ -22,7 +22,13 @@ LANGUAGES = {
     # == (QtCore.QLocale.English, QtCore.QLocale.UnitedStates),
     #'English (UK)': (QtCore.QLocale.English, QtCore.QLocale.UnitedKingdom),
     'Dutch': QtCore.QLocale.Dutch,
-    'German': QtCore.QLocale.German,
+    # 'German': QtCore.QLocale.German,
+    # 'Simplified Chinese': QtCore.QLocale.Chinese,
+    # 'Spanish': QtCore.QLocale.Spanish,
+    # 'Catalan': QtCore.QLocale.Catalan,
+    # 'French': QtCore.QLocale.French,
+    # 'Slovak': QtCore.QLocale.Slovak,
+    
     }
 
 
