@@ -16,6 +16,8 @@ class Browser(QtGui.QWidget):
     """ A browser consists of an address bar, and tree view, and other
     widets to help browse the file system. The browser object is responsible
     for tying the different browser-components together.
+    
+    It is also provides the API for dealing with starred dirs.
     """
     
     def __init__(self, parent, config, path=None):
@@ -110,24 +112,47 @@ class Browser(QtGui.QWidget):
     
     @property
     def starredDirs(self):
-        """ A list of the starred directories (not a copy).
+        """ A list of the starred directories.
         """
         return [d.path for d in self.parent().config.starredDirs]
     
+    def dictForStarredDir(self, path):
+        """ Return the dict of the starred dir corresponding to
+        the given path, or None if no starred dir was found.
+        """
+        if not path:
+            return None
+        for d in self.parent().config.starredDirs:
+            if d['path'] == path:
+                return d
+        else:
+            return None
+    
     def addStarredDir(self, path):
+        """ Add the given path to the starred directories.
+        """
+        # Create new dict
         newProject = ssdf.new()
         newProject.path = path.normcase() # Normalize case!
         newProject.name = path.basename
         newProject.addToPythonpath = False
+        # Add it to the config
         self.parent().config.starredDirs.append(newProject)
+        # Update list
+        self._projects.updateProjectList()
     
     def removeStarredDir(self, path):
+        """ Remove the given path from the starred directories.
+        The path must exactlty match.
+        """
+        # Remove
         starredDirs = self.parent().config.starredDirs
         pathn = path.normcase()
         for d in starredDirs:
-            if pathn.startswith(d.path):
+            if pathn == d.path:
                 starredDirs.remove(d)
-                break
+        # Update list
+        self._projects.updateProjectList()
     
     def test(self, sort=False):
         items = []
@@ -379,13 +404,7 @@ class Projects(QtGui.QWidget):
         """ Return the current project-dict, or None.
         """ 
         path = self._combo.itemData(self._combo.currentIndex())
-        if not path:
-            return None
-        for d in self.parent().config.starredDirs:
-            if d['path'] == path:
-                return d
-        else:
-            return None
+        return self.parent().dictForStarredDir(path)
     
     
     def setPath(self, path):
@@ -409,12 +428,13 @@ class Projects(QtGui.QWidget):
     
     def updateProjectList(self):
         # Get sorted version of starredDirs
-        starredDirs = [d for d in self.parent().config.starredDirs]
-        starredDirs.sort(key=lambda d:d.name.lower())
+        starredDirs = self.parent().starredDirs
+        starredDirs.sort(key=lambda p:p.lower())
         # Refill the combo box
         self._combo.clear()
-        for d in starredDirs:
-            self._combo.addItem(d.name, d['path'])
+        for p in starredDirs:
+            name = self.parent().dictForStarredDir(p).name
+            self._combo.addItem(name, p)
         # Insert dummy item
         if starredDirs:
             self._combo.insertItem(0, translate('filebrowser', 'Projects:'), '') # No-project item
@@ -442,10 +462,11 @@ class Projects(QtGui.QWidget):
         # Add check action for adding to Pythonpath
         action = menu.addAction(translate('filebrowser', 'Add path to Python path'))
         action._id = 'pythonpath'
-        d = self.currentDict()
         action.setCheckable(True)
-        checked = bool( d and d['addToPythonpath'] )
-        action.setChecked(checked)
+        d = self.currentDict()
+        if d:
+            checked = bool( d and d['addToPythonpath'] )
+            action.setChecked(checked)
     
     
     def onMenuTriggered(self, action):
@@ -455,7 +476,7 @@ class Projects(QtGui.QWidget):
         
         if action._id == 'remove':
             # Remove this project
-            self.parent().removeStarredDir(self._path)
+            self.parent().removeStarredDir(d.path)
         
         elif action._id == 'name':
             # Open dialog to ask for name
@@ -483,7 +504,6 @@ class Projects(QtGui.QWidget):
             # Not starred right now, create new project!
             self.parent().addStarredDir(self._path)
         # Update
-        self.updateProjectList()
         self.setPath(self._path)
     
     
