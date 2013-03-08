@@ -312,9 +312,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
         """ 
-  
+        
         tokens = self._delayTimer._tokensUptoCursor
-           
+        
         if iep.config.settings.autoCallTip:
             # Parse the line, to get the name of the function we should calltip
             # if the name is empty/None, we should not show a signature
@@ -393,6 +393,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     ## Callbacks
     def updateHelp(self,name):
         """A name has been highlighted, show help on that name"""
+        
+        # Dont update help if there is no prefix; the choice would be arbitrary
+        if not self.completer().completionPrefix():
+            return
         
         if self._autoCompBuffer_name:
             name = self._autoCompBuffer_name + '.' + name
