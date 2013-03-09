@@ -24,8 +24,8 @@ LANGUAGES = {
     'Dutch': QtCore.QLocale.Dutch,
     # 'German': QtCore.QLocale.German,
     # 'Simplified Chinese': QtCore.QLocale.Chinese,
-    # 'Spanish': QtCore.QLocale.Spanish,
-    # 'Catalan': QtCore.QLocale.Catalan,
+    'Spanish': QtCore.QLocale.Spanish,
+    'Catalan': QtCore.QLocale.Catalan,
     # 'French': QtCore.QLocale.French,
     # 'Slovak': QtCore.QLocale.Slovak,
     
