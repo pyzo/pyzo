@@ -275,17 +275,11 @@ class DocstringTask(proxies.Task):
                 lines.append(line)
         
         # Limit number of lines
-        if len(lines) > 5:
-            lines = lines[:5] + ['...']
+        if len(lines) > 16:
+            lines = lines[:16] + ['...']
         # Make text and strip
         doc = '\n'.join(lines)
         doc = doc.strip()
-        if len(doc) > 250:
-            doc = doc[:247] + '...'
-        
-        # Fill in if no docstring detected in X lines
-        if not doc:
-            doc = 'No docstring detected'
         
         return doc
 
