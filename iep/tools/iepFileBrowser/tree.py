@@ -366,6 +366,7 @@ class FileItem(BrowserItem):
         if self._mode == 'normal':
             # Create task to retrieve high level structure
             if self.path().lower().endswith('.py'):
+                self._proxy.pushTask(tasks.DocstringTask())
                 self._proxy.pushTask(tasks.PeekTask())
     
     def onCollapsed(self):
@@ -374,14 +375,14 @@ class FileItem(BrowserItem):
             if self.path().lower().endswith('.py'):
                 self._createDummyItem('Loading high level structure ...')
     
-    def onClicked(self):
-        # Limit sending events to prevent flicker when double clicking
-        if time.time() - self._timeSinceLastDocString < 0.5:
-            return
-        self._timeSinceLastDocString = time.time()
-        # Create task
-        if self.path().lower().endswith('.py'):
-            self._proxy.pushTask(tasks.DocstringTask())
+#     def onClicked(self):
+#         # Limit sending events to prevent flicker when double clicking
+#         if time.time() - self._timeSinceLastDocString < 0.5:
+#             return
+#         self._timeSinceLastDocString = time.time()
+#         # Create task
+#         if self.path().lower().endswith('.py'):
+#             self._proxy.pushTask(tasks.DocstringTask())
     
     def onChanged(self):
         pass
@@ -390,16 +391,21 @@ class FileItem(BrowserItem):
         
         if isinstance(task, tasks.DocstringTask):
             result = task.result()
+            self.clear()  # Docstring task is done *before* peek task
             if result:
-                #self.setToolTip(0, result)
-                # Show tooltip *now* if mouse is still over this item
-                tree = self.treeWidget()
-                pos = tree.mapFromGlobal(QtGui.QCursor.pos())
-                if tree.itemAt(pos) is self:
-                    QtGui.QToolTip.showText(QtGui.QCursor.pos(), result)
+                DocstringItem(self, result)
+#         if isinstance(task, tasks.DocstringTask):
+#             result = task.result()
+#             if result:
+#                 #self.setToolTip(0, result)
+#                 # Show tooltip *now* if mouse is still over this item
+#                 tree = self.treeWidget()
+#                 pos = tree.mapFromGlobal(QtGui.QCursor.pos())
+#                 if tree.itemAt(pos) is self:
+#                     QtGui.QToolTip.showText(QtGui.QCursor.pos(), result)
         elif isinstance(task, tasks.PeekTask):
             result = task.result()
-            self.clear()
+            #self.clear()  # Cleared when docstring task result is received
             if result:
                 for r in result:
                     SubFileItem(self, *r)
@@ -413,10 +419,13 @@ class FileItem(BrowserItem):
 class SubFileItem(QtGui.QTreeWidgetItem):
     """ Tree widget item for search items.
     """
-    def __init__(self, parent, linenr, text):
+    def __init__(self, parent, linenr, text, showlinenr=False):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         self._linenr = linenr
-        self.setText(0, 'Line %i: %s' % (linenr, text))
+        if showlinenr:
+            self.setText(0, 'Line %i: %s' % (linenr, text))
+        else:
+            self.setText(0, text)
     
     def path(self):
         return self.parent().path()
@@ -434,6 +443,31 @@ class SubFileItem(QtGui.QTreeWidgetItem):
 
 
 
+class DocstringItem(QtGui.QTreeWidgetItem):
+    """ Tree widget item for docstring placeholder items.
+    """
+    
+    def __init__(self, parent, docstring):
+        QtGui.QTreeWidgetItem.__init__(self, parent)
+        self._docstring = docstring
+        # Get one-line version of docstring
+        shortText = self._docstring.split('\n',1)[0].strip()
+        if len(shortText) < len(self._docstring):
+            shortText += '...'
+        # Set short version now
+        self.setText(0, 'doc: '+shortText)
+    
+    def path(self):
+        return self.parent().path()
+    
+    def onClicked(self):
+        tree = self.treeWidget()
+        pos = tree.mapFromGlobal(QtGui.QCursor.pos())
+        if tree.itemAt(pos) is self:
+            QtGui.QToolTip.showText(QtGui.QCursor.pos(), self._docstring)
+
+
+
 class ErrorItem(QtGui.QTreeWidgetItem):
     """ Tree widget item for errors and information.
     """
@@ -444,7 +478,6 @@ class ErrorItem(QtGui.QTreeWidgetItem):
         font = self.font(0)
         font.setItalic(True)
         self.setFont(0, font)
-    
 
 
 class SearchInfoItem(ErrorItem):
@@ -527,7 +560,7 @@ class TemporaryFileItem:
         if result:
             item = FileItem(self._tree, self._proxy, 'search')  # Search mode
             for r in result:
-                SubFileItem(item, *r)
+                SubFileItem(item, *r, showlinenr=True)
         # Update counter
         searchInfoItem = self._tree.topLevelItem(0)
         if isinstance(searchInfoItem, SearchInfoItem):
