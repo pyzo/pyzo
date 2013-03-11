@@ -26,7 +26,7 @@ LANGUAGES = {
     # 'Simplified Chinese': QtCore.QLocale.Chinese,
     'Spanish': QtCore.QLocale.Spanish,
     'Catalan': QtCore.QLocale.Catalan,
-    # 'French': QtCore.QLocale.French,
+    'French': QtCore.QLocale.French,
     # 'Slovak': QtCore.QLocale.Slovak,
     
     }
@@ -197,7 +197,7 @@ def linguist(languageName):
     
     # Get file to open
     fname = 'iep_{}.tr'.format(locale.name())
-    filename = os.path.join(iep.iepDir, 'resources', fname)
+    filename = os.path.join(iep.iepDir, 'resources', 'translations', fname)
     if not os.path.isfile(filename):
         raise ValueError('Could not find {}'.format(fname))
     
