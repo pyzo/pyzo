@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="ca_ES">
+<!DOCTYPE TS><TS version="1.1" language="ca_ES">
 <context>
     <name>filebrowser</name>
     <message>
@@ -49,92 +48,92 @@
         <translation>Nou nom projecte:</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="630"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="631"/>
         <source>Match case</source>
         <translation>Coincidir entre majúscules i minúscules</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="631"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="632"/>
         <source>RegExp</source>
         <translation>Expressió Regular</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="632"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="633"/>
         <source>Search in subdirs</source>
         <translation>Cerca en subdirs</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="750"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="783"/>
         <source>Unstar this dir</source>
         <translation>Desmarcar directori</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="752"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="785"/>
         <source>Star this dir</source>
         <translation>Marcar directori</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="757"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="790"/>
         <source>Open</source>
         <translation>Obrir</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="761"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="794"/>
         <source>Open outside iep</source>
         <translation>Obrir fora d&apos;iep</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="764"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="797"/>
         <source>Reveal in Finder</source>
         <translation>Mostra al Finder</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="767"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="800"/>
         <source>Copy path</source>
         <translation>Copia ruta</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="859"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="892"/>
         <source>Rename</source>
         <translation>Rebatejar</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="884"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="917"/>
         <source>Delete</source>
         <translation>Esborrar</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="830"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="863"/>
         <source>Create new file</source>
         <translation>Crear arxiu</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="833"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="866"/>
         <source>Create new directory</source>
         <translation>Crear directori</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="860"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="893"/>
         <source>Give the new name for the file</source>
         <translation>Dona nom al arxiu</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="836"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="869"/>
         <source>Give the name for the new directory</source>
         <translation>Dona nom al directori</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="862"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="895"/>
         <source>Duplicate</source>
         <translation>Duplicar</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="863"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="896"/>
         <source>Give the name for the new file</source>
         <translation>Dona nom al arxiu</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="886"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="919"/>
         <source>Are you sure that you want to delete</source>
         <translation>Segur que vols esborrar-ho</translation>
     </message>
