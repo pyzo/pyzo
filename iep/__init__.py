@@ -182,11 +182,17 @@ def startIep():
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
     
-    # Prevent loading plugins form the users' plugin dir since
-    # this may cause multiple versions of the Qt library to be loaded
-    # at once, which will conflict. But on KDE this means that the 
-    # style of IEP does not fit in, see issue 138.
-    if not os.environ.get('KDE_FULL_SESSION'):  # relatively safe way to detect KDE
+    # Prevent loading plugins form the system plugin dir since this may
+    # cause multiple versions of the Qt library to be loaded at once,
+    # which will conflict.  Note also the writing of qt.conf in the
+    # freezeSctipt
+    # But on KDE this means that the style of IEP does not fit in, see
+    # issue 138. Therefore do *not* disable if running from source on KDE
+    disableLibraryPaths = True
+    if os.environ.get('KDE_FULL_SESSION'):  # relatively safe way to detect KDE
+        if QtGui.__file__.startswith('/usr/'):
+            disableLibraryPaths = False
+    if disableLibraryPaths:
         QtGui.QApplication.setLibraryPaths([])
     
     # Instantiate the application
