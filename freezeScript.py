@@ -199,6 +199,12 @@ if sys.platform.startswith('linux'):
             if entry.endswith('.so') or '.so.' in entry:
                 dllutils.set_search_path(entry, '')                
 
+# Set qt.conf
+# Prevent loading plugins form the system plugin dir, which
+# may cause incompatibility conflicts.
+# see issue 138 and issue 198.
+with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
+    file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
 
 # todo: this is now in cx_Freeze right?
 if applicationBundle:
