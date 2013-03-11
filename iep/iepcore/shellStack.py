@@ -359,7 +359,7 @@ class DebugControl(QtGui.QToolButton):
         self.setText('Debug')
         self.setIcon(iep.icons.bug)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.setToolTip("Start/Stop post mortem debugging.")
+        self.setToolTip(translate("debug", "Start/Stop post mortem debugging."))
         
         # Set mode
         self.setPopupMode(self.InstantPopup)
