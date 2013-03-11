@@ -489,6 +489,7 @@ class Projects(QtGui.QWidget):
                 name = name[0] if name[1] else ''
             if name:
                 d['name'] = name
+            self.updateProjectList()
         
         elif action._id == 'pythonpath':
             # Flip add-to-pythonpath flag
