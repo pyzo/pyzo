@@ -1,0 +1,27 @@
+
+Core Development
+----------------
+
+Almar Klein
+Rob Reilink
+Ludo Visser
+
+
+Translators
+-----------
+
+Hector Mtz-Seara Monné - Spanish and Catalan
+Laurent Signac - French
+
+
+Testing
+-------
+
+Feedback in the form of bug reports and feature requests are very
+valuable to us. However, we can't possibly list each person that has
+posted an issue. Here we list the people that have made above-average
+contributions in this respect.
+
+Lars Heuer
+Zaharon
+Gijs van Oort
