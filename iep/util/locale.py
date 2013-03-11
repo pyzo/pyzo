@@ -69,7 +69,7 @@ def setLanguage(languageName):
     # Get paths were language files are
     qtTransPath = str(QtCore.QLibraryInfo.location(
                     QtCore.QLibraryInfo.TranslationsPath))
-    iepTransPath = os.path.join(iep.iepDir, 'resources')
+    iepTransPath = os.path.join(iep.iepDir, 'resources', 'translations')
     
     # Get possible names for language files
     # (because Qt's .tr files may not have the language component.)
