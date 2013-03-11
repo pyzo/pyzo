@@ -263,14 +263,19 @@ class DocstringTask(proxies.Task):
             count += 1
             if count > 200:
                 break
-            if delim and '"""' in line or "'''" in line:
-                break
-            elif line.startswith('"""'):
-                delim = '"""'
-                line = line.lstrip('"')
-            elif line.startswith("'''"):
-                delim = "'''"
-                line = line.lstrip("'")
+            # Try to find a start
+            if not delim:
+                if line.startswith('"""'):
+                    delim = '"""'
+                    line = line.lstrip('"')
+                elif line.startswith("'''"):
+                    delim = "'''"
+                    line = line.lstrip("'")
+            # Try to find an end (may be on the same line as the start)
+            if delim and delim in line:
+                line = line.split(delim, 1)[0]
+                count = 999999999  # Stop; we found the end
+            # Add this line
             if delim:
                 lines.append(line)
         
