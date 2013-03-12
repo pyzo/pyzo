@@ -225,9 +225,14 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # The string with names given to SCI_AUTOCSHOW
         self._autoCompNameString = ''
         
+        # Set autocomp accept key to default if necessary.
+        # We force it to be string (see issue 134)
+        if not isinstance(iep.config.settings.autoComplete_acceptKeys, str):
+            iep.config.settings.autoComplete_acceptKeys = 'Tab'
+        
         # Set autocomp accept keys
         qtKeys = []
-        for key in iep.config.settings.autoComplete_acceptKeys:
+        for key in iep.config.settings.autoComplete_acceptKeys.split(' '):
             if len(key) > 1:
                 key = 'Key_' + key[0].upper() + key[1:].lower()
                 qtkey = getattr(QtCore.Qt, key, None)
