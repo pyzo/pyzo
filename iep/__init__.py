@@ -45,7 +45,7 @@ Some key features
 """
 
 # Set version number
-__version__ = '3.2beta'
+__version__ = '3.3'
 
 
  # Fix for issue 137 (apply before importing PySide, just to be safe)
