@@ -759,10 +759,13 @@ class Tree(QtGui.QTreeWidget):
     
     def contextMenuTriggered(self, p):
         """ Called when context menu is clicked """
-        # Init        
+        # Get item that was clicked on
         item = self.itemAt(p)
-        if isinstance(item, FileItem) or isinstance(item, DirItem):
-            # Create and show menu
+        if item is None:
+            item = self
+        
+        # Create and show menu
+        if isinstance(item, (Tree, FileItem, DirItem)):
             menu = PopupMenu(self, item)
             menu.popup(self.mapToGlobal(p+QtCore.QPoint(3,3)))
 
@@ -790,26 +793,28 @@ class PopupMenu(iep.iepcore.menu.Menu):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
         
         # Create items for open and copy path
-        if isplat('win') or isplat('darwin') or isplat('linux'):
-            self.addItem(translate("filebrowser", "Open outside iep"), 
-                None, self._openOutsideIep)
-        if isplat('darwin'):            
-            self.addItem(translate("filebrowser", "Reveal in Finder"), 
-                None, self._showInFinder)
-        if True:
-            self.addItem(translate("filebrowser", "Copy path"), 
-                None, self._copyPath)
+        if isinstance(self._item, (FileItem, DirItem)):
+            if isplat('win') or isplat('darwin') or isplat('linux'):
+                self.addItem(translate("filebrowser", "Open outside iep"), 
+                    None, self._openOutsideIep)
+            if isplat('darwin'):            
+                self.addItem(translate("filebrowser", "Reveal in Finder"), 
+                    None, self._showInFinder)
+            if True:
+                self.addItem(translate("filebrowser", "Copy path"), 
+                    None, self._copyPath)
         
-        self.addSeparator()
+            self.addSeparator()
         
         # Create items for file management
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Rename"), None, self.onRename)
             self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
             #self.addItem(translate("filebrowser", "Duplicate"), None, self.onDuplicate)
-        if isinstance(self._item, DirItem):
+        if isinstance(self._item, (Tree, DirItem)):
             self.addItem(translate("filebrowser", "Create new file"), None, self.onCreateFile)
             self.addItem(translate("filebrowser", "Create new directory"), None, self.onCreateDir)
+        if isinstance(self._item, DirItem):
             self.addSeparator()
             self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
     
