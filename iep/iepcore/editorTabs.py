@@ -987,6 +987,8 @@ class EditorTabs(QtGui.QWidget):
         item = FileItem(editor)
         self._tabs.addItem(item)
         self._tabs.setCurrentItem(item)
+        # set focus to new file
+        editor.setFocus()
 
         return item
     

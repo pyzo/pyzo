@@ -399,13 +399,13 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     def updateHelp(self,name):
         """A name has been highlighted, show help on that name"""
         
-        # Dont update help if there is no prefix; the choice would be arbitrary
-        if not self.completer().completionPrefix():
-            return
-        
         if self._autoCompBuffer_name:
             name = self._autoCompBuffer_name + '.' + name
-            
+        elif not self.completer().completionPrefix():
+            # Dont update help if there is no dot or prefix; 
+            # the choice would be arbitrary
+            return
+        
         # Apply
         self.processHelp(name,True)
    
