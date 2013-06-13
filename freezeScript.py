@@ -179,7 +179,7 @@ normal system configuration directory instead.
 
 This "standard" was discussed between the authors of WinPython,
 PortablePython and Pyzo. Developers can use the appdata_dir() function
-from https://code.google.com/p/pyzolib/source/browse/paths.py to
+from https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py to
 use this standard. For more info, contact either of us.
 
 """.lstrip()

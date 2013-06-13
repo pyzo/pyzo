@@ -1355,19 +1355,22 @@ class HelpMenu(Menu):
         """ Check whether a newer version of IEP is available. """
         # Get versions available
         import urllib.request, re
-        url = "http://code.google.com/p/iep/downloads/list"
+        url = "http://www.iep-project.org/downloads.html"
         text = str( urllib.request.urlopen(url).read() )
         results = []
         for pattern in ['iep-(.{1,9}?)\.source\.zip' ]:
             results.extend( re.findall(pattern, text) )
         # Produce single string with all versions ...
-        versions = ', '.join(set(results))
+        def sorter(x):
+            # Tilde is high ASCII, make 3.2.1 > 3.2 and 3.2 > 3.2beta
+            return x.replace('.','~')+'~' 
+        versions = list(sorted(set(results), key=sorter, reverse=True))
         if not versions:
             versions = '?'
         # Define message
         text = "Your version of IEP is: {}\n" 
-        text += "Available versions are: {}\n\n"         
-        text = text.format(iep.__version__, versions)
+        text += "Latest available version is: {}\n\n"         
+        text = text.format(iep.__version__, versions[0])
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
@@ -1383,7 +1386,7 @@ class HelpMenu(Menu):
         # Goto webpage if user chose to
         if result == m.Yes:
             import webbrowser
-            webbrowser.open("http://code.google.com/p/iep/downloads/list")
+            webbrowser.open("http://www.iep-project.org/downloads.html")
     
     def _aboutIep(self):
         aboutText = """

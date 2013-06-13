@@ -35,8 +35,8 @@ setup(
     author_email = 'a.klein@science-applied.nl',
     license = '(new) BSD',
     
-    url = 'http://code.google.com/p/iep/',
-    download_url = 'http://code.google.com/p/iep/downloads/list',    
+    url = 'http://www.iep-project.org',
+    download_url = 'http://www.iep-project.org/downloads.html',    
     keywords = "Python interactive IDE Qt science",
     description = description,
     long_description = __doc__,
