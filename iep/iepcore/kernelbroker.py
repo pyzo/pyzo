@@ -702,7 +702,7 @@ class StreamReader(threading.Thread):
     
     def run(self):
         while not self._exit:
-            time.sleep(0.1)
+            time.sleep(0.001)
             # Read any stdout/stderr messages and route them via yoton.
             msg = self._process.stdout.readline() # <-- Blocks here
             if not isinstance(msg, str):
