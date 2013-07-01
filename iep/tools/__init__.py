@@ -275,13 +275,13 @@ class ToolManager(QtCore.QObject):
         
         # Remove from sys.modules, to force the module to reload
         for key in [key for key in sys.modules]:
-            if key and key.startswith('ieptools.'+moduleName):
+            if key and key.startswith('iep.tools.'+moduleName):
                 del sys.modules[key]
         
         # Load module
         try:
             m_file, m_fname, m_des = imp.find_module(moduleName, [os.path.dirname(modulePath)])        
-            mod = imp.load_module('ieptools.'+moduleName, m_file, m_fname, m_des)
+            mod = imp.load_module('iep.tools.'+moduleName, m_file, m_fname, m_des)
         except Exception as why:
             print("Invalid tool " + toolId +":", why)
             return None
