@@ -82,11 +82,13 @@ class SearchTask(proxies.Task):
     
     def _getIndicesNormal1(self, text, pattern):
         indices = []
-        i = 0
-        while i>=0:
+        i = -1
+        while True:
             i = text.find(pattern,i+1)
             if i>=0:
                 indices.append(i)
+            else:
+                break
         return indices
     
     
