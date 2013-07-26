@@ -25,6 +25,7 @@ MESSAGE = """List of *magic* commands:
     timeit X        - times execution of command X
     open X          - open file X or the Python module that defines object X
     run X           - run file X
+    conda           - manage packages using conda
     db start        - start post mortem debugging
     db stop         - stop debugging
     db up/down      - go up or down the stack frames
@@ -145,6 +146,9 @@ class Magician:
         
         elif command.startswith('RUN '):
             return self.run(line, command)
+        
+        elif command.startswith('CONDA'):
+            return self.conda(line, command)
     
     
     def debug(self, line, command):
@@ -428,4 +432,36 @@ class Magician:
         else:
             sys._iepInterpreter.runfile(fname)
         #
+        return ''
+    
+    
+    def conda(self, line, command):
+        
+        # Get command args
+        args = line.split(' ')
+        args = [w for w in args if w]
+        args.pop(0) # remove 'conda'
+        
+        # Stop if user does "conda = ..."
+        if args and '=' in args[0]:
+            return
+        
+        # Go!
+        # Weird double-try, to make work on Python 2.4
+        oldargs = sys.argv
+        try:
+            try:
+                from conda.cli import main
+                sys.argv = ['conda'] + list(args)
+                main()
+            except SystemExit as err:
+                err = str(err)
+                if len(err) > 4:  # Only print if looks like a message
+                    print(err)
+            except Exception as err:
+                print('Error in conda command:')
+                print(err)
+        finally:
+            sys.argv = oldargs
+        
         return ''
