@@ -437,6 +437,9 @@ class Magician:
     
     def conda(self, line, command):
         
+        if not (command == 'CONDA' or command.startswith('CONDA ')):
+            return
+        
         # Get command args
         args = line.split(' ')
         args = [w for w in args if w]
