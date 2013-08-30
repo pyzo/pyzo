@@ -25,6 +25,7 @@ MESSAGE = """List of *magic* commands:
     timeit X        - times execution of command X
     open X          - open file X or the Python module that defines object X
     run X           - run file X
+    pip             - manage packages using pip
     conda           - manage packages using conda
     db start        - start post mortem debugging
     db stop         - stop debugging
@@ -149,6 +150,9 @@ class Magician:
         
         elif command.startswith('CONDA'):
             return self.conda(line, command)
+        
+        elif command.startswith('PIP'):
+            return self.pip(line, command)
     
     
     def debug(self, line, command):
@@ -466,5 +470,38 @@ class Magician:
                 print(err)
         finally:
             sys.argv = oldargs
+        
+        return ''
+    
+    
+    def pip(self, line, command):
+        
+        if not (command == 'PIP' or command.startswith('PIP ')):
+            return
+        
+        # Get command args
+        args = line.split(' ')
+        args = [w for w in args if w]
+        args.pop(0) # remove 'pip'
+        
+        # Stop if user does "pip = ..."
+        if args and '=' in args[0]:
+            return
+        
+        # Tweak the args
+        if args[0] == 'uninstall':
+            args.insert(1, '--yes')
+        
+        # Go!
+        try:
+            from iepkernel.pipper import pip_command 
+            pip_command(*args)
+        except SystemExit as err:
+            err = str(err)
+            if len(err) > 4:  # Only print if looks like a message
+                print(err)
+        except Exception as err:
+            print('Error in pip command:')
+            print(err)
         
         return ''
