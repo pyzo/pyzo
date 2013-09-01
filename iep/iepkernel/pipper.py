@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2013, Almar Klein
 
+# From iep/iepkernel
+
 import os
 import sys
 import time
@@ -30,7 +32,7 @@ def subprocess_with_callback(callback, cmd, **kwargs):
     while p.poll() is None:
         time.sleep(0.001)
         # Read text and process
-        c = p.stdout.read(1).decode('utf-8')
+        c = p.stdout.read(1).decode('utf-8', 'ignore')
         pending.append(c)
         if c in '.\n':
             callback(''.join(pending))
@@ -51,14 +53,23 @@ def print_(p):
 
 
 
-def pip_command(*args):
-    """ Do a pip command, e.g. "install pyzolib".
+def pip_command_exe(exe, *args):
+    """ Do a pip command in the interpreter with the given exe.
     """
     
     # Get pip command
-    cmd = [sys.executable, '-m', 'pip'] + list(args)
+    cmd = [exe, '-m', 'pip'] + list(args)
     
+    # Execute it
     subprocess_with_callback(print_, cmd)
+    
+
+
+def pip_command(*args):
+    """ Do a pip command, e.g. "install pyzolib".
+    Installs in the current interpreter.
+    """
+    pip_command_exe(sys.executable, *args)
 
 
 
