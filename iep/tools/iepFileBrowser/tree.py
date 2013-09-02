@@ -278,8 +278,8 @@ class DirItem(BrowserItem):
         icon = iconprovider.icon(iconprovider.Folder)
         overlays = []
         if self._starred:
-            overlays.append(iep.icons.overlay_star)
-        icon = addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(0,-4))
+            overlays.append(iep.icons.bullet_yellow)
+        icon = addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(-4,0))
         self.setIcon(0, icon)
     
     def onActivated(self):
