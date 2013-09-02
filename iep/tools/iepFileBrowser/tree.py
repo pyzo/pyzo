@@ -28,20 +28,20 @@ MOUNTS = 'drives'
 iconprovider = QtGui.QFileIconProvider()
 
 
-def addIconOverlays(icon, *overlays, offset=8):
+def addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(0,0)):
     """ Create an overlay for an icon.
     """
     # Create painter and pixmap
-    pm0 = QtGui.QPixmap(24,16)#icon.pixmap(16+offset,16)
+    pm0 = QtGui.QPixmap(16+offset[0],16)#icon.pixmap(16+offset[0],16+offset[1])
     pm0.fill(QtGui.QColor(0,0,0,0))
     painter = QtGui.QPainter()
     painter.begin(pm0)
     # Draw original icon
-    painter.drawPixmap(offset, 0, icon.pixmap(16,16))
+    painter.drawPixmap(offset[0], offset[1], icon.pixmap(16,16))
     # Draw overlays
     for overlay in overlays:
         pm1 = overlay.pixmap(16,16)
-        painter.drawPixmap(0,0, pm1)
+        painter.drawPixmap(overlay_offset[0],overlay_offset[1], pm1)
     # Finish
     painter.end()
     # Done (return resulting icon)
@@ -279,7 +279,7 @@ class DirItem(BrowserItem):
         overlays = []
         if self._starred:
             overlays.append(iep.icons.overlay_star)
-        icon = addIconOverlays(icon, *overlays)
+        icon = addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(0,-4))
         self.setIcon(0, icon)
     
     def onActivated(self):
