@@ -456,6 +456,8 @@ class DocstringItem(QtGui.QTreeWidgetItem):
             shortText += '...'
         # Set short version now
         self.setText(0, 'doc: '+shortText)
+        # Long version is the tooltip
+        self.setToolTip(0, docstring)
     
     def path(self):
         return self.parent().path()
