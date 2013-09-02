@@ -44,7 +44,8 @@ class MainWindow(QtGui.QMainWindow):
         self.restoreGeometry()
         
         # Change background of main window to create a splash-screen-efefct
-        iconImage = 'pyzologo256.png' if iep.pyzo_mode else 'ieplogo256.png'
+        #iconImage = 'pyzologo256.png' if iep.pyzo_mode else 'ieplogo256.png'
+        iconImage = 'ieplogo256.png'
         iconImage = os.path.join(iep.iepDir, 'resources','appicons', iconImage)
         iconImage = iconImage.replace(os.path.sep, '/') # Fix for Windows
         self.setStyleSheet( """QMainWindow { 
@@ -415,7 +416,7 @@ def loadAppIcons():
     
     # Determine template for filename of the application icon-files.
     # Use the Pyzo logo if in pyzo_mode.
-    if iep.pyzo_mode:
+    if False: #iep.pyzo_mode:
         fnameT = 'pyzologo{}.png'
     else:
         fnameT = 'ieplogo{}.png'
