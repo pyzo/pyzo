@@ -47,12 +47,12 @@ Some key features
 # Set version number
 __version__ = '3.2.dev'
 
-
- # Fix for issue 137 (apply before importing PySide, just to be safe)
 import os
-os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
-
 import sys
+
+# # Fix for issue 137 (apply before importing PySide, just to be safe)
+# os.environ['LIBOVERLAY_SCROLLBAR'] = '0'  # Should be fixed by now
+
 from pyzolib import ssdf, paths
 from iep.codeeditor.qt import QtCore, QtGui
 
