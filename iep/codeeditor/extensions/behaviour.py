@@ -13,6 +13,8 @@ from ..qt import QtGui,QtCore
 Qt = QtCore.Qt
 
 from ..misc import ustr, ce_option
+from ..parsers.tokens import (CommentToken,UnterminatedStringToken)
+from ..parsers import BlockState
 
 class HomeKey(object):
     
@@ -187,12 +189,21 @@ class PythonAutoIndent(object):
             if previousBlock.isValid():
                 line = ustr(previousBlock.text())
                 indent=line[:len(line)-len(line.lstrip())]
-                if line.endswith(':'): #TODO: (multi-line) strings, comments
-                    #TODO: check correct identation (no mixed space/tabs)
-                    if self.indentUsingSpaces():
-                        indent+=' '*self.indentWidth()
-                    else:
-                        indent+='\t'
+                if line.endswith(':'): 
+                    # We only need to add indent if the : is not in a (multiline)
+                    # string or comment. Therefore, find out what the syntax
+                    # highlighter thinks of the previous line.
+                    ppreviousBlock = previousBlock.previous() # the block before previous
+                    ppreviousState = ppreviousBlock.userState() if previousBlock.isValid() else 0
+                    lastElementToken = list(self.parser().parseLine(previousBlock.text(),ppreviousState))[-1]
+                        # Because there's at least a : on that line, the list is never empty
+                    
+                    if (not isinstance(lastElementToken, (CommentToken, UnterminatedStringToken, BlockState))):
+                        #TODO: check correct identation (no mixed space/tabs)
+                        if self.indentUsingSpaces():
+                            indent+=' '*self.indentWidth()
+                        else:
+                            indent+='\t'
                 cursor.insertText(indent)
                 #This prevents jump to start of line when up key is pressed
                 self.setTextCursor(cursor)
