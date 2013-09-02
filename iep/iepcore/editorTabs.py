@@ -198,7 +198,7 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add previous button
             self._findPrev = QtGui.QToolButton(self) 
-            t = translate('search', 'Previous ::: Find previous occurance of the pattern.')
+            t = translate('search', 'Previous ::: Find previous occurrence of the pattern.')
             self._findPrev.setText(t);  self._findPrev.setToolTip(t.tt)
             
             hsubLayout.addWidget(self._findPrev, 0)
@@ -207,7 +207,7 @@ class FindReplaceWidget(QtGui.QFrame):
             
             # Add next button
             self._findNext = QtGui.QToolButton(self)
-            t = translate('search', 'Next ::: Find next occurance of the pattern.')
+            t = translate('search', 'Next ::: Find next occurrence of the pattern.')
             self._findNext.setText(t);  self._findNext.setToolTip(t.tt)
             #self._findNext.setDefault(True) # Not possible with tool buttons
             hsubLayout.addWidget(self._findNext, 0)

@@ -155,7 +155,7 @@ def getEnvFromKernelInfo(info):
     
     pythonPath = info.pythonPath
     
-    # Set default pythonPath (replace only first occurance of $PYTHONPATH
+    # Set default pythonPath (replace only first occurrence of $PYTHONPATH
     ENV_PP = os.environ.get('PYTHONPATH','')
     pythonPath = pythonPath.replace('$PYTHONPATH', '\n'+ENV_PP+'\n', 1)
     pythonPath = pythonPath.replace('$PYTHONPATH', '')

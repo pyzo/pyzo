@@ -611,13 +611,13 @@ class EditMenu(Menu):
         self.addSeparator()
         self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
             icons.find, iep.editors._findReplace.startFind)
-        self.addItem(translate("menu", "Find selection ::: Find the next occurance of the selected text."), 
+        self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."), 
             None, iep.editors._findReplace.findSelection)
-        self.addItem(translate("menu", "Find selection backward ::: Find the previous occurance of the selected text."), 
+        self.addItem(translate("menu", "Find selection backward ::: Find the previous occurrence of the selected text."), 
             None, iep.editors._findReplace.findSelectionBw)
-        self.addItem(translate("menu", "Find next ::: Find the next occurance of the search string."), 
+        self.addItem(translate("menu", "Find next ::: Find the next occurrence of the search string."), 
             None, iep.editors._findReplace.findNext)
-        self.addItem(translate("menu", "Find previous ::: Find the previous occurance of the search string."), 
+        self.addItem(translate("menu", "Find previous ::: Find the previous occurrence of the search string."), 
             None, iep.editors._findReplace.findPrevious)
     
     
