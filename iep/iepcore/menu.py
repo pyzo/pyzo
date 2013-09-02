@@ -1698,7 +1698,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             if not value:
                 value = '-'*10
             elif index.column()>0:
-                key1, key2 = '<>','<>'
+                key1, key2 = ' ', ' '
                 shortcuts = getShortcut(item)
                 if shortcuts[0]:
                     key1 = shortcuts[0]
@@ -1709,21 +1709,25 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         key2 = translateShortcutToOSNames(key2)
         
         # obtain value
-        value = [value,key1,key2][index.column()]
+        value = [value,key1,key2, ''][index.column()]
         
         # return
         if role == 0:
             # display role
             return value
+        elif role == 8:
+            # 8: BackgroundRole
+            if not value:
+                return None
+            elif index.column() == 1:
+                return QtGui.QBrush(QtGui.QColor(200,220,240))
+            elif index.column() == 2:
+                return QtGui.QBrush(QtGui.QColor(210,230,250))
+            else:
+                return None
         else:
             return None
-#             # 8: BackgroundRole
-#             brush = QtGui.QBrush(QtGui.QColor(240,255,240))
-#             if value and index.column()>0:
-#                 return brush
-#             else:
-#                 return None
-            
+    
     
     def rowCount(self, parent):
         if parent.isValid():
@@ -1733,11 +1737,11 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             return len(self._root.actions())
     
     def columnCount(self, parent):
-        return 3
+        return 4
     
     def headerData(self, section, orientation, role):
         if role == 0:# and orientation==1:
-            tmp = ['Menu action','Shortcut 1','Shortcut 2']
+            tmp = ['Menu action','Shortcut 1','Shortcut 2', '']
             return tmp[section]
     
     def parent(self, index):
