@@ -550,15 +550,20 @@ class FindReplaceWidget(QtGui.QFrame):
         # get current position
         originalPosition = editor.textCursor()
         
-        # move to beginning of text and replace all
+        # Move to beginning of text and replace all
+        # Make this a single undo operation
         cursor = editor.textCursor()
-        cursor.movePosition(cursor.Start)
-        editor.setTextCursor(cursor)
-        while self.replaceOne(wrapAround=False):
-            pass
+        cursor.beginEditBlock()
+        try:
+            cursor.movePosition(cursor.Start)
+            editor.setTextCursor(cursor)
+            while self.replaceOne(wrapAround=False):
+                pass
+        finally:
+            cursor.endEditBlock()
         
         # reset position
-        editor.setTextCursor(cursor)
+        editor.setTextCursor(originalPosition)
 
 
 
