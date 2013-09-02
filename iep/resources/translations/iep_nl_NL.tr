@@ -64,7 +64,7 @@
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="794"/>
-        <source>Open outside iep</source>
+        <source>Open outside IEP</source>
         <translation>Openen buiten IEP</translation>
     </message>
     <message>
@@ -129,12 +129,12 @@
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="783"/>
-        <source>Unstar this dir</source>
+        <source>Unstar this directory</source>
         <translation>Verwijder deze dir uit de projecten</translation>
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="785"/>
-        <source>Star this dir</source>
+        <source>Star this directory</source>
         <translation>Voeg deze dir toe aan de projecten</translation>
     </message>
 </context>

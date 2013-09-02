@@ -783,9 +783,9 @@ class PopupMenu(iep.iepcore.menu.Menu):
         # The star object
         if isinstance(self._item, DirItem):
             if self._item._starred:
-                self.addItem(translate("filebrowser", "Unstar this dir"), None, self._star)
+                self.addItem(translate("filebrowser", "Unstar this directory"), None, self._star)
             else:
-                self.addItem(translate("filebrowser", "Star this dir"), None, self._star)
+                self.addItem(translate("filebrowser", "Star this directory"), None, self._star)
             self.addSeparator()
         
         # The normal "open" function
@@ -795,7 +795,7 @@ class PopupMenu(iep.iepcore.menu.Menu):
         # Create items for open and copy path
         if isinstance(self._item, (FileItem, DirItem)):
             if isplat('win') or isplat('darwin') or isplat('linux'):
-                self.addItem(translate("filebrowser", "Open outside iep"), 
+                self.addItem(translate("filebrowser", "Open outside IEP"), 
                     None, self._openOutsideIep)
             if isplat('darwin'):            
                 self.addItem(translate("filebrowser", "Reveal in Finder"), 
