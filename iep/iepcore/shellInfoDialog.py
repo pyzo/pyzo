@@ -62,9 +62,9 @@ class ShellInfo_exe(QtGui.QComboBox):
     
     def _interpreterName(self, p):
         if p.is_pyzo:
-            return '[v%s at Pyzo] %s' % (p.version, p.path)
+            return '%s  [v%s at Pyzo]' % (p.path, p.version)
         else:
-            return '[v%s] %s' % (p.version, p.path)
+            return '%s  [v%s]' % (p.path, p.version)
     
     def setTheText(self, value):
         
@@ -82,7 +82,7 @@ class ShellInfo_exe(QtGui.QComboBox):
         
         # Get name for default interpreter
         # note: the filled in name will not be correct if working remotely
-        defaultName = '[default] (%s)' % iep.defaultInterpreterExe()
+        defaultName = '%s  [default]' % iep.defaultInterpreterExe()
         
         # Hande current value
         if value == '[default]':
@@ -106,11 +106,12 @@ class ShellInfo_exe(QtGui.QComboBox):
     def getTheText(self):
         #return self.currentText().split('(')[0].rstrip()
         value = self.currentText()
-        if value.startswith('[default]'):
+        if value.endswith('[default]'):
             value = '[default]'
-        elif value.startswith('[') and ']' in value:
-            value = value.split(']')[1]
-        return value.lstrip()
+        elif value.endswith(']') and '[' in value:
+            value = value.rsplit('[', 1)[0]
+        return value.strip()
+    
     
     def onActivated(self, index=None):
         # Select GUI corresponding to default interpreter if it was selected. 
