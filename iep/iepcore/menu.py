@@ -1903,7 +1903,7 @@ class KeyMapEditDialog(QtGui.QDialog):
         
         self._label = QtGui.QLabel("", self)
         self._label.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
-        self._label.resize(size[0]-20, 80)
+        self._label.resize(size[0]-20, 100)
         self._label.move(10,2)
         
         self._line = KeyMapLineEdit('', self)
@@ -1977,11 +1977,10 @@ class KeyMapEditDialog(QtGui.QDialog):
             elif shortcuts[1].lower() == shortcut.lower():
                 primSec = 'secondary'
             # if a correspondence, let the user know
-            if primSec:
-                tmp = "WARNING: combo already in use "
-                tmp += "as "+primSec+" shortcut for:\n" 
+            if primSec and key != self._fullname:
+                tmp = "Warning: shortcut already in use for:\n"
                 tmp += key.replace('__',' -> ').replace('_', ' ')
-                self._label.setText(self._intro + '\n\n' + tmp)
+                self._label.setText(self._intro + '\n\n' + tmp + '\n')
                 break
         else:
             self._label.setText(self._intro)
