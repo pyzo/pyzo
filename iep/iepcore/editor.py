@@ -77,10 +77,10 @@ def determineEncoding(bb):
 def determineLineEnding(text):
     """ Get the line ending style used in the text.
     \n, \r, \r\n,
-    The EOLmode is determined by counting the occurances of each
+    The EOLmode is determined by counting the occurrences of each
     line ending...    
     """
-    # test line ending by counting the occurances of each
+    # test line ending by counting the occurrence of each
     c_win = text.count("\r\n")
     c_mac = text.count("\r") - c_win
     c_lin = text.count("\n") - c_win

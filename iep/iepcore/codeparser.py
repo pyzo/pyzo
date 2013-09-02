@@ -674,7 +674,7 @@ def _findString(text, s, i):
     """ Helper function of findString, which is called recursively
     until a match is found, or it is clear there is no match. """
     
-    # Find occurance
+    # Find occurrence
     i2 = text.find(s, i)
     if i2<0:
         return -1

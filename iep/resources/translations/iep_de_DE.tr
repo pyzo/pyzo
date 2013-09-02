@@ -333,22 +333,22 @@
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="614"/>
-        <source>Find selection ::: Find the next occurance of the selected text.</source>
+        <source>Find selection ::: Find the next occurrence of the selected text.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="616"/>
-        <source>Find selection backward ::: Find the previous occurance of the selected text.</source>
+        <source>Find selection backward ::: Find the previous occurrence of the selected text.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="618"/>
-        <source>Find next ::: Find the next occurance of the search string.</source>
+        <source>Find next ::: Find the next occurrence of the search string.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="620"/>
-        <source>Find previous ::: Find the previous occurance of the search string.</source>
+        <source>Find previous ::: Find the previous occurrence of the search string.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -687,12 +687,12 @@
     </message>
     <message>
         <location filename="iep/iepcore/editorTabs.py" line="202"/>
-        <source>Previous ::: Find previous occurance of the pattern.</source>
+        <source>Previous ::: Find previous occurrence of the pattern.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="iep/iepcore/editorTabs.py" line="211"/>
-        <source>Next ::: Find next occurance of the pattern.</source>
+        <source>Next ::: Find next occurrence of the pattern.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
