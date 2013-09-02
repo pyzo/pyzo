@@ -9,7 +9,7 @@ import sys, os, time, re
 from iep.codeeditor.qt import QtCore, QtGui
 import iep 
 
-tool_name = "Interactive Help"
+tool_name = "Interactive help"
 tool_summary = "Shows help on an object when using up/down in autocomplete."
 
 #

@@ -64,12 +64,12 @@
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="783"/>
-        <source>Unstar this dir</source>
+        <source>Unstar this directory</source>
         <translation>Desmarcar directori</translation>
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="785"/>
-        <source>Star this dir</source>
+        <source>Star this directory</source>
         <translation>Marcar directori</translation>
     </message>
     <message>
@@ -79,7 +79,7 @@
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="794"/>
-        <source>Open outside iep</source>
+        <source>Open outside IEP</source>
         <translation>Obrir fora d&apos;iep</translation>
     </message>
     <message>
