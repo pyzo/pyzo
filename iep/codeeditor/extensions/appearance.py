@@ -151,7 +151,7 @@ class IndentationGuides(object):
             y4=self.cursorRect(cursor).bottom()            
             
             bd = cursor.block().userData()            
-            if bd and bd.indentation:
+            if bd and hasattr(bd, 'indentation') and bd.indentation:
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
                     w = self.fontMetrics().width('i'*x) + offset
                     w += 1 # Put it more under the block
