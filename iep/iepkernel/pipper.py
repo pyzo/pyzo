@@ -15,16 +15,17 @@ def subprocess_with_callback(callback, cmd, **kwargs):
     If callback is None, simply prints any stdout.
     """
     
-    # Set callback to printing if None
+    # Set callback to void if None
     if callback is None:
-        callback = lambda x:print(x,end='')
+        callback = lambda x:None
     
     # Execute command
     try:
         p = subprocess.Popen(cmd, 
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, 
                     **kwargs) 
-    except OSError as err:
+    except OSError:
+        type, err, tb = sys.exc_info(); del tb
         callback(str(err)+'\n')
         return -1
     
