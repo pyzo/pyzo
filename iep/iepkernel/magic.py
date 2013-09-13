@@ -458,14 +458,17 @@ class Magician:
         oldargs = sys.argv
         try:
             try:
+                import conda
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args)
                 main()
-            except SystemExit as err:
+            except SystemExit:  # as err:
+                type, err, tb = sys.exc_info(); del tb
                 err = str(err)
                 if len(err) > 4:  # Only print if looks like a message
                     print(err)
-            except Exception as err:
+            except Exception:  # as err:
+                type, err, tb = sys.exc_info(); del tb
                 print('Error in conda command:')
                 print(err)
         finally:
@@ -496,11 +499,13 @@ class Magician:
         try:
             from iepkernel.pipper import pip_command 
             pip_command(*args)
-        except SystemExit as err:
+        except SystemExit:  # as err:
+            type, err, tb = sys.exc_info(); del tb
             err = str(err)
             if len(err) > 4:  # Only print if looks like a message
                 print(err)
-        except Exception as err:
+        except Exception:# as err:
+            type, err, tb = sys.exc_info(); del tb
             print('Error in pip command:')
             print(err)
         
