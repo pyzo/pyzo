@@ -228,6 +228,12 @@ _saveConfigFile = True
 config = ssdf.new()
 loadConfig()
 
+# Get license info
+# Yes, you could insert your custom dict here! But who would you be fooling?
+from iep.iepcore.license import get_license_info
+license = get_license_info()
+del get_license_info
+
 # Init default style name (set in main.restoreIepState())
 defaultQtStyleName = ''
 
