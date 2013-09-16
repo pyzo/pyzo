@@ -446,15 +446,10 @@ class IepEditor(BaseTextCtrl):
         
         # compose title
         name, path = self._name, self._filename
-        if not path:
-            path = 'no location on disk'
-        tmp = { 'fileName':name, 'filename':name, 'name':name,
-                'fullPath':path, 'fullpath':path, 'path':path }
-        title = iep.config.advanced.titleText.format(**tmp)
-        
-        # set title
-        iep.main.setWindowTitle(title)
-    
+        if path:
+            iep.main.setMainTitle(path)
+        else:
+            iep.main.setMainTitle(name)
     
     
     def save(self, filename=None):

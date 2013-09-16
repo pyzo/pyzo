@@ -20,7 +20,7 @@ from pyzolib import ssdf, paths
 import iep
 from iep.iepcore.icons import IconArtist
 from iep.codeeditor.qt import QtCore, QtGui
-
+from iep.iepcore.splash import SplashWidget
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -34,7 +34,7 @@ class MainWindow(QtGui.QMainWindow):
         # Set title to something nice. On Ubuntu 12.10 this text is what
         # is being shown at the fancy title bar (since it's not properly 
         # updated)
-        self.setWindowTitle("The Interactive Editor for Python")
+        self.setMainTitle()
         loadAppIcons()
         self.setWindowIcon(iep.icon)
         
@@ -43,23 +43,19 @@ class MainWindow(QtGui.QMainWindow):
         self.resize(800, 600) # default size
         self.restoreGeometry()
         
-        # Change background of main window to create a splash-screen-efefct
-        #iconImage = 'pyzologo256.png' if iep.pyzo_mode else 'ieplogo256.png'
-        iconImage = 'ieplogo256.png'
-        iconImage = os.path.join(iep.iepDir, 'resources','appicons', iconImage)
-        iconImage = iconImage.replace(os.path.sep, '/') # Fix for Windows
-        self.setStyleSheet( """QMainWindow { 
-                            background-color: #268bd2;
-                            background-image: url("%s");
-                            background-repeat: no-repeat;
-                            background-position: center;
-                            }
-                            """ % iconImage)
+        # Show splash screen (we need to set our color too)
+        w = SplashWidget(self)
+        self.setCentralWidget(w)
+        self.setStyleSheet("QMainWindow { background-color: #268bd2;}")
         
         # Show empty window and disable updates for a while
         self.show()
         self.paintNow()
         self.setUpdatesEnabled(False)
+        
+        # Determine timeout for showing splash screen
+        splash_timeout = time.time() + 1.0
+        splash_timeout += 0.0 if iep.license else 2.0
         
         # Set locale of main widget, so that qt strings are translated
         # in the right way
@@ -86,6 +82,12 @@ class MainWindow(QtGui.QMainWindow):
         
         # Set qt style and test success
         self.setQtStyle(None) # None means init!
+        
+        # Hold the splash screen if needed
+        while time.time() < splash_timeout:
+            QtGui.qApp.flush()
+            QtGui.qApp.processEvents()
+            time.sleep(0.05)
         
         # Populate the window (imports more code)
         self._populate()
@@ -187,6 +189,34 @@ class MainWindow(QtGui.QMainWindow):
         if iep.config.state.loadedTools: 
             for toolId in iep.config.state.loadedTools:
                 iep.toolManager.loadTool(toolId)
+    
+    
+    def setMainTitle(self, path=None):
+        """ Set the title of the main window, by giving a file path.
+        """
+        if not path:
+            # Plain title
+            title = "Interactive Editor for Python"
+        else:
+            # Title with a filename
+            name = os.path.basename(path)
+            if os.path.isfile(path):
+                pass
+            elif name == path:
+                path = 'no location on disk'
+            else:
+                pass  # We hope the given path is informative
+            # Set title
+            tmp = { 'fileName':name, 'filename':name, 'name':name,
+                    'fullPath':path, 'fullpath':path, 'path':path }
+            title = iep.config.advanced.titleText.format(**tmp)
+        
+        # Add license info
+        if iep.license:
+            title += ' - licensed to {name}'.format(**iep.license)
+        
+        # Set
+        self.setWindowTitle(title)
     
     
     def saveWindowState(self):

@@ -14,6 +14,8 @@ shortcuts.
 
 import os, sys, re, time
 import unicodedata
+import datetime
+
 from pyzolib import paths
 
 from iep.codeeditor.qt import QtCore, QtGui
@@ -1335,11 +1337,14 @@ class HelpMenu(Menu):
         self.addSeparator()
         self.addItem(translate("menu", "IEP wizard ::: Get started quickly."), 
             icons.wand, self._showIepWizard)
-        self.addItem(translate("menu", "View license ::: Legal stuff."), 
+        self.addItem(translate("menu", "View code license ::: Legal stuff."), 
             icons.script, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
         
         self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
             icons.application_go, self._checkUpdates)
+        
+        self.addItem(translate("menu", "Manage your IEP license ::: View/add licenses."), 
+            icons.script, self._manageLicenses)
         self.addItem(translate("menu", "About IEP ::: More information about IEP."), 
             icons.information, self._aboutIep)
     
@@ -1388,9 +1393,16 @@ class HelpMenu(Menu):
             import webbrowser
             webbrowser.open("http://www.iep-project.org/downloads.html")
     
+    def _manageLicenses(self):
+        from iep.iepcore.license import LicenseManager
+        w = LicenseManager(None)
+        w.exec_()
+    
     def _aboutIep(self):
         aboutText = """
         <h2>IEP: the Interactive Editor for Python</h2>
+        
+        {}<br><br>
         
         <b>Version info</b><br>
         IEP version: <u>{}</u><br>
@@ -1419,12 +1431,17 @@ class HelpMenu(Menu):
         The full license can be found in 'license.txt'.
         <br><br>
         
-        <b>Developers</b><br>
+        <b>Core developers</b><br>
         Almar Klein<br>
         Rob Reilink<br>
         Ludo Visser<br>
         
         """
+        # Determine license text
+        licenseText = 'This copy of IEP is not registered (using the free license).'
+        if iep.license:
+            licenseText = 'This copy of IEP is registered to {name} of {company}.'
+            licenseText = licenseText.format(**iep.license)
         # Determine if this is PyQt4 or Pyside
         if hasattr(QtCore, 'PYQT_VERSION_STR'):
             qtWrapper = 'PyQt4'
@@ -1440,7 +1457,7 @@ class HelpMenu(Menu):
             versionText = iep.__version__ + ' (binary)'
         else:
             versionText = iep.__version__ + ' (source)'
-        aboutText = aboutText.format(versionText, 
+        aboutText = aboutText.format(licenseText, versionText, 
                         sys.platform, sys.version.split(' ')[0],
                         qtVersion, qtWrapper, qtWrapperVersion,
                         iep.iepDir, iep.appDataDir)

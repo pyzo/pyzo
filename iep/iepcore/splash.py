@@ -15,6 +15,7 @@ import os, sys, time
 import iep
 from iep.codeeditor.qt import QtCore, QtGui
 
+
 STYLESHEET = """
 QWidget { 
     background-color: #268bd2;
@@ -25,33 +26,34 @@ QFrame {
     background-position: center;
 }
 QLabel { 
+    color: #222;
     background: #46abf2;
     border-radius:20px;
 }
 """
 
 license_text1 = """
-<b>This is the Interactive Editor for Python</b>
 <p>
-Your current license: <i>free license</i><br />
-Licensed to: <i>unregistered</i>
+This is the <b>Interactive Editor for Python</b>
+%s
+</p>
+<p>
+Your current license: <i>LICENSE_TYPE</i><br />
+Licensed to: <i>LICENSE_NAME</i>
 </p>
 
-<p>
-IEP is open source software and is available for everyone for free.
-If you like IEP and would like to support its development,
-consider purchasing a license at 
-<a href='http://pyzo.org/license.html'>http://pyzo.org</a>.
-</p>
 """
 
-license_text2 = """
-<b>This is the Interactive Editor for Python</b>
+license_ad_text = """
 <p>
-Your current license: <i>basic license</i><br />
-Licensed to: <i>Almar Klein</i>
+IEP is open source software and freely available for everyone. If you
+like IEP and want to support its development, consider purchasing a
+license.
 </p>
-
+<p>
+Read more at
+<a href='http://www.iep-project.org/contributing.html'>http://iep-project.org</a>
+</p>
 """
 
 
@@ -62,8 +64,9 @@ class LogoWidget(QtGui.QFrame):
         self.setMaximumSize(256, 256)
 
 
+
 class LabelWidget(QtGui.QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, distro=None):
         QtGui.QWidget.__init__(self, parent)
         
         # Create label widget and costumize
@@ -73,30 +76,44 @@ class LabelWidget(QtGui.QWidget):
         self._label.setWordWrap(True)
         self._label.setMargin(20)
         
-        # Set font a wee bit larger
+        # Set font size (absolute value)
         font = self._label.font()
-        font.setPointSize(font.pointSize()+1)
+        font.setPointSize(11)  #(font.pointSize()+1)
         self._label.setFont(font)
         
+        # Build
+        text = license_text1
+        if distro:
+            text = text % '<br />brought to you by %s.' % distro
+        else:
+            text = text % ''
+        if not iep.license:
+            text = text.replace('LICENSE_TYPE', 'free license')
+            text = text.replace('LICENSE_NAME', 'unregistered')
+            text += license_ad_text
+        else:
+            text = text.replace('LICENSE_TYPE', iep.license['product'])
+            text = text.replace('LICENSE_NAME', iep.license['name'])
+        
         # Set text
-        self._label.setText(license_text1)
+        self._label.setText(text)
         
         layout = QtGui.QVBoxLayout(self)
         self.setLayout(layout)
         layout.addStretch(1)
         layout.addWidget(self._label, 0)
         layout.addStretch(1)
-        
-        
-        
+
+
 
 class SplashWidget(QtGui.QWidget):
-    
-    def __init__(self, parent):
+    """ A splash widget that shows the license text.
+    """
+    def __init__(self, parent, **kwargs):
         QtGui.QWidget.__init__(self, parent)
         
         self._left = LogoWidget(self)
-        self._right = LabelWidget(self)
+        self._right = LabelWidget(self, **kwargs)
         
         # Layout
         layout = QtGui.QHBoxLayout(self)
@@ -109,11 +126,17 @@ class SplashWidget(QtGui.QWidget):
         layout.addStretch(1)
         
         # Change background of main window to create a splash-screen-efefct
-        iconImage = 'pyzologo256.png' if iep.pyzo_mode else 'ieplogo256.png'
+        iconImage = 'ieplogo256.png'
         iconImage = os.path.join(iep.iepDir, 'resources','appicons', iconImage)
         iconImage = iconImage.replace(os.path.sep, '/') # Fix for Windows
-        self.setStyleSheet( STYLESHEET % iconImage)
+        self.setStyleSheet(STYLESHEET % iconImage)
+        
+        
 
-w = SplashWidget(None)
-w.resize(500,300)
-w.show()
+
+
+if __name__ == '__main__':
+    iep.license = {'name': 'John Doe', 'product': 'IEP pro license XL'}
+    w = SplashWidget(None, distro='some arbitrary distro')
+    w.resize(800,600)
+    w.show()

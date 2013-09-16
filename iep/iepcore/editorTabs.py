@@ -601,7 +601,7 @@ class FileTabWidget(CompactTabWidget):
         
         # Valid index?
         if index<0 or index>=self.count():
-            iep.main.setWindowTitle('Interactive Editor for Python')
+            iep.main.setMainTitle()  # No open file
         
         # Remove current item from history
         currentItem = self.currentItem()
