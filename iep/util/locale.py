@@ -28,7 +28,7 @@ LANGUAGES = {
     'Catalan': QtCore.QLocale.Catalan,
     'French': QtCore.QLocale.French,
     # 'Slovak': QtCore.QLocale.Slovak,
-    
+    # 'Russian': QtCore.QLocale.Russian,
     }
 
 
@@ -199,7 +199,7 @@ def linguist(languageName):
     fname = 'iep_{}.tr'.format(locale.name())
     filename = os.path.join(iep.iepDir, 'resources', 'translations', fname)
     if not os.path.isfile(filename):
-        raise ValueError('Could not find {}'.format(fname))
+        raise ValueError('Could not find {}'.format(filename))
     
     # Get Command for linguist
     pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
