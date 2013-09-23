@@ -3,6 +3,7 @@ SOURCES =  iep/iepcore/menu.py
 SOURCES += iep/iepcore/editorTabs.py 
 SOURCES += iep/iepcore/shellInfoDialog.py
 SOURCES += iep/iepcore/shellStack.py
+SOURCES += iep/iepcore/license.py
 
 SOURCES += iep/util/iepwizard.py
 
