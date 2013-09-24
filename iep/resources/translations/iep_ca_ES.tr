@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="ca_ES">
+<!DOCTYPE TS>
+<TS version="2.0" language="ca_ES">
 <context>
     <name>debug</name>
     <message>
         <location filename="iep/iepcore/shellStack.py" line="362"/>
         <source>Start/Stop post mortem debugging.</source>
-        <translation type="unfinished"></translation>
+        <translation>Començar/Acabar  depuració.post mortem.</translation>
     </message>
 </context>
 <context>
@@ -622,12 +623,13 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="1340"/>
         <source>View code license ::: Legal stuff.</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Veure llicència codi ::: Coses legals.</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1346"/>
         <source>Manage your IEP license ::: View/add licenses.</source>
-        <translation type="unfinished"></translation>
+        <translation>Manega la teva llicència IEP ::: Veure/afegeir llicències</translation>
     </message>
 </context>
 <context>
@@ -691,12 +693,12 @@
     <message>
         <location filename="iep/iepcore/license.py" line="164"/>
         <source>Manage IEP license keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Manega claus llicèncie IEP</translation>
     </message>
     <message>
         <location filename="iep/iepcore/license.py" line="192"/>
         <source>Add license key</source>
-        <translation type="unfinished"></translation>
+        <translation>Afegir clau llicència</translation>
     </message>
 </context>
 <context>
