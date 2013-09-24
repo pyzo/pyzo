@@ -12,6 +12,7 @@ Translators
 
 Hector Mtz-Seara Monné - Spanish and Catalan
 Laurent Signac - French
+George Volkov - Russian
 
 
 Testing
