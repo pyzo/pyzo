@@ -313,7 +313,7 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="956"/>
         <source>Comment ::: Comment the selected line.</source>
-        <translation>Комментировать ::: Закомментировать выбранную строку.</translation>
+        <translation>Закомментировать ::: Закомментировать выбранную строку.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="958"/>
