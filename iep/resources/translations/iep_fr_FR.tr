@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr_FR">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
         <location filename="iep/iepcore/shellStack.py" line="362"/>
         <source>Start/Stop post mortem debugging.</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrer / Arrêter le débuggage post-mortem.</translation>
     </message>
 </context>
 <context>
@@ -622,12 +623,13 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="1340"/>
         <source>View code license ::: Legal stuff.</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Not very happy with this translation. French people will understand, but I m not sure it&apos;s the better way to say it...</translatorcomment>
+        <translation>Licence utilisée pour le code d&apos;IEP ::: Trucs légaux.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1346"/>
         <source>Manage your IEP license ::: View/add licenses.</source>
-        <translation type="unfinished"></translation>
+        <translation>Gérer votre licence IEP ::: Voir/ajouter des licences.</translation>
     </message>
 </context>
 <context>
@@ -689,12 +691,12 @@ Redémarrez IEP pour rendre les changements effectifs. </translation>
     <message>
         <location filename="iep/iepcore/license.py" line="164"/>
         <source>Manage IEP license keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Gérer la clé de licence IEP</translation>
     </message>
     <message>
         <location filename="iep/iepcore/license.py" line="192"/>
         <source>Add license key</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajouter une clé de licence</translation>
     </message>
 </context>
 <context>
