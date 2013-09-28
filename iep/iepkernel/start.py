@@ -138,7 +138,7 @@ del __file__
 __iep__.introspector.set_mode('thread')
 
 try:
-    __iep__.interact()
+    __iep__.run()
     
 finally:
     # Restore original streams, so that SystemExit behaves as intended

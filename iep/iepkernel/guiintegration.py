@@ -14,7 +14,11 @@ Support for PyQt4, WxPython, FLTK, GTK, TK.
 
 """
 
+import time
+
 from iepkernel import printDirect
+
+
 
 mainloopWarning = """
 Note: not entering main loop. The GUI app is integrated with the IEP event
@@ -27,8 +31,23 @@ and is prematurely cleaned up.
 class Hijacked_base:
     """ Defines the interface. 
     """
-    def processEvents(self):
-        raise NotImplemented()
+    
+    def process_events(self):
+        pass
+    
+    def run(self, repl_callback, sleeptime=0.01):
+        """ Very simple mainloop. Subclasses can overload this to use
+        the native event loop. Attempt to process GUI events at least 
+        every sleeptime seconds.
+        """
+        while True:
+            time.sleep(repl_time)
+            repl_callback()
+            self.process_events()
+    
+    def quit(self):
+        raise SystemExit()
+
 
 
 class Hijacked_tk(Hijacked_base):    
@@ -68,8 +87,9 @@ class Hijacked_tk(Hijacked_base):
         self.app._in_event_loop = 'IEP'
         tkinter._in_event_loop = 'IEP'
     
-    def processEvents(self):
+    def process_events(self):
         self.app.update()
+
 
 
 class Hijacked_fltk(Hijacked_base):
@@ -98,8 +118,9 @@ class Hijacked_fltk(Hijacked_base):
         self.app._in_event_loop = 'IEP'
         fl._in_event_loop = 'IEP'
     
-    def processEvents(self):
+    def process_events(self):
         self.app.wait(0)
+
 
 
 class Hijacked_fltk2(Hijacked_base):
@@ -120,24 +141,28 @@ class Hijacked_fltk2(Hijacked_base):
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
     
-    def processEvents(self):
+    def process_events(self):
         # is this right?
         self.app.wait(0) 
+
 
 
 class Hijacked_qt(Hijacked_base):
     """ Common functionality for pyqt and pyside
     """
     
+    
     def __init__(self):
         import types
         
         # Try importing qt        
         QtGui, QtCore = self.importCoreAndGui()
+        self._QtGui, self._QtCore = QtGui, QtCore
         
         # Store the real application class
         if not hasattr(QtGui, 'real_QApplication'):
             QtGui.real_QApplication = QtGui.QApplication
+        
         
         class QApplication_hijacked(QtGui.QApplication):
             """ QApplication_hijacked(*args, **kwargs)
@@ -153,9 +178,7 @@ class Hijacked_qt(Hijacked_base):
             You can subclass this class; the global application instance
             will be given the methods and attributes so it will behave 
             like the subclass.
-            
             """
-            
             def __new__(cls, *args, **kwargs):
                 
                 # Get the singleton application instance
@@ -204,10 +227,19 @@ class Hijacked_qt(Hijacked_base):
                 is not obvious.
                 """
                 printDirect(mainloopWarning)
+                # todo: is it really necessary to hide this? Can we not enter
+                # the mainloop twice?
+            
+            def quit(self, *args, **kwargs):
+                """ Do not quit. """
+                pass
         
         
         # Instantiate application object 
         self.app = QApplication_hijacked([''])
+        
+        # Keep it alive even if all windows are closed
+        self.app.setQuitOnLastWindowClosed(False)
         
         # Replace app class
         QtGui.QApplication = QApplication_hijacked
@@ -217,80 +249,27 @@ class Hijacked_qt(Hijacked_base):
         QtGui._in_event_loop = 'IEP'
     
     
-    def processEvents(self):
+    def process_events(self):
         self.app.flush()
         self.app.processEvents()
+    
+    
+    def run(self, repl_callback, sleeptime=None):
+        # Create timer 
+        timer = self._timer = self._QtCore.QTimer()
+        timer.setSingleShot(False)
+        timer.setInterval(0.05*1000)  # ms
+        timer.timeout.connect(repl_callback)
+        timer.start()
+        
+        # Enter Qt mainloop
+        #self._QtGui.real_QApplication.exec_(self.app)
+        self._QtGui.real_QApplication.exec_()
+    
+    
+    def quit(self):
+        self._QtGui.real_QApplication.quit()
 
-
-class Hijacked_qt_old(Hijacked_base):
-    """ Common functionality for pyqt and pyside
-    """
-    
-    def __init__(self):
-        # Try importing qt        
-        QtGui, QtCore = self.importCoreAndGui()
-        
-        # Function to get members for a class, taking base classes into account
-        def collectClassMembers(cls, D):
-            for k in cls.__dict__: 
-                if not k.startswith('_'):
-                    D[k] = cls.__dict__[k]
-            for b in cls.__bases__:
-                collectClassMembers(b, D)
-            return D
-        
-        # Store the real application instance
-        if not hasattr(QtGui, 'real_QApplication'):
-            QtGui.real_QApplication = QtGui.QApplication
-        
-        # Meta class that injects all member of the original QApplication 
-        # in the QHijackedApp class (and its derivatives).
-        class QApplicationMetaClass(type):
-            def __new__(meta, name, bases, dct):
-                # Collect all members of class, take inheritance into account
-                dict1 = dct.copy()
-                for b in bases:
-                    collectClassMembers(b, dict1)
-                # Dict used to update members
-                dict2 = collectClassMembers(QtGui.real_QApplication, {})
-                # Update members
-                for key in dict2:
-                    if key not in dict1:
-                        dct[key] = dict2[key]
-                # Create class and return
-                klass = type.__new__(meta, name, bases, dct)
-                return klass
-        
-        QHijackedApp_base = QApplicationMetaClass('QHijackedApp_base', (object,), {})
-        class QHijackedApp(QHijackedApp_base):
-            """ This is an iep-hijacked Qt application. You can subclass from
-            this class and instantiate as many instances as you wish.
-            This class is essentially an empty class, with all members
-            of the real QApplication injected in it.
-            """
-            __metaclass__ = QApplicationMetaClass
-            def __init__(self, *args, **kwargs):
-                pass
-            def exec_(self, *args, **kwargs):
-                printDirect(mainloopWarning)
-        
-        # Instantiate QApplication and store
-        app = QtGui.QApplication.instance()
-        if app is None:
-            app = QtGui.QApplication([''])
-        QtGui.qApp = self.app = app
-        
-        # Replace app class
-        QtGui.QApplication = QHijackedApp
-        
-        # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
-        QtGui._in_event_loop = 'IEP'
-    
-    
-    def processEvents(self):
-        self.app.flush()
-        self.app.processEvents()
 
 
 class Hijacked_pyqt4(Hijacked_qt):
@@ -313,6 +292,7 @@ class Hijacked_pyside(Hijacked_qt):
         import PySide
         from PySide import QtGui, QtCore
         return QtGui, QtCore
+
 
 
 class Hijacked_wx(Hijacked_base):
@@ -361,7 +341,7 @@ class Hijacked_wx(Hijacked_base):
         self.app._in_event_loop = 'IEP'
         wx._in_event_loop = 'IEP'
     
-    def processEvents(self):
+    def process_events(self):
         wx = self.wx
         
         # This bit is really needed        
@@ -374,6 +354,7 @@ class Hijacked_wx(Hijacked_base):
         # Process and reset
         self.app.ProcessIdle() # otherwise frames do not close
         wx.EventLoop.SetActive(old)   
+
 
 
 class Hijacked_gtk(Hijacked_base):
@@ -407,7 +388,7 @@ class Hijacked_gtk(Hijacked_base):
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
     
-    def processEvents(self):
+    def process_events(self):
         gtk = self.app
         while gtk.events_pending():            
             gtk.main_iteration(False)

@@ -115,6 +115,11 @@ class IepInterpreter:
         except AttributeError:
             sys.ps2 = "... "
         
+        # To keep track of whether to send a new prompt, and whether more
+        # code is expected.
+        self.more = 0
+        self.newPrompt = True
+        
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports. Same for iepkernel dir
         thisPath = os.getcwd()
@@ -123,11 +128,11 @@ class IepInterpreter:
                 sys.path.remove(p)
     
     
-    def interact(self):    
-        """ Interact! (start the mainloop)
+    def run(self):    
+        """ Run (start the mainloop)
         """
         self._prepare()
-        self._mainloop()
+        self.guiApp.run(self.process_commands, self.sleeptime) 
     
     
     def _prepare(self):
@@ -164,7 +169,7 @@ class IepInterpreter:
         
         
         # Integrate event loop of GUI toolkit
-        self.guiApp = None
+        self.guiApp = guiintegration.Hijacked_base()
         self.guiName = guiName = startup_info['gui'].upper()
         guiError = ''
         try:
@@ -281,129 +286,128 @@ class IepInterpreter:
                 self._scriptToRunOnStartup = filename
     
     
-    def _mainloop(self):
-        """ The actual main loop of the interpreter.
+    def interact(self):
+        """ Enter an interaction-loop for debugging. No GUI events are
+        processed here. We leave this event loop at some point, after
+        which the conrol flow will proceed. 
+        
+        This is called from the tracer to enter debug-mode at a
+        breakpoint, or from the repl_iteration to enter post-mortem
+        debugging.
         """
-        
-        # Get channels as local variables
-        ctrl_command = self.context._ctrl_command
-        ctrl_code = self.context._ctrl_code
-        strm_echo = self.context._strm_echo
-        strm_prompt = self.context._strm_prompt
-        stat_interpreter = self.context._stat_interpreter
-        
-        # To keep track of whether to send a new prompt, and whether more
-        # code is expected.
-        more = 0
-        newPrompt = True
-        
         while True:
-            try:
-                
-                # Run startup script inside the loop (only the first time)
-                # so that keyboard interrupt will work
-                if self._scriptToRunOnStartup:
-                    stat_interpreter.send('Busy') 
-                    self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
-                    self.runfile(tmp)
-                
-                # Set status and prompt?
-                # Prompt is allowed to be an object with __str__ method
-                if newPrompt:
-                    newPrompt = False
-                    # Write prompt (note that the second "if" is not an "elif"!
-                    preamble = ''
-                    if self._dbFrames:
-                        preamble = '('+self._dbFrameName+')'
-                    if more:
-                        strm_prompt.send(preamble+str(sys.ps2))
-                    else:
-                        strm_prompt.send(preamble+str(sys.ps1))
-                
-                if True:
-                    # Determine state. The message is really only send
-                    # when the state is different. Note that the kernelbroker
-                    # can also set the state ("Very busy", "Busy", "Dead")
-                    if self._dbFrames:
-                        stat_interpreter.send('Debug')
-                    elif more:
-                        stat_interpreter.send('More')
-                    else:
-                        stat_interpreter.send('Ready')
-                
-                
-                # Are we still connected?
-                if sys.stdin.closed or not self.context.connection_count:
-                    # Exit from main loop
-                    break
-                
-                # Get channel to take a message from
-                ch = yoton.select_sub_channel(ctrl_command, ctrl_code)
-                
-                if ch is None:
-                    pass # No messages waiting
-                
-                elif ch is ctrl_command:
-                    # Read command 
-                    line1 = ctrl_command.recv(False) # Command
-                    if line1:
-                        # Notify what we're doing
-                        strm_echo.send(line1)
-                        stat_interpreter.send('Busy')
-                        newPrompt = True
-                        # Convert command
-                        line2 = self.magician.convert_command(line1.rstrip('\n'))
-                        # Execute actual code
-                        if line2 is not None:
-                            for line3 in line2.split('\n'): # not splitlines!
-                                more = self.pushline(line3)
-                        else:
-                            more = False
-                            self._resetbuffer()
-                
-                elif ch is ctrl_code:
-                    # Read larger block of code (dict)
-                    msg = ctrl_code.recv(False)
-                    if msg:
-                        # Notify what we're doing
-                        # (runlargecode() sends on stdin-echo)
-                        stat_interpreter.send('Busy')
-                        newPrompt = True
-                        # Execute code
-                        self.runlargecode(msg)
-                        # Reset more stuff
-                        self._resetbuffer()
-                        more = False
-                
-                else:
-                    # This should not happen, but if it does, just flush!
-                    ch.recv(False)
-                
-                # Keep GUI toolkit up to date
-                if self.guiApp:
-                    self.guiApp.processEvents()
-                
-                # Wait for a bit at each round
-                time.sleep(self.sleeptime) # 50 ms
-            
-            
-            except KeyboardInterrupt:
-                self.write("\nKeyboardInterrupt\n")
-                self._resetbuffer()
-                more = 0
-            except TypeError:
-                # For some reason, when wx is hijacked, keyboard interrupts
-                # result in a TypeError.
-                # I tried to find the source, but did not find it. If anyone
-                # has an idea, please e-mail me!
-                if self.guiName == 'WX':
-                    self.write("\nKeyboard Interrupt\n") # space to see difference
-                    self._resetbuffer()
-                    more = 0
-            except SystemExit:
-                # Exit from interpreter (essentially SystemExit falls through)
-                raise
+            time.sleep(0.05)
+            self.process_commands()
     
+    
+    def process_commands(self):
+        """ Do one iteration of processing commands (the REPL).
+        """
+        try:
+            
+            self._process_commands()
+        
+        except KeyboardInterrupt:
+            self.write("\nKeyboardInterrupt\n")
+            self._resetbuffer()
+            self.more = 0
+        except TypeError:
+            # For some reason, when wx is hijacked, keyboard interrupts
+            # result in a TypeError.
+            # I tried to find the source, but did not find it. If anyone
+            # has an idea, please e-mail me!
+            if self.guiName == 'WX':
+                self.write("\nKeyboard Interrupt\n") # space to see difference
+                self._resetbuffer()
+                self.more = 0
+        except SystemExit:
+            # Exit from interpreter (essentially SystemExit falls through)
+            raise
+    
+    
+    def _process_commands(self):
+        
+        # Run startup script inside the loop (only the first time)
+        # so that keyboard interrupt will work
+        if self._scriptToRunOnStartup:
+            self.context._stat_interpreter.send('Busy') 
+            self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
+            self.runfile(tmp)
+        
+        # Set status and prompt?
+        # Prompt is allowed to be an object with __str__ method
+        if self.newPrompt:
+            self.newPrompt = False
+            # Write prompt (note that the second "if" is not an "elif"!
+            preamble = ''
+            if self._dbFrames:
+                preamble = '('+self._dbFrameName+')'
+            if self.more:
+                self.context._strm_prompt.send(preamble+str(sys.ps2))
+            else:
+                self.context._strm_prompt.send(preamble+str(sys.ps1))
+        
+        if True:
+            # Determine state. The message is really only send
+            # when the state is different. Note that the kernelbroker
+            # can also set the state ("Very busy", "Busy", "Dead")
+            if self._dbFrames:
+                self.context._stat_interpreter.send('Debug')
+            elif self.more:
+                self.context._stat_interpreter.send('More')
+            else:
+                self.context._stat_interpreter.send('Ready')
+        
+        
+        # Are we still connected?
+        if sys.stdin.closed or not self.context.connection_count:
+            # Exit from main loop
+            self.guiApp.quit()
+            # todo: also quit if we are in interact loop
+        
+        # Get channel to take a message from
+        ch = yoton.select_sub_channel(self.context._ctrl_command, self.context._ctrl_code)
+        
+        if ch is None:
+            pass # No messages waiting
+        
+        elif ch is self.context._ctrl_command:
+            # Read command 
+            line1 = self.context._ctrl_command.recv(False) # Command
+            if line1:
+                # Notify what we're doing
+                self.context._strm_echo.send(line1)
+                self.context._stat_interpreter.send('Busy')
+                self.newPrompt = True
+                # Convert command
+                line2 = self.magician.convert_command(line1.rstrip('\n'))
+                # Execute actual code
+                if line2 is not None:
+                    for line3 in line2.split('\n'): # not splitlines!
+                        self.more = self.pushline(line3)
+                else:
+                    self.more = False
+                    self._resetbuffer()
+        
+        elif ch is self.context._ctrl_code:
+            # Read larger block of code (dict)
+            msg = self.context._ctrl_code.recv(False)
+            if msg:
+                # Notify what we're doing
+                # (runlargecode() sends on stdin-echo)
+                self.context._stat_interpreter.send('Busy')
+                self.newPrompt = True
+                # Execute code
+                self.runlargecode(msg)
+                # Reset more stuff
+                self._resetbuffer()
+                self.more = False
+        
+        else:
+            # This should not happen, but if it does, just flush!
+            ch.recv(False)
+
+
     
     ## Running code in various ways
     # In all cases there is a call for compilecode and a call to execcode
