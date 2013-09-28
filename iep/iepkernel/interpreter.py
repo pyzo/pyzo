@@ -169,26 +169,27 @@ class IepInterpreter:
         
         
         # Integrate event loop of GUI toolkit
-        self.guiApp = guiintegration.Hijacked_base()
+        self.guiApp = guiintegration.App_base()
         self.guiName = guiName = startup_info['gui'].upper()
         guiError = ''
         try:
             if guiName in ['', 'NONE']:
                 pass
             elif guiName == 'TK':
-                self.guiApp = guiintegration.Hijacked_tk()
+                self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':
-                self.guiApp = guiintegration.Hijacked_wx()
+                self.guiApp = guiintegration.App_wx()
             elif guiName == 'PYSIDE':
-                self.guiApp = guiintegration.Hijacked_pyside()
+                self.guiApp = guiintegration.App_pyside()
             elif guiName in ['PYQT4', 'QT4']:
-                self.guiApp = guiintegration.Hijacked_pyqt4()
+                self.guiApp = guiintegration.App_pyqt4()
             elif guiName == 'FLTK':
-                self.guiApp = guiintegration.Hijacked_fltk()
+                self.guiApp = guiintegration.App_fltk()
             elif guiName == 'GTK':
-                self.guiApp = guiintegration.Hijacked_gtk()
+                self.guiApp = guiintegration.App_gtk()
             else:
                 guiError = 'Unkown gui: %s' % guiName
+                guiName = ''
         except Exception: # Catch any error
             # Get exception info (we do it using sys.exc_info() because
             # we cannot catch the exception in a version independent way.
@@ -202,7 +203,7 @@ class IepInterpreter:
             iepBanner = 'This is the IEP interpreter'
         if guiError:
             iepBanner += '. ' + guiError + '\n'
-        elif self.guiApp:
+        elif guiName:
             iepBanner += ' with integrated event loop for ' 
             iepBanner += guiName + '.\n'
         else:
@@ -312,7 +313,7 @@ class IepInterpreter:
             self._resetbuffer()
             self.more = 0
         except TypeError:
-            # For some reason, when wx is hijacked, keyboard interrupts
+            # For some reason, when wx is integrated, keyboard interrupts
             # result in a TypeError.
             # I tried to find the source, but did not find it. If anyone
             # has an idea, please e-mail me!

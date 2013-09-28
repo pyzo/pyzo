@@ -28,7 +28,7 @@ and is prematurely cleaned up.
 """.strip()
 
 
-class Hijacked_base:
+class App_base:
     """ Defines the interface. 
     """
     
@@ -41,7 +41,7 @@ class Hijacked_base:
         every sleeptime seconds.
         """
         while True:
-            time.sleep(repl_time)
+            time.sleep(sleeptime)
             repl_callback()
             self.process_events()
     
@@ -50,7 +50,7 @@ class Hijacked_base:
 
 
 
-class Hijacked_tk(Hijacked_base):    
+class App_tk(App_base):    
     """ Tries to import tkinter and returns a withdrawn tkinter root
     window.  If tkinter is already imported or not available, this
     returns None.  
@@ -92,7 +92,7 @@ class Hijacked_tk(Hijacked_base):
 
 
 
-class Hijacked_fltk(Hijacked_base):
+class App_fltk(App_base):
     """ Hijack fltk 1.
     This one is easy. Just call fl.wait(0.0) now and then.
     Note that both tk and fltk try to bind to PyOS_InputHook. Fltk
@@ -123,7 +123,7 @@ class Hijacked_fltk(Hijacked_base):
 
 
 
-class Hijacked_fltk2(Hijacked_base):
+class App_fltk2(App_base):
     """ Hijack fltk 2.    
     """
     def __init__(self):
@@ -147,7 +147,7 @@ class Hijacked_fltk2(Hijacked_base):
 
 
 
-class Hijacked_qt(Hijacked_base):
+class App_qt(App_base):
     """ Common functionality for pyqt and pyside
     """
     
@@ -272,7 +272,7 @@ class Hijacked_qt(Hijacked_base):
 
 
 
-class Hijacked_pyqt4(Hijacked_qt):
+class App_pyqt4(App_qt):
     """ Hijack the PyQt4 mainloop.
     """
     
@@ -283,7 +283,7 @@ class Hijacked_pyqt4(Hijacked_qt):
         return QtGui, QtCore
     
     
-class Hijacked_pyside(Hijacked_qt):
+class App_pyside(App_qt):
     """ Hijack the PySide mainloop.
     """
     
@@ -295,7 +295,7 @@ class Hijacked_pyside(Hijacked_qt):
 
 
 
-class Hijacked_wx(Hijacked_base):
+class App_wx(App_base):
     """ Hijack the wxWidgets mainloop.    
     """ 
     
@@ -357,7 +357,7 @@ class Hijacked_wx(Hijacked_base):
 
 
 
-class Hijacked_gtk(Hijacked_base):
+class App_gtk(App_base):
     """ Modifies pyGTK's mainloop with a dummy so user code does not
     block IPython.  processing events is done using the module'
     main_iteration function.
