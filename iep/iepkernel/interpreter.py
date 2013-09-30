@@ -352,8 +352,7 @@ class IepInterpreter:
         # Are we still connected?
         if sys.stdin.closed or not self.context.connection_count:
             # Exit from main loop
-            self.guiApp.quit()
-            # todo: also quit if we are in interact loop
+            self.guiApp.quit()  # todo: is this ok?
         
         # Get channel to take a message from
         ch = yoton.select_sub_channel(self.context._ctrl_command, self.context._ctrl_code)
@@ -607,12 +606,17 @@ class IepInterpreter:
         # Apply breakpoints
         # So breakpoints are updated at each time a command is given,
         # including commands like "db continue".
-        breaks = self.context._stat_breakpoints.recv()
-        if self.debugger.breaks:
-            self.debugger.clear_all_breaks()
-        for fname in breaks:
-            for linenr in breaks[fname]:
-                self.debugger.set_break(fname, linenr)
+        try:
+            breaks = self.context._stat_breakpoints.recv()
+            if self.debugger.breaks:
+                self.debugger.clear_all_breaks()
+            if breaks:  # Can be None
+                for fname in breaks:
+                    for linenr in breaks[fname]:
+                        self.debugger.set_break(fname, linenr)
+        except Exception:
+            type, value, tb = sys.exc_info(); del tb
+            print('Error while setting breakpoints: %s' % str(value))
         
         
         try:
