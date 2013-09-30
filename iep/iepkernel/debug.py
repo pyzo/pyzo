@@ -1,0 +1,383 @@
+import time
+import sys
+import bdb
+
+class Debugger(bdb.Bdb):
+    
+    def __init__(self):
+        self._wait_for_mainpyfile = False  # todo: from pdb, do we need this?
+        bdb.Bdb.__init__(self)
+    
+    
+    def interaction(self, frame, traceback):
+        """ Enter an interaction-loop for debugging. No GUI events are
+        processed here. We leave this event loop at some point, after
+        which the conrol flow will proceed. 
+        
+        This is called to enter debug-mode at a breakpoint, or to enter
+        post-mortem debugging.
+        """
+        interpreter = sys._iepInterpreter
+        
+        # Collect frames
+        frames = []
+        while frame and frame is not self.botframe:
+            if 'iepkernel' in frame.f_code.co_filename:
+                break
+            frames.insert(0, frame)
+            frame = frame.f_back
+        
+        # Tell interpreter our stack
+        if frames:
+            interpreter._dbFrames = frames
+            interpreter._dbFrameIndex = len(interpreter._dbFrames)
+            frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
+            interpreter._dbFrameName = frame.f_code.co_name
+            interpreter.locals = frame.f_locals
+            interpreter.globals = frame.f_globals
+        
+        # Let the IDE know
+        interpreter.writestatus()
+        
+        # Enter interact loop
+        self._interacting = True
+        while self._interacting:
+            time.sleep(0.05)
+            interpreter.process_commands()
+        
+        # Reset
+        interpreter.locals = interpreter._main_locals
+        interpreter.globals = None
+        interpreter._dbFrames = []
+        interpreter.writestatus()
+        # todo: do_stop needs to work with this mechanism
+    
+    
+    def stopinteraction(self):
+        """ Stop the interaction loop. 
+        """
+        self._interacting = False
+    
+    
+    def set_on(self):
+        """ To turn debugging on right before executing code. 
+        """
+        # todo: from where (and when) to call this?
+        self.reset()
+        self.botframe = sys._getframe().f_back
+        if self.breaks:
+            sys.settrace(self.trace_dispatch)
+    
+    
+    # Overloaded from Bdb to not stop if frame is subframe of bottomframe
+    def stop_here(self, frame):
+        if frame is self.stopframe:
+            if self.stoplineno == -1:
+                return False
+            return frame.f_lineno >= self.stoplineno
+        return False
+    
+    
+    def message(self, msg):
+        print(msg)
+    
+    
+    def error(self, msg):
+        raise ValueError(msg)
+    
+    
+    ## Stuff that we need to overload
+    
+    
+    def do_clear(self, arg):
+        """ Clear a breakpoint or all breakpoints.
+        """
+        """cl(ear) filename:lineno\ncl(ear) [bpnumber [bpnumber...]]
+        With a space separated list of breakpoint numbers, clear
+        those breakpoints.  Without argument, clear all breaks (but
+        first ask confirmation).  With a filename:lineno argument,
+        clear all breaks at that line in that file.
+        """
+        if not arg:
+            bplist = [bp for bp in bdb.Breakpoint.bpbynumber if bp]
+            self.clear_all_breaks()
+            for bp in bplist:
+                self.message('Deleted %s' % bp)
+            return
+        if ':' in arg:
+            # Make sure it works for "clear C:\foo\bar.py:12"
+            i = arg.rfind(':')
+            filename = arg[:i]
+            arg = arg[i+1:]
+            try:
+                lineno = int(arg)
+            except ValueError:
+                err = "Invalid line number (%s)" % arg
+            else:
+                bplist = self.get_breaks(filename, lineno)
+                err = self.clear_break(filename, lineno)
+            if err:
+                self.error(err)
+            else:
+                for bp in bplist:
+                    self.message('Deleted %s' % bp)
+            return
+        numberlist = arg.split()
+        for i in numberlist:
+            try:
+                bp = self.get_bpbynumber(i)
+            except ValueError as err:
+                self.error(err)
+            else:
+                self.clear_bpbynumber(i)
+                self.message('Deleted %s' % bp)
+    
+    
+    def user_call(self, frame, argument_list):
+        """This method is called when there is the remote possibility
+        that we ever need to stop in this function."""
+        if self._wait_for_mainpyfile:
+            return
+        if self.stop_here(frame):
+            self.message('--Call--')
+            self.interaction(frame, None)
+            
+    
+    
+    def user_line(self, frame):
+        """This function is called when we stop or break at this line."""
+        if self._wait_for_mainpyfile:
+            if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
+                or frame.f_lineno <= 0):
+                return
+            self._wait_for_mainpyfile = False
+        if True: #self.bp_commands(frame):  from pdb
+            self.interaction(frame, None)
+    
+    
+    def user_return(self, frame, return_value):
+        """This function is called when a return trap is set here."""
+        if self._wait_for_mainpyfile:
+            return
+        frame.f_locals['__return__'] = return_value
+        self.message('--Return--')
+        self.interaction(frame, None)
+    
+    
+    def user_exception(self, frame, exc_info):
+        """This function is called if an exception occurs,
+        but only if we are to stop at or just below this level."""
+        if self._wait_for_mainpyfile:
+            return
+        exc_type, exc_value, exc_traceback = exc_info
+        frame.f_locals['__exception__'] = exc_type, exc_value
+        self.message(traceback.format_exception_only(exc_type,
+                                                     exc_value)[-1].strip())
+        self.interaction(frame, exc_traceback)
+    
+    
+    ## Commands
+    
+    def do_help(self, arg):
+        """ Get help on debug commands.
+        """
+        # Collect docstrings
+        docs = {}
+        for name in dir(self):
+            if name.startswith('do_'):
+                doc = getattr(self, name).__doc__
+                if doc:
+                    docs[name[3:]] = doc.strip()
+        
+        if not arg:
+            print('All debug commands:')
+            # Show docs in  order
+            for name in [   'start', 'stop', 'frame', 'up', 'down', 
+                            'continue', 'step', 'next', 'where', 'events']:
+                doc = docs.pop(name)
+                name= name.rjust(10)
+                print(' %s - %s' % (name, doc))
+            # Show rest
+            for name in docs:
+                doc = docs[name]
+                name= name.rjust(10)
+                print(' %s - %s' % (name, doc))
+        
+        else:
+            # Show specific doc
+            name = arg.lower()
+            doc = docs.get(name, None)
+            if doc is not None:
+                print(' %s - %s' % (name, doc))
+            else:
+                print('Unknown debug command: %s' % name)
+    
+        
+    def do_start(self, arg):
+        """ Start postmortem debugging from the last uncaught exception.
+        """
+        interpreter = sys._iepInterpreter
+        
+        # Get traceback
+        try:
+            tb = sys.last_traceback
+        except AttributeError:
+            tb = None
+        
+        # Get top frame
+        frame = None
+        while tb:
+            frame = tb.tb_frame
+            tb = tb.tb_next
+        
+        # Interact, or not
+        if interpreter._dbFrames:
+            self.message("Already in debug mode.\n")
+        elif frame:
+            self.interaction(frame, None)
+        else:
+            self.message("No debug information available.\n")
+    
+    
+    def do_frame(self, arg):
+        """ Go to the i'th frame in the stack.
+        """
+        interpreter = sys._iepInterpreter
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            # Set frame index
+            interpreter._dbFrameIndex = int(arg)
+            if interpreter._dbFrameIndex < 1:
+                interpreter._dbFrameIndex = 1
+            elif interpreter._dbFrameIndex > len(interpreter._dbFrames):
+                interpreter._dbFrameIndex = len(interpreter._dbFrames)
+            # Set name and locals
+            frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
+            interpreter._dbFrameName = frame.f_code.co_name
+            interpreter.locals = frame.f_locals
+            interpreter.globals = frame.f_globals
+            interpreter.writestatus()
+    
+    
+    def do_up(self, arg):
+        """ Go one frame up the stack.
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            # Decrease frame index
+            interpreter._dbFrameIndex -= 1
+            if interpreter._dbFrameIndex < 1:
+                interpreter._dbFrameIndex = 1
+            # Set name and locals
+            frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
+            interpreter._dbFrameName = frame.f_code.co_name
+            interpreter.locals = frame.f_locals
+            interpreter.globals = frame.f_globals
+            interpreter.writestatus()
+    
+    
+    def do_down(self, arg):
+        """ Go one frame down the stack.
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            # Increase frame index
+            interpreter._dbFrameIndex += 1
+            if interpreter._dbFrameIndex > len(interpreter._dbFrames):
+                interpreter._dbFrameIndex = len(interpreter._dbFrames)
+            # Set name and locals
+            frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
+            interpreter._dbFrameName = frame.f_code.co_name
+            interpreter.locals = frame.f_locals
+            interpreter.globals = frame.f_globals
+            interpreter.writestatus()
+    
+    
+    def do_stop(self, arg):
+        """ Stop debugging, terminate process execution.
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            self.set_quit()
+            self.stopinteraction()
+    
+    
+    def do_where(self, arg):
+        """ Print the stack trace and indicate the current frame.
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            lines = []
+            for i in range(len(interpreter._dbFrames)):
+                frameIndex = i+1
+                f = interpreter._dbFrames[i]
+                # Get fname and lineno, and correct if required
+                fname, lineno = f.f_code.co_filename, f.f_lineno
+                fname, lineno = interpreter.correctfilenameandlineno(fname, lineno)
+                # Build string
+                text = 'File "%s", line %i, in %s' % (
+                                        fname, lineno, f.f_code.co_name)
+                if frameIndex == interpreter._dbFrameIndex:
+                    lines.append('-> %i: %s'%(frameIndex, text))
+                else:
+                    lines.append('   %i: %s'%(frameIndex, text))
+            lines.append('')
+            sys.stdout.write('\n'.join(lines))
+    
+    
+    def do_continue(self, arg):
+        """ Continue the program execution.
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            self.set_continue()
+            self.stopinteraction()
+    
+    
+    def do_step(self, arg):
+        """ Step
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            self.set_step()
+            self.stopinteraction()
+    
+    
+    def do_next(self, arg):
+        """ Next
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if not interpreter._dbFrames:
+            interpreter.write("Not in debug mode.\n")
+        else:
+            frame = interpreter._dbFrames[-1]
+            self.set_next(frame)
+            self.stopinteraction()
+    
+    
+    def do_events(self, arg):
+        """ Process GUI events for the integrated GUI toolkit.
+        """
+        interpreter = sys._iepInterpreter
+        interpreter.guiApp.process_events()
