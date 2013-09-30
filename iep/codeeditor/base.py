@@ -157,6 +157,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         self.styleChanged.connect(self.__afterSetStyle)
         self.__styleChangedPending = False
         
+        # Init margins
+        self._leftmargins = []
+        
         # Init options now. 
         # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
         # If an extension has an __init__ in which it first calls the 
@@ -799,3 +802,32 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # Update the selection
         #self.setTextCursor(cursor) for testing
         cursor.insertText(newText)
+    
+    
+    def addLeftMargin(self, des, func):
+        """ Add a margin to the left. Specify a description for the margin,
+        and a function to get that margin. For internal use.
+        """
+        assert des is not None
+        self._leftmargins.append((des, func))
+    
+    
+    def getLeftMargin(self, des=None):
+        """ Get the left margin, relative to the given description (which
+        should be the same as given to addLeftMargin). If des is omitted 
+        or None, the full left margin is returned.
+        """
+        margin = 0
+        for d, func in self._leftmargins:
+            if d == des:
+                break
+            margin += func()
+        return margin
+    
+    
+    def updateMargins(self):
+        """ Force the margins to be recalculated and set the viewport 
+        accordingly.
+        """
+        leftmargin = self.getLeftMargin()
+        self.setViewportMargins(leftmargin , 0, 0, 0)

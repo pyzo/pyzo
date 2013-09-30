@@ -126,8 +126,6 @@ class IndentationGuides(object):
         doc = self.document()
         viewport = self.viewport()
         
-        w = self.getLineNumberAreaWidth()
-                
         # Get multiplication factor and indent width
         indentWidth = self.indentWidth()
         if self.indentUsingSpaces():
@@ -163,6 +161,8 @@ class IndentationGuides(object):
         # Done
         painter.end()
 
+
+
 class FullUnderlines(object):
     
     def paintEvent(self,event):
@@ -196,6 +196,8 @@ class FullUnderlines(object):
         self.doForVisibleBlocks(paintUnderline)
         
         painter.end()
+
+
 
 class CodeFolding(object):
     def paintEvent(self,event):
@@ -464,8 +466,7 @@ class LineNumbers(object):
                 if blockNumber == currentBlockNumber:
                     painter.setFont(font2)
                 
-                painter.drawText(0, y-offset,
-                    editor.getLineNumberAreaWidth()-margin, 50,
+                painter.drawText(0, y-offset, w-margin, 50,
                     Qt.AlignRight, str(blockNumber+1))
                 
                 # Set font back
@@ -536,7 +537,8 @@ class LineNumbers(object):
         self.blockCountChanged.connect(self.__onBlockCountChanged)
         self.fontChanged.connect(self.__onBlockCountChanged)
         self.__onBlockCountChanged()
-        
+        self.addLeftMargin(LineNumbers, self.getLineNumberAreaWidth)
+    
     
     def gotoLinePopup(self):
         """ Popup the little widget to quickly goto a certain line.
@@ -571,30 +573,34 @@ class LineNumbers(object):
         lastLineNumber = self.blockCount() 
         margin = self._LineNumberAreaMargin
         return self.fontMetrics().width(str(lastLineNumber)) + 2*margin
-        
+    
+    
     def __onBlockCountChanged(self,count = None):
         """
         Update the line number area width. This requires to set the 
         viewport margins, so there is space to draw the linenumber area
         """
         if self.__showLineNumbers:
-            self.setViewportMargins(self.getLineNumberAreaWidth(),0,0,0)
+            self.updateMargins()
+    
     
     def resizeEvent(self,event):
         super(LineNumbers, self).resizeEvent(event)
         
         #On resize, resize the lineNumberArea, too
         rect=self.contentsRect()
-
-        self.__lineNumberArea.setGeometry(rect.x(),rect.y(),
-            self.getLineNumberAreaWidth(),rect.height())
-            
+        m1 = self.getLeftMargin(LineNumbers)
+        m2 = m1 + self.getLineNumberAreaWidth()
+        self.__lineNumberArea.setGeometry(  rect.x()+m1, rect.y(),
+                                            m2, rect.height())
+    
     def paintEvent(self,event):
         super(LineNumbers, self).paintEvent(event)
         #On repaint, update the complete line number area
-        self.__lineNumberArea.update(0, 0, 
-                self.getLineNumberAreaWidth(), self.height() )
-    
+        w = self.getLineNumberAreaWidth()
+        self.__lineNumberArea.update(0, 0, w, self.height() )
+
+
 
 class Wrap(object):
     
