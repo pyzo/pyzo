@@ -50,7 +50,6 @@ class Debugger(bdb.Bdb):
         interpreter.globals = None
         interpreter._dbFrames = []
         interpreter.writestatus()
-        # todo: do_stop needs to work with this mechanism
     
     
     def stopinteraction(self):
@@ -62,11 +61,12 @@ class Debugger(bdb.Bdb):
     def set_on(self):
         """ To turn debugging on right before executing code. 
         """
-        # todo: from where (and when) to call this?
         self.reset()
         self.botframe = sys._getframe().f_back
         if self.breaks:
             sys.settrace(self.trace_dispatch)
+        else:
+            sys.settrace(None)
     
     
     # Overloaded from Bdb to not stop if frame is subframe of bottomframe
@@ -79,19 +79,24 @@ class Debugger(bdb.Bdb):
     
     
     def message(self, msg):
-        print(msg)
+        """ Alias for interpreter.write. Writes to stderr.
+        """
+        sys._iepInterpreter.write(msg)
     
     
     def error(self, msg):
-        raise ValueError(msg)
+        """ method used in some code that we copied from pdb.
+        """
+        raise self.message('*** '+msg)
     
     
     ## Stuff that we need to overload
     
     
     def do_clear(self, arg):
-        """ Clear a breakpoint or all breakpoints.
-        """
+        """"""
+        # Clear breakpoints, we need to overload from Bdb,
+        # but do not expose this command to the user.
         """cl(ear) filename:lineno\ncl(ear) [bpnumber [bpnumber...]]
         With a space separated list of breakpoint numbers, clear
         those breakpoints.  Without argument, clear all breaks (but
@@ -208,7 +213,7 @@ class Debugger(bdb.Bdb):
             name = arg.lower()
             doc = docs.get(name, None)
             if doc is not None:
-                print(' %s - %s' % (name, doc))
+                print('%s - %s' % (name, doc))
             else:
                 print('Unknown debug command: %s' % name)
     
@@ -245,7 +250,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             # Set frame index
             interpreter._dbFrameIndex = int(arg)
@@ -267,7 +272,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             # Decrease frame index
             interpreter._dbFrameIndex -= 1
@@ -287,7 +292,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             # Increase frame index
             interpreter._dbFrameIndex += 1
@@ -307,7 +312,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             self.set_quit()
             self.stopinteraction()
@@ -319,7 +324,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             lines = []
             for i in range(len(interpreter._dbFrames)):
@@ -345,7 +350,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             self.set_continue()
             self.stopinteraction()
@@ -357,7 +362,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             self.set_step()
             self.stopinteraction()
@@ -369,7 +374,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not interpreter._dbFrames:
-            interpreter.write("Not in debug mode.\n")
+            self.message("Not in debug mode.\n")
         else:
             frame = interpreter._dbFrames[-1]
             self.set_next(frame)

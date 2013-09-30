@@ -750,6 +750,9 @@ class PythonShell(BaseShell):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p+QtCore.QPoint(0,3)))) 
         
+        # Keep track of breakpoints
+        iep.editors.breakPointsChanged.connect(self.sendBreakPoints)
+        
         # Start!
         self.resetVariables()
         self.connectToKernel(info)
@@ -812,6 +815,7 @@ class PythonShell(BaseShell):
         self._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
         self._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
         self._stat_startup.received.bind(self._onReceivedStartupInfo)
+        self._stat_breakpoints = yoton.StateChannel(ct, 'stat-breakpoints', yoton.OBJECT)
         
         # Create introspection request channel
         self._request = yoton.ReqChannel(ct, 'reqp-introspect')
@@ -1074,6 +1078,13 @@ class PythonShell(BaseShell):
         text = "\n".join(lines2)
         msg = {'source':text, 'fname':fname, 'lineno':lineno, 'cellName': cellName}
         self._ctrl_code.send(msg)
+    
+    
+    def sendBreakPoints(self, breaks):
+        """ Send all breakpoints. 
+        """
+        # breaks is a dict of filenames to integers
+        self._stat_breakpoints.send(breaks)
     
     
     ## The polling methods and terminating methods

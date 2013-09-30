@@ -794,6 +794,7 @@ class FileTabWidget(CompactTabWidget):
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
         item.editor.blockCountChanged.connect(self.updateItems)
+        item.editor.breakPointsChanged.connect(self.parent().updateBreakPoints)
         
         # Store the item at the tab
         self.tabBar().setTabData(i, item)
@@ -868,6 +869,9 @@ class EditorTabs(QtGui.QWidget):
     editors. It does the saving loading etc.
     """ 
     
+    # Signal to indicate that a breakpoint has changed, emits dict
+    breakPointsChanged = QtCore.Signal(object)
+    
     # Signal to notify that a different file was selected
     currentChanged = QtCore.Signal()
     
@@ -880,6 +884,9 @@ class EditorTabs(QtGui.QWidget):
         
         # keep a booking of opened directories
         self._lastpath = ''
+        
+        # keep track of all breakpoints
+        self._breakPoints = {}
         
         # create tab widget
         self._tabs = FileTabWidget(self)       
@@ -963,6 +970,29 @@ class EditorTabs(QtGui.QWidget):
     def __iter__(self):
         tmp = [item.editor for item in self._tabs.items()]
         return tmp.__iter__()
+    
+    
+    def updateBreakPoints(self, editor=None):
+        # Get list of editors to update keypoints for
+        if editor is None:
+            editors = self
+            self._breakPoints = {}  # Full reset
+        else:
+            editors = [editor]
+        
+        # Update our keypoints dict
+        for editor in editors:
+            fname = editor._filename or editor._name
+            if not fname:
+                continue
+            linenumbers = editor.breakPoints()
+            if linenumbers:
+                self._breakPoints[fname] = linenumbers
+            else:
+                self._breakPoints.pop(fname, None)
+        
+        # Emit signal so shells can update the kernel
+        self.breakPointsChanged.emit(self._breakPoints)
     
     
     ## Loading ad saving files
