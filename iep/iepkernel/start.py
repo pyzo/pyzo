@@ -67,6 +67,7 @@ ct._strm_action = yoton.PubChannel(ct, 'strm-action', yoton.OBJECT)
 ct._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
 ct._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
 ct._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
+ct._stat_breakpoints = yoton.StateChannel(ct, 'stat-breakpoints', yoton.OBJECT)
 
 # Connect (port number given as command line argument)
 # Important to do this *before* replacing the stdout etc, because if an

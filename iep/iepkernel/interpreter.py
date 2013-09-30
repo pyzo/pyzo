@@ -604,14 +604,24 @@ class IepInterpreter:
         The globals variable is used when in debug mode.
         """
         
-        # Turn debugger on at this point. If there are no breakpoints,
-        # the tracing is disabled for better performance.
+        # Apply breakpoints
+        # So breakpoints are updated at each time a command is given,
+        # including commands like "db continue".
+        breaks = self.context._stat_breakpoints.recv()
+        if self.debugger.breaks:
+            self.debugger.clear_all_breaks()
+        for fname in breaks:
+            for linenr in breaks[fname]:
+                self.debugger.set_break(fname, linenr)
+        
         
         try:
             if self._dbFrames:
                 exec(code, self.globals, self.locals)
             else:
-                self.debugger.set_on()  # todo: here?
+                # Turn debugger on at this point. If there are no breakpoints,
+                # the tracing is disabled for better performance.
+                self.debugger.set_on() 
                 exec(code, self.locals)
         except bdb.BdbQuit:
             print("Program execution stopped from debugger.")

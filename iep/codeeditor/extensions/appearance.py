@@ -604,6 +604,8 @@ class LineNumbers(object):
 
 class BreakPoints(object):
     
+    breakPointsChanged = QtCore.Signal(object)
+    
     _breakPointWidth = 10  # With of total bar, actual points are smaller
     
     # Register style element
@@ -640,6 +642,10 @@ class BreakPoints(object):
                 bps.discard(linenr)
             else:
                 bps.add(linenr)
+            
+            # Emit signal
+            editor.breakPointsChanged.emit(editor)
+            self.update()
         
         def paintEvent(self, event):
             editor = self.parent()
