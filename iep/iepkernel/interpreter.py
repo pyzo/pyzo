@@ -22,10 +22,12 @@ from codeop import CommandCompiler
 import traceback
 import keyword
 import inspect # Must be in this namespace
+import bdb
 
 import yoton
 from iepkernel import guiintegration, printDirect
 from iepkernel.magic import Magician
+from iepkernel.debug import Debugger
 
 # Init last traceback information
 sys.last_type = None
@@ -102,8 +104,9 @@ class IepInterpreter:
         # Create compiler
         self._compile = CommandCompiler()
         
-        # Instantiate magician
+        # Instantiate magician and tracer
         self.magician = Magician()
+        self.debugger = Debugger()
         
         # Define prompts
         try:
@@ -285,20 +288,6 @@ class IepInterpreter:
             # Check if it exists
             if filename and os.path.isfile(filename):
                 self._scriptToRunOnStartup = filename
-    
-    
-    def interact(self):
-        """ Enter an interaction-loop for debugging. No GUI events are
-        processed here. We leave this event loop at some point, after
-        which the conrol flow will proceed. 
-        
-        This is called from the tracer to enter debug-mode at a
-        breakpoint, or from the repl_iteration to enter post-mortem
-        debugging.
-        """
-        while True:
-            time.sleep(0.05)
-            self.process_commands()
     
     
     def process_commands(self):
@@ -614,11 +603,18 @@ class IepInterpreter:
         
         The globals variable is used when in debug mode.
         """
+        
+        # Turn debugger on at this point. If there are no breakpoints,
+        # the tracing is disabled for better performance.
+        
         try:
             if self._dbFrames:
                 exec(code, self.globals, self.locals)
             else:
+                self.debugger.set_on()  # todo: here?
                 exec(code, self.locals)
+        except bdb.BdbQuit:
+            print("Program execution stopped from debugger.")
         except Exception:
             time.sleep(0.2) # Give stdout some time to send data
             self.showtraceback()

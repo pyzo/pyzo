@@ -27,12 +27,7 @@ MESSAGE = """List of *magic* commands:
     run X           - run file X
     pip             - manage packages using pip
     conda           - manage packages using conda
-    db start        - start post mortem debugging
-    db stop         - stop debugging
-    db up/down      - go up or down the stack frames
-    db frame X      - go to the Xth stack frame
-    db where        - print the stack trace and indicate the current stack
-    db focus        - open the file and show the line of the stack frame
+    db X            - debug commands
 """
 
 
@@ -73,11 +68,14 @@ class Magician:
         try:
             res = self._convert_command(line)
         except Exception:
-            msg = 'Error in handling magic function'
             # Try informing about line number
             type, value, tb = sys.exc_info()
-            if tb and tb.tb_next and tb.tb_next.tb_next:
-                msg += ' (line %s)' % str(tb.tb_next.tb_next.tb_lineno)
+            msg = 'Error in handling magic function:\n'
+            msg += '  %s\n' % str(value)
+            if tb.tb_next: tb = tb.tb_next.tb_next
+            while tb:
+                msg += '  line %i in %s\n' % (tb.tb_lineno, tb.tb_frame.f_code.co_filename)
+                tb = tb.tb_next
             # Clear
             del tb
             # Write
@@ -130,7 +128,7 @@ class Magician:
         elif command.startswith('LS'):
             return self.ls(line, command)
         
-        elif command.startswith('DB '):
+        elif command.startswith('DB'):
             return self.debug(line, command)
         
         elif command.startswith('TIMEIT'):
@@ -156,113 +154,24 @@ class Magician:
     
     
     def debug(self, line, command):
+        if command == 'DB':
+            line = 'db help'
+        elif not command.startswith('DB '):
+            return
         
         # Get interpreter
         interpreter = sys._iepInterpreter
-        
-        if command == 'DB START':
-            # Collect frames from the traceback
-            try:
-                tb = sys.last_traceback
-            except AttributeError:
-                tb = None
-            frames = []
-            while tb:
-                frames.append(tb.tb_frame)
-                tb = tb.tb_next
-            # Enter debug mode if there was an error
-            if frames:
-                interpreter._dbFrames = frames
-                interpreter._dbFrameIndex = len(interpreter._dbFrames)
-                frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
-                interpreter._dbFrameName = frame.f_code.co_name
-                interpreter.locals = frame.f_locals
-                interpreter.globals = frame.f_globals
-                # Notify IEP
-                interpreter.writestatus()
-            else:
-                interpreter.write("No debug information available.\n")
-        
-        elif command.startswith('DB FRAME '):
-            if not interpreter._dbFrames:
-                interpreter.write("Not in debug mode.\n")
-            else:
-                # Set frame index
-                interpreter._dbFrameIndex = int(command.rsplit(' ',1)[-1])
-                if interpreter._dbFrameIndex < 1:
-                    interpreter._dbFrameIndex = 1
-                elif interpreter._dbFrameIndex > len(interpreter._dbFrames):
-                    interpreter._dbFrameIndex = len(interpreter._dbFrames)
-                # Set name and locals
-                frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
-                interpreter._dbFrameName = frame.f_code.co_name
-                interpreter.locals = frame.f_locals
-                interpreter.globals = frame.f_globals
-                interpreter.writestatus()
-        
-        elif command == 'DB UP':
-            if not interpreter._dbFrames:
-                interpreter.write("Not in debug mode.\n")
-            else:
-                # Decrease frame index
-                interpreter._dbFrameIndex -= 1
-                if interpreter._dbFrameIndex < 1:
-                    interpreter._dbFrameIndex = 1
-                # Set name and locals
-                frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
-                interpreter._dbFrameName = frame.f_code.co_name
-                interpreter.locals = frame.f_locals
-                interpreter.globals = frame.f_globals
-                interpreter.writestatus()
-        
-        elif command == 'DB DOWN':
-            if not interpreter._dbFrames:
-                interpreter.write("Not in debug mode.\n")
-            else:
-                # Increase frame index
-                interpreter._dbFrameIndex += 1
-                if interpreter._dbFrameIndex > len(interpreter._dbFrames):
-                    interpreter._dbFrameIndex = len(interpreter._dbFrames)
-                # Set name and locals
-                frame = interpreter._dbFrames[interpreter._dbFrameIndex-1]
-                interpreter._dbFrameName = frame.f_code.co_name
-                interpreter.locals = frame.f_locals
-                interpreter.globals = frame.f_globals
-                interpreter.writestatus()
-        
-        elif command == 'DB STOP':
-            if not interpreter._dbFrames:
-                interpreter.write("Not in debug mode.\n")
-            else:
-                interpreter.locals = interpreter._main_locals
-                interpreter.globals = None
-                interpreter._dbFrames = []
-                interpreter.writestatus()
-        
-        elif command == 'DB WHERE':
-            if not interpreter._dbFrames:
-                interpreter.write("Not in debug mode.\n")
-            else:
-                lines = []
-                for i in range(len(interpreter._dbFrames)):
-                    frameIndex = i+1
-                    f = interpreter._dbFrames[i]
-                    # Get fname and lineno, and correct if required
-                    fname, lineno = f.f_code.co_filename, f.f_lineno
-                    fname, lineno = interpreter.correctfilenameandlineno(fname, lineno)
-                    # Build string
-                    text = 'File "%s", line %i, in %s' % (
-                                            fname, lineno, f.f_code.co_name)
-                    if frameIndex == interpreter._dbFrameIndex:
-                        lines.append('-> %i: %s'%(frameIndex, text))
-                    else:
-                        lines.append('   %i: %s'%(frameIndex, text))
-                lines.append('')
-                sys.stdout.write('\n'.join(lines))
-        
+        # Get command and arg
+        line += ' '
+        _, cmd, arg = line.split(' ', 2)
+        cmd = cmd.lower()
+        # Get func
+        func = getattr(interpreter.debugger, 'do_'+cmd, None)
+        # Call or show warning
+        if func is not None:
+            func(arg.strip())
         else:
-            sys.stdout.write('Unknown debug command.\n')
-        
+            interpreter.write("Unknown debug command: %s.\n" % cmd)
         # Done (no code to execute)
         return ''
     
