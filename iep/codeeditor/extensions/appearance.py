@@ -589,10 +589,10 @@ class LineNumbers(object):
         
         #On resize, resize the lineNumberArea, too
         rect=self.contentsRect()
-        m1 = self.getLeftMargin(LineNumbers)
-        m2 = m1 + self.getLineNumberAreaWidth()
-        self.__lineNumberArea.setGeometry(  rect.x()+m1, rect.y(),
-                                            m2, rect.height())
+        m = self.getLeftMargin(LineNumbers)
+        w = self.getLineNumberAreaWidth()
+        self.__lineNumberArea.setGeometry(  rect.x()+m, rect.y(),
+                                            w, rect.height())
     
     def paintEvent(self,event):
         super(LineNumbers, self).paintEvent(event)
@@ -743,10 +743,10 @@ class BreakPoints(object):
         
         #On resize, resize the breakpointArea, too
         rect=self.contentsRect()
-        m1 = self.getLeftMargin(BreakPoints)
-        m2 = m1 + self._breakPointWidth
-        self.__breakPointArea.setGeometry(  rect.x()+m1, rect.y(),
-                                            m2, rect.height())
+        m = self.getLeftMargin(BreakPoints)
+        w = self._breakPointWidth
+        self.__breakPointArea.setGeometry(  rect.x()+m, rect.y(),
+                                            w, rect.height())
     
     def paintEvent(self,event):
         super(BreakPoints, self).paintEvent(event)
