@@ -22,14 +22,15 @@ from .extensions.appearance import (    HighlightCurrentLine,
                                         ShowLineEndings,
                                         Wrap,
                                         LineNumbers,
-                                        SyntaxHighlighting
+                                        SyntaxHighlighting,
+                                        BreakPoints,
                                     )
 from .extensions.behaviour import (     Indentation,
                                         HomeKey,
                                         EndKey,
                                         NumpadPeriodKey,
                                         AutoIndent,
-                                        PythonAutoIndent
+                                        PythonAutoIndent,
                                    )
 from .extensions.autocompletion import AutoCompletion
 from .extensions.calltip import Calltip
@@ -47,6 +48,7 @@ class CodeEditor(
     ShowWhitespace, 
     ShowLineEndings, 
     Wrap,
+    BreakPoints,
     LineNumbers, 
 
     AutoCompletion, #Escape: first remove autocompletion,
@@ -67,3 +69,4 @@ class CodeEditor(
     CodeEditor with all the extensions
     """
     pass
+

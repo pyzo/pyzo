@@ -559,8 +559,8 @@ class LineNumbers(object):
                 self.__onBlockCountChanged()
                 self.__lineNumberArea.show()
             else:
-                self.setViewportMargins(0,0,0,0)
                 self.__lineNumberArea.hide()
+            self.updateMargins()
     
     
     def getLineNumberAreaWidth(self):
@@ -599,6 +599,160 @@ class LineNumbers(object):
         #On repaint, update the complete line number area
         w = self.getLineNumberAreaWidth()
         self.__lineNumberArea.update(0, 0, w, self.height() )
+
+
+
+class BreakPoints(object):
+    
+    _breakPointWidth = 10  # With of total bar, actual points are smaller
+    
+    # Register style element
+    _styleElements = [  (   'Editor.BreakPoints',
+                            'The fore- and background-color of the breakpoints.',
+                            'fore:#F66,back:#EEE', 
+                        ) ]
+    
+    class __BreakPointArea(QtGui.QWidget):
+        """ This is the widget reponsible for drawing the break points.
+        """
+        
+        def __init__(self, codeEditor):
+            QtGui.QWidget.__init__(self, codeEditor)
+            self.setCursor(QtCore.Qt.PointingHandCursor)
+        
+        def _getY(self, pos):
+            tmp = self.mapToGlobal(pos)
+            return self.parent().viewport().mapFromGlobal(tmp).y()
+        
+        def mousePressEvent(self, event):
+            self._toggleBreakPoint( self._getY(event.pos()))
+        
+        def _toggleBreakPoint(self, y):
+            # Get breakpoint corresponding to pressed pos
+            editor = self.parent()
+            cursor = editor.textCursor()
+            c1 = editor.cursorForPosition(QtCore.QPoint(0,y))
+            linenr = c1.blockNumber() + 1
+            
+            # Toggle
+            bps = self.parent()._breakPoints
+            if linenr in bps:
+                bps.discard(linenr)
+            else:
+                bps.add(linenr)
+        
+        def paintEvent(self, event):
+            editor = self.parent()
+            
+            if not editor.showBreakPoints():
+                return
+            
+            # Get doc and viewport
+            doc = editor.document()
+            viewport = editor.viewport()
+            
+            # Get format and margin
+            format = editor.getStyleElementFormat('editor.breakpoints')
+            margin = 1
+            w = editor._breakPointWidth
+            bulletWidth = w - 2*margin
+            
+            # Init painter
+            painter = QtGui.QPainter()
+            painter.begin(self)
+            
+            # Get which part to paint. Just do all to avoid glitches
+            y1, y2 = 0, editor.height()
+            
+            # Get offset        
+            tmp = self.mapToGlobal(QtCore.QPoint(0,0))
+            offset = viewport.mapFromGlobal(tmp).y()
+            
+            #Draw the background        
+            painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
+            
+            # Get list of sorted breakpoints
+            blocknumbers = [i-1 for i in sorted(self.parent()._breakPoints)]
+            if not blocknumbers:
+                return
+            
+            # Get cursor
+            cursor = editor.cursorForPosition(QtCore.QPoint(0,y1))
+            
+            # Init painter with font and color
+            painter.setPen(QtGui.QColor('#777'))
+            painter.setBrush(format.fore)
+            painter.setRenderHint(painter.Antialiasing)
+            
+            #Repainting always starts at the first block in the viewport,
+            #regardless of the event.rect().y(). Just to keep it simple
+            while True:
+                blockNumber = cursor.block().blockNumber()
+                y = editor.cursorRect(cursor).center().y()
+                y -= bulletWidth * 0.5
+                
+                # Done?
+                if blockNumber > blocknumbers[-1]:
+                    break
+                if not cursor.block().next().isValid():
+                    break #Reached end of the text
+                
+                # Draw
+                if blockNumber in blocknumbers:
+                    painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
+                
+                cursor.movePosition(cursor.NextBlock)
+            
+            # Done
+            painter.end()
+    
+    
+    def __init__(self, *args, **kwds):
+        self.__breakPointArea = None
+        super(BreakPoints, self).__init__(*args, **kwds)
+        # Create widget that draws the breakpoints
+        self.__breakPointArea = self.__BreakPointArea(self)
+        self.addLeftMargin(BreakPoints, lambda:self._breakPointWidth)
+        self._breakPoints = set()
+    
+    
+    def breakPoints(self):
+        """ A list of breakpoints for this editor.
+        """
+        return list(sorted(self._breakPoints))
+    
+    
+    def showBreakPoints(self):
+        return self.__showBreakPoints
+    
+    @ce_option(True)
+    def setShowBreakPoints(self, value):
+        self.__showBreakPoints = bool(value)
+        # Note that this method is called before the __init__ is finished,
+        # so that the area is not yet created.
+        if self.__breakPointArea:
+            if self.__showBreakPoints:
+                self.__breakPointArea.show()
+            else:
+                self.__breakPointArea.hide()
+            self.updateMargins()
+    
+    
+    def resizeEvent(self,event):
+        super(BreakPoints, self).resizeEvent(event)
+        
+        #On resize, resize the breakpointArea, too
+        rect=self.contentsRect()
+        m1 = self.getLeftMargin(BreakPoints)
+        m2 = m1 + self._breakPointWidth
+        self.__breakPointArea.setGeometry(  rect.x()+m1, rect.y(),
+                                            m2, rect.height())
+    
+    def paintEvent(self,event):
+        super(BreakPoints, self).paintEvent(event)
+        #On repaint, update the complete breakPointArea
+        w = self._breakPointWidth
+        self.__breakPointArea.update(0, 0, w, self.height() )
 
 
 
