@@ -216,7 +216,8 @@ class BaseShell(BaseTextCtrl):
     
     def __init__(self, parent,**kwds):
         super().__init__(parent, wrap=True, showLineNumbers=False, 
-            highlightCurrentLine=False, parser='python', **kwds)
+            showBreakPoints=False, highlightCurrentLine=False, parser='python', 
+            **kwds)
         
         # Use a special highlighter that only highlights the input.
         self._setHighlighter(ShellHighlighter)
