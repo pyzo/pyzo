@@ -185,14 +185,19 @@ class FullUnderlines(object):
             y = self.cursorRect(cursor).bottom() 
 
             bd = cursor.block().userData()            
-            if bd and bd.fullUnderlineFormat is not None:
-                # Apply pen
-                pen = QtGui.QPen(bd.fullUnderlineFormat.fore)
-                pen.setStyle(bd.fullUnderlineFormat.linestyle)
-                painter.setPen(pen)
-                # Paint
-                painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))            
-            
+            try:
+                fullUnderlineFormat = bd.fullUnderlineFormat
+            except AttributeError:
+                pass  # fullUnderlineFormat may not be an attribute
+            else:
+                if fullUnderlineFormat is not None:
+                    # Apply pen
+                    pen = QtGui.QPen(fullUnderlineFormat.fore)
+                    pen.setStyle(fullUnderlineFormat.linestyle)
+                    painter.setPen(pen)
+                    # Paint
+                    painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))            
+        
         self.doForVisibleBlocks(paintUnderline)
         
         painter.end()
