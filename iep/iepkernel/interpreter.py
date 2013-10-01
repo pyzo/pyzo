@@ -311,8 +311,10 @@ class IepInterpreter:
                 self._resetbuffer()
                 self.more = 0
         except SystemExit:
-            # Exit from interpreter (essentially SystemExit falls through)
-            raise
+            # Stop debugger if it is running
+            self.debugger.stopinteraction()
+            # Exit from interpreter. Exit in the appropriate way
+            self.guiApp.quit()  # Is sys.exit() by default
     
     
     def _process_commands(self):
@@ -351,8 +353,10 @@ class IepInterpreter:
         
         # Are we still connected?
         if sys.stdin.closed or not self.context.connection_count:
-            # Exit from main loop
-            self.guiApp.quit()  # todo: is this ok?
+            # Exit from main loop.
+            # This will raise SystemExit and will shut us down in the 
+            # most appropriate way
+            sys.exit()
         
         # Get channel to take a message from
         ch = yoton.select_sub_channel(self.context._ctrl_command, self.context._ctrl_code)
@@ -639,7 +643,7 @@ class IepInterpreter:
     
     ## Writing and error handling
     
-    # todo: remove this method
+    
     def write(self, text):
         """ Write errors. """
         sys.stderr.write( text )

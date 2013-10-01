@@ -16,7 +16,7 @@ class Debugger(bdb.Bdb):
     """
     
     def __init__(self):
-        self._wait_for_mainpyfile = False  # todo: from pdb, do we need this?
+        self._wait_for_mainpyfile = False  # from pdb, do we need this?
         bdb.Bdb.__init__(self)
         self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
     

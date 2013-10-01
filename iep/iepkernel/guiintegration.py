@@ -21,10 +21,8 @@ from iepkernel import printDirect
 
 
 mainloopWarning = """
-Note: not entering main loop. The GUI app is integrated with the IEP event
-loop, which means that the function to enter the main loop does not block. 
-If your app crashes, this might be because a GUI object goes out of scope 
-and is prematurely cleaned up.
+Note: The GUI event loop is already running in the IEP kernel. Be aware
+that the function to enter the main loop does not block.
 """.strip()
 
 
@@ -227,11 +225,9 @@ class App_qt(App_base):
                 is not obvious.
                 """
                 printDirect(mainloopWarning)
-                # todo: is it really necessary to hide this? Can we not enter
-                # the mainloop twice?
             
             def quit(self, *args, **kwargs):
-                """ Do not quit. """
+                """ Do not quit if Qt app quits. """
                 pass
         
         
@@ -268,6 +264,7 @@ class App_qt(App_base):
     
     
     def quit(self):
+        # A nicer way to quit
         self._QtGui.real_QApplication.quit()
 
 
