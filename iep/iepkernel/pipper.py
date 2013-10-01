@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2013, Almar Klein
+# Copyright (C) 2013, Almar Klein
 
 # From iep/iepkernel
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012, the IEP development team
+# Copyright (C) 2013, the IEP development team
 #
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
@@ -1426,7 +1426,7 @@ class HelpMenu(Menu):
         <br><br>
         
         <b>License</b><br>
-        Copyright (C) 2012, the IEP development team<br>
+        Copyright (C) 2013, the IEP development team<br>
         IEP is distributed under the terms of the (new) BSD License.<br>
         The full license can be found in 'license.txt'.
         <br><br>
