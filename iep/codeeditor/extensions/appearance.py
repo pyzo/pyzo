@@ -606,7 +606,7 @@ class BreakPoints(object):
     
     breakPointsChanged = QtCore.Signal(object)
     
-    _breakPointWidth = 10  # With of total bar, actual points are smaller
+    _breakPointWidth = 11  # With of total bar, actual points are smaller
     
     # Register style element
     _styleElements = [  (   'Editor.BreakPoints',
@@ -677,10 +677,12 @@ class BreakPoints(object):
             #Draw the background        
             painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
             
-            # Get list of sorted breakpoints
+            # Get debug indicator and list of sorted breakpoints
+            debugBlockIndicator = editor._debugLineIndicator-1
             blocknumbers = [i-1 for i in sorted(self.parent()._breakPoints)]
-            if not blocknumbers:
+            if not (blocknumbers or debugBlockIndicator > 0):
                 return
+            if not blocknumbers:  blocknumbers.append(-1)  # Safes a test below
             
             # Get cursor
             cursor = editor.cursorForPosition(QtCore.QPoint(0,y1))
@@ -690,22 +692,30 @@ class BreakPoints(object):
             painter.setBrush(format.fore)
             painter.setRenderHint(painter.Antialiasing)
             
+            
             #Repainting always starts at the first block in the viewport,
             #regardless of the event.rect().y(). Just to keep it simple
             while True:
                 blockNumber = cursor.block().blockNumber()
-                y = editor.cursorRect(cursor).center().y()
-                y -= bulletWidth * 0.5
                 
                 # Done?
-                if blockNumber > blocknumbers[-1]:
+                if blockNumber > blocknumbers[-1] and blockNumber > debugBlockIndicator:
                     break
                 if not cursor.block().next().isValid():
                     break #Reached end of the text
                 
                 # Draw
                 if blockNumber in blocknumbers:
+                    y = editor.cursorRect(cursor).center().y()
+                    y -= bulletWidth * 0.5
                     painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
+                if blockNumber == debugBlockIndicator:
+                    y = editor.cursorRect(cursor).center().y()
+                    y -= bulletWidth * 0.25
+                    painter.setBrush(QtGui.QColor('#6F6'))
+                    #painter.drawRect(margin, y, bulletWidth, 0.5*bulletWidth)
+                    painter.drawEllipse(margin, y, bulletWidth, 0.5*bulletWidth)
+                    painter.setBrush(format.fore)
                 
                 cursor.movePosition(cursor.NextBlock)
             
@@ -720,6 +730,7 @@ class BreakPoints(object):
         self.__breakPointArea = self.__BreakPointArea(self)
         self.addLeftMargin(BreakPoints, lambda:self._breakPointWidth)
         self._breakPoints = set()
+        self._debugLineIndicator = 0
     
     
     def breakPoints(self):
@@ -733,6 +744,16 @@ class BreakPoints(object):
         """
         self._breakPoints = set()
         self.breakPointsChanged.emit(self)
+    
+    
+    def setDebugLineIndicator(self, linenr):
+        """ Set the debug line indicator to the given line number.
+        If None or 0, the indicator is hidden.
+        """
+        linenr = int(linenr or 0)
+        if linenr != self._debugLineIndicator:
+            self._debugLineIndicator = linenr
+            self.__breakPointArea.update()
     
     
     def showBreakPoints(self):

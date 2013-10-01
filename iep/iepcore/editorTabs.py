@@ -995,6 +995,19 @@ class EditorTabs(QtGui.QWidget):
         self.breakPointsChanged.emit(self._breakPoints)
     
     
+    def setDebugLineIndicator(self, filename, linenr):
+        """ Set the debug line indicator. There is one indicator
+        global to IEP, corresponding to the last shell for which we
+        received the indicator.
+        """
+        for editor in self:
+            fname = editor._filename or editor._name
+            if fname == filename:
+                editor.setDebugLineIndicator(linenr)
+            else:
+                editor.setDebugLineIndicator(None)
+    
+    
     ## Loading ad saving files
     
     def dragEnterEvent(self, event):
