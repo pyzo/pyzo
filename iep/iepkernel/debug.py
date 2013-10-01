@@ -88,9 +88,10 @@ class Debugger(bdb.Bdb):
     
     
     def message(self, msg):
-        """ Alias for interpreter.write. Writes to stderr.
+        """ Alias for interpreter.write(), but appends a newline.
+        Writes to stderr.
         """
-        sys._iepInterpreter.write(msg)
+        sys._iepInterpreter.write(msg+'\n')
     
     
     def error(self, msg):
@@ -115,10 +116,11 @@ class Debugger(bdb.Bdb):
                 fname2 = os.path.abspath(fname)
                 if os.path.isfile(fname2):
                     fname = fname2
+            frames.append((fname, lineno, f.f_code.co_name))
             # Build string
-            text = 'File "%s", line %i, in %s' % (
-                                    fname, lineno, f.f_code.co_name)
-            frames.append(text)
+            #text = 'File "%s", line %i, in %s' % (
+            #                        fname, lineno, f.f_code.co_name)
+            #frames.append(text)
         
         # Send info object
         state = {   'index': interpreter._dbFrameIndex, 
@@ -275,11 +277,11 @@ class Debugger(bdb.Bdb):
         
         # Interact, or not
         if self._debugmode:
-            self.message("Already in debug mode.\n")
+            self.message("Already in debug mode.")
         elif frame:
             self.interaction(frame, None, pm=True)
         else:
-            self.message("No debug information available.\n")
+            self.message("No debug information available.")
     
     
     def do_frame(self, arg):
@@ -288,7 +290,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter
         
         if not self._debugmode:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         else:
             # Set frame index
             interpreter._dbFrameIndex = int(arg)
@@ -310,7 +312,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not self._debugmode:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         else:
             # Decrease frame index
             interpreter._dbFrameIndex -= 1
@@ -330,7 +332,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not self._debugmode:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         else:
             # Increase frame index
             interpreter._dbFrameIndex += 1
@@ -351,7 +353,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not self._debugmode:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         else:
             self.set_quit()
             self.stopinteraction()
@@ -363,7 +365,7 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if not self._debugmode:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         else:
             lines = []
             for i in range(len(interpreter._dbFrames)):
@@ -389,9 +391,9 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if self._debugmode == 0:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         elif self._debugmode == 1:
-            self.message("Cannot use 'continue' in postmortem debug mode.\n")
+            self.message("Cannot use 'continue' in postmortem debug mode.")
         else:
             self.set_continue()
             self.stopinteraction()
@@ -403,9 +405,9 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if self._debugmode == 0:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         elif self._debugmode == 1:
-            self.message("Cannot use 'step' in postmortem debug mode.\n")
+            self.message("Cannot use 'step' in postmortem debug mode.")
         else:
             self.set_step()
             self.stopinteraction()
@@ -417,9 +419,9 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if self._debugmode == 0:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         elif self._debugmode == 1:
-            self.message("Cannot use 'next' in postmortem debug mode.\n")
+            self.message("Cannot use 'next' in postmortem debug mode.")
         else:
             frame = interpreter._dbFrames[-1]
             self.set_next(frame)
@@ -432,9 +434,9 @@ class Debugger(bdb.Bdb):
         interpreter = sys._iepInterpreter 
         
         if self._debugmode == 0:
-            self.message("Not in debug mode.\n")
+            self.message("Not in debug mode.")
         elif self._debugmode == 1:
-            self.message("Cannot use 'return' in postmortem debug mode.\n")
+            self.message("Cannot use 'return' in postmortem debug mode.")
         else:
             frame = interpreter._dbFrames[-1]
             self.set_return(frame)

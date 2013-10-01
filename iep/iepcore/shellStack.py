@@ -442,7 +442,7 @@ class DebugControl(QtGui.QToolButton):
     
     
     def setTrace(self, info):
-        """ Determine whether we are in debug mode.
+        """ Determine whether we are in debug mode. 
         """
         if info is None:
             self._debugmode = 0
@@ -504,6 +504,7 @@ class DebugStack(QtGui.QToolButton):
             self.setMenu(None)
             self.setText(self._baseText)
             self.setEnabled(False)
+            iep.editors.setDebugLineIndicator('', 0)
         
         else:
             # Get the current frame
@@ -516,13 +517,17 @@ class DebugStack(QtGui.QToolButton):
             # Fill trace
             for i in range(len(frames)):
                 thisIndex = i + 1
-                action = menu.addAction('{}: {}'.format(thisIndex, frames[i]))
+                text = '{}: File "{}", line {}, in {}'
+                text = text.format(thisIndex, *frames[i])
+                action = menu.addAction(text)
                 action._index = thisIndex
                 action._isCurrent = False
                 if thisIndex == index:
                     action._isCurrent = True
                     theAction = action
-                    
+                    # Send notice to editor stack
+                    filename, linenr, func = frames[i]
+                    iep.editors.setDebugLineIndicator(filename, linenr)
             
             # Highlight current item and set the button text
             if theAction:
