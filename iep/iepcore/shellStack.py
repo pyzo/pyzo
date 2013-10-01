@@ -98,6 +98,7 @@ class ShellStackWidget(QtGui.QWidget):
         # Populate toolbar
         self._shellButton = ShellControl(self._toolbar, self._stack)
         self._dbc = DebugControl(self._toolbar)
+        self._dbs = DebugStack(self._toolbar)
         #
         self._toolbar.addWidget(self._shellButton)
         self._toolbar.addSeparator()
@@ -184,8 +185,10 @@ class ShellStackWidget(QtGui.QWidget):
         if shell is self.getCurrentShell():
             # Update debug info
             if shell and shell._debugState:
+                self._dbs.setTrace(shell._debugState)
                 self._dbc.setTrace(shell._debugState)
             else:
+                self._dbs.setTrace(None)
                 self._dbc.setTrace(None)
             # Send signal
             self.currentShellStateChanged.emit()
@@ -239,8 +242,9 @@ class ShellStackWidget(QtGui.QWidget):
         # Add actions
         for action in iep.main.menuBar()._menumap['shell']._shellActions:
             action = self._toolbar.addAction(action)
-        # Delayed-add debug control button
+        # Delayed-add debug control buttons
         self._toolbar.addWidget(self._dbc)
+        self._toolbar.addWidget(self._dbs)
     
     
     def contextMenuTriggered(self, p):
@@ -349,36 +353,120 @@ class ShellControl(QtGui.QToolButton):
 
 
 class DebugControl(QtGui.QToolButton):
-    """ A button that can be used for post mortem debuggin. 
+    """ A button to control debugging. 
+    """
+    
+    def __init__(self, parent):
+        QtGui.QToolButton.__init__(self, parent)
+        
+        # Flag
+        self._debugmode = False
+        
+        # Set text
+        self.setText(translate('debug', 'Debug'))
+        self.setIcon(iep.icons.bug)
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        #self.setPopupMode(self.InstantPopup)
+        
+        # Bind to triggers
+        self.triggered.connect(self.onTriggered)
+        self.pressed.connect(self.onPressed)
+        self.buildMenu()
+    
+    
+    def buildMenu(self):
+        
+        # Count breakpoints
+        bpcount = 0
+        for e in iep.editors:
+            bpcount += len(e.breakPoints())
+        
+        # Prepare a text
+        clearallbps = translate('debug', 'Clear all {} breakpoints')
+        clearallbps = clearallbps.format(bpcount)
+        
+        # Set menu
+        menu = QtGui.QMenu(self)
+        self.setMenu(menu)
+        
+        for cmd, enabled, icon, text in [ 
+                ('CLEAR', self._debugmode==0, iep.icons.bug_delete, clearallbps),
+                ('PM', self._debugmode==0, iep.icons.bug_error, 
+                    translate('debug', 'Postmortem: debug from last traceback')),
+                ('STOP', self._debugmode>0, iep.icons.arrow_left, 
+                    translate('debug', 'Stop debugging')),
+                (None, None, None, None),
+                ('NEXT', self._debugmode==2, None, 
+                    translate('debug', 'Next: proceed until next line')),
+                ('STEP', self._debugmode==2, None, 
+                    translate('debug', 'Step: proceed one step')),
+                ('RETURN', self._debugmode==2, None, 
+                    translate('debug', 'Return: proceed until returns')),
+                ('CONTINUE', self._debugmode==2, None, 
+                    translate('debug', 'Continue: proceed to next breakpoint')),
+                ]:
+            if cmd is None:
+                menu.addSeparator()
+            else:
+                a = menu.addAction(text)
+                a.cmd = cmd
+                a.setEnabled(enabled)
+                if hasattr(text, 'tt'):
+                    a.setToolTip(text.tt)
+                if icon is not None:
+                    a.setIcon(iep.icons.bug)
+    
+    
+    def onPressed(self, show=True):
+        self.buildMenu()
+        self.showMenu()
+    
+    
+    def onTriggered(self, action):
+        if action.cmd == 'PM':  
+            # Initiate postmortem debugging
+            shell = iep.shells.getCurrentShell()
+            if shell:
+                shell.executeCommand('DB START\n')
+        
+        elif action.cmd == 'CLEAR':
+            # Clear all breakpoints
+            for e in iep.editors:
+                e.clearBreakPoints()
+        
+        else:
+            command = action.cmd.upper()
+            shell = iep.shells.getCurrentShell()
+            if shell:
+                shell.executeCommand('DB %s\n' % command)
+    
+    
+    def setTrace(self, info):
+        """ Determine whether we are in debug mode.
+        """
+        if info is None:
+            self._debugmode = 0
+        else:
+            self._debugmode = info['debugmode']
+
+
+
+class DebugStack(QtGui.QToolButton):
+    """ A button that shows the stack trace.
     """
     
     def __init__(self, parent):
         QtGui.QToolButton.__init__(self, parent)
         
         # Set text and tooltip
-        self.setText('Debug')
-        self.setIcon(iep.icons.bug)
+        self._baseText = translate('debug', 'Stack')
+        self.setText('%s:' % self._baseText)
+        self.setIcon(iep.icons.text_align_justify)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.setToolTip(translate("debug", "Start/Stop post mortem debugging."))
-        
-        # Set mode
         self.setPopupMode(self.InstantPopup)
         
         # Bind to triggers
-        self.pressed.connect(self.onPressed)
         self.triggered.connect(self.onTriggered)
-    
-    
-    def onPressed(self):
-        # Also fires after clicking on an action and (if there's a
-        # menu) clicking outside the button and menu 
-        
-        if not self.menu():
-            
-            # Initiate debugging
-            shell = iep.shells.getCurrentShell()
-            if shell:
-                shell.executeCommand('DB START\n')
     
     
     def onTriggered(self, action):
@@ -388,17 +476,13 @@ class DebugControl(QtGui.QToolButton):
         if not shell:
             return
         
-        if action._index < 1:
-            # Stop debugging
-            shell.executeCommand('DB STOP\n')
-        else:
-            # Change stack index
-            if not action._isCurrent:
-                shell.executeCommand('DB FRAME {}\n'.format(action._index))
-            # Open file and select line
-            if True:
-                line = action.text().split(': ',1)[1]
-                self.debugFocus(line)
+        # Change stack index
+        if not action._isCurrent:
+            shell.executeCommand('DB FRAME {}\n'.format(action._index))
+        # Open file and select line
+        if True:
+            line = action.text().split(': ',1)[1]
+            self.debugFocus(line)
     
     
     def setTrace(self, info):
@@ -418,7 +502,8 @@ class DebugControl(QtGui.QToolButton):
             
             # Remove trace
             self.setMenu(None)
-            self.setText('Debug')
+            self.setText(self._baseText)
+            self.setEnabled(False)
         
         else:
             # Get the current frame
@@ -427,8 +512,6 @@ class DebugControl(QtGui.QToolButton):
             # Create menu and add __main__
             menu = QtGui.QMenu(self)
             self.setMenu(menu)
-            action = menu.addAction('MAIN: stop debugging')
-            action._index = 0
             
             # Fill trace
             for i in range(len(frames)):
@@ -446,8 +529,10 @@ class DebugControl(QtGui.QToolButton):
                 menu.setDefaultAction(theAction)
                 #self.setText(theAction.text().ljust(20))
                 i = theAction._index
-                text = "Stack Trace ({}/{}):  ".format(i, len(frames))
+                text = "{} ({}/{}):  ".format(self._baseText, i, len(frames))
                 self.setText(text)
+            
+            self.setEnabled(True)
     
     
     def debugFocus(self, lineFromDebugState):
@@ -476,4 +561,5 @@ class DebugControl(QtGui.QToolButton):
             cursor.movePosition(cursor.StartOfBlock)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
             editor.setTextCursor(cursor)
+
 
