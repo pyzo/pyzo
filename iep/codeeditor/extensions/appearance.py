@@ -728,6 +728,13 @@ class BreakPoints(object):
         return list(sorted(self._breakPoints))
     
     
+    def clearBreakPoints(self):
+        """ Remove all breakpoints for this editor.
+        """
+        self._breakPoints = set()
+        self.breakPointsChanged.emit(self)
+    
+    
     def showBreakPoints(self):
         return self.__showBreakPoints
     

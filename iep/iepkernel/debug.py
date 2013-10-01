@@ -1,15 +1,27 @@
-import time
+# -*- coding: utf-8 -*-
+# Copyright (C) 2012, the IEP development team
+#
+# IEP is distributed under the terms of the (new) BSD License.
+# The full license can be found in 'license.txt'.
+
+import os
 import sys
+import time
 import bdb
+import traceback
+
 
 class Debugger(bdb.Bdb):
+    """ Debugger for the IEP kernel, based on bdb.
+    """
     
     def __init__(self):
         self._wait_for_mainpyfile = False  # todo: from pdb, do we need this?
         bdb.Bdb.__init__(self)
+        self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
     
     
-    def interaction(self, frame, traceback):
+    def interaction(self, frame, traceback=None, pm=False):
         """ Enter an interaction-loop for debugging. No GUI events are
         processed here. We leave this event loop at some point, after
         which the conrol flow will proceed. 
@@ -37,19 +49,21 @@ class Debugger(bdb.Bdb):
             interpreter.globals = frame.f_globals
         
         # Let the IDE know
-        interpreter.writestatus()
+        self._debugmode = 1 if pm else 2
+        self.writestatus()
         
-        # Enter interact loop
+        # Enter interact loop. We may hang in here for a while ...
         self._interacting = True
         while self._interacting:
             time.sleep(0.05)
             interpreter.process_commands()
         
         # Reset
+        self._debugmode = 0
         interpreter.locals = interpreter._main_locals
         interpreter.globals = None
         interpreter._dbFrames = []
-        interpreter.writestatus()
+        self.writestatus()
     
     
     def stopinteraction(self):
@@ -61,21 +75,16 @@ class Debugger(bdb.Bdb):
     def set_on(self):
         """ To turn debugging on right before executing code. 
         """
+        # Reset and set bottom frame
         self.reset()
         self.botframe = sys._getframe().f_back
+        # Don't stop except at breakpoints or when finished
+        self._set_stopinfo(self.botframe, None, -1)  # From set_continue
+        # Set tracing or not
         if self.breaks:
             sys.settrace(self.trace_dispatch)
         else:
             sys.settrace(None)
-    
-    
-    # Overloaded from Bdb to not stop if frame is subframe of bottomframe
-    def stop_here(self, frame):
-        if frame is self.stopframe:
-            if self.stoplineno == -1:
-                return False
-            return frame.f_lineno >= self.stoplineno
-        return False
     
     
     def message(self, msg):
@@ -88,6 +97,34 @@ class Debugger(bdb.Bdb):
         """ method used in some code that we copied from pdb.
         """
         raise self.message('*** '+msg)
+    
+    
+    def writestatus(self):
+        """ Write the debug status so the IDE can take action.
+        """
+        
+        interpreter = sys._iepInterpreter
+        
+        # Collect frames info
+        frames = []
+        for f in interpreter._dbFrames:
+            # Get fname and lineno, and correct if required
+            fname, lineno = f.f_code.co_filename, f.f_lineno
+            fname, lineno = interpreter.correctfilenameandlineno(fname, lineno)
+            if not fname.startswith('<'):
+                fname2 = os.path.abspath(fname)
+                if os.path.isfile(fname2):
+                    fname = fname2
+            # Build string
+            text = 'File "%s", line %i, in %s' % (
+                                    fname, lineno, f.f_code.co_name)
+            frames.append(text)
+        
+        # Send info object
+        state = {   'index': interpreter._dbFrameIndex, 
+                    'frames': frames,
+                    'debugmode': self._debugmode}
+        interpreter.context._stat_debug.send(state)
     
     
     ## Stuff that we need to overload
@@ -198,7 +235,8 @@ class Debugger(bdb.Bdb):
             print('All debug commands:')
             # Show docs in  order
             for name in [   'start', 'stop', 'frame', 'up', 'down', 
-                            'continue', 'step', 'next', 'where', 'events']:
+                            'next', 'step','return', 'continue',
+                            'where', 'events']:
                 doc = docs.pop(name)
                 name= name.rjust(10)
                 print(' %s - %s' % (name, doc))
@@ -236,10 +274,10 @@ class Debugger(bdb.Bdb):
             tb = tb.tb_next
         
         # Interact, or not
-        if interpreter._dbFrames:
+        if self._debugmode:
             self.message("Already in debug mode.\n")
         elif frame:
-            self.interaction(frame, None)
+            self.interaction(frame, None, pm=True)
         else:
             self.message("No debug information available.\n")
     
@@ -249,7 +287,7 @@ class Debugger(bdb.Bdb):
         """
         interpreter = sys._iepInterpreter
         
-        if not interpreter._dbFrames:
+        if not self._debugmode:
             self.message("Not in debug mode.\n")
         else:
             # Set frame index
@@ -263,7 +301,7 @@ class Debugger(bdb.Bdb):
             interpreter._dbFrameName = frame.f_code.co_name
             interpreter.locals = frame.f_locals
             interpreter.globals = frame.f_globals
-            interpreter.writestatus()
+            self.writestatus()
     
     
     def do_up(self, arg):
@@ -271,7 +309,7 @@ class Debugger(bdb.Bdb):
         """
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if not self._debugmode:
             self.message("Not in debug mode.\n")
         else:
             # Decrease frame index
@@ -283,7 +321,7 @@ class Debugger(bdb.Bdb):
             interpreter._dbFrameName = frame.f_code.co_name
             interpreter.locals = frame.f_locals
             interpreter.globals = frame.f_globals
-            interpreter.writestatus()
+            self.writestatus()
     
     
     def do_down(self, arg):
@@ -291,7 +329,7 @@ class Debugger(bdb.Bdb):
         """
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if not self._debugmode:
             self.message("Not in debug mode.\n")
         else:
             # Increase frame index
@@ -303,15 +341,16 @@ class Debugger(bdb.Bdb):
             interpreter._dbFrameName = frame.f_code.co_name
             interpreter.locals = frame.f_locals
             interpreter.globals = frame.f_globals
-            interpreter.writestatus()
+            self.writestatus()
     
     
     def do_stop(self, arg):
         """ Stop debugging, terminate process execution.
         """
+        # Can be done both in postmortem and normal debugging
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if not self._debugmode:
             self.message("Not in debug mode.\n")
         else:
             self.set_quit()
@@ -323,7 +362,7 @@ class Debugger(bdb.Bdb):
         """
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if not self._debugmode:
             self.message("Not in debug mode.\n")
         else:
             lines = []
@@ -349,35 +388,56 @@ class Debugger(bdb.Bdb):
         """
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if self._debugmode == 0:
             self.message("Not in debug mode.\n")
+        elif self._debugmode == 1:
+            self.message("Cannot use 'continue' in postmortem debug mode.\n")
         else:
             self.set_continue()
             self.stopinteraction()
     
     
     def do_step(self, arg):
-        """ Step
+        """ Execute the current line, stop ASAP (step into).
         """
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if self._debugmode == 0:
             self.message("Not in debug mode.\n")
+        elif self._debugmode == 1:
+            self.message("Cannot use 'step' in postmortem debug mode.\n")
         else:
             self.set_step()
             self.stopinteraction()
     
     
     def do_next(self, arg):
-        """ Next
+        """ Continue execution until the next line (step over). 
         """
         interpreter = sys._iepInterpreter 
         
-        if not interpreter._dbFrames:
+        if self._debugmode == 0:
             self.message("Not in debug mode.\n")
+        elif self._debugmode == 1:
+            self.message("Cannot use 'next' in postmortem debug mode.\n")
         else:
             frame = interpreter._dbFrames[-1]
             self.set_next(frame)
+            self.stopinteraction()
+    
+    
+    def do_return(self, arg):
+        """ Continue execution until the current function returns (step out).
+        """
+        interpreter = sys._iepInterpreter 
+        
+        if self._debugmode == 0:
+            self.message("Not in debug mode.\n")
+        elif self._debugmode == 1:
+            self.message("Cannot use 'return' in postmortem debug mode.\n")
+        else:
+            frame = interpreter._dbFrames[-1]
+            self.set_return(frame)
             self.stopinteraction()
     
     

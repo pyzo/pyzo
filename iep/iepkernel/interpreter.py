@@ -145,7 +145,7 @@ class IepInterpreter:
         """
         
         # Reset debug status
-        self.writestatus()
+        self.debugger.writestatus()
         
         # Get startup info (get a copy, or setting the new version wont trigger!)
         while self.context._stat_startup.recv() is None:
@@ -643,31 +643,6 @@ class IepInterpreter:
     def write(self, text):
         """ Write errors. """
         sys.stderr.write( text )
-    
-    
-    def writestatus(self):
-        """ Write the status when in ready state.
-        Writes STATE to Ready or Debug and writes DEBUG (info).
-        """
-        
-        # Collect frames info
-        frames = []
-        for f in self._dbFrames:
-            # Get fname and lineno, and correct if required
-            fname, lineno = f.f_code.co_filename, f.f_lineno
-            fname, lineno = self.correctfilenameandlineno(fname, lineno)
-            if not fname.startswith('<'):
-                fname2 = os.path.abspath(fname)
-                if os.path.isfile(fname2):
-                    fname = fname2
-            # Build string
-            text = 'File "%s", line %i, in %s' % (
-                                    fname, lineno, f.f_code.co_name)
-            frames.append(text)
-        
-        # Send info object
-        state = {'index': self._dbFrameIndex, 'frames': frames}
-        self.context._stat_debug.send(state)
     
     
     def showsyntaxerror(self, filename=None):
