@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Almar Klein
+# Copyright (C) 2013 Almar Klein
 
 """ 
 This module defines file system proxies to be used for the file browser.

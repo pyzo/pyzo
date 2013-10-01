@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Almar Klein
+# Copyright (C) 2013 Almar Klein
 
 """ 
 Define tasks that can be executed by the file browser.

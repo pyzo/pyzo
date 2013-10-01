@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010, the IEP development team
+# Copyright (C) 2013, the IEP development team
 #
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
