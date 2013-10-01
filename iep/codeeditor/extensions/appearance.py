@@ -609,8 +609,6 @@ class LineNumbers(object):
 
 class BreakPoints(object):
     
-    breakPointsChanged = QtCore.Signal(object)
-    
     _breakPointWidth = 11  # With of total bar, actual points are smaller
     
     # Register style element
@@ -774,6 +772,7 @@ class BreakPoints(object):
                 self.__breakPointArea.show()
             else:
                 self.__breakPointArea.hide()
+                self.clearBreakPoints()
             self.updateMargins()
     
     
