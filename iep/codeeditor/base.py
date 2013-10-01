@@ -127,6 +127,10 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     # Signal emitted after font (or font size) has changed
     fontChanged = QtCore.Signal()
     
+    # Signal to indicate a change in breakpoints. Only emitted if the
+    # appropriate extension is in use
+    breakPointsChanged = QtCore.Signal(object)
+    
     
     def __init__(self,*args, **kwds):
         super(CodeEditorBase, self).__init__(*args)

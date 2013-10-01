@@ -4,7 +4,7 @@ import sys
 try:
     #if sys.platform == 'darwin':
     #    raise ImportError # PySide causes crashes on Mac OS X
-        
+    
     from PySide import QtCore, QtGui
 except ImportError:
     try:
