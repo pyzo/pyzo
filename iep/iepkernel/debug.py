@@ -33,9 +33,9 @@ class Debugger(bdb.Bdb):
         
         # Collect frames
         frames = []
-        while frame and frame is not self.botframe:
-            if 'iepkernel' in frame.f_code.co_filename:
-                break
+        while frame:
+            if frame is self.botframe: break
+            if 'iepkernel' in frame.f_code.co_filename: break
             frames.insert(0, frame)
             frame = frame.f_back
         
@@ -130,6 +130,24 @@ class Debugger(bdb.Bdb):
     
     
     ## Stuff that we need to overload
+    
+    
+    # Overload set_break to also allow non-existing filenames like "<tmp 1"
+    def set_break(self, filename, lineno, temporary=False, cond=None,
+                  funcname=None):
+        filename = self.canonic(filename)
+        list = self.breaks.setdefault(filename, [])
+        if lineno not in list:
+            list.append(lineno)
+        bp = bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
+    
+    
+    # Prevent stopping in bdb code or iepkernel code
+    def stop_here(self, frame):
+        result = bdb.Bdb.stop_here(self, frame)
+        if result:
+            return (    ('bdb.py' not in frame.f_code.co_filename) and
+                        ('iepkernel' not in frame.f_code.co_filename) )
     
     
     def do_clear(self, arg):

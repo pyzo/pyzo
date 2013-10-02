@@ -1387,8 +1387,12 @@ class EditorTabs(QtGui.QWidget):
                         break
             else:
                 self._tabs.removeTab(editor)
+        
+        # Clear any breakpoints that it may have had
+        self.updateBreakPoints()
+        
         return result
-     
+    
     def closeAllFiles(self):
         """Close all files"""
         for editor in self:
