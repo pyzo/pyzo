@@ -1000,9 +1000,12 @@ class EditorTabs(QtGui.QWidget):
         global to IEP, corresponding to the last shell for which we
         received the indicator.
         """
+        # Use normcase to compare file names. OOn Windows we can have
+        # "c:\.." and "C:\..." for instance
+        filename = os.path.normcase(filename)
         for editor in self:
             fname = editor._filename or editor._name
-            if fname == filename:
+            if os.path.normcase(fname) == filename:
                 editor.setDebugLineIndicator(linenr)
             else:
                 editor.setDebugLineIndicator(None)
