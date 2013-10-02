@@ -48,8 +48,12 @@ class Debugger(bdb.Bdb):
             interpreter.locals = frame.f_locals
             interpreter.globals = frame.f_globals
         
-        # Let the IDE know
-        self._debugmode = 1 if pm else 2
+        # Let the IDE know (
+        # "self._debugmode = 1 if pm else 2" does not work not on py2.4)
+        if pm:
+            self._debugmode = 1
+        else:
+            self._debugmode = 2
         self.writestatus()
         
         # Enter interact loop. We may hang in here for a while ...
@@ -79,7 +83,12 @@ class Debugger(bdb.Bdb):
         self.reset()
         self.botframe = sys._getframe().f_back
         # Don't stop except at breakpoints or when finished
-        self._set_stopinfo(self.botframe, None, -1)  # From set_continue
+        # We do: self._set_stopinfo(self.botframe, None, -1) from set_continue
+        # But write it all out because py2.4 does not have _set_stopinfo
+        self.stopframe = self.botframe
+        self.returnframe = None
+        self.quitting = False
+        self.stoplineno = -1
         # Set tracing or not
         if self.breaks:
             sys.settrace(self.trace_dispatch)
@@ -188,8 +197,8 @@ class Debugger(bdb.Bdb):
         for i in numberlist:
             try:
                 bp = self.get_bpbynumber(i)
-            except ValueError as err:
-                self.error(err)
+            except ValueError:
+                self.error("Cannot get breakpoint by number.")
             else:
                 self.clear_bpbynumber(i)
                 self.message('Deleted %s' % bp)
