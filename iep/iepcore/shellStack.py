@@ -414,7 +414,7 @@ class DebugControl(QtGui.QToolButton):
                 if hasattr(text, 'tt'):
                     a.setToolTip(text.tt)
                 if icon is not None:
-                    a.setIcon(iep.icons.bug)
+                    a.setIcon(icon)
     
     
     def onPressed(self, show=True):
