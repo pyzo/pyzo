@@ -731,7 +731,7 @@ class BreakPoints(object):
         super(BreakPoints, self).__init__(*args, **kwds)
         # Create widget that draws the breakpoints
         self.__breakPointArea = self.__BreakPointArea(self)
-        self.addLeftMargin(BreakPoints, lambda:self._breakPointWidth)
+        self.addLeftMargin(BreakPoints, self.getBreakPointAreaWidth)
         self._breakPoints = set()
         self._debugLineIndicator = 0
     
@@ -759,6 +759,13 @@ class BreakPoints(object):
             self.__breakPointArea.update()
     
     
+    def getBreakPointAreaWidth(self):
+        if not self.__showBreakPoints:
+            return 0
+        else:
+            return self._breakPointWidth
+    
+    
     def showBreakPoints(self):
         return self.__showBreakPoints
     
@@ -782,14 +789,14 @@ class BreakPoints(object):
         #On resize, resize the breakpointArea, too
         rect=self.contentsRect()
         m = self.getLeftMargin(BreakPoints)
-        w = self._breakPointWidth
+        w = self.getBreakPointAreaWidth()
         self.__breakPointArea.setGeometry(  rect.x()+m, rect.y(),
                                             w, rect.height())
     
     def paintEvent(self,event):
         super(BreakPoints, self).paintEvent(event)
         #On repaint, update the complete breakPointArea
-        w = self._breakPointWidth
+        w = self.getBreakPointAreaWidth()
         self.__breakPointArea.update(0, 0, w, self.height() )
 
 
