@@ -408,13 +408,14 @@ class DebugControl(QtGui.QToolButton):
             if cmd is None:
                 menu.addSeparator()
             else:
-                a = menu.addAction(text)
+                if icon is not None:
+                    a = menu.addAction(icon, text)
+                else:
+                    a = menu.addAction(text)
+                if hasattr(text, 'tt'):
+                    a.setToolTip(text.tt)    
                 a.cmd = cmd
                 a.setEnabled(enabled)
-                if hasattr(text, 'tt'):
-                    a.setToolTip(text.tt)
-                if icon is not None:
-                    a.setIcon(icon)
     
     
     def onPressed(self, show=True):
