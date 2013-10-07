@@ -133,9 +133,45 @@ class IepInterpreter:
     
     def run(self):    
         """ Run (start the mainloop)
+        
+        Here we enter the main loop, which is provided by the guiApp. 
+        This event loop calls process_commands on a regular basis. 
+        
+        We may also enter the debug intereaction loop, either from a
+        request for post-mortem debugging, or *during* execution by
+        means of a breakpoint. When in this debug-loop, the guiApp event
+        loop lays still, but the debug-loop does call process-commands
+        for user interaction. 
+        
+        When the user wants to quit, SystemExit is raised (one way or
+        another). This is detected in process_commands and the exception
+        instance is stored in self._exitException. Then the debug-loop
+        is stopped if necessary, and the guiApp is told to stop its event
+        loop.
+        
+        And that brings us back here, where we exit using in order of
+        preference: self._exitException, the exception with which the
+        event loop was exited (if any), or a new exception.
+        
         """
+        
+        # Prepare
         self._prepare()
-        self.guiApp.run(self.process_commands, self.sleeptime) 
+        self._exitException = None
+        
+        # Enter main
+        try:
+            self.guiApp.run(self.process_commands, self.sleeptime) 
+        except SystemExit:
+            # Set self._exitException if it is not set yet
+            type, value, tb = sys.exc_info();  del tb
+            if self._exitException is None:
+                self._exitException = value
+        
+        # Exit
+        if self._exitException is None:
+            self._exitException = SystemExit()
+        raise self._exitException
     
     
     def _prepare(self):
@@ -177,7 +213,7 @@ class IepInterpreter:
         guiError = ''
         try:
             if guiName in ['', 'NONE']:
-                pass
+                guiName = ''
             elif guiName == 'TK':
                 self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':
@@ -196,8 +232,7 @@ class IepInterpreter:
         except Exception: # Catch any error
             # Get exception info (we do it using sys.exc_info() because
             # we cannot catch the exception in a version independent way.
-            type, value, tb = sys.exc_info()
-            tb = None
+            type, value, tb = sys.exc_info();  del tb
             guiError = 'Failed to integrate event loop for %s: %s' % (
                 guiName, str(value))
         
@@ -311,6 +346,9 @@ class IepInterpreter:
                 self._resetbuffer()
                 self.more = 0
         except SystemExit:
+            # Get and store the exception so we can raise it later
+            type, value, tb = sys.exc_info();  del tb
+            self._exitException = value
             # Stop debugger if it is running
             self.debugger.stopinteraction()
             # Exit from interpreter. Exit in the appropriate way
@@ -661,8 +699,7 @@ class IepInterpreter:
         """
         
         # Get info (do not store)
-        type, value, tb = sys.exc_info()
-        tb = None
+        type, value, tb = sys.exc_info();  del tb
         
         # Work hard to stuff the correct filename in the exception
         if filename and type is SyntaxError:
