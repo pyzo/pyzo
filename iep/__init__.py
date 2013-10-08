@@ -50,8 +50,12 @@ __version__ = '3.2.dev'
 import os
 import sys
 
-# # Fix for issue 137 (apply before importing PySide, just to be safe)
-# os.environ['LIBOVERLAY_SCROLLBAR'] = '0'  # Should be fixed by now
+# Fix for issue 137 (apply before importing PySide, just to be safe)
+# This is a very nasty bug on Unity (Ubuntu 12.04 and later) where IEP
+# completely hangs, and can even cause the OS to stall. The bug has
+# been solved and then come back. There are no real problems with
+# disabling the scrollbar overlay, so we leave this fix in-place for now.
+os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
 
 from pyzolib import ssdf, paths
 from iep.codeeditor.qt import QtCore, QtGui
@@ -184,15 +188,15 @@ def startIep():
     
     # Prevent loading plugins form the system plugin dir since this may
     # cause multiple versions of the Qt library to be loaded at once,
-    # which will conflict.  Note also the writing of qt.conf in the
-    # freezeSctipt
-    # But on KDE this means that the style of IEP does not fit in, see
-    # issue 138. Therefore do *not* disable if running from source on KDE
-    disableLibraryPaths = True
-    if os.environ.get('KDE_FULL_SESSION'):  # relatively safe way to detect KDE
-        if QtGui.__file__.startswith('/usr/'):
-            disableLibraryPaths = False
-    if disableLibraryPaths:
+    # which will conflict. The writing of qt.conf in the freezeScript
+    # has the same purpose, but both fixes are required for IEP to work
+    # on for instance KDE.
+    # The downside is that the style will not fit-in, both on Unity
+    # (where the menu is not integrated) and KDE (where the Oxygen theme
+    # is not available). Therefore we only apply this fix when we are not
+    # using the system Qt libraries; IEP looks better on these systems
+    # when running from source.
+    if not QtGui.__file__.startswith('/usr/'):
         QtGui.QApplication.setLibraryPaths([])
     
     # Instantiate the application
