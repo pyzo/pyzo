@@ -196,6 +196,8 @@ def startIep():
     # is not available). Therefore we only apply this fix when we are not
     # using the system Qt libraries; IEP looks better on these systems
     # when running from source.
+    # It seems that the same effec can be achieved by  setting the
+    # environment variable "QT_PLUGIN_PATH" to an empty string. Needs testing.
     if not QtGui.__file__.startswith('/usr/'):
         QtGui.QApplication.setLibraryPaths([])
     
