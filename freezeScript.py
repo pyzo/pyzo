@@ -201,8 +201,9 @@ if sys.platform.startswith('linux'):
 
 # Set qt.conf
 # Prevent loading plugins form the system plugin dir, which
-# may cause incompatibility conflicts.
-# see issue 138 and issue 198.
+# may cause incompatibility conflicts. This complements the call
+# QApplication.setLibraryPaths([]), it does not replace it.
+# See issue 138 and issue 198.
 with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
     file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
 
