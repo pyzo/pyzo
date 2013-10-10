@@ -1498,7 +1498,10 @@ class HelpMenu(Menu):
         # Determine license text
         licenseText = 'This copy of IEP is not registered (using the free license).'
         if iep.license:
-            licenseText = 'This copy of IEP is registered to {name} of {company}.'
+            if iep.license['company']:
+                licenseText = 'This copy of IEP is registered to {name} of {company}.'
+            else:
+                licenseText = 'This copy of IEP is registered to {name}.'
             licenseText = licenseText.format(**iep.license)
         # Determine if this is PyQt4 or Pyside
         if hasattr(QtCore, 'PYQT_VERSION_STR'):
