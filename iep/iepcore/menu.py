@@ -786,6 +786,7 @@ class ShellMenu(Menu):
         Menu.__init__(self, parent, name, *args, **kwds)
         iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         self.aboutToShow.connect(self._updateShells)  
+        self.aboutToShow.connect(self._updateDebugButtons)
     
     def onCurrentShellChanged(self):
         """ Enable/disable shell actions based on wether a shell is available """
@@ -811,6 +812,25 @@ class ShellMenu(Menu):
                 icons.cancel, self._shellAction, "closeShell"),
             ]
     
+    def buildShellDebugActions(self):
+        """ Create the menu items for debug shell actions.
+        Returns a list of all items added"""
+        icons = iep.icons
+        
+        return [
+            self.addItem(translate("menu", 'Debug next: proceed until next line'), 
+                icons.debug_next, self._debugAction, "NEXT"),
+            self.addItem(translate("menu", 'Debug step: proceed one step'), 
+                icons.debug_step, self._debugAction, "STEP"),
+            self.addItem(translate("menu", 'Debug return: proceed until returns'), 
+                icons.debug_return, self._debugAction, "RETURN"),
+            self.addItem(translate("menu", 'Debug continue: proceed to next breakpoint'), 
+                icons.debug_continue, self._debugAction, "CONTINUE"),
+            self.addItem(translate("menu", 'Stop debugging'), 
+                icons.debug_quit, self._debugAction, "STOP"),
+            ]
+    
+    
     def getShell(self):
         """ Returns the shell on which to apply the menu actions. Default is
         the current shell, this is overridden in the shell/shell tab context
@@ -819,11 +839,26 @@ class ShellMenu(Menu):
         
     def build(self):
         """ Create the items for the shells menu """
+        
+        # Normal shell actions
         self._shellActions = self.buildShellActions()
         
         self.addSeparator()
+        
+        # Debug stuff
+        self._debug_clear_text = translate('menu', 'Clear all {} breakpoints')
+        self._debug_clear = self.addItem('', iep.icons.bug_delete, self._clearBreakPoints)
+        self._debug_pm = self.addItem(
+            translate('menu', 'Postmortem: debug from last traceback'), 
+                iep.icons.bug_delete, self._debugAction, "START")
+        self._shellDebugActions = self.buildShellDebugActions()
+        
+        self.addSeparator()
+        
+        # Shell config
         self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
             iep.icons.application_wrench, self._editConfig2)
+        
         self.addSeparator()
         
         # Add shell configs
@@ -841,6 +876,18 @@ class ShellMenu(Menu):
                 iep.icons.application_add, iep.shells.addShell, config)
             self._shellCreateActions.append(action)
     
+    def _updateDebugButtons(self):
+        # COunt breakpoints
+        bpcount = 0
+        for e in iep.editors:
+            bpcount += len(e.breakPoints())
+        self._debug_clear.setText(self._debug_clear_text.format(bpcount))
+        # Determine state of PM and clear button
+        debugmode = iep.shells._debugmode
+        self._debug_pm.setEnabled(debugmode==0)
+        self._debug_clear.setEnabled(debugmode==0)
+        # The _shellDebugActions are enabled/disabled by the shellStack
+    
     def _shellAction(self, action):
         """ Call the method specified by 'action' on the current shell.
         """
@@ -848,6 +895,17 @@ class ShellMenu(Menu):
         if shell:
             # Call the specified action
             getattr(shell,action)()
+    
+    def _debugAction(self, action):
+        shell = self.getShell()
+        if shell:
+            # Call the specified action
+            command = action.upper()
+            shell.executeCommand('DB %s\n' % command)
+    
+    def _clearBreakPoints(self, action=None):
+        for e in iep.editors:
+            e.clearBreakPoints()
     
     def _editConfig2(self):
         """ Edit, add and remove configurations for the shells. """
