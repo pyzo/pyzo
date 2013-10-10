@@ -1383,9 +1383,9 @@ class HelpMenu(Menu):
     
     def build(self):
         icons = iep.icons
-        
-        self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
-            icons.help, "http://www.pyzo.org")
+        if iep.pyzo_mode:
+            self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
+                icons.help, "http://www.pyzo.org")
         self.addUrlItem(translate("menu", "IEP Website ::: Open the IEP website in your browser."), 
             icons.help, "http://iep.pyzo.org")
         self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
@@ -1395,14 +1395,14 @@ class HelpMenu(Menu):
         self.addSeparator()
         self.addItem(translate("menu", "IEP wizard ::: Get started quickly."), 
             icons.wand, self._showIepWizard)
-        self.addItem(translate("menu", "View code license ::: Legal stuff."), 
-            icons.script, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
+        #self.addItem(translate("menu", "View code license ::: Legal stuff."), 
+        #    icons.script, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
         
         self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
             icons.application_go, self._checkUpdates)
         
-        self.addItem(translate("menu", "Manage your IEP license ::: View/add licenses."), 
-            icons.script, self._manageLicenses)
+        #self.addItem(translate("menu", "Manage your IEP license ::: View/add licenses."), 
+        #    icons.script, self._manageLicenses)
         self.addItem(translate("menu", "About IEP ::: More information about IEP."), 
             icons.information, self._aboutIep)
     
@@ -1456,81 +1456,10 @@ class HelpMenu(Menu):
         w = LicenseManager(None)
         w.exec_()
     
+    
     def _aboutIep(self):
-        aboutText = """
-        <h2>IEP: the Interactive Editor for Python</h2>
-        
-        {}<br><br>
-        
-        <b>Version info</b><br>
-        IEP version: <u>{}</u><br>
-        Platform: {}<br>
-        Python version: {}<br>
-        Qt version: {}<br>
-        {} version: {}<br>
-        <br>
-        
-        <b>IEP directories</b><br>
-        IEP source directory: {}<br>
-        IEP userdata directory: {}<br>
-        <br>
-        
-        <b>Acknowledgements</b><br>
-        IEP is written in Python 3 and uses the Qt widget
-        toolkit. IEP uses code and concepts that are inspired by 
-        IPython, Pype, and Spyder.
-        IEP uses a (modified) subset of the silk icon set, 
-        by Mark James (http://www.famfamfam.com/lab/icons/silk/).
-        <br><br>
-        
-        <b>License</b><br>
-        Copyright (C) 2013, the IEP development team<br>
-        IEP is distributed under the terms of the (new) BSD License.<br>
-        The full license can be found in 'license.txt'.
-        <br><br>
-        
-        <b>Core developers</b><br>
-        Almar Klein<br>
-        Rob Reilink<br>
-        Ludo Visser<br>
-        
-        """
-        # Determine license text
-        licenseText = 'This copy of IEP is not registered (using the free license).'
-        if iep.license:
-            if iep.license['company']:
-                licenseText = 'This copy of IEP is registered to {name} of {company}.'
-            else:
-                licenseText = 'This copy of IEP is registered to {name}.'
-            licenseText = licenseText.format(**iep.license)
-        # Determine if this is PyQt4 or Pyside
-        if hasattr(QtCore, 'PYQT_VERSION_STR'):
-            qtWrapper = 'PyQt4'
-            qtVersion = QtCore.QT_VERSION_STR
-            qtWrapperVersion = QtCore.PYQT_VERSION_STR
-        else:
-            import PySide
-            qtWrapper = 'PySide'
-            qtVersion = QtCore.__version__
-            qtWrapperVersion = PySide.__version__
-        # Insert information texts
-        if paths.is_frozen():
-            versionText = iep.__version__ + ' (binary)'
-        else:
-            versionText = iep.__version__ + ' (source)'
-        aboutText = aboutText.format(licenseText, versionText, 
-                        sys.platform, sys.version.split(' ')[0],
-                        qtVersion, qtWrapper, qtWrapperVersion,
-                        iep.iepDir, iep.appDataDir)
-        
-        # Define icon and text
-        im = QtGui.QPixmap( os.path.join(iep.iepDir,'resources', 'appicons', 'ieplogo64.png') )
-        # Show message box
-        m = QtGui.QMessageBox(self)
-        m.setTextFormat(QtCore.Qt.RichText)
-        m.setWindowTitle(translate("menu dialog", "About IEP"))
-        m.setText(unwrapText(aboutText))
-        m.setIconPixmap(im)
+        from iep.iepcore.about import AboutDialog
+        m = AboutDialog(self)
         m.exec_()
 
 

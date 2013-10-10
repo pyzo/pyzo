@@ -51,7 +51,7 @@ setup(
                 'iep.yoton', 'iep.yoton.channels',
                ],
     package_dir = {'iep': 'iep'},
-    package_data = {'iep': ['license.txt', 'contributers.txt', 
+    package_data = {'iep': ['license.txt', 'contributors.txt', 
                             'resources/*.*', 
                             'resources/icons/*.*', 'resources/appicons/*.*', 
                             'resources/images/*.*', 'resources/fonts/*.*',
