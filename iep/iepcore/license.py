@@ -18,15 +18,15 @@ from iep.codeeditor.qt import QtCore, QtGui
 LICENSEKEY_FILE = os.path.join(iep.appDataDir, "licensekey.txt")
 
 UNMANGLE_CODE ="""
-eJytU7Fu2zAQ3f0VF3sghcpC7ThtIdSDhwxFuhloEBhGwZAnm6hCCiTlNCj67z2SitwCTZGhXCTe
-3Xv33pGcwS22LShr8ALubA8PwogDKggWFEqrEMIRodUSjUfoDeUPLULTGxm0NReTGczB4UE45UvY
-So1GImy6rtWoJgqbEcN9UU+A1nQ6hc+ZcP4Nn2IrH5w2h9RUy1A9l6Vv57DR30v4WoJfwRp8Fas7
-XlSdcEFHFZzNWfFbMVXdC4/vVlX2cP8U0POcq0gghTgTXmrNimKo4awPzfzDwKMbMDbAgAFhFDUf
-9MflhKZxfBFtj9fOWcfZDTmJEG1guxkH1lj3IEL1J+sgxAfS7x91OHK23dxc37H/2wDWa8jEpwX7
-F/MncxKtVnBC52maYJuXO/jLvw/Xr143WL8kPGPpX9reBNq+TzvqAzK685dnsbnkzXNN8kgI6xSX
-Bd28lB9Tj0dNd1N/fHsmyAgiWF5djUESQRF5dFwPqhYvuFq+zpUi+I+f+QbGQ6XtrkuOuuRoUXl6
-EIGzuq5ZEY+J1Sxmuv3onZ5CCXQQMbyLLCOGlYsik1E0oWKP/dmk2hF4T00JnvXsGEVYDHmAGQil
-In/KOQy9M6B+AfsNKWQ=
+eJytU8Fu2zAMvecr2OQgGXOMJU23wVgOOfQwdLcAK4piGFSJToS5UiDJ6Yph/z5KVpxm7YYe5ost
+8r1HPoqewDW2LShr8AxubAf3wogNKggWFEqrEMIWodUSjUfoDOU3LULTGRm0NWejCUzB4UY45UtY
+S41GIqx2u1ajGilsBg73RT0CesbjMXzuBaff8TGW8sFps0lFtQzVAZbeO4eN/lHCtxL8Apbgq4je
+8aLaCRd07IKzKSuegAl1Jzy+W1S9h7vHgJ73uYoapBBnwkutWVFkDGddaKYfso5uwNgAmQPCKCqe
++4+PE5rG8UW0HV46Zx1nV+QkUrSB9Qoa6+5FqE7VcgM+UN/+QYctZ+vV1eUN+z/CsFxCL7ifsX8p
+fjJ70WoFe3Sepge2ea7sz18eol+8boB+TnzG0re0nQl0fJ9OVAdkdOPPj032kDcHTPJGDOsUlwVt
+WMoPqYetph3UH98eBXoGCcwvLoYgNUERuXVc565mf3E1f50rRfSfvwYbcQGTk1nlaeEDZ3VdP73N
+BFimV95aVmepfH10jgoRcWKGfowS6JoGdtZn5ezIx9bj6Qj+oJWHK8jVKH2KV7cU+kpo4vQObxlF
+WAx5gAkIpSIr5RyGzhlQvwFvTS4N
 """
 
 
@@ -150,6 +150,7 @@ def add_license(key):
         comment = '# Licensed to {name} expires {expires}'.format(**info)
         lines.append(comment)
         lines.append(key)
+        lines.append('')
     with open(LICENSEKEY_FILE, 'wt') as f:
         f.write('\n'.join(lines))
 
@@ -190,8 +191,7 @@ class LicenseManager(QtGui.QDialog):
         # Ask for key
         title = iep.translate("menu dialog", "Add license key")
         label = ''
-        s = QtGui.QInputDialog.getText(self, title, label, 
-                QtGui.QLineEdit.Normal, '')
+        s = PlainTextInputDialog.getText(self, title, label)
         if isinstance(s, tuple):
             s = s[0] if s[1] else ''
         
@@ -244,8 +244,56 @@ class LicenseManager(QtGui.QDialog):
         self._label.setHtml('\n'.join(lines))
 
 
+class PlainTextInputDialog(QtGui.QDialog):
+    def __init__(self, parent, title='', label=''):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle(title)
+        
+        self._result = None  # Default (when closed with cross)
+        
+        # Layout
+        gridLayout = QtGui.QGridLayout(self)
+        self.setLayout(gridLayout)
+        
+        # Create label
+        self._label = QtGui.QLabel(label, self)
+        gridLayout.addWidget(self._label, 0,0,1,1)
+        
+        # Create text edit
+        self._txtEdit = QtGui.QPlainTextEdit(self)
+        gridLayout.addWidget(self._txtEdit, 1,0,1,1)
+        
+        # Create button box
+        self._butBox = QtGui.QDialogButtonBox(self)
+        self._butBox.setOrientation(QtCore.Qt.Horizontal)
+        self._butBox.setStandardButtons(self._butBox.Cancel | self._butBox.Ok)
+        gridLayout.addWidget(self._butBox, 2,0,1,1)
+        
+        # Signals
+        self._butBox.accepted.connect(self.on_accept)
+        self._butBox.rejected.connect(self.on_reject)
+    
+    def on_accept(self):
+        self.setResult(1)
+        self._result = self._txtEdit.toPlainText()
+        self.close()
+    
+    def on_reject(self):
+        self.setResult(0)
+        self._result = None
+        self.close()
+    
+    @classmethod
+    def getText(cls, parent, title='', label=''):
+        d = PlainTextInputDialog(parent, title, label)
+        d.exec_()
+        return d._result
+
+    
 if __name__ == '__main__':
     w = LicenseManager(None)
     w.show()
+    #print(PlainTextInputDialog.getText(None, 'foo', 'bar'))
+    
 
     
