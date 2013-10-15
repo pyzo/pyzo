@@ -786,7 +786,6 @@ class ShellMenu(Menu):
         Menu.__init__(self, parent, name, *args, **kwds)
         iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         self.aboutToShow.connect(self._updateShells)  
-        self.aboutToShow.connect(self._updateDebugButtons)
     
     def onCurrentShellChanged(self):
         """ Enable/disable shell actions based on wether a shell is available """
@@ -852,6 +851,8 @@ class ShellMenu(Menu):
             translate('menu', 'Postmortem: debug from last traceback'), 
                 iep.icons.bug_delete, self._debugAction, "START")
         self._shellDebugActions = self.buildShellDebugActions()
+        #
+        self.aboutToShow.connect(self._updateDebugButtons)
         
         self.addSeparator()
         
@@ -915,12 +916,6 @@ class ShellMenu(Menu):
 
 
 class ShellButtonMenu(ShellMenu):
-    def __init__(self, parent=None, name="ShellButtons", *args, **kwds):
-        self._shellCreateActions = []
-        self._shellActions = []
-        Menu.__init__(self, parent, name, *args, **kwds)
-        iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
-        self.aboutToShow.connect(self._updateShells)
     
     def build(self):
         self._shellActions = []
