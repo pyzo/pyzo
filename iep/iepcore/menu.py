@@ -877,7 +877,7 @@ class ShellMenu(Menu):
             self._shellCreateActions.append(action)
     
     def _updateDebugButtons(self):
-        # COunt breakpoints
+        # Count breakpoints
         bpcount = 0
         for e in iep.editors:
             bpcount += len(e.breakPoints())
@@ -915,6 +915,13 @@ class ShellMenu(Menu):
 
 
 class ShellButtonMenu(ShellMenu):
+    def __init__(self, parent=None, name="ShellButtons", *args, **kwds):
+        self._shellCreateActions = []
+        self._shellActions = []
+        Menu.__init__(self, parent, name, *args, **kwds)
+        iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
+        self.aboutToShow.connect(self._updateShells)
+    
     def build(self):
         self._shellActions = []
         
