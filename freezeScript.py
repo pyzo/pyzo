@@ -197,7 +197,11 @@ if sys.platform.startswith('linux'):
         entry = os.path.join(distDir, entry)
         if os.path.isfile(entry):
             if entry.endswith('.so') or '.so.' in entry:
-                dllutils.set_search_path(entry, '')                
+                try:
+                    dllutils.set_search_path(entry, '')
+                except Exception as err:
+                    print('Cannot set search path of %s:\n%s' % 
+                            (os.path.basename(entry), str(err)))
 
 # Set qt.conf
 # Prevent loading plugins form the system plugin dir, which

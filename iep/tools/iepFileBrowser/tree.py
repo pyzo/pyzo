@@ -343,7 +343,11 @@ class FileItem(BrowserItem):
             f = open(dummy_filename, 'wb')
             f.close()
         # Use that file
-        icon = iconprovider.icon(QtCore.QFileInfo(dummy_filename))
+        if sys.platform.startswith('linux') and \
+                                    not QtCore.__file__.startswith('/usr/'):
+            icon = iconprovider.icon(iconprovider.File)
+        else:
+            icon = iconprovider.icon(QtCore.QFileInfo(dummy_filename))        
         icon = addIconOverlays(icon)
         self.setIcon(0, icon)
     
