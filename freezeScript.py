@@ -193,15 +193,32 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 # Set search path of dynamic libraries
 from pyzolib import dllutils
 if sys.platform.startswith('linux'):
+    os.mkdir(os.path.join(distDir, 'lib'))
     for entry in os.listdir(distDir):
-        entry = os.path.join(distDir, entry)
-        if os.path.isfile(entry):
-            if entry.endswith('.so') or '.so.' in entry:
-                try:
-                    dllutils.set_search_path(entry, '')
-                except Exception as err:
-                    print('Cannot set search path of %s:\n%s' % 
-                            (os.path.basename(entry), str(err)))
+        filename = os.path.join(distDir, entry)
+        if not os.path.isfile(filename):
+            continue
+        if not (entry.endswith('.so') or '.so.' in entry):
+            continue
+        #
+        rpaths = '', 'lib'
+        if entry.startswith('lib') and not 'python' in entry:
+            filename = os.path.join(distDir, 'lib', entry)
+            shutil.move(os.path.join(distDir, entry), filename)
+            rpaths = '', '..'
+        try:
+            dllutils.set_search_path(filename, *rpaths)
+        except Exception as err:
+            print('Cannot set search path of %s:\n%s' % 
+                    (os.path.basename(entry), str(err)))
+        
+
+# Write about experimental feature
+if sys.platform.startswith('linux'):
+    fname = 'RENAME QT.CONF TO TRY USING NATIVE QT LIBS'
+    with open(os.path.join(distDir, fname), 'wb') as file:
+       pass
+
 
 # Set qt.conf
 # Prevent loading plugins form the system plugin dir, which
