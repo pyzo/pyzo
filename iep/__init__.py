@@ -50,6 +50,9 @@ __version__ = '3.2.dev'
 import os
 import sys
 
+from pyzolib import ssdf, paths
+
+
 # Fix for issue 137 (apply before importing PySide, just to be safe)
 # This is a very nasty bug on Unity (Ubuntu 12.04 and later) where IEP
 # completely hangs, and can even cause the OS to stall. The bug has
@@ -57,7 +60,14 @@ import sys
 # disabling the scrollbar overlay, so we leave this fix in-place for now.
 os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
 
-from pyzolib import ssdf, paths
+# If qt.conf is not there, we are going to try and load the system version
+# if not frozen
+if paths.is_frozen() and sys.platform.startswith('linux'):
+    if not os.path.isfile(os.path.join(paths.application_dir(), 'qt.conf')):
+        if not os.environ.get('QT_PREFER', None):
+            os.environ['QT_PREFER'] = 'system pyside'
+
+
 from pyzolib.qt import QtCore, QtGui
 
 # Import yoton as an absolute package
