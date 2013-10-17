@@ -7,7 +7,7 @@
 
 import time
 import urllib.request, urllib.parse
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 import iep
 

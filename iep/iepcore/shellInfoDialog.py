@@ -12,7 +12,7 @@ Implements shell configuration dialog.
 """
 
 import os, sys, time, re
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 import iep
 from iep.iepcore.compactTabWidget import CompactTabWidget

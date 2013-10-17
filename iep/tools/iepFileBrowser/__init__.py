@@ -45,7 +45,7 @@ import sys
 from pyzolib import ssdf
 from pyzolib.path import Path
 
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 import iep
 
 from .browser import Browser

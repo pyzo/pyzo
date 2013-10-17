@@ -4,7 +4,7 @@ import sys
 
 from pyzolib import paths
 import iep
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 
 class AboutDialog(QtGui.QDialog):

@@ -15,7 +15,7 @@ file loading/saving /reloading stuff.
 import os, sys
 import re, codecs
 
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 qt = QtGui
 
 from iep.codeeditor import Manager

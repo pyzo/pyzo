@@ -16,7 +16,7 @@ code in it.
 
 """
 
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 Qt = QtCore.Qt
 
 import os, sys, time, subprocess

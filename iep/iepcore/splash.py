@@ -13,7 +13,7 @@ Defines splash window shown during startup.
 import os, sys, time
 
 import iep
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 
 STYLESHEET = """

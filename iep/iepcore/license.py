@@ -12,7 +12,7 @@ import sys
 import datetime
 
 import iep
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 
 LICENSEKEY_FILE = os.path.join(iep.appDataDir, "licensekey.txt")

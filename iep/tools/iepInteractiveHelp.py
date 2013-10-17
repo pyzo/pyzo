@@ -6,7 +6,7 @@
 
 
 import sys, os, time, re
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 import iep 
 
 tool_name = "Interactive help"

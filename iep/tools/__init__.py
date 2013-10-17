@@ -34,7 +34,7 @@ displayed in the statusbar.
 # - pythonpath editor, startupfile editor (or as part of IEP?)
 
 import os, sys, imp
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 import iep
 
 from pyzolib import ssdf

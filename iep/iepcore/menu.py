@@ -18,7 +18,7 @@ import datetime
 
 from pyzolib import paths
 
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 import iep
 from iep.iepcore.compactTabWidget import CompactTabWidget

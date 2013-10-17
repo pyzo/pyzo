@@ -9,7 +9,7 @@ Module for locale stuff like language and translations.
 """
 
 import os, sys, time
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 import iep
 
