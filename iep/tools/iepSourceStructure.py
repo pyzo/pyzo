@@ -6,7 +6,7 @@
 
 
 import time
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 import iep
 
 tool_name = "Source structure"

@@ -58,7 +58,7 @@ import sys
 os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
 
 from pyzolib import ssdf, paths
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 # Import yoton as an absolute package
 from iep import yotonloader
@@ -198,8 +198,9 @@ def startIep():
     # when running from source.
     # It seems that the same effec can be achieved by  setting the
     # environment variable "QT_PLUGIN_PATH" to an empty string. Needs testing.
-    if not QtGui.__file__.startswith('/usr/'):
-        QtGui.QApplication.setLibraryPaths([])
+    if sys.platform.startswith('linux'):
+        if not QtGui.__file__.startswith('/usr/'):
+            QtGui.QApplication.setLibraryPaths([])
     
     # Instantiate the application
     QtGui.qApp = QtGui.QApplication([])

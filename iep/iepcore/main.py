@@ -19,7 +19,7 @@ from pyzolib import ssdf, paths
 
 import iep
 from iep.iepcore.icons import IconArtist
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 from iep.iepcore.splash import SplashWidget
 
 
@@ -508,6 +508,8 @@ def loadFonts():
     """ loadFonts()
     Load all fonts that come with IEP.
     """
+    import iep.codeeditor  # we need iep and codeeditor namespace here
+    
     # Get directory containing the icons
     fontDir = os.path.join(iep.iepDir, 'resources', 'fonts')
     

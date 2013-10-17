@@ -15,7 +15,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 """
 
 import os, sys, time, gc
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 import iep
 from iep.iepcore.compactTabWidget import CompactTabWidget

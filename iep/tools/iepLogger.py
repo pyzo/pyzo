@@ -6,7 +6,7 @@
 
 
 import sys, os, code
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 import iep
 from iep.iepcore.shell import BaseShell
 from iep.iepcore.iepLogging import splitConsole

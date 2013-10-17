@@ -14,7 +14,7 @@ import os
 import re
 
 import iep
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 from iep import translate
 
 from iep.util.locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage

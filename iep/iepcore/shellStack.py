@@ -13,7 +13,7 @@ and a dialog to edit the shell configurations.
 """
 
 import os, sys, time, re
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 
 import iep
 from iep import translate

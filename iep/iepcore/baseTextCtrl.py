@@ -19,7 +19,7 @@ from pyzolib import ssdf
 from iep.iepcore.iepLogging import print
 import iep.codeeditor.parsers.tokens as Tokens
 
-from iep.codeeditor.qt import QtCore, QtGui
+from pyzolib.qt import QtCore, QtGui
 qt = QtGui
 
 
