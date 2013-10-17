@@ -128,8 +128,8 @@ class AboutDialog(QtGui.QDialog):
     def createContributorsTab(self):
         fname = os.path.join(iep.iepDir, 'contributors.txt')
         try:
-            with open(fname, 'rt') as f:
-                text = f.read().strip()
+            with open(fname, 'rb') as f:
+                text = f.read().decode('utf-8', 'ignore').strip()
         except Exception as err:
             text = str(err)
         label = self.addTab('Contributors', text, False)
@@ -142,8 +142,8 @@ class AboutDialog(QtGui.QDialog):
     def createLicenseTab(self):
         fname = os.path.join(iep.iepDir, 'license.txt')
         try:
-            with open(fname, 'rt') as f:
-                text = f.read().strip()
+            with open(fname, 'rb') as f:
+                text = f.read().decode('utf-8', 'ignore').strip()
         except Exception as err:
             text = str(err)
         label = self.addTab('BSD license', text, False)
