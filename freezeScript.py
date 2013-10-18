@@ -113,7 +113,7 @@ f = Freezer(    executables,
                 excludes = excludes,
                 targetDir = distDir,
                 copyDependentFiles = True,
-#                 includeMSVCR = True,  # cx_freeze does it wrong
+                includeMSVCR = True,  # Let cx_Freeze find it for us
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
                 compress=False,
@@ -159,7 +159,7 @@ def copydir_smart(path1, path2):
     # Return number of copies files
     return count
 
-# Install MS C runtime
+# Install MS C runtime, cx_freeze does not seem to find mscvp100.dll
 install_c_runtime(distDir)
 
 # Copy the whole IEP package
