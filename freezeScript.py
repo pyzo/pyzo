@@ -26,6 +26,7 @@ For distribution:
 
 import sys, os, stat, shutil
 import subprocess
+import cx_Freeze
 from cx_Freeze import Executable, Freezer, setup
 
 # Define app name and such
@@ -65,6 +66,7 @@ tk_excludes = [ "pywin", "pywin.debugger", "pywin.debugger.dbgcon",
                 "Tkconstants", "Tkinter", "tcl" ]
 excludes.extend(tk_excludes)
 excludes.append('numpy')
+excludes.append('PySide.QtNetwork')
 
 # For qt to work
 PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
@@ -111,7 +113,7 @@ f = Freezer(    executables,
                 excludes = excludes,
                 targetDir = distDir,
                 copyDependentFiles = True,
-                includeMSVCR = True,
+#                 includeMSVCR = True,  # cx_freeze does it wrong
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
                 compress=False,
@@ -122,6 +124,16 @@ f.Freeze()
 
 
 ## Process source code and other resources
+
+def install_c_runtime(targetDir):
+    """ install_c_runtime(targetDir)
+    Install the Windows C runtime version 100. So we aim at python3
+    specifically. We needed this because cx_freeze seems to do it wrong.
+    """
+    for fname in ['msvcp100.dll', 'msvcr100.dll']:
+        filename = os.path.join('C:\\', 'Windows', 'System32', fname)
+        if os.path.isfile(filename):
+            shutil.copy(filename, os.path.join(distDir, fname))
 
 # taken from pyzo_build:
 def copydir_smart(path1, path2):
@@ -146,6 +158,9 @@ def copydir_smart(path1, path2):
             count += 1
     # Return number of copies files
     return count
+
+# Install MS C runtime
+install_c_runtime(distDir)
 
 # Copy the whole IEP package
 copydir_smart(os.path.join(srcDir), os.path.join(distDir, 'source', 'iep'))
