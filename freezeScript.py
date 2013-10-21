@@ -230,7 +230,7 @@ if sys.platform.startswith('linux'):
 
 # Write about experimental feature
 if sys.platform.startswith('linux'):
-    fname = 'RENAME QT.CONF TO TRY USING NATIVE QT LIBS'
+    fname = 'CHECK QT.CONF TO USE NATIVE STYLING'
     with open(os.path.join(distDir, fname), 'wb') as file:
        pass
 
@@ -241,7 +241,10 @@ if sys.platform.startswith('linux'):
 # QApplication.setLibraryPaths([]), it does not replace it.
 # See issue 138 and issue 198.
 with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
-    file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
+    import pyzolib.qt
+    file.write(pyzolib.qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
+    #file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
+
 
 # todo: this is now in cx_Freeze right?
 if applicationBundle:
