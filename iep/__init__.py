@@ -51,23 +51,6 @@ import os
 import sys
 
 from pyzolib import ssdf, paths
-
-
-# Fix for issue 137 (apply before importing PySide, just to be safe)
-# This is a very nasty bug on Unity (Ubuntu 12.04 and later) where IEP
-# completely hangs, and can even cause the OS to stall. The bug has
-# been solved and then come back. There are no real problems with
-# disabling the scrollbar overlay, so we leave this fix in-place for now.
-os.environ['LIBOVERLAY_SCROLLBAR'] = '0'
-
-# If qt.conf is not there, we are going to try and load the system version
-# if not frozen
-if paths.is_frozen() and sys.platform.startswith('linux'):
-    if not os.path.isfile(os.path.join(paths.application_dir(), 'qt.conf')):
-        if not os.environ.get('QT_PREFER', None):
-            os.environ['QT_PREFER'] = 'system pyside'
-
-
 from pyzolib.qt import QtCore, QtGui
 
 # Import yoton as an absolute package
@@ -195,22 +178,6 @@ def startIep():
     
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
-    
-    # Prevent loading plugins form the system plugin dir since this may
-    # cause multiple versions of the Qt library to be loaded at once,
-    # which will conflict. The writing of qt.conf in the freezeScript
-    # has the same purpose, but both fixes are required for IEP to work
-    # on for instance KDE.
-    # The downside is that the style will not fit-in, both on Unity
-    # (where the menu is not integrated) and KDE (where the Oxygen theme
-    # is not available). Therefore we only apply this fix when we are not
-    # using the system Qt libraries; IEP looks better on these systems
-    # when running from source.
-    # It seems that the same effec can be achieved by  setting the
-    # environment variable "QT_PLUGIN_PATH" to an empty string. Needs testing.
-    if sys.platform.startswith('linux'):
-        if not QtGui.__file__.startswith('/usr/'):
-            QtGui.QApplication.setLibraryPaths([])
     
     # Instantiate the application
     QtGui.qApp = QtGui.QApplication([])
