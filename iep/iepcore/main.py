@@ -321,6 +321,11 @@ class MainWindow(QtGui.QMainWindow):
             if stylename2 != stylename:
                 useStandardStyle = True
         
+        # Check if this style exist, set to default otherwise
+        styleNames = [name.lower() for name in QtGui.QStyleFactory.keys()]
+        if stylename2.lower() not in styleNames:
+            stylename2 = iep.defaultQtStyleName
+        
         # Try changing the style
         qstyle = QtGui.qApp.setStyle(stylename2)
         
