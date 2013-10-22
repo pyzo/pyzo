@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="ca_ES">
+<!DOCTYPE TS>
+<TS version="2.0" language="ca_ES">
 <context>
     <name>debug</name>
     <message>
         <location filename="iep/iepcore/shellStack.py" line="478"/>
         <source>Stack</source>
-        <translation type="unfinished"></translation>
+        <translation>Pila</translation>
     </message>
 </context>
 <context>
@@ -622,37 +623,38 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="820"/>
         <source>Debug next: proceed until next line</source>
-        <translation type="unfinished"></translation>
+        <translation>Depuració següent: continuar fins a la següent línia</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="822"/>
         <source>Debug step: proceed one step</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas depuració: Continua un pas</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="824"/>
         <source>Debug return: proceed until returns</source>
-        <translation type="unfinished"></translation>
+        <translation>Depuració retorn: Depuració fins retorn</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="826"/>
         <source>Debug continue: proceed to next breakpoint</source>
-        <translation type="unfinished"></translation>
+        <translation>Depuració continuar: procedir al següent punt d&apos;interrupció</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="828"/>
         <source>Stop debugging</source>
-        <translation type="unfinished"></translation>
+        <translation>Aturar depuració</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="849"/>
         <source>Clear all {} breakpoints</source>
-        <translation type="unfinished"></translation>
+        <translation>Esborrar tots els punts d&apos;interrupció {}</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="851"/>
         <source>Postmortem: debug from last traceback</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Postmortem: Derpuració des del darrer traceback </translatorcomment>
+        <translation></translation>
     </message>
 </context>
 <context>
