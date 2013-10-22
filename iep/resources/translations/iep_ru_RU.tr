@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="ru_RU">
+<!DOCTYPE TS>
+<TS version="2.0" language="ru_RU">
 <context>
     <name>debug</name>
     <message>
         <location filename="iep/iepcore/shellStack.py" line="478"/>
         <source>Stack</source>
-        <translation type="unfinished"></translation>
+        <translation>Стек</translation>
     </message>
 </context>
 <context>
@@ -622,37 +623,37 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="820"/>
         <source>Debug next: proceed until next line</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладка: на следующую строку</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="822"/>
         <source>Debug step: proceed one step</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладка: шаг вперед</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="824"/>
         <source>Debug return: proceed until returns</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладка: шаг назад</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="826"/>
         <source>Debug continue: proceed to next breakpoint</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладка: к следующему брейкпоинту</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="828"/>
         <source>Stop debugging</source>
-        <translation type="unfinished"></translation>
+        <translation>Остановить отладку</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="849"/>
         <source>Clear all {} breakpoints</source>
-        <translation type="unfinished"></translation>
+        <translation>Снять все брейкпоинты {}</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="851"/>
         <source>Postmortem: debug from last traceback</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладка после падения: с последней трассировки</translation>
     </message>
 </context>
 <context>
