@@ -467,6 +467,12 @@ class Projects(QtGui.QWidget):
         if d:
             checked = bool( d and d['addToPythonpath'] )
             action.setChecked(checked)
+
+        # Add action to cd to the project directory
+        action = menu.addAction(translate('filebrowser', 'Go to this directory in the current shell'))
+        action._id = 'cd'
+        action.setCheckable(False)
+
     
     
     def onMenuTriggered(self, action):
@@ -495,6 +501,11 @@ class Projects(QtGui.QWidget):
             # Flip add-to-pythonpath flag
             d['addToPythonpath'] = not d['addToPythonpath']
     
+        elif action._id == 'cd':
+            # cd to the directory
+            shell = iep.shells.getCurrentShell()
+            if shell:
+                shell.executeCommand('cd '+d.path+'\n')
     
     def onButtonPressed(self):
         if self._but.menu():
