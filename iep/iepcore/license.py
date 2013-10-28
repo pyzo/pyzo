@@ -54,7 +54,7 @@ def parse_license(key):
 
 
 def get_keys():
-    """ Get a list of all license keys. 
+    """ Get a list of all license keys, in the order that thet were added.
     """
     
     # Get text of license file
@@ -81,6 +81,7 @@ def get_keys():
         if key not in licenses:
             licenses.append(key)
     
+    # Sort and return    
     return licenses
 
 
@@ -98,18 +99,18 @@ def is_invalid(info):
 
 
 def get_license_info():
-    """ Get the license info of the most recent valid license.
+    """ Get the license info of the most recently added valid license.
     Returns a dict which at least has these fields: 
     name, company, email, expires, product, reference.
     Returns None if there is no valid license.
     """
     
     # Get all keys
-    licenses = get_keys()
+    keys = get_keys()
     
     # Get valid licenses
     valid_licenses = []
-    for key in licenses:
+    for key in keys:
         info = parse_license(key)
         if not is_invalid(info):
             valid_licenses.append(info)
@@ -170,15 +171,24 @@ class LicenseManager(QtGui.QDialog):
             iep.translate("menu dialog", "Add license key") )
         self._addbut.clicked.connect(self.addLicenseKey)
         
+        # Create label with link to website
+        self._linkLabel = QtGui.QLabel(self)
+        self._linkLabel.setTextFormat(QtCore.Qt.RichText)
+        self._linkLabel.setOpenExternalLinks(True)
+        self._linkLabel.setText("You can purchase a license at " + 
+            "<a href='http://iep-project.org/contributing.html'>http://iep-project.org</a>")
+        self._linkLabel.setVisible(False)
+        
         # Create label to show license info
         self._label = QtGui.QTextEdit(self)
         self._label.setLineWrapMode(self._label.WidgetWidth)
         self._label.setReadOnly(True)
-        
+         
         # Layout
         layout = QtGui.QVBoxLayout(self)
         self.setLayout(layout)
         layout.addWidget(self._addbut)
+        layout.addWidget(self._linkLabel)
         layout.addWidget(self._label)
         
         # Init
@@ -214,15 +224,17 @@ class LicenseManager(QtGui.QDialog):
         # Get active license
         activeLicense = get_license_info()
         
-        # Get all keys
-        licenses = get_keys()
+        # Get all keys, transform to license dicts
+        license_keys = get_keys()
+        license_dicts = [parse_license(key) for key in license_keys]
+        license_dicts.sort(key=lambda x:x['expires'])
         
-        lines = ['Licenses from "%s":' % LICENSEKEY_FILE]
-        for key in licenses:
-            # Get info 
-            info = parse_license(key)
+        lines = ['<p>Listing licenses from <i>%s</i></p>' % LICENSEKEY_FILE]
+        for info in reversed(license_dicts):
+            # Get info             
             activeText = ''
-            if activeLicense and activeLicense['key'] == info['key']:
+            key = info['key']
+            if activeLicense and activeLicense['key'] == key:
                 activeText = ' (active)'
             e = datetime.datetime.strptime(info['expires'], '%Y%m%d')
             expires = e.strftime('%d-%m-%Y')
@@ -237,8 +249,14 @@ class LicenseManager(QtGui.QDialog):
             lines.append('</p>')
         
         # No licenses?
-        if not licenses:
-            lines.append('No licenses keys found.')
+        if not license_dicts:
+            lines.insert(1, '<p>No license keys found.</p>')
+            self._linkLabel.setVisible(True)
+        elif not activeLicense:
+            lines.insert(1, '<p>All your keys seem to have expired.</p>')
+            self._linkLabel.setVisible(True)
+        else:
+            self._linkLabel.setVisible(False)
         
         # Set label text
         self._label.setHtml('\n'.join(lines))
