@@ -68,6 +68,7 @@ class LogoWidget(QtGui.QFrame):
 class LabelWidget(QtGui.QWidget):
     def __init__(self, parent, distro=None):
         QtGui.QWidget.__init__(self, parent)
+        self.setMinimumSize(360, 256)  # Ensure title fits nicely
         
         # Create label widget and costumize
         self._label = QtGui.QLabel(self)
