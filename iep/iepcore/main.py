@@ -44,7 +44,7 @@ class MainWindow(QtGui.QMainWindow):
         self.restoreGeometry()
         
         # Show splash screen (we need to set our color too)
-        w = SplashWidget(self)
+        w = SplashWidget(self, distro=iep.distro_name)
         self.setCentralWidget(w)
         self.setStyleSheet("QMainWindow { background-color: #268bd2;}")
         
