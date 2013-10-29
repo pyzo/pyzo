@@ -1,4 +1,4 @@
-### Version 3.3 (about to release)
+### Version 3.3 (29-10-2013)
 
 Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints! 
 
@@ -15,6 +15,7 @@ Further, there have been several bug fixes and improvements:
   * New translations for Russian (George Volkov)
   * IEP binaries should now not clash with system Qt libraries
   * Project manager tool is now removed.
+  * "cd to project dir" option added to file browser (by Laurent Signac)
   * issue #1: debugging with breakpoints
   * issue #225: replace-all scrolls to start
   * issue #226: QTextBlockUserData object has no attribute 'indentation'
