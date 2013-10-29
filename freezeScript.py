@@ -228,22 +228,23 @@ if sys.platform.startswith('linux'):
                     (os.path.basename(entry), str(err)))
         
 
-# Write about experimental feature
+
 if sys.platform.startswith('linux'):
+    
+    # Set qt.conf
+    # Prevent loading plugins form the system plugin dir, which
+    # may cause incompatibility conflicts. This complements the call
+    # QApplication.setLibraryPaths([]), it does not replace it.
+    # See issue 138 and issue 198.
+    with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
+        import pyzolib.qt
+        file.write(pyzolib.qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
+        #file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
+    
+    # Write about experimental feature
     fname = 'CHECK QT.CONF TO USE NATIVE STYLING'
     with open(os.path.join(distDir, fname), 'wb') as file:
        pass
-
-
-# Set qt.conf
-# Prevent loading plugins form the system plugin dir, which
-# may cause incompatibility conflicts. This complements the call
-# QApplication.setLibraryPaths([]), it does not replace it.
-# See issue 138 and issue 198.
-with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
-    import pyzolib.qt
-    file.write(pyzolib.qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
-    #file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
 
 
 # todo: this is now in cx_Freeze right?
