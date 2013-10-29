@@ -2,7 +2,9 @@
 
 Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints! 
 
-The binaries for Linux are now build without -gtkstyle, making them look better or worse, depending on your OS. There is an experimental feature that tries to load use PySide from the system libraries. The Python verson on your system must be 3.3. E.g. on Ubunty 13.10 you can do `sudo apt-get install python3-pyside`. To enable this feature, remove/rename the `qt.conf` file.
+Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints!
+
+The binaries for Linux are now build without -gtkstyle, making them look better or worse, depending on your OS. There is an experimental feature that tries to load PySide from the system libraries. The Python version on your system must be 3.3. E.g. on Ubuntu 13.10 you can do sudo apt-get install python3-pyside. To enable this feature, check the qt.conf file.
 
 Further, there have been several bug fixes and improvements:
 
