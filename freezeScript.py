@@ -24,7 +24,7 @@ For distribution:
   
 """
 
-import sys, os, stat, shutil
+import sys, os, stat, shutil, struct
 import subprocess
 import cx_Freeze
 from cx_Freeze import Executable, Freezer, setup
@@ -125,6 +125,24 @@ f.Freeze()
 
 ## Process source code and other resources
 
+MANIFEST_TEMPLATE = """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+<noInheritable/>
+<assemblyIdentity
+    type="win32"
+    name="Microsoft.VC90.CRT"
+    version="9.0.21022.8"
+    processorArchitecture="{PROC_ARCH}"
+    publicKeyToken="1fc8b3b9a1e18e3b"
+/>
+<file name="msvcr90.dll" />
+<file name="msvcp90.dll" />
+<file name="msvcm90.dll" />
+</assembly>
+""".lstrip().replace('\r\n', '\n').replace('\n', '\r\n')
+
+
 def install_c_runtime(targetDir):
     """ install_c_runtime(targetDir)
     Install the Windows C runtime version 100. So we aim at python3
@@ -134,6 +152,14 @@ def install_c_runtime(targetDir):
         filename = os.path.join('C:\\', 'Windows', 'System32', fname)
         if os.path.isfile(filename):
             shutil.copy(filename, os.path.join(distDir, fname))
+    
+    ISWIN32 = sys.platform.startswith('win') and struct.calcsize('P')==4
+    # Copy manifest for msvcr90 on win32... why o why do we need this?
+    if ISWIN32:
+        t = MANIFEST_TEMPLATE
+        t = t.replace('{PROC_ARCH}', 'x86') # {4:'x86', 8:'amd64'}
+        manifest_filename = os.path.join(distDir,'Microsoft.VC90.CRT.manifest')
+        open(manifest_filename, 'wb').write(t.encode('utf-8'))
 
 # taken from pyzo_build:
 def copydir_smart(path1, path2):
@@ -160,7 +186,8 @@ def copydir_smart(path1, path2):
     return count
 
 # Install MS C runtime, cx_freeze does not seem to find mscvp100.dll
-install_c_runtime(distDir)
+if sys.platform.startswith('win'):
+    install_c_runtime(distDir)
 
 # Copy the whole IEP package
 copydir_smart(os.path.join(srcDir), os.path.join(distDir, 'source', 'iep'))
