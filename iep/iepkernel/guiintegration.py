@@ -23,7 +23,7 @@ from iepkernel import printDirect
 mainloopWarning = """
 Note: The GUI event loop is already running in the IEP kernel. Be aware
 that the function to enter the main loop does not block.
-""".strip()
+""".strip()+"\n"
 
 
 class App_base:
