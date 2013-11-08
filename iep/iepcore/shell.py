@@ -148,8 +148,12 @@ class ShellHighlighter(Highlighter):
         elif curBlock.position() >= cursor1.block().position():
             atCurrentPrompt = True
         
+        if not atLastPrompt and not atCurrentPrompt:
+            # Do not highlight anything but current and last prompts
+            return
         
-        if (atLastPrompt or atCurrentPrompt) and parser:
+        
+        if parser:
             if atCurrentPrompt:
                 pos1, pos2 = cursor1.positionInBlock(), cursor2.positionInBlock()
             else:
