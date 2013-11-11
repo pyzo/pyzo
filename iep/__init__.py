@@ -50,6 +50,17 @@ __version__ = '3.3.dev'
 import os
 import sys
 
+# Check Python version
+if sys.version < '3':
+    raise RuntimeError('IEP requires Python 3.x to run.')
+
+# Check pyzolib version
+import pyzolib
+if pyzolib.__version__ < '0.2.5':
+    raise RuntimeError('IEP requires Pyzolib 0.2.5 or higher.')
+elif pyzolib.__version__ < '0.2.7':
+    print('Warning: pyzolib 0.2.7 is recommended to run IEP.')
+
 from pyzolib import ssdf, paths
 from pyzolib.qt import QtCore, QtGui
 
