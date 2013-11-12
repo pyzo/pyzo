@@ -348,7 +348,7 @@ class KernelBroker:
             # But we only use it if we are sure that cmd is available.
             # See IEP issue #240
             try:
-                subprocess.check_output('cmd /c cd')
+                subprocess.check_output('cmd /c "cd"', shell=True)
             except IOError:
                 pass  # Do not use cmd
             else:
