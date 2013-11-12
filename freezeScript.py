@@ -314,9 +314,15 @@ if applicationBundle:
     if not os.path.isdir(resourcesDir):
         os.mkdir(resourcesDir)
     shutil.copy(srcDir+'resources/appicons/ieplogo.icns',resourcesDir+'iep.icns')
+    
+    #Write qt.conf in the Resources dir
+    with open(os.path.join(resourcesDir, 'qt.conf'), 'wb') as file:
+        import pyzolib.qt
+        file.write(pyzolib.qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
+    
     #Copy the Info.plist file
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
-
+    
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
     shutil.copytree('/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
 
