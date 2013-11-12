@@ -139,13 +139,6 @@ def getCommandFromKernelInfo(info, port):
     # Build command
     command = exe + ' ' + startScript + ' ' + str(port)
     
-    if sys.platform.startswith('win'):
-        # as the author from Pype writes:
-        #if we don't run via a command shell, then either sometimes we
-        #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-        # And I also see problems with Tk.                
-        command = 'cmd /c "{}"'.format(command)
-    
     # Done
     return command
 
@@ -345,6 +338,21 @@ class KernelBroker:
         # Get command to execute, and environment to use
         command = getCommandFromKernelInfo(self._info, self._kernelCon.port1)
         env = getEnvFromKernelInfo(self._info)
+        
+        # Wrap command in call to 'cmd'?
+        if sys.platform.startswith('win'):
+            # as the author from Pype writes:
+            #if we don't run via a command shell, then either sometimes we
+            #don't get wx GUIs, or sometimes we can't kill the subprocesses.
+            # And I also see problems with Tk.                
+            # But we only use it if we are sure that cmd is available.
+            # See IEP issue #240
+            try:
+                subprocess.check_output('cmd /c cd')
+            except IOError:
+                pass  # Do not use cmd
+            else:
+                command = 'cmd /c "{}"'.format(command)
         
         # Start process
         self._process = subprocess.Popen(   command, shell=True, 
