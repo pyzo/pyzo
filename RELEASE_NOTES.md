@@ -1,3 +1,13 @@
+
+### Version 3.3.2 (12-11-2013)
+
+  * Fixed issue #243: Running IEP from source did not work with PyQt4
+  * Fixed issue #240: IEP now runs also if 'cmd' is unknown on Windows
+  * Fixed problem with registering Pyzo on Windows
+  * Fixed problem with IEP binaries (MSVCR runtime) on Windows 32.
+  * Fixed problem with IEP binaries (qt.conf) on OS X.
+
+
 ### Version 3.3 (29-10-2013)
 
 Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints! 
