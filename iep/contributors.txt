@@ -1,0 +1,27 @@
+### Core Development
+
+Almar Klein
+Rob Reilink
+Ludo Visser
+
+
+### Translators
+
+Hector Mtz-Seara Monné - Spanish and Catalan
+Laurent Signac - French
+George Volkov - Russian
+
+
+### Testing
+
+Lars Heuer
+Zaharon
+Gijs van Oort
+
+
+### Financial support
+
+Diogo Costa
+Marek Petrik
+
+Your name here? Purchase a license!
