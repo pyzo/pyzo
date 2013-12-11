@@ -45,7 +45,7 @@ def ce_option(arg1):
     Similarly this information is used by the setOptions method to
     know which members are "options".
     
-    """ 
+    """
     
     # If the decorator is used without arguments, arg1 is the function
     # being decorated. If arguments are used, arg1 is the argument, and
