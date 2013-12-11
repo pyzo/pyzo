@@ -20,6 +20,7 @@ from pyzolib.qt import QtCore, QtGui
 Qt = QtCore.Qt
 
 import os, sys, time, subprocess
+import re
 import yoton
 import iep
 from pyzolib import ssdf
@@ -612,19 +613,13 @@ class BaseShell(BaseTextCtrl):
             self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
             text = self._handleBackspaces(text)
-            if len(text) < 1024:
-                # Insert text 
-                self._cursor1.insertText(text, format)
-            else:
-                # Insert per line (very long lines are split in smaller ones)
-                for line in self._splitLinesForPrinting(text):
-                    self._cursor1.insertText(line, format)
+            self._insertText(self._cursor1, text, format)
         elif prompt == 1:
             # Insert command text after prompt, prompt becomes null (input)
             self._lastCommandCursor.setPosition(self._cursor2.position())
             self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
-            self._cursor2.insertText(text, format)
+            self._insertText(self._cursor2, text, format)
             self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
         elif prompt == 2 and text == '\b':
             # Remove prompt (used when closing the kernel)
@@ -636,7 +631,7 @@ class BaseShell(BaseTextCtrl):
             self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
             self._cursor1.setKeepPositionOnInsert(True)
             self._cursor2.setKeepPositionOnInsert(False)
-            self._cursor1.insertText(text, format)
+            self._insertText(self._cursor1, text, format)
         
         # Reset cursor states for the user to type his/her commands
         self._cursor1.setKeepPositionOnInsert(True)
@@ -651,6 +646,79 @@ class BaseShell(BaseTextCtrl):
             n = text.count('\n')
             sb = self.verticalScrollBar()
             sb.setValue(sb.value()-n) 
+    
+    
+    def _insertText(self, cursor, text, format):
+        """ Insert text at the given cursor, and with the given format.
+        This function processes ANSI escape code for formatting and
+        colorization: http://en.wikipedia.org/wiki/ANSI_escape_code
+        """
+        
+        # Process very long text more efficiently.
+        # Insert per line (very long lines are split in smaller ones)
+        if len(text) > 1024:
+            for line in self._splitLinesForPrinting(text):
+                cursor.insertText(line, format)
+            return
+        
+        # Init
+        pattern = r'\x1b\[(.*?)m'
+        CLRS = ['#000', '#F00', '#0F0', '#FF0', '#00F', '#F0F', '#0FF', '#FFF']
+        pendingtext = ''
+        i0 = 0
+        
+        for match in re.finditer(pattern, text):
+            
+            # Insert pending text with the current format
+            # Also update indices
+            i1, i2 = match.span()
+            cursor.insertText(text[i0:i1], format)
+            i0 = i2
+            
+            # The formay that we are now going to parse should apply to
+            # the text that follow it ...
+            
+            # Get parameters
+            try:
+                params = [int(i) for i in match.group(1).split(';')]
+            except ValueError:
+                params = []
+            if not params:
+                params = [0]
+            print('match for ACII', match.group(1), params, repr(text))
+            # Process
+            for param in params:
+                if param == 0:
+                    format = QtGui.QTextCharFormat()
+                elif param == 1:
+                    format.setFontWeight(75)  # Bold
+                elif param == 2:
+                    format.setFontWeight(25)  # Faint
+                elif param == 3:
+                    format.setFontItalic(True)  # Italic
+                elif param == 4:
+                    format.setFontUnderline(True)  # Underline
+                #
+                elif param == 22:
+                    format.setFontWeight(50)  # Not bold or faint
+                elif param == 23:
+                    format.setFontItalic(False)  # Not italic
+                elif param == 24:
+                    format.setFontUnderline(False)  # Not underline
+                #
+                elif 30 <= param <= 37:  # Set foreground color
+                    clr = CLRS[param-30]
+                    format.setForeground(QtGui.QColor(clr))
+                elif 40 <= param <= 47:
+                    pass # Cannot set background text in QPlainTextEdit
+                #
+                else:
+                    pass  # Not supported
+            
+        else:
+            # At the end, process the remaining text
+            cursor.insertText(text[i0:], format)
+    
     
     
     ## Executing stuff
