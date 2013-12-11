@@ -421,8 +421,20 @@ class IepEditor(BaseTextCtrl):
     def _onModified(self):
         iep.parser.parseThis(self)
     
+    
+    def dragMoveEvent(self, event):
+        """ Otherwise cursor can get stuck.
+        https://bitbucket.org/iep-project/iep/issue/252
+        https://qt-project.org/forums/viewthread/3180
+        """
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            BaseTextCtrl.dropEvent(self, event)
+    
+    
     def dropEvent(self, event):
-        """ Drop files in the list. """        
+        """ Drop files in the list. """   
         if event.mimeData().hasUrls():
             # file: let the editorstack do the work.
             iep.editors.dropEvent(event)
