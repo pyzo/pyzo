@@ -34,14 +34,34 @@ sys.last_type = None
 sys.last_value = None
 sys.last_traceback = None
 
-# Set Python version as a float and get some names
-PYTHON_VERSION = sys.version_info[0] + sys.version_info[1]/10.0
+# Set Python version and get some names
+PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
     ustr = unicode
     bstr = str
 else:
     ustr = str
     bstr = bytes
+
+
+# TODO: IPYTHON
+# use the __main__ namespace
+# also do execcode via ipython?
+# hooks to install on _ipython: editor, ?
+# sys.ps2
+# debugging
+
+
+class IPythonInputPrompt:
+    """ To be set at sys.ps1.
+    """
+    def __init__(self, ipython):
+        self._ipython = ipython
+    def __str__(self):
+        return '\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]: ' % (
+        #return 'In [%i]: ' % (
+                                                self._ipython.execution_count)
+
 
 
 class IepInterpreter:
@@ -248,6 +268,18 @@ class IepInterpreter:
             iepBanner += '.\n'
         printDirect(iepBanner)
         
+        # Load IPython
+        self._ipython = None
+        # todo: disabled because work in progress
+        try:
+            import invoke_import_error
+            from IPython.core.interactiveshell import InteractiveShell 
+            self._ipython = InteractiveShell()
+            sys.ps1 = IPythonInputPrompt(self._ipython)
+        except ImportError:
+            pass
+        except Exception:
+            print('could not use IPython')
         
         # Append project path if given
         projectPath = startup_info['projectPath']
@@ -462,14 +494,19 @@ class IepInterpreter:
         with in some way (this is the same as _runlines()).
         
         """
-        self._buffer.append(line)
-        source = "\n".join(self._buffer)
-        more = self._runlines(source, self._filename)
-        if not more:
-            self._resetbuffer()
-        return more
+        if self._ipython:
+            # Store history must be True to count the output
+            self._ipython.run_cell(line, True)  
+            return False
+        else:
+            self._buffer.append(line)
+            source = "\n".join(self._buffer)
+            more = self._runlines(source, self._filename)
+            if not more:
+                self._resetbuffer()
+            return more
     
-    
+
     def _runlines(self, source, filename="<input>", symbol="single"):
         """Compile and run some source in the interpreter.
         
