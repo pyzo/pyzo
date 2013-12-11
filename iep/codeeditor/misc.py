@@ -12,16 +12,18 @@ Defined ustr (Unicode string) class and the option property decorator.
 
 import sys
 from .qt import QtGui, QtCore
-from queue import Queue, Empty
 
-# Set Python version as a float and get some names
-PYTHON_VERSION = sys.version_info[0] + sys.version_info[1]/10.0
+
+# Set Python version and get some names
+PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
     ustr = unicode
     bstr = str
+    from Queue import Queue, Empty
 else:
     ustr = str
     bstr = bytes
+    from queue import Queue, Empty
 
 
 
