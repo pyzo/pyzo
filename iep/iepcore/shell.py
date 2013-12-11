@@ -181,7 +181,7 @@ class ShellHighlighter(Highlighter):
             if atCurrentPrompt:
                 format = QtGui.QTextCharFormat()
                 format.setFontWeight(99)
-                self.setFormat(pos1, pos2-pos1 ,format)
+                self.setFormat(pos1, pos2-pos1, format)
         
         #Get the indentation setting of the editors
         indentUsingSpaces = self._codeEditor.indentUsingSpaces()
@@ -654,18 +654,20 @@ class BaseShell(BaseTextCtrl):
         colorization: http://en.wikipedia.org/wiki/ANSI_escape_code
         """
         
-        # Process very long text more efficiently.
-        # Insert per line (very long lines are split in smaller ones)
-        if len(text) > 1024:
-            for line in self._splitLinesForPrinting(text):
-                cursor.insertText(line, format)
-            return
+        # If necessary, make a new cursor that moves along. We insert
+        # the text in pieces, so we need to move along with the text!
+        if cursor.keepPositionOnInsert():
+            cursor = QtGui.QTextCursor(cursor)
+            cursor.setKeepPositionOnInsert(False)
         
-        # Init
+        # Init. We use the solarised color theme
         pattern = r'\x1b\[(.*?)m'
-        CLRS = ['#000', '#F00', '#0F0', '#FF0', '#00F', '#F0F', '#0FF', '#FFF']
+        #CLRS = ['#000', '#F00', '#0F0', '#FF0', '#00F', '#F0F', '#0FF', '#FFF']
+        CLRS = ['#657b83', '#dc322f', '#859900', '#b58900', '#268bd2', 
+                '#d33682', '#2aa198', '#eee8d5']
         pendingtext = ''
         i0 = 0
+        
         
         for match in re.finditer(pattern, text):
             
@@ -685,7 +687,7 @@ class BaseShell(BaseTextCtrl):
                 params = []
             if not params:
                 params = [0]
-            print('match for ACII', match.group(1), params, repr(text))
+            
             # Process
             for param in params:
                 if param == 0:
@@ -717,9 +719,17 @@ class BaseShell(BaseTextCtrl):
             
         else:
             # At the end, process the remaining text
-            cursor.insertText(text[i0:], format)
-    
-    
+            text = text[i0:]
+            
+            # Process very long text more efficiently.
+            # Insert per line (very long lines are split in smaller ones)
+            if len(text) > 1024:
+                for line in self._splitLinesForPrinting(text):
+                    cursor.insertText(line, format)
+            else:
+                cursor.insertText(text, format)
+
+
     
     ## Executing stuff
     
