@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 import re
-from . import tokens, Parser, BlockState
+from . import tokens, Parser, BlockState, text_type
 from .tokens import ALPHANUM
 
 
@@ -119,6 +119,7 @@ class PythonParser(Parser):
         to handle line continuation and multiline strings.
         
         """ 
+        line = text_type(line)
         
         # Init
         pos = 0 # Position following the previous match
