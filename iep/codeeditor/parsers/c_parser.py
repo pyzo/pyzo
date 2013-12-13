@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 import re
-from . import tokens, Parser, BlockState
+from . import tokens, Parser, BlockState, text_type
 from .tokens import ALPHANUM
 
 from .tokens import (Token, CommentToken, StringToken, 
@@ -54,6 +54,7 @@ class CParser(Parser):
         Parses a line of C code, yielding tokens.
         
         """ 
+        line = text_type(line)
         
         pos = 0 # Position following the previous match
         
