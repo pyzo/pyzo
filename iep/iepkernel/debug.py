@@ -35,7 +35,9 @@ class Debugger(bdb.Bdb):
         frames = []
         while frame:
             if frame is self.botframe: break
-            if 'iepkernel' in frame.f_code.co_filename: break
+            co_filename = frame.f_code.co_filename
+            if 'iepkernel' in co_filename: break  # IEP kernel
+            if 'interactiveshell.py' in co_filename: break  # IPython kernel
             frames.insert(0, frame)
             frame = frame.f_back
         
@@ -68,7 +70,7 @@ class Debugger(bdb.Bdb):
         interpreter.globals = None
         interpreter._dbFrames = []
         self.writestatus()
-    
+        
     
     def stopinteraction(self):
         """ Stop the interaction loop. 
@@ -400,7 +402,8 @@ class Debugger(bdb.Bdb):
                 f = interpreter._dbFrames[i]
                 # Get fname and lineno, and correct if required
                 fname, lineno = f.f_code.co_filename, f.f_lineno
-                fname, lineno = interpreter.correctfilenameandlineno(fname, lineno)
+                fname, lineno = interpreter.correctfilenameandlineno(fname, 
+                                                                        lineno)
                 # Build string
                 text = 'File "%s", line %i, in %s' % (
                                         fname, lineno, f.f_code.co_name)

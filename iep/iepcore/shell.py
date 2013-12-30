@@ -160,27 +160,35 @@ class ShellHighlighter(Highlighter):
             else:
                 pos1, pos2 = 0, commandCursor.positionInBlock()
             
+            # Check if we should *not* format this line.
+            # This is the case for special "executing" text
+            # A bit of a hack though ... is there a better way to signal this?
+            specialinput = (not atCurrentPrompt) and line[pos2:].startswith('(executing ')
+            
             self.setCurrentBlockState(0)
-            for token in parser.parseLine(line, previousState):
-                # Handle block state
-                if isinstance(token, parsers.BlockState):
-                    self.setCurrentBlockState(token.state)
-                else:
-                    # Get format
-                    try:
-                        format = nameToFormat(token.name).textCharFormat
-                    except KeyError:
-                        #print(repr(nameToFormat(token.name)))
-                        continue
-                    # Set format                    
-                    #format.setFontWeight(99)
-                    if token.start >= pos2:
-                        self.setFormat(token.start,token.end-token.start,format)
+            if specialinput:
+                pass # Let the kernel decide formatting
+            else:
+                for token in parser.parseLine(line, previousState):
+                    # Handle block state
+                    if isinstance(token, parsers.BlockState):
+                        self.setCurrentBlockState(token.state)
+                    else:
+                        # Get format
+                        try:
+                            format = nameToFormat(token.name).textCharFormat
+                        except KeyError:
+                            #print(repr(nameToFormat(token.name)))
+                            continue
+                        # Set format                    
+                        #format.setFontWeight(75)
+                        if token.start >= pos2:
+                            self.setFormat(token.start,token.end-token.start,format)
                 
             # Set prompt to bold
             if atCurrentPrompt:
                 format = QtGui.QTextCharFormat()
-                format.setFontWeight(99)
+                format.setFontWeight(75)
                 self.setFormat(pos1, pos2-pos1, format)
         
         #Get the indentation setting of the editors
