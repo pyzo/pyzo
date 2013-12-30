@@ -5,14 +5,21 @@
 # The full license can be found in 'license.txt'.
 
 
-""" Module iepRemote2
+""" Module iepkernel.interpreter
 
-Implements the IEP interpreter and the introspection thread.
-Also GUI hijacking is defined here. This code works on all* python versions.
-*: Well, at least from 2.4 and up (including py3k).
+Implements the IEP interpreter.
 
-Note that this module delibirately has a name that is very unlikely to 
-occur in any othe packages to prevent import clashes.
+Notes on IPython
+----------------
+We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
+  * The namespace is set to __main__
+  * We call its run_cell method to execute code
+  * Debugging/breakpoints are "enabled using the pre_run_code_hook
+  * Debugging occurs in our own debugger
+  * GUI integration is all handled by IEP
+  * We need special prompts for IPython input
+  
+  
 
 """
 
@@ -45,24 +52,51 @@ else:
 
 
 # TODO: IPYTHON
-# use the __main__ namespace
-# also do execcode via ipython?
 # hooks to install on _ipython: editor, ?
-# sys.ps2
-# debugging
+# correct line numbers when code is in a cell
 
 
-class IPythonInputPrompt:
-    """ To be set at sys.ps1.
+
+class PS1:
+    """ Dynamic prompt for PS1. Show IPython prompt if available, and
+    show current stack frame when debugging.
     """
-    def __init__(self, ipython):
-        self._ipython = ipython
+    def __init__(self, iep):
+        self._iep = iep
     def __str__(self):
-        return '\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]: ' % (
-        #return 'In [%i]: ' % (
-                                                self._ipython.execution_count)
+        if self._iep._dbFrames:
+            # When debugging, show where we are, do not use IPython prompt
+            preamble = '('+self._iep._dbFrameName+')'
+            return '\x1b[0;32m%s>>> ' % preamble
+        elif self._iep._ipython:
+            # IPython prompt
+            return '\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]: ' % (
+                                            self._iep._ipython.execution_count)
+            #return 'In [%i]: ' % (self._ipython.execution_count)
+        else:
+            # Normal Python prompt
+            return '\x1b[0;32m>>> '
 
 
+class PS2:
+    """ Dynamic prompt for PS2.
+    """
+    def __init__(self, iep):
+        self._iep = iep
+    def __str__(self):
+        if self._iep._dbFrames:
+            # When debugging, show where we are, do not use IPython prompt
+            preamble = '('+self._iep._dbFrameName+')'
+            return '\x1b[0;32m%s... ' % preamble
+        elif self._iep._ipython:
+            # Dots ala IPython
+            nspaces = len(str(self._iep._ipython.execution_count)) + 2
+            return '\x1b[0;32m%s...: ' % (nspaces*' ')
+        else:
+            # Just dots
+            return '\x1b[0;32m... '
+
+ 
 
 class IepInterpreter:
     """ IepInterpreter
@@ -272,14 +306,20 @@ class IepInterpreter:
         self._ipython = None
         # todo: disabled because work in progress
         try:
-            import invoke_import_error
+            #import invoke_import_error
+            import __main__
             from IPython.core.interactiveshell import InteractiveShell 
-            self._ipython = InteractiveShell()
-            sys.ps1 = IPythonInputPrompt(self._ipython)
+            self._ipython = InteractiveShell(user_module=__main__)
+            self._ipython.set_hook('pre_run_code_hook', self.ipython_pre_run_code_hook)
+            self._ipython.set_custom_exc((bdb.BdbQuit,), self.dbstop_handler)
         except ImportError:
             pass
         except Exception:
             print('could not use IPython')
+        
+        # Set prompts
+        sys.ps1 = PS1(self)
+        sys.ps2 = PS2(self)
         
         # Append project path if given
         projectPath = startup_info['projectPath']
@@ -400,14 +440,8 @@ class IepInterpreter:
         # Prompt is allowed to be an object with __str__ method
         if self.newPrompt:
             self.newPrompt = False
-            # Write prompt (note that the second "if" is not an "elif"!
-            preamble = ''
-            if self._dbFrames:
-                preamble = '('+self._dbFrameName+')'
-            if self.more:
-                self.context._strm_prompt.send(preamble+str(sys.ps2))
-            else:
-                self.context._strm_prompt.send(preamble+str(sys.ps1))
+            ps = sys.ps2 if self.more else sys.ps1
+            self.context._strm_prompt.send(str(ps))
         
         if True:
             # Determine state. The message is really only send
@@ -494,17 +528,17 @@ class IepInterpreter:
         with in some way (this is the same as _runlines()).
         
         """
-        if self._ipython:
-            # Store history must be True to count the output
-            self._ipython.run_cell(line, True)  
-            return False
-        else:
-            self._buffer.append(line)
-            source = "\n".join(self._buffer)
-            more = self._runlines(source, self._filename)
-            if not more:
-                self._resetbuffer()
-            return more
+        # Get buffer, join to get source
+        buffer = self._buffer
+        buffer.append(line)
+        source = "\n".join(buffer)
+        # Clear buffer and run source
+        self._resetbuffer()
+        more = self._runlines(source, self._filename)
+        # Create buffer if needed
+        if more:
+            self._buffer = buffer 
+        return more
     
 
     def _runlines(self, source, filename="<input>", symbol="single"):
@@ -531,20 +565,39 @@ class IepInterpreter:
         line.
         
         """
+        
+        use_ipython = self._ipython and not self._dbFrames
+        
+        # Try compiling.
+        # The IPython kernel does not handle incomple lines, so we check
+        # that ourselves ...
         try:
             code = self.compilecode(source, filename, symbol)
         except (OverflowError, SyntaxError, ValueError):
-            # Case 1
-            self.showsyntaxerror(filename)
-            return False
+            code = False
         
-        if code is None:
-            # Case 2
-            return True
-        
-        # Case 3
-        self.execcode(code)
-        return False
+        if use_ipython:
+            if code is None:
+                # Case 2
+                #self._ipython.run_cell('', True)
+                return True
+            else:
+                # Case 1 and 3 handled by IPython
+                self._ipython.run_cell(source, True)
+                return False
+                
+        else:
+            if code is None:
+                # Case 2
+                return True
+            elif not code:
+                # Case 1
+                self.showsyntaxerror(filename)
+                return False
+            else:
+                # Case 3
+                self.execcode(code)
+                return False
     
     
     def runlargecode(self, msg):
@@ -569,7 +622,12 @@ class IepInterpreter:
             runtext = '(executing lines %i to %i of "%s")\n' % (
                                                 lineno1, lineno2, fname_show)
         # Notify IDE
-        self.context._strm_echo.send(runtext)
+        colorcode = '\x1b[0;33m'
+        self.context._strm_echo.send(colorcode+runtext)
+        
+        # Increase counter
+        if self._ipython:
+            self._ipython.execution_count += 1
         
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
@@ -682,9 +740,30 @@ class IepInterpreter:
         The globals variable is used when in debug mode.
         """
         
-        # Apply breakpoints
-        # So breakpoints are updated at each time a command is given,
-        # including commands like "db continue".
+        try:
+            if self._dbFrames:
+                self.apply_breakpoints()
+                exec(code, self.globals, self.locals)
+            else:
+                # Turn debugger on at this point. If there are no breakpoints,
+                # the tracing is disabled for better performance.
+                self.apply_breakpoints()
+                self.debugger.set_on() 
+                exec(code, self.locals)
+        except bdb.BdbQuit:
+            self.dbstop_handler()
+        except Exception:
+            time.sleep(0.2) # Give stdout some time to send data
+            self.showtraceback()
+        except KeyboardInterrupt: # is a BaseException, not an Exception
+            time.sleep(0.2)
+            self.showtraceback()
+    
+    
+    def apply_breakpoints(self):
+        """ Breakpoints are updated at each time a command is given,
+        including commands like "db continue".
+        """
         try:
             breaks = self.context._stat_breakpoints.recv()
             if self.debugger.breaks:
@@ -696,24 +775,23 @@ class IepInterpreter:
         except Exception:
             type, value, tb = sys.exc_info(); del tb
             print('Error while setting breakpoints: %s' % str(value))
-        
-        
-        try:
-            if self._dbFrames:
-                exec(code, self.globals, self.locals)
-            else:
-                # Turn debugger on at this point. If there are no breakpoints,
-                # the tracing is disabled for better performance.
-                self.debugger.set_on() 
-                exec(code, self.locals)
-        except bdb.BdbQuit:
-            print("Program execution stopped from debugger.")
-        except Exception:
-            time.sleep(0.2) # Give stdout some time to send data
-            self.showtraceback()
-        except KeyboardInterrupt: # is a BaseException, not an Exception
-            time.sleep(0.2)
-            self.showtraceback()
+    
+    
+    ## Handlers and hooks
+    
+    def ipython_pre_run_code_hook(self, ipython):
+        """ Hook that IPython calls right before executing code.
+        """
+        self.apply_breakpoints()
+        self.debugger.set_on() 
+    
+    
+    def dbstop_handler(self, *args, **kwargs):
+        print("Program execution stopped from debugger.")
+    
+    
+    
+    
     
     
     ## Writing and error handling
