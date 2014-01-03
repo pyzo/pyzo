@@ -362,7 +362,7 @@ class IepInterpreter:
             os.chdir( os.path.dirname(scriptFilename) )
             
             # Notify the running of the script
-            printDirect('[Running script: "'+scriptFilename+'"]\n')
+            printDirect('\x1b[0;33mRunning script: "'+scriptFilename+'"\n')
             
             # Run script
             self._scriptToRunOnStartup = scriptFilename
