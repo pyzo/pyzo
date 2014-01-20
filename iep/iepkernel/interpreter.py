@@ -46,6 +46,7 @@ PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
     ustr = unicode
     bstr = str
+    input = raw_input
 else:
     ustr = str
     bstr = bytes
@@ -412,6 +413,9 @@ class IepInterpreter:
         self._ipython.set_hook('pre_run_code_hook', self.ipython_pre_run_code_hook)
         self._ipython.set_hook('editor', self.ipython_editor_hook)
         self._ipython.set_custom_exc((bdb.BdbQuit,), self.dbstop_handler)
+        
+        # Some patching
+        self._ipython.ask_exit = self.ipython_ask_exit
     
     
     def process_commands(self):
@@ -810,6 +814,15 @@ class IepInterpreter:
         else:
             action = 'open %s' % os.path.abspath(filename)
         self.context._strm_action.send(action)
+    
+    
+    def ipython_ask_exit(self):
+        # Ask the user
+        a = input("Do you really want to exit ([y]/n)? ")
+        a = a or 'y'
+        # Close stdin if necessary
+        if a.lower() == 'y':
+            sys.stdin._channel.close()
     
     
     def dbstop_handler(self, *args, **kwargs):
