@@ -123,6 +123,14 @@ class Magician:
             return self.open(line, command)
         
         elif interpreter._ipython:
+            # Patch IPython magic
+            
+            # EDIT do not run code after editing
+            if command.startswith('EDIT ') and not ' -X ' in command:
+                parts = line.split(' ')
+                return 'edit -x ' + line[5:]
+            
+            # In all cases stop processing magic commands
             return
         
         # Commands that we only support in the absense of IPtython
