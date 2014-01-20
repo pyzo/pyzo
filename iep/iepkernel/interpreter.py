@@ -52,10 +52,6 @@ else:
     bstr = bytes
 
 
-# TODO: IPYTHON
-# correct line numbers when code is in a cell
-
-
 
 class PS1:
     """ Dynamic prompt for PS1. Show IPython prompt if available, and
@@ -669,7 +665,7 @@ class IepInterpreter:
         
         if code:
             # Store the source using the (id of the) code object as a key
-            self._codeCollection.storeSource(code, source)
+            self._codeCollection.store_source(code, source)
             # Execute the code
             self.execcode(code)
         else:
@@ -706,7 +702,7 @@ class IepInterpreter:
         
         if code:
             # Store the source using the (id of the) code object as a key
-            self._codeCollection.storeSource(code, source)
+            self._codeCollection.store_source(code, source)
             # Execute the code
             self.execcode(code)
         else:
@@ -809,10 +805,14 @@ class IepInterpreter:
     
     
     def ipython_editor_hook(self, ipython, filename, linenum=None, wait=True):
+        # Correct line number for cell offset
+        filename, linenum = self.correctfilenameandlineno(filename, linenum or 0)
+        # Get action string
         if linenum:
             action = 'open %i %s' % (linenum, os.path.abspath(filename))
         else:
             action = 'open %s' % os.path.abspath(filename)
+        # Send
         self.context._strm_action.send(action)
     
     
@@ -926,7 +926,7 @@ class IepInterpreter:
                     sys.last_value = value
                     sys.last_traceback = tb
             
-            # Get tpraceback to correct all the line numbers
+            # Get traceback to correct all the line numbers
             # tblist = list  of (filename, line-number, function-name, text)
             tblist = traceback.extract_tb(tb)
             
@@ -935,7 +935,6 @@ class IepInterpreter:
             while tb:
                 frames.append(tb.tb_frame)
                 tb = tb.tb_next
-            frames.pop(0)
             
             # Walk through the list
             for i in range(len(tblist)):
@@ -945,17 +944,6 @@ class IepInterpreter:
                 if not isinstance(fname, ustr):
                     fname = fname.decode('utf-8')
                 example = tbInfo[3]
-                # Get source (if available) and split lines
-                source = None
-                if i < len(frames):
-                    source = self._codeCollection.getSource(frames[i].f_code)
-                if source:
-                    source = source.splitlines()                
-                    # Obtain source from example and select line                    
-                    try:
-                        example = source[ tbInfo[1]-1 ]
-                    except IndexError:
-                        pass
                 # Reset info
                 tblist[i] = (fname, lineno, tbInfo[2], example)
             
@@ -985,7 +973,7 @@ class IepInterpreter:
         As example:
         "foo.py+7", 22  -> "foo.py", 29
         """
-        j = fname.find('+')
+        j = fname.rfind('+')
         if j>0:
             try:
                 lineno += int(fname[j+1:])
@@ -995,15 +983,48 @@ class IepInterpreter:
         return fname, lineno
 
 
-class ExecutedSourceCollection(dict):
+class ExecutedSourceCollection:
     """ Stores the source of executed pieces of code, so that the right 
     traceback can be reproduced when an error occurs.
     The codeObject produced by compiling the source is used as a 
     reference.
     """
-    def _getId(self, codeObject):
-        id_ = str(id(codeObject)) + '_' + codeObject.co_filename
-    def storeSource(self, codeObject, source):
-        self[self._getId(codeObject)] = source
-    def getSource(self, codeObject):
-        return self.get(self._getId(codeObject), '')
+    
+    def __init__(self):
+        self._cache = {}
+        self._patch()
+    
+    def store_source(self, codeObject, source):
+        self._cache[codeObject.co_filename)] = source
+    
+    def _patch(self):
+        def getlines(filename, module_globals=None):
+            # Try getting the source from our own cache,
+            # otherwise fallback to linecache's own cache
+            src = self._cache.get(filename, '')
+            if src:
+                return [line+'\n' for line in src.splitlines()]
+            else:
+                import linecache
+                return linecache._getlines(filename, module_globals)
+        
+        # Monkey patch
+        import linecache
+        linecache._getlines = linecache.getlines
+        linecache.getlines =getlines
+        
+        # I hoped this would remove the +lineno for IPython tracebacks, 
+        # but it doesn't
+#         def extract_tb(tb, limit=None):
+#             print('aasdasd')
+#             import traceback
+#             list1 = traceback._extract_tb(tb, limit)
+#             list2 = []
+#             for (filename, lineno, name, line) in list1:
+#                 filename, lineno = sys._iepInterpreter.correctfilenameandlineno(filename, lineno)
+#                 list2.append((filename, lineno, name, line))
+#             return list2
+#         
+#         import traceback
+#         traceback._extract_tb = traceback.extract_tb
+#         traceback.extract_tb = extract_tb
