@@ -131,6 +131,7 @@ del os, sys, time
 
 # Delete stuff we do not want 
 del __file__
+del __loader__  # prevent lines from this file to be shown in tracebacks
 
 
 ## Start and stop
