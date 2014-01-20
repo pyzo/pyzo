@@ -1236,8 +1236,17 @@ class PythonShell(BaseShell):
         action = self._strm_action.recv(False)
         if action:
             if action.startswith('open '):
-                fname = action.split(' ',1)[1]
-                iep.editors.loadFile(fname)
+                parts = action.split(' ')
+                parts.pop(0)
+                try:
+                    linenr = int(parts[0])
+                    parts.pop(0)
+                except ValueError:
+                    linenr = None
+                fname = ' '.join(parts)
+                editor = iep.editors.loadFile(fname)
+                if editor and linenr:
+                    editor._editor.gotoLine(linenr)
             else:
                 print('Unkown action: %s' % action)
         

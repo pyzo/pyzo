@@ -108,6 +108,25 @@ class Magician:
         if not command:
             return
         
+        # Commands to always support (also with IPython)
+        
+        elif command.startswith('DB'):
+            return self.debug(line, command)
+        
+        elif command.startswith('CONDA'):
+            return self.conda(line, command)
+        
+        elif command.startswith('PIP'):
+            return self.pip(line, command)
+        
+        elif command.startswith('OPEN '):
+            return self.open(line, command)
+        
+        elif interpreter._ipython:
+            return
+        
+        # Commands that we only support in the absense of IPtython
+        
         elif command == '?':
             return 'print(%s)' % repr(MESSAGE)
         
@@ -128,9 +147,6 @@ class Magician:
         elif command.startswith('LS'):
             return self.ls(line, command)
         
-        elif command.startswith('DB'):
-            return self.debug(line, command)
-        
         elif command.startswith('TIMEIT'):
             return self.timeit(line, command)
         
@@ -140,17 +156,8 @@ class Magician:
         elif command == 'WHOS':
             return self.whos(line, command)
         
-        elif command.startswith('OPEN '):
-            return self.open(line, command)
-        
         elif command.startswith('RUN '):
             return self.run(line, command)
-        
-        elif command.startswith('CONDA'):
-            return self.conda(line, command)
-        
-        elif command.startswith('PIP'):
-            return self.pip(line, command)
     
     
     def debug(self, line, command):
@@ -312,6 +319,8 @@ class Magician:
                     return ''
         
         # Almost done
+        # todo: shell also supports "open LINENR FILENAME"
+        # IPython's edit now support this via our hook in interpreter.py
         if not fname:
             print('Could not determine file name for object "%s".' % name)
         else:

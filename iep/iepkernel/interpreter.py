@@ -52,7 +52,6 @@ else:
 
 
 # TODO: IPYTHON
-# hooks to install on _ipython: editor, ?
 # correct line numbers when code is in a cell
 
 
@@ -161,16 +160,6 @@ class IepInterpreter:
         # Instantiate magician and tracer
         self.magician = Magician()
         self.debugger = Debugger()
-        
-        # Define prompts
-        try:
-            sys.ps1
-        except AttributeError:
-            sys.ps1 = ">>> "
-        try:
-            sys.ps2
-        except AttributeError:
-            sys.ps2 = "... "
         
         # To keep track of whether to send a new prompt, and whether more
         # code is expected.
@@ -302,20 +291,8 @@ class IepInterpreter:
             iepBanner += '.\n'
         printDirect(iepBanner)
         
-        # Load IPython
-        self._ipython = None
-        # todo: disabled because work in progress
-        try:
-            #import invoke_import_error
-            import __main__
-            from IPython.core.interactiveshell import InteractiveShell 
-            self._ipython = InteractiveShell(user_module=__main__)
-            self._ipython.set_hook('pre_run_code_hook', self.ipython_pre_run_code_hook)
-            self._ipython.set_custom_exc((bdb.BdbQuit,), self.dbstop_handler)
-        except ImportError:
-            pass
-        except Exception:
-            print('could not use IPython')
+        # Try loading IPython
+        self._load_ipyhon()
         
         # Set prompts
         sys.ps1 = PS1(self)
@@ -328,9 +305,21 @@ class IepInterpreter:
                 projectPath)
             #Actual prepending is done below, to put it before the script path
         
-        # Write tips message
-        printDirect('Type "help" for help, ' + 
-                            'type "?" for a list of *magic* commands.\n')
+        
+        # Write tips message.
+        if self._ipython:
+            import IPython
+            printDirect("\nUsing IPython %s -- An enhanced Interactive Python.\n"
+                        %  IPython.__version__)
+            printDirect(
+                "?         -> Introduction and overview of IPython's features.\n"
+                "%quickref -> Quick reference.\n"
+                "help      -> Python's own help system.\n"
+                "object?   -> Details about 'object', "
+                "use 'object??' for extra details.\n\n")
+        else:
+            printDirect("Type 'help' for help, " + 
+                        "type '?' for a list of *magic* commands.\n")
         
         
         # Get whether we should (and can) run as script
@@ -395,6 +384,34 @@ class IepInterpreter:
             # Check if it exists
             if filename and os.path.isfile(filename):
                 self._scriptToRunOnStartup = filename
+    
+    
+    def _load_ipyhon(self):
+        """ Try loading IPython shell. The result is set in self._ipython
+        (can be None if IPython not available).
+        """
+        
+        # Init
+        self._ipython = None
+        
+        # Try importing IPython
+        try:
+            import __main__
+            import IPython
+            from IPython.core.interactiveshell import InteractiveShell 
+        except ImportError:
+            return
+        except Exception:
+            print('could not use IPython')
+            return
+        
+        # Create an IPython shell
+        self._ipython = InteractiveShell(user_module=__main__)
+        
+        # Set some hooks
+        self._ipython.set_hook('pre_run_code_hook', self.ipython_pre_run_code_hook)
+        self._ipython.set_hook('editor', self.ipython_editor_hook)
+        self._ipython.set_custom_exc((bdb.BdbQuit,), self.dbstop_handler)
     
     
     def process_commands(self):
@@ -476,11 +493,12 @@ class IepInterpreter:
                 self.context._strm_echo.send(line1)
                 self.context._stat_interpreter.send('Busy')
                 self.newPrompt = True
-                # Convert command
+                # Convert command 
+                # (only a few magics are supported if IPython is active)
                 line2 = self.magician.convert_command(line1.rstrip('\n'))
                 # Execute actual code
                 if line2 is not None:
-                    for line3 in line2.split('\n'): # not splitlines!
+                    for line3 in line2.split('\n'):  # not splitlines!
                         self.more = self.pushline(line3)
                 else:
                     self.more = False
@@ -784,6 +802,14 @@ class IepInterpreter:
         """
         self.apply_breakpoints()
         self.debugger.set_on() 
+    
+    
+    def ipython_editor_hook(self, ipython, filename, linenum=None, wait=True):
+        if linenum:
+            action = 'open %i %s' % (linenum, os.path.abspath(filename))
+        else:
+            action = 'open %s' % os.path.abspath(filename)
+        self.context._strm_action.send(action)
     
     
     def dbstop_handler(self, *args, **kwargs):
