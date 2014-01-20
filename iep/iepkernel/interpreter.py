@@ -984,10 +984,12 @@ class IepInterpreter:
 
 
 class ExecutedSourceCollection:
-    """ Stores the source of executed pieces of code, so that the right 
-    traceback can be reproduced when an error occurs.
-    The codeObject produced by compiling the source is used as a 
-    reference.
+    """ Stores the source of executed pieces of code, so that the right
+    traceback can be reproduced when an error occurs. The filename
+    (including the +lineno suffix) is used as a key. We monkey-patch
+    the linecache module so that we first try our cache to look up the
+    lines. In that way we also allow third party modules (e.g. IPython)
+    to get the lines for executed cells.
     """
     
     def __init__(self):
@@ -995,7 +997,7 @@ class ExecutedSourceCollection:
         self._patch()
     
     def store_source(self, codeObject, source):
-        self._cache[codeObject.co_filename)] = source
+        self._cache[codeObject.co_filename] = source
     
     def _patch(self):
         def getlines(filename, module_globals=None):
