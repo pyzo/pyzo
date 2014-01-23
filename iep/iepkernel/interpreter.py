@@ -63,15 +63,15 @@ class PS1:
         if self._iep._dbFrames:
             # When debugging, show where we are, do not use IPython prompt
             preamble = '('+self._iep._dbFrameName+')'
-            return '\x1b[0;32m%s>>> ' % preamble
+            return '\x1b[0;32m%s>>>\x1b[0m ' % preamble
         elif self._iep._ipython:
             # IPython prompt
-            return '\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]: ' % (
+            return '\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]:\x1b[0m ' % (
                                             self._iep._ipython.execution_count)
             #return 'In [%i]: ' % (self._ipython.execution_count)
         else:
             # Normal Python prompt
-            return '\x1b[0;32m>>> '
+            return '\x1b[0;32m>>>\x1b[0m '
 
 
 class PS2:
@@ -83,14 +83,14 @@ class PS2:
         if self._iep._dbFrames:
             # When debugging, show where we are, do not use IPython prompt
             preamble = '('+self._iep._dbFrameName+')'
-            return '\x1b[0;32m%s... ' % preamble
+            return '\x1b[0;32m%s...\x1b[0m ' % preamble
         elif self._iep._ipython:
             # Dots ala IPython
             nspaces = len(str(self._iep._ipython.execution_count)) + 2
-            return '\x1b[0;32m%s...: ' % (nspaces*' ')
+            return '\x1b[0;32m%s...:\x1b[0m ' % (nspaces*' ')
         else:
             # Just dots
-            return '\x1b[0;32m... '
+            return '\x1b[0;32m...\x1b[0m '
 
  
 
@@ -348,7 +348,7 @@ class IepInterpreter:
             os.chdir( os.path.dirname(scriptFilename) )
             
             # Notify the running of the script
-            printDirect('\x1b[0;33mRunning script: "'+scriptFilename+'"\n')
+            printDirect('\x1b[0;33mRunning script: "'+scriptFilename+'"\x1b[0m\n')
             
             # Run script
             self._scriptToRunOnStartup = scriptFilename
@@ -640,8 +640,7 @@ class IepInterpreter:
             runtext = '(executing lines %i to %i of "%s")\n' % (
                                                 lineno1, lineno2, fname_show)
         # Notify IDE
-        colorcode = '\x1b[0;33m'
-        self.context._strm_echo.send(colorcode+runtext)
+        self.context._strm_echo.send('\x1b[0;33m%s\x1b[0m' % runtext)
         
         # Increase counter
         if self._ipython:
