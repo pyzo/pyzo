@@ -130,8 +130,10 @@ del ct, port
 del os, sys, time
 
 # Delete stuff we do not want 
-del __file__
-del __loader__  # prevent lines from this file to be shown in tracebacks
+for name in [   '__file__',  # __main__ does not have a corresponding file
+                '__loader__'  # prevent lines from this file to be shown in tb
+            ]:
+    globals().pop(name, None)
 
 
 ## Start and stop
