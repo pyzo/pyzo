@@ -121,6 +121,28 @@ class ShellInfo_exe(QtGui.QComboBox):
             guicombobox.setTheText(defaultGui)
 
 
+class ShellInfo_ipython(QtGui.QCheckBox):
+    
+    def __init__(self, parent):
+        QtGui.QCheckBox.__init__(self, parent)
+        t = translate('shell', 'ipython ::: Use IPython shell if available.')
+        self.setText(t.tt)
+        # Default is True
+        self.setChecked(True)
+    
+    def setTheText(self, value):
+        if value.lower() in ['no', 'false']:
+            self.setChecked(False)
+        else: 
+            self.setChecked(True)  # Also for empty string; default is True
+    
+    def getTheText(self):
+        if self.isChecked():
+            return 'yes'
+        else:
+            return 'no'
+
+
 class ShellInfo_gui(QtGui.QComboBox):
     
     # For (backward) compatibility
@@ -303,6 +325,7 @@ class ShellInfoTab(QtGui.QWidget):
     
     INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'), 
                     translate('shell', 'exe ::: The Python executable.'), 
+                    translate('shell', 'ipython ::: Use IPython shell if available.'), 
                     translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'), 
                     translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'), 
                     translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
@@ -391,11 +414,9 @@ class ShellInfoTab(QtGui.QWidget):
         info = self._info
         
         # Set struct values according to widgets
-        try:            
-           for key in info:
-               widget = self._shellInfoWidgets.get(key, None)
-               if widget is not None:
-                   info[key] = widget.getTheText()
+        try:   
+            for key, widget in self._shellInfoWidgets.items():
+                info[key] = widget.getTheText()
         
         except Exception as why:
             print("Error getting info in shell config:", why)
