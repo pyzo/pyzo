@@ -289,13 +289,16 @@ class IepInterpreter:
         printDirect(iepBanner)
         
         # Try loading IPython
-        try:
-            self._load_ipyhon()
-        except Exception:
-            type, value, tb = sys.exc_info();
-            del tb
-            printDirect('IPython could not be loaded: %s\n' % str(value))
+        if startup_info.get('ipython', '').lower() in ('no', 'false'):
             self._ipython = None
+        else:
+            try:
+                self._load_ipyhon()
+            except Exception:
+                type, value, tb = sys.exc_info();
+                del tb
+                printDirect('IPython could not be loaded: %s\n' % str(value))
+                self._ipython = None
         
         # Set prompts
         sys.ps1 = PS1(self)
