@@ -289,7 +289,13 @@ class IepInterpreter:
         printDirect(iepBanner)
         
         # Try loading IPython
-        self._load_ipyhon()
+        try:
+            self._load_ipyhon()
+        except Exception:
+            type, value, tb = sys.exc_info();
+            del tb
+            printDirect('IPython could not be loaded: %s\n' % str(value))
+            self._ipython = None
         
         # Set prompts
         sys.ps1 = PS1(self)
@@ -390,19 +396,20 @@ class IepInterpreter:
         
         # Init
         self._ipython = None
+        import __main__
         
         # Try importing IPython
         try:
-            import __main__
             import IPython
-            from IPython.core.interactiveshell import InteractiveShell 
         except ImportError:
             return
-        except Exception:
-            print('could not use IPython')
+        
+        # Version ok?
+        if IPython.version_info < (1,):
             return
         
         # Create an IPython shell
+        from IPython.core.interactiveshell import InteractiveShell 
         self._ipython = InteractiveShell(user_module=__main__)
         
         # Set some hooks
