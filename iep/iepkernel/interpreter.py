@@ -25,6 +25,7 @@ We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
 
 import os, sys, time
 import struct
+import shlex
 from codeop import CommandCompiler
 import traceback
 import keyword
@@ -346,6 +347,7 @@ class IepInterpreter:
             # Set command line arguments
             sys.argv[:] = []
             sys.argv.append(scriptFilename)
+            sys.argv.extend(shlex.split(startup_info.get('argv', '')))
             # Insert script directory to path
             theDir = os.path.abspath( os.path.dirname(scriptFilename) )
             if theDir not in sys.path:
@@ -370,6 +372,7 @@ class IepInterpreter:
             # Remove all command line arguments, set first to empty string
             sys.argv[:] = []
             sys.argv.append('')
+            sys.argv.extend(shlex.split(startup_info.get('argv', '')))
             # Insert current directory to path
             sys.path.insert(0, '')
             if projectPath:

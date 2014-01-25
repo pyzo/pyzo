@@ -314,6 +314,13 @@ class ShellInfo_startupScript(ShellinfoWithSystemDefault):
 
 
 
+class ShellInfo_argv(ShellInfoLineEdit):
+    
+    def __init__(self, parent):
+        ShellInfoLineEdit.__init__(self, parent)
+
+
+
 class ShellInfo_startDir(ShellInfoLineEdit):
     pass
 
@@ -329,7 +336,8 @@ class ShellInfoTab(QtGui.QScrollArea):
                     translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'), 
                     translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'), 
                     translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
-                    translate('shell', 'startDir ::: The start directory (not in script mode).')
+                    translate('shell', 'startDir ::: The start directory (not in script mode).'),
+                    translate('shell', 'argv ::: The command line arguments (sys.argv).'),
                 ]
     
     def __init__(self, parent):
