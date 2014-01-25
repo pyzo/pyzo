@@ -47,7 +47,7 @@ class ShellInfo_name(ShellInfoLineEdit):
     
     
     def onValueChanged(self): 
-        self.parent().setTabTitle(self.getTheText())
+        self.parent().parent().parent().setTabTitle(self.getTheText())
 
 
 
@@ -265,7 +265,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         # Create sub-widget
         self._edit = QtGui.QTextEdit(parent)
         self._edit.setMaximumHeight(80)
-        self._edit.setMinimumWidth(400)
+        self._edit.setMinimumWidth(200)
         self._edit.textChanged.connect(self.onEditChanged)
         
         # Instantiate
@@ -321,7 +321,7 @@ class ShellInfo_startDir(ShellInfoLineEdit):
 ## The dialog class and container with tabs
 
 
-class ShellInfoTab(QtGui.QWidget):
+class ShellInfoTab(QtGui.QScrollArea):
     
     INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'), 
                     translate('shell', 'exe ::: The Python executable.'), 
@@ -333,10 +333,17 @@ class ShellInfoTab(QtGui.QWidget):
                 ]
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QScrollArea.__init__(self, parent)
         
-        # Create layout
-        self._formLayout = QtGui.QFormLayout(self)
+        # Init the scroll area
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QtGui.QFrame.NoFrame);
+        
+        # Create widget and a layout
+        self._content = QtGui.QWidget(parent)
+        self._formLayout = QtGui.QFormLayout(self._content)
         
         # Collect classes of widgets to instantiate
         classes = []
@@ -349,10 +356,10 @@ class ShellInfoTab(QtGui.QWidget):
         self._shellInfoWidgets = {}
         for t, cls in classes:
             # Instantiate and store
-            instance = cls(self)
+            instance = cls(self._content)
             self._shellInfoWidgets[t.key] = instance
             # Create label 
-            label = QtGui.QLabel(t, self)
+            label = QtGui.QLabel(t, self._content)
             label.setToolTip(t.tt)
             # Add to layout
             self._formLayout.addRow(label, instance)
@@ -360,8 +367,8 @@ class ShellInfoTab(QtGui.QWidget):
         # Add delete button  
         
         t = translate('shell', 'Delete ::: Delete this shell configuration')
-        label = QtGui.QLabel('', self)        
-        instance = QtGui.QPushButton(iep.icons.cancel, t, self)
+        label = QtGui.QLabel('', self._content)        
+        instance = QtGui.QPushButton(iep.icons.cancel, t, self._content)
         instance.setToolTip(t.tt)
         instance.setAutoDefault(False)
         instance.clicked.connect(self.parent().parent().onTabClose)
@@ -373,7 +380,8 @@ class ShellInfoTab(QtGui.QWidget):
         
         # Apply layout
         self._formLayout.setSpacing(15)
-        self.setLayout(self._formLayout)
+        self._content.setLayout(self._formLayout)
+        self.setWidget(self._content)
     
     
     def setTabTitle(self, name):
@@ -491,9 +499,8 @@ class ShellInfoDialog(QtGui.QDialog):
         
         # Prevent resizing
         self.show()
-        size = self.size()
-        self.setMinimumSize(size)
-        self.setMaximumHeight(size.height())
+        self.setMinimumSize(500, 400)
+        #self.setMaximumHeight(500)
         
     
     
