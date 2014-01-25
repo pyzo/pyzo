@@ -571,6 +571,8 @@ class DebugStack(QtGui.QToolButton):
             return 'Stack frame is <console>.'
         elif filename.startswith('<ipython-input-'):
             return 'Stack frame is IPython input.'
+        elif filename.startswith('<'):
+            return 'Stack frame is special name'
         # Go there!
         result = iep.editors.loadFile(filename)
         if not result:
