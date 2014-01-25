@@ -39,6 +39,8 @@ class ShellInfo_name(ShellInfoLineEdit):
     def __init__(self, *args, **kwargs):
         ShellInfoLineEdit.__init__(self, *args, **kwargs)
         self.editingFinished.connect(self.onValueChanged)
+        t = translate('shell', 'name ::: The name of this configuration.')
+        self.setPlaceholderText(t.tt)
     
     
     def setTheText(self, value):
@@ -280,8 +282,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         if value is None:
             pp = os.environ.get('PYTHONPATH','')
             pp = pp.replace(os.pathsep, '\n').strip()
-            value = '$PYTHONPATH:\n%s\n)' % pp
-        
+            value = '$PYTHONPATH:\n%s\n' % pp
         self._edit.setText(value)
 
 
@@ -328,6 +329,10 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
         # Create sub-widget
         self._edit1 = QtGui.QLineEdit(parent)
         self._edit1.textEdited.connect(self.onEditChanged)
+        if sys.platform.startswith('win'):
+            self._edit1.setPlaceholderText('C:\\path\\to\\script.py')
+        else:
+            self._edit1.setPlaceholderText('/path/to/script.py')
         #
         self._edit2 = QtGui.QTextEdit(parent)
         self._edit2.setMaximumHeight(80)
@@ -432,14 +437,19 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
 
 
 class ShellInfo_startDir(ShellInfoLineEdit):
-    pass
+    def __init__(self, parent):
+        ShellInfoLineEdit.__init__(self, parent)
+        if sys.platform.startswith('win'):
+            self.setPlaceholderText('C:\\path\\to\\your\\python\\modules')
+        else:
+            self.setPlaceholderText('/path/to/your/python/modules')
 
 
 
 class ShellInfo_argv(ShellInfoLineEdit):
-    
     def __init__(self, parent):
         ShellInfoLineEdit.__init__(self, parent)
+        self.setPlaceholderText('arg1 arg2 "arg with spaces"')
 
 
 
