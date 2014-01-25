@@ -338,6 +338,7 @@ class IepInterpreter:
         
         # Init script to run on startup
         self._scriptToRunOnStartup = None
+        self._codeToRunOnStartup = None
         
         if scriptFilename:
             # RUN AS SCRIPT
@@ -386,13 +387,15 @@ class IepInterpreter:
                 os.chdir(os.path.expanduser('~')) # home dir 
             
             # Run startup script (if set)
-            filename = startup_info['startupScript']
+            script = startup_info['startupScript']
             # Should we use the default startupScript?
-            if filename == '$PYTHONSTARTUP':
-                filename = os.environ.get('PYTHONSTARTUP','')
+            if script == '$PYTHONSTARTUP':
+                script = os.environ.get('PYTHONSTARTUP','')
             # Check if it exists
-            if filename and os.path.isfile(filename):
-                self._scriptToRunOnStartup = filename
+            if '\n' in script:
+                self._codeToRunOnStartup = script
+            elif script and os.path.isfile(script):
+                self._scriptToRunOnStartup = script
     
     
     def _load_ipyhon(self):
@@ -465,6 +468,13 @@ class IepInterpreter:
             self.context._stat_interpreter.send('Busy') 
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
             self.runfile(tmp)
+        
+        # Run startupcode
+        if self._codeToRunOnStartup:
+            self.context._stat_interpreter.send('Busy') 
+            self._codeToRunOnStartup, tmp = None, self._codeToRunOnStartup
+            msg = {'source': tmp, 'fname': '<startup>', 'lineno': 0}
+            self.runlargecode(msg, True)
         
         # Set status and prompt?
         # Prompt is allowed to be an object with __str__ method
@@ -631,7 +641,7 @@ class IepInterpreter:
                 return False
     
     
-    def runlargecode(self, msg):
+    def runlargecode(self, msg, silent=False):
         """ To execute larger pieces of code. """
         
         # Get information
@@ -653,7 +663,8 @@ class IepInterpreter:
             runtext = '(executing lines %i to %i of "%s")\n' % (
                                                 lineno1, lineno2, fname_show)
         # Notify IDE
-        self.context._strm_echo.send('\x1b[0;33m%s\x1b[0m' % runtext)
+        if not silent:
+            self.context._strm_echo.send('\x1b[0;33m%s\x1b[0m' % runtext)
         
         # Increase counter
         if self._ipython:

@@ -188,8 +188,9 @@ class ShellInfo_gui(QtGui.QComboBox):
 class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
     
     DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
+    SYSTEM_VALUE = ''
     
-    def __init__(self, parent, widget, systemValue):
+    def __init__(self, parent, widget):
         # Do not pass parent, because is a sublayout
         QtGui.QVBoxLayout.__init__(self) 
         
@@ -207,9 +208,6 @@ class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
         # The actual value of this shell config attribute
         self._value = ''
         
-        # The value of self._value if the system default is selected
-        self._systemValue = systemValue
-        
         # A buffered version, so that clicking the text box does not
         # remove the value at once
         self._bufferedValue = ''
@@ -223,7 +221,7 @@ class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
     def onCheckChanged(self, state):
         if state:
             self._bufferedValue = self._value
-            self.setTheText(self._systemValue)
+            self.setTheText(self.SYSTEM_VALUE)
         else:
             self.setTheText(self._bufferedValue)
     
@@ -235,7 +233,7 @@ class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
             self._edit.setReadOnly(False)
             self.setWidgetText(value)
         
-        elif value != self._systemValue:
+        elif value != self.SYSTEM_VALUE:
             # Value given, enable edit
             self._check.setChecked(False)
             self._edit.setReadOnly(False)
@@ -260,6 +258,8 @@ class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
 
 class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
     
+    SYSTEM_VALUE = '$PYTHONPATH'
+    
     def __init__(self, parent):
         
         # Create sub-widget
@@ -269,7 +269,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         self._edit.textChanged.connect(self.onEditChanged)
         
         # Instantiate
-        ShellinfoWithSystemDefault.__init__(self, parent, self._edit, '$PYTHONPATH') 
+        ShellinfoWithSystemDefault.__init__(self, parent, self._edit) 
     
     
     def getWidgetText(self):
@@ -279,38 +279,160 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
     def setWidgetText(self, value=None):
         if value is None:
             pp = os.environ.get('PYTHONPATH','')
-            pp = pp.replace(os.pathsep, '\n  ').strip()
-            value = '$PYTHONPATH (\n  %s\n)' % pp
+            pp = pp.replace(os.pathsep, '\n').strip()
+            value = '$PYTHONPATH:\n%s\n)' % pp
         
         self._edit.setText(value)
 
 
 
-class ShellInfo_startupScript(ShellinfoWithSystemDefault):
+# class ShellInfo_startupScript(ShellinfoWithSystemDefault):
+#     
+#     SYSTEM_VALUE = '$PYTHONSTARTUP'
+#     
+#     def __init__(self, parent):
+#         
+#         # Create sub-widget
+#         self._edit = QtGui.QLineEdit(parent)
+#         self._edit.textEdited.connect(self.onEditChanged)
+#         
+#         # Instantiate
+#         ShellinfoWithSystemDefault.__init__(self, parent, self._edit) 
+#     
+#     
+#     def getWidgetText(self):
+#         return self._edit.text()
+#     
+#     
+#     def setWidgetText(self, value=None):
+#         if value is None:
+#             pp = os.environ.get('PYTHONSTARTUP','').strip()
+#             if pp:          
+#                 value = '$PYTHONSTARTUP: "%s"' % pp
+#             else:
+#                 value = '$PYTHONSTARTUP: None'
+#         
+#         self._edit.setText(value)
+
+
+
+class ShellInfo_startupScript(QtGui.QVBoxLayout):
+    
+    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
+    SYSTEM_VALUE = '$PYTHONSTARTUP'
     
     def __init__(self, parent):
+        # Do not pass parent, because is a sublayout
+        QtGui.QVBoxLayout.__init__(self) 
         
         # Create sub-widget
-        self._edit = QtGui.QLineEdit(parent)
-        self._edit.textEdited.connect(self.onEditChanged)
+        self._edit1 = QtGui.QLineEdit(parent)
+        self._edit1.textEdited.connect(self.onEditChanged)
+        #
+        self._edit2 = QtGui.QTextEdit(parent)
+        self._edit2.setMaximumHeight(80)
+        self._edit2.setMinimumWidth(200)
+        self._edit2.textChanged.connect(self.onEditChanged)
         
-        # Instantiate
-        ShellinfoWithSystemDefault.__init__(self, parent, self._edit, '$PYTHONSTARTUP') 
+        # Layout
+        self.setSpacing(1)
+        self.addWidget(self._edit1)
+        self.addWidget(self._edit2)
+        
+        # Create radio widget for system default
+        t = translate('shell', 'Use system default')
+        self._radio_system = QtGui.QRadioButton(t, parent)
+        self._radio_system.toggled.connect(self.onCheckChanged)
+        self.addWidget(self._radio_system)
+        if self.DISABLE_SYSTEM_DEFAULT:
+            self._radio_system.hide()
+        
+        # Create radio widget for file
+        t = translate('shell', 'File to run at startup')
+        self._radio_file = QtGui.QRadioButton(t, parent)
+        self._radio_file.toggled.connect(self.onCheckChanged)
+        self.addWidget(self._radio_file)
+        
+        # Create radio widget for code
+        t = translate('shell', 'Code to run at startup')
+        self._radio_code = QtGui.QRadioButton(t, parent)
+        self._radio_code.toggled.connect(self.onCheckChanged)
+        self.addWidget(self._radio_code)
+        
+        # The actual value of this shell config attribute
+        self._value = ''
+        
+        # A buffered version, so that clicking the text box does not
+        # remove the value at once
+        self._valueFile = ''
+        self._valueCode = '\n'
     
     
-    def getWidgetText(self):
-        return self._edit.text()
+    def onEditChanged(self):
+        if self._radio_file.isChecked():
+            self._value = self._valueFile = self._edit1.text().strip()
+        elif self._radio_code.isChecked():
+            # ensure newline!
+            self._value = self._valueCode = self._edit2.toPlainText().strip() + '\n'
     
     
-    def setWidgetText(self, value=None):
-        if value is None:
+    def onCheckChanged(self, state):
+        if self._radio_system.isChecked():
+            self.setTheText(self.SYSTEM_VALUE)
+        elif self._radio_file.isChecked():
+            self.setTheText(self._valueFile)
+        elif self._radio_code.isChecked():
+            self.setTheText(self._valueCode)
+    
+    
+    def setTheText(self, value):
+        self.setWidgetText(value, True)
+        
+    
+    def setWidgetText(self, value, init=False):
+        self._value = value
+        
+        if value == self.SYSTEM_VALUE and not self.DISABLE_SYSTEM_DEFAULT:
+            # System default
+            if init:
+                self._radio_system.setChecked(True)
             pp = os.environ.get('PYTHONSTARTUP','').strip()
             if pp:          
-                value = '$PYTHONSTARTUP ("%s")' % pp
+                value = '$PYTHONSTARTUP: "%s"' % pp
             else:
-                value = '$PYTHONSTARTUP (is empty)'
+                value = '$PYTHONSTARTUP: None'
+            #
+            self._edit1.setReadOnly(True)
+            self._edit1.show()
+            self._edit2.hide()
+            self._edit1.setText(value)
         
-        self._edit.setText(value)
+        elif not '\n' in value:
+            # File
+            if init:
+                self._radio_file.setChecked(True)
+            self._edit1.setReadOnly(False)
+            self._edit1.show()
+            self._edit2.hide()
+            self._edit1.setText(value)
+            
+        
+        else:
+            # Code
+            if init:
+                self._radio_code.setChecked(True)
+            self._edit1.hide()
+            self._edit2.show()
+            self._edit2.setText(value)
+    
+    
+    def getTheText(self):
+        return self._value
+
+
+
+class ShellInfo_startDir(ShellInfoLineEdit):
+    pass
 
 
 
@@ -319,10 +441,6 @@ class ShellInfo_argv(ShellInfoLineEdit):
     def __init__(self, parent):
         ShellInfoLineEdit.__init__(self, parent)
 
-
-
-class ShellInfo_startDir(ShellInfoLineEdit):
-    pass
 
 
 ## The dialog class and container with tabs
