@@ -6,6 +6,12 @@
 Welcome to IEP's documentation!
 ===============================
 
+API docs in progress.
+
+IEP is organized in several subpackages, some of which can be used completely 
+independent from the rest. Although IEP the IDE requires Qt and Python 3, 
+some of its subpackages can safely be imported without these dependencies...
+
 Contents:
 
 .. toctree::
