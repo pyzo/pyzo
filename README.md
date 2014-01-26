@@ -1,6 +1,7 @@
 ## The Interactive editor for Python
 
 Main website: http://iep-project.org
+API docs: http://iep.readthedocs.org
 
 
 ### Description
