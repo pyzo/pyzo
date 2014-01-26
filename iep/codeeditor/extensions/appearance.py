@@ -614,7 +614,7 @@ class BreakPoints(object):
     # Register style element
     _styleElements = [  (   'Editor.BreakPoints',
                             'The fore- and background-color of the breakpoints.',
-                            'fore:#F66,back:#EEE', 
+                            'fore:#F66,back:#dfdfe1', 
                         ) ]
     
     class __BreakPointArea(QtGui.QWidget):
@@ -624,6 +624,8 @@ class BreakPoints(object):
         def __init__(self, codeEditor):
             QtGui.QWidget.__init__(self, codeEditor)
             self.setCursor(QtCore.Qt.PointingHandCursor)
+            self.setMouseTracking(True)
+            self._virtualBreakpoint = 0
         
         def _getY(self, pos):
             tmp = self.mapToGlobal(pos)
@@ -631,6 +633,18 @@ class BreakPoints(object):
         
         def mousePressEvent(self, event):
             self._toggleBreakPoint( self._getY(event.pos()))
+        
+        def mouseMoveEvent(self, event):
+            y = self._getY(event.pos())
+            editor = self.parent()
+            cursor = editor.textCursor()
+            c1 = editor.cursorForPosition(QtCore.QPoint(0,y))
+            self._virtualBreakpoint = c1.blockNumber() + 1
+            self.update()
+        
+        def leaveEvent(self, event):
+            self._virtualBreakpoint = 0
+            self.update()
         
         def _toggleBreakPoint(self, y):
             # Get breakpoint corresponding to pressed pos
@@ -682,45 +696,52 @@ class BreakPoints(object):
             
             # Get debug indicator and list of sorted breakpoints
             debugBlockIndicator = editor._debugLineIndicator-1
+            virtualBreakpoint = self._virtualBreakpoint-1
             blocknumbers = [i-1 for i in sorted(self.parent()._breakPoints)]
-            if not (blocknumbers or debugBlockIndicator > 0):
+            if not (blocknumbers or debugBlockIndicator > 0 or virtualBreakpoint > 0):
                 return
-            if not blocknumbers:  blocknumbers.append(-1)  # Safes a test below
             
             # Get cursor
             cursor = editor.cursorForPosition(QtCore.QPoint(0,y1))
             
-            # Init painter with font and color
+            # Get start block number and bullet offset in pixels
+            startBlockNumber = cursor.block().blockNumber()
+            bulletOffset = editor.contentOffset().y() + bulletWidth * 0.25
+            
+            # Prepare painter
             painter.setPen(QtGui.QColor('#777'))
             painter.setBrush(format.fore)
             painter.setRenderHint(painter.Antialiasing)
             
             
-            #Repainting always starts at the first block in the viewport,
-            #regardless of the event.rect().y(). Just to keep it simple
-            while True:
-                blockNumber = cursor.block().blockNumber()
-                
-                # Done?
-                if blockNumber > blocknumbers[-1] and blockNumber > debugBlockIndicator:
-                    break
-                if not cursor.block().next().isValid():
-                    break #Reached end of the text
-                
-                # Draw
-                if blockNumber in blocknumbers:
-                    y = editor.cursorRect(cursor).center().y()
-                    y -= bulletWidth * 0.5
+            # Draw breakpoints
+            for blockNumber in blocknumbers:
+                if blockNumber < startBlockNumber:
+                    continue
+                # Get block
+                block = editor.document().findBlockByNumber(blockNumber)
+                if block.isValid():
+                    y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
-                if blockNumber == debugBlockIndicator:
-                    y = editor.cursorRect(cursor).center().y()
-                    y -= bulletWidth * 0.25
-                    painter.setBrush(QtGui.QColor('#6F6'))
-                    #painter.drawRect(margin, y, bulletWidth, 0.5*bulletWidth)
+            
+            # Draw debug marker
+            if debugBlockIndicator > 0:
+                painter.setBrush(QtGui.QColor('#6F6'))
+                # Get block
+                block = editor.document().findBlockByNumber(debugBlockIndicator)
+                if block.isValid():
+                    y = editor.blockBoundingGeometry(block).y() + bulletOffset
+                    y += 0.25 * bulletWidth
                     painter.drawEllipse(margin, y, bulletWidth, 0.5*bulletWidth)
-                    painter.setBrush(format.fore)
-                
-                cursor.movePosition(cursor.NextBlock)
+            
+            # Draw virtual break point
+            if virtualBreakpoint > 0:
+                painter.setBrush(QtGui.QColor(0,0,0,0))
+                # Get block
+                block = editor.document().findBlockByNumber(virtualBreakpoint)
+                if block.isValid():
+                    y = editor.blockBoundingGeometry(block).y() + bulletOffset
+                    painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
             
             # Done
             painter.end()
