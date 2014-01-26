@@ -7,7 +7,7 @@
 import re
 from . import tokens, Parser, BlockState, text_type
 from .tokens import ALPHANUM
-
+from ..misc import ustr, bstr
 
 # Import tokens in module namespace
 from .tokens import (CommentToken, StringToken, 
@@ -228,7 +228,7 @@ class PythonParser(Parser):
         # Return the Non-Identifier token if non-null
         # todo: here it goes wrong (allow returning more than one token?)
         token = NonIdentifierToken(line,pos,nonIdentifierEnd)
-        strippedNonIdentifier = str(token).strip()
+        strippedNonIdentifier = ustr(token).strip()
         if token:
             tokens.append(token)
         

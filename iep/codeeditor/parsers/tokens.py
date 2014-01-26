@@ -41,7 +41,10 @@ class Token(object):
         self.end = end
         self._name = self._getName()
     
-    def __str__(self):
+    def __str__(self):  # on 2.x we use __unicode__
+        return self.line[self.start:self.end]
+    
+    def __unicode__(self):  # for py 2.x
         return self.line[self.start:self.end]
     
     def __repr__(self):
