@@ -64,15 +64,15 @@ class PS1:
         if self._iep._dbFrames:
             # When debugging, show where we are, do not use IPython prompt
             preamble = '('+self._iep._dbFrameName+')'
-            return '\x1b[0;32m%s>>>\x1b[0m ' % preamble
+            return '\n\x1b[0;32m%s>>>\x1b[0m ' % preamble
         elif self._iep._ipython:
             # IPython prompt
-            return '\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]:\x1b[0m ' % (
+            return '\n\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]:\x1b[0m ' % (
                                             self._iep._ipython.execution_count)
             #return 'In [%i]: ' % (self._ipython.execution_count)
         else:
             # Normal Python prompt
-            return '\x1b[0;32m>>>\x1b[0m '
+            return '\n\x1b[0;32m>>>\x1b[0m '
 
 
 class PS2:
@@ -323,7 +323,7 @@ class IepInterpreter:
                 "%quickref -> Quick reference.\n"
                 "help      -> Python's own help system.\n"
                 "object?   -> Details about 'object', "
-                "use 'object??' for extra details.\n\n")
+                "use 'object??' for extra details.\n")
         else:
             printDirect("Type 'help' for help, " + 
                         "type '?' for a list of *magic* commands.\n")
@@ -665,10 +665,9 @@ class IepInterpreter:
         # Notify IDE
         if not silent:
             self.context._strm_echo.send('\x1b[0;33m%s\x1b[0m' % runtext)
-        
-        # Increase counter
-        if self._ipython:
-            self._ipython.execution_count += 1
+            # Increase counter
+            if self._ipython:
+                self._ipython.execution_count += 1
         
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
