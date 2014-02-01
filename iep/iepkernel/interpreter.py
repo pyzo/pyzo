@@ -136,6 +136,10 @@ class IepInterpreter:
         # Store ref of locals that is our main
         self._main_locals = locals
         
+        # Flag to ignore sys exit, to allow running some scripts
+        # interactively, even if they call sys.exit.
+        self.ignore_sys_exit = False
+        
         # Information for debugging. If self._dbFrames, we're in debug mode
         # _dbFrameIndex starts from 1 
         self._dbFrames = []
@@ -451,6 +455,10 @@ class IepInterpreter:
                 self._resetbuffer()
                 self.more = 0
         except SystemExit:
+            # It may be that we should ignore sys exit now...
+            if self.ignore_sys_exit:
+                self.ignore_sys_exit = False  # Never allow more than once
+                return
             # Get and store the exception so we can raise it later
             type, value, tb = sys.exc_info();  del tb
             self._exitException = value
