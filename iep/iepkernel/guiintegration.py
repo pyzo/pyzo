@@ -14,16 +14,28 @@ Support for PyQt4, WxPython, FLTK, GTK, TK.
 
 """
 
+import sys
 import time
 
 from iepkernel import printDirect
 
 
-
+# Warning message. 
 mainloopWarning = """
 Note: The GUI event loop is already running in the IEP kernel. Be aware
 that the function to enter the main loop does not block.
 """.strip()+"\n"
+
+# Qt has its own message
+mainloopWarning_qt = """
+Note on using QApplication.exec_(): 
+The GUI event loop is already running in the IEP kernel, and exec_()
+does not block. In most cases your app should run fine without the need
+for modifications. For clarity, this is what the IEP kernel does:
+- Prevent deletion of objects in the local scope of functions leading to exec_()
+- Prevent system exit right after the exec_() call
+""".strip()+"\n"
+
 
 
 class App_base:
@@ -224,7 +236,27 @@ class App_qt(App_base):
                 quite hard if an object goes out of scope, and the error
                 is not obvious.
                 """
-                printDirect(mainloopWarning)
+                printDirect(mainloopWarning_qt+'\n')
+                
+                # Store local namespaces (scopes) of any functions that
+                # precede this call. It might have a widget or application
+                # object that should not be deleted ...
+                import inspect, __main__
+                for caller in inspect.stack()[1:]:
+                    frame, name = caller[0], caller[3]
+                    if name.startswith('<'):  # most probably "<module>"
+                        break
+                    else:
+                        __main__.__dict__[name+'_locals'] = frame.f_locals
+                
+                # Tell interpreter to ignore any system exits
+                sys._iepInterpreter.ignore_sys_exit = True
+                
+                # But re-enable it as soon as *this event* is processed
+                def reEnableSysExit():
+                    sys._iepInterpreter.ignore_sys_exit = False
+                self._reEnableSysExitTimer = timer = QtCore.QTimer()
+                timer.singleShot(0, reEnableSysExit)
             
             def quit(self, *args, **kwargs):
                 """ Do not quit if Qt app quits. """
