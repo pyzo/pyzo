@@ -281,6 +281,11 @@ class BaseShell(BaseTextCtrl):
         # is before the prompt
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
     
+        self.setFocusPolicy(Qt.TabFocus) # See remark at mousePressEvent
+    
+    ## Cursor stuff
+    
+    
     
     def onCursorPositionChanged(self):
         #If the end of the selection (or just the cursor if there is no selection)
@@ -307,9 +312,24 @@ class BaseShell(BaseTextCtrl):
     
     
     def mousePressEvent(self, event):
-        """ Disable right MB and middle MB (which pastes by default). """
+        """ 
+        - Disable right MB and middle MB (which pastes by default). 
+        - Focus policy
+            If a user clicks this shell, while it has no focus, we do
+            not want the cursor position to change (since generally the
+            user clicks the shell to give it the focus). We do this by
+            setting the focus-policy to Qt::TabFocus, and we give the
+            widget its focus manually from the mousePressedEvent event
+            handler
+            
+        """
+        
+        if not self.hasFocus():
+            self.setFocus()  
+            return
+        
         if event.button() != QtCore.Qt.MidButton:
-            BaseTextCtrl.mousePressEvent(self, event)
+            super().mousePressEvent(event)
     
     
     def contextMenuEvent(self, event):
@@ -1103,6 +1123,10 @@ class PythonShell(BaseShell):
         """ executeCommand(text)
         Execute one-line command in the remote Python session. 
         """
+        
+        # Ensure edit line is selected (to reset scrolling to end)
+        self.ensureCursorAtEditLine()
+        
         self._ctrl_command.send(text)
     
     
@@ -1163,6 +1187,10 @@ class PythonShell(BaseShell):
                 line = line.lstrip(" ")
             lines2.append( line )
         
+        
+        # Ensure edit line is selected (to reset scrolling to end)
+        self.ensureCursorAtEditLine()
+
         
         # Send message
         text = "\n".join(lines2)
@@ -1268,6 +1296,9 @@ class PythonShell(BaseShell):
         Send a Keyboard interrupt signal to the main thread of the 
         remote process. 
         """
+        # Ensure edit line is selected (to reset scrolling to end)
+        self.ensureCursorAtEditLine()
+        
         self._ctrl_broker.send('INT')
     
     
@@ -1277,7 +1308,10 @@ class PythonShell(BaseShell):
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
-        
+
+        # Ensure edit line is selected (to reset scrolling to end)
+        self.ensureCursorAtEditLine()
+                
         # Get info
         info = finishKernelInfo(self._info, scriptFile)
         
@@ -1296,6 +1330,10 @@ class PythonShell(BaseShell):
         To be notified of the termination, connect to the "terminated"
         signal of the shell.
         """
+        # Ensure edit line is selected (to reset scrolling to end)
+        self.ensureCursorAtEditLine()
+        
+
         self._ctrl_broker.send('TERM')
     
     
