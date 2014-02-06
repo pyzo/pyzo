@@ -809,9 +809,18 @@ class PopupMenu(iep.iepcore.menu.Menu):
             if True:
                 self.addItem(translate("filebrowser", "Copy path"), 
                     None, self._copyPath)
+                    
         
             self.addSeparator()
+            
+        # Import data wizard
+        if isinstance(self._item, FileItem):
+            self.addItem(translate("filebrowser", "Import data..."),
+                    None, self._importData)
         
+            self.addSeparator()     
+            
+             
         # Create items for file management
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Rename"), None, self.onRename)
@@ -852,6 +861,10 @@ class PopupMenu(iep.iepcore.menu.Menu):
     def _copyPath(self):
         QtGui.qApp.clipboard().setText(self._item.path())
     
+    def _importData(self):
+        browser = self.parent().parent()
+        wizard = browser.getImportWizard()
+        wizard.open(self._item.path())
     
     def onDuplicate(self):
         return self._duplicateOrRename(False)
