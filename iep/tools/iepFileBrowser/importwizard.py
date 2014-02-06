@@ -112,15 +112,16 @@ class SelectFilePage(QtGui.QWizardPage):
         else:
             try:
                 with open(filename,'rb') as file:
-                    maxsize = 10000
+                    maxsize = 151
                     data = file.read(maxsize)
-                    data = data.decode('ascii', 'replace')
+                    more = bool(file.read(1)) # See if there is more data available
                     
-                    self.wizard().setPreviewData(data)
+                data = data.decode('ascii', 'replace')
+                
+                self.wizard().setPreviewData(data)
 
-                    
-                    if len(data) >= maxsize:
-                        data += '...'
+                if more:
+                    data += '...'
                         
                 self._isComplete = True  # Allow to proceed to the next page
             except Exception as e:
