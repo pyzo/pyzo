@@ -71,6 +71,16 @@ class Browser(QtGui.QWidget):
             self._tree.SetPath(path)
         self._tree.dirChanged.emit(self._tree.path())
     
+    def getImportWizard(self):
+        # Lazy loading
+        try:
+            return self._importWizard
+        except AttributeError:
+            
+            from .importwizard import ImportWizard
+            self._importWizard = ImportWizard()
+            
+            return self._importWizard
     
     def _layout(self):
         layout = QtGui.QVBoxLayout(self)
