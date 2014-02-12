@@ -96,6 +96,11 @@ class KernelInfo(ssdf.Struct):
         # - '$PYTHONSTARTUP' uses the code in that file. Broker replaces this.
         self.startupScript = ''
         
+        # Additional command line arguments, set by the kernel
+        self.argv = ''
+        
+        # Additional environment variables
+        self.environ = ''
         
         # Load info from ssdf struct. Make sure they are all strings
         if info:
@@ -171,6 +176,14 @@ def getEnvFromKernelInfo(info):
     env.pop('TK_LIBRARY','')
     env.pop('TCL_LIBRARY','')
     env['PYTHONPATH'] = pythonPath
+    
+    # Add environment variables specified in shell config
+    for line in info.environ.splitlines():
+        line = line.strip()
+        if '=' in line:
+            key, val = line.split('=', 1)
+            if key:
+                env[key] = val
     
     # Done
     return env
