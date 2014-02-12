@@ -453,6 +453,33 @@ class ShellInfo_argv(ShellInfoLineEdit):
 
 
 
+class ShellInfo_environ(QtGui.QTextEdit):
+    EXAMPLE = 'EXAMPLE_VAR1=value1\nEXAMPLE_VAR2=value2'
+    
+    def __init__(self, parent):
+        QtGui.QTextEdit.__init__(self, parent)
+        self.setText(self.EXAMPLE)
+    
+    def _cleanText(self, txt):
+        return '\n'.join([line.strip() for line in txt.splitlines()])
+    
+    def setTheText(self, value):
+        value = self._cleanText(value)
+        if value:
+            self.setText(value)
+        else:
+            self.setText(self.EXAMPLE)
+    
+    def getTheText(self):
+        value = self.toPlainText()
+        value = self._cleanText(value)
+        if value == self.EXAMPLE:
+            return ''
+        else:
+            return value
+
+
+
 ## The dialog class and container with tabs
 
 
@@ -466,6 +493,7 @@ class ShellInfoTab(QtGui.QScrollArea):
                     translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
                     translate('shell', 'startDir ::: The start directory (not in script mode).'),
                     translate('shell', 'argv ::: The command line arguments (sys.argv).'),
+                    translate('shell', 'environ ::: Extra environment variables (os.environ).'),
                 ]
     
     def __init__(self, parent):
