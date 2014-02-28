@@ -55,7 +55,6 @@ class MainWindow(QtGui.QMainWindow):
         
         # Determine timeout for showing splash screen
         splash_timeout = time.time() + 1.0
-        splash_timeout += 0.0 if iep.license else 2.0
         
         # Set locale of main widget, so that qt strings are translated
         # in the right way
@@ -213,7 +212,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Add license info
         if iep.license:
-            title += ' - licensed to {name}'.format(**iep.license)
+           title += ' - licensed to {name}'.format(**iep.license)
         
         # Set
         self.setWindowTitle(title)

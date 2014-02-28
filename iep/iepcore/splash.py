@@ -32,27 +32,18 @@ QLabel {
 }
 """
 
-license_text1 = """
+splash_text = """
 <p>
 This is the <b>Interactive Editor for Python</b>
-%s
+{distro}
 </p>
 <p>
-Your current license: <i>LICENSE_TYPE</i><br />
-Licensed to: <i>LICENSE_NAME</i>
-</p>
-
-"""
-
-license_ad_text = """
-<p>
-IEP is open source software and freely available for everyone. If you
-like IEP and want to support its development, consider purchasing a
-license.
+Version {version}
 </p>
 <p>
+IEP is open source software and freely available for everyone. 
 Read more at
-<a href='http://www.iep-project.org/contributing.html'>http://iep-project.org</a>
+<a href='http://www.iep-project.org/'>http://iep-project.org</a>
 </p>
 """
 
@@ -83,18 +74,10 @@ class LabelWidget(QtGui.QWidget):
         self._label.setFont(font)
         
         # Build
-        text = license_text1
+        distrotext = ''
         if distro:
-            text = text % '<br />brought to you by %s.' % distro
-        else:
-            text = text % ''
-        if not iep.license:
-            text = text.replace('LICENSE_TYPE', 'free license')
-            text = text.replace('LICENSE_NAME', 'unregistered')
-            text += license_ad_text
-        else:
-            text = text.replace('LICENSE_TYPE', iep.license['product'])
-            text = text.replace('LICENSE_NAME', iep.license['name'])
+            distrotext = '<br />brought to you by %s.' % distro
+        text = splash_text.format(distro=distrotext, version=iep.__version__)
         
         # Set text
         self._label.setText(text)
@@ -108,7 +91,7 @@ class LabelWidget(QtGui.QWidget):
 
 
 class SplashWidget(QtGui.QWidget):
-    """ A splash widget that shows the license text.
+    """ A splash widget.
     """
     def __init__(self, parent, **kwargs):
         QtGui.QWidget.__init__(self, parent)
@@ -137,7 +120,6 @@ class SplashWidget(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    iep.license = {'name': 'John Doe', 'product': 'IEP pro license XL'}
     w = SplashWidget(None, distro='some arbitrary distro')
     w.resize(800,600)
     w.show()
