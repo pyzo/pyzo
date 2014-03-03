@@ -454,13 +454,10 @@ class FindReplaceWidget(QtGui.QFrame):
         flags = QtGui.QTextDocument.FindFlags()
         if self._caseCheck.isChecked():
             flags |= QtGui.QTextDocument.FindCaseSensitively
-
-        if self._wholeWord.isChecked():
-            flags |= QtGui.QTextDocument.FindWholeWords
-        
         if not forward:
             flags |= QtGui.QTextDocument.FindBackward
-
+        #if self._wholeWord.isChecked():
+        #    flags |= QtGui.QTextDocument.FindWholeWords
         
         # focus
         self.selectFindText()
@@ -471,6 +468,13 @@ class FindReplaceWidget(QtGui.QFrame):
             #Make needle a QRegExp; speciffy case-sensitivity here since the
             #FindCaseSensitively flag is ignored when finding using a QRegExp
             needle = QtCore.QRegExp(needle,
+                QtCore.Qt.CaseSensitive if self._caseCheck.isChecked() else
+                QtCore.Qt.CaseInsensitive)
+        elif self._wholeWord.isChecked():
+            # Use regexp, because the default begaviour does not find
+            # whole words correctly, see issue #276
+            # it should *not* find this in this_word
+            needle = QtCore.QRegExp(r'\b' + needle + r'\b',
                 QtCore.Qt.CaseSensitive if self._caseCheck.isChecked() else
                 QtCore.Qt.CaseInsensitive)
         
@@ -530,7 +534,7 @@ class FindReplaceWidget(QtGui.QFrame):
             original = original.lower()
         
         # replace
-        #TODO: this line does not work for regexp-search!
+        #TODO: < line does not work for regexp-search!
         if original and original == needle:
             cursor.insertText( replacement )
         
