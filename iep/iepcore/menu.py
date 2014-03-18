@@ -819,7 +819,7 @@ class ShellMenu(Menu):
         return [
             self.addItem(translate("menu", 'Debug next: proceed until next line'), 
                 icons.debug_next, self._debugAction, "NEXT"),
-            self.addItem(translate("menu", 'Debug step: proceed one step'), 
+            self.addItem(translate("menu", 'Debug step into: proceed one step'), 
                 icons.debug_step, self._debugAction, "STEP"),
             self.addItem(translate("menu", 'Debug return: proceed until returns'), 
                 icons.debug_return, self._debugAction, "RETURN"),
