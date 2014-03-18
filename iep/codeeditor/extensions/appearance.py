@@ -698,7 +698,10 @@ class BreakPoints(object):
             debugBlockIndicator = editor._debugLineIndicator-1
             virtualBreakpoint = self._virtualBreakpoint-1
             blocknumbers = [i-1 for i in sorted(self.parent()._breakPoints)]
-            if not (blocknumbers or debugBlockIndicator > 0 or virtualBreakpoint > 0):
+            if not (blocknumbers or 
+                    editor._debugLineIndicator or
+                    editor._debugLineIndicators or
+                    virtualBreakpoint > 0):
                 return
             
             # Get cursor
@@ -724,9 +727,20 @@ class BreakPoints(object):
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
             
-            # Draw debug marker
+            # Draw *the* debug marker
             if debugBlockIndicator > 0:
                 painter.setBrush(QtGui.QColor('#6F6'))
+                # Get block
+                block = editor.document().findBlockByNumber(debugBlockIndicator)
+                if block.isValid():
+                    y = editor.blockBoundingGeometry(block).y() + bulletOffset
+                    y += 0.25 * bulletWidth
+                    painter.drawEllipse(margin, y, bulletWidth, 0.5*bulletWidth)
+            
+            # Draw other debug markers
+            for debugLineIndicator in editor._debugLineIndicators:
+                debugBlockIndicator = debugLineIndicator - 1
+                painter.setBrush(QtGui.QColor('#DDD'))
                 # Get block
                 block = editor.document().findBlockByNumber(debugBlockIndicator)
                 if block.isValid():
@@ -755,6 +769,7 @@ class BreakPoints(object):
         self.addLeftMargin(BreakPoints, self.getBreakPointAreaWidth)
         self._breakPoints = set()
         self._debugLineIndicator = 0
+        self._debugLineIndicators = set()
     
     
     def breakPoints(self):
@@ -770,14 +785,28 @@ class BreakPoints(object):
         self.breakPointsChanged.emit(self)
     
     
-    def setDebugLineIndicator(self, linenr):
+    def setDebugLineIndicator(self, linenr, active=True):
         """ Set the debug line indicator to the given line number.
         If None or 0, the indicator is hidden.
         """
         linenr = int(linenr or 0)
-        if linenr != self._debugLineIndicator:
-            self._debugLineIndicator = linenr
-            self.__breakPointArea.update()
+        if not linenr:
+            # Remove all indicators
+            if self._debugLineIndicator or self._debugLineIndicators:
+                self._debugLineIndicator = 0
+                self._debugLineIndicators = set()
+                self.__breakPointArea.update()
+        elif active:
+            # Set *the* indicator
+            if linenr != self._debugLineIndicator:
+                self._debugLineIndicators.discard(linenr)
+                self._debugLineIndicator = linenr
+                self.__breakPointArea.update()
+        else:
+            # Add to set of indicators
+            if linenr not in self._debugLineIndicators:
+                self._debugLineIndicators.add(linenr)
+                self.__breakPointArea.update()
     
     
     def getBreakPointAreaWidth(self):
