@@ -999,22 +999,31 @@ class EditorTabs(QtGui.QWidget):
         self.breakPointsChanged.emit(self._breakPoints)
     
     
-    def setDebugLineIndicator(self, filename, linenr):
+    def setDebugLineIndicators(self, *filename_linenr):
         """ Set the debug line indicator. There is one indicator
         global to IEP, corresponding to the last shell for which we
         received the indicator.
         """
-        # Use normcase to compare file names. OOn Windows we can have
-        # "c:\.." and "C:\..." for instance
-        filename = os.path.normcase(filename)
-        for editor in self:
+        if len(filename_linenr) and filename_linenr[0] is None:
+            filename_linenr = []
+        
+        # Normalize case
+        filename_linenr = [(os.path.normcase(i[0]), int(i[1])) for i in filename_linenr]
+        
+        for item in self._tabs.items():
+            # Prepare
+            editor = item._editor
             fname = editor._filename or editor._name
-            if os.path.normcase(fname) == filename:
-                editor.setDebugLineIndicator(linenr)
-            else:
-                editor.setDebugLineIndicator(None)
-    
-    
+            fname = os.path.normcase(fname)
+            # Reset
+            editor.setDebugLineIndicator(None)
+            # Set
+            for filename, linenr in filename_linenr:
+                if fname == filename:
+                    active = (filename, linenr) == filename_linenr[-1]
+                    editor.setDebugLineIndicator(linenr, active)
+            
+
     ## Loading ad saving files
     
     def dragEnterEvent(self, event):
