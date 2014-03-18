@@ -936,6 +936,9 @@ class PythonShell(BaseShell):
         self._brokerConnection = ct.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
         
+        # Force updating of breakpoints
+        iep.editors.updateBreakPoints()
+        
         # todo: see polling vs events
 #         # Detect incoming messages 
 #         for c in [self._strm_out, self._strm_err, self._strm_raw, 
