@@ -95,7 +95,7 @@ class AboutDialog(QtGui.QDialog):
         by Mark James (http://www.famfamfam.com/lab/icons/silk/).
         """
         # Determine license text
-        licenseText = 'This copy of IEP is not registered (using the free license).'
+        licenseText = ''  # 'This copy of IEP is not registered (using the free license).'
         if iep.license:
             if iep.license['company']:
                 licenseText = 'This copy of IEP is registered to {name} of {company}.'
