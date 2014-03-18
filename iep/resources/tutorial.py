@@ -3,7 +3,7 @@
 Welcome to the tutorial for IEP! This tutorial should get you 
 familiarized with IEP in just a few minutes. If you feel this tutorial
 contains errors or lacks some information, please let us know via
-a.klein at science-applied dot nl.
+iep_@googlegroups.com.
 
 IEP is a cross-platform Python IDE focused on interactivity and
 introspection, which makes it very suitable for scientific computing. 
