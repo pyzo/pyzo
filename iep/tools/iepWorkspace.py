@@ -302,6 +302,7 @@ class IepWorkspace(QtGui.QWidget):
         mainLayout.addLayout(layout, 0)
         mainLayout.addWidget(self._tree, 1)
         mainLayout.setSpacing(2)
+        mainLayout.setContentsMargins(4,4,4,4)
         self.setLayout(mainLayout)
         
         # Bind up event
