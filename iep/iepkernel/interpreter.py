@@ -242,6 +242,12 @@ class IepInterpreter:
         startup_info['keywords'] = keyword.kwlist
         self.context._stat_startup.send(startup_info)
         
+        # Prepare the Python environment
+        self._prepare_environment(startup_info)
+        
+        # Run startup code (before loading GUI toolkit or IPython
+        self._run_startup_code(startup_info)
+        
         # Write Python banner (to stdout)
         NBITS = 8 * struct.calcsize("P")
         platform = sys.platform
@@ -251,35 +257,8 @@ class IepInterpreter:
         printDirect("Python %s on %s.\n" %
             (sys.version.split('[')[0].rstrip(), platform))
         
-        
-        # Integrate event loop of GUI toolkit
-        self.guiApp = guiintegration.App_base()
-        self.guiName = guiName = startup_info['gui'].upper()
-        guiError = ''
-        try:
-            if guiName in ['', 'NONE']:
-                guiName = ''
-            elif guiName == 'TK':
-                self.guiApp = guiintegration.App_tk()
-            elif guiName == 'WX':
-                self.guiApp = guiintegration.App_wx()
-            elif guiName == 'PYSIDE':
-                self.guiApp = guiintegration.App_pyside()
-            elif guiName in ['PYQT4', 'QT4']:
-                self.guiApp = guiintegration.App_pyqt4()
-            elif guiName == 'FLTK':
-                self.guiApp = guiintegration.App_fltk()
-            elif guiName == 'GTK':
-                self.guiApp = guiintegration.App_gtk()
-            else:
-                guiError = 'Unkown gui: %s' % guiName
-                guiName = ''
-        except Exception: # Catch any error
-            # Get exception info (we do it using sys.exc_info() because
-            # we cannot catch the exception in a version independent way.
-            type, value, tb = sys.exc_info();  del tb
-            guiError = 'Failed to integrate event loop for %s: %s' % (
-                guiName, str(value))
+        # Integrate GUI
+        guiName, guiError = self._integrate_gui(startup_info)
         
         # Write IEP part of banner (including what GUI loop is integrated)
         if True:
@@ -309,13 +288,11 @@ class IepInterpreter:
         sys.ps1 = PS1(self)
         sys.ps2 = PS2(self)
         
-        # Append project path if given
+        # Notify about project path
         projectPath = startup_info['projectPath']
         if projectPath:
             printDirect('Prepending the project path %r to sys.path\n' % 
                 projectPath)
-            #Actual prepending is done below, to put it before the script path
-        
         
         # Write tips message.
         if self._ipython:
@@ -332,6 +309,15 @@ class IepInterpreter:
             printDirect("Type 'help' for help, " + 
                         "type '?' for a list of *magic* commands.\n")
         
+        # Notify the running of the script
+        if self._scriptToRunOnStartup:
+            printDirect('\x1b[0;33mRunning script: "'+self._scriptToRunOnStartup+'"\x1b[0m\n')
+    
+    
+    def _prepare_environment(self, startup_info):
+        """ Prepare the Python environment. There are two possibilities:
+        either we run a script or we run interactively.
+        """
         
         # Get whether we should (and can) run as script
         scriptFilename = startup_info['scriptFile']
@@ -340,13 +326,14 @@ class IepInterpreter:
                 printDirect('Invalid script file: "'+scriptFilename+'"\n')
                 scriptFilename = None
         
+        # Get project path
+        projectPath = startup_info['projectPath']
+        
         # Init script to run on startup
         self._scriptToRunOnStartup = None
-        self._codeToRunOnStartup = None
         
         if scriptFilename:
             # RUN AS SCRIPT
-            
             # Set __file__  (note that __name__ is already '__main__')
             self.locals['__file__'] = scriptFilename
             # Set command line arguments
@@ -359,19 +346,12 @@ class IepInterpreter:
                 sys.path.insert(0, theDir)
             if projectPath is not None:
                 sys.path.insert(0,projectPath)
-            
             # Go to script dir
             os.chdir( os.path.dirname(scriptFilename) )
-            
-            # Notify the running of the script
-            printDirect('\x1b[0;33mRunning script: "'+scriptFilename+'"\x1b[0m\n')
-            
-            # Run script
+            # Run script later
             self._scriptToRunOnStartup = scriptFilename
-        
         else:
             # RUN INTERACTIVELY
-            
             # No __file__ (note that __name__ is already '__main__')
             self.locals.pop('__file__','')
             # Remove all command line arguments, set first to empty string
@@ -382,24 +362,72 @@ class IepInterpreter:
             sys.path.insert(0, '')
             if projectPath:
                 sys.path.insert(0,projectPath)
-                
             # Go to start dir
             startDir = startup_info['startDir']
             if startDir and os.path.isdir(startDir):
                 os.chdir(startDir)
             else:
                 os.chdir(os.path.expanduser('~')) # home dir 
-            
-            # Run startup script (if set)
-            script = startup_info['startupScript']
-            # Should we use the default startupScript?
-            if script == '$PYTHONSTARTUP':
-                script = os.environ.get('PYTHONSTARTUP','')
-            # Check if it exists
-            if '\n' in script:
-                self._codeToRunOnStartup = script
-            elif script and os.path.isfile(script):
-                self._scriptToRunOnStartup = script
+    
+    
+    def _run_startup_code(self, startup_info):
+        """ Execute the startup code or script.
+        """
+        
+        # Run startup script (if set)
+        script = startup_info['startupScript']
+        # Should we use the default startupScript?
+        if script == '$PYTHONSTARTUP':
+            script = os.environ.get('PYTHONSTARTUP','')
+        
+        if '\n' in script:
+            # Run code
+            self.context._stat_interpreter.send('Busy') 
+            msg = {'source': script, 'fname': '<startup>', 'lineno': 0}
+            self.runlargecode(msg, True)
+        elif script and os.path.isfile(script):
+            # Run script
+            self.context._stat_interpreter.send('Busy') 
+            self.runfile(script)
+        else:
+            # Nothing to run
+            pass
+    
+    
+    def _integrate_gui(self, startup_info):
+        """ Integrate event loop of GUI toolkit (or use pure Python
+        event loop).
+        """
+        
+        self.guiApp = guiintegration.App_base()
+        self.guiName = guiName = startup_info['gui'].upper()
+        guiError = ''
+        try:
+            if guiName in ['', 'NONE']:
+                guiName = ''
+            elif guiName == 'TK':
+                self.guiApp = guiintegration.App_tk()
+            elif guiName == 'WX':
+                self.guiApp = guiintegration.App_wx()
+            elif guiName == 'PYSIDE':
+                self.guiApp = guiintegration.App_pyside()
+            elif guiName in ['PYQT4', 'QT4']:
+                self.guiApp = guiintegration.App_pyqt4()
+            elif guiName == 'FLTK':
+                self.guiApp = guiintegration.App_fltk()
+            elif guiName == 'GTK':
+                self.guiApp = guiintegration.App_gtk()
+            else:
+                guiError = 'Unkown gui: %s' % guiName
+                guiName = ''
+        except Exception: # Catch any error
+            # Get exception info (we do it using sys.exc_info() because
+            # we cannot catch the exception in a version independent way.
+            type, value, tb = sys.exc_info();  del tb
+            guiError = 'Failed to integrate event loop for %s: %s' % (
+                guiName, str(value))
+        
+        return guiName, guiError
     
     
     def _load_ipyhon(self):
@@ -476,13 +504,6 @@ class IepInterpreter:
             self.context._stat_interpreter.send('Busy') 
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
             self.runfile(tmp)
-        
-        # Run startupcode
-        if self._codeToRunOnStartup:
-            self.context._stat_interpreter.send('Busy') 
-            self._codeToRunOnStartup, tmp = None, self._codeToRunOnStartup
-            msg = {'source': tmp, 'fname': '<startup>', 'lineno': 0}
-            self.runlargecode(msg, True)
         
         # Set status and prompt?
         # Prompt is allowed to be an object with __str__ method
