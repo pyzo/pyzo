@@ -1122,26 +1122,30 @@ class RunMenu(Menu):
     def build(self):
         icons = iep.icons
         
-        self.addItem(translate("menu", 'Run selection ::: Run the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'), 
+        self.addItem(translate("menu", 'Run file as script ::: Restart and run the current file as a script.'), 
+            icons.run_file_script, self._runFile, (True, False))
+        self.addItem(translate("menu", 'Run main file as script ::: Restart and run the main file as a script.'), 
+            icons.run_mainfile_script, self._runFile, (True, True))
+        
+        self.addSeparator()
+        
+        self.addItem(translate("menu", 'Execute selection ::: Execute the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'), 
             icons.run_lines, self._runSelected)
-        self.addItem(translate("menu", 'Run cell ::: Run the current editors\'s cell in the current shell.'), 
+        self.addItem(translate("menu", 'Execute cell ::: Execute the current editors\'s cell in the current shell.'), 
             icons.run_cell, self._runCell)
-        self.addItem(translate("menu", 'Run cell and advance ::: Run the current editors\'s cell and advance to the next cell.'), 
+        self.addItem(translate("menu", 'Execute cell and advance ::: Execute the current editors\'s cell and advance to the next cell.'), 
             icons.run_cell, self._runCellAdvance)
         #In the _runFile calls, the parameter specifies (asScript, mainFile)
-        self.addItem(translate("menu", 'Run file ::: Run the current file in the current shell.'), 
+        self.addItem(translate("menu", 'Execute file ::: Execute the current file in the current shell.'), 
             icons.run_file, self._runFile,(False, False))
-        self.addItem(translate("menu", 'Run main file ::: Run the main file in the current shell.'), 
+        self.addItem(translate("menu", 'Execute main file ::: Execute the main file in the current shell.'), 
             icons.run_mainfile, self._runFile,(False, True))
+        
         self.addSeparator()
-        self.addItem(translate("menu", 'Run file as script ::: Run the current file as a script.'), 
-            icons.run_file_script, self._runFile, (True, False))
-        self.addItem(translate("menu", 'Run main file as script ::: Run the main file as a script.'), 
-            icons.run_mainfile_script, self._runFile, (True, True))
-        self.addSeparator()
+        
         self.addItem(translate("menu", 'Help on running code ::: Open the IEP wizard at the page about running code.'), 
             icons.information, self._showHelp)
-
+    
     
     def _showHelp(self):
         """ Show more information about ways to run code. """
