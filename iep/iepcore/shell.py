@@ -368,10 +368,19 @@ class BaseShell(BaseTextCtrl):
         word = before + after
         
         # Check if it looks like a filename, quit if it does not
-        if not ('/' in word or '\\' in word):
+        if len(word) < 4:
             return
+        elif not ('/' in word or '\\' in word):
+            return
+        #
+        if sys.platform.startswith('win'):
+            if word[1] != ':':
+                return
         else:
-            filename = word
+           if not word.startswith('/'):
+               return
+        #
+        filename = word
         
         # Split in parts for getting line number
         line = line[pos+len(after):]
@@ -412,16 +421,15 @@ class BaseShell(BaseTextCtrl):
                     else:
                         break
         
-        # Try opening the file
+        # Select word here (in shell)
+        cursor = ocursor
+        cursor.movePosition(cursor.Left, cursor.MoveAnchor, len(before))
+        cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(word))
+        self.setTextCursor(cursor)
+        
+        # Try opening the file (at the line number if we have one)
         result = iep.editors.loadFile(filename)
-        if result:
-             # Select word here (in shell)
-            cursor = ocursor
-            cursor.movePosition(cursor.Left, cursor.MoveAnchor, len(before))
-            cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(word))
-            self.setTextCursor(cursor)
-            # Select line in editor
-            if linenr is not None:
+        if result and linenr is not None:
                 editor = result._editor
                 editor.gotoLine(linenr)
                 cursor = editor.textCursor()
