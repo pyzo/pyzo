@@ -391,6 +391,9 @@ class BaseFSProxy(threading.Thread):
     def write(self, path, bb):
         raise NotImplemented()
     
+    def rename(self, path):
+        raise NotImplemented()
+    
     def remove(self, path):
         raise NotImplemented()
     
@@ -429,6 +432,9 @@ class NativeFSProxy(BaseFSProxy):
     def write(self, path, bb):
         with open(path, 'wb') as f:
             f.write(bb)
+    
+    def rename(self, path1, path2):
+        os.rename(path1, path2)
     
     def remove(self, path):
         if os.path.isfile(path):

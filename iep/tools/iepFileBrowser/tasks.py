@@ -302,18 +302,18 @@ class RenameTask(proxies.Task):
         if not newpath:
             return
         
-        # Read bytes
-        bb = fsProxy.read(path)
-        if bb is None:
-            return
-        
-        # write back with new name
-        fsProxy.write(newpath, bb)
-        
-        # Delete old file
         if removeold:
-            fsProxy.remove(path)        
+            # Works for files and dirs
+            fsProxy.rename(path, newpath)
             # The fsProxy will detect that this file is now deleted
+        else:
+            # Work only for files: duplicate
+            # Read bytes
+            bb = fsProxy.read(path)
+            if bb is None:
+                return
+            # write back with new name
+            fsProxy.write(newpath, bb)
 
 
 class CreateTask(proxies.Task):
