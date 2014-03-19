@@ -65,7 +65,8 @@ class IepSourceStructure(QtGui.QWidget):
         # Create two sizers
         self._sizer1 = QtGui.QVBoxLayout(self)
         self._sizer2 = QtGui.QHBoxLayout()
-        # self._sizer1.setSpacing()
+        self._sizer1.setSpacing(2)
+        self._sizer1.setContentsMargins(4,4,4,4)
         
         # Set layout
         self._sizer1.addLayout(self._sizer2, 0)
@@ -75,7 +76,6 @@ class IepSourceStructure(QtGui.QWidget):
         self._sizer2.addStretch(1)
         self._sizer2.addWidget(self._options, 2)
         #
-        self._sizer1.setSpacing(2)
         self.setLayout(self._sizer1)
         
         # Init current-file name

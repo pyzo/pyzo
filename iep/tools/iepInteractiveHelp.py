@@ -87,6 +87,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         self._sizer1.addWidget(self._browser, 1)
         #
         self._sizer1.setSpacing(2)
+        self._sizer1.setContentsMargins(4,4,4,4)
         self.setLayout(self._sizer1)
         
         # Set config
