@@ -80,7 +80,6 @@ class IepInteractiveHelp(QtGui.QWidget):
         # Put the elements together
         self._sizer2.addWidget(self._text, 4)
         self._sizer2.addWidget(self._printBut, 0)
-        self._sizer2.addStretch(1)
         self._sizer2.addWidget(self._options, 2)
         #
         self._sizer1.addLayout(self._sizer2, 0)
