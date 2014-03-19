@@ -831,6 +831,7 @@ class PopupMenu(iep.iepcore.menu.Menu):
             self.addItem(translate("filebrowser", "Create new directory"), None, self.onCreateDir)
         if isinstance(self._item, DirItem):
             self.addSeparator()
+            self.addItem(translate("filebrowser", "Rename"), None, self.onRename)
             self.addItem(translate("filebrowser", "Delete"), None, self.onDelete)
     
     
