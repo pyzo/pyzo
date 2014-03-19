@@ -517,7 +517,7 @@ class FileMenu(Menu):
             # Update parser
             parserName = 'None'
             if editor.parser():
-                parserName = editor.parser().name()
+                parserName = editor.parser().name() or 'None'
             self._parserMenu.setCheckedOption(None, parserName )
             # Update line ending
             self._lineEndingMenu.setCheckedOption(None, editor.lineEndingsHumanReadable)
