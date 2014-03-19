@@ -2,9 +2,12 @@
 import os
 import sys
 
+import pyzolib
 from pyzolib import paths
-import iep
 from pyzolib.qt import QtCore, QtGui
+
+import iep
+
 
 
 class AboutDialog(QtGui.QDialog):
@@ -78,6 +81,7 @@ class AboutDialog(QtGui.QDialog):
         IEP version: <u>{}</u><br>
         Platform: {}<br>
         Python version: {}<br>
+        pyzolib version: {}<br>
         Qt version: {}<br>
         {} version: {}<br>
         <br>
@@ -118,7 +122,9 @@ class AboutDialog(QtGui.QDialog):
         else:
             versionText = iep.__version__ + ' (source)'
         aboutText = aboutText.format(licenseText, versionText, 
-                        sys.platform, sys.version.split(' ')[0],
+                        sys.platform, 
+                        sys.version.split(' ')[0], 
+                        pyzolib.__version__,
                         qtVersion, qtWrapper, qtWrapperVersion,
                         iep.iepDir, iep.appDataDir)
         
