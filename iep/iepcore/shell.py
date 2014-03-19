@@ -337,6 +337,99 @@ class BaseShell(BaseTextCtrl):
         pass
     
     
+    def mouseDoubleClickEvent(self, event):
+        BaseTextCtrl.mouseDoubleClickEvent(self, event)
+        self._handleClickOnFilename(event.pos())
+    
+    
+    def _handleClickOnFilename(self, mousepos):
+        """ Check whether the text that is clicked is a filename
+        and open the file in the editor. If a line number can also be 
+        detected, open the file at that line number.
+        """
+        
+        # Get cursor and its current pos
+        cursor = self.cursorForPosition(mousepos)
+        ocursor = QtGui.QTextCursor(cursor)  # Make a copy to use below
+        pos = cursor.positionInBlock()
+        
+        # Get line of text for the cursor
+        cursor.movePosition(cursor.EndOfBlock, cursor.MoveAnchor)
+        cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+        line = cursor.selectedText()
+        if len(line) > 1024:
+            return  # safety
+        
+        # Get the word that is clicked. Qt's cursor.StartOfWord does not
+        # work for filenames.
+        line = line.replace('"', ' ')  # IEP uses " around filenames
+        before = line[:pos].split(' ')[-1]
+        after = line[pos:].split(' ')[0]
+        word = before + after
+        
+        # Check if it looks like a filename, quit if it does not
+        if not ('/' in word or '\\' in word):
+            return
+        else:
+            filename = word
+        
+        # Split in parts for getting line number
+        line = line[pos+len(after):]
+        line = line.replace(',', ' ')
+        parts = [p for p in line.split(' ') if p]
+        # Iterate over parts
+        linenr = None
+        for i, part in enumerate(parts):
+            if part in ('line', 'linenr', 'lineno'):
+                try:
+                    linenr = int(parts[i+1])
+                except IndexError:
+                    pass  # no more parts
+                except ValueError:
+                    pass  # not an integer
+                else:
+                    break
+        
+        # Try again IPython style
+        # IPython shows a few lines with the active line indicated by an arrow
+        if linenr is None:
+            for i in range(4):
+                cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor)
+                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+                line = cursor.selectedText()
+                if len(line) > 1024:
+                    continue  # safety
+                if not line.startswith('-'):
+                    continue
+                parts = line.split(' ', 2)
+                if parts[0] in ('->', '-->', '--->', '---->', '----->'):
+                    try:
+                        linenr = int(parts[1].strip())
+                    except IndexError:
+                        pass  # too few parts
+                    except ValueError:
+                        pass  # not an integer
+                    else:
+                        break
+        
+        # Try opening the file
+        result = iep.editors.loadFile(filename)
+        if result:
+             # Select word here (in shell)
+            cursor = ocursor
+            cursor.movePosition(cursor.Left, cursor.MoveAnchor, len(before))
+            cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(word))
+            self.setTextCursor(cursor)
+            # Select line in editor
+            if linenr is not None:
+                editor = result._editor
+                editor.gotoLine(linenr)
+                cursor = editor.textCursor()
+                cursor.movePosition(cursor.StartOfBlock)
+                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+                editor.setTextCursor(cursor)
+    
+    
     ##Indentation: override code editor behaviour
     def indentSelection(self):
         pass
