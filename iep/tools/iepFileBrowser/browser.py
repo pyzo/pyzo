@@ -421,9 +421,9 @@ class Projects(QtGui.QWidget):
         self._path = path
         # Find project index
         projectIndex, L = 0, 0
-        pathn = path.normcase()
+        pathn = path.normcase() + os.path.sep
         for i in range(self._combo.count()):
-            projectPath = self._combo.itemData(i)
+            projectPath = self._combo.itemData(i) + os.path.sep
             if pathn.startswith(projectPath) and len(projectPath) > L:
                 projectIndex, L = i, len(projectPath)
         # Select project or not ...
