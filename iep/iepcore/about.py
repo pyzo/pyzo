@@ -53,8 +53,8 @@ class AboutDialog(QtGui.QDialog):
         self.createContributorsTab()
         self.createLicenseTab()
         #
-        from iep.iepcore.license import LicenseManager
-        self._tabs.addTab(LicenseManager(self._tabs), 'Your licenses')
+        #from iep.iepcore.license import LicenseManager
+        #self._tabs.addTab(LicenseManager(self._tabs), 'Your licenses')
     
     
     def addTab(self, title, text, rich=True):
