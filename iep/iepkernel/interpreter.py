@@ -460,6 +460,16 @@ class IepInterpreter:
         
         # Some patching
         self._ipython.ask_exit = self.ipython_ask_exit
+        
+        # Make output be shown on Windows
+        if sys.platform.startswith('win'):
+            # IPython wraps std streams just like we do below, but
+            # pyreadline adds *another* wrapper, which is where it
+            # goes wrong. Here we set it back to bypass pyreadline.
+            from IPython.utils import io
+            io.stdin = io.IOStream(sys.stdin)
+            io.stdout = io.IOStream(sys.stdout)
+            io.stderr = io.IOStream(sys.stderr)
     
     
     def process_commands(self):
@@ -653,7 +663,7 @@ class IepInterpreter:
                 return True
             else:
                 # Case 1 and 3 handled by IPython
-                self._ipython.run_cell(source, True)
+                self._ipython.run_cell(source, True, False)
                 return False
                 
         else:
