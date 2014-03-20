@@ -35,7 +35,7 @@ Some key features
     Python versions (from v2.4 to 3.x, including pypy)
   * Support for using several *GUI toolkits* interactively: PySide, PyQt4,
     wx, fltk, GTK, Tk.
-  * Supports *magic commands* similar to IPython.
+  * Run IPython shell or native shell.
   * *Full Unicode support* in both editor and shell.
   * Various handy *tools*, plus the ability to make your own.
   * Matlab-style *cell notation* to mark code sections (by starting a line
@@ -45,7 +45,7 @@ Some key features
 """
     
 # Set version number
-__version__ = '3.3.2.dev'
+__version__ = '3.4b1'
 
 import os
 import sys
@@ -58,8 +58,8 @@ if sys.version < '3':
 import pyzolib
 if pyzolib.__version__ < '0.2.5':
     raise RuntimeError('IEP requires Pyzolib 0.2.5 or higher.')
-elif pyzolib.__version__ < '0.2.7':
-    print('Warning: pyzolib 0.2.7 is recommended to run IEP.')
+elif pyzolib.__version__ < '0.2.9':
+    print('Warning: pyzolib 0.2.9 is recommended to run IEP.')
 
 from pyzolib import ssdf, paths
 from pyzolib.qt import QtCore, QtGui
