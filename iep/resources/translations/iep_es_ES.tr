@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="es_ES">
+<!DOCTYPE TS><TS version="1.1" language="es_ES">
 <context>
     <name>debug</name>
     <message>
@@ -22,52 +21,52 @@
         <translation>Busca en archivos</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="440"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="450"/>
         <source>Projects:</source>
         <translation>Proyectos:</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="443"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="453"/>
         <source>Click star to bookmark current dir</source>
         <translation>Apretar la estrella para marcar el directorio actual </translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="451"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="461"/>
         <source>Remove project</source>
         <translation>Borrar proyecto</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="456"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="466"/>
         <source>Change project name</source>
         <translation>Cambiar nombre proyecto</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="463"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="473"/>
         <source>Add path to Python path</source>
         <translation>Añade ruta a rutas de Python</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="484"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="500"/>
         <source>Project name</source>
         <translation>Nombre proyecto</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="485"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="501"/>
         <source>New project name:</source>
         <translation>Nuevo nomre proyecto:</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="631"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="652"/>
         <source>Match case</source>
         <translation>Sensible entre mayúsculas y minúsculas</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="632"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="653"/>
         <source>RegExp</source>
         <translation>Expresión Regular</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/browser.py" line="633"/>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="654"/>
         <source>Search in subdirs</source>
         <translation>Buscar en subdirs</translation>
     </message>
@@ -102,49 +101,59 @@
         <translation>Copia ruta</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="903"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="917"/>
         <source>Rename</source>
         <translation>Renombrar</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="928"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="942"/>
         <source>Delete</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="874"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="888"/>
         <source>Create new file</source>
         <translation>Crear archivo</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="877"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="891"/>
         <source>Create new directory</source>
         <translation>Crear directorio</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="904"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="918"/>
         <source>Give the new name for the file</source>
         <translation>Da nomre al archivo</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="880"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="894"/>
         <source>Give the name for the new directory</source>
         <translation>Da nombre al directorio</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="906"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="920"/>
         <source>Duplicate</source>
         <translation>Duplicar</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="907"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="921"/>
         <source>Give the name for the new file</source>
         <translation>Da nomre al archivo</translation>
     </message>
     <message>
-        <location filename="iep/tools/iepFileBrowser/tree.py" line="930"/>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="944"/>
         <source>Are you sure that you want to delete</source>
         <translation>Seguro que quieres borrarlo</translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/browser.py" line="482"/>
+        <source>Go to this directory in the current shell</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/tools/iepFileBrowser/tree.py" line="818"/>
+        <source>Import data...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -471,7 +480,7 @@
         <translation>Consola nueva... ::: Crea una consola nueva donde ejecutar código. </translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1125"/>
+        <location filename="iep/iepcore/menu.py" line="1025"/>
         <source>Run selection ::: Run the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
         <translation>Ejecuta selección ::: Ejecuta las líneas selecionadas en el editor o la selección de palabras en la línia actual o la línia actual si no se ha efectuado ninguna selección.</translation>
     </message>
@@ -506,117 +515,87 @@
         <translation>Ejecuta el archivo como guión ::: Ejecuta el archivo com un guión (reinicia el intérprete).</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1127"/>
-        <source>Run cell ::: Run the current editors&apos;s cell in the current shell.</source>
-        <translation>Ejecutar celda ::: Ejecuta la celda del editor actual en la consola activa.</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="1129"/>
-        <source>Run cell and advance ::: Run the current editors&apos;s cell and advance to the next cell.</source>
-        <translation>Ejecutar celda y avanza::: Ejecuta la celda del editor actual en la consola activa y avanza.</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="1132"/>
-        <source>Run file ::: Run the current file in the current shell.</source>
-        <translation>Ejecuta archivo ::: Ejecuta archivo actual en la consola activa.</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="1134"/>
-        <source>Run main file ::: Run the main file in the current shell.</source>
-        <translation>Ejecuta archivo maestro ::: Ejecuta archivo maestro en la consola activa.</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="1137"/>
-        <source>Run file as script ::: Run the current file as a script.</source>
-        <translation>Ejecuta archivo como guión ::: Ejecuta archivo actual como guión.</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="1139"/>
-        <source>Run main file as script ::: Run the main file as a script.</source>
-        <translation>Ejecuta archivo maestro como guión ::: Ejecuta archivo maestro como guión.</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="1142"/>
+        <location filename="iep/iepcore/menu.py" line="1146"/>
         <source>Help on running code ::: Open the IEP wizard at the page about running code.</source>
         <translation>Ajuda para ejecutar código ::: Abre el asistente de IEP en la página de como ejecutar el código.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1363"/>
+        <location filename="iep/iepcore/menu.py" line="1367"/>
         <source>Reload tools ::: For people who develop tools.</source>
         <translation>Recarga herramientas ::: Para programadores que desarrollan herramientas.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1389"/>
+        <location filename="iep/iepcore/menu.py" line="1397"/>
         <source>Pyzo Website ::: Open the Pyzo website in your browser.</source>
         <translation>Pyzo página web ::: Abre la página web de Pyzo en tu buscador. </translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1391"/>
+        <location filename="iep/iepcore/menu.py" line="1399"/>
         <source>IEP Website ::: Open the IEP website in your browser.</source>
         <translation>IEP página web ::: Abre la página web de IEP en tu buscador. </translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1393"/>
+        <location filename="iep/iepcore/menu.py" line="1401"/>
         <source>Ask a question ::: Need help?</source>
         <translation>Haz una pregunta ::: Necesitas ayuda?</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1395"/>
+        <location filename="iep/iepcore/menu.py" line="1403"/>
         <source>Report an issue ::: Did you found a bug in IEP, or do you have a feature request?</source>
         <translation>Reportar un problema ::: Has encontrado algun error en IEP, o echá en falta alguna caracteristica o función?</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1398"/>
+        <location filename="iep/iepcore/menu.py" line="1406"/>
         <source>IEP wizard ::: Get started quickly.</source>
         <translation>Ayudante IEP ::: Comienza rápidamente. </translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1403"/>
+        <location filename="iep/iepcore/menu.py" line="1411"/>
         <source>Check for updates ::: Are you using the latest version?</source>
         <translation>Busca actualizaciones ::: Tienes la última version de IEP?</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1408"/>
+        <location filename="iep/iepcore/menu.py" line="1416"/>
         <source>About IEP ::: More information about IEP.</source>
         <translation>Sobre IEP ::: Mas información sobre IEP.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1480"/>
+        <location filename="iep/iepcore/menu.py" line="1488"/>
         <source>Select language ::: The language used by IEP.</source>
         <translation>Selecciona idioma ::: Idioma usado por IEP.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1485"/>
+        <location filename="iep/iepcore/menu.py" line="1493"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>Sangría automática ::: Sangrar código automaticamente cuando presiones tecla retorno después de dos puntos.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1487"/>
+        <location filename="iep/iepcore/menu.py" line="1495"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>Habilitar ayuda funcions ::: Enseñar ayudas prototipo funciones.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1489"/>
+        <location filename="iep/iepcore/menu.py" line="1497"/>
         <source>Enable autocompletion ::: Show autocompletion with known names.</source>
         <translation>Habilitar autocompletado ::: Muestra autocompletado con nombres conocidos.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1491"/>
+        <location filename="iep/iepcore/menu.py" line="1499"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>Autocompletado palabras clave ::: La lista de autocompletado incluye palabras clave.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1495"/>
+        <location filename="iep/iepcore/menu.py" line="1503"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>Editar asignaciones de teclas... ::: Editar los accesos directos para elementos de menú.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1497"/>
+        <location filename="iep/iepcore/menu.py" line="1505"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>Edita estilo sintaxis... ::: Cambiar colores sintaxis texto de tu código.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1500"/>
+        <location filename="iep/iepcore/menu.py" line="1508"/>
         <source>Advanced settings... ::: Configure IEP even further.</source>
         <translation>Opciones avanzadas... ::: Configura IEP aún más.</translation>
     </message>
@@ -624,11 +603,6 @@
         <location filename="iep/iepcore/menu.py" line="820"/>
         <source>Debug next: proceed until next line</source>
         <translation>Depuración siguiente: proceder hasta la siguiente linea</translation>
-    </message>
-    <message>
-        <location filename="iep/iepcore/menu.py" line="822"/>
-        <source>Debug step: proceed one step</source>
-        <translation>Depuración paso: Proceder un paso</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="824"/>
@@ -655,36 +629,76 @@
         <source>Postmortem: debug from last traceback</source>
         <translation>Postmortem: Depurar desde el último traceback</translation>
     </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="822"/>
+        <source>Debug step into: proceed one step</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1125"/>
+        <source>Run file as script ::: Restart and run the current file as a script.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1127"/>
+        <source>Run main file as script ::: Restart and run the main file as a script.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1132"/>
+        <source>Execute selection ::: Execute the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1134"/>
+        <source>Execute cell ::: Execute the current editors&apos;s cell in the current shell.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1136"/>
+        <source>Execute cell and advance ::: Execute the current editors&apos;s cell and advance to the next cell.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1139"/>
+        <source>Execute file ::: Execute the current file in the current shell.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/menu.py" line="1141"/>
+        <source>Execute main file ::: Execute the main file in the current shell.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>menu dialog</name>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1174"/>
+        <location filename="iep/iepcore/menu.py" line="1178"/>
         <source>Could not run</source>
         <translation>No se puede ejecutar</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1350"/>
+        <location filename="iep/iepcore/menu.py" line="1354"/>
         <source>Could not run script.</source>
         <translation>No se puede ejecutar el guión.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1441"/>
+        <location filename="iep/iepcore/menu.py" line="1449"/>
         <source>Check for the latest version.</source>
         <translation>Compruebe si es la versión más reciente.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1515"/>
+        <location filename="iep/iepcore/menu.py" line="1523"/>
         <source>Edit syntax styling</source>
         <translation>Edita estilo sintaxis</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1536"/>
+        <location filename="iep/iepcore/menu.py" line="1544"/>
         <source>Advanced settings</source>
         <translation>Configuración avanzada</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1561"/>
+        <location filename="iep/iepcore/menu.py" line="1569"/>
         <source>
         The language has been changed. 
         IEP needs to restart for the change to take effect.
@@ -695,27 +709,27 @@
         </translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1562"/>
+        <location filename="iep/iepcore/menu.py" line="1570"/>
         <source>Language changed</source>
         <translation>Idioma cambiado</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="1907"/>
+        <location filename="iep/iepcore/menu.py" line="1915"/>
         <source>Edit shortcut mapping</source>
         <translation>Editar asignación de accesos directos</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/menu.py" line="2051"/>
+        <location filename="iep/iepcore/menu.py" line="2059"/>
         <source>Shortcut mappings</source>
         <translation>Asignaciones de acceso directo</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/license.py" line="165"/>
+        <location filename="iep/iepcore/license.py" line="166"/>
         <source>Manage IEP license keys</source>
         <translation>Administrar clave licencia IEP</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/license.py" line="193"/>
+        <location filename="iep/iepcore/license.py" line="203"/>
         <source>Add license key</source>
         <translation>Añadir clave licencia</translation>
     </message>
@@ -781,54 +795,79 @@
 <context>
     <name>shell</name>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="181"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="349"/>
         <source>Use system default</source>
         <translation>Usa opcions por defecto del sistema</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="304"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="488"/>
         <source>name ::: The name of this configuration.</source>
         <translation>Nombre ::: El nombre de esta configuración.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="305"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="489"/>
         <source>exe ::: The Python executable.</source>
         <translation>exe ::: El ejecutable de Python.</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="306"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="491"/>
         <source>gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).</source>
         <translation>gui ::: Kit de herramientas de GUI para integrar (para trazado interactivo, etc.).</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="307"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="492"/>
         <source>pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.</source>
         <translation>pythonPath ::: Lista de directorios donde buscar módulos y paquetes. Introduce cada ruta en un nueva línea, o separalas mediante el separador por defecto de tu sistema operativo.  </translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="308"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="493"/>
         <source>startupScript ::: The script to run at startup (not in script mode).</source>
         <translation>GuiónInicio ::: Guión a ejecutar al inicio (no en modo guión).</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="312"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="494"/>
         <source>startDir ::: The start directory (not in script mode).</source>
         <translation>DirInicio ::: Directorio al inició (no en modo guión).</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="340"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="534"/>
         <source>Delete ::: Delete this shell configuration</source>
         <translation>Borrar ::: Borra la configuracion de esta consola</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="417"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="610"/>
         <source>Shell configurations</source>
         <translation>Configuración consola</translation>
     </message>
     <message>
-        <location filename="iep/iepcore/shellInfoDialog.py" line="447"/>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="640"/>
         <source>Add config</source>
         <translation>Añadir configuración</translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="490"/>
+        <source>ipython ::: Use IPython shell if available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="357"/>
+        <source>File to run at startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="363"/>
+        <source>Code to run at startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="495"/>
+        <source>argv ::: The command line arguments (sys.argv).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="iep/iepcore/shellInfoDialog.py" line="496"/>
+        <source>environ ::: Extra environment variables (os.environ).</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
