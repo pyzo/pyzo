@@ -30,6 +30,7 @@ LANGUAGES = {
     # 'German': QtCore.QLocale.German,
     # 'Simplified Chinese': QtCore.QLocale.Chinese,
     # 'Slovak': QtCore.QLocale.Slovak,
+    # 'Portuguese': QtCore.QLocale.Portuguese,
     }
 
 
@@ -168,8 +169,11 @@ You also need to run IEP from source as checked out from the repo
 To create a new language:
   * the file 'iep/util/locale.py' should be edited to add the language
     to the LANGUAGES dict
-  * run 'linguist(your_lang)' to initialize the .tr file
+  * run 'linguist(your_lang)', this will raise an erro, but it will show
+    the name of the .tr file
   * the file 'iep/iep.pro' should be edited to include the new .tr file
+  * run 'lupdate()' to create the .tr file
+  * run 'linguist(your_lang)' again to initialize the .tr file.
 
 To update a language:
   * run 'lupdate()'
