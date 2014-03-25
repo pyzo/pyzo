@@ -478,20 +478,7 @@ class IepInterpreter:
         try:
             
             self._process_commands()
-        
-        except KeyboardInterrupt:
-            self.write("\nKeyboardInterrupt\n")
-            self._resetbuffer()
-            self.more = 0
-        except TypeError:
-            # For some reason, when wx is integrated, keyboard interrupts
-            # result in a TypeError.
-            # I tried to find the source, but did not find it. If anyone
-            # has an idea, please e-mail me!
-            if self.guiName == 'WX':
-                self.write("\nKeyboard Interrupt\n") # space to see difference
-                self._resetbuffer()
-                self.more = 0
+            
         except SystemExit:
             # It may be that we should ignore sys exit now...
             if self.ignore_sys_exit:
