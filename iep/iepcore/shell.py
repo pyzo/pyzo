@@ -1382,6 +1382,13 @@ class PythonShell(BaseShell):
             else:
                 print('Unkown action: %s' % action)
         
+        # ----- status
+        
+        # Do not update status when the kernel is not really up and running
+        # self._version is set when the startup info is received
+        if not self._version:
+            return
+        
         # Update status
         state = self._stat_interpreter.recv()
         if state != self._state:
