@@ -45,15 +45,39 @@ class App_base:
     def process_events(self):
         pass
     
+    def _keyboard_interrupt(self, signum=None, frame=None):
+        interpreter = sys._iepInterpreter
+        interpreter.write("\nKeyboardInterrupt\n")
+        interpreter._resetbuffer()
+        if interpreter.more:
+            interpreter.more = 0
+            interpreter.newPrompt = True
+    
     def run(self, repl_callback, sleeptime=0.01):
         """ Very simple mainloop. Subclasses can overload this to use
         the native event loop. Attempt to process GUI events at least 
         every sleeptime seconds.
         """
+        
+        # The toplevel while-loop is just to catch Keyboard interrupts
+        # and then proceed. The inner while-loop is the actual event loop.
         while True:
-            time.sleep(sleeptime)
-            repl_callback()
-            self.process_events()
+            try:
+                
+                while True:
+                    time.sleep(sleeptime)
+                    repl_callback()
+                    self.process_events()
+            
+            except KeyboardInterrupt:
+                self._keyboard_interrupt()
+            except TypeError:
+                # For some reason, when wx is integrated, keyboard interrupts
+                # result in a TypeError.
+                # I tried to find the source, but did not find it. If anyone
+                # has an idea, please e-mail me!
+                if self.guiName == 'WX':
+                    self._keyboard_interrupt()
     
     def quit(self):
         raise SystemExit()
@@ -112,7 +136,7 @@ class App_fltk(App_base):
     all GUI backends updated when idle.
     """
     def __init__(self):
-        # Try importing        
+        # Try importing
         import fltk as fl
         import types
         
@@ -275,6 +299,18 @@ class App_qt(App_base):
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
         QtGui._in_event_loop = 'IEP'
+        
+        # Use sys.excepthook to catch keyboard interrupts that occur
+        # in event handlers. We also want to call the curren hook
+        self._original_excepthook = sys.excepthook
+        sys.excepthook = self._excepthook
+    
+    
+    def _excepthook(self, type, value, traceback):
+        if issubclass(type, KeyboardInterrupt):
+            self._keyboard_interrupt()
+        elif self._original_excepthook is not None:
+            return self._original_excepthook(type, value, traceback)
     
     
     def process_events(self):
