@@ -23,7 +23,10 @@ We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
 
 """
 
-import os, sys, time
+import os
+import sys
+import time
+import platform
 import struct
 import shlex
 from codeop import CommandCompiler
@@ -31,6 +34,7 @@ import traceback
 import keyword
 import inspect # Must be in this namespace
 import bdb
+from distutils.version import LooseVersion as LV
 
 import yoton
 from iepkernel import guiintegration, printDirect
@@ -250,12 +254,12 @@ class IepInterpreter:
         
         # Write Python banner (to stdout)
         NBITS = 8 * struct.calcsize("P")
-        platform = sys.platform
-        if platform.startswith('win'):
-            platform = 'Windows'
-        platform = '%s (%i bits)' % (platform, NBITS) 
+        plat = sys.platform
+        if plat.startswith('win'):
+            plat = 'Windows'
+        plat = '%s (%i bits)' % (plat, NBITS) 
         printDirect("Python %s on %s.\n" %
-            (sys.version.split('[')[0].rstrip(), platform))
+            (sys.version.split('[')[0].rstrip(), plat))
         
         # Integrate GUI
         guiName, guiError = self._integrate_gui(startup_info)
@@ -312,6 +316,12 @@ class IepInterpreter:
         # Notify the running of the script
         if self._scriptToRunOnStartup:
             printDirect('\x1b[0;33mRunning script: "'+self._scriptToRunOnStartup+'"\x1b[0m\n')
+        
+        # Prevent app nap on OSX 9.2 and up
+        # The _nope module is taken from MINRK's appnope package
+        if sys.platform == "darwin" and LV(platform.mac_ver()[0]) >= LV("10.9"):
+            from iepkernel import _nope
+            _nope.nope()
     
     
     def _prepare_environment(self, startup_info):
