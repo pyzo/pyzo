@@ -1,8 +1,14 @@
-### Core Development
+### Project coordination
 
 Almar Klein
+
+
+### Development
+
 Rob Reilink
 Ludo Visser
+Gijs van Oort
+David Salter
 
 
 ### Translators
@@ -10,13 +16,7 @@ Ludo Visser
 Hector Mtz-Seara Monné - Spanish and Catalan
 Laurent Signac - French
 George Volkov - Russian
-
-
-### Testing
-
-Lars Heuer
-Zaharon
-Gijs van Oort
+Diogo Costa - Portuguese
 
 
 ### Financial support
