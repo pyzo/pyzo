@@ -22,7 +22,11 @@ tool_summary = "A very simple web browser."
 
 
 default_bookmarks = [   'docs.python.org', 
-                        'doc.qt.nokia.com/4.5/' ]
+                        'scipy.org',
+                        'doc.qt.nokia.com/4.5/',
+                        'iep-project.org',
+                        'pyzo.org',
+                    ]
 
 
 class WebView(QtGui.QTextBrowser):
@@ -158,7 +162,10 @@ class IepWebBrowser(QtGui.QFrame):
         if not hasattr(self._config, 'zoomFactor'):
             self._config.zoomFactor = 1.0
         if not hasattr(self._config, 'bookMarks'):
-            self._config.bookMarks = default_bookmarks
+            self._config.bookMarks = []
+        for item in default_bookmarks:
+            if item not in self._config.bookMarks:
+                self._config.bookMarks.append(item)
         
         # Get style object (for icons)
         style = QtGui.QApplication.style()
