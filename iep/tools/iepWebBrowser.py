@@ -9,6 +9,12 @@ import time
 import urllib.request, urllib.parse
 from pyzolib.qt import QtCore, QtGui
 
+imported_qtwebkit = True
+try:
+    from pyzolib.qt import QtWebKit
+except ImportError:
+    imported_qtwebkit = False
+
 import iep
 
 tool_name = "Web browser"
@@ -177,7 +183,10 @@ class IepWebBrowser(QtGui.QFrame):
         self._address.setEditText('') 
         
         # Create web view
-        self._view = WebView(self)
+        if imported_qtwebkit:
+            self._view = QtWebKit.QWebView(self)
+        else:
+            self._view = WebView(self)
         #
 #         self._view.setZoomFactor(self._config.zoomFactor)
 #         settings = self._view.settings()
@@ -228,7 +237,10 @@ class IepWebBrowser(QtGui.QFrame):
         if ok:
             #url = self._view.url()
             #address = str(url.toString())
-            address = self._view.url()
+            if imported_qtwebkit:
+                address = self._view.url().toString()
+            else:
+                address = self._view.url()
         else:
             address = '<could not load page>'
         self._address.setEditText(str(address))
