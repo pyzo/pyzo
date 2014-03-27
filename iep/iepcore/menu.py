@@ -478,6 +478,8 @@ class FileMenu(Menu):
                 icons.page_delete, iep.editors.closeFile),
             self.addItem(translate("menu", "Close all ::: Close all files."),
                 icons.page_delete_all, iep.editors.closeAllFiles),  
+            self.addItem(translate("menu", "Export to PDF ::: Export current file to PDF (e.g. for printing)."),
+                None, self._print),  
             ]
         
         # Build file properties stuff
@@ -575,6 +577,29 @@ class FileMenu(Menu):
         editor = iep.editors.getCurrentEditor()
         if editor is not None:
             editor.encoding = value
+    
+    def _print(self):
+        editor = iep.editors.getCurrentEditor()
+        if editor is not None:
+            printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
+            if True:
+                filename = QtGui.QFileDialog.getSaveFileName(None, 
+                        'Export PDF', os.path.expanduser("~"), "*.pdf *.ps")
+                if isinstance(filename, tuple): # PySide
+                    filename = filename[0]
+                if not filename:
+                    return
+                printer.setOutputFileName(filename)
+            else:
+                d = QtGui.QPrintDialog(printer)
+                d.setWindowTitle('Print code')
+                d.setOption(d.PrintSelection, editor.textCursor().hasSelection())
+                d.setOption(d.PrintToFile, True)
+                ok = d.exec_()
+                if ok != d.Accepted:
+                    return
+            # Print
+            editor.print_(printer)
 
 
 # todo: move to matching brace
