@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="nl_NL">
+<!DOCTYPE TS>
+<TS version="2.0" language="nl_NL">
 <context>
     <name>debug</name>
     <message>
@@ -148,12 +149,12 @@
     <message>
         <location filename="iep/tools/iepFileBrowser/browser.py" line="482"/>
         <source>Go to this directory in the current shell</source>
-        <translation type="unfinished"></translation>
+        <translation>Ga naar deze directorie in de huidige shell</translation>
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="818"/>
         <source>Import data...</source>
-        <translation type="unfinished"></translation>
+        <translation>Importeer data...</translation>
     </message>
 </context>
 <context>
@@ -272,7 +273,7 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="494"/>
         <source>Restart IEP ::: Restart the application.</source>
-        <translation>Herstart IEP</translation>
+        <translation>Herstart IEP ::: Herstart de applicatie.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="496"/>
@@ -632,42 +633,42 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="822"/>
         <source>Debug step into: proceed one step</source>
-        <translation type="unfinished"></translation>
+        <translation>Debug instappen: ga een stap verder</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1125"/>
         <source>Run file as script ::: Restart and run the current file as a script.</source>
-        <translation type="unfinished"></translation>
+        <translation>Voer bestand uit als script ::: Herstart en voer het huidige bestand uit als script.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1127"/>
         <source>Run main file as script ::: Restart and run the main file as a script.</source>
-        <translation type="unfinished"></translation>
+        <translation>Voer main bestand uit als script ::: Herstart en voer het main bestand uit als script.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1132"/>
         <source>Execute selection ::: Execute the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
-        <translation type="unfinished"></translation>
+        <translation>Executeer selectie ::: Executeer de geselecteerde regels, de geselecteerde text op de huidige regel, of the huidige regel als er geen selectie is.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1134"/>
         <source>Execute cell ::: Execute the current editors&apos;s cell in the current shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Executeer cell ::: Executeer de huidige cell.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1136"/>
         <source>Execute cell and advance ::: Execute the current editors&apos;s cell and advance to the next cell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Executeer cell en ga verder ::: Executeer de huidige cell en ga verder naar de volgende cell.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1139"/>
         <source>Execute file ::: Execute the current file in the current shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Executeer bestand ::: Executeer het huidige bestand.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1141"/>
         <source>Execute main file ::: Execute the main file in the current shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Executeer main bestand ::: Executeer het main bestand in de huidige shell. </translation>
     </message>
 </context>
 <context>
@@ -844,27 +845,27 @@
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="490"/>
         <source>ipython ::: Use IPython shell if available.</source>
-        <translation type="unfinished"></translation>
+        <translation>ipython ::: Gebruik IPython shell als deze beschikbaar is.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="357"/>
         <source>File to run at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>Bestand dat uitgevoerd wordt bij het opstarten</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="363"/>
         <source>Code to run at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>Code die uitgevoerd wordt bij het opstarten</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="495"/>
         <source>argv ::: The command line arguments (sys.argv).</source>
-        <translation type="unfinished"></translation>
+        <translation>argv ::: Command line argumenten (sys.argv).</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="496"/>
         <source>environ ::: Extra environment variables (os.environ).</source>
-        <translation type="unfinished"></translation>
+        <translation>environ ::: Extra omgevings variabelen (os.environ).</translation>
     </message>
 </context>
 <context>

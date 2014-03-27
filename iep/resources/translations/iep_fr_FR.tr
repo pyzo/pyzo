@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr_FR">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -148,12 +149,12 @@
     <message>
         <location filename="iep/tools/iepFileBrowser/browser.py" line="482"/>
         <source>Go to this directory in the current shell</source>
-        <translation type="unfinished"></translation>
+        <translation>Aller dans ce dossier (shell courant)</translation>
     </message>
     <message>
         <location filename="iep/tools/iepFileBrowser/tree.py" line="818"/>
         <source>Import data...</source>
-        <translation type="unfinished"></translation>
+        <translation>Importer un fichier de données...</translation>
     </message>
 </context>
 <context>
@@ -632,42 +633,42 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="822"/>
         <source>Debug step into: proceed one step</source>
-        <translation type="unfinished"></translation>
+        <translation>Débugage pas à pas entrant (step)</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1125"/>
         <source>Run file as script ::: Restart and run the current file as a script.</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrer le script ::: Redémarre le shell et exécute le fichier courant en tant que script.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1127"/>
         <source>Run main file as script ::: Restart and run the main file as a script.</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrer le script principal::: Redémarre le shell et exécute le fichier principal en tant que script.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1132"/>
         <source>Execute selection ::: Execute the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécuter la sélection ::: Exécute les instructions, les lignes sélectionnées dans l&apos;éditeur ou la ligne courante (en l&apos;absence de sélection).</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1134"/>
         <source>Execute cell ::: Execute the current editors&apos;s cell in the current shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécuter la cellule ::: Exécute la cellule courante dans le shell courant.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1136"/>
         <source>Execute cell and advance ::: Execute the current editors&apos;s cell and advance to the next cell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécute la cellule et avancer ::: Exécute la cellule courante dans le shell courant et passe à la cellule suivante.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1139"/>
         <source>Execute file ::: Execute the current file in the current shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécuter le fichier ::: Exécute le fichier courant dans le shell courant.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1141"/>
         <source>Execute main file ::: Execute the main file in the current shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécuter le fichier principal ::: Exécute le fichier principal dans le shell courant.</translation>
     </message>
 </context>
 <context>
@@ -847,27 +848,27 @@ Redémarrez IEP pour rendre les changements effectifs. </translation>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="490"/>
         <source>ipython ::: Use IPython shell if available.</source>
-        <translation type="unfinished"></translation>
+        <translation>IPython ::: Utilise IPython s&apos;il est disponible.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="357"/>
         <source>File to run at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>Fichier à exécuter au démarrage</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="363"/>
         <source>Code to run at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>Code à exécuter au démarrage</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="495"/>
         <source>argv ::: The command line arguments (sys.argv).</source>
-        <translation type="unfinished"></translation>
+        <translation>argv ;:; Arguments en ligne de commande (sys.argv).</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="496"/>
         <source>environ ::: Extra environment variables (os.environ).</source>
-        <translation type="unfinished"></translation>
+        <translation>environ ::: Variables d&apos;environnement (os.environ).</translation>
     </message>
 </context>
 <context>
