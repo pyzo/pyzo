@@ -480,6 +480,11 @@ class IepInterpreter:
             io.stdin = io.IOStream(sys.stdin)
             io.stdout = io.IOStream(sys.stdout)
             io.stderr = io.IOStream(sys.stderr)
+            
+            # Ipython uses msvcrt e.g. for pausing between pages
+            # but this does not work in IEP
+            import msvcrt
+            msvcrt.getwch = msvcrt.getch = input  # input is deffed above
     
     
     def process_commands(self):
