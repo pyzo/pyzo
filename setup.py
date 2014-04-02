@@ -31,8 +31,8 @@ for line in open(initFile).readlines():
 setup(
     name = name,
     version = __version__,
-    author = 'Science Applied',
-    author_email = 'a.klein@science-applied.nl',
+    author = 'Almar Klein',
+    author_email = 'almar.klein@gmail.com',
     license = '(new) BSD',
     
     url = 'http://www.iep-project.org',
