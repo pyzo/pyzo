@@ -1,3 +1,35 @@
+### Version 3.4 (02-04-2014)
+
+This version is marked by many improvements to the shell. Most notably, we now have *IPython integration*! Further, there are more ways to customize the shell (e.g. define command line and environment args), there is support for coloured text, you can click on filenames in tracebacks to open them, and it just behaves better overall. Also, many improvements have been made to our debug system.
+
+Improvements/fixes related to the shell and kernel:
+
+* issue #136: Embed IPython shell
+* Shell can now deal with ANSI control chars to display color text
+* issue #261: Allow custom code to execute on startup
+* Code/script to run at startup runs before GUI is integrated (fixes issue #264)
+* issue #268: Allow specifying extra environment arguments in shell config
+* issue #239: Enable passing command line arguments (sys.argv)
+* issue #262: Clicking in shell to focus to it causes scrolling to last line to stop
+* issue #250: Prevent early exit for programs entering PySide event loop 
+* issue #240: On Windows allow kernel to start also if 'cmd' is not recognized.
+* issue #275: Paths in shell output (e.g. tracebacks) can be clicked on to open the file at the corresponding file number.
+* issue #278: Fixed that on OSX Maverick, App Nap made the IEP kernel slow 
+
+Other notable improvements:
+
+* issue #249: Unclear where to place breakpoints
+* issue #241: Debug-stepping in a new module change current file to there
+* issue #266: Editor should auto-scroll to breakpoint when it becomes active
+* issue #252: Fix that cursor is gone after dragging in a file (Linux)
+* issue #267: Improved terminology for different RUN actions
+* issue #285: Print/export code to pdf 
+* Webbrowser tool used QWebkit if available (Thanks to David Salter)
+
+Other fixes issues: #161, #188, #201, #209, #245, #255, #251, #265, #270, #271, #276, #242, #229, #260, #259, #227, #254, #253, #243, #244
+
+During the beta period we also fixed: #286, #283, #277, #281
+
 
 ### Version 3.3.2 (12-11-2013)
 
@@ -12,9 +44,7 @@
 
 Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints! 
 
-Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints!
-
-The binaries for Linux are now build without -gtkstyle, making them look better or worse, depending on your OS. There is an experimental feature that tries to load PySide from the system libraries. The Python version on your system must be 3.3. E.g. on Ubuntu 13.10 you can do sudo apt-get install python3-pyside. To enable this feature, check the qt.conf file.
+The binaries for Linux are now build without -gtkstyle, making them look better or worse, depending on your OS. There is an experimental feature that tries to load PySide from the system libraries. The Python version on your system must be 3.3. E.g. on Ubuntu 13.10 you can do `sudo apt-get install python3-pyside`. To enable this feature, check the `qt.conf` file.
 
 Further, there have been several bug fixes and improvements:
 
