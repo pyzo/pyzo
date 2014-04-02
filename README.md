@@ -32,11 +32,15 @@ OS these should be easy to obtain. One can then install IEP with
 We also provide binaries for Windows, Linux and OS X.
 
 
+### License
+
+IEP is free and open source. BSD licensed.
+
+
 ### About us
 
-IEP is developed by Almar Klein, Rob Reilink and Ludo Visser. We have
-organized ourselves in a company: Science Applied v.o.f. IEP is
-co-developed (and translated) by several of its users.
+The development of IEP is coordinated by Almar Klein. See contributors.txt
+for a complete list of people who helped develop IEP.
 
 
 ### Contributions
