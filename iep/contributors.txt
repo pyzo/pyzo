@@ -15,8 +15,9 @@ David Salter
 
 Hector Mtz-Seara Monné - Spanish and Catalan
 Laurent Signac - French
-George Volkov - Russian
 Diogo Costa - Portuguese
+Gerd Schmitt - German
+George Volkov - Russian
 
 
 ### Financial support
