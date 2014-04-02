@@ -463,8 +463,14 @@ class IepInterpreter:
         from IPython.core.interactiveshell import InteractiveShell 
         self._ipython = InteractiveShell(user_module=__main__)
         
-        # Set some hooks
-        self._ipython.set_hook('pre_run_code_hook', self.ipython_pre_run_code_hook)
+        # Set some hooks / event callbacks
+        # Run hook (pre_run_code_hook is depreacted in 2.0)
+        pre_run_cell_hook  = self.ipython_pre_run_cell_hook
+        if IPython.version_info < (2,):
+            self._ipython.set_hook('pre_run_code_hook', pre_run_cell_hook)
+        else:
+            self._ipython.events.register('pre_run_cell', pre_run_cell_hook)
+        # Other hooks
         self._ipython.set_hook('editor', self.ipython_editor_hook)
         self._ipython.set_custom_exc((bdb.BdbQuit,), self.dbstop_handler)
         
@@ -860,7 +866,7 @@ class IepInterpreter:
     
     ## Handlers and hooks
     
-    def ipython_pre_run_code_hook(self, ipython):
+    def ipython_pre_run_cell_hook(self, ipython=None):
         """ Hook that IPython calls right before executing code.
         """
         self.apply_breakpoints()
