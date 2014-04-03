@@ -383,15 +383,16 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
     
     def onCheckChanged(self, state):
         if self._radio_system.isChecked():
-            self.setTheText(self.SYSTEM_VALUE)
+            self.setWidgetText(self.SYSTEM_VALUE)
         elif self._radio_file.isChecked():
-            self.setTheText(self._valueFile)
+            self.setWidgetText(self._valueFile)
         elif self._radio_code.isChecked():
-            self.setTheText(self._valueCode)
+            self.setWidgetText(self._valueCode)
     
     
     def setTheText(self, value):
         self.setWidgetText(value, True)
+        self._value = value
         
     
     def setWidgetText(self, value, init=False):
