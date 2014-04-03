@@ -45,7 +45,7 @@ Some key features
 """
     
 # Set version number
-__version__ = '3.4'
+__version__ = '3.4dev'
 
 import os
 import sys
