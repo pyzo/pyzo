@@ -172,6 +172,10 @@ class IepInterpreter:
         self.more = 0
         self.newPrompt = True
         
+        # Code and script to run on first iteration
+        self._codeToRunOnStartup = None
+        self._scriptToRunOnStartup = None
+        
         # Remove "THIS" directory from the PYTHONPATH
         # to prevent unwanted imports. Same for iepkernel dir
         thisPath = os.getcwd()
@@ -339,9 +343,6 @@ class IepInterpreter:
         # Get project path
         projectPath = startup_info['projectPath']
         
-        # Init script to run on startup
-        self._scriptToRunOnStartup = None
-        
         if scriptFilename:
             # RUN AS SCRIPT
             # Set __file__  (note that __name__ is already '__main__')
@@ -391,10 +392,14 @@ class IepInterpreter:
             script = os.environ.get('PYTHONSTARTUP','')
         
         if '\n' in script:
-            # Run code
-            self.context._stat_interpreter.send('Busy') 
-            msg = {'source': script, 'fname': '<startup>', 'lineno': 0}
-            self.runlargecode(msg, True)
+            # Run code later or now
+            firstline = script.split('\n')[0].replace(' ', '')
+            if firstline.startswith('#AFTER_GUI'):
+                self._codeToRunOnStartup = script
+            else:
+                self.context._stat_interpreter.send('Busy') 
+                msg = {'source': script, 'fname': '<startup>', 'lineno': 0}
+                self.runlargecode(msg, True)
         elif script and os.path.isfile(script):
             # Run script
             self.context._stat_interpreter.send('Busy') 
@@ -516,8 +521,12 @@ class IepInterpreter:
     
     def _process_commands(self):
         
-        # Run startup script inside the loop (only the first time)
+        # Run startup code/script inside the loop (only the first time)
         # so that keyboard interrupt will work
+        if self._codeToRunOnStartup:
+            self.context._stat_interpreter.send('Busy')
+            self._codeToRunOnStartup, tmp = None, self._codeToRunOnStartup
+            self.pushline(tmp)
         if self._scriptToRunOnStartup:
             self.context._stat_interpreter.send('Busy') 
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup

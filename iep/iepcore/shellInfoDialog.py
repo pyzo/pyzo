@@ -266,6 +266,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         
         # Create sub-widget
         self._edit = QtGui.QTextEdit(parent)
+        self._edit.zoomOut(1)
         self._edit.setMaximumHeight(80)
         self._edit.setMinimumWidth(200)
         self._edit.textChanged.connect(self.onEditChanged)
@@ -321,6 +322,7 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
     
     DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
     SYSTEM_VALUE = '$PYTHONSTARTUP'
+    RUN_AFTER_GUI_TEXT = '# AFTER_GUI - remove to run the code BEFORE integrating the GUI\n'
     
     def __init__(self, parent):
         # Do not pass parent, because is a sublayout
@@ -335,6 +337,7 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
             self._edit1.setPlaceholderText('/path/to/script.py')
         #
         self._edit2 = QtGui.QTextEdit(parent)
+        self._edit2.zoomOut(1)
         self._edit2.setMaximumHeight(80)
         self._edit2.setMinimumWidth(200)
         self._edit2.textChanged.connect(self.onEditChanged)
@@ -429,6 +432,8 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
                 self._radio_code.setChecked(True)
             self._edit1.hide()
             self._edit2.show()
+            if not value.strip():
+                value = self.RUN_AFTER_GUI_TEXT
             self._edit2.setText(value)
     
     
@@ -459,6 +464,7 @@ class ShellInfo_environ(QtGui.QTextEdit):
     
     def __init__(self, parent):
         QtGui.QTextEdit.__init__(self, parent)
+        self.zoomOut(1)
         self.setText(self.EXAMPLE)
     
     def _cleanText(self, txt):
@@ -665,6 +671,7 @@ class ShellInfoDialog(QtGui.QDialog):
         # Prevent resizing
         self.show()
         self.setMinimumSize(500, 400)
+        self.resize(640, 500)
         #self.setMaximumHeight(500)
         
     
