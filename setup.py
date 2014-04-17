@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from distutils.core import setup
+from setuptools import setup
 
 """ Setup script for the IEP package.
 
@@ -34,30 +34,30 @@ setup(
     author = 'Almar Klein',
     author_email = 'almar.klein@gmail.com',
     license = '(new) BSD',
-    
+
     url = 'http://www.iep-project.org',
-    download_url = 'http://www.iep-project.org/downloads.html',    
+    download_url = 'http://www.iep-project.org/downloads.html',
     keywords = "Python interactive IDE Qt science",
     description = description,
     long_description = __doc__,
-    
+
     platforms = 'any',
     provides = ['iep'],
     install_requires = ['pyzolib'], # and 'PySide' or 'PyQt4'
-    
+
     packages = ['iep', 'iep.iepcore', 'iep.iepkernel', 'iep.util',
                 'iep.tools', 'iep.tools.iepFileBrowser',
                 'iep.codeeditor', 'iep.codeeditor.parsers', 'iep.codeeditor.extensions',
                 'iep.yoton', 'iep.yoton.channels',
                ],
     package_dir = {'iep': 'iep'},
-    package_data = {'iep': ['license.txt', 'contributors.txt', 
-                            'resources/*.*', 
-                            'resources/icons/*.*', 'resources/appicons/*.*', 
+    package_data = {'iep': ['license.txt', 'contributors.txt',
+                            'resources/*.*',
+                            'resources/icons/*.*', 'resources/appicons/*.*',
                             'resources/images/*.*', 'resources/fonts/*.*',
                             'resources/translations/*.*']},
     zip_safe = False,
-    
+
     classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Science/Research',
@@ -71,4 +71,10 @@ setup(
           'Operating System :: POSIX',
           'Programming Language :: Python :: 3',
           ],
+
+          entry_points={
+    'console_scripts': [
+      'iep = ieplauncher',
+    ],
+  },
     )
