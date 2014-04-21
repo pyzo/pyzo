@@ -524,12 +524,13 @@ def loadFonts():
     iep.codeeditor.Manager.setDefaultFontFamily('DejaVu Sans Mono')
     
     # Load fonts that are in the fonts directory
-    for fname in os.listdir(fontDir):
-        if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
-            try:
-                db.addApplicationFont( os.path.join(fontDir, fname) )
-            except Exception as err:
-                print('Could not load font %s: %s' % (fname, str(err)))
+    if os.path.isdir(fontDir):
+        for fname in os.listdir(fontDir):
+            if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
+                try:
+                    db.addApplicationFont( os.path.join(fontDir, fname) )
+                except Exception as err:
+                    print('Could not load font %s: %s' % (fname, str(err)))
 
 
 class _CallbackEventHandler(QtCore.QObject):
