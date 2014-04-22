@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
-import os
-from setuptools import setup
 
 """ Setup script for the IEP package.
-
-What it tries to achieve: copy the iep directory to the install dir.
 """
+
+
+import os
+
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 
 name = 'iep'
 description = 'the interactive editor for Python'
+
 
 # Get version and docstring
 __version__ = None
@@ -58,7 +64,7 @@ setup(
                             'resources/translations/*.*']},
     zip_safe = False,
 
-    classifiers=[
+    classifiers = [
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Science/Research',
           'Intended Audience :: Education',
@@ -72,9 +78,6 @@ setup(
           'Programming Language :: Python :: 3',
           ],
 
-          entry_points={
-    'console_scripts': [
-      'iep = ieplauncher',
-    ],
-  },
+    entry_points = {'console_scripts': ['iep = ieplauncher',],
+                   },
     )
