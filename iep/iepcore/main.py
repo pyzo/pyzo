@@ -115,6 +115,11 @@ class MainWindow(QtGui.QMainWindow):
         if not iep.config.shellConfigs2:
             from iep.iepcore.kernelbroker import KernelInfo
             iep.config.shellConfigs2.append( KernelInfo() )
+        
+        # Focus on editor
+        e = iep.editors.getCurrentEditor()
+        if e is not None:
+            e.setFocus()
     
     # To force drawing ourselves
     def paintEvent(self, event):
