@@ -1523,7 +1523,7 @@ class EditorTabs(QtGui.QWidget):
                             itm._pinned = True
                     except Exception as err:
                         print('Could not set position for %s' % fname, err)
-    
+        
     
     def closeAll(self):
         """ Close all files (well technically, we don't really close them,
