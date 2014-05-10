@@ -306,7 +306,7 @@ class Magician:
             try:
                 ob = self._eval(name)
             except NameError:
-                print('There is not object known as "%s"' % name)
+                print('There is no object known as "%s"' % name)
                 return ''
             
             # Get its file name
