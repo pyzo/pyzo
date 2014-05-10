@@ -587,6 +587,20 @@ class IepEditor(BaseTextCtrl):
         #Apply this function to all blocks
         self.doForSelectedBlocks(uncommentBlock)
 
+    def gotoDef(self):
+        """
+        Goto the definition for the word under the cursor
+        """
+        cursor = self.textCursor()
+        cursor.select(cursor.WordUnderCursor)
+        word = cursor.selection().toPlainText()
+
+        # Send the open command to the shell
+        s = iep.shells.getCurrentShell()
+        if s is not None:
+            s.executeCommand('open %s\n'%word)
+        print(dir(cursor))
+
 
     
     
