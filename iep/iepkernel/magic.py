@@ -34,8 +34,8 @@ MESSAGE = """List of *magic* commands:
 TIMEIT_MESSAGE = """Time execution duration. Usage:
     timeit fun  # where fun is a callable
     timeit 'expression'
-    timeit 20 fun  # tests 20 passes
-    For more advanced use, see the timeit module.
+    timeit expression
+    timeit 20 fun/expression  # tests 20 passes
 """
 
 
@@ -221,7 +221,7 @@ class Magician:
     
     def timeit(self, line, command):
         if command == "TIMEIT":
-            return line, 'print(%s)' % repr(TIMEIT_MESSAGE)
+            return 'print(%s)' % repr(TIMEIT_MESSAGE)
         elif command.startswith("TIMEIT "):
             expression = line[7:]
             # Get number of iterations
@@ -232,7 +232,10 @@ class Magician:
                     N = int(tmp[0])
                     expression = tmp[1]
                 except Exception:
-                    pass
+                    N = 1
+            if expression[0] not in '\'\"':
+                if not expression.isidentifier():
+                    expression = "'%s'" % expression
             # Compile expression
             line2 = 'import timeit; t=timeit.Timer(%s);' % expression
             line2 += 'print(str( t.timeit(%i)/%i ) ' % (N, N)
