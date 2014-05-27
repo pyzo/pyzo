@@ -1044,6 +1044,9 @@ class EditorContextMenu(Menu):
             icons.comment_delete, self._editItemCallback, "uncommentCode")
         self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."), 
             icons.text_align_justify, self._editItemCallback, "justifyText")
+        self.addSeparator()
+        self.addItem(translate("menu", "Goto Definition ::: Go to definition of word under cursor."),
+            icons.debug_return, self._editItemCallback, "gotoDef")
         
         # This is a subset of the run menu. Copied manually.
         self.addSeparator()
