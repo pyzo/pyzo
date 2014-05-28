@@ -150,6 +150,8 @@ class RequestServer(threading.Thread):
                 s, addr = self._bsd_socket.accept()
             except socket.timeout:
                 pass
+            except InterruptedError:
+                pass
             else:
                 # Show handling?
                 if self._verbose:

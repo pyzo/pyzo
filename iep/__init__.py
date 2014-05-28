@@ -61,11 +61,28 @@ if pyzolib.__version__ < '0.2.5':
 elif pyzolib.__version__ < '0.2.9':
     print('Warning: pyzolib 0.2.9 is recommended to run IEP.')
 
-from pyzolib import ssdf, paths
-from pyzolib.qt import QtCore, QtGui
-
 # Import yoton as an absolute package
 from iep import yotonloader
+
+# If there already is an instance of IEP, and the user is trying an 
+# IEP command, we should send the command to the other process and quit.
+# We do this here, were we have not yet loaded Qt, so we are very light.
+from iep.iepcore import commandline
+if commandline.is_server_running():
+    print('Our command server is running')
+else:
+    # Handle command line args now
+    res = commandline.handle_cmd_args()
+    if res:
+        print(res)
+        sys.exit()
+    else:
+        # No args, proceed with starting up
+        print('Our command server is *not* running')
+
+
+from pyzolib import ssdf, paths
+from pyzolib.qt import QtCore, QtGui
 
 # Import language/translation tools
 from iep.util.locale import translate, setLanguage

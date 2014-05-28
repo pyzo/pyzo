@@ -19,6 +19,7 @@ from pyzolib import ssdf, paths
 
 import iep
 from iep.iepcore.icons import IconArtist
+from iep.iepcore import commandline
 from pyzolib.qt import QtCore, QtGui
 from iep.iepcore.splash import SplashWidget
 
@@ -120,6 +121,10 @@ class MainWindow(QtGui.QMainWindow):
         e = iep.editors.getCurrentEditor()
         if e is not None:
             e.setFocus()
+        
+        # Handle any actions
+        commandline.handle_cmd_args()
+    
     
     # To force drawing ourselves
     def paintEvent(self, event):
@@ -352,6 +357,9 @@ class MainWindow(QtGui.QMainWindow):
         
         # Save settings
         iep.saveConfig()
+        
+        # Stop command server
+        commandline.stop_our_server()
         
         # Proceed with closing...
         result = iep.editors.closeAll()

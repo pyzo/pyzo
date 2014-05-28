@@ -178,7 +178,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
             
             # Check time
             if time.time() > maxtime:
-                return bytes().join(parts[1:])
+                return (bytes().join(parts[1:])).decode('utf-8','ignore')
     
     # Combine parts (discared first (dummy) part)
     bb = bytes().join(parts[1:])
