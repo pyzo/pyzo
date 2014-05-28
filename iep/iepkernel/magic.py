@@ -390,6 +390,8 @@ class Magician:
                 import conda
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args)
+                if args and args[0] in ('install', 'update', 'remove'):
+                    self._check_imported_modules()
                 main()
             except SystemExit:  # as err:
                 type, err, tb = sys.exc_info(); del tb
@@ -405,6 +407,24 @@ class Magician:
         
         return ''
     
+    def _check_imported_modules(self):
+        KNOWN_PURE_PYHON = ('conda', 'yaml', 'IPython', 'readline')
+        if not sys.platform.startswith('win'):
+            return  # Only a problem on Windows
+        # Check what modules are currently imported
+        loaded_modules = set()
+        for name, mod in sys.modules.items():
+            if 'site-packages' in getattr(mod, '__file__', ''):
+                name = name.split('.')[0]
+                if name.startswith('_') or name in KNOWN_PURE_PYHON:
+                    continue
+                loaded_modules.add(name)
+        # Warn if we have any such modules
+        loaded_modules = [m.lower() for m in loaded_modules]
+        if loaded_modules:
+            print('WARNING! The following modules are currently imported, '
+                'and updating them may fail if they are not pure Python:\n'
+                '' + ', '.join(sorted(loaded_modules)) + '\n')
     
     def pip(self, line, command):
         
