@@ -668,9 +668,11 @@ class IepInterpreter:
         # Try compiling.
         # The IPython kernel does not handle incomple lines, so we check
         # that ourselves ...
+        error = None
         try:
             code = self.compilecode(source, filename, symbol)
         except (OverflowError, SyntaxError, ValueError):
+            error = sys.exc_info()[1]
             code = False
         
         if use_ipython:
@@ -688,8 +690,12 @@ class IepInterpreter:
                 # Case 2
                 return True
             elif not code:
-                # Case 1
-                self.showsyntaxerror(filename)
+                # Case 1, a bit awkward way to show the error, but we need
+                # to call showsyntaxerror in an exception handler.
+                try:
+                    raise error
+                except Exception:
+                    self.showsyntaxerror(filename)
                 return False
             else:
                 # Case 3
