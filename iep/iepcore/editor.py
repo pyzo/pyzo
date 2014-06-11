@@ -600,17 +600,20 @@ class IepEditor(BaseTextCtrl):
         """
         Goto the definition for the word under the cursor
         """
+        
+        # Get name of object to go to
         cursor = self.textCursor()
-        cursor.select(cursor.WordUnderCursor)
+        if not cursor.hasSelection():
+            cursor.select(cursor.WordUnderCursor)
         word = cursor.selection().toPlainText()
-
+        
         # Send the open command to the shell
         s = iep.shells.getCurrentShell()
         if s is not None:
-            s.executeCommand('open %s\n'%word)
-        print(dir(cursor))
-
-
+            if word and word.isidentifier():
+                s.executeCommand('open %s\n'%word)
+            else:
+                s.write('Invalid identifier %r\n' % word)
     
     
     ## Introspection processing methods
