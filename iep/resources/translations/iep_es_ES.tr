@@ -227,7 +227,7 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="453"/>
         <source>Line endings ::: The line ending character of the current file.</source>
-        <translation>Final linia ::: Carácter final linia archivo actual. </translation>
+        <translation>Final línea ::: Carácter final línea archivo actual. </translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="458"/>
@@ -312,22 +312,22 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="1037"/>
         <source>Indent ::: Indent the selected line.</source>
-        <translation>Sangrar ::: Sangrar linia seleccionada.</translation>
+        <translation>Sangrar ::: Sangrar línea seleccionada.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1039"/>
         <source>Dedent ::: Unindent the selected line.</source>
-        <translation>Desangrar ::: Desangrar linia seleccionada.</translation>
+        <translation>Desangrar ::: Desangrar línea seleccionada.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1041"/>
         <source>Comment ::: Comment the selected line.</source>
-        <translation>Comentar ::: Comentar linias selección.</translation>
+        <translation>Comentar ::: Comentar líneas selección.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1043"/>
         <source>Uncomment ::: Uncomment the selected line.</source>
-        <translation>Descomentar ::: descomentar linias selección.</translation>
+        <translation>Descomentar ::: descomentar líneas selección.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="1045"/>
@@ -337,12 +337,12 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="634"/>
         <source>Go to line ::: Go to a specific line number.</source>
-        <translation>Ir linea ::: Ir a una linea specifica.</translation>
+        <translation>Ir línea ::: Ir a una línea specifica.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="636"/>
         <source>Delete line ::: Delete the selected line.</source>
-        <translation>Borrar linia ::: Borrar linia seleccionada.</translation>
+        <translation>Borrar línea ::: Borrar línea seleccionada.</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="639"/>
@@ -602,7 +602,7 @@
     <message>
         <location filename="iep/iepcore/menu.py" line="845"/>
         <source>Debug next: proceed until next line</source>
-        <translation>Depuración siguiente: proceder hasta la siguiente linea</translation>
+        <translation>Depuración siguiente: proceder hasta la siguiente línea</translation>
     </message>
     <message>
         <location filename="iep/iepcore/menu.py" line="849"/>
@@ -867,7 +867,7 @@
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="495"/>
         <source>argv ::: The command line arguments (sys.argv).</source>
-        <translation>argv ::: Argumentos linia de comandos (sys.argv).</translation>
+        <translation>argv ::: Argumentos línea de comandos (sys.argv).</translation>
     </message>
     <message>
         <location filename="iep/iepcore/shellInfoDialog.py" line="496"/>
