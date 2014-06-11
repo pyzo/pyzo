@@ -63,6 +63,9 @@ class Debugger(bdb.Bdb):
         while self._interacting:
             time.sleep(0.05)
             interpreter.process_commands()
+            pe = os.getenv('IEP_PROCESS_EVENTS_WHILE_DEBUGGING', '').lower()
+            if pe in ('1', 'true', 'yes'):
+                interpreter.guiApp.process_events()
         
         # Reset
         self._debugmode = 0
