@@ -486,9 +486,18 @@ class IepEditor(BaseTextCtrl):
         if self.testWhetherFileWasChanged():
             return
         
-        # Get text, convert line endings
+        # Get text
         text = self.toPlainText()
-        text = text.replace('\n', self.lineEndings)
+        
+        # Convert line endings (optionally remove trailing whitespace
+        if iep.config.settings.removeTrailingWhitespaceWhenSaving:
+            lines = []
+            for line in text.splitlines():
+                lines.append(line.rstrip())
+            text = self.lineEndings.join(lines)
+            self.setPlainText(text)
+        else:
+            text.replace('\n', self.lineEndings)
         
         # Make bytes
         bb = text.encode(self.encoding)
