@@ -87,6 +87,11 @@ from pyzolib.qt import QtCore, QtGui
 # Import language/translation tools
 from iep.util.locale import translate, setLanguage
 
+# Set environ to let kernel know some stats about us
+os.environ['IEP_PREFIX'] = sys.prefix
+_is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR') 
+os.environ['IEP_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
+
 
 ## Define some functions
 
