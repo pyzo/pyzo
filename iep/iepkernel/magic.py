@@ -419,12 +419,20 @@ class Magician:
                 if name.startswith('_') or name in KNOWN_PURE_PYHON:
                     continue
                 loaded_modules.add(name)
+        # Add PySide PyQt4 from IEP if prefix is the same
+        if os.getenv('IEP_PREFIX', '') == sys.prefix:
+            loaded_modules.add(os.getenv('IEP_QTLIB', 'qt'))
         # Warn if we have any such modules
-        loaded_modules = [m.lower() for m in loaded_modules]
+        loaded_modules = [m.lower() for m in loaded_modules if m]
         if loaded_modules:
-            print('WARNING! The following modules are currently imported, '
-                'and updating them may fail if they are not pure Python:\n'
-                '' + ', '.join(sorted(loaded_modules)) + '\n')
+            print('WARNING! The following modules are currently imported, and '
+                  'updating or\nremoving these may break them if they are not ' 
+                  'pure Python:')
+            print('  ' + ', '.join(sorted(loaded_modules)))
+            print('If the above packages are unaffected, it should be safe to '
+                  ' use "f" to proceed.\n')
+        else:
+            print('Use "f" to proceed.\n')
     
     def pip(self, line, command):
         
