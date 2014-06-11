@@ -53,6 +53,7 @@ settings= dict:
     autoComplete_fillups = '\n'
     autoComplete_acceptKeys = 'Tab'
     justificationWidth = 70
+    removeTrailingWhitespaceWhenSaving = 0
 
 advanced = dict:
     shellMaxLines = 10000
