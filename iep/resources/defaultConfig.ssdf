@@ -52,6 +52,7 @@ settings= dict:
     autoComplete_caseSensitive = 0
     autoComplete_fillups = '\n'
     autoComplete_acceptKeys = 'Tab'
+    justificationWidth = 70
 
 advanced = dict:
     shellMaxLines = 10000

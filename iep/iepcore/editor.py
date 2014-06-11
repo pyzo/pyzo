@@ -342,6 +342,15 @@ class IepEditor(BaseTextCtrl):
     
     
     ##
+    
+    
+    def justifyText(self):
+        """ Overloaded version of justifyText to make it use our
+        configurable justificationwidth.
+        """
+        super().justifyText(iep.config.settings.justificationWidth)
+    
+    
     def showRunCursor(self, cursor):
         """
         Momentarily highlight a piece of code to show that this is being executed
