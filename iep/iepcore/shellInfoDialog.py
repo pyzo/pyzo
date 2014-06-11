@@ -460,7 +460,7 @@ class ShellInfo_argv(ShellInfoLineEdit):
 
 
 class ShellInfo_environ(QtGui.QTextEdit):
-    EXAMPLE = 'EXAMPLE_VAR1=value1\nEXAMPLE_VAR2=value2'
+    EXAMPLE = 'EXAMPLE_VAR1=value1\nIEP_PROCESS_EVENTS_WHILE_DEBUGGING=1'
     
     def __init__(self, parent):
         QtGui.QTextEdit.__init__(self, parent)
