@@ -12,6 +12,12 @@ commands, in the sense that they print something etc.
 
 import sys
 import os
+import time
+
+# Set Python version and get some names
+PYTHON_VERSION = sys.version_info[0]
+if PYTHON_VERSION < 3:
+    input = raw_input
 
 MESSAGE = """List of *magic* commands:
     ?               - show this message
@@ -408,7 +414,8 @@ class Magician:
         return ''
     
     def _check_imported_modules(self):
-        KNOWN_PURE_PYHON = ('conda', 'yaml', 'IPython', 'readline')
+        KNOWN_PURE_PYHON = ('conda', 'yaml', 'IPython', 'requests', 
+                            'readline', 'pyreadline')
         if not sys.platform.startswith('win'):
             return  # Only a problem on Windows
         # Check what modules are currently imported
@@ -425,14 +432,13 @@ class Magician:
         # Warn if we have any such modules
         loaded_modules = [m.lower() for m in loaded_modules if m]
         if loaded_modules:
-            print('WARNING! The following modules are currently imported, and '
-                  'updating or\nremoving these may break them if they are not ' 
-                  'pure Python:')
+            print('WARNING! The following modules are currently loaded:\n')
             print('  ' + ', '.join(sorted(loaded_modules)))
-            print('If the above packages are unaffected, it should be safe to '
-                  ' use "f" to proceed.\n')
-        else:
-            print('Use "f" to proceed.\n')
+            print('\nUpdating or removing them may fail if they are not ' 
+                  'pure Python.\nIf none of the listed packages is updated or '
+                  'removed, it is safe\nto proceed (use "f" if necessary).\n')
+            print('-'*80)
+            time.sleep(2.0)  # Give user time to realize there is a warning
     
     def pip(self, line, command):
         
