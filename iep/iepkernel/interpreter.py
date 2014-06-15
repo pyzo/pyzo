@@ -536,7 +536,10 @@ class IepInterpreter:
         # Prompt is allowed to be an object with __str__ method
         if self.newPrompt:
             self.newPrompt = False
-            ps = sys.ps2 if self.more else sys.ps1
+            if self.more:
+                ps = sys.ps2 
+            else: 
+                ps = sys.ps1
             self.context._strm_prompt.send(str(ps))
         
         if True:
