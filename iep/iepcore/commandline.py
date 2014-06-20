@@ -146,7 +146,6 @@ if sys.platform.startswith('win'):
 # Create server
 server_err = None
 server = None
-#
 try:
     if _try_start_server:
         server = Server(ADDRESS)
