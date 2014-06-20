@@ -68,7 +68,7 @@ from iep import yotonloader
 # IEP command, we should send the command to the other process and quit.
 # We do this here, were we have not yet loaded Qt, so we are very light.
 from iep.iepcore import commandline
-if commandline.is_server_running():
+if commandline.is_our_server_running():
     print('Our command server is running')
 else:
     # Handle command line args now

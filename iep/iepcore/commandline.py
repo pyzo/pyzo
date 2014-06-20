@@ -112,12 +112,13 @@ def stop_our_server():
     it needs to stop.
     """
     if server is not None:
-        do_request(ADDRESS, 'stopserver', 0.2)
+        do_request(ADDRESS, 'stopserver', 0.1)
+        server.stop()  # make really sure it stops
         print('Stopped our command server.')
 
 
-def is_server_running():
-    """ Return True if the server is running. If it is, this process
+def is_our_server_running():
+    """ Return True if our server is running. If it is, this process
     is the main IEP; the first IEP that was started. If the server is
     not running, this is probably not the first IEP, but there might
     also be problem with starting the server.
@@ -125,10 +126,31 @@ def is_server_running():
     return server is not None
 
 
+def is_iep_server_running():
+    """ Test whether the IEP server is running *somewhere* (not
+    necesarily in this process).
+    """
+    try:
+        res = do_request(ADDRESS, 'echo', 0.2)
+        return res.startswith('echo')
+    except Exception:
+        return False
+
+
+# Shold we start the server?
+_try_start_server = True
+if sys.platform.startswith('win'):
+    _try_start_server = not is_iep_server_running()
+
+
 # Create server
+server_err = None
+server = None
+#
 try:
-    server = Server(ADDRESS)
-    server.start()
+    if _try_start_server:
+        server = Server(ADDRESS)
+        server.start()
 except OSError as err:
     server_err = err
     server = None
