@@ -8,5 +8,7 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>iep</string>
+	<key>CFBundleTypeExtensions</key>
+	<array><string>py</string><string>pyw</string></array>
 </dict>
 </plist>
