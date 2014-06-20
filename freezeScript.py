@@ -67,12 +67,13 @@ tk_excludes = [ "pywin", "pywin.debugger", "pywin.debugger.dbgcon",
 excludes.extend(tk_excludes)
 excludes.append('numpy')
 excludes.append('PySide.QtNetwork')
+excludes.append('PyQt4.QtNetwork')
 
 # For qt to work
 PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
 #
-if False and sys.platform == 'darwin':
+if True:  # and sys.platform == 'darwin':
     excludes.extend(PySideModules)
     includes = PyQtModules
 else:
