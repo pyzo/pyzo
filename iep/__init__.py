@@ -69,7 +69,7 @@ from iep import yotonloader
 # We do this here, were we have not yet loaded Qt, so we are very light.
 from iep.iepcore import commandline
 if commandline.is_our_server_running():
-    print('Our command server is running')
+    print('Started our command server')
 else:
     # Handle command line args now
     res = commandline.handle_cmd_args()
@@ -92,6 +92,25 @@ os.environ['IEP_PREFIX'] = sys.prefix
 _is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR') 
 os.environ['IEP_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
 
+
+class MyApp(QtGui.QApplication):
+    """ So we an open .py files on OSX.
+    OSX is smart enough to call this on the existing process.
+    """
+    def event(self, event):
+        if isinstance(event, QtGui.QFileOpenEvent):
+            fname = str(event.file())
+            if fname and fname != 'iep':
+                sys.argv[1:] = []
+                sys.argv.append(fname)
+                res = commandline.handle_cmd_args()
+                if not commandline.is_our_server_running():
+                    print(res)
+                    sys.exit()
+        return QtGui.QApplication.event(self, event) 
+
+if not sys.platform.startswith('darwin'):
+    MyApp = QtGui.QApplication
 
 ## Define some functions
 
@@ -197,9 +216,6 @@ def saveConfig():
         ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
 
 
-
-
-
 def startIep():
     """ startIep()
     Run IEP.
@@ -213,7 +229,7 @@ def startIep():
     QtGui.QApplication.setDesktopSettingsAware(True)
     
     # Instantiate the application
-    QtGui.qApp = QtGui.QApplication([])
+    QtGui.qApp = MyApp([])  # QtGui.QApplication([])
     
     # Choose language, get locale
     locale = setLanguage(config.settings.language)

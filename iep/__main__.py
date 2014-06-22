@@ -29,6 +29,7 @@ if hasattr(sys, 'frozen') and sys.frozen:
     # Enable loading from source
     from pyzolib import paths
     sys.path.insert(0, os.path.join(paths.application_dir(), 'source'))
+    sys.path.insert(0, os.path.join(paths.application_dir(), 'source/more'))
     # Import
     import iep
 

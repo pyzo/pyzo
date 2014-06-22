@@ -8,7 +8,26 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>iep</string>
-	<key>CFBundleTypeExtensions</key>
-	<array><string>py</string><string>pyw</string></array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>py.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Source file</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.plain-text</string>
+				<string>public.utf8-plain-text</string>
+				<string>public.source-code</string>
+				<string>public.script</string>
+				<string>public.python-script</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
