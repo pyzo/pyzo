@@ -44,6 +44,7 @@ if sys.platform=='darwin':
     appDir=distDir
     distDir=contentsDir+'MacOS/'
     applicationBundle=True
+    createDmg=False  # for dev
 else:
     applicationBundle=False
 
@@ -73,7 +74,14 @@ excludes.append('PyQt4.QtNetwork')
 PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
 #
-if True:  # and sys.platform == 'darwin':
+try:
+    import PyQt4
+except ImportError:
+    use_pyqt = False
+else:
+    use_pyqt = True
+#
+if use_pyqt:  # and sys.platform == 'darwin':
     excludes.extend(PySideModules)
     includes = PyQtModules
 else:
@@ -86,8 +94,8 @@ includes.extend(['pyzolib.paths', 'pyzolib.path', 'pyzolib.ssdf', 'pyzolib.inter
 ## Freeze
 
 # Clear first
-if os.path.isdir(distDir):
-    shutil.rmtree(distDir)
+if os.path.isdir(baseDir+'frozen'):
+    shutil.rmtree(baseDir+'frozen')
 os.makedirs(distDir)
 
 
@@ -177,6 +185,8 @@ def copydir_smart(path1, path2):
         fullsub1 = os.path.join(path1, sub)
         fullsub2 = os.path.join(path2, sub)
         if sub in ['__pycache__', '.hg', '.svn', '.git']:
+            continue
+        elif sub.endswith('.pyc') and os.path.isfile(fullsub1[:-1]):
             continue
         elif os.path.isdir(fullsub1):
             count += copydir_smart(fullsub1, fullsub2)
@@ -280,6 +290,21 @@ if applicationBundle:
     #Change the absolute paths in all library files to relative paths
     #This should be a cx_freeze task, but cx_freeze doesn't do it
     
+    # Move PyQt4 libs into subdir
+    # This gets us a similar dir structure as installed so
+    # we dont have to fix paths ...
+    if True:  # IF FREEZING FROM CONDA
+        os.makedirs(distDir+'source/more/PyQt4')
+        open(distDir+'source/more/PyQt4/__init__.py', 'wb').close()
+        for fname in os.listdir(distDir):
+            if fname.startswith('PyQt4'):
+                filename = distDir+'source/more/PyQt4/' + fname[6:]
+            elif fname.startswith('sip'):
+                filename = distDir+'source/more/' + fname
+            else:
+                continue
+            shutil.move(distDir+fname, filename)
+    
     shippedfiles=os.listdir(distDir)
 
     for file in shippedfiles:
@@ -311,10 +336,11 @@ if applicationBundle:
                 print ('%s => %s' % (name,newfilename))
                 subprocess.call(('install_name_tool','-change',filename,newfilename,filepath))
 
-    #Copy the icon
+    #Copy the icons
     if not os.path.isdir(resourcesDir):
         os.mkdir(resourcesDir)
     shutil.copy(srcDir+'resources/appicons/ieplogo.icns',resourcesDir+'iep.icns')
+    shutil.copy(srcDir+'resources/appicons/py.icns',resourcesDir+'py.icns')
     
     #Write qt.conf in the Resources dir
     with open(os.path.join(resourcesDir, 'qt.conf'), 'wb') as file:
@@ -332,8 +358,9 @@ if applicationBundle:
     dmgFile=appDir+'iep.dmg'
 
     # Create the dmg
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
-        '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
-        '-srcfolder',appDir,'-volname', 'iep')!=0:
-        raise OSError('creation of the dmg failed')
+    if createDmg:
+        if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
+            '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
+            '-srcfolder',appDir,'-volname', 'iep')!=0:
+            raise OSError('creation of the dmg failed')
 

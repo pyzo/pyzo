@@ -16,6 +16,7 @@ to closse down the server when IEP is closed.
 """
 
 import sys
+import os
 
 from yoton.clientserver import RequestServer, do_request
 import iep
@@ -39,9 +40,15 @@ class Server(RequestServer):
         
         # Handle command
         try:
-            return handle_command(command, arg)
+            reply = handle_command(command, arg)
         except Exception as err:
-            return 'Error handling request %r:\n%s' % (request, str(err))
+            msg = 'Error handling request %r:\n%s' % (request, str(err))
+            iep.callLater(print, msg)
+            return msg
+        else:
+            iep.callLater(print, 'Request:', request)
+            iep.callLater(print, 'Reply:', reply)
+            return reply
 
 
 def handle_command(command, arg):
@@ -49,7 +56,13 @@ def handle_command(command, arg):
     This gets called either from the server, or from the code that 
     processed command line args.
     """
-    if command == 'stopserver':
+    if not command:
+        return 'empty command?'
+    
+    elif command == 'testerr':
+        return 1/0
+    
+    elif command == 'stopserver':
         # For efficiently stopping the server
         if server:
             server.stop()
@@ -78,13 +91,16 @@ def handle_command(command, arg):
     
     else:
         # Assume the user wanted to open a file
-        fname = command + ' ' + arg
-        iep.callLater(iep.editors.loadFile, fname)
-        return 'Try opening file %r' % fname
+        fname = (command + ' ' + arg).rstrip()
+        if not iep.editors:
+            return 'Still warming up ...'
+        else:
+            iep.callLater(iep.editors.loadFile, fname)
+            return 'Try opening file %r' % fname
     
     # We should always return. So if we get here, it is a bug.
     # Return something so that we can be aware.
-    return 'echo ' + request
+    return 'error ' + command
 
 
 def handle_cmd_args():
@@ -93,13 +109,17 @@ def handle_cmd_args():
     otherwise.
     """
     args = sys.argv[1:]
-    if not args:
+    request = ' '.join(args)
+    if 'psn_' in request and not os.path.isfile(request):
+        request = ' '.join(args[1:])  # An OSX thing when clicking app icon
+    request = request.strip()
+    #
+    if not request:
         return None
     else:
         # Always send to server, even if we are the ones that run the server
-        request = ' '.join(args)
         try:
-            return do_request(ADDRESS, request, 0.2).rstrip()
+            return do_request(ADDRESS, request, 0.4).rstrip()
         except Exception as err:
             print('Could not process command line args:\n%s' % str(err))
             return None
@@ -111,10 +131,14 @@ def stop_our_server():
     case the server will need to timeout (0.25 s) before it sees that
     it needs to stop.
     """
-    if server is not None:
-        do_request(ADDRESS, 'stopserver', 0.1)
-        server.stop()  # make really sure it stops
-        print('Stopped our command server.')
+    if is_our_server_running():
+        try:
+            server.stop()  # Post a stop message
+            do_request(ADDRESS, 'stopserver', 0.1)  # trigger
+            print('Stopped our command server.')
+        except Exception as err:
+            print('Failed to stop command server:')
+            print(err)
 
 
 def is_our_server_running():
@@ -123,7 +147,7 @@ def is_our_server_running():
     not running, this is probably not the first IEP, but there might
     also be problem with starting the server.
     """
-    return server is not None
+    return server and server.isAlive()
 
 
 def is_iep_server_running():
@@ -153,3 +177,4 @@ try:
 except OSError as err:
     server_err = err
     server = None
+
