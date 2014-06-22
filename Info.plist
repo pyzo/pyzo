@@ -14,6 +14,18 @@
 			<key>CFBundleTypeIconFile</key>
 			<string>py.icns</string>
 			<key>CFBundleTypeName</key>
+			<string>Python file</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.python-script</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Source file</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
@@ -25,7 +37,6 @@
 				<string>public.utf8-plain-text</string>
 				<string>public.source-code</string>
 				<string>public.script</string>
-				<string>public.python-script</string>
 			</array>
 		</dict>
 	</array>
