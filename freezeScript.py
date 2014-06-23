@@ -74,12 +74,13 @@ excludes.append('PyQt4.QtNetwork')
 PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
 #
-try:
-    import PyQt4
-except ImportError:
-    use_pyqt = False
-else:
-    use_pyqt = True
+# try:
+#     import PyQt4
+# except ImportError:
+#     use_pyqt = False
+# else:
+#     use_pyqt = True
+use_pyqt = False
 #
 if use_pyqt:  # and sys.platform == 'darwin':
     excludes.extend(PySideModules)
@@ -246,6 +247,9 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 # Set search path of dynamic libraries
 from pyzolib import dllutils
 if sys.platform.startswith('linux'):
+    # Exe
+    dllutils.set_search_path(os.path.join(distDir, 'iep'), '', 'lib')
+    # Libs
     os.mkdir(os.path.join(distDir, 'lib'))
     for entry in os.listdir(distDir):
         filename = os.path.join(distDir, entry)
