@@ -579,3 +579,66 @@ def callLater(callback, *args):
 _callbackEventHandler = _CallbackEventHandler()   
 iep.callLater = callLater
 
+
+_SCREENSHOT_CODE = """
+import random
+
+numerator = 4
+
+def get_number():
+    # todo: something appears to be broken here
+    val = random.choice(range(10))
+    return numerator / val
+
+class Groceries(list):
+    \"\"\" Overloaded list class.
+    \"\"\"
+    def append_defaults(self):
+        spam = 'yum'  
+        pie = 3.14159
+        self.extend([spam, pie])
+
+class GroceriesPlus(Groceries):
+    \"\"\" Groceries with surprises!
+    \"\"\"
+    def append_random(self):
+        value = get_number()
+        self.append(value)
+
+# Create some groceries
+g = GroceriesPlus()
+g.append_defaults()
+g.append_random()
+
+"""
+
+def screenshotExample(width=1244, height=700):
+    e = iep.editors.newFile()
+    e.editor.setPlainText(_SCREENSHOT_CODE)
+    iep.main.resize(width, height)
+
+def screenshot(countdown=5):
+    QtCore.QTimer.singleShot(countdown*1000, _screenshot)
+
+def _screenshot():
+    # Grab
+    print('SNAP!')
+    pix = QtGui.QPixmap.grabWindow(iep.main.winId())
+    #pix = QtGui.QPixmap.grabWidget(iep.main)
+    # Get name
+    i = 1
+    while i > 0:
+        name = 'iep_screen_%s_%02i.png' % (sys.platform, i)
+        fname = os.path.join(os.path.expanduser('~'), name)
+        if os.path.isfile(fname):
+            i += 1
+        else:
+            i = -1
+    # Save screenshot and a thumb
+    pix.save(fname)
+    thumb = pix.scaledToWidth(500, QtCore.Qt.SmoothTransformation)
+    thumb.save(fname.replace('screen', 'thumb'))
+    print('Screenshot and thumb saved in', os.path.expanduser('~'))
+
+iep.screenshot = screenshot
+iep.screenshotExample = screenshotExample
