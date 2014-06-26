@@ -1,0 +1,27 @@
+### Project coordination
+
+Almar Klein
+
+
+### Development
+
+Rob Reilink
+Ludo Visser
+Gijs van Oort
+David Salter
+
+
+### Translators
+
+Hector Mtz-Seara Monné - Spanish and Catalan
+Laurent Signac - French
+Diogo Costa - Portuguese
+Gerd Schmitt - German
+George Volkov - Russian
+
+
+### Financial support
+
+Diogo Costa
+Marek Petrik
+Ken Crossen
