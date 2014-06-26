@@ -1,18 +1,25 @@
 ; Inno setup file to create a windows installer for IEP
 
 [Setup]
-AppName=iep
-AppId=iep
-AppVerName=iep version X.Y.Z
-DefaultDirName={pf}\iep
-DefaultGroupName=iep
+AppName = iep
+AppId = iep
+AppVerName = iep version X.Y.Z
+DefaultDirName = {pf}\iep
+DefaultGroupName = iep
 
-SourceDir=frozen/
-OutputDir=../
+SourceDir = frozen/
+OutputDir = ../
 OutputBaseFilename = iep-X.Y.Z.win32
 
+; When set to none, Setup will only run with administrative privileges if it 
+; was started by a member of the Administrators group.
+; On pre vista: will *not* run with administrative privileges
+PrivilegesRequired = none 
+
+; If True, Setup will refresh env/associations in explorer after install
 ChangesEnvironment = no
 ChangesAssociations = yes
+
 DisableProgramGroupPage = no
 AllowNoIcons = yes
 Compression = lzma
@@ -23,7 +30,7 @@ Source: "*.*"; DestDir: "{app}"; Flags: recursesubdirs;
 
 [Tasks]
 Name: icon; Description: "Desktop Icon"
-Name: mypAssociation; Description: "Associate "".py"" extension"
+Name: mypAssociation; Description: "Associate "".py"" extension (need admin privileges)"
 
 [Icons]
 Name: "{commondesktop}\iep"; Filename: "{app}\iep.exe"; IconFilename: "{app}\iep.exe"; Workingdir: "{app}"; Tasks: icon;
