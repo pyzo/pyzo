@@ -486,9 +486,12 @@ class IepEditor(BaseTextCtrl):
         if self.testWhetherFileWasChanged():
             return
         
-        # Get text
+        # Get text and remember where we are
         text = self.toPlainText()
-        
+        cursor = self.textCursor()
+        linenr = cursor.blockNumber() + 1
+        index = cursor.positionInBlock()
+
         # Convert line endings (optionally remove trailing whitespace
         if iep.config.settings.removeTrailingWhitespaceWhenSaving:
             lines = []
@@ -496,6 +499,13 @@ class IepEditor(BaseTextCtrl):
                 lines.append(line.rstrip())
             text = self.lineEndings.join(lines)
             self.setPlainText(text)
+            # Go back to where we were
+            cursor = self.textCursor()
+            cursor.movePosition(cursor.Start) # move to begin of the document
+            cursor.movePosition(cursor.NextBlock,n=linenr-1) # n blocks down
+            index = min(index, cursor.block().length()-1)
+            cursor.movePosition(cursor.Right,n=index) # n chars right
+            self.setTextCursor(cursor)
         else:
             text.replace('\n', self.lineEndings)
         
