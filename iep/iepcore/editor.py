@@ -491,7 +491,8 @@ class IepEditor(BaseTextCtrl):
         cursor = self.textCursor()
         linenr = cursor.blockNumber() + 1
         index = cursor.positionInBlock()
-
+        scroll = self.verticalScrollBar().value()
+        
         # Convert line endings (optionally remove trailing whitespace
         if iep.config.settings.removeTrailingWhitespaceWhenSaving:
             lines = []
@@ -506,6 +507,7 @@ class IepEditor(BaseTextCtrl):
             index = min(index, cursor.block().length()-1)
             cursor.movePosition(cursor.Right,n=index) # n chars right
             self.setTextCursor(cursor)
+            self.verticalScrollBar().setValue(scroll)
         else:
             text.replace('\n', self.lineEndings)
         
