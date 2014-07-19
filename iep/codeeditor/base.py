@@ -171,7 +171,9 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         # while the extension's init is not yet finished.        
         self.__initOptions(kwds)
         
-        # Define solarized colors
+        # Define colors from Solarized theme
+        # NOTE TO PEOPLE WANTING CUSTOM COLORS: ignore this and check the
+        # commented lines near the bottom of this method.
         base03  = "#002b36"
         base02  = "#073642"
         base01  = "#586e75"
@@ -200,31 +202,52 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         test_numbers  = 90 + 0000 + 1
         # todo: proper testing of syntax style
         
-        # Define style
+        # Define style using "Solarized" colors
         S  = {}
         S["Editor.text"] = "back:%s, fore:%s" % (back1, fore1)
         S['Syntax.identifier'] = "fore:%s, bold:no, italic:no, underline:no" % fore1
         S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % fore2
         S["Syntax.keyword"] = "fore:%s, bold:yes, italic:no, underline:no" % fore2
-        
-        
+        #
         S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore3
         S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % orange
-        
+        #
         S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
         S["Syntax.unterminatedstring"] = "fore:%s, bold:no, italic:no, underline:dotted" % violet
         S["Syntax.python.multilinestring"] = "fore:%s, bold:no, italic:no, underline:no" % blue
-        
+        #
         S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
         S["Syntax.comment"] ="fore:%s, bold:no, italic:no, underline:no" % yellow
         S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
         S["Syntax.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:full" % yellow
-        
-            
+        #
         S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2
         S["Editor.Highlight current line"] = "back:%s" % back2
         S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % back2
         S["Editor.Line numbers"] = "back:%s, fore:%s" % (back2, back3)
+        
+        # Define style using html color names. All 140 legal HTML colour
+        # names can be used (in addition to HEX codes). A full list of
+        # recognized colour names is available e.g. here
+        # http://www.html-color-names.com/color-chart.php
+#         S  = {}
+#         S["Editor.text"] = "back: white, fore: black"
+#         S['Syntax.identifier'] = "fore: black, bold:no, italic:no, underline:no"
+#         S["Syntax.nonidentifier"] = "fore: blue, bold:no, italic:no, underline:no"
+#         S["Syntax.keyword"] = "fore: blue, bold:yes, italic:no, underline:no"
+#         S["Syntax.functionname"] = "fore: black, bold:yes, italic:no, underline:no"
+#         S["Syntax.classname"] = "fore: magenta, bold:yes, italic:no, underline:no"
+#         S["Syntax.string"] = "fore: red, bold:no, italic:no, underline:no"
+#         S["Syntax.unterminatedstring"] = "fore: red, bold:no, italic:no, underline:dotted"
+#         S["Syntax.python.multilinestring"] = "fore: red, bold:no, italic:no, underline:no"
+#         S["Syntax.number"] = "fore: dark orange, bold:no, italic:no, underline:no"
+#         S["Syntax.comment"] ="fore: green, bold:no, italic:yes, underline:no"
+#         S["Syntax.todocomment"] = "fore: magenta, bold:no, italic:yes, underline:no"
+#         S["Syntax.python.cellcomment"] = "fore: green, bold:yes, italic:no, underline:full"
+#         S["Editor.Long line indicator"] = "linestyle:solid, fore: dark grey"
+#         S["Editor.Highlight current line"] = "back: light grey"
+#         S["Editor.Indentation guides"] = "linestyle:solid, fore: light grey"
+#         S["Editor.Line numbers"] = "back: light grey, fore: black"
         
         # Apply style
         self.setStyle(S)
