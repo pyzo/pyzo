@@ -271,14 +271,15 @@ class Manager:
         """
     
         # Get font size that makes sense for this system
-        f = QtGui.QFont()
-        size = f.pointSize()
+        #f = QtGui.QFont()
+        #size = f.pointSize()
         
         # Get font family 
         f = QtGui.QFont(cls._defaultFontFamily)
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
+        size = fi.pointSize()
         
         # Done
         return QtGui.QFont(family, size)
