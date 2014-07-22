@@ -279,7 +279,7 @@ class Manager:
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
-        size = int(0.6*fi.pixelSize())
+        size = fi.pointSize() - (not sys.platform.startswith('darwin')) * 3
         
         # Done
         return QtGui.QFont(family, size)
