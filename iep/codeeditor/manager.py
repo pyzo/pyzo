@@ -279,7 +279,7 @@ class Manager:
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
-        size = fi.pointSize()
+        size = int(0.6*fi.pixelSize())
         
         # Done
         return QtGui.QFont(family, size)
