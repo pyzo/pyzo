@@ -270,16 +270,19 @@ class Manager:
         
         """
     
-        # Get font size that makes sense for this system
-        #f = QtGui.QFont()
-        #size = f.pointSize()
-        
         # Get font family 
         f = QtGui.QFont(cls._defaultFontFamily)
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
-        size = fi.pointSize() - (not sys.platform.startswith('darwin')) * 3
+        
+        # Get the font size
+        size = 9
+        if sys.platform.startswith('darwin'):
+            # Account for Qt font size difference
+            # http://qt-project.org/forums/viewthread/27201
+            # Win/linux use 96 ppi, OS X uses 72 -> 133% ratio
+            size = int(size*1.33333+0.4999)
         
         # Done
         return QtGui.QFont(family, size)
