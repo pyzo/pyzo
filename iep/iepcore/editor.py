@@ -496,6 +496,8 @@ class IepEditor(BaseTextCtrl):
         # Convert line endings (optionally remove trailing whitespace
         if iep.config.settings.removeTrailingWhitespaceWhenSaving:
             lines = [line.rstrip() for line in text.split('\n')]
+            if lines[-1]:
+                lines.append('')  # Ensure the file ends in an empty line
             text = self.lineEndings.join(lines)
             self.setPlainText(text)
             # Go back to where we were
