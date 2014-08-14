@@ -495,9 +495,7 @@ class IepEditor(BaseTextCtrl):
         
         # Convert line endings (optionally remove trailing whitespace
         if iep.config.settings.removeTrailingWhitespaceWhenSaving:
-            lines = []
-            for line in text.splitlines():
-                lines.append(line.rstrip())
+            lines = [line.rstrip() for line in text.split('\n')]
             text = self.lineEndings.join(lines)
             self.setPlainText(text)
             # Go back to where we were
@@ -509,7 +507,7 @@ class IepEditor(BaseTextCtrl):
             self.setTextCursor(cursor)
             self.verticalScrollBar().setValue(scroll)
         else:
-            text.replace('\n', self.lineEndings)
+            text = text.replace('\n', self.lineEndings)
         
         # Make bytes
         bb = text.encode(self.encoding)
