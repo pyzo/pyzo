@@ -794,9 +794,16 @@ class PopupMenu(iep.iepcore.menu.Menu):
                 self.addItem(translate("filebrowser", "Star this directory"), None, self._star)
             self.addSeparator()
         
-        # The normal "open" function
+        # The IEP related functions
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
+            if self._item.path().endswith('.py'):
+                self.addItem(translate("filebrowser", "Run as script"), 
+                    None, self._runAsScript)
+            else:
+                self.addItem(translate("filebrowser", "Import data..."),
+                    None, self._importData)
+            self.addSeparator()
         
         # Create items for open and copy path
         if isinstance(self._item, (FileItem, DirItem)):
@@ -809,18 +816,8 @@ class PopupMenu(iep.iepcore.menu.Menu):
             if True:
                 self.addItem(translate("filebrowser", "Copy path"), 
                     None, self._copyPath)
-                    
-        
             self.addSeparator()
-            
-        # Import data wizard
-        if isinstance(self._item, FileItem):
-            self.addItem(translate("filebrowser", "Import data..."),
-                    None, self._importData)
         
-            self.addSeparator()     
-            
-             
         # Create items for file management
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Rename"), None, self.onRename)
@@ -862,6 +859,19 @@ class PopupMenu(iep.iepcore.menu.Menu):
     def _copyPath(self):
         QtGui.qApp.clipboard().setText(self._item.path())
     
+    def _runAsScript(self):
+        filename = self._item.path()
+        shell = iep.shells.getCurrentShell()
+        if shell is not None:
+            shell.restart(filename)
+        else:
+            msg = "No shell to run code in. "
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle(translate("menu dialog", "Could not run"))
+            m.setText("Could not run " + filename + ":\n\n" + msg)
+            m.setIcon(m.Warning)
+            m.exec_()
+        
     def _importData(self):
         browser = self.parent().parent()
         wizard = browser.getImportWizard()
