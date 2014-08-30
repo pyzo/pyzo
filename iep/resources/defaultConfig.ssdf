@@ -88,6 +88,7 @@ shortcuts2 = dict:
     edit__indent = 'Tab,'
     edit__justify_commentdocstring = 'Ctrl+J,'
     edit__paste = 'Ctrl+V,Shift+Insert'
+    edit__paste_and_select = 'Ctrl+Shift+V'
     edit__redo = 'Ctrl+Y,'
     edit__select_all = 'Ctrl+A,'
     edit__uncomment = 'Ctrl+T,'

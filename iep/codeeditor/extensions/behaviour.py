@@ -207,3 +207,149 @@ class PythonAutoIndent(object):
                 cursor.insertText(indent)
                 #This prevents jump to start of line when up key is pressed
                 self.setTextCursor(cursor)
+
+class SmartCopyAndPaste(object):
+    """
+    Smart copy and paste allows copying and pasting blocks
+    
+    """
+    
+    
+    @staticmethod
+    def __setCursorPositionAndAnchor(cursor, position, anchor):
+        cursor.setPosition(anchor)
+        cursor.setPosition(position, cursor.KeepAnchor)
+        
+    @classmethod    
+    def __ensureCursorBeforeAnchor(cls, cursor):
+        """
+        Given a cursor, modify it such that the cursor.position() is before or
+        at cursor.anchor() and not the other way around.
+        
+        Returns: anchorBeforeCursor, i.e. whether originally the anchor was
+        before the cursor
+        """
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        # Remember whether the cursor is before or after the anchor
+        anchorBeforeCursor = cursor.anchor() < cursor.position()
+        
+        cls.__setCursorPositionAndAnchor(cursor, start, end)
+
+        # Return wheter originally the cursor was before the anchor
+        return anchorBeforeCursor
+        
+    def copy(self):
+        """
+        Smart copy: if selection is multi-line and in front of the start of the
+        selection there is only whitespace, extend the selection to include only
+        whitespace
+        """
+        cursor = self.textCursor()
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        
+        # For our convenience, ensure that position is at start and
+        # anchor is at the end, but remember whether originally the
+        # anchor was before the cursor or the other way around
+        anchorBeforeCursor = self.__ensureCursorBeforeAnchor(cursor)
+        
+        # Check if we have multi-line selection.
+        block = cursor.block()
+        # Use > not >= to ensure we don't count it as multi-line if the cursor
+        # is just at the beginning of the next block (consistent with 'CodeEditor.doForSelectedLines')
+        if end > (block.position() + block.length()):
+
+            # Now check if there is only whitespace before the start of selection
+            # If so, include this whitespace in the selection and update the 
+            # selection of the editor
+            textBeforeSelection = block.text()[:cursor.positionInBlock()]
+            if len(textBeforeSelection.strip()) == 0:
+                start = block.position() # Move start to include leading whitespace
+                
+                # Update the textcursor of our editor. If originally the
+                # anchor was before the cursor, restore that situation
+                if anchorBeforeCursor:
+                    self.__setCursorPositionAndAnchor(cursor, end, start)
+                else:
+                    self.__setCursorPositionAndAnchor(cursor, start, end)
+                    
+                self.setTextCursor(cursor)
+
+        
+        # Call our supers copy slot to do the actual copying
+        super().copy()
+        
+    def cut(self):
+        """
+        Cutting with smart-copy: the part that is copies is the same as self.copy(),
+        but the part that is removed is only the original selection
+        
+        see: Qt qtextcontrol.cpp, cut()
+        """
+        if (self.textInteractionFlags() & QtCore.Qt.TextEditable) and \
+                self.textCursor().hasSelection():
+            
+            cursor = self.textCursor()
+            self.copy()
+            # Restore original cursor
+            self.setTextCursor(cursor)
+            cursor.removeSelectedText()
+
+    
+    def paste(self):
+        """
+        Smart paste
+        If you paste on a position that has only whitespace in front of it,
+        remove the whitespace before pasting. Combined with smart copy,
+        this ensure indentation of the 
+        """
+        self._paste(keepSelection = False)
+    def pasteAndSelect(self):
+        """
+        Smart paste
+        Like paste(), but keep the part that was pasted selected. This allows
+        you to change the indentation after pasting using tab / shift-tab
+        """
+        self._paste(keepSelection = True)
+        
+    def _paste(self, keepSelection):
+        # Create a cursor of the current selection
+        cursor = self.textCursor()
+        
+        # Ensure that position is at start and anchor is at the end.
+        # This is required to ensure that with keepPositiobOnInsert
+        # set, the cursor will equal the pasted text after the pasting
+        self.__ensureCursorBeforeAnchor(cursor)
+        
+        # Change this cursor to let the position() stay at its place upon
+        # inserting the new code; the anchor will move to the end of the insertion
+        cursor.setKeepPositionOnInsert(True)
+        super().paste()
+        
+        block = cursor.block()
+        
+        # Check if the thing to be pasted is multi-line. Use > not >=
+        # to ensure we don't count it as multi-line if the cursor
+        # is just at the beginning of the next block (consistent with
+        # 'CodeEditor.doForSelectedLines')
+        if cursor.selectionEnd() > block.position() + block.length():
+        
+            # Now, check if in front of the current selection there is only whitespace
+            if len(block.text()[:cursor.positionInBlock()].strip())==0:
+                # Note that this 'smart pasting' will be a separate item on the
+                # undo stack. This is intentional: the user can undo the 'smart paste'
+                # without undoing the paste
+                cursor2 = QtGui.QTextCursor(cursor)
+                cursor2.setPosition(cursor2.position()) # put the anchor where the cursor is
+                
+                # Move cursor2 to beginning of the line (selecting the whitespace)
+                # and remove the selection
+                cursor2.movePosition(cursor2.StartOfBlock, cursor2.KeepAnchor)
+                cursor2.removeSelectedText()
+        
+        # Set the textcursor of this editor to the just-pasted selection
+        if keepSelection:
+            cursor.setKeepPositionOnInsert(False)
+            self.setTextCursor(cursor)
+
