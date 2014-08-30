@@ -31,14 +31,15 @@ from .extensions.behaviour import (     Indentation,
                                         NumpadPeriodKey,
                                         AutoIndent,
                                         PythonAutoIndent,
+                                        SmartCopyAndPaste
                                    )
 from .extensions.autocompletion import AutoCompletion
 from .extensions.calltip import Calltip
 
  
 # Order of superclasses: first the extensions, then CodeEditorBase
-# The first superclass is the first extension that gets to handle each key
-# 
+# The first superclass is the first extension that gets to handle each key and
+# the first to receive paint events.
 class CodeEditor(
     HighlightCurrentLine, 
     FullUnderlines,
@@ -64,7 +65,11 @@ class CodeEditor(
     
     SyntaxHighlighting,
     
-    CodeEditorBase):  #CodeEditorBase must be the last one in the list
+    SmartCopyAndPaste, # overrides cut(), copy(), paste()
+
+    CodeEditorBase, #CodeEditorBase must be the last one in the list
+    
+    ):  
     """
     CodeEditor with all the extensions
     """

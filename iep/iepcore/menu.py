@@ -618,6 +618,8 @@ class EditMenu(Menu):
             icons.page_white_copy, self._editItemCallback, "copy")
         self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
             icons.paste_plain, self._editItemCallback, "paste")
+        self.addItem(translate("menu", "Paste and select ::: Paste the text that is now on the clipboard and keep it selected in order to change its indentation."), 
+            icons.paste_plain, self._editItemCallback, "pasteAndSelect")
         self.addItem(translate("menu", "Select all ::: Select all text."), 
             icons.sum, self._editItemCallback, "selectAll")
         self.addSeparator()

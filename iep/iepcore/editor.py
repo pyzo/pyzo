@@ -712,9 +712,23 @@ class IepEditor(BaseTextCtrl):
         
     
 if __name__=="__main__":
+    # Do some stubbing to run this module as a unit separate from iep
+    # TODO: untangle iep from this module where possible
+    class DummyParser:
+        def parseThis(self, x):
+            pass
+    iep.parser = DummyParser()    
+    EditorContextMenu = QtGui.QMenu
     app = QtGui.QApplication([])
     win = IepEditor(None)
-    win.setStyle('.py')
+    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+C"), win).activated.connect(win.copy)
+    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+X"), win).activated.connect(win.cut)
+    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+V"), win).activated.connect(win.paste)
+    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Shift+V"), win).activated.connect(win.pasteAndSelect)
+    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Z"), win).activated.connect(win.undo)
+    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Y"), win).activated.connect(win.redo)
+    
+    
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
     win.setPlainText(tmp)    
