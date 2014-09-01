@@ -757,6 +757,10 @@ class ViewMenu(Menu):
         self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."), 
             None, "highlightCurrentLine")
         self.addSeparator()
+        self.addItem(translate("menu", "Previous cell ::: Go back to the previous cell."),
+            None, self._previousCell )
+        self.addItem(translate("menu", "Next cell ::: Advance to the next cell."),
+            None, self._nextCell )
         self.addMenu(self._edgeColumMenu, icons.text_padding_right)
         self.addMenu(FontMenu(self, translate("menu", "Font")), icons.style)
         self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
@@ -804,6 +808,80 @@ class ViewMenu(Menu):
         iep.config.view.qtstyle = value
         iep.main.setQtStyle(value)
 
+    def _previousCell(self):
+        """
+        Advance the curser to the next cell (starting with '##').
+        """
+        #TODO: ignore ## in multi-line strings
+        # Maybe using source-structure information?
+        #TODO: move cursor not just between '##' but more
+        # general source structures such as classes and functions
+        
+        # Get editor and shell
+        editor = iep.editors.getCurrentEditor()
+        if editor is None:
+            return
+        
+        # Get current cell
+        # Move up to a line starting with '##'
+        # or until the start of document
+        runCursor = editor.textCursor() #The part that should be run
+        runCursor.movePosition(runCursor.StartOfBlock)
+        while True:
+            if not runCursor.block().previous().isValid():
+                # Hit start of document stop moving
+                break
+            runCursor.movePosition(runCursor.PreviousBlock)
+            if runCursor.block().text().lstrip().startswith('##'):
+                break
+        
+        cursor = editor.textCursor()
+        cursor.setPosition(runCursor.position())
+        editor.setTextCursor(cursor)
+
+    def _nextCell(self):
+        """
+        Advance the curser to the next cell (starting with '##').
+        """
+        #TODO: ignore ## in multi-line strings
+        # Maybe using source-structure information?
+        #TODO: move cursor not just between '##' but more
+        # general source structures such as classes and functions
+        
+        # Get editor and shell
+        editor = iep.editors.getCurrentEditor()
+        if not editor:
+            return
+        
+        # Get current cell
+        # Move down to a line starting with '##'
+        # if there is one
+        runCursor = editor.textCursor() #The part that should be run
+        runCursor.movePosition(runCursor.StartOfBlock)
+        while True:
+            if not runCursor.block().next().isValid():
+                # Hit end of document forget about moving
+                return
+            runCursor.movePosition(runCursor.NextBlock)
+            if runCursor.block().text().lstrip().startswith('##'):
+                break
+        
+        realCursorPosition = runCursor.position()
+        
+        # find the next cell to make this cell visible
+        while True:
+            if not runCursor.block().next().isValid():
+                # Hit end of document
+                break
+            runCursor.movePosition(runCursor.NextBlock)
+            if runCursor.block().text().lstrip().startswith('##'):
+                break
+        
+        cursor = editor.textCursor()
+        cursor.setPosition(runCursor.position())
+        editor.setTextCursor(cursor)
+        cursor.setPosition(realCursorPosition)
+        editor.setTextCursor(cursor)
 
 class ShellMenu(Menu):
     
