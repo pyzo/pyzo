@@ -77,7 +77,6 @@ setup(
           'Operating System :: POSIX',
           'Programming Language :: Python :: 3',
           ],
-
-    entry_points = {'console_scripts': ['iep = ieplauncher',],
-                   },
+        
+    entry_points = {'console_scripts': ['iep = iep.__main__',], },
     )
