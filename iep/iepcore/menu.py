@@ -761,6 +761,10 @@ class ViewMenu(Menu):
             None, self._previousCell )
         self.addItem(translate("menu", "Next cell ::: Advance to the next cell."),
             None, self._nextCell )
+        self.addItem(translate("menu", "Previous object ::: Go back to the previous top-level structure."),
+            None, self._previousTopLevelObject )
+        self.addItem(translate("menu", "Next object ::: Advance to the next top-level structure."),
+            None, self._nextTopLevelObject )
         self.addMenu(self._edgeColumMenu, icons.text_padding_right)
         self.addMenu(FontMenu(self, translate("menu", "Font")), icons.style)
         self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
@@ -812,76 +816,112 @@ class ViewMenu(Menu):
         """
         Advance the curser to the next cell (starting with '##').
         """
-        #TODO: ignore ## in multi-line strings
-        # Maybe using source-structure information?
-        #TODO: move cursor not just between '##' but more
-        # general source structures such as classes and functions
-        
-        # Get editor and shell
-        editor = iep.editors.getCurrentEditor()
-        if editor is None:
-            return
-        
-        # Get current cell
-        # Move up to a line starting with '##'
-        # or until the start of document
-        runCursor = editor.textCursor() #The part that should be run
-        runCursor.movePosition(runCursor.StartOfBlock)
-        while True:
-            if not runCursor.block().previous().isValid():
-                # Hit start of document stop moving
-                break
-            runCursor.movePosition(runCursor.PreviousBlock)
-            if runCursor.block().text().lstrip().startswith('##'):
-                break
-        
-        cursor = editor.textCursor()
-        cursor.setPosition(runCursor.position())
-        editor.setTextCursor(cursor)
+        self._previousTopLevelObject(type='cell')
 
     def _nextCell(self):
         """
         Advance the curser to the next cell (starting with '##').
         """
-        #TODO: ignore ## in multi-line strings
-        # Maybe using source-structure information?
-        #TODO: move cursor not just between '##' but more
-        # general source structures such as classes and functions
+        self._nextTopLevelObject(type='cell')
+
+    def _previousTopLevelObject(self, type=None):
+        # Get praser result
+        result = iep.parser._getResult()
+        if not result:
+            return
         
         # Get editor and shell
         editor = iep.editors.getCurrentEditor()
         if not editor:
             return
         
-        # Get current cell
-        # Move down to a line starting with '##'
+        # Get current line number and the structure
+        ln = editor.textCursor().blockNumber()
+        ln += 1  # is ln as in line number area
+        
+        # Get current top-level object
         # if there is one
         runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
-        while True:
-            if not runCursor.block().next().isValid():
-                # Hit end of document forget about moving
+        
+        # Find the object which starts above current curser
+        # position if any and move there
+        for object in reversed(result.rootItem.children):
+            # If type given, only consider objects of that type
+            if type and type!=object.type:
+                continue
+            if ln and object.linenr < ln:
+                startLineNr = object.linenr
+        
+                # Rewind cursor until the start of this obj.
+                while True:
+                    if not runCursor.block().previous().isValid():
+                        return
+                    runCursor.movePosition(runCursor.PreviousBlock)
+                    if runCursor.blockNumber() == startLineNr-1:
+                        break
+                
+                cursor = editor.textCursor()
+                cursor.setPosition(runCursor.position())
+                editor.setTextCursor(cursor)
                 return
-            runCursor.movePosition(runCursor.NextBlock)
-            if runCursor.block().text().lstrip().startswith('##'):
-                break
+
+
+    def _nextTopLevelObject(self, type=None):
+        # Get praser result
+        result = iep.parser._getResult()
+        if not result:
+            return
         
-        realCursorPosition = runCursor.position()
+        # Get editor and shell
+        editor = iep.editors.getCurrentEditor()
+        if not editor:
+            return
         
-        # find the next cell to make this cell visible
-        while True:
-            if not runCursor.block().next().isValid():
-                # Hit end of document
-                break
-            runCursor.movePosition(runCursor.NextBlock)
-            if runCursor.block().text().lstrip().startswith('##'):
-                break
+        # Get current line number and the structure
+        ln = editor.textCursor().blockNumber()
+        ln += 1  # is ln as in line number area
         
-        cursor = editor.textCursor()
-        cursor.setPosition(runCursor.position())
-        editor.setTextCursor(cursor)
-        cursor.setPosition(realCursorPosition)
-        editor.setTextCursor(cursor)
+        # Get current top-level object
+        # if there is one
+        runCursor = editor.textCursor() #The part that should be run
+        runCursor.movePosition(runCursor.StartOfBlock)
+        
+        # Find the object which starts below current curser
+        # position if any and move there
+        for object in result.rootItem.children:
+            # If type given, only consider objects of that type
+            if type and type!=object.type:
+                continue
+            if ln and object.linenr > ln:
+                startLineNr = object.linenr
+                endLineNr = object.linenr2
+                
+                # Advance cursor until the start of this obj.
+                while True:
+                    if not runCursor.block().next().isValid():
+                        return
+                    runCursor.movePosition(runCursor.NextBlock)
+                    if runCursor.blockNumber() == startLineNr-1:
+                        break
+                
+                realCursorPosition = runCursor.position()
+                
+                # Advance cursor until the end of this obj (to make sure it is visible)
+                while True:
+                    if not runCursor.block().next().isValid():
+                        break
+                    runCursor.movePosition(runCursor.NextBlock)
+                    if runCursor.blockNumber() == endLineNr-1:
+                        break
+                
+                cursor = editor.textCursor()
+                cursor.setPosition(runCursor.position())
+                editor.setTextCursor(cursor)
+                cursor.setPosition(realCursorPosition)
+                editor.setTextCursor(cursor)
+                return
+
 
 class ShellMenu(Menu):
     
