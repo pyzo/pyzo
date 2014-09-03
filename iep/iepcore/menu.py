@@ -814,7 +814,7 @@ class ViewMenu(Menu):
 
     def _previousCell(self):
         """
-        Advance the curser to the next cell (starting with '##').
+        Rewind the curser to the previous cell (starting with '##').
         """
         self._previousTopLevelObject(type='cell')
 
@@ -825,27 +825,25 @@ class ViewMenu(Menu):
         self._nextTopLevelObject(type='cell')
 
     def _previousTopLevelObject(self, type=None):
-        # Get praser result
+        # Get parser result
         result = iep.parser._getResult()
         if not result:
             return
         
-        # Get editor and shell
+        # Get editor
         editor = iep.editors.getCurrentEditor()
         if not editor:
             return
         
-        # Get current line number and the structure
+        # Get current line number
         ln = editor.textCursor().blockNumber()
         ln += 1  # is ln as in line number area
         
-        # Get current top-level object
-        # if there is one
         runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         
         # Find the object which starts above current curser
-        # position if any and move there
+        # position if there is any and move there
         for object in reversed(result.rootItem.children):
             # If type given, only consider objects of that type
             if type and type!=object.type:
@@ -853,7 +851,7 @@ class ViewMenu(Menu):
             if ln and object.linenr < ln:
                 startLineNr = object.linenr
         
-                # Rewind cursor until the start of this obj.
+                # Rewind cursor until the start of this object
                 while True:
                     if not runCursor.block().previous().isValid():
                         return
@@ -868,27 +866,25 @@ class ViewMenu(Menu):
 
 
     def _nextTopLevelObject(self, type=None):
-        # Get praser result
+        # Get parser result
         result = iep.parser._getResult()
         if not result:
             return
         
-        # Get editor and shell
+        # Get editor
         editor = iep.editors.getCurrentEditor()
         if not editor:
             return
         
-        # Get current line number and the structure
+        # Get current line number
         ln = editor.textCursor().blockNumber()
         ln += 1  # is ln as in line number area
         
-        # Get current top-level object
-        # if there is one
         runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         
         # Find the object which starts below current curser
-        # position if any and move there
+        # position if there is any and move there
         for object in result.rootItem.children:
             # If type given, only consider objects of that type
             if type and type!=object.type:
@@ -897,7 +893,7 @@ class ViewMenu(Menu):
                 startLineNr = object.linenr
                 endLineNr = object.linenr2
                 
-                # Advance cursor until the start of this obj.
+                # Advance cursor until the start of this object
                 while True:
                     if not runCursor.block().next().isValid():
                         return
@@ -907,7 +903,8 @@ class ViewMenu(Menu):
                 
                 realCursorPosition = runCursor.position()
                 
-                # Advance cursor until the end of this obj (to make sure it is visible)
+                # Advance cursor until the end of this object (to know
+                # how far it extends and make sure it is most visible)
                 while True:
                     if not runCursor.block().next().isValid():
                         break
