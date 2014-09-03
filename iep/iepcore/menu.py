@@ -765,6 +765,7 @@ class ViewMenu(Menu):
             None, self._previousTopLevelObject )
         self.addItem(translate("menu", "Next object ::: Advance to the next top-level structure."),
             None, self._nextTopLevelObject )
+        self.addSeparator()
         self.addMenu(self._edgeColumMenu, icons.text_padding_right)
         self.addMenu(FontMenu(self, translate("menu", "Font")), icons.style)
         self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
