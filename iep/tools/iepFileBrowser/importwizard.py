@@ -112,7 +112,7 @@ class SelectFilePage(QtGui.QWizardPage):
         else:
             try:
                 with open(filename,'rb') as file:
-                    maxsize = 151
+                    maxsize = 5000
                     data = file.read(maxsize)
                     more = bool(file.read(1)) # See if there is more data available
                     
@@ -398,6 +398,9 @@ class ResultPage(QtGui.QWizardPage):
         self.rbPerColumn = QtGui.QRadioButton(translate('importwizard', 'Import data into one variable per column'))
         self.rbAsArray.setChecked(True)
 
+        self.chkInvalidRaise = QtGui.QCheckBox(translate('importwizard', 'Raise error upon invalid data'))
+        self.chkInvalidRaise.setChecked(True)
+
         self.codeView = CodeView()
         self.codeView.setParser('python')
         self.codeView.setZoom(iep.config.view.zoom)
@@ -409,6 +412,7 @@ class ResultPage(QtGui.QWizardPage):
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.rbAsArray)
         layout.addWidget(self.rbPerColumn)
+        layout.addWidget(self.chkInvalidRaise)
         
         layout.addWidget(QtGui.QLabel('Resulting import code:'))
         layout.addWidget(self.codeView)
@@ -416,11 +420,13 @@ class ResultPage(QtGui.QWizardPage):
         layout.addWidget(self.btnInsert)  
         self.setLayout(layout)   
         
+        self.registerField('invalid_raise', self.chkInvalidRaise)
         
         self.btnExecute.clicked.connect(self.onBtnExecuteClicked)
         self.btnInsert.clicked.connect(self.onBtnInsertClicked)
         self.rbAsArray.clicked.connect(self.updateCode)
         self.rbPerColumn.clicked.connect(self.updateCode)
+        self.chkInvalidRaise.stateChanged.connect(lambda state: self.updateCode())
         
         
     def initializePage(self):
@@ -428,7 +434,7 @@ class ResultPage(QtGui.QWizardPage):
         
     def updateCode(self):
         perColumn = self.rbPerColumn.isChecked()
-        
+
         if perColumn:
             columnNames = self.wizard().field('columnnames')
             usecols = self.wizard().field('usecols')
@@ -450,6 +456,7 @@ class ResultPage(QtGui.QWizardPage):
             ('comments', '#'),
             ('delimiter', None),
             ('usecols', None),
+            ('invalid_raise', True),
             ):
                 value = self.wizard().field(param)
                 if value != default:
