@@ -23,6 +23,12 @@ from iep.iepcore.iepLogging import print
 from iep.iepcore.menu import ShellTabContextMenu, ShellButtonMenu
 from iep.iepcore.icons import ShellIconMaker
 
+# Load the history viewer tool if available
+try:
+    from iep.tools.iepHistoryViewer import PythonHistory
+except ImportError:
+    PythonHistory = None
+
 
 def shellTitle(shell, moreinfo=False):
     """ Given a shell instance, build the text title to represent it.
@@ -115,6 +121,11 @@ class ShellStackWidget(QtGui.QWidget):
         # make callbacks
         self._stack.currentChanged.connect(self.onCurrentChanged)
     
+        # Make shared history (shared among shells)
+        if PythonHistory is None:
+            self.sharedHistory = None
+        else:
+            self.sharedHistory = PythonHistory('shellhistory.py')
     
     def __iter__(self):
         i = 0
@@ -129,7 +140,7 @@ class ShellStackWidget(QtGui.QWidget):
         Add a shell to the widget. """
         
         # Create shell and add to stack
-        shell = PythonShell(self, shellInfo)
+        shell = PythonShell(self, shellInfo, self.sharedHistory)
         index = self._stack.addWidget(shell)
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
