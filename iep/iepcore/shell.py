@@ -224,10 +224,13 @@ class ShellHighlighter(Highlighter):
 
 class BaseShell(BaseTextCtrl):
     """ The BaseShell implements functionality to make a generic shell.
+    
+    sharedHistory: an object providing the append() method, which will be called
+    when the user enters a command, or None to disable this functionality
     """
 
     
-    def __init__(self, parent,**kwds):
+    def __init__(self, parent, sharedHistory = None, **kwds):
         super().__init__(parent, wrap=True, showLineNumbers=False, 
             showBreakPoints=False, highlightCurrentLine=False, parser='python', 
             **kwds)
@@ -266,6 +269,9 @@ class BaseShell(BaseTextCtrl):
         self._history = []
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
+        
+        # link to the shared history
+        self._sharedHistory = sharedHistory
         
         # Set minimum width so 80 lines do fit in smallest font size
         self.setMinimumWidth(200)
@@ -573,12 +579,40 @@ class BaseShell(BaseTextCtrl):
         return BaseTextCtrl.paste(self)
 
     def dragEnterEvent(self, event):
-        """No dropping allowed"""
-        pass
+        """
+        We only support copying of the text
+        """
+        if event.mimeData().hasText():
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
         
-    def dropEvent(self,event):
-        """No dropping allowed"""
-        pass
+    def dragMoveEvent(self, event):
+        self.dragEnterEvent(event)
+    
+    def dropEvent(self, event):
+        """
+        The shell supports only a single line but the text may contain multiple
+        lines. We insert at the editLine only the first non-empty line of the text
+        """
+        if event.mimeData().hasText():
+            text = event.mimeData().text()
+            insertText = ''
+            for line in text.splitlines():
+                if line.strip():
+                    insertText = line
+                    break
+            
+            # Move the cursor to the position indicated by the drop location, but
+            # ensure it is at the edit line
+            self.setTextCursor(self.cursorForPosition(event.pos()))
+            self.ensureCursorAtEditLine()
+            
+            # Now insert the text
+            cursor = self.textCursor()
+            cursor.insertText(insertText)
+            self.setFocus()
+        
+
     
     
     ## Basic commands to control the shell
@@ -890,11 +924,16 @@ class BaseShell(BaseTextCtrl):
             command = cursor.selectedText().replace('\u2029', '\n') .rstrip('\n')
             cursor.removeSelectedText()
             
-            # Remember the command (but first remove to prevent duplicates)
             if command:
+                # Remember the command in this shells' history
+                # (but first remove to prevent duplicates)
                 if command in self._history:
                     self._history.remove(command)
                 self._history.insert(0,command)
+                
+                # Add the command to the global history
+                if self._sharedHistory is not None:
+                    self._sharedHistory.append(command)
         
         if execute:
             command = command.replace('\r\n', '\n')
@@ -923,8 +962,8 @@ class PythonShell(BaseShell):
     debugStateChanged = QtCore.Signal(BaseShell)
     
     
-    def __init__(self, parent, info):
-        BaseShell.__init__(self, parent)
+    def __init__(self, parent, info, sharedHistory = None):
+        BaseShell.__init__(self, parent, sharedHistory)
         
         # Get standard info if not given.
         if info is None and iep.config.shellConfigs2:
@@ -1503,5 +1542,9 @@ class PythonShell(BaseShell):
         cursor.movePosition(cursor.End, A_MOVE)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
-  
+
+
+if __name__ == '__main__':
+    b = BaseShell(None)
+    b.show()
     

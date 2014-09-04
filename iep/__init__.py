@@ -49,6 +49,7 @@ __version__ = '3.5dev'
 
 import os
 import sys
+import locale
 
 # Check Python version
 if sys.version < '3':
@@ -225,6 +226,10 @@ def startIep():
     from iep.iepcore import iepLogging # to start logging asap
     from iep.iepcore.main import MainWindow
     
+    # Apply users' preferences w.r.t. date representation etc
+    # this is required for e.g. strftime("%c")
+    locale.setlocale(locale.LC_ALL, "")
+    
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
     
@@ -232,10 +237,10 @@ def startIep():
     QtGui.qApp = MyApp([])  # QtGui.QApplication([])
     
     # Choose language, get locale
-    locale = setLanguage(config.settings.language)
+    appLocale = setLanguage(config.settings.language)
     
     # Create main window, using the selected locale
-    frame = MainWindow(None, locale)
+    frame = MainWindow(None, appLocale)
     
     # Enter the main loop
     QtGui.qApp.exec_()
