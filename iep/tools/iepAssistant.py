@@ -50,6 +50,7 @@ class IepAssistant(QtGui.QWidget):
         self._content = self._engine.contentWidget()
         self._index = self._engine.indexWidget()
         self._helpBrowser = HelpBrowser(self._engine)
+        self._searchEngine = self._engine.searchEngine()
 
         tab = QtGui.QTabWidget()
         tab.addTab(self._index, "Index")
@@ -65,10 +66,34 @@ class IepAssistant(QtGui.QWidget):
         # Connect clicks:
         self._content.linkActivated.connect(self._helpBrowser.setSource)
         self._index.linkActivated.connect(self._helpBrowser.setSource)
+        self._searchEngine.searchingFinished.connect(self.onSearchFinish)
+        self._searchEngine.indexingStarted.connect(self.onIndexingStarted)
+        self._searchEngine.indexingFinished.connect(self.onIndexingFinished)
 
+        # Always re-index on startup:
+        self._searchEngine.reindexDocumentation()
+
+    def onIndexingStarted(self):
+        print('Indexing begun')
+
+    def onIndexingFinished(self):
+        print('Indexing done')
+
+    def onSearchFinish(self, hits):
+        if hits == 0:
+            return
+        hits = self._searchEngine.hits(0, hits)
+        # Pick first hit, this can be improved..
+        self._helpBrowser.setSource(QtCore.QUrl(hits[0][0]))
+
+    def showHelpForTerm(self, name):
+        # Create a query:
+        query = QtHelp.QHelpSearchQuery(QtHelp.QHelpSearchQuery.DEFAULT, [name])
+        self._searchEngine.search([query])
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
     view = IepAssistant()
+    view.showHelpForTerm('numpy.linspace')
     view.show()
     app.exec()
