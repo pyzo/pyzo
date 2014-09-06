@@ -7,16 +7,10 @@
 """
 Tool that can view qt help files via the qthelp engine.
 
-Steps to create qhc (qt help collection) files:
+Run make_docs.sh from:
+https://bitbucket.org/windel/qthelpdocs
 
-1. Generate qt help files of the project of interest with sphinx:
-    $ sphinx-build -b qthelp . build/qthelp
-2. compress this help:
-    $ qhelpgenerator Python.qhp -o Python.qch
-3. Create a qhcp (qt help collection project)
-    $ vim collection.qhcp
-4. Compile qhcp into qhc (qt help collection)
-    $ qhelpcollectiongenerator collection.qhcp -o collection.qhc
+Copy the "docs" directory to the iep root!
 
 """
 
@@ -47,18 +41,28 @@ class IepAssistant(QtGui.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         # TODO: parameterize path:
-        self._engine = QtHelp.QHelpEngine("all.qhc")
-        self._content = self._engine.contentWidget()
-        self._index = self._engine.indexWidget()
-
-        layout = QtGui.QHBoxLayout(self)
-        layout.addWidget(self._index)
-        layout.addWidget(self._content)
+        self._engine = QtHelp.QHelpEngine("docs/docs.qhc")
 
         # Important, call setup data to load the files:
         self._engine.setupData()
+
+        # The main players:
+        self._content = self._engine.contentWidget()
+        self._index = self._engine.indexWidget()
         self._helpBrowser = HelpBrowser(self._engine)
-        layout.addWidget(self._helpBrowser)
+
+        tab = QtGui.QTabWidget()
+        tab.addTab(self._index, "Index")
+        tab.addTab(self._content, "Contents")
+
+        splitter = QtGui.QSplitter(self)
+        splitter.addWidget(tab)
+        splitter.addWidget(self._helpBrowser)
+
+        layout = QtGui.QHBoxLayout(self)
+        layout.addWidget(splitter)
+
+        # Connect clicks:
         self._content.linkActivated.connect(self._helpBrowser.setSource)
         self._index.linkActivated.connect(self._helpBrowser.setSource)
 
