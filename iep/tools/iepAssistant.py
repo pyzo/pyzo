@@ -15,10 +15,51 @@ Copy the "docs" directory to the iep root!
 """
 
 from pyzolib.qt import QtCore, QtGui, QtHelp
+from iep import getResourceDirs
+import os
 
 
 tool_name = "Assistant"
 tool_summary = "Browse qt help documents"
+
+
+class Settings(QtGui.QWidget):
+    def __init__(self, engine):
+        super().__init__()
+        self._engine = engine
+        layout = QtGui.QVBoxLayout(self)
+        add_button = QtGui.QPushButton("Add")
+        del_button = QtGui.QPushButton("Delete")
+        self._view = QtGui.QListView()
+        layout.addWidget(self._view)
+        layout2 = QtGui.QHBoxLayout()
+        layout2.addWidget(add_button)
+        layout2.addWidget(del_button)
+        layout.addLayout(layout2)
+        self._model = QtGui.QStringListModel()
+        self._view.setModel(self._model)
+
+        self._model.setStringList(self._engine.registeredDocumentations())
+
+        add_button.clicked.connect(self.add_doc)
+        del_button.clicked.connect(self.del_doc)
+
+    def add_doc(self):
+        doc_file = QtGui.QFileDialog.getOpenFileName(self,
+                "Select a compressed help file",
+                filter="Qt compressed help files (*.qch)")
+        ok = self._engine.registerDocumentation(doc_file)
+        if ok:
+            self._model.setStringList(self._engine.registeredDocumentations())
+        else:
+            QtGui.QMessageBox.critical(self, "Error", "Error loading doc")
+
+    def del_doc(self):
+        idx = self._view.currentIndex()
+        if idx.isValid():
+            doc_file = self._model.data(idx, QtCore.Qt.DisplayRole)
+            self._engine.unregisterDocumentation(doc_file)
+            self._model.setStringList(self._engine.registeredDocumentations())
 
 
 class HelpBrowser(QtGui.QTextBrowser):
@@ -40,8 +81,10 @@ class IepAssistant(QtGui.QWidget):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        # TODO: parameterize path:
-        self._engine = QtHelp.QHelpEngine("docs/docs.qhc")
+        # Collection file is stored in iep data dir:
+        _, appDataDir = getResourceDirs()
+        collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
+        self._engine = QtHelp.QHelpEngine(collection_filename)
 
         # Important, call setup data to load the files:
         self._engine.setupData()
@@ -49,19 +92,33 @@ class IepAssistant(QtGui.QWidget):
         # The main players:
         self._content = self._engine.contentWidget()
         self._index = self._engine.indexWidget()
+        self._indexTab = QtGui.QWidget()
+        il = QtGui.QVBoxLayout(self._indexTab)
+        filter_text = QtGui.QLineEdit()
+        il.addWidget(filter_text)
+        il.addWidget(self._index)
         self._helpBrowser = HelpBrowser(self._engine)
         self._searchEngine = self._engine.searchEngine()
+        self._settings = Settings(self._engine)
+        self._progress = QtGui.QWidget()
+        pl = QtGui.QHBoxLayout(self._progress)
+        bar = QtGui.QProgressBar()
+        bar.setMaximum(0)
+        pl.addWidget(QtGui.QLabel('Indexing'))
+        pl.addWidget(bar)
 
         tab = QtGui.QTabWidget()
-        tab.addTab(self._index, "Index")
         tab.addTab(self._content, "Contents")
+        tab.addTab(self._indexTab, "Index")
+        tab.addTab(self._settings, "Settings")
 
         splitter = QtGui.QSplitter(self)
         splitter.addWidget(tab)
         splitter.addWidget(self._helpBrowser)
 
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtGui.QVBoxLayout(self)
         layout.addWidget(splitter)
+        layout.addWidget(self._progress)
 
         # Connect clicks:
         self._content.linkActivated.connect(self._helpBrowser.setSource)
@@ -69,15 +126,16 @@ class IepAssistant(QtGui.QWidget):
         self._searchEngine.searchingFinished.connect(self.onSearchFinish)
         self._searchEngine.indexingStarted.connect(self.onIndexingStarted)
         self._searchEngine.indexingFinished.connect(self.onIndexingFinished)
+        filter_text.textChanged.connect(self._index.filterIndices)
 
         # Always re-index on startup:
         self._searchEngine.reindexDocumentation()
 
     def onIndexingStarted(self):
-        print('Indexing begun')
+        self._progress.show()
 
     def onIndexingFinished(self):
-        print('Indexing done')
+        self._progress.hide()
 
     def onSearchFinish(self, hits):
         if hits == 0:
