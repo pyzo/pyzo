@@ -97,9 +97,11 @@ class IepAssistant(QtGui.QWidget):
         filter_text = QtGui.QLineEdit()
         il.addWidget(filter_text)
         il.addWidget(self._index)
+
         self._helpBrowser = HelpBrowser(self._engine)
         self._searchEngine = self._engine.searchEngine()
         self._settings = Settings(self._engine)
+
         self._progress = QtGui.QWidget()
         pl = QtGui.QHBoxLayout(self._progress)
         bar = QtGui.QProgressBar()
@@ -107,9 +109,17 @@ class IepAssistant(QtGui.QWidget):
         pl.addWidget(QtGui.QLabel('Indexing'))
         pl.addWidget(bar)
 
+        self._searchResultWidget = self._searchEngine.resultWidget()
+        self._searchQueryWidget = self._searchEngine.queryWidget()
+        self._searchTab = QtGui.QWidget()
+        search_layout = QtGui.QVBoxLayout(self._searchTab)
+        search_layout.addWidget(self._searchQueryWidget)
+        search_layout.addWidget(self._searchResultWidget)
+
         tab = QtGui.QTabWidget()
         tab.addTab(self._content, "Contents")
         tab.addTab(self._indexTab, "Index")
+        tab.addTab(self._searchTab, "Search")
         tab.addTab(self._settings, "Settings")
 
         splitter = QtGui.QSplitter(self)
@@ -127,9 +137,17 @@ class IepAssistant(QtGui.QWidget):
         self._searchEngine.indexingStarted.connect(self.onIndexingStarted)
         self._searchEngine.indexingFinished.connect(self.onIndexingFinished)
         filter_text.textChanged.connect(self._index.filterIndices)
+        self._searchResultWidget.requestShowLink.connect(self._helpBrowser.setSource)
+        self._searchQueryWidget.search.connect(self.goSearch)
 
         # Always re-index on startup:
         self._searchEngine.reindexDocumentation()
+
+        self._search_term = None
+
+    def goSearch(self):
+        query = self._searchQueryWidget.query()
+        self._searchEngine.search(query)
 
     def onIndexingStarted(self):
         self._progress.show()
@@ -141,13 +159,29 @@ class IepAssistant(QtGui.QWidget):
         if hits == 0:
             return
         hits = self._searchEngine.hits(0, hits)
-        # Pick first hit, this can be improved..
-        self._helpBrowser.setSource(QtCore.QUrl(hits[0][0]))
+        if not hits:
+            return
+        if self._search_term is not None:
+            for url2, page_title in hits:
+                if page_title == self._search_term:
+                    url = url2
+                    break
+            else:
+                # Not matching page title, just go for the first hit:
+                url, _ = hits[0]
+        else:
+            # Pick first hit:
+            url, _ = hits[0]
+        self._helpBrowser.setSource(QtCore.QUrl(url))
 
     def showHelpForTerm(self, name):
+        # Cache for later use:
+        self._search_term = name
+
         # Create a query:
         query = QtHelp.QHelpSearchQuery(QtHelp.QHelpSearchQuery.DEFAULT, [name])
         self._searchEngine.search([query])
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
