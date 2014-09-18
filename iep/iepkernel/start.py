@@ -80,6 +80,10 @@ sys.stdin = yoton.FileWrapper( ct._ctrl_command, echo=ct._strm_echo )
 sys.stdout = yoton.FileWrapper( ct._strm_out, 256 )
 sys.stderr = yoton.FileWrapper( ct._strm_err, 256 )
 
+# Set fileno on both
+sys.stdout.fileno = sys.__stdout__.fileno
+sys.stderr.fileno = sys.__stderr__.fileno
+
 
 ## Set Excepthook
 
