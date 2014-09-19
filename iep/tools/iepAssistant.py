@@ -31,6 +31,7 @@ class Settings(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         add_button = QtGui.QPushButton("Add")
         del_button = QtGui.QPushButton("Delete")
+        add_button.setObjectName('assistant_add_doc_button')
         self._view = QtGui.QListView()
         layout.addWidget(self._view)
         layout2 = QtGui.QHBoxLayout()
@@ -46,9 +47,13 @@ class Settings(QtGui.QWidget):
         del_button.clicked.connect(self.del_doc)
 
     def add_doc(self):
-        doc_file = QtGui.QFileDialog.getOpenFileName(self,
-                "Select a compressed help file",
-                filter="Qt compressed help files (*.qch)")
+        doc_file = QtGui.QFileDialog.getOpenFileName(
+            self,
+            "Select a compressed help file",
+            filter="Qt compressed help files (*.qch)")
+        self.add_doc_do(doc_file)
+
+    def add_doc_do(self, doc_file):
         ok = self._engine.registerDocumentation(doc_file)
         if ok:
             self._model.setStringList(self._engine.registeredDocumentations())
@@ -59,8 +64,11 @@ class Settings(QtGui.QWidget):
         idx = self._view.currentIndex()
         if idx.isValid():
             doc_file = self._model.data(idx, QtCore.Qt.DisplayRole)
-            self._engine.unregisterDocumentation(doc_file)
-            self._model.setStringList(self._engine.registeredDocumentations())
+            self.del_doc_do(doc_file)
+
+    def del_doc_do(self, doc_file):
+        self._engine.unregisterDocumentation(doc_file)
+        self._model.setStringList(self._engine.registeredDocumentations())
 
 
 class HelpBrowser(QtGui.QTextBrowser):
@@ -80,11 +88,17 @@ class IepAssistant(QtGui.QWidget):
     """
         Show help contents and browse qt help files.
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, collection_filename=None):
+        """
+            Initializes an assistance instance.
+            When collection_file is none, it is determined from the
+            appDataDir.
+        """
         super().__init__(parent)
-        # Collection file is stored in iep data dir:
-        _, appDataDir = getResourceDirs()
-        collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
+        if collection_filename is None:
+            # Collection file is stored in iep data dir:
+            _, appDataDir = getResourceDirs()
+            collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
         self._engine = QtHelp.QHelpEngine(collection_filename)
 
         # Important, call setup data to load the files:
