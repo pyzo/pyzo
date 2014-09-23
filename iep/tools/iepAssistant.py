@@ -51,6 +51,8 @@ class Settings(QtGui.QWidget):
             self,
             "Select a compressed help file",
             filter="Qt compressed help files (*.qch)")
+        if isinstance(doc_file, tuple):
+            doc = doc[0]
         self.add_doc_do(doc_file)
 
     def add_doc_do(self, doc_file):
