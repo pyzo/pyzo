@@ -164,7 +164,7 @@ class IepAssistant(QtGui.QWidget):
         self._search_term = None
 
         # Show initial page:
-        self.showHelpForTerm('serial')
+        self.showHelpForTerm('welcome to iep')
 
     def goSearch(self):
         query = self._searchQueryWidget.query()

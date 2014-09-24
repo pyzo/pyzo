@@ -97,6 +97,7 @@ shortcuts2 = dict:
     file__new = 'Ctrl+N,'
     file__open = 'Ctrl+O,'
     file__save = 'Ctrl+S,'
+    help__documentation = 'F1,'
     run__run_file_as_script = 'Ctrl+Shift+E,Ctrl+F5'
     run__run_main_file_as_script = 'Ctrl+Shift+M,Ctrl+F6'
     run__execute_selection = 'Alt+Return,F9'
