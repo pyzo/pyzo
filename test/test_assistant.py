@@ -13,7 +13,7 @@
 
 import os
 
-from iep.tools.iepAssistant import IepAssistant
+from iep.iepcore.assistant import IepAssistant
 
 
 my_dir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
