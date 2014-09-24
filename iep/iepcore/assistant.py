@@ -97,6 +97,7 @@ class IepAssistant(QtGui.QWidget):
             appDataDir.
         """
         super().__init__(parent)
+        self.setWindowTitle('Help')
         if collection_filename is None:
             # Collection file is stored in iep data dir:
             _, appDataDir = getResourceDirs()
@@ -162,6 +163,9 @@ class IepAssistant(QtGui.QWidget):
 
         self._search_term = None
 
+        # Show initial page:
+        self.showHelpForTerm('serial')
+
     def goSearch(self):
         query = self._searchQueryWidget.query()
         self._searchEngine.search(query)
@@ -203,6 +207,5 @@ class IepAssistant(QtGui.QWidget):
 if __name__ == '__main__':
     app = QtGui.QApplication([])
     view = IepAssistant()
-    view.showHelpForTerm('numpy.linspace')
     view.show()
     app.exec()
