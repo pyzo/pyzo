@@ -31,7 +31,6 @@ class Settings(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         add_button = QtGui.QPushButton("Add")
         del_button = QtGui.QPushButton("Delete")
-        add_button.setObjectName('assistant_add_doc_button')
         self._view = QtGui.QListView()
         layout.addWidget(self._view)
         layout2 = QtGui.QHBoxLayout()
@@ -98,14 +97,19 @@ class IepAssistant(QtGui.QWidget):
         """
         super().__init__(parent)
         self.setWindowTitle('Help')
+        iepDir, appDataDir = getResourceDirs()
         if collection_filename is None:
             # Collection file is stored in iep data dir:
-            _, appDataDir = getResourceDirs()
             collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
         self._engine = QtHelp.QHelpEngine(collection_filename)
 
         # Important, call setup data to load the files:
         self._engine.setupData()
+
+        # If no files are loaded, register at least the iep docs:
+        if len(self._engine.registeredDocumentations()) == 0:
+            doc_file = os.path.join(iepDir, 'resources', 'iep.qch')
+            ok = self._engine.registerDocumentation(doc_file)
 
         # The main players:
         self._content = self._engine.contentWidget()
@@ -176,23 +180,41 @@ class IepAssistant(QtGui.QWidget):
     def onIndexingFinished(self):
         self._progress.hide()
 
+    def find_best_page(self, hits):
+        if self._search_term is None:
+            url, _ = hits[0]
+            return url
+
+        try:
+            # Try to find max with fuzzy wuzzy:
+            from fuzzywuzzy import fuzz
+            url, title = max(hits, key=lambda hit: fuzz.ratio(hit[1], self._search_term))
+            return url
+        except ImportError:
+            pass
+
+        # Find exact page title:
+        for url2, page_title in hits:
+            if page_title == self._search_term:
+                url = url2
+                return url
+
+        for url2, page_title in hits:
+            if self._search_term in page_title:
+                url = url2
+                return url
+
+        # Pick first hit:
+        url, _ = hits[0]
+        return url
+
     def onSearchFinish(self, hits):
         if hits == 0:
             return
         hits = self._searchEngine.hits(0, hits)
         if not hits:
             return
-        if self._search_term is not None:
-            for url2, page_title in hits:
-                if page_title == self._search_term:
-                    url = url2
-                    break
-            else:
-                # Not matching page title, just go for the first hit:
-                url, _ = hits[0]
-        else:
-            # Pick first hit:
-            url, _ = hits[0]
+        url = self.find_best_page(hits)
         self._helpBrowser.setSource(QtCore.QUrl(url))
 
     def showHelpForTerm(self, name):
