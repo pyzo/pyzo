@@ -1625,21 +1625,8 @@ class HelpMenu(Menu):
     
     
     def _showPyzoDocs(self):
-        # Get filename of doc collection
-        dirname = os.path.join(sys.prefix, 'share', 'pyzodocs')
-        print('Show docs!')
+        # Show widget with docs:
         self._iepHelp.show()
-
-        # dirname = os.path.join('/home/almar/projects/pyzo_latest', 'share', 'pyzodocs')
-        # fname = os.path.join(dirname, 'py.qhc')
-        
-        # Get exename of assistant
-        # dirname = os.path.join(sys.prefix, 'bin', )
-        #dirname = os.path.join('/home/almar/projects/pyzo_latest', 'bin')
-        # exename = os.path.join(dirname, 'assistant')
-        
-        # import subprocess
-        # iep._assistant = subprocess.Popen([exename , '-collectionFile', fname])
 
 
 class SettingsMenu(Menu):
