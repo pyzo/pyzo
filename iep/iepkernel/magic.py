@@ -455,7 +455,7 @@ class Magician:
             return
         
         # Tweak the args
-        if args[0] == 'uninstall':
+        if args and args[0] == 'uninstall':
             args.insert(1, '--yes')
         
         # Go!
