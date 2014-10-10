@@ -60,6 +60,8 @@ class FileWrapper(object):
                 sys.__stdin__.close()
             elif self is sys.stdout:
                 sys.__stdout__.close()
+            elif self is sys.stderr:
+                sys.__stderr__.close()
             return
         # Normal behavior
         self._channel.close()
