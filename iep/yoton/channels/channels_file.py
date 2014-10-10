@@ -12,13 +12,14 @@ a file like interface.
 """
 
 import sys
+import os
 from yoton.misc import basestring, bytes, str, long
 from yoton.channels import PubChannel, SubChannel
 
 PY2 = sys.version_info[0] == 2
 
 
-class FileWrapper:
+class FileWrapper(object):
     """ FileWrapper(channel, chunksize=0, echo=None)
     
     Class that wraps a PubChannel or SubChannel instance to provide
@@ -48,7 +49,20 @@ class FileWrapper:
         self._channel = channel
         self._chunksize = int(chunksize)
         self._echo = echo
+        self._pid = os.getpid()  # To detect whether we are in multi-process
     
+    def close(self):
+        """ Close the file object.
+        """
+        # Deal with multiprocessing
+        if self._pid != os.getpid():
+            if self is sys.stdin:
+                sys.__stdin__.close()
+            elif self is sys.stdout:
+                sys.__stdout__.close()
+            return
+        # Normal behavior
+        self._channel.close()
     
     @property
     def encoding(self):
@@ -112,6 +126,18 @@ class FileWrapper:
         the chunksize.
         
         """
+        # Deal with multiprocessing
+        if self._pid != os.getpid():
+            realfile = None
+            if self is sys.stdout:
+                realfile = sys.__stdout__
+            elif self is sys.stderr:
+                realfile = sys.__stderr__
+            if realfile is not None:
+                sys.__stderr__.write(message)
+                sys.__stderr__.flush()
+            return
+        
         chunkSize = self._chunksize
         if chunkSize > 0:
             for i in range(0, len(message), chunkSize):
