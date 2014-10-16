@@ -76,7 +76,7 @@ class App_base:
                 # result in a TypeError.
                 # I tried to find the source, but did not find it. If anyone
                 # has an idea, please e-mail me!
-                if self.guiName == 'WX':
+                if '_wx' in self.__class__.__name__.lower():
                     self._keyboard_interrupt()
     
     def quit(self):
