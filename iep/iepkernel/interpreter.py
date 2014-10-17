@@ -532,6 +532,10 @@ class IepInterpreter:
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
             self.runfile(tmp)
         
+        # Flush real stdout / stderr
+        sys.__stdout__.flush()
+        sys.__stderr__.flush()
+        
         # Set status and prompt?
         # Prompt is allowed to be an object with __str__ method
         if self.newPrompt:
