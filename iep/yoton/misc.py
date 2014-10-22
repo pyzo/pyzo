@@ -24,7 +24,10 @@ from collections import deque
 # Version dependent defs
 V2 = sys.version_info[0] == 2
 if V2:
-    D = __builtins__
+    if sys.platform.startswith('java'):
+        import __builtin__ as D  # Jython
+    else:
+        D = __builtins__
     if not isinstance(D, dict):
         D = D.__dict__
     bytes = D['str']
