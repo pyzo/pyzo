@@ -161,7 +161,11 @@ class IepInterpreter:
         self.sleeptime = 0.01 # 100 Hz
         
         # Create compiler
-        self._compile = CommandCompiler()
+        if sys.platform.startswith('java'):
+            import compiler
+            self._compile = compiler.compile  # or 'exec' does not work
+        else:
+            self._compile = CommandCompiler()
         
         # Instantiate magician and tracer
         self.magician = Magician()
@@ -242,7 +246,10 @@ class IepInterpreter:
         self.startup_info = startup_info = self.context._stat_startup.recv().copy()
         
         # Set startup info (with additional info)
-        builtins = __builtins__
+        if sys.platform.startswith('java'):
+            import __builtin__ as builtins  # Jython
+        else:
+            builtins = __builtins__
         if not isinstance(builtins, dict):
             builtins = builtins.__dict__
         startup_info['builtins'] = [builtin for builtin in builtins.keys()]
@@ -257,11 +264,14 @@ class IepInterpreter:
         self._run_startup_code(startup_info)
         
         # Write Python banner (to stdout)
-        NBITS = 8 * struct.calcsize("P")
-        plat = sys.platform
-        if plat.startswith('win'):
-            plat = 'Windows'
-        plat = '%s (%i bits)' % (plat, NBITS) 
+        if sys.platform.startswith('java'):
+            plat = sys.platform  # Jython cannot do struct.calcsize("P")
+        elif sys.platform.startswith('win'):
+            NBITS = 8 * struct.calcsize("P")
+            plat = 'Windows (%i bits)' % NBITS
+        else:
+            NBITS = 8 * struct.calcsize("P")
+            plat = '%s (%i bits)' % (sys.platform, NBITS) 
         printDirect("Python %s on %s.\n" %
             (sys.version.split('[')[0].rstrip(), plat))
         
@@ -540,10 +550,7 @@ class IepInterpreter:
         # Prompt is allowed to be an object with __str__ method
         if self.newPrompt:
             self.newPrompt = False
-            if self.more:
-                ps = sys.ps2 
-            else: 
-                ps = sys.ps1
+            ps = sys.ps2 if self.more else sys.ps1
             self.context._strm_prompt.send(str(ps))
         
         if True:

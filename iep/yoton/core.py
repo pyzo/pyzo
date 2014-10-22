@@ -9,7 +9,13 @@ import sys
 import struct
 import socket
 import threading
-import select  # to determine wheter a socket can receive data
+import sys
+#import select  # to determine wheter a socket can receive data
+
+if sys.platform.startswith('java'):  # Jython
+    from select import cpython_compatible_select as select, error as SelectErr
+else:
+    from select import select, error as SelectErr
 
 import yoton
 from yoton.misc import basestring, bytes, str
@@ -59,9 +65,9 @@ def can_send(s, timeout=0.0):
     """
     while True:
         try:
-            can_recv, can_send, tmp = select.select([], [s], [], timeout)
+            can_recv, can_send, tmp = select([], [s], [], timeout)
             break
-        except select.error:
+        except SelectErr:
             # Skip errors caused by interruptions.
             type, value, tb = sys.exc_info()
             del tb
@@ -79,9 +85,9 @@ def can_recv(s, timeout=0.0):
     """
     while True:
         try:
-            can_recv, can_send, tmp = select.select([s], [], [], timeout)
+            can_recv, can_send, tmp = select([s], [], [], timeout)
             break
-        except select.error:
+        except SelectErr:
             # Skip errors caused by interruptions.
             type, value, tb = sys.exc_info()
             del tb
@@ -178,7 +184,8 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
             
             # Check time
             if time.time() > maxtime:
-                return (bytes().join(parts[1:])).decode('utf-8','ignore')
+                bb  = bytes().join(parts[1:])
+                return bb.decode('utf-8', 'ignore')
     
     # Combine parts (discared first (dummy) part)
     bb = bytes().join(parts[1:])
