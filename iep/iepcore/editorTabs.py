@@ -1046,7 +1046,8 @@ class EditorTabs(QtGui.QWidget):
         """ Create a new (unsaved) file. """
         
         # create editor
-        editor = createEditor(self, None)       
+        editor = createEditor(self, None)
+        editor.document().setModified(False)  # Start out as OK
         # add to list
         item = FileItem(editor)
         self._tabs.addItem(item)
