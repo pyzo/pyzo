@@ -212,7 +212,7 @@ class MainWindow(QtGui.QMainWindow):
             if os.path.isfile(path):
                 pass
             elif name == path:
-                path = 'no location on disk'
+                path = 'unsaved'
             else:
                 pass  # We hope the given path is informative
             # Set title
