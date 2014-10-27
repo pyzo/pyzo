@@ -240,7 +240,7 @@ class Magician:
                 except Exception:
                     N = 1
             if expression[0] not in '\'\"':
-                if not expression.isidentifier():
+                if not (expression.isalnum() and expression[0].isalpha()):
                     expression = "'%s'" % expression
             # Compile expression
             line2 = 'import timeit; t=timeit.Timer(%s);' % expression
