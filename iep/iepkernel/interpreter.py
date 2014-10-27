@@ -264,16 +264,23 @@ class IepInterpreter:
         self._run_startup_code(startup_info)
         
         # Write Python banner (to stdout)
+        thename = 'Python'
+        if '__pypy__' in sys.builtin_module_names:
+            thename = 'Pypy'
         if sys.platform.startswith('java'):
-            plat = sys.platform  # Jython cannot do struct.calcsize("P")
+            thename = 'Jython'
+            # Jython cannot do struct.calcsize("P")
+            import java.lang
+            real_plat = java.lang.System.getProperty("os.name").lower()
+            plat = '%s/%s' % (sys.platform, real_plat)
         elif sys.platform.startswith('win'):
             NBITS = 8 * struct.calcsize("P")
             plat = 'Windows (%i bits)' % NBITS
         else:
             NBITS = 8 * struct.calcsize("P")
             plat = '%s (%i bits)' % (sys.platform, NBITS) 
-        printDirect("Python %s on %s.\n" %
-            (sys.version.split('[')[0].rstrip(), plat))
+        printDirect("%s %s on %s.\n" %
+                    (thename, sys.version.split('[')[0].rstrip(), plat))
         
         # Integrate GUI
         guiName, guiError = self._integrate_gui(startup_info)
