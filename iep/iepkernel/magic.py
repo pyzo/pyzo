@@ -12,6 +12,7 @@ commands, in the sense that they print something etc.
 
 import sys
 import os
+import re
 import time
 
 # Set Python version and get some names
@@ -240,7 +241,8 @@ class Magician:
                 except Exception:
                     N = 1
             if expression[0] not in '\'\"':
-                if not (expression.isalnum() and expression[0].isalpha()):
+                isidentifier = lambda x: bool(re.match(r'[a-z_]\w*$', x, re.I))
+                if not isidentifier(expression):
                     expression = "'%s'" % expression
             # Compile expression
             line2 = 'import timeit; t=timeit.Timer(%s);' % expression
