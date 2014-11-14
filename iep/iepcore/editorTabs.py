@@ -685,7 +685,7 @@ class FileTabWidget(CompactTabWidget):
         """
         
         if isinstance(item, int):
-            self.setCurrentIndex(i)
+            self.setCurrentIndex(item)
             
         elif isinstance(item, FileItem):
             
@@ -711,12 +711,12 @@ class FileTabWidget(CompactTabWidget):
         """ Select the previously selected item. """
         
         # make an old item history
-        if len(self._itemHistory)>1:
+        if len(self._itemHistory)>1 and self._itemHistory[1] is not None:
             item = self._itemHistory[1]
             self.setCurrentItem(item)
         
         # just select first one then ...
-        elif item is None and self.count():
+        elif self.count():
             item = 0
             self.setCurrentItem(item)
     
