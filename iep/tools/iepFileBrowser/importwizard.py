@@ -21,7 +21,6 @@ ResultPage:
 
 """
 
-from PySide import QtGui, QtCore
 import os
 import itertools
 import iep.codeeditor
