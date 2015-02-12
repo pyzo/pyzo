@@ -1068,7 +1068,7 @@ class EditorTabs(QtGui.QWidget):
             startdir = os.path.split(editor._filename)[0]
         else:
             startdir = self._lastpath            
-        if not os.path.isdir(startdir):
+        if (not startdir) or (not os.path.isdir(startdir)):
             startdir = ''
         
         # show dialog
