@@ -14,6 +14,8 @@ import sys
 import os
 import re
 import time
+import inspect
+
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
@@ -299,6 +301,7 @@ class Magician:
         # Get what to open            
         name = line.split(' ',1)[1].strip()
         fname = ''
+        linenr = None
         
         # Is it a file name?
         tmp = os.path.join(os.getcwd(), name)
@@ -320,28 +323,29 @@ class Magician:
                 print('There is no object known as "%s"' % name)
                 return ''
             
-            # Get its file name
-            fname is None
-            if hasattr(ob, '__file__'):
-                fname = ob.__file__
-            elif hasattr(ob, '__module__'):
-                tmp = sys.modules[ob.__module__]
-                if hasattr(tmp, '__file__'):
-                    fname = tmp.__file__
+            # Try get filename
+            try:
+                fname = inspect.getsourcefile(ob)
+            except Exception:
+                pass
+            # Returned fname may simply be x.replace('.pyc', '.py')
+            if not os.path.isfile(fname):
+                fname = ''
             
-            # Make .py from .pyc
-            if fname and fname.endswith('.pyc') or fname.endswith('.pyo'):
-                fname2 = fname
-                fname = fname[:-1]
-                if not os.path.isfile(fname):
-                    print('Could not find source file for "%s".' % fname2)
-                    return ''
+            # Try get line number
+            if fname:
+                try:
+                    lines, linenr = inspect.getsourcelines(ob)
+                except Exception:
+                    pass
         
         # Almost done
-        # todo: shell also supports "open LINENR FILENAME"
         # IPython's edit now support this via our hook in interpreter.py
         if not fname:
             print('Could not determine file name for object "%s".' % name)
+        elif linenr is not None:
+            action = 'open %i %s' % (linenr, os.path.abspath(fname))
+            sys._iepInterpreter.context._strm_action.send(action)
         else:
             action = 'open %s' % os.path.abspath(fname)
             sys._iepInterpreter.context._strm_action.send(action)
