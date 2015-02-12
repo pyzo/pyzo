@@ -152,6 +152,8 @@ class WorkspaceTree(QtGui.QTreeWidget):
     def __init__(self, parent):
         QtGui.QTreeWidget.__init__(self, parent)
         
+        self._config = parent._config
+        
         # Set header stuff
         self.setHeaderHidden(False)
         self.setColumnCount(3)
@@ -257,6 +259,9 @@ class WorkspaceTree(QtGui.QTreeWidget):
             # Pop the 'kind' element
             kind = parts.pop(2)
             
+            if kind in self._config.hideTypes:
+                continue
+            
             # Create item
             item = QtGui.QTreeWidgetItem(parts, 0)
             self.addTopLevelItem(item)
@@ -278,6 +283,14 @@ class IepWorkspace(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
+        # Make sure there is a configuration entry for this tool
+        # The IEP tool manager makes sure that there is an entry in
+        # config.tools before the tool is instantiated.
+        toolId = self.__class__.__name__.lower()        
+        self._config = iep.config.tools[toolId]
+        if not hasattr(self._config, 'hideTypes'):
+            self._config.hideTypes = []
+        
         # Create tool button
         self._up = QtGui.QToolButton(self)
         style = QtGui.qApp.style()
@@ -290,6 +303,17 @@ class IepWorkspace(QtGui.QWidget):
         self._line.setStyleSheet("QLineEdit { background:#ddd; }")
         self._line.setFocusPolicy(QtCore.Qt.NoFocus)
         
+        # Create options menu
+        self._options = QtGui.QToolButton(self)
+        self._options.setIcon(iep.icons.filter)
+        self._options.setIconSize(QtCore.QSize(16,16))
+        self._options.setPopupMode(self._options.InstantPopup)
+        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        #
+        self._options._menu = QtGui.QMenu()
+        self._options.setMenu(self._options._menu)
+        self.onOptionsPress()  # create menu now
+        
         # Create tree
         self._tree = WorkspaceTree(self)
         
@@ -297,6 +321,7 @@ class IepWorkspace(QtGui.QWidget):
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self._up, 0)
         layout.addWidget(self._line, 1)
+        layout.addWidget(self._options, 0)
         #
         mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.addLayout(layout, 0)
@@ -305,5 +330,39 @@ class IepWorkspace(QtGui.QWidget):
         mainLayout.setContentsMargins(4,4,4,4)
         self.setLayout(mainLayout)
         
-        # Bind up event
+        # Bind events
         self._up.pressed.connect(self._tree._proxy.goUp)
+        self._options.pressed.connect(self.onOptionsPress)
+        self._options._menu.triggered.connect(self.onOptionMenuTiggered)
+    
+    
+    def onOptionsPress(self):
+        """ Create the menu for the button, Do each time to make sure
+        the checks are right. """
+        
+        # Get menu
+        menu = self._options._menu
+        menu.clear()
+        
+        for type in ['type', 'function', 'module']:
+            checked = type in self._config.hideTypes
+            action = menu.addAction('Hide %s'%type)
+            action.setCheckable(True)
+            action.setChecked(checked)
+    
+    
+    def onOptionMenuTiggered(self, action):
+        """  The user decides what to hide in the workspace. """
+        
+        # What to show
+        type = action.text().split(' ',1)[1]
+        
+        # Swap
+        if type in self._config.hideTypes:
+            while type in self._config.hideTypes:
+                self._config.hideTypes.remove(type)
+        else:
+            self._config.hideTypes.append(type)
+        
+        # Update
+        self._tree.fillWorkspace()
