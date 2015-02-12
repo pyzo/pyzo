@@ -580,16 +580,28 @@ class IepEditor(BaseTextCtrl):
         cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
         
         cursor.removeSelectedText()
-        
-        
+    
+    
     def commentCode(self):
         """
         Comment the lines that are currently selected
         """
-        self.doForSelectedBlocks(
-            lambda cursor: cursor.insertText('# ') )
-     
+        indents = []
+        
+        def getIndent(cursor):
+            text = cursor.block().text().rstrip()
+            if text:
+                indents.append(len(text) - len(text.lstrip()))
+        
+        def commentBlock(cursor):
+            cursor.setPosition(cursor.block().position() + minindent)
+            cursor.insertText('# ')
+        
+        self.doForSelectedBlocks(getIndent)
+        minindent = min(indents) if indents else 0 
+        self.doForSelectedBlocks(commentBlock)
     
+
     def uncommentCode(self):
         """
         Uncomment the lines that are currently selected
@@ -617,7 +629,7 @@ class IepEditor(BaseTextCtrl):
         #Apply this function to all blocks
         self.doForSelectedBlocks(uncommentBlock)
 
-    def gotoDef(self):
+   #   def gotoDef(self):
         """
         Goto the definition for the word under the cursor
         """

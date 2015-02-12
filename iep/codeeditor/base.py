@@ -688,23 +688,24 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
     
         #Use beginEditBlock / endEditBlock to make this one undo/redo operation
         editCursor.beginEditBlock()
-            
-        editCursor.setPosition(screenCursor.selectionStart())
-        editCursor.movePosition(editCursor.StartOfBlock)
-        # < :if selection end is at beginning of the block, don't include that
-        #one, except when the selectionStart is same as selectionEnd
-        while editCursor.position()<screenCursor.selectionEnd() or \
-                editCursor.position()<=screenCursor.selectionStart(): 
-            #Create a copy of the editCursor and call the user-supplied function
-            editCursorCopy = QtGui.QTextCursor(editCursor)
-            function(editCursorCopy)
-            
-            #Move to the next block
-            if not editCursor.block().next().isValid():
-                break #We reached the end of the document
-            editCursor.movePosition(editCursor.NextBlock)
-            
-        editCursor.endEditBlock()
+        
+        try:
+            editCursor.setPosition(screenCursor.selectionStart())
+            editCursor.movePosition(editCursor.StartOfBlock)
+            # < :if selection end is at beginning of the block, don't include that
+            #one, except when the selectionStart is same as selectionEnd
+            while editCursor.position()<screenCursor.selectionEnd() or \
+                    editCursor.position()<=screenCursor.selectionStart(): 
+                #Create a copy of the editCursor and call the user-supplied function
+                editCursorCopy = QtGui.QTextCursor(editCursor)
+                function(editCursorCopy)
+                
+                #Move to the next block
+                if not editCursor.block().next().isValid():
+                    break #We reached the end of the document
+                editCursor.movePosition(editCursor.NextBlock)
+        finally:
+            editCursor.endEditBlock()
     
     def doForVisibleBlocks(self, function):
         """ doForVisibleBlocks(function)
