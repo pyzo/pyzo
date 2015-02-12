@@ -50,6 +50,7 @@ class FileWrapper(object):
         self._chunksize = int(chunksize)
         self._echo = echo
         self._pid = os.getpid()  # To detect whether we are in multi-process
+        self.errors = 'strict'  # compat
     
     def close(self):
         """ Close the file object.
