@@ -148,6 +148,7 @@ class ShellStackWidget(QtGui.QWidget):
         # Select it and focus on it (invokes onCurrentChanged)
         self._stack.setCurrentWidget(shell)
         shell.setFocus()
+        return shell
     
     
     def removeShell(self, shell):
