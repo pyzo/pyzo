@@ -181,6 +181,53 @@ class App_fltk2(App_base):
 
 
 
+class App_tornado(App_base):
+    """ Hijack Tornado event loop.
+    
+    Tornado does have a function to process events, but it does not
+    work when the event loop is already running. Therefore we don't
+    enter the real Tornado event loop, but just poll it regularly.
+    """
+    
+    def __init__(self):
+        # Try importing
+        import tornado.ioloop
+        
+        # Get the "app" instance
+        self.app = tornado.ioloop.IOLoop.instance()
+        
+        # Replace mainloop with a dummy
+        def dummy_start():
+            printDirect(mainloopWarning)
+        #
+        self.app._original_start = self.app.start
+        self.app._dummy_start = dummy_start
+        self.app.start = self.app._dummy_start
+        
+        # Notify that we integrated the event loop
+        self.app._in_event_loop = 'IEP'
+    
+    def process_events(self):
+        # run_sync() needs start and stop to work
+        self.app.start = self.app._original_start
+        try:
+            self.app.run_sync(lambda x=None: None)
+        finally:
+            self.app.start = self.app._dummy_start
+    
+    # def run(self, repl_callback, sleeptime=None):
+    #     from tornado.ioloop import PeriodicCallback
+    #     # Create timer 
+    #     self._timer = PeriodicCallback(repl_callback, 0.05*1000)
+    #     self._timer.start()
+    #     # Enter mainloop
+    #     self.app._original_start()
+    # 
+    # def quit(self):
+    #     self.app.stop()
+
+
+
 class App_qt(App_base):
     """ Common functionality for pyqt and pyside
     """
