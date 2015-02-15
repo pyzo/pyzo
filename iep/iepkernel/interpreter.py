@@ -441,6 +441,8 @@ class IepInterpreter:
                 self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':
                 self.guiApp = guiintegration.App_wx()
+            elif guiName == 'TORNADO':
+                self.guiApp = guiintegration.App_tornado()
             elif guiName == 'PYSIDE':
                 self.guiApp = guiintegration.App_pyside()
             elif guiName in ['PYQT4', 'QT4']:
