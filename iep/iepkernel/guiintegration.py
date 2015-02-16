@@ -199,21 +199,25 @@ class App_tornado(App_base):
         # Replace mainloop with a dummy
         def dummy_start():
             printDirect(mainloopWarning)
+        def run_sync(func, timeout=None):
+            self.app.start = self.app._original_start
+            try:
+                self.app._original_run_sync(func, timeout)
+            finally:
+                self.app.start = self.app._dummy_start
         #
         self.app._original_start = self.app.start
         self.app._dummy_start = dummy_start
         self.app.start = self.app._dummy_start
+        #
+        self.app._original_run_sync = self.app.run_sync
+        self.app.run_sync = run_sync
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'IEP'
     
     def process_events(self):
-        # run_sync() needs start and stop to work
-        self.app.start = self.app._original_start
-        try:
-            self.app.run_sync(lambda x=None: None)
-        finally:
-            self.app.start = self.app._dummy_start
+       self.app.run_sync(lambda x=None: None)
     
     # def run(self, repl_callback, sleeptime=None):
     #     from tornado.ioloop import PeriodicCallback
