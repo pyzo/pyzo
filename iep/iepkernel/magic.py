@@ -324,13 +324,23 @@ class Magician:
                 return ''
             
             # Try get filename
-            try:
-                fname = inspect.getsourcefile(ob)
-            except Exception:
-                pass
-            # Returned fname may simply be x.replace('.pyc', '.py')
-            if not os.path.isfile(fname):
+            for iter in range(3):
+                # Try successive steps
+                if iter == 0:
+                    ob = ob
+                elif iter == 1 and not isinstance(ob, type):
+                    ob = ob.__class__
+                elif iter == 2 and hasattr(ob, '__module__'):
+                    ob = sys.modules[ob.__module__]
+                # Try get fname
                 fname = ''
+                try:
+                    fname = inspect.getsourcefile(ob)
+                except Exception:
+                    pass
+                # Returned fname may simply be x.replace('.pyc', '.py')
+                if os.path.isfile(fname):
+                    break
             
             # Try get line number
             if fname:
