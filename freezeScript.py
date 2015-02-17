@@ -44,7 +44,7 @@ if sys.platform=='darwin':
     appDir=distDir
     distDir=contentsDir+'MacOS/'
     applicationBundle=True
-    createDmg=False  # for dev
+    createDmg=True  # for dev
 else:
     applicationBundle=False
 
@@ -241,6 +241,7 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
     file.write(SETTINGS_TEXT.encode('utf-8'))
 
 
+
 ## Post processing
 
 
@@ -289,6 +290,14 @@ if sys.platform.startswith('linux'):
        pass
 
 
+# Remove imageforma dir. These libs hook into the original
+# Qt libs, giving rise to these nasty mixed binaries errors.
+# This happened on OSX, but Linux may also be affected
+imformatsdir = os.path.join(distDir, 'imageformats')
+if os.path.isdir(imformatsdir):
+    shutil.rmtree(imformatsdir)
+
+
 # todo: this is now in cx_Freeze right?
 if applicationBundle:
     #Change the absolute paths in all library files to relative paths
@@ -310,7 +319,7 @@ if applicationBundle:
             shutil.move(distDir+fname, filename)
     
     shippedfiles=os.listdir(distDir)
-
+    
     for file in shippedfiles:
         #Do the processing for any found file or dir, the tools will just
         #fail for files for which it does not apply
