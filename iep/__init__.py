@@ -228,7 +228,15 @@ def startIep():
     
     # Apply users' preferences w.r.t. date representation etc
     # this is required for e.g. strftime("%c")
-    locale.setlocale(locale.LC_ALL, "")
+    # Just using '' does not seem to work on OSX. Thus
+    # this odd loop.
+    #locale.setlocale(locale.LC_ALL, "")
+    for x in ('', 'C', 'en_US', 'en_US.utf8', 'en_US.UTF-8'):
+        try:
+            locale.setlocale(locale.LC_ALL, x)
+            break
+        except locale.Error:
+            pass
     
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
