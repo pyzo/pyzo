@@ -9,6 +9,11 @@ Rob Reilink
 Ludo Visser
 Gijs van Oort
 David Salter
+Scott Logan
+Laurent Signac
+Jan Müller
+Jason Sexauer
+Julien Enselme
 
 
 ### Translators
