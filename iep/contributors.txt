@@ -14,7 +14,7 @@ Laurent Signac
 Jan Müller
 Jason Sexauer
 Julien Enselme
-
+Ghislain Vaillant (Debian building)
 
 ### Translators
 
