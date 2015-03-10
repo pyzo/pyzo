@@ -364,7 +364,7 @@ class KernelBroker:
             # See IEP issue #240
             try:
                 subprocess.check_output('cmd /c "cd"', shell=True)
-            except IOError:
+            except (IOError, subprocess.SubprocessError):
                 pass  # Do not use cmd
             else:
                 command = 'cmd /c "{}"'.format(command)
