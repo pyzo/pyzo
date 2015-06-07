@@ -20,6 +20,32 @@ from iep import getResourceDirs
 import os
 
 
+help_help = """
+<h1>Documentation</h1>
+<p>
+Welcome to the IEP assistant. IEP uses the Qt Help system for documentation.
+This is also used by the Qt Assistant. You can use this viewer
+to view documentation provided by other projects.
+</p>
+
+<h2>Add documentation</h2>
+<p>
+To add documentation to IEP, go to the settings tab and select add. Then
+select a Qt Compressed Help file (*.qch). qch-files can be found in the Qt
+installation directory (for example in /usr/share/doc/qt under linux). For
+other projects you can download pre-build qch files from here:
+<a href="https://github.com/windelbouwman/qthelpdocs/releases">https://github.com/windelbouwman/qthelpdocs/releases</a>.
+
+</p>
+
+<p>
+<strong>Note</strong>
+When a documentation file is added, it is not copied into the iep settings
+dir, so you have to leave this file in place.
+</p>
+
+"""
+
 tool_name = "Assistant"
 tool_summary = "Browse qt help documents"
 
@@ -77,6 +103,7 @@ class HelpBrowser(QtGui.QTextBrowser):
     def __init__(self, engine):
         super().__init__()
         self._engine = engine
+        self.setOpenExternalLinks(True)
 
     def loadResource(self, typ, url):
         if url.scheme() == "qthelp":
@@ -168,7 +195,8 @@ class IepAssistant(QtGui.QWidget):
         self._search_term = None
 
         # Show initial page:
-        self.showHelpForTerm('welcome to iep')
+        # self.showHelpForTerm('welcome to iep')
+        self._helpBrowser.setHtml(help_help)
 
     def goSearch(self):
         query = self._searchQueryWidget.query()
