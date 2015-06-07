@@ -103,7 +103,7 @@ class HelpBrowser(QtGui.QTextBrowser):
     def __init__(self, engine):
         super().__init__()
         self._engine = engine
-        self.setOpenExternalLinks(True)
+        # self.setOpenExternalLinks(True)
 
     def loadResource(self, typ, url):
         if url.scheme() == "qthelp":
