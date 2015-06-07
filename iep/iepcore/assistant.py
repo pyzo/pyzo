@@ -103,7 +103,17 @@ class HelpBrowser(QtGui.QTextBrowser):
     def __init__(self, engine):
         super().__init__()
         self._engine = engine
-        # self.setOpenExternalLinks(True)
+
+        # Override default navigation behavior:
+        self.anchorClicked.connect(self.handle_url)
+        self.setOpenLinks(False)
+
+    def handle_url(self, url):
+        """ Open external urls not in this viewer """
+        if url.scheme() in ['http', 'https']:
+            QtGui.QDesktopServices.openUrl(url)
+        else:
+            self.setSource(url)
 
     def loadResource(self, typ, url):
         if url.scheme() == "qthelp":
