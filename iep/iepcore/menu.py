@@ -1310,6 +1310,7 @@ class RunMenu(Menu):
         shell = iep.shells.getCurrentShell()
         if shell is None:
             msg += "No shell to run code in. "
+            #shell = iep.shells.addShell()  # issue #335, does not work, somehow
         # Get editor
         if mainEditor:
             editor = iep.editors.getMainEditor()

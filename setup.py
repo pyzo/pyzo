@@ -5,6 +5,7 @@
 
 
 import os
+import sys
 
 try:
     from setuptools import setup
@@ -80,3 +81,20 @@ setup(
         
     entry_points = {'console_scripts': ['iep = iep.__main__',], },
     )
+
+
+# Install appdata.xml on Linux if we are installing in the system Python
+if sys.platform.startswith('linux') and sys.prefix.startswith('/usr'):
+    if len(sys.argv) >= 2 and sys.argv[1] == 'install':
+        fname = 'iep.appdata.xml'
+        filename1 = os.path.join(os.path.dirname(__file__), fname)
+        filename2 = os.path.join('/usr/share/appdata', fname)
+        try:
+            bb = open(filename1, 'rb').read()
+            open(filename2, 'wb').write(bb)
+        except PermissionError:
+            pass  # No sudo, no need to warn
+        except Exception as err:
+            print('Could not install %s: %s' % (fname, str(err)))
+        else:
+            print('Installed %s' % fname)

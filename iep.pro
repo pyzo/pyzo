@@ -21,3 +21,4 @@ TRANSLATIONS += iep/resources/translations/iep_fr_FR.tr
 TRANSLATIONS += iep/resources/translations/iep_sk_SK.tr
 TRANSLATIONS += iep/resources/translations/iep_ru_RU.tr
 TRANSLATIONS += iep/resources/translations/iep_pt_PT.tr
+TRANSLATIONS += iep/resources/translations/iep_pt_BR.tr

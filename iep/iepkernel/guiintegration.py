@@ -76,7 +76,7 @@ class App_base:
                 # result in a TypeError.
                 # I tried to find the source, but did not find it. If anyone
                 # has an idea, please e-mail me!
-                if self.guiName == 'WX':
+                if '_wx' in self.__class__.__name__.lower():
                     self._keyboard_interrupt()
     
     def quit(self):
@@ -178,6 +178,57 @@ class App_fltk2(App_base):
     def process_events(self):
         # is this right?
         self.app.wait(0) 
+
+
+
+class App_tornado(App_base):
+    """ Hijack Tornado event loop.
+    
+    Tornado does have a function to process events, but it does not
+    work when the event loop is already running. Therefore we don't
+    enter the real Tornado event loop, but just poll it regularly.
+    """
+    
+    def __init__(self):
+        # Try importing
+        import tornado.ioloop
+        
+        # Get the "app" instance
+        self.app = tornado.ioloop.IOLoop.instance()
+        
+        # Replace mainloop with a dummy
+        def dummy_start():
+            printDirect(mainloopWarning)
+        def run_sync(func, timeout=None):
+            self.app.start = self.app._original_start
+            try:
+                self.app._original_run_sync(func, timeout)
+            finally:
+                self.app.start = self.app._dummy_start
+        #
+        self.app._original_start = self.app.start
+        self.app._dummy_start = dummy_start
+        self.app.start = self.app._dummy_start
+        #
+        self.app._original_run_sync = self.app.run_sync
+        self.app.run_sync = run_sync
+        
+        # Notify that we integrated the event loop
+        self.app._in_event_loop = 'IEP'
+    
+    def process_events(self):
+       self.app.run_sync(lambda x=None: None)
+    
+    # def run(self, repl_callback, sleeptime=None):
+    #     from tornado.ioloop import PeriodicCallback
+    #     # Create timer 
+    #     self._timer = PeriodicCallback(repl_callback, 0.05*1000)
+    #     self._timer.start()
+    #     # Enter mainloop
+    #     self.app._original_start()
+    # 
+    # def quit(self):
+    #     self.app.stop()
 
 
 

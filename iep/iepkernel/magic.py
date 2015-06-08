@@ -12,7 +12,10 @@ commands, in the sense that they print something etc.
 
 import sys
 import os
+import re
 import time
+import inspect
+
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
@@ -240,7 +243,8 @@ class Magician:
                 except Exception:
                     N = 1
             if expression[0] not in '\'\"':
-                if not expression.isidentifier():
+                isidentifier = lambda x: bool(re.match(r'[a-z_]\w*$', x, re.I))
+                if not isidentifier(expression):
                     expression = "'%s'" % expression
             # Compile expression
             line2 = 'import timeit; t=timeit.Timer(%s);' % expression
@@ -297,6 +301,7 @@ class Magician:
         # Get what to open            
         name = line.split(' ',1)[1].strip()
         fname = ''
+        linenr = None
         
         # Is it a file name?
         tmp = os.path.join(os.getcwd(), name)
@@ -318,28 +323,39 @@ class Magician:
                 print('There is no object known as "%s"' % name)
                 return ''
             
-            # Get its file name
-            fname is None
-            if hasattr(ob, '__file__'):
-                fname = ob.__file__
-            elif hasattr(ob, '__module__'):
-                tmp = sys.modules[ob.__module__]
-                if hasattr(tmp, '__file__'):
-                    fname = tmp.__file__
+            # Try get filename
+            for iter in range(3):
+                # Try successive steps
+                if iter == 0:
+                    ob = ob
+                elif iter == 1 and not isinstance(ob, type):
+                    ob = ob.__class__
+                elif iter == 2 and hasattr(ob, '__module__'):
+                    ob = sys.modules[ob.__module__]
+                # Try get fname
+                fname = ''
+                try:
+                    fname = inspect.getsourcefile(ob)
+                except Exception:
+                    pass
+                # Returned fname may simply be x.replace('.pyc', '.py')
+                if os.path.isfile(fname):
+                    break
             
-            # Make .py from .pyc
-            if fname and fname.endswith('.pyc') or fname.endswith('.pyo'):
-                fname2 = fname
-                fname = fname[:-1]
-                if not os.path.isfile(fname):
-                    print('Could not find source file for "%s".' % fname2)
-                    return ''
+            # Try get line number
+            if fname:
+                try:
+                    lines, linenr = inspect.getsourcelines(ob)
+                except Exception:
+                    pass
         
         # Almost done
-        # todo: shell also supports "open LINENR FILENAME"
         # IPython's edit now support this via our hook in interpreter.py
         if not fname:
             print('Could not determine file name for object "%s".' % name)
+        elif linenr is not None:
+            action = 'open %i %s' % (linenr, os.path.abspath(fname))
+            sys._iepInterpreter.context._strm_action.send(action)
         else:
             action = 'open %s' % os.path.abspath(fname)
             sys._iepInterpreter.context._strm_action.send(action)
@@ -455,7 +471,7 @@ class Magician:
             return
         
         # Tweak the args
-        if args[0] == 'uninstall':
+        if args and args[0] == 'uninstall':
             args.insert(1, '--yes')
         
         # Go!

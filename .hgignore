@@ -2,6 +2,8 @@ syntax: glob
 *.pyc
 .DS_Store
 build/*
+dist/*
+*$py.class
 _build
 frozen/*
 MANIFEST

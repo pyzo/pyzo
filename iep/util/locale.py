@@ -28,6 +28,7 @@ LANGUAGES = {
     'Portuguese': QtCore.QLocale.Portuguese,
     'German': QtCore.QLocale.German,
     'Russian': QtCore.QLocale.Russian,  # not updated for 3.4
+    'Portuguese (BR)': (QtCore.QLocale.Portuguese, QtCore.QLocale.Brazil), 
     # Languages for which the is a .tr file, but no translations available yet:
     # 'Simplified Chinese': QtCore.QLocale.Chinese,
     # 'Slovak': QtCore.QLocale.Slovak,

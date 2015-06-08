@@ -166,7 +166,7 @@ def getEnvFromKernelInfo(info):
     # Add entry to Pythopath, so that we can import yoton
     # Note: an empty entry might cause trouble if the start-directory is 
     # somehow overriden (see issue 128).
-    pythonPath = iep.iepDir + os.pathsep + pythonPath 
+    pythonPath = iep.iepDir + os.pathsep + pythonPath
     
     # Prepare environment, remove references to tk libraries, 
     # since they're wrong when frozen. Python will insert the
@@ -176,6 +176,8 @@ def getEnvFromKernelInfo(info):
     env.pop('TK_LIBRARY','')
     env.pop('TCL_LIBRARY','')
     env['PYTHONPATH'] = pythonPath
+    # Jython does not use PYTHONPATH but JYTHONPATH
+    env['JYTHONPATH'] = iep.iepDir + os.pathsep + os.environ.get('JYTHONPATH', '')
     
     # Add environment variables specified in shell config
     for line in info.environ.splitlines():
@@ -362,7 +364,7 @@ class KernelBroker:
             # See IEP issue #240
             try:
                 subprocess.check_output('cmd /c "cd"', shell=True)
-            except IOError:
+            except (IOError, subprocess.SubprocessError):
                 pass  # Do not use cmd
             else:
                 command = 'cmd /c "{}"'.format(command)

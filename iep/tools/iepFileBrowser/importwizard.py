@@ -21,7 +21,6 @@ ResultPage:
 
 """
 
-from PySide import QtGui, QtCore
 import os
 import itertools
 import iep.codeeditor
@@ -537,7 +536,7 @@ class ImportWizard(QtGui.QWizard):
             return
 
         self.restart()
-        self.setField('fname', filename)
+        self.selectFilePage.txtFilename.setText(filename)
         self.selectFilePage.updatePreview()
         self.show()
     

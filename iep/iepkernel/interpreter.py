@@ -161,7 +161,11 @@ class IepInterpreter:
         self.sleeptime = 0.01 # 100 Hz
         
         # Create compiler
-        self._compile = CommandCompiler()
+        if sys.platform.startswith('java'):
+            import compiler
+            self._compile = compiler.compile  # or 'exec' does not work
+        else:
+            self._compile = CommandCompiler()
         
         # Instantiate magician and tracer
         self.magician = Magician()
@@ -242,7 +246,10 @@ class IepInterpreter:
         self.startup_info = startup_info = self.context._stat_startup.recv().copy()
         
         # Set startup info (with additional info)
-        builtins = __builtins__
+        if sys.platform.startswith('java'):
+            import __builtin__ as builtins  # Jython
+        else:
+            builtins = __builtins__
         if not isinstance(builtins, dict):
             builtins = builtins.__dict__
         startup_info['builtins'] = [builtin for builtin in builtins.keys()]
@@ -257,13 +264,23 @@ class IepInterpreter:
         self._run_startup_code(startup_info)
         
         # Write Python banner (to stdout)
-        NBITS = 8 * struct.calcsize("P")
-        plat = sys.platform
-        if plat.startswith('win'):
-            plat = 'Windows'
-        plat = '%s (%i bits)' % (plat, NBITS) 
-        printDirect("Python %s on %s.\n" %
-            (sys.version.split('[')[0].rstrip(), plat))
+        thename = 'Python'
+        if '__pypy__' in sys.builtin_module_names:
+            thename = 'Pypy'
+        if sys.platform.startswith('java'):
+            thename = 'Jython'
+            # Jython cannot do struct.calcsize("P")
+            import java.lang
+            real_plat = java.lang.System.getProperty("os.name").lower()
+            plat = '%s/%s' % (sys.platform, real_plat)
+        elif sys.platform.startswith('win'):
+            NBITS = 8 * struct.calcsize("P")
+            plat = 'Windows (%i bits)' % NBITS
+        else:
+            NBITS = 8 * struct.calcsize("P")
+            plat = '%s (%i bits)' % (sys.platform, NBITS) 
+        printDirect("%s %s on %s.\n" %
+                    (thename, sys.version.split('[')[0].rstrip(), plat))
         
         # Integrate GUI
         guiName, guiError = self._integrate_gui(startup_info)
@@ -424,6 +441,8 @@ class IepInterpreter:
                 self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':
                 self.guiApp = guiintegration.App_wx()
+            elif guiName == 'TORNADO':
+                self.guiApp = guiintegration.App_tornado()
             elif guiName == 'PYSIDE':
                 self.guiApp = guiintegration.App_pyside()
             elif guiName in ['PYQT4', 'QT4']:
@@ -532,14 +551,15 @@ class IepInterpreter:
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
             self.runfile(tmp)
         
+        # Flush real stdout / stderr
+        sys.__stdout__.flush()
+        sys.__stderr__.flush()
+        
         # Set status and prompt?
         # Prompt is allowed to be an object with __str__ method
         if self.newPrompt:
             self.newPrompt = False
-            if self.more:
-                ps = sys.ps2 
-            else: 
-                ps = sys.ps1
+            ps = sys.ps2 if self.more else sys.ps1
             self.context._strm_prompt.send(str(ps))
         
         if True:

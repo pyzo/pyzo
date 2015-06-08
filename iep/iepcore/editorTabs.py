@@ -685,7 +685,7 @@ class FileTabWidget(CompactTabWidget):
         """
         
         if isinstance(item, int):
-            self.setCurrentIndex(i)
+            self.setCurrentIndex(item)
             
         elif isinstance(item, FileItem):
             
@@ -711,12 +711,12 @@ class FileTabWidget(CompactTabWidget):
         """ Select the previously selected item. """
         
         # make an old item history
-        if len(self._itemHistory)>1:
+        if len(self._itemHistory)>1 and self._itemHistory[1] is not None:
             item = self._itemHistory[1]
             self.setCurrentItem(item)
         
         # just select first one then ...
-        elif item is None and self.count():
+        elif self.count():
             item = 0
             self.setCurrentItem(item)
     
@@ -1046,7 +1046,8 @@ class EditorTabs(QtGui.QWidget):
         """ Create a new (unsaved) file. """
         
         # create editor
-        editor = createEditor(self, None)       
+        editor = createEditor(self, None)
+        editor.document().setModified(False)  # Start out as OK
         # add to list
         item = FileItem(editor)
         self._tabs.addItem(item)
@@ -1067,7 +1068,7 @@ class EditorTabs(QtGui.QWidget):
             startdir = os.path.split(editor._filename)[0]
         else:
             startdir = self._lastpath            
-        if not os.path.isdir(startdir):
+        if (not startdir) or (not os.path.isdir(startdir)):
             startdir = ''
         
         # show dialog
