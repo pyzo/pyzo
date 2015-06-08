@@ -371,6 +371,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Get help tool
         hw = iep.toolManager.getTool('iepinteractivehelp')
+        ass = iep.toolManager.getTool('iepassistant')
         # Get the shell
         shell = iep.shells.getCurrentShell()        
         # Both should exist
@@ -393,7 +394,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         if name:
             hw.setObjectName(name)
-        
+        if ass:
+            ass.showHelpForTerm(name)
     
     ## Callbacks
     def updateHelp(self,name):

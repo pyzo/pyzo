@@ -23,6 +23,7 @@ from pyzolib.qt import QtCore, QtGui
 import iep
 from iep.iepcore.compactTabWidget import CompactTabWidget
 from iep.iepcore.iepLogging import print
+from iep.iepcore.assistant import IepAssistant
 import webbrowser
 from iep import translate
 
@@ -1540,11 +1541,9 @@ class HelpMenu(Menu):
         if iep.pyzo_mode:
             issues_url = "http://pyzo.org/issues.html"
         
-        
-        if False:  # pyzo mode!  
-            # Work in progress
-            self.addItem(translate("menu", "Pyzo docs ::: Documentation on Python and the Scipy Stack."), 
-                icons.help, self._showPyzoDocs)
+        self._iepHelp = IepAssistant()
+        self.addItem(translate("menu", "Documentation ::: Documentation on Python and the Scipy Stack."), 
+            icons.help, self._showPyzoDocs)
         
         if iep.pyzo_mode:
             self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
@@ -1627,18 +1626,8 @@ class HelpMenu(Menu):
     
     
     def _showPyzoDocs(self):
-        # Get filename of doc collection
-        dirname = os.path.join(sys.prefix, 'share', 'pyzodocs')
-        #dirname = os.path.join('/home/almar/projects/pyzo_latest', 'share', 'pyzodocs')
-        fname = os.path.join(dirname, 'py.qhc')
-        
-        # Get exename of assistant
-        dirname = os.path.join(sys.prefix, 'bin', )
-        #dirname = os.path.join('/home/almar/projects/pyzo_latest', 'bin')
-        exename = os.path.join(dirname, 'assistant')
-        
-        import subprocess
-        iep._assistant = subprocess.Popen([exename , '-collectionFile', fname])
+        # Show widget with docs:
+        self._iepHelp.show()
 
 
 class SettingsMenu(Menu):
