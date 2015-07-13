@@ -318,7 +318,7 @@ class IepIntrospector(yoton.RepChannel):
                     tmp[1] += '.'
                 else:
                     tmp = [objectName, '']
-                if className not in ['type', 'module', 'builtin_function_or_method']:
+                if className not in ['type', 'module', 'builtin_function_or_method', 'function']:
                     cmd = "%s.__class__.%s__doc__"
                     h_text = eval(cmd % (tmp[0],tmp[1]), {}, NS)
             except Exception:
