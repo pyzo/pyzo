@@ -17,6 +17,134 @@ from ..manager import Manager
 # todo: what about calling all extensions. CE_HighlightCurrentLine, 
 # or EXT_HighlightcurrentLine?
 
+
+class HighlightMatchingBracket(object):
+    
+    # Register style element
+    _styleElements = [  (   'Editor.Highlight matching bracket',
+                            'The stroke color to highlight matching brackets.',
+                            'fore:#66c', 
+                        ) ]
+
+
+    def highlightMatchingBracket(self):
+        """ highlightMatchingBracket()
+        
+        Get whether to highlight matching brackets.
+        
+        """
+        return self.__highlightMatchingBracket
+    
+    
+    @ce_option(True)
+    def setHighlightMatchingBracket(self,value):
+        """ setHighlightMatchingBracket(value)
+        
+        Set whether to highlight matching brackets.  
+        
+        """
+        self.__highlightMatchingBracket = bool(value)
+        self.viewport().update()
+        
+    
+    def _highlightSingleChar(self, painter, cursor, width):
+            """ _highlightSingleChar(painter, cursor, width)
+            
+            Draws a highlighting rectangle around the single character to the
+            left of the specified cursor.
+            
+            """
+            cursor_rect = self.cursorRect(cursor)
+            top = cursor_rect.top()
+            left = cursor_rect.left() - width
+            height = cursor_rect.bottom() - top + 1
+            color = self.getStyleElementFormat('editor.highlightMatchingBracket').fore
+            painter.setPen(color)
+            painter.drawRect(QtCore.QRect(left, top, width, height))
+
+
+    _matchingBrackets = {'(':')', '[':']', '{':'}', ')':'(', ']':'[', '}':'{'}
+    def _findMatchingBracket(self, char, cursor, doc):
+        """ _findMatchingBracket(char, cursor, doc)
+        
+        Find a bracket that matches the specified char in the specified document.
+        Bracket index is returned as a QtCursor instance, pointing to the right
+        of the found character. If no match is found, returns None.
+        
+        """
+        if char in ')]}':
+            direction = -1
+        elif char in '([{':
+            direction = 1
+        else:
+            raise ValueError('invalid bracket character: ' + char)
+            
+        other_char = self._matchingBrackets[char]
+        fulltext = doc.toPlainText()
+        pos = cursor.position() - 1
+        num_match = 0
+        while True:
+            if pos > len(fulltext)-1 or pos < 0:
+                return None
+            
+            if fulltext[pos] == char:
+                num_match += 1
+            elif fulltext[pos] == other_char:
+                num_match -= 1
+            
+            pos += direction
+            
+            if num_match == 0:
+                # we've found our match
+                # note that we want to return a cursor positioned *after* our
+                # match. In case of forward searching, that's where we are now.
+                # for backward searching, compensate by adding two.
+                new_cursor = QtGui.QTextCursor(doc)
+                if direction == -1:
+                    pos += 2
+                new_cursor.setPosition(pos)
+                return new_cursor
+
+    
+    def paintEvent(self, event):
+        """ paintEvent(event)
+        
+        If the current cursor is positioned to the right of a bracket ()[]{},
+        look for a matching one, and, if found, draw a highlighting rectangle
+        around both brackets of the pair.
+        
+        Paints behinds its super().
+        
+        """
+        if not self.__highlightMatchingBracket:
+            super(HighlightMatchingBracket, self).paintEvent(event)
+            return
+            
+        cursor = self.textCursor()
+        doc = cursor.document()
+        text = cursor.block().text()
+        pos = cursor.positionInBlock() - 1
+        
+        if len(text) > pos and len(text) > 0:
+            # get the character to the left of the cursor
+            char = text[pos]
+            
+            if char in '()[]{}':
+                other_bracket = self._findMatchingBracket(char, cursor, doc)
+                if other_bracket is not None:
+                    fm = QtGui.QFontMetrics(doc.defaultFont())
+                    width = fm.width(char)
+                    
+                    painter = QtGui.QPainter()
+                    painter.begin(self.viewport())
+                    self._highlightSingleChar(painter, cursor, width)
+                    self._highlightSingleChar(painter, other_bracket, width)
+                    painter.end()
+            
+        super(HighlightMatchingBracket, self).paintEvent(event)
+
+ 
+
 class HighlightCurrentLine(object):
     """
     Highlight the current line

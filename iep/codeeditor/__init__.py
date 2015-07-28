@@ -13,7 +13,8 @@ A full featured code editor component based on QPlainTextEdit.
 from .manager import Manager
 from .base import CodeEditorBase
 
-from .extensions.appearance import (    HighlightCurrentLine, 
+from .extensions.appearance import (    HighlightMatchingBracket,
+                                        HighlightCurrentLine, 
                                         FullUnderlines,
                                         IndentationGuides,
                                         CodeFolding,
@@ -42,6 +43,7 @@ from .extensions.calltip import Calltip
 # the first to receive paint events.
 class CodeEditor(
     HighlightCurrentLine, 
+    HighlightMatchingBracket,
     FullUnderlines,
     IndentationGuides, 
     CodeFolding,
