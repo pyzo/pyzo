@@ -23,7 +23,7 @@ class HighlightMatchingOccurrences(object):
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching occurrences',
                             'The background color to highlight matching occurrences of the currently selected word.',
-                            'back:#009', 
+                            'fore:#66c', 
                         ) ]
 
 
@@ -52,9 +52,10 @@ class HighlightMatchingOccurrences(object):
         cursor = self.cursorForPosition(QtCore.QPoint(0,0))
         doc = self.document()
         
-        color = self.getStyleElementFormat('editor.highlightMatchingOccurrences').back
+        color = self.getStyleElementFormat('editor.highlightMatchingOccurrences').fore
         painter = QtGui.QPainter()
         painter.begin(self.viewport())
+        painter.setPen(color)
         
         # find occurrences
         while True:
@@ -63,6 +64,10 @@ class HighlightMatchingOccurrences(object):
             if cursor is None or cursor.isNull():
                 # no more matches
                 break
+                
+            # don't highlight the actual selection
+            if cursor == self.textCursor():
+                continue
             
             endRect = self.cursorRect(cursor)
             if endRect.bottom() > self.height():
@@ -72,8 +77,8 @@ class HighlightMatchingOccurrences(object):
             cursor.movePosition(cursor.MoveOperation.PreviousWord)
             startRect = self.cursorRect(cursor)
             width = endRect.left() - startRect.left()
-            painter.fillRect(startRect.left(), startRect.top(), width, 
-                startRect.height(), color)
+            painter.drawRect(startRect.left(), startRect.top(), width, 
+                startRect.height())
                 
             # move to end of word again, otherwise we never advance in the doc
             cursor.movePosition(cursor.MoveOperation.EndOfWord)
@@ -97,7 +102,7 @@ class HighlightMatchingOccurrences(object):
             if text.isidentifier():
                 self._doHighlight(text)
             
-        super(HighlightMatchingBracket, self).paintEvent(event)
+        super(HighlightMatchingOccurrences, self).paintEvent(event)
 
 
 
