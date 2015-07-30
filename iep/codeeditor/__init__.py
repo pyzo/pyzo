@@ -14,6 +14,7 @@ from .manager import Manager
 from .base import CodeEditorBase
 
 from .extensions.appearance import (    HighlightMatchingBracket,
+                                        HighlightMatchingOccurrences,
                                         HighlightCurrentLine, 
                                         FullUnderlines,
                                         IndentationGuides,
@@ -42,7 +43,8 @@ from .extensions.calltip import Calltip
 # The first superclass is the first extension that gets to handle each key and
 # the first to receive paint events.
 class CodeEditor(
-    HighlightCurrentLine, 
+    HighlightCurrentLine,
+    HighlightMatchingOccurrences,
     HighlightMatchingBracket,
     FullUnderlines,
     IndentationGuides, 

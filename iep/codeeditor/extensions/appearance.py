@@ -18,6 +18,89 @@ from ..manager import Manager
 # or EXT_HighlightcurrentLine?
 
 
+class HighlightMatchingOccurrences(object):
+    
+    # Register style element
+    _styleElements = [  (   'Editor.Highlight matching occurrences',
+                            'The background color to highlight matching occurrences of the currently selected word.',
+                            'back:#009', 
+                        ) ]
+
+
+    def highlightMatchingOccurrences(self):
+        """ highlightMatchingOccurrences()
+        
+        Get whether to highlight matching occurrences.
+        
+        """
+        return self.__highlightMatchingOccurrences
+    
+    
+    @ce_option(True)
+    def setHighlightMatchingOccurrences(self,value):
+        """ setHighlightMatchingOccurrences(value)
+        
+        Set whether to highlight matching occurrences.  
+        
+        """
+        self.__highlightMatchingOccurrences = bool(value)
+        self.viewport().update()
+
+
+    def _doHighlight(self, text):
+        # make cursor at the beginning of the first visible block
+        cursor = self.cursorForPosition(QtCore.QPoint(0,0))
+        doc = self.document()
+        
+        color = self.getStyleElementFormat('editor.highlightMatchingOccurrences').back
+        painter = QtGui.QPainter()
+        painter.begin(self.viewport())
+        
+        # find occurrences
+        while True:
+            cursor = doc.find(text, cursor,
+                doc.FindFlag.FindCaseSensitively | doc.FindFlag.FindWholeWords)
+            if cursor is None or cursor.isNull():
+                # no more matches
+                break
+            
+            endRect = self.cursorRect(cursor)
+            if endRect.bottom() > self.height():
+                # rest of document is not visible, don't bother highlighting
+                break
+            
+            cursor.movePosition(cursor.MoveOperation.PreviousWord)
+            startRect = self.cursorRect(cursor)
+            width = endRect.left() - startRect.left()
+            painter.fillRect(startRect.left(), startRect.top(), width, 
+                startRect.height(), color)
+                
+            # move to end of word again, otherwise we never advance in the doc
+            cursor.movePosition(cursor.MoveOperation.EndOfWord)
+            
+        painter.end()
+
+
+    def paintEvent(self, event):
+        """ paintEvent(event)
+        
+        If there is a current selection, and the selected text is a valid Python
+        identifier (no whitespace, starts with a letter), then highlight all the
+        matching occurrences of the selected text in the current view.
+        
+        Paints behinds its super().
+        
+        """
+        cursor = self.textCursor()
+        if self.__highlightMatchingOccurrences and cursor.hasSelection():
+            text = cursor.selectedText()
+            if text.isidentifier():
+                self._doHighlight(text)
+            
+        super(HighlightMatchingBracket, self).paintEvent(event)
+
+
+
 class HighlightMatchingBracket(object):
     
     # Register style element
