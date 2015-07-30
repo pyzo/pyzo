@@ -22,7 +22,7 @@ class HighlightMatchingOccurrences(object):
     
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching occurrences',
-                            'The background color to highlight matching occurrences of the currently selected word.',
+                            'The stroke color to highlight matching occurrences of the currently selected word.',
                             'fore:#66c', 
                         ) ]
 
@@ -74,7 +74,7 @@ class HighlightMatchingOccurrences(object):
                 # rest of document is not visible, don't bother highlighting
                 break
             
-            cursor.movePosition(cursor.MoveOperation.PreviousWord)
+            cursor.movePosition(cursor.MoveOperation.Left, n=len(text))
             startRect = self.cursorRect(cursor)
             width = endRect.left() - startRect.left()
             painter.drawRect(startRect.left(), startRect.top(), width, 
