@@ -23,7 +23,7 @@ class HighlightMatchingOccurrences(object):
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching occurrences',
                             'The stroke color to highlight matching occurrences of the currently selected word.',
-                            'fore:#66c', 
+                            'fore:#f00', 
                         ) ]
 
 
@@ -213,7 +213,7 @@ class HighlightMatchingBracket(object):
         text = cursor.block().text()
         pos = cursor.positionInBlock() - 1
         
-        if len(text) > pos and len(text) > 0:
+        if not cursor.atBlockStart() and len(text) > pos and len(text) > 0:
             # get the character to the left of the cursor
             char = text[pos]
             
