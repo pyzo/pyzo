@@ -210,7 +210,6 @@ class HighlightMatchingBracket(object):
             return
             
         cursor = self.textCursor()
-        doc = cursor.document()
         text = cursor.block().text()
         pos = cursor.positionInBlock() - 1
         
@@ -218,6 +217,14 @@ class HighlightMatchingBracket(object):
             # get the character to the left of the cursor
             char = text[pos]
             
+            if (char not in '()[]{}' and len(text) > pos+1
+                and text[pos+1] in '()[]{}'):
+                # no brace to the left of cursor; but one to the right
+                cursor = QtGui.QTextCursor(cursor)
+                cursor.movePosition(cursor.MoveOperation.Right)
+                char = text[pos+1]
+                
+            doc = cursor.document()
             if char in '()[]{}':
                 other_bracket = self._findMatchingBracket(char, cursor, doc)
                 if other_bracket is not None:
