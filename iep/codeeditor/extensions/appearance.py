@@ -110,8 +110,8 @@ class HighlightMatchingBracket(object):
     
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching bracket',
-                            'The stroke color to highlight matching brackets.',
-                            'fore:#66c', 
+                            'The background color to highlight matching brackets.',
+                            'back:#ccc', 
                         ) ]
 
 
@@ -146,8 +146,9 @@ class HighlightMatchingBracket(object):
             top = cursor_rect.top()
             left = cursor_rect.left() - width
             height = cursor_rect.bottom() - top + 1
-            color = self.getStyleElementFormat('editor.highlightMatchingBracket').fore
-            painter.setPen(color)
+            color = self.getStyleElementFormat('editor.highlightMatchingBracket').back
+            painter.setBrush(color)
+            painter.setPen(color.darker(110))
             painter.drawRect(QtCore.QRect(left, top, width, height))
 
 
