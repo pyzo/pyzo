@@ -22,8 +22,8 @@ class HighlightMatchingOccurrences(object):
     
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching occurrences',
-                            'The stroke color to highlight matching occurrences of the currently selected word.',
-                            'fore:#f00', 
+                            'The background color to highlight matching occurrences of the currently selected word.',
+                            'back:#fdfda3', 
                         ) ]
 
 
@@ -52,10 +52,11 @@ class HighlightMatchingOccurrences(object):
         cursor = self.cursorForPosition(QtCore.QPoint(0,0))
         doc = self.document()
         
-        color = self.getStyleElementFormat('editor.highlightMatchingOccurrences').fore
+        color = self.getStyleElementFormat('editor.highlightMatchingOccurrences').back
         painter = QtGui.QPainter()
         painter.begin(self.viewport())
-        painter.setPen(color)
+        painter.setBrush(color)
+        painter.setPen(color.darker(110))
         
         # find occurrences
         while True:
