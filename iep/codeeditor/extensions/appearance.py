@@ -61,7 +61,7 @@ class HighlightMatchingOccurrences(object):
         # find occurrences
         while True:
             cursor = doc.find(text, cursor,
-                doc.FindFlag.FindCaseSensitively | doc.FindFlag.FindWholeWords)
+                doc.FindCaseSensitively | doc.FindWholeWords)
             if cursor is None or cursor.isNull():
                 # no more matches
                 break
@@ -75,14 +75,14 @@ class HighlightMatchingOccurrences(object):
                 # rest of document is not visible, don't bother highlighting
                 break
             
-            cursor.movePosition(cursor.MoveOperation.Left, n=len(text))
+            cursor.movePosition(cursor.Left, n=len(text))
             startRect = self.cursorRect(cursor)
             width = endRect.left() - startRect.left()
             painter.drawRect(startRect.left(), startRect.top(), width, 
                 startRect.height())
                 
             # move to end of word again, otherwise we never advance in the doc
-            cursor.movePosition(cursor.MoveOperation.EndOfWord)
+            cursor.movePosition(cursor.EndOfWord)
             
         painter.end()
 
@@ -222,7 +222,7 @@ class HighlightMatchingBracket(object):
                 and text[pos+1] in '()[]{}'):
                 # no brace to the left of cursor; but one to the right
                 cursor = QtGui.QTextCursor(cursor)
-                cursor.movePosition(cursor.MoveOperation.Right)
+                cursor.movePosition(cursor.Right)
                 char = text[pos+1]
                 
             doc = cursor.document()
