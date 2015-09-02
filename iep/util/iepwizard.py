@@ -17,7 +17,7 @@ import iep
 from pyzolib.qt import QtCore, QtGui
 from iep import translate
 
-from iep.util.locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage
+from iep.util._locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage
 
 
 def retranslate(t):

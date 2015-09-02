@@ -4,7 +4,7 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" iep.util.locale
+""" iep.util._locale
 Module for locale stuff like language and translations.
 """
 

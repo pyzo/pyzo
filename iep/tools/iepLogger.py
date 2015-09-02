@@ -39,7 +39,7 @@ class IepLogger(BaseShell):
         locals = {'iep':iep, 'sys':sys, 'os':os}
         # Include linguist tools
         for name in ['linguist', 'lrelease', 'lupdate', 'lhelp']:
-            locals[name] = getattr(iep.util.locale, name)
+            locals[name] = getattr(iep.util._locale, name)
         
         # Create interpreter to run code        
         self._interpreter = code.InteractiveConsole(locals, "<logger>")
