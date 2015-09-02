@@ -86,7 +86,7 @@ from pyzolib import ssdf, paths
 from pyzolib.qt import QtCore, QtGui
 
 # Import language/translation tools
-from iep.util.locale import translate, setLanguage
+from iep.util._locale import translate, setLanguage
 
 # Set environ to let kernel know some stats about us
 os.environ['IEP_PREFIX'] = sys.prefix

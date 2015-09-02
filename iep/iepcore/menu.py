@@ -1635,7 +1635,7 @@ class SettingsMenu(Menu):
         icons = iep.icons
         
         # Create language menu
-        from iep.util.locale import LANGUAGES, LANGUAGE_SYNONYMS
+        from iep.util._locale import LANGUAGES, LANGUAGE_SYNONYMS
         # Update language setting if necessary
         cur = iep.config.settings.language
         iep.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
