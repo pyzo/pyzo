@@ -1,5 +1,11 @@
+"""
+Tools to install miniconda from IEP and register that env in IEP's
+shell config.
+"""
+
 import os
 import sys
+import stat
 import time
 import struct
 import shutil
@@ -8,55 +14,63 @@ import subprocess
 import urllib.request
 
 from pyzolib.qt import QtCore, QtGui
-
 from pyzolib import paths
-
-miniconda = 'Miniconda3-latest-Windows-x86_64.exe'
-miniconda = r'C:\Users\almar\Downloads' + '\\' + miniconda
-
-def download_miniconda(path):
-    pass
+import iep
 
 
-def is_64bit():
-    """ Get whether the OS is 64 bit.
-    """
-    if sys.platform.startswith('win'):
-        if 'PROCESSOR_ARCHITEW6432' in os.environ:
-            return True
-        return os.environ['PROCESSOR_ARCHITECTURE'].endswith('64')
-    else:
-        return struct.calcsize('P') == 8
+base_url = 'https://repo.continuum.io/miniconda/'
+links = {'win32': 'Miniconda3-latest-Windows-x86.exe',
+         'win64': 'Miniconda3-latest-Windows-x86_64.exe',
+         'osx64': 'Miniconda3-latest-MacOSX-x86_64.sh',
+         'linux32': 'Miniconda3-latest-Linux-x86.sh',
+         'linux64': 'Miniconda3-latest-Linux-x86_64.sh',
+         'arm': 'Miniconda3-latest-Linux-armv7l.sh',  # raspberry pi
+         }
 
 
-def py_exe(dir):
-    if sys.platform.startswith('win'):
-        return os.path.join(dir, 'python.exe')
-    else:
-        return os.path.join(dir, 'bin', 'python')
+# Get where we want to put miniconda installer
+miniconda_path = os.path.join(paths.appdata_dir('iep'), 'miniconda')
+miniconda_path += '.exe' if sys.platform.startswith('win') else '.sh'
+
+# Get default dir where we want the env
+#default_conda_dir = os.path.join(paths.appdata_dir('iep'), 'conda_root')
+default_conda_dir = 'C:\\miniconda3' if sys.platform.startswith('win') else os.path.expanduser('~/miniconda3')
 
 
 def check_our_conda():
+    """ Check if it is reasonable to ask to install a conda env. If
+    users says yes, do it. If user says no, don't, and remember.
+    """
     
-    conda_dir = os.path.join(paths.appdata_dir('iep'), 'conda_root')
+    # Interested previously?
+    if getattr(iep.config.state, 'did_not_want_conda_env', False):
+        print('User has previously indicated to have no interest in a conda env')
+        return
     
-    # # Do we already have a conda env?
-    # if os.path.isfile(py_exe(conda_dir)):
-    #     # todo: no remove, but return
-    #     shutil.rmtree(conda_dir)
-    #     #return  # no action required
+    # Needed?
+    if iep.config.shellConfigs2:
+        exe = iep.config.shellConfigs2[0]['exe']
+        r = ''
+        try:
+            r = subprocess.check_output([exe, '-m', 'conda', 'info'])
+            r = r.decode()
+        except Exception:
+            pass  # no Python or no conda
+        if r and 'is foreign system : False' in r:
+            print('First shell config looks like a conda env.')
+            return
     
-    # todo: did the user previously specify he did not want a conda env?
-    
-    # Does he want a conda env now?
+    # Ask if interested now?
     d = AskToInstallConda()
     d.exec_()
     if not d.result():
+        iep.config.state.did_not_want_conda_env = True  # Mark for next time
         return
     
     # Launch installer
-    d = Installer(conda_dir)
+    d = Installer()
     d.exec_()
+
 
 class AskToInstallConda(QtGui.QDialog):
     def __init__(self):
@@ -92,11 +106,10 @@ class Installer(QtGui.QDialog):
     
     lineFromStdOut = QtCore.Signal(str)
     
-    def __init__(self, conda_dir):
+    def __init__(self):
         QtGui.QDialog.__init__(self)
         self.setModal(True)
         self.resize(500, 500)
-        self._conda_dir = conda_dir
         
         text = 'This will download and install miniconda on your computer.'
         
@@ -104,7 +117,7 @@ class Installer(QtGui.QDialog):
         
         self._scipystack = QtGui.QCheckBox('Also install scientific packages', self)
         self._scipystack.setChecked(True)
-        self._path = QtGui.QLineEdit(self._conda_dir, self)
+        self._path = QtGui.QLineEdit(default_conda_dir, self)
         self._progress = QtGui.QProgressBar(self)
         self._outputLine = QtGui.QLabel(self)
         self._output = QtGui.QPlainTextEdit(self)
@@ -129,8 +142,6 @@ class Installer(QtGui.QDialog):
         self._progress.setVisible(False)
         
         self.lineFromStdOut.connect(self.setStatus)
-        # todo: add a shell config for the created env
-    
     
     def setStatus(self, line):
         self._outputLine.setText(line)
@@ -155,8 +166,8 @@ class Installer(QtGui.QDialog):
             self._conda_dir = self._path.text()
             if not os.path.isabs(self._conda_dir):
                 raise ValueError('Given installation path must be absolute.')
-            # if os.path.exists(self._conda_dir):
-            #     raise ValueError('The given installation path already exists.')
+            if os.path.exists(self._conda_dir):
+                raise ValueError('The given installation path already exists.')
         except Exception as err:
             self.addOutput('\nCould not install:\n' + str(err))
             return
@@ -185,6 +196,8 @@ class Installer(QtGui.QDialog):
                 self.addStatus(('Failed' if ret else 'Done') + ' installing.')
                 self.make_done()
             
+            self.post_install()
+            
             if self._scipystack.isChecked():
                 self.addStatus('Installing scientific packages ... ')
                 self._progress.setMaximum(0)
@@ -205,7 +218,6 @@ class Installer(QtGui.QDialog):
                 ok = True
         
         except Exception as err:
-            raise
             self.addStatus('Installation failed ...')
             self.addOutput('\n\nException!\n' + str(err))
         
@@ -230,14 +242,29 @@ class Installer(QtGui.QDialog):
             QtGui.qApp.processEvents()
     
     def download(self):
-        # todo: _fetch_file()
         
-        # Smooth toward 100%
-        for i in range(0, 100, 5):
-            time.sleep(0.1)
-            self._progress.setValue(i)
-            QtGui.qApp.processEvents()
-
+        # Installer already downloaded?
+        if os.path.isfile(miniconda_path):
+            self.addOutput('Already downloaded.')
+            return  # os.remove(miniconda_path)
+        
+        # Get url key
+        key = ''
+        if sys.platform.startswith('win'):
+            key = 'win'
+        elif sys.platform.startswith('darwin'):
+            key = 'osx'
+        elif sys.platform.startswith('linux'):
+            key = 'linux'
+        key += '64' if is_64bit() else '32'
+        
+        # Get url
+        if key not in links:
+            raise RuntimeError('Cannot download miniconda for this platform.')
+        url = base_url + links[key]
+        
+        _fetch_file(url, miniconda_path, self._progress)
+    
     def install(self):
         dest = self._conda_dir
         
@@ -245,33 +272,38 @@ class Installer(QtGui.QDialog):
         assert not os.path.isdir(dest), 'Miniconda dir already exists'
         assert ' ' not in dest, 'miniconda dest path must not contain spaces'
         
-        # Get where we want to put miniconda installer
-        miniconda_path = os.path.join(paths.appdata_dir('iep'), 'miniconda')
-        miniconda_path += sys.platform.startswith('win') * '.exe'
-        
-        # Get fresh installer
-        if os.path.isfile(miniconda_path):
-            os.remove(miniconda_path)
-        download_miniconda(miniconda)
-        
-        miniconda_path = miniconda  # todo: remove
-        
         if sys.platform.startswith('win'):
-            cmd = [miniconda_path, '/S', '/D=%s' % dest]
-            return self._run_process(cmd)
-        
-        return p.poll()
+            return self._run_process([miniconda_path, '/S', '/D=%s' % dest])
+        else:
+            os.chmod(miniconda_path, os.stat(miniconda_path).st_mode | stat.S_IEXEC)
+            return self._run_process([miniconda_path, '-b', '-p', dest])
     
     def post_install(self):
-        pass
-        # todo: set condarc to add pyzo channel
-        # todo: add to config
         
+        exe = py_exe(self._conda_dir)
+        
+        # Add Pyzo channel
+        cmd = [exe, '-m', 'conda', 'config', '--system', '--add', 'channels', 'pyzo']
+        subprocess.check_call(cmd)
+        self.addStatus('Added Pyzo channel to conda env')
+        
+        # Add to IEP shell config
+        first = None
+        if iep.config.shellConfigs2 and iep.config.shellConfigs2[0]['exe'] == exe:
+            pass
+        else:
+            s = dict(name='Py3-conda', exe=exe, gui='PyQt4')
+            iep.config.shellConfigs2.insert(0, s)
+            iep.saveConfig()
+            self.addStatus('Prepended new env to IEP shell configs.')
+    
     def install_scipy(self):
         
-        packages = ['numpy', 'scipy', 'pandas', 'matplotlib',
-                    #'scikit-image', 'scikit-learn',
-                    #'ipython', 'jupyter',
+        packages = ['numpy', 'scipy', 'pandas', 'matplotlib', 'sympy',
+                    'scikit-image', 'scikit-learn', 
+                    'visvis', 'pyopengl', 'imageio',
+                    'tornado', 'ipython', 'jupyter', 'pyqt',
+                    'requests', 'pygments',
                     'pytest', ]
         exe = py_exe(self._conda_dir)
         cmd = [exe, '-m', 'conda', 'install', '--yes'] + packages
@@ -331,22 +363,27 @@ class Installer(QtGui.QDialog):
             QtGui.qApp.processEvents()
 
 
+def is_64bit():
+    """ Get whether the OS is 64 bit. On WIndows yields what it *really*
+    is, not what the process is.
+    """
+    if sys.platform.startswith('win'):
+        if 'PROCESSOR_ARCHITEW6432' in os.environ:
+            return True
+        return os.environ['PROCESSOR_ARCHITECTURE'].endswith('64')
+    else:
+        return struct.calcsize('P') == 8
 
-def _chunk_read(response, local_file, chunk_size=4096, initial_size=0):
+
+def py_exe(dir):
+    if sys.platform.startswith('win'):
+        return os.path.join(dir, 'python.exe')
+    else:
+        return os.path.join(dir, 'bin', 'python')
+
+
+def _chunk_read(response, local_file, chunk_size=1024, initial_size=0, progress=None):
     """Download a file chunk by chunk and show advancement
-
-    Can also be used when resuming downloads over http.
-
-    Parameters
-    ----------
-    response: urllib.response.addinfourl
-        Response to the download request in order to get file size.
-    local_file: file
-        Hard disk file where data should be written.
-    chunk_size: integer, optional
-        Size of downloaded chunks. Default: 4096
-    initial_size: int, optional
-        If resuming, indicate the initial size of the file.
     """
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
@@ -356,12 +393,10 @@ def _chunk_read(response, local_file, chunk_size=4096, initial_size=0):
     # entire file
     total_size = int(response.headers['Content-Length'].strip())
     total_size += initial_size
-
-    progress = QtGui.QProgressBar()
-    progress.setMaximum(total_size)
-    progress.show()
     
-
+    if progress:
+        progress.setMaximum(total_size)
+    
     while True:
         QtGui.qApp.processEvents()
         chunk = response.read(chunk_size)
@@ -374,21 +409,8 @@ def _chunk_read(response, local_file, chunk_size=4096, initial_size=0):
         local_file.write(chunk)
 
 
-
-def _fetch_file(url, file_name, print_destination=True):
+def _fetch_file(url, file_name, progress=None):
     """Load requested file, downloading it if needed or requested
-
-    Parameters
-    ----------
-    url: string
-        The url of file to be downloaded.
-    file_name: string
-        Name, along with the path, of where downloaded file will be saved.
-    print_destination: bool, optional
-        If true, destination of where file was saved will be printed after
-        download finishes.
-    resume: bool, optional
-        If true, try to resume partially downloaded files.
     """
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
@@ -402,13 +424,11 @@ def _fetch_file(url, file_name, print_destination=True):
         file_size = int(response.headers['Content-Length'].strip())
         # Downloading data (can be extended to resume if need be)
         local_file = open(temp_file_name, "wb")
-        _chunk_read(response, local_file, initial_size=initial_size)
+        _chunk_read(response, local_file, initial_size=initial_size, progress=progress)
         # temp file must be closed prior to the move
         if not local_file.closed:
             local_file.close()
         shutil.move(temp_file_name, file_name)
-        if print_destination is True:
-            sys.stdout.write('File saved as %s.\n' % file_name)
     except Exception as e:
         raise RuntimeError('Error while fetching file %s.\n'
                            'Dataset fetching aborted (%s)' % (url, e))
@@ -439,6 +459,7 @@ class StreamCatcher(threading.Thread):
             if not part:
                 break
             part = part.decode('utf-8', 'ignore')
+            #print(part, end='')
             
             self._line += part.replace('\r', '\n')
             lines = [line for line in self._line.split('\n') if line]
@@ -457,4 +478,4 @@ class StreamCatcher(threading.Thread):
 
 if __name__ == '__main__':
     
-    check_our_conda()#('c:\\miniconda_test')
+    check_our_conda()
