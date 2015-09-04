@@ -37,7 +37,7 @@ miniconda_path += '.exe' if sys.platform.startswith('win') else '.sh'
 default_conda_dir = 'C:\\miniconda3' if sys.platform.startswith('win') else os.path.expanduser('~/miniconda3')
 
 
-def check_our_conda():
+def check_for_conda_env(parent=None):
     """ Check if it is reasonable to ask to install a conda env. If
     users says yes, do it. If user says no, don't, and remember.
     """
@@ -61,31 +61,33 @@ def check_our_conda():
             return
     
     # Ask if interested now?
-    d = AskToInstallConda()
+    d = AskToInstallConda(parent)
     d.exec_()
     if not d.result():
         iep.config.state.did_not_want_conda_env = True  # Mark for next time
         return
     
     # Launch installer
-    d = Installer()
+    d = Installer(parent)
     d.exec_()
 
 
 class AskToInstallConda(QtGui.QDialog):
-    def __init__(self):
-        QtGui.QDialog.__init__(self)
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle('Install a conda env?')
         self.setModal(True)
         
         text = 'To program in Python, you need a Python environment.\n\n'
-        text += 'Do you want IEP to install a Python environment (via Conda)?\n'
+        text += 'Do you want IEP to install a Python environment (miniconda)?\n'
         text += 'If not, you must arrange for a Python interpreter yourself'
         if not sys.platform.startswith('win'):
-            text += ' or use the system Python.'
+            text += ' or use the system Python'
         text += '.'
+        text += '\n(You can always launch the installer from the shell menu.)'
         
         self._label = QtGui.QLabel(text, self)
-        self._no = QtGui.QPushButton("No thanks")
+        self._no = QtGui.QPushButton("No thanks (dont ask again)")
         self._yes = QtGui.QPushButton("Yes, please install Python!")
         
         self._no.clicked.connect(self.reject)
@@ -106,8 +108,9 @@ class Installer(QtGui.QDialog):
     
     lineFromStdOut = QtCore.Signal(str)
     
-    def __init__(self):
-        QtGui.QDialog.__init__(self)
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle('Install miniconda')
         self.setModal(True)
         self.resize(500, 500)
         
@@ -478,4 +481,4 @@ class StreamCatcher(threading.Thread):
 
 if __name__ == '__main__':
     
-    check_our_conda()
+    check_for_conda_env()

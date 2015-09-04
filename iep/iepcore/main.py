@@ -150,6 +150,10 @@ class MainWindow(QtGui.QMainWindow):
         from iep.iepcore import codeparser
         from iep.tools import ToolManager
         
+        # Check to install conda now ...
+        from iep.util.bootstrapconda import check_for_conda_env
+        check_for_conda_env()
+        
         # Instantiate tool manager
         iep.toolManager = ToolManager()
         

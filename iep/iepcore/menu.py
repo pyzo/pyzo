@@ -1003,6 +1003,8 @@ class ShellMenu(Menu):
         # Shell config
         self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
             iep.icons.application_wrench, self._editConfig2)
+        self.addItem(translate("menu", 'Create new Python environment... ::: Install miniconda.'), 
+            iep.icons.application_cascade, self._newPythonEnv)
         
         self.addSeparator()
         
@@ -1056,6 +1058,11 @@ class ShellMenu(Menu):
         """ Edit, add and remove configurations for the shells. """
         from iep.iepcore.shellInfoDialog import ShellInfoDialog 
         d = ShellInfoDialog()
+        d.exec_()
+    
+    def _newPythonEnv(self):
+        from iep.util.bootstrapconda import Installer
+        d = Installer(iep.main)
         d.exec_()
 
 
