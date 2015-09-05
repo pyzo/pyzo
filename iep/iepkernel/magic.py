@@ -412,8 +412,8 @@ class Magician:
                 import conda
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args)
-                if args and args[0] in ('install', 'update', 'remove'):
-                    self._check_imported_modules()
+                #if args and args[0] in ('install', 'update', 'remove'):
+                #    self._check_imported_modules()
                 main()
             except SystemExit:  # as err:
                 type, err, tb = sys.exc_info(); del tb
@@ -429,6 +429,7 @@ class Magician:
         
         return ''
     
+    # todo: I think we can deprecate this
     def _check_imported_modules(self):
         KNOWN_PURE_PYHON = ('conda', 'yaml', 'IPython', 'requests', 
                             'readline', 'pyreadline')
