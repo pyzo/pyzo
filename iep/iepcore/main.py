@@ -101,11 +101,6 @@ class MainWindow(QtGui.QMainWindow):
         self.paintNow()
         self.restoreState()
         
-        # Load basic tools if new user
-        if iep.config.state.newUser and not iep.config.state.loadedTools:
-            iep.toolManager.loadTool('iepsourcestructure')
-            iep.toolManager.loadTool('iepfilebrowser')
-        
         # Present user with wizard if he/she is new.
         if iep.config.state.newUser:
             from iep.util.iepwizard import IEPWizard
@@ -166,13 +161,12 @@ class MainWindow(QtGui.QMainWindow):
         iep.editors = EditorTabs(self)
         self.setCentralWidget(iep.editors)
         
-        
         # Create floater for shell
         self._shellDock = dock = QtGui.QDockWidget(self)
         dock.setFeatures(dock.DockWidgetMovable | dock.DockWidgetFloatable)
         dock.setObjectName('shells')
         dock.setWindowTitle('Shells')
-        self.addDockWidget(QtCore.Qt.TopDockWidgetArea, dock)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
         
         # Create shell stack
         iep.shells = ShellStackWidget(self)
@@ -180,7 +174,6 @@ class MainWindow(QtGui.QMainWindow):
         
         # Create the default shell when returning to the event queue
         callLater(iep.shells.addShell)
-        
         
         # Create statusbar
         if iep.config.view.showStatusbar:
@@ -199,10 +192,12 @@ class MainWindow(QtGui.QMainWindow):
         iep.shells.addContextMenu()
         
         # Load tools
-        if iep.config.state.loadedTools: 
+        if iep.config.state.newUser and not iep.config.state.loadedTools:
+            iep.toolManager.loadTool('iepsourcestructure')
+            iep.toolManager.loadTool('iepfilebrowser', 'iepsourcestructure')
+        elif iep.config.state.loadedTools: 
             for toolId in iep.config.state.loadedTools:
                 iep.toolManager.loadTool(toolId)
-    
     
     def setMainTitle(self, path=None):
         """ Set the title of the main window, by giving a file path.

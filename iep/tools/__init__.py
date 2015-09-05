@@ -306,7 +306,7 @@ class ToolManager(QtCore.QObject):
         return plug
     
     
-    def loadTool(self, toolId):
+    def loadTool(self, toolId, splitWith=None):
         """ Load a tool by creating a dock widget containing the tool widget.
         """
         
@@ -346,7 +346,12 @@ class ToolManager(QtCore.QObject):
         # Create dock widget and add in the main window
         dock = ToolDockWidget(iep.main, self)
         dock.setTool(toolId, name, toolClass)
-        iep.main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
+        
+        if splitWith and splitWith in self._activeTools:
+            otherDock = self._activeTools[splitWith]
+            iep.main.splitDockWidget(otherDock, dock, QtCore.Qt.Horizontal)
+        else:
+            iep.main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
         
         # Add to list
         self._activeTools[toolId] = dock
