@@ -14,7 +14,6 @@ import subprocess
 import urllib.request
 
 from pyzolib.qt import QtCore, QtGui
-from pyzolib import paths
 import iep
 
 
@@ -29,11 +28,11 @@ links = {'win32': 'Miniconda3-latest-Windows-x86.exe',
 
 
 # Get where we want to put miniconda installer
-miniconda_path = os.path.join(paths.appdata_dir('iep'), 'miniconda')
+miniconda_path = os.path.join(iep.appDataDir, 'miniconda')
 miniconda_path += '.exe' if sys.platform.startswith('win') else '.sh'
 
 # Get default dir where we want the env
-#default_conda_dir = os.path.join(paths.appdata_dir('iep'), 'conda_root')
+#default_conda_dir = os.path.join(iep.appDataDir, 'conda_root')
 default_conda_dir = 'C:\\miniconda3' if sys.platform.startswith('win') else os.path.expanduser('~/miniconda3')
 
 
