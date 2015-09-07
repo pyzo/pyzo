@@ -78,7 +78,7 @@ class AskToInstallConda(QtGui.QDialog):
         self.setWindowTitle('Install a conda env?')
         self.setModal(True)
         
-        text = 'To program in Python, you need a Python environment.\n\n'
+        text = 'IEP is only an editor. To execute code, you need a Python environment.\n\n'
         text += 'Do you want IEP to install a Python environment (miniconda)?\n'
         text += 'If not, you must arrange for a Python interpreter yourself'
         if not sys.platform.startswith('win'):
@@ -295,7 +295,10 @@ class Installer(QtGui.QDialog):
         if iep.config.shellConfigs2 and iep.config.shellConfigs2[0]['exe'] == exe:
             pass
         else:
-            s = dict(name='Py3-conda', exe=exe, gui='PyQt4')
+            s = iep.ssdf.new()
+            s.name = 'Py3-conda'
+            s.exe = exe
+            s.gui='PyQt4'
             iep.config.shellConfigs2.insert(0, s)
             iep.saveConfig()
             self.addStatus('Prepended new env to IEP shell configs.')
