@@ -318,7 +318,7 @@ class Installer(QtGui.QDialog):
         """ Run command in a separate process, catch stdout, show lines
         in the output label. On fail, show all output in output text.
         """
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=sys.platform.startswith('win'))
         catcher = StreamCatcher(p.stdout, self.lineFromStdOut)
         
         while p.poll() is None:
