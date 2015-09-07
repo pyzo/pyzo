@@ -71,8 +71,8 @@ excludes.append('PySide.QtNetwork')
 excludes.append('PyQt4.QtNetwork')
 
 # For qt to work
-PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',]
-PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
+PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',  'PyQt4.QtHelp']
+PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']
 #
 # try:
 #     import PyQt4
