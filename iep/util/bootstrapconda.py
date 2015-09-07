@@ -305,11 +305,11 @@ class Installer(QtGui.QDialog):
     def install_scipy(self):
         
         packages = ['numpy', 'scipy', 'pandas', 'matplotlib', 'sympy',
-                    'scikit-image', 'scikit-learn', 
+                    #'scikit-image', 'scikit-learn', 
                     'visvis', 'pyopengl', 'imageio',
-                    'tornado', 'ipython', 'jupyter', 'pyqt',
-                    'requests', 'pygments',
-                    'pytest', ]
+                    'tornado', 'pyqt', #'ipython', 'jupyter',
+                    #'requests', 'pygments','pytest', 
+                    ]
         exe = py_exe(self._conda_dir)
         cmd = [exe, '-m', 'conda', 'install', '--yes'] + packages
         return self._run_process(cmd)
