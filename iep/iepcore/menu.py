@@ -1548,7 +1548,6 @@ class HelpMenu(Menu):
         if iep.pyzo_mode:
             issues_url = "http://pyzo.org/issues.html"
         
-        self._iepHelp = IepAssistant()
         self.addItem(translate("menu", "Documentation ::: Documentation on Python and the Scipy Stack."), 
             icons.help, self._showPyzoDocs)
         
@@ -1634,7 +1633,8 @@ class HelpMenu(Menu):
     
     def _showPyzoDocs(self):
         # Show widget with docs:
-        self._iepHelp.show()
+        d = IepAssistant()
+        d.show()
 
 
 class SettingsMenu(Menu):
