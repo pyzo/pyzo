@@ -118,7 +118,10 @@ class OutputStreamSplitter:
         """ Write method. """
         self._original.write(text)
         self._history.append(text)
-        self._deferFunction(text)
+        try:
+            self._deferFunction(text)
+        except Exception:
+            pass  # self._original.write('error writing to deferred stream')
         # Show in statusbar
         if iep.status and len(text)>1:
             iep.status.showMessage(text, 5000)
