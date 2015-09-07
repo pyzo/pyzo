@@ -52,7 +52,7 @@ def check_for_conda_env(parent=None):
         exe = iep.config.shellConfigs2[0]['exe']
         r = ''
         try:
-            r = subprocess.check_output([exe, '-m', 'conda', 'info'])
+            r = subprocess.check_output([exe, '-m', 'conda', 'info'], shell=sys.platform.startswith('win'))
             r = r.decode()
         except Exception:
             pass  # no Python or no conda
@@ -287,7 +287,7 @@ class Installer(QtGui.QDialog):
         
         # Add Pyzo channel
         cmd = [exe, '-m', 'conda', 'config', '--system', '--add', 'channels', 'pyzo']
-        subprocess.check_call(cmd)
+        subprocess.check_call(cmd, shell=sys.platform.startswith('win'))
         self.addStatus('Added Pyzo channel to conda env')
         
         # Add to IEP shell config
