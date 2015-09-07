@@ -15,7 +15,7 @@ Copy the "docs" directory to the iep root!
 
 """
 
-from pyzolib.qt import QtCore, QtGui, QtHelp
+from pyzolib.qt import QtCore, QtGui
 from iep import getResourceDirs
 import os
 
@@ -132,6 +132,7 @@ class IepAssistant(QtGui.QWidget):
             When collection_file is none, it is determined from the
             appDataDir.
         """
+        from pyzolib.qt import QtHelp
         super().__init__(parent)
         self.setWindowTitle('Help')
         iepDir, appDataDir = getResourceDirs()
@@ -256,6 +257,7 @@ class IepAssistant(QtGui.QWidget):
         self._helpBrowser.setSource(QtCore.QUrl(url))
 
     def showHelpForTerm(self, name):
+        from pyzolib.qt import QtHelp
         # Cache for later use:
         self._search_term = name
 
