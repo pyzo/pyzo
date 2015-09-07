@@ -739,7 +739,7 @@ class BaseShell(BaseTextCtrl):
     def write(self, text, prompt=0, color=None):
         """ write(text, prompt=0, color=None)
         
-        Write to the shell. 
+        Write to the shell. Fauto-ind
         
         If prompt is 0 (default) the text is printed before the prompt. If 
         prompt is 1, the text is printed after the prompt, the new prompt
@@ -923,6 +923,16 @@ class BaseShell(BaseTextCtrl):
             # Sample the text from the prompt and remove it
             command = cursor.selectedText().replace('\u2029', '\n') .rstrip('\n')
             cursor.removeSelectedText()
+            
+            # Auto-indent. Note: this is rather Python-specific
+            command_s = command.lstrip()
+            indent = ' ' * (len(command) - len(command_s))
+            if command.strip().endswith(':'):
+                indent += '    '
+            elif not command_s:
+                indent = ''
+            if indent:
+                cursor.insertText(indent)
             
             if command:
                 # Remember the command in this shells' history
