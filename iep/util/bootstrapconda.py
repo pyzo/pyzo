@@ -372,7 +372,7 @@ def is_64bit():
     """ Get whether the OS is 64 bit. On WIndows yields what it *really*
     is, not what the process is.
     """
-    if sys.platform.startswith('win'):
+    if False:#sys.platform.startswith('win'):  ARG, causes problems with subprocess
         if 'PROCESSOR_ARCHITEW6432' in os.environ:
             return True
         return os.environ['PROCESSOR_ARCHITECTURE'].endswith('64')
