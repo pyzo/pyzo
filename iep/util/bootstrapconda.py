@@ -18,7 +18,7 @@ from pyzolib import paths
 import iep
 
 
-base_url = 'https://repo.continuum.io/miniconda/'
+base_url = 'http://repo.continuum.io/miniconda/'
 links = {'win32': 'Miniconda3-latest-Windows-x86.exe',
          'win64': 'Miniconda3-latest-Windows-x86_64.exe',
          'osx64': 'Miniconda3-latest-MacOSX-x86_64.sh',
