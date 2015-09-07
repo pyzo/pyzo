@@ -100,13 +100,16 @@ class IepHistoryViewer(HistoryViewer):
 class History(QtGui.QStringListModel):
     markerPrefix = None # Text to prepend to the marker, or None for no marker
     maxLines = 100 # Only enforced upon loading
-    def __init__(self, filename):
+    def __init__(self, fname):
         super().__init__()
         
         self._file = None
         
         try:
-            file = self._file = open(os.path.join(iep.appDataDir, filename), 'r+', encoding = 'utf-8')
+            filename = os.path.join(iep.appDataDir, fname)
+            if not os.path.isfile(filename):
+                open(filename, 'wt').close()
+            file = self._file = open(filename, 'r+', encoding = 'utf-8')
         
             # Truncate the file to my max number of lines
             lines = file.readlines()
