@@ -258,8 +258,10 @@ class PythonParser(Parser):
         # Comment
         if match.group() == '#':
             matchStart = match.start()
-            if ( line[matchStart:].startswith('##') and 
-                    not line[:matchStart].strip() ):
+            if not line[:matchStart].strip() and (
+                   line[matchStart:].startswith('##') or 
+                   line[matchStart:].startswith('#%%') or 
+                   line[matchStart:].startswith('# %%')):
                 tokens.append( CellCommentToken(line,matchStart,len(line)) )
             elif self._isTodoItem(line[matchStart+1:]):
                 tokens.append( TodoCommentToken(line,matchStart,len(line)) )

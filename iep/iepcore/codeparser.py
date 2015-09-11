@@ -415,8 +415,13 @@ class Parser(threading.Thread):
             line = tmp.rstrip()
             
             # Detect cells
-            if line.startswith('##'):
-                name = line[2:].lstrip()            
+            if line.startswith('##') or line.startswith('#%%') or line.startswith('# %%'):
+                if line.startswith('##'):
+                    name = line[2:].lstrip()
+                elif line.startswith('#%%'):
+                    name = line[3:].lstrip()
+                else:
+                    name = line[4:].lstrip()
                 item = FictiveObject('cell', i, indent, name)
                 leafs.append(item)
                 # Next! (we have to put this before the elif stuff below

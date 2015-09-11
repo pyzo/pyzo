@@ -214,8 +214,8 @@ class IepSourceStructure(QtGui.QWidget):
                 if not type in showTypes:
                     continue
                 # Construct text
-                if type=='cell':
-                    type = '##'
+                if type in ('cell', '##', '#%%', '# %%'):
+                    type = 'cell:'
                 elif type=='attribute':
                     type = 'attr'
                 #
