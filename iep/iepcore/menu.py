@@ -1400,14 +1400,14 @@ class RunMenu(Menu):
         runCursor.movePosition(runCursor.StartOfBlock)
         while True:
             line = runCursor.block().text().lstrip()
-            if line.startswith('##'):
+            if line.startswith('##') or line.startswith('#%%') or line.startswith('# %%'):
                 # ## line, move to the line following this one
                 if not runCursor.block().next().isValid():
                     #The user tried to execute the last line of a file which
                     #started with ##. Do nothing
                     return
                 runCursor.movePosition(runCursor.NextBlock)
-                cellName = line.lstrip('#').strip()
+                cellName = line.lstrip('#% ').strip()
                 break
             if not runCursor.block().previous().isValid():
                 break #Start of document
@@ -1421,7 +1421,8 @@ class RunMenu(Menu):
         # Move down until a line before one starting with'##' 
         # or to end of document
         while True:
-            if runCursor.block().text().lstrip().startswith('##'):
+            line = runCursor.block().text().lstrip()
+            if line.startswith('##') or line.startswith('#%%') or line.startswith('# %%'):
                 #This line starts with ##, move to the end of the previous one
                 runCursor.movePosition(runCursor.Left,runCursor.KeepAnchor)
                 break
