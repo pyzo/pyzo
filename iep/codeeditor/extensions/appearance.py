@@ -59,7 +59,7 @@ class HighlightMatchingOccurrences(object):
         painter.setPen(color.darker(110))
         
         # find occurrences
-        while True:
+        for i in range(500):
             cursor = doc.find(text, cursor,
                 doc.FindCaseSensitively | doc.FindWholeWords)
             if cursor is None or cursor.isNull():
@@ -75,7 +75,7 @@ class HighlightMatchingOccurrences(object):
                 # rest of document is not visible, don't bother highlighting
                 break
             
-            cursor.movePosition(cursor.Left, n=len(text))
+            cursor.setPosition(min(cursor.position(), cursor.anchor()))
             startRect = self.cursorRect(cursor)
             width = endRect.left() - startRect.left()
             painter.drawRect(startRect.left(), startRect.top(), width, 
@@ -83,6 +83,8 @@ class HighlightMatchingOccurrences(object):
                 
             # move to end of word again, otherwise we never advance in the doc
             cursor.movePosition(cursor.EndOfWord)
+        else:
+            print('Matching selection highlighting did not break')
             
         painter.end()
 
