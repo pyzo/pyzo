@@ -265,6 +265,8 @@ class IepInterpreter:
         
         # Write Python banner (to stdout)
         thename = 'Python'
+        if sys.version_info[0] == 2:
+            thename = 'Legacy Python'
         if '__pypy__' in sys.builtin_module_names:
             thename = 'Pypy'
         if sys.platform.startswith('java'):
