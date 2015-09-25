@@ -1416,7 +1416,9 @@ class PythonShell(BaseShell):
         # Do any actions?
         action = self._strm_action.recv(False)
         if action:
-            if action.startswith('open '):
+            if action == 'cls':
+                self.clearScreen()
+            elif action.startswith('open '):
                 parts = action.split(' ')
                 parts.pop(0)
                 try:

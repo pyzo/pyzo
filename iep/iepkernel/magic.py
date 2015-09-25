@@ -37,6 +37,7 @@ MESSAGE = """List of *magic* commands:
     pip             - manage packages using pip
     conda           - manage packages using conda
     db X            - debug commands
+    cls             - clear screen
 """
 
 
@@ -127,6 +128,9 @@ class Magician:
         
         elif command.startswith('PIP'):
             return self.pip(line, command)
+        
+        elif command == 'CLS':
+            return self.cls(line, command)
         
         elif command.startswith('OPEN '):
             return self.open(line, command)
@@ -295,6 +299,9 @@ class Magician:
         print(text)
         return ''
     
+    def cls(self, line, command):
+        sys._iepInterpreter.context._strm_action.send('cls')
+        return ''
     
     def open(self, line, command):
         
