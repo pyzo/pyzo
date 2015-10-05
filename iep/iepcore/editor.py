@@ -629,7 +629,7 @@ class IepEditor(BaseTextCtrl):
         #Apply this function to all blocks
         self.doForSelectedBlocks(uncommentBlock)
 
-     def gotoDef(self):
+    def gotoDef(self):
         """
         Goto the definition for the word under the cursor
         """
