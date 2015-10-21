@@ -163,7 +163,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Create floater for shell
         self._shellDock = dock = QtGui.QDockWidget(self)
-        dock.setFeatures(dock.DockWidgetMovable | dock.DockWidgetFloatable)
+        dock.setFeatures(dock.DockWidgetMovable)
         dock.setObjectName('shells')
         dock.setWindowTitle('Shells')
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
