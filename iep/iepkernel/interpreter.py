@@ -26,6 +26,7 @@ We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
 import os
 import sys
 import time
+import logging
 import platform
 import struct
 import shlex
@@ -345,6 +346,18 @@ class IepInterpreter:
         if sys.platform == "darwin" and LV(platform.mac_ver()[0]) >= LV("10.9"):
             from iepkernel import _nope
             _nope.nope()
+        
+        # Setup post-mortem debugging via appropriately logged exceptions
+        class PMHandler(logging.Handler):
+            def emit(self, record):
+                if record.exc_info:
+                    sys.last_type, sys.last_value, sys.last_traceback = record.exc_info
+                return record
+        #
+        root_logger = logging.getLogger()
+        if not root_logger.handlers:
+            root_logger.addHandler(logging.StreamHandler())
+        root_logger.addHandler(PMHandler())
     
     
     def _prepare_environment(self, startup_info):
@@ -561,7 +574,7 @@ class IepInterpreter:
         # Prompt is allowed to be an object with __str__ method
         if self.newPrompt:
             self.newPrompt = False
-            ps = sys.ps2 if self.more else sys.ps1
+            ps = [sys.ps1, sys.ps2][bool(self.more)]
             self.context._strm_prompt.send(str(ps))
         
         if True:
