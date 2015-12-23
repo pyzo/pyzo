@@ -59,15 +59,26 @@ class App_base:
         every sleeptime seconds.
         """
         
+        _sleeptime = sleeptime
+        
         # The toplevel while-loop is just to catch Keyboard interrupts
         # and then proceed. The inner while-loop is the actual event loop.
         while True:
             try:
                 
                 while True:
-                    time.sleep(sleeptime)
+                    time.sleep(_sleeptime)
                     repl_callback()
+                    
+                    t0 = time.time()
                     self.process_events()
+                    ptime = time.time() - t0
+                    
+                    # Throttle
+                    if ptime > 0.001:
+                        _sleeptime = 0.0
+                    else:
+                        _sleeptime = min(_sleeptime + 0.0001, sleeptime)
             
             except KeyboardInterrupt:
                 self._keyboard_interrupt()
