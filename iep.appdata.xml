@@ -32,4 +32,10 @@
  </screenshots>
  <url type="homepage">http://iep-project.org</url>
  <updatecontact>almar.klein@gmail.com</updatecontact>
+ <keywords>
+    <keyword>Python</keyword>
+    <keyword>IDE</keyword>
+    <keyword>science</keyword>
+    <keyword>interactive</keyword>
+ </keywords>
 </application>
