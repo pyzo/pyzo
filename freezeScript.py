@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-# Copyright (C) 2013, the IEP development team
+# Copyright (C) 2013, the Pyzo development team
 #
-# IEP is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" FREEZING IEP WITH CX_FREEZE
+""" FREEZING Pyzo WITH CX_FREEZE
 This script can be run as a script (no need to do distutils stuff...)
 
-Iep is frozen in such a way that it still uses the plain source code.
-This is achieved by putting the IEP package in a subdirectory called
+Pyzo is frozen in such a way that it still uses the plain source code.
+This is achieved by putting the Pyzo package in a subdirectory called
 "source". This source directory is added to sys.path by __main__.py.
 
 For distribution:
   * Write release notes
   * Update __version__
   * Build binaries for Windows, Linux and Mac
-  * Upload binaries to iep website
+  * Upload binaries to pyzo website
   * Upload source to pypi
   * Announce
     
@@ -30,12 +30,12 @@ import cx_Freeze
 from cx_Freeze import Executable, Freezer, setup
 
 # Define app name and such
-name = "iep"
+name = "pyzo"
 baseDir = os.path.abspath('') + '/'
-srcDir = baseDir + 'iep/'
+srcDir = baseDir + 'pyzo/'
 distDir = baseDir + 'frozen/'
 scriptFiles = [srcDir + '__main__.py']
-iconFile = srcDir + 'resources/appicons/ieplogo.ico'
+iconFile = srcDir + 'resources/appicons/pyzologo.ico'
 
 # On MAC, build an application bundle
 if sys.platform=='darwin':
@@ -105,14 +105,14 @@ for scriptFile in scriptFiles:
     
     if sys.platform.startswith('win'):
         ex = Executable(    scriptFile, 
-                            targetName = 'iep.exe',
+                            targetName = 'pyzo.exe',
                             icon=iconFile,
                             appendScriptToExe = True,
                             base = 'Win32GUI', # this is what hides the console                            
                             )
     else:
         ex = Executable(    scriptFile, 
-                            targetName = 'iep',
+                            targetName = 'pyzo',
                         )
     executables[ex] = True
 
@@ -201,12 +201,12 @@ def copydir_smart(path1, path2):
 if sys.platform.startswith('win'):
     install_c_runtime(distDir)
 
-# Copy the whole IEP package
-copydir_smart(os.path.join(srcDir), os.path.join(distDir, 'source', 'iep'))
+# Copy the whole Pyzo package
+copydir_smart(os.path.join(srcDir), os.path.join(distDir, 'source', 'pyzo'))
 
 # Remove dummy executable
-tmp1 = os.path.join(distDir,'iep_.exe')
-tmp2 = os.path.join(distDir,'iep_')
+tmp1 = os.path.join(distDir,'pyzo_.exe')
+tmp2 = os.path.join(distDir,'pyzo_')
 for fname in [tmp1, tmp2]:
     if os.path.isfile(fname):
         os.remove(fname)
@@ -249,7 +249,7 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 from pyzolib import dllutils
 if sys.platform.startswith('linux'):
     # Exe
-    dllutils.set_search_path(os.path.join(distDir, 'iep'), '', 'lib')
+    dllutils.set_search_path(os.path.join(distDir, 'pyzo'), '', 'lib')
     # Libs
     os.mkdir(os.path.join(distDir, 'lib'))
     for entry in os.listdir(distDir):
@@ -352,7 +352,7 @@ if applicationBundle:
     #Copy the icons
     if not os.path.isdir(resourcesDir):
         os.mkdir(resourcesDir)
-    shutil.copy(srcDir+'resources/appicons/ieplogo.icns',resourcesDir+'iep.icns')
+    shutil.copy(srcDir+'resources/appicons/pyzologo.icns',resourcesDir+'pyzo.icns')
     shutil.copy(srcDir+'resources/appicons/py.icns',resourcesDir+'py.icns')
     
     #Write qt.conf in the Resources dir
@@ -368,12 +368,12 @@ if applicationBundle:
 
 
     #Package in a dmg
-    dmgFile=appDir+'iep.dmg'
+    dmgFile=appDir+'pyzo.dmg'
 
     # Create the dmg
     if createDmg:
         if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
             '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
-            '-srcfolder',appDir,'-volname', 'iep')!=0:
+            '-srcfolder',appDir,'-volname', 'pyzo')!=0:
             raise OSError('creation of the dmg failed')
 

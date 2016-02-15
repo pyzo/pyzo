@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIconFile</key>
-	<string>iep.icns</string>
+	<string>pyzo.icns</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>iep</string>
+	<string>pyzo</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

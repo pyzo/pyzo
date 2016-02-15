@@ -1,15 +1,15 @@
-; Inno setup file to create a windows installer for IEP
+; Inno setup file to create a windows installer for Pyzo
 
 [Setup]
-AppName = iep
-AppId = iep
-AppVerName = iep version X.Y.Z
-DefaultDirName = {pf}\iep
-DefaultGroupName = iep
+AppName = pyzo
+AppId = pyzo
+AppVerName = pyzo version X.Y.Z
+DefaultDirName = {pf}pyzo
+DefaultGroupName = pyzo
 
 SourceDir = frozen/
 OutputDir = ../
-OutputBaseFilename = iep-X.Y.Z.win32
+OutputBaseFilename = pyzo-X.Y.Z.win32
 
 ; When set to none, Setup will only run with administrative privileges if it 
 ; was started by a member of the Administrators group.
@@ -33,12 +33,12 @@ Name: icon; Description: "Desktop Icon"
 Name: mypAssociation; Description: "Associate "".py"" extension (need admin privileges)"
 
 [Icons]
-Name: "{commondesktop}\iep"; Filename: "{app}\iep.exe"; IconFilename: "{app}\iep.exe"; Workingdir: "{app}"; Tasks: icon;
+Name: "{commondesktop}\pyzo"; Filename: "{app}\pyzo.exe"; IconFilename: "{app}\pyzo.exe"; Workingdir: "{app}"; Tasks: icon;
 
 [Registry]
-Root: HKCR; Subkey: ".py"; ValueType: string; ValueName: ""; ValueData: "IEP_python"; Flags: uninsdeletevalue; Tasks: mypAssociation 
+Root: HKCR; Subkey: ".py"; ValueType: string; ValueName: ""; ValueData: "PYZO_python"; Flags: uninsdeletevalue; Tasks: mypAssociation 
 
-Root: HKCR; Subkey: "IEP_python"; ValueType: string; ValueName: ""; ValueData: "Interactive Editor for Python"; Flags: uninsdeletekey;  Tasks: mypAssociation 
-Root: HKCR; Subkey: "IEP_python\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\source\iep\resources\appicons\py.ico";  Tasks: mypAssociation 
-Root: HKCR; Subkey: "IEP_python\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\iep.exe"" ""%1""";  Tasks: mypAssociation 
+Root: HKCR; Subkey: "PYZO_python"; ValueType: string; ValueName: ""; ValueData: "Interactive Editor for Python"; Flags: uninsdeletekey;  Tasks: mypAssociation 
+Root: HKCR; Subkey: "PYZO_python\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\source\pyzo\resources\appicons\py.ico";  Tasks: mypAssociation 
+Root: HKCR; Subkey: "PYZO_python\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\pyzo.exe"" ""%1""";  Tasks: mypAssociation 
 

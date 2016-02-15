@@ -5,17 +5,17 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" ieplauncher.py script
+""" pyzolauncher.py script
 
-This is a script used to startup IEP. Added for convenience.
+This is a script used to startup Pyzo. Added for convenience.
 
-IEP can be installed as a package, but it does not have to. You can
-start IEP in a few different ways:
-  * execute this script (ieplauncher.py)
-  * execute the iep directory (Python will seek out iep/__main__.py)
-  * execute the iep package ("python -m iep")
+Pyzo can be installed as a package, but it does not have to. You can
+start Pyzo in a few different ways:
+  * execute this script (pyzolauncher.py)
+  * execute the pyzo directory (Python will seek out pyzo/__main__.py)
+  * execute the pyzo package ("python -m pyzo")
 
-Only in the latter must IEP be installed.
+Only in the latter must Pyzo be installed.
 
 """
 
@@ -31,5 +31,5 @@ except ImportError:
     pass
 
 
-import iep
-iep.startIep()
+import pyzo
+pyzo.start()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Setup script for the IEP package.
+""" Setup script for the Pyzo package.
 """
 
 
@@ -13,7 +13,7 @@ except ImportError:
     from distutils.core import setup
 
 
-name = 'iep'
+name = 'pyzo'
 description = 'the interactive editor for Python'
 
 
@@ -21,7 +21,7 @@ description = 'the interactive editor for Python'
 __version__ = None
 __doc__ = ''
 docStatus = 0 # Not started, in progress, done
-initFile = os.path.join(os.path.dirname(__file__), 'iep', '__init__.py')
+initFile = os.path.join(os.path.dirname(__file__), 'pyzo', '__init__.py')
 for line in open(initFile).readlines():
     if (line.startswith('__version__')):
         exec(line.strip())
@@ -42,23 +42,23 @@ setup(
     author_email = 'almar.klein@gmail.com',
     license = '(new) BSD',
 
-    url = 'http://www.iep-project.org',
-    download_url = 'http://www.iep-project.org/downloads.html',
+    url = 'http://www.pyzo.org',
+    download_url = 'http://www.pyzo.org/downloads.html',
     keywords = "Python interactive IDE Qt science",
     description = description,
     long_description = __doc__,
 
     platforms = 'any',
-    provides = ['iep'],
+    provides = ['pyzo'],
     install_requires = [], # and 'PySide' or 'PyQt4'
 
-    packages = ['iep', 'iep.iepcore', 'iep.iepkernel', 'iep.util',
-                'iep.tools', 'iep.tools.iepFileBrowser',
-                'iep.codeeditor', 'iep.codeeditor.parsers', 'iep.codeeditor.extensions',
-                'iep.yoton', 'iep.yoton.channels',
+    packages = ['pyzo', 'pyzo.core', 'pyzo.pyzokernel', 'pyzo.util',
+                'pyzo.tools', 'pyzo.tools.pyzoFileBrowser',
+                'pyzo.codeeditor', 'pyzo.codeeditor.parsers', 'pyzo.codeeditor.extensions',
+                'pyzo.yoton', 'pyzo.yoton.channels',
                ],
-    package_dir = {'iep': 'iep'},
-    package_data = {'iep': ['license.txt', 'contributors.txt',
+    package_dir = {'pyzo': 'pyzo'},
+    package_data = {'pyzo': ['license.txt', 'contributors.txt',
                             'resources/*.*',
                             'resources/icons/*.*', 'resources/appicons/*.*',
                             'resources/images/*.*', 'resources/fonts/*.*',
@@ -79,14 +79,14 @@ setup(
           'Programming Language :: Python :: 3',
           ],
         
-    entry_points = {'console_scripts': ['iep = iep.__main__',], },
+    entry_points = {'console_scripts': ['pyzo = pyzo.__main__',], },
     )
 
 
 # Install appdata.xml on Linux if we are installing in the system Python
 if sys.platform.startswith('linux') and sys.prefix.startswith('/usr'):
     if len(sys.argv) >= 2 and sys.argv[1] == 'install':
-        fname = 'iep.appdata.xml'
+        fname = 'pyzo.appdata.xml'
         filename1 = os.path.join(os.path.dirname(__file__), fname)
         filename2 = os.path.join('/usr/share/appdata', fname)
         try:

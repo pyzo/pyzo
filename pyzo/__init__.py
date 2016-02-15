@@ -5,20 +5,20 @@
 # IEP is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" Package iep
+""" Package pyzo
 
-IEP (pronounced as 'eep') is a cross-platform Python IDE focused on
+Pyzo is a cross-platform Python IDE focused on
 interactivity and introspection, which makes it very suitable for
 scientific computing. Its practical design is aimed at simplicity and
 efficiency.
 
-IEP is written in Python 3 and Qt. Binaries are available for Windows,
+Pyzo is written in Python 3 and Qt. Binaries are available for Windows,
 Linux, and Mac. For questions, there is a discussion group.
 
 Two components + tools
 ----------------------
 
-IEP consists of two main components, the editor and the shell, and uses
+Pyzo consists of two main components, the editor and the shell, and uses
 a set of pluggable tools to help the programmer in various ways. Some
 example tools are source structure, project manager, interactive help,
 and workspace.
@@ -53,22 +53,22 @@ import locale
 
 # Check Python version
 if sys.version < '3':
-    raise RuntimeError('IEP requires Python 3.x to run.')
+    raise RuntimeError('Pyzo requires Python 3.x to run.')
 
 # Check pyzolib version
 import pyzolib
 if pyzolib.__version__ < '0.2.5':
-    raise RuntimeError('IEP requires Pyzolib 0.2.5 or higher.')
+    raise RuntimeError('Pyzo requires Pyzolib 0.2.5 or higher.')
 elif pyzolib.__version__ < '0.2.9':
-    print('Warning: pyzolib 0.2.9 is recommended to run IEP.')
+    print('Warning: pyzolib 0.2.9 is recommended to run Pyzo.')
 
 # Import yoton as an absolute package
-from iep import yotonloader
+from pyzo import yotonloader
 
-# If there already is an instance of IEP, and the user is trying an 
-# IEP command, we should send the command to the other process and quit.
+# If there already is an instance of Pyzo, and the user is trying an 
+# Pyzo command, we should send the command to the other process and quit.
 # We do this here, were we have not yet loaded Qt, so we are very light.
-from iep.iepcore import commandline
+from pyzo.core import commandline
 if commandline.is_our_server_running():
     print('Started our command server')
 else:
@@ -86,12 +86,12 @@ from pyzolib import ssdf, paths
 from pyzolib.qt import QtCore, QtGui
 
 # Import language/translation tools
-from iep.util._locale import translate, setLanguage
+from pyzo.util._locale import translate, setLanguage
 
 # Set environ to let kernel know some stats about us
-os.environ['IEP_PREFIX'] = sys.prefix
+os.environ['PYZO_PREFIX'] = sys.prefix
 _is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR') 
-os.environ['IEP_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
+os.environ['PYZO_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
 
 
 class MyApp(QtGui.QApplication):
@@ -101,7 +101,7 @@ class MyApp(QtGui.QApplication):
     def event(self, event):
         if isinstance(event, QtGui.QFileOpenEvent):
             fname = str(event.file())
-            if fname and fname != 'iep':
+            if fname and fname != 'pyzo':
                 sys.argv[1:] = []
                 sys.argv.append(fname)
                 res = commandline.handle_cmd_args()
@@ -120,41 +120,41 @@ if not sys.platform.startswith('darwin'):
 
 def getResourceDirs():
     """ getResourceDirs()
-    Get the directories to the resources: (iepDir, appDataDir).
+    Get the directories to the resources: (pyzoDir, appDataDir).
     Also makes sure that the appDataDir has a "tools" directory and
     a style file.
     """
     
-#     # Get root of the IEP code. If frozen its in a subdir of the app dir 
-#     iepDir = paths.application_dir()
+#     # Get root of the Pyzo code. If frozen its in a subdir of the app dir 
+#     pyzoDir = paths.application_dir()
 #     if paths.is_frozen():
-#         iepDir = os.path.join(iepDir, 'source')
-    iepDir = os.path.abspath(os.path.dirname(__file__))
-    if '.zip' in iepDir:
-        raise RuntimeError('The IEP package cannot be run from a zipfile.')
+#         pyzoDir = os.path.join(pyzoDir, 'source')
+    pyzoDir = os.path.abspath(os.path.dirname(__file__))
+    if '.zip' in pyzoDir:
+        raise RuntimeError('The Pyzo package cannot be run from a zipfile.')
     
     # Get where the application data is stored (use old behavior on Mac)
     # todo: quick solution until I release a new pyzolib
     try:
-        appDataDir = paths.appdata_dir('iep', roaming=True, macAsLinux=True)
+        appDataDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
     except Exception:
-        appDataDir = paths.appdata_dir('iep', roaming=True)
+        appDataDir = paths.appdata_dir('pyzo', roaming=True)
     
     # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, 'tools')
     if not os.path.isdir(toolDir):
         os.mkdir(toolDir)
     
-    return iepDir, appDataDir
+    return pyzoDir, appDataDir
 
 
 def resetConfig(preserveState=True):
     """ resetConfig()
-    Replaces the config fyle with the default and prevent IEP from storing
+    Replaces the config fyle with the default and prevent Pyzo from storing
     its config on the next shutdown.
     """ 
     # Get filenames
-    configFileName1 = os.path.join(iepDir, 'resources', 'defaultConfig.ssdf')
+    configFileName1 = os.path.join(pyzoDir, 'resources', 'defaultConfig.ssdf')
     configFileName2 = os.path.join(appDataDir, 'config.ssdf')        
     # Read, edit, write
     tmp = ssdf.load(configFileName1)
@@ -163,7 +163,7 @@ def resetConfig(preserveState=True):
     ssdf.save(configFileName2, tmp)    
     global _saveConfigFile
     _saveConfigFile = False
-    print("Replaced config file. Restart IEP to revert to the default config.")
+    print("Replaced config file. Restart Pyzo to revert to the default config.")
 
 
 def loadConfig(defaultsOnly=False):
@@ -180,11 +180,11 @@ def loadConfig(defaultsOnly=False):
             else:
                 base[key] = new[key]
     
-    # Reset our iep.config structure
+    # Reset our pyzo.config structure
     ssdf.clear(config)
     
-    # Load default and inject in the iep.config
-    fname = os.path.join(iepDir, 'resources', 'defaultConfig.ssdf')
+    # Load default and inject in the pyzo.config
+    fname = os.path.join(pyzoDir, 'resources', 'defaultConfig.ssdf')
     defaultConfig = ssdf.load(fname)
     replaceFields(config, defaultConfig)
     
@@ -192,7 +192,7 @@ def loadConfig(defaultsOnly=False):
     if sys.platform == 'darwin':
         config.shortcuts2.view__select_previous_file = 'Alt+Tab,'
     
-    # Load user config and inject in iep.config
+    # Load user config and inject in pyzo.config
     fname = os.path.join(appDataDir, "config.ssdf")
     if os.path.isfile(fname):
         userConfig = ssdf.load(fname)
@@ -217,14 +217,13 @@ def saveConfig():
         ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
 
 
-def startIep():
-    """ startIep()
-    Run IEP.
+def start():
+    """ Run Pyzo.
     """
     
     # Do some imports
-    from iep.iepcore import iepLogging # to start logging asap
-    from iep.iepcore.main import MainWindow
+    from pyzo.core import pyzoLogging # to start logging asap
+    from pyzo.core.main import MainWindow
     
     # Apply users' preferences w.r.t. date representation etc
     # this is required for e.g. strftime("%c")
@@ -265,7 +264,7 @@ parser = None # The source parser
 status = None # The statusbar (or None)
 
 # Get directories of interest
-iepDir, appDataDir = getResourceDirs()
+pyzoDir, appDataDir = getResourceDirs()
 
 # Whether the config file should be saved
 _saveConfigFile = True
@@ -276,11 +275,11 @@ loadConfig()
 
 # Get license info
 # Yes, you could insert your custom dict here! But who would you be fooling?
-from iep.iepcore.license import get_license_info
+from pyzo.core.license import get_license_info
 license = get_license_info()
 del get_license_info
 
-# Init default style name (set in main.restoreIepState())
+# Init default style name (set in main.restorePyzoState())
 defaultQtStyleName = ''
 
 # Init default exe for the executable
