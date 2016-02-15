@@ -6,7 +6,7 @@
 
 """ Module editor
 
-Defines the IepEditor class which is used to edit documents.
+Defines the PyzoEditor class which is used to edit documents.
 This module/class also implements all the relatively low level
 file loading/saving /reloading stuff.
 
@@ -18,20 +18,20 @@ import re, codecs
 from pyzolib.qt import QtCore, QtGui
 qt = QtGui
 
-from iep.codeeditor import Manager
-from iep.iepcore.menu import EditorContextMenu
-from iep.iepcore.baseTextCtrl import BaseTextCtrl, normalizePath
-from iep.iepcore.iepLogging import print
-import iep
+from pyzo.codeeditor import Manager
+from pyzo.core.menu import EditorContextMenu
+from pyzo.core.baseTextCtrl import BaseTextCtrl, normalizePath
+from pyzo.core.pyzoLogging import print
+import pyzo
 
 
 
 # Set default line ending (if not set)
-if not iep.config.settings.defaultLineEndings:
+if not pyzo.config.settings.defaultLineEndings:
     if sys.platform.startswith('win'):
-        iep.config.settings.defaultLineEndings = 'CRLF'
+        pyzo.config.settings.defaultLineEndings = 'CRLF'
     else:
-        iep.config.settings.defaultLineEndings = 'LF'
+        pyzo.config.settings.defaultLineEndings = 'LF'
 
 
 def determineEncoding(bb):
@@ -176,7 +176,7 @@ def createEditor(parent, filename=None):
         newFileCounter  += 1
         
         # Create editor
-        editor = IepEditor(parent)
+        editor = PyzoEditor(parent)
         editor.document().setModified(True)
         
         # Set name
@@ -203,7 +203,7 @@ def createEditor(parent, filename=None):
         # if we got here safely ...
         
         # create editor and set text
-        editor = IepEditor(parent)
+        editor = PyzoEditor(parent)
         editor.setPlainText(text)
         editor.lineEndings = lineEndings
         editor.encoding = encoding
@@ -216,7 +216,7 @@ def createEditor(parent, filename=None):
         # process indentation
         indentWidth = determineIndentation(text)
         if indentWidth == -1: #Tabs
-            editor.setIndentWidth(iep.config.settings.defaultIndentWidth)
+            editor.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
             editor.setIndentUsingSpaces(False)
         elif indentWidth:
             editor.setIndentWidth(indentWidth)
@@ -232,13 +232,13 @@ def createEditor(parent, filename=None):
        editor.setParser(parser)
     else:
         # todo: rename style -> parser
-        editor.setParser(iep.config.settings.defaultStyle)
+        editor.setParser(pyzo.config.settings.defaultStyle)
     
     
     # return
     return editor
 
-class IepEditor(BaseTextCtrl):
+class PyzoEditor(BaseTextCtrl):
     
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.Signal()
@@ -251,21 +251,21 @@ class IepEditor(BaseTextCtrl):
         self._name = '<TMP>'
         
         # View settings
-        self.setShowWhitespace(iep.config.view.showWhitespace)
+        self.setShowWhitespace(pyzo.config.view.showWhitespace)
         #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
-        self.setShowLineEndings(iep.config.view.showLineEndings)
-        self.setShowIndentationGuides(iep.config.view.showIndentationGuides)
+        self.setShowLineEndings(pyzo.config.view.showLineEndings)
+        self.setShowIndentationGuides(pyzo.config.view.showIndentationGuides)
         #
-        self.setWrap(bool(iep.config.view.wrap))
-        self.setHighlightCurrentLine(iep.config.view.highlightCurrentLine)
-        self.setLongLineIndicatorPosition(iep.config.view.edgeColumn)
+        self.setWrap(bool(pyzo.config.view.wrap))
+        self.setHighlightCurrentLine(pyzo.config.view.highlightCurrentLine)
+        self.setLongLineIndicatorPosition(pyzo.config.view.edgeColumn)
         #TODO: self.setFolding( int(view.codeFolding)*5 )        
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
         
         # Set line endings to default
-        self.lineEndings = iep.config.settings.defaultLineEndings
+        self.lineEndings = pyzo.config.settings.defaultLineEndings
         
         # Set encoding to default
         self.encoding = 'UTF-8'
@@ -348,7 +348,7 @@ class IepEditor(BaseTextCtrl):
         """ Overloaded version of justifyText to make it use our
         configurable justificationwidth.
         """
-        super().justifyText(iep.config.settings.justificationWidth)
+        super().justifyText(pyzo.config.settings.justificationWidth)
     
     
     def showRunCursor(self, cursor):
@@ -428,7 +428,7 @@ class IepEditor(BaseTextCtrl):
         self.somethingChanged.emit()
         
     def _onModified(self):
-        iep.parser.parseThis(self)
+        pyzo.parser.parseThis(self)
     
     
     def dragMoveEvent(self, event):
@@ -446,7 +446,7 @@ class IepEditor(BaseTextCtrl):
         """ Drop files in the list. """   
         if event.mimeData().hasUrls():
             # file: let the editorstack do the work.
-            iep.editors.dropEvent(event)
+            pyzo.editors.dropEvent(event)
         else:
             # text: act normal
             BaseTextCtrl.dropEvent(self, event)
@@ -459,7 +459,7 @@ class IepEditor(BaseTextCtrl):
             BaseTextCtrl.showEvent(self, event)
         
         # Make parser update
-        iep.parser.parseThis(self)
+        pyzo.parser.parseThis(self)
     
     
     def setTitleInMainWindow(self):
@@ -468,9 +468,9 @@ class IepEditor(BaseTextCtrl):
         # compose title
         name, path = self._name, self._filename
         if path:
-            iep.main.setMainTitle(path)
+            pyzo.main.setMainTitle(path)
         else:
-            iep.main.setMainTitle(name)
+            pyzo.main.setMainTitle(name)
     
     
     def save(self, filename=None):
@@ -494,7 +494,7 @@ class IepEditor(BaseTextCtrl):
         scroll = self.verticalScrollBar().value()
         
         # Convert line endings (optionally remove trailing whitespace
-        if iep.config.settings.removeTrailingWhitespaceWhenSaving:
+        if pyzo.config.settings.removeTrailingWhitespaceWhenSaving:
             lines = [line.rstrip() for line in text.split('\n')]
             if lines[-1]:
                 lines.append('')  # Ensure the file ends in an empty line
@@ -641,7 +641,7 @@ class IepEditor(BaseTextCtrl):
         word = cursor.selection().toPlainText()
         
         # Send the open command to the shell
-        s = iep.shells.getCurrentShell()
+        s = pyzo.shells.getCurrentShell()
         if s is not None:
             if word and word.isidentifier():
                 s.executeCommand('open %s\n'%word)
@@ -659,13 +659,13 @@ class IepEditor(BaseTextCtrl):
             return
         
         # Try obtaining calltip from the source
-        sig = iep.parser.getFictiveSignature(cto.name, self, True)
+        sig = pyzo.parser.getFictiveSignature(cto.name, self, True)
         if sig:
             # Done
             cto.finish(sig)
         else:
             # Try the shell
-            shell = iep.shells.getCurrentShell()
+            shell = pyzo.shells.getCurrentShell()
             if shell:
                 shell.processCallTip(cto)
     
@@ -682,7 +682,7 @@ class IepEditor(BaseTextCtrl):
         nameForShell = aco.name
         
         # Get normal fictive namespace
-        fictiveNS = iep.parser.getFictiveNameSpace(self)
+        fictiveNS = pyzo.parser.getFictiveNameSpace(self)
         fictiveNS = set(fictiveNS)
         
         # Add names
@@ -690,7 +690,7 @@ class IepEditor(BaseTextCtrl):
             # "root" names
             aco.addNames(fictiveNS)
             # imports
-            importNames, importLines = iep.parser.getFictiveImports(self)
+            importNames, importLines = pyzo.parser.getFictiveImports(self)
             aco.addNames(importNames)
         else:
             # Prepare list of class names to check out
@@ -703,7 +703,7 @@ class IepEditor(BaseTextCtrl):
                     continue
                 if handleSelf or (className in fictiveNS):
                     # Only the self list (only first iter)
-                    fictiveClass = iep.parser.getFictiveClass(
+                    fictiveClass = pyzo.parser.getFictiveClass(
                         className, self, handleSelf)
                     handleSelf = False
                     if fictiveClass:
@@ -714,7 +714,7 @@ class IepEditor(BaseTextCtrl):
                     break
          
         # If there's a shell, let it finish the autocompletion
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell:
             aco.name = nameForShell # might be the same or a base class
             shell.processAutoComp(aco)
@@ -724,15 +724,15 @@ class IepEditor(BaseTextCtrl):
         
     
 if __name__=="__main__":
-    # Do some stubbing to run this module as a unit separate from iep
-    # TODO: untangle iep from this module where possible
+    # Do some stubbing to run this module as a unit separate from pyzo
+    # TODO: untangle pyzo from this module where possible
     class DummyParser:
         def parseThis(self, x):
             pass
-    iep.parser = DummyParser()    
+    pyzo.parser = DummyParser()    
     EditorContextMenu = QtGui.QMenu
     app = QtGui.QApplication([])
-    win = IepEditor(None)
+    win = PyzoEditor(None)
     QtGui.QShortcut(QtGui.QKeySequence("Ctrl+C"), win).activated.connect(win.copy)
     QtGui.QShortcut(QtGui.QKeySequence("Ctrl+X"), win).activated.connect(win.cut)
     QtGui.QShortcut(QtGui.QKeySequence("Ctrl+V"), win).activated.connect(win.paste)

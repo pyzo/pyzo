@@ -16,7 +16,7 @@ structure of a source file in for example a tree widget.
 
 import time, threading, re
 from pyzolib.qt import QtCore, QtGui
-import iep
+import pyzo
 
 
 # Define regular expression patterns
@@ -344,8 +344,8 @@ class Parser(threading.Thread):
                     self._lock.release()
                     
                     # Notify 
-                    if iep.editors is not None:
-                        iep.editors.parserDone.emit()
+                    if pyzo.editors is not None:
+                        pyzo.editors.parserDone.emit()
             
         except AttributeError:
             pass # when python exits, time can be None...

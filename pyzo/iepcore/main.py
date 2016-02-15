@@ -7,7 +7,7 @@
 """ Module main
 
 This module contains the main frame. Implements the main window.
-Also adds some variables to the iep namespace, such as the callLater
+Also adds some variables to the pyzo namespace, such as the callLater
 function which is also defined here.
 
 """
@@ -17,11 +17,11 @@ import base64
 from queue import Queue, Empty
 from pyzolib import ssdf, paths
 
-import iep
-from iep.iepcore.icons import IconArtist
-from iep.iepcore import commandline
+import pyzo
+from pyzo.core.icons import IconArtist
+from pyzo.core import commandline
 from pyzolib.qt import QtCore, QtGui
-from iep.iepcore.splash import SplashWidget
+from pyzo.core.splash import SplashWidget
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -37,7 +37,7 @@ class MainWindow(QtGui.QMainWindow):
         # updated)
         self.setMainTitle()
         loadAppIcons()
-        self.setWindowIcon(iep.icon)
+        self.setWindowIcon(pyzo.icon)
         
         # Restore window geometry before drawing for the first time,
         # such that the window is in the right place
@@ -63,7 +63,7 @@ class MainWindow(QtGui.QMainWindow):
             self.setLocale(locale)
         
         # Store myself
-        iep.main = self
+        pyzo.main = self
         
         # Init dockwidget settings
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtGui.QTabWidget.South)
@@ -102,18 +102,18 @@ class MainWindow(QtGui.QMainWindow):
         self.restoreState()
         
         # Present user with wizard if he/she is new.
-        if iep.config.state.newUser:
-            from iep.util.iepwizard import IEPWizard
-            w = IEPWizard(self)
-            w.show() # Use show() instead of exec_() so the user can interact with IEP
+        if pyzo.config.state.newUser:
+            from pyzo.util.pyzowizard import PyzoWizard
+            w = PyzoWizard(self)
+            w.show() # Use show() instead of exec_() so the user can interact with pyzo
         
         # Create new shell config if there is None
-        if not iep.config.shellConfigs2:
-            from iep.iepcore.kernelbroker import KernelInfo
-            iep.config.shellConfigs2.append( KernelInfo() )
+        if not pyzo.config.shellConfigs2:
+            from pyzo.core.kernelbroker import KernelInfo
+            pyzo.config.shellConfigs2.append( KernelInfo() )
         
         # Focus on editor
-        e = iep.editors.getCurrentEditor()
+        e = pyzo.editors.getCurrentEditor()
         if e is not None:
             e.setFocus()
         
@@ -140,26 +140,26 @@ class MainWindow(QtGui.QMainWindow):
     def _populate(self):
         
         # Delayed imports
-        from iep.iepcore.editorTabs import EditorTabs
-        from iep.iepcore.shellStack import ShellStackWidget
-        from iep.iepcore import codeparser
-        from iep.tools import ToolManager
+        from pyzo.core.editorTabs import EditorTabs
+        from pyzo.core.shellStack import ShellStackWidget
+        from pyzo.core import codeparser
+        from pyzo.tools import ToolManager
         
         # Instantiate tool manager
-        iep.toolManager = ToolManager()
+        pyzo.toolManager = ToolManager()
         
         # Check to install conda now ...
-        from iep.util.bootstrapconda import check_for_conda_env
+        from pyzo.util.bootstrapconda import check_for_conda_env
         check_for_conda_env()
         
         # Instantiate and start source-code parser
-        if iep.parser is None:
-            iep.parser = codeparser.Parser()
-            iep.parser.start()
+        if pyzo.parser is None:
+            pyzo.parser = codeparser.Parser()
+            pyzo.parser.start()
         
         # Create editor stack and make the central widget
-        iep.editors = EditorTabs(self)
-        self.setCentralWidget(iep.editors)
+        pyzo.editors = EditorTabs(self)
+        self.setCentralWidget(pyzo.editors)
         
         # Create floater for shell
         self._shellDock = dock = QtGui.QDockWidget(self)
@@ -169,35 +169,35 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
         
         # Create shell stack
-        iep.shells = ShellStackWidget(self)
-        dock.setWidget(iep.shells)
+        pyzo.shells = ShellStackWidget(self)
+        dock.setWidget(pyzo.shells)
         
         # Create the default shell when returning to the event queue
-        callLater(iep.shells.addShell)
+        callLater(pyzo.shells.addShell)
         
         # Create statusbar
-        if iep.config.view.showStatusbar:
-            iep.status = self.statusBar()
+        if pyzo.config.view.showStatusbar:
+            pyzo.status = self.statusBar()
         else:
-            iep.status = None
+            pyzo.status = None
             self.setStatusBar(None)
         
         # Create menu
-        from iep.iepcore import menu
-        iep.keyMapper = menu.KeyMapper()
+        from pyzo.core import menu
+        pyzo.keyMapper = menu.KeyMapper()
         menu.buildMenus(self.menuBar())
         
         # Add the context menu to the editor
-        iep.editors.addContextMenu()
-        iep.shells.addContextMenu()
+        pyzo.editors.addContextMenu()
+        pyzo.shells.addContextMenu()
         
         # Load tools
-        if iep.config.state.newUser and not iep.config.state.loadedTools:
-            iep.toolManager.loadTool('iepsourcestructure')
-            iep.toolManager.loadTool('iepfilebrowser', 'iepsourcestructure')
-        elif iep.config.state.loadedTools: 
-            for toolId in iep.config.state.loadedTools:
-                iep.toolManager.loadTool(toolId)
+        if pyzo.config.state.newUser and not pyzo.config.state.loadedTools:
+            pyzo.toolManager.loadTool('pyzosourcestructure')
+            pyzo.toolManager.loadTool('pyzofilebrowser', 'pyzosourcestructure')
+        elif pyzo.config.state.loadedTools: 
+            for toolId in pyzo.config.state.loadedTools:
+                pyzo.toolManager.loadTool(toolId)
     
     def setMainTitle(self, path=None):
         """ Set the title of the main window, by giving a file path.
@@ -217,11 +217,7 @@ class MainWindow(QtGui.QMainWindow):
             # Set title
             tmp = { 'fileName':name, 'filename':name, 'name':name,
                     'fullPath':path, 'fullpath':path, 'path':path }
-            title = iep.config.advanced.titleText.format(**tmp)
-        
-        # Add license info
-        if iep.license:
-           title += ' - licensed to {name}'.format(**iep.license)
+            title = pyzo.config.advanced.titleText.format(**tmp)
         
         # Set
         self.setWindowTitle(title)
@@ -235,8 +231,8 @@ class MainWindow(QtGui.QMainWindow):
         """
         
         # Save tool list
-        tools = iep.toolManager.getLoadedTools()
-        iep.config.state.loadedTools = tools
+        tools = pyzo.toolManager.getLoadedTools()
+        pyzo.config.state.loadedTools = tools
         
         # Store window geometry
         geometry = self.saveGeometry()
@@ -245,7 +241,7 @@ class MainWindow(QtGui.QMainWindow):
         except:
             geometry = bytes().join(geometry) # PySide
         geometry = base64.encodebytes(geometry).decode('ascii')
-        iep.config.state.windowGeometry = geometry
+        pyzo.config.state.windowGeometry = geometry
         
         # Store window state
         state = self.saveState()
@@ -254,7 +250,7 @@ class MainWindow(QtGui.QMainWindow):
         except:
             state = bytes().join(state) # PySide
         state = base64.encodebytes(state).decode('ascii')
-        iep.config.state.windowState = state
+        pyzo.config.state.windowState = state
     
     
     def restoreGeometry(self, value=None):
@@ -264,9 +260,9 @@ class MainWindow(QtGui.QMainWindow):
             return super().restoreGeometry(value)
         
         # No value give, try to get it from the config
-        if iep.config.state.windowGeometry:
+        if pyzo.config.state.windowGeometry:
             try:
-                geometry = iep.config.state.windowGeometry
+                geometry = pyzo.config.state.windowGeometry
                 geometry = base64.decodebytes(geometry.encode('ascii'))
                 self.restoreGeometry(geometry)  
             except Exception as err:
@@ -280,9 +276,9 @@ class MainWindow(QtGui.QMainWindow):
             return super().restoreState(value)
         
         # No value give, try to get it from the config
-        if iep.config.state.windowState:
+        if pyzo.config.state.windowState:
             try:
-                state = iep.config.state.windowState
+                state = pyzo.config.state.windowState
                 state = base64.decodebytes(state.encode('ascii'))
                 self.restoreState(state)
             except Exception as err:
@@ -303,23 +299,23 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.qApp.nativePalette = QtGui.qApp.palette()
             
             # Obtain default style name
-            iep.defaultQtStyleName = str(QtGui.qApp.style().objectName())
+            pyzo.defaultQtStyleName = str(QtGui.qApp.style().objectName())
             
             # Other than gtk+ and mac, cleanlooks looks best (in my opinion)
-            if 'gtk' in iep.defaultQtStyleName.lower():
+            if 'gtk' in pyzo.defaultQtStyleName.lower():
                 pass # Use default style
-            elif 'macintosh' in iep.defaultQtStyleName.lower():
+            elif 'macintosh' in pyzo.defaultQtStyleName.lower():
                 pass # Use default style
             else:
-                iep.defaultQtStyleName = 'Cleanlooks'
+                pyzo.defaultQtStyleName = 'Cleanlooks'
             
             # Set style if there is no style yet
-            if not iep.config.view.qtstyle:
-                iep.config.view.qtstyle = iep.defaultQtStyleName 
+            if not pyzo.config.view.qtstyle:
+                pyzo.config.view.qtstyle = pyzo.defaultQtStyleName 
         
         # Init
         if not stylename:
-            stylename = iep.config.view.qtstyle
+            stylename = pyzo.config.view.qtstyle
         useStandardStyle = False
         stylename2 = stylename
         
@@ -332,7 +328,7 @@ class MainWindow(QtGui.QMainWindow):
         # Check if this style exist, set to default otherwise
         styleNames = [name.lower() for name in QtGui.QStyleFactory.keys()]
         if stylename2.lower() not in styleNames:
-            stylename2 = iep.defaultQtStyleName
+            stylename2 = pyzo.defaultQtStyleName
         
         # Try changing the style
         qstyle = QtGui.qApp.setStyle(stylename2)
@@ -355,13 +351,13 @@ class MainWindow(QtGui.QMainWindow):
         restarting = time.time() - self._closeflag < 1.0
         
         # Save settings
-        iep.saveConfig()
+        pyzo.saveConfig()
         
         # Stop command server
         commandline.stop_our_server()
         
         # Proceed with closing...
-        result = iep.editors.closeAll()
+        result = pyzo.editors.closeAll()
         if not result:
             self._closeflag = False
             event.ignore()
@@ -371,13 +367,13 @@ class MainWindow(QtGui.QMainWindow):
             #event.accept()  # Had to comment on Windows+py3.3 to prevent error
         
         # Proceed with closing shells
-        iep.localKernelManager.terminateAll()
-        for shell in iep.shells:
+        pyzo.localKernelManager.terminateAll()
+        for shell in pyzo.shells:
             shell._context.close()
         
         # Close tools
-        for toolname in iep.toolManager.getLoadedTools():
-            tool = iep.toolManager.getTool(toolname) 
+        for toolname in pyzo.toolManager.getLoadedTools():
+            tool = pyzo.toolManager.getTool(toolname) 
             tool.close()
         
         # Stop all threads (this should really only be daemon threads)
@@ -408,7 +404,7 @@ class MainWindow(QtGui.QMainWindow):
     
     
     def restart(self):
-        """ Restart IEP. """
+        """ Restart Pyzo. """
         
         self._closeflag = time.time()
         
@@ -441,7 +437,7 @@ class MainWindow(QtGui.QMainWindow):
             action.setEnabled(False)
         
         # Insert tools
-        for tool in iep.toolManager.loadToolInfo():
+        for tool in pyzo.toolManager.loadToolInfo():
             action = menu.addAction(tool.name)
             action.setCheckable(True)
             action.setChecked(bool(tool.instance))
@@ -458,7 +454,7 @@ def loadAppIcons():
     Load the application iconsr.
     """
     # Get directory containing the icons
-    appiconDir =  os.path.join(iep.iepDir, 'resources', 'appicons')
+    appiconDir =  os.path.join(pyzo.pyzoDir, 'resources', 'appicons')
     
     # Determine template for filename of the application icon-files.
     fnameT = 'pyzologo{}.png'
@@ -466,26 +462,26 @@ def loadAppIcons():
     # Construct application icon. Include a range of resolutions. Note that
     # Qt somehow does not use the highest possible res on Linux/Gnome(?), even
     # the logo of qt-designer when alt-tabbing looks a bit ugly.
-    iep.icon = QtGui.QIcon()
+    pyzo.icon = QtGui.QIcon()
     for sze in [16, 32, 48, 64, 128, 256]:
         fname = os.path.join(appiconDir, fnameT.format(sze))
         if os.path.isfile(fname):
-            iep.icon.addFile(fname, QtCore.QSize(sze, sze))
+            pyzo.icon.addFile(fname, QtCore.QSize(sze, sze))
     
     # Set as application icon. This one is used as the default for all
     # windows of the application.
-    QtGui.qApp.setWindowIcon(iep.icon)
+    QtGui.qApp.setWindowIcon(pyzo.icon)
     
     # Construct another icon to show when the current shell is busy
-    artist = IconArtist(iep.icon) # extracts the 16x16 version
+    artist = IconArtist(pyzo.icon) # extracts the 16x16 version
     artist.setPenColor('#0B0')
     for x in range(11, 16):
         d = x-11 # runs from 0 to 4
         artist.addLine(x,6+d,x,15-d)
     pm = artist.finish().pixmap(16,16)
     #
-    iep.iconRunning = QtGui.QIcon(iep.icon)
-    iep.iconRunning.addPixmap(pm) # Change only 16x16 icon
+    pyzo.iconRunning = QtGui.QIcon(pyzo.icon)
+    pyzo.iconRunning.addPixmap(pm) # Change only 16x16 icon
 
 
 def loadIcons():
@@ -493,13 +489,13 @@ def loadIcons():
     Load all icons in the icon dir.
     """
     # Get directory containing the icons
-    iconDir = os.path.join(iep.iepDir, 'resources', 'icons')
+    iconDir = os.path.join(pyzo.pyzoDir, 'resources', 'icons')
     
     # Construct other icons
     dummyIcon = IconArtist().finish()
-    iep.icons = ssdf.new()
+    pyzo.icons = ssdf.new()
     for fname in os.listdir(iconDir):
-        if fname.startswith('iep'):
+        if fname.startswith('pyzo'):
             continue
         if fname.endswith('.png'):
             try:
@@ -510,26 +506,26 @@ def loadIcons():
                 icon = QtGui.QIcon() 
                 icon.addFile(ffname, QtCore.QSize(16,16))
                 # Store
-                iep.icons[name] = icon
+                pyzo.icons[name] = icon
             except Exception as err:
-                iep.icons[name] = dummyIcon
+                pyzo.icons[name] = dummyIcon
                 print('Could not load icon %s: %s' % (fname, str(err)))
 
 
 def loadFonts():
     """ loadFonts()
-    Load all fonts that come with IEP.
+    Load all fonts that come with Pyzo.
     """
-    import iep.codeeditor  # we need iep and codeeditor namespace here
+    import pyzo.codeeditor  # we need pyzo and codeeditor namespace here
     
     # Get directory containing the icons
-    fontDir = os.path.join(iep.iepDir, 'resources', 'fonts')
+    fontDir = os.path.join(pyzo.pyzoDir, 'resources', 'fonts')
     
     # Get database object
     db = QtGui.QFontDatabase()
     
     # Set default font
-    iep.codeeditor.Manager.setDefaultFontFamily('DejaVu Sans Mono')
+    pyzo.codeeditor.Manager.setDefaultFontFamily('DejaVu Sans Mono')
     
     # Load fonts that are in the fonts directory
     if os.path.isdir(fontDir):
@@ -570,9 +566,9 @@ def callLater(callback, *args):
     """
     _callbackEventHandler.postEventWithCallback(callback, *args)
     
-# Create callback event handler instance and insert function in IEP namespace
+# Create callback event handler instance and insert function in pyzo namespace
 _callbackEventHandler = _CallbackEventHandler()   
-iep.callLater = callLater
+pyzo.callLater = callLater
 
 
 _SCREENSHOT_CODE = """
@@ -608,9 +604,9 @@ g.append_random()
 """
 
 def screenshotExample(width=1244, height=700):
-    e = iep.editors.newFile()
+    e = pyzo.editors.newFile()
     e.editor.setPlainText(_SCREENSHOT_CODE)
-    iep.main.resize(width, height)
+    pyzo.main.resize(width, height)
 
 def screenshot(countdown=5):
     QtCore.QTimer.singleShot(countdown*1000, _screenshot)
@@ -618,12 +614,12 @@ def screenshot(countdown=5):
 def _screenshot():
     # Grab
     print('SNAP!')
-    pix = QtGui.QPixmap.grabWindow(iep.main.winId())
-    #pix = QtGui.QPixmap.grabWidget(iep.main)
+    pix = QtGui.QPixmap.grabWindow(pyzo.main.winId())
+    #pix = QtGui.QPixmap.grabWidget(pyzo.main)
     # Get name
     i = 1
     while i > 0:
-        name = 'iep_screen_%s_%02i.png' % (sys.platform, i)
+        name = 'pyzo_screen_%s_%02i.png' % (sys.platform, i)
         fname = os.path.join(os.path.expanduser('~'), name)
         if os.path.isfile(fname):
             i += 1
@@ -635,5 +631,5 @@ def _screenshot():
     thumb.save(fname.replace('screen', 'thumb'))
     print('Screenshot and thumb saved in', os.path.expanduser('~'))
 
-iep.screenshot = screenshot
-iep.screenshotExample = screenshotExample
+pyzo.screenshot = screenshot
+pyzo.screenshotExample = screenshotExample

@@ -20,12 +20,12 @@ from pyzolib import paths
 
 from pyzolib.qt import QtCore, QtGui
 
-import iep
-from iep.iepcore.compactTabWidget import CompactTabWidget
-from iep.iepcore.iepLogging import print
-from iep.iepcore.assistant import IepAssistant
+import pyzo
+from pyzo.core.compactTabWidget import CompactTabWidget
+from pyzo.core.pyzoLogging import print
+from pyzo.core.assistant import PyzoAssistant
 import webbrowser
-from iep import translate
+from pyzo import translate
 
 
 
@@ -82,18 +82,18 @@ def buildMenus(menuBar):
 # - Default parser / indentation (width and tabsOrSpaces) / line endings
 # - Shell wrapping to 80 columns?
 # - number of lines in shell
-# - more stuff from iep.config.advanced?
+# - more stuff from pyzo.config.advanced?
 
 
 def getShortcut(fullName):
     """ Given the full name or an action, get the shortcut
-    from the iep.config.shortcuts2 dict. A tuple is returned
+    from the pyzo.config.shortcuts2 dict. A tuple is returned
     representing the two shortcuts. """
     if isinstance(fullName, QtGui.QAction):
         fullName = fullName.menuPath # the menuPath property is set in Menu._addAction
     shortcut = '', ''
-    if fullName in iep.config.shortcuts2:
-        shortcut = iep.config.shortcuts2[fullName]
+    if fullName in pyzo.config.shortcuts2:
+        shortcut = pyzo.config.shortcuts2[fullName]
         if shortcut.count(','):
             shortcut = tuple(shortcut.split(','))
         else:
@@ -122,8 +122,8 @@ def translateShortcutToOSNames(shortcut):
 
 class KeyMapper(QtCore.QObject):
     """
-    This class is accessable via iep.keyMapper
-    iep.keyMapper.keyMappingChanged is emitted when keybindings are changed
+    This class is accessable via pyzo.keyMapper
+    pyzo.keyMapper.keyMappingChanged is emitted when keybindings are changed
     """
     
     keyMappingChanged = QtCore.Signal()
@@ -132,11 +132,11 @@ class KeyMapper(QtCore.QObject):
         """
         When an action is created or when keymappings are changed, this method
         is called to set the shortcut of an action based on its menuPath
-        (which is the key in iep.config.shortcuts2, e.g. shell__clear_screen)
+        (which is the key in pyzo.config.shortcuts2, e.g. shell__clear_screen)
         """
-        if action.menuPath in iep.config.shortcuts2:
+        if action.menuPath in pyzo.config.shortcuts2:
             # Set shortcut so Qt can do its magic
-            shortcuts = iep.config.shortcuts2[action.menuPath]
+            shortcuts = pyzo.config.shortcuts2[action.menuPath]
             action.setShortcuts(shortcuts.split(','))
             # Also store shortcut text (used in display of tooltip
             shortcuts = shortcuts.replace(',',', ').replace('  ', ' ')
@@ -250,8 +250,8 @@ class Menu(QtGui.QMenu):
         a.menuPath = self.menuPath + '__' + self._createMenuPathName(key)
         
         # Register the action so its keymap is kept up to date
-        iep.keyMapper.keyMappingChanged.connect(lambda: iep.keyMapper.setShortcut(a))
-        iep.keyMapper.setShortcut(a)
+        pyzo.keyMapper.keyMappingChanged.connect(lambda: pyzo.keyMapper.setShortcut(a))
+        pyzo.keyMapper.setShortcut(a)
         
         return a
     
@@ -423,19 +423,19 @@ class IndentationMenu(Menu):
             ]
     
     def _setWidth(self, width):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
             editor.setIndentWidth(width)
 
     def _setStyle(self, style):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
             editor.setIndentUsingSpaces(style)
 
 
 class FileMenu(Menu):
     def build(self):
-        icons = iep.icons
+        icons = pyzo.icons
         
         self._items = []
         
@@ -444,7 +444,7 @@ class FileMenu(Menu):
         self._indentMenu = IndentationMenu(self, t)
         
         # Create parser menu
-        from iep import codeeditor
+        from pyzo import codeeditor
         t = translate("menu", "Syntax parser ::: The syntax parser of the current file.")
         self._parserMenu = GeneralOptionsMenu(self, t, self._setParser)
         self._parserMenu.setOptions(['None'] + codeeditor.Manager.getParserNames())
@@ -459,26 +459,26 @@ class FileMenu(Menu):
         self._encodingMenu = GeneralOptionsMenu(self, t, self._setEncoding)
         
         # Bind to signal
-        iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
+        pyzo.editors.currentChanged.connect(self.onEditorsCurrentChanged)
         
         
         # Build menu file management stuff
         self.addItem(translate('menu', 'New ::: Create a new (or temporary) file.'),
-            icons.page_add, iep.editors.newFile)
+            icons.page_add, pyzo.editors.newFile)
         self.addItem(translate("menu", "Open... ::: Open an existing file from disk."),
-            icons.folder_page, iep.editors.openFile)
+            icons.folder_page, pyzo.editors.openFile)
         #
         self._items += [ 
             self.addItem(translate("menu", "Save ::: Save the current file to disk."),
-                icons.disk, iep.editors.saveFile),
+                icons.disk, pyzo.editors.saveFile),
             self.addItem(translate("menu", "Save as... ::: Save the current file under another name."),
-                icons.disk_as, iep.editors.saveFileAs),
+                icons.disk_as, pyzo.editors.saveFileAs),
             self.addItem(translate("menu", "Save all ::: Save all open files."),
-                icons.disk_multiple, iep.editors.saveAllFiles),
+                icons.disk_multiple, pyzo.editors.saveAllFiles),
             self.addItem(translate("menu", "Close ::: Close the current file."),
-                icons.page_delete, iep.editors.closeFile),
+                icons.page_delete, pyzo.editors.closeFile),
             self.addItem(translate("menu", "Close all ::: Close all files."),
-                icons.page_delete_all, iep.editors.closeAllFiles),  
+                icons.page_delete_all, pyzo.editors.closeAllFiles),  
             self.addItem(translate("menu", "Export to PDF ::: Export current file to PDF (e.g. for printing)."),
                 None, self._print),  
             ]
@@ -494,10 +494,10 @@ class FileMenu(Menu):
         
         # Closing of app
         self.addSeparator()
-        self.addItem(translate("menu", "Restart IEP ::: Restart the application."), 
-            icons.arrow_rotate_clockwise, iep.main.restart)
-        self.addItem(translate("menu","Quit IEP ::: Close the application."), 
-            icons.cancel, iep.main.close)
+        self.addItem(translate("menu", "Restart Pyzo ::: Restart the application."), 
+            icons.arrow_rotate_clockwise, pyzo.main.restart)
+        self.addItem(translate("menu","Quit Pyzo ::: Close the application."), 
+            icons.cancel, pyzo.main.close)
         
         # Start disabled
         self.setEnabled(False)
@@ -509,7 +509,7 @@ class FileMenu(Menu):
             child.setEnabled(enabled)
     
     def onEditorsCurrentChanged(self):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor is None:
             self.setEnabled(False) #Disable / uncheck all editor-related options
         else:
@@ -528,14 +528,14 @@ class FileMenu(Menu):
             self._updateEncoding(editor)
     
     def _setParser(self, value):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if value.lower() == 'none':
             value = None
         if editor is not None:
             editor.setParser(value)
     
     def _setLineEndings(self, value):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         editor.lineEndings = value
     
     def _updateEncoding(self, editor):
@@ -575,12 +575,12 @@ class FileMenu(Menu):
         self._encodingMenu.setCheckedOption(None, editorEncoding)
     
     def _setEncoding(self, value):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
             editor.encoding = value
     
     def _print(self):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
             printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
             if True:
@@ -606,7 +606,7 @@ class FileMenu(Menu):
 # todo: move to matching brace
 class EditMenu(Menu):
     def build(self):
-        icons = iep.icons
+        icons = pyzo.icons
         
         self.addItem(translate("menu", "Undo ::: Undo the latest editing action."),
             icons.arrow_undo, self._editItemCallback, "undo")
@@ -640,15 +640,15 @@ class EditMenu(Menu):
             None, self._editItemCallback, "deleteLines")
         self.addSeparator()
         self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
-            icons.find, iep.editors._findReplace.startFind)
+            icons.find, pyzo.editors._findReplace.startFind)
         self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."), 
-            None, iep.editors._findReplace.findSelection)
+            None, pyzo.editors._findReplace.findSelection)
         self.addItem(translate("menu", "Find selection backward ::: Find the previous occurrence of the selected text."), 
-            None, iep.editors._findReplace.findSelectionBw)
+            None, pyzo.editors._findReplace.findSelectionBw)
         self.addItem(translate("menu", "Find next ::: Find the next occurrence of the search string."), 
-            None, iep.editors._findReplace.findNext)
+            None, pyzo.editors._findReplace.findNext)
         self.addItem(translate("menu", "Find previous ::: Find the previous occurrence of the search string."), 
-            None, iep.editors._findReplace.findPrevious)
+            None, pyzo.editors._findReplace.findPrevious)
     
     
     def _editItemCallback(self, action):
@@ -669,17 +669,17 @@ class ZoomMenu(Menu):
     
     def _setZoom(self, value):
         if not value:
-            iep.config.view.zoom = 0
+            pyzo.config.view.zoom = 0
         else:
-            iep.config.view.zoom += value
+            pyzo.config.view.zoom += value
         # Apply
-        for editor in iep.editors:
-            iep.config.view.zoom = editor.setZoom(iep.config.view.zoom)
-        for shell in iep.shells:
-            iep.config.view.zoom = shell.setZoom(iep.config.view.zoom)
-        logger = iep.toolManager.getTool('ieplogger')
+        for editor in pyzo.editors:
+            pyzo.config.view.zoom = editor.setZoom(pyzo.config.view.zoom)
+        for shell in pyzo.shells:
+            pyzo.config.view.zoom = shell.setZoom(pyzo.config.view.zoom)
+        logger = pyzo.toolManager.getTool('pyzologger')
         if logger:
-            logger.setZoom(iep.config.view.zoom)
+            logger.setZoom(pyzo.config.view.zoom)
 
 
 class FontMenu(Menu):
@@ -690,24 +690,24 @@ class FontMenu(Menu):
     def _updateFonts(self):
         self.clear()
         # Build list with known available monospace fonts
-        names = iep.codeeditor.Manager.fontNames()
+        names = pyzo.codeeditor.Manager.fontNames()
         defaultName =  'DejaVu Sans Mono'
         for name in sorted(names):
             txt = name+' (default)' if name == defaultName else name
             self.addGroupItem(txt, None, self._selectFont, value=name)
         # Select the current one
-        self.setCheckedOption(None, iep.config.view.fontname)
+        self.setCheckedOption(None, pyzo.config.view.fontname)
     
     def _selectFont(self, name):
-        iep.config.view.fontname = name
+        pyzo.config.view.fontname = name
         # Apply
-        for editor in iep.editors:
-            editor.setFont(iep.config.view.fontname)
-        for shell in iep.shells:
-            shell.setFont(iep.config.view.fontname)
-        logger = iep.toolManager.getTool('ieplogger')
+        for editor in pyzo.editors:
+            editor.setFont(pyzo.config.view.fontname)
+        for shell in pyzo.shells:
+            shell.setFont(pyzo.config.view.fontname)
+        logger = pyzo.toolManager.getTool('pyzologger')
         if logger:
-            logger.setFont(iep.config.view.fontname)
+            logger.setFont(pyzo.config.view.fontname)
 
 
 # todo: brace matching
@@ -715,7 +715,7 @@ class FontMenu(Menu):
 # todo: maybe move qt theme to settings
 class ViewMenu(Menu):
     def build(self):
-        icons = iep.icons
+        icons = pyzo.icons
         
         # Create edge column menu
         t = translate("menu", "Location of long line indicator ::: The location of the long-line-indicator.")
@@ -723,7 +723,7 @@ class ViewMenu(Menu):
         values = [0] + [i for i in range(60,130,10)]
         names = ["None"] + [str(i) for i in values[1:]]
         self._edgeColumMenu.setOptions(names, values)
-        self._edgeColumMenu.setCheckedOption(None, iep.config.view.edgeColumn)
+        self._edgeColumMenu.setCheckedOption(None, pyzo.config.view.edgeColumn)
         
         # Create qt theme menu
         t = translate("menu", "Qt theme ::: The styling of the user interface widgets.")
@@ -733,10 +733,10 @@ class ViewMenu(Menu):
         titles = [name for name in styleNames]
         styleNames = [name.lower() for name in styleNames]
         for i in range(len(titles)):
-            if titles[i].lower() == iep.defaultQtStyleName.lower():
+            if titles[i].lower() == pyzo.defaultQtStyleName.lower():
                 titles[i] += " (default)"
         self._qtThemeMenu.setOptions(titles, styleNames)
-        self._qtThemeMenu.setCheckedOption(None, iep.config.view.qtstyle.lower())
+        self._qtThemeMenu.setCheckedOption(None, pyzo.config.view.qtstyle.lower())
         
         # Build menu
         self.addItem(translate("menu", "Select shell ::: Focus the cursor on the current shell."), 
@@ -744,7 +744,7 @@ class ViewMenu(Menu):
         self.addItem(translate("menu", "Select editor ::: Focus the cursor on the current editor."), 
             icons.application_edit, self._selectEditor)
         self.addItem(translate("menu", "Select previous file ::: Select the previously selected file."), 
-            icons.application_double, iep.editors._tabs.selectPreviousItem)
+            icons.application_double, pyzo.editors._tabs.selectPreviousItem)
         self.addSeparator()
         self.addEditorItem(translate("menu", "Show whitespace ::: Show spaces and tabs."), 
             None, "showWhitespace")
@@ -775,10 +775,10 @@ class ViewMenu(Menu):
     def addEditorItem(self, name, icon, param):
         """ 
         Create a boolean item that reperesents a property of the editors,
-        whose value is stored in iep.config.view.param 
+        whose value is stored in pyzo.config.view.param 
         """
-        if hasattr(iep.config.view, param):
-            default = getattr(iep.config.view, param)
+        if hasattr(pyzo.config.view, param):
+            default = getattr(pyzo.config.view, param)
         else:
             default = True
             
@@ -789,30 +789,30 @@ class ViewMenu(Menu):
         Callback for addEditorItem items
         """
         # Store this parameter in the config
-        setattr(iep.config.view, param, state)
+        setattr(pyzo.config.view, param, state)
         # Apply to all editors, translate e.g. showWhitespace to setShowWhitespace
         setter = 'set' + param[0].upper() + param[1:]
-        for editor in iep.editors:
+        for editor in pyzo.editors:
             getattr(editor,setter)(state)
     
     def _selectShell(self):
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell:
             shell.setFocus()
             
     def _selectEditor(self):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor:
             editor.setFocus()
     
     def _setEdgeColumn(self, value):
-        iep.config.view.edgeColumn = value
-        for editor in iep.editors:
+        pyzo.config.view.edgeColumn = value
+        for editor in pyzo.editors:
             editor.setLongLineIndicatorPosition(value)
     
     def _setQtTheme(self, value):
-        iep.config.view.qtstyle = value
-        iep.main.setQtStyle(value)
+        pyzo.config.view.qtstyle = value
+        pyzo.main.setQtStyle(value)
 
     def _previousCell(self):
         """
@@ -828,12 +828,12 @@ class ViewMenu(Menu):
 
     def _previousTopLevelObject(self, type=None):
         # Get parser result
-        result = iep.parser._getResult()
+        result = pyzo.parser._getResult()
         if not result:
             return
         
         # Get editor
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if not editor:
             return
         
@@ -869,12 +869,12 @@ class ViewMenu(Menu):
 
     def _nextTopLevelObject(self, type=None):
         # Get parser result
-        result = iep.parser._getResult()
+        result = pyzo.parser._getResult()
         if not result:
             return
         
         # Get editor
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if not editor:
             return
         
@@ -928,20 +928,20 @@ class ShellMenu(Menu):
         self._shellCreateActions = []
         self._shellActions = []
         Menu.__init__(self, parent, name, *args, **kwds)
-        iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
+        pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         self.aboutToShow.connect(self._updateShells)  
     
     def onCurrentShellChanged(self):
         """ Enable/disable shell actions based on wether a shell is available """
         for shellAction in self._shellActions:
-            shellAction.setEnabled(bool(iep.shells.getCurrentShell()))
+            shellAction.setEnabled(bool(pyzo.shells.getCurrentShell()))
     
     def buildShellActions(self):
         """ Create the menu items which are also avaliable in the
         ShellTabContextMenu
         
         Returns a list of all items added"""
-        icons = iep.icons
+        icons = pyzo.icons
         return [
             self.addItem(translate("menu", 'Clear screen ::: Clear the screen.'), 
                 icons.application_eraser, self._shellAction, "clearScreen"),
@@ -958,7 +958,7 @@ class ShellMenu(Menu):
     def buildShellDebugActions(self):
         """ Create the menu items for debug shell actions.
         Returns a list of all items added"""
-        icons = iep.icons
+        icons = pyzo.icons
         
         return [
             self.addItem(translate("menu", 'Debug next: proceed until next line'), 
@@ -978,7 +978,7 @@ class ShellMenu(Menu):
         """ Returns the shell on which to apply the menu actions. Default is
         the current shell, this is overridden in the shell/shell tab context
         menus"""
-        return iep.shells.getCurrentShell()
+        return pyzo.shells.getCurrentShell()
         
     def build(self):
         """ Create the items for the shells menu """
@@ -990,10 +990,10 @@ class ShellMenu(Menu):
         
         # Debug stuff
         self._debug_clear_text = translate('menu', 'Clear all {} breakpoints')
-        self._debug_clear = self.addItem('', iep.icons.bug_delete, self._clearBreakPoints)
+        self._debug_clear = self.addItem('', pyzo.icons.bug_delete, self._clearBreakPoints)
         self._debug_pm = self.addItem(
             translate('menu', 'Postmortem: debug from last traceback'), 
-                iep.icons.bug_delete, self._debugAction, "START")
+                pyzo.icons.bug_delete, self._debugAction, "START")
         self._shellDebugActions = self.buildShellDebugActions()
         #
         self.aboutToShow.connect(self._updateDebugButtons)
@@ -1002,9 +1002,9 @@ class ShellMenu(Menu):
         
         # Shell config
         self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
-            iep.icons.application_wrench, self._editConfig2)
+            pyzo.icons.application_wrench, self._editConfig2)
         self.addItem(translate("menu", 'Create new Python environment... ::: Install miniconda.'), 
-            iep.icons.application_cascade, self._newPythonEnv)
+            pyzo.icons.application_cascade, self._newPythonEnv)
         
         self.addSeparator()
         
@@ -1017,20 +1017,20 @@ class ShellMenu(Menu):
             self.removeAction(action)
         
         self._shellCreateActions = []
-        for i, config in enumerate(iep.config.shellConfigs2):
+        for i, config in enumerate(pyzo.config.shellConfigs2):
             name = 'Create shell %s: (%s)' % (i+1, config.name)
             action = self.addItem(name, 
-                iep.icons.application_add, iep.shells.addShell, config)
+                pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)
     
     def _updateDebugButtons(self):
         # Count breakpoints
         bpcount = 0
-        for e in iep.editors:
+        for e in pyzo.editors:
             bpcount += len(e.breakPoints())
         self._debug_clear.setText(self._debug_clear_text.format(bpcount))
         # Determine state of PM and clear button
-        debugmode = iep.shells._debugmode
+        debugmode = pyzo.shells._debugmode
         self._debug_pm.setEnabled(debugmode==0)
         self._debug_clear.setEnabled(debugmode==0)
         # The _shellDebugActions are enabled/disabled by the shellStack
@@ -1051,18 +1051,18 @@ class ShellMenu(Menu):
             shell.executeCommand('DB %s\n' % command)
     
     def _clearBreakPoints(self, action=None):
-        for e in iep.editors:
+        for e in pyzo.editors:
             e.clearBreakPoints()
     
     def _editConfig2(self):
         """ Edit, add and remove configurations for the shells. """
-        from iep.iepcore.shellInfoDialog import ShellInfoDialog 
+        from pyzo.core.shellInfoDialog import ShellInfoDialog 
         d = ShellInfoDialog()
         d.exec_()
     
     def _newPythonEnv(self):
-        from iep.util.bootstrapconda import Installer
-        d = Installer(iep.main)
+        from pyzo.util.bootstrapconda import Installer
+        d = Installer(pyzo.main)
         d.exec_()
 
 
@@ -1072,10 +1072,10 @@ class ShellButtonMenu(ShellMenu):
         self._shellActions = []
         
         self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
-            iep.icons.application_wrench, self._editConfig2)
+            pyzo.icons.application_wrench, self._editConfig2)
         
         submenu = Menu(self, translate("menu", 'New shell ... ::: Create new shell to run code in.'))
-        self._newShellMenu = self.addMenu(submenu, iep.icons.application_add)
+        self._newShellMenu = self.addMenu(submenu, pyzo.icons.application_add)
         
         self.addSeparator()
     
@@ -1085,10 +1085,10 @@ class ShellButtonMenu(ShellMenu):
             self._newShellMenu.removeAction(action)
         
         self._shellCreateActions = []
-        for i, config in enumerate(iep.config.shellConfigs2):
+        for i, config in enumerate(pyzo.config.shellConfigs2):
             name = 'Create shell %s: (%s)' % (i+1, config.name)
             action = self._newShellMenu.addItem(name, 
-                iep.icons.application_add, iep.shells.addShell, config)
+                pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)
 
     
@@ -1102,7 +1102,7 @@ class ShellContextMenu(ShellMenu):
     def build(self):
         """ Build menu """
         self.buildShellActions()
-        icons = iep.icons
+        icons = pyzo.icons
         
         # This is a subset of the edit menu. Copied manually.
         self.addSeparator()
@@ -1148,7 +1148,7 @@ class EditorContextMenu(Menu):
     
     def build(self):
         """ Build menu """
-        icons = iep.icons
+        icons = pyzo.icons
         
         # This is a subset of the edit menu. Copied manually.
         self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
@@ -1185,7 +1185,7 @@ class EditorContextMenu(Menu):
         getattr(self._editor, action)()
     
     def _runSelected(self):
-        runMenu = iep.main.menuBar()._menumap['run']
+        runMenu = pyzo.main.menuBar()._menumap['run']
         runMenu._runSelected()
 
 
@@ -1199,7 +1199,7 @@ class EditorTabContextMenu(Menu):
     
     def build(self):
         """ Build menu """
-        icons = iep.icons
+        icons = pyzo.icons
         
         # Copied (and edited) manually from the File memu
         self.addItem(translate("menu", "Save ::: Save the current file to disk."),
@@ -1232,22 +1232,22 @@ class EditorTabContextMenu(Menu):
     def _fileAction(self, action):
         """ Call the method specified by 'action' on the selected shell """
         
-        item = iep.editors._tabs.getItemAt(self._index)
+        item = pyzo.editors._tabs.getItemAt(self._index)
         
         if action in ["saveFile", "saveFileAs", "closeFile"]:
-            getattr(iep.editors, action)(item.editor)
+            getattr(pyzo.editors, action)(item.editor)
         elif action == "close_others" or action == "close_all":
             if action == "close_all":
                 item = None #The item not to be closed is not there
-            items = iep.editors._tabs.items()
-            for i in reversed(range(iep.editors._tabs.count())):
+            items = pyzo.editors._tabs.items()
+            for i in reversed(range(pyzo.editors._tabs.count())):
                 if items[i] is item or items[i].pinned:
                     continue
-                iep.editors._tabs.tabCloseRequested.emit(i)
+                pyzo.editors._tabs.tabCloseRequested.emit(i)
             
         elif action == "rename":
             filename = item.filename
-            iep.editors.saveFileAs(item.editor)
+            pyzo.editors.saveFileAs(item.editor)
             if item.filename != filename:
                 try:
                     os.remove(filename)
@@ -1256,25 +1256,25 @@ class EditorTabContextMenu(Menu):
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":
-            if iep.editors._tabs._mainFile == item.id:
-                iep.editors._tabs._mainFile = None
+            if pyzo.editors._tabs._mainFile == item.id:
+                pyzo.editors._tabs._mainFile = None
             else:
-                iep.editors._tabs._mainFile = item.id
+                pyzo.editors._tabs._mainFile = item.id
         elif action == "run":
-            menu = iep.main.menuBar().findChild(RunMenu)
+            menu = pyzo.main.menuBar().findChild(RunMenu)
             if menu:
                 menu._runFile((False, False), item.editor)
         elif action == "run_script":
-            menu = iep.main.menuBar().findChild(RunMenu)
+            menu = pyzo.main.menuBar().findChild(RunMenu)
             if menu:
                 menu._runFile((True, False), item.editor)
             
-        iep.editors._tabs.updateItems()
+        pyzo.editors._tabs.updateItems()
 
 
 class RunMenu(Menu):       
     def build(self):
-        icons = iep.icons
+        icons = pyzo.icons
         
         self.addItem(translate("menu", 'Run file as script ::: Restart and run the current file as a script.'), 
             icons.run_file_script, self._runFile, (True, False))
@@ -1297,14 +1297,14 @@ class RunMenu(Menu):
         
         self.addSeparator()
         
-        self.addItem(translate("menu", 'Help on running code ::: Open the IEP wizard at the page about running code.'), 
+        self.addItem(translate("menu", 'Help on running code ::: Open the pyzo wizard at the page about running code.'), 
             icons.information, self._showHelp)
     
     
     def _showHelp(self):
         """ Show more information about ways to run code. """
-        from iep.util.iepwizard import IEPWizard
-        w = IEPWizard(self)
+        from pyzo.util.pyzowizard import PyzoWizard
+        w = PyzoWizard(self)
         w.show('RuncodeWizardPage1') # Start wizard at page about running code
     
     def _getShellAndEditor(self, what, mainEditor=False):
@@ -1314,17 +1314,17 @@ class RunMenu(Menu):
         # Init empty error message
         msg = ''
         # Get shell
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell is None:
             msg += "No shell to run code in. "
-            #shell = iep.shells.addShell()  # issue #335, does not work, somehow
+            #shell = pyzo.shells.addShell()  # issue #335, does not work, somehow
         # Get editor
         if mainEditor:
-            editor = iep.editors.getMainEditor()
+            editor = pyzo.editors.getMainEditor()
             if editor is None:
                 msg += "The is no main file selected."
         else:
-            editor = iep.editors.getCurrentEditor()
+            editor = pyzo.editors.getCurrentEditor()
             if editor is None:
                 msg += "No editor selected."
         # Show error dialog
@@ -1496,7 +1496,7 @@ class RunMenu(Menu):
         # Obtain fname and try running
         err = ""
         if editor._filename:
-            saveOk = iep.editors.saveFile(editor) # Always try to save
+            saveOk = pyzo.editors.saveFile(editor) # Always try to save
             if saveOk or not editor.document().isModified():
                 self._showWhatToExecute(editor)
                 shell.restart(editor._filename)
@@ -1521,11 +1521,11 @@ class ToolsMenu(Menu):
     
     def build(self):
         self.addItem(translate("menu", 'Reload tools ::: For people who develop tools.'), 
-            iep.icons.plugin_refresh, iep.toolManager.reloadTools)
+            pyzo.icons.plugin_refresh, pyzo.toolManager.reloadTools)
         self.addSeparator()
 
         self.onToolInstanceChange() # Build initial menu
-        iep.toolManager.toolInstanceChange.connect(self.onToolInstanceChange)
+        pyzo.toolManager.toolInstanceChange.connect(self.onToolInstanceChange)
 
         
     def onToolInstanceChange(self):
@@ -1535,8 +1535,8 @@ class ToolsMenu(Menu):
         
         # Add all tools, with checkmarks for those that are active
         self._toolActions = []
-        for tool in iep.toolManager.getToolInfo():
-            action = self.addCheckItem(tool.name, iep.icons.plugin, 
+        for tool in pyzo.toolManager.getToolInfo():
+            action = self.addCheckItem(tool.name, pyzo.icons.plugin, 
                 tool.menuLauncher, selected=bool(tool.instance))
             self._toolActions.append(action)
 
@@ -1544,7 +1544,7 @@ class ToolsMenu(Menu):
 class HelpMenu(Menu):
     
     def build(self):
-        icons = iep.icons
+        icons = pyzo.icons
         issues_url = "https://github.com/pyzo/pyzo/issues"
         
         self.addItem(translate("menu", "Documentation ::: Documentation on Python and the Scipy Stack."), 
@@ -1554,38 +1554,38 @@ class HelpMenu(Menu):
             icons.help, "http://www.pyzo.org")
         self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
             icons.comments, "http://pyzo.org/community.html#discussion-fora-and-email-lists")
-        self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in IEP, or do you have a feature request?"), 
+        self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?"), 
             icons.error_add, issues_url)
         self.addSeparator()
-        self.addItem(translate("menu", "IEP wizard ::: Get started quickly."), 
-            icons.wand, self._showIepWizard)
+        self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."), 
+            icons.wand, self._showPyzoWizard)
         #self.addItem(translate("menu", "View code license ::: Legal stuff."), 
-        #    icons.script, lambda: iep.editors.loadFile(os.path.join(iep.iepDir,"license.txt")))
+        #    icons.script, lambda: pyzo.editors.loadFile(os.path.join(pyzo.pyzoDir,"license.txt")))
         
-        self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
-            icons.application_go, self._checkUpdates)
+        #self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
+        #    icons.application_go, self._checkUpdates)
         
-        #self.addItem(translate("menu", "Manage your IEP license ::: View/add licenses."), 
+        #self.addItem(translate("menu", "Manage your Pyzo license ::: View/add licenses."), 
         #    icons.script, self._manageLicenses)
-        self.addItem(translate("menu", "About IEP ::: More information about IEP."), 
-            icons.information, self._aboutIep)
+        self.addItem(translate("menu", "About Pyzo ::: More information about Pyzo."), 
+            icons.information, self._aboutPyzo)
     
     def addUrlItem(self, name, icon, url):
         self.addItem(name, icon, lambda: webbrowser.open(url))
     
-    def _showIepWizard(self):
-        from iep.util.iepwizard import IEPWizard
-        w = IEPWizard(self)
-        w.show() # Use show() instead of exec_() so the user can interact with IEP
+    def _showPyzoWizard(self):
+        from pyzo.util.pyzowizard import PyzoWizard
+        w = PyzoWizard(self)
+        w.show() # Use show() instead of exec_() so the user can interact with pyzo
     
     def _checkUpdates(self):
-        """ Check whether a newer version of IEP is available. """
+        """ Check whether a newer version of pyzo is available. """
         # Get versions available
         import urllib.request, re
         url = "http://www.iep-project.org/downloads.html"
         text = str( urllib.request.urlopen(url).read() )
         results = []
-        for pattern in ['iep-(.{1,9}?)\.source\.zip' ]:
+        for pattern in ['pyzo-(.{1,9}?)\.source\.zip' ]:
             results.extend( re.findall(pattern, text) )
         # Produce single string with all versions ...
         def sorter(x):
@@ -1595,9 +1595,9 @@ class HelpMenu(Menu):
         if not versions:
             versions = '?'
         # Define message
-        text = "Your version of IEP is: {}\n" 
+        text = "Your version of Pyzo is: {}\n" 
         text += "Latest available version is: {}\n\n"         
-        text = text.format(iep.__version__, versions[0])
+        text = text.format(pyzo.__version__, versions[0])
         # Show message box
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
@@ -1613,44 +1613,44 @@ class HelpMenu(Menu):
         # Goto webpage if user chose to
         if result == m.Yes:
             import webbrowser
-            webbrowser.open("http://www.iep-project.org/downloads.html")
+            webbrowser.open("http://www.pyzo.org/downloads.html")
     
     def _manageLicenses(self):
-        from iep.iepcore.license import LicenseManager
+        from pyzo.core.license import LicenseManager
         w = LicenseManager(None)
         w.exec_()
     
     
-    def _aboutIep(self):
-        from iep.iepcore.about import AboutDialog
+    def _aboutPyzo(self):
+        from pyzo.core.about import AboutDialog
         m = AboutDialog(self)
         m.exec_()
     
     
     def _showPyzoDocs(self):
         # Show widget with docs:
-        d = IepAssistant()
+        d = PyzoAssistant()
         d.show()
 
 
 class SettingsMenu(Menu):
     def build(self):
-        icons = iep.icons
+        icons = pyzo.icons
         
         # Create language menu
-        from iep.util._locale import LANGUAGES, LANGUAGE_SYNONYMS
+        from pyzo.util._locale import LANGUAGES, LANGUAGE_SYNONYMS
         # Update language setting if necessary
-        cur = iep.config.settings.language
-        iep.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
+        cur = pyzo.config.settings.language
+        pyzo.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
         # Create menu        
-        t = translate("menu", "Select language ::: The language used by IEP.")
+        t = translate("menu", "Select language ::: The language used by Pyzo.")
         self._languageMenu = GeneralOptionsMenu(self, t, self._selectLanguage)
         values = [key for key in sorted(LANGUAGES)]
         self._languageMenu.setOptions(values, values)
-        self._languageMenu.setCheckedOption(None, iep.config.settings.language)
+        self._languageMenu.setCheckedOption(None, pyzo.config.settings.language)
         
         self.addBoolSetting(translate("menu", 'Automatically indent ::: Indent when pressing enter after a colon.'),
-            'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in iep.editors])
+            'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in pyzo.editors])
         self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'), 
             'autoCallTip')
         self.addBoolSetting(translate("menu", 'Enable autocompletion ::: Show autocompletion with known names.'), 
@@ -1664,7 +1664,7 @@ class SettingsMenu(Menu):
         self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'), 
             icons.style, self._editStyles)
         self.addMenu(self._languageMenu, icons.flag_green)
-        self.addItem(translate("menu", 'Advanced settings... ::: Configure IEP even further.'), 
+        self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'), 
             icons.cog, self._advancedSettings)
     
     def _editStyles(self):
@@ -1677,7 +1677,7 @@ class SettingsMenu(Menu):
         In case you really want to change the style, you can change the 
         source code at:\r
         {}
-        """.format(os.path.join(iep.iepDir, 'codeeditor', 'base.py'))
+        """.format(os.path.join(pyzo.pyzoDir, 'codeeditor', 'base.py'))
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Edit syntax styling"))
         m.setText(unwrapText(text))
@@ -1691,10 +1691,10 @@ class SettingsMenu(Menu):
         text = """
         More settings are available via the logger-tool:
         \r\r
-        - Advanced settings are stored in the struct "iep.config.advanced".
-          Type "print(iep.config.advanced)" to view all advanced settings.\r
-        - Call "iep.resetConfig()" to reset all settings.\r
-        - Call "iep.resetConfig(True)" to reset all settings and state.\r
+        - Advanced settings are stored in the struct "pyzo.config.advanced".
+          Type "print(pyzo.config.advanced)" to view all advanced settings.\r
+        - Call "pyzo.resetConfig()" to reset all settings.\r
+        - Call "pyzo.resetConfig(True)" to reset all settings and state.\r
         \r\r
         Note that most settings require a restart for the change to
         take effect.
@@ -1707,23 +1707,23 @@ class SettingsMenu(Menu):
     
     def addBoolSetting(self, name, key, callback = None):
         def _callback(state, key):
-            setattr(iep.config.settings, key, state)
+            setattr(pyzo.config.settings, key, state)
             if callback is not None:
                 callback(state, key)
                 
         self.addCheckItem(name, None, _callback, key, 
-            getattr(iep.config.settings,key)) #Default value
+            getattr(pyzo.config.settings,key)) #Default value
     
     def _selectLanguage(self, languageName):
         # Skip if the same
-        if iep.config.settings.language == languageName:
+        if pyzo.config.settings.language == languageName:
             return
         # Save new language
-        iep.config.settings.language = languageName
+        pyzo.config.settings.language = languageName
         # Notify user
         text = translate('menu dialog', """
         The language has been changed. 
-        IEP needs to restart for the change to take effect.
+        Pyzo needs to restart for the change to take effect.
         """)
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Language changed"))
@@ -1751,19 +1751,19 @@ class xSettingsMenu(BaseMenu):
     def fun_defaultStyle(self, value):
         """ The style used for new files. """
         if value is None:
-            current = iep.config.settings.defaultStyle
-            options = iep.styleManager.getStyleNames()
+            current = pyzo.config.settings.defaultStyle
+            options = pyzo.styleManager.getStyleNames()
             options.append(current)
             return options
         else:
             # store
-            iep.config.settings.defaultStyle = value
+            pyzo.config.settings.defaultStyle = value
     
     def fun_defaultIndentWidth(self, value):
         """ The indentation used for new files and in the shells. """
         
         if value is None:
-            current = iep.config.settings.defaultIndentWidth
+            current = pyzo.config.settings.defaultIndentWidth
             options = [2,3,4,5,6,7,8, current]           
             return ['%d' % i for i in options]
         
@@ -1773,9 +1773,9 @@ class xSettingsMenu(BaseMenu):
         except ValueError:
             val = 4      
         # store
-        iep.config.settings.defaultIndentWidth = val
+        pyzo.config.settings.defaultIndentWidth = val
         # Apply to shells
-        for shell in iep.shells:
+        for shell in pyzo.shells:
             shell.setIndentWidth(val)
             
     def fun_defaultIndentStyle(self,value):
@@ -1784,7 +1784,7 @@ class xSettingsMenu(BaseMenu):
         
         if value is None:
             options = ['Spaces', 'Tabs']        
-            return options + [options[0 if iep.config.settings.defaultIndentUsingSpaces else 1]]
+            return options + [options[0 if pyzo.config.settings.defaultIndentUsingSpaces else 1]]
         else:
             # parse value
             val = None
@@ -1794,27 +1794,27 @@ class xSettingsMenu(BaseMenu):
             except KeyError:
                 val = True
             # apply
-            iep.config.settings.defaultIndentUsingSpaces = val
+            pyzo.config.settings.defaultIndentUsingSpaces = val
             
     def fun_defaultLineEndings(self, value):
         """ The line endings used for new files. """
         if value is None:
-            current = iep.config.settings.defaultLineEndings
+            current = pyzo.config.settings.defaultLineEndings
             return ['LF', 'CR', 'CRLF', current]
         else:
             # store
-            iep.config.settings.defaultLineEndings = value
+            pyzo.config.settings.defaultLineEndings = value
     
     
     def fun_autoComplete_case(self, value):
         """ Whether the autocompletion is case sensitive or not. """
         if value is None:
-            return bool(iep.config.settings.autoComplete_caseSensitive)
+            return bool(pyzo.config.settings.autoComplete_caseSensitive)
         else:
-            value = not bool(iep.config.settings.autoComplete_caseSensitive)
-            iep.config.settings.autoComplete_caseSensitive = value
+            value = not bool(pyzo.config.settings.autoComplete_caseSensitive)
+            pyzo.config.settings.autoComplete_caseSensitive = value
             # Apply
-            for e in iep.getAllScintillas():
+            for e in pyzo.getAllScintillas():
                 e.SendScintilla(e.SCI_AUTOCSETIGNORECASE, not value)
     
     def fun_autoComplete_fillups(self, value):
@@ -1822,9 +1822,9 @@ class xSettingsMenu(BaseMenu):
         if value is None:
             # Show options
             options = ['Tab', 'Tab and Enter', 'Tab, Enter and " .(["']
-            if '.' in iep.config.settings.autoComplete_fillups:
+            if '.' in pyzo.config.settings.autoComplete_fillups:
                 options.append( options[2] )
-            elif '\n' in iep.config.settings.autoComplete_fillups:
+            elif '\n' in pyzo.config.settings.autoComplete_fillups:
                 options.append( options[1] )
             else:
                 options.append( options[0] )
@@ -1832,14 +1832,14 @@ class xSettingsMenu(BaseMenu):
         else:
             # Process selection
             if '.' in value:
-                iep.config.settings.autoComplete_fillups = '\n .(['
+                pyzo.config.settings.autoComplete_fillups = '\n .(['
             elif 'enter' in value.lower():
-                iep.config.settings.autoComplete_fillups = '\n'
+                pyzo.config.settings.autoComplete_fillups = '\n'
             else:
-                iep.config.settings.autoComplete_fillups = ''
+                pyzo.config.settings.autoComplete_fillups = ''
             # Apply
-            tmp = iep.config.settings.autoComplete_fillups
-            for e in iep.getAllScintillas():                
+            tmp = pyzo.config.settings.autoComplete_fillups
+            for e in pyzo.getAllScintillas():                
                 e.SendScintilla(e.SCI_AUTOCSETFILLUPS, tmp)
  
 
@@ -2127,8 +2127,8 @@ class KeyMapEditDialog(QtGui.QDialog):
         self._intro = "Set the {} shortcut for:\n{}".format(primSec,tmp)
         self._label.setText(self._intro)
         # set initial value
-        if fullname in iep.config.shortcuts2:
-            current = iep.config.shortcuts2[fullname]
+        if fullname in pyzo.config.shortcuts2:
+            current = pyzo.config.shortcuts2[fullname]
             if ',' not in current:
                 current += ','
             current = current.split(',')
@@ -2148,7 +2148,7 @@ class KeyMapEditDialog(QtGui.QDialog):
             self._label.setText(self._intro)
             return
         
-        for key in iep.config.shortcuts2:
+        for key in pyzo.config.shortcuts2:
             # get shortcut and test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
             primSec = ''
@@ -2170,7 +2170,7 @@ class KeyMapEditDialog(QtGui.QDialog):
         shortcut = self._line.text()
         
         # remove shortcut if present elsewhere
-        keys = [key for key in iep.config.shortcuts2] # copy
+        keys = [key for key in pyzo.config.shortcuts2] # copy
         for key in keys:
             # get shortcut, test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
@@ -2186,20 +2186,20 @@ class KeyMapEditDialog(QtGui.QDialog):
                 tmp = ','.join(tmp)
                 tmp = tmp.replace(' ','')
                 if len(tmp)==1:
-                    del iep.config.shortcuts2[key]
+                    del pyzo.config.shortcuts2[key]
                 else:
-                    iep.config.shortcuts2[key] = tmp
+                    pyzo.config.shortcuts2[key] = tmp
         
         # insert shortcut
         if self._fullname:
             # get current and make list of size two
-            if self._fullname in iep.config.shortcuts2:
+            if self._fullname in pyzo.config.shortcuts2:
                 current = list(getShortcut(self._fullname))
             else:
                 current = ['', '']
             # update the list
             current[int(not self._isprimary)] = shortcut
-            iep.config.shortcuts2[self._fullname] = ','.join(current)
+            pyzo.config.shortcuts2[self._fullname] = ','.join(current)
         
         # close
         self.close()
@@ -2233,7 +2233,7 @@ class KeymappingDialog(QtGui.QDialog):
         # fill tab
         self._models = []
         self._trees = []
-        for menu in iep.main.menuBar()._menus:
+        for menu in pyzo.main.menuBar()._menus:
             # create treeview and model
             model = KeyMapModel()
             model.setRootMenu(menu)
@@ -2253,7 +2253,7 @@ class KeymappingDialog(QtGui.QDialog):
     
     def closeEvent(self, event):
         # update key setting
-        iep.keyMapper.keyMappingChanged.emit()
+        pyzo.keyMapper.keyMappingChanged.emit()
         
         event.accept()
     

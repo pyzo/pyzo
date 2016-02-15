@@ -7,14 +7,14 @@
 
 """ Module logging
 
-Functionality for logging in IEP.
+Functionality for logging in pyzo.
 
 """
 
 import sys, os, time
 import code
-import iep
-iep.status = None
+import pyzo
+pyzo.status = None
 
 # todo: enable logging to a file?
 
@@ -123,8 +123,8 @@ class OutputStreamSplitter:
         except Exception:
             pass  # self._original.write('error writing to deferred stream')
         # Show in statusbar
-        if iep.status and len(text)>1:
-            iep.status.showMessage(text, 5000)
+        if pyzo.status and len(text)>1:
+            pyzo.status.showMessage(text, 5000)
     
     
     def flush(self):

@@ -12,12 +12,12 @@ is common for both shells and editors.
 
 """
 
-import iep
+import pyzo
 import os, sys, time
 import weakref
 from pyzolib import ssdf
-from iep.iepcore.iepLogging import print
-import iep.codeeditor.parsers.tokens as Tokens
+from pyzo.core.pyzoLogging import print
+import pyzo.codeeditor.parsers.tokens as Tokens
 
 from pyzolib.qt import QtCore, QtGui
 qt = QtGui
@@ -177,14 +177,14 @@ def getAllScintillas():
             _allScintillas.pop(i)
         else:
             yield e
-iep.getAllScintillas = getAllScintillas
+pyzo.getAllScintillas = getAllScintillas
 
-from iep import codeeditor
+from pyzo import codeeditor
 
 
 class BaseTextCtrl(codeeditor.CodeEditor):
     """ The base text control class.
-    Inherited by the shell class and the IEP editor.
+    Inherited by the shell class and the Pyzo editor.
     The class implements autocompletion, calltips, and auto-help
     
     Inherits from QsciScintilla. I tried to clean up the rather dirty api
@@ -206,8 +206,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         super().__init__(*args, **kwds)
         
         # Set font and zooming
-        self.setFont(iep.config.view.fontname)
-        self.setZoom(iep.config.view.zoom)
+        self.setFont(pyzo.config.view.fontname)
+        self.setZoom(pyzo.config.view.zoom)
         
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)
@@ -227,12 +227,12 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         # Set autocomp accept key to default if necessary.
         # We force it to be string (see issue 134)
-        if not isinstance(iep.config.settings.autoComplete_acceptKeys, str):
-            iep.config.settings.autoComplete_acceptKeys = 'Tab'
+        if not isinstance(pyzo.config.settings.autoComplete_acceptKeys, str):
+            pyzo.config.settings.autoComplete_acceptKeys = 'Tab'
         
         # Set autocomp accept keys
         qtKeys = []
-        for key in iep.config.settings.autoComplete_acceptKeys.split(' '):
+        for key in pyzo.config.settings.autoComplete_acceptKeys.split(' '):
             if len(key) > 1:
                 key = 'Key_' + key[0].upper() + key[1:].lower()
                 qtkey = getattr(QtCore.Qt, key, None)
@@ -243,9 +243,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.setAutoCompletionAcceptKeys(*qtKeys)
         
         self.completer().highlighted.connect(self.updateHelp)
-        self.setIndentUsingSpaces(iep.config.settings.defaultIndentUsingSpaces)
-        self.setIndentWidth(iep.config.settings.defaultIndentWidth) 
-        self.setAutocompletPopupSize(*iep.config.view.autoComplete_popupSize) 
+        self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
+        self.setIndentWidth(pyzo.config.settings.defaultIndentWidth) 
+        self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize) 
     
     
     def _isValidPython(self):
@@ -272,7 +272,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         user types a lot of characters, there is not a stream of useless
         introspection attempts; the introspection is only really started
         after he stops typing for, say 0.1 or 0.5 seconds (depending on
-        iep.config.autoCompDelay).
+        pyzo.config.autoCompDelay).
         
         The method _introspectNow() will parse the line to obtain
         information required to obtain the autocompletion and signature
@@ -309,7 +309,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self._delayTimer._tokensUptoCursor = tokensUptoCursor
         self._delayTimer._cursor = cursor
         self._delayTimer._tryAutoComp = tryAutoComp
-        self._delayTimer.start(iep.config.advanced.autoCompDelay)
+        self._delayTimer.start(pyzo.config.advanced.autoCompDelay)
     
     
     def _introspectNow(self):
@@ -320,7 +320,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         tokens = self._delayTimer._tokensUptoCursor
         
-        if iep.config.settings.autoCallTip:
+        if pyzo.config.settings.autoCallTip:
             # Parse the line, to get the name of the function we should calltip
             # if the name is empty/None, we should not show a signature
             name, needle, stats = parseLine_signature(tokens)
@@ -337,7 +337,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             else: 
                 self.calltipCancel()
         
-        if self._delayTimer._tryAutoComp and iep.config.settings.autoComplete:
+        if self._delayTimer._tryAutoComp and pyzo.config.settings.autoComplete:
             # Parse the line, to see what (partial) name we need to complete
             name, needle = parseLine_autocomplete(tokens)
             
@@ -370,10 +370,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # uses parse_autocomplete() to find baseName and objectName
         
         # Get help tool
-        hw = iep.toolManager.getTool('iepinteractivehelp')
-        ass = iep.toolManager.getTool('iepassistant')
+        hw = pyzo.toolManager.getTool('pyzointeractivehelp')
+        ass = pyzo.toolManager.getTool('pyzoassistant')
         # Get the shell
-        shell = iep.shells.getCurrentShell()        
+        shell = pyzo.shells.getCurrentShell()        
         # Both should exist
         if not hw or not shell:
             return

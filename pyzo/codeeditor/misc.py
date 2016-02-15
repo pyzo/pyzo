@@ -97,5 +97,5 @@ def callLater(callback, *args):
     """
     _callbackEventHandler.postEventWithCallback(callback, *args)
     
-# Create callback event handler instance and insert function in IEP namespace
+# Create callback event handler instance and insert function in Pyzo namespace
 _callbackEventHandler = _CallbackEventHandler()   

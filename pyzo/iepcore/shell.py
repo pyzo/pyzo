@@ -7,7 +7,7 @@
 
 """ Module shell
 
-Defines the shell to be used in IEP.
+Defines the shell to be used in pyzo.
 This is done in a few inheritance steps:
   - BaseShell inherits BaseTextCtrl and adds the typical shell behaviour.    
   - PythonShell makes it specific to Python.
@@ -22,16 +22,16 @@ Qt = QtCore.Qt
 import os, sys, time, subprocess
 import re
 import yoton
-import iep
+import pyzo
 from pyzolib import ssdf
 
-from iep.codeeditor.highlighter import Highlighter
-from iep.codeeditor import parsers
+from pyzo.codeeditor.highlighter import Highlighter
+from pyzo.codeeditor import parsers
 
-from iep.iepcore.baseTextCtrl import BaseTextCtrl
-from iep.iepcore.iepLogging import print
-from iep.iepcore.kernelbroker import KernelInfo, Kernelmanager
-from iep.iepcore.menu import ShellContextMenu
+from pyzo.core.baseTextCtrl import BaseTextCtrl
+from pyzo.core.pyzoLogging import print
+from pyzo.core.kernelbroker import KernelInfo, Kernelmanager
+from pyzo.core.menu import ShellContextMenu
 
 
 
@@ -40,7 +40,7 @@ from iep.iepcore.menu import ShellContextMenu
 POLL_TIMER_INTERVAL = 30 # 30 ms 33Hz
 
 # Maximum number of lines in the shell
-MAXBLOCKCOUNT = iep.config.advanced.shellMaxLines
+MAXBLOCKCOUNT = pyzo.config.advanced.shellMaxLines
 
 
 # todo: we could make command shells to, with autocompletion and coloring...
@@ -57,7 +57,7 @@ class YotonEmbedder(QtCore.QObject):
         try:
             QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
         except Exception:
-            pass # If IEP is shutting down, the app may be None
+            pass # If pyzo is shutting down, the app may be None
     
     def customEvent(self, event):
         """ This is what gets called by Qt.
@@ -72,7 +72,7 @@ A_KEEP = QtGui.QTextCursor.KeepAnchor
 A_MOVE = QtGui.QTextCursor.MoveAnchor
 
 # Instantiate a local kernel broker upon loading this module
-iep.localKernelManager = Kernelmanager(public=False)
+pyzo.localKernelManager = Kernelmanager(public=False)
 
 
 def finishKernelInfo(info, scriptFile=None):
@@ -99,8 +99,8 @@ def finishKernelInfo(info, scriptFile=None):
     
     #If the file browser is active, and has the check box
     #'add path to Python path' set, set the PROJECTPATH variable
-    fileBrowser = iep.toolManager.getTool('iepfilebrowser')
-    projectManager = iep.toolManager.getTool('iepprojectmanager')
+    fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
+    projectManager = pyzo.toolManager.getTool('pyzoprojectmanager')
     info.projectPath = ''
     if fileBrowser:
         info.projectPath = fileBrowser.getAddToPythonPath()
@@ -368,7 +368,7 @@ class BaseShell(BaseTextCtrl):
         
         # Get the word that is clicked. Qt's cursor.StartOfWord does not
         # work for filenames.
-        line = line.replace('"', ' ')  # IEP uses " around filenames
+        line = line.replace('"', ' ')  # pyzo uses " around filenames
         before = line[:pos].split(' ')[-1]
         after = line[pos:].split(' ')[0]
         word = before + after
@@ -434,7 +434,7 @@ class BaseShell(BaseTextCtrl):
         self.setTextCursor(cursor)
         
         # Try opening the file (at the line number if we have one)
-        result = iep.editors.loadFile(filename)
+        result = pyzo.editors.loadFile(filename)
         if result and linenr is not None:
                 editor = result._editor
                 editor.gotoLine(linenr)
@@ -976,8 +976,8 @@ class PythonShell(BaseShell):
         BaseShell.__init__(self, parent, sharedHistory)
         
         # Get standard info if not given.
-        if info is None and iep.config.shellConfigs2:
-            info = iep.config.shellConfigs2[0]
+        if info is None and pyzo.config.shellConfigs2:
+            info = pyzo.config.shellConfigs2[0]
         if not info:
             info = KernelInfo(None)
         
@@ -1011,7 +1011,7 @@ class PythonShell(BaseShell):
         self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p+QtCore.QPoint(0,3)))) 
         
         # Keep track of breakpoints
-        iep.editors.breakPointsChanged.connect(self.sendBreakPoints)
+        pyzo.editors.breakPointsChanged.connect(self.sendBreakPoints)
         
         # Start!
         self.resetVariables()
@@ -1059,7 +1059,7 @@ class PythonShell(BaseShell):
         self._strm_broker = yoton.SubChannel(ct, 'strm-broker')
         self._strm_action = yoton.SubChannel(ct, 'strm-action', yoton.OBJECT)
         
-        # Set channels to sync mode. This means that if the IEP cannot process
+        # Set channels to sync mode. This means that if the pyzo cannot process
         # the messages fast enough, the sending side is blocked for a short
         # while. We don't want our users to miss any messages.
         for c in [self._strm_out, self._strm_err]:
@@ -1082,12 +1082,12 @@ class PythonShell(BaseShell):
         
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.
-        slot = iep.localKernelManager.createKernel(finishKernelInfo(info))
+        slot = pyzo.localKernelManager.createKernel(finishKernelInfo(info))
         self._brokerConnection = ct.connect('localhost:%i'%slot)
         self._brokerConnection.closed.bind(self._onConnectionClose)
         
         # Force updating of breakpoints
-        iep.editors.updateBreakPoints()
+        pyzo.editors.updateBreakPoints()
         
         # todo: see polling vs events
 #         # Detect incoming messages 
@@ -1166,8 +1166,8 @@ class PythonShell(BaseShell):
             cto = future.cto
         
         # First see if this is still the right editor (can also be a shell)
-        editor1 = iep.editors.getCurrentEditor()
-        editor2 = iep.shells.getCurrentShell()
+        editor1 = pyzo.editors.getCurrentEditor()
+        editor2 = pyzo.shells.getCurrentShell()
         if cto.textCtrl not in [editor1, editor2]:
             # The editor or shell starting the autocomp is no longer active
             aco.textCtrl.autocompleteCancel()
@@ -1197,7 +1197,7 @@ class PythonShell(BaseShell):
         # Include builtins and keywords?
         if not aco.name:
             aco.addNames(self._builtins)
-            if iep.config.settings.autoComplete_keywords:
+            if pyzo.config.settings.autoComplete_keywords:
                 aco.addNames(self._keywords)
         
         # Set buffer to prevent doing a second request
@@ -1227,8 +1227,8 @@ class PythonShell(BaseShell):
             aco = future.aco
         
         # First see if this is still the right editor (can also be a shell)
-        editor1 = iep.editors.getCurrentEditor()
-        editor2 = iep.shells.getCurrentShell()
+        editor1 = pyzo.editors.getCurrentEditor()
+        editor2 = pyzo.shells.getCurrentShell()
         if aco.textCtrl not in [editor1, editor2]:
             # The editor or shell starting the autocomp is no longer active
             aco.textCtrl.autocompleteCancel()
@@ -1244,7 +1244,7 @@ class PythonShell(BaseShell):
         if aco.name and not foundNames:
             # No names found for the requested name. This means
             # it does not exist, let's try to import it
-            importNames, importLines = iep.parser.getFictiveImports(editor1)
+            importNames, importLines = pyzo.parser.getFictiveImports(editor1)
             baseName = aco.nameInImportNames(importNames)
             if baseName:
                 line = importLines[baseName].strip()
@@ -1427,7 +1427,7 @@ class PythonShell(BaseShell):
                 except ValueError:
                     linenr = None
                 fname = ' '.join(parts)
-                editor = iep.editors.loadFile(fname)
+                editor = pyzo.editors.loadFile(fname)
                 if editor and linenr:
                     editor._editor.gotoLine(linenr)
             else:
@@ -1524,7 +1524,7 @@ class PythonShell(BaseShell):
             self._context.close()
         
         # Adios
-        iep.shells.removeShell(self)
+        pyzo.shells.removeShell(self)
     
     
     def _onConnectionClose(self, c, why):

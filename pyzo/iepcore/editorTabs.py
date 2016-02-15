@@ -17,13 +17,13 @@ It also has a find/replace widget that is at the bottom of the editor.
 import os, sys, time, gc
 from pyzolib.qt import QtCore, QtGui
 
-import iep
-from iep.iepcore.compactTabWidget import CompactTabWidget
-from iep.iepcore.editor import createEditor
-from iep.iepcore.baseTextCtrl import normalizePath
-from iep.iepcore.iepLogging import print
-from iep.iepcore.icons import EditorTabToolButton
-from iep import translate
+import pyzo
+from pyzo.core.compactTabWidget import CompactTabWidget
+from pyzo.core.editor import createEditor
+from pyzo.core.baseTextCtrl import normalizePath
+from pyzo.core.pyzoLogging import print
+from pyzo.core.icons import EditorTabToolButton
+from pyzo import translate
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 50
@@ -58,8 +58,8 @@ def simpleDialog(item, action, question, options, defaultOption):
             'abort':mb.Abort, 'retry':mb.Retry, 'ignore':mb.Ignore}
     
     # setup dialog
-    dlg = QtGui.QMessageBox(iep.main)
-    dlg.setWindowTitle('IEP')
+    dlg = QtGui.QMessageBox(pyzo.main)
+    dlg.setWindowTitle('Pyzo')
     dlg.setText(action + " file:\n{}".format(filename))
     dlg.setInformativeText(question)
     
@@ -173,7 +173,7 @@ class FindReplaceWidget(QtGui.QFrame):
             # Add button
             self._hidebut.setFont( QtGui.QFont('helvetica',7) )
             self._hidebut.setToolTip(translate('search', 'Hide search widget (Escape)'))
-            self._hidebut.setIcon( iep.icons.cancel )
+            self._hidebut.setIcon( pyzo.icons.cancel )
             self._hidebut.setIconSize(QtCore.QSize(16,16))
             vsubLayout.addWidget(self._hidebut, 0)
             
@@ -325,13 +325,13 @@ class FindReplaceWidget(QtGui.QFrame):
         self._regExp.stateChanged.connect(self.handleReplacePossible)
         
         # init case and regexp
-        self._caseCheck.setChecked( bool(iep.config.state.find_matchCase) )
-        self._regExp.setChecked( bool(iep.config.state.find_regExp) )
-        self._wholeWord.setChecked(  bool(iep.config.state.find_wholeWord) )
-        self._autoHide.setChecked(  bool(iep.config.state.find_autoHide) )
+        self._caseCheck.setChecked( bool(pyzo.config.state.find_matchCase) )
+        self._regExp.setChecked( bool(pyzo.config.state.find_regExp) )
+        self._wholeWord.setChecked(  bool(pyzo.config.state.find_wholeWord) )
+        self._autoHide.setChecked(  bool(pyzo.config.state.find_autoHide) )
         
         # show or hide?
-        if bool(iep.config.state.find_show):
+        if bool(pyzo.config.state.find_show):
             self.show()
         else:
             self.hide()
@@ -344,7 +344,7 @@ class FindReplaceWidget(QtGui.QFrame):
     def autoHideTimerCallback(self):
         """ Check whether we should hide the tool.
         """
-        timeout = iep.config.advanced.find_autoHide_timeout
+        timeout = pyzo.config.advanced.find_autoHide_timeout
         if self._autoHide.isChecked():
             if (time.time() - self._timerAutoHide_t0) > timeout: # seconds            
                 # Hide if editor has focus
@@ -589,7 +589,7 @@ class FileTabWidget(CompactTabWidget):
         
 #         # Create a corner widget
 #         but = QtGui.QToolButton()
-#         but.setIcon( iep.icons.cross )
+#         but.setIcon( pyzo.icons.cross )
 #         but.setIconSize(QtCore.QSize(16,16))
 #         but.clicked.connect(self.onClose)
 #         self.setCornerWidget(but)
@@ -605,7 +605,7 @@ class FileTabWidget(CompactTabWidget):
         
         # Valid index?
         if index<0 or index>=self.count():
-            iep.main.setMainTitle()  # No open file
+            pyzo.main.setMainTitle()  # No open file
         
         # Remove current item from history
         currentItem = self.currentItem()
@@ -923,13 +923,13 @@ class EditorTabs(QtGui.QWidget):
         # checkmarks appropriately)
         # todo: Resetting the scrolling would work better if set after
         # the widgets are properly sized.
-        iep.callLater(self.restoreEditorState)
+        pyzo.callLater(self.restoreEditorState)
     
     
     def addContextMenu(self):
         """ Adds a context menu to the tab bar """
         
-        from iep.iepcore.menu import EditorTabContextMenu
+        from pyzo.core.menu import EditorTabContextMenu
         self._menu = EditorTabContextMenu(self, "EditorTabMenu")
         self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)    
@@ -1001,7 +1001,7 @@ class EditorTabs(QtGui.QWidget):
     
     def setDebugLineIndicators(self, *filename_linenr):
         """ Set the debug line indicator. There is one indicator
-        global to IEP, corresponding to the last shell for which we
+        global to pyzo, corresponding to the last shell for which we
         received the indicator.
         """
         if len(filename_linenr) and filename_linenr[0] is None:
@@ -1195,7 +1195,7 @@ class EditorTabs(QtGui.QWidget):
             return
         
         # get extensions
-        extensions = iep.config.advanced.fileExtensionsToLoadFromDir
+        extensions = pyzo.config.advanced.fileExtensionsToLoadFromDir
         extensions = extensions.replace(',',' ').replace(';',' ')
         extensions = ["."+a.lstrip(".").strip() for a in extensions.split(" ")]
         
@@ -1236,8 +1236,8 @@ class EditorTabs(QtGui.QWidget):
         else:
             startdir = self._lastpath 
             # Try the file browser or project manager to suggest a path
-            fileBrowser = iep.toolManager.getTool('iepfilebrowser')
-            projectManager = iep.toolManager.getTool('iepprojectmanager')
+            fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
+            projectManager = pyzo.toolManager.getTool('pyzoprojectmanager')
             if fileBrowser:
                 startdir = fileBrowser.getDefaultSavePath()
             if projectManager and not startdir:
@@ -1420,12 +1420,12 @@ class EditorTabs(QtGui.QWidget):
         """ Save the editor's state configuration.
         """
         fr = self._findReplace
-        iep.config.state.find_matchCase = fr._caseCheck.isChecked()
-        iep.config.state.find_regExp = fr._regExp.isChecked()
-        iep.config.state.find_wholeWord = fr._wholeWord.isChecked()
-        iep.config.state.find_show = fr.isVisible()
+        pyzo.config.state.find_matchCase = fr._caseCheck.isChecked()
+        pyzo.config.state.find_regExp = fr._regExp.isChecked()
+        pyzo.config.state.find_wholeWord = fr._wholeWord.isChecked()
+        pyzo.config.state.find_show = fr.isVisible()
         #
-        iep.config.state.editorState2 = self._getCurrentOpenFilesAsSsdfList()
+        pyzo.config.state.editorState2 = self._getCurrentOpenFilesAsSsdfList()
     
     
     def restoreEditorState(self):
@@ -1433,8 +1433,8 @@ class EditorTabs(QtGui.QWidget):
         """
         
         # Restore opened editors
-        if iep.config.state.editorState2:
-            self._setCurrentOpenFilesAsSsdfList(iep.config.state.editorState2)
+        if pyzo.config.state.editorState2:
+            self._setCurrentOpenFilesAsSsdfList(pyzo.config.state.editorState2)
         else:
             self.newFile()
         

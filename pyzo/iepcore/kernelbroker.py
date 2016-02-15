@@ -6,7 +6,7 @@
 
 """ Module kernelBroker
 
-This module implements the interface between IEP and the kernel.
+This module implements the interface between Pyzo and the kernel.
 
 """
 
@@ -18,7 +18,7 @@ import ctypes
 
 from pyzolib import ssdf
 import yoton
-import iep # local IEP (can be on a different box than where the user is)
+import pyzo # local Pyzo (can be on a different box than where the user is)
 
 
 # Important: the yoton event loop should run somehow!
@@ -29,8 +29,8 @@ class KernelInfo(ssdf.Struct):
     Describes all information for a kernel. This class can be used at 
     the IDE as well as the kernelbroker.
     
-    This information goes a long way from the iep config file to the
-    kernel. The list iep.config.shellConfigs2 contains the configs
+    This information goes a long way from the pyzo config file to the
+    kernel. The list pyzo.config.shellConfigs2 contains the configs
     for all kernels. These objects are edited in-place by the 
     shell config.
     
@@ -60,12 +60,12 @@ class KernelInfo(ssdf.Struct):
         # The executable. This can be '/usr/bin/python3.1' or 
         # 'c:/program files/python2.6/python.exe', etc.
         # The "[default]" is a placeholder text that is replaced at the last
-        # moment with iep.defaultInterpreterExe()
+        # moment with pyzo.defaultInterpreterExe()
         self.exe = '[default]'
         
         # The GUI toolkit to embed the event loop of. 
         # Instantiate with a value that is settable
-        self.gui = iep.defaultInterpreterGui() or 'none'
+        self.gui = pyzo.defaultInterpreterGui() or 'none'
         
         # The Python path. Paths should be separated by newlines.
         # '$PYTHONPATH' is replaced by environment variable by broker
@@ -131,14 +131,14 @@ def getCommandFromKernelInfo(info, port):
     # Apply default exe
     exe = info.exe
     if exe in ('[default]', '<default>'):
-        exe = iep.defaultInterpreterExe()
+        exe = pyzo.defaultInterpreterExe()
     
     # Correct path when it contains spaces
     if exe.count(' ') and exe[0] != '"':
         exe = '"{}"'.format(exe)
     
     # Get start script
-    startScript = os.path.join( iep.iepDir, 'iepkernel', 'start.py')
+    startScript = os.path.join( pyzo.pyzoDir, 'pyzokernel', 'start.py')
     startScript = '"{}"'.format(startScript)
     
     # Build command
@@ -166,7 +166,7 @@ def getEnvFromKernelInfo(info):
     # Add entry to Pythopath, so that we can import yoton
     # Note: an empty entry might cause trouble if the start-directory is 
     # somehow overriden (see issue 128).
-    pythonPath = iep.iepDir + os.pathsep + pythonPath
+    pythonPath = pyzo.pyzoDir + os.pathsep + pythonPath
     
     # Prepare environment, remove references to tk libraries, 
     # since they're wrong when frozen. Python will insert the
@@ -177,7 +177,7 @@ def getEnvFromKernelInfo(info):
     env.pop('TCL_LIBRARY','')
     env['PYTHONPATH'] = pythonPath
     # Jython does not use PYTHONPATH but JYTHONPATH
-    env['JYTHONPATH'] = iep.iepDir + os.pathsep + os.environ.get('JYTHONPATH', '')
+    env['JYTHONPATH'] = pyzo.pyzoDir + os.pathsep + os.environ.get('JYTHONPATH', '')
     
     # Add environment variables specified in shell config
     for line in info.environ.splitlines():
@@ -343,11 +343,11 @@ class KernelBroker:
         self._stat_startup.send(info)
         
         # Get directory to start process in
-        cwd = iep.iepDir
+        cwd = pyzo.pyzoDir
         
         # Host connection for the kernel to connect
-        # (tries several port numbers, staring from 'IEP')
-        self._kernelCon = self._context.bind('localhost:IEP2', 
+        # (tries several port numbers, staring from 'PYZO')
+        self._kernelCon = self._context.bind('localhost:PYZO', 
                                                 max_tries=256, name='kernel')
         
         # Get command to execute, and environment to use
@@ -361,7 +361,7 @@ class KernelBroker:
             #don't get wx GUIs, or sometimes we can't kill the subprocesses.
             # And I also see problems with Tk.                
             # But we only use it if we are sure that cmd is available.
-            # See IEP issue #240
+            # See pyzo issue #240
             try:
                 subprocess.check_output('cmd /c "cd"', shell=True)
             except (IOError, subprocess.SubprocessError):
@@ -405,7 +405,7 @@ class KernelBroker:
         the ide can connect.
         
         """
-        c = self._context.bind(address+':IEP+256', max_tries=32)
+        c = self._context.bind(address+':PYZO+256', max_tries=32)
         return c.port1
     
     
@@ -747,7 +747,7 @@ class Kernelmanager:
     same machine as this broker. IDE's can ask which kernels are available
     and can connect to them via this broker.
     
-    The IEP process runs an instance of this class that connects at 
+    The Pyzo process runs an instance of this class that connects at 
     localhost. At a later stage, we may make it possible to create 
     a kernel-server at a remote machine.
     
@@ -806,7 +806,7 @@ class Kernelmanager:
     def terminateAll(self):
         """ terminateAll()
         
-        Terminates all kernels. Required when shutting down IEP. 
+        Terminates all kernels. Required when shutting down Pyzo. 
         When this function returns, all kernels will be terminated.
         
         """

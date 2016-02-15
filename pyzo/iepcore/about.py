@@ -6,14 +6,14 @@ import pyzolib
 from pyzolib import paths
 from pyzolib.qt import QtCore, QtGui
 
-import iep
+import pyzo
 
 
 
 class AboutDialog(QtGui.QDialog):
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowTitle(iep.translate("menu dialog", "About IEP"))
+        self.setWindowTitle(pyzo.translate("menu dialog", "About Pyzo"))
         self.resize(600,500)
         
         # Layout
@@ -21,12 +21,12 @@ class AboutDialog(QtGui.QDialog):
         self.setLayout(layout)
         
         # Create image and title
-        im = QtGui.QPixmap( os.path.join(iep.iepDir, 
-                            'resources', 'appicons', 'ieplogo64.png') )
+        im = QtGui.QPixmap( os.path.join(pyzo.pyzoDir, 
+                            'resources', 'appicons', 'pyzologo64.png') )
         imlabel = QtGui.QLabel(self)
         imlabel.setPixmap(im)
         textlabel = QtGui.QLabel(self)
-        textlabel.setText('<h3>IEP: the Interactive Editor for Python</h3>')
+        textlabel.setText('<h3>Pyzo: the Interactive Editor for Python</h3>')
         #
         titleLayout = QtGui.QHBoxLayout()
         titleLayout.addWidget(imlabel, 0)
@@ -53,7 +53,7 @@ class AboutDialog(QtGui.QDialog):
         self.createContributorsTab()
         self.createLicenseTab()
         #
-        #from iep.iepcore.license import LicenseManager
+        #from pyzo.core.license import LicenseManager
         #self._tabs.addTab(LicenseManager(self._tabs), 'Your licenses')
     
     
@@ -78,7 +78,7 @@ class AboutDialog(QtGui.QDialog):
         {}<br><br>
         
         <b>Version info</b><br>
-        IEP version: <u>{}</u><br>
+        Pyzo version: <u>{}</u><br>
         Platform: {}<br>
         Python version: {}<br>
         pyzolib version: {}<br>
@@ -86,26 +86,18 @@ class AboutDialog(QtGui.QDialog):
         {} version: {}<br>
         <br>
         
-        <b>IEP directories</b><br>
-        IEP source directory: {}<br>
-        IEP userdata directory: {}<br>
+        <b>Pyzo directories</b><br>
+        Pyzo source directory: {}<br>
+        Pyzo userdata directory: {}<br>
         <br>
         
         <b>Acknowledgements</b><br>
-        IEP is written in Python 3 and uses the Qt widget
-        toolkit. IEP uses code and concepts that are inspired by 
+        Pyzo is written in Python 3 and uses the Qt widget
+        toolkit. Pyzo uses code and concepts that are inspired by 
         IPython, Pype, and Spyder.
-        IEP uses a (modified) subset of the silk icon set, 
+        Pyzo uses a (modified) subset of the silk icon set, 
         by Mark James (http://www.famfamfam.com/lab/icons/silk/).
         """
-        # Determine license text
-        licenseText = ''  # 'This copy of IEP is not registered (using the free license).'
-        if iep.license:
-            if iep.license['company']:
-                licenseText = 'This copy of IEP is registered to {name} of {company}.'
-            else:
-                licenseText = 'This copy of IEP is registered to {name}.'
-            licenseText = licenseText.format(**iep.license)
         # Determine if this is PyQt4 or Pyside
         if hasattr(QtCore, 'PYQT_VERSION_STR'):
             qtWrapper = 'PyQt4'
@@ -118,21 +110,22 @@ class AboutDialog(QtGui.QDialog):
             qtWrapperVersion = PySide.__version__
         # Insert information texts
         if paths.is_frozen():
-            versionText = iep.__version__ + ' (binary)'
+            versionText = pyzo.__version__ + ' (binary)'
         else:
-            versionText = iep.__version__ + ' (source)'
-        aboutText = aboutText.format(licenseText, versionText, 
+            versionText = pyzo.__version__ + ' (source)'
+        aboutText = aboutText.format(
+                        versionText, 
                         sys.platform, 
                         sys.version.split(' ')[0], 
                         pyzolib.__version__,
                         qtVersion, qtWrapper, qtWrapperVersion,
-                        iep.iepDir, iep.appDataDir)
+                        pyzo.pyzoDir, pyzo.appDataDir)
         
         self.addTab("General", aboutText)
     
     
     def createContributorsTab(self):
-        fname = os.path.join(iep.iepDir, 'contributors.txt')
+        fname = os.path.join(pyzo.pyzoDir, 'contributors.txt')
         try:
             with open(fname, 'rb') as f:
                 text = f.read().decode('utf-8', 'ignore').strip()
@@ -146,7 +139,7 @@ class AboutDialog(QtGui.QDialog):
     
     
     def createLicenseTab(self):
-        fname = os.path.join(iep.iepDir, 'license.txt')
+        fname = os.path.join(pyzo.pyzoDir, 'license.txt')
         try:
             with open(fname, 'rb') as f:
                 text = f.read().decode('utf-8', 'ignore').strip()
@@ -160,7 +153,7 @@ class AboutDialog(QtGui.QDialog):
         
 
 if __name__ == '__main__':
-    #iep.license = {'name': 'AK', 'company': ''}
+    #pyzo.license = {'name': 'AK', 'company': ''}
     m = AboutDialog(None)
     m.show()
     

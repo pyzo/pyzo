@@ -13,7 +13,7 @@ that show information to the user in a very effective, yet subtle manner.
 """
 
 from pyzolib.qt import QtCore, QtGui
-import iep
+import pyzo
 
 
 class IconArtist:
@@ -47,7 +47,7 @@ class IconArtist:
         
         # Get icon if given by name
         if isinstance(icon, str):
-            icon = iep.icons[icon]
+            icon = pyzo.icons[icon]
         
         # Create pixmap
         if icon is None:

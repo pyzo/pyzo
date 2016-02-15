@@ -6,28 +6,28 @@
 
 """ Module to deal with command line arguments. 
 
-In specific, this allows doing "iep some_file.py" and the file will be
-opened in an existing IEP window (if available) or a new IEP process
+In specific, this allows doing "pyzo some_file.py" and the file will be
+opened in an existing pyzo window (if available) or a new pyzo process
 is started to open the file. 
 
-This module is used at the very early stages of starting IEP, and also
+This module is used at the very early stages of starting pyzo, and also
 in main.py to apply any command line args for the current process, and
-to closse down the server when IEP is closed.
+to closse down the server when pyzo is closed.
 """
 
 import sys
 import os
 
 from yoton.clientserver import RequestServer, do_request
-import iep
+import pyzo
 
 # Local address to host on. we use yoton's port hash to have an arbitrary port
-ADDRESS = 'localhost:iepserver'
+ADDRESS = 'localhost:pyzoserver'
 
 
 class Server(RequestServer):
     """ Server that listens on a port for commands.
-    The commands can be send by executing the IEP executable with
+    The commands can be send by executing the Pyzo executable with
     command line arguments.
     """
     
@@ -43,16 +43,16 @@ class Server(RequestServer):
             reply = handle_command(command, arg)
         except Exception as err:
             msg = 'Error handling request %r:\n%s' % (request, str(err))
-            iep.callLater(print, msg)
+            pyzo.callLater(print, msg)
             return msg
         else:
-            iep.callLater(print, 'Request:', request)
-            iep.callLater(print, 'Reply:', reply)
+            pyzo.callLater(print, 'Request:', request)
+            pyzo.callLater(print, 'Reply:', reply)
             return reply
 
 
 def handle_command(command, arg):
-    """ Function that handles all IEP commands.
+    """ Function that handles all pyzo commands.
     This gets called either from the server, or from the code that 
     processed command line args.
     """
@@ -76,26 +76,26 @@ def handle_command(command, arg):
         # Open a file in the editor
         if not arg:
             return 'The open command requires a filename.'
-        iep.callLater(iep.editors.loadFile, arg)
+        pyzo.callLater(pyzo.editors.loadFile, arg)
         return 'Opened file %r' % arg
     
     elif command == 'new':
         # Open a new (temp) file in the editor 
-        iep.callLater(iep.editors.newFile)
+        pyzo.callLater(pyzo.editors.newFile)
         return 'Created new file'
     
     elif command == 'close':
-        # Close IEP
-        iep.callLater(iep.main.close)
-        return 'Closing IEP'
+        # Close pyzo
+        pyzo.callLater(pyzo.main.close)
+        return 'Closing Pyzo'
     
     else:
         # Assume the user wanted to open a file
         fname = (command + ' ' + arg).rstrip()
-        if not iep.editors:
+        if not pyzo.editors:
             return 'Still warming up ...'
         else:
-            iep.callLater(iep.editors.loadFile, fname)
+            pyzo.callLater(pyzo.editors.loadFile, fname)
             return 'Try opening file %r' % fname
     
     # We should always return. So if we get here, it is a bug.
@@ -143,15 +143,15 @@ def stop_our_server():
 
 def is_our_server_running():
     """ Return True if our server is running. If it is, this process
-    is the main IEP; the first IEP that was started. If the server is
-    not running, this is probably not the first IEP, but there might
+    is the main Pyzo; the first Pyzo that was started. If the server is
+    not running, this is probably not the first Pyzo, but there might
     also be problem with starting the server.
     """
     return server and server.isAlive()
 
 
-def is_iep_server_running():
-    """ Test whether the IEP server is running *somewhere* (not
+def is_pyzo_server_running():
+    """ Test whether the Pyzo server is running *somewhere* (not
     necesarily in this process).
     """
     try:
@@ -164,7 +164,7 @@ def is_iep_server_running():
 # Shold we start the server?
 _try_start_server = True
 if sys.platform.startswith('win'):
-    _try_start_server = not is_iep_server_running()
+    _try_start_server = not is_pyzo_server_running()
 
 
 # Create server

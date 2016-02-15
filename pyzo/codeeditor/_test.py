@@ -33,7 +33,7 @@ if __name__=='__main__':
     QtGui.QShortcut(QtGui.QKeySequence("Shift+Tab"), e).activated.connect(e.dedentSelection) # Shift + Tab
    
     #TODO: somehow these shortcuts don't work in this test-app, but they do in
-    # iep. May have something to do with overriding slots of Qt-native objects?
+    # pyzo. May have something to do with overriding slots of Qt-native objects?
     QtGui.QShortcut(QtGui.QKeySequence("Ctrl+C"), e).activated.connect(e.copy)
     QtGui.QShortcut(QtGui.QKeySequence("Ctrl+X"), e).activated.connect(e.cut)
     QtGui.QShortcut(QtGui.QKeySequence("Ctrl+V"), e).activated.connect(e.paste)
