@@ -67,7 +67,7 @@ def pip_command_exe(exe, *args):
 
 
 def pip_command(*args):
-    """ Do a pip command, e.g. "install pyzolib".
+    """ Do a pip command, e.g. "install networkx".
     Installs in the current interpreter.
     """
     pip_command_exe(sys.executable, *args)
@@ -75,5 +75,5 @@ def pip_command(*args):
 
 
 if __name__ == '__main__':
-    pip_command('install', 'pyzolib')
+    pip_command('install', 'networkx')
     

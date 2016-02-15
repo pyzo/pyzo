@@ -50,7 +50,7 @@ setup(
 
     platforms = 'any',
     provides = ['iep'],
-    install_requires = ['pyzolib'], # and 'PySide' or 'PyQt4'
+    install_requires = [], # and 'PySide' or 'PyQt4'
 
     packages = ['iep', 'iep.iepcore', 'iep.iepkernel', 'iep.util',
                 'iep.tools', 'iep.tools.iepFileBrowser',

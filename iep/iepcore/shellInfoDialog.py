@@ -63,10 +63,7 @@ class ShellInfo_exe(QtGui.QComboBox):
         #self.activated.connect(self.onActivated)
     
     def _interpreterName(self, p):
-        if p.is_pyzo:
-            return '%s  [v%s at Pyzo]' % (p.path, p.version)
-        else:
-            return '%s  [v%s]' % (p.path, p.version)
+        return '%s  [v%s]' % (p.path, p.version)
     
     def setTheText(self, value):
         

@@ -283,12 +283,7 @@ del get_license_info
 # Init default style name (set in main.restoreIepState())
 defaultQtStyleName = ''
 
-# Init pyzo_mode. In pyzo_mode, IEP will use a different logo and possibly
-# expose certain features in the future.
-pyzo_mode = False
-distro_name = None
-
-# Init default exe for the executable (can be set, e.g. by Pyzo)
+# Init default exe for the executable
 _defaultInterpreterExe = None
 _defaultInterpreterGui = None
 def setDefaultInterpreter(exe, gui=None):

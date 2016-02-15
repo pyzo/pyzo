@@ -1545,18 +1545,13 @@ class HelpMenu(Menu):
     
     def build(self):
         icons = iep.icons
-        issues_url = "https://bitbucket.org/iep-project/iep/issues/"
-        if iep.pyzo_mode:
-            issues_url = "http://pyzo.org/issues.html"
+        issues_url = "https://github.com/pyzo/pyzo/issues"
         
         self.addItem(translate("menu", "Documentation ::: Documentation on Python and the Scipy Stack."), 
             icons.help, self._showPyzoDocs)
         
-        if iep.pyzo_mode:
-            self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
-                icons.help, "http://www.pyzo.org")
-        self.addUrlItem(translate("menu", "IEP Website ::: Open the IEP website in your browser."), 
-            icons.help, "http://iep.pyzo.org")
+        self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
+            icons.help, "http://www.pyzo.org")
         self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
             icons.comments, "http://pyzo.org/community.html#discussion-fora-and-email-lists")
         self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in IEP, or do you have a feature request?"), 

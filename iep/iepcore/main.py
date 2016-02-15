@@ -45,7 +45,7 @@ class MainWindow(QtGui.QMainWindow):
         self.restoreGeometry()
         
         # Show splash screen (we need to set our color too)
-        w = SplashWidget(self, distro=iep.distro_name)
+        w = SplashWidget(self, distro='no distro')
         self.setCentralWidget(w)
         self.setStyleSheet("QMainWindow { background-color: #268bd2;}")
         
@@ -461,11 +461,7 @@ def loadAppIcons():
     appiconDir =  os.path.join(iep.iepDir, 'resources', 'appicons')
     
     # Determine template for filename of the application icon-files.
-    # Use the Pyzo logo if in pyzo_mode.
-    if False: #iep.pyzo_mode:
-        fnameT = 'pyzologo{}.png'
-    else:
-        fnameT = 'ieplogo{}.png'
+    fnameT = 'pyzologo{}.png'
     
     # Construct application icon. Include a range of resolutions. Note that
     # Qt somehow does not use the highest possible res on Linux/Gnome(?), even
