@@ -9,7 +9,7 @@ we may add proxies for ftp, S3, remote computing, etc.
 This may seem like an awkward way to use the file system, but (with
 small modifications) this approach can probably be used also for
 opening/saving files to any file system that we implement here. This
-will make IEP truly powerful for use in remote computing.
+will make Pyzo truly powerful for use in remote computing.
 
 """
 

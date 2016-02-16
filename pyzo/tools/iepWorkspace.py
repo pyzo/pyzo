@@ -8,7 +8,7 @@
 import sys, os, time
 
 from pyzolib.qt import QtCore, QtGui
-import iep 
+import pyzo 
 
 tool_name = "Workspace"
 tool_summary = "Lists the variables in the current shell's namespace."
@@ -53,8 +53,8 @@ class WorkspaceProxy(QtCore.QObject):
         self._name = ''
         
         # Bind to events
-        iep.shells.currentShellChanged.connect(self.onCurrentShellChanged)
-        iep.shells.currentShellStateChanged.connect(self.onCurrentShellStateChanged)
+        pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
+        pyzo.shells.currentShellStateChanged.connect(self.onCurrentShellStateChanged)
         
         # Initialize
         self.onCurrentShellStateChanged()
@@ -76,7 +76,7 @@ class WorkspaceProxy(QtCore.QObject):
         """
         self._name = name
         
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell:
             future = shell._request.dir2(self._name)
             future.add_done_callback(self.processResponse)
@@ -97,7 +97,7 @@ class WorkspaceProxy(QtCore.QObject):
         When no shell is selected now, update this. In all other cases,
         the onCurrentShellStateChange will be fired too. 
         """
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if not shell:
             self._variables = []
             self.haveNewData.emit()
@@ -107,7 +107,7 @@ class WorkspaceProxy(QtCore.QObject):
         """ onCurrentShellStateChanged()
         Do a request for information! 
         """ 
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if not shell:
             # Should never happen I think, but just to be sure
             self._variables = []
@@ -217,13 +217,13 @@ class WorkspaceTree(QtGui.QTreeWidget):
         
         elif 'help' in req:
             # Show help in help tool (if loaded)
-            hw = iep.toolManager.getTool('iepinteractivehelp')
+            hw = pyzo.toolManager.getTool('pyzointeractivehelp')
             if hw:
                 hw.setObjectName(action._objectName)
         
         elif 'delete' in req:
             # Delete the variable
-            shell = iep.shells.getCurrentShell()
+            shell = pyzo.shells.getCurrentShell()
             if shell:
                 shell.processLine('del ' + action._objectName)
     
@@ -273,8 +273,8 @@ class WorkspaceTree(QtGui.QTreeWidget):
             item.setToolTip(2,tt)
 
 
-class IepWorkspace(QtGui.QWidget):
-    """ IepWorkspace
+class PyzoWorkspace(QtGui.QWidget):
+    """ PyzoWorkspace
     
     The main widget for this tool.
     
@@ -284,10 +284,10 @@ class IepWorkspace(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         
         # Make sure there is a configuration entry for this tool
-        # The IEP tool manager makes sure that there is an entry in
+        # The pyzo tool manager makes sure that there is an entry in
         # config.tools before the tool is instantiated.
         toolId = self.__class__.__name__.lower()        
-        self._config = iep.config.tools[toolId]
+        self._config = pyzo.config.tools[toolId]
         if not hasattr(self._config, 'hideTypes'):
             self._config.hideTypes = []
         
@@ -305,7 +305,7 @@ class IepWorkspace(QtGui.QWidget):
         
         # Create options menu
         self._options = QtGui.QToolButton(self)
-        self._options.setIcon(iep.icons.filter)
+        self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16,16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)

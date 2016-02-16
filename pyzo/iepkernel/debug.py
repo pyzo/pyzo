@@ -12,7 +12,7 @@ import traceback
 
 
 class Debugger(bdb.Bdb):
-    """ Debugger for the IEP kernel, based on bdb.
+    """ Debugger for the pyzo kernel, based on bdb.
     """
     
     def __init__(self):
@@ -29,14 +29,14 @@ class Debugger(bdb.Bdb):
         This is called to enter debug-mode at a breakpoint, or to enter
         post-mortem debugging.
         """
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         
         # Collect frames
         frames = []
         while frame:
             if frame is self.botframe: break
             co_filename = frame.f_code.co_filename
-            if 'iepkernel' in co_filename: break  # IEP kernel
+            if 'pyzokernel' in co_filename: break  # pyzo kernel
             if 'interactiveshell.py' in co_filename: break  # IPython kernel
             frames.insert(0, frame)
             frame = frame.f_back
@@ -63,7 +63,7 @@ class Debugger(bdb.Bdb):
         while self._interacting:
             time.sleep(0.05)
             interpreter.process_commands()
-            pe = os.getenv('IEP_PROCESS_EVENTS_WHILE_DEBUGGING', '').lower()
+            pe = os.getenv('PYZO_PROCESS_EVENTS_WHILE_DEBUGGING', '').lower()
             if pe in ('1', 'true', 'yes'):
                 interpreter.guiApp.process_events()
         
@@ -105,7 +105,7 @@ class Debugger(bdb.Bdb):
         """ Alias for interpreter.write(), but appends a newline.
         Writes to stderr.
         """
-        sys._iepInterpreter.write(msg+'\n')
+        sys._pyzoInterpreter.write(msg+'\n')
     
     
     def error(self, msg):
@@ -118,7 +118,7 @@ class Debugger(bdb.Bdb):
         """ Write the debug status so the IDE can take action.
         """
         
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         
         # Collect frames info
         frames = []
@@ -156,12 +156,12 @@ class Debugger(bdb.Bdb):
         bp = bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
     
     
-    # Prevent stopping in bdb code or iepkernel code
+    # Prevent stopping in bdb code or pyzokernel code
     def stop_here(self, frame):
         result = bdb.Bdb.stop_here(self, frame)
         if result:
             return (    ('bdb.py' not in frame.f_code.co_filename) and
-                        ('iepkernel' not in frame.f_code.co_filename) )
+                        ('pyzokernel' not in frame.f_code.co_filename) )
     
     
     def do_clear(self, arg):
@@ -293,7 +293,7 @@ class Debugger(bdb.Bdb):
     def do_start(self, arg):
         """ Start postmortem debugging from the last uncaught exception.
         """
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         
         # Get traceback
         try:
@@ -319,7 +319,7 @@ class Debugger(bdb.Bdb):
     def do_frame(self, arg):
         """ Go to the i'th frame in the stack.
         """
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -341,7 +341,7 @@ class Debugger(bdb.Bdb):
     def do_up(self, arg):
         """ Go one frame up the stack.
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -361,7 +361,7 @@ class Debugger(bdb.Bdb):
     def do_down(self, arg):
         """ Go one frame down the stack.
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -382,7 +382,7 @@ class Debugger(bdb.Bdb):
         """ Stop debugging, terminate process execution.
         """
         # Can be done both in postmortem and normal debugging
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -394,7 +394,7 @@ class Debugger(bdb.Bdb):
     def do_where(self, arg):
         """ Print the stack trace and indicate the current frame.
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -421,7 +421,7 @@ class Debugger(bdb.Bdb):
     def do_continue(self, arg):
         """ Continue the program execution.
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if self._debugmode == 0:
             self.message("Not in debug mode.")
@@ -435,7 +435,7 @@ class Debugger(bdb.Bdb):
     def do_step(self, arg):
         """ Execute the current line, stop ASAP (step into).
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if self._debugmode == 0:
             self.message("Not in debug mode.")
@@ -449,7 +449,7 @@ class Debugger(bdb.Bdb):
     def do_next(self, arg):
         """ Continue execution until the next line (step over). 
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if self._debugmode == 0:
             self.message("Not in debug mode.")
@@ -464,7 +464,7 @@ class Debugger(bdb.Bdb):
     def do_return(self, arg):
         """ Continue execution until the current function returns (step out).
         """
-        interpreter = sys._iepInterpreter 
+        interpreter = sys._pyzoInterpreter 
         
         if self._debugmode == 0:
             self.message("Not in debug mode.")
@@ -479,5 +479,5 @@ class Debugger(bdb.Bdb):
     def do_events(self, arg):
         """ Process GUI events for the integrated GUI toolkit.
         """
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         interpreter.guiApp.process_events()

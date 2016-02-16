@@ -14,8 +14,8 @@ import fnmatch
 from pyzolib.path import Path
 
 from . import QtCore, QtGui
-import iep
-from iep import translate
+import pyzo
+from pyzo import translate
 
 from . import tasks
 from .utils import hasHiddenAttribute, getMounts
@@ -255,7 +255,7 @@ class DriveItem(BrowserItem):
     
     def setFileIcon(self):
         # Use folder icon
-        self.setIcon(0, iep.icons.drive)
+        self.setIcon(0, pyzo.icons.drive)
     
     def onActivated(self):
         self.treeWidget().setPath(self.path())
@@ -278,7 +278,7 @@ class DirItem(BrowserItem):
         icon = iconprovider.icon(iconprovider.Folder)
         overlays = []
         if self._starred:
-            overlays.append(iep.icons.bullet_yellow)
+            overlays.append(pyzo.icons.bullet_yellow)
         icon = addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(-4,0))
         self.setIcon(0, icon)
     
@@ -334,8 +334,8 @@ class FileItem(BrowserItem):
             self._createDummyItem('Loading high level structure ...')
     
     def setFileIcon(self):
-        # Create dummy file in iep user dir
-        dummy_filename = Path(iep.appDataDir) / 'dummyFiles' / 'dummy' + self.path().ext
+        # Create dummy file in pyzo user dir
+        dummy_filename = Path(pyzo.appDataDir) / 'dummyFiles' / 'dummy' + self.path().ext
         # Create file?
         if not dummy_filename.isfile:
             if not dummy_filename.dirname.isdir:
@@ -361,10 +361,10 @@ class FileItem(BrowserItem):
         path = self.path()
         if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
             # Load and get editor
-            fileItem = iep.editors.loadFile(path)
+            fileItem = pyzo.editors.loadFile(path)
             editor = fileItem._editor
             # Give focus
-            iep.editors.getCurrentEditor().setFocus()
+            pyzo.editors.getCurrentEditor().setFocus()
     
     def onExpanded(self):
         if self._mode == 'normal':
@@ -438,12 +438,12 @@ class SubFileItem(QtGui.QTreeWidgetItem):
         path = self.path()
         if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
             # Load and get editor
-            fileItem = iep.editors.loadFile(path)
+            fileItem = pyzo.editors.loadFile(path)
             editor = fileItem._editor
             # Goto line
             editor.gotoLine(self._linenr)
             # Give focus
-            iep.editors.getCurrentEditor().setFocus()
+            pyzo.editors.getCurrentEditor().setFocus()
 
 
 
@@ -777,10 +777,10 @@ class Tree(QtGui.QTreeWidget):
 
 
 
-class PopupMenu(iep.iepcore.menu.Menu):
+class PopupMenu(pyzo.core.menu.Menu):
     def __init__(self, parent, item):
         self._item = item
-        iep.iepcore.menu.Menu.__init__(self, parent, " ")
+        pyzo.core.menu.Menu.__init__(self, parent, " ")
     
     def build(self):
         
@@ -794,7 +794,7 @@ class PopupMenu(iep.iepcore.menu.Menu):
                 self.addItem(translate("filebrowser", "Star this directory"), None, self._star)
             self.addSeparator()
         
-        # The IEP related functions
+        # The pyzo related functions
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
             if self._item.path().endswith('.py'):
@@ -808,8 +808,8 @@ class PopupMenu(iep.iepcore.menu.Menu):
         # Create items for open and copy path
         if isinstance(self._item, (FileItem, DirItem)):
             if isplat('win') or isplat('darwin') or isplat('linux'):
-                self.addItem(translate("filebrowser", "Open outside IEP"), 
-                    None, self._openOutsideIep)
+                self.addItem(translate("filebrowser", "Open outside Pyzo"), 
+                    None, self._openOutsidePyzo)
             if isplat('darwin'):            
                 self.addItem(translate("filebrowser", "Reveal in Finder"), 
                     None, self._showInFinder)
@@ -843,7 +843,7 @@ class PopupMenu(iep.iepcore.menu.Menu):
         # Refresh
         self.parent().setPath(self.parent().path())
     
-    def _openOutsideIep(self):
+    def _openOutsidePyzo(self):
         if sys.platform.startswith('darwin'):
             subprocess.call(('open', self._item.path()))
         elif sys.platform.startswith('win'):
@@ -861,7 +861,7 @@ class PopupMenu(iep.iepcore.menu.Menu):
     
     def _runAsScript(self):
         filename = self._item.path()
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell is not None:
             shell.restart(filename)
         else:

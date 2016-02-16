@@ -4,14 +4,14 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" iep.util._locale
+""" pyzo.util._locale
 Module for locale stuff like language and translations.
 """
 
 import os, sys, time
 from pyzolib.qt import QtCore, QtGui
 
-import iep
+import pyzo
 
 
 # Define supported languages. The key defines the name as shown to the
@@ -62,7 +62,7 @@ def getLocale(languageName):
 
 def setLanguage(languageName):
     """ setLanguage(languageName)
-    Set the language for the app. Loads qt and iep translations.
+    Set the language for the app. Loads qt and pyzo translations.
     Returns the QLocale instance to pass to the main widget.
     """
     
@@ -72,7 +72,7 @@ def setLanguage(languageName):
     # Get paths were language files are
     qtTransPath = str(QtCore.QLibraryInfo.location(
                     QtCore.QLibraryInfo.TranslationsPath))
-    iepTransPath = os.path.join(iep.iepDir, 'resources', 'translations')
+    pyzoTransPath = os.path.join(pyzo.pyzoDir, 'resources', 'translations')
     
     # Get possible names for language files
     # (because Qt's .tr files may not have the language component.)
@@ -92,7 +92,7 @@ def setLanguage(languageName):
     # Set Qt translations
     # Note that the translator instances must be stored
     # Note that the load() method is very forgiving with the file name
-    for what, where in [('qt', qtTransPath),('iep', iepTransPath)]:
+    for what, where in [('qt', qtTransPath),('pyzo', pyzoTransPath)]:
         trans = QtCore.QTranslator()
         # Try loading both names
         for localeName in [localeName1, localeName2]:
@@ -139,7 +139,7 @@ def _splitMainAndTt(s):
 
 def translate(context, text, disambiguation=None):  
     """ translate(context, text, disambiguation=None)
-    The translate function used throughout IEP.
+    The translate function used throughout pyzo.
     """
     # Get translation and split tooltip
     newtext = QtCore.QCoreApplication.translate(context, text, disambiguation)
@@ -164,15 +164,15 @@ pyside-lupdate, linguist, lrelease. On Windows, these should come
 with your PySide installation. On (Ubuntu) Linux, you can install
 these with 'sudo apt-get install pyside-tools qt4-dev-tools'.
 
-You also need to run IEP from source as checked out from the repo
-(e.g. by running ieplauncher.py).
+You also need to run pyzo from source as checked out from the repo
+(e.g. by running pyzolauncher.py).
 
 To create a new language:
-  * the file 'iep/util/locale.py' should be edited to add the language
+  * the file 'pyzo/util/locale.py' should be edited to add the language
     to the LANGUAGES dict
   * run 'linguist(your_lang)', this will raise an erro, but it will show
     the name of the .tr file
-  * the file 'iep/iep.pro' should be edited to include the new .tr file
+  * the file 'pyzo/pyzo.pro' should be edited to include the new .tr file
   * run 'lupdate()' to create the .tr file
   * run 'linguist(your_lang)' again to initialize the .tr file.
 
@@ -180,7 +180,7 @@ To update a language:
   * run 'lupdate()'
   * run 'linguist(your_lang)'
   * make all the translations and save
-  * run lrelease() and restart IEP to see translations
+  * run lrelease() and restart pyzo to see translations
   * repeat if necessary
 
 """
@@ -202,13 +202,13 @@ def linguist(languageName):
     locale = getLocale(languageName)
     
     # Get file to open
-    fname = 'iep_{}.tr'.format(locale.name())
-    filename = os.path.join(iep.iepDir, 'resources', 'translations', fname)
+    fname = 'pyzo_{}.tr'.format(locale.name())
+    filename = os.path.join(pyzo.pyzoDir, 'resources', 'translations', fname)
     if not os.path.isfile(filename):
         raise ValueError('Could not find {}'.format(filename))
     
     # Get Command for linguist
-    pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
+    pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
     exe_ = 'linguist' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
@@ -220,16 +220,16 @@ def linguist(languageName):
 
 
 def lupdate():
-    """ For developers. From iep.pro create the .tr files
+    """ For developers. From pyzo.pro create the .tr files
     """
     # Get file to open
-    fname = 'iep.pro'
-    filename = os.path.realpath(os.path.join(iep.iepDir, '..', fname))
+    fname = 'pyzo.pro'
+    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, '..', fname))
     if not os.path.isfile(filename):
         raise ValueError('Could not find {}. This function must run from the source repo.'.format(fname))
    
     # Get Command for python lupdate
-    pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
+    pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
     exe_ = 'pyside-lupdate' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
@@ -249,16 +249,16 @@ def lupdate():
 
 
 def lrelease():
-    """ For developers. From iep.pro and the .tr files, create the .qm files.
+    """ For developers. From pyzo.pro and the .tr files, create the .qm files.
     """
     # Get file to open
-    fname = 'iep.pro'
-    filename = os.path.realpath(os.path.join(iep.iepDir, '..', fname))
+    fname = 'pyzo.pro'
+    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, '..', fname))
     if not os.path.isfile(filename):
         raise ValueError('Could not find {}. This function must run from the source repo.'.format(fname))
    
     # Get Command for lrelease
-    pysideDir = os.path.abspath(os.path.dirname(iep.QtCore.__file__))
+    pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
     exe_ = 'lrelease' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)

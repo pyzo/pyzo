@@ -5,8 +5,8 @@
 # The full license can be found in 'license.txt'.
 
 """
-This file provides the IEP history viewer. It contains two main components: the
-History class, which is a Qt model, and the IepHistoryViewer, which is a Qt view
+This file provides the pyzo history viewer. It contains two main components: the
+History class, which is a Qt model, and the PyzoHistoryViewer, which is a Qt view
 
 
 
@@ -14,9 +14,9 @@ History class, which is a Qt model, and the IepHistoryViewer, which is a Qt view
 
 import sys, os, time, re
 from pyzolib.qt import QtCore, QtGui
-import iep
-from iep import translate
-from iep.iepcore.menu import Menu
+import pyzo
+from pyzo import translate
+from pyzo.core.menu import Menu
 
 tool_name = "History viewer"
 tool_summary = "Shows the last used commands."
@@ -29,7 +29,7 @@ class HistoryViewer(QtGui.QListView):
      - double click a single item to execute in the current shell
      - drag and drop one or multiple selected lines into the editor or any 
        other widget or application accepting plain text
-     - copy selected items using the copy item in the IEP edit menu
+     - copy selected items using the copy item in the pyzo edit menu
      - copy selected items using the context menu
      - execute selected items in the current shell using the context menu
     """
@@ -46,9 +46,9 @@ class HistoryViewer(QtGui.QListView):
         # Context menu
         self._menu = Menu(self, translate("menu", "History"))
         self._menu.addItem(translate("menu", "Copy ::: Copy selected lines"),
-            iep.icons.page_white_copy, self.copy, "copy")
+            pyzo.icons.page_white_copy, self.copy, "copy")
         self._menu.addItem(translate("menu", "Run ::: Run selected lines in current shell"),
-            iep.icons.run_lines, self.runSelection, "run")
+            pyzo.icons.run_lines, self.runSelection, "run")
         
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._onCustomContextMenuRequested)
@@ -57,7 +57,7 @@ class HistoryViewer(QtGui.QListView):
         
     def runSelection(self, event = None):
         text = self.model().plainText(self.selectedIndexes())
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell is not None:
             shell.executeCommand(text)
         
@@ -71,7 +71,7 @@ class HistoryViewer(QtGui.QListView):
     def _onDoubleClicked(self, index):
         text = self.model().data(index, QtCore.Qt.DisplayRole)
         
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell is not None:
             shell.executeCommand(text + '\n')
     
@@ -87,14 +87,14 @@ class HistoryViewer(QtGui.QListView):
         self.model().rowsInserted.connect(self.scrollToBottom)
         self.scrollToBottom()
     
-class IepHistoryViewer(HistoryViewer):
+class PyzoHistoryViewer(HistoryViewer):
     """
-    IepHistoryViewer is a thin HistoryViewer that connects itself to the shared
-    history of the IEP shell stack
+    PyzoHistoryViewer is a thin HistoryViewer that connects itself to the shared
+    history of the pyzo shell stack
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setModel(iep.shells.sharedHistory)
+        self.setModel(pyzo.shells.sharedHistory)
         
 
 class History(QtGui.QStringListModel):
@@ -106,7 +106,7 @@ class History(QtGui.QStringListModel):
         self._file = None
         
         try:
-            filename = os.path.join(iep.appDataDir, fname)
+            filename = os.path.join(pyzo.appDataDir, fname)
             if not os.path.isfile(filename):
                 open(filename, 'wt').close()
             file = self._file = open(filename, 'r+', encoding = 'utf-8')
@@ -196,10 +196,10 @@ class PythonHistory(History):
         
 
 if __name__ == '__main__':
-    import iep.iepcore.main
-    iep.iepcore.main.loadIcons()
+    import pyzo.core.main
+    pyzo.core.main.loadIcons()
     history = PythonHistory('shellhistorytest.py')
-    view = IepHistoryViewer()
+    view = PyzoHistoryViewer()
     view.setModel(history)
     view.show()
     history.append('test')

@@ -1,5 +1,5 @@
 """
-Tools to install miniconda from IEP and register that env in IEP's
+Tools to install miniconda from pyzo and register that env in pyzo's
 shell config.
 """
 
@@ -14,7 +14,7 @@ import subprocess
 import urllib.request
 
 from pyzolib.qt import QtCore, QtGui
-import iep
+import pyzo
 
 
 base_url = 'http://repo.continuum.io/miniconda/'
@@ -28,11 +28,11 @@ links = {'win32': 'Miniconda3-latest-Windows-x86.exe',
 
 
 # Get where we want to put miniconda installer
-miniconda_path = os.path.join(iep.appDataDir, 'miniconda')
+miniconda_path = os.path.join(pyzo.appDataDir, 'miniconda')
 miniconda_path += '.exe' if sys.platform.startswith('win') else '.sh'
 
 # Get default dir where we want the env
-#default_conda_dir = os.path.join(iep.appDataDir, 'conda_root')
+#default_conda_dir = os.path.join(pyzo.appDataDir, 'conda_root')
 default_conda_dir = 'C:\\miniconda3' if sys.platform.startswith('win') else os.path.expanduser('~/miniconda3')
 
 
@@ -42,13 +42,13 @@ def check_for_conda_env(parent=None):
     """
     
     # Interested previously?
-    if getattr(iep.config.state, 'did_not_want_conda_env', False):
+    if getattr(pyzo.config.state, 'did_not_want_conda_env', False):
         print('User has previously indicated to have no interest in a conda env')
         return
     
     # Needed?
-    if iep.config.shellConfigs2:
-        exe = iep.config.shellConfigs2[0]['exe']
+    if pyzo.config.shellConfigs2:
+        exe = pyzo.config.shellConfigs2[0]['exe']
         r = ''
         try:
             r = subprocess.check_output([exe, '-m', 'conda', 'info'], shell=sys.platform.startswith('win'))
@@ -63,7 +63,7 @@ def check_for_conda_env(parent=None):
     d = AskToInstallConda(parent)
     d.exec_()
     if not d.result():
-        iep.config.state.did_not_want_conda_env = True  # Mark for next time
+        pyzo.config.state.did_not_want_conda_env = True  # Mark for next time
         return
     
     # Launch installer
@@ -77,8 +77,8 @@ class AskToInstallConda(QtGui.QDialog):
         self.setWindowTitle('Install a conda env?')
         self.setModal(True)
         
-        text = 'IEP is only an editor. To execute code, you need a Python environment.\n\n'
-        text += 'Do you want IEP to install a Python environment (miniconda)?\n'
+        text = 'Pyzo is only an editor. To execute code, you need a Python environment.\n\n'
+        text += 'Do you want Pyzo to install a Python environment (miniconda)?\n'
         text += 'If not, you must arrange for a Python interpreter yourself'
         if not sys.platform.startswith('win'):
             text += ' or use the system Python'
@@ -225,7 +225,7 @@ class Installer(QtGui.QDialog):
         
         if not ok:
             self.addOutput('\n\nWe recommend installing miniconda or anaconda, ')
-            self.addOutput('and making IEP aware if it via the shell configuration.')
+            self.addOutput('and making Pyzo aware if it via the shell configuration.')
         else:
             self.addOutput('\n\nYou can install additional packages by running "conda install" in the shell.')
         
@@ -289,18 +289,18 @@ class Installer(QtGui.QDialog):
         subprocess.check_call(cmd, shell=sys.platform.startswith('win'))
         self.addStatus('Added Pyzo channel to conda env')
         
-        # Add to IEP shell config
+        # Add to pyzo shell config
         first = None
-        if iep.config.shellConfigs2 and iep.config.shellConfigs2[0]['exe'] == exe:
+        if pyzo.config.shellConfigs2 and pyzo.config.shellConfigs2[0]['exe'] == exe:
             pass
         else:
-            s = iep.ssdf.new()
+            s = pyzo.ssdf.new()
             s.name = 'Py3-conda'
             s.exe = exe
             s.gui='PyQt4'
-            iep.config.shellConfigs2.insert(0, s)
-            iep.saveConfig()
-            self.addStatus('Prepended new env to IEP shell configs.')
+            pyzo.config.shellConfigs2.insert(0, s)
+            pyzo.saveConfig()
+            self.addStatus('Prepended new env to Pyzo shell configs.')
     
     def install_scipy(self):
         

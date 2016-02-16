@@ -5,10 +5,10 @@
 # The full license can be found in 'license.txt'.
 
 
-""" iepkernel/start.py
+""" pyzokernel/start.py
 
-Starting script for remote processes in iep.
-This script connects to the IEP ide using the yoton interface
+Starting script for remote processes in pyzo.
+This script connects to the pyzo ide using the yoton interface
 and imports remote2 to start the interpreter and introspection thread.
 
 Channels
@@ -87,7 +87,7 @@ sys.stderr.fileno = sys.__stderr__.fileno
 
 ## Set Excepthook
 
-def iep_excepthook(type, value, tb):
+def pyzo_excepthook(type, value, tb):
     import sys
     def writeErr(err):
         sys.__stderr__.write(str(err)+'\n')
@@ -106,30 +106,30 @@ def iep_excepthook(type, value, tb):
 # But better not use it by default. For instance errors in qt events
 # are also catched by this function. I think that is because it would
 # allow you to show such exceptions in an error dialog.
-#sys.excepthook = iep_excepthook
+#sys.excepthook = pyzo_excepthook
 
 
 ## Init interpreter and introspector request channel
 
 # Delay import, so we can detect syntax errors using the except hook
-from iepkernel.interpreter import IepInterpreter
-from iepkernel.introspection import IepIntrospector
+from pyzokernel.interpreter import PyzoInterpreter
+from pyzokernel.introspection import PyzoIntrospector
 
 # Create interpreter instance and give dict in which to run all code
-__iep__ = IepInterpreter( __main__.__dict__, '<console>')
-sys._iepInterpreter = __iep__
+__pyzo__ = PyzoInterpreter( __main__.__dict__, '<console>')
+sys._pyzoInterpreter = __pyzo__
 
 # Store context
-__iep__.context = ct
+__pyzo__.context = ct
 
 # Create introspection req channel (store at interpreter instance)
-__iep__.introspector = IepIntrospector(ct, 'reqp-introspect')
+__pyzo__.introspector = PyzoIntrospector(ct, 'reqp-introspect')
 
 
 ## Clean up
 
 # Delete local variables
-del yoton, IepInterpreter, IepIntrospector, iep_excepthook
+del yoton, PyzoInterpreter, PyzoIntrospector, pyzo_excepthook
 del ct, port
 del os, sys, time
 
@@ -143,10 +143,10 @@ for name in [   '__file__',  # __main__ does not have a corresponding file
 ## Start and stop
 
 # Start introspector and enter the interpreter
-__iep__.introspector.set_mode('thread')
+__pyzo__.introspector.set_mode('thread')
 
 try:
-    __iep__.run()
+    __pyzo__.run()
     
 finally:
     # Restore original streams, so that SystemExit behaves as intended
@@ -157,13 +157,13 @@ finally:
         pass
     # Flush pending messages (raises exception if times out)
     try:
-        __iep__.context.flush(0.1)
+        __pyzo__.context.flush(0.1)
     except Exception:
         pass
     # Nicely exit by closing context (closes channels and connections). If we do 
     # not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
     try:
-        __iep__.introspector.set_mode(0)
-        __iep__.context.close()
+        __pyzo__.introspector.set_mode(0)
+        __pyzo__.context.close()
     except Exception:
         pass

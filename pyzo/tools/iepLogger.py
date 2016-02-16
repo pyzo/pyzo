@@ -7,18 +7,18 @@
 
 import sys, os, code
 from pyzolib.qt import QtCore, QtGui
-import iep
-from iep.iepcore.shell import BaseShell
-from iep.iepcore.iepLogging import splitConsole
+import pyzo
+from pyzo.core.shell import BaseShell
+from pyzo.core.pyzoLogging import splitConsole
 
 
 tool_name = "Logger"
-tool_summary = "Logs messages, warnings and errors within IEP."
+tool_summary = "Logs messages, warnings and errors within Pyzo."
  
 
-class IepLogger(BaseShell):
-    """ Shell that logs all messages produced by IEP. It also 
-    allows to look inside IEP, which can be handy for debugging
+class PyzoLogger(BaseShell):
+    """ Shell that logs all messages produced by pyzo. It also 
+    allows to look inside pyzo, which can be handy for debugging
     and developing.
     """
     
@@ -36,16 +36,16 @@ class IepLogger(BaseShell):
         self.setStyle(editor_text=newStyle)
         
         # Create namespace for logger interpreter
-        locals = {'iep':iep, 'sys':sys, 'os':os}
+        locals = {'pyzo':pyzo, 'sys':sys, 'os':os}
         # Include linguist tools
         for name in ['linguist', 'lrelease', 'lupdate', 'lhelp']:
-            locals[name] = getattr(iep.util._locale, name)
+            locals[name] = getattr(pyzo.util._locale, name)
         
         # Create interpreter to run code        
         self._interpreter = code.InteractiveConsole(locals, "<logger>")
         
         # Show welcome text
-        moreBanner = "This is the IEP logger shell." 
+        moreBanner = "This is the Pyzo logger shell." 
         self.write("Python %s on %s - %s\n\n" %
                        (sys.version[:5], sys.platform, moreBanner))
         self.write(sys.ps1, 2)

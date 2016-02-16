@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 """ 
-Module to integrate GUI event loops in the IEP interpreter.
+Module to integrate GUI event loops in the Pyzo interpreter.
 
 This specifies classes that all have the same interface. Each class
 wraps one GUI toolkit.
@@ -17,21 +17,21 @@ Support for PyQt4, WxPython, FLTK, GTK, TK.
 import sys
 import time
 
-from iepkernel import printDirect
+from pyzokernel import printDirect
 
 
 # Warning message. 
 mainloopWarning = """
-Note: The GUI event loop is already running in the IEP kernel. Be aware
+Note: The GUI event loop is already running in the pyzo kernel. Be aware
 that the function to enter the main loop does not block.
 """.strip()+"\n"
 
 # Qt has its own message
 mainloopWarning_qt = """
 Note on using QApplication.exec_(): 
-The GUI event loop is already running in the IEP kernel, and exec_()
+The GUI event loop is already running in the pyzo kernel, and exec_()
 does not block. In most cases your app should run fine without the need
-for modifications. For clarity, this is what the IEP kernel does:
+for modifications. For clarity, this is what the pyzo kernel does:
 - Prevent deletion of objects in the local scope of functions leading to exec_()
 - Prevent system exit right after the exec_() call
 """.strip()+"\n"
@@ -46,7 +46,7 @@ class App_base:
         pass
     
     def _keyboard_interrupt(self, signum=None, frame=None):
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         interpreter.write("\nKeyboardInterrupt\n")
         interpreter._resetbuffer()
         if interpreter.more:
@@ -129,8 +129,8 @@ class App_tk(App_base):
         self.app = r
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
-        tkinter._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
+        tkinter._in_event_loop = 'Pyzo'
     
     def process_events(self):
         self.app.update()
@@ -143,7 +143,7 @@ class App_fltk(App_base):
     Note that both tk and fltk try to bind to PyOS_InputHook. Fltk
     will warn about not being able to and Tk does not, so we should
     just hijack (import) fltk first. The hook that they try to fetch
-    is not required in IEP, because the IEP interpreter will keep
+    is not required in pyzo, because the pyzo interpreter will keep
     all GUI backends updated when idle.
     """
     def __init__(self):
@@ -160,8 +160,8 @@ class App_fltk(App_base):
         self.app =  fl.Fl   
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
-        fl._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
+        fl._in_event_loop = 'Pyzo'
     
     def process_events(self):
         self.app.wait(0)
@@ -184,7 +184,7 @@ class App_fltk2(App_base):
         self.app = fl
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
     
     def process_events(self):
         # is this right?
@@ -225,7 +225,7 @@ class App_tornado(App_base):
         self.app.run_sync = run_sync
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
     
     def process_events(self):
        self.app.run_sync(lambda x=None: None)
@@ -336,11 +336,11 @@ class App_qt(App_base):
                         __main__.__dict__[name+'_locals'] = frame.f_locals
                 
                 # Tell interpreter to ignore any system exits
-                sys._iepInterpreter.ignore_sys_exit = True
+                sys._pyzoInterpreter.ignore_sys_exit = True
                 
                 # But re-enable it as soon as *this event* is processed
                 def reEnableSysExit():
-                    sys._iepInterpreter.ignore_sys_exit = False
+                    sys._pyzoInterpreter.ignore_sys_exit = False
                 self._reEnableSysExitTimer = timer = QtCore.QTimer()
                 timer.singleShot(0, reEnableSysExit)
             
@@ -359,8 +359,8 @@ class App_qt(App_base):
         QtGui.QApplication = QApplication_hijacked
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
-        QtGui._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
+        QtGui._in_event_loop = 'Pyzo'
         
         # Use sys.excepthook to catch keyboard interrupts that occur
         # in event handlers. We also want to call the curren hook
@@ -465,8 +465,8 @@ class App_wx(App_base):
         self.app = app
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
-        wx._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
+        wx._in_event_loop = 'Pyzo'
     
     def process_events(self):
         wx = self.wx
@@ -513,7 +513,7 @@ class App_gtk(App_base):
         self.app = gtk
         
         # Notify that we integrated the event loop
-        self.app._in_event_loop = 'IEP'
+        self.app._in_event_loop = 'Pyzo'
     
     def process_events(self):
         gtk = self.app

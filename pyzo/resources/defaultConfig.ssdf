@@ -1,5 +1,5 @@
 # This Simple Structured Data Format (SSDF) file contains the default 
-# configuration for IEP. The user configuration is stored in the IEP
+# configuration for Pyzo. The user configuration is stored in the Pyzo
 # application data directory.
 
 # Some parameters are named xxx2. This was done in case the representation
@@ -64,15 +64,15 @@ advanced = dict:
     find_autoHide_timeout = 10
   
 tools = dict:
-    ieplogger = dict:
-    iepinteractivehelp = dict:
+    pyzologger = dict:
+    pyzointeractivehelp = dict:
         noNewlines = 1
-    iepsourcestructure = dict:
+    pyzosourcestructure = dict:
         showTypes = ['def', 'cell', 'todo', 'class']
         level = 3
 
 shellConfigs2 = list:
-    # Empty, let IEP create one on startup
+    # Empty, let pyzo create one on startup
 
 shortcuts2 = dict:
     edit__comment = 'Ctrl+R,'
@@ -118,7 +118,7 @@ shortcuts2 = dict:
     shell__restart = 'Ctrl+K,'
     shell__terminate = 'Ctrl+Shift+K,'
     view__select_editor = 'Ctrl+9,F2'
-    view__select_previous_file = 'Ctrl+Tab,' # On Mac, this is replaced by Alt+Tab in iep.py
+    view__select_previous_file = 'Ctrl+Tab,' # On Mac, this is replaced by Alt+Tab in pyzo.py
     view__select_shell = 'Ctrl+0,F1'
     view__zooming__zoom_in = 'Ctrl+=,Ctrl++'
     view__zooming__zoom_out = 'Ctrl+-,'

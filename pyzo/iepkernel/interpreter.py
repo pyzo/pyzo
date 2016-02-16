@@ -5,9 +5,9 @@
 # The full license can be found in 'license.txt'.
 
 
-""" Module iepkernel.interpreter
+""" Module pyzokernel.interpreter
 
-Implements the IEP interpreter.
+Implements the Pyzo interpreter.
 
 Notes on IPython
 ----------------
@@ -16,7 +16,7 @@ We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
   * We call its run_cell method to execute code
   * Debugging/breakpoints are "enabled using the pre_run_code_hook
   * Debugging occurs in our own debugger
-  * GUI integration is all handled by IEP
+  * GUI integration is all handled by pyzo
   * We need special prompts for IPython input
   
   
@@ -38,9 +38,9 @@ import bdb
 from distutils.version import LooseVersion as LV
 
 import yoton
-from iepkernel import guiintegration, printDirect
-from iepkernel.magic import Magician
-from iepkernel.debug import Debugger
+from pyzokernel import guiintegration, printDirect
+from pyzokernel.magic import Magician
+from pyzokernel.debug import Debugger
 
 # Init last traceback information
 sys.last_type = None
@@ -63,17 +63,17 @@ class PS1:
     """ Dynamic prompt for PS1. Show IPython prompt if available, and
     show current stack frame when debugging.
     """
-    def __init__(self, iep):
-        self._iep = iep
+    def __init__(self, pyzo):
+        self._pyzo = pyzo
     def __str__(self):
-        if self._iep._dbFrames:
+        if self._pyzo._dbFrames:
             # When debugging, show where we are, do not use IPython prompt
-            preamble = '('+self._iep._dbFrameName+')'
+            preamble = '('+self._pyzo._dbFrameName+')'
             return '\n\x1b[0;32m%s>>>\x1b[0m ' % preamble
-        elif self._iep._ipython:
+        elif self._pyzo._ipython:
             # IPython prompt
             return '\n\x1b[0;32mIn [\x1b[1;32m%i\x1b[0;32m]:\x1b[0m ' % (
-                                            self._iep._ipython.execution_count)
+                                            self._pyzo._ipython.execution_count)
             #return 'In [%i]: ' % (self._ipython.execution_count)
         else:
             # Normal Python prompt
@@ -83,16 +83,16 @@ class PS1:
 class PS2:
     """ Dynamic prompt for PS2.
     """
-    def __init__(self, iep):
-        self._iep = iep
+    def __init__(self, pyzo):
+        self._pyzo = pyzo
     def __str__(self):
-        if self._iep._dbFrames:
+        if self._pyzo._dbFrames:
             # When debugging, show where we are, do not use IPython prompt
-            preamble = '('+self._iep._dbFrameName+')'
+            preamble = '('+self._pyzo._dbFrameName+')'
             return '\x1b[0;32m%s...\x1b[0m ' % preamble
-        elif self._iep._ipython:
+        elif self._pyzo._ipython:
             # Dots ala IPython
-            nspaces = len(str(self._iep._ipython.execution_count)) + 2
+            nspaces = len(str(self._pyzo._ipython.execution_count)) + 2
             return '\x1b[0;32m%s...:\x1b[0m ' % (nspaces*' ')
         else:
             # Just dots
@@ -100,16 +100,16 @@ class PS2:
 
  
 
-class IepInterpreter:
-    """ IepInterpreter
+class PyzoInterpreter:
+    """ PyzoInterpreter
     
-    The IEP interpreter is the part that makes the IEP kernel interactive.
+    The pyzo interpreter is the part that makes the pyzo kernel interactive.
     It executes code, integrates the GUI toolkit, parses magic commands, etc.
-    The IEP interpreter has been designed to emulate the standard interactive
+    The pyzo interpreter has been designed to emulate the standard interactive
     Python console as much as possible, but with a lot of extra goodies.
     
-    There is one instance of this class, stored at sys._iepInterpreter and
-    at the __iep__ variable in the global namespace.
+    There is one instance of this class, stored at sys._pyzoInterpreter and
+    at the __pyzo__ variable in the global namespace.
     
     The global instance has a couple of interesting attributes:
       * context: the yoton Context instance at the kernel (has all channels)
@@ -182,9 +182,9 @@ class IepInterpreter:
         self._scriptToRunOnStartup = None
         
         # Remove "THIS" directory from the PYTHONPATH
-        # to prevent unwanted imports. Same for iepkernel dir
+        # to prevent unwanted imports. Same for pyzokernel dir
         thisPath = os.getcwd()
-        for p in [thisPath, os.path.join(thisPath,'iepkernel')]:
+        for p in [thisPath, os.path.join(thisPath,'pyzokernel')]:
             while p in sys.path:
                 sys.path.remove(p)
     
@@ -288,17 +288,17 @@ class IepInterpreter:
         # Integrate GUI
         guiName, guiError = self._integrate_gui(startup_info)
         
-        # Write IEP part of banner (including what GUI loop is integrated)
+        # Write pyzo part of banner (including what GUI loop is integrated)
         if True:
-            iepBanner = 'This is the IEP interpreter'
+            pyzoBanner = 'This is the Pyzo interpreter'
         if guiError:
-            iepBanner += '. ' + guiError + '\n'
+            pyzoBanner += '. ' + guiError + '\n'
         elif guiName:
-            iepBanner += ' with integrated event loop for ' 
-            iepBanner += guiName + '.\n'
+            pyzoBanner += ' with integrated event loop for ' 
+            pyzoBanner += guiName + '.\n'
         else:
-            iepBanner += '.\n'
-        printDirect(iepBanner)
+            pyzoBanner += '.\n'
+        printDirect(pyzoBanner)
         
         # Try loading IPython
         if startup_info.get('ipython', '').lower() in ('no', 'false'):
@@ -344,7 +344,7 @@ class IepInterpreter:
         # Prevent app nap on OSX 9.2 and up
         # The _nope module is taken from MINRK's appnope package
         if sys.platform == "darwin" and LV(platform.mac_ver()[0]) >= LV("10.9"):
-            from iepkernel import _nope
+            from pyzokernel import _nope
             _nope.nope()
         
         # Setup post-mortem debugging via appropriately logged exceptions
@@ -527,7 +527,7 @@ class IepInterpreter:
             io.stderr = io.IOStream(sys.stderr)
             
             # Ipython uses msvcrt e.g. for pausing between pages
-            # but this does not work in IEP
+            # but this does not work in pyzo
             import msvcrt
             msvcrt.getwch = msvcrt.getch = input  # input is deffed above
     
@@ -840,7 +840,7 @@ class IepInterpreter:
         * Source newlines should consist only of LF characters.
         """
         
-        # This method solves IEP issue 22
+        # This method solves pyzo issue 22
 
         # Split in first two lines and the rest
         parts = source.split('\n', 2)
@@ -970,7 +970,7 @@ class IepInterpreter:
         of what was there before (because Python's parser always uses
         "<string>" when reading from a string).
         
-        IEP version: support to display the right line number,
+        Pyzo version: support to display the right line number,
         see doc of showtraceback for details.        
         """
         
@@ -1003,7 +1003,7 @@ class IepInterpreter:
         We remove the first stack item because it is our own code.
         The output is written by self.write(), below.
         
-        In the IEP version, before executing a block of code,
+        In the pyzo version, before executing a block of code,
         the filename is modified by appending " [x]". Where x is
         the index in a list that we keep, of tuples 
         (sourcecode, filename, lineno). 
@@ -1145,7 +1145,7 @@ class ExecutedSourceCollection:
 #             list1 = traceback._extract_tb(tb, limit)
 #             list2 = []
 #             for (filename, lineno, name, line) in list1:
-#                 filename, lineno = sys._iepInterpreter.correctfilenameandlineno(filename, lineno)
+#                 filename, lineno = sys._pyzoInterpreter.correctfilenameandlineno(filename, lineno)
 #                 list2.append((filename, lineno, name, line))
 #             return list2
 #         

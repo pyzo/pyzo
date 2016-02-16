@@ -15,17 +15,17 @@ and a dialog to edit the shell configurations.
 import os, sys, time, re
 from pyzolib.qt import QtCore, QtGui
 
-import iep
-from iep import translate
-from iep.iepcore.compactTabWidget import CompactTabWidget
-from iep.iepcore.shell import PythonShell
-from iep.iepcore.iepLogging import print
-from iep.iepcore.menu import ShellTabContextMenu, ShellButtonMenu
-from iep.iepcore.icons import ShellIconMaker
+import pyzo
+from pyzo import translate
+from pyzo.core.compactTabWidget import CompactTabWidget
+from pyzo.core.shell import PythonShell
+from pyzo.core.pyzoLogging import print
+from pyzo.core.menu import ShellTabContextMenu, ShellButtonMenu
+from pyzo.core.icons import ShellIconMaker
 
 # Load the history viewer tool if available
 try:
-    from iep.tools.iepHistoryViewer import PythonHistory
+    from pyzo.tools.pyzoHistoryViewer import PythonHistory
 except ImportError:
     PythonHistory = None
 
@@ -182,9 +182,9 @@ class ShellStackWidget(QtGui.QWidget):
         if shell is self.getCurrentShell(): # can be None
             # Update application icon
             if shell and shell._state in ['Busy']:
-                iep.main.setWindowIcon(iep.iconRunning)
+                pyzo.main.setWindowIcon(pyzo.iconRunning)
             else:
-                iep.main.setWindowIcon(iep.icon)
+                pyzo.main.setWindowIcon(pyzo.icon)
             # Send signal
             self.currentShellStateChanged.emit()
     
@@ -259,14 +259,14 @@ class ShellStackWidget(QtGui.QWidget):
         self._shellButton.customContextMenuRequested.connect(self.contextMenuTriggered)
         
         # Add actions
-        for action in iep.main.menuBar()._menumap['shell']._shellActions:
+        for action in pyzo.main.menuBar()._menumap['shell']._shellActions:
             action = self._toolbar.addAction(action)
         
         self._toolbar.addSeparator()
         
         # Add debug actions
         self._debugActions = []
-        for action in iep.main.menuBar()._menumap['shell']._shellDebugActions:
+        for action in pyzo.main.menuBar()._menumap['shell']._shellDebugActions:
             self._debugActions.append(action)
             action = self._toolbar.addAction(action)
         
@@ -391,7 +391,7 @@ class ShellControl(QtGui.QToolButton):
 #         
 #         # Set text
 #         self.setText(translate('debug', 'Debug'))
-#         self.setIcon(iep.icons.bug)
+#         self.setIcon(pyzo.icons.bug)
 #         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 #         #self.setPopupMode(self.InstantPopup)
 #         
@@ -405,7 +405,7 @@ class ShellControl(QtGui.QToolButton):
 #         
 #         # Count breakpoints
 #         bpcount = 0
-#         for e in iep.editors:
+#         for e in pyzo.editors:
 #             bpcount += len(e.breakPoints())
 #         
 #         # Prepare a text
@@ -417,18 +417,18 @@ class ShellControl(QtGui.QToolButton):
 #         self.setMenu(menu)
 #         
 #         for cmd, enabled, icon, text in [ 
-#                 ('CLEAR', self._debugmode==0, iep.icons.bug_delete, clearallbps),
-#                 ('PM', self._debugmode==0, iep.icons.bug_error, 
+#                 ('CLEAR', self._debugmode==0, pyzo.icons.bug_delete, clearallbps),
+#                 ('PM', self._debugmode==0, pyzo.icons.bug_error, 
 #                     translate('debug', 'Postmortem: debug from last traceback')),
-#                 ('STOP', self._debugmode>0, iep.icons.debug_quit, 
+#                 ('STOP', self._debugmode>0, pyzo.icons.debug_quit, 
 #                     translate('debug', 'Stop debugging')),
-# #                 ('NEXT', self._debugmode==2, iep.icons.debug_next, 
+# #                 ('NEXT', self._debugmode==2, pyzo.icons.debug_next, 
 # #                     translate('debug', 'Next: proceed until next line')),
-# #                 ('STEP', self._debugmode==2, iep.icons.debug_step, 
+# #                 ('STEP', self._debugmode==2, pyzo.icons.debug_step, 
 # #                     translate('debug', 'Step: proceed one step')),
-# #                 ('RETURN', self._debugmode==2, iep.icons.debug_return, 
+# #                 ('RETURN', self._debugmode==2, pyzo.icons.debug_return, 
 # #                     translate('debug', 'Return: proceed until returns')),
-# #                 ('CONTINUE', self._debugmode==2, iep.icons.debug_continue, 
+# #                 ('CONTINUE', self._debugmode==2, pyzo.icons.debug_continue, 
 # #                     translate('debug', 'Continue: proceed to next breakpoint')),
 #                 ]:
 #             if cmd is None:
@@ -452,18 +452,18 @@ class ShellControl(QtGui.QToolButton):
 #     def onTriggered(self, action):
 #         if action.cmd == 'PM':  
 #             # Initiate postmortem debugging
-#             shell = iep.shells.getCurrentShell()
+#             shell = pyzo.shells.getCurrentShell()
 #             if shell:
 #                 shell.executeCommand('DB START\n')
 #         
 #         elif action.cmd == 'CLEAR':
 #             # Clear all breakpoints
-#             for e in iep.editors:
+#             for e in pyzo.editors:
 #                 e.clearBreakPoints()
 #         
 #         else:
 #             command = action.cmd.upper()
-#             shell = iep.shells.getCurrentShell()
+#             shell = pyzo.shells.getCurrentShell()
 #             if shell:
 #                 shell.executeCommand('DB %s\n' % command)
 #     
@@ -488,7 +488,7 @@ class DebugStack(QtGui.QToolButton):
         # Set text and tooltip
         self._baseText = translate('debug', 'Stack')
         self.setText('%s:' % self._baseText)
-        self.setIcon(iep.icons.text_align_justify)
+        self.setIcon(pyzo.icons.text_align_justify)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setPopupMode(self.InstantPopup)
         
@@ -499,7 +499,7 @@ class DebugStack(QtGui.QToolButton):
     def onTriggered(self, action):
         
         # Get shell
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if not shell:
             return
         
@@ -531,7 +531,7 @@ class DebugStack(QtGui.QToolButton):
             self.setMenu(None)
             self.setText('')  #(self._baseText)
             self.setEnabled(False)
-            iep.editors.setDebugLineIndicators(None)
+            pyzo.editors.setDebugLineIndicators(None)
         
         else:
             # Get the current frame
@@ -564,7 +564,7 @@ class DebugStack(QtGui.QToolButton):
                 if thisIndex == index:
                     break
             # Set debug indicators
-            iep.editors.setDebugLineIndicators(*debugIndicators)
+            pyzo.editors.setDebugLineIndicators(*debugIndicators)
             
             # Highlight current item and set the button text
             if theAction:
@@ -596,7 +596,7 @@ class DebugStack(QtGui.QToolButton):
         elif filename.startswith('<'):
             return 'Stack frame is special name'
         # Go there!
-        result = iep.editors.loadFile(filename)
+        result = pyzo.editors.loadFile(filename)
         if not result:
             return 'Could not open file where the error occured.'
         else:

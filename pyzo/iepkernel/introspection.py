@@ -14,7 +14,7 @@ except ImportError:
     import _thread as thread # Python 3
 
 
-class IepIntrospector(yoton.RepChannel):
+class PyzoIntrospector(yoton.RepChannel):
     """ This is a RepChannel object that runs a thread to respond to 
     requests from the IDE.
     """
@@ -28,8 +28,8 @@ class IepIntrospector(yoton.RepChannel):
         """
         
         # Get namespace
-        NS1 = sys._iepInterpreter.locals
-        NS2 = sys._iepInterpreter.globals
+        NS1 = sys._pyzoInterpreter.locals
+        NS2 = sys._pyzoInterpreter.globals
         if not NS2:
             NS = NS1
         else:

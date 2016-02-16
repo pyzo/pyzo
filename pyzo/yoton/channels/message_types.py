@@ -104,7 +104,7 @@ class TextMessageType(MessageType):
         # cases, a non utf-8 encoded str might be succesfully encoded
         # using utf-8, but this is rare. Since I would not
         # know how to tell the encoding beforehand, we'll take our 
-        # chances... Note that in IEP (for which this package was created,
+        # chances... Note that in Pyzo (for which this package was created,
         # all executed code is unicode, so str instrances are always
         # utf-8 encoded.
         if isinstance(message, bytes):

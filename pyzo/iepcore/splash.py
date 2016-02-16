@@ -12,7 +12,7 @@ Defines splash window shown during startup.
 
 import os, sys, time
 
-import iep
+import pyzo
 from pyzolib.qt import QtCore, QtGui
 
 
@@ -41,9 +41,9 @@ This is the <b>Interactive Editor for Python</b>
 Version {version}
 </p>
 <p>
-IEP is open source software and freely available for everyone. 
+Pyzo is open source software and freely available for everyone. 
 Read more at
-<a href='http://www.iep-project.org/'>http://iep-project.org</a>
+<a href='http://www.pyzo.org/'>http://pyzo.org</a>
 </p>
 """
 
@@ -77,7 +77,7 @@ class LabelWidget(QtGui.QWidget):
         distrotext = ''
         if distro:
             distrotext = '<br />brought to you by %s.' % distro
-        text = splash_text.format(distro=distrotext, version=iep.__version__)
+        text = splash_text.format(distro=distrotext, version=pyzo.__version__)
         
         # Set text
         self._label.setText(text)
@@ -110,8 +110,8 @@ class SplashWidget(QtGui.QWidget):
         layout.addStretch(1)
         
         # Change background of main window to create a splash-screen-efefct
-        iconImage = 'ieplogo256.png'
-        iconImage = os.path.join(iep.iepDir, 'resources','appicons', iconImage)
+        iconImage = 'pyzologo256.png'
+        iconImage = os.path.join(pyzo.pyzoDir, 'resources','appicons', iconImage)
         iconImage = iconImage.replace(os.path.sep, '/') # Fix for Windows
         self.setStyleSheet(STYLESHEET % iconImage)
         

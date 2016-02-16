@@ -4,20 +4,20 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" iepwizard module
+""" pyzowizard module
 
-Implements a wizard to help new users get familiar with IEP.
+Implements a wizard to help new users get familiar with pyzo.
 
 """
 
 import os
 import re
 
-import iep
+import pyzo
 from pyzolib.qt import QtCore, QtGui
-from iep import translate
+from pyzo import translate
 
-from iep.util._locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage
+from pyzo.util._locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage
 
 
 def retranslate(t):
@@ -30,20 +30,20 @@ def retranslate(t):
 
 
 
-class IEPWizard(QtGui.QWizard):
+class PyzoWizard(QtGui.QWizard):
     
     def __init__(self, parent):
         QtGui.QWizard.__init__(self, parent)
         
         # Set some appearance stuff
         self.setMinimumSize(600, 500)
-        self.setWindowTitle(translate('wizard', 'Getting started with IEP'))
+        self.setWindowTitle(translate('wizard', 'Getting started with Pyzo'))
         self.setWizardStyle(self.ModernStyle)
         self.setButtonText(self.CancelButton, 'Stop')
         
         # Set logo
         pm = QtGui.QPixmap()
-        pm.load(os.path.join(iep.iepDir, 'resources', 'appicons', 'ieplogo48.png'))
+        pm.load(os.path.join(pyzo.pyzoDir, 'resources', 'appicons', 'pyzologo48.png'))
         self.setPixmap(self.LogoPixmap, pm)
         
         # Define pages
@@ -76,10 +76,10 @@ class IEPWizard(QtGui.QWizard):
                     startPage = i
                     break
             else:                
-                print('IEP wizard: Could not find start page: %r' % startPage)
+                print('Pyzo wizard: Could not find start page: %r' % startPage)
                 startPage = None
         elif startPage is not None:            
-            print('IEP wizard: invalid start page: %r' % startPage)
+            print('Pyzo wizard: invalid start page: %r' % startPage)
             startPage = None
         
         # Go to start page            
@@ -88,7 +88,7 @@ class IEPWizard(QtGui.QWizard):
                 self.next()
 
 
-class BaseIEPWizardPage(QtGui.QWizardPage):
+class BasePyzoWizardPage(QtGui.QWizardPage):
     
     _prefix = translate('wizard', 'Step')
     
@@ -109,9 +109,9 @@ class BaseIEPWizardPage(QtGui.QWizardPage):
         self._comicLabel = QtGui.QLabel(self)        
         pm = QtGui.QPixmap()
         if 'logo' in self._image_filename:
-            pm.load(os.path.join(iep.iepDir, 'resources', 'appicons', self._image_filename))
+            pm.load(os.path.join(pyzo.pyzoDir, 'resources', 'appicons', self._image_filename))
         elif self._image_filename:
-            pm.load(os.path.join(iep.iepDir, 'resources', 'images', self._image_filename))
+            pm.load(os.path.join(pyzo.pyzoDir, 'resources', 'images', self._image_filename))
         self._comicLabel.setPixmap(pm)
         self._comicLabel.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         
@@ -155,24 +155,24 @@ class BaseIEPWizardPage(QtGui.QWizardPage):
 
 
 
-class IntroWizardPage(BaseIEPWizardPage):
+class IntroWizardPage(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Welcome to the Interactive Editor for Python!')
-    _image_filename = 'ieplogo128.png'
+    _image_filename = 'pyzologo128.png'
     _descriptions = [
-        translate('wizard', """This wizard helps you get familiarized with the workings of IEP."""),
+        translate('wizard', """This wizard helps you get familiarized with the workings of Pyzo."""),
         
-        translate('wizard', """IEP is a cross-platform Python IDE
+        translate('wizard', """Pyzo is a cross-platform Python IDE
         focused on *interactivity* and *introspection*, which makes it
         very suitable for scientific computing. Its practical design
         is aimed at *simplicity* and *efficiency*."""),
         ]
     
     def __init__(self, parent, i):
-        BaseIEPWizardPage.__init__(self, parent, i)
+        BasePyzoWizardPage.__init__(self, parent, i)
         
         # Create label and checkbox
-        t1 = translate('wizard', "This wizard can be opened using 'Help > IEP wizard'")
+        t1 = translate('wizard', "This wizard can be opened using 'Help > Pyzo wizard'")
         t2 = translate('wizard', "Show this wizard on startup")
         self._label_info = QtGui.QLabel(t1, self)
         self._check_show = QtGui.QCheckBox(t2, self)
@@ -185,7 +185,7 @@ class IntroWizardPage(BaseIEPWizardPage):
         self._langBox.setEditable(False)
         # Fill
         index, theIndex = -1, -1
-        cur = iep.config.settings.language
+        cur = pyzo.config.settings.language
         for lang in sorted(LANGUAGES):
             index += 1
             self._langBox.addItem(lang)
@@ -198,7 +198,7 @@ class IntroWizardPage(BaseIEPWizardPage):
         self._langBox.activated.connect(self.onLanguageChange)
         
         # Init check state
-        if iep.config.state.newUser:
+        if pyzo.config.state.newUser:
             self._check_show.setCheckState(QtCore.Qt.Checked)
         
         # Create sublayout
@@ -216,19 +216,19 @@ class IntroWizardPage(BaseIEPWizardPage):
     def _setNewUser(self, newUser):
         newUser = bool(newUser)
         self._label_info.setHidden(newUser)
-        iep.config.state.newUser = newUser
+        pyzo.config.state.newUser = newUser
     
     def onLanguageChange(self):
         languageName = self._langBox.currentText()        
-        if iep.config.settings.language == languageName:
+        if pyzo.config.settings.language == languageName:
             return
         # Save new language
-        iep.config.settings.language = languageName
-        setLanguage(iep.config.settings.language)
+        pyzo.config.settings.language = languageName
+        setLanguage(pyzo.config.settings.language)
         # Notify user
         text = translate('wizard', """
         The language has been changed for this wizard.
-        IEP needs to restart for the change to take effect application-wide.
+        Pyzo needs to restart for the change to take effect application-wide.
         """)
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("wizard", "Language changed"))
@@ -242,16 +242,16 @@ class IntroWizardPage(BaseIEPWizardPage):
         # Close ourself!        
         self.wizard().close()
         # Start new one
-        w = IEPWizard(parent)
+        w = PyzoWizard(parent)
         w.setGeometry(geo)
         w.show()
 
 
 
-class TwocomponentsWizardPage(BaseIEPWizardPage):
+class TwocomponentsWizardPage(BasePyzoWizardPage):
     
-    _title = translate('wizard', 'IEP consists of two main components')
-    _image_filename = 'iep_two_components.png'
+    _title = translate('wizard', 'Pyzo consists of two main components')
+    _image_filename = 'pyzo_two_components.png'
     _descriptions = [
         translate('wizard', 
         "You can execute commands directly in the *shell*,"),
@@ -260,10 +260,10 @@ class TwocomponentsWizardPage(BaseIEPWizardPage):
         ]
 
 
-class EditorWizardPage(BaseIEPWizardPage):
+class EditorWizardPage(BasePyzoWizardPage):
     
     _title = translate('wizard', 'The editor is where you write your code')
-    _image_filename = 'iep_editor.png'
+    _image_filename = 'pyzo_editor.png'
     _descriptions = [
         translate('wizard', 
         """In the *editor*, each open file is represented as a tab. By
@@ -275,29 +275,29 @@ class EditorWizardPage(BaseIEPWizardPage):
         ]
 
 
-class ShellWizardPage1(BaseIEPWizardPage):
+class ShellWizardPage1(BasePyzoWizardPage):
     
     _title = translate('wizard', 'The shell is where your code gets executed')
-    _image_filename = 'iep_shell1.png'
+    _image_filename = 'pyzo_shell1.png'
     _descriptions = [
         translate('wizard', 
-        """When IEP starts, a default *shell* is created. You can add more
+        """When Pyzo starts, a default *shell* is created. You can add more
         shells that run simultaneously, and which may be of different
         Python versions."""),
         translate('wizard',
-        """Shells run in a sub-process, such that when it is busy, IEP
+        """Shells run in a sub-process, such that when it is busy, Pyzo
         itself stays responsive, allowing you to keep coding and even
         run code in another shell."""),
         ]
 
 
-class ShellWizardPage2(BaseIEPWizardPage):
+class ShellWizardPage2(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Configuring shells')
-    _image_filename = 'iep_shell2.png'
+    _image_filename = 'pyzo_shell2.png'
     _descriptions = [
         translate('wizard', 
-        """IEP can integrate the event loop of five different *GUI toolkits*,
+        """Pyzo can integrate the event loop of five different *GUI toolkits*,
         thus enabling interactive plotting with e.g. Visvis or Matplotlib."""),
         translate('wizard',
         """Via 'Shell > Edit shell configurations', you can edit and add
@@ -306,17 +306,17 @@ class ShellWizardPage2(BaseIEPWizardPage):
         ]
 
 
-class RuncodeWizardPage1(BaseIEPWizardPage):
+class RuncodeWizardPage1(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Running code')
-    _image_filename = 'iep_run1.png'
+    _image_filename = 'pyzo_run1.png'
     _descriptions = [
         translate('wizard', 
-        "IEP supports several ways to run source code in the editor. (see the 'Run' menu)."),
+        "Pyzo supports several ways to run source code in the editor. (see the 'Run' menu)."),
         translate('wizard',
         """*Run selection:* if there is no selected text, the current line 
         is executed; if the selection is on a single line, the selection
-        is evaluated; if the selection spans multiple lines, IEP will
+        is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines."""),
         translate('wizard',
         "*Run cell:* a cell is everything between two lines starting with '##'."),
@@ -327,7 +327,7 @@ class RuncodeWizardPage1(BaseIEPWizardPage):
         ]
 
 
-class RuncodeWizardPage2(BaseIEPWizardPage):
+class RuncodeWizardPage2(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Interactive mode vs running as script')
     _image_filename = ''
@@ -346,10 +346,10 @@ class RuncodeWizardPage2(BaseIEPWizardPage):
         ]
 
 
-class ToolsWizardPage1(BaseIEPWizardPage):
+class ToolsWizardPage1(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Tools for your convenience')
-    _image_filename = 'iep_tools1.png'
+    _image_filename = 'pyzo_tools1.png'
     _descriptions = [
         translate('wizard', 
         """Via the *Tools menu*, one can select which tools to use. The tools can
@@ -361,10 +361,10 @@ class ToolsWizardPage1(BaseIEPWizardPage):
         ]
 
 
-class ToolsWizardPage2(BaseIEPWizardPage):
+class ToolsWizardPage2(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Recommended tools')
-    _image_filename = 'iep_tools2.png'
+    _image_filename = 'pyzo_tools2.png'
     _descriptions = [
         translate('wizard', 
         """We especially recommend the following tools:"""),
@@ -376,13 +376,13 @@ class ToolsWizardPage2(BaseIEPWizardPage):
         ]
 
 
-class FinalPage(BaseIEPWizardPage):
+class FinalPage(BasePyzoWizardPage):
     
     _title = translate('wizard', 'Get coding!')
-    _image_filename = 'ieplogo128.png'
+    _image_filename = 'pyzologo128.png'
     _descriptions = [
         translate('wizard', 
-        """This concludes the IEP wizard. Now, get coding and have fun!"""),
+        """This concludes the Pyzo wizard. Now, get coding and have fun!"""),
         ]
 
 
@@ -404,6 +404,6 @@ class FinalPage(BaseIEPWizardPage):
 
 
 if __name__ == '__main__':
-    w = IEPWizard(None)    
+    w = PyzoWizard(None)    
     w.show()
     

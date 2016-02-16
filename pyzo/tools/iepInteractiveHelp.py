@@ -7,7 +7,7 @@
 
 import sys, os, time, re
 from pyzolib.qt import QtCore, QtGui
-import iep 
+import pyzo 
 
 tool_name = "Interactive help"
 tool_summary = "Shows help on an object when using up/down in autocomplete."
@@ -48,7 +48,7 @@ and when double clicking on a name.
 """
 
 
-class IepInteractiveHelp(QtGui.QWidget):
+class PyzoInteractiveHelp(QtGui.QWidget):
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
@@ -60,7 +60,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         
         # Create options button
         self._options = QtGui.QToolButton(self)
-        self._options.setIcon(iep.icons.wrench)
+        self._options.setIcon(pyzo.icons.wrench)
         self._options.setIconSize(QtCore.QSize(16,16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -91,7 +91,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         
         # Set config
         toolId =  self.__class__.__name__.lower()
-        self._config = config = iep.config.tools[toolId]
+        self._config = config = pyzo.config.tools[toolId]
         #
         if not hasattr(config, 'smartNewlines'):
             config.smartNewlines = True
@@ -184,7 +184,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         # Get name
         name = self._text.text()
         # Tell shell to print doc
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell and name:
             shell.processLine('print({}.__doc__)'.format(name))
     
@@ -194,7 +194,7 @@ class IepInteractiveHelp(QtGui.QWidget):
         # Get name
         name = self._text.text()
         # Get shell and ask for the documentation
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell and name:
             future = shell._request.doc(name)
             future.add_done_callback(self.queryDoc_response)

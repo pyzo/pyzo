@@ -5,15 +5,15 @@
 # The full license can be found in 'license.txt'.
 
 
-""" Package tools of iep
+""" Package tools of pyzo
 
 A tool consists of a module which contains a class. The id of 
 a tool is its module name made lower case. The module should 
 contain a class corresponding to its id. We advise to follow the
 common python style and start the class name with a capital 
 letter, case does not matter for the tool to work though.
-For instance, the tool "ieplogger" is the class "IepLogger" found 
-in module "iepLogger"
+For instance, the tool "pyzologger" is the class "PyzoLogger" found 
+in module "pyzoLogger"
 
 The module may contain the following extra variables (which should
 be placed within the first 50 lines of code):
@@ -31,11 +31,11 @@ displayed in the statusbar.
 # - source tree
 # - snipet manager
 # - file browser
-# - pythonpath editor, startupfile editor (or as part of IEP?)
+# - pythonpath editor, startupfile editor (or as part of pyzo?)
 
 import os, sys, imp
 from pyzolib.qt import QtCore, QtGui
-import iep
+import pyzo
 
 from pyzolib import ssdf
 
@@ -96,7 +96,7 @@ class ToolDockWidget(QtGui.QDockWidget):
     def reload(self, toolClass):
         """ Reload the widget with a new widget class. """
         old = self.widget()
-        new = toolClass(iep.main)
+        new = toolClass(pyzo.main)
         self.setWidget(new)
         if old:
             old.close()
@@ -129,12 +129,12 @@ class ToolDescription:
         """
         if value is None:
             return bool(self.instance)
-            #return self.id in iep.toolManager._activeTools
+            #return self.id in pyzo.toolManager._activeTools
         elif value:
-            iep.toolManager.loadTool(self.id)
+            pyzo.toolManager.loadTool(self.id)
         else:
             self.widget = None
-            iep.toolManager.closeTool(self.id)
+            pyzo.toolManager.closeTool(self.id)
 
 
 
@@ -156,8 +156,8 @@ class ToolManager(QtCore.QObject):
         """ (re)load the tool information. 
         """
         # Get paths to load files from
-        toolDir1 = os.path.join(iep.iepDir, 'tools')
-        toolDir2 = os.path.join(iep.appDataDir, 'tools')
+        toolDir1 = os.path.join(pyzo.pyzoDir, 'tools')
+        toolDir2 = os.path.join(pyzo.appDataDir, 'tools')
         
         # Create list of tool files 
         toolfiles = []
@@ -192,7 +192,7 @@ class ToolManager(QtCore.QObject):
                     continue
             elif file.endswith('__.py') or not file.endswith('.py'):
                 continue
-            elif file.endswith('iepFileBrowser.py'):
+            elif file.endswith('pyzoFileBrowser.py'):
                 # Skip old file browser (the file can be there from a previous install) 
                 continue  
             
@@ -275,13 +275,13 @@ class ToolManager(QtCore.QObject):
         
         # Remove from sys.modules, to force the module to reload
         for key in [key for key in sys.modules]:
-            if key and key.startswith('iep.tools.'+moduleName):
+            if key and key.startswith('pyzo.tools.'+moduleName):
                 del sys.modules[key]
         
         # Load module
         try:
             m_file, m_fname, m_des = imp.find_module(moduleName, [os.path.dirname(modulePath)])        
-            mod = imp.load_module('iep.tools.'+moduleName, m_file, m_fname, m_des)
+            mod = imp.load_module('pyzo.tools.'+moduleName, m_file, m_fname, m_des)
         except Exception as why:
             print("Invalid tool " + toolId +":", why)
             return None
@@ -316,7 +316,7 @@ class ToolManager(QtCore.QObject):
         # Close old one
         if toolId in self._activeTools:
             old = self._activeTools[toolId].widget()            
-            self._activeTools[toolId].setWidget(QtGui.QWidget(iep.main))
+            self._activeTools[toolId].setWidget(QtGui.QWidget(pyzo.main))
             if old:
                 old.close()
                 old.deleteLater()
@@ -340,18 +340,18 @@ class ToolManager(QtCore.QObject):
             name = toolId
         
         # Make sure there is a config entry for this tool
-        if not hasattr(iep.config.tools, toolId):
-            iep.config.tools[toolId] = ssdf.new()
+        if not hasattr(pyzo.config.tools, toolId):
+            pyzo.config.tools[toolId] = ssdf.new()
         
         # Create dock widget and add in the main window
-        dock = ToolDockWidget(iep.main, self)
+        dock = ToolDockWidget(pyzo.main, self)
         dock.setTool(toolId, name, toolClass)
         
         if splitWith and splitWith in self._activeTools:
             otherDock = self._activeTools[splitWith]
-            iep.main.splitDockWidget(otherDock, dock, QtCore.Qt.Horizontal)
+            pyzo.main.splitDockWidget(otherDock, dock, QtCore.Qt.Horizontal)
         else:
-            iep.main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
+            pyzo.main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
         
         # Add to list
         self._activeTools[toolId] = dock

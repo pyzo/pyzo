@@ -23,9 +23,9 @@ ResultPage:
 
 import os
 import itertools
-import iep.codeeditor
+import pyzo.codeeditor
 from pyzolib.qt import QtCore, QtGui
-from iep import translate
+from pyzo import translate
 import unicodedata
 
 # All keywords in Python 2 and 3. Obtained using: import keyword; keyword.kwlist
@@ -38,19 +38,19 @@ keywords = ['False', 'None', 'True', 'and', 'as', 'assert', 'break',
 
 
 class CodeView(
-    iep.codeeditor.IndentationGuides, 
-    iep.codeeditor.CodeFolding,
-    iep.codeeditor.Indentation,
-    iep.codeeditor.HomeKey,
-    iep.codeeditor.EndKey,
-    iep.codeeditor.NumpadPeriodKey,
+    pyzo.codeeditor.IndentationGuides, 
+    pyzo.codeeditor.CodeFolding,
+    pyzo.codeeditor.Indentation,
+    pyzo.codeeditor.HomeKey,
+    pyzo.codeeditor.EndKey,
+    pyzo.codeeditor.NumpadPeriodKey,
     
-    iep.codeeditor.AutoIndent,
-    iep.codeeditor.PythonAutoIndent,
+    pyzo.codeeditor.AutoIndent,
+    pyzo.codeeditor.PythonAutoIndent,
     
-    iep.codeeditor.SyntaxHighlighting,
+    pyzo.codeeditor.SyntaxHighlighting,
     
-    iep.codeeditor.CodeEditorBase):  #CodeEditorBase must be the last one in the list
+    pyzo.codeeditor.CodeEditorBase):  #CodeEditorBase must be the last one in the list
     """
     Code viewer, stripped down version of the CodeEditor
     """
@@ -402,8 +402,8 @@ class ResultPage(QtGui.QWizardPage):
 
         self.codeView = CodeView()
         self.codeView.setParser('python')
-        self.codeView.setZoom(iep.config.view.zoom)
-        self.codeView.setFont(iep.config.view.fontname)
+        self.codeView.setZoom(pyzo.config.view.zoom)
+        self.codeView.setFont(pyzo.config.view.fontname)
         
         self.btnExecute = QtGui.QPushButton('Execute in current shell')
         self.btnInsert = QtGui.QPushButton('Paste into current file')
@@ -470,7 +470,7 @@ class ResultPage(QtGui.QWizardPage):
         return self.codeView.toPlainText()
     
     def onBtnExecuteClicked(self):
-        shell = iep.shells.getCurrentShell()
+        shell = pyzo.shells.getCurrentShell()
         if shell is None:
             QtGui.QMessageBox.information(self, 
                 translate('importwizard', 'Import data wizard'),
@@ -480,7 +480,7 @@ class ResultPage(QtGui.QWizardPage):
         shell.executeCode(self.getCode(), 'importwizard')
         
     def onBtnInsertClicked(self):
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if editor is None:
             QtGui.QMessageBox.information(self, 
                 translate('importwizard', 'Import data wizard'),

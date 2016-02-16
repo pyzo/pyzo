@@ -14,11 +14,11 @@ Implements shell configuration dialog.
 import os, sys, time, re
 from pyzolib.qt import QtCore, QtGui
 
-import iep
-from iep.iepcore.compactTabWidget import CompactTabWidget
-from iep.iepcore.iepLogging import print
-from iep.iepcore.kernelbroker import KernelInfo
-from iep import translate
+import pyzo
+from pyzo.core.compactTabWidget import CompactTabWidget
+from pyzo.core.pyzoLogging import print
+from pyzo.core.kernelbroker import KernelInfo
+from pyzo import translate
 
 
 ## Implement widgets that have a common interface
@@ -81,7 +81,7 @@ class ShellInfo_exe(QtGui.QComboBox):
         
         # Get name for default interpreter
         # note: the filled in name will not be correct if working remotely
-        defaultName = '%s  [default]' % iep.defaultInterpreterExe()
+        defaultName = '%s  [default]' % pyzo.defaultInterpreterExe()
         
         # Hande current value
         if value == '[default]':
@@ -114,7 +114,7 @@ class ShellInfo_exe(QtGui.QComboBox):
     
     def onActivated(self, index=None):
         # Select GUI corresponding to default interpreter if it was selected. 
-        defaultGui = iep.defaultInterpreterGui()
+        defaultGui = pyzo.defaultInterpreterGui()
         if defaultGui and self.currentText().startswith('[default]'):
             guicombobox = self.parent()._shellInfoWidgets['gui']
             guicombobox.setTheText(defaultGui)
@@ -458,7 +458,7 @@ class ShellInfo_argv(ShellInfoLineEdit):
 
 
 class ShellInfo_environ(QtGui.QTextEdit):
-    EXAMPLE = 'EXAMPLE_VAR1=value1\nIEP_PROCESS_EVENTS_WHILE_DEBUGGING=1'
+    EXAMPLE = 'EXAMPLE_VAR1=value1\nPYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1'
     
     def __init__(self, parent):
         QtGui.QTextEdit.__init__(self, parent)
@@ -537,7 +537,7 @@ class ShellInfoTab(QtGui.QScrollArea):
         
         t = translate('shell', 'Delete ::: Delete this shell configuration')
         label = QtGui.QLabel('', self._content)        
-        instance = QtGui.QPushButton(iep.icons.cancel, t, self._content)
+        instance = QtGui.QPushButton(pyzo.icons.cancel, t, self._content)
         instance.setToolTip(t.tt)
         instance.setAutoDefault(False)
         instance.clicked.connect(self.parent().parent().onTabClose)
@@ -612,7 +612,7 @@ class ShellInfoDialog(QtGui.QDialog):
         self.setModal(True)
         
         # Set title
-        self.setWindowTitle(iep.translate('shell', 'Shell configurations'))
+        self.setWindowTitle(pyzo.translate('shell', 'Shell configurations'))
         # Create tab widget
         self._tabs = QtGui.QTabWidget(self) 
         #self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
@@ -625,13 +625,13 @@ class ShellInfoDialog(QtGui.QDialog):
         self.interpreters = list(reversed(get_interpreters('2.4')))
         
         # Introduce an entry if there's none
-        if not iep.config.shellConfigs2:
+        if not pyzo.config.shellConfigs2:
             w = ShellInfoTab(self._tabs)
             self._tabs.addTab(w, '---')
             w.setInfo()
         
         # Fill tabs
-        for item in iep.config.shellConfigs2:
+        for item in pyzo.config.shellConfigs2:
             w = ShellInfoTab(self._tabs)
             self._tabs.addTab(w, '---')
             w.setInfo(item)
@@ -641,7 +641,7 @@ class ShellInfoDialog(QtGui.QDialog):
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
         self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self._add.setIcon(iep.icons.add)
+        self._add.setIcon(pyzo.icons.add)
         self._add.setText(translate('shell', 'Add config'))
         #
         #self._tabs.setTabsClosable(True)
@@ -698,7 +698,7 @@ class ShellInfoDialog(QtGui.QDialog):
         """ Apply changes for all tabs. """
         
         # Clear
-        iep.config.shellConfigs2 = []
+        pyzo.config.shellConfigs2 = []
         
         # Set new versions. Note that although we recreate the list,
         # the list is filled with the orignal structs, so having a
@@ -706,4 +706,4 @@ class ShellInfoDialog(QtGui.QDialog):
         # you to keep track of any made changes.
         for i in range(self._tabs.count()):
             w = self._tabs.widget(i)
-            iep.config.shellConfigs2.append( w.getInfo() )
+            pyzo.config.shellConfigs2.append( w.getInfo() )

@@ -5,8 +5,8 @@ from pyzolib.path import Path
 from pyzolib import ssdf
 from . import QtCore, QtGui
 
-import iep
-from iep import translate
+import pyzo
+from pyzo import translate
 
 from .tree import Tree
 from . import proxies
@@ -288,7 +288,7 @@ class PathInput(LineEditWithToolButtons):
         LineEditWithToolButtons.__init__(self, parent)
         
         # Create up button
-        self._upBut = self.addButtonLeft(iep.icons.folder_parent)
+        self._upBut = self.addButtonLeft(pyzo.icons.folder_parent)
         self._upBut.clicked.connect(self.dirUp)
         
         # To receive focus events
@@ -383,7 +383,7 @@ class Projects(QtGui.QWidget):
         
         # Create star button
         self._but = QtGui.QToolButton(self)
-        self._but.setIcon( iep.icons.star3 )
+        self._but.setIcon( pyzo.icons.star3 )
         self._but.setStyleSheet("QToolButton { padding: 0px; }");
         self._but.setIconSize(QtCore.QSize(18,18))
         self._but.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -429,10 +429,10 @@ class Projects(QtGui.QWidget):
         # Select project or not ...
         self._combo.setCurrentIndex(projectIndex)
         if projectIndex:
-            self._but.setIcon( iep.icons.star2 )
+            self._but.setIcon( pyzo.icons.star2 )
             self._but.setMenu(self._menu)
         else:
-            self._but.setIcon( iep.icons.star3 )
+            self._but.setIcon( pyzo.icons.star3 )
             self._but.setMenu(None)
     
     
@@ -513,7 +513,7 @@ class Projects(QtGui.QWidget):
     
         elif action._id == 'cd':
             # cd to the directory
-            shell = iep.shells.getCurrentShell()
+            shell = pyzo.shells.getCurrentShell()
             if shell:
                 shell.executeCommand('cd '+d.path+'\n')
     
@@ -550,7 +550,7 @@ class NameFilter(LineEditWithToolButtons):
         LineEditWithToolButtons.__init__(self, parent)
         
         # Create tool button, and attach the menu
-        self._menuBut = self.addButtonRight(iep.icons['filter'], True)
+        self._menuBut = self.addButtonRight(pyzo.icons['filter'], True)
         self._menu = QtGui.QMenu(self._menuBut)
         self._menu.triggered.connect(self.onMenuTriggered)
         self._menuBut.setMenu(self._menu)
@@ -602,14 +602,14 @@ class SearchFilter(LineEditWithToolButtons):
         LineEditWithToolButtons.__init__(self, parent)
         
         # Create tool button, and attach the menu
-        self._menuBut = self.addButtonRight(iep.icons['magnifier'], True)
+        self._menuBut = self.addButtonRight(pyzo.icons['magnifier'], True)
         self._menu = QtGui.QMenu(self._menuBut)
         self._menu.triggered.connect(self.onMenuTriggered)
         self._menuBut.setMenu(self._menu)
         self.buildMenu()
         
         # Create cancel button
-        self._cancelBut = self.addButtonRight(iep.icons['cancel'])
+        self._cancelBut = self.addButtonRight(pyzo.icons['cancel'])
         self._cancelBut.setVisible(False)
         
         # Keep track of last value of search (initialized empty)

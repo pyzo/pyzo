@@ -46,13 +46,13 @@ from pyzolib import ssdf
 from pyzolib.path import Path
 
 from pyzolib.qt import QtCore, QtGui
-import iep
+import pyzo
 
 from .browser import Browser
 
 
 
-class IepFileBrowser(QtGui.QWidget):
+class PyzoFileBrowser(QtGui.QWidget):
     """ The main tool widget. An instance of this class contains one or
     more Browser instances. If there are more, they can be selected
     using a tab bar.
@@ -63,9 +63,9 @@ class IepFileBrowser(QtGui.QWidget):
         
         # Get config
         toolId =  self.__class__.__name__.lower() + '2'  # This is v2 of the file browser
-        if toolId not in iep.config.tools:
-            iep.config.tools[toolId] = ssdf.new()
-        self.config = iep.config.tools[toolId]
+        if toolId not in pyzo.config.tools:
+            pyzo.config.tools[toolId] = ssdf.new()
+        self.config = pyzo.config.tools[toolId]
         
         # Ensure three main attributes in config
         for name in ['expandedDirs', 'starredDirs']:
@@ -125,7 +125,7 @@ class IepFileBrowser(QtGui.QWidget):
     
     def getDefaultSavePath(self):
         """
-        Returns the path to be used as default when saving a new file in iep.
+        Returns the path to be used as default when saving a new file in pyzo.
         Or None if the no path could be determined
         """
         # Select current browser

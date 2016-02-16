@@ -1,15 +1,15 @@
 ## Introduction
 """ 
-Welcome to the tutorial for IEP! This tutorial should get you 
-familiarized with IEP in just a few minutes. If you feel this tutorial
+Welcome to the tutorial for Pyzo! This tutorial should get you 
+familiarized with Pyzo in just a few minutes. If you feel this tutorial
 contains errors or lacks some information, please let us know via
-iep_@googlegroups.com.
+pyzo@googlegroups.com.
 
-IEP is a cross-platform Python IDE focused on interactivity and
+Pyzo is a cross-platform Python IDE focused on interactivity and
 introspection, which makes it very suitable for scientific computing. 
 Its practical design is aimed at simplicity and efficiency. 
 
-IEP consists of two main components, the editor and the shell, and 
+Pyzo consists of two main components, the editor and the shell, and 
 uses a set of pluggable tools to help the programmer in various ways. 
 
 """
@@ -18,7 +18,7 @@ uses a set of pluggable tools to help the programmer in various ways.
 ## The editor
 """
 The editor (this window) is where your code is located; it is the central
-component of IEP. 
+component of Pyzo. 
 
 In the editor, each open file is represented as a tab. By right-clicking on
 a tab, files can be run, saved, closed, etc. 
@@ -35,15 +35,15 @@ For larger projects, the Project manager tool can be used to manage your files
 
 ## The shells
 """
-The other main component is the window that holds the shells. When IEP
+The other main component is the window that holds the shells. When Pyzo
 starts, a default shell is created. You can add more shells that run
 simultaneously, and which may be of different Python versions.
 
 It is good to know that the shells run in a sub-process, such that
-when it is busy, IEP itself stays responsive, which allows you to 
+when it is busy, Pyzo itself stays responsive, which allows you to 
 keep coding and even run code in another shell. 
 
-Another notable feature is that IEP can integrate the event loop of
+Another notable feature is that Pyzo can integrate the event loop of
 five different GUI toolkits, thus enabling interactive plotting with
 e.g., Visvis or Matplotlib.
   
@@ -63,7 +63,7 @@ Try the "Source Structure" tool to see the outline of this tutorial!
 
 Note that the tools system is designed such that it's quite easy to
 create your own tools. Look at the online wiki for more information,
-or use one of the existing tools as an example. Also, IEP does not
+or use one of the existing tools as an example. Also, Pyzo does not
 need to restart to see new tools, or to update existing tools.
 
 """
@@ -71,11 +71,11 @@ need to restart to see new tools, or to update existing tools.
 
 ## Running code
 """
-IEP supports several ways to run source code in the editor. (see
+Pyzo supports several ways to run source code in the editor. (see
 also the "Run" menu).
 
   * Run selected lines. If a line is partially selected, the whole
-    line is executed. If there is no selection, IEP will run the
+    line is executed. If there is no selection, Pyzo will run the
     current line.
     
   * Run cell. A cell is everything between two commands starting
@@ -114,7 +114,7 @@ print('The answer is ' + str(a+b))
 
 ## The menu
 """
-Almost all functionality of IEP can be accessed via the menu. For more
+Almost all functionality of Pyzo can be accessed via the menu. For more
 advanced/specific stuff, you can use the logger tool (see also 
 Settings > Advanced settings)
 
@@ -126,7 +126,7 @@ shortcuts using the shortcut editor: Settings > Edit key mappings.
   
 ## Introspection
 """
-IEP has strong introspection capabilities. IEP knows about the objects
+Pyzo has strong introspection capabilities. Pyzo knows about the objects
 in the shell, and parses (not runs) the source code in order to detect
 the structure of your code. This enables powerful instospection such
 as autocompletion, calltips, interactive help and source structure.
@@ -136,7 +136,7 @@ as autocompletion, calltips, interactive help and source structure.
 
 ## Debugging
 """
-IEP supports post-mortem debugging, which means that after something 
+Pyzo supports post-mortem debugging, which means that after something 
 went wrong, you can inspect the stack trace to find the error.
 
 The easiest way to start debugging is to press the "Debug" button
@@ -145,7 +145,7 @@ at the upper right corner of the shells.
 Once in debug mode, the button becomes expandable, allowing you to
 see the stack trace and go to any frame you like. (Starting debug mode
 brings you to the bottom frame.) Changing a frame will make all objects
-in that frame available in the shell. If possible, IEP will also show
+in that frame available in the shell. If possible, Pyzo will also show
 the source file belonging to that frame, and select the line where the
 error occurred.
 

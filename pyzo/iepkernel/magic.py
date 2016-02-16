@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 """ 
-Magic commands for the IEP kernel.
+Magic commands for the Pyzo kernel.
 No need to use printDirect here, magic commands are just like normal Python
 commands, in the sense that they print something etc.
 """
@@ -54,8 +54,8 @@ class Magician:
     def _eval(self, command):
         
         # Get namespace
-        NS1 = sys._iepInterpreter.locals
-        NS2 = sys._iepInterpreter.globals
+        NS1 = sys._pyzoInterpreter.locals
+        NS2 = sys._pyzoInterpreter.globals
         if not NS2:
             NS = NS1
         else:
@@ -102,7 +102,7 @@ class Magician:
     def _convert_command(self, line):
         
         # Get interpreter
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         
         # Check if it is a variable
         command = line.rstrip()
@@ -188,7 +188,7 @@ class Magician:
             return
         
         # Get interpreter
-        interpreter = sys._iepInterpreter
+        interpreter = sys._pyzoInterpreter
         # Get command and arg
         line += ' '
         _, cmd, arg = line.split(' ', 2)
@@ -300,7 +300,7 @@ class Magician:
         return ''
     
     def cls(self, line, command):
-        sys._iepInterpreter.context._strm_action.send('cls')
+        sys._pyzoInterpreter.context._strm_action.send('cls')
         return ''
     
     def open(self, line, command):
@@ -362,10 +362,10 @@ class Magician:
             print('Could not determine file name for object "%s".' % name)
         elif linenr is not None:
             action = 'open %i %s' % (linenr, os.path.abspath(fname))
-            sys._iepInterpreter.context._strm_action.send(action)
+            sys._pyzoInterpreter.context._strm_action.send(action)
         else:
             action = 'open %s' % os.path.abspath(fname)
-            sys._iepInterpreter.context._strm_action.send(action)
+            sys._pyzoInterpreter.context._strm_action.send(action)
         #
         return ''
     
@@ -392,7 +392,7 @@ class Magician:
         if not fname:
             print('Could not find file to run "%s".' % name)
         else:
-            sys._iepInterpreter.runfile(fname)
+            sys._pyzoInterpreter.runfile(fname)
         #
         return ''
     
@@ -484,7 +484,7 @@ class Magician:
         
         # Go!
         try:
-            from iepkernel.pipper import pip_command 
+            from pyzokernel.pipper import pip_command 
             pip_command(*args)
         except SystemExit:  # as err:
             type, err, tb = sys.exc_info(); del tb

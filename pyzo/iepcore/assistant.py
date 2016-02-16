@@ -11,26 +11,26 @@ Tool that can view qt help files via the qthelp engine.
 Run make_docs.sh from:
 https://bitbucket.org/windel/qthelpdocs
 
-Copy the "docs" directory to the iep root!
+Copy the "docs" directory to the pyzo root!
 
 """
 
 from pyzolib.qt import QtCore, QtGui
-from iep import getResourceDirs
+from pyzo import getResourceDirs
 import os
 
 
 help_help = """
 <h1>Documentation</h1>
 <p>
-Welcome to the IEP assistant. IEP uses the Qt Help system for documentation.
+Welcome to the Pyzo assistant. Pyzo uses the Qt Help system for documentation.
 This is also used by the Qt Assistant. You can use this viewer
 to view documentation provided by other projects.
 </p>
 
 <h2>Add documentation</h2>
 <p>
-To add documentation to IEP, go to the settings tab and select add. Then
+To add documentation to Pyzo, go to the settings tab and select add. Then
 select a Qt Compressed Help file (*.qch). qch-files can be found in the Qt
 installation directory (for example in /usr/share/doc/qt under linux). For
 other projects you can download pre-build qch files from here:
@@ -40,7 +40,7 @@ other projects you can download pre-build qch files from here:
 
 <p>
 <strong>Note</strong>
-When a documentation file is added, it is not copied into the iep settings
+When a documentation file is added, it is not copied into the pyzo settings
 dir, so you have to leave this file in place.
 </p>
 
@@ -122,7 +122,7 @@ class HelpBrowser(QtGui.QTextBrowser):
             return super().loadResource(typ, url)
 
 
-class IepAssistant(QtGui.QWidget):
+class PyzoAssistant(QtGui.QWidget):
     """
         Show help contents and browse qt help files.
     """
@@ -135,18 +135,18 @@ class IepAssistant(QtGui.QWidget):
         from pyzolib.qt import QtHelp
         super().__init__(parent)
         self.setWindowTitle('Help')
-        iepDir, appDataDir = getResourceDirs()
+        pyzoDir, appDataDir = getResourceDirs()
         if collection_filename is None:
-            # Collection file is stored in iep data dir:
+            # Collection file is stored in pyzo data dir:
             collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
         self._engine = QtHelp.QHelpEngine(collection_filename)
 
         # Important, call setup data to load the files:
         self._engine.setupData()
 
-        # If no files are loaded, register at least the iep docs:
+        # If no files are loaded, register at least the pyzo docs:
         if len(self._engine.registeredDocumentations()) == 0:
-            doc_file = os.path.join(iepDir, 'resources', 'iep.qch')
+            doc_file = os.path.join(pyzoDir, 'resources', 'pyzo.qch')
             ok = self._engine.registerDocumentation(doc_file)
 
         # The main players:
@@ -206,7 +206,7 @@ class IepAssistant(QtGui.QWidget):
         self._search_term = None
 
         # Show initial page:
-        # self.showHelpForTerm('welcome to iep')
+        # self.showHelpForTerm('welcome to pyzo')
         self._helpBrowser.setHtml(help_help)
 
     def goSearch(self):
@@ -268,6 +268,6 @@ class IepAssistant(QtGui.QWidget):
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
-    view = IepAssistant()
+    view = PyzoAssistant()
     view.show()
     app.exec()

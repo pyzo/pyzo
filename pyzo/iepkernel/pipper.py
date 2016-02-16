@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, Almar Klein
 
-# From iep/iepkernel
+# From pyzo/pyzokernel
 
 import os
 import sys

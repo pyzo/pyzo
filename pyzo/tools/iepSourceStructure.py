@@ -7,21 +7,21 @@
 
 import time
 from pyzolib.qt import QtCore, QtGui
-import iep
+import pyzo
 
 tool_name = "Source structure"
 tool_summary = "Shows the structure of your source code."
 
 
-class IepSourceStructure(QtGui.QWidget):
+class PyzoSourceStructure(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         
         # Make sure there is a configuration entry for this tool
-        # The IEP tool manager makes sure that there is an entry in
+        # The pyzo tool manager makes sure that there is an entry in
         # config.tools before the tool is instantiated.
         toolId = self.__class__.__name__.lower()        
-        self._config = iep.config.tools[toolId]
+        self._config = pyzo.config.tools[toolId]
         if not hasattr(self._config, 'showTypes'):
             self._config.showTypes = ['class', 'def', 'cell', 'todo']
         if not hasattr(self._config, 'level'):
@@ -29,7 +29,7 @@ class IepSourceStructure(QtGui.QWidget):
         
         # Create icon for slider
         self._sliderIcon = QtGui.QToolButton(self)
-        self._sliderIcon.setIcon(iep.icons.text_align_right)
+        self._sliderIcon.setIcon(pyzo.icons.text_align_right)
         self._sliderIcon.setIconSize(QtCore.QSize(16,16))
         self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
         
@@ -47,7 +47,7 @@ class IepSourceStructure(QtGui.QWidget):
         #self._options.setText('Options'))        
         #self._options.setToolTip("What elements to show.")
         self._options = QtGui.QToolButton(self)
-        self._options.setIcon(iep.icons.filter)
+        self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16,16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -82,8 +82,8 @@ class IepSourceStructure(QtGui.QWidget):
         self._currentEditorId = 0
         
         # Bind to events
-        iep.editors.currentChanged.connect(self.onEditorsCurrentChanged)
-        iep.editors.parserDone.connect(self.updateStructure)
+        pyzo.editors.currentChanged.connect(self.onEditorsCurrentChanged)
+        pyzo.editors.parserDone.connect(self.updateStructure)
         
         self._options.pressed.connect(self.onOptionsPress)
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
@@ -133,7 +133,7 @@ class IepSourceStructure(QtGui.QWidget):
         file is shown. """
         
         # Get editor and clear list
-        editor = iep.editors.getCurrentEditor()        
+        editor = pyzo.editors.getCurrentEditor()        
         self._tree.clear()
         
         if editor is None:
@@ -156,7 +156,7 @@ class IepSourceStructure(QtGui.QWidget):
         """ Go to the right line in the editor and give focus. """
         
         # Get editor
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if not editor:
             return
         
@@ -168,7 +168,7 @@ class IepSourceStructure(QtGui.QWidget):
         editor.gotoLine(item.linenr)
         
         # Give focus
-        iep.callLater(editor.setFocus)
+        pyzo.callLater(editor.setFocus)
 
     
     def updateStructure(self):
@@ -176,12 +176,12 @@ class IepSourceStructure(QtGui.QWidget):
         """
         
         # Get editor
-        editor = iep.editors.getCurrentEditor()
+        editor = pyzo.editors.getCurrentEditor()
         if not editor:
             return
         
         # Something to show
-        result = iep.parser._getResult()
+        result = pyzo.parser._getResult()
         if result is None:
             return
         

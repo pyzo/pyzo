@@ -15,7 +15,7 @@ try:
 except ImportError:
     imported_qtwebkit = False
 
-import iep
+import pyzo
 
 tool_name = "Web browser"
 tool_summary = "A very simple web browser."
@@ -24,7 +24,6 @@ tool_summary = "A very simple web browser."
 default_bookmarks = [   'docs.python.org', 
                         'scipy.org',
                         'doc.qt.nokia.com/4.5/',
-                        'iep-project.org',
                         'pyzo.org',
                     ]
 
@@ -148,7 +147,7 @@ class WebView(QtGui.QTextBrowser):
         return url
 
 
-class IepWebBrowser(QtGui.QFrame):
+class PyzoWebBrowser(QtGui.QFrame):
     """ The main window, containing buttons, address bar and
     browser widget.
     """
@@ -158,7 +157,7 @@ class IepWebBrowser(QtGui.QFrame):
         
         # Init config
         toolId =  self.__class__.__name__.lower()
-        self._config = iep.config.tools[toolId]
+        self._config = pyzo.config.tools[toolId]
         if not hasattr(self._config, 'zoomFactor'):
             self._config.zoomFactor = 1.0
         if not hasattr(self._config, 'bookMarks'):
