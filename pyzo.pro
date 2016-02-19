@@ -3,7 +3,6 @@ SOURCES =  pyzo/core/menu.py
 SOURCES += pyzo/core/editorTabs.py 
 SOURCES += pyzo/core/shellInfoDialog.py
 SOURCES += pyzo/core/shellStack.py
-SOURCES += pyzo/core/license.py
 
 SOURCES += pyzo/util/pyzowizard.py
 

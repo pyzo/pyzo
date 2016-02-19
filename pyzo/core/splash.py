@@ -34,8 +34,7 @@ QLabel {
 
 splash_text = """
 <p>
-This is the <b>Interactive Editor for Python</b>
-{distro}
+This is the <b>Pyzo</b><br />the Python IDE for scientific computing
 </p>
 <p>
 Version {version}
