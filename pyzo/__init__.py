@@ -134,11 +134,7 @@ def getResourceDirs():
         raise RuntimeError('The Pyzo package cannot be run from a zipfile.')
     
     # Get where the application data is stored (use old behavior on Mac)
-    # todo: quick solution until I release a new pyzolib
-    try:
-        appDataDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
-    except Exception:
-        appDataDir = paths.appdata_dir('pyzo', roaming=True)
+    appDataDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
     
     # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, 'tools')
@@ -272,12 +268,6 @@ _saveConfigFile = True
 # Create ssdf in module namespace, and fill it
 config = ssdf.new()
 loadConfig()
-
-# Get license info
-# Yes, you could insert your custom dict here! But who would you be fooling?
-from pyzo.core.license import get_license_info
-license = get_license_info()
-del get_license_info
 
 # Init default style name (set in main.restorePyzoState())
 defaultQtStyleName = ''

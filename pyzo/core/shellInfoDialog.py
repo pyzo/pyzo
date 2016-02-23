@@ -126,14 +126,13 @@ class ShellInfo_ipython(QtGui.QCheckBox):
         QtGui.QCheckBox.__init__(self, parent)
         t = translate('shell', 'ipython ::: Use IPython shell if available.')
         self.setText(t.tt)
-        # Default is True
-        self.setChecked(True)
+        self.setChecked(False)
     
     def setTheText(self, value):
-        if value.lower() in ['no', 'false']:
+        if value.lower() in ['', 'no', 'false']:  # Also for empty string; default is False
             self.setChecked(False)
         else: 
-            self.setChecked(True)  # Also for empty string; default is True
+            self.setChecked(True)
     
     def getTheText(self):
         if self.isChecked():

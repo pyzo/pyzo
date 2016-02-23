@@ -1565,8 +1565,6 @@ class HelpMenu(Menu):
         #self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
         #    icons.application_go, self._checkUpdates)
         
-        #self.addItem(translate("menu", "Manage your Pyzo license ::: View/add licenses."), 
-        #    icons.script, self._manageLicenses)
         self.addItem(translate("menu", "About Pyzo ::: More information about Pyzo."), 
             icons.information, self._aboutPyzo)
     
@@ -1614,12 +1612,6 @@ class HelpMenu(Menu):
         if result == m.Yes:
             import webbrowser
             webbrowser.open("http://www.pyzo.org/downloads.html")
-    
-    def _manageLicenses(self):
-        from pyzo.core.license import LicenseManager
-        w = LicenseManager(None)
-        w.exec_()
-    
     
     def _aboutPyzo(self):
         from pyzo.core.about import AboutDialog

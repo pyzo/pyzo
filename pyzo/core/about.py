@@ -52,11 +52,7 @@ class AboutDialog(QtGui.QDialog):
         self.createGeneralTab()
         self.createContributorsTab()
         self.createLicenseTab()
-        #
-        #from pyzo.core.license import LicenseManager
-        #self._tabs.addTab(LicenseManager(self._tabs), 'Your licenses')
-    
-    
+
     def addTab(self, title, text, rich=True):
         # Create label to show info
         label = QtGui.QTextEdit(self)
@@ -113,7 +109,7 @@ class AboutDialog(QtGui.QDialog):
             versionText = pyzo.__version__ + ' (binary)'
         else:
             versionText = pyzo.__version__ + ' (source)'
-        aboutText = aboutText.format(
+        aboutText = aboutText.format('Pyzo - Python to the people!' ,
                         versionText, 
                         sys.platform, 
                         sys.version.split(' ')[0], 

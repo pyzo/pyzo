@@ -23,10 +23,3 @@ Laurent Signac - French
 Diogo Costa - Portuguese
 Gerd Schmitt - German
 George Volkov - Russian
-
-
-### Financial support
-
-Diogo Costa
-Marek Petrik
-Ken Crossen
