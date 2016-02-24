@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2012, Almar Klein
+# Copyright (c) 2016, Almar Klein
 
 """ 
 This module implements functionality to obtain registered 
 Python interpreters and to register a Python interpreter in the Windows 
 registry.
-
-See interpreters.py for higher level functionality to also detect
-Python interpreters in common locations, discarting invalid paths
-and obtaining version numbers.
 
 """
 

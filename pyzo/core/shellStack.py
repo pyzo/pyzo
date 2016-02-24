@@ -110,12 +110,15 @@ class ShellStackWidget(QtGui.QWidget):
         self._toolbar.addSeparator()
         # self._toolbar.addWidget(self._dbc) -> delayed, see addContextMenu()
         
+        self._condahelp = CondaHelper(self)
+        
         # widget layout
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._toolbar)
-        layout.addWidget(self._stack)
+        layout.addWidget(self._stack, 0)
+        layout.addWidget(self._condahelp, 1)
         self.setLayout(layout)
         
         # make callbacks
@@ -609,3 +612,10 @@ class DebugStack(QtGui.QToolButton):
             editor.setTextCursor(cursor)
 
 
+class CondaHelper(QtGui.QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        w = QtGui.QPushButton('hello world')
+        layout = QtGui.QVBoxLayout()
+        self.setLayout(layout)
+        layout.addWidget(w, 1)

@@ -6,7 +6,7 @@ from .inwinreg import register_interpreter
 
 
 class PythonInterpreter:
-    """ Clas to represent a Python interpreter. It has properties
+    """ Class to represent a Python interpreter. It has properties
     to get the path and version. Upon creation the version number is
     acquired by calling the interpreter in a subprocess. If this fails,
     the version becomes ''.
@@ -19,9 +19,12 @@ class PythonInterpreter:
             raise ValueError('Path for PythonInterpreter is invalid: %r' % path)
         self._path = os.path.normpath(os.path.abspath(path))
         self._normpath = os.path.normcase(self._path)
-        self._is_pyzo = False
         self._problem = ''
         self._version = None
+        # Set prefix
+        self._prefix = os.path.dirname(self._path)
+        if os.path.basename(self._prefix) == 'bin':
+            self._prefix = os.path.dirname(self._prefix) 
     
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -33,7 +36,6 @@ class PythonInterpreter:
     def __eq__(self, other):
         return self._normpath == other._normpath
     
-    
     @property
     def path(self):
         """ The full path to the executable of the Python interpreter.
@@ -41,10 +43,17 @@ class PythonInterpreter:
         return self._path
     
     @property
-    def is_pyzo(self):
-        """ Whether this is a Pyzo interpreter.
-        """ 
-        return self._is_pyzo
+    def prefix(self):
+        """ The prefix of this executable.
+        """
+        return self._prefix
+    
+    @property
+    def is_conda(self):
+        """ Whether this interpreter is part of a conda environment (either
+        a root or an env).
+        """
+        return os.path.isdir(os.path.join(self._prefix, 'conda-meta'))
     
     @property
     def version(self):
@@ -58,7 +67,7 @@ class PythonInterpreter:
     def version_info(self):
         """ The version number as a tuple of integers. For comparing.
         """
-        return _versionStringToTuple(self.version)
+        return versionStringToTuple(self.version)
     
     def register(self):
         """ Register this Python intepreter. On Windows this modifies
@@ -94,7 +103,7 @@ class PythonInterpreter:
         
         # Try turning it into version_info
         try:
-            _versionStringToTuple(v)
+            versionStringToTuple(v)
         except ValueError:
             return ''
         
@@ -102,15 +111,7 @@ class PythonInterpreter:
         return v
 
 
-class PyzoInterpreter(PythonInterpreter):
-    """ A Pyzo interpreter.
-    """
-    def __init__(self, path):
-        PythonInterpreter.__init__(self, path)
-        self._is_pyzo = True
-
-
-def _versionStringToTuple(version):
+def versionStringToTuple(version):
     # Truncate version number to first occurance of non-numeric character
     tversion = ''
     for c in version:

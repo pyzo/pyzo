@@ -63,7 +63,10 @@ class ShellInfo_exe(QtGui.QComboBox):
         #self.activated.connect(self.onActivated)
     
     def _interpreterName(self, p):
-        return '%s  [v%s]' % (p.path, p.version)
+        if p.is_conda:
+            return '%s  [v%s, conda]' % (p.path, p.version)
+        else:
+            return '%s  [v%s]' % (p.path, p.version)
     
     def setTheText(self, value):
         
