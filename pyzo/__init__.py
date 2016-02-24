@@ -285,7 +285,7 @@ def defaultInterpreterExe():
     global _defaultInterpreterExe
     if _defaultInterpreterExe is None and sys.platform.startswith('win'):
         try:
-            from pyzolib.interpreters import get_interpreters
+            from pyzo.util.interpreters import get_interpreters
             interpreters = list(reversed(get_interpreters('2.4')))
             if interpreters:
                 _defaultInterpreterExe = interpreters[0].path

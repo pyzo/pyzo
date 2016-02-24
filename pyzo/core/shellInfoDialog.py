@@ -620,7 +620,7 @@ class ShellInfoDialog(QtGui.QDialog):
         
         # Get known interpreters (sorted them by version)
         # Do this here so we only need to do it once ...
-        from pyzolib.interpreters import get_interpreters
+        from pyzo.util.interpreters import get_interpreters
         self.interpreters = list(reversed(get_interpreters('2.4')))
         
         # Introduce an entry if there's none

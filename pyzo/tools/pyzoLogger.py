@@ -48,7 +48,7 @@ class PyzoLogger(BaseShell):
         moreBanner = "This is the Pyzo logger shell." 
         self.write("Python %s on %s - %s\n\n" %
                        (sys.version[:5], sys.platform, moreBanner))
-        self.write(sys.ps1, 2)
+        self.write(str(sys.ps1), 2)
         
         # Split console
         history = splitConsole(self.write, self.writeErr)
@@ -66,9 +66,9 @@ class PyzoLogger(BaseShell):
         self.write(command, 1)
         more = self._interpreter.push(command.rstrip('\n'))
         if more:
-            self.write(sys.ps2, 2)
+            self.write(str(sys.ps2), 2)
         else:            
-            self.write(sys.ps1, 2)  
+            self.write((sys.ps1), 2)  
     
     
     def writeErr(self, msg):
