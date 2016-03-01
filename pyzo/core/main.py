@@ -102,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
         self.restoreState()
         
         # Present user with wizard if he/she is new.
-        if pyzo.config.state.newUser:
+        if False:  # pyzo.config.state.newUser:
             from pyzo.util.pyzowizard import PyzoWizard
             w = PyzoWizard(self)
             w.show() # Use show() instead of exec_() so the user can interact with pyzo
@@ -149,8 +149,8 @@ class MainWindow(QtGui.QMainWindow):
         pyzo.toolManager = ToolManager()
         
         # Check to install conda now ...
-        from pyzo.util.bootstrapconda import check_for_conda_env
-        check_for_conda_env()
+        #from pyzo.util.bootstrapconda import check_for_conda_env
+        #check_for_conda_env()
         
         # Instantiate and start source-code parser
         if pyzo.parser is None:

@@ -83,11 +83,6 @@ def finishKernelInfo(info, scriptFile=None):
     
     """ 
 
-    # Set executable to default if it is empty
-    # Note that we do this on the original struct object.
-    if not info.exe:
-        info.exe = '[default]'
-    
     # Make a copy, we do not want to change the original
     info = ssdf.copy(info)
     

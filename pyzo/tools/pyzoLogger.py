@@ -68,7 +68,7 @@ class PyzoLogger(BaseShell):
         if more:
             self.write(str(sys.ps2), 2)
         else:            
-            self.write((sys.ps1), 2)  
+            self.write(str(sys.ps1), 2)  
     
     
     def writeErr(self, msg):

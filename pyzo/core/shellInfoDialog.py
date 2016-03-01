@@ -57,10 +57,6 @@ class ShellInfo_exe(QtGui.QComboBox):
     
     def __init__(self, *args):
         QtGui.QComboBox.__init__(self, *args)
-        # Uncomment this to also select the matching GUI toolkit if [default]
-        # is selected. Note that adding a new config will always init with
-        # the matching GUI toolkit.
-        #self.activated.connect(self.onActivated)
     
     def _interpreterName(self, p):
         if p.is_conda:
@@ -82,20 +78,11 @@ class ShellInfo_exe(QtGui.QComboBox):
         interpreters = shellDialog.interpreters
         exes = [p.path for p in interpreters]
         
-        # Get name for default interpreter
-        # note: the filled in name will not be correct if working remotely
-        defaultName = '%s  [default]' % pyzo.defaultInterpreterExe()
-        
         # Hande current value
-        if value == '[default]':
-            value = defaultName
-        elif value in exes:
+        if value in exes:
             value = self._interpreterName( interpreters[exes.index(value)] )
         else:
             self.addItem(value)
-        
-        # Add default value
-        self.addItem(defaultName)
         
         # Add all found interpreters
         for p in interpreters:
@@ -108,19 +95,9 @@ class ShellInfo_exe(QtGui.QComboBox):
     def getTheText(self):
         #return self.currentText().split('(')[0].rstrip()
         value = self.currentText()
-        if value.endswith('[default]'):
-            value = '[default]'
-        elif value.endswith(']') and '[' in value:
+        if value.endswith(']') and '[' in value:
             value = value.rsplit('[', 1)[0]
         return value.strip()
-    
-    
-    def onActivated(self, index=None):
-        # Select GUI corresponding to default interpreter if it was selected. 
-        defaultGui = pyzo.defaultInterpreterGui()
-        if defaultGui and self.currentText().startswith('[default]'):
-            guicombobox = self.parent()._shellInfoWidgets['gui']
-            guicombobox.setTheText(defaultGui)
 
 
 class ShellInfo_ipython(QtGui.QCheckBox):
@@ -134,7 +111,7 @@ class ShellInfo_ipython(QtGui.QCheckBox):
     def setTheText(self, value):
         if value.lower() in ['', 'no', 'false']:  # Also for empty string; default is False
             self.setChecked(False)
-        else: 
+        else:
             self.setChecked(True)
     
     def getTheText(self):
@@ -150,13 +127,14 @@ class ShellInfo_gui(QtGui.QComboBox):
     COMPAT = {'QT4':'PYQT4'}
     
     # GUI names
-    GUIS = [    ('None', 'no GUI support'), 
-                ('PySide', 'LGPL licensed wrapper to Qt (recommended)'),
-                ('PyQt4', 'GPL/commercial licensed wrapper to Qt (recommended)'), 
-                ('Tornado', 'Tornado asynchronous networking library'), 
-                ('Tk', 'Tk widget toolkit'), 
-                ('WX', 'wxPython'), 
-                ('FLTK', 'The fast light toolkit'), 
+    GUIS = [    ('None', 'no GUI support'),
+                ('Auto', 'Use what is available (recommended)'),
+                ('PyQt4', 'GPL/commercial licensed wrapper to Qt (recommended)'),
+                ('PySide', 'LGPL licensed wrapper to Qt'),
+                ('Tornado', 'Tornado asynchronous networking library'),
+                ('Tk', 'Tk widget toolkit'),
+                ('WX', 'wxPython'),
+                ('FLTK', 'The fast light toolkit'),
                 ('GTK', 'GIMP Toolkit'),
             ]
     

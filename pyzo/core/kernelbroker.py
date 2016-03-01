@@ -59,13 +59,11 @@ class KernelInfo(ssdf.Struct):
         
         # The executable. This can be '/usr/bin/python3.1' or 
         # 'c:/program files/python2.6/python.exe', etc.
-        # The "[default]" is a placeholder text that is replaced at the last
-        # moment with pyzo.defaultInterpreterExe()
-        self.exe = '[default]'
+        self.exe = ''
         
         # The GUI toolkit to embed the event loop of. 
         # Instantiate with a value that is settable
-        self.gui = pyzo.defaultInterpreterGui() or 'none'
+        self.gui = 'Auto'
         
         # The Python path. Paths should be separated by newlines.
         # '$PYTHONPATH' is replaced by environment variable by broker
@@ -129,9 +127,7 @@ def getCommandFromKernelInfo(info, port):
     info = KernelInfo(info)
     
     # Apply default exe
-    exe = info.exe
-    if exe in ('[default]', '<default>'):
-        exe = pyzo.defaultInterpreterExe()
+    exe = info.exe or 'python'
     
     # Correct path when it contains spaces
     if exe.count(' ') and exe[0] != '"':

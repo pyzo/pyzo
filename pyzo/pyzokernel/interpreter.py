@@ -301,7 +301,7 @@ class PyzoInterpreter:
         printDirect(pyzoBanner)
         
         # Try loading IPython
-        if startup_info.get('ipython', '').lower() in ('no', 'false'):
+        if startup_info.get('ipython', '').lower() in ('', 'no', 'false'):
             self._ipython = None
         else:
             try:
