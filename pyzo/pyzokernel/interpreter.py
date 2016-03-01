@@ -452,6 +452,18 @@ class PyzoInterpreter:
         try:
             if guiName in ['', 'NONE']:
                 guiName = ''
+            elif guiName == 'AUTO':
+                for tryName, tryApp in [('PYQT4', guiintegration.App_pyqt4),
+                                        ('PYSIDE', guiintegration.App_pyside),
+                                        ('WX', guiintegration.App_wx),
+                                        ('TK', guiintegration.App_tk),
+                                        ]:
+                    try:
+                        self.guiApp = tryApp()
+                    except Exception as err:
+                        continue
+                    guiName = tryName
+                    break
             elif guiName == 'TK':
                 self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':
