@@ -455,7 +455,7 @@ class PyzoInterpreter:
             elif guiName == 'AUTO':
                 for tryName, tryApp in [('PYQT4', guiintegration.App_pyqt4),
                                         ('PYSIDE', guiintegration.App_pyside),
-                                        ('WX', guiintegration.App_wx),
+                                        #('WX', guiintegration.App_wx),
                                         ('TK', guiintegration.App_tk),
                                         ]:
                     try:

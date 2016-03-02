@@ -94,7 +94,7 @@ def _get_interpreters_win():
 def _get_interpreters_posix():
     found=[]
     for searchpath in ['/usr/bin','/usr/local/bin','/opt/local/bin',
-                       '~/miniconda', '~/miniconda3', '~/anaconda', '~/anaconda3']:
+                       '~/miniconda/bin', '~/miniconda3/bin', '~/anaconda/bin', '~/anaconda3/bin']:
         searchpath = os.path.expanduser(searchpath)
         
         # Get files
