@@ -13,50 +13,60 @@ except ImportError:
     from distutils.core import setup
 
 
+def get_version_and_doc(filename):
+    NS = dict(__version__='', __doc__='')
+    docStatus = 0  # Not started, in progress, done
+    for line in open(filename, 'rb').read().decode().splitlines():
+        if line.startswith('__version__'):
+            exec(line.strip(), NS, NS)
+        elif line.startswith('"""'):
+            if docStatus == 0:
+                docStatus = 1
+                line = line.lstrip('"')
+            elif docStatus == 1:
+                docStatus = 2
+        if docStatus == 1:
+            NS['__doc__'] += line
+    if not NS['__version__']:
+        raise RuntimeError('Could not find __version__')
+    return NS['__version__'], NS['__doc__']
+
+
+def package_tree(pkgroot):
+    subdirs = [os.path.relpath(i[0], THIS_DIR).replace(os.path.sep, '.')
+               for i in os.walk(os.path.join(THIS_DIR, pkgroot))
+               if '__init__.py' in i[2]]
+    return subdirs
+
+
+## Define info of this package
+
+THIS_DIR = os.path.dirname(__file__)
+
 name = 'pyzo'
-description = 'the interactive editor for Python'
+description = 'the Python IDE for scientific computing'
+
+version, doc = get_version_and_doc(os.path.join(THIS_DIR, name, '__init__.py'))
 
 
-# Get version and docstring
-__version__ = None
-__doc__ = ''
-docStatus = 0 # Not started, in progress, done
-initFile = os.path.join(os.path.dirname(__file__), 'pyzo', '__init__.py')
-for line in open(initFile).readlines():
-    if (line.startswith('__version__')):
-        exec(line.strip())
-    elif line.startswith('"""'):
-        if docStatus == 0:
-            docStatus = 1
-            line = line.lstrip('"')
-        elif docStatus == 1:
-            docStatus = 2
-    if docStatus == 1:
-        __doc__ += line
-
-
+## Setup
 setup(
     name = name,
-    version = __version__,
+    version = version,
     author = 'Almar Klein',
     author_email = 'almar.klein@gmail.com',
     license = '(new) BSD',
 
     url = 'http://www.pyzo.org',
-    download_url = 'http://www.pyzo.org/downloads.html',
-    keywords = "Python interactive IDE Qt science",
+    keywords = "Python interactive IDE Qt science computing",
     description = description,
-    long_description = __doc__,
+    long_description = doc,
 
     platforms = 'any',
     provides = ['pyzo'],
-    install_requires = [], # and 'PySide' or 'PyQt4'
+    install_requires = [],  # and 'PySide' or 'PyQt4'
 
-    packages = ['pyzo', 'pyzo.core', 'pyzo.pyzokernel', 'pyzo.util',
-                'pyzo.tools', 'pyzo.tools.pyzoFileBrowser',
-                'pyzo.codeeditor', 'pyzo.codeeditor.parsers', 'pyzo.codeeditor.extensions',
-                'pyzo.yoton', 'pyzo.yoton.channels',
-               ],
+    packages = package_tree(name),
     package_dir = {'pyzo': 'pyzo'},
     package_data = {'pyzo': ['license.txt', 'contributors.txt',
                             'resources/*.*',
@@ -79,9 +89,11 @@ setup(
           'Programming Language :: Python :: 3',
           ],
         
-    entry_points = {'console_scripts': ['pyzo = pyzo.__main__',], },
+    entry_points = {'console_scripts': ['pyzo = pyzo.__main__:main',], },
     )
 
+
+## Post processing
 
 # Install appdata.xml on Linux if we are installing in the system Python
 if sys.platform.startswith('linux') and sys.prefix.startswith('/usr'):

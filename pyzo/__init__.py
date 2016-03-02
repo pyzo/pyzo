@@ -5,8 +5,7 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" Package pyzo
-
+"""
 Pyzo is a cross-platform Python IDE focused on
 interactivity and introspection, which makes it very suitable for
 scientific computing. Its practical design is aimed at simplicity and
@@ -40,7 +39,6 @@ Some key features
   * Various handy *tools*, plus the ability to make your own.
   * Matlab-style *cell notation* to mark code sections (by starting a line
     with '##').
-  * Highly customizable.
 
 """
     

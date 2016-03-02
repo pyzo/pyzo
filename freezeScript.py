@@ -18,7 +18,7 @@ For distribution:
   * Upload binaries to pyzo website
   * Upload source to pypi
   * Announce
-    
+
   * Add tag to released commit
   * Incease version number to dev
   

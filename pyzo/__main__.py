@@ -47,5 +47,10 @@ else:
         except ImportError:
             raise ImportError('Could not import Pyzo in either way.')
 
-# Start Pyzo
-pyzo.start()
+
+def main():
+    pyzo.start()
+
+
+if __name__ == '__main__':
+    main()
