@@ -660,7 +660,7 @@ class CondaHelper(QtGui.QWidget):
         self.refresh()
     
     def refresh(self):
-        link = '<a href="http://start.pyzo.org">miniconda</a>'
+        link = '<a href="http://miniconda.pyzo.org">miniconda</a>'
         
         self._the_exe = None
         

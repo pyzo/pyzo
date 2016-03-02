@@ -1545,20 +1545,20 @@ class HelpMenu(Menu):
     
     def build(self):
         icons = pyzo.icons
-        issues_url = "https://github.com/pyzo/pyzo/issues"
         
-        self.addItem(translate("menu", "Documentation ::: Documentation on Python and the Scipy Stack."), 
-            icons.help, self._showPyzoDocs)
-        
-        self.addUrlItem(translate("menu", "Pyzo Website ::: Open the Pyzo website in your browser."), 
+        self.addUrlItem(translate("menu", "Pyzo website ::: Open the Pyzo website in your browser."), 
             icons.help, "http://www.pyzo.org")
+        self.addUrlItem(translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."), 
+            icons.help, "http://guide.pyzo.org")
         self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
-            icons.comments, "http://pyzo.org/community.html#discussion-fora-and-email-lists")
+            icons.comments, "http://community.pyzo.org")
         self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?"), 
-            icons.error_add, issues_url)
+            icons.error_add, "http://issues.pyzo.org")
+        self.addItem(translate("menu", "Local documentation ::: Documentation on Python and the Scipy Stack."), 
+            icons.help, self._showPyzoDocs)
         self.addSeparator()
-        self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."), 
-            icons.wand, self._showPyzoWizard)
+        # self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."), 
+        #     icons.wand, self._showPyzoWizard)
         #self.addItem(translate("menu", "View code license ::: Legal stuff."), 
         #    icons.script, lambda: pyzo.editors.loadFile(os.path.join(pyzo.pyzoDir,"license.txt")))
         
@@ -1621,8 +1621,8 @@ class HelpMenu(Menu):
     
     def _showPyzoDocs(self):
         # Show widget with docs:
-        d = PyzoAssistant()
-        d.show()
+        self._assistant = PyzoAssistant()
+        self._assistant.show()
 
 
 class SettingsMenu(Menu):
