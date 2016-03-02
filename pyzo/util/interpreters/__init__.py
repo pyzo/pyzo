@@ -114,6 +114,12 @@ def _get_interpreters_posix():
                     if os.path.isfile(filename):
                         found.append(filename)
     
+    # Remove pythonw, pythonm and the like
+    found = set(found)
+    for path in list(found):
+        if path.endswith(('m', 'w')) and path[:-1] in found:
+            found.discard(path)
+    
     # Return as set (remove duplicates)
     return set(found)
 
