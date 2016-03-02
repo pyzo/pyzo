@@ -1,3 +1,61 @@
+### Version 4.0
+
+We smashed the Pyzo and IEP projects together into a single project:
+
+* The name is Pyzo
+* The logo is the one from IEP
+* It is not longer a distribution, but a lightweight IDE (like IEP was) that helps the user install a (miniconda) environment.
+
+
+### Version 3.6 (18-02-2015)
+
+(Simultaneously released version 3.6.1: a hotfix for OSX)
+
+* Support for Jython! (issue #323)
+* New tool: command history
+* Smarter copying and pasting 
+* Experimental support for integrating the Tornado event loop
+* IEP is available in Debian! (issue #337) Thanks Ghis!
+* issue #311: Zoom level of code text is inconsistent between architectures
+* issue #314: Unable to launch after installing from source.
+* issue #330: Comment line puts # on correctly indented position
+* issue #172: Filter Workspace view
+* issue #317: magic open command should go to appropriate line
+* issue #315: sys.stdout has no attribute 'errors'
+* issue #332: Cannot save file when File browser shows drives list on Windows
+* issue #325: multiprocessing.pool doesn't work
+* issue #322: Cannot run IEP form IEP
+* issue #318: Line ending removed from last line upon save Editor 
+* issue #306: Easier to modify syntax style Menu / settings 
+* issue #305: cursor jumping to file beginning upon save
+
+* pr #16: Fix the import wizard on PyQt4 (Scott Logan)
+* pr #13: Allowing shell window to float is useful in dual screen mode (Laurent Signac)
+* pr #14: Fix previous tab selection without history (Scott Logan)
+* pr #11: cell navigation (Jan Müller)
+
+
+### Version 3.5 (01-07-2014)
+
+(This release ended up in Pyzo 2014a, but binaries for IEP itself were not build)
+
+* issue 301: IEP can now be associated with .py files (on Windows and OSX)
+* Running `iep_exe foo.py` will open the file in IEP (using already running process if possible) (see issue #301)
+* issue #297: Enable keeping processing GUI events while debugging (via IEP_PROCESS_EVENTS_WHILE_DEBUGGING environment arg)
+* issue #298: Add config option to remove trailing whitespace on save
+* issue #295: Add goto definition (Thanks to Jason Sexauer)
+* issue #292: Add config option to set text justification width
+* issue #302: Fix in Spanish translation
+* issue #300: Created AppData file for package managers
+* issue #296: Easier use of timeit in non-IPython mode
+* issue #294: On startup focus on editor
+* issue #288: Installing IEP via pip now also installs script to launch IEP
+* issue #290: allow executing startup code *after* importing the GUI
+* issue #287: Starup script got cleared in shell config
+* Added functionality for easily creating screenshots (`iep.screenshot()` in logger shell)
+* The Windows installer does not need admin priveleges if installing in the right place.
+
+
 ### Version 3.4 (02-04-2014)
 
 This version is marked by many improvements to the shell. Most notably, we now have *IPython integration*! Further, there are more ways to customize the shell (e.g. define command line and environment args), there is support for coloured text, you can click on filenames in tracebacks to open them, and it just behaves better overall. Also, many improvements have been made to our debug system.
