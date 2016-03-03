@@ -3,13 +3,21 @@
 [Setup]
 AppName = pyzo
 AppId = pyzo
-AppVerName = pyzo version X.Y.Z
-DefaultDirName = {pf}pyzo
+AppVerName = pyzo version X.Y
+AppPublisher = The Pyzo team
+AppPublisherURL = http://pyzo.org
+
+DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo
 
 SourceDir = frozen/
 OutputDir = ../
-OutputBaseFilename = pyzo-X.Y.Z.win32
+OutputBaseFilename = pyzo-X.Y-win32
+
+WizardImageBackColor=$d28b26
+WizardImageStretch=no
+WizardImageFile=source\pyzo\resources\appicons\pyzologo128.bmp
+WizardSmallImageFile=source\pyzo\resources\appicons\pyzologo48.bmp
 
 ; When set to none, Setup will only run with administrative privileges if it 
 ; was started by a member of the Administrators group.
@@ -20,7 +28,7 @@ PrivilegesRequired = none
 ChangesEnvironment = no
 ChangesAssociations = yes
 
-DisableProgramGroupPage = no
+DisableProgramGroupPage = yes
 AllowNoIcons = yes
 Compression = lzma
 SolidCompression = yes
@@ -30,10 +38,12 @@ Source: "*.*"; DestDir: "{app}"; Flags: recursesubdirs;
 
 [Tasks]
 Name: icon; Description: "Desktop Icon"
+Name: startmenu; Description: "Create shortcut in start menu"
 Name: mypAssociation; Description: "Associate "".py"" extension (need admin privileges)"
 
 [Icons]
 Name: "{commondesktop}\pyzo"; Filename: "{app}\pyzo.exe"; IconFilename: "{app}\pyzo.exe"; Workingdir: "{app}"; Tasks: icon;
+Name: "{group}\Pyzo"; Filename: "{app}\pyzo.exe"; Tasks: startmenu;
 
 [Registry]
 Root: HKCR; Subkey: ".py"; ValueType: string; ValueName: ""; ValueData: "PYZO_python"; Flags: uninsdeletevalue; Tasks: mypAssociation 
