@@ -93,8 +93,9 @@ def _get_interpreters_win():
 
 def _get_interpreters_posix():
     found=[]
-    for searchpath in ['/usr/bin','/usr/local/bin','/opt/local/bin',
-                       '~/miniconda/bin', '~/miniconda3/bin', '~/anaconda/bin', '~/anaconda3/bin']:
+    
+    # Look for system Python interpreters
+    for searchpath in ['/usr/bin','/usr/local/bin','/opt/local/bin']:
         searchpath = os.path.expanduser(searchpath)
         
         # Get files
@@ -113,6 +114,18 @@ def _get_interpreters_posix():
                     # Seen on OS X that was not a valid file
                     if os.path.isfile(filename):
                         found.append(filename)
+    
+    # Look for user-installed Python interpreters such as pypy and anaconda
+    for rootname in ['~', '/usr/local']:
+        rootname = os.path.expanduser(rootname)
+        if not os.path.isdir(rootname):
+            continue
+        for dname in os.listdir(rootname):
+            if dname.lower().startswith(('python', 'pypy', 'miniconda', 'anaconda')):
+                for fname in ('bin/python', 'bin/pypy'):
+                    exename = os.path.join(rootname, dname, fname)
+                    if os.path.isfile(exename):
+                        found.append(exename)
     
     # Remove pythonw, pythonm and the like
     found = set(found)
