@@ -414,13 +414,13 @@ class Magician:
         # Go!
         # Weird double-try, to make work on Python 2.4
         oldargs = sys.argv
+        stderr_write = sys.stderr.write
         try:
             try:
+                sys.stderr.write = lambda x: len(x)
                 import conda
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args)
-                #if args and args[0] in ('install', 'update', 'remove'):
-                #    self._check_imported_modules()
                 main()
             except SystemExit:  # as err:
                 type, err, tb = sys.exc_info(); del tb
@@ -433,6 +433,7 @@ class Magician:
                 print(err)
         finally:
             sys.argv = oldargs
+            sys.stderr.write = stderr_write
         
         return ''
     

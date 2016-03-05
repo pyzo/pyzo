@@ -247,6 +247,7 @@ class BaseShell(BaseTextCtrl):
         self._cursor1 = self.textCursor()
         self._cursor2 = self.textCursor()
         self._lastCommandCursor = self.textCursor()
+        self._lastline_had_cr = False
         
         # When inserting/removing text at the edit line (thus also while typing)
         # keep cursor2 at its place. Only when text is written before
@@ -716,6 +717,29 @@ class BaseShell(BaseTextCtrl):
         # Return result
         return text
     
+    def _handleCarriageReturnOnList(self, texts):
+        """ Discard messages that end with CR and that are not followed
+        with LF. Assumes that each message is one line.
+        """
+        for i in range(len(texts)-1):
+            if texts[i].endswith('\r') and not texts[i+1].startswith('\n'):
+                texts[i] = ''
+        return [t for t in texts if t]
+    
+    def _handleCarriageReturn(self, text):
+        """ Removes the last line if it ended with CR.
+        Returns the text.
+        """
+        if 'logger' in self.__class__.__name__.lower():
+            return text
+        # Remove last line if it ended with CR
+        cursor = self._cursor1
+        if self._lastline_had_cr and not text.startswith('\n'):
+            cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor, 1)
+            cursor.removeSelectedText()
+        # Is this new line ending in CR?
+        self._lastline_had_cr = text.endswith('\r')
+        return text
     
     def _splitLinesForPrinting(self, text):
         """ Given a text, split the text in lines. Lines that are extremely
@@ -770,6 +794,7 @@ class BaseShell(BaseTextCtrl):
             # Insert text behind prompt (normal streams)
             self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
+            text = self._handleCarriageReturn(text)
             text = self._handleBackspaces(text)
             self._insertText(self._cursor1, text, format)
         elif prompt == 1:
@@ -1375,6 +1400,7 @@ class PythonShell(BaseShell):
                 #M = [sub.recv()] # Slow version (for testing)
                 # Optimization: handle backspaces on stack of messages
                 if sub is self._strm_out:
+                    M = self._handleCarriageReturnOnList(M)
                     M = self._handleBackspacesOnList(M)
             # New prompt?
             if sub is self._strm_prompt:
