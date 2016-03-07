@@ -464,6 +464,8 @@ class PyzoInterpreter:
                         continue
                     guiName = tryName
                     break
+                else:
+                    guiName = ''
             elif guiName == 'TK':
                 self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':
