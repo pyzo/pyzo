@@ -180,8 +180,9 @@ class TcpConnection(Connection):
             tmp = "Could not bind to any of the " + tmp + " ports tried."
             raise IOError(tmp)
         
-        # Tell the socket it is a host, backlog of zero
-        s.listen(0)
+        # Tell the socket it is a host. Backlog of at least 1 to avoid linux 
+        # kernel from detecting SYN flood and throttling the connection (#381)
+        s.listen(1)
         
         # Set connected (status 1: waiting for connection)
         # Will be called with status 2 by the hostThread on success
