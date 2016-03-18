@@ -429,6 +429,15 @@ class BaseShell(BaseTextCtrl):
         cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(word))
         self.setTextCursor(cursor)
         
+        # For syntax errors we have the offset thingy in the file name
+        if '.py+' in filename[-9:]:
+            filename, _, offset = filename.rpartition('+')
+            if linenr is not None:
+                try:
+                    linenr += int(offset)
+                except ValueError:
+                    pass
+        
         # Try opening the file (at the line number if we have one)
         result = pyzo.editors.loadFile(filename)
         if result and linenr is not None:
