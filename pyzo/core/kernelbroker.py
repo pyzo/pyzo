@@ -128,6 +128,8 @@ def getCommandFromKernelInfo(info, port):
     
     # Apply default exe
     exe = info.exe or 'python'
+    if exe.startswith('.'):
+        exe = os.path.abspath(os.path.join(sys.prefix, exe))
     
     # Correct path when it contains spaces
     if exe.count(' ') and exe[0] != '"':

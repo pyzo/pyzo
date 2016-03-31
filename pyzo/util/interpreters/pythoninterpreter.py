@@ -5,6 +5,12 @@ import subprocess
 from .inwinreg import register_interpreter
 
 
+def make_abs(path):
+    if path.startswith('.'):
+        return os.path.abspath(os.path.join(sys.prefix, path))
+    return path
+
+
 class PythonInterpreter:
     """ Class to represent a Python interpreter. It has properties
     to get the path and version. Upon creation the version number is
@@ -15,14 +21,14 @@ class PythonInterpreter:
     def __init__(self, path):
         if not isinstance(path, str):
             raise ValueError('Path for PythonInterpreter is not a string: %r' % path)
-        if not os.path.isfile(path):
+        if not os.path.isfile(make_abs(path)):
             raise ValueError('Path for PythonInterpreter is invalid: %r' % path)
-        self._path = os.path.normpath(os.path.abspath(path))
+        self._path = path if path.startswith('.') else os.path.normpath(os.path.abspath(path))
         self._normpath = os.path.normcase(self._path)
         self._problem = ''
         self._version = None
         # Set prefix
-        self._prefix = os.path.dirname(self._path)
+        self._prefix = os.path.dirname(self.path)
         if os.path.basename(self._prefix) == 'bin':
             self._prefix = os.path.dirname(self._prefix) 
     
@@ -38,7 +44,9 @@ class PythonInterpreter:
     
     @property
     def path(self):
-        """ The full path to the executable of the Python interpreter.
+        """ The path to the executable of the Python interpreter.
+        If relative (starting with a dot), it is relative to the current
+        sys.prefix.
         """
         return self._path
     
@@ -53,7 +61,7 @@ class PythonInterpreter:
         """ Whether this interpreter is part of a conda environment (either
         a root or an env).
         """
-        return os.path.isdir(os.path.join(self._prefix, 'conda-meta'))
+        return os.path.isdir(os.path.join(make_abs(self._prefix), 'conda-meta'))
     
     @property
     def version(self):
@@ -74,20 +82,21 @@ class PythonInterpreter:
         the CURRENT_USER. On All other OS's this is a no-op.
         """
         if sys.platform.startswith('win'):
-            path = os.path.split(self.path)[0] # Remove "python.exe"
+            path = os.path.split(make_abs(self.path))[0] # Remove "python.exe"
             register_interpreter(self.version[:3], path)
     
     def _getversion(self):
+        path = make_abs(self._path)
         
         # Check if path is even a file
-        if not os.path.isfile(self._path):
+        if not os.path.isfile(path):
             self._problem = '%s is not a valid file.'
             return ''
         
         # Poll Python executable (--version does not work on 2.4)
         # shell=True prevents loads of command windows popping up on Windows,
         # but if used on Linux it would enter interpreter mode
-        cmd = [self._path, '-V']
+        cmd = [path, '-V']
         try:
             v = subprocess.check_output(cmd, stderr=subprocess.STDOUT, 
                                         shell=sys.platform.startswith('win'))

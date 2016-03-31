@@ -33,11 +33,14 @@ def get_interpreters(minimumVersion=None):
     # Get conda paths
     condas = set([PythonInterpreter(p) for p in _get_interpreters_conda()])
     
+    # Get relative interpreters
+    relative = set([PythonInterpreter(p) for p in _get_interpreters_relative()])
+    
     # Get Pyzo paths
     pyzos = set([PythonInterpreter(p) for p in _get_interpreters_pyzo()])
     
     # Almost done
-    interpreters = set.union(pythons, condas, pyzos)
+    interpreters = set.union(pythons, condas, relative, pyzos)
     minimumVersion = minimumVersion or '0'
     return _select_interpreters(interpreters, minimumVersion)
 
@@ -167,6 +170,22 @@ def _get_interpreters_conda():
             exe_filename = os.path.join(line, pythonname)
             if line and os.path.isfile(exe_filename):
                 exes.append(exe_filename)
+    return exes
+
+
+def _get_interpreters_relative():
+    """ Get interpreters relative to our prefix and the parent directory.
+    This allows Pyzo to be shipped inside a pre-installed conda env.
+    """
+    pythonname = 'python' + '.exe' * sys.platform.startswith('win')
+    exes = []
+    for d in ['.', '..']:
+        for fname in [  os.path.join(d, 'bin', pythonname),
+                        os.path.join(d, pythonname), ]:
+            filename = os.path.abspath(os.path.join(sys.prefix, fname))
+            if os.path.isfile(filename):
+                exes.append(fname)
+                break 
     return exes
 
 
