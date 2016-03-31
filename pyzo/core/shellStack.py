@@ -146,7 +146,7 @@ class ShellStackWidget(QtGui.QWidget):
         self._toolbar.setVisible(not show)
         self._stack.setVisible(not show)
         if show:
-            self._condahelp.refresh()
+            self._condahelp.detect()
     
     def addShell(self, shellInfo=None):
         """ addShell()
@@ -638,44 +638,26 @@ class CondaHelper(QtGui.QWidget):
         font.setPointSize(font.pointSize()+1)
         self._label.setFont(font)
         
-        self._refresh = QtGui.QPushButton('Refresh')
-        self._refresh.clicked.connect(self.refresh)
-        
-        self._shellConfig = QtGui.QPushButton('Edit shell config ...')
-        self._shellConfig.clicked.connect(self.editShellConfig)
-        
-        self._useExe = QtGui.QPushButton('Select detected interpreter')
-        self._useExe.clicked.connect(self.useExe)
-        
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
         layout.addWidget(self._label, 1)
-        sub = QtGui.QHBoxLayout()
-        layout.addLayout(sub)
-        sub.addWidget(self._refresh, 0)
-        sub.addWidget(self._shellConfig, 0)
-        sub.addWidget(self._useExe, 0)
-        sub.addStretch(1)
-        
-        self.refresh()
     
     def refresh(self):
+        self._label.setText('Detecting interpreters ...')
+        QtGui.qApp.flush()
+        QtGui.qApp.processEvents()
+        self.detect()
+        
+    def detect(self):
+        
         link = '<a href="http://miniconda.pyzo.org">miniconda</a>'
-        
         self._the_exe = None
-        
-        self._refresh.show()
-        self._shellConfig.show()
-        self._useExe.hide()
-        
         configs = pyzo.config.shellConfigs2
         
         # Hide now?
         if configs and configs[0].exe:
             self._label.setText('Happy coding!')
             QtCore.QTimer.singleShot(1200, self.hide_this)
-            self._refresh.hide()
-            self._shellConfig.hide()
             return
         
         # Try to find an interpreter
@@ -684,37 +666,54 @@ class CondaHelper(QtGui.QWidget):
         conda_interpreters = [i for i in interpreters if i.is_conda]
         conda_interpreters.sort(key=lambda x:len(x.path.replace('pyzo', 'pyzo'*10)))
         
+        # Always sleep for a bit, so show that we've refreshed
+        time.sleep(0.05)
+        
         if conda_interpreters and conda_interpreters[0].version > '3':
             self._the_exe = conda_interpreters[0].path
-            text = """Detected a conda environment in:<br /><u>%s</u> <br /><br />
-                      You can select this environment (recommended),
-                      or manually specify an interpreter 
-                      by setting the exe in the shell config.
+            text = """Pyzo <a href='refresh'>detected</a> a conda environment in:
+                      <br />%s<br /><br />
+                      You can <a href='usefound'>use this environment</a>
+                      (recommended), or manually specify an interpreter 
+                      by setting the exe in the <a href='config'>shell config</a>.
                    """ % (self._the_exe)
-            self._useExe.show()
         elif conda_interpreters:
-            text = """Detected a conda environment, but it is Python 2.
-                      We strongly recommend using Python 3 instead. <br /><br />
+            text = """Pyzo did <a href='refresh'>detect</a> a conda environment,
+                      but it is Python 2. We strongly recommend using Python 3 instead.
+                      <br /><br />
                       If you installed %s in a non-default location,
                       or if you want to manually specify an interpreter,
-                      set the exe in the shell config.
+                      set the exe in the <a href='config'>shell config</a>.
                    """ % link
         elif interpreters:
-            text = """A Python interpreter was detected,  
+            text = """Pyzo did <a href='refresh'>detect</a> a Python interpreter,  
                       but for scientific programming we recommend %s.
                       If you want to manually specify the interpreter,
-                      set the exe in the shell config.
+                      set the exe in the <a href='config'>shell config</a>.
                    """ % link
         else:
-            text = """Did not detect any Python interpreters.
+            text = """Pyzo did not <a href='refresh'>detect</a> any Python interpreters.
                       We recomment installing %s for scientific programming
-                      (and click refresh when done). <br /><br />
+                      (and <a href='refresh'>re-detect</a> when done).
+                      <br /><br />
                       If you installed miniconda in a non-default location,
                       or if you want to manually specify the interpreter,
-                      set the exe in the shell config.
+                      set the exe in the <a href='config'>shell config</a>.
                    """ % link
         
         self._label.setText(text)
+    
+    def handle_link(self, url):
+        if url == 'refresh':
+            self.refresh()
+        elif url == 'config':
+            self.editShellConfig()
+        elif url == 'usefound':
+            self.useFound()
+        elif url.startswith('http://'):
+            webbrowser.open(url)
+        else:
+            raise ValueError('Unknown link in conda helper: %s' % url)
     
     def editShellConfig(self):
         from pyzo.core.shellInfoDialog import ShellInfoDialog 
@@ -723,7 +722,7 @@ class CondaHelper(QtGui.QWidget):
         self.refresh()
         self.restart_shell()
     
-    def useExe(self):
+    def useFound(self):
         # Set newfound interpreter
         if self._the_exe:
             configs = pyzo.config.shellConfigs2
@@ -733,16 +732,6 @@ class CondaHelper(QtGui.QWidget):
             configs[0].exe = self._the_exe
             self.restart_shell()
         self.refresh()
-    
-    def handle_link(self, url):
-        if url == 'refresh':
-            self.refresh()
-        elif url == 'shellconfig':
-            self.editShellConfig()
-        elif url.startswith('http://'):
-            webbrowser.open(url)
-        else:
-            raise ValueError('Unknown link in conda helper: %s' % url)
     
     def hide_this(self):
         shells = self.parent()
