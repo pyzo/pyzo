@@ -33,7 +33,7 @@ LANGUAGES = {
     'Portuguese (BR)': (QLocale.Portuguese, QLocale.Brazil),
     'Simplified Chinese': QLocale.Chinese,
     # Languages for which the is a .tr file, but no translations available yet:
-    # 'Traditional Chinese': (QLocale.Chinese, QLocale.HongKong),  # https://bugreports.qt.io/browse/QTBUG-1573
+    #'Traditional Chinese': (QLocale.Chinese, QLocale.Taiwan),  # https://bugreports.qt.io/browse/QTBUG-1573
     # 'Slovak': QLocale.Slovak,
     }
 
