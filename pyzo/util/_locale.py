@@ -13,25 +13,28 @@ from pyzolib.qt import QtCore, QtGui
 
 import pyzo
 
+QLocale = QtCore.QLocale
 
 # Define supported languages. The key defines the name as shown to the
 # user. The value is passed to create a Locale object. From the local
 # object we obtain the name for the .tr file.
+# Chinese: 
 LANGUAGES = {
-    'English (US)': QtCore.QLocale.C, 
-    # == (QtCore.QLocale.English, QtCore.QLocale.UnitedStates),
-    #'English (UK)': (QtCore.QLocale.English, QtCore.QLocale.UnitedKingdom),
-    'Dutch': QtCore.QLocale.Dutch,
-    'Spanish': QtCore.QLocale.Spanish,
-    'Catalan': QtCore.QLocale.Catalan,
-    'French': QtCore.QLocale.French,
-    'Portuguese': QtCore.QLocale.Portuguese,
-    'German': QtCore.QLocale.German,
-    'Russian': QtCore.QLocale.Russian,  # not updated for 3.4
-    'Portuguese (BR)': (QtCore.QLocale.Portuguese, QtCore.QLocale.Brazil),
-    'Simplified Chinese': QtCore.QLocale.Chinese,
+    'English (US)': QLocale.C, 
+    # == (QLocale.English, QLocale.UnitedStates),
+    #'English (UK)': (QLocale.English, QLocale.UnitedKingdom),
+    'Dutch': QLocale.Dutch,
+    'Spanish': QLocale.Spanish,
+    'Catalan': QLocale.Catalan,
+    'French': QLocale.French,
+    'German': QLocale.German,
+    'Russian': QLocale.Russian,  # not updated for 3.4
+    'Portuguese': QLocale.Portuguese,
+    'Portuguese (BR)': (QLocale.Portuguese, QLocale.Brazil),
+    'Simplified Chinese': QLocale.Chinese,
     # Languages for which the is a .tr file, but no translations available yet:
-    # 'Slovak': QtCore.QLocale.Slovak,
+    # 'Traditional Chinese': (QLocale.Chinese, QLocale.HongKong),  # https://bugreports.qt.io/browse/QTBUG-1573
+    # 'Slovak': QLocale.Slovak,
     }
 
 
@@ -42,7 +45,7 @@ LANGUAGE_SYNONYMS = {   None: 'English (US)',
 
 def getLocale(languageName):
     """ getLocale(languageName)
-    Get the QtCore.QLocale object for the given language (as a string).
+    Get the QLocale object for the given language (as a string).
     """
     
     # Apply synonyms
@@ -55,9 +58,9 @@ def getLocale(languageName):
     
     # Return locale
     if isinstance(qtLanguage, tuple):
-        return QtCore.QLocale(*qtLanguage)
+        return QLocale(*qtLanguage)
     else:
-        return QtCore.QLocale(qtLanguage)
+        return QLocale(qtLanguage)
 
 
 def setLanguage(languageName):
@@ -231,7 +234,7 @@ def lupdate():
     # Get Command for python lupdate
     pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
-    exe_ = 'pyside-lupdate' + '.exe' * ISWIN
+    exe_ = 'pylupdate4' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
        exe = exe_

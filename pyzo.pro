@@ -14,6 +14,7 @@ SOURCES += pyzo/tools/pyzoFileBrowser/tree.py
 TRANSLATIONS  = pyzo/resources/translations/pyzo_nl_NL.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_de_DE.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_zh_CN.tr
+TRANSLATIONS += pyzo/resources/translations/pyzo_zh_HK.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_es_ES.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_ca_ES.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_fr_FR.tr
