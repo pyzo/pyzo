@@ -1102,7 +1102,7 @@ design se veut *simple* et *efficace*.</translation>
     <message>
         <location filename="../../util/pyzowizard.py" line="177"/>
         <source>This wizard can be opened using &apos;Help &gt; Pyzo wizard&apos;</source>
-        <translation type="unfinished">Ce guide peut être ouvert en utilisant le menu &apos;Aide -&gt; Guide Pyzo&apos;</translation>
+        <translation>Ce guide peut être ouvert en utilisant le menu &apos;Aide -&gt; Guide Pyzo&apos;</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="231"/>
