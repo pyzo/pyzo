@@ -175,8 +175,8 @@ class IntroWizardPage(BasePyzoWizardPage):
         t1 = translate('wizard', "This wizard can be opened using 'Help > Pyzo wizard'")
         t2 = translate('wizard', "Show this wizard on startup")
         self._label_info = QtGui.QLabel(t1, self)
-        self._check_show = QtGui.QCheckBox(t2, self)
-        self._check_show.stateChanged.connect(self._setNewUser)
+        #self._check_show = QtGui.QCheckBox(t2, self)
+        #self._check_show.stateChanged.connect(self._setNewUser)
         
         # Create language switcher
         self._langLabel = QtGui.QLabel(translate('wizard', "Select language"), self)
@@ -198,8 +198,8 @@ class IntroWizardPage(BasePyzoWizardPage):
         self._langBox.activated.connect(self.onLanguageChange)
         
         # Init check state
-        if pyzo.config.state.newUser:
-            self._check_show.setCheckState(QtCore.Qt.Checked)
+        #if pyzo.config.state.newUser:
+        #    self._check_show.setCheckState(QtCore.Qt.Checked)
         
         # Create sublayout
         layout = QtGui.QHBoxLayout()
@@ -211,7 +211,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         # Add to layout
         self.layout().addSpacing(10)
         self.layout().addWidget(self._label_info)
-        self.layout().addWidget(self._check_show)
+        #self.layout().addWidget(self._check_show)
         
     def _setNewUser(self, newUser):
         newUser = bool(newUser)

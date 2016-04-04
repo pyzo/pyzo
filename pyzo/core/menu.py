@@ -1550,6 +1550,11 @@ class HelpMenu(Menu):
             icons.help, "http://www.pyzo.org")
         self.addUrlItem(translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."), 
             icons.help, "http://guide.pyzo.org")
+        self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."), 
+            icons.wand, self._showPyzoWizard)
+        
+        self.addSeparator()
+        
         self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
             icons.comments, "http://community.pyzo.org")
         self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?"), 
@@ -1557,8 +1562,6 @@ class HelpMenu(Menu):
         self.addItem(translate("menu", "Local documentation ::: Documentation on Python and the Scipy Stack."), 
             icons.help, self._showPyzoDocs)
         self.addSeparator()
-        # self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."), 
-        #     icons.wand, self._showPyzoWizard)
         #self.addItem(translate("menu", "View code license ::: Legal stuff."), 
         #    icons.script, lambda: pyzo.editors.loadFile(os.path.join(pyzo.pyzoDir,"license.txt")))
         
