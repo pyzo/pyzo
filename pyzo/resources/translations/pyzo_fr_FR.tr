@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -158,7 +159,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="812"/>
         <source>Open outside Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouvrir avec un éditeur externe</translation>
     </message>
 </context>
 <context>
@@ -657,57 +658,57 @@
     <message>
         <location filename="../../core/menu.py" line="499"/>
         <source>Restart Pyzo ::: Restart the application.</source>
-        <translation type="unfinished"></translation>
+        <translation>Redémarrer Pyzo ::: Redémarre l&apos;application.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="501"/>
         <source>Quit Pyzo ::: Close the application.</source>
-        <translation type="unfinished"></translation>
+        <translation>Quitter Pyzo ::: Ferme l&apos;application.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1008"/>
         <source>Create new Python environment... ::: Install miniconda.</source>
-        <translation type="unfinished"></translation>
+        <translation>Créer un nouvel environnement Python ::: Installe miniconda.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1302"/>
         <source>Help on running code ::: Open the pyzo wizard at the page about running code.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aide sur l&apos;exécution du code ::: Ouvre le guide pyzo à la page sur l&apos;exécution de code.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1560"/>
         <source>Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?</source>
-        <translation type="unfinished"></translation>
+        <translation>Reporter un problème ::: Vous avez touvé un bug dans Pyzo ? Vous voulez demander l&apos;ajout d&apos;une fonctionnalité ?</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1573"/>
         <source>About Pyzo ::: More information about Pyzo.</source>
-        <translation type="unfinished"></translation>
+        <translation>À propose de Pyzo ::: Plus d&apos;information à propos de Pyzo.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1643"/>
         <source>Select language ::: The language used by Pyzo.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionner la langue ::: Langue utilisée par Pyzo.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1664"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
-        <translation type="unfinished"></translation>
+        <translation>Paramètres avancés ::: Configure Pyzo un peu plus en détail.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1554"/>
         <source>Pyzo website ::: Open the Pyzo website in your browser.</source>
-        <translation type="unfinished"></translation>
+        <translation>Site Web de Pyzo ::: Ouvre le site Web de Pyzo dans votre navigateur.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1556"/>
         <source>Pyzo guide ::: Open the Pyzo guide in your browser.</source>
-        <translation type="unfinished"></translation>
+        <translation>Guide en ligne de Pyzo ::: Ouvre le guide Pyzo dans votre navigateur.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1562"/>
         <source>Local documentation ::: Documentation on Python and the Scipy Stack.</source>
-        <translation type="unfinished"></translation>
+        <translation>Documentation locale ::: Documentation sur Python et la couche Scipy.</translation>
     </message>
 </context>
 <context>
@@ -758,7 +759,9 @@
         The language has been changed. 
         Pyzo needs to restart for the change to take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>
+        La langue a été modifiée.
+        Pyzo doit être redémarré pour que les modifications prennent effet.</translation>
     </message>
 </context>
 <context>
@@ -910,7 +913,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="162"/>
         <source>Welcome to the Interactive Editor for Python!</source>
-        <translation>Bienvenue dans IEP (Interactive Editor for Python)!</translation>
+        <translation>Bienvenue dans Pyzo !</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="178"/>
@@ -961,7 +964,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="282"/>
         <source>The shell is where your code gets executed</source>
-        <translation>Le shell est l&apos;endroit où* le code est exécuté</translation>
+        <translation>Le shell est l&apos;endroit où le code est exécuté</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="298"/>
@@ -1017,7 +1020,7 @@
         <location filename="../../util/pyzowizard.py" line="343"/>
         <source>In interactive mode, sys.path[0] is an empty string (i.e. the current dir),
         and sys.argv is set to [&apos;&apos;].</source>
-        <translation>En mode interactif, , sys.path[0] est une chaîne vide (i.e. le répertoire courant),
+        <translation>En mode interactif, sys.path[0] est une chaîne vide (i.e. le répertoire courant),
         et sys.argv vaut [&apos;&apos;].</translation>
     </message>
     <message>
@@ -1061,13 +1064,13 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="374"/>
         <source>The *Source structure tool* gives an outline of the source code.</source>
-        <translation>L&apos;outil *Source structure tool* (Structure du fichier source) fournit un *plan* du code source.</translation>
+        <translation>L&apos;outil *Source structure* (Structure du fichier source) fournit un *plan* du code source.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="376"/>
         <source>The *File browser tool* helps keep an overview of all files
         in a directory. To manage your projects, click the star icon.</source>
-        <translation>L&apos;outil *File browser tool* (gestionnaire de fichiers) permet de garder un oeil sur tous les fichiers
+        <translation>L&apos;outil *File browser* (Gestionnaire de Fichiers) permet de garder un oeil sur tous les fichiers
         d&apos;un répertoire. Pour gérer vos projets, cliquez sur le symbole étoile.</translation>
     </message>
     <message>
@@ -1078,12 +1081,12 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="40"/>
         <source>Getting started with Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrer avec Pyzo</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="165"/>
         <source>This wizard helps you get familiarized with the workings of Pyzo.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ce guide.vous aide à vous familiariser avec Pyzo.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="167"/>
@@ -1091,12 +1094,15 @@
         focused on *interactivity* and *introspection*, which makes it
         very suitable for scientific computing. Its practical design
         is aimed at *simplicity* and *efficiency*.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo est un environnement de développement multi plate-forme
+qui met l&apos;accent sur l&apos;*interactivité* et l&apos;*introspection*, ce qui le rend
+particulièrement efficace pour la programmation à vocation scientifique. Son
+design se veut *simple* et *efficace*.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="177"/>
         <source>This wizard can be opened using &apos;Help &gt; Pyzo wizard&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Ce guide peut être ouvert en utilisant le menu &apos;Aide -&gt; Guide Pyzo&apos;</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="231"/>
@@ -1104,37 +1110,44 @@
         The language has been changed for this wizard.
         Pyzo needs to restart for the change to take effect application-wide.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>La langue a été modifié. Pyzo doit redémarrer pour que les
+modifications prennent effet dans toute l&apos;application.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="255"/>
         <source>Pyzo consists of two main components</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo contient deux composants principaux</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="285"/>
         <source>When Pyzo starts, a default *shell* is created. You can add more
         shells that run simultaneously, and which may be of different
         Python versions.</source>
-        <translation type="unfinished"></translation>
+        <translation>Lorsque Pyzo démarre, un *shell* par défaut est créé. Vous pouvez
+ajouter d&apos;autres shells qui s&apos;exécutent simultanément, et qui peuvent
+correspondre à des versions différentes de Python.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="289"/>
         <source>Shells run in a sub-process, such that when it is busy, Pyzo
         itself stays responsive, allowing you to keep coding and even
         run code in another shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Un shell s&apos;exécute dans un processu fils. Ainsi, s&apos;il est occupé, Pyzo lui même
+continue d&apos;être réactif. Vous pouvez continuer à coder et même exécuter du code
+dans un autre shell.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="301"/>
         <source>Pyzo can integrate the event loop of five different *GUI toolkits*,
         thus enabling interactive plotting with e.g. Visvis or Matplotlib.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo intègre la boucle des événements de cinq bibliothèques graphiques
+différentes, vous permettant ainsi de tracer des graphes de manière interactive
+avec par exemple Visvis ou Matplotlib.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="316"/>
         <source>Pyzo supports several ways to run source code in the editor. (see the &apos;Run&apos; menu).</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo permet d&apos;exécuter du code de plusieurs manières depuis l&apos;éditeur (voir le menu Exécuter).</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="318"/>
@@ -1142,12 +1155,15 @@
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
-        <translation type="unfinished"></translation>
+        <translation>*Exécuter la sélection:* s&apos;il n&apos;y a pas de texte sélectionné, la ligne courante
+est exécutée; si la sélection est une portion de ligne, la sélection est évaluée; si
+la sélection s&apos;étend sur plusieurs lignes, Pyzo exécutera entièrement les lignes 
+sélectionnées.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="387"/>
         <source>This concludes the Pyzo wizard. Now, get coding and have fun!</source>
-        <translation type="unfinished"></translation>
+        <translation>Ceci termine le Guide Pyzo. Maintenant, en route pour le code, et amusez-vous bien!</translation>
     </message>
 </context>
 </TS>
