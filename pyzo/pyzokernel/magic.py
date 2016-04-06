@@ -38,6 +38,7 @@ MESSAGE = """List of *magic* commands:
     conda           - manage packages using conda
     db X            - debug commands
     cls             - clear screen
+    notebook        - launch the Jupyter notebook
 """
 
 
@@ -122,6 +123,9 @@ class Magician:
         
         elif command.startswith('DB'):
             return self.debug(line, command)
+        
+        elif command.startswith('NOTEBOOK'):
+            return self.notebook(line, command)
         
         elif command.startswith('CONDA'):
             return self.conda(line, command)
@@ -496,5 +500,41 @@ class Magician:
             type, err, tb = sys.exc_info(); del tb
             print('Error in pip command:')
             print(err)
+        
+        return ''
+    
+    def notebook(self, line, command):
+        
+        if not (command == 'NOTEBOOK' or command.startswith('NOTEBOOK ')):
+            return
+        
+        # Get command args
+        args = line.split(' ')
+        args = [w for w in args if w]
+        args.pop(0) # remove 'notebook'
+        
+        # Stop if user does "conda = ..."
+        if args and '=' in args[0]:
+            return
+        
+        # Go!
+        # Weird double-try, to make work on Python 2.4
+        oldargs = sys.argv
+        try:
+            try:
+                import notebook.notebookapp
+                sys.argv = ['jupyter_notebook'] + list(args)
+                notebook.notebookapp.main()
+            except SystemExit:  # as err:
+                type, err, tb = sys.exc_info(); del tb
+                err = str(err)
+                if len(err) > 4:  # Only print if looks like a message
+                    print(err)
+            except Exception:  # as err:
+                type, err, tb = sys.exc_info(); del tb
+                print('Error in notebook command:')
+                print(err)
+        finally:
+            sys.argv = oldargs
         
         return ''
