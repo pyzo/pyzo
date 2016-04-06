@@ -460,7 +460,7 @@ class PyzoInterpreter:
                                         ]:
                     try:
                         self.guiApp = tryApp()
-                    except Exception as err:
+                    except Exception:
                         continue
                     guiName = tryName
                     break

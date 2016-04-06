@@ -19,7 +19,32 @@ class Debugger(bdb.Bdb):
         self._wait_for_mainpyfile = False  # from pdb, do we need this?
         bdb.Bdb.__init__(self)
         self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
+        self._files_with_offset = []
     
+    def clear_all_breaks(self):
+        bdb.Bdb.clear_all_breaks(self)
+        self._files_with_offset = []
+    
+    def trace_dispatch(self, frame, event, arg):
+        # Overload to deal with offset in filenames
+        # (cells or lines being executed)
+        ori_filename = frame.f_code.co_filename
+        
+        if '+' in ori_filename and ori_filename not in self._files_with_offset:
+            clean_filename, offset = ori_filename.rsplit('+', 1)
+            try:
+                offset = int(offset)
+            except Exception:
+                offset = None
+            if offset is not None:
+                # This is a cell or selected lines being executed
+                self._files_with_offset.append(ori_filename)
+                if clean_filename.startswith('<'):
+                    self.fncache[ori_filename] = ori_filename
+                for i in self.breaks.get(clean_filename, None):
+                    self.set_break(ori_filename, i-offset)
+        
+        return bdb.Bdb.trace_dispatch(self, frame, event, arg)
     
     def interaction(self, frame, traceback=None, pm=False):
         """ Enter an interaction-loop for debugging. No GUI events are
