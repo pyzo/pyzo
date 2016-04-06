@@ -375,7 +375,13 @@ class PyzoInterpreter:
         # Get project path
         projectPath = startup_info['projectPath']
         
-        if scriptFilename:
+        if scriptFilename.endswith('.ipynb'):
+            # Run Jupyter notebook
+            import notebook.notebookapp
+            sys.argv = ['jupyter_notebook', scriptFilename]
+            sys.exit(notebook.notebookapp.main())
+        
+        elif scriptFilename:
             # RUN AS SCRIPT
             # Set __file__  (note that __name__ is already '__main__')
             self.locals['__file__'] = scriptFilename

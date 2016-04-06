@@ -800,6 +800,9 @@ class PopupMenu(pyzo.core.menu.Menu):
             if self._item.path().endswith('.py'):
                 self.addItem(translate("filebrowser", "Run as script"), 
                     None, self._runAsScript)
+            elif self._item.path().endswith('.ipynb'):
+                self.addItem(translate("filebrowser", "Run Jupyter notebook"), 
+                    None, self._runNotebook)
             else:
                 self.addItem(translate("filebrowser", "Import data..."),
                     None, self._importData)
@@ -871,7 +874,20 @@ class PopupMenu(pyzo.core.menu.Menu):
             m.setText("Could not run " + filename + ":\n\n" + msg)
             m.setIcon(m.Warning)
             m.exec_()
-        
+    
+    def _runNotebook(self):
+        filename = self._item.path()
+        shell = pyzo.shells.getCurrentShell()
+        if shell is not None:
+            shell.restart(filename)
+        else:
+            msg = "No shell to run notebook in. "
+            m = QtGui.QMessageBox(self)
+            m.setWindowTitle(translate("menu dialog", "Could not run notebook"))
+            m.setText("Could not run " + filename + ":\n\n" + msg)
+            m.setIcon(m.Warning)
+            m.exec_()
+    
     def _importData(self):
         browser = self.parent().parent()
         wizard = browser.getImportWizard()
