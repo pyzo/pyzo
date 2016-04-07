@@ -12,7 +12,7 @@ import os
 from pyzolib import paths
 from pyzolib import ssdf
 
-from .pythoninterpreter import PythonInterpreter, versionStringToTuple
+from .pythoninterpreter import EXE_DIR, PythonInterpreter, versionStringToTuple
 from .inwinreg import get_interpreters_in_reg
 
 
@@ -182,7 +182,7 @@ def _get_interpreters_relative():
     for d in ['.', '..']:
         for fname in [  os.path.join(d, 'bin', pythonname),
                         os.path.join(d, pythonname), ]:
-            filename = os.path.abspath(os.path.join(sys.prefix, fname))
+            filename = os.path.abspath(os.path.join(EXE_DIR, fname))
             if os.path.isfile(filename):
                 exes.append(fname)
                 break 

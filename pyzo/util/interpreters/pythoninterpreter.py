@@ -4,10 +4,11 @@ import subprocess
 
 from .inwinreg import register_interpreter
 
+EXE_DIR = os.path.abspath(os.path.dirname(sys.executable))
 
 def make_abs(path):
     if path.startswith('.'):
-        return os.path.abspath(os.path.join(sys.prefix, path))
+        return os.path.abspath(os.path.join(EXE_DIR, path))
     return path
 
 
@@ -46,7 +47,7 @@ class PythonInterpreter:
     def path(self):
         """ The path to the executable of the Python interpreter.
         If relative (starting with a dot), it is relative to the current
-        sys.prefix.
+        sys.executable.
         """
         return self._path
     
