@@ -23,7 +23,7 @@ import pyzo # local Pyzo (can be on a different box than where the user is)
 
 # To allow interpreters relative to (frozen) Pyzo app
 EXE_DIR = os.path.abspath(os.path.dirname(sys.executable))
-if '.app/Contents/MacOS/' in EXE_DIR:
+if EXE_DIR.endswith('.app/Contents/MacOS'):
     EXE_DIR = os.path.dirname(EXE_DIR.rsplit('.app')[0])
 
 
