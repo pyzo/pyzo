@@ -21,6 +21,12 @@ import yoton
 import pyzo # local Pyzo (can be on a different box than where the user is)
 
 
+# To allow interpreters relative to (frozen) Pyzo app
+EXE_DIR = os.path.abspath(os.path.dirname(sys.executable))
+if '.app/Contents/MacOS/' in EXE_DIR:
+    EXE_DIR = os.path.dirname(EXE_DIR.rsplit('.app')[0])
+
+
 # Important: the yoton event loop should run somehow!
 
 class KernelInfo(ssdf.Struct):
@@ -129,8 +135,7 @@ def getCommandFromKernelInfo(info, port):
     # Apply default exe
     exe = info.exe or 'python'
     if exe.startswith('.'):
-        exe_dir = os.path.dirname(sys.executable)
-        exe = os.path.abspath(os.path.join(exe_dir, exe))
+        exe = os.path.abspath(os.path.join(EXE_DIR, exe))
     
     # Correct path when it contains spaces
     if exe.count(' ') and exe[0] != '"':

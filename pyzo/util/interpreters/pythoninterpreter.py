@@ -5,6 +5,8 @@ import subprocess
 from .inwinreg import register_interpreter
 
 EXE_DIR = os.path.abspath(os.path.dirname(sys.executable))
+if '.app/Contents/MacOS/' in EXE_DIR:
+    EXE_DIR = os.path.dirname(EXE_DIR.rsplit('.app')[0])
 
 def make_abs(path):
     if path.startswith('.'):
