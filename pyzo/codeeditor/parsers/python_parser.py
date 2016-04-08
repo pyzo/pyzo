@@ -56,7 +56,7 @@ tokenProg = re.compile(
     '("""|\'\'\'|"|\')' +		# String start (triple qoutes first, group 4)
     ')|' +						# End of string group
     '(\(|\[|\{)|' +             # Opening parenthesis (gr 5)
-    '(\]|\]|\})'                # Closing parenthesis (gr 6)
+    '(\)|\]|\})'                # Closing parenthesis (gr 6)
     )	
 
 
