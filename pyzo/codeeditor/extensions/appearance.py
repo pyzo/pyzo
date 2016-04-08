@@ -115,7 +115,11 @@ class HighlightMatchingBracket(object):
     _styleElements = [  (   'Editor.Highlight matching bracket',
                             'The background color to highlight matching brackets.',
                             'back:#ccc', 
-                        ) ]
+                        ),
+                        (   'Editor.Highlight unmatched bracket',
+                            'The background color to highlight unmatched brackets.',
+                            'back:#F5A9BC',
+                        )]
 
 
     def highlightMatchingBracket(self):
@@ -138,18 +142,23 @@ class HighlightMatchingBracket(object):
         self.viewport().update()
         
     
-    def _highlightSingleChar(self, painter, cursor, width):
-            """ _highlightSingleChar(painter, cursor, width)
+    def _highlightSingleChar(self, painter, cursor, width, isMatched):
+            """ _highlightSingleChar(painter, cursor, width, isMatched)
             
             Draws a highlighting rectangle around the single character to the
             left of the specified cursor.
+            
+            The rectangle's color depends on whether the char has a corresponding parenthesis.
             
             """
             cursor_rect = self.cursorRect(cursor)
             top = cursor_rect.top()
             left = cursor_rect.left() - width
             height = cursor_rect.bottom() - top + 1
-            color = self.getStyleElementFormat('editor.highlightMatchingBracket').back
+            if isMatched :
+                color = self.getStyleElementFormat('editor.highlightMatchingBracket').back
+            else :
+                color = self.getStyleElementFormat('editor.highlightUnmatchedBracket').back
             painter.setBrush(color)
             painter.setPen(color.darker(110))
             painter.drawRect(QtCore.QRect(left, top, width, height))
@@ -230,15 +239,16 @@ class HighlightMatchingBracket(object):
             doc = cursor.document()
             if char in '()[]{}':
                 other_bracket = self._findMatchingBracket(char, cursor, doc)
+                fm = QtGui.QFontMetrics(doc.defaultFont())
+                width = fm.width(char)
+                painter = QtGui.QPainter()
+                painter.begin(self.viewport())
                 if other_bracket is not None:
-                    fm = QtGui.QFontMetrics(doc.defaultFont())
-                    width = fm.width(char)
-                    
-                    painter = QtGui.QPainter()
-                    painter.begin(self.viewport())
-                    self._highlightSingleChar(painter, cursor, width)
-                    self._highlightSingleChar(painter, other_bracket, width)
-                    painter.end()
+                    self._highlightSingleChar(painter, cursor, width, True)
+                    self._highlightSingleChar(painter, other_bracket, width, True)
+                else :
+                    self._highlightSingleChar(painter, cursor, width, False)
+                painter.end()
             
         super(HighlightMatchingBracket, self).paintEvent(event)
 
