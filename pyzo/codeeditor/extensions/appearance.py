@@ -175,27 +175,34 @@ class HighlightMatchingBracket(object):
         """
         if char in ')]}':
             direction = -1
+            stacking = ')]}'
+            unstacking = '([{'
         elif char in '([{':
             direction = 1
+            stacking = '([{'
+            unstacking = ')]}'
         else:
             raise ValueError('invalid bracket character: ' + char)
             
         other_char = self._matchingBrackets[char]
         fulltext = doc.toPlainText()
         pos = cursor.position() - 1
-        num_match = 0
+        stacked_paren = [] # using a Python list as a stack
         while True:
             if pos > len(fulltext)-1 or pos < 0:
                 return None
             
-            if fulltext[pos] == char:
-                num_match += 1
-            elif fulltext[pos] == other_char:
-                num_match -= 1
-            
+            if fulltext[pos] in stacking :
+                stacked_paren.append(fulltext[pos])
+            elif fulltext[pos] in unstacking :
+                if stacked_paren == [] or self._matchingBrackets[stacked_paren[-1]] != fulltext[pos] :
+                    return None
+                else :
+                    stacked_paren.pop()
+
             pos += direction
             
-            if num_match == 0:
+            if stacked_paren == [] :
                 # we've found our match
                 # note that we want to return a cursor positioned *after* our
                 # match. In case of forward searching, that's where we are now.
