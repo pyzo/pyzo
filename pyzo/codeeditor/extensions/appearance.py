@@ -17,6 +17,7 @@ from ..manager import Manager
 # todo: what about calling all extensions. CE_HighlightCurrentLine, 
 # or EXT_HighlightcurrentLine?
 
+from ..parsers.tokens import ParenthesisToken
 
 class HighlightMatchingOccurrences(object):
     
@@ -108,6 +109,53 @@ class HighlightMatchingOccurrences(object):
         super(HighlightMatchingOccurrences, self).paintEvent(event)
 
 
+class _ParenNotFound(Exception) :
+    pass
+
+class _ParenIterator :
+    """ Iterates in given direction) over parentheses in the document.
+    Uses the stored token-list of the blocks.
+    Iteration gives both a ParenthesisToken and the global position of
+    the block it lies in (because positions in the ParenthesisToken is
+    relative to the block)."""
+    def __init__(self, cursor, direction) :
+        self.cur_block = cursor.block()
+        self.cur_tokens = self._getParenTokens()
+        self.direction = direction
+        # We need to know where we start in the current token list
+        k = 0
+        try :
+            while self.cur_tokens[k].end != cursor.positionInBlock() :
+                k += 1
+            self.cur_pos = k
+            self.direction = direction
+        except IndexError :
+            # If the parenthesis cannot be found, it means that it is not inluded
+            # in any token, ie. it is part of a string or comment
+            raise _ParenNotFound
+    
+    def _getParenTokens(self) :
+        return list(filter(lambda x : isinstance(x, ParenthesisToken), self.cur_block.userData().tokens))
+    
+    def __iter__(self) :
+        return self
+    
+    def __next__(self) :
+        self.cur_pos += self.direction
+        while self.cur_pos >= len(self.cur_tokens) or self.cur_pos < 0 :
+            if self.direction == 1 :
+                self.cur_block = self.cur_block.next()
+            else :
+                self.cur_block = self.cur_block.previous()
+            if not self.cur_block.isValid() :
+                raise StopIteration
+            self.cur_tokens = self._getParenTokens()
+            if self.direction == 1 :
+                self.cur_pos = 0
+            else :
+                self.cur_pos = len(self.cur_tokens) - 1
+        return self.cur_tokens[self.cur_pos], self.cur_block.position()
+            
 
 class HighlightMatchingBracket(object):
     
@@ -185,33 +233,26 @@ class HighlightMatchingBracket(object):
             raise ValueError('invalid bracket character: ' + char)
             
         other_char = self._matchingBrackets[char]
-        fulltext = doc.toPlainText()
-        pos = cursor.position() - 1
-        stacked_paren = [] # using a Python list as a stack
-        while True:
-            if pos > len(fulltext)-1 or pos < 0:
-                return None
-            
-            if fulltext[pos] in stacking :
-                stacked_paren.append(fulltext[pos])
-            elif fulltext[pos] in unstacking :
-                if stacked_paren == [] or self._matchingBrackets[stacked_paren[-1]] != fulltext[pos] :
+        stacked_paren = [char] # using a Python list as a stack
+        # stack not empty because the _ParenIterator will not give back
+        # the parenthesis we're matching
+        for (token, bloc_pos) in _ParenIterator(cursor, direction) :
+            paren = token._style
+            if paren in stacking :
+                stacked_paren.append(paren)
+            elif paren in unstacking :
+                if stacked_paren == [] or self._matchingBrackets[stacked_paren[-1]] != paren :
                     return None
                 else :
                     stacked_paren.pop()
 
-            pos += direction
-            
             if stacked_paren == [] :
                 # we've found our match
-                # note that we want to return a cursor positioned *after* our
-                # match. In case of forward searching, that's where we are now.
-                # for backward searching, compensate by adding two.
                 new_cursor = QtGui.QTextCursor(doc)
-                if direction == -1:
-                    pos += 2
+                pos = bloc_pos + token.end
                 new_cursor.setPosition(pos)
                 return new_cursor
+        return None
 
     
     def paintEvent(self, event):
@@ -245,17 +286,21 @@ class HighlightMatchingBracket(object):
                 
             doc = cursor.document()
             if char in '()[]{}':
-                other_bracket = self._findMatchingBracket(char, cursor, doc)
-                fm = QtGui.QFontMetrics(doc.defaultFont())
-                width = fm.width(char)
-                painter = QtGui.QPainter()
-                painter.begin(self.viewport())
-                if other_bracket is not None:
-                    self._highlightSingleChar(painter, cursor, width, True)
-                    self._highlightSingleChar(painter, other_bracket, width, True)
-                else :
-                    self._highlightSingleChar(painter, cursor, width, False)
-                painter.end()
+                try :
+                    other_bracket = self._findMatchingBracket(char, cursor, doc)
+                    fm = QtGui.QFontMetrics(doc.defaultFont())
+                    width = fm.width(char)
+                    painter = QtGui.QPainter()
+                    painter.begin(self.viewport())
+                    if other_bracket is not None:
+                        self._highlightSingleChar(painter, cursor, width, True)
+                        self._highlightSingleChar(painter, other_bracket, width, True)
+                    else :
+                        self._highlightSingleChar(painter, cursor, width, False)
+                    painter.end()
+                except _ParenNotFound : # is raised when current parenthesis is not
+                #found in its line token list, meaning it is in a string literal
+                    pass
             
         super(HighlightMatchingBracket, self).paintEvent(event)
 
