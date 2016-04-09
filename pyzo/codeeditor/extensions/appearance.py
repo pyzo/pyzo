@@ -128,7 +128,6 @@ class _ParenIterator :
             while self.cur_tokens[k].end != cursor.positionInBlock() :
                 k += 1
             self.cur_pos = k
-            self.direction = direction
         except IndexError :
             # If the parenthesis cannot be found, it means that it is not inluded
             # in any token, ie. it is part of a string or comment
