@@ -28,7 +28,7 @@ class BlockData(QtGui.QTextBlockUserData):
         QtGui.QTextBlockUserData.__init__(self)
         self.indentation = None
         self.fullUnderlineFormat = None
-        self.tokens = None
+        self.tokens = []
 
 
 # The highlighter should be part of the base class, because 

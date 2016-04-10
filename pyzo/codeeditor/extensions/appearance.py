@@ -134,10 +134,7 @@ class _ParenIterator :
             raise _ParenNotFound
     
     def _getParenTokens(self) :
-        ud = self.cur_block.userData()
-        if not hasattr(ud, "tokens") or not isinstance(ud.tokens, list) : # should not happen
-            return []
-        return list(filter(lambda x : isinstance(x, ParenthesisToken), ud.tokens))
+        return list(filter(lambda x : isinstance(x, ParenthesisToken), self.cur_block.userData().tokens))
     
     def __iter__(self) :
         return self
