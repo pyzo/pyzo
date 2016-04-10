@@ -165,8 +165,13 @@ class HighlightMatchingBracket(object):
                         ),
                         (   'Editor.Highlight unmatched bracket',
                             'The background color to highlight unmatched brackets.',
-                            'back:#F5A9BC',
-                        )]
+                            'back:#F7BE81',
+                        ),
+                        (   'Editor.Highlight mismatching bracket',
+                            'The background color to highlight mismatching brackets.',
+                            'back:#F7819F',
+                        )
+                        ]
 
 
     def highlightMatchingBracket(self):
@@ -188,24 +193,38 @@ class HighlightMatchingBracket(object):
         self.__highlightMatchingBracket = bool(value)
         self.viewport().update()
         
+    def highlightMisMatchingBracket(self):
+        """ highlightMisMatchingBracket()
+        
+        Get whether to highlight mismatching brackets.
+        
+        """
+        return self.__highlightMisMatchingBracket
     
-    def _highlightSingleChar(self, painter, cursor, width, isMatched):
-            """ _highlightSingleChar(painter, cursor, width, isMatched)
+    
+    @ce_option(False)
+    def setHighlightMisMatchingBracket(self,value):
+        """ setHighlightMisMatchingBracket(value)
+        
+        Set whether to highlight mismatching brackets.  
+        
+        """
+        self.__highlightMisMatchingBracket = bool(value)
+        self.viewport().update()
+        
+    
+    def _highlightSingleChar(self, painter, cursor, width, colorname):
+            """ _highlightSingleChar(painter, cursor, width, colorname)
             
             Draws a highlighting rectangle around the single character to the
             left of the specified cursor.
-            
-            The rectangle's color depends on whether the char has a corresponding parenthesis.
             
             """
             cursor_rect = self.cursorRect(cursor)
             top = cursor_rect.top()
             left = cursor_rect.left() - width
             height = cursor_rect.bottom() - top + 1
-            if isMatched :
-                color = self.getStyleElementFormat('editor.highlightMatchingBracket').back
-            else :
-                color = self.getStyleElementFormat('editor.highlightUnmatchedBracket').back
+            color = self.getStyleElementFormat(colorname).back
             painter.setBrush(color)
             painter.setPen(color.darker(110))
             painter.drawRect(QtCore.QRect(left, top, width, height))
@@ -230,7 +249,8 @@ class HighlightMatchingBracket(object):
             unstacking = ')]}'
         else:
             raise ValueError('invalid bracket character: ' + char)
-            
+        
+        mismatch = False
         other_char = self._matchingBrackets[char]
         stacked_paren = [char] # using a Python list as a stack
         # stack not empty because the _ParenIterator will not give back
@@ -240,18 +260,19 @@ class HighlightMatchingBracket(object):
             if paren in stacking :
                 stacked_paren.append(paren)
             elif paren in unstacking :
-                if stacked_paren == [] or self._matchingBrackets[stacked_paren[-1]] != paren :
-                    return None
+                if self._matchingBrackets[stacked_paren[-1]] != paren :
+                    mismatch = True
+                    stacked_paren.clear() # stop searching
                 else :
                     stacked_paren.pop()
 
-            if stacked_paren == [] :
-                # we've found our match
+            if len(stacked_paren) == 0 :
+                # we've found our match (or mismatch)
                 new_cursor = QtGui.QTextCursor(doc)
                 pos = bloc_pos + token.end
                 new_cursor.setPosition(pos)
-                return new_cursor
-        return None
+                return new_cursor, mismatch
+        return None, True # the boolean has no meaning here
 
     
     def paintEvent(self, event):
@@ -286,16 +307,18 @@ class HighlightMatchingBracket(object):
             doc = cursor.document()
             if char in '()[]{}':
                 try :
-                    other_bracket = self._findMatchingBracket(char, cursor, doc)
+                    other_bracket, mismatch = self._findMatchingBracket(char, cursor, doc)
                     fm = QtGui.QFontMetrics(doc.defaultFont())
                     width = fm.width(char)
                     painter = QtGui.QPainter()
                     painter.begin(self.viewport())
                     if other_bracket is not None:
-                        self._highlightSingleChar(painter, cursor, width, True)
-                        self._highlightSingleChar(painter, other_bracket, width, True)
+                        color = 'editor.highlightMisMatchingBracket' if mismatch else 'editor.highlightMatchingBracket'
+                        self._highlightSingleChar(painter, cursor, width, color)
+                        if not mismatch or self.highlightMisMatchingBracket() :
+                            self._highlightSingleChar(painter, other_bracket, width, color)
                     else :
-                        self._highlightSingleChar(painter, cursor, width, False)
+                        self._highlightSingleChar(painter, cursor, width, 'editor.highlightUnmatchedBracket')
                     painter.end()
                 except _ParenNotFound : # is raised when current parenthesis is not
                 #found in its line token list, meaning it is in a string literal
