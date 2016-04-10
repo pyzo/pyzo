@@ -82,7 +82,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         nameToFormat = self._codeEditor.getStyleElementFormat
         
         fullLineFormat = None
-        tokens = None
+        tokens = []
         if parser:
             self.setCurrentBlockState(0)
             tokens = list(parser.parseLine(line, previousState))
