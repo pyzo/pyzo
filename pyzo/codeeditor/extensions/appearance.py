@@ -113,11 +113,9 @@ class _ParenNotFound(Exception) :
     pass
 
 class _ParenIterator :
-    """ Iterates in given direction) over parentheses in the document.
+    """ Iterates in given direction over parentheses in the document.
     Uses the stored token-list of the blocks.
-    Iteration gives both a ParenthesisToken and the global position of
-    the block it lies in (because positions in the ParenthesisToken is
-    relative to the block)."""
+    Iteration gives both a parenthesis and its global position."""
     def __init__(self, cursor, direction) :
         self.cur_block = cursor.block()
         self.cur_tokens = self._getParenTokens()
@@ -153,8 +151,30 @@ class _ParenIterator :
                 self.cur_pos = 0
             else :
                 self.cur_pos = len(self.cur_tokens) - 1
-        return self.cur_tokens[self.cur_pos], self.cur_block.position()
-            
+        return self.cur_tokens[self.cur_pos]._style, self.cur_block.position()+self.cur_tokens[self.cur_pos].end
+
+class _PlainTextParenIterator :
+    """ Iterates in given direction over parentheses in the document.
+    To be used when there is no parser.
+    Iteration gives both a parenthesis and its global position."""
+    def __init__(self, cursor, direction) :
+        self.fulltext = cursor.document().toPlainText()
+        self.position = cursor.position() - 1
+        self.direction = direction
+    
+    def __iter__(self) :
+        return self
+    
+    def __next__(self) :
+        self.position += self.direction
+        try :
+            while self.fulltext[self.position] not in '([{)]}' :
+                self.position += self.direction
+                if self.position < 0 :
+                    raise StopIteration
+        except IndexError :
+            raise StopIteration
+        return self.fulltext[self.position], self.position + 1
 
 class HighlightMatchingBracket(object):
     
@@ -255,8 +275,8 @@ class HighlightMatchingBracket(object):
         stacked_paren = [char] # using a Python list as a stack
         # stack not empty because the _ParenIterator will not give back
         # the parenthesis we're matching
-        for (token, bloc_pos) in _ParenIterator(cursor, direction) :
-            paren = token._style
+        our_iterator = _ParenIterator if self.parser() is not None and self.parser().name() != "" else _PlainTextParenIterator
+        for (paren, pos) in our_iterator(cursor, direction) :
             if paren in stacking :
                 stacked_paren.append(paren)
             elif paren in unstacking :
@@ -269,7 +289,6 @@ class HighlightMatchingBracket(object):
             if len(stacked_paren) == 0 :
                 # we've found our match (or mismatch)
                 new_cursor = QtGui.QTextCursor(doc)
-                pos = bloc_pos + token.end
                 new_cursor.setPosition(pos)
                 return new_cursor, mismatch
         return None, True # the boolean has no meaning here
@@ -304,8 +323,8 @@ class HighlightMatchingBracket(object):
                 cursor.movePosition(cursor.Right)
                 char = text[pos+1]
                 
-            doc = cursor.document()
             if char in '()[]{}':
+                doc = cursor.document()
                 try :
                     other_bracket, mismatch = self._findMatchingBracket(char, cursor, doc)
                     fm = QtGui.QFontMetrics(doc.defaultFont())
