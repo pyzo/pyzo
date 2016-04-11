@@ -18,6 +18,7 @@ from ..manager import Manager
 # or EXT_HighlightcurrentLine?
 
 from ..parsers.tokens import ParenthesisToken
+import enum
 
 class HighlightMatchingOccurrences(object):
     
@@ -176,6 +177,17 @@ class _PlainTextParenIterator :
             raise StopIteration
         return self.fulltext[self.position], self.position + 1
 
+class _MatchStatus(enum.Enum) :
+    NoMatch = 0
+    Match = 1
+    MisMatch = 2
+
+class _MatchResult :
+    def __init__(self, status, corresponding = None, offending = None) :
+        self.status = status
+        self.corresponding = corresponding
+        self.offending = offending
+
 class HighlightMatchingBracket(object):
     
     # Register style element
@@ -222,7 +234,7 @@ class HighlightMatchingBracket(object):
         return self.__highlightMisMatchingBracket
     
     
-    @ce_option(False)
+    @ce_option(True)
     def setHighlightMisMatchingBracket(self,value):
         """ setHighlightMisMatchingBracket(value)
         
@@ -251,12 +263,12 @@ class HighlightMatchingBracket(object):
 
 
     _matchingBrackets = {'(':')', '[':']', '{':'}', ')':'(', ']':'[', '}':'{'}
-    def _findMatchingBracket(self, char, cursor, doc):
-        """ _findMatchingBracket(char, cursor, doc)
+    def _findMatchingBracket(self, char, cursor):
+        """ _findMatchingBracket(char, cursor)
         
         Find a bracket that matches the specified char in the specified document.
-        Bracket index is returned as a QtCursor instance, pointing to the right
-        of the found character. If no match is found, returns None.
+        Return a _MatchResult object indicating whether this succeded and the
+        positions of the parentheses causing this result.
         
         """
         if char in ')]}':
@@ -270,29 +282,30 @@ class HighlightMatchingBracket(object):
         else:
             raise ValueError('invalid bracket character: ' + char)
         
-        mismatch = False
         other_char = self._matchingBrackets[char]
-        stacked_paren = [char] # using a Python list as a stack
+        stacked_paren = [(char, cursor.position())] # using a Python list as a stack
         # stack not empty because the _ParenIterator will not give back
         # the parenthesis we're matching
         our_iterator = _ParenIterator if self.parser() is not None and self.parser().name() != "" else _PlainTextParenIterator
         for (paren, pos) in our_iterator(cursor, direction) :
             if paren in stacking :
-                stacked_paren.append(paren)
+                stacked_paren.append((paren, pos))
             elif paren in unstacking :
-                if self._matchingBrackets[stacked_paren[-1]] != paren :
-                    mismatch = True
-                    stacked_paren.clear() # stop searching
+                if self._matchingBrackets[stacked_paren[-1][0]] != paren :
+                    return _MatchResult(_MatchStatus.MisMatch, pos, stacked_paren[-1][1])
                 else :
                     stacked_paren.pop()
 
             if len(stacked_paren) == 0 :
-                # we've found our match (or mismatch)
-                new_cursor = QtGui.QTextCursor(doc)
-                new_cursor.setPosition(pos)
-                return new_cursor, mismatch
-        return None, True # the boolean has no meaning here
+                # we've found our match
+                return _MatchResult(_MatchStatus.Match, pos)
+        return _MatchResult(_MatchStatus.NoMatch)
 
+    
+    def _cursorAt(self, doc, pos) :
+        new_cursor = QtGui.QTextCursor(doc)
+        new_cursor.setPosition(pos)
+        return new_cursor
     
     def paintEvent(self, event):
         """ paintEvent(event)
@@ -326,18 +339,23 @@ class HighlightMatchingBracket(object):
             if char in '()[]{}':
                 doc = cursor.document()
                 try :
-                    other_bracket, mismatch = self._findMatchingBracket(char, cursor, doc)
+                    match_res = self._findMatchingBracket(char, cursor)
                     fm = QtGui.QFontMetrics(doc.defaultFont())
-                    width = fm.width(char)
+                    width = fm.width(char) # assumes that both paren have the same width
                     painter = QtGui.QPainter()
                     painter.begin(self.viewport())
-                    if other_bracket is not None:
-                        color = 'editor.highlightMisMatchingBracket' if mismatch else 'editor.highlightMatchingBracket'
-                        self._highlightSingleChar(painter, cursor, width, color)
-                        if not mismatch or self.highlightMisMatchingBracket() :
-                            self._highlightSingleChar(painter, other_bracket, width, color)
-                    else :
+                    if match_res.status == _MatchStatus.NoMatch :
                         self._highlightSingleChar(painter, cursor, width, 'editor.highlightUnmatchedBracket')
+                    elif match_res.status == _MatchStatus.Match :
+                        self._highlightSingleChar(painter, cursor, width, 'editor.highlightMatchingBracket')
+                        self._highlightSingleChar(painter, self._cursorAt(doc, match_res.corresponding), width, 'editor.highlightMatchingBracket')
+                    else : # this is a mismatch
+                        if cursor.position() != match_res.offending or not self.highlightMisMatchingBracket() :
+                            self._highlightSingleChar(painter, cursor, width, 'editor.highlightUnmatchedBracket')
+                        if self.highlightMisMatchingBracket() :
+                            self._highlightSingleChar(painter, self._cursorAt(doc, match_res.corresponding), width, 'editor.highlightMisMatchingBracket')
+                            self._highlightSingleChar(painter, self._cursorAt(doc, match_res.offending), width, 'editor.highlightMisMatchingBracket')
+                    
                     painter.end()
                 except _ParenNotFound : # is raised when current parenthesis is not
                 #found in its line token list, meaning it is in a string literal
