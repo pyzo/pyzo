@@ -321,18 +321,21 @@ class HighlightMatchingBracket(object):
             super(HighlightMatchingBracket, self).paintEvent(event)
             return
             
-        cursor = self.textCursor()
+        cursor = QtGui.QTextCursor(self.textCursor())
+        if cursor.atBlockStart() :
+            cursor.movePosition(cursor.Right)
+            movedRight = True
+        else :
+            movedRight = False
         text = cursor.block().text()
         pos = cursor.positionInBlock() - 1
         
-        if not cursor.atBlockStart() and len(text) > pos and len(text) > 0:
+        if len(text) > pos and len(text) > 0:
             # get the character to the left of the cursor
             char = text[pos]
             
-            if (char not in '()[]{}' and len(text) > pos+1
-                and text[pos+1] in '()[]{}'):
-                # no brace to the left of cursor; but one to the right
-                cursor = QtGui.QTextCursor(cursor)
+            if not movedRight and char not in '()[]{}' and len(text) > pos+1 :
+                # no brace to the left of cursor; try to the right
                 cursor.movePosition(cursor.Right)
                 char = text[pos+1]
                 
