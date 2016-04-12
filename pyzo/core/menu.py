@@ -757,6 +757,8 @@ class ViewMenu(Menu):
             None, "wrap")
         self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."), 
             None, "highlightCurrentLine")
+        self.addEditorItem(translate("menu", "Highlight brackets ::: Highlight matched and unmatched brackets."),
+            None, "highlightMatchingBracket")
         self.addSeparator()
         self.addItem(translate("menu", "Previous cell ::: Go back to the previous cell."),
             None, self._previousCell )
