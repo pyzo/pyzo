@@ -415,6 +415,12 @@ class Magician:
         if args and '=' in args[0]:
             return
         
+        # Add channels when using install, this gets added last, so
+        # that user-specified channels take preference
+        channel_list = []
+        if args[0] == 'install':
+            channel_list = ['-c', 'conda-forge', '-c', 'pyzo']
+        
         # Go!
         # Weird double-try, to make work on Python 2.4
         oldargs = sys.argv
@@ -424,7 +430,7 @@ class Magician:
                 sys.stderr.write = lambda x: len(x)
                 import conda
                 from conda.cli import main
-                sys.argv = ['conda'] + list(args)
+                sys.argv = ['conda'] + list(args) + channel_list
                 main()
             except SystemExit:  # as err:
                 type, err, tb = sys.exc_info(); del tb
