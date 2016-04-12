@@ -143,3 +143,15 @@ class ClassNameToken(IdentifierToken):
     """ Characters represening the name of a class. """
     defaultStyle = 'fore:#0000FF, bold:yes'
 
+class ParenthesisToken(Token) :
+    """ Parenthesis (and square and curly brackets). """
+    defaultStyle = ''
+
+class OpenParenToken(ParenthesisToken) :
+    """ Opening parenthesis (and square and curly brackets). """
+    defaultStyle = ''
+
+class CloseParenToken(ParenthesisToken) :
+    """ Closing parenthesis (and square and curly brackets). """
+    defaultStyle = ''
+

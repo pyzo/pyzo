@@ -13,7 +13,7 @@ from ..misc import ustr, bstr
 from .tokens import (CommentToken, StringToken, 
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
     KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
-    TodoCommentToken)
+    TodoCommentToken, OpenParenToken, CloseParenToken)
 
 # Keywords sets
 
@@ -54,7 +54,9 @@ tokenProg = re.compile(
     '([bB]|[uU])?' +			# Possibly bytes or unicode (py2.x)
     '[rR]?' +					# Possibly a raw string
     '("""|\'\'\'|"|\')' +		# String start (triple qoutes first, group 4)
-    ')'							# End of string group
+    ')|' +						# End of string group
+    '(\(|\[|\{)|' +             # Opening parenthesis (gr 5)
+    '(\)|\]|\})'                # Closing parenthesis (gr 6)
     )	
 
 
@@ -299,13 +301,20 @@ class PythonParser(Parser):
                 else:
                     tokens.append( IdentifierToken(*tokenArgs) )
         
-        else:
+        elif match.group(2) is not None :
             # We have matched a string-start
             # Find the string style ( ' or " or ''' or """)
             token = StringToken(line, match.start(), match.end())
             token._style = match.group(4) # The style is in match group 4
             tokens.append( token )
-        
+        elif match.group(5) is not None :
+            token = OpenParenToken(line, match.start(), match.end())
+            token._style = match.group(5)
+            tokens.append(token)
+        elif match.group(6) is not None :
+            token = CloseParenToken(line, match.start(), match.end())
+            token._style = match.group(6) 
+            tokens.append(token)
         # Done
         return tokens
 

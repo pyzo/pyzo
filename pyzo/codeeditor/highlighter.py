@@ -28,6 +28,7 @@ class BlockData(QtGui.QTextBlockUserData):
         QtGui.QTextBlockUserData.__init__(self)
         self.indentation = None
         self.fullUnderlineFormat = None
+        self.tokens = []
 
 
 # The highlighter should be part of the base class, because 
@@ -81,9 +82,11 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         nameToFormat = self._codeEditor.getStyleElementFormat
         
         fullLineFormat = None
+        tokens = []
         if parser:
             self.setCurrentBlockState(0)
-            for token in parser.parseLine(line, previousState):
+            tokens = list(parser.parseLine(line, previousState))
+            for token in tokens :
                 # Handle block state
                 if isinstance(token, parsers.BlockState):
                     self.setCurrentBlockState(token.state)
@@ -103,6 +106,9 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         
         # Get user data
         bd = self.getCurrentBlockUserData()
+        
+        # Store token list for future use (e.g. brace matching)
+        bd.tokens = tokens
         
         # Handle underlines
         bd.fullUnderlineFormat = fullLineFormat
