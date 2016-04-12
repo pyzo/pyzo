@@ -133,7 +133,10 @@ class _ParenIterator :
             raise _ParenNotFound
     
     def _getParenTokens(self) :
-        return list(filter(lambda x : isinstance(x, ParenthesisToken), self.cur_block.userData().tokens))
+        try:
+            return list(filter(lambda x : isinstance(x, ParenthesisToken), self.cur_block.userData().tokens))
+        except AttributeError:
+            return []  # can be a piece of text that we do not tokenize (e.g. in shell)
     
     def __iter__(self) :
         return self

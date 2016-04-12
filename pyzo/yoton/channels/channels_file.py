@@ -39,7 +39,7 @@ class FileWrapper(object):
     # don't seem to make sense: readlines, seek, tell, truncate, errors,
     # mode, name,
     
-    def __init__(self, channel, chunksize=0, echo=None):
+    def __init__(self, channel, chunksize=0, echo=None, isatty=False):
         if not isinstance(channel, (PubChannel, SubChannel)):
             raise ValueError('FileWrapper needs a PubChannel or SubChannel.')
         if echo is not None:
@@ -51,6 +51,7 @@ class FileWrapper(object):
         self._echo = echo
         self._pid = os.getpid()  # To detect whether we are in multi-process
         self.errors = 'strict'  # compat
+        self._isatty = isatty
     
     def close(self):
         """ Close the file object.
@@ -191,4 +192,9 @@ class FileWrapper(object):
             return line.encode('utf-8')
         else:
             return line
+    
+    def isatty(self):
+        """ Get whether this is a terminal.
+        """
+        return self._isatty
 
