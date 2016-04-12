@@ -29,6 +29,7 @@ view = dict:
     #
     wrap = 1
     highlightCurrentLine = 1
+    highlightMatchingBracket = 1
     doBraceMatch = 1  # Both in editor and shell
     codeFolding = 0
     autoComplete_popupSize = [300, 100]
