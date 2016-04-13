@@ -41,7 +41,7 @@ class Debugger(bdb.Bdb):
                 self._files_with_offset.append(ori_filename)
                 if clean_filename.startswith('<'):
                     self.fncache[ori_filename] = ori_filename
-                for i in self.breaks.get(clean_filename, None):
+                for i in self.breaks.get(clean_filename, []):
                     self.set_break(ori_filename, i-offset)
         
         return bdb.Bdb.trace_dispatch(self, frame, event, arg)
