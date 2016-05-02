@@ -144,7 +144,7 @@ def getResourceDirs():
 
 def resetConfig(preserveState=True):
     """ resetConfig()
-    Replaces the config fyle with the default and prevent Pyzo from storing
+    Replaces the config file with the default and prevent Pyzo from storing
     its config on the next shutdown.
     """ 
     # Get filenames
