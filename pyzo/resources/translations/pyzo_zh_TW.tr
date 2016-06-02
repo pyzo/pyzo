@@ -134,7 +134,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="901"/>
         <source>Create new directory</source>
-        <translation>建立新目錄</translation>
+        <translation>新增目錄</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="929"/>
@@ -243,7 +243,7 @@
     <message>
         <location filename="../../core/menu.py" line="468"/>
         <source>New ::: Create a new (or temporary) file.</source>
-        <translation>建立 ::: 建立一個新(或暫時)檔案。</translation>
+        <translation>新增 ::: 新增檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="470"/>
