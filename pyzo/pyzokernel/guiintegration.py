@@ -210,6 +210,10 @@ class App_tornado(App_base):
         # Replace mainloop with a dummy
         def dummy_start():
             printDirect(mainloopWarning)
+            sys._pyzoInterpreter.ignore_sys_exit = True
+            self.app.add_callback(reset_sys_exit)
+        def reset_sys_exit():
+            sys._pyzoInterpreter.ignore_sys_exit = False
         def run_sync(func, timeout=None):
             self.app.start = self.app._original_start
             try:
@@ -226,21 +230,25 @@ class App_tornado(App_base):
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'Pyzo'
+        
+        self._warned_about_process_events = False
     
     def process_events(self):
-       self.app.run_sync(lambda x=None: None)
+        if not self._warned_about_process_events:
+            print('Warning: cannot process events synchronously in Tornado')
+            self._warned_about_process_events = True
+        #self.app.run_sync(lambda x=None: None)
     
-    # def run(self, repl_callback, sleeptime=None):
-    #     from tornado.ioloop import PeriodicCallback
-    #     # Create timer 
-    #     self._timer = PeriodicCallback(repl_callback, 0.05*1000)
-    #     self._timer.start()
-    #     # Enter mainloop
-    #     self.app._original_start()
-    # 
-    # def quit(self):
-    #     self.app.stop()
-
+    def run(self, repl_callback, sleeptime=None):
+        from tornado.ioloop import PeriodicCallback
+        # Create timer 
+        self._timer = PeriodicCallback(repl_callback, 0.05*1000)
+        self._timer.start()
+        # Enter mainloop
+        self.app._original_start()
+    
+    def quit(self):
+        self.app.stop()
 
 
 class App_qt(App_base):
