@@ -847,14 +847,18 @@ class PopupMenu(pyzo.core.menu.Menu):
         self.parent().setPath(self.parent().path())
     
     def _openOutsidePyzo(self):
+        path = self._item.path()
         if sys.platform.startswith('darwin'):
-            subprocess.call(('open', self._item.path()))
+            subprocess.call(('open', path))
         elif sys.platform.startswith('win'):
-            subprocess.call(('start', self._item.path()), shell=True)
+            if ' ' in path:  # http://stackoverflow.com/a/72796/2271927
+                subprocess.call(('start', '', path), shell=True)
+            else:
+                subprocess.call(('start', path), shell=True)
         elif sys.platform.startswith('linux'):
             # xdg-open is available on all Freedesktop.org compliant distros
             # http://superuser.com/questions/38984/linux-equivalent-command-for-open-command-on-mac-windows
-            subprocess.call(('xdg-open', self._item.path()))
+            subprocess.call(('xdg-open', path))
     
     def _showInFinder(self):
         subprocess.call(('open', '-R', self._item.path()))
