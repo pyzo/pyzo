@@ -41,7 +41,7 @@ Some key features
     with '##').
 
 """
-    
+
 # Set version number
 __version__ = '4.1'
 
@@ -63,7 +63,7 @@ elif pyzolib.__version__ < '0.2.9':
 # Import yoton as an absolute package
 from pyzo import yotonloader
 
-# If there already is an instance of Pyzo, and the user is trying an 
+# If there already is an instance of Pyzo, and the user is trying an
 # Pyzo command, we should send the command to the other process and quit.
 # We do this here, were we have not yet loaded Qt, so we are very light.
 from pyzo.core import commandline
@@ -88,7 +88,7 @@ from pyzo.util._locale import translate, setLanguage
 
 # Set environ to let kernel know some stats about us
 os.environ['PYZO_PREFIX'] = sys.prefix
-_is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR') 
+_is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR')
 os.environ['PYZO_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
 
 
@@ -106,7 +106,7 @@ class MyApp(QtGui.QApplication):
                 if not commandline.is_our_server_running():
                     print(res)
                     sys.exit()
-        return QtGui.QApplication.event(self, event) 
+        return QtGui.QApplication.event(self, event)
 
 if not sys.platform.startswith('darwin'):
     MyApp = QtGui.QApplication
@@ -122,23 +122,23 @@ def getResourceDirs():
     Also makes sure that the appDataDir has a "tools" directory and
     a style file.
     """
-    
-#     # Get root of the Pyzo code. If frozen its in a subdir of the app dir 
+
+#     # Get root of the Pyzo code. If frozen its in a subdir of the app dir
 #     pyzoDir = paths.application_dir()
 #     if paths.is_frozen():
 #         pyzoDir = os.path.join(pyzoDir, 'source')
     pyzoDir = os.path.abspath(os.path.dirname(__file__))
     if '.zip' in pyzoDir:
         raise RuntimeError('The Pyzo package cannot be run from a zipfile.')
-    
+
     # Get where the application data is stored (use old behavior on Mac)
     appDataDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
-    
+
     # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, 'tools')
     if not os.path.isdir(toolDir):
         os.mkdir(toolDir)
-    
+
     return pyzoDir, appDataDir
 
 
@@ -146,15 +146,15 @@ def resetConfig(preserveState=True):
     """ resetConfig()
     Replaces the config file with the default and prevent Pyzo from storing
     its config on the next shutdown.
-    """ 
+    """
     # Get filenames
     configFileName1 = os.path.join(pyzoDir, 'resources', 'defaultConfig.ssdf')
-    configFileName2 = os.path.join(appDataDir, 'config.ssdf')        
+    configFileName2 = os.path.join(appDataDir, 'config.ssdf')
     # Read, edit, write
     tmp = ssdf.load(configFileName1)
     if preserveState:
         tmp.state = config.state
-    ssdf.save(configFileName2, tmp)    
+    ssdf.save(configFileName2, tmp)
     global _saveConfigFile
     _saveConfigFile = False
     print("Replaced config file. Restart Pyzo to revert to the default config.")
@@ -163,29 +163,29 @@ def resetConfig(preserveState=True):
 def loadConfig(defaultsOnly=False):
     """ loadConfig(defaultsOnly=False)
     Load default configuration file and that of the user (if it exists).
-    Any missing fields in the user config are set to the defaults. 
-    """ 
-    
+    Any missing fields in the user config are set to the defaults.
+    """
+
     # Function to insert names from one config in another
     def replaceFields(base, new):
         for key in new:
-            if key in base and isinstance(base[key], ssdf.Struct):                
+            if key in base and isinstance(base[key], ssdf.Struct):
                 replaceFields(base[key], new[key])
             else:
                 base[key] = new[key]
-    
+
     # Reset our pyzo.config structure
     ssdf.clear(config)
-    
+
     # Load default and inject in the pyzo.config
     fname = os.path.join(pyzoDir, 'resources', 'defaultConfig.ssdf')
     defaultConfig = ssdf.load(fname)
     replaceFields(config, defaultConfig)
-    
+
     # Platform specific keybinding: on Mac, Ctrl+Tab (actually Cmd+Tab) is a system shortcut
     if sys.platform == 'darwin':
         config.shortcuts2.view__select_previous_file = 'Alt+Tab,'
-    
+
     # Load user config and inject in pyzo.config
     fname = os.path.join(appDataDir, "config.ssdf")
     if os.path.isfile(fname):
@@ -195,17 +195,17 @@ def loadConfig(defaultsOnly=False):
 
 def saveConfig():
     """ saveConfig()
-    Save all configureations to file. 
-    """ 
-    
-    # Let the editorStack save its state 
+    Save all configureations to file.
+    """
+
+    # Let the editorStack save its state
     if editors:
         editors.saveEditorState()
-    
-    # Let the main window save its state 
+
+    # Let the main window save its state
     if main:
         main.saveWindowState()
-    
+
     # Store config
     if _saveConfigFile:
         ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
@@ -214,11 +214,11 @@ def saveConfig():
 def start():
     """ Run Pyzo.
     """
-    
+
     # Do some imports
     from pyzo.core import pyzoLogging # to start logging asap
     from pyzo.core.main import MainWindow
-    
+
     # Apply users' preferences w.r.t. date representation etc
     # this is required for e.g. strftime("%c")
     # Just using '' does not seem to work on OSX. Thus
@@ -230,19 +230,19 @@ def start():
             break
         except locale.Error:
             pass
-    
+
     # Set to be aware of the systems native colors, fonts, etc.
     QtGui.QApplication.setDesktopSettingsAware(True)
-    
+
     # Instantiate the application
-    QtGui.qApp = MyApp([])  # QtGui.QApplication([])
-    
+    QtGui.qApp = MyApp(sys.argv)  # QtGui.QApplication([])
+
     # Choose language, get locale
     appLocale = setLanguage(config.settings.language)
-    
+
     # Create main window, using the selected locale
     frame = MainWindow(None, appLocale)
-    
+
     # Enter the main loop
     QtGui.qApp.exec_()
 
@@ -253,7 +253,7 @@ def start():
 editors = None # The editor stack instance
 shells = None # The shell stack instance
 main = None # The mainwindow
-icon = None # The icon 
+icon = None # The icon
 parser = None # The source parser
 status = None # The statusbar (or None)
 
