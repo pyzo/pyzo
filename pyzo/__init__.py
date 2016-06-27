@@ -14,31 +14,29 @@ efficiency.
 Pyzo is written in Python 3 and Qt. Binaries are available for Windows,
 Linux, and Mac. For questions, there is a discussion group.
 
-Two components + tools
-----------------------
+**Two components + tools**
+
 
 Pyzo consists of two main components, the editor and the shell, and uses
 a set of pluggable tools to help the programmer in various ways. Some
 example tools are source structure, project manager, interactive help,
 and workspace.
 
-Some key features
------------------
+**Some key features**
 
-  * Powerful *introspection* (autocompletion, calltips, interactive help)
-  * Allows various ways to *run code interactively* or to run a file as a
-    script.
-  * The shells runs in a *subprocess* and can therefore be interrupted or
-    killed.
-  * *Multiple shells* can be used at the same time, and can be of different
-    Python versions (from v2.4 to 3.x, including pypy)
-  * Support for using several *GUI toolkits* interactively: PySide, PyQt4,
-    wx, fltk, GTK, Tk.
-  * Run IPython shell or native shell.
-  * *Full Unicode support* in both editor and shell.
-  * Various handy *tools*, plus the ability to make your own.
-  * Matlab-style *cell notation* to mark code sections (by starting a line
-    with '##').
+
+* Powerful *introspection* (autocompletion, calltips, interactive help)
+* Allows various ways to *run code interactively* or to run a file as a script.
+* The shells runs in a *subprocess* and can therefore be interrupted or killed.
+* *Multiple shells* can be used at the same time, and can be of different
+  Python versions (from v2.4 to 3.x, including pypy)
+* Support for using several *GUI toolkits* interactively: PySide, PyQt4,
+  wx, fltk, GTK, Tk.
+* Run IPython shell or native shell.
+* *Full Unicode support* in both editor and shell.
+* Various handy *tools*, plus the ability to make your own.
+* Matlab-style *cell notation* to mark code sections (by starting a line
+  with '##').
 
 """
 
