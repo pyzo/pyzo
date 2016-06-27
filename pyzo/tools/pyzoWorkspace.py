@@ -256,10 +256,14 @@ class WorkspaceTree(QtGui.QTreeWidget):
             if len(parts) < 4:
                 continue
             
+            name = parts[0]
+            
             # Pop the 'kind' element
             kind = parts.pop(2)
             
             if kind in self._config.hideTypes:
+                continue
+            if name.startswith('_') and 'private' in self._config.hideTypes:
                 continue
             
             # Create item
@@ -344,7 +348,7 @@ class PyzoWorkspace(QtGui.QWidget):
         menu = self._options._menu
         menu.clear()
         
-        for type in ['type', 'function', 'module']:
+        for type in ['type', 'function', 'module', 'private']:
             checked = type in self._config.hideTypes
             action = menu.addAction('Hide %s'%type)
             action.setCheckable(True)
