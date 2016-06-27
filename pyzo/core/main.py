@@ -495,12 +495,12 @@ def loadIcons():
     dummyIcon = IconArtist().finish()
     pyzo.icons = ssdf.new()
     for fname in os.listdir(iconDir):
-        if fname.startswith('pyzo'):
-            continue
         if fname.endswith('.png'):
             try:
                 # Short and full name
                 name = fname.split('.')[0]
+                name = name.replace('pyzo_', '')  # discart prefix
+                print(fname, name)
                 ffname = os.path.join(iconDir,fname)
                 # Create icon
                 icon = QtGui.QIcon() 
