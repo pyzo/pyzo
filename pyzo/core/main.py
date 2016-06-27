@@ -500,7 +500,6 @@ def loadIcons():
                 # Short and full name
                 name = fname.split('.')[0]
                 name = name.replace('pyzo_', '')  # discart prefix
-                print(fname, name)
                 ffname = os.path.join(iconDir,fname)
                 # Create icon
                 icon = QtGui.QIcon() 

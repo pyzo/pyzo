@@ -43,7 +43,7 @@ Some key features
 """
 
 # Set version number
-__version__ = '4.2'
+__version__ = '4.2.1'
 
 import os
 import sys
