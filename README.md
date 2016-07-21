@@ -43,7 +43,7 @@ for a complete list of people who helped develop Pyzo.
 
 ### Contributions
 
-If you want to help out, create a pull request or start a discusiion
+If you want to help out, create a pull request or start a discussion
 in our mailing list.
 
 
