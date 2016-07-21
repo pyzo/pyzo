@@ -1,0 +1,5 @@
+include *.appdata.xml
+include *.md
+include *.plist
+include pyzolauncher.py
+recursive-include doc *.*
