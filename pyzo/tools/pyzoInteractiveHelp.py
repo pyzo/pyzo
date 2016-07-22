@@ -9,8 +9,8 @@ import sys, os, time, re
 from pyzolib.qt import QtCore, QtGui
 import pyzo 
 
-tool_name = "Interactive help"
-tool_summary = "Shows help on an object when using up/down in autocomplete."
+tool_name = translate("pyzoInteractiveHelp", "Interactive help")
+tool_summary = translate("pyzoInteractiveHelp", "Shows help on an object when using up/down in autocomplete.")
 
 #
 htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
