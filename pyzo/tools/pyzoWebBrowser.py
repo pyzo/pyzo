@@ -17,8 +17,8 @@ except ImportError:
 
 import pyzo
 
-tool_name = "Web browser"
-tool_summary = "A very simple web browser."
+tool_name = translate("pyzoWebBrowser", "Web browser")
+tool_summary = translate("pyzoWebBrowser", "A very simple web browser.")
 
 
 default_bookmarks = [   'docs.python.org', 
