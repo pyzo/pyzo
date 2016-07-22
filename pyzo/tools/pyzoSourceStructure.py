@@ -9,8 +9,8 @@ import time
 from pyzolib.qt import QtCore, QtGui
 import pyzo
 
-tool_name = "Source structure"
-tool_summary = "Shows the structure of your source code."
+tool_name = translate("pyzoSourceStructure", "Source structure")
+tool_summary = translate("pyzoSourceStructure", "Shows the structure of your source code.")
 
 
 class PyzoSourceStructure(QtGui.QWidget):
@@ -145,7 +145,7 @@ class PyzoSourceStructure(QtGui.QWidget):
             self._currentEditorId = id(editor)
             
             # Notify
-            text = 'Parsing ' + editor._name + ' ...'
+            text = translate('pyzoSourceStructure', 'Parsing ' + editor._name + ' ...')
             thisItem = QtGui.QTreeWidgetItem(self._tree, [text])
             
             # Try getting the  structure right now
