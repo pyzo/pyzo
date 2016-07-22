@@ -851,7 +851,7 @@ class LineNumbers(object):
             ss = "QSpinBox { border: 2px solid #789; border-radius: 3px; padding: 4px; }"
             self.setStyleSheet(ss)
             
-            self.setPrefix('Go to line: ')
+            self.setPrefix(translate('appearance', 'Go to line: '))
             self.setAccelerated (True)
             self.setButtonSymbols(self.NoButtons)
             self.setCorrectionMode(self.CorrectToNearestValue)
