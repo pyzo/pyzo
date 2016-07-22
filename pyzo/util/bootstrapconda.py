@@ -113,11 +113,11 @@ class Installer(QtGui.QDialog):
         self.setModal(True)
         self.resize(500, 500)
         
-        text = 'This will download and install miniconda on your computer.'
+        text = translate('bootstrapconda', 'This will download and install miniconda on your computer.')
         
         self._label = QtGui.QLabel(text, self)
         
-        self._scipystack = QtGui.QCheckBox('Also install scientific packages', self)
+        self._scipystack = QtGui.QCheckBox(translate('bootstrapconda', 'Also install scientific packages', self))
         self._scipystack.setChecked(True)
         self._path = QtGui.QLineEdit(default_conda_dir, self)
         self._progress = QtGui.QProgressBar(self)
@@ -140,7 +140,7 @@ class Installer(QtGui.QDialog):
         
         self._button.clicked.connect(self.go)
         
-        self.addOutput('Waiting to start installation.\n')
+        self.addOutput(translate('bootstrapconda', 'Waiting to start installation.\n'))
         self._progress.setVisible(False)
         
         self.lineFromStdOut.connect(self.setStatus)
