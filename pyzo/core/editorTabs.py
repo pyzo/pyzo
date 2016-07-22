@@ -1072,7 +1072,7 @@ class EditorTabs(QtGui.QWidget):
             startdir = ''
         
         # show dialog
-        msg = "Select one or more files to open"        
+        msg = translate("editorTabs", "Select one or more files to open")
         filter =  "Python (*.py *.pyw);;"
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
         filter += "C (*.c *.h *.cpp *.c++);;"
@@ -1247,7 +1247,7 @@ class EditorTabs(QtGui.QWidget):
             startdir = ''
         
         # show dialog
-        msg = "Select the file to save to"        
+        msg = translate("editorTabs", "Select the file to save to")
         filter =  "Python (*.py *.pyw);;"
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
         filter += "C (*.c *.h *.cpp);;"
