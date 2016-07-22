@@ -10,8 +10,8 @@ import sys, os, time
 from pyzolib.qt import QtCore, QtGui
 import pyzo 
 
-tool_name = "Workspace"
-tool_summary = "Lists the variables in the current shell's namespace."
+tool_name = translate("pyzoWorkspace", "Workspace")
+tool_summary = translate("pyzoWorkspace", "Lists the variables in the current shell's namespace.")
 
 
 
