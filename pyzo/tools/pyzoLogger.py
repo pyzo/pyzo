@@ -12,8 +12,8 @@ from pyzo.core.shell import BaseShell
 from pyzo.core.pyzoLogging import splitConsole
 
 
-tool_name = "Logger"
-tool_summary = "Logs messages, warnings and errors within Pyzo."
+tool_name = translate("pyzoLogger", "Logger")
+tool_summary = translate("pyzoLogger", "Logs messages, warnings and errors within Pyzo.")
  
 
 class PyzoLogger(BaseShell):
