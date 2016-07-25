@@ -1020,7 +1020,7 @@ class ShellMenu(Menu):
         
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
-            name = 'Create shell %s: (%s)' % (i+1, config.name)
+            name = translate('menu', 'Create shell %s: (%s)' % (i+1, config.name))
             action = self.addItem(name, 
                 pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)
@@ -1324,7 +1324,7 @@ class RunMenu(Menu):
         if mainEditor:
             editor = pyzo.editors.getMainEditor()
             if editor is None:
-                msg += "The is no main file selected."
+                msg += translate("menu", "There is no main file selected.")
         else:
             editor = pyzo.editors.getCurrentEditor()
             if editor is None:
@@ -1333,7 +1333,7 @@ class RunMenu(Menu):
         if msg:
             m = QtGui.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run"))
-            m.setText("Could not run " + what + ":\n\n" + msg)
+            m.setText(translate("menu", "Could not run " + what + ":\n\n" + msg))
             m.setIcon(m.Warning)
             m.exec_()
         # Return
@@ -1478,7 +1478,7 @@ class RunMenu(Menu):
         # Get editor and shell
         description = 'main file' if mainFile else 'file'
         if asScript:
-            description += ' (as script)'
+            description += translate('menu', ' (as script)')
         
         shell, editor = self._getShellAndEditor(description, mainFile)
         if givenEditor:
@@ -1503,9 +1503,9 @@ class RunMenu(Menu):
                 self._showWhatToExecute(editor)
                 shell.restart(editor._filename)
             else:
-                err = "Could not save the file."
+                err = translate("menu", "Could not save the file.")
         else:
-            err = "Can only run scripts that are in the file system."
+            err = translate("menu", "Can only run scripts that are in the file system.")
         # If not success, notify
         if err:
             m = QtGui.QMessageBox(self)
@@ -1685,7 +1685,7 @@ class SettingsMenu(Menu):
     
     def _advancedSettings(self):
         """ How to edit the advanced settings. """
-        text = """
+        text = translate("menu", """
         More settings are available via the logger-tool:
         \r\r
         - Advanced settings are stored in the struct "pyzo.config.advanced".
@@ -1695,7 +1695,7 @@ class SettingsMenu(Menu):
         \r\r
         Note that most settings require a restart for the change to
         take effect.
-        """
+        """)
         m = QtGui.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Advanced settings"))
         m.setText(unwrapText(text))

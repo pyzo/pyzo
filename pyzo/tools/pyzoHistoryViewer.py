@@ -18,8 +18,8 @@ import pyzo
 from pyzo import translate
 from pyzo.core.menu import Menu
 
-tool_name = "History viewer"
-tool_summary = "Shows the last used commands."
+tool_name = translate("pyzoHistoryViewer", "History viewer")
+tool_summary = translate("pyzoHistoryViewer", "Shows the last used commands.")
 
 
 
@@ -127,7 +127,7 @@ class History(QtGui.QStringListModel):
             self.setStringList([line.rstrip() for line in lines])
             
         except Exception as e:
-            print ('An error occurred while loading the history: ' + str(e))
+            print (translate('pyzoHistoryViewer', 'An error occurred while loading the history: ' + str(e)))
             self._file = None
         
         # When data is appended for the first time, a marker will be appended first
