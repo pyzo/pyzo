@@ -662,7 +662,15 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
             self.setTextCursor(cursor)
         except Exception:
             pass # File is smaller then the caller thought
-        self.centerCursor()
+
+        # TODO make this user configurable (setting relativeMargin to anything above
+        # 0.5 will cause cursor to center on each move)
+        relativeMargin = 0.2    # 20% margin on both sides of the window
+        margin = self.height() * relativeMargin
+        cursorRect = self.cursorRect(cursor)
+        if cursorRect.top() < margin or cursorRect.bottom() + margin > self.height():
+            self.centerCursor()
+
     
     def doForSelectedBlocks(self, function):
         """ doForSelectedBlocks(function)
