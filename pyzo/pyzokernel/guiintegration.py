@@ -212,6 +212,8 @@ class App_tornado(App_base):
             printDirect(mainloopWarning)
             sys._pyzoInterpreter.ignore_sys_exit = True
             self.app.add_callback(reset_sys_exit)
+        def dummy_stop():
+            pass
         def reset_sys_exit():
             sys._pyzoInterpreter.ignore_sys_exit = False
         def run_sync(func, timeout=None):
@@ -224,6 +226,10 @@ class App_tornado(App_base):
         self.app._original_start = self.app.start
         self.app._dummy_start = dummy_start
         self.app.start = self.app._dummy_start
+        #
+        self.app._original_stop = self.app.stop
+        self.app._dummy_stop = dummy_stop
+        self.app.stop = self.app._dummy_stop
         #
         self.app._original_run_sync = self.app.run_sync
         self.app.run_sync = run_sync
@@ -248,7 +254,7 @@ class App_tornado(App_base):
         self.app._original_start()
     
     def quit(self):
-        self.app.stop()
+        self.app._original_stop()
 
 
 class App_qt(App_base):
