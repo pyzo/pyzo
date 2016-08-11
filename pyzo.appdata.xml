@@ -31,11 +31,13 @@
   <screenshot width="1004" height="664">http://www.pyzo.org/_static/screenshots/screen00_win.png</screenshot>
  </screenshots>
  <url type="homepage">http://pyzo.org</url>
+ <url type="translate">https://github.com/pyzo/pyzo/wiki/Translations</url>
  <updatecontact>almar.klein@gmail.com</updatecontact>
  <keywords>
     <keyword>Python</keyword>
     <keyword>IDE</keyword>
-    <keyword>science</keyword>
-    <keyword>interactive</keyword>
+    <keyword>Editor</keyword>
+    <keyword>Science</keyword>
+    <keyword>Interactive</keyword>
  </keywords>
 </application>
