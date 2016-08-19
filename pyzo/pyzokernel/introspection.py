@@ -166,6 +166,8 @@ class PyzoIntrospector(yoton.RepChannel):
                 funname = objectName.split('.')[-1]
                 sigs = "%s(%s)" % ( funname, ", ".join(args2) )
         
+        elif sigs:
+            kind = "function"
         else:
             sigs = ""
             kind = ""

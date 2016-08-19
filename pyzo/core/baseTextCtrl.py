@@ -116,11 +116,12 @@ def parseLine_signature(tokens):
     - location of end bracket
     - amount of kommas till cursor (taking nested brackets into account)
     """
+    
     openBraces = [] #Positions at which braces are opened
     for token in tokens:
-        if not isinstance(token,Tokens.NonIdentifierToken):
+        if not isinstance(token, (Tokens.NonIdentifierToken, Tokens.OpenParenToken)):
             continue
-        for i,c in enumerate(str(token)):
+        for i, c in enumerate(str(token)):
             if c=='(':
                 openBraces.append(token.start + i)
             elif c==')':
@@ -136,10 +137,8 @@ def parseLine_signature(tokens):
             tokens[-1].end = i
         
         name, needle = parseLine_autocomplete(tokens)
-
         return name, needle, (i,0) #TODO: implement stats
-        
-        
+    
     return "","",(0,0)
 
 
