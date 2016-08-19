@@ -4,8 +4,8 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-tool_name = translate("pyzoFileBrowser", "File browser")
-tool_summary = translate("pyzoFileBrowser", "Browse the files in your projects.")
+tool_name = "File browser"
+tool_summary = "Browse the files in your projects."
 
 
 """ File browser tool

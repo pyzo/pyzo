@@ -18,8 +18,8 @@ import pyzo
 from pyzo import translate
 from pyzo.core.menu import Menu
 
-tool_name = translate("pyzoHistoryViewer", "History viewer")
-tool_summary = translate("pyzoHistoryViewer", "Shows the last used commands.")
+tool_name = "History viewer"
+tool_summary = "Shows the last used commands."
 
 
 

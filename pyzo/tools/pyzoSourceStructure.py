@@ -9,8 +9,10 @@ import time
 from pyzolib.qt import QtCore, QtGui
 import pyzo
 
-tool_name = translate("pyzoSourceStructure", "Source structure")
-tool_summary = translate("pyzoSourceStructure", "Shows the structure of your source code.")
+from pyzo import translate
+
+tool_name = "Source structure"
+tool_summary = "Shows the structure of your source code."
 
 
 class PyzoSourceStructure(QtGui.QWidget):
