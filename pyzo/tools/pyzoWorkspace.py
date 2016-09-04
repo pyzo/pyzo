@@ -135,6 +135,15 @@ class WorkspaceProxy(QtCore.QObject):
         self.haveNewData.emit()
     
 
+class WorkspaceItem(QtGui.QTreeWidgetItem):
+    
+    def __lt__(self, otherItem):
+        column = self.treeWidget().sortColumn()
+        try:
+            return float( self.text(column).strip('[]') ) > float( otherItem.text(column).strip('[]') )
+        except ValueError:
+            return self.text(column) > otherItem.text(column)
+
 
 class WorkspaceTree(QtGui.QTreeWidget):
     """ WorkspaceTree
@@ -267,7 +276,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
                 continue
             
             # Create item
-            item = QtGui.QTreeWidgetItem(parts, 0)
+            item = WorkspaceItem(parts, 0)
             self.addTopLevelItem(item)
             
             # Set tooltip
