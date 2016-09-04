@@ -138,6 +138,7 @@ for name in [   '__file__',  # __main__ does not have a corresponding file
                 '__loader__'  # prevent lines from this file to be shown in tb
             ]:
     globals().pop(name, None)
+del name
 
 
 ## Start and stop
