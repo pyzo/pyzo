@@ -51,13 +51,6 @@ import locale
 if sys.version < '3':
     raise RuntimeError('Pyzo requires Python 3.x to run.')
 
-# Check pyzolib version
-import pyzolib
-if pyzolib.__version__ < '0.2.5':
-    raise RuntimeError('Pyzo requires Pyzolib 0.2.5 or higher.')
-elif pyzolib.__version__ < '0.2.9':
-    print('Warning: pyzolib 0.2.9 is recommended to run Pyzo.')
-
 # Import yoton as an absolute package
 from pyzo import yotonloader
 from pyzo.util import paths

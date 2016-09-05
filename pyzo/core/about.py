@@ -2,7 +2,6 @@
 import os
 import sys
 
-import pyzolib
 from pyzo.util.qt import QtCore, QtGui
 
 import pyzo
@@ -76,7 +75,6 @@ class AboutDialog(QtGui.QDialog):
         Pyzo version: <u>{}</u><br>
         Platform: {}<br>
         Python version: {}<br>
-        pyzolib version: {}<br>
         Qt version: {}<br>
         {} version: {}<br>
         <br>
@@ -108,11 +106,10 @@ class AboutDialog(QtGui.QDialog):
             versionText = pyzo.__version__ + ' (binary)'
         else:
             versionText = pyzo.__version__ + ' (source)'
-        aboutText = aboutText.format('Pyzo - Python to the people!' ,
-                        versionText, 
-                        sys.platform, 
-                        sys.version.split(' ')[0], 
-                        pyzolib.__version__,
+        aboutText = aboutText.format('Pyzo - Python to the people!',
+                        versionText,
+                        sys.platform,
+                        sys.version.split(' ')[0],
                         qtVersion, qtWrapper, qtWrapperVersion,
                         pyzo.pyzoDir, pyzo.appDataDir)
         
