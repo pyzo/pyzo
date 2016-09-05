@@ -15,7 +15,7 @@ file loading/saving /reloading stuff.
 import os, sys
 import re, codecs
 
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 qt = QtGui
 
 from pyzo.codeeditor import Manager

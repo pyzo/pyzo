@@ -16,7 +16,7 @@ code in it.
 
 """
 
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 Qt = QtCore.Qt
 
 import os, sys, time, subprocess

@@ -43,9 +43,9 @@ import sys
 import os.path as op
 
 from pyzolib import ssdf
-from pyzolib.qt import QtCore, QtGui
 
 import pyzo
+from pyzo.util.qt import QtCore, QtGui
 from .browser import Browser
 from .utils import cleanpath, isdir
 

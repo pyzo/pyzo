@@ -6,7 +6,8 @@
 
 
 import sys, os, time, re
-from pyzolib.qt import QtCore, QtGui
+
+from pyzo.util.qt import QtCore, QtGui
 import pyzo 
 
 tool_name = "Interactive help"

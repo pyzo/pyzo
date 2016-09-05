@@ -12,7 +12,7 @@ Implements shell configuration dialog.
 """
 
 import os, sys, time, re
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget

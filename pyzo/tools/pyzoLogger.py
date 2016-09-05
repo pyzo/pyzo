@@ -6,8 +6,9 @@
 
 
 import sys, os, code
-from pyzolib.qt import QtCore, QtGui
+
 import pyzo
+from pyzo.util.qt import QtCore, QtGui
 from pyzo.core.shell import BaseShell
 from pyzo.core.pyzoLogging import splitConsole
 

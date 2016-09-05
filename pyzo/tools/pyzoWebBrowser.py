@@ -7,11 +7,11 @@
 
 import time
 import urllib.request, urllib.parse
-from pyzolib.qt import QtCore, QtGui
 
+from pyzo.util.qt import QtCore, QtGui
 imported_qtwebkit = True
 try:
-    from pyzolib.qt import QtWebKit
+    from pyzo.util.qt import QtWebKit
 except ImportError:
     imported_qtwebkit = False
 

@@ -17,7 +17,7 @@ import unicodedata
 import datetime
 import webbrowser
 
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget

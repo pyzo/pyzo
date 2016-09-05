@@ -80,7 +80,7 @@ else:
 
 
 from pyzolib import ssdf
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 
 # Import language/translation tools
 from pyzo.util._locale import translate, setLanguage

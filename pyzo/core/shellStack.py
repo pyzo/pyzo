@@ -14,7 +14,7 @@ and a dialog to edit the shell configurations.
 
 import os, sys, time, re
 import webbrowser
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 
 import pyzo
 from pyzo import translate

@@ -19,7 +19,7 @@ from pyzolib import ssdf
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 qt = QtGui
 
 

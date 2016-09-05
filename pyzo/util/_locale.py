@@ -9,9 +9,9 @@ Module for locale stuff like language and translations.
 """
 
 import os, sys, time
-from pyzolib.qt import QtCore, QtGui
 
 import pyzo
+from pyzo.util.qt import QtCore, QtGui
 
 QLocale = QtCore.QLocale
 

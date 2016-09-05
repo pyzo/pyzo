@@ -10,7 +10,7 @@ See docs of the tab widget.
 
 """
 
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 import sys
 
 if sys.version_info[0] < 3:

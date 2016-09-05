@@ -13,8 +13,8 @@ import threading
 import subprocess
 import urllib.request
 
-from pyzolib.qt import QtCore, QtGui
 import pyzo
+from pyzo.util.qt import QtCore, QtGui
 
 
 base_url = 'http://repo.continuum.io/miniconda/'

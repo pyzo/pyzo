@@ -34,7 +34,8 @@ displayed in the statusbar.
 # - pythonpath editor, startupfile editor (or as part of pyzo?)
 
 import os, sys, imp
-from pyzolib.qt import QtCore, QtGui
+
+from pyzo.util.qt import QtCore, QtGui
 import pyzo
 
 from pyzolib import ssdf

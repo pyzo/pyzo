@@ -26,7 +26,7 @@ import unicodedata
 import os.path as op
 
 import pyzo.codeeditor
-from pyzolib.qt import QtCore, QtGui
+from . import QtCore, QtGui
 from pyzo import translate
 
 

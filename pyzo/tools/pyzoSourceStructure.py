@@ -6,9 +6,9 @@
 
 
 import time
-from pyzolib.qt import QtCore, QtGui
-import pyzo
 
+import pyzo
+from pyzo.util.qt import QtCore, QtGui
 from pyzo import translate
 
 tool_name = "Source structure"

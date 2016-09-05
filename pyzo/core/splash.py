@@ -13,7 +13,7 @@ Defines splash window shown during startup.
 import os, sys, time
 
 import pyzo
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 
 
 STYLESHEET = """

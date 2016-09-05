@@ -12,7 +12,7 @@ that show information to the user in a very effective, yet subtle manner.
 
 """
 
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 import pyzo
 
 

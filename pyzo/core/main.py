@@ -20,7 +20,7 @@ from pyzolib import ssdf
 import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
-from pyzolib.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 
