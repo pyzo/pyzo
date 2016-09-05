@@ -16,14 +16,16 @@ code in it.
 
 """
 
-from pyzo.util.qt import QtCore, QtGui
-Qt = QtCore.Qt
 
 import os, sys, time, subprocess
 import re
+
 import yoton
+
 import pyzo
-from pyzolib import ssdf
+from pyzo.util import zon as ssdf  # zon is ssdf-light
+from pyzo.util.qt import QtCore, QtGui
+Qt = QtCore.Qt
 
 from pyzo.codeeditor.highlighter import Highlighter
 from pyzo.codeeditor import parsers

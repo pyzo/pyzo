@@ -79,7 +79,7 @@ else:
         print('Our command server is *not* running')
 
 
-from pyzolib import ssdf
+from pyzo.util import zon as ssdf  # zon is ssdf-light
 from pyzo.util.qt import QtCore, QtGui
 
 # Import language/translation tools

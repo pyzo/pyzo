@@ -1,10 +1,9 @@
 import sys
 import os.path as op
 
-from pyzolib import ssdf
-
 import pyzo
 from pyzo import translate
+from pyzo.util import zon as ssdf
 
 from . import QtCore, QtGui
 from . import proxies

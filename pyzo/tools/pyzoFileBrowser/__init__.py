@@ -42,10 +42,10 @@ The config consists of three fields:
 import sys
 import os.path as op
 
-from pyzolib import ssdf
-
 import pyzo
+from pyzo.util import zon as ssdf
 from pyzo.util.qt import QtCore, QtGui
+
 from .browser import Browser
 from .utils import cleanpath, isdir
 

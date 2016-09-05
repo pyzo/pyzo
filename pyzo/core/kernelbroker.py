@@ -16,9 +16,9 @@ import signal
 import threading
 import ctypes
 
-from pyzolib import ssdf
 import yoton
 import pyzo # local Pyzo (can be on a different box than where the user is)
+from pyzo.util import zon as ssdf  # zon is ssdf-light
 
 
 # To allow interpreters relative to (frozen) Pyzo app
@@ -110,8 +110,6 @@ class KernelInfo(ssdf.Struct):
         if info:
             # Get struct
             if isinstance(info, dict):
-                s = info
-            elif ssdf.isstruct(info):
                 s = info
             elif isinstance(info, str):
                 s = ssdf.loads(info)

@@ -579,7 +579,7 @@ class ShellInfoTab(QtGui.QScrollArea):
             print("Error getting info in shell config:", why)
             print(info)
         
-        # Return the original (but modified) ssdf struct object
+        # Return the original (but modified) ssdf Dict object
         return info
 
 

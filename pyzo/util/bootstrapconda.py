@@ -15,7 +15,7 @@ import urllib.request
 
 import pyzo
 from pyzo.util.qt import QtCore, QtGui
-
+from pyzo import translate
 
 base_url = 'http://repo.continuum.io/miniconda/'
 links = {'win32': 'Miniconda3-latest-Windows-x86.exe',

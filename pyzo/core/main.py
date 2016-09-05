@@ -15,7 +15,6 @@ function which is also defined here.
 import os, sys, time
 import base64
 from queue import Queue, Empty
-from pyzolib import ssdf
 
 import pyzo
 from pyzo.core.icons import IconArtist
@@ -23,6 +22,7 @@ from pyzo.core import commandline
 from pyzo.util.qt import QtCore, QtGui
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
+from pyzo.util import zon as ssdf  # zon is ssdf-light
 
 
 class MainWindow(QtGui.QMainWindow):

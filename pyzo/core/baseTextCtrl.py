@@ -15,7 +15,6 @@ is common for both shells and editors.
 import pyzo
 import os, sys, time
 import weakref
-from pyzolib import ssdf
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 

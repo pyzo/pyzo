@@ -35,10 +35,9 @@ displayed in the statusbar.
 
 import os, sys, imp
 
-from pyzo.util.qt import QtCore, QtGui
 import pyzo
-
-from pyzolib import ssdf
+from pyzo.util.qt import QtCore, QtGui
+from pyzo.util import zon as ssdf
 
 
 class ToolDockWidget(QtGui.QDockWidget):

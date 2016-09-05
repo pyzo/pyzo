@@ -1,6 +1,5 @@
-# This Simple Structured Data Format (SSDF) file contains the default 
-# configuration for Pyzo. The user configuration is stored in the Pyzo
-# application data directory.
+# This file contains the default configuration for Pyzo. The user
+# configuration is stored in the Pyzo application data directory.
 
 # Some parameters are named xxx2. This was done in case the representation
 # of a parameter was changed, or if we wanted to "refresh" the parameter for

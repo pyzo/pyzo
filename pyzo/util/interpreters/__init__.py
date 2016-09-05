@@ -9,7 +9,6 @@ registry, and conda's environment list.
 
 import sys
 import os
-from pyzolib import ssdf
 
 from .pythoninterpreter import EXE_DIR, PythonInterpreter, versionStringToTuple
 from .inwinreg import get_interpreters_in_reg
