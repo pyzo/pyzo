@@ -21,12 +21,14 @@ ResultPage:
 
 """
 
-import os
 import itertools
+import unicodedata
+import os.path as op
+
 import pyzo.codeeditor
 from pyzolib.qt import QtCore, QtGui
 from pyzo import translate
-import unicodedata
+
 
 # All keywords in Python 2 and 3. Obtained using: import keyword; keyword.kwlist
 # Merged from Py2 and 3
@@ -97,7 +99,7 @@ class SelectFilePage(QtGui.QWizardPage):
         if isinstance(filename, tuple):
             filename = filename[0]
         
-        filename = str(filename).replace('/', os.sep) # Show native file separator
+        filename = str(filename).replace('/', op.sep) # Show native file separator
             
         self.txtFilename.setText(filename)
         self.updatePreview()

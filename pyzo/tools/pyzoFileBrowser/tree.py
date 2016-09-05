@@ -11,14 +11,15 @@ import sys
 import time
 import subprocess
 import fnmatch
-from pyzolib.path import Path
+import os.path as op
 
-from . import QtCore, QtGui
 import pyzo
 from pyzo import translate
+from . import QtCore, QtGui
 
 from . import tasks
-from .utils import hasHiddenAttribute, getMounts
+from .utils import hasHiddenAttribute, getMounts, cleanpath, isdir, ext
+
 
 # How to name the list of drives/mounts (i.e. 'my computer')
 MOUNTS = 'drives'
@@ -82,7 +83,7 @@ def createMounts(browser, tree):
     mountPoints = getMounts()
     mountPoints.sort(key=lambda x: x.lower())
     for entry in mountPoints:
-        entry = Path(entry)
+        entry = cleanpath(entry)
         item = DriveItem(tree, fsProxy.dir(entry))
 
 
@@ -106,23 +107,23 @@ def createItemsFun(browser, parent):
     try:
         dirs = []
         for entry in dirProxy.dirs():
-            entry = Path(entry)
-            if entry.basename.startswith('.'):
+            entry = cleanpath(entry)
+            if op.basename(entry).startswith('.'):
                 continue # Skip hidden files
             if hasHiddenAttribute(entry):
                 continue # Skip hidden files on Windows
-            if entry.basename == '__pycache__':
+            if op.basename(entry) == '__pycache__':
                 continue
             dirs.append(entry)
         
         files = []
         for entry in dirProxy.files():
-            entry = Path(entry)
-            if entry.basename.startswith('.'):
+            entry = cleanpath(entry)
+            if op.basename(entry).startswith('.'):
                 continue # Skip hidden files
             if hasHiddenAttribute(entry):
                 continue # Skip hidden files on Windows
-            if not _filterFileByName(entry.basename, nameFilter):
+            if not _filterFileByName(op.basename(entry), nameFilter):
                 continue
             files.append(entry)
     
@@ -136,19 +137,19 @@ def createItemsFun(browser, parent):
     # Sort files 
     # (first by name, then by type, so finally they are by type, then name)
     files.sort(key=lambda x: x.lower())
-    files.sort(key=lambda x: x.ext.lower())
+    files.sort(key=lambda x: ext(x).lower())
         
     
     if not searchFilter:
         
         # Create dirs 
         for path in dirs:
-            starred = path.normcase() in starredDirs
+            starred = op.normcase(path) in starredDirs
             item = DirItem(parent, fsProxy.dir(path), starred)
             # Set hidden, we can safely expand programmatically when hidden
             item.setHidden(True)
             # Set expanded and visibility
-            if path.normcase() in expandedDirs:
+            if op.normcase(path) in expandedDirs:
                 item.setExpanded(True)
             item.setHidden(False)
         
@@ -288,7 +289,7 @@ class DirItem(BrowserItem):
     def onExpanded(self):
         # Update list of expanded dirs
         expandedDirs = self.treeWidget().parent().expandedDirs
-        p = self.path().normcase()  # Normalize case!
+        p = op.normcase(self.path())  # Normalize case!
         if p not in expandedDirs:
             expandedDirs.append(p) 
         # Keep track of changes in our contents
@@ -298,7 +299,7 @@ class DirItem(BrowserItem):
     def onCollapsed(self):
         # Update list of expanded dirs
         expandedDirs = self.treeWidget().parent().expandedDirs
-        p = self.path().normcase()   # Normalize case!
+        p = op.normcase(self.path())   # Normalize case!
         while p in expandedDirs:
             expandedDirs.remove(p)
         # Stop tracking changes in our contents
@@ -335,11 +336,11 @@ class FileItem(BrowserItem):
     
     def setFileIcon(self):
         # Create dummy file in pyzo user dir
-        dummy_filename = Path(pyzo.appDataDir) / 'dummyFiles' / 'dummy' + self.path().ext
+        dummy_filename = op.join(cleanpath(pyzo.appDataDir), 'dummyFiles', 'dummy' + ext(self.path()))
         # Create file?
-        if not dummy_filename.isfile:
-            if not dummy_filename.dirname.isdir:
-                os.makedirs(dummy_filename.dirname)
+        if not op.isfile(dummy_filename):
+            if not isdir(op.dirname(dummy_filename)):
+                os.makedirs(op.dirname(dummy_filename))
             f = open(dummy_filename, 'wb')
             f.close()
         # Use that file
@@ -359,7 +360,7 @@ class FileItem(BrowserItem):
         # todo: someday we should be able to simply pass the proxy object to the editors
         # so that we can open files on any file system
         path = self.path()
-        if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
+        if ext(path) not in ['.pyc','.pyo','.png','.jpg','.ico']:
             # Load and get editor
             fileItem = pyzo.editors.loadFile(path)
             editor = fileItem._editor
@@ -436,7 +437,7 @@ class SubFileItem(QtGui.QTreeWidgetItem):
     
     def onActivated(self):
         path = self.path()
-        if path.ext not in ['.pyc','.pyo','.png','.jpg','.ico']:
+        if ext(path) not in ['.pyc','.pyo','.png','.jpg','.ico']:
             # Load and get editor
             fileItem = pyzo.editors.loadFile(path)
             editor = fileItem._editor
@@ -580,7 +581,7 @@ class Tree(QtGui.QTreeWidget):
     up-to-date. The Item classes above are dumb objects.
     """
     
-    dirChanged = QtCore.Signal(Path) # Emitted when user goes into a subdir
+    dirChanged = QtCore.Signal(str) # Emitted when user goes into a subdir
     
     def __init__(self, parent):
         QtGui.QTreeWidget.__init__(self, parent)
@@ -654,10 +655,10 @@ class Tree(QtGui.QTreeWidget):
     def setPathUp(self):
         """ Go one directory up.
         """
-        newPath = self.path().dirname
+        newPath = op.dirname(self.path())
         
-        if newPath == self.path():
-            self.setPath(Path(MOUNTS))
+        if op.normcase(newPath) == op.normcase(self.path()):
+            self.setPath(cleanpath(MOUNTS))
         else:
             self.setPath(newPath)
     
@@ -754,8 +755,8 @@ class Tree(QtGui.QTreeWidget):
             self.setCurrentItem(self.topLevelItem(0))       
         # Restore selection
         if self._selectedPath:
-            items = self.findItems(self._selectedPath.basename, QtCore.Qt.MatchExactly, 0)
-            items = [item for item in items if item.path() == self._selectedPath]
+            items = self.findItems(op.basename(self._selectedPath), QtCore.Qt.MatchExactly, 0)
+            items = [item for item in items if op.normcase(item.path()) == op.normcase(self._selectedPath)]
             if items:
                 self.setCurrentItem(items[0])
         # Restore scrolling
@@ -931,7 +932,7 @@ class PopupMenu(pyzo.core.menu.Menu):
         
         # Push rename task
         if s:
-            newpath = os.path.join(self._item.path(), s)
+            newpath = op.join(self._item.path(), s)
             task = tasks.CreateTask(newpath=newpath, file=file)
             self._item._proxy.pushTask(task)
     
@@ -939,7 +940,7 @@ class PopupMenu(pyzo.core.menu.Menu):
     def _duplicateOrRename(self, rename):
         
         # Get dirname and filename
-        dirname, filename = os.path.split(self._item.path())
+        dirname, filename = op.split(self._item.path())
         
         # Get title and label
         if rename:
@@ -961,7 +962,7 @@ class PopupMenu(pyzo.core.menu.Menu):
         
         # Push rename task
         if s:
-            newpath = os.path.join(dirname, s)
+            newpath = op.join(dirname, s)
             task = tasks.RenameTask(newpath=newpath, removeold=rename)
             self._item._proxy.pushTask(task)
     

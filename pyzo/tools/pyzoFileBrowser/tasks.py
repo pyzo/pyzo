@@ -7,6 +7,8 @@ These inherit from proxies.Task and implement that specific interface.
 """
 
 import re
+import os.path as op
+
 from . import proxies
 
 
@@ -191,7 +193,7 @@ class PeekTask(proxies.Task):
             linenr += 1
             
             # If we are in a triple-quoted multi-line string, find the end
-            if stringEndProg == None:
+            if stringEndProg is None:
                 pos = 0
             else:
                 endMatch = stringEndProg.search(line)

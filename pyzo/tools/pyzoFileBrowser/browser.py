@@ -1,15 +1,15 @@
-import os
 import sys
+import os.path as op
 
-from pyzolib.path import Path
 from pyzolib import ssdf
-from . import QtCore, QtGui
 
 import pyzo
 from pyzo import translate
 
-from .tree import Tree
+from . import QtCore, QtGui
 from . import proxies
+from .tree import Tree
+from .utils import cleanpath, isdir
 
 
 class Browser(QtGui.QWidget):
@@ -38,7 +38,7 @@ class Browser(QtGui.QWidget):
         
         # Create tree widget
         self._tree = Tree(self)
-        self._tree.setPath(Path(self.config.path))
+        self._tree.setPath(cleanpath(self.config.path))
         
         # Create name filter
         self._nameFilter = NameFilter(self)
@@ -133,7 +133,7 @@ class Browser(QtGui.QWidget):
         if not path:
             return None
         for d in self.parent().config.starredDirs:
-            if d['path'] == path:
+            if op.normcase(d['path']) == op.normcase(path):
                 return d
         else:
             return None
@@ -143,8 +143,8 @@ class Browser(QtGui.QWidget):
         """
         # Create new dict
         newProject = ssdf.new()
-        newProject.path = path.normcase() # Normalize case!
-        newProject.name = path.basename
+        newProject.path = op.normcase(path) # Normalize case!
+        newProject.name = op.basename(path)
         newProject.addToPythonpath = False
         # Add it to the config
         self.parent().config.starredDirs.append(newProject)
@@ -157,9 +157,9 @@ class Browser(QtGui.QWidget):
         """
         # Remove
         starredDirs = self.parent().config.starredDirs
-        pathn = path.normcase()
+        pathn = op.normcase(path)
         for d in starredDirs:
-            if pathn == d.path:
+            if op.normcase(pathn) == op.normcase(d.path):
                 starredDirs.remove(d)
         # Update list
         self._projects.updateProjectList()
@@ -281,7 +281,7 @@ class PathInput(LineEditWithToolButtons):
     """ Line edit for selecting a path.
     """
     
-    dirChanged = QtCore.Signal(Path)  # Emitted when the user changes the path (and is valid)
+    dirChanged = QtCore.Signal(str)  # Emitted when the user changes the path (and is valid)
     dirUp = QtCore.Signal()  # Emitted when user presses the up button
     
     def __init__(self, parent):
@@ -324,8 +324,8 @@ class PathInput(LineEditWithToolButtons):
         # ok for now, but we should find a different approach someday
         # Check
         text = self.text()
-        dir = Path(text)
-        isvalid = text and dir.isdir and os.path.isabs(dir)
+        dir = cleanpath(text)
+        isvalid = text and isdir(dir) and op.isabs(dir)
         # Apply styling
         ss = self.styleSheet().replace('font-style:italic; ', '')
         if not isvalid:
@@ -351,7 +351,7 @@ class PathInput(LineEditWithToolButtons):
     def onTextEdited(self, dummy=None):
         text = self.text()
         if self.checkValid():            
-            self.dirChanged.emit(Path(text))
+            self.dirChanged.emit(cleanpath(text))
     
     
     def focusOutEvent(self, event=None):
@@ -368,7 +368,7 @@ class PathInput(LineEditWithToolButtons):
 
 class Projects(QtGui.QWidget):
     
-    dirChanged = QtCore.Signal(Path) # Emitted when the user changes the project
+    dirChanged = QtCore.Signal(str) # Emitted when the user changes the project
     
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
@@ -421,9 +421,9 @@ class Projects(QtGui.QWidget):
         self._path = path
         # Find project index
         projectIndex, L = 0, 0
-        pathn = path.normcase() + os.path.sep
+        pathn = op.normcase(path) + op.sep
         for i in range(self._combo.count()):
-            projectPath = self._combo.itemData(i) + os.path.sep
+            projectPath = self._combo.itemData(i) + op.sep
             if pathn.startswith(projectPath) and len(projectPath) > L:
                 projectIndex, L = i, len(projectPath)
         # Select project or not ...
@@ -439,7 +439,7 @@ class Projects(QtGui.QWidget):
     def updateProjectList(self):
         # Get sorted version of starredDirs
         starredDirs = self.parent().starredDirs
-        starredDirs.sort(key=lambda p:p.lower())
+        starredDirs.sort(key=lambda p:self.parent().dictForStarredDir(p).name.lower())
         # Refill the combo box
         self._combo.clear()
         for p in starredDirs:
@@ -533,7 +533,7 @@ class Projects(QtGui.QWidget):
         path = self._combo.itemData(index)
         if path:
             # Go to dir
-            self.dirChanged.emit(Path(path))
+            self.dirChanged.emit(path)
         else:
             # Dummy item, reset
             self.setPath(self._path)

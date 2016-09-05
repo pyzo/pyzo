@@ -3,6 +3,19 @@ import os
 import ctypes
 import sys
 import string
+import os.path as op
+
+
+def cleanpath(p):
+    return op.normpath(op.expanduser(op.expandvars(p)))
+
+def isdir(p):
+    # Add os.sep, because trailing spaces seem to be ignored on Windows
+    return op.isdir(p + op.sep)
+
+def ext(p):
+    return os.path.splitext(p)[1]
+
 
 # todo: also include available remote file systems
 def getMounts():
@@ -11,7 +24,7 @@ def getMounts():
     elif sys.platform.startswith('darwin'):
         return '/'
     elif sys.platform.startswith('linux'):
-        return ['/'] + [os.path.join('/media', e) for e in os.listdir('/media')]
+        return ['/'] + [op.join('/media', e) for e in os.listdir('/media')]
     else:
         return '/'
 

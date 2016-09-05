@@ -22,7 +22,7 @@ The config consists of three fields:
   * list expandedDirs, with each element a directory 
   * list starredDirs, with each element a dict with fields:
       * str path, the directory that is starred
-      * str name, the name of the project (path.basename by default)
+      * str name, the name of the project (op.basename(path) by default)
       * bool addToPythonpath
   * searchMatchCase, searchRegExp, searchSubDirs
   * nameFilter
@@ -39,17 +39,15 @@ The config consists of three fields:
   
 """
 
-import os
 import sys
+import os.path as op
 
 from pyzolib import ssdf
-from pyzolib.path import Path
-
 from pyzolib.qt import QtCore, QtGui
+
 import pyzo
-
 from .browser import Browser
-
+from .utils import cleanpath, isdir
 
 
 class PyzoFileBrowser(QtGui.QWidget):
@@ -73,21 +71,21 @@ class PyzoFileBrowser(QtGui.QWidget):
                 self.config[name] = []
         
         # Ensure path in config
-        if 'path' not in self.config or not os.path.isdir(self.config.path):
-            self.config.path = os.path.expanduser('~')
+        if 'path' not in self.config or not isdir(self.config.path):
+            self.config.path = op.expanduser('~')
         
         # Check expandedDirs and starredDirs. 
-        # Make Path instances and remove invalid dirs. Also normalize case, 
+        # Make path objects and remove invalid dirs. Also normalize case, 
         # should not be necessary, but maybe the config was manually edited.
         expandedDirs, starredDirs = [], []
         for d in self.config.starredDirs:
             if 'path' in d and 'name' in d and 'addToPythonpath' in d:
-                if os.path.isdir(d.path):
-                    d.path = Path(d.path).normcase()
+                if isdir(d.path):
+                    d.path = op.normcase(cleanpath(d.path))
                     starredDirs.append(d)
         for p in set([str(p) for p in self.config.expandedDirs]):
-            if os.path.isdir(p):
-                p = Path(p).normcase()
+            if isdir(p):
+                p = op.normcase(cleanpath(p))
                 # Add if it is a subdir of a starred dir
                 for d in starredDirs:
                     if p.startswith(d.path):
@@ -133,7 +131,7 @@ class PyzoFileBrowser(QtGui.QWidget):
         # Select its path
         path = browser._tree.path()
         # Return
-        if os.path.isabs(path) and os.path.isdir(path):
+        if op.isabs(path) and isdir(path):
             return path
     
     

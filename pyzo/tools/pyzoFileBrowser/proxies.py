@@ -13,12 +13,13 @@ will make Pyzo truly powerful for use in remote computing.
 
 """
 
-from . import QtCore, QtGui
-
 import time
 import threading
 from queue import Queue, Empty
+import os.path as op
 
+from . import QtCore, QtGui
+from .utils import isdir
 
 class Task:
     """ Task(**params)
@@ -408,25 +409,25 @@ class NativeFSProxy(BaseFSProxy):
     """
     
     def listDirs(self, path):
-        if os.path.isdir(path):
-            pp = [os.path.join(path, p) for p in os.listdir(path)]
-            return [str(p) for p in pp if os.path.isdir(p)]
+        if isdir(path):
+            pp = [op.join(path, p) for p in os.listdir(path)]
+            return [str(p) for p in pp if isdir(p)]
     
     def listFiles(self, path):
-        if os.path.isdir(path):
-            pp = [os.path.join(path, p) for p in os.listdir(path)]
-            return [str(p) for p in pp if os.path.isfile(p)]
+        if isdir(path):
+            pp = [op.join(path, p) for p in os.listdir(path)]
+            return [str(p) for p in pp if op.isfile(p)]
     
     def modified(self, path):
-        if os.path.isfile(path):
-            return os.path.getmtime(path)
+        if op.isfile(path):
+            return op.getmtime(path)
     
     def fileSize(self, path):
-        if os.path.isfile(path):
-            return os.path.getsize(path)
+        if op.isfile(path):
+            return op.getsize(path)
     
     def read(self, path):
-        if os.path.isfile(path):
+        if op.isfile(path):
             return open(path, 'rb').read()
     
     def write(self, path, bb):
@@ -437,11 +438,11 @@ class NativeFSProxy(BaseFSProxy):
         os.rename(path1, path2)
     
     def remove(self, path):
-        if os.path.isfile(path):
+        if op.isfile(path):
             os.remove(path)
-        elif os.path.isdir(path):
+        elif isdir(path):
             os.rmdir(path)
     
     def createDir(self, path):
-        if not os.path.isdir(path):
+        if not isdir(path):
             os.makedirs(path)
