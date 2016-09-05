@@ -60,6 +60,7 @@ elif pyzolib.__version__ < '0.2.9':
 
 # Import yoton as an absolute package
 from pyzo import yotonloader
+from pyzo.util import paths
 
 # If there already is an instance of Pyzo, and the user is trying an
 # Pyzo command, we should send the command to the other process and quit.
@@ -78,7 +79,7 @@ else:
         print('Our command server is *not* running')
 
 
-from pyzolib import ssdf, paths
+from pyzolib import ssdf
 from pyzolib.qt import QtCore, QtGui
 
 # Import language/translation tools

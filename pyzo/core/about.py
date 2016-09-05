@@ -3,11 +3,10 @@ import os
 import sys
 
 import pyzolib
-from pyzolib import paths
 from pyzolib.qt import QtCore, QtGui
 
 import pyzo
-
+from pyzo.util import paths
 
 
 class AboutDialog(QtGui.QDialog):

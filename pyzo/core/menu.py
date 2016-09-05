@@ -15,8 +15,7 @@ shortcuts.
 import os, sys, re, time
 import unicodedata
 import datetime
-
-from pyzolib import paths
+import webbrowser
 
 from pyzolib.qt import QtCore, QtGui
 
@@ -24,9 +23,8 @@ import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.pyzoLogging import print
 from pyzo.core.assistant import PyzoAssistant
-import webbrowser
+from pyzo.util import paths
 from pyzo import translate
-
 
 
 def buildMenus(menuBar):

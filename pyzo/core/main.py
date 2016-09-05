@@ -15,13 +15,14 @@ function which is also defined here.
 import os, sys, time
 import base64
 from queue import Queue, Empty
-from pyzolib import ssdf, paths
+from pyzolib import ssdf
 
 import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
 from pyzolib.qt import QtCore, QtGui
 from pyzo.core.splash import SplashWidget
+from pyzo.util import paths
 
 
 class MainWindow(QtGui.QMainWindow):
