@@ -89,9 +89,6 @@ else:
     excludes.extend(PyQtModules)
     includes = PySideModules
 
-# # For Pyzolib dependencies
-includes.extend(['pyzolib.paths', 'pyzolib.path', 'pyzolib.ssdf', 'pyzolib.interpreters'])
-
 ## Freeze
 
 # Clear first
@@ -246,7 +243,7 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 
 
 # Set search path of dynamic libraries
-from pyzolib import dllutils
+import dllutils
 if sys.platform.startswith('linux'):
     # Exe
     dllutils.set_search_path(os.path.join(distDir, 'pyzo'), '', 'lib')
@@ -280,8 +277,8 @@ if sys.platform.startswith('linux'):
     # QApplication.setLibraryPaths([]), it does not replace it.
     # See issue 138 and issue 198.
     with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
-        import pyzolib.qt
-        file.write(pyzolib.qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
+        from pyzo.util import qt
+        file.write(qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
         #file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
     
     # Write about experimental feature
@@ -357,8 +354,8 @@ if applicationBundle:
     
     #Write qt.conf in the Resources dir
     with open(os.path.join(resourcesDir, 'qt.conf'), 'wb') as file:
-        import pyzolib.qt
-        file.write(pyzolib.qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
+        from pyzo.util import qt
+        file.write(qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
     
     #Copy the Info.plist file
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
