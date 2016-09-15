@@ -306,7 +306,7 @@ class Installer(QtGui.QDialog):
         
         packages = ['numpy', 'scipy', 'pandas', 'matplotlib', 'sympy',
                     #'scikit-image', 'scikit-learn', 
-                    'visvis', 'pyopengl', 'imageio',
+                    'pyopengl', # 'visvis', 'imageio',
                     'tornado', 'pyqt', #'ipython', 'jupyter',
                     #'requests', 'pygments','pytest', 
                     ]
