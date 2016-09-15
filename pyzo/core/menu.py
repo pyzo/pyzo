@@ -1214,6 +1214,8 @@ class EditorTabContextMenu(Menu):
             icons.page_delete_all, self._fileAction, "close_all")
         self.addItem(translate("menu", "Rename ::: Rename this file."),
             None, self._fileAction, "rename")
+        self.addItem(translate("menu", "Copy path ::: Copy the full path of this file."),
+            None, self._fileAction, "copypath")
         
         self.addSeparator()
         # todo: remove feature to pin files?
@@ -1253,6 +1255,9 @@ class EditorTabContextMenu(Menu):
                     os.remove(filename)
                 except Exception:
                     pass
+        elif action == 'copypath':
+            filename = item.filename
+            QtGui.qApp.clipboard().setText(filename)
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":
