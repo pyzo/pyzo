@@ -209,6 +209,15 @@ class CompactTabBar(QtGui.QTabBar):
             self.tabDoubleClicked.emit(i)
     
     
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.MiddleButton:
+            i = self.tabAt(event.pos())
+            if i >= 0:
+                self.parent().tabCloseRequested.emit(i)
+                return
+        super().mousePressEvent(event)
+    
+    
     def setTabData(self, i, data):
         """ setTabData(i, data)
         
