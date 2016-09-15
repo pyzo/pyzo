@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="nl_NL" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.0" language="nl_NL">
 <context>
     <name>debug</name>
     <message>
         <location filename="../../core/shellStack.py" line="504"/>
         <source>Stack</source>
+        <translatorcomment>Stack</translatorcomment>
         <translation>Stack</translation>
     </message>
 </context>
@@ -13,12 +15,12 @@
     <message>
         <location filename="../../core/editorTabs.py" line="1079"/>
         <source>Select one or more files to open</source>
-        <translation type="unfinished"></translation>
+        <translation>Selecteer een of meer bestanden om te openen</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1256"/>
         <source>Select the file to save to</source>
-        <translation type="unfinished"></translation>
+        <translation>Selecteer het bestand om de code in op te slaan</translation>
     </message>
 </context>
 <context>
@@ -171,12 +173,12 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="815"/>
         <source>Open outside Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>Open buiten Pyzo</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="805"/>
         <source>Run Jupyter notebook</source>
-        <translation type="unfinished"></translation>
+        <translation>Voer uit in de Jupyter notebook</translation>
     </message>
 </context>
 <context>
@@ -675,98 +677,98 @@
     <message>
         <location filename="../../core/menu.py" line="499"/>
         <source>Restart Pyzo ::: Restart the application.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo herstarten</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="501"/>
         <source>Quit Pyzo ::: Close the application.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo afsluiten</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1010"/>
         <source>Create new Python environment... ::: Install miniconda.</source>
-        <translation type="unfinished"></translation>
+        <translation>Creeer een nieuwe Python omgeving ::: Installeer miniconda</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1304"/>
         <source>Help on running code ::: Open the pyzo wizard at the page about running code.</source>
-        <translation type="unfinished"></translation>
+        <translation>Help over het uitvoeren van code</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1567"/>
         <source>Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?</source>
-        <translation type="unfinished"></translation>
+        <translation>Rapporteer een probleem</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1578"/>
         <source>About Pyzo ::: More information about Pyzo.</source>
-        <translation type="unfinished"></translation>
+        <translation>Over Pyzo</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1648"/>
         <source>Select language ::: The language used by Pyzo.</source>
-        <translation type="unfinished"></translation>
+        <translation>Selecteer taal</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1669"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geavanceerde instellingen</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1556"/>
         <source>Pyzo website ::: Open the Pyzo website in your browser.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo&apos;s website</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1558"/>
         <source>Pyzo guide ::: Open the Pyzo guide in your browser.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo&apos;s instructies</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1569"/>
         <source>Local documentation ::: Documentation on Python and the Scipy Stack.</source>
-        <translation type="unfinished"></translation>
+        <translation>Locale documentatie</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="762"/>
         <source>Highlight brackets ::: Highlight matched and unmatched brackets.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geef corresponderende haken aan</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1330"/>
         <source>There is no main file selected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is geen main bestand geselecteerd</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1485"/>
         <source> (as script)</source>
-        <translation type="unfinished"></translation>
+        <translation>(als script)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1511"/>
         <source>Could not save the file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Can het bestand niet opslaan</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1513"/>
         <source>Can only run scripts that are in the file system.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kan alleen bestanden uitvoeren die op het bestandssysteem staan</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1560"/>
         <source>Pyzo wizard ::: Get started quickly.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo&apos;s wizard</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1693"/>
         <source>
         More settings are available via the logger-tool:
-        <byte value="xd"/><byte value="xd"/>
+        
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
         Note that most settings require a restart for the change to
         take effect.
         </source>
@@ -821,12 +823,12 @@
         The language has been changed. 
         Pyzo needs to restart for the change to take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>De taal is gewijzigd. Pyzo moet herstarten om de verandering toe te passen.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="891"/>
         <source>Could not run notebook</source>
-        <translation type="unfinished"></translation>
+        <translation>Kan niet uitvoeren in de notebook</translation>
     </message>
 </context>
 <context>
@@ -1137,7 +1139,7 @@ normaal uitvoeren van een script in Python.</translation>
     <message>
         <location filename="../../util/pyzowizard.py" line="40"/>
         <source>Getting started with Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>Wegwijs worden met Pyzo</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="165"/>
