@@ -102,6 +102,7 @@ shortcuts2 = dict:
     run__execute_selection = 'Alt+Return,F9'
     run__execute_cell = 'Ctrl+Return,Ctrl+Enter'
     run__execute_cell_and_advance = 'Ctrl+Shift+Return,Ctrl+Shift+Enter'
+    run__execute_selection_and_advance = 'Shift+F9,Shift+Alt+Return'
     run__execute_file = 'Ctrl+E,F5'
     run__execute_main_file = 'Ctrl+M,F6'
     shell__clear_screen = 'Ctrl+L,'
