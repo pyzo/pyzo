@@ -73,7 +73,7 @@ else:
 
 
 from pyzo.util import zon as ssdf  # zon is ssdf-light
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 # Import language/translation tools
 from pyzo.util._locale import translate, setLanguage
@@ -84,7 +84,7 @@ _is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR')
 os.environ['PYZO_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
 
 
-class MyApp(QtGui.QApplication):
+class MyApp(QtWidgets.QApplication):
     """ So we an open .py files on OSX.
     OSX is smart enough to call this on the existing process.
     """
@@ -98,10 +98,10 @@ class MyApp(QtGui.QApplication):
                 if not commandline.is_our_server_running():
                     print(res)
                     sys.exit()
-        return QtGui.QApplication.event(self, event)
+        return QtWidgets.QApplication.event(self, event)
 
 if not sys.platform.startswith('darwin'):
-    MyApp = QtGui.QApplication
+    MyApp = QtWidgets.QApplication
 
 ## Define some functions
 
@@ -224,10 +224,10 @@ def start():
             pass
 
     # Set to be aware of the systems native colors, fonts, etc.
-    QtGui.QApplication.setDesktopSettingsAware(True)
+    QtWidgets.QApplication.setDesktopSettingsAware(True)
 
     # Instantiate the application
-    QtGui.qApp = MyApp(sys.argv)  # QtGui.QApplication([])
+    QtWidgets.qApp = MyApp(sys.argv)  # QtWidgets.QApplication([])
 
     # Choose language, get locale
     appLocale = setLanguage(config.settings.language)
@@ -236,7 +236,7 @@ def start():
     frame = MainWindow(None, appLocale)
 
     # Enter the main loop
-    QtGui.qApp.exec_()
+    QtWidgets.qApp.exec_()
 
 
 ## Init

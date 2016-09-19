@@ -7,7 +7,7 @@
 
 import sys, os, time, re
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 import pyzo 
 
 tool_name = "Interactive help"
@@ -49,34 +49,34 @@ and when double clicking on a name.
 """
 
 
-class PyzoInteractiveHelp(QtGui.QWidget):
+class PyzoInteractiveHelp(QtWidgets.QWidget):
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         
         # Create text field, checkbox, and button
-        self._text = QtGui.QLineEdit(self)
-        self._printBut = QtGui.QPushButton("Print", self)
+        self._text = QtWidgets.QLineEdit(self)
+        self._printBut = QtWidgets.QPushButton("Print", self)
         
         # Create options button
-        self._options = QtGui.QToolButton(self)
+        self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.wrench)
         self._options.setIconSize(QtCore.QSize(16,16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         
         # Create options menu
-        self._options._menu = QtGui.QMenu()
+        self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
         
         # Create browser
-        self._browser = QtGui.QTextBrowser(self)        
+        self._browser = QtWidgets.QTextBrowser(self)        
         self._browser_text = initText
         
         # Create two sizers
-        self._sizer1 = QtGui.QVBoxLayout(self)
-        self._sizer2 = QtGui.QHBoxLayout()
+        self._sizer1 = QtWidgets.QVBoxLayout(self)
+        self._sizer2 = QtWidgets.QHBoxLayout()
         
         # Put the elements together
         self._sizer2.addWidget(self._text, 4)

@@ -15,7 +15,7 @@ import os.path as op
 
 import pyzo
 from pyzo import translate
-from . import QtCore, QtGui
+from . import QtCore, QtGui, QtWidgets
 
 from . import tasks
 from .utils import hasHiddenAttribute, getMounts, cleanpath, isdir, ext
@@ -26,7 +26,7 @@ MOUNTS = 'drives'
 
 
 # Create icon provider
-iconprovider = QtGui.QFileIconProvider()
+iconprovider = QtWidgets.QFileIconProvider()
 
 
 def addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(0,0)):
@@ -186,13 +186,13 @@ def createItemsFun(browser, parent):
 
 
 
-class BrowserItem(QtGui.QTreeWidgetItem):
+class BrowserItem(QtWidgets.QTreeWidgetItem):
     """ Abstract item in the tree widget.
     """
     
     def __init__(self, parent, pathProxy, *args):
         self._proxy = pathProxy
-        QtGui.QTreeWidgetItem.__init__(self, parent, [], *args)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, [], *args)
         # Set pathname to show, and icon
         strippedParentPath = parent.path().rstrip('/\\')
         if self.path().startswith(strippedParentPath):
@@ -212,7 +212,7 @@ class BrowserItem(QtGui.QTreeWidgetItem):
     
     def _createDummyItem(self, txt):
         ErrorItem(self, txt)
-        #QtGui.QTreeWidgetItem(self, [txt])
+        #QtWidgets.QTreeWidgetItem(self, [txt])
     
     def onDestroyed(self):
         self._proxy.cancel()
@@ -407,7 +407,7 @@ class FileItem(BrowserItem):
 #                 tree = self.treeWidget()
 #                 pos = tree.mapFromGlobal(QtGui.QCursor.pos())
 #                 if tree.itemAt(pos) is self:
-#                     QtGui.QToolTip.showText(QtGui.QCursor.pos(), result)
+#                     QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), result)
         elif isinstance(task, tasks.PeekTask):
             result = task.result()
             #self.clear()  # Cleared when docstring task result is received
@@ -421,11 +421,11 @@ class FileItem(BrowserItem):
 
 
 
-class SubFileItem(QtGui.QTreeWidgetItem):
+class SubFileItem(QtWidgets.QTreeWidgetItem):
     """ Tree widget item for search items.
     """
     def __init__(self, parent, linenr, text, showlinenr=False):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
         self._linenr = linenr
         if showlinenr:
             self.setText(0, 'Line %i: %s' % (linenr, text))
@@ -448,12 +448,12 @@ class SubFileItem(QtGui.QTreeWidgetItem):
 
 
 
-class DocstringItem(QtGui.QTreeWidgetItem):
+class DocstringItem(QtWidgets.QTreeWidgetItem):
     """ Tree widget item for docstring placeholder items.
     """
     
     def __init__(self, parent, docstring):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
         self._docstring = docstring
         # Get one-line version of docstring
         shortText = self._docstring.split('\n',1)[0].strip()
@@ -471,15 +471,15 @@ class DocstringItem(QtGui.QTreeWidgetItem):
         tree = self.treeWidget()
         pos = tree.mapFromGlobal(QtGui.QCursor.pos())
         if tree.itemAt(pos) is self:
-            QtGui.QToolTip.showText(QtGui.QCursor.pos(), self._docstring)
+            QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), self._docstring)
 
 
 
-class ErrorItem(QtGui.QTreeWidgetItem):
+class ErrorItem(QtWidgets.QTreeWidgetItem):
     """ Tree widget item for errors and information.
     """
     def __init__(self, parent, info):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
         self.setText(0, info)
         self.setFlags(QtCore.Qt.NoItemFlags)
         font = self.font(0)
@@ -575,7 +575,7 @@ class TemporaryFileItem:
 
 
 
-class Tree(QtGui.QTreeWidget):
+class Tree(QtWidgets.QTreeWidget):
     """ Representation of the tree view.
     Instances of this class are responsible for keeping the contents
     up-to-date. The Item classes above are dumb objects.
@@ -584,7 +584,7 @@ class Tree(QtGui.QTreeWidget):
     dirChanged = QtCore.Signal(str) # Emitted when user goes into a subdir
     
     def __init__(self, parent):
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         
         # Initialize
         self.setMinimumWidth(150)
@@ -678,7 +678,7 @@ class Tree(QtGui.QTreeWidget):
                 item.clear()
             if hasattr(item, 'onDestroyed'):
                 item.onDestroyed()
-        QtGui.QTreeWidget.clear(self)
+        QtWidgets.QTreeWidget.clear(self)
     
     
     def mouseDoubleClickEvent(self, event):
@@ -707,7 +707,7 @@ class Tree(QtGui.QTreeWidget):
         parent.clear()
         # Create sub items
         count = createItemsFun(self.parent(), parent)
-        if not count and isinstance(parent, QtGui.QTreeWidgetItem):
+        if not count and isinstance(parent, QtWidgets.QTreeWidgetItem):
             ErrorItem(parent, 'Empty directory')
         # Restore state
         self._restoreSelectionState()
@@ -865,7 +865,7 @@ class PopupMenu(pyzo.core.menu.Menu):
         subprocess.call(('open', '-R', self._item.path()))
     
     def _copyPath(self):
-        QtGui.qApp.clipboard().setText(self._item.path())
+        QtWidgets.qApp.clipboard().setText(self._item.path())
     
     def _runAsScript(self):
         filename = self._item.path()
@@ -874,7 +874,7 @@ class PopupMenu(pyzo.core.menu.Menu):
             shell.restart(filename)
         else:
             msg = "No shell to run code in. "
-            m = QtGui.QMessageBox(self)
+            m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run"))
             m.setText("Could not run " + filename + ":\n\n" + msg)
             m.setIcon(m.Warning)
@@ -887,7 +887,7 @@ class PopupMenu(pyzo.core.menu.Menu):
             shell.restart(filename)
         else:
             msg = "No shell to run notebook in. "
-            m = QtGui.QMessageBox(self)
+            m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run notebook"))
             m.setText("Could not run " + filename + ":\n\n" + msg)
             m.setIcon(m.Warning)
@@ -922,9 +922,9 @@ class PopupMenu(pyzo.core.menu.Menu):
             label = translate("filebrowser", "Give the name for the new directory")
         
         # Ask for new filename
-        s = QtGui.QInputDialog.getText(self.parent(), title,
+        s = QtWidgets.QInputDialog.getText(self.parent(), title,
                     label + ':\n%s' % self._item.path(),
-                    QtGui.QLineEdit.Normal,
+                    QtWidgets.QLineEdit.Normal,
                     'new name'
                 )
         if isinstance(s, tuple):
@@ -952,9 +952,9 @@ class PopupMenu(pyzo.core.menu.Menu):
             filename = 'Copy of ' + filename
         
         # Ask for new filename
-        s = QtGui.QInputDialog.getText(self.parent(), title,
+        s = QtWidgets.QInputDialog.getText(self.parent(), title,
                     label + ':\n%s' % self._item.path(),
-                    QtGui.QLineEdit.Normal,
+                    QtWidgets.QLineEdit.Normal,
                     filename
                 )
         if isinstance(s, tuple):
@@ -969,12 +969,12 @@ class PopupMenu(pyzo.core.menu.Menu):
     
     def onDelete(self):
         # Ask for new filename
-        b = QtGui.QMessageBox.question(self.parent(), 
+        b = QtWidgets.QMessageBox.question(self.parent(), 
                     translate("filebrowser", "Delete"), 
                     translate("filebrowser", "Are you sure that you want to delete") + 
                     ':\n%s' % self._item.path(),
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.Cancel,
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel,
                 )       
         # Push delete task
-        if b is QtGui.QMessageBox.Yes:            
+        if b is QtWidgets.QMessageBox.Yes:            
             self._item._proxy.pushTask(tasks.RemoveTask())

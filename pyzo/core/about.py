@@ -2,43 +2,43 @@
 import os
 import sys
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.util import paths
 
 
-class AboutDialog(QtGui.QDialog):
+class AboutDialog(QtWidgets.QDialog):
     def __init__(self, parent):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle(pyzo.translate("menu dialog", "About Pyzo"))
         self.resize(600,500)
         
         # Layout
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(layout)
         
         # Create image and title
         im = QtGui.QPixmap( os.path.join(pyzo.pyzoDir, 
                             'resources', 'appicons', 'pyzologo64.png') )
-        imlabel = QtGui.QLabel(self)
+        imlabel = QtWidgets.QLabel(self)
         imlabel.setPixmap(im)
-        textlabel = QtGui.QLabel(self)
+        textlabel = QtWidgets.QLabel(self)
         textlabel.setText('<h3>Pyzo: the Interactive Editor for Python</h3>')
         #
-        titleLayout = QtGui.QHBoxLayout()
+        titleLayout = QtWidgets.QHBoxLayout()
         titleLayout.addWidget(imlabel, 0)
         titleLayout.addWidget(textlabel, 1)
         #
         layout.addLayout(titleLayout, 0)
         
         # Create tab bar
-        self._tabs = QtGui.QTabWidget(self)
+        self._tabs = QtWidgets.QTabWidget(self)
         self._tabs.setDocumentMode(True)
         layout.addWidget(self._tabs, 1)
         
         # Create button box
-        self._butBox = QtGui.QDialogButtonBox(self)
+        self._butBox = QtWidgets.QDialogButtonBox(self)
         self._butBox.setOrientation(QtCore.Qt.Horizontal)
         self._butBox.setStandardButtons(self._butBox.Close)
         layout.addWidget(self._butBox, 0)
@@ -53,7 +53,7 @@ class AboutDialog(QtGui.QDialog):
 
     def addTab(self, title, text, rich=True):
         # Create label to show info
-        label = QtGui.QTextEdit(self)
+        label = QtWidgets.QTextEdit(self)
         label.setLineWrapMode(label.WidgetWidth)
         label.setReadOnly(True)
         # Set text

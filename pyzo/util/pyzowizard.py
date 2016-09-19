@@ -14,7 +14,7 @@ import os
 import re
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 from pyzo.util._locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage
@@ -30,10 +30,10 @@ def retranslate(t):
 
 
 
-class PyzoWizard(QtGui.QWizard):
+class PyzoWizard(QtWidgets.QWizard):
     
     def __init__(self, parent):
-        QtGui.QWizard.__init__(self, parent)
+        QtWidgets.QWizard.__init__(self, parent)
         
         # Set some appearance stuff
         self.setMinimumSize(600, 500)
@@ -64,7 +64,7 @@ class PyzoWizard(QtGui.QWizard):
         that page. startPage can be an integer or a string that matches
         the classname of a page.
         """ 
-        QtGui.QWizard.show(self)
+        QtWidgets.QWizard.show(self)
         
         # Check startpage        
         if isinstance(startPage, int):
@@ -88,7 +88,7 @@ class PyzoWizard(QtGui.QWizard):
                 self.next()
 
 
-class BasePyzoWizardPage(QtGui.QWizardPage):
+class BasePyzoWizardPage(QtWidgets.QWizardPage):
     
     _prefix = translate('wizard', 'Step')
     
@@ -97,16 +97,16 @@ class BasePyzoWizardPage(QtGui.QWizardPage):
     _image_filename = ''
     
     def __init__(self, parent, i):
-        QtGui.QWizardPage.__init__(self, parent)
+        QtWidgets.QWizardPage.__init__(self, parent)
         self._i = i
         
         # Create label for description
-        self._text_label = QtGui.QLabel(self)
+        self._text_label = QtWidgets.QLabel(self)
         self._text_label.setTextFormat(QtCore.Qt.RichText)
         self._text_label.setWordWrap(True)
         
         # Create label for image
-        self._comicLabel = QtGui.QLabel(self)        
+        self._comicLabel = QtWidgets.QLabel(self)        
         pm = QtGui.QPixmap()
         if 'logo' in self._image_filename:
             pm.load(os.path.join(pyzo.pyzoDir, 'resources', 'appicons', self._image_filename))
@@ -116,7 +116,7 @@ class BasePyzoWizardPage(QtGui.QWizardPage):
         self._comicLabel.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         
         # Layout
-        theLayout = QtGui.QVBoxLayout(self)
+        theLayout = QtWidgets.QVBoxLayout(self)
         self.setLayout(theLayout)
         #
         theLayout.addWidget(self._text_label)
@@ -174,14 +174,14 @@ class IntroWizardPage(BasePyzoWizardPage):
         # Create label and checkbox
         t1 = translate('wizard', "This wizard can be opened using 'Help > Pyzo wizard'")
         t2 = translate('wizard', "Show this wizard on startup")
-        self._label_info = QtGui.QLabel(t1, self)
-        #self._check_show = QtGui.QCheckBox(t2, self)
+        self._label_info = QtWidgets.QLabel(t1, self)
+        #self._check_show = QtWidgets.QCheckBox(t2, self)
         #self._check_show.stateChanged.connect(self._setNewUser)
         
         # Create language switcher
-        self._langLabel = QtGui.QLabel(translate('wizard', "Select language"), self)
+        self._langLabel = QtWidgets.QLabel(translate('wizard', "Select language"), self)
         #
-        self._langBox = QtGui.QComboBox(self)
+        self._langBox = QtWidgets.QComboBox(self)
         self._langBox.setEditable(False)
         # Fill
         index, theIndex = -1, -1
@@ -202,7 +202,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         #    self._check_show.setCheckState(QtCore.Qt.Checked)
         
         # Create sublayout
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self._langLabel, 0)
         layout.addWidget(self._langBox, 0)
         layout.addStretch(2)
@@ -230,7 +230,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         The language has been changed for this wizard.
         Pyzo needs to restart for the change to take effect application-wide.
         """)
-        m = QtGui.QMessageBox(self)
+        m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("wizard", "Language changed"))
         m.setText(text)
         m.setIcon(m.Information)

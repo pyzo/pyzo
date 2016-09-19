@@ -15,7 +15,7 @@ History class, which is a Qt model, and the PyzoHistoryViewer, which is a Qt vie
 import sys, os, time, re
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 from pyzo.core.menu import Menu
 
@@ -24,7 +24,7 @@ tool_summary = "Shows the last used commands."
 
 
 
-class HistoryViewer(QtGui.QListView):
+class HistoryViewer(QtWidgets.QListView):
     """
     The history viewer has several ways of using the data stored in the history:
      - double click a single item to execute in the current shell
@@ -64,7 +64,7 @@ class HistoryViewer(QtGui.QListView):
         
     def copy(self, event = None):
         text = self.model().plainText(self.selectedIndexes())
-        QtGui.qApp.clipboard().setText(text)
+        QtWidgets.qApp.clipboard().setText(text)
         
     def _onCustomContextMenuRequested(self, pos):
         self._menu.popup(self.viewport().mapToGlobal(pos))
@@ -79,7 +79,7 @@ class HistoryViewer(QtGui.QListView):
         
     def setModel(self, model):
         """
-        As QtGui.QListView.setModel, but connects appropriate signals
+        As QtWidgets.QListView.setModel, but connects appropriate signals
         """
         if self.model() is not None:
             self.model().rowsInserted.disconnect(self.scrollToBottom)
@@ -98,7 +98,7 @@ class PyzoHistoryViewer(HistoryViewer):
         self.setModel(pyzo.shells.sharedHistory)
         
 
-class History(QtGui.QStringListModel):
+class History(QtWidgets.QStringListModel):
     markerPrefix = None # Text to prepend to the marker, or None for no marker
     maxLines = 100 # Only enforced upon loading
     def __init__(self, fname):

@@ -14,7 +14,7 @@ import subprocess
 import urllib.request
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 base_url = 'http://repo.continuum.io/miniconda/'
@@ -71,9 +71,9 @@ def check_for_conda_env(parent=None):
     d.exec_()
 
 
-class AskToInstallConda(QtGui.QDialog):
+class AskToInstallConda(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle('Install a conda env?')
         self.setModal(True)
         
@@ -85,15 +85,15 @@ class AskToInstallConda(QtGui.QDialog):
         text += '.'
         text += '\n(You can always launch the installer from the shell menu.)'
         
-        self._label = QtGui.QLabel(text, self)
-        self._no = QtGui.QPushButton("No thanks (dont ask again)")
-        self._yes = QtGui.QPushButton("Yes, please install Python!")
+        self._label = QtWidgets.QLabel(text, self)
+        self._no = QtWidgets.QPushButton("No thanks (dont ask again)")
+        self._yes = QtWidgets.QPushButton("Yes, please install Python!")
         
         self._no.clicked.connect(self.reject)
         self._yes.clicked.connect(self.accept)
         
-        vbox = QtGui.QVBoxLayout(self)
-        hbox = QtGui.QHBoxLayout()
+        vbox = QtWidgets.QVBoxLayout(self)
+        hbox = QtWidgets.QHBoxLayout()
         self.setLayout(vbox)
         vbox.addWidget(self._label, 1)
         vbox.addLayout(hbox, 0)
@@ -103,32 +103,32 @@ class AskToInstallConda(QtGui.QDialog):
         self._yes.setDefault(1)
 
 
-class Installer(QtGui.QDialog):
+class Installer(QtWidgets.QDialog):
     
     lineFromStdOut = QtCore.Signal(str)
     
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle('Install miniconda')
         self.setModal(True)
         self.resize(500, 500)
         
         text = translate('bootstrapconda', 'This will download and install miniconda on your computer.')
         
-        self._label = QtGui.QLabel(text, self)
+        self._label = QtWidgets.QLabel(text, self)
         
-        self._scipystack = QtGui.QCheckBox(translate('bootstrapconda', 'Also install scientific packages', self))
+        self._scipystack = QtWidgets.QCheckBox(translate('bootstrapconda', 'Also install scientific packages', self))
         self._scipystack.setChecked(True)
-        self._path = QtGui.QLineEdit(default_conda_dir, self)
-        self._progress = QtGui.QProgressBar(self)
-        self._outputLine = QtGui.QLabel(self)
-        self._output = QtGui.QPlainTextEdit(self)
+        self._path = QtWidgets.QLineEdit(default_conda_dir, self)
+        self._progress = QtWidgets.QProgressBar(self)
+        self._outputLine = QtWidgets.QLabel(self)
+        self._output = QtWidgets.QPlainTextEdit(self)
         self._output.setReadOnly(True)
-        self._button = QtGui.QPushButton('Install', self)
+        self._button = QtWidgets.QPushButton('Install', self)
         
-        self._outputLine.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Fixed)
+        self._outputLine.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Fixed)
         
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         self.setLayout(vbox)
         vbox.addWidget(self._label, 0)
         vbox.addWidget(self._path, 0)
@@ -241,7 +241,7 @@ class Installer(QtGui.QDialog):
         etime = time.time() + 0.2
         while time.time() < etime:
             time.sleep(0.01)
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.processEvents()
     
     def download(self):
         
@@ -323,7 +323,7 @@ class Installer(QtGui.QDialog):
         
         while p.poll() is None:
             time.sleep(0.01)
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.processEvents()
         
         catcher.join()
         if p.poll():
@@ -365,7 +365,7 @@ class Installer(QtGui.QDialog):
         for i in range(self._progress.value(), 100, 5):
             time.sleep(0.05)
             self._progress.setValue(i)
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.processEvents()
 
 
 def is_64bit():
@@ -403,7 +403,7 @@ def _chunk_read(response, local_file, chunk_size=1024, initial_size=0, progress=
         progress.setMaximum(total_size)
     
     while True:
-        QtGui.qApp.processEvents()
+        QtWidgets.qApp.processEvents()
         chunk = response.read(chunk_size)
         bytes_so_far += len(chunk)
         if not chunk:

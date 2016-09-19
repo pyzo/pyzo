@@ -24,7 +24,7 @@ import yoton
 
 import pyzo
 from pyzo.util import zon as ssdf  # zon is ssdf-light
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 from pyzo.codeeditor.highlighter import Highlighter
@@ -57,7 +57,7 @@ class YotonEmbedder(QtCore.QObject):
     
     def postYotonEvent(self):
         try:
-            QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+            QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
         except Exception:
             pass # If pyzo is shutting down, the app may be None
     

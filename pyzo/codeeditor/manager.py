@@ -13,7 +13,7 @@ management tasks.
 
 import os, sys
 
-from .qt import QtGui, QtCore
+from .qt import QtGui, QtCore, QtWidgets
 Qt = QtCore.Qt
 
 from . import parsers
@@ -245,7 +245,7 @@ class Manager:
         
         """
         db = QtGui.QFontDatabase()
-        QFont, QFontInfo = QtGui.QFont, QtGui.QFontInfo
+        QFont, QFontInfo = QtWidgets.QFont, QtGui.QFontInfo
         # fn = font_name (str)
         return [fn for fn in db.families() if QFontInfo(QFont(fn)).fixedPitch()]
     

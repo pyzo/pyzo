@@ -5,13 +5,13 @@ import pyzo
 from pyzo import translate
 from pyzo.util import zon as ssdf
 
-from . import QtCore, QtGui
+from . import QtCore, QtGui, QtWidgets
 from . import proxies
 from .tree import Tree
 from .utils import cleanpath, isdir
 
 
-class Browser(QtGui.QWidget):
+class Browser(QtWidgets.QWidget):
     """ A browser consists of an address bar, and tree view, and other
     widets to help browse the file system. The browser object is responsible
     for tying the different browser-components together.
@@ -20,7 +20,7 @@ class Browser(QtGui.QWidget):
     """
     
     def __init__(self, parent, config, path=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         # Store config
         self.config = config
@@ -82,7 +82,7 @@ class Browser(QtGui.QWidget):
             return self._importWizard
     
     def _layout(self):
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0,0,0,0)
         #layout.setSpacing(6)
         self.setLayout(layout)
@@ -91,7 +91,7 @@ class Browser(QtGui.QWidget):
         layout.addWidget(self._pathEdit)
         layout.addWidget(self._tree)
         #
-        subLayout = QtGui.QHBoxLayout()
+        subLayout = QtWidgets.QHBoxLayout()
         subLayout.setSpacing(2)
         subLayout.addWidget(self._nameFilter, 5)
         subLayout.addWidget(self._searchFilter, 5)
@@ -183,12 +183,12 @@ class Browser(QtGui.QWidget):
         return self._projects.currentDict()
 
 
-class LineEditWithToolButtons(QtGui.QLineEdit):
+class LineEditWithToolButtons(QtWidgets.QLineEdit):
     """ Line edit to which tool buttons (with icons) can be attached.
     """
     
     def __init__(self, parent):
-        QtGui.QLineEdit.__init__(self, parent)
+        QtWidgets.QLineEdit.__init__(self, parent)
         self._leftButtons = []
         self._rightButtons = []
     
@@ -200,7 +200,7 @@ class LineEditWithToolButtons(QtGui.QLineEdit):
     
     def _addButton(self, icon, willHaveMenu, L):
         # Create button
-        button = QtGui.QToolButton(self)
+        button = QtWidgets.QToolButton(self)
         L.append(button)
         # Customize appearance
         button.setIcon(icon)
@@ -229,11 +229,11 @@ class LineEditWithToolButtons(QtGui.QLineEdit):
         self._updateGeometry()
     
     def resizeEvent(self, event):
-        QtGui.QLineEdit.resizeEvent(self, event)
+        QtWidgets.QLineEdit.resizeEvent(self, event)
         self._updateGeometry(True)
     
     def showEvent(self, event):
-        QtGui.QLineEdit.showEvent(self, event)
+        QtWidgets.QLineEdit.showEvent(self, event)
         self._updateGeometry()
     
     def _updateGeometry(self, light=False):
@@ -268,7 +268,7 @@ class LineEditWithToolButtons(QtGui.QLineEdit):
         
         # Set minimum size
         if not light:
-            fw = QtGui.qApp.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+            fw = QtWidgets.qApp.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
             msz = self.minimumSizeHint()
             w = max(msz.width(), paddingLeft + paddingRight + 10)
             h = max(msz.height(), height + fw*2 + 2)
@@ -294,12 +294,12 @@ class PathInput(LineEditWithToolButtons):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         
         # Set completion mode
-        self.setCompleter(QtGui.QCompleter())
+        self.setCompleter(QtWidgets.QCompleter())
         c = self.completer()
         c.setCompletionMode(c.InlineCompletion)
         
         # Set dir model to completer
-        dirModel = QtGui.QDirModel(c)
+        dirModel = QtWidgets.QDirModel(c)
         dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
         c.setModel(dirModel)
         
@@ -358,37 +358,37 @@ class PathInput(LineEditWithToolButtons):
         On focusing out, make sure that the set path is correct.
         """
         if event is not None:
-            QtGui.QLineEdit.focusOutEvent(self, event)
+            QtWidgets.QLineEdit.focusOutEvent(self, event)
         
         path = self.parent()._tree.path()
         self.setPath(path)
 
 
 
-class Projects(QtGui.QWidget):
+class Projects(QtWidgets.QWidget):
     
     dirChanged = QtCore.Signal(str) # Emitted when the user changes the project
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         # Init variables
         self._path = ''
         
         # Create combo button
-        self._combo = QtGui.QComboBox(self)
+        self._combo = QtWidgets.QComboBox(self)
         self._combo.setEditable(False)
         self.updateProjectList()
         
         # Create star button
-        self._but = QtGui.QToolButton(self)
+        self._but = QtWidgets.QToolButton(self)
         self._but.setIcon( pyzo.icons.star3 )
         self._but.setStyleSheet("QToolButton { padding: 0px; }");
         self._but.setIconSize(QtCore.QSize(18,18))
         self._but.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self._but.setPopupMode(self._but.InstantPopup)
         #
-        self._menu = QtGui.QMenu(self._but)
+        self._menu = QtWidgets.QMenu(self._but)
         self._menu.triggered.connect(self.onMenuTriggered)
         self.buildMenu()
         
@@ -401,7 +401,7 @@ class Projects(QtGui.QWidget):
         self._combo.activated .connect(self.onProjectSelect)
         
         # Layout
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         self.setLayout(layout)        
         layout.addWidget(self._but)
         layout.addWidget(self._combo)
@@ -495,7 +495,7 @@ class Projects(QtGui.QWidget):
         
         elif action._id == 'name':
             # Open dialog to ask for name
-            name = QtGui.QInputDialog.getText(self.parent(), 
+            name = QtWidgets.QInputDialog.getText(self.parent(), 
                                 translate('filebrowser', 'Project name'),
                                 translate('filebrowser', 'New project name:'),
                                 text=d['name'],
@@ -550,7 +550,7 @@ class NameFilter(LineEditWithToolButtons):
         
         # Create tool button, and attach the menu
         self._menuBut = self.addButtonRight(pyzo.icons['filter'], True)
-        self._menu = QtGui.QMenu(self._menuBut)
+        self._menu = QtWidgets.QMenu(self._menuBut)
         self._menu.triggered.connect(self.onMenuTriggered)
         self._menuBut.setMenu(self._menu)
         #
@@ -574,7 +574,7 @@ class NameFilter(LineEditWithToolButtons):
     def setText(self, value, test=False):
         """ To initialize the name filter.
         """ 
-        QtGui.QLineEdit.setText(self, value)
+        QtWidgets.QLineEdit.setText(self, value)
         if test:
             self.checkFilterValue()
         self._lastValue = value
@@ -602,7 +602,7 @@ class SearchFilter(LineEditWithToolButtons):
         
         # Create tool button, and attach the menu
         self._menuBut = self.addButtonRight(pyzo.icons['magnifier'], True)
-        self._menu = QtGui.QMenu(self._menuBut)
+        self._menu = QtWidgets.QMenu(self._menuBut)
         self._menu.triggered.connect(self.onMenuTriggered)
         self._menuBut.setMenu(self._menu)
         self.buildMenu()
@@ -624,7 +624,7 @@ class SearchFilter(LineEditWithToolButtons):
         """ Clear text or build menu.
         """
         if self.text():
-            QtGui.QLineEdit.clear(self)
+            QtWidgets.QLineEdit.clear(self)
             self.checkFilterValue()
         else:
             self.buildMenu()

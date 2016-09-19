@@ -15,7 +15,7 @@ file loading/saving /reloading stuff.
 import os, sys
 import re, codecs
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 qt = QtGui
 
 from pyzo.codeeditor import Manager
@@ -357,7 +357,7 @@ class PyzoEditor(BaseTextCtrl):
         Momentarily highlight a piece of code to show that this is being executed
         """
         
-        extraSelection = QtGui.QTextEdit.ExtraSelection()
+        extraSelection = QtWidgets.QTextEdit.ExtraSelection()
         extraSelection.cursor = cursor
         extraSelection.format.setBackground(QtCore.Qt.gray)
         self.setExtraSelections([extraSelection])
@@ -401,13 +401,13 @@ class PyzoEditor(BaseTextCtrl):
         if mtime != self._modifyTime:
             
             # ask user
-            dlg = QtGui.QMessageBox(self)
+            dlg = QtWidgets.QMessageBox(self)
             dlg.setWindowTitle('File was changed')
             dlg.setText("File has been modified outside of the editor:\n"+
                         self._filename)
             dlg.setInformativeText("Do you want to reload?")
-            t=dlg.addButton("Reload", QtGui.QMessageBox.AcceptRole) #0
-            dlg.addButton("Keep this version", QtGui.QMessageBox.RejectRole) #1
+            t=dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole) #0
+            dlg.addButton("Keep this version", QtWidgets.QMessageBox.RejectRole) #1
             dlg.setDefaultButton(t)
             
             # whatever the result, we will reset the modified time
@@ -415,7 +415,7 @@ class PyzoEditor(BaseTextCtrl):
             
             # get result and act
             result = dlg.exec_()            
-            if result == QtGui.QMessageBox.AcceptRole:
+            if result == QtWidgets.QMessageBox.AcceptRole:
                 self.reload()
             else:
                 pass # when cancelled or explicitly said, do nothing
@@ -731,15 +731,15 @@ if __name__=="__main__":
         def parseThis(self, x):
             pass
     pyzo.parser = DummyParser()    
-    EditorContextMenu = QtGui.QMenu
-    app = QtGui.QApplication([])
+    EditorContextMenu = QtWidgets.QMenu
+    app = QtWidgets.QApplication([])
     win = PyzoEditor(None)
-    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+C"), win).activated.connect(win.copy)
-    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+X"), win).activated.connect(win.cut)
-    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+V"), win).activated.connect(win.paste)
-    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Shift+V"), win).activated.connect(win.pasteAndSelect)
-    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Z"), win).activated.connect(win.undo)
-    QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Y"), win).activated.connect(win.redo)
+    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+C"), win).activated.connect(win.copy)
+    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), win).activated.connect(win.cut)
+    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+V"), win).activated.connect(win.paste)
+    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Shift+V"), win).activated.connect(win.pasteAndSelect)
+    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Z"), win).activated.connect(win.undo)
+    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Y"), win).activated.connect(win.redo)
     
     
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"

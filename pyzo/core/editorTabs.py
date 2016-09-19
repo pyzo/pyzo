@@ -15,7 +15,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 """
 
 import os, sys, time, gc
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
@@ -49,7 +49,7 @@ def simpleDialog(item, action, question, options, defaultOption):
         filename = item.id()
     
     # create button map
-    mb = QtGui.QMessageBox
+    mb = QtWidgets.QMessageBox
     M = {   'ok':mb.Ok, 'open':mb.Open, 'save':mb.Save, 'cancel':mb.Cancel,
             'close':mb.Close, 'discard':mb.Discard, 'apply':mb.Apply, 
             'reset':mb.Reset, 'restoredefaults':mb.RestoreDefaults, 
@@ -58,7 +58,7 @@ def simpleDialog(item, action, question, options, defaultOption):
             'abort':mb.Abort, 'retry':mb.Retry, 'ignore':mb.Ignore}
     
     # setup dialog
-    dlg = QtGui.QMessageBox(pyzo.main)
+    dlg = QtWidgets.QMessageBox(pyzo.main)
     dlg.setWindowTitle('Pyzo')
     dlg.setText(action + " file:\n{}".format(filename))
     dlg.setInformativeText(question)
@@ -146,27 +146,27 @@ class FileItem:
 
 
 # todo: when this works with the new editor, put in own module.
-class FindReplaceWidget(QtGui.QFrame):
+class FindReplaceWidget(QtWidgets.QFrame):
     """ A widget to find and replace text. """
     
     def __init__(self, *args):
-        QtGui.QFrame.__init__(self, *args)
+        QtWidgets.QFrame.__init__(self, *args)
         
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         
         # init layout
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.setSpacing(0)
         self.setLayout(layout)
         
         # Create some widgets first to realize a correct tab order
-        self._hidebut = QtGui.QToolButton(self)
-        self._findText = QtGui.QLineEdit(self)
-        self._replaceText = QtGui.QLineEdit(self)
+        self._hidebut = QtWidgets.QToolButton(self)
+        self._findText = QtWidgets.QLineEdit(self)
+        self._replaceText = QtWidgets.QLineEdit(self)
         
         if True:
             # Create sub layouts
-            vsubLayout = QtGui.QVBoxLayout()
+            vsubLayout = QtWidgets.QVBoxLayout()
             vsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
             
@@ -184,8 +184,8 @@ class FindReplaceWidget(QtGui.QFrame):
         if True:
             
             # Create sub layouts
-            vsubLayout = QtGui.QVBoxLayout()
-            hsubLayout = QtGui.QHBoxLayout()
+            vsubLayout = QtWidgets.QVBoxLayout()
+            hsubLayout = QtWidgets.QHBoxLayout()
             vsubLayout.setSpacing(0)
             hsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
@@ -197,7 +197,7 @@ class FindReplaceWidget(QtGui.QFrame):
             vsubLayout.addLayout(hsubLayout)
             
             # Add previous button
-            self._findPrev = QtGui.QToolButton(self) 
+            self._findPrev = QtWidgets.QToolButton(self) 
             t = translate('search', 'Previous ::: Find previous occurrence of the pattern.')
             self._findPrev.setText(t);  self._findPrev.setToolTip(t.tt)
             
@@ -206,7 +206,7 @@ class FindReplaceWidget(QtGui.QFrame):
             hsubLayout.addStretch(1)
             
             # Add next button
-            self._findNext = QtGui.QToolButton(self)
+            self._findNext = QtWidgets.QToolButton(self)
             t = translate('search', 'Next ::: Find next occurrence of the pattern.')
             self._findNext.setText(t);  self._findNext.setToolTip(t.tt)
             #self._findNext.setDefault(True) # Not possible with tool buttons
@@ -217,8 +217,8 @@ class FindReplaceWidget(QtGui.QFrame):
         if True:
             
             # Create sub layouts
-            vsubLayout = QtGui.QVBoxLayout()
-            hsubLayout = QtGui.QHBoxLayout()
+            vsubLayout = QtWidgets.QVBoxLayout()
+            hsubLayout = QtWidgets.QHBoxLayout()
             vsubLayout.setSpacing(0)
             hsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
@@ -230,7 +230,7 @@ class FindReplaceWidget(QtGui.QFrame):
             vsubLayout.addLayout(hsubLayout)
             
             # Add replace-all button
-            self._replaceAll = QtGui.QToolButton(self) 
+            self._replaceAll = QtWidgets.QToolButton(self) 
             t = translate('search', 'Repl. all ::: Replace all matches in current document.')
             self._replaceAll.setText(t);  self._replaceAll.setToolTip(t.tt)
             hsubLayout.addWidget(self._replaceAll, 0)
@@ -238,7 +238,7 @@ class FindReplaceWidget(QtGui.QFrame):
             hsubLayout.addStretch(1)
             
             # Add replace button
-            self._replace = QtGui.QToolButton(self)
+            self._replace = QtWidgets.QToolButton(self)
             t = translate('search', 'Replace ::: Replace this match.')
             self._replace.setText(t);  self._replace.setToolTip(t.tt)
             hsubLayout.addWidget(self._replace, 0)
@@ -249,39 +249,39 @@ class FindReplaceWidget(QtGui.QFrame):
         if True:
             
             # Create sub layouts
-            vsubLayout = QtGui.QVBoxLayout()
+            vsubLayout = QtWidgets.QVBoxLayout()
             vsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
             
             # Add match-case checkbox
             t = translate('search', 'Match case ::: Find words that match case.')
-            self._caseCheck = QtGui.QCheckBox(t, self)
+            self._caseCheck = QtWidgets.QCheckBox(t, self)
             self._caseCheck.setToolTip(t.tt)
             vsubLayout.addWidget(self._caseCheck, 0)
             
             # Add regexp checkbox
             t = translate('search', 'RegExp ::: Find using regular expressions.')
-            self._regExp = QtGui.QCheckBox(t, self)
+            self._regExp = QtWidgets.QCheckBox(t, self)
             self._regExp.setToolTip(t.tt)
             vsubLayout.addWidget(self._regExp, 0)
         
         if True:
             
             # Create sub layouts
-            vsubLayout = QtGui.QVBoxLayout()
+            vsubLayout = QtWidgets.QVBoxLayout()
             vsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
             
             # Add whole-word checkbox
             t = translate('search', 'Whole words ::: Find only whole words.')
-            self._wholeWord = QtGui.QCheckBox(t, self)
+            self._wholeWord = QtWidgets.QCheckBox(t, self)
             self._wholeWord.setToolTip(t.tt)
             self._wholeWord.resize(60, 16)
             vsubLayout.addWidget(self._wholeWord, 0)
             
             # Add autohide dropbox
             t = translate('search', 'Auto hide ::: Hide search/replace when unused for 10 s.')
-            self._autoHide = QtGui.QCheckBox(t, self)
+            self._autoHide = QtWidgets.QCheckBox(t, self)
             self._autoHide.setToolTip(t.tt)
             self._autoHide.resize(60, 16)
             vsubLayout.addWidget(self._autoHide, 0)
@@ -377,7 +377,7 @@ class FindReplaceWidget(QtGui.QFrame):
                 event.accept()
                 return True
         # Otherwise ... handle in default manner
-        return QtGui.QFrame.event(self, event)
+        return QtWidgets.QFrame.event(self, event)
         
     
     def handleReplacePossible(self, state):
@@ -588,7 +588,7 @@ class FileTabWidget(CompactTabWidget):
         self._itemHistory = []
         
 #         # Create a corner widget
-#         but = QtGui.QToolButton()
+#         but = QtWidgets.QToolButton()
 #         but.setIcon( pyzo.icons.cross )
 #         but.setIconSize(QtCore.QSize(16,16))
 #         but.clicked.connect(self.onClose)
@@ -793,7 +793,7 @@ class FileTabWidget(CompactTabWidget):
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
         tabBut = EditorTabToolButton(self.tabBar())
-        self.tabBar().setTabButton(i, QtGui.QTabBar.LeftSide, tabBut)
+        self.tabBar().setTabButton(i, QtWidgets.QTabBar.LeftSide, tabBut)
         
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
@@ -863,12 +863,12 @@ class FileTabWidget(CompactTabWidget):
                 nBlocks = 0
             
             # Update appearance of icon
-            but = tabBar.tabButton(i, QtGui.QTabBar.LeftSide)
+            but = tabBar.tabButton(i, QtWidgets.QTabBar.LeftSide)
             but.updateIcon(item.dirty, self._mainFile==item.id, 
                         item.pinned, nBlocks)
 
 
-class EditorTabs(QtGui.QWidget):
+class EditorTabs(QtWidgets.QWidget):
     """ The EditorTabs instance manages the open files and corresponding
     editors. It does the saving loading etc.
     """ 
@@ -884,7 +884,7 @@ class EditorTabs(QtGui.QWidget):
     
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self,parent)
+        QtWidgets.QWidget.__init__(self,parent)
         
         # keep a booking of opened directories
         self._lastpath = ''
@@ -905,7 +905,7 @@ class EditorTabs(QtGui.QWidget):
         self._findReplace = FindReplaceWidget(self)
         
         # create box layout control and add widgets
-        self._boxLayout = QtGui.QVBoxLayout(self)
+        self._boxLayout = QtWidgets.QVBoxLayout(self)
         self._boxLayout.addWidget(self._tabs, 1)
         self._boxLayout.addWidget(self._findReplace, 0)
         # spacing of widgets
@@ -1079,7 +1079,7 @@ class EditorTabs(QtGui.QWidget):
         #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*)"
         if True:
-            filenames = QtGui.QFileDialog.getOpenFileNames(self,
+            filenames = QtWidgets.QFileDialog.getOpenFileNames(self,
                 msg, startdir, filter)
             if isinstance(filenames, tuple): # PySide
                 filenames = filenames[0]
@@ -1087,7 +1087,7 @@ class EditorTabs(QtGui.QWidget):
             # Example how to preselect files, can be used when the users
             # opens a file in a project to select all files currently not
             # loaded.
-            d = QtGui.QFileDialog(self, msg, startdir, filter)
+            d = QtWidgets.QFileDialog(self, msg, startdir, filter)
             d.setFileMode(d.ExistingFiles)
             d.selectFile('"codeparser.py" "editorStack.py"')
             d.exec_()
@@ -1119,7 +1119,7 @@ class EditorTabs(QtGui.QWidget):
         
         # show dialog
         msg = "Select a directory to open"
-        dirname = QtGui.QFileDialog.getExistingDirectory(self, msg, startdir)
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self, msg, startdir)
         
         # was a dir selected?
         if not dirname:
@@ -1162,7 +1162,7 @@ class EditorTabs(QtGui.QWidget):
             # Notify in logger
             print("Error loading file: ", err)
             # Make sure the user knows
-            m = QtGui.QMessageBox(self)
+            m = QtWidgets.QMessageBox(self)
             m.setWindowTitle("Error loading file")
             m.setText(str(err))
             m.setIcon(m.Warning)
@@ -1253,7 +1253,7 @@ class EditorTabs(QtGui.QWidget):
         filter += "C (*.c *.h *.cpp);;"
         #filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
-        filename = QtGui.QFileDialog.getSaveFileName(self,
+        filename = QtWidgets.QFileDialog.getSaveFileName(self,
             msg, startdir, filter)
         if isinstance(filename, tuple): # PySide
             filename = filename[0]
@@ -1301,7 +1301,7 @@ class EditorTabs(QtGui.QWidget):
             # Notify in logger
             print("Error saving file:",err)
             # Make sure the user knows
-            m = QtGui.QMessageBox(self)
+            m = QtWidgets.QMessageBox(self)
             m.setWindowTitle("Error saving file")
             m.setText(str(err))
             m.setIcon(m.Warning)

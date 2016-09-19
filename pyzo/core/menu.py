@@ -17,7 +17,7 @@ import unicodedata
 import datetime
 import webbrowser
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
@@ -59,7 +59,7 @@ def buildMenus(menuBar):
             if action is menuBar._lastAction:
                 if ((not menuBar._haveRaisedTooltip) and 
                             action.menu().isVisible()):
-                    QtGui.QToolTip.hideText()
+                    QtWidgets.QToolTip.hideText()
                     menuBar._haveRaisedTooltip = True
             else:
                 menuBar._lastAction = action
@@ -68,7 +68,7 @@ def buildMenus(menuBar):
         tt = action.statusTip()
         if hasattr(action, '_shortcutsText'):
             tt = tt + ' ({})'.format(action._shortcutsText) # Add shortcuts text in it
-        QtGui.QToolTip.showText(QtGui.QCursor.pos(), tt)
+        QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), tt)
     menuBar.hovered.connect(onHover)
 
 
@@ -87,7 +87,7 @@ def getShortcut(fullName):
     """ Given the full name or an action, get the shortcut
     from the pyzo.config.shortcuts2 dict. A tuple is returned
     representing the two shortcuts. """
-    if isinstance(fullName, QtGui.QAction):
+    if isinstance(fullName, QtWidgets.QAction):
         fullName = fullName.menuPath # the menuPath property is set in Menu._addAction
     shortcut = '', ''
     if fullName in pyzo.config.shortcuts2:
@@ -163,7 +163,7 @@ def unwrapText(text):
 
 
 
-class Menu(QtGui.QMenu):
+class Menu(QtWidgets.QMenu):
     """ Menu(parent=None, name=None)
     
     Base class for all menus. Has methods to add actions of all sorts.
@@ -176,7 +176,7 @@ class Menu(QtGui.QMenu):
     
     """
     def __init__(self, parent=None, name=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
         
         # Make sure that the menu has a title
         if name:
@@ -267,7 +267,7 @@ class Menu(QtGui.QMenu):
         """
         
         # Add menu in the conventional way
-        a = QtGui.QMenu.addMenu(self, menu)
+        a = QtWidgets.QMenu.addMenu(self, menu)
         a.menuPath = menu.menuPath
         
         # Set icon
@@ -323,7 +323,7 @@ class Menu(QtGui.QMenu):
             group = 'default'
         if group not in self._groups:
             #self._groups contains tuples (actiongroup, dict-of-actions)
-            self._groups[group] = (QtGui.QActionGroup(self), {})
+            self._groups[group] = (QtWidgets.QActionGroup(self), {})
         
         actionGroup,actions = self._groups[group]
         actionGroup.addAction(a)
@@ -580,9 +580,9 @@ class FileMenu(Menu):
     def _print(self):
         editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
-            printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
+            printer = QtWidgets.QPrinter(QtWidgets.QPrinter.HighResolution)
             if True:
-                filename = QtGui.QFileDialog.getSaveFileName(None, 
+                filename = QtWidgets.QFileDialog.getSaveFileName(None, 
                         'Export PDF', os.path.expanduser("~"), "*.pdf *.ps")
                 if isinstance(filename, tuple): # PySide
                     filename = filename[0]
@@ -590,7 +590,7 @@ class FileMenu(Menu):
                     return
                 printer.setOutputFileName(filename)
             else:
-                d = QtGui.QPrintDialog(printer)
+                d = QtWidgets.QPrintDialog(printer)
                 d.setWindowTitle('Print code')
                 d.setOption(d.PrintSelection, editor.textCursor().hasSelection())
                 d.setOption(d.PrintToFile, True)
@@ -650,7 +650,7 @@ class EditMenu(Menu):
     
     
     def _editItemCallback(self, action):
-        widget = QtGui.qApp.focusWidget()
+        widget = QtWidgets.qApp.focusWidget()
         #If the widget has a 'name' attribute, call it
         if hasattr(widget, action):
             getattr(widget, action)()
@@ -726,7 +726,7 @@ class ViewMenu(Menu):
         # Create qt theme menu
         t = translate("menu", "Qt theme ::: The styling of the user interface widgets.")
         self._qtThemeMenu = GeneralOptionsMenu(self, t, self._setQtTheme)
-        styleNames = list(QtGui.QStyleFactory.keys()) + ['Cleanlooks+']
+        styleNames = list(QtWidgets.QStyleFactory.keys()) + ['Cleanlooks+']
         styleNames.sort()
         titles = [name for name in styleNames]
         styleNames = [name.lower() for name in styleNames]
@@ -1257,7 +1257,7 @@ class EditorTabContextMenu(Menu):
                     pass
         elif action == 'copypath':
             filename = item.filename
-            QtGui.qApp.clipboard().setText(filename)
+            QtWidgets.qApp.clipboard().setText(filename)
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":
@@ -1340,7 +1340,7 @@ class RunMenu(Menu):
                 msg += "No editor selected."
         # Show error dialog
         if msg:
-            m = QtGui.QMessageBox(self)
+            m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run"))
             m.setText(translate("menu", "Could not run " + what + ":\n\n" + msg))
             m.setIcon(m.Warning)
@@ -1526,7 +1526,7 @@ class RunMenu(Menu):
             err = translate("menu", "Can only run scripts that are in the file system.")
         # If not success, notify
         if err:
-            m = QtGui.QMessageBox(self)
+            m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run script."))
             m.setText(err)
             m.setIcon(m.Warning)
@@ -1620,7 +1620,7 @@ class HelpMenu(Menu):
         text += "Latest available version is: {}\n\n"         
         text = text.format(pyzo.__version__, versions[0])
         # Show message box
-        m = QtGui.QMessageBox(self)
+        m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
         if versions == '?':
             text += "Oops, could not determine available versions.\n\n"    
@@ -1693,7 +1693,7 @@ class SettingsMenu(Menu):
         source code at:\r
         {}
         """.format(os.path.join(pyzo.pyzoDir, 'codeeditor', 'base.py'))
-        m = QtGui.QMessageBox(self)
+        m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Edit syntax styling"))
         m.setText(unwrapText(text))
         m.setIcon(m.Information)
@@ -1714,7 +1714,7 @@ class SettingsMenu(Menu):
         Note that most settings require a restart for the change to
         take effect.
         """)
-        m = QtGui.QMessageBox(self)
+        m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Advanced settings"))
         m.setText(unwrapText(text))
         m.setIcon(m.Information)
@@ -1740,7 +1740,7 @@ class SettingsMenu(Menu):
         The language has been changed. 
         Pyzo needs to restart for the change to take effect.
         """)
-        m = QtGui.QMessageBox(self)
+        m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Language changed"))
         m.setText(unwrapText(text))
         m.setIcon(m.Information)
@@ -1882,7 +1882,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         
         # get text and shortcuts
         key1, key2 = '', ''
-        if isinstance(item, QtGui.QMenu):
+        if isinstance(item, QtWidgets.QMenu):
             value = item.title()
         else:
             value = item.text()
@@ -1955,7 +1955,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         if index.row()<0:
             return True
         else:
-            return isinstance(index.internalPointer(), QtGui.QMenu)
+            return isinstance(index.internalPointer(), QtWidgets.QMenu)
     
     def index(self, row, column, parent):
 #         if not self.hasIndex(row, column, parent):
@@ -1987,7 +1987,7 @@ keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape',
     k.Key_Left:'Left', k.Key_Up:'Up', k.Key_Right:'Right', k.Key_Down:'Down' }
 
 
-class KeyMapLineEdit(QtGui.QLineEdit):
+class KeyMapLineEdit(QtWidgets.QLineEdit):
     """ A modified version of a lineEdit object that catches the key event
     and displays "Ctrl" when control was pressed, and similarly for alt and
     shift, function keys and other keys.
@@ -1996,7 +1996,7 @@ class KeyMapLineEdit(QtGui.QLineEdit):
     textUpdate = QtCore.Signal()
     
     def __init__(self, *args, **kwargs):
-        QtGui.QLineEdit.__init__(self, *args, **kwargs)
+        QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
         self.clear()
 
         
@@ -2009,17 +2009,17 @@ class KeyMapLineEdit(QtGui.QLineEdit):
     # Ctrl+A, while the actually displayed value is an OS shortcut (e.g. on Mac
     # Cmd-symbol + A)
     def setText(self, text):
-        QtGui.QLineEdit.setText(self, translateShortcutToOSNames(text))
+        QtWidgets.QLineEdit.setText(self, translateShortcutToOSNames(text))
         self._shortcut = text
     def text(self):
         return self._shortcut
     def clear(self):
-        QtGui.QLineEdit.setText(self, '<enter key combination here>')
+        QtWidgets.QLineEdit.setText(self, '<enter key combination here>')
         self._shortcut = ''
             
     def focusInEvent(self, event):
         #self.clear()
-        QtGui.QLineEdit.focusInEvent(self, event)
+        QtWidgets.QLineEdit.focusInEvent(self, event)
     
     def event(self,event):
         # Override event handler to enable catching the Tab key
@@ -2032,7 +2032,7 @@ class KeyMapLineEdit(QtGui.QLineEdit):
             self.keyReleaseEvent(event)
             return True #Mark as handled
         #Default: handle events as usual
-        return QtGui.QLineEdit.event(self,event)
+        return QtWidgets.QLineEdit.event(self,event)
         
     def keyPressEvent(self, event):
         # get key codes
@@ -2056,14 +2056,14 @@ class KeyMapLineEdit(QtGui.QLineEdit):
         # apply!
         if text:
             storeNativeKey, text0 = True, text       
-            if QtGui.qApp.keyboardModifiers() & k.AltModifier:
+            if QtWidgets.qApp.keyboardModifiers() & k.AltModifier:
                 text  = 'Alt+' + text
-            if QtGui.qApp.keyboardModifiers() & k.ShiftModifier:
+            if QtWidgets.qApp.keyboardModifiers() & k.ShiftModifier:
                 text  = 'Shift+' + text
                 storeNativeKey = False
-            if QtGui.qApp.keyboardModifiers() & k.ControlModifier:
+            if QtWidgets.qApp.keyboardModifiers() & k.ControlModifier:
                 text  = 'Ctrl+' + text
-            if QtGui.qApp.keyboardModifiers() & k.MetaModifier:
+            if QtWidgets.qApp.keyboardModifiers() & k.MetaModifier:
                 text  = 'Meta+' + text
             self.setText(text)
             if storeNativeKey and nativekey:
@@ -2074,7 +2074,7 @@ class KeyMapLineEdit(QtGui.QLineEdit):
         self.textUpdate.emit()
 
 
-class KeyMapEditDialog(QtGui.QDialog):
+class KeyMapEditDialog(QtWidgets.QDialog):
     """ The prompt that is shown when double clicking 
     a keymap in the tree. 
     It notifies the user when the entered shortcut is already used
@@ -2083,7 +2083,7 @@ class KeyMapEditDialog(QtGui.QDialog):
     """
     
     def __init__(self, *args):
-        QtGui.QDialog.__init__(self, *args)
+        QtWidgets.QDialog.__init__(self, *args)
         
         # set title
         self.setWindowTitle(translate("menu dialog", 'Edit shortcut mapping'))
@@ -2096,7 +2096,7 @@ class KeyMapEditDialog(QtGui.QDialog):
         self.setMaximumSize(*size2)
         self.setMinimumSize(*size2)
         
-        self._label = QtGui.QLabel("", self)
+        self._label = QtWidgets.QLabel("", self)
         self._label.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
         self._label.resize(size[0]-20, 100)
         self._label.move(10,2)
@@ -2105,15 +2105,15 @@ class KeyMapEditDialog(QtGui.QDialog):
         self._line.resize(size[0]-80, 20)
         self._line.move(10,90)
         
-        self._clear = QtGui.QPushButton("Clear", self)
+        self._clear = QtWidgets.QPushButton("Clear", self)
         self._clear.resize(50, 20)
         self._clear.move(size[0]-60,90)
         
-        self._apply = QtGui.QPushButton("Apply", self)
+        self._apply = QtWidgets.QPushButton("Apply", self)
         self._apply.resize(50, 20)
         self._apply.move(size[0]-120,120)
         
-        self._cancel = QtGui.QPushButton("Cancel", self)
+        self._cancel = QtWidgets.QPushButton("Cancel", self)
         self._cancel.resize(50, 20)
         self._cancel.move(size[0]-60,120)
         
@@ -2220,14 +2220,14 @@ class KeyMapEditDialog(QtGui.QDialog):
         self.close()
     
 
-class KeymappingDialog(QtGui.QDialog):
+class KeymappingDialog(QtWidgets.QDialog):
     """ The main keymap dialog, it has tabs corresponding with the
     different menus and each tab has a tree representing the structure
     of these menus. The current shortcuts are displayed. 
     On double clicking on an item, the shortcut can be edited. """
     
     def __init__(self, *args):
-        QtGui.QDialog.__init__(self, *args)
+        QtWidgets.QDialog.__init__(self, *args)
         
         # set title
         self.setWindowTitle(translate("menu dialog", 'Shortcut mappings'))
@@ -2252,7 +2252,7 @@ class KeymappingDialog(QtGui.QDialog):
             # create treeview and model
             model = KeyMapModel()
             model.setRootMenu(menu)
-            tree = QtGui.QTreeView(self.tab) 
+            tree = QtWidgets.QTreeView(self.tab) 
             tree.setModel(model)
             # configure treeview
             tree.clicked.connect(self.onClickSelect)
@@ -2289,7 +2289,7 @@ class KeymappingDialog(QtGui.QDialog):
     
     def popupItem(self, item, shortCutId=1):
         """ Popup the dialog to change the shortcut. """
-        if isinstance(item, QtGui.QAction) and item.text():
+        if isinstance(item, QtWidgets.QAction) and item.text():
             # create prompt dialog
             dlg = KeyMapEditDialog(self)
             dlg.setFullName( item.menuPath, shortCutId==1 )

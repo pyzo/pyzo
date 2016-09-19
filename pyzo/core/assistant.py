@@ -15,7 +15,7 @@ Copy the "docs" directory to the pyzo root!
 
 """
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import getResourceDirs
 import os
 
@@ -50,20 +50,20 @@ tool_name = "Assistant"
 tool_summary = "Browse qt help documents"
 
 
-class Settings(QtGui.QWidget):
+class Settings(QtWidgets.QWidget):
     def __init__(self, engine):
         super().__init__()
         self._engine = engine
-        layout = QtGui.QVBoxLayout(self)
-        add_button = QtGui.QPushButton("Add")
-        del_button = QtGui.QPushButton("Delete")
-        self._view = QtGui.QListView()
+        layout = QtWidgets.QVBoxLayout(self)
+        add_button = QtWidgets.QPushButton("Add")
+        del_button = QtWidgets.QPushButton("Delete")
+        self._view = QtWidgets.QListView()
         layout.addWidget(self._view)
-        layout2 = QtGui.QHBoxLayout()
+        layout2 = QtWidgets.QHBoxLayout()
         layout2.addWidget(add_button)
         layout2.addWidget(del_button)
         layout.addLayout(layout2)
-        self._model = QtGui.QStringListModel()
+        self._model = QtWidgets.QStringListModel()
         self._view.setModel(self._model)
 
         self._model.setStringList(self._engine.registeredDocumentations())
@@ -72,7 +72,7 @@ class Settings(QtGui.QWidget):
         del_button.clicked.connect(self.del_doc)
 
     def add_doc(self):
-        doc_file = QtGui.QFileDialog.getOpenFileName(
+        doc_file = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select a compressed help file",
             filter="Qt compressed help files (*.qch)")
@@ -85,7 +85,7 @@ class Settings(QtGui.QWidget):
         if ok:
             self._model.setStringList(self._engine.registeredDocumentations())
         else:
-            QtGui.QMessageBox.critical(self, "Error", "Error loading doc")
+            QtWidgets.QMessageBox.critical(self, "Error", "Error loading doc")
 
     def del_doc(self):
         idx = self._view.currentIndex()
@@ -98,7 +98,7 @@ class Settings(QtGui.QWidget):
         self._model.setStringList(self._engine.registeredDocumentations())
 
 
-class HelpBrowser(QtGui.QTextBrowser):
+class HelpBrowser(QtWidgets.QTextBrowser):
     """ Override textbrowser to implement load resource """
     def __init__(self, engine):
         super().__init__()
@@ -122,7 +122,7 @@ class HelpBrowser(QtGui.QTextBrowser):
             return super().loadResource(typ, url)
 
 
-class PyzoAssistant(QtGui.QWidget):
+class PyzoAssistant(QtWidgets.QWidget):
     """
         Show help contents and browse qt help files.
     """
@@ -132,7 +132,7 @@ class PyzoAssistant(QtGui.QWidget):
             When collection_file is none, it is determined from the
             appDataDir.
         """
-        from pyzo.util.qt import QtHelp
+        from pyzo.util.qt import QtHelp, QtWidgets, QtWidgets
         super().__init__(parent)
         self.setWindowTitle('Help')
         pyzoDir, appDataDir = getResourceDirs()
@@ -152,9 +152,9 @@ class PyzoAssistant(QtGui.QWidget):
         # The main players:
         self._content = self._engine.contentWidget()
         self._index = self._engine.indexWidget()
-        self._indexTab = QtGui.QWidget()
-        il = QtGui.QVBoxLayout(self._indexTab)
-        filter_text = QtGui.QLineEdit()
+        self._indexTab = QtWidgets.QWidget()
+        il = QtWidgets.QVBoxLayout(self._indexTab)
+        filter_text = QtWidgets.QLineEdit()
         il.addWidget(filter_text)
         il.addWidget(self._index)
 
@@ -162,31 +162,31 @@ class PyzoAssistant(QtGui.QWidget):
         self._searchEngine = self._engine.searchEngine()
         self._settings = Settings(self._engine)
 
-        self._progress = QtGui.QWidget()
-        pl = QtGui.QHBoxLayout(self._progress)
-        bar = QtGui.QProgressBar()
+        self._progress = QtWidgets.QWidget()
+        pl = QtWidgets.QHBoxLayout(self._progress)
+        bar = QtWidgets.QProgressBar()
         bar.setMaximum(0)
-        pl.addWidget(QtGui.QLabel('Indexing'))
+        pl.addWidget(QtWidgets.QLabel('Indexing'))
         pl.addWidget(bar)
 
         self._searchResultWidget = self._searchEngine.resultWidget()
         self._searchQueryWidget = self._searchEngine.queryWidget()
-        self._searchTab = QtGui.QWidget()
-        search_layout = QtGui.QVBoxLayout(self._searchTab)
+        self._searchTab = QtWidgets.QWidget()
+        search_layout = QtWidgets.QVBoxLayout(self._searchTab)
         search_layout.addWidget(self._searchQueryWidget)
         search_layout.addWidget(self._searchResultWidget)
 
-        tab = QtGui.QTabWidget()
+        tab = QtWidgets.QTabWidget()
         tab.addTab(self._content, "Contents")
         tab.addTab(self._indexTab, "Index")
         tab.addTab(self._searchTab, "Search")
         tab.addTab(self._settings, "Settings")
 
-        splitter = QtGui.QSplitter(self)
+        splitter = QtWidgets.QSplitter(self)
         splitter.addWidget(tab)
         splitter.addWidget(self._helpBrowser)
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(splitter)
         layout.addWidget(self._progress)
 
@@ -257,7 +257,7 @@ class PyzoAssistant(QtGui.QWidget):
         self._helpBrowser.setSource(QtCore.QUrl(url))
 
     def showHelpForTerm(self, name):
-        from pyzo.util.qt import QtHelp
+        from pyzo.util.qt import QtHelp, QtWidgets, QtWidgets
         # Cache for later use:
         self._search_term = name
 
@@ -267,7 +267,7 @@ class PyzoAssistant(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     view = PyzoAssistant()
     view.show()
     app.exec()
