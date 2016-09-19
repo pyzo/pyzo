@@ -364,27 +364,26 @@ class BaseShell(BaseTextCtrl):
         if len(line) > 1024:
             return  # safety
         
-        # Get the word that is clicked. Qt's cursor.StartOfWord does not
-        # work for filenames.
-        line = line.replace('"', ' ')  # pyzo uses " around filenames
-        before = line[:pos].split(' ')[-1]
-        after = line[pos:].split(' ')[0]
-        word = before + after
+        # Get the thing that is clicked, assuming it is delimited with quotes
+        line = line.replace('\'', '"')
+        before = line[:pos].split('"')[-1]
+        after = line[pos:].split('"')[0]
+        piece = before + after
         
         # Check if it looks like a filename, quit if it does not
-        if len(word) < 4:
+        if len(piece) < 4:
             return
-        elif not ('/' in word or '\\' in word):
+        elif not ('/' in piece or '\\' in piece):
             return
         #
         if sys.platform.startswith('win'):
-            if word[1] != ':':
+            if piece[1] != ':':
                 return
         else:
-           if not word.startswith('/'):
+           if not piece.startswith('/'):
                return
         #
-        filename = word
+        filename = piece
         
         # Split in parts for getting line number
         line = line[pos+len(after):]
@@ -428,7 +427,7 @@ class BaseShell(BaseTextCtrl):
         # Select word here (in shell)
         cursor = ocursor
         cursor.movePosition(cursor.Left, cursor.MoveAnchor, len(before))
-        cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(word))
+        cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(piece))
         self.setTextCursor(cursor)
         
         # For syntax errors we have the offset thingy in the file name
