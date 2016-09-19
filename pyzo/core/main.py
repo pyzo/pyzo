@@ -337,7 +337,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set palette
         if qstyle:
             if useStandardStyle:
-                QtWidgets.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
+                QtWidgets.qApp.setPalette(QtWidgets.QStyle.standardPalette(qstyle))
             else:
                 QtWidgets.qApp.setPalette(QtWidgets.qApp.nativePalette)
         

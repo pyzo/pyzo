@@ -117,7 +117,7 @@ class Installer(QtWidgets.QDialog):
         
         self._label = QtWidgets.QLabel(text, self)
         
-        self._scipystack = QtWidgets.QCheckBox(translate('bootstrapconda', 'Also install scientific packages', self))
+        self._scipystack = QtWidgets.QCheckBox(translate('bootstrapconda', 'Also install scientific packages'), self)
         self._scipystack.setChecked(True)
         self._path = QtWidgets.QLineEdit(default_conda_dir, self)
         self._progress = QtWidgets.QProgressBar(self)

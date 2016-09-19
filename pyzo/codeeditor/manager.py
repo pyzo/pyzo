@@ -245,7 +245,7 @@ class Manager:
         
         """
         db = QtGui.QFontDatabase()
-        QFont, QFontInfo = QtWidgets.QFont, QtGui.QFontInfo
+        QFont, QFontInfo = QtGui.QFont, QtGui.QFontInfo
         # fn = font_name (str)
         return [fn for fn in db.families() if QFontInfo(QFont(fn)).fixedPitch()]
     

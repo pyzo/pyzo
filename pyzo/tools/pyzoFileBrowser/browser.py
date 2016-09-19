@@ -268,7 +268,7 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         
         # Set minimum size
         if not light:
-            fw = QtWidgets.qApp.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+            fw = QtWidgets.qApp.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
             msz = self.minimumSizeHint()
             w = max(msz.width(), paddingLeft + paddingRight + 10)
             h = max(msz.height(), height + fw*2 + 2)

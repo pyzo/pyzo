@@ -3,9 +3,11 @@ import os
 import sys
 
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util import qt
 
 import pyzo
 from pyzo.util import paths
+
 
 
 class AboutDialog(QtWidgets.QDialog):
@@ -92,15 +94,9 @@ class AboutDialog(QtWidgets.QDialog):
         by Mark James (http://www.famfamfam.com/lab/icons/silk/).
         """
         # Determine if this is PyQt4 or Pyside
-        if hasattr(QtCore, 'PYQT_VERSION_STR'):
-            qtWrapper = 'PyQt4'
-            qtVersion = QtCore.QT_VERSION_STR
-            qtWrapperVersion = QtCore.PYQT_VERSION_STR
-        else:
-            import PySide
-            qtWrapper = 'PySide'
-            qtVersion = QtCore.__version__
-            qtWrapperVersion = PySide.__version__
+        qtWrapper = qt.API_NAME
+        qtVersion = qt.QT_VERSION
+        qtWrapperVersion = qt.PYSIDE_VERSION or qt.PYQT_VERSION
         # Insert information texts
         if paths.is_frozen():
             versionText = pyzo.__version__ + ' (binary)'
