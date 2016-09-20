@@ -441,17 +441,16 @@ class Projects(QtWidgets.QWidget):
         starredDirs.sort(key=lambda p:self.parent().dictForStarredDir(p).name.lower())
         # Refill the combo box
         self._combo.clear()
-        for p in starredDirs:
-            name = self.parent().dictForStarredDir(p).name
-            self._combo.addItem(name, p)
-        # Insert dummy item
         if starredDirs:
-            self._combo.insertItem(0, translate('filebrowser', 'Projects:'), '') # No-project item
+            self._combo.addItem(translate('filebrowser', 'Projects:'), '') # No-project item
+            for p in starredDirs:
+                name = self.parent().dictForStarredDir(p).name
+                self._combo.addItem(name, p)
         else:
             self._combo.addItem(
                 translate('filebrowser', 'Click star to bookmark current dir'), '')
-    
-    
+
+
     def buildMenu(self):
         menu = self._menu
         menu.clear()
