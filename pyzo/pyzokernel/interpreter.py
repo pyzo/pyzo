@@ -775,7 +775,14 @@ class PyzoInterpreter:
         fname_show = fname
         if not fname.startswith('<'):
             fname_show = os.path.split(fname)[1]
-        if cellName:
+        if cellName == fname:
+            runtext = '(executing file "%s")\n' % fname_show
+            if os.path.isfile(fname):
+                d = os.path.normpath(os.path.normcase(os.path.dirname(fname)))
+                if d != os.getcwd():
+                    # print('Changing directory to', d)
+                    os.chdir(d)
+        elif cellName:
             runtext = '(executing cell "%s" (line %i of "%s"))\n' % (cellName, lineno1, fname_show)
         elif lineno1 == lineno2:
             runtext = '(executing line %i of "%s")\n' % (lineno1, fname_show)

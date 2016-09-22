@@ -1313,7 +1313,7 @@ class PythonShell(BaseShell):
         self._ctrl_command.send(text)
     
     
-    def executeCode(self, text, fname, lineno=0, cellName=None):
+    def executeCode(self, text, fname, lineno=None, cellName=None):
         """ executeCode(text, fname, lineno, cellName=None)
         Execute (run) a large piece of code in the remote shell.
         text: the source code to execute
@@ -1335,6 +1335,10 @@ class PythonShell(BaseShell):
         # Make sure there is always *some* text
         if not text:
             text = ' '
+        
+        if lineno is None:
+            lineno = 0
+            cellName = fname  # run all
         
         # Examine the text line by line...
         # - check for empty/commented lined at the end
