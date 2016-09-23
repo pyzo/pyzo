@@ -15,21 +15,21 @@ Qt = QtCore.Qt
 import keyword
 
 #TODO: use this CompletionListModel to style the completion suggestions (class names, method names, keywords etc)
-class CompletionListModel(QtWidgets.QStringListModel):
+class CompletionListModel(QtCore.QStringListModel):
     def data(self, index, role):
         if role == Qt.ForegroundRole:
             # data = str(QtWidgets.QStringListModel.data(self, index, QtCore.Qt.DisplayRole))
             # return QtGui.QBrush(Qt.red)
             return None
         else:
-            return QtWidgets.QStringListModel.data(self, index, role)
+            return QtCore.QStringListModel.data(self, index, role)
 
 # todo: use keywords from the parser
 class AutoCompletion(object):
     def __init__(self,*args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter
-        self.__completerModel = QtWidgets.QStringListModel(keyword.kwlist)
+        self.__completerModel = QtCore.QStringListModel(keyword.kwlist)
         self.__completer = QtWidgets.QCompleter(self)
         self.__completer.setModel(self.__completerModel)
         self.__completer.setCaseSensitivity(Qt.CaseInsensitive)
