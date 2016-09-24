@@ -26,7 +26,7 @@ import unicodedata
 import os.path as op
 
 import pyzo.codeeditor
-from . import QtCore, QtGui
+from . import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 
@@ -60,28 +60,28 @@ class CodeView(
 
 
 
-class SelectFilePage(QtGui.QWizardPage):
+class SelectFilePage(QtWidgets.QWizardPage):
     """
     First page of the wizard, select file and preview contents
     """
     def __init__(self):
-        QtGui.QWizardPage.__init__(self)
+        QtWidgets.QWizardPage.__init__(self)
         
         self.setTitle(translate('importwizard', 'Select file'))
         
-        self.txtFilename = QtGui.QLineEdit()
-        self.btnBrowse = QtGui.QPushButton(translate('importwizard', 'Browse...'))
-        self.preview = QtGui.QPlainTextEdit()
+        self.txtFilename = QtWidgets.QLineEdit()
+        self.btnBrowse = QtWidgets.QPushButton(translate('importwizard', 'Browse...'))
+        self.preview = QtWidgets.QPlainTextEdit()
         self.preview.setReadOnly(True)
 
-        vlayout = QtGui.QVBoxLayout()
-        hlayout = QtGui.QHBoxLayout()
+        vlayout = QtWidgets.QVBoxLayout()
+        hlayout = QtWidgets.QHBoxLayout()
 
         
         hlayout.addWidget(self.txtFilename)
         hlayout.addWidget(self.btnBrowse)
         vlayout.addLayout(hlayout)
-        vlayout.addWidget(QtGui.QLabel(translate('importwizard', 'Preview:')))
+        vlayout.addWidget(QtWidgets.QLabel(translate('importwizard', 'Preview:')))
         vlayout.addWidget(self.preview)
         
         self.setLayout(vlayout)
@@ -95,7 +95,7 @@ class SelectFilePage(QtGui.QWizardPage):
     def onBrowseClicked(self):
         # Difference between PyQt4 and PySide: PySide returns filename, filter
         # while PyQt4 returns only the filename
-        filename = QtGui.QFileDialog.getOpenFileName(filter = 'Text files (*.txt *.csv);;All files (*.*)')
+        filename = QtWidgets.QFileDialog.getOpenFileName(filter = 'Text files (*.txt *.csv);;All files (*.*)')
         if isinstance(filename, tuple):
             filename = filename[0]
         
@@ -138,16 +138,16 @@ class SelectFilePage(QtGui.QWizardPage):
         
         
 
-class SetParametersPage(QtGui.QWizardPage):
+class SetParametersPage(QtWidgets.QWizardPage):
     def __init__(self):
-        QtGui.QWizardPage.__init__(self)
+        QtWidgets.QWizardPage.__init__(self)
         
         self.setTitle("Select parameters")
     
         self._columnNames = None
         
         def genComboBox(choices):
-            cbx = QtGui.QComboBox()
+            cbx = QtWidgets.QComboBox()
             for choice in choices:
                 cbx.addItem(choice)
             cbx.setEditable(True)
@@ -155,24 +155,24 @@ class SetParametersPage(QtGui.QWizardPage):
 
         self.cbxDelimiter = genComboBox(",;")            
         self.cbxComments = genComboBox("#%'")
-        self.sbSkipHeader = QtGui.QSpinBox()
+        self.sbSkipHeader = QtWidgets.QSpinBox()
         
-        self.preview = QtGui.QTableWidget()
-        self.preview.setSelectionModel(QtGui.QItemSelectionModel(self.preview.model())) # Work-around for reference tracking bug in PySide
+        self.preview = QtWidgets.QTableWidget()
+        self.preview.setSelectionModel(QtWidgets.QItemSelectionModel(self.preview.model())) # Work-around for reference tracking bug in PySide
         self.preview.setSelectionBehavior(self.preview.SelectColumns)
         self.preview.setSelectionMode(self.preview.MultiSelection)
 
 
         # Layout
 
-        formlayout = QtGui.QFormLayout()       
+        formlayout = QtWidgets.QFormLayout()       
         formlayout.addRow('Delimiter', self.cbxDelimiter)
         formlayout.addRow('Comments', self.cbxComments)
         formlayout.addRow('Header rows to skip', self.sbSkipHeader)
         
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addLayout(formlayout)
-        layout.addWidget(QtGui.QLabel(
+        layout.addWidget(QtWidgets.QLabel(
             translate('importwizard', 'Select columns to import:')))
         layout.addWidget(self.preview)
 
@@ -345,7 +345,7 @@ class SetParametersPage(QtGui.QWizardPage):
             
             # Add fields to the table
             for col, field in enumerate(fields):
-                cell = QtGui.QTableWidgetItem(field)
+                cell = QtWidgets.QTableWidgetItem(field)
                 if not inheader:
                     try:
                         float(field)
@@ -355,7 +355,7 @@ class SetParametersPage(QtGui.QWizardPage):
                 self.preview.setItem(lineno,col, cell)
             
             # Add the comment
-            cell = QtGui.QTableWidgetItem(commentstr)
+            cell = QtWidgets.QTableWidgetItem(commentstr)
             cell.setBackground(QtGui.QBrush(QtGui.QColor("lightgreen")))
             
             self.preview.setItem(lineno,ncols, cell)
@@ -366,7 +366,7 @@ class SetParametersPage(QtGui.QWizardPage):
             for col in range(ncols):
                 cell = self.preview.item(row, col)
                 if not cell:
-                    cell = QtGui.QTableWidgetItem('')
+                    cell = QtWidgets.QTableWidgetItem('')
                     self.preview.setItem(row, col, cell)
                     
                 cell.setBackground(QtGui.QBrush(QtGui.QColor("khaki")))
@@ -380,7 +380,7 @@ class SetParametersPage(QtGui.QWizardPage):
         self.updateHorizontalHeaderLabels()
             
         
-class ResultPage(QtGui.QWizardPage): 
+class ResultPage(QtWidgets.QWizardPage): 
     """
     The resultpage lets the user select wether to import the data as a single
     2D-array, or as one variable (1D-array) per column
@@ -390,16 +390,16 @@ class ResultPage(QtGui.QWizardPage):
     
     """
     def __init__(self):
-        QtGui.QWizardPage.__init__(self)
+        QtWidgets.QWizardPage.__init__(self)
         self.setTitle("Execute import")
-        self.setButtonText(QtGui.QWizard.FinishButton, 
+        self.setButtonText(QtWidgets.QWizard.FinishButton, 
             translate('importwizard', 'Close'))
 
-        self.rbAsArray = QtGui.QRadioButton(translate('importwizard', 'Import data as single array'))
-        self.rbPerColumn = QtGui.QRadioButton(translate('importwizard', 'Import data into one variable per column'))
+        self.rbAsArray = QtWidgets.QRadioButton(translate('importwizard', 'Import data as single array'))
+        self.rbPerColumn = QtWidgets.QRadioButton(translate('importwizard', 'Import data into one variable per column'))
         self.rbAsArray.setChecked(True)
 
-        self.chkInvalidRaise = QtGui.QCheckBox(translate('importwizard', 'Raise error upon invalid data'))
+        self.chkInvalidRaise = QtWidgets.QCheckBox(translate('importwizard', 'Raise error upon invalid data'))
         self.chkInvalidRaise.setChecked(True)
 
         self.codeView = CodeView()
@@ -407,15 +407,15 @@ class ResultPage(QtGui.QWizardPage):
         self.codeView.setZoom(pyzo.config.view.zoom)
         self.codeView.setFont(pyzo.config.view.fontname)
         
-        self.btnExecute = QtGui.QPushButton('Execute in current shell')
-        self.btnInsert = QtGui.QPushButton('Paste into current file')
+        self.btnExecute = QtWidgets.QPushButton('Execute in current shell')
+        self.btnInsert = QtWidgets.QPushButton('Paste into current file')
         
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.rbAsArray)
         layout.addWidget(self.rbPerColumn)
         layout.addWidget(self.chkInvalidRaise)
         
-        layout.addWidget(QtGui.QLabel('Resulting import code:'))
+        layout.addWidget(QtWidgets.QLabel('Resulting import code:'))
         layout.addWidget(self.codeView)
         layout.addWidget(self.btnExecute)
         layout.addWidget(self.btnInsert)  
@@ -474,7 +474,7 @@ class ResultPage(QtGui.QWizardPage):
     def onBtnExecuteClicked(self):
         shell = pyzo.shells.getCurrentShell()
         if shell is None:
-            QtGui.QMessageBox.information(self, 
+            QtWidgets.QMessageBox.information(self, 
                 translate('importwizard', 'Import data wizard'),
                 translate('importwizard', 'No current shell active'))
             return
@@ -484,7 +484,7 @@ class ResultPage(QtGui.QWizardPage):
     def onBtnInsertClicked(self):
         editor = pyzo.editors.getCurrentEditor()
         if editor is None:
-            QtGui.QMessageBox.information(self, 
+            QtWidgets.QMessageBox.information(self, 
                 translate('importwizard', 'Import data wizard'),
                 translate('importwizard', 'No current file open'))
             return
@@ -502,9 +502,9 @@ class ResultPage(QtGui.QWizardPage):
         cursor.insertText(code)
         
         
-class ImportWizard(QtGui.QWizard):
+class ImportWizard(QtWidgets.QWizard):
     def __init__(self):
-        QtGui.QWizard.__init__(self)
+        QtWidgets.QWizard.__init__(self)
         self.setMinimumSize(500,400)
         self.resize(700,500)
         
@@ -526,13 +526,13 @@ class ImportWizard(QtGui.QWizard):
     def onCurrentIdChanged(self, id):
         # Hide the 'cancel' button on the last page
         if self.nextId() == -1:
-            self.button(QtGui.QWizard.CancelButton).hide()
+            self.button(QtWidgets.QWizard.CancelButton).hide()
         else:
-            self.button(QtGui.QWizard.CancelButton).show()
+            self.button(QtWidgets.QWizard.CancelButton).show()
     
     def open(self, filename):
         if self.isVisible():
-            QtGui.QMessageBox.information(self, 
+            QtWidgets.QMessageBox.information(self, 
                 translate('importwizard', 'Import data wizard'),
                 translate('importwizard', 'The import data wizard is already open'))
             return
@@ -550,7 +550,7 @@ class ImportWizard(QtGui.QWizard):
         elif name == 'columnnames':
             return self.setParametersPage.columnNames()
         else:
-            return QtGui.QWizard.field(self, name)
+            return QtWidgets.QWizard.field(self, name)
     
     def setPreviewData(self, data):
         self._previewData = data

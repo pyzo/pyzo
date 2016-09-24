@@ -8,7 +8,7 @@
 Code editor extensions that change its appearance
 """
 
-from ..qt import QtGui,QtCore
+from ..qt import QtGui,QtCore, QtWidgets
 Qt = QtCore.Qt
 
 from ..misc import ce_option
@@ -711,12 +711,12 @@ class LineNumbers(object):
                             'fore:#222,back:#DDD', 
                         ) ]
     
-    class __LineNumberArea(QtGui.QWidget):
+    class __LineNumberArea(QtWidgets.QWidget):
         """ This is the widget reponsible for drawing the line numbers.
         """
         
         def __init__(self, codeEditor):
-            QtGui.QWidget.__init__(self, codeEditor)
+            QtWidgets.QWidget.__init__(self, codeEditor)
             self.setCursor(QtCore.Qt.PointingHandCursor)
             self._pressedY = None
             self._lineNrChoser = None
@@ -842,9 +842,9 @@ class LineNumbers(object):
             # Done
             painter.end()
     
-    class LineNumberChoser(QtGui.QSpinBox):
+    class LineNumberChoser(QtWidgets.QSpinBox):
         def __init__(self, parent):
-            QtGui.QSpinBox.__init__(self, parent)
+            QtWidgets.QSpinBox.__init__(self, parent)
             
             self._editor = parent
             
@@ -879,7 +879,7 @@ class LineNumbers(object):
             if event.key() in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
                 self._editor.setFocus() # Moves focus away, thus hiding self
             else:
-                QtGui.QSpinBox.keyPressEvent(self, event)
+                QtWidgets.QSpinBox.keyPressEvent(self, event)
         
         def onValueChanged(self, nr):
             if self._ignoreSignalOnceFlag:
@@ -971,12 +971,12 @@ class BreakPoints(object):
                             'fore:#F66,back:#dfdfe1', 
                         ) ]
     
-    class __BreakPointArea(QtGui.QWidget):
+    class __BreakPointArea(QtWidgets.QWidget):
         """ This is the widget reponsible for drawing the break points.
         """
         
         def __init__(self, codeEditor):
-            QtGui.QWidget.__init__(self, codeEditor)
+            QtWidgets.QWidget.__init__(self, codeEditor)
             self.setCursor(QtCore.Qt.PointingHandCursor)
             self.setMouseTracking(True)
             self._virtualBreakpoint = 0

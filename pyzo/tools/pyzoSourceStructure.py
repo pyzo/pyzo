@@ -8,16 +8,16 @@
 import time
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 tool_name = "Source structure"
 tool_summary = "Shows the structure of your source code."
 
 
-class PyzoSourceStructure(QtGui.QWidget):
+class PyzoSourceStructure(QtWidgets.QWidget):
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in
@@ -30,14 +30,14 @@ class PyzoSourceStructure(QtGui.QWidget):
             self._config.level = 2
         
         # Create icon for slider
-        self._sliderIcon = QtGui.QToolButton(self)
+        self._sliderIcon = QtWidgets.QToolButton(self)
         self._sliderIcon.setIcon(pyzo.icons.text_align_right)
         self._sliderIcon.setIconSize(QtCore.QSize(16,16))
         self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
         
         # Create slider
-        self._slider = QtGui.QSlider(QtCore.Qt.Horizontal, self)
-        self._slider.setTickPosition(QtGui.QSlider.TicksBelow)
+        self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
+        self._slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self._slider.setSingleStep(1)
         self._slider.setPageStep(1)
         self._slider.setRange(1,9)
@@ -45,28 +45,28 @@ class PyzoSourceStructure(QtGui.QWidget):
         self._slider.valueChanged.connect(self.updateStructure)
         
         # Create options button
-        #self._options = QtGui.QPushButton(self)
+        #self._options = QtWidgets.QPushButton(self)
         #self._options.setText('Options'))        
         #self._options.setToolTip("What elements to show.")
-        self._options = QtGui.QToolButton(self)
+        self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16,16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         
         # Create options menu
-        self._options._menu = QtGui.QMenu()
+        self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
         
         # Create tree widget        
-        self._tree = QtGui.QTreeWidget(self)
+        self._tree = QtWidgets.QTreeWidget(self)
         self._tree.setHeaderHidden(True)
         self._tree.itemCollapsed.connect(self.updateStructure) # keep expanded
         self._tree.itemClicked.connect(self.onItemClick)
         
         # Create two sizers
-        self._sizer1 = QtGui.QVBoxLayout(self)
-        self._sizer2 = QtGui.QHBoxLayout()
+        self._sizer1 = QtWidgets.QVBoxLayout(self)
+        self._sizer2 = QtWidgets.QHBoxLayout()
         self._sizer1.setSpacing(2)
         self._sizer1.setContentsMargins(4,4,4,4)
         
@@ -148,7 +148,7 @@ class PyzoSourceStructure(QtGui.QWidget):
             
             # Notify
             text = translate('pyzoSourceStructure', 'Parsing ' + editor._name + ' ...')
-            thisItem = QtGui.QTreeWidgetItem(self._tree, [text])
+            thisItem = QtWidgets.QTreeWidgetItem(self._tree, [text])
             
             # Try getting the  structure right now
             self.updateStructure()
@@ -228,7 +228,7 @@ class PyzoSourceStructure(QtGui.QWidget):
                 else:
                     text = "%s %s" % (type, object.name)
                 # Create item
-                thisItem = QtGui.QTreeWidgetItem(parentItem, [text])
+                thisItem = QtWidgets.QTreeWidgetItem(parentItem, [text])
                 color = QtGui.QColor(colours[object.type])
                 thisItem.setForeground(0, QtGui.QBrush(color))
                 font = thisItem.font(0)

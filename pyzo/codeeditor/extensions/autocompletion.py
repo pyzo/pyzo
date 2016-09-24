@@ -9,28 +9,28 @@ Code editor extensions that provides autocompleter functionality
 """
 
 
-from ..qt import QtGui,QtCore
+from ..qt import QtGui,QtCore, QtWidgets
 Qt = QtCore.Qt
 
 import keyword
 
 #TODO: use this CompletionListModel to style the completion suggestions (class names, method names, keywords etc)
-class CompletionListModel(QtGui.QStringListModel):
+class CompletionListModel(QtWidgets.QStringListModel):
     def data(self, index, role):
         if role == Qt.ForegroundRole:
-            # data = str(QtGui.QStringListModel.data(self, index, QtCore.Qt.DisplayRole))
+            # data = str(QtWidgets.QStringListModel.data(self, index, QtCore.Qt.DisplayRole))
             # return QtGui.QBrush(Qt.red)
             return None
         else:
-            return QtGui.QStringListModel.data(self, index, role)
+            return QtWidgets.QStringListModel.data(self, index, role)
 
 # todo: use keywords from the parser
 class AutoCompletion(object):
     def __init__(self,*args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter
-        self.__completerModel = QtGui.QStringListModel(keyword.kwlist)
-        self.__completer = QtGui.QCompleter(self)
+        self.__completerModel = QtWidgets.QStringListModel(keyword.kwlist)
+        self.__completer = QtWidgets.QCompleter(self)
         self.__completer.setModel(self.__completerModel)
         self.__completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.__completer.setWidget(self)
@@ -169,7 +169,7 @@ class AutoCompletion(object):
         position = self.cursorRect(cur).bottomLeft() + self.viewport().pos()
         
         # Check if the completer is going to go off the screen
-        desktop_geometry = QtGui.qApp.desktop().geometry()
+        desktop_geometry = QtWidgets.qApp.desktop().geometry()
         global_position = self.mapToGlobal(position)
         if global_position.y() + geometry.height() > desktop_geometry.height():
             # Move the completer to above the current line

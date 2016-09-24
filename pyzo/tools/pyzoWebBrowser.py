@@ -8,10 +8,10 @@
 import time
 import urllib.request, urllib.parse
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 imported_qtwebkit = True
 try:
-    from pyzo.util.qt import QtWebKit
+    from pyzo.util.qt import QtWebKit, QtWidgets
 except ImportError:
     imported_qtwebkit = False
 
@@ -28,7 +28,7 @@ default_bookmarks = [   'docs.python.org',
                     ]
 
 
-class WebView(QtGui.QTextBrowser):
+class WebView(QtWidgets.QTextBrowser):
     """ Inherit the webview class to implement zooming using
     the mouse wheel. 
     """
@@ -37,7 +37,7 @@ class WebView(QtGui.QTextBrowser):
     loadFinished = QtCore.Signal(bool)
     
     def __init__(self, parent):
-        QtGui.QTextBrowser.__init__(self, parent)
+        QtWidgets.QTextBrowser.__init__(self, parent)
         
         # Current url
         self._url = ''
@@ -50,10 +50,10 @@ class WebView(QtGui.QTextBrowser):
     
     def wheelEvent(self, event):
         # Zooming does not work for this widget
-        if QtCore.Qt.ControlModifier & QtGui.qApp.keyboardModifiers():
+        if QtCore.Qt.ControlModifier & QtWidgets.qApp.keyboardModifiers():
             self.parent().wheelEvent(event)
         else:
-            QtGui.QTextBrowser.wheelEvent(self, event)
+            QtWidgets.QTextBrowser.wheelEvent(self, event)
     
     
     def url(self):
@@ -147,13 +147,13 @@ class WebView(QtGui.QTextBrowser):
         return url
 
 
-class PyzoWebBrowser(QtGui.QFrame):
+class PyzoWebBrowser(QtWidgets.QFrame):
     """ The main window, containing buttons, address bar and
     browser widget.
     """
     
     def __init__(self, parent):
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
         
         # Init config
         toolId =  self.__class__.__name__.lower()
@@ -167,20 +167,20 @@ class PyzoWebBrowser(QtGui.QFrame):
                 self._config.bookMarks.append(item)
         
         # Get style object (for icons)
-        style = QtGui.QApplication.style()
+        style = QtWidgets.QApplication.style()
         
         # Create some buttons
-        self._back = QtGui.QToolButton(self)
+        self._back = QtWidgets.QToolButton(self)
         self._back.setIcon(style.standardIcon(style.SP_ArrowBack))
         self._back.setIconSize(QtCore.QSize(16,16))
         #
-        self._forward = QtGui.QToolButton(self)
+        self._forward = QtWidgets.QToolButton(self)
         self._forward.setIcon(style.standardIcon(style.SP_ArrowForward))
         self._forward.setIconSize(QtCore.QSize(16,16))
         
         # Create address bar
-        #self._address = QtGui.QLineEdit(self)
-        self._address = QtGui.QComboBox(self)
+        #self._address = QtWidgets.QLineEdit(self)
+        self._address = QtWidgets.QComboBox(self)
         self._address.setEditable(True)
         self._address.setInsertPolicy(self._address.NoInsert)
         #
@@ -200,8 +200,8 @@ class PyzoWebBrowser(QtGui.QFrame):
 #         settings.setAttribute(settings.PluginsEnabled, True)
         
         # Layout
-        self._sizer1 = QtGui.QVBoxLayout(self)
-        self._sizer2 = QtGui.QHBoxLayout()
+        self._sizer1 = QtWidgets.QVBoxLayout(self)
+        self._sizer2 = QtWidgets.QHBoxLayout()
         #
         self._sizer2.addWidget(self._back, 0)
         self._sizer2.addWidget(self._forward, 0)
@@ -258,7 +258,7 @@ class PyzoWebBrowser(QtGui.QFrame):
         self._view.forward()
     
     def wheelEvent(self, event):
-        if QtCore.Qt.ControlModifier & QtGui.qApp.keyboardModifiers():
+        if QtCore.Qt.ControlModifier & QtWidgets.qApp.keyboardModifiers():
             # Get amount of scrolling
             degrees = event.delta() / 8.0
             steps = degrees / 15.0      
@@ -272,5 +272,5 @@ class PyzoWebBrowser(QtGui.QFrame):
             self._config.zoomFactor = factor
 #             self._view.setZoomFactor(factor)
         else:
-            QtGui.QFrame.wheelEvent(self, event)
+            QtWidgets.QFrame.wheelEvent(self, event)
             

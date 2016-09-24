@@ -19,16 +19,16 @@ from queue import Queue, Empty
 import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 from pyzo.util import zon as ssdf  # zon is ssdf-light
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     
     def __init__(self, parent=None, locale=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         
         self._closeflag = 0  # Used during closing/restarting
         
@@ -67,11 +67,11 @@ class MainWindow(QtGui.QMainWindow):
         pyzo.main = self
         
         # Init dockwidget settings
-        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtGui.QTabWidget.South)
+        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.South)
         self.setDockOptions(
-                QtGui.QMainWindow.AllowNestedDocks
-            |  QtGui.QMainWindow.AllowTabbedDocks
-            #|  QtGui.QMainWindow.AnimatedDocks
+                QtWidgets.QMainWindow.AllowNestedDocks
+            |  QtWidgets.QMainWindow.AllowTabbedDocks
+            #|  QtWidgets.QMainWindow.AnimatedDocks
             )
         
         # Set window atrributes
@@ -86,8 +86,8 @@ class MainWindow(QtGui.QMainWindow):
         
         # Hold the splash screen if needed
         while time.time() < splash_timeout:
-            QtGui.qApp.flush()
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.flush()
+            QtWidgets.qApp.processEvents()
             time.sleep(0.05)
         
         # Populate the window (imports more code)
@@ -124,7 +124,7 @@ class MainWindow(QtGui.QMainWindow):
     
     # To force drawing ourselves
     def paintEvent(self, event):
-        QtGui.QMainWindow.paintEvent(self, event)
+        QtWidgets.QMainWindow.paintEvent(self, event)
         self._ispainted = True
     
     def paintNow(self):
@@ -134,8 +134,8 @@ class MainWindow(QtGui.QMainWindow):
         self._ispainted = False
         self.update()
         while not self._ispainted:   
-            QtGui.qApp.flush()
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.flush()
+            QtWidgets.qApp.processEvents()
             time.sleep(0.01)
     
     def _populate(self):
@@ -163,7 +163,7 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(pyzo.editors)
         
         # Create floater for shell
-        self._shellDock = dock = QtGui.QDockWidget(self)
+        self._shellDock = dock = QtWidgets.QDockWidget(self)
         dock.setFeatures(dock.DockWidgetMovable)
         dock.setObjectName('shells')
         dock.setWindowTitle('Shells')
@@ -297,10 +297,10 @@ class MainWindow(QtGui.QMainWindow):
             # Initialize
             
             # Get native pallette (used below)
-            QtGui.qApp.nativePalette = QtGui.qApp.palette()
+            QtWidgets.qApp.nativePalette = QtWidgets.qApp.palette()
             
             # Obtain default style name
-            pyzo.defaultQtStyleName = str(QtGui.qApp.style().objectName())
+            pyzo.defaultQtStyleName = str(QtWidgets.qApp.style().objectName())
             
             # Other than gtk+ and mac, cleanlooks looks best (in my opinion)
             if 'gtk' in pyzo.defaultQtStyleName.lower():
@@ -327,19 +327,19 @@ class MainWindow(QtGui.QMainWindow):
                 useStandardStyle = True
         
         # Check if this style exist, set to default otherwise
-        styleNames = [name.lower() for name in QtGui.QStyleFactory.keys()]
+        styleNames = [name.lower() for name in QtWidgets.QStyleFactory.keys()]
         if stylename2.lower() not in styleNames:
             stylename2 = pyzo.defaultQtStyleName
         
         # Try changing the style
-        qstyle = QtGui.qApp.setStyle(stylename2)
+        qstyle = QtWidgets.qApp.setStyle(stylename2)
         
         # Set palette
         if qstyle:
             if useStandardStyle:
-                QtGui.qApp.setPalette(QtGui.QStyle.standardPalette(qstyle))
+                QtWidgets.qApp.setPalette(QtWidgets.QStyle.standardPalette(qstyle))
             else:
-                QtGui.qApp.setPalette(QtGui.qApp.nativePalette)
+                QtWidgets.qApp.setPalette(QtWidgets.qApp.nativePalette)
         
         # Done
         return qstyle
@@ -395,7 +395,7 @@ class MainWindow(QtGui.QMainWindow):
 #         print('Number of threads alive:', threading.activeCount())
         
         # Proceed as normal
-        QtGui.QMainWindow.closeEvent(self, event)
+        QtWidgets.QMainWindow.closeEvent(self, event)
         
         # Harder exit to prevent segfault. Not really a solution,
         # but it does the job until Pyside gets fixed.
@@ -428,7 +428,7 @@ class MainWindow(QtGui.QMainWindow):
     def createPopupMenu(self):
         
         # Init menu
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         
         # Insert two items
         for item in ['Editors', 'Shells']:
@@ -471,7 +471,7 @@ def loadAppIcons():
     
     # Set as application icon. This one is used as the default for all
     # windows of the application.
-    QtGui.qApp.setWindowIcon(pyzo.icon)
+    QtWidgets.qApp.setWindowIcon(pyzo.icon)
     
     # Construct another icon to show when the current shell is busy
     artist = IconArtist(pyzo.icon) # extracts the 16x16 version
@@ -558,7 +558,7 @@ class _CallbackEventHandler(QtCore.QObject):
 
     def postEventWithCallback(self, callback, *args):
         self.queue.put((callback, args))
-        QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+        QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
 
 def callLater(callback, *args):
     """ callLater(callback, *args)

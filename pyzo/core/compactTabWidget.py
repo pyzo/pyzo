@@ -10,7 +10,7 @@ See docs of the tab widget.
 
 """
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 import sys
 
 if sys.version_info[0] < 3:
@@ -99,7 +99,7 @@ class TabData:
         self.data = None
 
 
-class CompactTabBar(QtGui.QTabBar):
+class CompactTabBar(QtWidgets.QTabBar):
     """ CompactTabBar(parent, *args, padding=(4,4,6,6), preventEqualTexts=True)
     
     Tab bar corresponcing to the CompactTabWidget.
@@ -120,7 +120,7 @@ class CompactTabBar(QtGui.QTabBar):
     barDoubleClicked = QtCore.Signal()
     
     def __init__(self, *args, padding=(4,4,6,6), preventEqualTexts=True):
-        QtGui.QTabBar.__init__(self, *args)
+        QtWidgets.QTabBar.__init__(self, *args)
         
         # Put tab widget in document mode
         self.setDocumentMode(True)
@@ -183,15 +183,15 @@ class CompactTabBar(QtGui.QTabBar):
         """
         
         # Get current TabData instance
-        tabData = QtGui.QTabBar.tabData(self, i)
+        tabData = QtWidgets.QTabBar.tabData(self, i)
         if (tabData is not None) and hasattr(tabData, 'toPyObject'):
             tabData = tabData.toPyObject() # Older version of Qt
         
         # If none, make it as good as we can
         if not tabData:
-            name = str(QtGui.QTabBar.tabText(self, i))
+            name = str(QtWidgets.QTabBar.tabText(self, i))
             tabData = TabData( name )
-            QtGui.QTabBar.setTabData(self, i, tabData)
+            QtWidgets.QTabBar.setTabData(self, i, tabData)
         
         # Done
         return tabData
@@ -270,33 +270,33 @@ class CompactTabBar(QtGui.QTabBar):
     ## Overload events and protected functions
     
     def tabInserted(self, i):        
-        QtGui.QTabBar.tabInserted(self, i)
+        QtWidgets.QTabBar.tabInserted(self, i)
         
         # Is called when a tab is inserted
         
         # Get given name and store
-        name = str(QtGui.QTabBar.tabText(self, i))
+        name = str(QtWidgets.QTabBar.tabText(self, i))
         tabData = TabData(name)
-        QtGui.QTabBar.setTabData(self, i, tabData)
+        QtWidgets.QTabBar.setTabData(self, i, tabData)
         
         # Update
         self.alignTabs()
     
         
     def tabRemoved(self, i):
-        QtGui.QTabBar.tabRemoved(self, i)
+        QtWidgets.QTabBar.tabRemoved(self, i)
         
         # Update
         self.alignTabs()
     
         
     def resizeEvent(self, event):
-        QtGui.QTabBar.resizeEvent(self, event)
+        QtWidgets.QTabBar.resizeEvent(self, event)
         self.alignTabs()
     
     
     def showEvent(self, event):
-        QtGui.QTabBar.showEvent(self, event)
+        QtWidgets.QTabBar.showEvent(self, event)
         self.alignTabs()
     
         
@@ -435,14 +435,14 @@ class CompactTabBar(QtGui.QTabBar):
                 itemReduced = True
             
             # Set text now
-            QtGui.QTabBar.setTabText(self, i, name)
+            QtWidgets.QTabBar.setTabText(self, i, name)
         
         # Done
         return itemReduced
 
 
 
-class CompactTabWidget(QtGui.QTabWidget):
+class CompactTabWidget(QtWidgets.QTabWidget):
     """ CompactTabWidget(parent, *args, **kwargs)
     
     Implements a tab widget with a tabbar that is in document mode
@@ -463,13 +463,13 @@ class CompactTabWidget(QtGui.QTabWidget):
     """
     
     def __init__(self, *args, **kwargs):
-        QtGui.QTabWidget.__init__(self, *args)
+        QtWidgets.QTabWidget.__init__(self, *args)
         
         # Set tab bar
         self.setTabBar(CompactTabBar(self, **kwargs))
         
         # Draw tabs at the top by default
-        self.setTabPosition(QtGui.QTabWidget.North)
+        self.setTabPosition(QtWidgets.QTabWidget.North)
     
     
     def setTabData(self, i, data):
@@ -513,10 +513,10 @@ if __name__ == '__main__':
     w = CompactTabWidget()    
     w.show()
     
-    w.addTab(QtGui.QWidget(w), 'aapenootjedopje')
-    w.addTab(QtGui.QWidget(w), 'aapenootjedropje')
-    w.addTab( QtGui.QWidget(w), 'noot en mies')
-    w.addTab( QtGui.QWidget(w), 'boom bijv een iep')
-    w.addTab( QtGui.QWidget(w), 'roosemarijnus')
-    w.addTab( QtGui.QWidget(w), 'vis')
-    w.addTab( QtGui.QWidget(w), 'vuurvuurvuur')
+    w.addTab(QtWidgets.QWidget(w), 'aapenootjedopje')
+    w.addTab(QtWidgets.QWidget(w), 'aapenootjedropje')
+    w.addTab( QtWidgets.QWidget(w), 'noot en mies')
+    w.addTab( QtWidgets.QWidget(w), 'boom bijv een iep')
+    w.addTab( QtWidgets.QWidget(w), 'roosemarijnus')
+    w.addTab( QtWidgets.QWidget(w), 'vis')
+    w.addTab( QtWidgets.QWidget(w), 'vuurvuurvuur')

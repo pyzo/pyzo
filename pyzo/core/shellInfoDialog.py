@@ -12,7 +12,7 @@ Implements shell configuration dialog.
 """
 
 import os, sys, time, re
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
@@ -24,7 +24,7 @@ from pyzo import translate
 ## Implement widgets that have a common interface
 
 
-class ShellInfoLineEdit(QtGui.QLineEdit):
+class ShellInfoLineEdit(QtWidgets.QLineEdit):
     
     def setTheText(self, value):
         self.setText(value)
@@ -53,10 +53,10 @@ class ShellInfo_name(ShellInfoLineEdit):
 
 
 
-class ShellInfo_exe(QtGui.QComboBox):
+class ShellInfo_exe(QtWidgets.QComboBox):
     
     def __init__(self, *args):
-        QtGui.QComboBox.__init__(self, *args)
+        QtWidgets.QComboBox.__init__(self, *args)
     
     def _interpreterName(self, p):
         if p.is_conda:
@@ -100,10 +100,10 @@ class ShellInfo_exe(QtGui.QComboBox):
         return value.strip()
 
 
-class ShellInfo_ipython(QtGui.QCheckBox):
+class ShellInfo_ipython(QtWidgets.QCheckBox):
     
     def __init__(self, parent):
-        QtGui.QCheckBox.__init__(self, parent)
+        QtWidgets.QCheckBox.__init__(self, parent)
         t = translate('shell', 'ipython ::: Use IPython shell if available.')
         self.setText(t.tt)
         self.setChecked(False)
@@ -121,7 +121,7 @@ class ShellInfo_ipython(QtGui.QCheckBox):
             return 'no'
 
 
-class ShellInfo_gui(QtGui.QComboBox):
+class ShellInfo_gui(QtWidgets.QComboBox):
     
     # For (backward) compatibility
     COMPAT = {'QT4':'PYQT4'}
@@ -165,14 +165,14 @@ class ShellInfo_gui(QtGui.QComboBox):
 
 
 
-class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
+class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
     
     DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
     SYSTEM_VALUE = ''
     
     def __init__(self, parent, widget):
         # Do not pass parent, because is a sublayout
-        QtGui.QVBoxLayout.__init__(self) 
+        QtWidgets.QVBoxLayout.__init__(self) 
         
         # Layout
         self.setSpacing(1)
@@ -181,7 +181,7 @@ class ShellinfoWithSystemDefault(QtGui.QVBoxLayout):
         # Create checkbox widget
         if not self.DISABLE_SYSTEM_DEFAULT:
             t = translate('shell', 'Use system default')
-            self._check = QtGui.QCheckBox(t, parent)
+            self._check = QtWidgets.QCheckBox(t, parent)
             self._check.stateChanged.connect(self.onCheckChanged)
             self.addWidget(self._check)
         
@@ -243,7 +243,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
     def __init__(self, parent):
         
         # Create sub-widget
-        self._edit = QtGui.QTextEdit(parent)
+        self._edit = QtWidgets.QTextEdit(parent)
         self._edit.zoomOut(1)
         self._edit.setMaximumHeight(80)
         self._edit.setMinimumWidth(200)
@@ -273,7 +273,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 #     def __init__(self, parent):
 #         
 #         # Create sub-widget
-#         self._edit = QtGui.QLineEdit(parent)
+#         self._edit = QtWidgets.QLineEdit(parent)
 #         self._edit.textEdited.connect(self.onEditChanged)
 #         
 #         # Instantiate
@@ -296,7 +296,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 
 
 
-class ShellInfo_startupScript(QtGui.QVBoxLayout):
+class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
     
     DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
     SYSTEM_VALUE = '$PYTHONSTARTUP'
@@ -304,17 +304,17 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
     
     def __init__(self, parent):
         # Do not pass parent, because is a sublayout
-        QtGui.QVBoxLayout.__init__(self) 
+        QtWidgets.QVBoxLayout.__init__(self) 
         
         # Create sub-widget
-        self._edit1 = QtGui.QLineEdit(parent)
+        self._edit1 = QtWidgets.QLineEdit(parent)
         self._edit1.textEdited.connect(self.onEditChanged)
         if sys.platform.startswith('win'):
             self._edit1.setPlaceholderText('C:\\path\\to\\script.py')
         else:
             self._edit1.setPlaceholderText('/path/to/script.py')
         #
-        self._edit2 = QtGui.QTextEdit(parent)
+        self._edit2 = QtWidgets.QTextEdit(parent)
         self._edit2.zoomOut(1)
         self._edit2.setMaximumHeight(80)
         self._edit2.setMinimumWidth(200)
@@ -327,7 +327,7 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
         
         # Create radio widget for system default
         t = translate('shell', 'Use system default')
-        self._radio_system = QtGui.QRadioButton(t, parent)
+        self._radio_system = QtWidgets.QRadioButton(t, parent)
         self._radio_system.toggled.connect(self.onCheckChanged)
         self.addWidget(self._radio_system)
         if self.DISABLE_SYSTEM_DEFAULT:
@@ -335,13 +335,13 @@ class ShellInfo_startupScript(QtGui.QVBoxLayout):
         
         # Create radio widget for file
         t = translate('shell', 'File to run at startup')
-        self._radio_file = QtGui.QRadioButton(t, parent)
+        self._radio_file = QtWidgets.QRadioButton(t, parent)
         self._radio_file.toggled.connect(self.onCheckChanged)
         self.addWidget(self._radio_file)
         
         # Create radio widget for code
         t = translate('shell', 'Code to run at startup')
-        self._radio_code = QtGui.QRadioButton(t, parent)
+        self._radio_code = QtWidgets.QRadioButton(t, parent)
         self._radio_code.toggled.connect(self.onCheckChanged)
         self.addWidget(self._radio_code)
         
@@ -437,11 +437,11 @@ class ShellInfo_argv(ShellInfoLineEdit):
 
 
 
-class ShellInfo_environ(QtGui.QTextEdit):
+class ShellInfo_environ(QtWidgets.QTextEdit):
     EXAMPLE = 'EXAMPLE_VAR1=value1\nPYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1'
     
     def __init__(self, parent):
-        QtGui.QTextEdit.__init__(self, parent)
+        QtWidgets.QTextEdit.__init__(self, parent)
         self.zoomOut(1)
         self.setText(self.EXAMPLE)
     
@@ -468,7 +468,7 @@ class ShellInfo_environ(QtGui.QTextEdit):
 ## The dialog class and container with tabs
 
 
-class ShellInfoTab(QtGui.QScrollArea):
+class ShellInfoTab(QtWidgets.QScrollArea):
     
     INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'), 
                     translate('shell', 'exe ::: The Python executable.'), 
@@ -482,17 +482,17 @@ class ShellInfoTab(QtGui.QScrollArea):
                 ]
     
     def __init__(self, parent):
-        QtGui.QScrollArea.__init__(self, parent)
+        QtWidgets.QScrollArea.__init__(self, parent)
         
         # Init the scroll area
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setWidgetResizable(True)
-        self.setFrameShape(QtGui.QFrame.NoFrame);
+        self.setFrameShape(QtWidgets.QFrame.NoFrame);
         
         # Create widget and a layout
-        self._content = QtGui.QWidget(parent)
-        self._formLayout = QtGui.QFormLayout(self._content)
+        self._content = QtWidgets.QWidget(parent)
+        self._formLayout = QtWidgets.QFormLayout(self._content)
         
         # Collect classes of widgets to instantiate
         classes = []
@@ -508,7 +508,7 @@ class ShellInfoTab(QtGui.QScrollArea):
             instance = cls(self._content)
             self._shellInfoWidgets[t.key] = instance
             # Create label 
-            label = QtGui.QLabel(t, self._content)
+            label = QtWidgets.QLabel(t, self._content)
             label.setToolTip(t.tt)
             # Add to layout
             self._formLayout.addRow(label, instance)
@@ -516,12 +516,12 @@ class ShellInfoTab(QtGui.QScrollArea):
         # Add delete button  
         
         t = translate('shell', 'Delete ::: Delete this shell configuration')
-        label = QtGui.QLabel('', self._content)        
-        instance = QtGui.QPushButton(pyzo.icons.cancel, t, self._content)
+        label = QtWidgets.QLabel('', self._content)        
+        instance = QtWidgets.QPushButton(pyzo.icons.cancel, t, self._content)
         instance.setToolTip(t.tt)
         instance.setAutoDefault(False)
         instance.clicked.connect(self.parent().parent().onTabClose)
-        deleteLayout = QtGui.QHBoxLayout()
+        deleteLayout = QtWidgets.QHBoxLayout()
         deleteLayout.addWidget(instance, 0)
         deleteLayout.addStretch(1)
         # Add to layout
@@ -584,17 +584,17 @@ class ShellInfoTab(QtGui.QScrollArea):
 
 
 
-class ShellInfoDialog(QtGui.QDialog):
+class ShellInfoDialog(QtWidgets.QDialog):
     """ Dialog to edit the shell configurations. """
     
     def __init__(self, *args):
-        QtGui.QDialog.__init__(self, *args)
+        QtWidgets.QDialog.__init__(self, *args)
         self.setModal(True)
         
         # Set title
         self.setWindowTitle(pyzo.translate('shell', 'Shell configurations'))
         # Create tab widget
-        self._tabs = QtGui.QTabWidget(self) 
+        self._tabs = QtWidgets.QTabWidget(self) 
         #self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
         #self._tabs.setDocumentMode(False)
         self._tabs.setMovable(True)
@@ -617,7 +617,7 @@ class ShellInfoDialog(QtGui.QDialog):
             w.setInfo(item)
         
         # Enable making new tabs and closing tabs    
-        self._add = QtGui.QToolButton(self)        
+        self._add = QtWidgets.QToolButton(self)        
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
         self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -628,19 +628,19 @@ class ShellInfoDialog(QtGui.QDialog):
         self._tabs.tabCloseRequested.connect(self.onTabClose)
         
         # Create buttons
-        cancelBut = QtGui.QPushButton("Cancel", self)        
-        okBut = QtGui.QPushButton("Done", self)
+        cancelBut = QtWidgets.QPushButton("Cancel", self)        
+        okBut = QtWidgets.QPushButton("Done", self)
         cancelBut.clicked.connect(self.close)
         okBut.clicked.connect(self.applyAndClose)
         # Layout for buttons
-        buttonLayout = QtGui.QHBoxLayout()
+        buttonLayout = QtWidgets.QHBoxLayout()
         buttonLayout.addStretch(1)
         buttonLayout.addWidget(cancelBut)
         buttonLayout.addSpacing(10)
         buttonLayout.addWidget(okBut)
         
         # Layout the widgets
-        mainLayout = QtGui.QVBoxLayout(self)
+        mainLayout = QtWidgets.QVBoxLayout(self)
         mainLayout.addSpacing(8)
         mainLayout.addWidget(self._tabs,0)
         mainLayout.addLayout(buttonLayout,0)

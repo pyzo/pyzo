@@ -8,7 +8,7 @@
 import sys, os, time
 
 import pyzo 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 tool_name = "Workspace"
 tool_summary = "Lists the variables in the current shell's namespace."
@@ -135,7 +135,7 @@ class WorkspaceProxy(QtCore.QObject):
         self.haveNewData.emit()
     
 
-class WorkspaceItem(QtGui.QTreeWidgetItem):
+class WorkspaceItem(QtWidgets.QTreeWidgetItem):
     
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
@@ -145,7 +145,7 @@ class WorkspaceItem(QtGui.QTreeWidgetItem):
             return self.text(column) > otherItem.text(column)
 
 
-class WorkspaceTree(QtGui.QTreeWidget):
+class WorkspaceTree(QtWidgets.QTreeWidget):
     """ WorkspaceTree
     
     The tree that displays the items in the current namespace.
@@ -159,7 +159,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
     """
     
     def __init__(self, parent):
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         
         self._config = parent._config
         
@@ -180,7 +180,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
         
         # For menu
         self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        self._menu = QtGui.QMenu()
+        self._menu = QtWidgets.QMenu()
         self._menu.triggered.connect(self.contextMenuTriggered)
         
         # Bind to events
@@ -192,7 +192,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
         Show the context menu. 
         """
         
-        QtGui.QTreeView.contextMenuEvent(self, event)
+        QtWidgets.QTreeView.contextMenuEvent(self, event)
         
         # Get if an item is selected
         item = self.currentItem()
@@ -286,7 +286,7 @@ class WorkspaceTree(QtGui.QTreeWidget):
             item.setToolTip(2,tt)
 
 
-class PyzoWorkspace(QtGui.QWidget):
+class PyzoWorkspace(QtWidgets.QWidget):
     """ PyzoWorkspace
     
     The main widget for this tool.
@@ -294,7 +294,7 @@ class PyzoWorkspace(QtGui.QWidget):
     """
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in
@@ -305,25 +305,25 @@ class PyzoWorkspace(QtGui.QWidget):
             self._config.hideTypes = []
         
         # Create tool button
-        self._up = QtGui.QToolButton(self)
-        style = QtGui.qApp.style()
+        self._up = QtWidgets.QToolButton(self)
+        style = QtWidgets.qApp.style()
         self._up.setIcon( style.standardIcon(style.SP_ArrowLeft) )
         self._up.setIconSize(QtCore.QSize(16,16))
         
         # Create "path" line edit
-        self._line = QtGui.QLineEdit(self)
+        self._line = QtWidgets.QLineEdit(self)
         self._line.setReadOnly(True)
         self._line.setStyleSheet("QLineEdit { background:#ddd; }")
         self._line.setFocusPolicy(QtCore.Qt.NoFocus)
         
         # Create options menu
-        self._options = QtGui.QToolButton(self)
+        self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16,16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         #
-        self._options._menu = QtGui.QMenu()
+        self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
         self.onOptionsPress()  # create menu now
         
@@ -331,12 +331,12 @@ class PyzoWorkspace(QtGui.QWidget):
         self._tree = WorkspaceTree(self)
         
         # Set layout
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self._up, 0)
         layout.addWidget(self._line, 1)
         layout.addWidget(self._options, 0)
         #
-        mainLayout = QtGui.QVBoxLayout(self)
+        mainLayout = QtWidgets.QVBoxLayout(self)
         mainLayout.addLayout(layout, 0)
         mainLayout.addWidget(self._tree, 1)
         mainLayout.setSpacing(2)

@@ -12,7 +12,7 @@ that show information to the user in a very effective, yet subtle manner.
 
 """
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 import pyzo
 
 
@@ -128,7 +128,7 @@ class IconArtist:
 
 
 # todo: not used; remove me?
-class TabCloseButton(QtGui.QToolButton):
+class TabCloseButton(QtWidgets.QToolButton):
     """ TabCloseButton
     
     This class implements a very compact close button to be used in tabs.
@@ -140,7 +140,7 @@ class TabCloseButton(QtGui.QToolButton):
     SIZE = 5,8
     
     def __init__(self):
-        QtGui.QToolButton.__init__(self)
+        QtWidgets.QToolButton.__init__(self)
         
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -157,11 +157,11 @@ class TabCloseButton(QtGui.QToolButton):
         tabs.tabCloseRequested.emit(index)
         
     def enterEvent(self, event):
-        QtGui.QToolButton.enterEvent(self, event)
+        QtWidgets.QToolButton.enterEvent(self, event)
         self.setIcon(self.getCrossIcon2())
     
     def leaveEvent(self, event):
-        QtGui.QToolButton.leaveEvent(self, event)
+        QtWidgets.QToolButton.leaveEvent(self, event)
         self.setIcon(self.getCrossIcon1())
         
     def _createCrossPixmap(self, alpha):
@@ -204,7 +204,7 @@ class TabCloseButton(QtGui.QToolButton):
 
 
 # todo: not used; remove me?
-class ToolButtonWithMenuIndication(QtGui.QToolButton):
+class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
     """ ToolButtonWithMenuIndication
     
     Tool button that wraps the icon in a slightly larger icon that
@@ -219,7 +219,7 @@ class ToolButtonWithMenuIndication(QtGui.QToolButton):
     SIZE = 21, 16
     
     def __init__(self):
-        QtGui.QToolButton.__init__(self)
+        QtWidgets.QToolButton.__init__(self)
         
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -243,9 +243,9 @@ class ToolButtonWithMenuIndication(QtGui.QToolButton):
         self._menuPressed = event.pos()
     
     def mouseMoveEvent(self, event):
-        QtGui.QToolButton.mouseMoveEvent(self, event)
+        QtWidgets.QToolButton.mouseMoveEvent(self, event)
         if self._menuPressed:
-            dragDist = QtGui.QApplication.startDragDistance()
+            dragDist = QtWidgets.QApplication.startDragDistance()
             if (event.pos()-self._menuPressed).manhattanLength() >= dragDist:
                 self._menuPressed = False
     
@@ -257,13 +257,13 @@ class ToolButtonWithMenuIndication(QtGui.QToolButton):
             tabs.customContextMenuRequested.emit(pos)
         
     def enterEvent(self, event):
-        QtGui.QToolButton.enterEvent(self, event)
+        QtWidgets.QToolButton.enterEvent(self, event)
         self._menuarrow = self._menuarrow2
         self.setIcon()
         self._menuPressed = False
     
     def leaveEvent(self, event):
-        QtGui.QToolButton.leaveEvent(self, event)
+        QtWidgets.QToolButton.leaveEvent(self, event)
         self._menuarrow = self._menuarrow1
         self.setIcon()
         self._menuPressed = False
@@ -283,7 +283,7 @@ class ToolButtonWithMenuIndication(QtGui.QToolButton):
         icon = artist.finish()
         
         # Set icon
-        QtGui.QToolButton.setIcon(self, icon)
+        QtWidgets.QToolButton.setIcon(self, icon)
     
     
     def _createMenuArrowPixmap(self, strength):
@@ -293,7 +293,7 @@ class ToolButtonWithMenuIndication(QtGui.QToolButton):
 
 
 
-class TabToolButton(QtGui.QToolButton):
+class TabToolButton(QtWidgets.QToolButton):
     """ TabToolButton
     
     Base menu for editor and shell tabs.
@@ -303,7 +303,7 @@ class TabToolButton(QtGui.QToolButton):
     SIZE = 16, 16
     
     def __init__(self, *args):
-        QtGui.QToolButton.__init__(self, *args)
+        QtWidgets.QToolButton.__init__(self, *args)
         
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -370,7 +370,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
     
     
     def mouseMoveEvent(self, event):
-        QtGui.QToolButton.mouseMoveEvent(self, event)
+        QtWidgets.QToolButton.mouseMoveEvent(self, event)
         new_overCross = self._isOverCross(event.pos())
         if new_overCross != self._overCross:
             self._overCross = new_overCross
@@ -404,7 +404,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         icon = artist.finish()
         
         # Set icon
-        QtGui.QToolButton.setIcon(self, icon)
+        QtWidgets.QToolButton.setIcon(self, icon)
     
     
     def _createMenuArrowPixmap(self, strength):

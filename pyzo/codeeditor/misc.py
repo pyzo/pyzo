@@ -11,7 +11,7 @@ Defined ustr (Unicode string) class and the option property decorator.
 """
 
 import sys
-from .qt import QtGui, QtCore
+from .qt import QtGui, QtCore, QtWidgets
 
 
 # Set Python version and get some names
@@ -86,7 +86,7 @@ class _CallbackEventHandler(QtCore.QObject):
 
     def postEventWithCallback(self, callback, *args):
         self.queue.put((callback, args))
-        QtGui.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+        QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
 
 
 def callLater(callback, *args):

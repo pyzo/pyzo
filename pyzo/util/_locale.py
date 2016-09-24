@@ -11,7 +11,7 @@ Module for locale stuff like language and translations.
 import os, sys, time
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 QLocale = QtCore.QLocale
 
@@ -86,7 +86,7 @@ def setLanguage(languageName):
     if not hasattr(QtCore, '_translators'):
         QtCore._translators = []
     for trans in QtCore._translators:
-        QtGui.QApplication.removeTranslator(trans)
+        QtWidgets.QApplication.removeTranslator(trans)
     
     # The default language     
     if localeName1 == 'C':
@@ -101,7 +101,7 @@ def setLanguage(languageName):
         for localeName in [localeName1, localeName2]:
             success = trans.load(what + '_' + localeName + '.tr', where)
             if success:
-                QtGui.QApplication.installTranslator(trans)
+                QtWidgets.QApplication.installTranslator(trans)
                 QtCore._translators.append(trans)
                 print('loading %s %s: ok' % (what, languageName))
                 break

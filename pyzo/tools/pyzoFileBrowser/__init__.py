@@ -44,20 +44,20 @@ import os.path as op
 
 import pyzo
 from pyzo.util import zon as ssdf
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 from .browser import Browser
 from .utils import cleanpath, isdir
 
 
-class PyzoFileBrowser(QtGui.QWidget):
+class PyzoFileBrowser(QtWidgets.QWidget):
     """ The main tool widget. An instance of this class contains one or
     more Browser instances. If there are more, they can be selected
     using a tab bar.
     """
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         # Get config
         toolId =  self.__class__.__name__.lower() + '2'  # This is v2 of the file browser
@@ -99,7 +99,7 @@ class PyzoFileBrowser(QtGui.QWidget):
             self._browsers.append( Browser(self, self.config) )
         
         # Layout
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(layout)
         layout.addWidget(self._browsers[0])
         layout.setSpacing(0)
@@ -139,4 +139,4 @@ class PyzoFileBrowser(QtGui.QWidget):
         # Close all browsers so they can clean up the file system proxies
         for browser in self._browsers:
             browser.close()
-        return QtGui.QWidget.closeEvent(self, event)
+        return QtWidgets.QWidget.closeEvent(self, event)

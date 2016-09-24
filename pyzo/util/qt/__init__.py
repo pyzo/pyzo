@@ -1,385 +1,134 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2016, Almar Klein
 #
-# This file is distributed under the terms of the (new) BSD License.
+# Copyright © 2009- The Spyder Development Team
+# Copyright © 2014-2015 Colin Duquesnoy
+#
+# Licensed under the terms of the MIT License
+# (see LICENSE.txt for details)
 
-""" Module that serves as a proxy for loading Qt libraries.
+"""
+**QtPy** is a shim over the various Python Qt bindings. It is used to write
+Qt binding indenpendent libraries or applications.
 
-This module has several goals:
-  * Import QtCore, QtGui, etc. from PySide or PyQt4 (whichever is available).
-  * Fix some incompatibilities between the two.
-  * For applications that bring their own Qt libs, avoid clashes.
-  * Allow using the PySide or PyQt4 libraries of the system 
-    (the ones in /usr/lib/...), so that frozen applications can look good.
+The shim will automatically select the first available API (PyQt5, PyQt4 and
+finally PySide).
 
-To use do ``from pyzo.util.qt import QtCore, QtGui``. Note that this proxy
-package is designed to be portable; it should be possible to use it in
-your own application or library.
+You can force the use of one specific bindings (e.g. if your application is
+using one specific bindings and you need to use library that use QtPy) by
+setting up the ``QT_API`` environment variable.
 
-To use in frozen applications, create a qt.conf next to the executable,
-that has text as specified in DEFAULT_QT_CONF_TEXT. By modifying the 
-text, preferences can be changed.
+PyQt5
+=====
+
+For PyQt5, you don't have to set anything as it will be used automatically::
+
+    >>> from qtpy import QtGui, QtWidgets, QtCore
+    >>> print(QtWidgets.QWidget)
 
 
-Notes
------
+PyQt4
+=====
 
-To prevent colliding of Qt libs when an app brings its own libs, in
-particular on KDE, the plugins of Qt should be disabled. This needs
-to be done in two places:
-  * via qt.conf "Plugins = ''"
-  * set the QT_PLUGIN_PATH variable to empty string
+Set the ``QT_API`` environment variable to 'pyqt' before importing any python
+package::
 
-The latter is equivalent to QtGui.QApplication.setLibraryPaths([]),
-but has the advantage that it can be set beforehand.
+    >>> import os
+    >>> os.environ['QT_API'] = 'pyqt'
+    >>> from qtpy import QtGui, QtWidgets, QtCore
+    >>> print(QtWidgets.QWidget)
 
-A downside of the plugins being disabled is that the native style
-(GTK+, Oxygen) cannot be used and other features (Unity integrated
-toolbar) are not available. This module allows a work-around by
-loading the native libs.
+PySide
+======
+
+Set the QT_API environment variable to 'pyside' before importing other
+packages::
+
+    >>> import os
+    >>> os.environ['QT_API'] = 'pyside'
+    >>> from qtpy import QtGui, QtWidgets, QtCore
+    >>> print(QtWidgets.QWidget)
 
 """
 
-import sys
 import os
-import imp
-import importlib
 
-VERBOSE = False
+# Version of QtPy
+from ._version import __version__
+
+#: Qt API environment variable name
+QT_API = 'QT_API'
+#: names of the expected PyQt5 api
+PYQT5_API = ['pyqt5']
+#: names of the expected PyQt4 api
+PYQT4_API = [
+    'pyqt',  # name used in IPython.qt
+    'pyqt4'  # pyqode.qt original name
+]
+#: names of the expected PySide api
+PYSIDE_API = ['pyside']
+
+os.environ.setdefault(QT_API, 'pyqt5')
+API = os.environ[QT_API].lower()
+assert API in (PYQT5_API + PYQT4_API + PYSIDE_API)
+
+is_old_pyqt = is_pyqt46 = False
+PYQT5 = True
+PYQT4 = PYSIDE = False
 
 
+class PythonQtError(Exception):
+    """Error raise if no bindings could be selected"""
+    pass
 
-def qt_name():
-    """ Return the name of the Qt lib in use: 'PySide', 'PyQt4' or None.
-    """
+
+if API in PYQT5_API:
     try:
-        importer_instance._import_qt()
+        from PyQt5.Qt import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
+        from PyQt5.Qt import QT_VERSION_STR as QT_VERSION  # analysis:ignore
+        PYSIDE_VERSION = None
     except ImportError:
-        pass
-    else:
-        return importer_instance._qtPackage.__name__
+        API = os.environ['QT_API'] = 'pyqt'
 
-
-
-def loadWidget(filename, parent=None):
-    """ Load a widget from a .ui file. Returns a QWidget object.
-    """
-    
-    # Note that PyQt4 has PyQt4.uic.loadUi(filename, basewidget)
-    # allowing the newly created widget to inherit from a given widget
-    # instance. This is not supported in PySide and therefore not
-    # suported by this function.
-    
-    # Check
-    if not os.path.isfile(filename):
-        raise ValueError('Filename in loadWidget() is not a valid file.')
-    
-    if qt_name().lower() == 'pyside':
-        # Import (from PySide import QtCore, QtUiTools)
-        QtCore = importer_instance.load_module('QtCore')
-        QtUiTools = importer_instance.load_module('QtUiTools')
-        # Create loader and load widget
-        loader = QtUiTools.QUiLoader()
-        uifile = QtCore.QFile(filename)
-        uifile.open(QtCore.QFile.ReadOnly)
-        w = loader.load(uifile, parent)
-        uifile.close()
-        return w
-    else:
-        # Import (from PyQt4 import QtCore, uic)
-        QtCore = importer_instance.load_module('QtCore')
-        uic = importer_instance.load_module('uic')
-        # Load widget
-        w = uic.loadUi(filename)
-        # We set the parent explicitly
-        if parent is not None:
-            w.setParent(parent)
-        return w
-
-
-
-class QtProxyImporter:
-    """ Importer to import Qt modules, either from PySide or from PyQt,
-    and either from this Python's version, or the system ones (if
-    available and matching).
-    """
-    
-    def __init__(self):
-        self._qtPackage = None
-        self._enabled = True
-        self._import_path = None  # None for 'normal' (non-system) import
-    
-    
-    def find_module(self, fullname, path=None):
-        """ This is called by Python's import mechanism. We return ourself
-        only if this really looks like a Qt import, and when its imported
-        as a submodule from this stub package.
-        """
-        
-        # Only proceed if we are enabled
-        if not self._enabled:
-            return None
-        
-        # Get different parts of the module name
-        nameparts = fullname.split('.') 
-        
-        # sip is required by PyQt4
-        if fullname == 'sip':
-            self._import_qt()
-            return self
-        
-        # If the import is relative to this package, we will try to
-        # import relative to the selected qtPackage
-        if '.'.join(nameparts[:-1]) == __name__:
-            self._import_qt()
-            return self
-    
-    
-    def load_module(self, fullname):
-        """ This method is called by Python's import mechanism after
-        this instance has been returned from find_module. Here we
-        actually import the module and do some furher processing.
-        """
-        
-        # Get different parts of the module name
-        nameparts = fullname.split('.') 
-        modulename = nameparts[-1]
-        
-        # We can only proceed if qtPackage was loaded
-        if self._qtPackage is None:
-            raise ImportError()
-        
-        # Get qt dir or dummy
-        if self._import_path:
-            qtdir = os.path.dirname(self._qtPackage.__file__)
-        else:
-            qtdir = '/nonexisting/dir/with/subdirs/dummy'
-        
-        # Get real name and path to load it from    
-        if fullname == self._qtPackage.__name__:
-            return self._qtPackage
-        elif fullname == 'sip':
-            realmodulename = 'sip'
-            searchdir = os.path.dirname(qtdir)
-        elif modulename.startswith('Qt') or modulename == 'uic':
-            realmodulename = '%s.%s' % (self._qtPackage.__name__, modulename)
-            searchdir = qtdir
-        else:
-            raise ImportError()
-        
-        # Import. We also need to modify sys.path in case this is a system package
-        if os.path.isdir(qtdir):
-            if VERBOSE: print('load_module explicitly: %s' % fullname)
-            sys.path.insert(0, os.path.dirname(qtdir))
-            try:
-                for entry in os.listdir(searchdir):
-                    if entry.startswith(modulename+'.'):
-                        m = imp.load_dynamic(   realmodulename, 
-                                                os.path.join(searchdir, entry))
-                        break
-                else:
-                    raise ImportError('Could not import %s' % realmodulename)
-            finally:
-                sys.path.pop(0)
-        else:
-            # Module can be inside a zip-file when frozen
-            # Import normally, and disable ourselves so we do not recurse
-            if VERBOSE: print('load_module normally: %s' % realmodulename)
-            self._enabled = False
-            try:
-                p = __import__(realmodulename)
-            finally:
-                self._enabled = True
-            # Get the actual modele
-            if '.' in realmodulename:
-                m = getattr(p, modulename)
-            else:
-                m = p
-        
-        # Also register in sys.modules under the name as it was imported
-        sys.modules[realmodulename] = m
-        sys.modules[fullname] = m
-        
-        # Fix some compatibility issues
-        self._fix_compat(m)
-        
-        # Done
-        return m
-    
-    
-    def _determine_preference(self):
-        """ Determine preference by reading from qt.conf.
-        """
-        
-        # Get dirs to look for qt.conf
-        dirs = [os.path.dirname(sys.executable)]
-        script_dir = ''
-        if sys.path:
-            script_dir = sys.path[0]
-            if getattr(sys, 'frozen', None):
-                script_dir = os.path.dirname(script_dir)
-        dirs.append(script_dir)
-        
-        # Read qt.conf
-        for dir in dirs:
-            qt_conf = os.path.join(dir, 'qt.conf')
-            if os.path.isfile(qt_conf):
-                text = open(qt_conf, 'rb').read().decode('utf-8', 'ignore')
-                break
-        else:
-            text = ''
-        
-        # Parse qt.conf
-        prefer_system = False
-        prefer_toolkit = ''
-        #
-        for line in text.splitlines():
-            line = line.split('#',1)[0].strip()
-            if '=' not in line:
-                continue
-            key, val = [i.strip() for i in line.split('=', 1)]
-            if key == 'PreferSystem' and val.lower() in ('yes', 'true', '1'):
-                prefer_system = True
-            if key == 'PreferToolkit':
-                prefer_toolkit = val
-        
-        return prefer_system, prefer_toolkit
-    
-    
-    def _import_qt(self, toolkit=None):
-        """ This is where we import either PySide or PyQt4.
-        This is done only once.
-        """
-        
-        # Make qtPackage global and only proceed if its not set yet
-        if self._qtPackage is not None:
-            return
-        
-        # Establish preference
-        prefer_system, prefer_toolkit = self._determine_preference()
-        
-        # Check toolkit, use pyside by default
-        prefer_toolkit = toolkit or prefer_toolkit or 'pyside'
-        if prefer_toolkit.lower() not in ('pyside', 'pyqt4'):
-            prefer_toolkit = 'pyside'
-            print('Invalid Qt toolit preference given: "%s"' % prefer_toolkit)
-        
-        # Really import
-        self._qtPackage = self._import_qt_for_real(prefer_system, prefer_toolkit)
-        
-        # Disable plugins if necessary
-        if self._qtPackage and sys.platform.startswith('linux'):
-            if not self._qtPackage.__file__.startswith('/usr'):
-                os.environ['QT_PLUGIN_PATH'] = ''
-    
-    
-    def _import_qt_for_real(self, prefer_system, prefer_toolkit):
-        """ The actual importing.
-        """
-        
-        # Perhaps it is already loaded
-        if 'PySide' in sys.modules:
-            return sys.modules['PySide']
-        elif 'PyQt4' in sys.modules:
-            return sys.modules['PyQt4']
-        
-        # Init potential imports
-        pyside_imports = [('PySide', None)]
-        pyqt4_imports = [('PyQt4', None)]
-        pyside_system_imports = []
-        pyqt4_system_imports = []
-        
-        # Get possible paths, but only on Linux
-        if sys.platform.startswith('linux'):
-            # Determine where PySide or PyQt4 can be
-            ver = sys.version[:3]
-            possible_paths = ['/usr/local/lib/python%s/dist-packages' % ver,
-                os.path.expanduser('~/.local/lib/python%s/site-packages' % ver)]
-            if os.path.isdir('/usr/lib/python%s' % ver):
-                possible_paths.append('/usr/lib/python%s/dist-packages' % ver[0])
-            # Trty if it is there
-            for path in possible_paths:
-                if os.path.isdir(os.path.join(path, 'PySide')):
-                    pyside_system_imports.append(('PySide', path))
-                if os.path.isdir(os.path.join(path, 'PyQt4')):
-                    pyqt4_system_imports.append(('PyQt4', path))
-        
-        # Combine imports in right order
-        if prefer_system:
-            if 'pyside' == prefer_toolkit.lower():
-                imports =   pyside_system_imports + pyqt4_system_imports + \
-                            pyside_imports + pyqt4_imports
-            else:
-                imports =   pyqt4_system_imports + pyside_system_imports + \
-                            pyqt4_imports + pyside_imports
-        else:
-            if 'pyside' == prefer_toolkit.lower():
-                imports =   pyside_imports + pyqt4_imports #+ \
-                            #pyside_system_imports + pyqt4_system_imports
-            else:
-                imports =   pyqt4_imports + pyside_imports #+ \
-                            #pyqt4_system_imports + pyside_system_imports
-        
-        # Try importing
-        package = None
-        for package_name, path in imports:
-            if path:
-                sys.path.insert(0, path)
-            if VERBOSE: print('Attempting to import %s (system=%i)' % (package_name, bool(path)))
-            self._import_path = path
-            try:
-                return __import__(package_name, level=0)
-            except ImportError as err:
-                if VERBOSE: print('Import failed')
-            finally:
-                if path:
-                    sys.path.pop(0)
-        else:
-            raise ImportError('Could not import PySide nor PyQt4.')
-    
-    
-    def _fix_compat(self, m):
-        """ Fix incompatibilities between PySide and PyQt4. 
-        """
-        if self._qtPackage.__name__ == 'PySide':
+if API in PYQT4_API:
+    try:
+        import sip
+        try:
+            sip.setapi('QString', 2)
+            sip.setapi('QVariant', 2)
+            sip.setapi('QDate', 2)
+            sip.setapi('QDateTime', 2)
+            sip.setapi('QTextStream', 2)
+            sip.setapi('QTime', 2)
+            sip.setapi('QUrl', 2)
+        except AttributeError:
+            # PyQt < v4.6
             pass
-        else:
-            if m.__name__.endswith('QtCore'):
-                m.Signal = m.pyqtSignal
-        
-        # todo: more compat, like uic loading
+        from PyQt4.Qt import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
+        from PyQt4.Qt import QT_VERSION_STR as QT_VERSION  # analysis:ignore
+        PYSIDE_VERSION = None
+        PYQT5 = False
+        PYQT4 = True
+    except ImportError:
+        API = os.environ['QT_API'] = 'pyside'
+    else:
+        is_old_pyqt = PYQT_VERSION.startswith(('4.4', '4.5', '4.6', '4.7'))
+        is_pyqt46 = PYQT_VERSION.startswith('4.6')
 
+if API in PYSIDE_API:
+    try:
+        from PySide import __version__ as PYSIDE_VERSION  # analysis:ignore
+        from PySide.QtCore import __version__ as QT_VERSION  # analysis:ignore
+        PYQT_VERSION = None
+        PYQT5 = False
+        PYSIDE = True
+    except ImportError:
+        raise PythonQtError('No Qt bindings could be found')
 
-importer_instance = QtProxyImporter()
-sys.meta_path.insert(0, importer_instance)
-
-
-
-
-DEFAULT_QT_CONF_TEXT = """## This file contains configuration options for Qt.
-## It disables plugins so that an application that brings its own 
-## Qt libraries do not clashs with the native Qt. It also has options
-## that the pyzo qt proxy uses to allow you to use your system
-## PySide/PyQt4 libraries.
-
-[Py]
-
-## Preferred toolkit: PySide or PyQt4
-PreferToolkit = PySide
-
-## Uncomment if pyzo should try to use the system libraries
-## Note that you version of Python must be ABI compatible with the
-## version on your system for this to work
-#PreferSystem = yes
-
-
-[Paths]
-
-## This disables plugins, avoiding Qt library clashes
-Plugins = ''
-
-## On Ubuntu Unity, if PreferSystem is enabled, uncomment this to
-## enable the fancy menu bar.
-#Plugins = /usr/lib/x86_64-linux-gnu/qt4/plugins
-
-"""
+API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
+            'pyside': 'PySide'}[API]
+if PYQT4:
+        import sip
+        try:
+            API_NAME += (" (API v{0})".format(sip.getapi('QString')))
+        except AttributeError:
+            pass

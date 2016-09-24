@@ -36,18 +36,18 @@ displayed in the statusbar.
 import os, sys, imp
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo.util import zon as ssdf
 
 
-class ToolDockWidget(QtGui.QDockWidget):
+class ToolDockWidget(QtWidgets.QDockWidget):
     """ A dock widget that holds a tool.
     It sets all settings, initializes the tool widget, and notifies the
     tool manager on closing.
     """
         
     def __init__(self, parent, toolManager):
-        QtGui.QDockWidget.__init__(self, parent)
+        QtWidgets.QDockWidget.__init__(self, parent)
         
         # Store stuff
         self._toolManager = toolManager
@@ -55,10 +55,10 @@ class ToolDockWidget(QtGui.QDockWidget):
         # Allow docking anywhere, othwerise restoring state wont work properly
         
         # Set other settings
-        self.setFeatures(   QtGui.QDockWidget.DockWidgetMovable |
-                            QtGui.QDockWidget.DockWidgetClosable |
-                            QtGui.QDockWidget.DockWidgetFloatable
-                            #QtGui.QDockWidget.DockWidgetVerticalTitleBar
+        self.setFeatures(   QtWidgets.QDockWidget.DockWidgetMovable |
+                            QtWidgets.QDockWidget.DockWidgetClosable |
+                            QtWidgets.QDockWidget.DockWidgetFloatable
+                            #QtWidgets.QDockWidget.DockWidgetVerticalTitleBar
                             )
     
     
@@ -298,7 +298,7 @@ class ToolManager(QtCore.QObject):
         
         # Does it inherit from QWidget?
         plug = mod.__dict__[className]
-        if not (isinstance(plug,type) and issubclass(plug,QtGui.QWidget)):
+        if not (isinstance(plug,type) and issubclass(plug,QtWidgets.QWidget)):
             print("Invalid tool, tool class must inherit from QWidget!")
             return None
         
@@ -316,7 +316,7 @@ class ToolManager(QtCore.QObject):
         # Close old one
         if toolId in self._activeTools:
             old = self._activeTools[toolId].widget()            
-            self._activeTools[toolId].setWidget(QtGui.QWidget(pyzo.main))
+            self._activeTools[toolId].setWidget(QtWidgets.QWidget(pyzo.main))
             if old:
                 old.close()
                 old.deleteLater()

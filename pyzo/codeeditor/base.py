@@ -100,7 +100,7 @@ into account:
 """
 
 import sys
-from .qt import QtGui,QtCore
+from .qt import QtGui,QtCore, QtWidgets
 Qt = QtCore.Qt
 
 from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option
@@ -110,7 +110,7 @@ from .highlighter import Highlighter
 from .style import StyleFormat, StyleElementDescription
 
 
-class CodeEditorBase(QtGui.QPlainTextEdit):
+class CodeEditorBase(QtWidgets.QPlainTextEdit):
     """ The base code editor class. Implements some basic features required
     by the extensions.
     
@@ -265,7 +265,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         
         # Get all names that can be options
         allNames = set(dir(self))
-        nativeNames = set(dir(QtGui.QPlainTextEdit))
+        nativeNames = set(dir(QtWidgets.QPlainTextEdit))
         names = allNames.difference(nativeNames)
         
         # Init dict of setter members
@@ -421,7 +421,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         font = QtGui.QFont(family, size)
         
         # Set, emit and return
-        QtGui.QPlainTextEdit.setFont(self, font)
+        QtWidgets.QPlainTextEdit.setFont(self, font)
         self.fontChanged.emit()
         return font
     
@@ -462,7 +462,7 @@ class CodeEditorBase(QtGui.QPlainTextEdit):
         elements = []
         def collectElements(cls, iter=1):
             # Valid class?
-            if cls is object or cls is QtGui.QPlainTextEdit:
+            if cls is object or cls is QtWidgets.QPlainTextEdit:
                 return
             # Check members
             if hasattr(cls, '_styleElements'):

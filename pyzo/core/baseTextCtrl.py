@@ -18,7 +18,7 @@ import weakref
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 qt = QtGui
 
 
@@ -607,7 +607,7 @@ class AutoCompObject:
     
     
 if __name__=="__main__":
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     win = BaseTextCtrl(None)
 #     win.setStyle('.py')
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"

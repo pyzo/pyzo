@@ -14,7 +14,7 @@ and a dialog to edit the shell configurations.
 
 import os, sys, time, re
 import webbrowser
-from pyzo.util.qt import QtCore, QtGui
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo import translate
@@ -72,7 +72,7 @@ def shellTitle(shell, moreinfo=False):
     return text
 
 
-class ShellStackWidget(QtGui.QWidget):
+class ShellStackWidget(QtWidgets.QWidget):
     """ The shell stack widget provides a stack of shells.
     
     It wrapps a QStackedWidget that contains the shell objects. This 
@@ -92,15 +92,15 @@ class ShellStackWidget(QtGui.QWidget):
     currentShellStateChanged = QtCore.Signal() 
     
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         # create toolbar
-        self._toolbar = QtGui.QToolBar(self)
+        self._toolbar = QtWidgets.QToolBar(self)
         self._toolbar.setMaximumHeight(25)
         self._toolbar.setIconSize(QtCore.QSize(16,16))
         
         # create stack
-        self._stack = QtGui.QStackedWidget(self)
+        self._stack = QtWidgets.QStackedWidget(self)
         
         # Populate toolbar
         self._shellButton = ShellControl(self._toolbar, self._stack)
@@ -114,7 +114,7 @@ class ShellStackWidget(QtGui.QWidget):
         self._condahelp = CondaHelper(self)
         
         # widget layout
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._toolbar)
@@ -304,12 +304,12 @@ class ShellStackWidget(QtGui.QWidget):
 
 
 
-class ShellControl(QtGui.QToolButton):
+class ShellControl(QtWidgets.QToolButton):
     """ A button that can be used to select a shell and start a new shell.
     """
     
     def __init__(self, parent, shellStack):
-        QtGui.QToolButton.__init__(self, parent)
+        QtWidgets.QToolButton.__init__(self, parent)
         
         # Store reference of shell stack
         self._shellStack = shellStack
@@ -392,12 +392,12 @@ class ShellControl(QtGui.QToolButton):
 
 
 # todo: remove this?
-# class DebugControl(QtGui.QToolButton):
+# class DebugControl(QtWidgets.QToolButton):
 #     """ A button to control debugging. 
 #     """
 #     
 #     def __init__(self, parent):
-#         QtGui.QToolButton.__init__(self, parent)
+#         QtWidgets.QToolButton.__init__(self, parent)
 #         
 #         # Flag
 #         self._debugmode = False
@@ -426,7 +426,7 @@ class ShellControl(QtGui.QToolButton):
 #         clearallbps = clearallbps.format(bpcount)
 #         
 #         # Set menu
-#         menu = QtGui.QMenu(self)
+#         menu = QtWidgets.QMenu(self)
 #         self.setMenu(menu)
 #         
 #         for cmd, enabled, icon, text in [ 
@@ -491,12 +491,12 @@ class ShellControl(QtGui.QToolButton):
 
 
 
-class DebugStack(QtGui.QToolButton):
+class DebugStack(QtWidgets.QToolButton):
     """ A button that shows the stack trace.
     """
     
     def __init__(self, parent):
-        QtGui.QToolButton.__init__(self, parent)
+        QtWidgets.QToolButton.__init__(self, parent)
         
         # Set text and tooltip
         self._baseText = translate('debug', 'Stack')
@@ -551,7 +551,7 @@ class DebugStack(QtGui.QToolButton):
             theAction = None
             
             # Create menu and add __main__
-            menu = QtGui.QMenu(self)
+            menu = QtWidgets.QMenu(self)
             self.setMenu(menu)
             
             # Fill trace
@@ -622,14 +622,14 @@ class DebugStack(QtGui.QToolButton):
             editor.setTextCursor(cursor)
 
 
-class CondaHelper(QtGui.QWidget):
+class CondaHelper(QtWidgets.QWidget):
     """ This sits in place of a shell to help the user download miniconda.
     """
     
     def __init__(self, parent):
         super().__init__(parent)
         
-        self._label = QtGui.QLabel('hello world')
+        self._label = QtWidgets.QLabel('hello world')
         self._label.setTextFormat(QtCore.Qt.RichText)
         self._label.setWordWrap(True)
         # self._label.setOpenExternalLinks(True)
@@ -638,14 +638,14 @@ class CondaHelper(QtGui.QWidget):
         font.setPointSize(font.pointSize()+1)
         self._label.setFont(font)
         
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
         layout.addWidget(self._label, 1)
     
     def refresh(self):
         self._label.setText('Detecting interpreters ...')
-        QtGui.qApp.flush()
-        QtGui.qApp.processEvents()
+        QtWidgets.qApp.flush()
+        QtWidgets.qApp.processEvents()
         self.detect()
         
     def detect(self):

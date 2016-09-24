@@ -4,16 +4,16 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-from ..qt import QtCore, QtGui
+from ..qt import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 class Calltip(object):
     _styleElements = [('Editor.calltip', 'The style of the calltip. ',
                         'fore:#555, back:#ff9, border:1')]
     
-    class __CalltipLabel(QtGui.QLabel):
+    class __CalltipLabel(QtWidgets.QLabel):
         def __init__(self):
-            QtGui.QLabel.__init__(self)
+            QtWidgets.QLabel.__init__(self)
             
             # Start hidden
             self.hide()
