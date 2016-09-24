@@ -63,7 +63,7 @@ class Settings(QtWidgets.QWidget):
         layout2.addWidget(add_button)
         layout2.addWidget(del_button)
         layout.addLayout(layout2)
-        self._model = QtWidgets.QStringListModel()
+        self._model = QtCore.QStringListModel()
         self._view.setModel(self._model)
 
         self._model.setStringList(self._engine.registeredDocumentations())
