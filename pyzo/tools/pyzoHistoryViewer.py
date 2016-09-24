@@ -98,7 +98,7 @@ class PyzoHistoryViewer(HistoryViewer):
         self.setModel(pyzo.shells.sharedHistory)
         
 
-class History(QtWidgets.QStringListModel):
+class History(QtCore.QStringListModel):
     markerPrefix = None # Text to prepend to the marker, or None for no marker
     maxLines = 100 # Only enforced upon loading
     def __init__(self, fname):
