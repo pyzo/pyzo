@@ -93,7 +93,7 @@ else:
 
 excludes.extend(PySideModules)
 excludes.extend(PyQt4Modules)
-excludes.extend(PySideModules)
+excludes.extend(PyQt5Modules)
 
 for mod in includes:
     if mod in excludes:
@@ -330,7 +330,7 @@ if applicationBundle:
     # Move PyQt4 libs into subdir
     # This gets us a similar dir structure as installed so
     # we dont have to fix paths ...
-    if True:  # IF FREEZING FROM CONDA
+    if False:  # IF FREEZING FROM CONDA
         os.makedirs(distDir+'source/more/' + QT_API)
         open(distDir+'source/more/' + QT_API + '/__init__.py', 'wb').close()
         for fname in os.listdir(distDir):
@@ -387,7 +387,13 @@ if applicationBundle:
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
     
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
-    shutil.copytree('/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib',resourcesDir+'qt_menu.nib')
+    potential_dirs = ['/opt/local/libexec/qt4/Library/Frameworks/QtGui.framework/Versions/4/Resources/', '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/']
+    for d in potential_dirs:
+        if os.path.isdir(d + 'qt_menu.nib'):
+            shutil.copytree(d + 'qt_menu.nib', resourcesDir+'qt_menu.nib')
+            break
+    else:
+        raise RuntimeError('Could not find qt_menu.nib')
 
 
     #Package in a dmg
