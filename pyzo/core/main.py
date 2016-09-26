@@ -19,6 +19,7 @@ from queue import Queue, Empty
 import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
+from pyzo.util import qt
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
@@ -292,7 +293,7 @@ class MainWindow(QtWidgets.QMainWindow):
         If bool(stylename) evaluates to False will use the default style
         for this system. Returns the QStyle instance.
         """
-        
+         
         if stylename is None:
             # Initialize
             
@@ -302,11 +303,13 @@ class MainWindow(QtWidgets.QMainWindow):
             # Obtain default style name
             pyzo.defaultQtStyleName = str(QtWidgets.qApp.style().objectName())
             
-            # Other than gtk+ and mac, cleanlooks looks best (in my opinion)
+            # Other than gtk+ and mac, Fusion/Cleanlooks looks best (in my opinion)
             if 'gtk' in pyzo.defaultQtStyleName.lower():
                 pass # Use default style
             elif 'macintosh' in pyzo.defaultQtStyleName.lower():
                 pass # Use default style
+            elif qt.QT_VERSION > '5':
+                pyzo.defaultQtStyleName = 'Fusion'
             else:
                 pyzo.defaultQtStyleName = 'Cleanlooks'
             
@@ -317,29 +320,18 @@ class MainWindow(QtWidgets.QMainWindow):
         # Init
         if not stylename:
             stylename = pyzo.config.view.qtstyle
-        useStandardStyle = False
-        stylename2 = stylename
-        
-        # Handle special cleanlooks style
-        if stylename.lower().startswith('cleanlooks'):
-            stylename2 = stylename.rstrip('+')
-            if stylename2 != stylename:
-                useStandardStyle = True
         
         # Check if this style exist, set to default otherwise
         styleNames = [name.lower() for name in QtWidgets.QStyleFactory.keys()]
-        if stylename2.lower() not in styleNames:
-            stylename2 = pyzo.defaultQtStyleName
+        if stylename.lower() not in styleNames:
+            stylename = pyzo.defaultQtStyleName
         
         # Try changing the style
-        qstyle = QtWidgets.qApp.setStyle(stylename2)
+        qstyle = QtWidgets.qApp.setStyle(stylename)
         
         # Set palette
         if qstyle:
-            if useStandardStyle:
-                QtWidgets.qApp.setPalette(QtWidgets.QStyle.standardPalette(qstyle))
-            else:
-                QtWidgets.qApp.setPalette(QtWidgets.qApp.nativePalette)
+            QtWidgets.qApp.setPalette(QtWidgets.qApp.nativePalette)
         
         # Done
         return qstyle

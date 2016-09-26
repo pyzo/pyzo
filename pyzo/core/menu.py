@@ -726,7 +726,7 @@ class ViewMenu(Menu):
         # Create qt theme menu
         t = translate("menu", "Qt theme ::: The styling of the user interface widgets.")
         self._qtThemeMenu = GeneralOptionsMenu(self, t, self._setQtTheme)
-        styleNames = list(QtWidgets.QStyleFactory.keys()) + ['Cleanlooks+']
+        styleNames = list(QtWidgets.QStyleFactory.keys())
         styleNames.sort()
         titles = [name for name in styleNames]
         styleNames = [name.lower() for name in styleNames]
