@@ -54,7 +54,7 @@ class KernelInfo(ssdf.Struct):
     
     """
     def __init__(self, info=None):
-        
+        super().__init__()
         # ----- Fixed parameters that define a shell -----
         
         # scriptFile is used to define the mode. If given, we run in 
