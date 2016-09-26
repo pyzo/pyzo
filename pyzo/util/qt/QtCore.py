@@ -34,6 +34,7 @@ elif PYQT4:
     from PyQt4.QtGui import (QItemSelection, QItemSelectionModel,
                              QItemSelectionRange, QSortFilterProxyModel)
     from PyQt4.QtCore import QT_VERSION_STR as __version__
+    from PyQt4.QtGui import QStringListModel
 
     # Those are imported from `import *`
     del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
