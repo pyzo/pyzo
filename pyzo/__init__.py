@@ -46,6 +46,7 @@ __version__ = '4.2.1'
 import os
 import sys
 import locale
+import traceback
 
 # Check Python version
 if sys.version < '3':
@@ -102,6 +103,19 @@ class MyApp(QtWidgets.QApplication):
 
 if not sys.platform.startswith('darwin'):
     MyApp = QtWidgets.QApplication
+
+## Install excepthook
+# In PyQt5 exceptions in Python will cuase an abort
+# http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html
+
+def pyzo_excepthook(type, value, tb):
+    out = 'Uncaught Python exception: ' + str(value) + '\n'
+    out += ''.join(traceback.format_list(traceback.extract_tb(tb)))
+    out += '\n'
+    sys.stderr.write(out)
+
+sys.excepthook = pyzo_excepthook
+
 
 ## Define some functions
 
