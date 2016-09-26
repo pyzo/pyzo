@@ -30,15 +30,20 @@ def application_dir():
     if not sys.path or not sys.path[0]:
         raise RuntimeError('Cannot determine app path because sys.path[0] is empty!')
     thepath = sys.path[0]
-    if getattr(sys, 'frozen', None):
+    if getattr(sys, 'frozen', None) and os.path.isfile(thepath):
         thepath = os.path.dirname(thepath)
     return os.path.abspath(thepath)
 
-
 if hasattr(sys, 'frozen') and sys.frozen:
+    app_dir = application_dir()
     # Enable loading from source
-    sys.path.insert(0, os.path.join(application_dir(), 'source'))
-    sys.path.insert(0, os.path.join(application_dir(), 'source/more'))
+    sys.path.insert(0, os.path.join(app_dir, 'source'))
+    sys.path.insert(0, os.path.join(app_dir, 'source/more'))
+    # Environment vars
+    if sys.platform.startswith('linux'):
+        os.environ['QT_XKB_CONFIG_ROOT'] = '.'
+        os.environ['FONTCONFIG_FILE'] = os.path.join(app_dir, 'source/pyzo',
+                                                     'resources/fonts/linux_fonts.conf')
     # Import
     import pyzo
 

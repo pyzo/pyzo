@@ -67,27 +67,38 @@ tk_excludes = [ "pywin", "pywin.debugger", "pywin.debugger.dbgcon",
                 "Tkconstants", "Tkinter", "tcl" ]
 excludes.extend(tk_excludes)
 excludes.append('numpy')
-excludes.append('PySide.QtNetwork')
-excludes.append('PyQt4.QtNetwork')
+
+# Excludes for Qt
+qt_excludes = 'QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg', 'QtHelp'
+for qt_ver in ['PyQt5', 'PyQt4', 'PySide']:
+    for excl in qt_excludes:
+        excludes.append(qt_ver + '.' + excl)
 
 # For qt to work
-PyQtModules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui',  'PyQt4.QtHelp']
-PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']
-#
-# try:
-#     import PyQt4
-# except ImportError:
-#     use_pyqt = False
-# else:
-#     use_pyqt = True
-use_pyqt = False
-#
-if use_pyqt:  # and sys.platform == 'darwin':
-    excludes.extend(PySideModules)
-    includes = PyQtModules
-else:
-    excludes.extend(PyQtModules)
+PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui']
+PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui']
+PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
+
+# SELECT BACKEND
+QT_API = 'PyQt5'
+
+if QT_API == 'PyQt5':
+    includes = PyQt5Modules
+elif QT_API == 'PyQt4':
+    includes = PyQt4Modules
+elif QT_API == 'PySide':
     includes = PySideModules
+else:
+    raise RuntimeError('Unknown QT_API %r' % QT_API)
+
+excludes.extend(PySideModules)
+excludes.extend(PyQt4Modules)
+excludes.extend(PySideModules)
+
+for mod in includes:
+    if mod in excludes:
+        excludes.remove(mod)
+
 
 ## Freeze
 
@@ -119,7 +130,7 @@ f = Freezer(    executables,
                 binIncludes = ['libssl.so', 'libcrypto.so'],
                 excludes = excludes,
                 targetDir = distDir,
-                copyDependentFiles = True,
+                # copyDependentFiles = True,
                 includeMSVCR = True,  # Let cx_Freeze find it for us
 #                 appendScriptToExe=True,
 #                 optimizeFlag=1, 
@@ -245,28 +256,52 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 # Set search path of dynamic libraries
 import dllutils
 if sys.platform.startswith('linux'):
+    
+    libs2fix = []  # (filename, rpaths) tuples
+    
     # Exe
-    dllutils.set_search_path(os.path.join(distDir, 'pyzo'), '', 'lib')
+    rpaths = '', 'lib'
+    libs2fix.append((os.path.join(distDir, 'pyzo'), rpaths))
+    
     # Libs
-    os.mkdir(os.path.join(distDir, 'lib'))
+    if not os.path.isdir(os.path.join(distDir, 'lib')):
+        os.mkdir(os.path.join(distDir, 'lib'))
     for entry in os.listdir(distDir):
         filename = os.path.join(distDir, entry)
-        if not os.path.isfile(filename):
+        if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
             continue
-        if not (entry.endswith('.so') or '.so.' in entry):
-            continue
-        #
         rpaths = '', 'lib'
-        if entry.startswith('lib') and not 'python' in entry:
+        if entry.startswith('lib') and not 'python' in entry:  # move lib
             filename = os.path.join(distDir, 'lib', entry)
             shutil.move(os.path.join(distDir, entry), filename)
             rpaths = '', '..'
+        libs2fix.append((filename, rpaths))
+    
+    # Libs further (newer version of cx_freeze puts libs in /lib/python3.5
+    lib_py_dir = os.path.join(distDir, 'lib', 'python' + sys.version[:3])
+    for entry in os.listdir(lib_py_dir):
+        filename = os.path.join(lib_py_dir, entry)
+        if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
+            continue
+        rpaths = '', '..', '../..'
+        libs2fix.append((filename, rpaths))
+    
+    # Libs further (newer version of cx_freeze puts libs in /lib/python3.5
+    qt_platform_dir = os.path.join(distDir, 'platforms')
+    for entry in os.listdir(qt_platform_dir):
+        filename = os.path.join(qt_platform_dir, entry)
+        if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
+            continue
+        rpaths = '', '..', '../lib', '../lib/python' + sys.version[:3]
+        libs2fix.append((filename, rpaths))
+    
+    # Apply
+    for filename, rpaths in libs2fix:
         try:
             dllutils.set_search_path(filename, *rpaths)
         except Exception as err:
             print('Cannot set search path of %s:\n%s' % 
                     (os.path.basename(entry), str(err)))
-        
 
 
 if sys.platform.startswith('linux'):
@@ -277,15 +312,7 @@ if sys.platform.startswith('linux'):
     # QApplication.setLibraryPaths([]), it does not replace it.
     # See issue 138 and issue 198.
     with open(os.path.join(distDir, 'qt.conf'), 'wb') as file:
-        from pyzo.util import qt
-        file.write(qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
-        #file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
-    
-    # Write about experimental feature
-    fname = 'CHECK QT.CONF TO USE NATIVE STYLING'
-    with open(os.path.join(distDir, fname), 'wb') as file:
-       pass
-
+        file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
 
 # Remove imageforma dir. These libs hook into the original
 # Qt libs, giving rise to these nasty mixed binaries errors.
@@ -304,11 +331,11 @@ if applicationBundle:
     # This gets us a similar dir structure as installed so
     # we dont have to fix paths ...
     if True:  # IF FREEZING FROM CONDA
-        os.makedirs(distDir+'source/more/PyQt4')
-        open(distDir+'source/more/PyQt4/__init__.py', 'wb').close()
+        os.makedirs(distDir+'source/more/' + QT_API)
+        open(distDir+'source/more/' + QT_API + '/__init__.py', 'wb').close()
         for fname in os.listdir(distDir):
-            if fname.startswith('PyQt4'):
-                filename = distDir+'source/more/PyQt4/' + fname[6:]
+            if fname.startswith(QT_API):
+                filename = distDir+'source/more/' + QT_API + '/' + fname[6:]
             elif fname.startswith('sip'):
                 filename = distDir+'source/more/' + fname
             else:
@@ -354,8 +381,7 @@ if applicationBundle:
     
     #Write qt.conf in the Resources dir
     with open(os.path.join(resourcesDir, 'qt.conf'), 'wb') as file:
-        from pyzo.util import qt
-        file.write(qt.DEFAULT_QT_CONF_TEXT.encode('utf-8'))
+        file.write("[Paths]\nPlugins = '.'\n".encode('utf-8'))
     
     #Copy the Info.plist file
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
