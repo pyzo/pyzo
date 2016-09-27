@@ -39,11 +39,6 @@ if hasattr(sys, 'frozen') and sys.frozen:
     # Enable loading from source
     sys.path.insert(0, os.path.join(app_dir, 'source'))
     sys.path.insert(0, os.path.join(app_dir, 'source/more'))
-    # Environment vars
-    if sys.platform.startswith('linux'):
-        os.environ['QT_XKB_CONFIG_ROOT'] = '.'
-        os.environ['FONTCONFIG_FILE'] = os.path.join(app_dir, 'source/pyzo',
-                                                     'resources/fonts/linux_fonts.conf')
     # Import
     import pyzo
 
