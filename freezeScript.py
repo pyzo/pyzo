@@ -253,6 +253,14 @@ with open(os.path.join(distDir, '_settings', 'README.txt'), 'wb') as file:
 ## Post processing
 
 
+# Copy Qt platform plugins
+if sys.platform.startswith('win') and QT_API == 'PyQt5':
+    src_dir = os.path.join(sys.prefix, 'Library', 'plugins', 'platforms')
+    for fname in os.listdir(src_dir):
+        if fname.endswith('.dll'):
+            shutil.copy2(os.path.join(src_dir, fname),
+                         os.path.join(distDir, fname))
+
 # Set search path of dynamic libraries
 import dllutils
 if sys.platform.startswith('linux'):

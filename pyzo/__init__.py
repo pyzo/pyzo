@@ -84,6 +84,9 @@ os.environ['PYZO_PREFIX'] = sys.prefix
 _is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR')
 os.environ['PYZO_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
 
+# Let Windows find platform plugins
+if sys.platform.startswith('win'):
+    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = sys.prefix
 
 class MyApp(QtWidgets.QApplication):
     """ So we an open .py files on OSX.
