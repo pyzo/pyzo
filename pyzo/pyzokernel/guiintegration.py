@@ -271,18 +271,18 @@ class App_qt(App_base):
         
         # Store the real application class
         if not hasattr(QtGui, 'real_QApplication'):
-            QtWidgets.real_QApplication = QtWidgets.QApplication
+            QtGui.real_QApplication = QtGui.QApplication
         
         
-        class QApplication_hijacked(QtWidgets.QApplication):
+        class QApplication_hijacked(QtGui.QApplication):
             """ QApplication_hijacked(*args, **kwargs)
             
             Hijacked QApplication class. This class has a __new__() 
             method that always returns the global application 
-            instance, i.e. QtWidgets.qApp.
+            instance, i.e. QtGui.qApp.
             
-            The QtWidgets.qApp instance is an instance of the original
-            QtWidgets.QApplication, but with its __init__() and exec_() 
+            The QtGui.qApp instance is an instance of the original
+            QtGui.QApplication, but with its __init__() and exec_() 
             methods replaced.
             
             You can subclass this class; the global application instance
@@ -296,8 +296,8 @@ class App_qt(App_base):
                 
                 # Instantiate an original QApplication instance if we need to
                 if theApp is None:
-                    theApp = QtWidgets.real_QApplication(*args, **kwargs)
-                    QtWidgets.qApp = theApp
+                    theApp = QtGui.real_QApplication(*args, **kwargs)
+                    QtGui.qApp = theApp
                 
                 # Add attributes of cls to the instance to make it
                 # behave as if it were an instance of that class
@@ -370,11 +370,11 @@ class App_qt(App_base):
         self.app.setQuitOnLastWindowClosed(False)
         
         # Replace app class
-        QtWidgets.QApplication = QApplication_hijacked
+        QtGui.QApplication = QApplication_hijacked
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'Pyzo'
-        QtWidgets._in_event_loop = 'Pyzo'
+        QtGui._in_event_loop = 'Pyzo'
         
         # Use sys.excepthook to catch keyboard interrupts that occur
         # in event handlers. We also want to call the curren hook
@@ -403,13 +403,13 @@ class App_qt(App_base):
         timer.start()
         
         # Enter Qt mainloop
-        #self._QtWidgets.real_QApplication.exec_(self.app)
-        self._QtWidgets.real_QApplication.exec_()
+        #self._QtGui.real_QApplication.exec_(self.app)
+        self._QtGui.real_QApplication.exec_()
     
     
     def quit(self):
         # A nicer way to quit
-        self._QtWidgets.real_QApplication.quit()
+        self._QtGui.real_QApplication.quit()
 
 
 
@@ -420,7 +420,7 @@ class App_pyqt4(App_qt):
     def importCoreAndGui(self):
         # Try importing qt        
         import PyQt4
-        from PyQt4 import QtGui, QtCore, QtWidgets
+        from PyQt4 import QtGui, QtCore
         return QtGui, QtCore
     
     
@@ -431,7 +431,7 @@ class App_pyside(App_qt):
     def importCoreAndGui(self):
         # Try importing qt        
         import PySide
-        from PySide import QtGui, QtCore, QtWidgets
+        from PySide import QtGui, QtCore
         return QtGui, QtCore
 
 
