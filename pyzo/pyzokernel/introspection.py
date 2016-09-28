@@ -57,7 +57,10 @@ class PyzoIntrospector(yoton.RepChannel):
                     keys = dir(ob)
                     NS = {}
                     for key in keys:
-                        NS[key] = getattr(ob, key)
+                        try:
+                            NS[key] = getattr(ob, key)
+                        except Exception:
+                            NS[key] = '<unknown>'
                 
                 # Done
                 return NS
