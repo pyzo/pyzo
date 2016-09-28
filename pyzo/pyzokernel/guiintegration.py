@@ -413,6 +413,17 @@ class App_qt(App_base):
 
 
 
+class App_pyqt5(App_qt):
+    """ Hijack the PyQt5 mainloop.
+    """
+    
+    def importCoreAndGui(self):
+        # Try importing qt        
+        import PyQt5
+        from PyQt5 import QtGui, QtCore, QtWidgets
+        return QtWidgets, QtCore  # QApp sits on QtWidgets
+
+
 class App_pyqt4(App_qt):
     """ Hijack the PyQt4 mainloop.
     """

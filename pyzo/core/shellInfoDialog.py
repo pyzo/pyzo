@@ -129,7 +129,8 @@ class ShellInfo_gui(QtWidgets.QComboBox):
     # GUI names
     GUIS = [    ('None', 'no GUI support'),
                 ('Auto', 'Use what is available (recommended)'),
-                ('PyQt4', 'GPL/commercial licensed wrapper to Qt (recommended)'),
+                ('PyQt5', 'GPL/commercial licensed wrapper to Qt'),
+                ('PyQt4', 'GPL/commercial licensed wrapper to Qt'),
                 ('PySide', 'LGPL licensed wrapper to Qt'),
                 ('Tornado', 'Tornado asynchronous networking library'),
                 ('Tk', 'Tk widget toolkit'),
