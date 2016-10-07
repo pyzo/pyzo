@@ -270,6 +270,15 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             # Pop the 'kind' element
             kind = parts.pop(2)
             
+            # <kludge 2>
+            # the typeTranslation dictionary contains "synonyms" for types that will be hidden
+            # Currently only "method"->"function" is used
+            # the try:... is there to have a minimal translation dictionary.
+            try:
+                kind = self._config.typeTranslation[kind]
+            except KeyError:
+                pass
+            # </kludge 2>
             if kind in self._config.hideTypes:
                 continue
             if name.startswith('_') and 'private' in self._config.hideTypes:
@@ -303,6 +312,13 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._config = pyzo.config.tools[toolId]
         if not hasattr(self._config, 'hideTypes'):
             self._config.hideTypes = []
+        # <kludge 2>
+        # configuring the typeTranslation dictionary
+        if not hasattr(self._config, 'typeTranslation'):
+            # to prevent the exception to be raised, one could init to :
+            # {"method": "function", "function": "function", "type": "type", "private": "private", "module": "module"}
+            self._config.typeTranslation = {"method": "function"}
+        # <kludge 2>
         
         # Create tool button
         self._up = QtWidgets.QToolButton(self)
