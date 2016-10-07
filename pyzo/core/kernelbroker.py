@@ -180,6 +180,7 @@ def getEnvFromKernelInfo(info):
     env['PYTHONPATH'] = pythonPath
     # Jython does not use PYTHONPATH but JYTHONPATH
     env['JYTHONPATH'] = pyzo.pyzoDir + os.pathsep + os.environ.get('JYTHONPATH', '')
+    env['TERM'] = 'dumb'  # we have a "dumb" terminal (see #422)
     
     # Add environment variables specified in shell config
     for line in info.environ.splitlines():
