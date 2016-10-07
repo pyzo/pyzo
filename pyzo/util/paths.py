@@ -118,7 +118,7 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     # portable distro or a frozen application that wants to be portable)
     prefix = sys.prefix
     if getattr(sys, 'frozen', None): # See application_dir() function
-        prefix = os.path.abspath(os.path.dirname(sys.path[0]))
+        prefix = os.path.abspath(os.path.dirname(sys.executable))
     for reldir in ('settings', '../settings'):
         localpath = os.path.abspath(os.path.join(prefix, reldir))
         if os.path.isdir(localpath):
@@ -198,14 +198,14 @@ def application_dir():
     The "application" can be a Python script or a frozen application. 
     This function raises a RuntimeError if in interpreter mode.
     """
-    # Test if the current process can be considered an "application"
-    if not sys.path or not sys.path[0]:
-        raise RuntimeError('Cannot determine app path because sys.path[0] is empty!')
-    # Get the path. If frozen, sys.path[0] is the name of the executable,
-    # otherwise it is the path to the directory that contains the script.
-    thepath = sys.path[0]
-    if getattr(sys, 'frozen', None):
-        thepath = os.path.dirname(thepath)
+    if getattr(sys, 'frozen', False):
+        # When frozen, use sys.executable
+        thepath = os.path.dirname(sys.executable)
+    else:
+        # Test if the current process can be considered an "application"
+        if not sys.path or not sys.path[0]:
+            raise RuntimeError('Cannot determine app path because sys.path[0] is empty!')
+        thepath = sys.path[0]
     # Return absolute version, or symlinks may not work
     return os.path.abspath(thepath)
 

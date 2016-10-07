@@ -24,18 +24,9 @@ import sys
 # Import them now, so they are available in the frozen app.
 import shutil
 
-import os, sys
-def application_dir():
-    # Compacted version of pyzo.util.paths.application_dir()
-    if not sys.path or not sys.path[0]:
-        raise RuntimeError('Cannot determine app path because sys.path[0] is empty!')
-    thepath = sys.path[0]
-    if getattr(sys, 'frozen', None) and os.path.isfile(thepath):
-        thepath = os.path.dirname(thepath)
-    return os.path.abspath(thepath)
 
 if hasattr(sys, 'frozen') and sys.frozen:
-    app_dir = application_dir()
+    app_dir = os.dirname(os.path.abspath(sys.executable))
     # Enable loading from source
     sys.path.insert(0, os.path.join(app_dir, 'source'))
     sys.path.insert(0, os.path.join(app_dir, 'source/more'))
