@@ -261,7 +261,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         for des in self._proxy._variables:
             
             # Get parts
-            parts = des.split(',',4)
+            parts = des.split(',',3)
             if len(parts) < 4:
                 continue
             

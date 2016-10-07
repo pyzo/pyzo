@@ -275,12 +275,13 @@ class PyzoIntrospector(yoton.RepChannel):
             
             # Get locals
             NS = self._getNameSpace(objectName)
-            for name in NS.keys():
-                if not name.startswith('__'):
-                    try:
-                        storeInfo(name, NS[name])
-                    except Exception:
-                        pass
+            for name in NS.keys():  # name can be a key in a dict, i.e. not str
+                if hasattr(name, 'startswith') and name.startswith('__'):
+                    continue
+                try:
+                    storeInfo(str(name), NS[name])
+                except Exception:
+                    pass
             
             return names
             
