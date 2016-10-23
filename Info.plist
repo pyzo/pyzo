@@ -40,5 +40,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSHighResolutionCapable</key> 
+	<string>True</string>
 </dict>
 </plist>
