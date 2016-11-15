@@ -439,6 +439,15 @@ class App_pyqt4(App_qt):
         from PyQt4 import QtGui, QtCore
         return QtGui, QtCore
     
+class App_pyside2(App_qt):
+    """ Hijack the PySide2 mainloop.
+    """
+    
+    def importCoreAndGui(self):
+        # Try importing qt        
+        import PySide2
+        from PySide2 import QtGui, QtCore, QtWidgets
+        return QtWidgets, QtCore  # QApp sits on QtWidgets
     
 class App_pyside(App_qt):
     """ Hijack the PySide mainloop.

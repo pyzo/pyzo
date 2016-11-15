@@ -461,6 +461,7 @@ class PyzoInterpreter:
             elif guiName == 'AUTO':
                 for tryName, tryApp in [('PYQT5', guiintegration.App_pyqt5),
                                         ('PYQT4', guiintegration.App_pyqt4),
+                                        ('PYSIDE2', guiintegration.App_pyside2),
                                         ('PYSIDE', guiintegration.App_pyside),
                                         #('WX', guiintegration.App_wx),
                                         ('TK', guiintegration.App_tk),
@@ -481,6 +482,8 @@ class PyzoInterpreter:
                 self.guiApp = guiintegration.App_tornado()
             elif guiName == 'PYSIDE':
                 self.guiApp = guiintegration.App_pyside()
+            elif guiName == 'PYSIDE2':
+                self.guiApp = guiintegration.App_pyside2()
             elif guiName in ['PYQT5', 'QT5']:
                 self.guiApp = guiintegration.App_pyqt5()
             elif guiName in ['PYQT4', 'QT4']:
