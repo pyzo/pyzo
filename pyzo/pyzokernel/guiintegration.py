@@ -251,12 +251,15 @@ class App_tornado(App_base):
         self._timer = PeriodicCallback(repl_callback, 0.05*1000)
         self._timer.start()
         # Enter mainloop
+        self.app._original_start()
         while True:
             try:
                 self.app._original_start()
             except KeyboardInterrupt:
                 self._keyboard_interrupt()
                 self.app._original_stop()
+                continue
+            break
     
     def quit(self):
         self.app._original_stop()
