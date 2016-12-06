@@ -833,7 +833,13 @@ class PyzoInterpreter:
         
         # Get text (make sure it ends with a newline)
         try:
-            source = open(fname, 'rb').read().decode('UTF-8')
+            bb = open(fname, 'rb').read()
+            encoding = 'UTF-8'
+            firstline = bb.split('\n'.encode(), 1)[0]
+            if firstline.startswith('#') and 'coding' in firstline:
+                encoding = firstline.split('coding', 1)[-1].strip(' \t\r\n:=-*')
+            print('encoding', encoding)
+            source = open(fname, 'rb').read().decode(encoding)
         except Exception:
             printDirect('Could not read script (decoding using UTF-8): "' + fname + '"\n')
             return
