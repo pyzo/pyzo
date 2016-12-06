@@ -835,13 +835,12 @@ class PyzoInterpreter:
         try:
             bb = open(fname, 'rb').read()
             encoding = 'UTF-8'
-            firstline = bb.split('\n'.encode(), 1)[0]
+            firstline = bb.split('\n'.encode(), 1)[0].decode('ascii', 'ignore')
             if firstline.startswith('#') and 'coding' in firstline:
                 encoding = firstline.split('coding', 1)[-1].strip(' \t\r\n:=-*')
-            print('encoding', encoding)
-            source = open(fname, 'rb').read().decode(encoding)
+            source = bb.decode(encoding)
         except Exception:
-            printDirect('Could not read script (decoding using UTF-8): "' + fname + '"\n')
+            printDirect('Could not read script (decoding using %s): %r\n' % (encoding, fname))
             return
         try:
             source = source.replace('\r\n', '\n').replace('\r','\n')
