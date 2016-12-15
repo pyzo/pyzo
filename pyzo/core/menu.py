@@ -1348,23 +1348,21 @@ class RunMenu(Menu):
         # Return
         return shell, editor
     
-    def _advance(self):
+    def _advance(self, runCursor):
         # Get editor and shell
         shell, editor = self._getShellAndEditor('selection')
         if not shell or not editor:
             return
         
         cursor = editor.textCursor()
-        runCursor = editor.textCursor()
         cursor.setPosition(runCursor.position())
         cursor.movePosition(cursor.NextBlock)
         editor.setTextCursor(cursor)
     
     def _runSelectedAdvance(self):
-        self._runSelected()
-        self._advance()
+        self._runSelected(advance=True)
 
-    def _runSelected(self):
+    def _runSelected(self, advance=False):
         """ Run the selected whole lines in the current shell. 
         """
         # Get editor and shell
@@ -1402,12 +1400,14 @@ class RunMenu(Menu):
             # Get filename and run code
             fname = editor.id() # editor._name or editor._filename
             shell.executeCode(code, fname, lineNumber1)
+        
+        if advance:
+            self._advance(runCursor)
     
     def _runCellAdvance(self):
-        self._runCell()
-        self._advance()
+        self._runCell(advance=True)
     
-    def _runCell(self):
+    def _runCell(self, advance=False):
         """ Run the code between two cell separaters ('##'). 
         """
         #TODO: ignore ## in multi-line strings
@@ -1466,6 +1466,9 @@ class RunMenu(Menu):
         # Get filename and run code
         fname = editor.id() # editor._name or editor._filename
         shell.executeCode(code, fname, lineNumber, cellName)
+        
+        if advance:
+            self._advance(runCursor)
     
     
     def _showWhatToExecute(self, editor, runCursor=None):
