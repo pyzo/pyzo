@@ -729,22 +729,30 @@ class BaseShell(BaseTextCtrl):
     
     def _handleCarriageReturnOnList(self, texts):
         """ Discard messages that end with CR and that are not followed
-        with LF. Assumes that each message is one line.
+        with LF. Also discard messages followed by a line that starts
+        with CR. Assumes that each message is one line.
         """
         for i in range(len(texts)-1):
-            if texts[i].endswith('\r') and not texts[i+1].startswith('\n'):
+            if ((texts[i].endswith('\r') and not
+                 texts[i+1].startswith('\n'))
+                or
+                (texts[i+1].startswith('\r') and not
+                 texts[i+1][1:].startswith('\n'))):
                 texts[i] = ''
+                
         return [t for t in texts if t]
     
     def _handleCarriageReturn(self, text):
-        """ Removes the last line if it ended with CR.
+        """ Removes the last line if it ended with CR, or if the current new
+        message starts with CR.
         Returns the text.
         """
         if 'logger' in self.__class__.__name__.lower():
             return text
         # Remove last line if it ended with CR
         cursor = self._cursor1
-        if self._lastline_had_cr and not text.startswith('\n'):
+        if ((self._lastline_had_cr and not text.startswith('\n')) or
+            (text.startswith('\r') and not text[1:].startswith('\n'))):
             cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor, 1)
             cursor.removeSelectedText()
         # Is this new line ending in CR?
