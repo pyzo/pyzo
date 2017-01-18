@@ -96,7 +96,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         
         # create toolbar
         self._toolbar = QtWidgets.QToolBar(self)
-        self._toolbar.setMaximumHeight(25)
+        self._toolbar.setMaximumHeight(26)
         self._toolbar.setIconSize(QtCore.QSize(16,16))
         
         # create stack
