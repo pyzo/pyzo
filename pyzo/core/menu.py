@@ -1285,6 +1285,8 @@ class RunMenu(Menu):
             icons.run_file_script, self._runFile, (True, False))
         self.addItem(translate("menu", 'Run main file as script ::: Restart and run the main file as a script.'), 
             icons.run_mainfile_script, self._runFile, (True, True))
+        self.addItem(translate("menu", 'Run as ipython ::: Run file as run -i  in ipython console.'), 
+            icons.run_file_script, self._runFileIpython)
         
         self.addSeparator()
         
@@ -1514,6 +1516,13 @@ class RunMenu(Menu):
             # Obtain source code and fname
             fname, text = self._getCodeOfFile(editor)
             shell.executeCode(text, fname)
+            
+     def _runFileIpython(self):
+        shell, editor = self._getShellAndEditor('file', False)
+        fname, text = self._getCodeOfFile(editor)
+        d = os.path.normpath(os.path.normcase(os.path.dirname(fname)))
+        shell._ctrl_command.send('%%cd %s' % d)
+        shell._ctrl_command.send('%%run -i %s\n' % fname)
     
     def _runScript(self, editor, shell):
         # Obtain fname and try running
