@@ -60,6 +60,10 @@ class HistoryViewer(QtWidgets.QListView):
         text = self.model().plainText(self.selectedIndexes())
         shell = pyzo.shells.getCurrentShell()
         if shell is not None:
+            if text in shell._history:
+                shell._history.remove(text)
+            shell._history.insert(0,text)
+
             shell.executeCommand(text)
         
     def copy(self, event = None):
