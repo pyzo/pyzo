@@ -17,7 +17,7 @@ import unicodedata
 import datetime
 import webbrowser
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
@@ -580,7 +580,7 @@ class FileMenu(Menu):
     def _print(self):
         editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
-            printer = QtWidgets.QPrinter(QtWidgets.QPrinter.HighResolution)
+            printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
             if True:
                 filename = QtWidgets.QFileDialog.getSaveFileName(None, 
                         'Export PDF', os.path.expanduser("~"), "*.pdf *.ps")
