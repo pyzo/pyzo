@@ -188,7 +188,7 @@ def getEnvFromKernelInfo(info):
         if '=' in line:
             key, val = line.split('=', 1)
             if key:
-                env[key] = val
+                env[key] = os.path.expandvars(val)
     
     # Done
     return env
