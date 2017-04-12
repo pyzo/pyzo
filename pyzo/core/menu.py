@@ -446,7 +446,7 @@ class FileMenu(Menu):
         from pyzo import codeeditor
         t = translate("menu", "Syntax parser ::: The syntax parser of the current file.")
         self._parserMenu = GeneralOptionsMenu(self, t, self._setParser)
-        self._parserMenu.setOptions(['None'] + codeeditor.Manager.getParserNames())
+        self._parserMenu.setOptions([translate("menu-parser",'None')] + codeeditor.Manager.getParserNames())
         
         # Create line ending menu
         t = translate("menu", "Line endings ::: The line ending character of the current file.")
@@ -720,7 +720,7 @@ class ViewMenu(Menu):
         t = translate("menu", "Location of long line indicator ::: The location of the long-line-indicator.")
         self._edgeColumMenu = GeneralOptionsMenu(self, t, self._setEdgeColumn)
         values = [0] + [i for i in range(60,130,10)]
-        names = ["None"] + [str(i) for i in values[1:]]
+        names = [translate("menu-locationlongline","None")] + [str(i) for i in values[1:]]
         self._edgeColumMenu.setOptions(names, values)
         self._edgeColumMenu.setCheckedOption(None, pyzo.config.view.edgeColumn)
         

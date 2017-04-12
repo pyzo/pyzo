@@ -24,6 +24,7 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 from pyzo.util import zon as ssdf  # zon is ssdf-light
+from pyzo import translate
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -213,7 +214,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if os.path.isfile(path):
                 pass
             elif name == path:
-                path = 'unsaved'
+                path = translate("main", 'unsaved')
             else:
                 pass  # We hope the given path is informative
             # Set title
