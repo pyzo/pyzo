@@ -391,7 +391,7 @@
     <message>
         <location filename="../../core/menu.py" line="667"/>
         <source>Zoom out</source>
-        <translation>Dézommer</translation>
+        <translation>Dézoomer</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="668"/>
@@ -561,12 +561,12 @@
     <message>
         <location filename="../../core/menu.py" line="1662"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
-        <translation>Éditer les racourcis... ::: Modifie les raccourcis pour accéder aux éléments des menus.</translation>
+        <translation>Éditer les raccourcis... ::: Modifie les raccourcis pour accéder aux éléments des menus.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1664"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
-        <translation>Éditer les style du code... ::: Modifie la coloration syntaxique du code.</translation>
+        <translation>Éditer les styles du code... ::: Modifie la coloration syntaxique du code.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="966"/>
@@ -696,7 +696,7 @@
     <message>
         <location filename="../../core/menu.py" line="1565"/>
         <source>Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?</source>
-        <translation>Reporter un problème ::: Vous avez touvé un bug dans Pyzo ? Vous voulez demander l&apos;ajout d&apos;une fonctionnalité ?</translation>
+        <translation>Signaler un problème ::: Vous avez touvé un bug dans Pyzo ? Vous voulez demander l&apos;ajout d&apos;une fonctionnalité ?</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1576"/>
@@ -731,7 +731,7 @@
     <message>
         <location filename="../../core/menu.py" line="760"/>
         <source>Highlight brackets ::: Highlight matched and unmatched brackets.</source>
-        <translation>Montrer la correspondant entre les crochets ouvrant et fermant.</translation>
+        <translation>Surligner les crochets ::: Montrer la correspondance entre les crochets ouvrants et fermants.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1328"/>
@@ -1070,7 +1070,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="323"/>
         <source>*Run cell:* a cell is everything between two lines starting with &apos;##&apos;.</source>
-        <translation>*Exécuter une cellule : * une cellule est tout ce qui se trouve entre deux lignes commençant par &apos;##&apos;.</translation>
+        <translation>*Exécuter une cellule :* une cellule est tout ce qui se trouve entre deux lignes commençant par &apos;##&apos;.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="325"/>
@@ -1141,7 +1141,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="372"/>
         <source>We especially recommend the following tools:</source>
-        <translation>Nous recommandons tout spécialement les outils suivants :</translation>
+        <translation>Nous recommandons tout particulièrement les outils suivants :</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="374"/>
@@ -1168,7 +1168,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="165"/>
         <source>This wizard helps you get familiarized with the workings of Pyzo.</source>
-        <translation>Ce guide.vous aide à vous familiariser avec Pyzo.</translation>
+        <translation>Ce guide vous aide à vous familiariser avec le fonctionnement de Pyzo.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="167"/>
@@ -1192,7 +1192,7 @@ design se veut *simple* et *efficace*.</translation>
         The language has been changed for this wizard.
         Pyzo needs to restart for the change to take effect application-wide.
         </source>
-        <translation>La langue a été modifié. Pyzo doit redémarrer pour que les
+        <translation>La langue a été modifiée. Pyzo doit redémarrer pour que les
 modifications prennent effet dans toute l&apos;application.</translation>
     </message>
     <message>
@@ -1214,7 +1214,7 @@ correspondre à des versions différentes de Python.</translation>
         <source>Shells run in a sub-process, such that when it is busy, Pyzo
         itself stays responsive, allowing you to keep coding and even
         run code in another shell.</source>
-        <translation>Un shell s&apos;exécute dans un processu fils. Ainsi, s&apos;il est occupé, Pyzo lui même
+        <translation>Un shell s&apos;exécute dans un processus fils. Ainsi, s&apos;il est occupé, Pyzo lui même
 continue d&apos;être réactif. Vous pouvez continuer à coder et même exécuter du code
 dans un autre shell.</translation>
     </message>
@@ -1245,7 +1245,7 @@ sélectionnées.</translation>
     <message>
         <location filename="../../util/pyzowizard.py" line="387"/>
         <source>This concludes the Pyzo wizard. Now, get coding and have fun!</source>
-        <translation>Ceci termine le Guide Pyzo. Maintenant, en route pour le code, et amusez-vous bien!</translation>
+        <translation>Ceci termine le Guide Pyzo. Maintenant, en route pour le code, et amusez-vous bien !</translation>
     </message>
 </context>
 </TS>
