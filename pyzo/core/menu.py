@@ -1174,6 +1174,13 @@ class EditorContextMenu(Menu):
         self.addSeparator()
         self.addItem(translate("menu", "Goto Definition ::: Go to definition of word under cursor."),
             icons.debug_return, self._editItemCallback, "gotoDef")
+        self.addSeparator()
+        self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
+            icons.find, pyzo.editors._findReplace.startFind)
+        self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."), 
+            None, pyzo.editors._findReplace.findSelection)
+        self.addItem(translate("menu", "Find selection backward ::: Find the previous occurrence of the selected text."),
+            None, pyzo.editors._findReplace.findSelectionBw)
         
         # This is a subset of the run menu. Copied manually.
         self.addSeparator()
