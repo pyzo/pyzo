@@ -14,7 +14,7 @@ import os, sys, time
 
 import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
-
+from pyzo import translate
 
 STYLESHEET = """
 QWidget { 
@@ -33,17 +33,9 @@ QLabel {
 """
 
 splash_text = """
-<p>
-This is <b>Pyzo</b><br />the Python IDE for scientific computing
-</p>
-<p>
-Version {version}
-</p>
-<p>
-Pyzo is open source software and freely available for everyone. 
-Read more at
-<a href='http://www.pyzo.org/'>http://pyzo.org</a>
-</p>
+<p>{text_title}</p>
+<p>{text_version} {version}</p>
+<p>{text_os} <a href='http://www.pyzo.org/'>http://pyzo.org</a></p>
 """
 
 
@@ -73,10 +65,11 @@ class LabelWidget(QtWidgets.QWidget):
         self._label.setFont(font)
         
         # Build
-        distrotext = ''
-        if distro:
-            distrotext = '<br />brought to you by %s.' % distro
-        text = splash_text.format(distro=distrotext, version=pyzo.__version__)
+        text_title = translate('splash', 'This is <b>Pyzo</b><br />the Python IDE for scientific computing')
+        text_version = translate('splash', 'Version')
+        text_os = translate('splash', 'Pyzo is open source software and freely available for everyone.')
+        text = splash_text.format(version=pyzo.__version__,
+                                  text_title=text_title, text_version=text_version, text_os=text_os)
         
         # Set text
         self._label.setText(text)
