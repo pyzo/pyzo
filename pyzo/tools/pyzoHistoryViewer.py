@@ -122,9 +122,11 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         commands = [i.text() for i in self._list.selectedItems()]
         shell = pyzo.shells.getCurrentShell()
         if shell is not None:
-            for command in commands:
+            for command in reversed(commands):
                 pyzo.command_history.append(command)
-            shell.executeCommand('\n'.join(commands))
+            shell.executeCommand('\n'.join(commands) + '\n')
+            if len(commands) > 1 and commands[-1].startswith(' '):
+                shell.executeCommand('\n')  # finalize multi-command
     
     def _onDoubleClicked(self, index):
         text = '\n'.join(i.text() for i in self._list.selectedItems())

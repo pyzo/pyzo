@@ -79,6 +79,8 @@ class CommandHistory(QtCore.QObject):
         """ Add a command to the list.
         """
         command = command.rstrip()
+        if not command:
+            return
         
         # Add date?
         today = datetime.date.today()
