@@ -427,7 +427,8 @@ class Magician:
         stderr_write = sys.stderr.write
         try:
             try:
-                sys.stderr.write = lambda x: len(x)
+                # older version of conda would spew dots to stderr during downloading
+                sys.stderr.write = lambda x: stderr_write(x) if x != '.' else 0
                 import conda
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args) + channel_list
