@@ -520,7 +520,12 @@ class Parser(threading.Thread):
                         item.linenr2 = i+1 # an import is active at one line only
                         leafs.append(item)
                         importList.append(item)
-                        
+            
+            elif not indent and line.startswith('if __name__ ==') and '__main__' in line:
+                item = FictiveObject('nameismain', i, indent, '__main__')
+                item.text = line
+                appendToStructure(item)
+            
             elif line.count('='):
                 if lastObject[0].type=='def' and lastObject[0].selfname:
                     selfname = lastObject[0].selfname + "."

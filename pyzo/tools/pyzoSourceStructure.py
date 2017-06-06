@@ -198,7 +198,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         
         # Define colours
         colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F', 
-                    'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333'}
+                    'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333',
+                    'nameismain':'#007F00'}
         
         # Define what to show
         showTypes = self._config.showTypes
@@ -213,7 +214,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             level += 1
             for object in fictiveObjects:
                 type = object.type
-                if not type in showTypes:
+                if type not in showTypes and type != 'nameismain':
                     continue
                 # Construct text
                 if type in ('cell', '##', '#%%', '# %%'):
@@ -225,6 +226,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     text = "%s (%s)" % (object.name, object.text)
                 elif type=='todo':
                     text = object.name
+                elif type=='nameismain':
+                    text = object.text
                 else:
                     text = "%s %s" % (type, object.name)
                 # Create item
