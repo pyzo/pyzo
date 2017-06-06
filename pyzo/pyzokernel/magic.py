@@ -34,8 +34,11 @@ MESSAGE = """List of *magic* commands:
     timeit X        - times execution of command X
     open X          - open file X or the Python module that defines object X
     run X           - run file X
-    pip             - manage packages using pip
+    install         - install a new package
+    update          - update an installed package
+    remove          - remove (i.e. uninstall) an installed package
     conda           - manage packages using conda
+    pip             - manage packages using pip
     db X            - debug commands
     cls             - clear screen
     notebook        - launch the Jupyter notebook
@@ -126,6 +129,19 @@ class Magician:
         
         elif command.startswith('NOTEBOOK'):
             return self.notebook(line, command)
+        
+        elif command.startswith('INSTALL'):
+            return self.install(line, command)
+        
+        elif command.startswith(('UPDATE', 'UPGRADE')):
+            line = line.replace('upgrade', 'update')
+            command = command.replace('UPGRADE', 'UPDATE')
+            return self.update(line, command)
+        
+        elif command.startswith(('REMOVE', 'UNINSTALL')):
+            line = line.replace('uninstall', 'remove')
+            command = command.replace('UNINSTALL', 'REMOVE')
+            return self.remove(line, command)
         
         elif command.startswith('CONDA'):
             return self.conda(line, command)
@@ -400,6 +416,45 @@ class Magician:
         #
         return ''
     
+    
+    def install(self, line, command):
+        if not (command == 'INSTALL' or command.startswith('INSTALL ')):
+            return
+        
+        text = "\x1b[34m\x1b[1m"
+        text += "Trying installation via conda. If this does not work, try:\n"
+        text += "   pip " + line + "\n"
+        text += "\x1b[0m"
+        print(text)
+        time.sleep(0.2)
+        self.conda('conda ' + line, 'CONDA')
+        return ''
+    
+    def update(self, line, command):
+        if not (command == 'UPDATE' or command.startswith('UPDATE ')):
+            return
+        
+        text = "\x1b[34m\x1b[1m"
+        text += "Trying update via conda. If this does not work, try:\n"
+        text += "   pip " + line.replace('update', 'install') + " --upgrade\n"
+        text += "\x1b[0m"
+        print(text)
+        time.sleep(0.2)
+        self.conda('conda ' + line, 'CONDA')
+        return ''
+    
+    def remove(self, line, command):
+        if not (command == 'REMOVE' or command.startswith('REMOVE ')):
+            return
+        
+        text = "\x1b[34m\x1b[1m"
+        text += "Trying remove via conda. If this does not work, try:\n"
+        text += "   pip " + line.replace('remove', 'uninstall') + "\n"
+        text += "\x1b[0m"
+        print(text)
+        time.sleep(0.2)
+        self.conda('conda ' + line, 'CONDA')
+        return ''
     
     def conda(self, line, command):
         
