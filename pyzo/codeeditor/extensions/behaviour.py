@@ -16,6 +16,59 @@ from ..misc import ustr, ce_option
 from ..parsers.tokens import (CommentToken,UnterminatedStringToken)
 from ..parsers import BlockState
 
+
+
+class MoveLinesUpDown(object):
+    
+    def keyPressEvent(self,event):
+        if event.key() in (Qt.Key_Up, Qt.Key_Down) and (
+                                    Qt.ControlModifier & event.modifiers() and 
+                                    Qt.ShiftModifier & event.modifiers()):
+            
+            cursor = self.textCursor()
+            cursor.beginEditBlock()
+            try:
+                self._swaplines(cursor, event.key())
+            finally:
+                cursor.endEditBlock()
+        
+        else:
+            super(HomeKey, self).keyPressEvent(event)
+    
+    def _swaplines(self, cursor, key):
+        
+        other = [cursor.NextBlock, cursor.PreviousBlock][int(bool(key == Qt.Key_Up))]
+        back = [cursor.PreviousBlock, cursor.NextBlock][int(bool(key == Qt.Key_Up))]
+        
+        # Get text of current block
+        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
+        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        text1 = cursor.selectedText()
+        
+        # Move up/down
+        cursor.movePosition(other, cursor.MoveAnchor)
+        
+        # Select text of other block
+        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
+        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        text2 = cursor.selectedText()
+        
+        # Replace text
+        cursor.insertText(text1)
+        
+        # Move back
+        cursor.movePosition(back, cursor.MoveAnchor)
+        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
+        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        
+        # Replace text
+        cursor.insertText(text2)
+        
+        # Leave textcursor in a good place
+        cursor.movePosition(other, cursor.MoveAnchor)
+        self.setTextCursor(cursor)
+
+
 class HomeKey(object):
     
     def keyPressEvent(self,event):
@@ -296,7 +349,6 @@ class SmartCopyAndPaste(object):
             self.setTextCursor(cursor)
             cursor.removeSelectedText()
 
-    
     def paste(self):
         """
         Smart paste
@@ -305,6 +357,7 @@ class SmartCopyAndPaste(object):
         this ensure indentation of the 
         """
         self._paste(keepSelection = False)
+    
     def pasteAndSelect(self):
         """
         Smart paste
