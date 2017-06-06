@@ -925,10 +925,10 @@ class ViewMenu(Menu):
 
 class ShellMenu(Menu):
     
-    def __init__(self, parent=None, name="Shell", *args, **kwds):
+    def __init__(self, parent=None, name="Shell"):
         self._shellCreateActions = []
         self._shellActions = []
-        Menu.__init__(self, parent, name, *args, **kwds)
+        Menu.__init__(self, parent, name)
         pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         self.aboutToShow.connect(self._updateShells)  
     
@@ -1096,8 +1096,8 @@ class ShellButtonMenu(ShellMenu):
 
 class ShellContextMenu(ShellMenu):
     """ This is the context menu for the shell """
-    def __init__(self, shell, *args, **kwds):
-        ShellMenu.__init__(self, *args, **kwds)
+    def __init__(self, shell, parent=None):
+        ShellMenu.__init__(self, parent or shell, name='Shellcontextmenu')
         self._shell = shell
     
     def build(self):
