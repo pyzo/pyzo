@@ -205,9 +205,13 @@ def loadConfig(defaultsOnly=False):
     # Load user config and inject in pyzo.config
     fname = os.path.join(appDataDir, "config.ssdf")
     if os.path.isfile(fname):
-        userConfig = ssdf.load(fname)
-        replaceFields(config, userConfig)
-
+        try:
+            userConfig = ssdf.load(fname)
+            replaceFields(config, userConfig)
+        except Exception:
+            t = 'Error while reading config file %r, maybe its corrupt?'
+            print(t % fname)
+            raise
 
 def saveConfig():
     """ saveConfig()
