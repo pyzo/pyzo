@@ -307,7 +307,7 @@ class ShellControl(QtWidgets.QToolButton):
         
         # Set text and tooltip
         self.setText('Warming up ...')
-        self.setToolTip("Click to select shell.")
+        self.setToolTip(translate("shells", "Click to select shell."))
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setPopupMode(self.InstantPopup)
         
