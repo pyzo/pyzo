@@ -33,7 +33,7 @@ class MoveLinesUpDown(object):
                 cursor.endEditBlock()
         
         else:
-            super(HomeKey, self).keyPressEvent(event)
+            super().keyPressEvent(event)
     
     def _swaplines(self, cursor, key):
         
@@ -92,7 +92,7 @@ class HomeKey(object):
             # Done
             self.setTextCursor(cursor)
         else:
-            super(HomeKey, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
 class EndKey(object):
     
@@ -112,7 +112,7 @@ class EndKey(object):
             # Done
             self.setTextCursor(cursor)
         else:
-            super(EndKey, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
 class NumpadPeriodKey(object):
     """
@@ -130,7 +130,7 @@ class NumpadPeriodKey(object):
             event = QtGui.QKeyEvent(event.type(), QtCore.Qt.Key_Period,
                 event.modifiers(), '.', event.isAutoRepeat(), event.count())
             
-        super(NumpadPeriodKey, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
 
 class Indentation(object):
@@ -201,7 +201,7 @@ class Indentation(object):
                     cursor.endEditBlock()
                     return
         
-        super(Indentation, self).keyPressEvent(event)
+        super().keyPressEvent(event)
         
 class AutoIndent(object):
     """
@@ -230,7 +230,7 @@ class AutoIndent(object):
 class PythonAutoIndent(object):
     
     def keyPressEvent(self,event):
-        super(PythonAutoIndent, self).keyPressEvent(event)
+        super().keyPressEvent(event)
         if not self.autoIndent():
             return
         
