@@ -145,6 +145,7 @@ class MainWindow(QtWidgets.QMainWindow):
         from pyzo.core.editorTabs import EditorTabs
         from pyzo.core.shellStack import ShellStackWidget
         from pyzo.core import codeparser
+        from pyzo.core.history import CommandHistory
         from pyzo.tools import ToolManager
         
         # Instantiate tool manager
@@ -173,6 +174,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create shell stack
         pyzo.shells = ShellStackWidget(self)
         dock.setWidget(pyzo.shells)
+        
+        # Initialize command history
+        pyzo.command_history = CommandHistory('command_history.py')
         
         # Create the default shell when returning to the event queue
         callLater(pyzo.shells.addShell)
@@ -345,6 +349,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Save settings
         pyzo.saveConfig()
+        pyzo.command_history.save()
         
         # Stop command server
         commandline.stop_our_server()

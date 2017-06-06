@@ -221,13 +221,10 @@ class ShellHighlighter(Highlighter):
 
 class BaseShell(BaseTextCtrl):
     """ The BaseShell implements functionality to make a generic shell.
-    
-    sharedHistory: an object providing the append() method, which will be called
-    when the user enters a command, or None to disable this functionality
     """
 
     
-    def __init__(self, parent, sharedHistory = None, **kwds):
+    def __init__(self, parent, **kwds):
         super().__init__(parent, wrap=True, showLineNumbers=False, 
             showBreakPoints=False, highlightCurrentLine=False, parser='python', 
             **kwds)
@@ -262,14 +259,9 @@ class BaseShell(BaseTextCtrl):
         # Similarly, we use the _lastCommandCursor cursor really for pointing.
         self._lastCommandCursor.setKeepPositionOnInsert(True)
         
-        # Create the command history.  Commands are added into the
-        # front of the list (ie. at index 0) as they are entered.
-        self._history = []
+        # Variables to keep track of the command history usage
         self._historyNeedle = None # None means none, "" means look in all
         self._historyStep = 0
-        
-        # link to the shared history
-        self._sharedHistory = sharedHistory
         
         # Set minimum width so 80 lines do fit in smallest font size
         self.setMinimumWidth(200)
@@ -532,12 +524,8 @@ class BaseShell(BaseTextCtrl):
             
             # find the command
             count = 0
-            for c in self._history:
-                if c.startswith(self._historyNeedle):
-                    count+=1
-                    if count >= self._historyStep:
-                        break
-            else:
+            c = pyzo.command_history.find_starting_with(self._historyNeedle, self._historyStep)
+            if c is None:
                 # found nothing-> reset
                 self._historyStep = 0
                 c = self._historyNeedle  
@@ -973,16 +961,9 @@ class BaseShell(BaseTextCtrl):
                 cursor.insertText(indent)
             
             if command:
-                # Remember the command in this shells' history
-                # (but first remove to prevent duplicates)
-                if command in self._history:
-                    self._history.remove(command)
-                self._history.insert(0,command)
+                # Remember the command in this global history
+                pyzo.command_history.append(command)
                 
-                # Add the command to the global history
-                if self._sharedHistory is not None:
-                    self._sharedHistory.append(command)
-        
         if execute:
             command = command.replace('\r\n', '\n')
             self.executeCommand(command+'\n')
@@ -1010,8 +991,8 @@ class PythonShell(BaseShell):
     debugStateChanged = QtCore.Signal(BaseShell)
     
     
-    def __init__(self, parent, info, sharedHistory = None):
-        BaseShell.__init__(self, parent, sharedHistory)
+    def __init__(self, parent, info):
+        BaseShell.__init__(self, parent)
         
         # Get standard info if not given.
         if info is None and pyzo.config.shellConfigs2:

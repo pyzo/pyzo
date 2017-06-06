@@ -1392,16 +1392,12 @@ class RunMenu(Menu):
             # Get source code of statement
             code = screenCursor.selectedText().replace('\u2029', '\n').strip()
             # add code to history
-            if code in shell._history:
-                shell._history.remove(code)
-            shell._history.insert(0,code)
+            pyzo.command_history.append(code)
             # Execute statement
             shell.executeCommand(code+'\n')
         else:
             # add code to history
-            if code in shell._history:
-                shell._history.remove(code)
-            shell._history.insert(0,code)
+            pyzo.command_history.append(code)
             # Get source code
             code = runCursor.selectedText().replace('\u2029', '\n')
             # Notify user of what we execute

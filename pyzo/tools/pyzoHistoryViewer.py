@@ -24,7 +24,7 @@ tool_summary = "Shows the last used commands."
 
 
 
-class HistoryViewer(QtWidgets.QListView):
+class PyzoHistoryViewer(QtWidgets.QWidget):
     """
     The history viewer has several ways of using the data stored in the history:
      - double click a single item to execute in the current shell
@@ -37,12 +37,29 @@ class HistoryViewer(QtWidgets.QListView):
     def __init__(self, parent = None):
         super().__init__(parent)
         
-        # Drag/drop
-        self.setSelectionMode(self.ExtendedSelection)
-        self.setDragEnabled(True)
+        # Widgets
+        self._search = QtWidgets.QLineEdit(self)
+        self._list = QtWidgets.QListWidget(self)
         
-        # Double click
-        self.doubleClicked.connect(self._onDoubleClicked)
+        # Set monospace
+        font = self._list.font()
+        font.setFamily(pyzo.config.view.fontname)
+        self._list.setFont(font)
+        
+        # Layout
+        layout = QtWidgets.QVBoxLayout(self)
+        self.setLayout(layout)
+        layout.addWidget(self._search, 0)
+        layout.addWidget(self._list, 1)
+        
+        # Customize line edit
+        self._search.setPlaceholderText(translate('menu', 'Search'))
+        self._search.textChanged.connect(self._on_search)
+        
+        # Drag/drop
+        self._list.setSelectionMode(self._list.ExtendedSelection)
+        self._list.setDragEnabled(True)
+        self._list.doubleClicked.connect(self._onDoubleClicked)
         
         # Context menu
         self._menu = Menu(self, translate("menu", "History"))
@@ -50,161 +67,75 @@ class HistoryViewer(QtWidgets.QListView):
             pyzo.icons.page_white_copy, self.copy, "copy")
         self._menu.addItem(translate("menu", "Run ::: Run selected lines in current shell"),
             pyzo.icons.run_lines, self.runSelection, "run")
+        self._menu.addItem(translate("menu", "Remove ::: Remove selected history items(s)"),
+            pyzo.icons.delete, self.removeSelection, "remove")
         
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._onCustomContextMenuRequested)
+        self._list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._list.customContextMenuRequested.connect(self._onCustomContextMenuRequested)
         
-
+        # Populate
+        for command in pyzo.command_history.get_commands():
+            self._list.addItem(command)
         
-    def runSelection(self, event = None):
-        text = self.model().plainText(self.selectedIndexes())
+        # Keep up to date ...
+        pyzo.command_history.command_added.connect(self._on_command_added)
+        pyzo.command_history.command_removed.connect(self._on_command_removed)
+        pyzo.command_history.commands_reset.connect(self._on_commands_reset)
+    
+    def _on_search(self):
+        needle = self._search.text()
+        for i in range(self._list.count()):
+            item = self._list.item(i)
+            item.setHidden(bool(needle and needle not in item.text()))
+    
+    ## Keep track of history
+    
+    def _on_command_added(self, command):
+        item = QtWidgets.QListWidgetItem(command, self._list)
+        self._list.addItem(item)
+        needle = self._search.text()
+        item.setHidden(bool(needle and needle not in command))
+    
+    def _on_command_removed(self, index):
+        self._list.takeItem(index)
+    
+    def _on_commands_reset(self):
+        self._list.clear()
+        for command in pyzo.command_history.get_commands():
+            self._list.addItem(command)
+    
+    ## User actions
+    
+    def _onCustomContextMenuRequested(self, pos):
+        self._menu.popup(self._list.viewport().mapToGlobal(pos))
+    
+    def copy(self, event=None):
+        text = '\n'.join(i.text() for i in self._list.selectedItems())
+        QtWidgets.qApp.clipboard().setText(text)
+    
+    def removeSelection(self, event=None):
+        indices = [i.row() for i in self._list.selectedIndexes()]
+        for i in reversed(sorted(indices)):
+            pyzo.command_history.pop(i)
+    
+    def runSelection(self, event=None):
+        commands = [i.text() for i in self._list.selectedItems()]
         shell = pyzo.shells.getCurrentShell()
         if shell is not None:
-            if text in shell._history:
-                shell._history.remove(text)
-            shell._history.insert(0,text)
-
-            shell.executeCommand(text)
-        
-    def copy(self, event = None):
-        text = self.model().plainText(self.selectedIndexes())
-        QtWidgets.qApp.clipboard().setText(text)
-        
-    def _onCustomContextMenuRequested(self, pos):
-        self._menu.popup(self.viewport().mapToGlobal(pos))
-        
+            for command in commands:
+                pyzo.command_history.append(command)
+            shell.executeCommand('\n'.join(commands))
+    
     def _onDoubleClicked(self, index):
-        text = self.model().data(index, QtCore.Qt.DisplayRole)
-        
+        text = '\n'.join(i.text() for i in self._list.selectedItems())
         shell = pyzo.shells.getCurrentShell()
         if shell is not None:
             shell.executeCommand(text + '\n')
-    
-        
-    def setModel(self, model):
-        """
-        As QtWidgets.QListView.setModel, but connects appropriate signals
-        """
-        if self.model() is not None:
-            self.model().rowsInserted.disconnect(self.scrollToBottom)
-        
-        super().setModel(model)
-        self.model().rowsInserted.connect(self.scrollToBottom)
-        self.scrollToBottom()
-    
-class PyzoHistoryViewer(HistoryViewer):
-    """
-    PyzoHistoryViewer is a thin HistoryViewer that connects itself to the shared
-    history of the pyzo shell stack
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setModel(pyzo.shells.sharedHistory)
-        
+            # Do not update history? Was this intended?
 
-class History(QtCore.QStringListModel):
-    markerPrefix = None # Text to prepend to the marker, or None for no marker
-    maxLines = 100 # Only enforced upon loading
-    def __init__(self, fname):
-        super().__init__()
-        
-        self._file = None
-        
-        try:
-            filename = os.path.join(pyzo.appDataDir, fname)
-            if not os.path.isfile(filename):
-                open(filename, 'wt').close()
-            file = self._file = open(filename, 'r+', encoding = 'utf-8')
-        
-            # Truncate the file to my max number of lines
-            lines = file.readlines()
-            if len(lines) > self.maxLines:
-                lines = lines[-self.maxLines:]
-                
-                # move to start of file, write the last lines and truncate
-                file.seek(0)
-                file.writelines(lines)
-                file.truncate()
-            
-            # Move to the end of the file for appending
-            file.seek(0, 2) # 2 = relative to end
-            
-            self.setStringList([line.rstrip() for line in lines])
-            
-        except Exception as e:
-            print (translate('pyzoHistoryViewer', 'An error occurred while loading the history: ' + str(e)))
-            self._file = None
-        
-        # When data is appended for the first time, a marker will be appended first
-        self._firstTime = True
-        
-    
-    def plainText(self, indexes):
-        """
-        Get the \n separated text for the selected indices (includes \n at the end)
-        """
-        text = ""
-        for index in indexes:
-            if index.isValid():
-                text += self.data(index, QtCore.Qt.DisplayRole) + "\n"
-        return text
-
-    def mimeTypes(self):
-        return ["text/plain"]
-        
-    def mimeData(self, indexes):
-        mimeData = QtCore.QMimeData()
-        mimeData.setData("text/plain", self.plainText(indexes))
-        return mimeData
-        
-    
-    def flags(self, item):
-        return QtCore.Qt.ItemIsSelectable | \
-            QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled    
-        
-    def append(self, value):
-        # When data is appended for the first time, a marker will be appended first
-        if self._firstTime:
-            if self.markerPrefix is not None:
-                self._append(self.markerPrefix + time.strftime("%c"))
-            self._firstTime = False
-        
-        self._append(value)
-        
-        
-    def _append(self, value):
-        value = value.rstrip()
-        
-        length = self.rowCount()
-        self.insertRows(length, 1)
-        self.setData(self.index(length), value) 
-        
-        if self._file is not None:
-            self._file.write(value +'\n')
-            self._file.flush()
-         
-
-
-class PythonHistory(History):
-    """
-    A history-list that is aware of Python syntax. It inserts a Python-formatted
-    date / time upon first append after creation, and it shows Python comments
-    in green
-    """
-    markerPrefix = "# "
-    def data(self, index, role):
-        if role == QtCore.Qt.ForegroundRole:
-            text = super().data(index, QtCore.Qt.DisplayRole)
-            if text.lstrip().startswith('#'):
-                return QtGui.QBrush(QtGui.QColor('#007F00'))
-        return super().data(index, role)
-        
 
 if __name__ == '__main__':
     import pyzo.core.main
-    pyzo.core.main.loadIcons()
-    history = PythonHistory('shellhistorytest.py')
+    m = pyzo.core.main.MainWindow()
     view = PyzoHistoryViewer()
-    view.setModel(history)
     view.show()
-    history.append('test')

@@ -24,12 +24,6 @@ from pyzo.core.pyzoLogging import print
 from pyzo.core.menu import ShellTabContextMenu, ShellButtonMenu
 from pyzo.core.icons import ShellIconMaker
 
-# Load the history viewer tool if available
-try:
-    from pyzo.tools.pyzoHistoryViewer import PythonHistory
-except ImportError:
-    PythonHistory = None
-
 
 def shellTitle(shell, moreinfo=False):
     """ Given a shell instance, build the text title to represent it.
@@ -124,13 +118,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         
         # make callbacks
         self._stack.currentChanged.connect(self.onCurrentChanged)
-    
-        # Make shared history (shared among shells)
-        if PythonHistory is None:
-            self.sharedHistory = None
-        else:
-            self.sharedHistory = PythonHistory('shellhistory.py')
-        
+
         self.showCondaHelper()
     
     def __iter__(self):
@@ -153,7 +141,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         Add a shell to the widget. """
         
         # Create shell and add to stack
-        shell = PythonShell(self, shellInfo, self.sharedHistory)
+        shell = PythonShell(self, shellInfo)
         index = self._stack.addWidget(shell)
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
