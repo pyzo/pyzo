@@ -215,3 +215,4 @@ from . import python_parser  # noqa
 from . import cython_parser  # noqa
 from . import c_parser  # noqa
 from . import s_expr_parser  # noqa
+from . import zoof_parser  # noqa
