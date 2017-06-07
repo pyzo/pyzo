@@ -453,12 +453,13 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         if event.key() == QtCore.Qt.Key_Tab and not self.autocompleteActive():
             if pyzo.config.settings.autoComplete:
                 cursor = self.textCursor()
-                text = cursor.block().text()[:cursor.positionInBlock()]
-                if text and (text[-1] in (Tokens.ALPHANUM + "._")):
-                    self.introspect(True, False)
-                    return
+                if cursor.position() == cursor.anchor():
+                    text = cursor.block().text()[:cursor.positionInBlock()]
+                    if text and (text[-1] in (Tokens.ALPHANUM + "._")):
+                        self.introspect(True, False)
+                        return
 
-        codeeditor.CodeEditor.keyPressEvent(self, event)
+        super().keyPressEvent(event)
         
         # Analyse character/key to determine what introspection to fire
         if ordKey:
