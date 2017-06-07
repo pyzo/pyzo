@@ -132,13 +132,10 @@ def createItemsFun(browser, parent):
         return 
     
     # Sort dirs (case insensitive)
-    dirs.sort(key=lambda x: x.lower())
+    dirs.sort(key=filename2sortkey)
     
-    # Sort files 
-    # (first by name, then by type, so finally they are by type, then name)
-    files.sort(key=lambda x: x.lower())
-    files.sort(key=lambda x: ext(x).lower())
-        
+    # Sort files (first by type, then by name, logically)
+    files.sort(key=filename2sortkey)
     
     if not searchFilter:
         
@@ -184,6 +181,28 @@ def createItemsFun(browser, parent):
     # Return number of files added
     return len(dirs) + len(files)
 
+
+def filename2sortkey(name):
+    """ Convert a file or dir name to a tuple that can be used to
+    logically sort them. Sorting first by extension.
+    """
+    # Normalize name
+    name = os.path.basename(name).lower()
+    name, e = os.path.splitext(name)
+    # Split the name in logical parts
+    try:
+        numbers = '0123456789'
+        name1 = name.lstrip(numbers)
+        name2 = name1.rstrip(numbers)
+        n_pre = len(name) - len(name1)
+        n_post = len(name1) - len(name2)
+        pre = int(name[:n_pre]) if n_pre else 999999999
+        post = int(name[-n_post:]) if n_post else -1
+        return e, pre, name2, post
+    except Exception as err:
+        # I cannot see how this could fail, but lets be safe, as it would break so badly
+        print('Warning: could not filename2sortkey(%r), please report:\n%s' % (name, str(err)))
+        return (e, 999999999, name, -1)
 
 
 class BrowserItem(QtWidgets.QTreeWidgetItem):
