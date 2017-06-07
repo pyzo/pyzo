@@ -119,6 +119,7 @@ shortcuts2 = dict:
     shell__interrupt = 'Ctrl+I,Meta+C'
     shell__restart = 'Ctrl+K,'
     shell__terminate = 'Ctrl+Shift+K,'
+    shell__postmortem_debug_from_last_traceback = 'Ctrl+P,'
     view__select_editor = 'Ctrl+9,F2'
     view__select_previous_file = 'Ctrl+Tab,' # On Mac, this is replaced by Alt+Tab in pyzo.py
     view__select_shell = 'Ctrl+0,F1'
