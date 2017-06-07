@@ -29,18 +29,35 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         if not hasattr(self._config, 'level'):
             self._config.level = 2
         
-        # Create icon for slider
-        self._sliderIcon = QtWidgets.QToolButton(self)
-        self._sliderIcon.setIcon(pyzo.icons.text_align_right)
-        self._sliderIcon.setIconSize(QtCore.QSize(16,16))
-        self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        # Keep track of clicks so we can "go back"
+        self._nav_back = []
+        self._nav_forward = []
+        
+        # Create buttons for navigation
+        self._navbut_back = QtWidgets.QToolButton(self)
+        self._navbut_back.setIcon(pyzo.icons.arrow_left)
+        self._navbut_back.setIconSize(QtCore.QSize(16,16))
+        self._navbut_back.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        self._navbut_back.clicked.connect(self.onNavBack)
+        #
+        self._navbut_forward = QtWidgets.QToolButton(self)
+        self._navbut_forward.setIcon(pyzo.icons.arrow_right)
+        self._navbut_forward.setIconSize(QtCore.QSize(16,16))
+        self._navbut_forward.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        self._navbut_forward.clicked.connect(self.onNavForward)
+        
+        # # Create icon for slider
+        # self._sliderIcon = QtWidgets.QToolButton(self)
+        # self._sliderIcon.setIcon(pyzo.icons.text_align_right)
+        # self._sliderIcon.setIconSize(QtCore.QSize(16,16))
+        # self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
         
         # Create slider
         self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
         self._slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self._slider.setSingleStep(1)
         self._slider.setPageStep(1)
-        self._slider.setRange(1,9)
+        self._slider.setRange(1,5)
         self._slider.setValue(self._config.level)
         self._slider.valueChanged.connect(self.updateStructure)
         
@@ -73,10 +90,13 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # Set layout
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._tree, 1)
-        self._sizer2.addWidget(self._sliderIcon, 0)
-        self._sizer2.addWidget(self._slider, 4)
+        # self._sizer2.addWidget(self._sliderIcon, 0)
+        self._sizer2.addWidget(self._navbut_back, 0)
+        self._sizer2.addWidget(self._navbut_forward, 0)
         self._sizer2.addStretch(1)
-        self._sizer2.addWidget(self._options, 2)
+        self._sizer2.addWidget(self._slider, 6)
+        self._sizer2.addStretch(1)
+        self._sizer2.addWidget(self._options, 0)
         #
         self.setLayout(self._sizer1)
         
@@ -154,23 +174,49 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self.updateStructure()
     
     
+    def onNavBack(self):
+        if not self._nav_back:
+            return
+        linenr = self._nav_back.pop(-1)
+        old_linenr = self._navigate_to_line(linenr)
+        if old_linenr is not None:
+            self._nav_forward.append(old_linenr)
+    
+    def onNavForward(self):
+        if not self._nav_forward:
+            return
+        linenr = self._nav_forward.pop(-1)
+        old_linenr = self._navigate_to_line(linenr)
+        if old_linenr is not None:
+            self._nav_back.append(old_linenr)
+
     def onItemClick(self, item):
         """ Go to the right line in the editor and give focus. """
-        
-        # Get editor
-        editor = pyzo.editors.getCurrentEditor()
-        if not editor:
-            return
         
         # If item is attribute, get parent
         if not item.linenr:
             item = item.parent()
         
-        # Move to line
-        editor.gotoLine(item.linenr)
+        old_linenr = self._navigate_to_line(item.linenr)
         
+        if old_linenr is not None:
+            if not self._nav_back or self._nav_back[-1] != old_linenr:
+                self._nav_back.append(old_linenr)
+                self._nav_forward = []
+    
+    def _navigate_to_line(self, linenr):
+        
+        # Get editor
+        editor = pyzo.editors.getCurrentEditor()
+        if not editor:
+            return None
+        # Keep current line nr
+        old_linenr = editor.textCursor().blockNumber() + 1
+        # Move to line
+        editor.gotoLine(linenr)
         # Give focus
         pyzo.callLater(editor.setFocus)
+        return old_linenr
 
     
     def updateStructure(self):
@@ -207,6 +253,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # Define to what level to show (now is also a good time to save)
         showLevel = int( self._slider.value() )
         self._config.level = showLevel
+        showLevel = showLevel if showLevel < 5 else 99
         
         # Define function to set items
         selectedItem = [None]

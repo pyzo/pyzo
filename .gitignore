@@ -1,5 +1,7 @@
 __pycache__
+_famfamfam/
+_feedstock/
+build/
+dist/
 *.pyc
-build/*
-dist/*
 pyzo.egg-info/*
