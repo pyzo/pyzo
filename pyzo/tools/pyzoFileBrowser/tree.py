@@ -50,11 +50,7 @@ def addIconOverlays(icon, *overlays, offset=(8,0), overlay_offset=(0,0)):
 
 
 
-def _filterFileByName(basename, filter):
-    
-    # Get the current filter spec and split it into separate filters
-    filters = filter.replace(',', ' ').split()
-    filters = [f for f in filters if f]
+def _filterFileByName(basename, filters):
     
     # Init default; return True if there are no filters
     default = True
@@ -96,21 +92,24 @@ def createItemsFun(browser, parent):
     dirProxy = parent._proxy
     
     # Get meta information from browser
-    nameFilter = browser.nameFilter()
     searchFilter = browser.searchFilter()
     searchFilter = searchFilter if searchFilter['pattern'] else None
     expandedDirs = browser.expandedDirs
     starredDirs = browser.starredDirs
     
+    # Prepare name filter info
+    nameFilters = browser.nameFilter().replace(',', ' ').split()
+    hideHidden = '!hidden' in nameFilters
+    nameFilters = [f for f in nameFilters if f not in ('', '!hiddden', 'hidden')]
     
     # Filter the contents of this folder
     try:
         dirs = []
         for entry in dirProxy.dirs():
             entry = cleanpath(entry)
-            if op.basename(entry).startswith('.'):
+            if hideHidden and op.basename(entry).startswith('.'):
                 continue # Skip hidden files
-            if hasHiddenAttribute(entry):
+            if hideHidden and hasHiddenAttribute(entry):
                 continue # Skip hidden files on Windows
             if op.basename(entry) == '__pycache__':
                 continue
@@ -119,11 +118,11 @@ def createItemsFun(browser, parent):
         files = []
         for entry in dirProxy.files():
             entry = cleanpath(entry)
-            if op.basename(entry).startswith('.'):
+            if hideHidden and op.basename(entry).startswith('.'):
                 continue # Skip hidden files
-            if hasHiddenAttribute(entry):
+            if hideHidden and hasHiddenAttribute(entry):
                 continue # Skip hidden files on Windows
-            if not _filterFileByName(op.basename(entry), nameFilter):
+            if not _filterFileByName(op.basename(entry), nameFilters):
                 continue
             files.append(entry)
     

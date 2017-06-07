@@ -554,7 +554,7 @@ class NameFilter(LineEditWithToolButtons):
         self._menuBut.setMenu(self._menu)
         #
         # Add common patterns
-        for pattern in ['*', '!*.pyc', 
+        for pattern in ['*', '!hidden', '!*.pyc !hidden',
                         '*.py *.pyw', '*.py *.pyw *.pyx *.pxd', 
                         '*.h *.c *.cpp']:
             self._menu.addAction(pattern)
