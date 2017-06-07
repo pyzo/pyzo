@@ -69,6 +69,21 @@ class MoveLinesUpDown(object):
         self.setTextCursor(cursor)
 
 
+class ScrollWithUpDownKeys(object):
+    
+    def keyPressEvent(self,event):
+        if event.key() in (Qt.Key_Up, Qt.Key_Down) and Qt.ControlModifier == event.modifiers():
+            s = self.verticalScrollBar()
+            # h = self.cursorRect(self.textCursor()).height()
+            if event.key() == Qt.Key_Up:
+                s.setValue(s.value() + 1)
+            else:
+                s.setValue(s.value() - 1)
+            
+        else:
+            super().keyPressEvent(event)
+
+
 class HomeKey(object):
     
     def keyPressEvent(self,event):

@@ -34,7 +34,8 @@ from .extensions.behaviour import (     Indentation,
                                         AutoIndent,
                                         PythonAutoIndent,
                                         SmartCopyAndPaste,
-                                        MoveLinesUpDown
+                                        MoveLinesUpDown,
+                                        ScrollWithUpDownKeys,
                                    )
 from .extensions.autocompletion import AutoCompletion
 from .extensions.calltip import Calltip
@@ -62,6 +63,7 @@ class CodeEditor(
     
     Indentation,
     MoveLinesUpDown,
+    ScrollWithUpDownKeys,
     HomeKey,
     EndKey,
     NumpadPeriodKey,
