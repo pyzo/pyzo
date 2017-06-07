@@ -638,6 +638,9 @@ class EditMenu(Menu):
         self.addItem(translate("menu", "Delete line ::: Delete the selected line."), 
             None, self._editItemCallback, "deleteLines")
         self.addSeparator()
+        self.addItem(translate("menu", "Toggle breakpoint ::: Toggle breakpoint on the current line."), 
+            None, self._editItemCallback, "toggleBreakpoint")
+        self.addSeparator()
         self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
             icons.find, pyzo.editors._findReplace.startFind)
         self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."), 

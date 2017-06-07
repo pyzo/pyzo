@@ -1137,6 +1137,15 @@ class BreakPoints(object):
         self._breakPoints = set()
         self.breakPointsChanged.emit(self)
     
+    def toggleBreakpoint(self, linenr=None):
+        """ Turn breakpoint on/off for given linenr of current line.
+        """
+        if linenr is None:
+            linenr = self.textCursor().blockNumber() + 1
+        if linenr in self._breakPoints:
+            self._breakPoints.remove(linenr)
+        else:
+            self._breakPoints.add(linenr)
     
     def setDebugLineIndicator(self, linenr, active=True):
         """ Set the debug line indicator to the given line number.

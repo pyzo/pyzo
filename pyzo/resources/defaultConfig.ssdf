@@ -93,6 +93,7 @@ shortcuts2 = dict:
     edit__select_all = 'Ctrl+A,'
     edit__uncomment = 'Ctrl+T,'
     edit__undo = 'Ctrl+Z,'
+    edit__toggle_breakpoint = 'Ctrl+B,'
     file__close = 'Ctrl+W,'
     file__new = 'Ctrl+N,'
     file__open = 'Ctrl+O,'
