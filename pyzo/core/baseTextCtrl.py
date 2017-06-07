@@ -261,8 +261,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         #TODO:
         return True
 
-    def introspect(self, tryAutoComp=False):
-        """ introspect(tryAutoComp=False)
+    def introspect(self, tryAutoComp=False, delay=True):
+        """ introspect(tryAutoComp=False, delay=True)
         
         The starting point for introspection (autocompletion and calltip). 
         It will always try to produce a calltip. If tryAutoComp is True,
@@ -311,11 +311,13 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self._delayTimer._tokensUptoCursor = tokensUptoCursor
         self._delayTimer._cursor = cursor
         self._delayTimer._tryAutoComp = tryAutoComp
-        self._delayTimer.start(pyzo.config.advanced.autoCompDelay)
-    
+        if delay:
+            self._delayTimer.start(pyzo.config.advanced.autoCompDelay)
+        else:
+            self._delayTimer.start(1)  # self._introspectNow()
     
     def _introspectNow(self):
-        """ This methos is called a short while after introspect() 
+        """ This method is called a short while after introspect() 
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
         """ 
@@ -447,21 +449,20 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Cancel any introspection in progress
         self._delayTimer._line = ''
         
-        # Also invalidate introspection for when a response gets back
-        # These are set again when the timer runs out. If the response
-        # is received before the timer runs out, the results are buffered
-        # but not shown. When the timer runs out shortly after, the buffered
-        # results are shown. If the timer runs out before the response is
-        # received, a new request is done, although the response of the old
-        # request will show the info if it's still up to date. 
-        self._autoComp_bufBase = None
-        self._callTip_bufName = None
-        
+        # Invoke autocomplete via tab key?
+        if event.key() == QtCore.Qt.Key_Tab and not self.autocompleteActive():
+            if pyzo.config.settings.autoComplete:
+                cursor = self.textCursor()
+                text = cursor.block().text()[:cursor.positionInBlock()]
+                if text and (text[-1] in (Tokens.ALPHANUM + "._")):
+                    self.introspect(True, False)
+                    return
 
         codeeditor.CodeEditor.keyPressEvent(self, event)
+        
         # Analyse character/key to determine what introspection to fire
         if ordKey:
-            if ordKey >= 48 or ordKey in [8, 46]:
+            if (ordKey >= 48 or ordKey in [8, 46]) and pyzo.config.settings.autoComplete == 1:
                 # If a char that allows completion or backspace or dot was pressed
                 self.introspect(True)
             elif ordKey >= 32: 
@@ -469,12 +470,6 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 self.introspect()
         elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
             self.introspect()
-    
-    
-    
-
-
-
 
 
 class CallTipObject:

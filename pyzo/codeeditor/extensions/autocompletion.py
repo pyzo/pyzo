@@ -89,8 +89,7 @@ class AutoCompletion(object):
         """
         self.__popupSize = width, height
     
-    
-    def autocompleteShow(self,offset = 0,names = None):
+    def autocompleteShow(self, offset=0, names=None):
         """
         Pop-up the autocompleter (if not already visible) and position it at current
         cursor position minus offset. If names is given and not None, it is set
@@ -103,6 +102,13 @@ class AutoCompletion(object):
         if self.__autocompleteDebug:
             print('autocompleteShow called')
         
+        if names is not None:
+            #TODO: a more intelligent implementation that adds new items and removes
+            #old ones
+            if names != self.__completerNames:
+                self.__completerModel.setStringList(names)
+                self.__completerNames = names
+        
         if not self.autocompleteActive() or \
             startcursor.position() != self.__autocompleteStart.position():
 
@@ -114,18 +120,11 @@ class AutoCompletion(object):
             self.__positionAutocompleter()
             self.__updateAutocompleterPrefix()
             self.__completer.popup().show()
-            
             if self.__autocompleteDebug:
                 print('self.__completer.popup().show() called')
+        else:
+            self.__updateAutocompleterPrefix()
         
-        if names is not None:
-            #TODO: a more intelligent implementation that adds new items and removes
-            #old ones
-            if names != self.__completerNames:
-                self.__completerModel.setStringList(names)
-                self.__completerNames = names
-        self.__updateAutocompleterPrefix()
-    
     def autocompleteAccept(self):
         pass
     
