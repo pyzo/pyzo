@@ -218,7 +218,6 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         pyzo.callLater(editor.setFocus)
         return old_linenr
 
-    
     def updateStructure(self):
         """ Updates the tree. 
         """

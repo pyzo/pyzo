@@ -1673,7 +1673,15 @@ class SettingsMenu(Menu):
         # Update language setting if necessary
         cur = pyzo.config.settings.language
         pyzo.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
-        # Create menu        
+        
+        # Create autocompletion key menu
+        t = translate("menu", "Autocomplete accept keys ::: Keys that can be used to accept an autocomplete option.")
+        self._autocompkeys_menu = GeneralOptionsMenu(self, t, self._selectAutocompkeys)
+        values = ['Tab', 'Enter', 'Tab, Enter', 'Tab, (, [', 'Tab, Enter, (, [']
+        self._autocompkeys_menu.setOptions(values, values)
+        self._autocompkeys_menu.setCheckedOption(None, pyzo.config.settings.autoComplete_acceptKeys)
+        
+        # Create language menu
         t = translate("menu", "Select language ::: The language used by Pyzo.")
         self._languageMenu = GeneralOptionsMenu(self, t, self._selectLanguage)
         values = [key for key in sorted(LANGUAGES)]
@@ -1688,6 +1696,7 @@ class SettingsMenu(Menu):
             'autoComplete')
         self.addBoolSetting(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'), 
             'autoComplete_keywords')
+        self.addMenu(self._autocompkeys_menu, pyzo.icons.text_align_justify)
         
         self.addSeparator()
         self.addItem(translate("menu", 'Edit key mappings... ::: Edit the shortcuts for menu items.'), 
@@ -1744,6 +1753,18 @@ class SettingsMenu(Menu):
                 
         self.addCheckItem(name, None, _callback, key, 
             getattr(pyzo.config.settings,key)) #Default value
+    
+    def _selectAutocompkeys(self, autocompkeys):
+        # Skip if setting is not changes
+        if pyzo.config.settings.autoComplete_acceptKeys == autocompkeys:
+            return
+        # Save new setting
+        pyzo.config.settings.autoComplete_acceptKeys = autocompkeys
+        # Apply
+        for e in pyzo.editors:
+            e.setAutoCompletionAcceptKeysFromStr(autocompkeys)
+        for s in pyzo.shells:
+            s.setAutoCompletionAcceptKeysFromStr(autocompkeys)
     
     def _selectLanguage(self, languageName):
         # Skip if the same

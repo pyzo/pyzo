@@ -75,7 +75,7 @@ class AutoCompletion(object):
         
     
     def setAutoCompletionAcceptKeys(self, *keys):
-        """ Set the keys that can accept an autocompletion.
+        """ Set the keys (Qt enums) that can accept an autocompletion.
         Like Tab, or Enter. Defaut Tab.
         """
         self.__autocompletionAcceptKeys = keys

@@ -220,17 +220,26 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self._autoCompBuffer_time = 0
         self._autoCompBuffer_result = []
         
-        # The string with names given to SCI_AUTOCSHOW
-        self._autoCompNameString = ''
+        self.setAutoCompletionAcceptKeysFromStr(pyzo.config.settings.autoComplete_acceptKeys)
         
+        self.completer().highlighted.connect(self.updateHelp)
+        self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
+        self.setIndentWidth(pyzo.config.settings.defaultIndentWidth) 
+        self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize) 
+    
+    def setAutoCompletionAcceptKeysFromStr(self, keys):
+        """ Set the keys that can accept an autocompletion from a comma delimited string.
+        """
         # Set autocomp accept key to default if necessary.
         # We force it to be string (see issue 134)
-        if not isinstance(pyzo.config.settings.autoComplete_acceptKeys, str):
-            pyzo.config.settings.autoComplete_acceptKeys = 'Tab'
-        
+        if not isinstance(keys, str):
+            keys = 'Tab'
+        # Split
+        keys = keys.replace(',', ' ').split(' ')
+        keys = [key for key in keys if key]
         # Set autocomp accept keys
         qtKeys = []
-        for key in pyzo.config.settings.autoComplete_acceptKeys.split(' '):
+        for key in keys:
             if len(key) > 1:
                 key = 'Key_' + key[0].upper() + key[1:].lower()
                 qtkey = getattr(QtCore.Qt, key, None)
@@ -238,13 +247,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 qtkey = ord(key)
             if qtkey:
                 qtKeys.append(qtkey)
-        self.setAutoCompletionAcceptKeys(*qtKeys)
         
-        self.completer().highlighted.connect(self.updateHelp)
-        self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
-        self.setIndentWidth(pyzo.config.settings.defaultIndentWidth) 
-        self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize) 
-    
+        if QtCore.Qt.Key_Enter in qtKeys and QtCore.Qt.Key_Return not in qtKeys:
+            qtKeys.append(QtCore.Qt.Key_Return)
+        self.setAutoCompletionAcceptKeys(*qtKeys)
     
     def _isValidPython(self):
         """ _isValidPython()
@@ -255,8 +261,6 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         #TODO:
         return True
 
-    
-    
     def introspect(self, tryAutoComp=False):
         """ introspect(tryAutoComp=False)
         
