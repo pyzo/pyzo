@@ -730,8 +730,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Start cursor at top line.
         cursor = self.cursorForPosition(QtCore.QPoint(0,0))
         cursor.movePosition(cursor.StartOfBlock)
-
-        while True:            
+        
+        if not self.isVisible():
+            return
+        
+        while True:
             # Call the function with a copy of the cursor
             function(QtGui.QTextCursor(cursor))
             
