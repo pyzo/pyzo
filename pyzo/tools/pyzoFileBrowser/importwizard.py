@@ -158,7 +158,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
         self.sbSkipHeader = QtWidgets.QSpinBox()
         
         self.preview = QtWidgets.QTableWidget()
-        self.preview.setSelectionModel(QtWidgets.QItemSelectionModel(self.preview.model())) # Work-around for reference tracking bug in PySide
+        self.preview.setSelectionModel(QtCore.QItemSelectionModel(self.preview.model())) # Work-around for reference tracking bug in PySide
         self.preview.setSelectionBehavior(self.preview.SelectColumns)
         self.preview.setSelectionMode(self.preview.MultiSelection)
 
