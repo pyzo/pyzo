@@ -530,7 +530,7 @@ class FileMenu(Menu):
     
     def _setParser(self, value):
         editor = pyzo.editors.getCurrentEditor()
-        if value.lower() == 'Plain':
+        if value.lower() == 'plain':
             value = None
         if editor is not None:
             editor.setParser(value)
