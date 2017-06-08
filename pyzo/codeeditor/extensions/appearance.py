@@ -483,7 +483,7 @@ class IndentationGuides(object):
         # Get multiplication factor and indent width
         indentWidth = self.indentWidth()
         if self.indentUsingSpaces():
-            factor = 1 
+            factor = 1
         else:
             factor = indentWidth
         

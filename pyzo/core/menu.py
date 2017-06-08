@@ -448,7 +448,7 @@ class FileMenu(Menu):
         from pyzo import codeeditor
         t = translate("menu", "Syntax parser ::: The syntax parser of the current file.")
         self._parserMenu = GeneralOptionsMenu(self, t, self._setParser)
-        self._parserMenu.setOptions([translate("menu-parser",'None')] + codeeditor.Manager.getParserNames())
+        self._parserMenu.setOptions(["Plain"] + codeeditor.Manager.getParserNames())
         
         # Create line ending menu
         t = translate("menu", "Line endings ::: The line ending character of the current file.")
@@ -519,9 +519,9 @@ class FileMenu(Menu):
             self._indentMenu.setCheckedOption("style", editor.indentUsingSpaces())
             self._indentMenu.setCheckedOption("width", editor.indentWidth())
             # Update parser
-            parserName = 'None'
+            parserName = 'Plain'
             if editor.parser():
-                parserName = editor.parser().name() or 'None'
+                parserName = editor.parser().name() or 'Plain'
             self._parserMenu.setCheckedOption(None, parserName )
             # Update line ending
             self._lineEndingMenu.setCheckedOption(None, editor.lineEndingsHumanReadable)
@@ -530,7 +530,7 @@ class FileMenu(Menu):
     
     def _setParser(self, value):
         editor = pyzo.editors.getCurrentEditor()
-        if value.lower() == 'none':
+        if value.lower() == 'Plain':
             value = None
         if editor is not None:
             editor.setParser(value)
@@ -725,7 +725,7 @@ class ViewMenu(Menu):
         t = translate("menu", "Location of long line indicator ::: The location of the long-line-indicator.")
         self._edgeColumMenu = GeneralOptionsMenu(self, t, self._setEdgeColumn)
         values = [0] + [i for i in range(60,130,10)]
-        names = [translate("menu-locationlongline","None")] + [str(i) for i in values[1:]]
+        names = [translate("menu","None")] + [str(i) for i in values[1:]]
         self._edgeColumMenu.setOptions(names, values)
         self._edgeColumMenu.setCheckedOption(None, pyzo.config.view.edgeColumn)
         
@@ -1024,7 +1024,7 @@ class ShellMenu(Menu):
         
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
-            name = translate('menu', 'Create shell %s: (%s)' % (i+1, config.name))
+            name = translate('menu', 'Create shell %s: (%s)') % (i+1, config.name)
             action = self.addItem(name, 
                 pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)
@@ -1092,7 +1092,7 @@ class ShellButtonMenu(ShellMenu):
         
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
-            name = 'Create shell %s: (%s)' % (i+1, config.name)
+            name = translate('menu', 'Create shell %s: (%s)') % (i+1, config.name)
             action = self._newShellMenu.addItem(name, 
                 pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)

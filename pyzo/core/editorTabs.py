@@ -1330,12 +1330,22 @@ class EditorTabs(QtWidgets.QWidget):
     
     ## Closing files / closing down
     
+    def _get_action_texts(self):
+        options = translate("editor", "Close, Discard, Cancel, Save").split(',')
+        options = [i.strip() for i in options]
+        try:
+            close_txt, discard_txt, cancel_txt, save_txt = options
+        except Exception:
+            print('error in translation for close, discard, cancel, save.')
+            close_txt, discard_txt, cancel_txt, save_txt = "Close", "Discard", "Cancel", "Save"
+        return close_txt, discard_txt, cancel_txt, save_txt
+    
     def askToSaveFileIfDirty(self, editor):
         """ askToSaveFileIfDirty(editor)
         
         If the given file is not saved, pop up a dialog
         where the user can save the file
-        . 
+        
         Returns 1 if file need not be saved.
         Returns 2 if file was saved.
         Returns 3 if user discarded changes.
@@ -1347,14 +1357,15 @@ class EditorTabs(QtWidgets.QWidget):
         if editor.document().isModified():
             
             # Ask user what to do
-            result = simpleDialog(editor, "Closing", "Save modified file?", 
-                                    ['Discard', 'Cancel', 'Save'], 'Save')
-            result = result.lower()
+            close_txt, discard_txt, cancel_txt, save_txt = self._get_action_texts()
+            result = simpleDialog(editor, translate("editor", "Closing"),
+                                  translate("editor", "Save modified file?"), 
+                                  [discard_txt, cancel_txt, save_txt], save_txt)
             
-            # Get result and act            
-            if result == 'save':
+            # Get result and act
+            if result == save_txt:
                 return 2 if self.saveFile(editor) else 0
-            elif result == 'discard':
+            elif result == discard_txt:
                 return 3
             else: # cancel
                 return 0
@@ -1388,11 +1399,12 @@ class EditorTabs(QtWidgets.QWidget):
         result = self.askToSaveFileIfDirty(editor)
         
         # Ask if closing pinned file
+        close_txt, discard_txt, cancel_txt, save_txt = self._get_action_texts()
         if result and item.pinned:
-            result = simpleDialog(editor, "Closing pinned", 
-                "Are you sure you want to close this pinned file?",
-                ['Close', 'Cancel'], 'Cancel')
-            result = result == 'Close'
+            result = simpleDialog(editor, translate("editor", "Closing pinned"),
+                translate("editor", "Are you sure you want to close this pinned file?"),
+                [close_txt, cancel_txt], cancel_txt)
+            result = result == close_txt
         
         # ok, close...
         if result:
