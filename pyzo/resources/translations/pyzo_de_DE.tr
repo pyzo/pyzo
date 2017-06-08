@@ -382,6 +382,11 @@
         <translation>Finde vorherige ::: Finde das vorherige Vorkommen der Suchzeichenfolge.</translation>
     </message>
     <message>
+        <location filename="../../core/menu.py" line="1681"/>
+        <source>Accept autocompletion with:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Zoom in</source>
         <translation type="vanished">Hereinzoomen / Zoom in</translation>
     </message>
@@ -670,17 +675,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1673"/>
-        <source>Autocomplete accept keys ::: Keys that can be used to accept an autocomplete option.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../core/menu.py" line="1680"/>
-        <source>Autocomplete mode ::: How autocompletion should behave.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../core/menu.py" line="1689"/>
+        <location filename="../../core/menu.py" line="1722"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -743,17 +738,17 @@
         <translation>Auf aktualisierte Version prüfen.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1725"/>
+        <location filename="../../core/menu.py" line="1756"/>
         <source>Edit syntax styling</source>
         <translation>Syntax-Stil (Codefarben) bearbeiten</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1746"/>
+        <location filename="../../core/menu.py" line="1777"/>
         <source>Advanced settings</source>
         <translation>Erweiterte Einstellungen</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1787"/>
+        <location filename="../../core/menu.py" line="1803"/>
         <source>Language changed</source>
         <translation>Sprache geändert</translation>
     </message>

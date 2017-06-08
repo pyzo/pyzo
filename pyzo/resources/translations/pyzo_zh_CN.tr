@@ -380,6 +380,11 @@
         <translation>查找上一个 ::: 查找上一个搜索字符串.</translation>
     </message>
     <message>
+        <location filename="../../core/menu.py" line="1681"/>
+        <source>Accept autocompletion with:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Zoom in</source>
         <translation type="vanished">放大</translation>
     </message>
@@ -502,17 +507,7 @@
         <translation>关于Pyzo ::: 关于Pyzo的更多信息.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1673"/>
-        <source>Autocomplete accept keys ::: Keys that can be used to accept an autocomplete option.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../core/menu.py" line="1680"/>
-        <source>Autocomplete mode ::: How autocompletion should behave.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../core/menu.py" line="1689"/>
+        <location filename="../../core/menu.py" line="1722"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation>选择语言 ::: Pyzo使用的语言.</translation>
     </message>
@@ -747,17 +742,17 @@
         <translation>检查最新版本.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1725"/>
+        <location filename="../../core/menu.py" line="1756"/>
         <source>Edit syntax styling</source>
         <translation>编辑语法风格</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1746"/>
+        <location filename="../../core/menu.py" line="1777"/>
         <source>Advanced settings</source>
         <translation>高级设定</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1787"/>
+        <location filename="../../core/menu.py" line="1803"/>
         <source>Language changed</source>
         <translation>语言改变</translation>
     </message>

@@ -414,6 +414,11 @@
         <translation>尋找上一個 :::尋找上一個搜尋字串。</translation>
     </message>
     <message>
+        <location filename="../../core/menu.py" line="1681"/>
+        <source>Accept autocompletion with:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Zoom in</source>
         <translation type="vanished">放大</translation>
     </message>
@@ -681,17 +686,7 @@
         <translation>有關Pyzo ::: 更多有關Pyzo的資訊。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1673"/>
-        <source>Autocomplete accept keys ::: Keys that can be used to accept an autocomplete option.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../core/menu.py" line="1680"/>
-        <source>Autocomplete mode ::: How autocompletion should behave.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../core/menu.py" line="1689"/>
+        <location filename="../../core/menu.py" line="1722"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation>選擇語言 ::: Pyzo所使用的語言。</translation>
     </message>
@@ -755,23 +750,27 @@
     <message>
         <source>
         More settings are available via the logger-tool:
-        
+        
+
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
           Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
         - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
         - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
-        
+        
+
         Note that most settings require a restart for the change to
         take effect.
         </source>
         <translation type="vanished">
         在記錄工具(logger-tool)有更多的設定可以使用：
-        
+        
+
         - 進階設定儲存在 &quot;pyzo.config.advanced&quot; 結構中。
           輸入 &quot;print(pyzo.config.advanced)&quot; 瀏覽所有進階設定。
         - 呼叫 &quot;pyzo.resetConfig()&quot; 以重設所有設定。
         - 呼叫 &quot;pyzo.resetConfig(True)&quot; 以重設所有設定與狀態。
-        
+        
+
         注意，大多數的設定都需要重新啟動，所作的變更才會生效。
         </translation>
     </message>
@@ -794,12 +793,12 @@
         <translation>檢查最新版本。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1725"/>
+        <location filename="../../core/menu.py" line="1756"/>
         <source>Edit syntax styling</source>
         <translation>編輯語法樣式</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1746"/>
+        <location filename="../../core/menu.py" line="1777"/>
         <source>Advanced settings</source>
         <translation>進階設定</translation>
     </message>
@@ -812,7 +811,7 @@
         </translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1787"/>
+        <location filename="../../core/menu.py" line="1803"/>
         <source>Language changed</source>
         <translation>語言變更</translation>
     </message>
