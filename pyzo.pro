@@ -1,14 +1,20 @@
 # FORMS = 
-SOURCES =  pyzo/core/menu.py 
+
+SOURCES = pyzo/util/pyzowizard.py
+
+SOURCES += pyzo/core/about.py
 SOURCES += pyzo/core/editorTabs.py 
+SOURCES += pyzo/core/main.py
+SOURCES += pyzo/core/menu.py 
 SOURCES += pyzo/core/shellInfoDialog.py
 SOURCES += pyzo/core/shellStack.py
-
-SOURCES += pyzo/util/pyzowizard.py
+SOURCES += pyzo/core/splash.py
 
 SOURCES += pyzo/tools/pyzoFileBrowser/browser.py
+SOURCES += pyzo/tools/pyzoFileBrowser/importwizard.py
 SOURCES += pyzo/tools/pyzoFileBrowser/tree.py
-
+SOURCES += pyzo/tools/pyzoHistoryViewer.py
+SOURCES += pyzo/tools/pyzoSourceStructure.py
 
 # Languages to translate to
 TRANSLATIONS  = pyzo/resources/translations/pyzo_nl_NL.tr

@@ -3,7 +3,6 @@ import time
 import datetime
 
 import pyzo
-from pyzo import translate
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 
@@ -56,7 +55,7 @@ class CommandHistory(QtCore.QObject):
                         pass
         
         except Exception as e:
-            print (translate('Command history', 'An error occurred while loading the history: ' + str(e)))
+            print('An error occurred while loading the history: ' + str(e))
     
     def save(self):
         """ Save the commands to disk.

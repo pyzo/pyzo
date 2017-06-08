@@ -234,7 +234,7 @@ def lupdate():
     # Get Command for python lupdate
     pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
     ISWIN = sys.platform.startswith('win')
-    exe_ = 'pylupdate4' + '.exe' * ISWIN
+    exe_ = 'pylupdate' + pyzo.QtCore.__version__[0] + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
        exe = exe_
