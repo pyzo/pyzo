@@ -16,6 +16,8 @@ import os, sys, re, time
 import unicodedata
 import datetime
 import webbrowser
+from urllib.request import urlopen
+import json
 
 from pyzo.util.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
 
@@ -1601,8 +1603,8 @@ class HelpMenu(Menu):
         #self.addItem(translate("menu", "View code license ::: Legal stuff."), 
         #    icons.script, lambda: pyzo.editors.loadFile(os.path.join(pyzo.pyzoDir,"license.txt")))
         
-        #self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
-        #    icons.application_go, self._checkUpdates)
+        self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
+           icons.application_go, self._checkUpdates)
         
         self.addItem(translate("menu", "About Pyzo ::: More information about Pyzo."), 
             icons.information, self._aboutPyzo)
@@ -1618,39 +1620,32 @@ class HelpMenu(Menu):
     def _checkUpdates(self):
         """ Check whether a newer version of pyzo is available. """
         # Get versions available
-        import urllib.request, re
-        url = "http://www.iep-project.org/downloads.html"
-        text = str( urllib.request.urlopen(url).read() )
-        results = []
-        for pattern in ['pyzo-(.{1,9}?)\.source\.zip' ]:
-            results.extend( re.findall(pattern, text) )
-        # Produce single string with all versions ...
-        def sorter(x):
-            # Tilde is high ASCII, make 3.2.1 > 3.2 and 3.2 > 3.2beta
-            return x.replace('.','~')+'~' 
-        versions = list(sorted(set(results), key=sorter, reverse=True))
-        if not versions:
-            versions = '?'
+        url = 'https://api.github.com/repos/pyzo/pyzo/releases'
+        releases = json.loads(urlopen(url).read())
+        versions = []
+        for release in releases:
+            tag = release.get('tag_name', '')
+            if tag.startswith('v'):
+                version = tuple(int(i) for i in tag[1:].split('.'))
+                versions.append(version)
+        versions.sort()
+        latest_version = '.'.join(str(i) for i in versions[-1]) if versions else '?'
         # Define message
         text = "Your version of Pyzo is: {}\n" 
         text += "Latest available version is: {}\n\n"         
-        text = text.format(pyzo.__version__, versions[0])
+        text = text.format(pyzo.__version__, latest_version)
+        text += "Do you want to open the download page?\n"
         # Show message box
         m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
-        if versions == '?':
-            text += "Oops, could not determine available versions.\n\n"    
-        if True:
-            text += "Do you want to open the download page?\n"    
-            m.setStandardButtons(m.Yes | m.Cancel)
-            m.setDefaultButton(m.Cancel)
+        m.setStandardButtons(m.Yes | m.Cancel)
+        m.setDefaultButton(m.Cancel)
         m.setText(text)
         m.setIcon(m.Information)
         result = m.exec_()
         # Goto webpage if user chose to
         if result == m.Yes:
-            import webbrowser
-            webbrowser.open("http://www.pyzo.org/downloads.html")
+            webbrowser.open("http://www.pyzo.org/start.html")
     
     def _aboutPyzo(self):
         from pyzo.core.about import AboutDialog
