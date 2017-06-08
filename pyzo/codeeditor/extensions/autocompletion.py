@@ -118,10 +118,11 @@ class AutoCompletion(object):
             #Popup the autocompleter. Don't use .complete() since we want to
             #position the popup manually
             self.__positionAutocompleter()
-            self.__updateAutocompleterPrefix()
-            self.__completer.popup().show()
+            if self.__updateAutocompleterPrefix():
+                self.__completer.popup().show()
             if self.__autocompleteDebug:
                 print('self.__completer.popup().show() called')
+        
         else:
             self.__updateAutocompleterPrefix()
         
@@ -187,7 +188,7 @@ class AutoCompletion(object):
         """
         if not self.autocompleteActive():
             self.__completer.popup().hide() #TODO: why is this required?
-            return
+            return False
         
         #Select the text from autocompleteStart until the current cursor
         cursor=self.textCursor()
@@ -226,10 +227,12 @@ class AutoCompletion(object):
             bestMatchRow = completions[0][0]
             self.__completer.popup().setCurrentIndex(model.index(bestMatchRow,0));
 
-                
+            return True
+        
         else:
             #No match, just hide
             self.autocompleteCancel()
+            return False
     
     
     def potentiallyAutoComplete(self, event):

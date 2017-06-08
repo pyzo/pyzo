@@ -1659,6 +1659,55 @@ class HelpMenu(Menu):
         self._assistant.show()
 
 
+class AutocompMenu(Menu):
+    """
+    Menu for the user to control autocompletion.
+    """
+    
+    def build(self):
+        
+        # Part for selecting mode
+        modes = [translate('menu', 'No autocompletion'),
+                 translate('menu', 'Automatic popup'),
+                 translate('menu', 'Only show popup when pressing Tab')]
+        for value, mode in enumerate(modes):
+            self.addGroupItem(mode, None, self._setMode, value, group='mode') 
+        self.setCheckedOption('mode', pyzo.config.settings.autoComplete)
+        
+        self.addSeparator()
+        
+        # Part for accept key
+        accept_keys = ['Tab', 'Enter', 'Tab, Enter', 'Tab, (, [', 'Tab, Enter, (, [']
+        prefix = translate("menu", "Accept autocompletion with:")
+        for keys in accept_keys:
+            self.addGroupItem(prefix + ' ' + keys, None, self._setAcceptKeys, keys, group="acceptkeys")
+        self.setCheckedOption('acceptkeys', pyzo.config.settings.autoComplete_acceptKeys)
+        
+        self.addSeparator()
+        
+        # Booleans
+        self.addCheckItem(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'), 
+                          None, self._setCompleteKeywords, None, pyzo.config.settings.autoComplete_keywords)
+    
+    def _setAcceptKeys(self, autocompkeys):
+        # Skip if setting is not changes
+        if pyzo.config.settings.autoComplete_acceptKeys == autocompkeys:
+            return
+        # Save new setting
+        pyzo.config.settings.autoComplete_acceptKeys = autocompkeys
+        # Apply
+        for e in pyzo.editors:
+            e.setAutoCompletionAcceptKeysFromStr(autocompkeys)
+        for s in pyzo.shells:
+            s.setAutoCompletionAcceptKeysFromStr(autocompkeys)
+    
+    def _setMode(self, autocompmode):
+        pyzo.config.settings.autoComplete = int(autocompmode)
+
+    def _setCompleteKeywords(self, value):
+        pyzo.config.settings.autoComplete_keywords = bool(value)
+
+
 class SettingsMenu(Menu):
     def build(self):
         icons = pyzo.icons
@@ -1668,22 +1717,6 @@ class SettingsMenu(Menu):
         # Update language setting if necessary
         cur = pyzo.config.settings.language
         pyzo.config.settings.language = LANGUAGE_SYNONYMS.get(cur, cur)
-        
-        # Create autocompletion key menu
-        t = translate("menu", "Autocomplete accept keys ::: Keys that can be used to accept an autocomplete option.")
-        self._autocompkeys_menu = GeneralOptionsMenu(self, t, self._selectAutocompkeys)
-        values = ['Tab', 'Enter', 'Tab, Enter', 'Tab, (, [', 'Tab, Enter, (, [']
-        self._autocompkeys_menu.setOptions(values, values)
-        self._autocompkeys_menu.setCheckedOption(None, pyzo.config.settings.autoComplete_acceptKeys)
-        
-        # Create autocompletion mode menu
-        t = translate("menu", "Autocomplete mode ::: How autocompletion should behave.")
-        self._autocompmode_menu = GeneralOptionsMenu(self, t, self._selectAutocompmode)
-        values = [translate('menu', 'No autocompletion'),
-                  translate('menu', 'Automatic autocompletion'),
-                  translate('menu', 'Invoke autocompletion by pressing Tab')]
-        self._autocompmode_menu.setOptions(values, [0, 1, 2])
-        self._autocompmode_menu.setCheckedOption(None, pyzo.config.settings.autoComplete)
         
         # Create language menu
         t = translate("menu", "Select language ::: The language used by Pyzo.")
@@ -1696,10 +1729,8 @@ class SettingsMenu(Menu):
             'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in pyzo.editors])
         self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'), 
             'autoCallTip')
-        self.addMenu(self._autocompmode_menu, pyzo.icons.text_align_justify)
-        self.addMenu(self._autocompkeys_menu, pyzo.icons.text_align_justify)
-        self.addBoolSetting(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'), 
-            'autoComplete_keywords')
+        
+        self.addMenu(AutocompMenu(self, translate("menu", 'Autocompletion')))
         
         self.addSeparator()
         self.addItem(translate("menu", 'Edit key mappings... ::: Edit the shortcuts for menu items.'), 
@@ -1756,21 +1787,6 @@ class SettingsMenu(Menu):
                 
         self.addCheckItem(name, None, _callback, key, 
             getattr(pyzo.config.settings,key)) #Default value
-    
-    def _selectAutocompkeys(self, autocompkeys):
-        # Skip if setting is not changes
-        if pyzo.config.settings.autoComplete_acceptKeys == autocompkeys:
-            return
-        # Save new setting
-        pyzo.config.settings.autoComplete_acceptKeys = autocompkeys
-        # Apply
-        for e in pyzo.editors:
-            e.setAutoCompletionAcceptKeysFromStr(autocompkeys)
-        for s in pyzo.shells:
-            s.setAutoCompletionAcceptKeysFromStr(autocompkeys)
-    
-    def _selectAutocompmode(self, autocompmode):
-        pyzo.config.settings.autoComplete = int(autocompmode)
     
     def _selectLanguage(self, languageName):
         # Skip if the same
