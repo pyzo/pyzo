@@ -659,30 +659,33 @@ class CondaHelper(QtWidgets.QWidget):
         
         if conda_interpreters and conda_interpreters[0].version > '3':
             self._the_exe = conda_interpreters[0].path
-            text = """Pyzo <a href='refresh'>detected</a> a conda environment in:
+            text = """Pyzo detected a conda environment in:
                       <br />%s<br /><br />
                       You can <a href='usefound'>use this environment</a>
                       (recommended), or manually specify an interpreter 
                       by setting the exe in the <a href='config'>shell config</a>.
+                      <br /><br />(<a href='refresh'>refresh</a>)
                    """ % (self._the_exe)
         elif conda_interpreters:
-            text = """Pyzo did <a href='refresh'>detect</a> a conda environment,
+            text = """Pyzo detected a conda environment,
                       but it is Python 2. We strongly recommend using Python 3 instead.
                       <br /><br />
                       If you installed %s in a non-default location,
                       or if you want to manually specify an interpreter,
                       set the exe in the <a href='config'>shell config</a>.
+                      <br /><br />(<a href='refresh'>refresh</a>)
                    """ % link
         elif interpreters:
-            text = """Pyzo did <a href='refresh'>detect</a> a Python interpreter,  
+            text = """Pyzo detected a Python interpreter,  
                       but for scientific programming we recommend %s.
                       If you want to manually specify the interpreter,
                       set the exe in the <a href='config'>shell config</a>.
+                      <br /><br />(<a href='refresh'>refresh</a>)
                    """ % link
         else:
-            text = """Pyzo did not <a href='refresh'>detect</a> any Python interpreters.
+            text = """Pyzo did not detect any Python interpreters.
                       We recomment installing %s for scientific programming
-                      (and <a href='refresh'>re-detect</a> when done).
+                      (and click <a href='refresh'>refresh</a> when done).
                       <br /><br />
                       If you installed miniconda in a non-default location,
                       or if you want to manually specify the interpreter,
