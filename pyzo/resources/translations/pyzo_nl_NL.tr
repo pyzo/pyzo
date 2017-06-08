@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="nl_NL" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="nl_NL">
 <context>
     <name>debug</name>
     <message>
@@ -13,27 +14,27 @@
     <message>
         <location filename="../../core/editorTabs.py" line="1340"/>
         <source>Close, Discard, Cancel, Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Sluiten, Verwerpen, Annuleren, Opslaan</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
         <source>Closing</source>
-        <translation type="unfinished"></translation>
+        <translation>Sluiten</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
         <source>Save modified file?</source>
-        <translation type="unfinished"></translation>
+        <translation>Gewijzigd bestand sluiten?</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1410"/>
         <source>Closing pinned</source>
-        <translation type="unfinished"></translation>
+        <translation>Sluiten van gepint bestand</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1410"/>
         <source>Are you sure you want to close this pinned file?</source>
-        <translation type="unfinished"></translation>
+        <translation>Weet je zeker dat je het vastgepinde bestand wilt sluiten?</translation>
     </message>
 </context>
 <context>
@@ -212,67 +213,67 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="70"/>
         <source>Select file</source>
-        <translation type="unfinished"></translation>
+        <translation>Selecteer bestand</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="73"/>
         <source>Browse...</source>
-        <translation type="unfinished"></translation>
+        <translation>Browse ...</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="84"/>
         <source>Preview:</source>
-        <translation type="unfinished"></translation>
+        <translation>Voorbeeld:</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="176"/>
         <source>Select columns to import:</source>
-        <translation type="unfinished"></translation>
+        <translation>Selecteer colummen om te importeren:</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="396"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Sluiten</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="399"/>
         <source>Import data as single array</source>
-        <translation type="unfinished"></translation>
+        <translation>Importeer data als een enkelvoudig array</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="400"/>
         <source>Import data into one variable per column</source>
-        <translation type="unfinished"></translation>
+        <translation>Importeer data in een variabele per kollom</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="403"/>
         <source>Raise error upon invalid data</source>
-        <translation type="unfinished"></translation>
+        <translation>Geef foutmelding als de data niet juist is</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="536"/>
         <source>Import data wizard</source>
-        <translation type="unfinished"></translation>
+        <translation>Data importeer hulp</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="478"/>
         <source>No current shell active</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is nu geen shell aktief</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="488"/>
         <source>No current file open</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is nu geen bestand open</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="523"/>
         <source>Import data</source>
-        <translation type="unfinished"></translation>
+        <translation>Importeed data</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="536"/>
         <source>The import data wizard is already open</source>
-        <translation type="unfinished"></translation>
+        <translation>The importeerhulp is al open</translation>
     </message>
 </context>
 <context>
@@ -280,7 +281,7 @@
     <message>
         <location filename="../../core/main.py" line="221"/>
         <source>unsaved</source>
-        <translation type="unfinished"></translation>
+        <translation>niet opgeslagen</translation>
     </message>
 </context>
 <context>
@@ -464,7 +465,7 @@
     <message>
         <location filename="../../core/menu.py" line="645"/>
         <source>Toggle breakpoint ::: Toggle breakpoint on the current line.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zet breakpoint aan of uit</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1185"/>
@@ -494,7 +495,7 @@
     <message>
         <location filename="../../core/menu.py" line="1686"/>
         <source>Accept autocompletion with:</source>
-        <translation type="unfinished"></translation>
+        <translation>Accepteer autocompletion met:</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="672"/>
@@ -609,7 +610,7 @@
     <message>
         <location filename="../../core/menu.py" line="1232"/>
         <source>Copy path ::: Copy the full path of this file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kopieer path</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1237"/>
@@ -814,7 +815,7 @@
     <message>
         <location filename="../../core/menu.py" line="1611"/>
         <source>Check for updates ::: Are you using the latest version?</source>
-        <translation type="unfinished"></translation>
+        <translation>Kijk of er updates zijn</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1614"/>
@@ -879,77 +880,79 @@
     <message>
         <location filename="../../core/menu.py" line="730"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>Niets</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1097"/>
         <source>Create shell %s: (%s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Maak shell %s: (%s)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1319"/>
         <source>Execute selection and advance</source>
-        <translation type="unfinished"></translation>
+        <translation>Voer selectie uit en ga verder</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1675"/>
         <source>No autocompletion</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen autocompletion</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1676"/>
         <source>Automatic popup</source>
-        <translation type="unfinished"></translation>
+        <translation>Automatische popup</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1677"/>
         <source>Only show popup when pressing Tab</source>
-        <translation type="unfinished"></translation>
+        <translation>Laal alleen popup zien door Tab te gebruiken</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1738"/>
         <source>Autocompletion</source>
-        <translation type="unfinished"></translation>
+        <translation>Autocompletion</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1770"/>
         <source>
         More settings are available via the logger-tool:
-        <byte value="xd"/><byte value="xd"/>
+        
+
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
+
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="56"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Zoeken</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="65"/>
         <source>History</source>
-        <translation type="unfinished"></translation>
+        <translation>Geschiedenis</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="66"/>
         <source>Copy ::: Copy selected lines</source>
-        <translation type="unfinished"></translation>
+        <translation>Kopieer</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="68"/>
         <source>Run ::: Run selected lines in current shell</source>
-        <translation type="unfinished"></translation>
+        <translation>Uitvoeren ::: geselecteerde regels uitvoeren in huidige shell</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="70"/>
         <source>Remove ::: Remove selected history items(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Verwijderen ::: verwijder de geselecteerde items uit de geschiedenis</translation>
     </message>
 </context>
 <context>
@@ -1010,7 +1013,7 @@
     <message>
         <location filename="../../core/about.py" line="15"/>
         <source>About Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>Over pyzo</translation>
     </message>
 </context>
 <context>
@@ -1154,7 +1157,7 @@
     <message>
         <location filename="../../core/shellStack.py" line="312"/>
         <source>Click to select shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Klik om de shell te selecteren</translation>
     </message>
 </context>
 <context>
@@ -1162,17 +1165,17 @@
     <message>
         <location filename="../../core/splash.py" line="68"/>
         <source>This is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;the Python IDE for scientific computing</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Dit is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;de Python omgeving voor wetenschappelijk coderen</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="69"/>
         <source>Version</source>
-        <translation type="unfinished"></translation>
+        <translation>Versie</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="70"/>
         <source>Pyzo is open source software and freely available for everyone.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo is open source software en voor iedereen gratis beschikbaar.</translation>
     </message>
 </context>
 <context>
@@ -1352,7 +1355,7 @@ normaal uitvoeren van een script in Python.</translation>
     <message>
         <location filename="../../util/pyzowizard.py" line="165"/>
         <source>This wizard helps you get familiarized with the workings of Pyzo.</source>
-        <translation type="unfinished"></translation>
+        <translation>Deze wizard helpt je om bekend te worden met de werking van Pyzo.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="167"/>
@@ -1360,12 +1363,12 @@ normaal uitvoeren van een script in Python.</translation>
         focused on *interactivity* and *introspection*, which makes it
         very suitable for scientific computing. Its practical design
         is aimed at *simplicity* and *efficiency*.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="177"/>
         <source>This wizard can be opened using &apos;Help &gt; Pyzo wizard&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="231"/>
@@ -1373,37 +1376,37 @@ normaal uitvoeren van een script in Python.</translation>
         The language has been changed for this wizard.
         Pyzo needs to restart for the change to take effect application-wide.
         </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="255"/>
         <source>Pyzo consists of two main components</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="285"/>
         <source>When Pyzo starts, a default *shell* is created. You can add more
         shells that run simultaneously, and which may be of different
         Python versions.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="289"/>
         <source>Shells run in a sub-process, such that when it is busy, Pyzo
         itself stays responsive, allowing you to keep coding and even
         run code in another shell.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="301"/>
         <source>Pyzo can integrate the event loop of five different *GUI toolkits*,
         thus enabling interactive plotting with e.g. Visvis or Matplotlib.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="316"/>
         <source>Pyzo supports several ways to run source code in the editor. (see the &apos;Run&apos; menu).</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="318"/>
@@ -1411,12 +1414,12 @@ normaal uitvoeren van een script in Python.</translation>
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="387"/>
         <source>This concludes the Pyzo wizard. Now, get coding and have fun!</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 </TS>
