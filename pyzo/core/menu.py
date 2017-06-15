@@ -697,7 +697,8 @@ class FontMenu(Menu):
         names = pyzo.codeeditor.Manager.fontNames()
         defaultName =  'DejaVu Sans Mono'
         for name in sorted(names):
-            txt = name+' (default)' if name == defaultName else name
+            default_suffix = ' (%s)' % translate('menu', 'default')
+            txt = name + default_suffix if name == defaultName else name
             self.addGroupItem(txt, None, self._selectFont, value=name)
         # Select the current one
         self.setCheckedOption(None, pyzo.config.view.fontname)
@@ -738,7 +739,7 @@ class ViewMenu(Menu):
         styleNames = [name.lower() for name in styleNames]
         for i in range(len(titles)):
             if titles[i].lower() == pyzo.defaultQtStyleName.lower():
-                titles[i] += " (default)"
+                titles[i] += " (%s)" % translate('menu', 'default')
         self._qtThemeMenu.setOptions(titles, styleNames)
         self._qtThemeMenu.setCheckedOption(None, pyzo.config.view.qtstyle.lower())
         
@@ -1340,7 +1341,7 @@ class RunMenu(Menu):
         # Get shell
         shell = pyzo.shells.getCurrentShell()
         if shell is None:
-            msg += "No shell to run code in. "
+            msg += translate("menu", "No shell to run code in.").rstrip() + ' '
             #shell = pyzo.shells.addShell()  # issue #335, does not work, somehow
         # Get editor
         if mainEditor:
@@ -1350,7 +1351,7 @@ class RunMenu(Menu):
         else:
             editor = pyzo.editors.getCurrentEditor()
             if editor is None:
-                msg += "No editor selected."
+                msg += translate("menu", "No editor selected.")
         # Show error dialog
         if msg:
             m = QtWidgets.QMessageBox(self)
