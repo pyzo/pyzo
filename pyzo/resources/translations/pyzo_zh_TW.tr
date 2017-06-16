@@ -13,27 +13,27 @@
     <message>
         <location filename="../../core/editorTabs.py" line="1340"/>
         <source>Close, Discard, Cancel, Save</source>
-        <translation type="unfinished"></translation>
+        <translation>關閉,丟棄, 放棄, 儲存</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
         <source>Closing</source>
-        <translation type="unfinished"></translation>
+        <translation>關閉</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
         <source>Save modified file?</source>
-        <translation type="unfinished"></translation>
+        <translation>儲存已修改的檔案？</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1410"/>
         <source>Closing pinned</source>
-        <translation type="unfinished"></translation>
+        <translation>關閉鎖定的檔案</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1410"/>
         <source>Are you sure you want to close this pinned file?</source>
-        <translation type="unfinished"></translation>
+        <translation>您確定要關閉此鎖定檔案？</translation>
     </message>
 </context>
 <context>
@@ -212,67 +212,67 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="70"/>
         <source>Select file</source>
-        <translation type="unfinished"></translation>
+        <translation>選擇檔案</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="73"/>
         <source>Browse...</source>
-        <translation type="unfinished"></translation>
+        <translation>瀏覽...</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="84"/>
         <source>Preview:</source>
-        <translation type="unfinished"></translation>
+        <translation>預覽：</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="176"/>
         <source>Select columns to import:</source>
-        <translation type="unfinished"></translation>
+        <translation>選擇欄以匯入：</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="396"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>關閉</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="399"/>
         <source>Import data as single array</source>
-        <translation type="unfinished"></translation>
+        <translation>匯入資料成為單一陣列</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="400"/>
         <source>Import data into one variable per column</source>
-        <translation type="unfinished"></translation>
+        <translation>匯入資料成為每欄一個變數</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="403"/>
         <source>Raise error upon invalid data</source>
-        <translation type="unfinished"></translation>
+        <translation>資料不正確即發出錯誤訊息</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="536"/>
         <source>Import data wizard</source>
-        <translation type="unfinished"></translation>
+        <translation>匯入資料精靈</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="478"/>
         <source>No current shell active</source>
-        <translation type="unfinished"></translation>
+        <translation>目前無啟用之shell</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="488"/>
         <source>No current file open</source>
-        <translation type="unfinished"></translation>
+        <translation>目前無開啟的檔案</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="523"/>
         <source>Import data</source>
-        <translation type="unfinished"></translation>
+        <translation>匯入資料</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="536"/>
         <source>The import data wizard is already open</source>
-        <translation type="unfinished"></translation>
+        <translation>匯入資料精靈已經開啟</translation>
     </message>
 </context>
 <context>
@@ -280,7 +280,7 @@
     <message>
         <location filename="../../core/main.py" line="221"/>
         <source>unsaved</source>
-        <translation type="unfinished"></translation>
+        <translation>未儲存</translation>
     </message>
 </context>
 <context>
@@ -399,7 +399,7 @@
     <message>
         <location filename="../../core/menu.py" line="485"/>
         <source>Export to PDF ::: Export current file to PDF (e.g. for printing).</source>
-        <translation>匯出PDF格式 ::: 將目前檔案以PDF格式匯出(例如，列印文件)</translation>
+        <translation>匯出PDF格式 ::: 將目前檔案以PDF格式匯出(例如，列印文件)。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="500"/>
@@ -484,7 +484,7 @@
     <message>
         <location filename="../../core/menu.py" line="645"/>
         <source>Toggle breakpoint ::: Toggle breakpoint on the current line.</source>
-        <translation type="unfinished"></translation>
+        <translation>切換斷點 ::: 在目前行切換斷點。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1185"/>
@@ -514,7 +514,7 @@
     <message>
         <location filename="../../core/menu.py" line="1686"/>
         <source>Accept autocompletion with:</source>
-        <translation type="unfinished"></translation>
+        <translation>接受自動完成：</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="672"/>
@@ -639,22 +639,22 @@
     <message>
         <location filename="../../core/menu.py" line="972"/>
         <source>Debug next: proceed until next line</source>
-        <translation>除錯到下一行：前進到下一行。</translation>
+        <translation>除錯到下一行：前進到下一行</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="974"/>
         <source>Debug step into: proceed one step</source>
-        <translation>除錯到下一步：前進一步。</translation>
+        <translation>除錯到下一步：前進一步</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="976"/>
         <source>Debug return: proceed until returns</source>
-        <translation>除錯到Return：前進到Return。</translation>
+        <translation>除錯到Return：前進到Return</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="978"/>
         <source>Debug continue: proceed to next breakpoint</source>
-        <translation>除錯到Continue：前進到下一個斷點(Breakpoint)。</translation>
+        <translation>除錯到Continue：前進到下一個斷點</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="980"/>
@@ -669,7 +669,7 @@
     <message>
         <location filename="../../core/menu.py" line="1002"/>
         <source>Postmortem: debug from last traceback</source>
-        <translation>後驗：從上一個追溯點開始除錯。</translation>
+        <translation>後驗：從上一個追溯點開始除錯</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1082"/>
@@ -709,7 +709,7 @@
     <message>
         <location filename="../../core/menu.py" line="1232"/>
         <source>Copy path ::: Copy the full path of this file.</source>
-        <translation type="unfinished"></translation>
+        <translation>複製路徑 ::: 複製此檔案的完整路徑。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1237"/>
@@ -734,12 +734,12 @@
     <message>
         <location filename="../../core/menu.py" line="1299"/>
         <source>Run file as script ::: Restart and run the current file as a script.</source>
-        <translation>以腳本模式執行檔案 ::: 以腳本模式重啟並執行此檔案</translation>
+        <translation>以腳本模式執行檔案 ::: 以腳本模式重啟並執行此檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1301"/>
         <source>Run main file as script ::: Restart and run the main file as a script.</source>
-        <translation>以腳本模式執行主檔 ::: 以腳本模式重啟並執行主檔</translation>
+        <translation>以腳本模式執行主檔 ::: 以腳本模式重啟並執行主檔。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1306"/>
@@ -749,7 +749,7 @@
     <message>
         <location filename="../../core/menu.py" line="1308"/>
         <source>Execute cell ::: Execute the current editors&apos;s cell in the current shell.</source>
-        <translation>執行單元 ::: 執行目前Shell中編輯器的單元</translation>
+        <translation>執行單元 ::: 執行目前Shell中編輯器的單元。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1321"/>
@@ -759,7 +759,7 @@
     <message>
         <location filename="../../core/menu.py" line="1312"/>
         <source>Execute file ::: Execute the current file in the current shell.</source>
-        <translation>執行檔案 ::: 在目前Shell中執行目前檔案</translation>
+        <translation>執行檔案 ::: 在目前Shell中執行目前檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1314"/>
@@ -804,7 +804,7 @@
     <message>
         <location filename="../../core/menu.py" line="1611"/>
         <source>Check for updates ::: Are you using the latest version?</source>
-        <translation type="unfinished"></translation>
+        <translation>檢查更新 ::: 您使用的是最新版本嗎？</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1614"/>
@@ -849,12 +849,12 @@
     <message>
         <location filename="../../core/menu.py" line="766"/>
         <source>Highlight brackets ::: Highlight matched and unmatched brackets.</source>
-        <translation>標示方括號 ::: 標示有配對及無配對的方括號</translation>
+        <translation>標示方括號 ::: 標示有配對及無配對的方括號。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1352"/>
         <source>There is no main file selected.</source>
-        <translation>並未選擇主檔案</translation>
+        <translation>並未選擇主檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1521"/>
@@ -864,52 +864,52 @@
     <message>
         <location filename="../../core/menu.py" line="1547"/>
         <source>Could not save the file.</source>
-        <translation>無法儲存檔案</translation>
+        <translation>無法儲存檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1549"/>
         <source>Can only run scripts that are in the file system.</source>
-        <translation>只能執行在檔案系統中的腳本</translation>
+        <translation>只能執行在檔案系統中的腳本。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1596"/>
         <source>Pyzo wizard ::: Get started quickly.</source>
-        <translation>Pyzo wizard ::: 快速入門</translation>
+        <translation>Pyzo wizard ::: 快速入門。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="730"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>無</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1097"/>
         <source>Create shell %s: (%s)</source>
-        <translation type="unfinished"></translation>
+        <translation>建立shell %s: (%s)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1319"/>
         <source>Execute selection and advance</source>
-        <translation type="unfinished"></translation>
+        <translation>執行所選取然後前進</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1675"/>
         <source>No autocompletion</source>
-        <translation type="unfinished"></translation>
+        <translation>沒有自動完成</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1676"/>
         <source>Automatic popup</source>
-        <translation type="unfinished"></translation>
+        <translation>自動彈出</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1677"/>
         <source>Only show popup when pressing Tab</source>
-        <translation type="unfinished"></translation>
+        <translation>當按下Tab鍵只出現彈出視窗</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1738"/>
         <source>Autocompletion</source>
-        <translation type="unfinished"></translation>
+        <translation>自動完成</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1770"/>
@@ -924,32 +924,41 @@
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>
+        透過記錄工具有更多的設定可供選擇：
+        <byte value="xd"/><byte value="xd"/>
+        - 進階設定儲存在 &quot;pyzo.config.advanced&quot; 結構中。
+          輸入 &quot;print(pyzo.config.advanced)&quot; 指令來查看所有進階設定。<byte value="xd"/>
+        - 呼叫 &quot;pyzo.resetConfig()&quot; 來重設所有設定。<byte value="xd"/>
+        - 呼叫 &quot;pyzo.resetConfig(True)&quot; 來重設所有設定與狀態。<byte value="xd"/>
+        <byte value="xd"/><byte value="xd"/>
+        注意，大多數的設定都需要重新啟動 Pyzo 讓此變更生效。
+        </translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="56"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>搜尋</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="65"/>
         <source>History</source>
-        <translation type="unfinished"></translation>
+        <translation>歷史</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="66"/>
         <source>Copy ::: Copy selected lines</source>
-        <translation type="unfinished"></translation>
+        <translation>複製 ::: 複製選擇行</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="68"/>
         <source>Run ::: Run selected lines in current shell</source>
-        <translation type="unfinished"></translation>
+        <translation>執行 ::: 在目前 shell 中執行選擇行</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="70"/>
         <source>Remove ::: Remove selected history items(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>刪除 ::: 刪除選擇的歷史項目</translation>
     </message>
 </context>
 <context>
@@ -1011,7 +1020,7 @@
     <message>
         <location filename="../../core/about.py" line="15"/>
         <source>About Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>有關 Pyzo</translation>
     </message>
 </context>
 <context>
@@ -1069,7 +1078,7 @@
     <message>
         <location filename="../../core/editorTabs.py" line="283"/>
         <source>Auto hide ::: Hide search/replace when unused for 10 s.</source>
-        <translation>自動隱藏 ::: 未使用超過10秒後自動隱藏搜尋/置換工具</translation>
+        <translation>自動隱藏 ::: 未使用超過10秒後自動隱藏搜尋/置換工具。</translation>
     </message>
 </context>
 <context>
@@ -1157,7 +1166,7 @@
     <message>
         <location filename="../../core/shellStack.py" line="312"/>
         <source>Click to select shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>點擊來選擇 shell。</translation>
     </message>
 </context>
 <context>
@@ -1165,17 +1174,17 @@
     <message>
         <location filename="../../core/splash.py" line="68"/>
         <source>This is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;the Python IDE for scientific computing</source>
-        <translation type="unfinished"></translation>
+        <translation>這是 &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;用於科學運算的 Python IDE</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="69"/>
         <source>Version</source>
-        <translation type="unfinished"></translation>
+        <translation>版本</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="70"/>
         <source>Pyzo is open source software and freely available for everyone.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo 是開源軟體，免費提供給每個人使用。</translation>
     </message>
 </context>
 <context>
@@ -1241,7 +1250,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="255"/>
         <source>Pyzo consists of two main components</source>
-        <translation>Pyzo由兩個主要部份組成。</translation>
+        <translation>Pyzo由兩個主要部份組成</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="258"/>
