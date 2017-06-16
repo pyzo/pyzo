@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -13,27 +14,27 @@
     <message>
         <location filename="../../core/editorTabs.py" line="1340"/>
         <source>Close, Discard, Cancel, Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Fermer, Fermer sans enregistrer, Annuler, Enregistrer les modifications et fermer</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
         <source>Closing</source>
-        <translation type="unfinished"></translation>
+        <translation>Fermer</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
         <source>Save modified file?</source>
-        <translation type="unfinished"></translation>
+        <translation>Sauvegarder le fichier modifié ?</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1410"/>
         <source>Closing pinned</source>
-        <translation type="unfinished"></translation>
+        <translation>Fermeture du fichier épinglé</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1410"/>
         <source>Are you sure you want to close this pinned file?</source>
-        <translation type="unfinished"></translation>
+        <translation>Êtes vous sûr(e) de vouloir fermer le fichier épinglé ?</translation>
     </message>
 </context>
 <context>
@@ -212,67 +213,67 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="70"/>
         <source>Select file</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionnez le fichier</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="73"/>
         <source>Browse...</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir...</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="84"/>
         <source>Preview:</source>
-        <translation type="unfinished"></translation>
+        <translation>Aperçu :</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="176"/>
         <source>Select columns to import:</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionnez les colonnes à importer :</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="396"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Finir</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="399"/>
         <source>Import data as single array</source>
-        <translation type="unfinished"></translation>
+        <translation>Importer les données dans un seul objet array</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="400"/>
         <source>Import data into one variable per column</source>
-        <translation type="unfinished"></translation>
+        <translation>Importer les données en utilisant une variable par colonne</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="403"/>
         <source>Raise error upon invalid data</source>
-        <translation type="unfinished"></translation>
+        <translation>Lever une erreur en cas de données invalides</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="536"/>
         <source>Import data wizard</source>
-        <translation type="unfinished"></translation>
+        <translation>Assistant d&apos;import de données</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="478"/>
         <source>No current shell active</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas de shell courant actif</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="488"/>
         <source>No current file open</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas de fichier courant ouvert</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="523"/>
         <source>Import data</source>
-        <translation type="unfinished"></translation>
+        <translation>Importer des données</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="536"/>
         <source>The import data wizard is already open</source>
-        <translation type="unfinished"></translation>
+        <translation>L&apos;assistant d&apos;import de données est déjà ouvert</translation>
     </message>
 </context>
 <context>
@@ -280,7 +281,7 @@
     <message>
         <location filename="../../core/main.py" line="221"/>
         <source>unsaved</source>
-        <translation type="unfinished"></translation>
+        <translation>non sauvegardé</translation>
     </message>
 </context>
 <context>
@@ -434,7 +435,7 @@
     <message>
         <location filename="../../core/menu.py" line="1173"/>
         <source>Dedent ::: Unindent the selected line.</source>
-        <translation>Dédenter ::: Supprime l&apos;indentation de la ligne sélectionnée.</translation>
+        <translation>Désindenter ::: Supprime l&apos;indentation de la ligne sélectionnée.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1175"/>
@@ -464,7 +465,7 @@
     <message>
         <location filename="../../core/menu.py" line="645"/>
         <source>Toggle breakpoint ::: Toggle breakpoint on the current line.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajouter/Enlever un point d&apos;arrêt ::: Ajouter/Enlever un point d&apos;arrêt sur la ligne courante.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1185"/>
@@ -494,7 +495,7 @@
     <message>
         <location filename="../../core/menu.py" line="1686"/>
         <source>Accept autocompletion with:</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="672"/>
@@ -624,7 +625,7 @@
     <message>
         <location filename="../../core/menu.py" line="1232"/>
         <source>Copy path ::: Copy the full path of this file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Copier le chemin ::: Copier le chemin complet désignant ce fichier.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1237"/>
@@ -814,7 +815,7 @@
     <message>
         <location filename="../../core/menu.py" line="1611"/>
         <source>Check for updates ::: Are you using the latest version?</source>
-        <translation type="unfinished"></translation>
+        <translation>Rechercher des mises à jour ::: Utilisez-vous la dernière version ?</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1614"/>
@@ -874,82 +875,95 @@
     <message>
         <location filename="../../core/menu.py" line="730"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>None</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1097"/>
         <source>Create shell %s: (%s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Création du shell %s (%s)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1319"/>
         <source>Execute selection and advance</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécuter la sélection et avancer</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1521"/>
         <source> (as script)</source>
-        <translation type="unfinished"></translation>
+        <translation>(en tant que script)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1675"/>
         <source>No autocompletion</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas de complétion automatique</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1676"/>
         <source>Automatic popup</source>
-        <translation type="unfinished"></translation>
+        <translation>Bulle d&apos;aide automatique</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1677"/>
         <source>Only show popup when pressing Tab</source>
-        <translation type="unfinished"></translation>
+        <translation>Voir la bulle d&apos;aide uniquement en pressant Tab</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1738"/>
         <source>Autocompletion</source>
-        <translation type="unfinished"></translation>
+        <translation>Complétion automatique</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1770"/>
         <source>
         More settings are available via the logger-tool:
-        <byte value="xd"/><byte value="xd"/>
+        
+
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
+
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>
+        D&apos;autres réglages sont disponible au travers de l&apos;outil logger:
+        
+
+        - Les réglages avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
+          Entrez &quot;print(pyzo.config.advanced)&quot; pour voir tous les réglages avancés 
+        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser les réglage.
+        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour remettre tous les réinitialiser les réglage et l&apos;état de pyzo.
+        
+
+        Notez que la plupart des réglages ne prendront effet qu&apos;après un redémarrage.
+        </translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="56"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Rechercher</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="65"/>
         <source>History</source>
-        <translation type="unfinished"></translation>
+        <translation>Historique</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="66"/>
         <source>Copy ::: Copy selected lines</source>
-        <translation type="unfinished"></translation>
+        <translation>Copier ::: Copier les lignes sélectionnées</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="68"/>
         <source>Run ::: Run selected lines in current shell</source>
-        <translation type="unfinished"></translation>
+        <translation>Exécuter ::: Exécuter les lignes sélectionnées dans le shell courant</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="70"/>
         <source>Remove ::: Remove selected history items(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Effacer ::: Effacer les entrées sélectionnées de l&apos;historique</translation>
     </message>
 </context>
 <context>
@@ -1012,7 +1026,7 @@
     <message>
         <location filename="../../core/about.py" line="15"/>
         <source>About Pyzo</source>
-        <translation type="unfinished"></translation>
+        <translation>À propos de Pyzo</translation>
     </message>
 </context>
 <context>
@@ -1158,7 +1172,7 @@
     <message>
         <location filename="../../core/shellStack.py" line="312"/>
         <source>Click to select shell.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cliquez pour sélectionner le shell.</translation>
     </message>
 </context>
 <context>
@@ -1166,17 +1180,17 @@
     <message>
         <location filename="../../core/splash.py" line="68"/>
         <source>This is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;the Python IDE for scientific computing</source>
-        <translation type="unfinished"></translation>
+        <translation>Voici &lt;b&gt;Pyzo&lt;/b&gt; &lt;br /&gt;l&apos;IDE Python pour l&apos;informatique scientifique</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="69"/>
         <source>Version</source>
-        <translation type="unfinished"></translation>
+        <translation>Version</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="70"/>
         <source>Pyzo is open source software and freely available for everyone.</source>
-        <translation type="unfinished"></translation>
+        <translation>Pyzo est un logiciel open source libre disponible pour tous.</translation>
     </message>
 </context>
 <context>
