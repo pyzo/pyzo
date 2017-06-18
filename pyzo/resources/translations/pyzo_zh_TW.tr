@@ -13,7 +13,7 @@
     <message>
         <location filename="../../core/editorTabs.py" line="1340"/>
         <source>Close, Discard, Cancel, Save</source>
-        <translation>關閉,丟棄, 放棄, 儲存</translation>
+        <translation>關閉, 丟棄, 放棄, 儲存</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1367"/>
@@ -84,12 +84,12 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="472"/>
         <source>Add path to Python path</source>
-        <translation>將路徑加入Python路徑</translation>
+        <translation>將路徑加入 Python 路徑</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="481"/>
         <source>Go to this directory in the current shell</source>
-        <translation>在目前Shell中前往此目錄</translation>
+        <translation>在目前 Shell 中前往此目錄</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="498"/>
@@ -144,7 +144,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="834"/>
         <source>Open outside Pyzo</source>
-        <translation>開啟外部Pyzo</translation>
+        <translation>開啟外部 Pyzo</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="837"/>
@@ -169,7 +169,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="937"/>
         <source>Create new file</source>
-        <translation>建立新檔案</translation>
+        <translation>新增檔案</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="940"/>
@@ -204,7 +204,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="824"/>
         <source>Run Jupyter notebook</source>
-        <translation>執行Jupyter notebook</translation>
+        <translation>執行 Jupyter notebook</translation>
     </message>
 </context>
 <context>
@@ -227,7 +227,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="176"/>
         <source>Select columns to import:</source>
-        <translation>選擇欄以匯入：</translation>
+        <translation>選擇需匯入的欄位：</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="396"/>
@@ -237,12 +237,12 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="399"/>
         <source>Import data as single array</source>
-        <translation>匯入資料成為單一陣列</translation>
+        <translation>以單一陣列方式匯入資料</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="400"/>
         <source>Import data into one variable per column</source>
-        <translation>匯入資料成為每欄一個變數</translation>
+        <translation>以每欄一個變數方式匯入資料</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="403"/>
@@ -257,7 +257,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="478"/>
         <source>No current shell active</source>
-        <translation>目前無啟用之shell</translation>
+        <translation>目前無啟用之 Shell</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="488"/>
@@ -369,17 +369,17 @@
     <message>
         <location filename="../../core/menu.py" line="471"/>
         <source>Open... ::: Open an existing file from disk.</source>
-        <translation>開啟 ::: 開啟磁碟中的檔案。</translation>
+        <translation>開啟... ::: 開啟磁碟中的檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1220"/>
         <source>Save ::: Save the current file to disk.</source>
-        <translation>儲存 ::: 將目前檔案儲存到磁碟中。</translation>
+        <translation>儲存 ::: 將目前檔案存到磁碟中。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1222"/>
         <source>Save as... ::: Save the current file under another name.</source>
-        <translation>另存新檔 ::: 將目前檔案以其他檔名另存新檔。</translation>
+        <translation>另存新檔... ::: 將目前檔案以其他檔名存檔。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="479"/>
@@ -399,27 +399,27 @@
     <message>
         <location filename="../../core/menu.py" line="485"/>
         <source>Export to PDF ::: Export current file to PDF (e.g. for printing).</source>
-        <translation>匯出PDF格式 ::: 將目前檔案以PDF格式匯出(例如，列印文件)。</translation>
+        <translation>匯出 PDF 格式 ::: 將目前檔案以 PDF 格式匯出 (例如提供列印)。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="500"/>
         <source>Restart Pyzo ::: Restart the application.</source>
-        <translation>重啟Pyzo ::: 重啟Pyzo程式。</translation>
+        <translation>重啟 Pyzo ::: 重啟 Pyzo 程式。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="502"/>
         <source>Quit Pyzo ::: Close the application.</source>
-        <translation>退出Pyzo ::: 關閉Pyzo程式。</translation>
+        <translation>退出 Pyzo ::: 關閉 Pyzo 程式。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="614"/>
         <source>Undo ::: Undo the latest editing action.</source>
-        <translation>復原 ::: 復原最近一次編輯動作。</translation>
+        <translation>復原 ::: 復原上一次編輯動作。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="616"/>
         <source>Redo ::: Redo the last undone editong action.</source>
-        <translation>重複 ::: 重複最近一次編輯動作。</translation>
+        <translation>重複 ::: 重複上一次復原動作。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1162"/>
@@ -449,37 +449,37 @@
     <message>
         <location filename="../../core/menu.py" line="1171"/>
         <source>Indent ::: Indent the selected line.</source>
-        <translation>縮排 ::: 將所選取行向右縮排。</translation>
+        <translation>縮排 ::: 縮排選取行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1173"/>
         <source>Dedent ::: Unindent the selected line.</source>
-        <translation>取消縮排 ::: 將所選取的行取消縮排。</translation>
+        <translation>取消縮排 ::: 取消縮排選取行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1175"/>
         <source>Comment ::: Comment the selected line.</source>
-        <translation>註解 ::: 將所選取行註解。</translation>
+        <translation>註解 ::: 註解選取行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1177"/>
         <source>Uncomment ::: Uncomment the selected line.</source>
-        <translation>取消註解 ::: 將所選取行取消註解。</translation>
+        <translation>取消註解 ::: 取消註解選取行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1179"/>
-        <source>Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters.</source>
-        <translation>編排註解/說明字串 ::: 文字重新編排為一行約70個字元。</translation>
+        <source>Justify comment/docstring ::: Reshape the selected text so it is aligned to around 70 characters.</source>
+        <translation>對齊註解/說明字串 ::: 重新整理選取文字，使其對齊為大約 70 個字元。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="640"/>
         <source>Go to line ::: Go to a specific line number.</source>
-        <translation>前往行 ::: 前往所指定行。</translation>
+        <translation>前往行 ::: 前往指定行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="642"/>
         <source>Delete line ::: Delete the selected line.</source>
-        <translation>刪除行 ::: 將所選取行刪除。</translation>
+        <translation>刪除行 ::: 刪除選取行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="645"/>
@@ -494,12 +494,12 @@
     <message>
         <location filename="../../core/menu.py" line="1187"/>
         <source>Find selection ::: Find the next occurrence of the selected text.</source>
-        <translation>尋找選取文字 ::: 尋找下一個所選取的文字。</translation>
+        <translation>尋找選取文字 ::: 尋找下一個選取文字。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1189"/>
         <source>Find selection backward ::: Find the previous occurrence of the selected text.</source>
-        <translation>向上尋找選取文字 ::: 尋找上一個所選取的文字。</translation>
+        <translation>向上尋找選取文字 ::: 尋找上一個選取文字。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="654"/>
@@ -539,12 +539,12 @@
     <message>
         <location filename="../../core/menu.py" line="735"/>
         <source>Qt theme ::: The styling of the user interface widgets.</source>
-        <translation>QT主題 ::: 使用者介面工具的樣式。</translation>
+        <translation>QT 主題 ::: 使用者介面工具的樣式。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="748"/>
         <source>Select shell ::: Focus the cursor on the current shell.</source>
-        <translation>選擇Shell ::: 將游標移到目前Shell。</translation>
+        <translation>選擇 Shell ::: 將游標移到目前 Shell。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="750"/>
@@ -554,7 +554,7 @@
     <message>
         <location filename="../../core/menu.py" line="752"/>
         <source>Select previous file ::: Select the previously selected file.</source>
-        <translation>選擇先前檔案 ::: 選擇先前所選取的檔案。</translation>
+        <translation>選擇先前檔案 ::: 選擇先前選取的檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="755"/>
@@ -574,7 +574,7 @@
     <message>
         <location filename="../../core/menu.py" line="762"/>
         <source>Wrap long lines ::: Wrap lines that do not fit on the screen (i.e. no horizontal scrolling).</source>
-        <translation>換行 ::: 超出螢幕的文字自動換行(無水平捲軸)。</translation>
+        <translation>換行 ::: 超出螢幕的文字自動換行 (不出現水平捲軸)。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="764"/>
@@ -594,12 +594,12 @@
     <message>
         <location filename="../../core/menu.py" line="773"/>
         <source>Previous object ::: Go back to the previous top-level structure.</source>
-        <translation>上一個物件 ::: 回到上一個頂階架構。</translation>
+        <translation>上一個物件 ::: 回到上一個頂層架構。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="775"/>
         <source>Next object ::: Advance to the next top-level structure.</source>
-        <translation>下一個物件 ::: 前往下一個頂階架構。</translation>
+        <translation>下一個物件 ::: 前往下一個頂層架構。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="779"/>
@@ -629,12 +629,12 @@
     <message>
         <location filename="../../core/menu.py" line="960"/>
         <source>Terminate ::: Terminate the interpreter, leaving the shell open.</source>
-        <translation>結束 ::: 結束解譯器，Shell保持開啟。</translation>
+        <translation>結束 ::: 結束解譯器，Shell 保持開啟。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="962"/>
         <source>Close ::: Terminate the interpreter and close the shell.</source>
-        <translation>關閉 ::: 結束解譯器並關閉Shell。</translation>
+        <translation>關閉 ::: 結束解譯器並關閉 Shell。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="972"/>
@@ -649,12 +649,12 @@
     <message>
         <location filename="../../core/menu.py" line="976"/>
         <source>Debug return: proceed until returns</source>
-        <translation>除錯到Return：前進到Return</translation>
+        <translation>除錯到 Return：前進到 Return</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="978"/>
         <source>Debug continue: proceed to next breakpoint</source>
-        <translation>除錯到Continue：前進到下一個斷點</translation>
+        <translation>除錯到 Continue：前進到下一個斷點</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="980"/>
@@ -664,7 +664,7 @@
     <message>
         <location filename="../../core/menu.py" line="1000"/>
         <source>Clear all {} breakpoints</source>
-        <translation>清除所有{}斷點</translation>
+        <translation>清除所有 {} 斷點</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1002"/>
@@ -674,17 +674,17 @@
     <message>
         <location filename="../../core/menu.py" line="1082"/>
         <source>Edit shell configurations... ::: Add new shell configs and edit interpreter properties.</source>
-        <translation>編輯Shell組態... ::: 新增Shell組態並編輯解譯器特性。</translation>
+        <translation>編輯 Shell 組態... ::: 新增 Shell 組態並編輯解譯器特性。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1014"/>
         <source>Create new Python environment... ::: Install miniconda.</source>
-        <translation>建立新Python環境... ::: 安裝Miniconda。</translation>
+        <translation>新增 Python 環境... ::: 安裝 Miniconda。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1085"/>
         <source>New shell ... ::: Create new shell to run code in.</source>
-        <translation>新Shell... ::: 開啟新Shell來執行程式。</translation>
+        <translation>新 Shell... ::: 開啟新 Shell 來執行程式。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1182"/>
@@ -694,7 +694,7 @@
     <message>
         <location filename="../../core/menu.py" line="1194"/>
         <source>Run selection ::: Run the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
-        <translation>執行選取 ::: 執行目前編輯器所選取的行或字，如果沒有選取，就執行目前行。</translation>
+        <translation>執行選取 ::: 執行目前編輯器所選取的行或在目前行所選取的字，如果沒有選取就執行目前行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1226"/>
@@ -714,7 +714,7 @@
     <message>
         <location filename="../../core/menu.py" line="1237"/>
         <source>Pin/Unpin ::: Pinned files get closed less easily.</source>
-        <translation>鎖定/解鎖  ::: 鎖定的檔案較不容易被關閉。</translation>
+        <translation>鎖定/解鎖 ::: 鎖定的檔案較不容易被關閉。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1239"/>
@@ -744,12 +744,12 @@
     <message>
         <location filename="../../core/menu.py" line="1306"/>
         <source>Execute selection ::: Execute the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
-        <translation>執行選取 ::: 執行目前編輯器所選取的行或字，如果沒有選取，就執行目前行。</translation>
+        <translation>執行選取 ::: 執行目前編輯器所選取的行或在目前行所選取的字，如果沒有選取就執行目前行。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1308"/>
         <source>Execute cell ::: Execute the current editors&apos;s cell in the current shell.</source>
-        <translation>執行單元 ::: 執行目前Shell中編輯器的單元。</translation>
+        <translation>執行單元 ::: 執行目前 Shell 中編輯器的單元。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1321"/>
@@ -759,17 +759,17 @@
     <message>
         <location filename="../../core/menu.py" line="1312"/>
         <source>Execute file ::: Execute the current file in the current shell.</source>
-        <translation>執行檔案 ::: 在目前Shell中執行目前檔案。</translation>
+        <translation>執行檔案 ::: 在目前 Shell 中執行目前檔案。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1314"/>
         <source>Execute main file ::: Execute the main file in the current shell.</source>
-        <translation>執行主檔 ::: 在目前Shell中執行主檔。</translation>
+        <translation>執行主檔 ::: 在目前 Shell 中執行主檔。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1326"/>
         <source>Help on running code ::: Open the pyzo wizard at the page about running code.</source>
-        <translation>執行程式輔助 ::: 開啟Pyzo精靈中有關執行程式的頁面。</translation>
+        <translation>執行程式輔助 ::: 開啟 Pyzo 精靈中有關執行程式的頁面。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1566"/>
@@ -779,12 +779,12 @@
     <message>
         <location filename="../../core/menu.py" line="1592"/>
         <source>Pyzo website ::: Open the Pyzo website in your browser.</source>
-        <translation>Pyzo網站 ::: 在瀏覽器開啟Pyzo網站。</translation>
+        <translation>Pyzo 網站 ::: 在瀏覽器開啟 Pyzo 網站。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1594"/>
         <source>Pyzo guide ::: Open the Pyzo guide in your browser.</source>
-        <translation>Pyzo指引 ::: 在瀏覽器開啟Pyzo指引。</translation>
+        <translation>Pyzo 指引 ::: 在瀏覽器開啟 Pyzo 指引。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1601"/>
@@ -794,12 +794,12 @@
     <message>
         <location filename="../../core/menu.py" line="1603"/>
         <source>Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?</source>
-        <translation>回報問題 ::: 你發現Pyzo有Bug或者需要某些新功能？</translation>
+        <translation>回報問題 ::: 你發現 Pyzo 有 Bug 或者需要某些新功能？</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1605"/>
         <source>Local documentation ::: Documentation on Python and the Scipy Stack.</source>
-        <translation>本地文件 ::: 有關Python及Scipy Stack的文件。</translation>
+        <translation>本地文件 ::: 有關 Python 及 Scipy Stack 的文件。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1611"/>
@@ -809,22 +809,22 @@
     <message>
         <location filename="../../core/menu.py" line="1614"/>
         <source>About Pyzo ::: More information about Pyzo.</source>
-        <translation>有關Pyzo ::: 更多有關Pyzo的資訊。</translation>
+        <translation>有關 Pyzo ::: 更多有關 Pyzo 的資訊。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1727"/>
         <source>Select language ::: The language used by Pyzo.</source>
-        <translation>選擇語言 ::: Pyzo所使用的語言。</translation>
+        <translation>選擇語言 ::: Pyzo 所使用的語言。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1733"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
-        <translation>自動縮排 ::: 在冒號之後按下Enter鍵會自動縮排。</translation>
+        <translation>自動縮排 ::: 在冒號之後按下 Enter 鍵會自動縮排。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1735"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
-        <translation>開啟呼叫提示 ::: 顯示函式的呼叫提示。</translation>
+        <translation>啟用呼叫提示 ::: 顯示函式的呼叫提示。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1694"/>
@@ -834,22 +834,22 @@
     <message>
         <location filename="../../core/menu.py" line="1741"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
-        <translation>編輯鍵盤對應 ::: 編輯功能選項的快捷鍵。</translation>
+        <translation>編輯鍵盤對應... ::: 編輯功能選項的快捷鍵。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1743"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
-        <translation>編輯語法樣式 ::: 更改程式碼的顏色。</translation>
+        <translation>編輯語法樣式... ::: 更改程式碼的顏色。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1746"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
-        <translation>進階設定 ::: 進一步組態Pyzo。</translation>
+        <translation>進階設定... ::: 進一步組態 Pyzo。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="766"/>
         <source>Highlight brackets ::: Highlight matched and unmatched brackets.</source>
-        <translation>標示方括號 ::: 標示有配對及無配對的方括號。</translation>
+        <translation>標示方括號 ::: 標示有對應及無對應的方括號。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1352"/>
@@ -859,7 +859,7 @@
     <message>
         <location filename="../../core/menu.py" line="1521"/>
         <source> (as script)</source>
-        <translation> (腳本)</translation>
+        <translation>(以腳本模式)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1547"/>
@@ -874,7 +874,7 @@
     <message>
         <location filename="../../core/menu.py" line="1596"/>
         <source>Pyzo wizard ::: Get started quickly.</source>
-        <translation>Pyzo wizard ::: 快速入門。</translation>
+        <translation>Pyzo 精靈 ::: 快速入門。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="730"/>
@@ -884,7 +884,7 @@
     <message>
         <location filename="../../core/menu.py" line="1097"/>
         <source>Create shell %s: (%s)</source>
-        <translation>建立shell %s: (%s)</translation>
+        <translation>新增 Shell %s: (%s)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1319"/>
@@ -904,7 +904,7 @@
     <message>
         <location filename="../../core/menu.py" line="1677"/>
         <source>Only show popup when pressing Tab</source>
-        <translation>當按下Tab鍵只出現彈出視窗</translation>
+        <translation>只有在按下 Tab 鍵時才出現彈出視窗</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1738"/>
@@ -948,17 +948,17 @@
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="66"/>
         <source>Copy ::: Copy selected lines</source>
-        <translation>複製 ::: 複製選擇行</translation>
+        <translation>複製 ::: 複製選取行</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="68"/>
         <source>Run ::: Run selected lines in current shell</source>
-        <translation>執行 ::: 在目前 shell 中執行選擇行</translation>
+        <translation>執行 ::: 在目前 Shell 中執行選取行</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="70"/>
         <source>Remove ::: Remove selected history items(s)</source>
-        <translation>刪除 ::: 刪除選擇的歷史項目</translation>
+        <translation>刪除 ::: 刪除選取的歷史項目</translation>
     </message>
 </context>
 <context>
@@ -994,13 +994,12 @@
         The language has been changed. 
         Pyzo needs to restart for the change to take effect.
         </source>
-        <translation>語言已變更，重啟Pyzo讓此變更生效。
-        </translation>
+        <translation>語言已變更，重啟 Pyzo 讓此變更生效。</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1808"/>
         <source>Language changed</source>
-        <translation>語言變更</translation>
+        <translation>語言已變更</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="2157"/>
@@ -1015,7 +1014,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/tree.py" line="910"/>
         <source>Could not run notebook</source>
-        <translation>無法執行notebook</translation>
+        <translation>無法執行 Notebook</translation>
     </message>
     <message>
         <location filename="../../core/about.py" line="15"/>
@@ -1028,7 +1027,7 @@
     <message>
         <location filename="../../core/editorTabs.py" line="175"/>
         <source>Hide search widget (Escape)</source>
-        <translation>隱藏搜尋工具(Escape)</translation>
+        <translation>隱藏搜尋工具 (Escape)</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="194"/>
@@ -1053,7 +1052,7 @@
     <message>
         <location filename="../../core/editorTabs.py" line="234"/>
         <source>Repl. all ::: Replace all matches in current document.</source>
-        <translation>全部置換 ::: 在文件中置換所有符合項目。</translation>
+        <translation>全部置換 ::: 在目前文件中置換所有符合項目。</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="242"/>
@@ -1078,7 +1077,7 @@
     <message>
         <location filename="../../core/editorTabs.py" line="283"/>
         <source>Auto hide ::: Hide search/replace when unused for 10 s.</source>
-        <translation>自動隱藏 ::: 未使用超過10秒後自動隱藏搜尋/置換工具。</translation>
+        <translation>自動隱藏 ::: 未使用超過 10 秒後自動隱藏搜尋/置換工具。</translation>
     </message>
 </context>
 <context>
@@ -1091,7 +1090,7 @@
     <message>
         <location filename="../../core/shellInfoDialog.py" line="483"/>
         <source>ipython ::: Use IPython shell if available.</source>
-        <translation>ipython ::: 如果可用則使用Ipython Shell。</translation>
+        <translation>ipython ::: 如果可用則使用 Ipython Shell。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="334"/>
@@ -1101,22 +1100,22 @@
     <message>
         <location filename="../../core/shellInfoDialog.py" line="342"/>
         <source>File to run at startup</source>
-        <translation>啟動時執行檔案</translation>
+        <translation>啟動時執行之檔案</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="348"/>
         <source>Code to run at startup</source>
-        <translation>啟動時執行程式</translation>
+        <translation>啟動時執行之程式</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="482"/>
         <source>exe ::: The Python executable.</source>
-        <translation>exe ::: Python執行檔。</translation>
+        <translation>exe ::: Python 執行檔。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="484"/>
         <source>gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).</source>
-        <translation>gui ::: 需整合的GUI工具(例如互動式繪圖等)。</translation>
+        <translation>gui ::: 需整合的 GUI 工具 (例如互動式繪圖等)。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="485"/>
@@ -1128,32 +1127,32 @@
     <message>
         <location filename="../../core/shellInfoDialog.py" line="486"/>
         <source>startupScript ::: The script to run at startup (not in script mode).</source>
-        <translation>startScript ::: 啟動時執行程式(非腳本模式)。</translation>
+        <translation>startScript ::: 啟動時執行之程式 (非腳本模式)。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="487"/>
         <source>startDir ::: The start directory (not in script mode).</source>
-        <translation>starDir ::: 啟動目錄(非腳本模式)。</translation>
+        <translation>starDir ::: 啟動之目錄 (非腳本模式)。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="488"/>
         <source>argv ::: The command line arguments (sys.argv).</source>
-        <translation>argv ::: 指令行的參數(sys.argv)。</translation>
+        <translation>argv ::: 指令行的參數 (sys.argv)。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="489"/>
         <source>environ ::: Extra environment variables (os.environ).</source>
-        <translation>environ ::: 額外的環境變數(os.environ)。</translation>
+        <translation>environ ::: 額外的環境變數 (os.environ)。</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="526"/>
         <source>Delete ::: Delete this shell configuration</source>
-        <translation>刪除 ::: 刪除此Shell組態</translation>
+        <translation>刪除 ::: 刪除此 Shell 組態</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="603"/>
         <source>Shell configurations</source>
-        <translation>Shell組態</translation>
+        <translation>Shell 組態</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="633"/>
@@ -1166,7 +1165,7 @@
     <message>
         <location filename="../../core/shellStack.py" line="312"/>
         <source>Click to select shell.</source>
-        <translation>點擊來選擇 shell。</translation>
+        <translation>點選 Shell。</translation>
     </message>
 </context>
 <context>
@@ -1192,7 +1191,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="40"/>
         <source>Getting started with Pyzo</source>
-        <translation>Pyzo入門</translation>
+        <translation>Pyzo 入門</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="93"/>
@@ -1202,12 +1201,12 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="162"/>
         <source>Welcome to the Interactive Editor for Python!</source>
-        <translation>歡迎來到Python互動編輯器！</translation>
+        <translation>歡迎來到 Python 互動編輯器！</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="165"/>
         <source>This wizard helps you get familiarized with the workings of Pyzo.</source>
-        <translation>此精靈協助您熟悉Pyzo的功能。</translation>
+        <translation>此精靈協助您熟悉 Pyzo 的功能。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="167"/>
@@ -1215,9 +1214,8 @@
         focused on *interactivity* and *introspection*, which makes it
         very suitable for scientific computing. Its practical design
         is aimed at *simplicity* and *efficiency*.</source>
-        <translation>Pyzo是一個跨平台的Python IDE，著重在互動與自我檢查，因此非常適合科學運算。
-        它的實用設計目標是簡單與效能。
-        </translation>
+        <translation>Pyzo 是一個跨平台的 Python IDE，著重在互動與自我檢查，因此非常適合科學運算。
+        它的設計目標是 *簡單* 與 *效能*。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="177"/>
@@ -1240,17 +1238,17 @@
         The language has been changed for this wizard.
         Pyzo needs to restart for the change to take effect application-wide.
         </source>
-        <translation>此精靈的語言已變更，需要重啟Pyzo讓此變更生效。</translation>
+        <translation>此精靈的語言已變更，需要重啟 Pyzo 讓此變更生效。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="236"/>
         <source>Language changed</source>
-        <translation>語言變更</translation>
+        <translation>語言已變更</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="255"/>
         <source>Pyzo consists of two main components</source>
-        <translation>Pyzo由兩個主要部份組成</translation>
+        <translation>Pyzo 由兩個主要部份組成</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="258"/>
@@ -1278,44 +1276,44 @@
         <source>The right mouse button also enables one to make a file the 
         *main file* of a project. This file can be recognized by its star
         symbol, and it enables running the file more easily.</source>
-        <translation>滑鼠右鍵可設定某個檔案為專案*主檔*，此檔案可透過星號來辨識，讓主檔執行更方便。</translation>
+        <translation>滑鼠右鍵可設定某個檔案為專案 *主檔*，此檔案可透過星號來辨識，讓主檔執行更方便。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="282"/>
         <source>The shell is where your code gets executed</source>
-        <translation>Shell就是你執行程式的地方</translation>
+        <translation>Shell 就是你執行程式的地方</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="285"/>
         <source>When Pyzo starts, a default *shell* is created. You can add more
         shells that run simultaneously, and which may be of different
         Python versions.</source>
-        <translation>Pyzo啟動後會產生一個預設的 *Shell*。你可以加入多個Shell同時並行，各個Shell也可以使用不同的Python版本。</translation>
+        <translation>Pyzo 啟動後會產生一個預設的 *Shell*。你可以加入多個 Shell 同時並行，各個 Shell 也可以使用不同的 Python 版本。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="289"/>
         <source>Shells run in a sub-process, such that when it is busy, Pyzo
         itself stays responsive, allowing you to keep coding and even
         run code in another shell.</source>
-        <translation>Shell以子程序模式執行，因此當它忙碌時，Pyzo還是能正常回應，因此你可以繼續撰寫程式或是在另一個Shell中執行程式。</translation>
+        <translation>Shell 以子程序模式執行，因此當它忙碌時，Pyzo 還是能正常回應，因此你可以繼續撰寫程式或是在另一個 Shell 中執行程式。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="298"/>
         <source>Configuring shells</source>
-        <translation>組態Shell</translation>
+        <translation>組態 Shell</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="301"/>
         <source>Pyzo can integrate the event loop of five different *GUI toolkits*,
         thus enabling interactive plotting with e.g. Visvis or Matplotlib.</source>
-        <translation>Pyzo可以整合5個不同 *GUI工具* 的事件迴圈，因此可透過Visvis或Matplotlib進行互動繪圖。</translation>
+        <translation>Pyzo 可以整合 5 個不同 *GUI 工具* 的事件迴圈，因此可透過 Visvis 或 Matplotlib 進行互動繪圖。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="304"/>
         <source>Via &apos;Shell &gt; Edit shell configurations&apos;, you can edit and add
         *shell configurations*. This allows you to for example select the
         initial directory, or use a custom Pythonpath.</source>
-        <translation>透過「Shell &gt; 編輯Shell組態」可以編輯及加入 *Shell組態*，例如選擇預設目錄或使用客製化Python路徑。</translation>
+        <translation>透過「Shell &gt; 編輯 Shell 組態」可以編輯及加入 *Shell組態*，例如選擇預設目錄或使用客製化 Python 路徑。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="313"/>
@@ -1325,7 +1323,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="316"/>
         <source>Pyzo supports several ways to run source code in the editor. (see the &apos;Run&apos; menu).</source>
-        <translation>Pyzo支援多種在編輯器裡執行程式的方式(詳見「執行」選項)。</translation>
+        <translation>Pyzo 支援多種在編輯器裡執行程式的方式 (詳見「執行」選項)。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="318"/>
@@ -1333,7 +1331,7 @@
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
-        <translation>*執行選取：* 如果沒有選取文字，則執行目前行。如果選取單一行，則執行該行。如果選取多行，Pyzo會執行所有選取行。</translation>
+        <translation>*執行選取：* 如果沒有選取文字，則執行目前行。如果選取單一行，則執行該行。如果選取多行，Pyzo 會執行所有選取行。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="323"/>
@@ -1362,20 +1360,19 @@
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution.</source>
         <translation>你可以正常模式或者腳本模式執行目前檔案或主檔。以腳本模式執行時，
-        Shell會重啟一個乾淨的環境，Shell也可以不同方式啟動，以仿效正常的腳本執行模式。
-        </translation>
+        Shell 會重啟一個乾淨的環境，Shell 也可以不同方式啟動，以仿效正常的腳本執行模式。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="343"/>
         <source>In interactive mode, sys.path[0] is an empty string (i.e. the current dir),
         and sys.argv is set to [&apos;&apos;].</source>
-        <translation>在互動模式中，sys.path[0]是一個空字串(也就是目前目錄)，sys.argv則設定為[&apos;&apos;]。</translation>
+        <translation>在互動模式中，sys.path[0] 是一個空字串 (也就是目前目錄)，sys.argv 則設定為 [&apos;&apos;]。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="346"/>
         <source>In script mode, __file__ and sys.argv[0] are set to the scripts filename, 
         sys.path[0] and the working dir are set to the directory containing the script.</source>
-        <translation>在腳本模式中，__file__與sys.argv[0]都設定為腳本檔名，sys.path[0]與工作目錄則設定為腳本所在目錄。</translation>
+        <translation>在腳本模式中，__file__ 與 sys.argv[0] 都設定為腳本檔名，sys.path[0] 與工作目錄則設定為腳本所在目錄。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="354"/>
@@ -1393,7 +1390,7 @@
         <source>Note that the tools system is designed such that it&apos;s easy to
         create your own tools. Look at the online wiki for more information,
         or use one of the existing tools as an example.</source>
-        <translation>工具系統以方便建立你自己的工具為設計目標，你可以從線上wiki提供更多資訊，或者使用目前已有的工具為範例。</translation>
+        <translation>工具系統以方便建立你自己的工具為設計目標，你可以從線上 Wiki 提供更多資訊，或者使用目前已有的工具為範例。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="369"/>
@@ -1424,7 +1421,7 @@
     <message>
         <location filename="../../util/pyzowizard.py" line="387"/>
         <source>This concludes the Pyzo wizard. Now, get coding and have fun!</source>
-        <translation>Pyzo精靈結束，現在開心的寫程式吧！</translation>
+        <translation>Pyzo 精靈結束，現在開心的寫程式吧！</translation>
     </message>
 </context>
 </TS>
