@@ -582,6 +582,21 @@ class PyzoEditor(BaseTextCtrl):
         
         cursor.removeSelectedText()
     
+    def duplicateLines(self):
+        cursor = self.textCursor()
+        # Find start and end of selection
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        # Expand selection: from start of first block to start of next block
+        cursor.setPosition(start)
+        cursor.movePosition(cursor.StartOfBlock)
+        cursor.setPosition(end, cursor.KeepAnchor)
+        cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        
+        text = cursor.selectedText()
+        cursor.setPosition(start)
+        cursor.movePosition(cursor.StartOfBlock)
+        cursor.insertText(text)
     
     def commentCode(self):
         """

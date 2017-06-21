@@ -637,7 +637,9 @@ class EditMenu(Menu):
             icons.text_align_justify, self._editItemCallback, "justifyText")
         self.addItem(translate("menu", "Go to line ::: Go to a specific line number."), 
             None, self._editItemCallback, "gotoLinePopup")
-        self.addItem(translate("menu", "Delete line ::: Delete the selected line."), 
+        self.addItem(translate("menu", "Duplicate line ::: Duplicate the selected line(s)."), 
+            None, self._editItemCallback, "duplicateLines")
+        self.addItem(translate("menu", "Delete line ::: Delete the selected line(s)."), 
             None, self._editItemCallback, "deleteLines")
         self.addSeparator()
         self.addItem(translate("menu", "Toggle breakpoint ::: Toggle breakpoint on the current line."), 
