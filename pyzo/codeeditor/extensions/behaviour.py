@@ -253,6 +253,13 @@ class PythonAutoIndent(object):
         
         if event.key() in (Qt.Key_Enter,Qt.Key_Return):
             cursor=self.textCursor()
+            
+            # Prevent in-block newlines (issue #482)
+            if not cursor.atBlockStart() and not cursor.hasSelection():
+                cursor.deletePreviousChar()
+                cursor.insertBlock()
+                cursor=self.textCursor()
+
             previousBlock=cursor.block().previous()
             if previousBlock.isValid():
                 line = ustr(previousBlock.text())
