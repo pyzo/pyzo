@@ -1005,17 +1005,8 @@ class BreakPoints(object):
             cursor = editor.textCursor()
             c1 = editor.cursorForPosition(QtCore.QPoint(0,y))
             linenr = c1.blockNumber() + 1
-            
             # Toggle
-            bps = self.parent()._breakPoints
-            if linenr in bps:
-                bps.discard(linenr)
-            else:
-                bps.add(linenr)
-            
-            # Emit signal
-            editor.breakPointsChanged.emit(editor)
-            self.update()
+            bps = self.parent().toggleBreakpoint(linenr)
         
         def paintEvent(self, event):
             editor = self.parent()
@@ -1113,29 +1104,60 @@ class BreakPoints(object):
             # Done
             painter.end()
     
-    
     def __init__(self, *args, **kwds):
         self.__breakPointArea = None
         super(BreakPoints, self).__init__(*args, **kwds)
         # Create widget that draws the breakpoints
         self.__breakPointArea = self.__BreakPointArea(self)
         self.addLeftMargin(BreakPoints, self.getBreakPointAreaWidth)
-        self._breakPoints = set()
+        self._breakPoints = {}  # int -> block
         self._debugLineIndicator = 0
         self._debugLineIndicators = set()
-    
+        self.blockCountChanged.connect(self.__onBlockCountChanged)
+
+    def __onBlockCountChanged(self):
+        """ Track breakpoints so we can update the number when text is inserted
+        above.
+        """
+        newBreakPoints = {}
+        
+        for linenr in list(self._breakPoints):
+            block, block_previous, block_next = self._breakPoints[linenr]
+            block_linenr = block.blockNumber() + 1
+            prev_ok = block.previous().blockNumber() == block_previous.blockNumber()
+            next_ok = block.next().blockNumber() == block_next.blockNumber()
+            
+            if prev_ok or next_ok:
+                if block_linenr == linenr:
+                    if prev_ok and next_ok:
+                        pass # All is well
+                    else:
+                        # Update refs
+                        self._breakPoints[linenr] = block, block.previous(), block.next()
+                else:
+                    # Update linenr - this is the only case where "move" th bp
+                    newBreakPoints[block_linenr] = self._breakPoints.pop(linenr)
+            else:
+                if block_linenr == linenr:
+                    # Just update refs
+                    self._breakPoints[linenr] = block, block.previous(), block.next()
+                else:
+                    # Delete breakpoint? Meh, just update refs
+                    self._breakPoints[linenr] = block, block.previous(), block.next()
+        
+        if newBreakPoints:
+            self._breakPoints.update(newBreakPoints)
+            self.breakPointsChanged.emit(self)
+            self.__breakPointArea.update()
     
     def breakPoints(self):
         """ A list of breakpoints for this editor.
         """
         return list(sorted(self._breakPoints))
     
-    
-    def clearBreakPoints(self):
-        """ Remove all breakpoints for this editor.
-        """
-        self._breakPoints = set()
+        self._breakPoints = {}
         self.breakPointsChanged.emit(self)
+        self.__breakPointArea.update()
     
     def toggleBreakpoint(self, linenr=None):
         """ Turn breakpoint on/off for given linenr of current line.
@@ -1143,9 +1165,16 @@ class BreakPoints(object):
         if linenr is None:
             linenr = self.textCursor().blockNumber() + 1
         if linenr in self._breakPoints:
-            self._breakPoints.remove(linenr)
+            self._breakPoints.pop(linenr)
         else:
-            self._breakPoints.add(linenr)
+            c = self.textCursor()
+            c.movePosition(c.Start)
+            c.movePosition(c.NextBlock, c.MoveAnchor, linenr - 1)
+            b = c.block()
+            self._breakPoints[linenr] = b, b.previous(), b.next()
+        
+        self.breakPointsChanged.emit(self)
+        self.__breakPointArea.update()
     
     def setDebugLineIndicator(self, linenr, active=True):
         """ Set the debug line indicator to the given line number.
