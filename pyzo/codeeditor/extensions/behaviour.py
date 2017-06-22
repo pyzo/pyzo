@@ -37,35 +37,48 @@ class MoveLinesUpDown(object):
     
     def _swaplines(self, cursor, key):
         
-        other = [cursor.NextBlock, cursor.PreviousBlock][int(bool(key == Qt.Key_Up))]
-        back = [cursor.PreviousBlock, cursor.NextBlock][int(bool(key == Qt.Key_Up))]
+        # Get positions of selection
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
         
-        # Get text of current block
+        # Get text of selected blocks
+        cursor.setPosition(start, cursor.MoveAnchor)
         cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
+        cursor.setPosition(end, cursor.KeepAnchor)
         cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         text1 = cursor.selectedText()
+        cursor.removeSelectedText()
+        pos1 = cursor.position()
         
         # Move up/down
+        other = [cursor.NextBlock, cursor.PreviousBlock][int(bool(key == Qt.Key_Up))]
         cursor.movePosition(other, cursor.MoveAnchor)
         
         # Select text of other block
         cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
         cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         text2 = cursor.selectedText()
+        cursor.removeSelectedText()
+        pos2 = cursor.position()
         
-        # Replace text
+        # Insert text
         cursor.insertText(text1)
+        pos3 = cursor.position()
         
         # Move back
-        cursor.movePosition(back, cursor.MoveAnchor)
-        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
-        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        if key == Qt.Key_Up:
+            cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor)
+        else:
+            cursor.setPosition(pos1, cursor.MoveAnchor)
+            pos2 += len(text2)
+            pos3 += len(text2)
         
         # Replace text
         cursor.insertText(text2)
         
-        # Leave textcursor in a good place
-        cursor.movePosition(other, cursor.MoveAnchor)
+        # Leave original lines selected for continued movement
+        cursor.setPosition(pos2, cursor.MoveAnchor)
+        cursor.setPosition(pos3, cursor.KeepAnchor)
         self.setTextCursor(cursor)
 
 
