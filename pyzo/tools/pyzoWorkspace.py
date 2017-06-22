@@ -317,7 +317,10 @@ class PyzoWorkspace(QtWidgets.QWidget):
         if not hasattr(self._config, 'typeTranslation'):
             # to prevent the exception to be raised, one could init to :
             # {"method": "function", "function": "function", "type": "type", "private": "private", "module": "module"}
-            self._config.typeTranslation = {"method": "function"}
+            self._config.typeTranslation = {}
+        # Defaults
+        self._config.typeTranslation['method'] = 'function'
+        self._config.typeTranslation['builtin_function_or_method'] = 'function'
         # <kludge 2>
         
         # Create tool button
