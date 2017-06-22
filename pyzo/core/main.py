@@ -527,7 +527,7 @@ def loadFonts():
     
     # Load fonts that are in the fonts directory
     if os.path.isdir(fontDir):
-        for fname in os.listdir(fontDir):
+        for fname in sorted(os.listdir(fontDir), key=len):
             if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
                 try:
                     db.addApplicationFont( os.path.join(fontDir, fname) )
