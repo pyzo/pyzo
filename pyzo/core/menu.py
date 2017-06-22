@@ -1794,8 +1794,8 @@ class SettingsMenu(Menu):
     def _editStyles(self):
         """ Edit the style file. """
         text = """
-        In this 3.0 release, chosing or editing the syntax style is not yet
-        available. We selected a style which we like a lot. It's based on the
+        Chosing or editing the syntax style is currently not available.
+        We selected a style which we like a lot. It's based on the
         solarized theme (http://ethanschoonover.com/solarized) isn't it pretty?
         \r\r
         In case you really want to change the style, you can change the 
