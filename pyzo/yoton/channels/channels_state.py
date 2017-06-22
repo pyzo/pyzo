@@ -18,7 +18,7 @@ class StateChannel(BaseChannel):
     """ StateChannel(context, slot_base, message_type=yoton.TEXT)
     
     Channel class for the state messaging pattern. A state is synchronized
-    over all state channels of the same slot. Each channel can 
+    over all state channels of the same slot. Each channel can
     send (i.e. set) the state and recv (i.e. get) the current state.
     Note however, that if two StateChannel instances set the state
     around the same time, due to the network delay, it is undefined
@@ -30,7 +30,7 @@ class StateChannel(BaseChannel):
     The recv() call is always non-blocking and always returns the last
     received message: i.e. the current state.
     
-    There are no limitations for this channel if events are not 
+    There are no limitations for this channel if events are not
     processed, except that the received signal is not emitted.
     
     Parameters
@@ -42,9 +42,9 @@ class StateChannel(BaseChannel):
         message type and messaging pattern to create the final slot name.
         The final slot is used to connect channels at different contexts
         in a network
-    message_type : yoton.MessageType instance 
+    message_type : yoton.MessageType instance
         (default is yoton.TEXT)
-        Object to convert messages to bytes and bytes to messages. 
+        Object to convert messages to bytes and bytes to messages.
         Users can create their own message_type class to let channels
         any type of message they want.
     
@@ -56,7 +56,7 @@ class StateChannel(BaseChannel):
         # Variables to hold the current state. We use only the message
         # as a reference, so we dont need a lock.
         # The package is used to make _recv() function more or less,
-        # and to be able to determine if a state was set (because the 
+        # and to be able to determine if a state was set (because the
         # message may be set to None)
         self._current_package = None
         self._current_message = self.message_from_bytes(bytes())
@@ -71,7 +71,7 @@ class StateChannel(BaseChannel):
         
         Set the state of this channel.
         
-        The state-message is queued and send over the socket by the IO-thread. 
+        The state-message is queued and send over the socket by the IO-thread.
         Zero-length messages are ignored.
         
         """

@@ -18,9 +18,9 @@ QLocale = QtCore.QLocale
 # Define supported languages. The key defines the name as shown to the
 # user. The value is passed to create a Locale object. From the local
 # object we obtain the name for the .tr file.
-# Chinese: 
+# Chinese:
 LANGUAGES = {
-    'English (US)': QLocale.C, 
+    'English (US)': QLocale.C,
     # == (QLocale.English, QLocale.UnitedStates),
     #'English (UK)': (QLocale.English, QLocale.UnitedKingdom),
     'Dutch': QLocale.Dutch,
@@ -88,7 +88,7 @@ def setLanguage(languageName):
     for trans in QtCore._translators:
         QtWidgets.QApplication.removeTranslator(trans)
     
-    # The default language     
+    # The default language
     if localeName1 == 'C':
         return locale
     
@@ -117,13 +117,13 @@ class Translation(str):
     """ Derives from str class. The translate function returns an instance
     of this class and assigns extra atrributes:
       * original: the original text passed to the translation
-      * tt: the tooltip text 
+      * tt: the tooltip text
       * key: the original text without tooltip (used by menus as a key)
     
     We adopt a simple system to include tooltip text in the same
     translation as the label text. By including ":::" in the text,
     the text after that identifier is considered the tooltip.
-    The text returned by the translate function is always the 
+    The text returned by the translate function is always the
     string without tooltip, but the text object has an attribute
     "tt" that stores the tooltip text. In this way, if you do not
     use this feature or do not know about this feature, everything
@@ -140,7 +140,7 @@ def _splitMainAndTt(s):
             return s, ''
 
 
-def translate(context, text, disambiguation=None):  
+def translate(context, text, disambiguation=None):
     """ translate(context, text, disambiguation=None)
     The translate function used throughout pyzo.
     """
@@ -162,7 +162,7 @@ import subprocess
 LHELP = """
 Language help - info for translaters
 
-For translating, you will need a set of working Qt language tools: 
+For translating, you will need a set of working Qt language tools:
 pyside-lupdate, linguist, lrelease. On Windows, these should come
 with your PySide installation. On (Ubuntu) Linux, you can install
 these with 'sudo apt-get install pyside-tools qt4-dev-tools'.

@@ -21,7 +21,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.setLayout(layout)
         
         # Create image and title
-        im = QtGui.QPixmap( os.path.join(pyzo.pyzoDir, 
+        im = QtGui.QPixmap( os.path.join(pyzo.pyzoDir,
                             'resources', 'appicons', 'pyzologo64.png') )
         imlabel = QtWidgets.QLabel(self)
         imlabel.setPixmap(im)
@@ -88,9 +88,9 @@ class AboutDialog(QtWidgets.QDialog):
         
         <b>Acknowledgements</b><br>
         Pyzo is written in Python 3 and uses the Qt widget
-        toolkit. Pyzo uses code and concepts that are inspired by 
+        toolkit. Pyzo uses code and concepts that are inspired by
         IPython, Pype, and Spyder.
-        Pyzo uses a (modified) subset of the silk icon set, 
+        Pyzo uses a (modified) subset of the silk icon set,
         by Mark James (http://www.famfamfam.com/lab/icons/silk/).
         """
         # Determine if this is PyQt4 or Pyside

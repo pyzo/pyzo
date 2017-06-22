@@ -13,9 +13,9 @@ and imports remote2 to start the interpreter and introspection thread.
 
 Channels
 --------
-There are four groups of channels. The ctrl channels are streams from 
-the ide to the kernel and/or broker. The strm channels are streams to 
-the ide. The stat channels are status channels. The reqp channels are 
+There are four groups of channels. The ctrl channels are streams from
+the ide to the kernel and/or broker. The strm channels are streams to
+the ide. The stat channels are status channels. The reqp channels are
 req/rep channels. All channels are TEXT except for a few OBJECT channels.
 
 ctrl-command: to give simple commands to the interpreter (ala stdin)
@@ -134,7 +134,7 @@ del yoton, PyzoInterpreter, PyzoIntrospector, pyzo_excepthook
 del ct, port
 del os, sys, time
 
-# Delete stuff we do not want 
+# Delete stuff we do not want
 for name in [   '__file__',  # __main__ does not have a corresponding file
                 '__loader__'  # prevent lines from this file to be shown in tb
             ]:
@@ -153,7 +153,7 @@ try:
 finally:
     # Restore original streams, so that SystemExit behaves as intended
     import sys
-    try:   
+    try:
         sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
     except Exception:
         pass
@@ -162,7 +162,7 @@ finally:
         __pyzo__.context.flush(0.1)
     except Exception:
         pass
-    # Nicely exit by closing context (closes channels and connections). If we do 
+    # Nicely exit by closing context (closes channels and connections). If we do
     # not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
     try:
         __pyzo__.introspector.set_mode(0)

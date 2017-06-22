@@ -20,7 +20,7 @@ tool_name = "Web browser"
 tool_summary = "A very simple web browser."
 
 
-default_bookmarks = [   'docs.python.org', 
+default_bookmarks = [   'docs.python.org',
                         'scipy.org',
                         'doc.qt.nokia.com/4.5/',
                         'pyzo.org',
@@ -29,7 +29,7 @@ default_bookmarks = [   'docs.python.org',
 
 class WebView(QtWidgets.QTextBrowser):
     """ Inherit the webview class to implement zooming using
-    the mouse wheel. 
+    the mouse wheel.
     """
     
     loadStarted = QtCore.Signal()
@@ -64,7 +64,7 @@ class WebView(QtWidgets.QTextBrowser):
         base = r.scheme + '://' + r.netloc
         return base, r.path, r.fragment
     
-#     
+#
 #     def loadCss(self, urls=[]):
 #         urls.append('http://docs.python.org/_static/default.css')
 #         urls.append('http://docs.python.org/_static/pygments.css')
@@ -185,7 +185,7 @@ class PyzoWebBrowser(QtWidgets.QFrame):
         #
         for a in self._config.bookMarks:
             self._address.addItem(a)
-        self._address.setEditText('') 
+        self._address.setEditText('')
         
         # Create web view
         if imported_qtwebkit:
@@ -260,7 +260,7 @@ class PyzoWebBrowser(QtWidgets.QFrame):
         if QtCore.Qt.ControlModifier & QtWidgets.qApp.keyboardModifiers():
             # Get amount of scrolling
             degrees = event.delta() / 8.0
-            steps = degrees / 15.0      
+            steps = degrees / 15.0
             # Set factor
             factor = self._view.zoomFactor() + steps/10.0
             if factor < 0.25:

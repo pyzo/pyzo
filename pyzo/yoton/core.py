@@ -135,7 +135,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
     If end_at_crlf, a message is also ended at a CRLF double-newline code,
     and a shutdown is not necessary. This takes a tiny bit longer.
     
-    """ 
+    """
     
     # Init parts (start with one byte, such that len(parts) is always >= 2
     parts = [' '.encode('ascii'),]
@@ -199,7 +199,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
 class Package(object):
     """ Package(data, slot, source_id, source_seq, dest_id, dest_seq, recv_seq)
     
-    Represents a package of bytes to be send from one Context instance 
+    Represents a package of bytes to be send from one Context instance
     to another. A package consists of a header and the encoded message.
     
     To make this class as fast as reasonably possible, its interface
@@ -218,7 +218,7 @@ class Package(object):
         The sequence number of this package, counted at the sending context.
         Together with source_id, this fully identifies a package.
     dest_id : long (default 0)
-        The id of the package that this package replies to. 
+        The id of the package that this package replies to.
     dest_seq : long (default 0)
         The sequence number of the package that this package replies to.
     recv_seq : long (default 0)
@@ -230,8 +230,8 @@ class Package(object):
     
     Notes
     -----
-    A package should always have content. Packages without content are only 
-    used for low-level communication between two ContextConnection instances. 
+    A package should always have content. Packages without content are only
+    used for low-level communication between two ContextConnection instances.
     The source_seq is then used as the signal. All other package attributes
     are ignored.
     
@@ -239,17 +239,17 @@ class Package(object):
     
     # The __slots__ makes instances of this class consume < 20% of memory
     # Note that this only works for new style classes.
-    # This is important because many packages can exist at the same time 
+    # This is important because many packages can exist at the same time
     # if a receiver cant keep up with a sender. Further, although Python's
-    # garbage collector collects the objects after they're "consumed", 
+    # garbage collector collects the objects after they're "consumed",
     # it does not release the memory, because it hopes to reuse it in
     # an efficient way later.
-    __slots__ = [   '_data', '_slot', 
-                    '_source_id', '_source_seq', 
+    __slots__ = [   '_data', '_slot',
+                    '_source_id', '_source_seq',
                     '_dest_id', '_dest_seq',
-                    '_recv_seq']   
+                    '_recv_seq']
     
-    def __init__(self, data, slot, 
+    def __init__(self, data, slot,
                 source_id, source_seq, dest_id, dest_seq, recv_seq):
         self._data = data
         self._slot = slot
@@ -265,7 +265,7 @@ class Package(object):
         """ parts()
         
         Get list of bytes that represents this package.
-        By not concatenating the header and content parts, 
+        By not concatenating the header and content parts,
         we prevent unnecesary copying of data.
         
         """
@@ -273,8 +273,8 @@ class Package(object):
         # Obtain header
         L = len(self._data)
         header = struct.pack(HEADER_FORMAT, CONTROL_BYTES, self._slot,
-                            self._source_id, self._source_seq, 
-                            self._dest_id, self._dest_seq, 
+                            self._source_id, self._source_seq,
+                            self._dest_id, self._dest_seq,
                             L)
         
         # Return header and message

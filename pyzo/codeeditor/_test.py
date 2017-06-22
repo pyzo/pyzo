@@ -10,7 +10,7 @@ Qt = QtCore.Qt
 
 ## Go up one directory and then import the codeeditor package
 
-os.chdir('..') 
+os.chdir('..')
 sys.path.insert(0,'.')
 from codeeditor import CodeEditor
 
@@ -22,9 +22,9 @@ if __name__=='__main__':
     app = QtWidgets.QApplication([])
   
             
-    # Create editor instance    
+    # Create editor instance
     e = CodeEditor(highlightCurrentLine = True, longLineIndicatorPosition = 20,
-        showIndentationGuides = True, showWhitespace = True, 
+        showIndentationGuides = True, showWhitespace = True,
         showLineEndings = True, wrap = True, showLineNumbers = True)
 
     QtWidgets.QShortcut(QtGui.QKeySequence("F1"), e).activated.connect(e.autocompleteShow)

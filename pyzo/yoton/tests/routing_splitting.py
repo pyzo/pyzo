@@ -11,9 +11,9 @@ ct4 = yoton.Context()
 ct5 = yoton.Context()
 
 # Connect
-#            / ct3 
+#            / ct3
 # ct1 - ct2
-#            \ ct4 - ct5 
+#            \ ct4 - ct5
 ct1.bind('localhost:split1')
 ct2.connect('localhost:split1')
 #

@@ -33,7 +33,7 @@ class PythonInterpreter:
         # Set prefix
         self._prefix = os.path.dirname(self.path)
         if os.path.basename(self._prefix) == 'bin':
-            self._prefix = os.path.dirname(self._prefix) 
+            self._prefix = os.path.dirname(self._prefix)
     
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -101,7 +101,7 @@ class PythonInterpreter:
         # but if used on Linux it would enter interpreter mode
         cmd = [path, '-V']
         try:
-            v = subprocess.check_output(cmd, stderr=subprocess.STDOUT, 
+            v = subprocess.check_output(cmd, stderr=subprocess.STDOUT,
                                         shell=sys.platform.startswith('win'))
         except (OSError, IOError, subprocess.CalledProcessError) as e:
             self._problem = str(e)

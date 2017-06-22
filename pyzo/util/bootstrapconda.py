@@ -270,7 +270,7 @@ class Installer(QtWidgets.QDialog):
     def install(self):
         dest = self._conda_dir
         
-        # Clear dir 
+        # Clear dir
         assert not os.path.isdir(dest), 'Miniconda dir already exists'
         assert ' ' not in dest, 'miniconda dest path must not contain spaces'
         
@@ -304,10 +304,10 @@ class Installer(QtWidgets.QDialog):
     def install_scipy(self):
         
         packages = ['numpy', 'scipy', 'pandas', 'matplotlib', 'sympy',
-                    #'scikit-image', 'scikit-learn', 
+                    #'scikit-image', 'scikit-learn',
                     'pyopengl', # 'visvis', 'imageio',
                     'tornado', 'pyqt', #'ipython', 'jupyter',
-                    #'requests', 'pygments','pytest', 
+                    #'requests', 'pygments','pytest',
                     ]
         exe = py_exe(self._conda_dir)
         cmd = [exe, '-m', 'conda', 'install', '--yes'] + packages
@@ -338,7 +338,7 @@ class Installer(QtWidgets.QDialog):
         self._progress.setValue(11)
         exe = py_exe(self._conda_dir)
         if not os.path.isfile(exe):
-            return 'Conda dir does not have Python exe' 
+            return 'Conda dir does not have Python exe'
         
         self._progress.setValue(21)
         try:

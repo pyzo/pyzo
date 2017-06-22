@@ -5,7 +5,7 @@ different package sizes.
 
 # Go up one directory and then import the codeeditor package
 import os, sys
-os.chdir('../..') 
+os.chdir('../..')
 sys.path.insert(0,'.')
 
 # Import yoton from there
@@ -70,7 +70,7 @@ while size < maxSize:
     tpm = etime/n
     
     # Make strings
-    bps_ = '%1.2f B/s' % bps        
+    bps_ = '%1.2f B/s' % bps
     size_ = '%i B' % size
     #
     D = {2**10: 'KB', 2**20: 'MB', 2**30: 'GB'}
@@ -81,12 +81,12 @@ while size < maxSize:
             size_ = '%1.2f %s' % (size/factor, D[factor])
     
     # Show result
-    print('Sent %i messages of %s in %1.2f s: %s' % 
+    print('Sent %i messages of %s in %1.2f s: %s' %
             (n, size_, etime, bps_) )
     
     # Store stuff
     N.append(n)
-    SIZE.append(size)    
+    SIZE.append(size)
     BPS.append(bps)
     TPM.append(tpm)
     

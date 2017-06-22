@@ -19,7 +19,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in
         # config.tools before the tool is instantiated.
-        toolId = self.__class__.__name__.lower()        
+        toolId = self.__class__.__name__.lower()
         self._config = pyzo.config.tools[toolId]
         if not hasattr(self._config, 'showTypes'):
             self._config.showTypes = ['class', 'def', 'cell', 'todo']
@@ -34,20 +34,20 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._navbut_back = QtWidgets.QToolButton(self)
         self._navbut_back.setIcon(pyzo.icons.arrow_left)
         self._navbut_back.setIconSize(QtCore.QSize(16,16))
-        self._navbut_back.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        self._navbut_back.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         self._navbut_back.clicked.connect(self.onNavBack)
         #
         self._navbut_forward = QtWidgets.QToolButton(self)
         self._navbut_forward.setIcon(pyzo.icons.arrow_right)
         self._navbut_forward.setIconSize(QtCore.QSize(16,16))
-        self._navbut_forward.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        self._navbut_forward.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         self._navbut_forward.clicked.connect(self.onNavForward)
         
         # # Create icon for slider
         # self._sliderIcon = QtWidgets.QToolButton(self)
         # self._sliderIcon.setIcon(pyzo.icons.text_align_right)
         # self._sliderIcon.setIconSize(QtCore.QSize(16,16))
-        # self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")   
+        # self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         
         # Create slider
         self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
@@ -60,7 +60,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         
         # Create options button
         #self._options = QtWidgets.QPushButton(self)
-        #self._options.setText('Options'))        
+        #self._options.setText('Options'))
         #self._options.setToolTip("What elements to show.")
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
@@ -72,7 +72,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
         
-        # Create tree widget        
+        # Create tree widget
         self._tree = QtWidgets.QTreeWidget(self)
         self._tree.setHeaderHidden(True)
         self._tree.itemCollapsed.connect(self.updateStructure) # keep expanded
@@ -152,7 +152,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         file is shown. """
         
         # Get editor and clear list
-        editor = pyzo.editors.getCurrentEditor()        
+        editor = pyzo.editors.getCurrentEditor()
         self._tree.clear()
         
         if editor is None:
@@ -216,7 +216,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         return old_linenr
 
     def updateStructure(self):
-        """ Updates the tree. 
+        """ Updates the tree.
         """
         
         # Get editor
@@ -230,7 +230,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             return
         
         # Do the ids match?
-        id0, id1, id2 = self._currentEditorId, id(editor), result.editorId 
+        id0, id1, id2 = self._currentEditorId, id(editor), result.editorId
         if id0 != id1 or id0 != id2:
             return
         
@@ -239,7 +239,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         ln += 1  # is ln as in line number area
         
         # Define colours
-        colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F', 
+        colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F',
                     'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333',
                     'nameismain':'#007F00'}
         
@@ -265,7 +265,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 elif type=='attribute':
                     type = 'attr'
                 #
-                if type == 'import':                   
+                if type == 'import':
                     text = "%s (%s)" % (object.name, object.text)
                 elif type=='todo':
                     text = object.name
@@ -283,11 +283,11 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 thisItem.linenr = object.linenr
                 # Is this the current item?
                 if ln and object.linenr <= ln and object.linenr2 > ln:
-                    selectedItem[0] = thisItem 
+                    selectedItem[0] = thisItem
                 # Any children that we should display?
                 if object.children:
                     SetItems(thisItem, object.children, level)
-                # Set visibility 
+                # Set visibility
                 thisItem.setExpanded( bool(level < showLevel) )
         
         # Go

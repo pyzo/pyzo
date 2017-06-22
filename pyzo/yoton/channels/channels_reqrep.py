@@ -43,7 +43,7 @@ class CancelledError(Exception):
 class Future(object):
     """ Future(req_channel, req, request_id)
     
-    The Future object represents the future result of a request done at 
+    The Future object represents the future result of a request done at
     a yoton.ReqChannel.
     
     It enables:
@@ -63,7 +63,7 @@ class Future(object):
         
         # For handling req/rep
         self._req_channel = req_channel
-        self._req = req        
+        self._req = req
         self._request_id = request_id
         self._rep = bytes()
         self._replier = 0
@@ -93,7 +93,7 @@ class Future(object):
         """ _resend_if_necessary()
         
         Resends the pre-request message if we have not done so for the last
-        0.5 second. 
+        0.5 second.
         
         This will also auto-cancel the message if it is resend over 20 times.
         
@@ -116,7 +116,7 @@ class Future(object):
         
         If timeout is None, there is no limit to the wait time.
         
-        """ 
+        """
         if timeout is None:
             timeout = 999999999999999999.0
         if timeout > 0:
@@ -161,7 +161,7 @@ class Future(object):
     def running(self):
         """ running()
         
-        Return True if the call is currently being executed and cannot be 
+        Return True if the call is currently being executed and cannot be
         cancelled.
         
         """
@@ -201,13 +201,13 @@ class Future(object):
     def result(self, timeout=None):
         """ result(timeout=None)
         
-        Return the value returned by the call. If the call hasn’t yet 
-        completed then this method will wait up to timeout seconds. If 
-        the call hasn’t completed in timeout seconds, then a TimeoutError 
-        will be raised. timeout can be an int or float. If timeout is not 
+        Return the value returned by the call. If the call hasn’t yet
+        completed then this method will wait up to timeout seconds. If
+        the call hasn’t completed in timeout seconds, then a TimeoutError
+        will be raised. timeout can be an int or float. If timeout is not
         specified or None, there is no limit to the wait time.
 
-        If the future is cancelled before completing then CancelledError 
+        If the future is cancelled before completing then CancelledError
         will be raised.
 
         If the call raised, this method will raise the same exception.
@@ -231,8 +231,8 @@ class Future(object):
     def result_or_cancel(self, timeout=1.0):
         """ result_or_cancel(timeout=1.0)
         
-        Return the value returned by the call. If the call hasn’t yet 
-        completed then this method will wait up to timeout seconds. If 
+        Return the value returned by the call. If the call hasn’t yet
+        completed then this method will wait up to timeout seconds. If
         the call hasn’t completed in timeout seconds, then the call is
         cancelled and the method will return None.
         
@@ -241,7 +241,7 @@ class Future(object):
         # Wait
         self._wait(timeout)
         
-        # Return 
+        # Return
         if self._status == 4:
             return self._result
         else:
@@ -253,12 +253,12 @@ class Future(object):
         """ exception(timeout)
         
         Return the exception raised by the call. If the call hasn’t yet
-        completed then this method will wait up to timeout seconds. If 
-        the call hasn’t completed in timeout seconds, then a TimeoutError 
-        will be raised. timeout can be an int or float. If timeout is not 
+        completed then this method will wait up to timeout seconds. If
+        the call hasn’t completed in timeout seconds, then a TimeoutError
+        will be raised. timeout can be an int or float. If timeout is not
         specified or None, there is no limit to the wait time.
         
-        If the future is cancelled before completing then CancelledError 
+        If the future is cancelled before completing then CancelledError
         will be raised.
         
         If the call completed without raising, None is returned.
@@ -282,16 +282,16 @@ class Future(object):
     def add_done_callback(self, fn):
         """ add_done_callback(fn)
         
-        Attaches the callable fn to the future. fn will be called, with 
-        the future as its only argument, when the future is cancelled or 
+        Attaches the callable fn to the future. fn will be called, with
+        the future as its only argument, when the future is cancelled or
         finishes running.
         
-        Added callables are called in the order that they were added. If 
-        the callable raises a Exception subclass, it will be logged and 
-        ignored. If the callable raises a BaseException subclass, the 
+        Added callables are called in the order that they were added. If
+        the callable raises a Exception subclass, it will be logged and
+        ignored. If the callable raises a BaseException subclass, the
         behavior is undefined.
         
-        If the future has already completed or been cancelled, fn will be 
+        If the future has already completed or been cancelled, fn will be
         called immediately.
         
         """
@@ -310,17 +310,17 @@ class Future(object):
     def set_running_or_notify_cancel(self):
         """ set_running_or_notify_cancel()
         
-        This method should only be called by Executor implementations before 
+        This method should only be called by Executor implementations before
         executing the work associated with the Future and by unit tests.
         
-        If the method returns False then the Future was cancelled, i.e. 
-        Future.cancel() was called and returned True. 
+        If the method returns False then the Future was cancelled, i.e.
+        Future.cancel() was called and returned True.
         
-        If the method returns True then the Future was not cancelled and 
-        has been put in the running state, i.e. calls to Future.running() 
+        If the method returns True then the Future was not cancelled and
+        has been put in the running state, i.e. calls to Future.running()
         will return True.
         
-        This method can only be called once and cannot be called after 
+        This method can only be called once and cannot be called after
         Future.set_result() or Future.set_exception() have been called.
         
         """
@@ -354,13 +354,13 @@ class Future(object):
     def set_exception(self, exception):
         """ set_exception(exception)
         
-        Sets the result of the work associated with the Future to the 
-        Exception exception. This method should only be used by Executor 
+        Sets the result of the work associated with the Future to the
+        Exception exception. This method should only be used by Executor
         implementations and unit tests.
         
         """
         
-        # Check 
+        # Check
         if isinstance(exception, basestring):
             exception = Exception(exception)
         if not isinstance(exception, Exception):
@@ -378,11 +378,11 @@ class ReqChannel(BaseChannel):
     """ ReqChannel(context, slot_base)
     
     The request part of the request/reply messaging pattern.
-    A ReqChannel instance sends request and receive the corresponding 
+    A ReqChannel instance sends request and receive the corresponding
     replies. The requests are replied by a yoton.RepChannel instance.
     
     This class adopts req/rep in a remote procedure call (RPC) scheme.
-    The handling of the result is done using a yoton.Future object, which 
+    The handling of the result is done using a yoton.Future object, which
     follows the approach specified in PEP 3148. Note that for the use
     of callbacks, the yoton event loop must run.
     
@@ -403,8 +403,8 @@ class ReqChannel(BaseChannel):
     Usage
     -----
     One performs a call on a virtual method of this object. The actual
-    method is executed by the yoton.RepChannel instance. The method can be 
-    called with normal and keyword arguments, which can be (a 
+    method is executed by the yoton.RepChannel instance. The method can be
+    called with normal and keyword arguments, which can be (a
     combination of): None, bool, int, float, string, list, tuple, dict.
     
     Example
@@ -439,20 +439,20 @@ class ReqChannel(BaseChannel):
     # The replier is now in a state of waiting for the actual request.
     # It will not acknowledge pre-requests, but keeps queing them.
     #
-    # Upon receiving the acknowledge, the requester sends (directed 
+    # Upon receiving the acknowledge, the requester sends (directed
     # at only the first replier to acknowledge) the real request.
     # The content is the real request and dest_seq is the request-id.
     # Right after this, a pre-request cancel message is sent to all
     # repliers. The content is 'req-' and dest_seq is request-id + offset.
     #
-    # When a replier receives a pre-request cancel message, it will 
-    # remove the pre-request from the list. If this cancels the 
+    # When a replier receives a pre-request cancel message, it will
+    # remove the pre-request from the list. If this cancels the
     # request it was currently waiting for, the replier will go back
     # to its default state, and acknowledge the first next pre-request
     # in the queue.
     #
     # When the replier answers a request, it will go back to its default
-    # state, and acknowledge the first next pre-request in the queue. 
+    # state, and acknowledge the first next pre-request in the queue.
     # The replier tries to answer as quickly to pre-requests as possible.
     #
     # On the request channel, a dictionary of request items is maintained.
@@ -476,7 +476,7 @@ class ReqChannel(BaseChannel):
         self._run_mode = 1
         
         # Bind signals to process the events for this channel
-        # Bind to "received" signal for quick response and a timer 
+        # Bind to "received" signal for quick response and a timer
         # so we can resend requests if we do not receive anything.
         self.received.bind(self._process_events_local)
         self._timer = yoton.events.Timer(0.5, False)
@@ -533,8 +533,8 @@ class ReqChannel(BaseChannel):
     def _resend_requests(self):
         """ _resend_requests()
         
-        See if we should resend our older requests. Periodically calling 
-        this method enables doing a request while the replier is not yet 
+        See if we should resend our older requests. Periodically calling
+        this method enables doing a request while the replier is not yet
         attached to the network.
         
         This also allows the Future objects to cancel themselves if it
@@ -554,15 +554,15 @@ class ReqChannel(BaseChannel):
         """ _recv_item()
         
         Receive item. If a reply is send that is an acknowledgement
-        of a replier that it wants to handle our request, the 
+        of a replier that it wants to handle our request, the
         correpsonding request is send to that replier.
         
-        This is a kind of mini-event loop thingy that should be 
+        This is a kind of mini-event loop thingy that should be
         called periodically to keep things going.
         
         """
         
-        # Receive package 
+        # Receive package
         package = self._recv(False)
         if not package:
             return
@@ -604,7 +604,7 @@ class ReqChannel(BaseChannel):
         elif request_id > 0:
             # We received a reply to an actual request
             
-            # Get item, remove from queue, set reply, return            
+            # Get item, remove from queue, set reply, return
             item = self._request_items.pop(request_id, None)
             if item:
                 item._rep = package._data
@@ -639,16 +639,16 @@ class RepChannel(BaseChannel):
     """ RepChannel(context, slot_base)
     
     The reply part of the request/reply messaging pattern.
-    A RepChannel instance receives request and sends the corresponding 
+    A RepChannel instance receives request and sends the corresponding
     replies. The requests are send from a yoton.ReqChannel instance.
     
     This class adopts req/rep in a remote procedure call (RPC) scheme.
     
     To use a RepChannel, subclass this class and implement the methods
     that need to be available. The reply should be (a combination of)
-    None, bool, int, float, string, list, tuple, dict. 
+    None, bool, int, float, string, list, tuple, dict.
     
-    This channel needs to be set to event or thread mode to function 
+    This channel needs to be set to event or thread mode to function
     (in the first case yoton events need to be processed too).
     To stop handling events again, use set_mode('off').
     
@@ -723,7 +723,7 @@ class RepChannel(BaseChannel):
     def _handle_request(self, message):
         """ _handle_request(message)
         
-        This method is called for each request, and should return 
+        This method is called for each request, and should return
         a reply. The message contains the name of the method to call,
         this function calls that method.
         
@@ -762,7 +762,7 @@ class RepChannel(BaseChannel):
                 self._send(msg, package._source_id, package._dest_seq)
             except IOError:
                 pass # Channel closed, nothing we can do about that
-            # 
+            #
             #print 'ack', self._context.id,  package._dest_seq-REQREP_SEQ_REF
     
     
@@ -777,7 +777,7 @@ class RepChannel(BaseChannel):
         request_id = package._dest_seq
         
         if request_id > REQREP_SEQ_REF:
-            # Pre-request stuff   
+            # Pre-request stuff
             
             # Remove offset
             request_id -= REQREP_SEQ_REF
@@ -893,9 +893,9 @@ class ThreadForReqChannel(threading.Thread):
     def run(self):
         """ run()
         
-        The handler's main loop. 
+        The handler's main loop.
         
-        """ 
+        """
         
         # Get ref to channel. Remove ref from instance
         channel = self._channel

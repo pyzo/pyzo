@@ -146,7 +146,7 @@ class PyzoInterpreter:
         self.ignore_sys_exit = False
         
         # Information for debugging. If self._dbFrames, we're in debug mode
-        # _dbFrameIndex starts from 1 
+        # _dbFrameIndex starts from 1
         self._dbFrames = []
         self._dbFrameIndex = 0
         self._dbFrameName = ''
@@ -189,17 +189,17 @@ class PyzoInterpreter:
                 sys.path.remove(p)
     
     
-    def run(self):    
+    def run(self):
         """ Run (start the mainloop)
         
-        Here we enter the main loop, which is provided by the guiApp. 
-        This event loop calls process_commands on a regular basis. 
+        Here we enter the main loop, which is provided by the guiApp.
+        This event loop calls process_commands on a regular basis.
         
         We may also enter the debug intereaction loop, either from a
         request for post-mortem debugging, or *during* execution by
         means of a breakpoint. When in this debug-loop, the guiApp event
         loop lays still, but the debug-loop does call process-commands
-        for user interaction. 
+        for user interaction.
         
         When the user wants to quit, SystemExit is raised (one way or
         another). This is detected in process_commands and the exception
@@ -219,7 +219,7 @@ class PyzoInterpreter:
         
         # Enter main
         try:
-            self.guiApp.run(self.process_commands, self.sleeptime) 
+            self.guiApp.run(self.process_commands, self.sleeptime)
         except SystemExit:
             # Set self._exitException if it is not set yet
             type, value, tb = sys.exc_info()
@@ -282,7 +282,7 @@ class PyzoInterpreter:
             plat = 'Windows (%i bits)' % NBITS
         else:
             NBITS = 8 * struct.calcsize("P")
-            plat = '%s (%i bits)' % (sys.platform, NBITS) 
+            plat = '%s (%i bits)' % (sys.platform, NBITS)
         printDirect("%s %s on %s.\n" %
                     (thename, sys.version.split('[')[0].rstrip(), plat))
         
@@ -295,7 +295,7 @@ class PyzoInterpreter:
         if guiError:
             pyzoBanner += '. ' + guiError + '\n'
         elif guiName:
-            pyzoBanner += ' with integrated event loop for ' 
+            pyzoBanner += ' with integrated event loop for '
             pyzoBanner += guiName + '.\n'
         else:
             pyzoBanner += '.\n'
@@ -320,7 +320,7 @@ class PyzoInterpreter:
         # Notify about project path
         projectPath = startup_info['projectPath']
         if projectPath:
-            printDirect('Prepending the project path %r to sys.path\n' % 
+            printDirect('Prepending the project path %r to sys.path\n' %
                 projectPath)
         
         # Write tips message.
@@ -335,7 +335,7 @@ class PyzoInterpreter:
                 "object?   -> Details about 'object', "
                 "use 'object??' for extra details.\n")
         else:
-            printDirect("Type 'help' for help, " + 
+            printDirect("Type 'help' for help, " +
                         "type '?' for a list of *magic* commands.\n")
         
         # Notify the running of the script
@@ -417,7 +417,7 @@ class PyzoInterpreter:
             if startDir and os.path.isdir(startDir):
                 os.chdir(startDir)
             else:
-                os.chdir(os.path.expanduser('~')) # home dir 
+                os.chdir(os.path.expanduser('~')) # home dir
     
     
     def _run_startup_code(self, startup_info):
@@ -436,12 +436,12 @@ class PyzoInterpreter:
             if firstline.startswith('#AFTER_GUI'):
                 self._codeToRunOnStartup = script
             else:
-                self.context._stat_interpreter.send('Busy') 
+                self.context._stat_interpreter.send('Busy')
                 msg = {'source': script, 'fname': '<startup>', 'lineno': 0}
                 self.runlargecode(msg, True)
         elif script and os.path.isfile(script):
             # Run script
-            self.context._stat_interpreter.send('Busy') 
+            self.context._stat_interpreter.send('Busy')
             self.runfile(script)
         else:
             # Nothing to run
@@ -527,7 +527,7 @@ class PyzoInterpreter:
             return
         
         # Create an IPython shell
-        from IPython.core.interactiveshell import InteractiveShell 
+        from IPython.core.interactiveshell import InteractiveShell
         self._ipython = InteractiveShell(user_module=__main__)
         
         # Set some hooks / event callbacks
@@ -591,7 +591,7 @@ class PyzoInterpreter:
             self._codeToRunOnStartup, tmp = None, self._codeToRunOnStartup
             self.pushline(tmp)
         if self._scriptToRunOnStartup:
-            self.context._stat_interpreter.send('Busy') 
+            self.context._stat_interpreter.send('Busy')
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
             self.runfile(tmp)
         
@@ -622,7 +622,7 @@ class PyzoInterpreter:
         # Are we still connected?
         if sys.stdin.closed or not self.context.connection_count:
             # Exit from main loop.
-            # This will raise SystemExit and will shut us down in the 
+            # This will raise SystemExit and will shut us down in the
             # most appropriate way
             sys.exit()
         
@@ -633,14 +633,14 @@ class PyzoInterpreter:
             pass # No messages waiting
         
         elif ch is self.context._ctrl_command:
-            # Read command 
+            # Read command
             line1 = self.context._ctrl_command.recv(False) # Command
             if line1:
                 # Notify what we're doing
                 self.context._strm_echo.send(line1)
                 self.context._stat_interpreter.send('Busy')
                 self.newPrompt = True
-                # Convert command 
+                # Convert command
                 # (only a few magics are supported if IPython is active)
                 line2 = self.magician.convert_command(line1.rstrip('\n'))
                 # Execute actual code
@@ -702,7 +702,7 @@ class PyzoInterpreter:
         more = self._runlines(source, self._filename)
         # Create buffer if needed
         if more:
-            self._buffer = buffer 
+            self._buffer = buffer
         return more
     
 
@@ -814,9 +814,9 @@ class PyzoInterpreter:
         
         # Try compiling the source
         code = None
-        try:            
+        try:
             # Compile
-            code = self.compilecode(source, fname, "exec")          
+            code = self.compilecode(source, fname, "exec")
             
         except (OverflowError, SyntaxError, ValueError):
             self.showsyntaxerror(fname)
@@ -833,7 +833,7 @@ class PyzoInterpreter:
     
     
     def runfile(self, fname):
-        """  To execute the startup script. """ 
+        """  To execute the startup script. """
         
         # Get text (make sure it ends with a newline)
         try:
@@ -850,13 +850,13 @@ class PyzoInterpreter:
             source = source.replace('\r\n', '\n').replace('\r','\n')
             if source[-1] != '\n':
                 source += '\n'
-        except Exception:        
+        except Exception:
             printDirect('Could not execute script: "' + fname + '"\n')
             return
         
         # Try compiling the source
         code = None
-        try:            
+        try:
             # Compile
             code = self.compilecode(source, fname, "exec")
         except (OverflowError, SyntaxError, ValueError):
@@ -876,7 +876,7 @@ class PyzoInterpreter:
     
     def compilecode(self, source, filename, mode, *args, **kwargs):
         """ Compile source code.
-        Will mangle coding definitions on first two lines. 
+        Will mangle coding definitions on first two lines.
         
         * This method should be called with Unicode sources.
         * Source newlines should consist only of LF characters.
@@ -930,7 +930,7 @@ class PyzoInterpreter:
                 # Turn debugger on at this point. If there are no breakpoints,
                 # the tracing is disabled for better performance.
                 self.apply_breakpoints()
-                self.debugger.set_on() 
+                self.debugger.set_on()
                 exec(code, self.locals)
         except bdb.BdbQuit:
             self.dbstop_handler()
@@ -965,7 +965,7 @@ class PyzoInterpreter:
         """ Hook that IPython calls right before executing code.
         """
         self.apply_breakpoints()
-        self.debugger.set_on() 
+        self.debugger.set_on()
     
     
     def ipython_editor_hook(self, ipython, filename, linenum=None, wait=True):
@@ -1007,13 +1007,13 @@ class PyzoInterpreter:
     
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
-        This doesn't display a stack trace because there isn't one.        
+        This doesn't display a stack trace because there isn't one.
         If a filename is given, it is stuffed in the exception instead
         of what was there before (because Python's parser always uses
         "<string>" when reading from a string).
         
         Pyzo version: support to display the right line number,
-        see doc of showtraceback for details.        
+        see doc of showtraceback for details.
         """
         
         # Get info (do not store)
@@ -1035,7 +1035,7 @@ class PyzoInterpreter:
                 value = SyntaxError(msg, (fname, lineno, offset, line))
                 sys.last_value = value
         
-        # Show syntax error 
+        # Show syntax error
         strList = traceback.format_exception_only(type, value)
         for s in strList:
             self.write(s)
@@ -1048,15 +1048,15 @@ class PyzoInterpreter:
         
         In the pyzo version, before executing a block of code,
         the filename is modified by appending " [x]". Where x is
-        the index in a list that we keep, of tuples 
-        (sourcecode, filename, lineno). 
+        the index in a list that we keep, of tuples
+        (sourcecode, filename, lineno).
         
-        Here, showing the traceback, we check if we see such [x], 
+        Here, showing the traceback, we check if we see such [x],
         and if so, we extract the line of code where it went wrong,
         and correct the lineno, so it will point at the right line
         in the editor if part of a file was executed. When the file
         was modified since the part in question was executed, the
-        fileno might deviate, but the line of code shown shall 
+        fileno might deviate, but the line of code shown shall
         always be correct...
         """
         # Traceback info:
@@ -1103,7 +1103,7 @@ class PyzoInterpreter:
             
             # Walk through the list
             for i in range(len(tblist)):
-                tbInfo = tblist[i]                
+                tbInfo = tblist[i]
                 # Get filename and line number, init example
                 fname, lineno = self.correctfilenameandlineno(tbInfo[0], tbInfo[1])
                 if not isinstance(fname, ustr):
@@ -1134,7 +1134,7 @@ class PyzoInterpreter:
     
     def correctfilenameandlineno(self, fname, lineno):
         """ Given a filename and lineno, this function returns
-        a modified (if necessary) version of the two. 
+        a modified (if necessary) version of the two.
         As example:
         "foo.py+7", 22  -> "foo.py", 29
         """
@@ -1180,7 +1180,7 @@ class ExecutedSourceCollection:
         linecache._getlines = linecache.getlines
         linecache.getlines =getlines
         
-        # I hoped this would remove the +lineno for IPython tracebacks, 
+        # I hoped this would remove the +lineno for IPython tracebacks,
         # but it doesn't
 #         def extract_tb(tb, limit=None):
 #             print('aasdasd')
@@ -1191,7 +1191,7 @@ class ExecutedSourceCollection:
 #                 filename, lineno = sys._pyzoInterpreter.correctfilenameandlineno(filename, lineno)
 #                 list2.append((filename, lineno, name, line))
 #             return list2
-#         
+#
 #         import traceback
 #         traceback._extract_tb = traceback.extract_tb
 #         traceback.extract_tb = extract_tb

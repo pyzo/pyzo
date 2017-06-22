@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Almar Klein
 
-""" 
+"""
 Define tasks that can be executed by the file browser.
 These inherit from proxies.Task and implement that specific interface.
 """
@@ -61,7 +61,7 @@ class SearchTask(proxies.Task):
         if path.lower().endswith('.py') or size < 100*1024:
             pass
         else:
-            return None 
+            return None
         
         # Get text
         bb = fsProxy.read(path)
@@ -113,7 +113,7 @@ class SearchTask(proxies.Task):
         lines = []
         for i in indices:
             # Get linenr and index of the line
-            linenr = text.count(LE, 0, i) + 1                
+            linenr = text.count(LE, 0, i) + 1
             i1 = text.rfind(LE, 0, i)
             i2 = text.find(LE, i)
             # Get line and strip
@@ -260,7 +260,7 @@ class DocstringTask(proxies.Task):
         
         # Find docstring
         lines = []
-        delim = None # Not started, in progress, done        
+        delim = None # Not started, in progress, done
         count = 0
         for line in text.splitlines():
             count += 1

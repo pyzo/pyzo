@@ -7,18 +7,18 @@
 
 """ Package tools of pyzo
 
-A tool consists of a module which contains a class. The id of 
-a tool is its module name made lower case. The module should 
+A tool consists of a module which contains a class. The id of
+a tool is its module name made lower case. The module should
 contain a class corresponding to its id. We advise to follow the
-common python style and start the class name with a capital 
+common python style and start the class name with a capital
 letter, case does not matter for the tool to work though.
-For instance, the tool "pyzologger" is the class "PyzoLogger" found 
+For instance, the tool "pyzologger" is the class "PyzoLogger" found
 in module "pyzoLogger"
 
 The module may contain the following extra variables (which should
 be placed within the first 50 lines of code):
 
-tool_name - A readable name for the tool (may contain spaces, 
+tool_name - A readable name for the tool (may contain spaces,
 will be shown in the tab)
 
 tool_summary - A single line short summary of the tool. To be
@@ -77,7 +77,7 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         self.reload(toolClass)
     
     
-    def closeEvent(self, event):        
+    def closeEvent(self, event):
         if self._toolManager:
             self._toolManager.onToolClose(self._toolId)
             self._toolManager = None
@@ -85,10 +85,10 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         old = self.widget()
         if old:
             old.close()
-            old.deleteLater()        
+            old.deleteLater()
         # Close and delete dock widget
         self.close()
-        self.deleteLater() 
+        self.deleteLater()
         # We handled the event
         event.accept()
     
@@ -153,13 +153,13 @@ class ToolManager(QtCore.QObject):
     
     
     def loadToolInfo(self):
-        """ (re)load the tool information. 
+        """ (re)load the tool information.
         """
         # Get paths to load files from
         toolDir1 = os.path.join(pyzo.pyzoDir, 'tools')
         toolDir2 = os.path.join(pyzo.appDataDir, 'tools')
         
-        # Create list of tool files 
+        # Create list of tool files
         toolfiles = []
         for toolDir in [toolDir1, toolDir2]:
             tmp = [os.path.join(toolDir, f) for f in os.listdir(toolDir)]
@@ -174,7 +174,7 @@ class ToolManager(QtCore.QObject):
 #             tooldir = tooldir[:i+4]
 #             import zipfile
 #             z = zipfile.ZipFile(tooldir)
-#             toolfiles = [os.path.split(i)[1] for i in z.namelist() 
+#             toolfiles = [os.path.split(i)[1] for i in z.namelist()
 #                         if i.startswith('visvis') and i.count('functions')]
 #         else:
 #             # Get list of files from file system
@@ -193,8 +193,8 @@ class ToolManager(QtCore.QObject):
             elif file.endswith('__.py') or not file.endswith('.py'):
                 continue
             elif file.endswith('pyzoFileBrowser.py'):
-                # Skip old file browser (the file can be there from a previous install) 
-                continue  
+                # Skip old file browser (the file can be there from a previous install)
+                continue
             
             #
             toolName = ""
@@ -208,7 +208,7 @@ class ToolManager(QtCore.QObject):
                 if line.startswith("tool_name"):
                     i = line.find("=")
                     if i<0: continue
-                    line = line.rstrip("\n").rstrip("\r")      
+                    line = line.rstrip("\n").rstrip("\r")
                     line = line[i+1:].strip(" ")
                     toolName = line.strip("'").strip('"')
                 elif line.startswith("tool_summary"):
@@ -254,7 +254,7 @@ class ToolManager(QtCore.QObject):
     def getToolClass(self, toolId):
         """ Get the class of the tool.
         It will import (and reload) the module and get the class.
-        Some checks are performed, like whether the class inherits 
+        Some checks are performed, like whether the class inherits
         from QWidget.
         Returns the class or None if failed...
         """
@@ -280,7 +280,7 @@ class ToolManager(QtCore.QObject):
         
         # Load module
         try:
-            m_file, m_fname, m_des = imp.find_module(moduleName, [os.path.dirname(modulePath)])        
+            m_file, m_fname, m_des = imp.find_module(moduleName, [os.path.dirname(modulePath)])
             mod = imp.load_module('pyzo.tools.'+moduleName, m_file, m_fname, m_des)
         except Exception as why:
             print("Invalid tool " + toolId +":", why)
@@ -292,7 +292,7 @@ class ToolManager(QtCore.QObject):
             if member.lower() == toolId:
                 className = member
                 break
-        else:       
+        else:
             print("Invalid tool, Classname must match module name '%s'!" % toolId)
             return None
         
@@ -315,7 +315,7 @@ class ToolManager(QtCore.QObject):
         
         # Close old one
         if toolId in self._activeTools:
-            old = self._activeTools[toolId].widget()            
+            old = self._activeTools[toolId].widget()
             self._activeTools[toolId].setWidget(QtWidgets.QWidget(pyzo.main))
             if old:
                 old.close()

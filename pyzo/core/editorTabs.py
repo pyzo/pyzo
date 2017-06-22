@@ -51,10 +51,10 @@ def simpleDialog(item, action, question, options, defaultOption):
     # create button map
     mb = QtWidgets.QMessageBox
     M = {   'ok':mb.Ok, 'open':mb.Open, 'save':mb.Save, 'cancel':mb.Cancel,
-            'close':mb.Close, 'discard':mb.Discard, 'apply':mb.Apply, 
-            'reset':mb.Reset, 'restoredefaults':mb.RestoreDefaults, 
-            'help':mb.Help, 'saveall':mb.SaveAll, 'yes':mb.Yes, 
-            'yestoall':mb.YesToAll, 'no':mb.No, 'notoall':mb.NoToAll, 
+            'close':mb.Close, 'discard':mb.Discard, 'apply':mb.Apply,
+            'reset':mb.Reset, 'restoredefaults':mb.RestoreDefaults,
+            'help':mb.Help, 'saveall':mb.SaveAll, 'yes':mb.Yes,
+            'yestoall':mb.YesToAll, 'no':mb.No, 'notoall':mb.NoToAll,
             'abort':mb.Abort, 'retry':mb.Retry, 'ignore':mb.Ignore}
     
     # setup dialog
@@ -69,8 +69,8 @@ def simpleDialog(item, action, question, options, defaultOption):
         option_lower = option.lower()
         # Use standard button?
         if option_lower in M:
-            button = dlg.addButton(M[option_lower]) 
-        else:        
+            button = dlg.addButton(M[option_lower])
+        else:
             button = dlg.addButton(option, dlg.AcceptRole)
         buttons[button] = option
         # Set as default?
@@ -156,12 +156,12 @@ class FileItem:
     
     @property
     def id(self):
-        """ Get an id of this editor. This is the filename, 
+        """ Get an id of this editor. This is the filename,
         or for tmp files, the name. """
         if self.filename:
             return self.filename
         else:
-            return self.name 
+            return self.name
     
     @property
     def filename(self):
@@ -241,7 +241,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             vsubLayout.addLayout(hsubLayout)
             
             # Add previous button
-            self._findPrev = QtWidgets.QToolButton(self) 
+            self._findPrev = QtWidgets.QToolButton(self)
             t = translate('search', 'Previous ::: Find previous occurrence of the pattern.')
             self._findPrev.setText(t);  self._findPrev.setToolTip(t.tt)
             
@@ -267,14 +267,14 @@ class FindReplaceWidget(QtWidgets.QFrame):
             hsubLayout.setSpacing(0)
             layout.addLayout(vsubLayout, 0)
             
-            # Add replace text        
+            # Add replace text
             self._replaceText.setToolTip(translate('search', 'Replace pattern'))
             vsubLayout.addWidget(self._replaceText, 0)
             
             vsubLayout.addLayout(hsubLayout)
             
             # Add replace-all button
-            self._replaceAll = QtWidgets.QToolButton(self) 
+            self._replaceAll = QtWidgets.QToolButton(self)
             t = translate('search', 'Repl. all ::: Replace all matches in current document.')
             self._replaceAll.setText(t);  self._replaceAll.setToolTip(t.tt)
             hsubLayout.addWidget(self._replaceAll, 0)
@@ -340,7 +340,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             lineEdit.textChanged.connect(self.autoHideTimerReset)
         
         # Set focus policy
-        for but in [self._findPrev, self._findNext, 
+        for but in [self._findPrev, self._findNext,
                     self._replaceAll, self._replace,
                     self._caseCheck, self._wholeWord, self._regExp]:
             #but.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -365,7 +365,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._findPrev.clicked.connect(self.findPrevious)
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
-        #        
+        #
         self._regExp.stateChanged.connect(self.handleReplacePossible)
         
         # init case and regexp
@@ -390,7 +390,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         """
         timeout = pyzo.config.advanced.find_autoHide_timeout
         if self._autoHide.isChecked():
-            if (time.time() - self._timerAutoHide_t0) > timeout: # seconds            
+            if (time.time() - self._timerAutoHide_t0) > timeout: # seconds
                 # Hide if editor has focus
                 es = self.parent() # editor stack
                 editor = es.getCurrentEditor()
@@ -432,7 +432,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     
     
     def startFind(self,event=None):
-        """ Use this rather than show(). It will check if anything is 
+        """ Use this rather than show(). It will check if anything is
         selected in the current editor, and if so, will set that as the
         initial search string
         """
@@ -443,7 +443,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # get needle
         editor = self.parent().getCurrentEditor()
         if editor:
-            needle = editor.textCursor().selectedText().replace('\u2029', '\n') 
+            needle = editor.textCursor().selectedText().replace('\u2029', '\n')
             if needle:
                 self._findText.setText( needle )
         # select the find-text
@@ -491,7 +491,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # get editor
         editor = self.parent().getCurrentEditor()
         if not editor:
-            return       
+            return
         
         # find flags
         flags = QtGui.QTextDocument.FindFlags()
@@ -570,7 +570,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         replacement = self._replaceText.text()
         
         # get original text
-        original = cursor.selectedText().replace('\u2029', '\n') 
+        original = cursor.selectedText().replace('\u2029', '\n')
         if not original:
             original = ''
         if not matchCase:
@@ -586,13 +586,13 @@ class FindReplaceWidget(QtWidgets.QFrame):
     
     
     def replaceAll(self,event=None):
-        #TODO: share a cursor between all replaces, in order to 
+        #TODO: share a cursor between all replaces, in order to
         #make this one undo/redo-step
         
         # get editor
         editor = self.parent().getCurrentEditor()
         if not editor:
-            return 
+            return
         
         # get current position
         originalPosition = editor.textCursor()
@@ -848,7 +848,7 @@ class FileTabWidget(CompactTabWidget):
         
         # Emit the currentChanged again (already emitted on addTab), because
         # now the itemdata is actually set
-        self.currentChanged.emit(self.currentIndex()) 
+        self.currentChanged.emit(self.currentIndex())
         
         # Update
         if update:
@@ -858,7 +858,7 @@ class FileTabWidget(CompactTabWidget):
     def updateItemsFull(self):
         """ updateItemsFull()
         
-        Update the appearance of the items and also updates names and 
+        Update the appearance of the items and also updates names and
         re-aligns the items.
         
         """
@@ -930,14 +930,14 @@ class FileTabWidget(CompactTabWidget):
             
             # Update appearance of icon
             but = tabBar.tabButton(i, QtWidgets.QTabBar.LeftSide)
-            but.updateIcon(item.dirty, self._mainFile==item.id, 
+            but.updateIcon(item.dirty, self._mainFile==item.id,
                         item.pinned, nBlocks)
 
 
 class EditorTabs(QtWidgets.QWidget):
     """ The EditorTabs instance manages the open files and corresponding
     editors. It does the saving loading etc.
-    """ 
+    """
     
     # Signal to indicate that a breakpoint has changed, emits dict
     breakPointsChanged = QtCore.Signal(object)
@@ -959,7 +959,7 @@ class EditorTabs(QtWidgets.QWidget):
         self._breakPoints = {}
         
         # create tab widget
-        self._tabs = FileTabWidget(self)       
+        self._tabs = FileTabWidget(self)
         self._tabs.tabCloseRequested.connect(self.closeFile)
         self._tabs.currentChanged.connect(self.onCurrentChanged)
         
@@ -998,7 +998,7 @@ class EditorTabs(QtWidgets.QWidget):
         from pyzo.core.menu import EditorTabContextMenu
         self._menu = EditorTabContextMenu(self, "EditorTabMenu")
         self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)    
+        self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
     
     
     def contextMenuTriggered(self, p):
@@ -1133,7 +1133,7 @@ class EditorTabs(QtWidgets.QWidget):
         if editor and editor._filename:
             startdir = os.path.split(editor._filename)[0]
         else:
-            startdir = self._lastpath            
+            startdir = self._lastpath
         if (not startdir) or (not os.path.isdir(startdir)):
             startdir = ''
         
@@ -1179,7 +1179,7 @@ class EditorTabs(QtWidgets.QWidget):
         if editor and editor._filename:
             startdir = os.path.split(editor._filename)[0]
         else:
-            startdir = self._lastpath            
+            startdir = self._lastpath
         if not os.path.isdir(startdir):
             startdir = ''
         
@@ -1196,7 +1196,7 @@ class EditorTabs(QtWidgets.QWidget):
     
     
     def loadFile(self, filename, updateTabs=True):
-        """ Load the specified file. 
+        """ Load the specified file.
         On success returns the item of the file, also if it was
         already open."""
         
@@ -1237,7 +1237,7 @@ class EditorTabs(QtWidgets.QWidget):
         
         # create list item
         item = FileItem(editor)
-        self._tabs.addItem(item, updateTabs)        
+        self._tabs.addItem(item, updateTabs)
         if updateTabs:
             self._tabs.setCurrentItem(item)
         
@@ -1251,11 +1251,11 @@ class EditorTabs(QtWidgets.QWidget):
         """ Create a project with the dir's name and add all files
         contained in the directory to it.
         extensions is a komma separated list of extenstions of files
-        to accept...        
+        to accept...
         """
         
-        # if the path does not exist, stop     
-        path = os.path.abspath(path)   
+        # if the path does not exist, stop
+        path = os.path.abspath(path)
         if not os.path.isdir(path):
             print("ERROR loading dir: the specified directory does not exist!")
             return
@@ -1274,7 +1274,7 @@ class EditorTabs(QtWidgets.QWidget):
             filelist = os.listdir(path)
             for filename in filelist:
                 filename = os.path.join(path, filename)
-                ext = os.path.splitext(filename)[1]            
+                ext = os.path.splitext(filename)[1]
                 if str(ext) in extensions:
                     item = self.loadFile(filename, False)
         finally:
@@ -1286,7 +1286,7 @@ class EditorTabs(QtWidgets.QWidget):
     
     
     def saveFileAs(self, editor=None):
-        """ Create a dialog for the user to select a file. 
+        """ Create a dialog for the user to select a file.
         returns: True if succesfull, False if fails
         """
         
@@ -1300,7 +1300,7 @@ class EditorTabs(QtWidgets.QWidget):
         if editor._filename:
             startdir = os.path.dirname(editor._filename)
         else:
-            startdir = self._lastpath 
+            startdir = self._lastpath
             # Try the file browser or project manager to suggest a path
             fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
             projectManager = pyzo.toolManager.getTool('pyzoprojectmanager')
@@ -1337,7 +1337,7 @@ class EditorTabs(QtWidgets.QWidget):
     
     
     def saveFile(self, editor=None, filename=None):
-        """ Save the file. 
+        """ Save the file.
         returns: True if succesfull, False if fails
         """
         
@@ -1372,7 +1372,7 @@ class EditorTabs(QtWidgets.QWidget):
             m.setText(str(err))
             m.setIcon(m.Warning)
             m.exec_()
-            # Return now            
+            # Return now
             return False
         
         # get actual normalized filename
@@ -1417,7 +1417,7 @@ class EditorTabs(QtWidgets.QWidget):
         Returns 3 if user discarded changes.
         Returns 0 if cancelled.
         
-        """ 
+        """
         
         # should we ask to save the file?
         if editor.document().isModified():
@@ -1425,7 +1425,7 @@ class EditorTabs(QtWidgets.QWidget):
             # Ask user what to do
             close_txt, discard_txt, cancel_txt, save_txt = self._get_action_texts()
             result = simpleDialog(editor, translate("editor", "Closing"),
-                                  translate("editor", "Save modified file?"), 
+                                  translate("editor", "Save modified file?"),
                                   [discard_txt, cancel_txt, save_txt], save_txt)
             
             # Get result and act
@@ -1440,7 +1440,7 @@ class EditorTabs(QtWidgets.QWidget):
     
     
     def closeFile(self, editor=None):
-        """ Close the selected (or current) editor. 
+        """ Close the selected (or current) editor.
         Returns same result as askToSaveFileIfDirty() """
         
         # get editor
@@ -1567,7 +1567,7 @@ class EditorTabs(QtWidgets.QWidget):
     
     def _setCurrentOpenFilesAsSsdfList(self, state):
         """ Set the state of the editor in terms of opened files.
-        The input should be a list object as returned by 
+        The input should be a list object as returned by
         ._getCurrentOpenFilesAsSsdfList().
         """
         
@@ -1608,7 +1608,7 @@ class EditorTabs(QtWidgets.QWidget):
         """ Close all files (well technically, we don't really close them,
         so that they are all stil there when the user presses cancel).
         Returns False if the user pressed cancel when asked for
-        saving an unsaved file. 
+        saving an unsaved file.
         """
         
         # try closing all editors.

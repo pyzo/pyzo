@@ -22,7 +22,7 @@ class MoveLinesUpDown(object):
     
     def keyPressEvent(self,event):
         if event.key() in (Qt.Key_Up, Qt.Key_Down) and (
-                                    Qt.ControlModifier & event.modifiers() and 
+                                    Qt.ControlModifier & event.modifiers() and
                                     Qt.ShiftModifier & event.modifiers()):
             
             cursor = self.textCursor()
@@ -202,7 +202,7 @@ class Indentation(object):
             else: #Some other modifiers + Tab: ignore
                 return
 
-        # If backspace is pressed in the leading whitespace, (except for at the first 
+        # If backspace is pressed in the leading whitespace, (except for at the first
         # position of the line), and there is no selection
         # dedent that line and move cursor to end of whitespace
         if key == Qt.Key_Backspace and modifiers == Qt.NoModifier and \
@@ -249,7 +249,7 @@ class AutoIndent(object):
     def setAutoIndent(self,value):
         """ setAutoIndent(value)
         
-        Set whether to enable auto indentation.  
+        Set whether to enable auto indentation.
         
         """
         self.__autoIndent = bool(value)
@@ -277,7 +277,7 @@ class PythonAutoIndent(object):
             if previousBlock.isValid():
                 line = ustr(previousBlock.text())
                 indent=line[:len(line)-len(line.lstrip())]
-                if line.endswith(':'): 
+                if line.endswith(':'):
                     # We only need to add indent if the : is not in a (multiline)
                     # string or comment. Therefore, find out what the syntax
                     # highlighter thinks of the previous line.
@@ -308,7 +308,7 @@ class SmartCopyAndPaste(object):
         cursor.setPosition(anchor)
         cursor.setPosition(position, cursor.KeepAnchor)
         
-    @classmethod    
+    @classmethod
     def __ensureCursorBeforeAnchor(cls, cursor):
         """
         Given a cursor, modify it such that the cursor.position() is before or
@@ -349,7 +349,7 @@ class SmartCopyAndPaste(object):
         if end > (block.position() + block.length()):
 
             # Now check if there is only whitespace before the start of selection
-            # If so, include this whitespace in the selection and update the 
+            # If so, include this whitespace in the selection and update the
             # selection of the editor
             textBeforeSelection = block.text()[:cursor.positionInBlock()]
             if len(textBeforeSelection.strip()) == 0:
@@ -389,7 +389,7 @@ class SmartCopyAndPaste(object):
         Smart paste
         If you paste on a position that has only whitespace in front of it,
         remove the whitespace before pasting. Combined with smart copy,
-        this ensure indentation of the 
+        this ensure indentation of the
         """
         self._paste(keepSelection = False)
     

@@ -7,7 +7,7 @@
 
 """ Pyzo __main__ module
 
-This module takes enables starting Pyzo via either "python3 -m pyzo" or 
+This module takes enables starting Pyzo via either "python3 -m pyzo" or
 "python3 path/to/pyzo".
 
 In the first case it simply imports pyzo. In the latter case, that import

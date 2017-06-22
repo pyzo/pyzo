@@ -7,7 +7,7 @@
 """ Subpackage parsers
 
 This subpackage contains all the syntax parsers for the
-different languages. 
+different languages.
 
 """
 
@@ -15,15 +15,15 @@ different languages.
 """ CREATING PARSERS
 
 Making a parser requires these things:
-  * Place a module in the parsers directory, which has a name 
+  * Place a module in the parsers directory, which has a name
     ending in "_parser.py"
   * In the module implement one or more classes that inherit
-    from ..parsers.Parser (or a derived class), and 
+    from ..parsers.Parser (or a derived class), and
     implement the parseLine method.
-  * The module should import all the tokens in whiches to use 
+  * The module should import all the tokens in whiches to use
     from ..parsers.tokens. New tokens can also be
     defined by subclassing one of the token classes.
-  * In codeeditor/parsers/__init__.py, add the new module to the 
+  * In codeeditor/parsers/__init__.py, add the new module to the
     list of imported parsers.
 
 """
@@ -42,7 +42,7 @@ class BlockState(object):
     """ BlockState(state=0, info=None)
     
     The blockstate object should be used by parsers to
-    return the block state of the processed line. 
+    return the block state of the processed line.
     
     This would typically be the last item to be yielded, but this
     it may also be yielded befor the last yielded token. One can even
@@ -70,7 +70,7 @@ class BlockState(object):
 
 # Base parser class (needs to be defined before importing parser modules)
 class Parser(object):
-    """ Base parser class. 
+    """ Base parser class.
     All parsers should inherit from this class.
     This base class generates a 'TextToken' for each line
     """
@@ -81,14 +81,14 @@ class Parser(object):
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
         
-        The method that should be implemented by the parser. The 
+        The method that should be implemented by the parser. The
         previousState argument can be used to determine how
         the previous block ended (e.g. for multiline comments). It
         is an integer, the meaning of which is only known to the
-        specific parser. 
+        specific parser.
         
         This method should yield token instances. The last token can
-        be a BlockState to specify the previousState for the 
+        be a BlockState to specify the previousState for the
         next block.
         
         """
@@ -108,7 +108,7 @@ class Parser(object):
     
     
     def __repr__(self):
-        """ String representation of the parser. 
+        """ String representation of the parser.
         """
         return '<Parser for "%s">' % self.name()
     
@@ -135,8 +135,8 @@ class Parser(object):
     def getStyleElementDescriptions(cls):
         """ getStyleElementDescriptions()
         
-        This method returns a list of the StyleElementDescription 
-        instances used by this parser. 
+        This method returns a list of the StyleElementDescription
+        instances used by this parser.
         
         """
         descriptions = {}
@@ -166,7 +166,7 @@ class Parser(object):
             if isinstance(member, type) and \
                                     issubclass(member, tokens.Token):
                 if member is not tokens.Token:
-                    tokenClasses.append(member) 
+                    tokenClasses.append(member)
         
         # Return as instances
         return [t() for t in tokenClasses]
@@ -176,7 +176,7 @@ class Parser(object):
         """ _isTodoItem(text)
         
         Get whether the given text (which should be a comment) represents
-        a todo item. Todo items start with "todo", "2do" or "fixme", 
+        a todo item. Todo items start with "todo", "2do" or "fixme",
         optionally with a colon at the end.
         
         """
@@ -190,8 +190,8 @@ class Parser(object):
     
 
 ## Import parsers statically
-# We could load the parser dynamically from the source files in the 
-# directory, but this takes quite some effort to get righ when apps 
+# We could load the parser dynamically from the source files in the
+# directory, but this takes quite some effort to get righ when apps
 # are frozen. This is doable (I do it in Visvis) but it requires the
 # user to specify the parser modules by hand when freezing an app.
 #

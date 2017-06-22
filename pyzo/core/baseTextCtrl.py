@@ -34,7 +34,7 @@ subStyleStuff = {}
 
 
 def normalizePath(path):
-    """ Normalize the path given. 
+    """ Normalize the path given.
     All slashes will be made the same (and doubles removed)
     The real case as stored on the file system is recovered.
     Returns None on error.
@@ -46,7 +46,7 @@ def normalizePath(path):
     
     # If does not exist, return as is.
     # This also happens if the path's case is incorrect and the
-    # file system is case sensitive. That's ok, because the stuff we 
+    # file system is case sensitive. That's ok, because the stuff we
     # do below is intended to get the path right on case insensitive
     # file systems.
     if not os.path.isfile(path):
@@ -56,7 +56,7 @@ def normalizePath(path):
     drive, rest = os.path.splitdrive(path)
     fullpath = drive.upper() + os.sep
     
-    # make lowercase and split in parts    
+    # make lowercase and split in parts
     parts = rest.lower().split(os.sep)
     parts = [part for part in parts if part]
     
@@ -75,8 +75,8 @@ def normalizePath(path):
 
 
 def parseLine_autocomplete(tokens):
-    """ Given a list of tokens (from start to cursor position) 
-    returns a tuple (base, name).    
+    """ Given a list of tokens (from start to cursor position)
+    returns a tuple (base, name).
     autocomp_parse("eat = banan") -> "", "banan"
       ...("eat = food.fruit.ban") -> "food.fruit", "ban"
     When no match found, both elements are an empty string.
@@ -108,9 +108,9 @@ def parseLine_autocomplete(tokens):
 
 
 def parseLine_signature(tokens):
-    """ Given a list of tokens (from start to cursor position) 
+    """ Given a list of tokens (from start to cursor position)
     returns a tuple (name, needle, stats).
-    stats is another tuple: 
+    stats is another tuple:
     - location of end bracket
     - amount of kommas till cursor (taking nested brackets into account)
     """
@@ -146,7 +146,7 @@ class KeyEvent:
     def __init__(self, key):
         self.key = key
         try:
-            self.char = chr(key)        
+            self.char = chr(key)
         except ValueError:
             self.char = ""
 
@@ -165,7 +165,7 @@ def makeBytes(text):
 
 _allScintillas = []
 def getAllScintillas():
-    """ Get a list of all the scintialla editing components that 
+    """ Get a list of all the scintialla editing components that
     derive from BaseTextCtrl. Used mainly by the menu.
     """
     for i in reversed(range(len(_allScintillas))):
@@ -193,10 +193,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     - all the above indices apply to the bytes (encoded utf-8) in which the
       text is stored. If you have unicode text, they do not apply!
     - the method name mentions explicityly what you get. getBytes() returns the
-      bytes of the document, getString() gets the unicode string that it 
+      bytes of the document, getString() gets the unicode string that it
       represents. This applies to the get-methods. the set-methods use the
       term text, and automatically convert to bytes using UTF-8 encoding
-      when a string is given. 
+      when a string is given.
     """
         
     def __init__(self, *args, **kwds):
@@ -223,8 +223,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         
         self.completer().highlighted.connect(self.updateHelp)
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
-        self.setIndentWidth(pyzo.config.settings.defaultIndentWidth) 
-        self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize) 
+        self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
+        self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
     
     def setAutoCompletionAcceptKeysFromStr(self, keys):
         """ Set the keys that can accept an autocompletion from a comma delimited string.
@@ -263,7 +263,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     def introspect(self, tryAutoComp=False, delay=True):
         """ introspect(tryAutoComp=False, delay=True)
         
-        The starting point for introspection (autocompletion and calltip). 
+        The starting point for introspection (autocompletion and calltip).
         It will always try to produce a calltip. If tryAutoComp is True,
         will also try to produce an autocompletion list (which, on success,
         will hide the calltip).
@@ -316,10 +316,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             self._delayTimer.start(1)  # self._introspectNow()
     
     def _introspectNow(self):
-        """ This method is called a short while after introspect() 
+        """ This method is called a short while after introspect()
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
-        """ 
+        """
         
         tokens = self._delayTimer._tokensUptoCursor
         
@@ -337,7 +337,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 offset = self._delayTimer._cursor.positionInBlock() - stats[0] + len(needle)
                 cto = CallTipObject(self, fullName, offset)
                 self.processCallTip(cto)
-            else: 
+            else:
                 self.calltipCancel()
         
         if self._delayTimer._tryAutoComp and pyzo.config.settings.autoComplete:
@@ -368,7 +368,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     def processHelp(self, name=None, showError=False):
         """ Show help on the given full object name.
         - called when going up/down in the autocompletion list.
-        - called when double clicking a name     
+        - called when double clicking a name
         """
         # uses parse_autocomplete() to find baseName and objectName
         
@@ -376,7 +376,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         hw = pyzo.toolManager.getTool('pyzointeractivehelp')
         ass = pyzo.toolManager.getTool('pyzoassistant')
         # Get the shell
-        shell = pyzo.shells.getCurrentShell()        
+        shell = pyzo.shells.getCurrentShell()
         # Both should exist
         if not hw or not shell:
             return
@@ -390,7 +390,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 cursor = self.textCursor()
                 line = cursor.block().text()
                 text = line[:cursor.positionInBlock()]
-                # Obtain             
+                # Obtain
                 nameBefore, name = parseLine_autocomplete(text)
                 if nameBefore:
                     name = "%s.%s" % (nameBefore, name)
@@ -407,7 +407,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         if self._autoCompBuffer_name:
             name = self._autoCompBuffer_name + '.' + name
         elif not self.completer().completionPrefix():
-            # Dont update help if there is no dot or prefix; 
+            # Dont update help if there is no dot or prefix;
             # the choice would be arbitrary
             return
         
@@ -435,7 +435,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     
     
     def keyPressEvent(self, event):
-        """ Receive qt key event. 
+        """ Receive qt key event.
         From here we'l dispatch the event to perform autocompletion
         or other stuff...
         """
@@ -465,7 +465,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             if (ordKey >= 48 or ordKey in [8, 46]) and pyzo.config.settings.autoComplete == 1:
                 # If a char that allows completion or backspace or dot was pressed
                 self.introspect(True)
-            elif ordKey >= 32: 
+            elif ordKey >= 32:
                 # Printable chars, only calltip
                 self.introspect()
         elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
@@ -473,18 +473,18 @@ class BaseTextCtrl(codeeditor.CodeEditor):
 
 
 class CallTipObject:
-    """ Object to help the process of call tips. 
+    """ Object to help the process of call tips.
     An instance of this class is created for each call tip action.
     """
     def __init__(self, textCtrl, name, offset):
-        self.textCtrl = textCtrl        
-        self.name = name        
+        self.textCtrl = textCtrl
+        self.name = name
         self.bufferName = name
         self.offset = offset
     
     def tryUsingBuffer(self):
         """ tryUsingBuffer()
-        Try performing this callTip using the buffer. 
+        Try performing this callTip using the buffer.
         Returns True on success.
         """
         bufferName = self.textCtrl._callTipBuffer_name
@@ -504,7 +504,7 @@ class CallTipObject:
         self._finish(callTipText)
     
     def setBuffer(self, callTipText, timeout=4):
-        """ setBuffer(callTipText)        
+        """ setBuffer(callTipText)
         Sets the buffer with the provided text. """
         self.textCtrl._callTipBuffer_name = self.bufferName
         self.textCtrl._callTipBuffer_time = time.time() + timeout
@@ -515,27 +515,27 @@ class CallTipObject:
 
 
 class AutoCompObject:
-    """ Object to help the process of auto completion. 
+    """ Object to help the process of auto completion.
     An instance of this class is created for each auto completion action.
     """
     def __init__(self, textCtrl, name, needle):
-        self.textCtrl = textCtrl        
-        self.bufferName = name # name to identify with 
+        self.textCtrl = textCtrl
+        self.bufferName = name # name to identify with
         self.name = name  # object to find attributes of
         self.needle = needle # partial name to look for
         self.names = set() # the names (use a set to prevent duplicates)
         self.importNames = []
         self.importLines = {}
     
-    def addNames(self, names):  
+    def addNames(self, names):
         """ addNames(names)
-        Add a list of names to the collection. 
-        Duplicates are removed."""      
+        Add a list of names to the collection.
+        Duplicates are removed."""
         self.names.update(names)
     
     def tryUsingBuffer(self):
         """ tryUsingBuffer()
-        Try performing this auto-completion using the buffer. 
+        Try performing this auto-completion using the buffer.
         Returns True on success.
         """
         bufferName = self.textCtrl._autoCompBuffer_name
@@ -554,11 +554,11 @@ class AutoCompObject:
         # Remember at the object that started this introspection
         # and get sorted names
         names = self.setBuffer(self.names)
-        # really finish        
+        # really finish
         self._finish(names)
     
     def setBuffer(self, names=None, timeout=None):
-        """ setBuffer(names=None)        
+        """ setBuffer(names=None)
         Sets the buffer with the provided names (or the collected names).
         Also returns a list with the sorted names. """
         # Determine timeout
@@ -569,7 +569,7 @@ class AutoCompObject:
         # haven' been able to reproduce it. It was probably some odity.
         if timeout is None:
             if self.bufferName:
-                timeout = 5 
+                timeout = 5
             else:
                 timeout = 1
         # Get names
@@ -586,7 +586,7 @@ class AutoCompObject:
         return names
     
     def _finish(self, names):
-        # Show completion list if required. 
+        # Show completion list if required.
         self.textCtrl.autocompleteShow(len(self.needle), names)
     
     def nameInImportNames(self, importNames):
@@ -612,7 +612,7 @@ if __name__=="__main__":
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
     tmp += "a\u20acb\n"
-    win.setPlainText(tmp)    
+    win.setPlainText(tmp)
     win.show()
     app.exec_()
     

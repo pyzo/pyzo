@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2016, Almar Klein
 
-""" 
+"""
 This module implements functionality to detect available Python
 interpreters. This is done by looking at common locations, the Windows
 registry, and conda's environment list.
@@ -24,7 +24,7 @@ def get_interpreters(minimumVersion=None):
     
     # Get Python interpreters
     if sys.platform.startswith('win'):
-        pythons = _get_interpreters_win() 
+        pythons = _get_interpreters_win()
     else:
         pythons = _get_interpreters_posix()
     pythons = set([PythonInterpreter(p) for p in pythons])
@@ -46,10 +46,10 @@ def get_interpreters(minimumVersion=None):
 
 def _select_interpreters(interpreters, minimumVersion):
     """ Given a list of PythonInterpreter instances, return a list with
-    the interpreters selected that are valid and have their version equal 
+    the interpreters selected that are valid and have their version equal
     or larger than the given minimimVersion. The returned list is sorted
     by version number.
-    """ 
+    """
     if not isinstance(minimumVersion, str):
         raise ValueError('minimumVersion in get_interpreters must be a string.')
     # Remove invalid interpreters
@@ -185,7 +185,7 @@ def _get_interpreters_relative():
             filename = os.path.abspath(os.path.join(EXE_DIR, fname))
             if os.path.isfile(filename):
                 exes.append(fname)
-                break 
+                break
     return exes
 
 

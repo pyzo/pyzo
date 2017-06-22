@@ -4,7 +4,7 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" 
+"""
 Module to integrate GUI event loops in the Pyzo interpreter.
 
 This specifies classes that all have the same interface. Each class
@@ -20,7 +20,7 @@ import time
 from pyzokernel import printDirect
 
 
-# Warning message. 
+# Warning message.
 mainloopWarning = """
 Note: The GUI event loop is already running in the pyzo kernel. Be aware
 that the function to enter the main loop does not block.
@@ -28,7 +28,7 @@ that the function to enter the main loop does not block.
 
 # Qt has its own message
 mainloopWarning_qt = """
-Note on using QApplication.exec_(): 
+Note on using QApplication.exec_():
 The GUI event loop is already running in the pyzo kernel, and exec_()
 does not block. In most cases your app should run fine without the need
 for modifications. For clarity, this is what the pyzo kernel does:
@@ -48,7 +48,7 @@ def print_mainloop_warning(msg=None):
 
 
 class App_base:
-    """ Defines the interface. 
+    """ Defines the interface.
     """
     
     def process_events(self):
@@ -64,7 +64,7 @@ class App_base:
     
     def run(self, repl_callback, sleeptime=0.01):
         """ Very simple mainloop. Subclasses can overload this to use
-        the native event loop. Attempt to process GUI events at least 
+        the native event loop. Attempt to process GUI events at least
         every sleeptime seconds.
         """
         
@@ -104,13 +104,13 @@ class App_base:
 
 
 
-class App_tk(App_base):    
+class App_tk(App_base):
     """ Tries to import tkinter and returns a withdrawn tkinter root
     window.  If tkinter is already imported or not available, this
-    returns None.  
+    returns None.
     Modifies tkinter's mainloop with a dummy so when a module calls
     mainloop, it does not block.
-    """    
+    """
     def __init__(self):
         
         # Try importing
@@ -166,7 +166,7 @@ class App_fltk(App_base):
         fl.Fl.run = types.MethodType(dummyrun, fl.Fl)
         
         # Store the app instance to process events
-        self.app =  fl.Fl   
+        self.app =  fl.Fl
         
         # Notify that we integrated the event loop
         self.app._in_event_loop = 'Pyzo'
@@ -178,16 +178,16 @@ class App_fltk(App_base):
 
 
 class App_fltk2(App_base):
-    """ Hijack fltk 2.    
+    """ Hijack fltk 2.
     """
     def __init__(self):
         # Try importing
-        import fltk2 as fl        
+        import fltk2 as fl
         
         # Replace mainloop with a dummy
         def dummyrun(*args,**kwargs):
             print_mainloop_warning()
-        fl.run = dummyrun    
+        fl.run = dummyrun
         
         # Return the app instance to process events
         self.app = fl
@@ -197,7 +197,7 @@ class App_fltk2(App_base):
     
     def process_events(self):
         # is this right?
-        self.app.wait(0) 
+        self.app.wait(0)
 
 
 
@@ -256,7 +256,7 @@ class App_tornado(App_base):
     
     def run(self, repl_callback, sleeptime=None):
         from tornado.ioloop import PeriodicCallback
-        # Create timer 
+        # Create timer
         self._timer = PeriodicCallback(repl_callback, 0.05*1000)
         self._timer.start()
         # Enter mainloop
@@ -282,7 +282,7 @@ class App_qt(App_base):
     def __init__(self):
         import types
         
-        # Try importing qt        
+        # Try importing qt
         QtGui, QtCore = self.importCoreAndGui()
         self._QtGui, self._QtCore = QtGui, QtCore
         
@@ -294,16 +294,16 @@ class App_qt(App_base):
         class QApplication_hijacked(QtGui.QApplication):
             """ QApplication_hijacked(*args, **kwargs)
             
-            Hijacked QApplication class. This class has a __new__() 
-            method that always returns the global application 
+            Hijacked QApplication class. This class has a __new__()
+            method that always returns the global application
             instance, i.e. QtGui.qApp.
             
             The QtGui.qApp instance is an instance of the original
-            QtGui.QApplication, but with its __init__() and exec_() 
+            QtGui.QApplication, but with its __init__() and exec_()
             methods replaced.
             
             You can subclass this class; the global application instance
-            will be given the methods and attributes so it will behave 
+            will be given the methods and attributes so it will behave
             like the subclass.
             """
             def __new__(cls, *args, **kwargs):
@@ -380,7 +380,7 @@ class App_qt(App_base):
                 pass
         
         
-        # Instantiate application object 
+        # Instantiate application object
         self.app = QApplication_hijacked([''])
         
         # Keep it alive even if all windows are closed
@@ -412,7 +412,7 @@ class App_qt(App_base):
     
     
     def run(self, repl_callback, sleeptime=None):
-        # Create timer 
+        # Create timer
         timer = self._timer = self._QtCore.QTimer()
         timer.setSingleShot(False)
         timer.setInterval(0.05*1000)  # ms
@@ -435,7 +435,7 @@ class App_pyqt5(App_qt):
     """
     
     def importCoreAndGui(self):
-        # Try importing qt        
+        # Try importing qt
         import PyQt5  # noqa
         from PyQt5 import QtGui, QtCore, QtWidgets  # noqa
         return QtWidgets, QtCore  # QApp sits on QtWidgets
@@ -446,7 +446,7 @@ class App_pyqt4(App_qt):
     """
     
     def importCoreAndGui(self):
-        # Try importing qt        
+        # Try importing qt
         import PyQt4  # noqa
         from PyQt4 import QtGui, QtCore
         return QtGui, QtCore
@@ -456,7 +456,7 @@ class App_pyside2(App_qt):
     """
     
     def importCoreAndGui(self):
-        # Try importing qt        
+        # Try importing qt
         import PySide2  # noqa
         from PySide2 import QtGui, QtCore, QtWidgets  # noqa
         return QtWidgets, QtCore  # QApp sits on QtWidgets
@@ -466,7 +466,7 @@ class App_pyside(App_qt):
     """
     
     def importCoreAndGui(self):
-        # Try importing qt        
+        # Try importing qt
         import PySide  # noqa
         from PySide import QtGui, QtCore
         return QtGui, QtCore
@@ -474,15 +474,15 @@ class App_pyside(App_qt):
 
 
 class App_wx(App_base):
-    """ Hijack the wxWidgets mainloop.    
-    """ 
+    """ Hijack the wxWidgets mainloop.
+    """
     
     def __init__(self):
         
         # Try importing
         try:
             import wx
-        except ImportError:            
+        except ImportError:
             # For very old versions of WX
             import wxPython as wx
         
@@ -510,7 +510,7 @@ class App_wx(App_base):
         # Store package wx
         self.wx = wx
         
-        # Get and store the app instance to process events 
+        # Get and store the app instance to process events
         app = wx.GetApp()
         if app is None:
             app = wx.App(False)
@@ -523,16 +523,16 @@ class App_wx(App_base):
     def process_events(self):
         wx = self.wx
         
-        # This bit is really needed        
-        old = wx.EventLoop.GetActive()                       
+        # This bit is really needed
+        old = wx.EventLoop.GetActive()
         eventLoop = wx.EventLoop()
-        wx.EventLoop.SetActive(eventLoop)                        
+        wx.EventLoop.SetActive(eventLoop)
         while eventLoop.Pending():
             eventLoop.Dispatch()
         
         # Process and reset
         self.app.ProcessIdle() # otherwise frames do not close
-        wx.EventLoop.SetActive(old)   
+        wx.EventLoop.SetActive(old)
 
 
 
@@ -553,7 +553,7 @@ class App_gtk(App_base):
         
         # Replace main_quit with a dummy too
         def dummy_quit(*args, **kwargs):
-            pass        
+            pass
         gtk.main_quit = dummy_quit
         gtk.mainquit = dummy_quit
         
@@ -569,6 +569,6 @@ class App_gtk(App_base):
     
     def process_events(self):
         gtk = self.app
-        while gtk.events_pending():            
+        while gtk.events_pending():
             gtk.main_iteration(False)
 

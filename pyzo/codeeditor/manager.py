@@ -42,44 +42,44 @@ class Manager:
 #     def collectParsersDynamically(cls):
 #         """ insert the function is this module's namespace.
 #         """
-#         
+#
 #         # Get the path of this subpackage
 #         path = __file__
 #         path = os.path.dirname( os.path.abspath(path) )
-#         
+#
 #         # Determine if we're in a zipfile
 #         i = path.find('.zip')
 #         if i>0:
 #             # get list of files from zipfile
 #             path = path[:i+4]
 #             z = zipfile.ZipFile(path)
-#             files = [os.path.split(i)[-1] for i in z.namelist() 
+#             files = [os.path.split(i)[-1] for i in z.namelist()
 #                         if 'codeeditor' in i and 'parsers' in i]
 #         else:
 #             # get list of files from file system
 #             files = os.listdir(path)
-#         
+#
 #         # Extract all parsers
 #         parserModules = []
-#         for file in files:            
-#             
+#         for file in files:
+#
 #             # Only python files
 #             if file.endswith('.pyc'):
 #                 if file[:-1] in files:
 #                     continue # Only try import once
 #             elif not file.endswith('.py'):
-#                 continue    
+#                 continue
 #             # Only syntax files
 #             if '_parser.' not in file:
 #                 continue
-#             
+#
 #             # Import module
 #             fullfile = os.path.join(path, file)
 #             modname = os.path.splitext(file)[0]
 #             print('modname', modname)
 #             mod = __import__("codeeditor.parsers."+modname, fromlist=[modname])
 #             parserModules.append(mod)
-#         
+#
 #         print(parserModules)
     
 
@@ -107,7 +107,7 @@ class Manager:
             # Collect all valid classes from the module
             moduleDict = G[module_name].__dict__
             for name_in_module in moduleDict:
-                ob = moduleDict[name_in_module]                    
+                ob = moduleDict[name_in_module]
                 if isinstance(ob, type) and issubclass(ob, parsers.Parser):
                     foundParsers.add(ob)
         
@@ -175,7 +175,7 @@ class Manager:
     def getStyleElementDescriptionsForAllParsers(cls):
         """ getStyleElementDescriptionsForAllParsers()
         
-        Get all style element descriptions corresponding to 
+        Get all style element descriptions corresponding to
         the tokens of all parsers.
         
         This function is used by the code editor to register all syntax
@@ -254,7 +254,7 @@ class Manager:
     def setDefaultFontFamily(cls, name):
         """ setDefaultFontFamily(name)
         
-        Set the default (monospace) font family name for this system. 
+        Set the default (monospace) font family name for this system.
         This should be set only once during startup.
         
         """
@@ -266,11 +266,11 @@ class Manager:
         """ defaultFont()
         
         Get the default (monospace) font for this system. Returns a QFont
-        object. 
+        object.
         
         """
     
-        # Get font family 
+        # Get font family
         f = QtGui.QFont(cls._defaultFontFamily)
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)

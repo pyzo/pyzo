@@ -40,7 +40,7 @@ Note the following points:
  - The use of *args passes all non-named arguments to its super(), which
    will therefore end up at the QPlainTextEdit constructor. As a consequence,
    the parameters of the exentsion can only be specified as named arguments
- - The use of **kwds ensures that parametes that are not defined by this 
+ - The use of **kwds ensures that parametes that are not defined by this
    extension, are passed to the next extension(s) in line.
  - The call to super().__init__ is the first thing to do, this ensures that at
    least the CodeEditorBase and QPlainTextEdit, of which the CodeEditorBase is
@@ -80,7 +80,7 @@ FancyEditor defined above:
 - First the extensions that draw behind the text (i.e. paint before calling
   super().paintEvent, in the order Extension1, Extension2, ...
 - then the CodeEditorBase, with the text
-- then the extensions that draw in front of the text (i.e. call 
+- then the extensions that draw in front of the text (i.e. call
   super().paintEvent before painting), in the order ..., Extension2, Extension1
   
 OVERRIDING OTHER EVENT HANDLERS
@@ -116,7 +116,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     """
     
     # Style element for default text and editor background
-    _styleElements = [('Editor.text', 'The style of the default text. ' + 
+    _styleElements = [('Editor.text', 'The style of the default text. ' +
                         'One can set the background color here.',
                         'fore:#000,back:#fff',)]
     
@@ -138,7 +138,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         self.__zoom = 0
         self.setFont()
         
-        # Create highlighter class 
+        # Create highlighter class
         self.__highlighter = Highlighter(self, self.document())
         
         # Set some document options
@@ -149,7 +149,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         
         # When the cursor position changes, invoke an update, so that
         # the hihghlighting etc will work
-        self.cursorPositionChanged.connect(self.viewport().update) 
+        self.cursorPositionChanged.connect(self.viewport().update)
         
         # Init styles to default values
         self.__style = {}
@@ -163,11 +163,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Init margins
         self._leftmargins = []
         
-        # Init options now. 
+        # Init options now.
         # NOTE TO PEOPLE DEVELOPING EXTENSIONS:
-        # If an extension has an __init__ in which it first calls the 
-        # super().__init__, this __initOptions() function will be called, 
-        # while the extension's init is not yet finished.        
+        # If an extension has an __init__ in which it first calls the
+        # super().__init__, this __initOptions() function will be called,
+        # while the extension's init is not yet finished.
         self.__initOptions(kwds)
         
         # Define colors from Solarized theme
@@ -366,7 +366,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         
         # Process options
         if options:
-            D = {}            
+            D = {}
             for key in options:
                 D[key] = options[key]
             D.update(kwargs)
@@ -408,7 +408,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Get family, fall back to default if qt could not produce monospace
         fontInfo = QtGui.QFontInfo(font)
         if fontInfo.fixedPitch():
-            family = fontInfo.family() 
+            family = fontInfo.family()
         else:
             family = defaultFont.family()
         
@@ -450,11 +450,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     def getStyleElementDescriptions(cls):
         """ getStyleElementDescriptions()
         
-        This classmethod returns a list of the StyleElementDescription 
+        This classmethod returns a list of the StyleElementDescription
         instances used by this class. This includes the descriptions for
         the syntax highlighting of all parsers.
         
-        """ 
+        """
         
         # Collect members by walking the class bases
         elements = []
@@ -507,16 +507,16 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     def setStyle(self, style=None, **kwargs):
         """ setStyle(style=None, **kwargs)
         
-        Updates the formatting per style element. 
+        Updates the formatting per style element.
         
         The style consists of a dictionary that maps style names to
-        style formats. The style names are case insensitive and invariant 
+        style formats. The style names are case insensitive and invariant
         to the use of spaces.
         
         For convenience, keyword arguments may also be used. In this case,
         underscores are interpreted as dots.
         
-        This function can also be called without arguments to force the 
+        This function can also be called without arguments to force the
         editor to restyle (and rehighlight) itself.
         
         Use getStyleElementDescriptions() to get information about the
@@ -525,11 +525,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         Examples
         --------
         # To make the classname in underline, but keep the color and boldness:
-        setStyle(syntax_classname='underline') 
+        setStyle(syntax_classname='underline')
         # To set all values for function names:
-        setStyle(syntax_functionname='#883,bold:no,italic:no') 
+        setStyle(syntax_functionname='#883,bold:no,italic:no')
         # To set line number and indent guides colors
-        setStyle({  'editor.LineNumbers':'fore:#000,back:#777', 
+        setStyle({  'editor.LineNumbers':'fore:#000,back:#777',
                     'editor.indentationGuides':'#f88' })
         
         """
@@ -558,7 +558,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         
         # Give warning for invalid keys
         if invalidKeys:
-            print("Warning, invalid style names given: " + 
+            print("Warning, invalid style names given: " +
                                                     ','.join(invalidKeys))
         
         # Notify that style changed, adopt a lazy approach to make loading
@@ -633,7 +633,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     def gotoLine(self, lineNumber):
         """ gotoLine(lineNumber)
         
-        Move the cursor to the block given by the line number 
+        Move the cursor to the block given by the line number
         (first line is number 1) and show that line.
         
         """
@@ -643,7 +643,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     def gotoBlock(self, blockNumber):
         """ gotoBlock(blockNumber)
         
-        Move the cursor to the block given by the block number 
+        Move the cursor to the block given by the block number
         (first block is number 0) and show that line.
         
         """
@@ -675,7 +675,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         
         Call the given function(cursor) for all blocks in the current selection
         A block is considered to be in the current selection if a part of it is in
-        the current selection 
+        the current selection
         
         The supplied cursor will be located at the beginning of each block. This
         cursor may be modified by the function as required
@@ -701,7 +701,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             # < :if selection end is at beginning of the block, don't include that
             #one, except when the selectionStart is same as selectionEnd
             while editCursor.position()<screenCursor.selectionEnd() or \
-                    editCursor.position()<=screenCursor.selectionStart(): 
+                    editCursor.position()<=screenCursor.selectionStart():
                 #Create a copy of the editCursor and call the user-supplied function
                 editCursorCopy = QtGui.QTextCursor(editCursor)
                 function(editCursorCopy)
@@ -737,7 +737,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             function(QtGui.QTextCursor(cursor))
             
             # Go to the next block (or not if we are done)
-            y = self.cursorRect(cursor).bottom() 
+            y = self.cursorRect(cursor).bottom()
             if y > self.height():
                 break #Reached end of the repaint area
             if not cursor.block().next().isValid():
@@ -763,7 +763,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         
         #Compute the new indentation length, expanding any existing tabs
         indent = len(leadingWhitespace.expandtabs(self.indentWidth()))
-        if self.indentUsingSpaces():            
+        if self.indentUsingSpaces():
             # Determine correction, so we can round to multiples of indentation
             correction = indent % self.indentWidth()
             if correction and amount<0:
@@ -851,7 +851,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     
     def getLeftMargin(self, des=None):
         """ Get the left margin, relative to the given description (which
-        should be the same as given to addLeftMargin). If des is omitted 
+        should be the same as given to addLeftMargin). If des is omitted
         or None, the full left margin is returned.
         """
         margin = 0
@@ -863,7 +863,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     
     
     def updateMargins(self):
-        """ Force the margins to be recalculated and set the viewport 
+        """ Force the margins to be recalculated and set the viewport
         accordingly.
         """
         leftmargin = self.getLeftMargin()

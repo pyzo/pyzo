@@ -5,12 +5,12 @@
 # Yoton is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" 
+"""
 
 The channel classes represent the mechanism for the user to send
 messages into the network and receive messages from it. A channel
-needs a context to function; the context represents a node in the 
-network. 
+needs a context to function; the context represents a node in the
+network.
 
 """
 

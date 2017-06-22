@@ -17,7 +17,7 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import translate
 
 STYLESHEET = """
-QWidget { 
+QWidget {
     background-color: #268bd2;
 }
 QFrame {
@@ -25,7 +25,7 @@ QFrame {
     background-repeat: no-repeat;
     background-position: center;
 }
-QLabel { 
+QLabel {
     color: #222;
     background: #46abf2;
     border-radius:20px;

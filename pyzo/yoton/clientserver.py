@@ -7,14 +7,14 @@
 """ yoton.clientserver.py
 
 Yoton comes with a small framework to setup a request-reply pattern
-using a client-server model (over a non-persistent connection), 
-similar to telnet. This allows one process to easily ask small pieces 
+using a client-server model (over a non-persistent connection),
+similar to telnet. This allows one process to easily ask small pieces
 of information from another process.
 
-To create a server, create a class that inherits from 
+To create a server, create a class that inherits from
 yoton.RequestServer and implement its handle_request() method.
 
-A client process can simply use the yoton.do_request function. 
+A client process can simply use the yoton.do_request function.
 Example: ``yoton.do_request('www.google.com:80', 'GET http/1.1\\r\\n')``
 
 The client server model is implemented using one function and one class:
@@ -23,11 +23,11 @@ yoton.do_request and yoton.RequestServer.
 Details
 -------
 
-The server implements a request/reply pattern by listening at a socket. 
-Similar to telnet, each request is handled using a connection 
-and the socket is closed after the response is send. 
+The server implements a request/reply pattern by listening at a socket.
+Similar to telnet, each request is handled using a connection
+and the socket is closed after the response is send.
 
-The request server can setup to run in the main thread, or can be started 
+The request server can setup to run in the main thread, or can be started
 using its own thread. In the latter case, one can easily create multiple
 servers in a single process, that listen on different ports.
 
@@ -45,22 +45,22 @@ from yoton.core import send_all, recv_all
 class RequestServer(threading.Thread):
     """ RequestServer(address, async=False, verbose=0)
     
-    Setup a simple server that handles requests similar to a telnet server, 
+    Setup a simple server that handles requests similar to a telnet server,
     or asyncore. Starting the server using run() will run the server in
     the calling thread. Starting the server using start() will run the
     server in a separate thread.
     
-    To create a server, subclass this class and re-implement the 
-    handle_request method. It accepts a request and should return a 
+    To create a server, subclass this class and re-implement the
+    handle_request method. It accepts a request and should return a
     reply. This server assumes utf-8 encoded messages.
     
     Parameters
     ----------
     address : str
-        Should be of the shape hostname:port. 
+        Should be of the shape hostname:port.
     async : bool
         If True, handles each incoming connection in a separate thread.
-        This might be advantageous if a the handle_request() method 
+        This might be advantageous if a the handle_request() method
         takes a long time to execute.
     verbose : bool
         If True, print a message each time a connection is accepted.
@@ -68,15 +68,15 @@ class RequestServer(threading.Thread):
     Notes on hostname
     -----------------
     The hostname can be:
-      * The IP address, or the string hostname of this computer. 
-      * 'localhost': the connections is only visible from this computer. 
+      * The IP address, or the string hostname of this computer.
+      * 'localhost': the connections is only visible from this computer.
         Also some low level networking layers are bypassed, which results
         in a faster connection. The other context should also connect to
         'localhost'.
-      * 'publichost': the connection is visible by other computers on the 
-        same network. 
+      * 'publichost': the connection is visible by other computers on the
+        same network.
     
-    """ 
+    """
     
     def __init__(self, address, async=False, verbose=0):
         threading.Thread.__init__(self)
@@ -90,8 +90,8 @@ class RequestServer(threading.Thread):
         # Determine host and port (assume tcp)
         protocol, host, port = split_address(address)
         
-        # Create socket. Apply SO_REUSEADDR when binding, so that a 
-        # improperly closed socket on the same port will not prevent 
+        # Create socket. Apply SO_REUSEADDR when binding, so that a
+        # improperly closed socket on the same port will not prevent
         # us connecting.
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -112,7 +112,7 @@ class RequestServer(threading.Thread):
     def start(self):
         """ start()
         Start the server in a separate thread.
-        """ 
+        """
         self._stop_me = False
         threading.Thread.start(self)
     
@@ -126,7 +126,7 @@ class RequestServer(threading.Thread):
     
     def run(self):
         """ run()
-        The server's main loop. 
+        The server's main loop.
         """
         
         # Get socket instance
@@ -171,8 +171,8 @@ class RequestServer(threading.Thread):
     
     def _handle_connection(self, s):
         """ _handle_connection(s)
-        Handle an incoming connection. 
-        """ 
+        Handle an incoming connection.
+        """
         try:
             self._really_handle_connection(s)
         except Exception:
@@ -183,7 +183,7 @@ class RequestServer(threading.Thread):
     def _really_handle_connection(self, s):
         """ _really_handle_connection(s)
         Really handle an incoming connection.
-        """ 
+        """
         # Get request
         request = recv_all(s, True)
         if request is None:
@@ -211,7 +211,7 @@ class RequestServer(threading.Thread):
         Return a reply, given the request. Overload this method to create
         a server.
         
-        De standard implementation echos the request, waits one second 
+        De standard implementation echos the request, waits one second
         when receiving 'wait' and stop the server when receiving 'stop'.
         
         """
@@ -227,7 +227,7 @@ class RequestServer(threading.Thread):
 
 class SocketHandler(threading.Thread):
     """ SocketHandler(server, s)
-    Simple thread that handles a connection. 
+    Simple thread that handles a connection.
     """
     def __init__(self, server, s):
         threading.Thread.__init__(self)
@@ -250,7 +250,7 @@ def do_request(address, request, timeout=-1):
     Parameters
     ----------
     address : str
-        Should be of the shape hostname:port. 
+        Should be of the shape hostname:port.
     request : string
         The request to make.
     timeout : float
@@ -260,12 +260,12 @@ def do_request(address, request, timeout=-1):
     Notes on hostname
     -----------------
     The hostname can be:
-      * The IP address, or the string hostname of this computer. 
-      * 'localhost': the connections is only visible from this computer. 
+      * The IP address, or the string hostname of this computer.
+      * 'localhost': the connections is only visible from this computer.
         Also some low level networking layers are bypassed, which results
         in a faster connection. The other context should also connect to
         'localhost'.
-      * 'publichost': the connection is visible by other computers on the 
+      * 'publichost': the connection is visible by other computers on the
         same network.
     
     """
@@ -291,7 +291,7 @@ def do_request(address, request, timeout=-1):
     # Send request
     send_all(s, request, True)
     
-    # Receive reply    
+    # Receive reply
     reply = recv_all(s, timeout)
     
     # Close socket

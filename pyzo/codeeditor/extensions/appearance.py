@@ -14,7 +14,7 @@ Qt = QtCore.Qt
 from ..misc import ce_option
 from ..manager import Manager
 
-# todo: what about calling all extensions. CE_HighlightCurrentLine, 
+# todo: what about calling all extensions. CE_HighlightCurrentLine,
 # or EXT_HighlightcurrentLine?
 
 from ..parsers.tokens import ParenthesisToken
@@ -25,7 +25,7 @@ class HighlightMatchingOccurrences(object):
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching occurrences',
                             'The background color to highlight matching occurrences of the currently selected word.',
-                            'back:#fdfda3', 
+                            'back:#fdfda3',
                         ) ]
 
 
@@ -42,7 +42,7 @@ class HighlightMatchingOccurrences(object):
     def setHighlightMatchingOccurrences(self,value):
         """ setHighlightMatchingOccurrences(value)
         
-        Set whether to highlight matching occurrences.  
+        Set whether to highlight matching occurrences.
         
         """
         self.__highlightMatchingOccurrences = bool(value)
@@ -80,7 +80,7 @@ class HighlightMatchingOccurrences(object):
             cursor.setPosition(min(cursor.position(), cursor.anchor()))
             startRect = self.cursorRect(cursor)
             width = endRect.left() - startRect.left()
-            painter.drawRect(startRect.left(), startRect.top(), width, 
+            painter.drawRect(startRect.left(), startRect.top(), width,
                 startRect.height())
                 
             # move to end of word again, otherwise we never advance in the doc
@@ -196,7 +196,7 @@ class HighlightMatchingBracket(object):
     # Register style element
     _styleElements = [  (   'Editor.Highlight matching bracket',
                             'The background color to highlight matching brackets.',
-                            'back:#ccc', 
+                            'back:#ccc',
                         ),
                         (   'Editor.Highlight unmatched bracket',
                             'The background color to highlight unmatched brackets.',
@@ -222,7 +222,7 @@ class HighlightMatchingBracket(object):
     def setHighlightMatchingBracket(self,value):
         """ setHighlightMatchingBracket(value)
         
-        Set whether to highlight matching brackets.  
+        Set whether to highlight matching brackets.
         
         """
         self.__highlightMatchingBracket = bool(value)
@@ -241,7 +241,7 @@ class HighlightMatchingBracket(object):
     def setHighlightMisMatchingBracket(self,value):
         """ setHighlightMisMatchingBracket(value)
         
-        Set whether to highlight mismatching brackets.  
+        Set whether to highlight mismatching brackets.
         
         """
         self.__highlightMisMatchingBracket = bool(value)
@@ -379,7 +379,7 @@ class HighlightCurrentLine(object):
     # Register style element
     _styleElements = [  (   'Editor.Highlight current line',
                             'The background color of the current line highlight.',
-                            'back:#ffff99', 
+                            'back:#ffff99',
                         ) ]
     
     def highlightCurrentLine(self):
@@ -394,7 +394,7 @@ class HighlightCurrentLine(object):
     def setHighlightCurrentLine(self,value):
         """ setHighlightCurrentLine(value)
         
-        Set whether to highlight the current line.  
+        Set whether to highlight the current line.
         
         """
         self.__highlightCurrentLine = bool(value)
@@ -426,7 +426,7 @@ class HighlightCurrentLine(object):
         margin = self.document().documentMargin()
         painter = QtGui.QPainter()
         painter.begin(self.viewport())
-        painter.fillRect(QtCore.QRect(margin, top, 
+        painter.fillRect(QtCore.QRect(margin, top,
             self.viewport().width() - 2*margin, height),
             color)
         painter.end()
@@ -443,13 +443,13 @@ class IndentationGuides(object):
     # Register style element
     _styleElements = [  (   'Editor.Indentation guides',
                             'The color and style of the indentation guides.',
-                            'fore:#DDF,linestyle:solid', 
+                            'fore:#DDF,linestyle:solid',
                         ) ]
     
     def showIndentationGuides(self):
         """ showIndentationGuides()
         
-        Get whether to show indentation guides. 
+        Get whether to show indentation guides.
         
         """
         return self.__showIndentationGuides
@@ -462,7 +462,7 @@ class IndentationGuides(object):
         
         """
         self.__showIndentationGuides = bool(value)
-        self.viewport().update() 
+        self.viewport().update()
     
     
     def paintEvent(self,event):
@@ -470,7 +470,7 @@ class IndentationGuides(object):
         
         Paint the indentation guides, using the indentation info calculated
         by the highlighter.
-        """ 
+        """
         super(IndentationGuides, self).paintEvent(event)
 
         if not self.showIndentationGuides():
@@ -500,9 +500,9 @@ class IndentationGuides(object):
         
         def paintIndentationGuides(cursor):
             y3=self.cursorRect(cursor).top()
-            y4=self.cursorRect(cursor).bottom()            
+            y4=self.cursorRect(cursor).bottom()
             
-            bd = cursor.block().userData()            
+            bd = cursor.block().userData()
             if bd and hasattr(bd, 'indentation') and bd.indentation:
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
                     w = self.fontMetrics().width('i'*x) + offset
@@ -526,7 +526,7 @@ class FullUnderlines(object):
         syntax format that has underline:full. Whether this is the case
         is stored at the blocks user data.
         
-        """ 
+        """
         super(FullUnderlines, self).paintEvent(event)
    
         painter = QtGui.QPainter()
@@ -536,9 +536,9 @@ class FullUnderlines(object):
         w = self.viewport().width()
    
         def paintUnderline(cursor):
-            y = self.cursorRect(cursor).bottom() 
+            y = self.cursorRect(cursor).bottom()
 
-            bd = cursor.block().userData()            
+            bd = cursor.block().userData()
             try:
                 fullUnderlineFormat = bd.fullUnderlineFormat
             except AttributeError:
@@ -550,7 +550,7 @@ class FullUnderlines(object):
                     pen.setStyle(fullUnderlineFormat.linestyle)
                     painter.setPen(pen)
                     # Paint
-                    painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))            
+                    painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
         
         self.doForVisibleBlocks(paintUnderline)
         
@@ -562,7 +562,7 @@ class CodeFolding(object):
     def paintEvent(self,event):
         """ paintEvent(event)
         
-        """ 
+        """
         super(CodeFolding, self).paintEvent(event)
    
         return # Code folding code is not yet complete
@@ -573,17 +573,17 @@ class CodeFolding(object):
         margin = self.document().documentMargin()
         
         def paintCodeFolders(cursor):
-            y = self.cursorRect(cursor).top() 
+            y = self.cursorRect(cursor).top()
             h = self.cursorRect(cursor).height()
             rect = QtCore.QRect(margin, y, h, h)
-            text = cursor.block().text()           
+            text = cursor.block().text()
             if text.rstrip().endswith(':'):
                 painter.drawRect(rect)
                 painter.drawText(rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter, "-")
                 # Apply pen
                 
                 # Paint
-                #painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))            
+                #painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
             
         self.doForVisibleBlocks(paintCodeFolders)
         
@@ -596,7 +596,7 @@ class LongLineIndicator(object):
     # Register style element
     _styleElements = [  (   'Editor.Long line indicator',
                             'The color and style of the long line indicator.',
-                            'fore:#BBB,linestyle:solid', 
+                            'fore:#BBB,linestyle:solid',
                         ) ]
     
     def longLineIndicatorPosition(self):
@@ -615,16 +615,16 @@ class LongLineIndicator(object):
         Set the position of the long line indicator (aka edge column).
         A value of 0 or smaller means that no indicator is shown.
         
-        """ 
+        """
         self.__longLineIndicatorPosition = int(value)
         self.viewport().update()
     
     
-    def paintEvent(self, event):    
+    def paintEvent(self, event):
         """ paintEvent(event)
         
         Paint the long line indicator. Paints behind its super()
-        """    
+        """
         if self.longLineIndicatorPosition()<=0:
             super(LongLineIndicator, self).paintEvent(event)
             return
@@ -682,7 +682,7 @@ class ShowLineEndings(object):
     
     @ce_option(False)
     def showLineEndings(self):
-        """ Get whether line ending markers are shown. 
+        """ Get whether line ending markers are shown.
         """
         option=self.document().defaultTextOption()
         return bool(option.flags() & option.ShowLineAndParagraphSeparators)
@@ -706,7 +706,7 @@ class LineNumbers(object):
     # Register style element
     _styleElements = [  (   'Editor.Line numbers',
                             'The text- and background-color of the line numbers.',
-                            'fore:#222,back:#DDD', 
+                            'fore:#222,back:#DDD',
                         ) ]
     
     class __LineNumberArea(QtWidgets.QWidget):
@@ -791,11 +791,11 @@ class LineNumbers(object):
             y1, y2 = 0, editor.height()
             #y1, y2 = event.rect().top()-10, event.rect().bottom()+10
     
-            # Get offset        
+            # Get offset
             tmp = self.mapToGlobal(QtCore.QPoint(0,0))
             offset = viewport.mapFromGlobal(tmp).y()
             
-            #Draw the background        
+            #Draw the background
             painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
             
             # Get cursor
@@ -925,14 +925,14 @@ class LineNumbers(object):
         """
         if not self.__showLineNumbers:
             return 0
-        lastLineNumber = self.blockCount() 
+        lastLineNumber = self.blockCount()
         margin = self._LineNumberAreaMargin
         return self.fontMetrics().width(str(lastLineNumber)) + 2*margin
     
     
     def __onBlockCountChanged(self,count = None):
         """
-        Update the line number area width. This requires to set the 
+        Update the line number area width. This requires to set the
         viewport margins, so there is space to draw the linenumber area
         """
         if self.__showLineNumbers:
@@ -964,7 +964,7 @@ class BreakPoints(object):
     # Register style element
     _styleElements = [  (   'Editor.BreakPoints',
                             'The fore- and background-color of the breakpoints.',
-                            'fore:#F66,back:#dfdfe1', 
+                            'fore:#F66,back:#dfdfe1',
                         ) ]
     
     class __BreakPointArea(QtWidgets.QWidget):
@@ -1022,14 +1022,14 @@ class BreakPoints(object):
             # Get which part to paint. Just do all to avoid glitches
             y1, y2 = 0, editor.height()
             
-            #Draw the background        
+            #Draw the background
             painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
             
             # Get debug indicator and list of sorted breakpoints
             debugBlockIndicator = editor._debugLineIndicator-1
             virtualBreakpoint = self._virtualBreakpoint-1
             blocknumbers = [i-1 for i in sorted(self.parent()._breakPoints)]
-            if not (blocknumbers or 
+            if not (blocknumbers or
                     editor._debugLineIndicator or
                     editor._debugLineIndicators or
                     virtualBreakpoint > 0):
@@ -1246,7 +1246,7 @@ class Wrap(object):
         self.document().setDefaultTextOption(option)
 
 
-# todo: move this bit to base class? 
+# todo: move this bit to base class?
 # This functionality embedded in the highlighter and even has a designated
 # subpackage. I feel that it should be a part of the base editor.
 # Note: if we do this, remove the hasattr call in the highlighter.
@@ -1273,12 +1273,12 @@ class SyntaxHighlighting(object):
     """
     
     # Register all syntax style elements
-    _styleElements = Manager.getStyleElementDescriptionsForAllParsers() 
+    _styleElements = Manager.getStyleElementDescriptionsForAllParsers()
     
     def parser(self):
         """ parser()
         
-        Get the parser instance currently in use to parse the code for 
+        Get the parser instance currently in use to parse the code for
         syntax highlighting and source structure. Can be None.
         
         """

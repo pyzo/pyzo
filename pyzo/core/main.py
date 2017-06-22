@@ -36,7 +36,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Init window title and application icon
         # Set title to something nice. On Ubuntu 12.10 this text is what
-        # is being shown at the fancy title bar (since it's not properly 
+        # is being shown at the fancy title bar (since it's not properly
         # updated)
         self.setMainTitle()
         loadAppIcons()
@@ -135,7 +135,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self._ispainted = False
         self.update()
-        while not self._ispainted:   
+        while not self._ispainted:
             QtWidgets.qApp.flush()
             QtWidgets.qApp.processEvents()
             time.sleep(0.01)
@@ -202,7 +202,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if pyzo.config.state.newUser and not pyzo.config.state.loadedTools:
             pyzo.toolManager.loadTool('pyzosourcestructure')
             pyzo.toolManager.loadTool('pyzofilebrowser', 'pyzosourcestructure')
-        elif pyzo.config.state.loadedTools: 
+        elif pyzo.config.state.loadedTools:
             for toolId in pyzo.config.state.loadedTools:
                 pyzo.toolManager.loadTool(toolId)
     
@@ -232,7 +232,7 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def saveWindowState(self):
         """ Save:
-            * which tools are loaded 
+            * which tools are loaded
             * geometry of the top level windows
             * layout of dockwidgets and toolbars
         """
@@ -271,7 +271,7 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 geometry = pyzo.config.state.windowGeometry
                 geometry = base64.decodebytes(geometry.encode('ascii'))
-                self.restoreGeometry(geometry)  
+                self.restoreGeometry(geometry)
             except Exception as err:
                 print('Could not restore window geomerty: ' + str(err))
     
@@ -320,7 +320,7 @@ class MainWindow(QtWidgets.QMainWindow):
             
             # Set style if there is no style yet
             if not pyzo.config.view.qtstyle:
-                pyzo.config.view.qtstyle = pyzo.defaultQtStyleName 
+                pyzo.config.view.qtstyle = pyzo.defaultQtStyleName
         
         # Init
         if not stylename:
@@ -372,7 +372,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Close tools
         for toolname in pyzo.toolManager.getLoadedTools():
-            tool = pyzo.toolManager.getTool(toolname) 
+            tool = pyzo.toolManager.getTool(toolname)
             tool.close()
         
         # Stop all threads (this should really only be daemon threads)
@@ -384,7 +384,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 except Exception:
                     pass
         
-#         # Wait for threads to die ... 
+#         # Wait for threads to die ...
 #         # This should not be necessary, but I used it in the hope that it
 #         # would prevent the segfault on Python3.3. It didn't.
 #         timeout = time.time() + 0.5
@@ -501,7 +501,7 @@ def loadIcons():
                 name = name.replace('pyzo_', '')  # discart prefix
                 ffname = os.path.join(iconDir,fname)
                 # Create icon
-                icon = QtGui.QIcon() 
+                icon = QtGui.QIcon()
                 icon.addFile(ffname, QtCore.QSize(16,16))
                 # Store
                 pyzo.icons[name] = icon
@@ -536,7 +536,7 @@ def loadFonts():
 
 
 class _CallbackEventHandler(QtCore.QObject):
-    """ Helper class to provide the callLater function. 
+    """ Helper class to provide the callLater function.
     """
     
     def __init__(self):
@@ -560,12 +560,12 @@ class _CallbackEventHandler(QtCore.QObject):
 
 def callLater(callback, *args):
     """ callLater(callback, *args)
-    Post a callback to be called in the main thread. 
+    Post a callback to be called in the main thread.
     """
     _callbackEventHandler.postEventWithCallback(callback, *args)
     
 # Create callback event handler instance and insert function in pyzo namespace
-_callbackEventHandler = _CallbackEventHandler()   
+_callbackEventHandler = _CallbackEventHandler()
 pyzo.callLater = callLater
 
 
@@ -583,7 +583,7 @@ class Groceries(list):
     \"\"\" Overloaded list class.
     \"\"\"
     def append_defaults(self):
-        spam = 'yum'  
+        spam = 'yum'
         pie = 3.14159
         self.extend([spam, pie])
 

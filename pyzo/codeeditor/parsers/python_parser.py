@@ -10,7 +10,7 @@ from .tokens import ALPHANUM
 from ..misc import ustr
 
 # Import tokens in module namespace
-from .tokens import (CommentToken, StringToken, 
+from .tokens import (CommentToken, StringToken,
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
     KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
     TodoCommentToken, OpenParenToken, CloseParenToken)
@@ -18,19 +18,19 @@ from .tokens import (CommentToken, StringToken,
 # Keywords sets
 
 # Source: import keyword; keyword.kwlist (Python 2.6.6)
-python2Keywords = set(['and', 'as', 'assert', 'break', 'class', 'continue', 
-        'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 
-        'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 
+python2Keywords = set(['and', 'as', 'assert', 'break', 'class', 'continue',
+        'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for',
+        'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or',
         'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield'])
 
 # Source: import keyword; keyword.kwlist (Python 3.1.2)
-python3Keywords = set(['False', 'None', 'True', 'and', 'as', 'assert', 'break', 
-        'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 
-        'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 
-        'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 
+python3Keywords = set(['False', 'None', 'True', 'and', 'as', 'assert', 'break',
+        'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+        'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda',
+        'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while',
         'with', 'yield'])
 
-# Merge the two sets to get a general Python keyword list        
+# Merge the two sets to get a general Python keyword list
 pythonKeywords = python2Keywords | python3Keywords
 
 
@@ -57,7 +57,7 @@ tokenProg = re.compile(
     ')|' +						# End of string group
     '(\(|\[|\{)|' +             # Opening parenthesis (gr 5)
     '(\)|\]|\})'                # Closing parenthesis (gr 6)
-    )	
+    )
 
 
 #For a given type of string ( ', " , ''' , """ ),get  the RegExp
@@ -78,7 +78,7 @@ class PythonParser(Parser):
     """
     _extensions = ['.py' , '.pyw']
     #The list of keywords is overridden by the Python2/3 specific parsers
-    _keywords = pythonKeywords 
+    _keywords = pythonKeywords
     
     
     def _identifierState(self, identifier=None):
@@ -120,7 +120,7 @@ class PythonParser(Parser):
         previousstate is the state of the previous block, and is used
         to handle line continuation and multiline strings.
         
-        """ 
+        """
         line = text_type(line)
         
         # Init
@@ -135,7 +135,7 @@ class PythonParser(Parser):
         
         #Handle line continuation after def or class
         #identifierState is 3 or 4 if the previous identifier was 3 or 4
-        if previousState == 3 or previousState == 4: 
+        if previousState == 3 or previousState == 4:
             self._identifierState({3:'def',4:'class'}[previousState])
         else:
             self._identifierState(None)
@@ -148,7 +148,7 @@ class PythonParser(Parser):
             for token in tokens:
                 yield token
                 if isinstance(token, BlockState):
-                    return 
+                    return
             pos = token.end
         
         
@@ -167,14 +167,14 @@ class PythonParser(Parser):
             for token in tokens:
                 yield token
                 if isinstance(token, BlockState):
-                    return 
+                    return
             pos = token.end
     
     
     def _findEndOfString(self, line, token):
         """ _findEndOfString(line, token)
         
-        Find the end of a string. Returns (token, endToken). The first 
+        Find the end of a string. Returns (token, endToken). The first
         is the given token or a replacement (UnterminatedStringToken).
         The latter is None, or the BlockState. If given, the line is
         finished.
@@ -223,7 +223,7 @@ class PythonParser(Parser):
         # Find the start of the next string or comment
         match = tokenProg.search(line, pos)
         
-        # Process the Non-Identifier between pos and match.start() 
+        # Process the Non-Identifier between pos and match.start()
         # or end of line
         nonIdentifierEnd = match.start() if match else len(line)
         
@@ -261,8 +261,8 @@ class PythonParser(Parser):
         if match.group() == '#':
             matchStart = match.start()
             if not line[:matchStart].strip() and (
-                   line[matchStart:].startswith('##') or 
-                   line[matchStart:].startswith('#%%') or 
+                   line[matchStart:].startswith('##') or
+                   line[matchStart:].startswith('#%%') or
                    line[matchStart:].startswith('# %%')):
                 tokens.append( CellCommentToken(line,matchStart,len(line)) )
             elif self._isTodoItem(line[matchStart+1:]):
@@ -284,7 +284,7 @@ class PythonParser(Parser):
             identifier = match.group(1)
             tokenArgs = line, match.start(), match.end()
             
-            # Set identifier state 
+            # Set identifier state
             identifierState = self._identifierState(identifier)
             
             if identifier in self._keywords:
@@ -313,7 +313,7 @@ class PythonParser(Parser):
             tokens.append(token)
         elif match.group(6) is not None :
             token = CloseParenToken(line, match.start(), match.end())
-            token._style = match.group(6) 
+            token._style = match.group(6)
             tokens.append(token)
         # Done
         return tokens

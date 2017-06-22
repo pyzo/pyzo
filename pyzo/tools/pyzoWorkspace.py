@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 
-import pyzo 
+import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 tool_name = "Workspace"
@@ -14,18 +14,18 @@ tool_summary = "Lists the variables in the current shell's namespace."
 
 
 def splitName(name):
-    """ splitName(name)    
+    """ splitName(name)
     Split an object name in parts, taking dots and indexing into account.
-    """    
+    """
     name = name.replace('[', '.[')
     parts = name.split('.')
     return [p for p in parts if p]
 
 
 def joinName(parts):
-    """ joinName(parts)    
+    """ joinName(parts)
     Join the parts of an object name, taking dots and indexing into account.
-    """    
+    """
     name = '.'.join(parts)
     return name.replace('.[', '[')
 
@@ -69,8 +69,8 @@ class WorkspaceProxy(QtCore.QObject):
     
     
     def setName(self, name):
-        """ setName(name)        
-        Set the name that we want to know more of. 
+        """ setName(name)
+        Set the name that we want to know more of.
         """
         self._name = name
         
@@ -82,7 +82,7 @@ class WorkspaceProxy(QtCore.QObject):
     
     def goUp(self):
         """ goUp()
-        Cut the last part off the name. 
+        Cut the last part off the name.
         """
         parts = splitName(self._name)
         if parts:
@@ -93,7 +93,7 @@ class WorkspaceProxy(QtCore.QObject):
     def onCurrentShellChanged(self):
         """ onCurrentShellChanged()
         When no shell is selected now, update this. In all other cases,
-        the onCurrentShellStateChange will be fired too. 
+        the onCurrentShellStateChange will be fired too.
         """
         shell = pyzo.shells.getCurrentShell()
         if not shell:
@@ -103,8 +103,8 @@ class WorkspaceProxy(QtCore.QObject):
     
     def onCurrentShellStateChanged(self):
         """ onCurrentShellStateChanged()
-        Do a request for information! 
-        """ 
+        Do a request for information!
+        """
         shell = pyzo.shells.getCurrentShell()
         if not shell:
             # Should never happen I think, but just to be sure
@@ -147,11 +147,11 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
     """ WorkspaceTree
     
     The tree that displays the items in the current namespace.
-    I first thought about implementing this using the mode/view 
-    framework, but it is so much work and I can't seem to fully 
+    I first thought about implementing this using the mode/view
+    framework, but it is so much work and I can't seem to fully
     understand how it works :(
     
-    The QTreeWidget is so very simple and enables sorting very 
+    The QTreeWidget is so very simple and enables sorting very
     easily, so I'll stick with that ...
     
     """
@@ -187,7 +187,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
     
     def contextMenuEvent(self, event):
         """ contextMenuEvent(event)
-        Show the context menu. 
+        Show the context menu.
         """
         
         QtWidgets.QTreeView.contextMenuEvent(self, event)
@@ -306,7 +306,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in
         # config.tools before the tool is instantiated.
-        toolId = self.__class__.__name__.lower()        
+        toolId = self.__class__.__name__.lower()
         self._config = pyzo.config.tools[toolId]
         if not hasattr(self._config, 'hideTypes'):
             self._config.hideTypes = []

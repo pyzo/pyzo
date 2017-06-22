@@ -19,7 +19,7 @@ Config
 
 The config consists of three fields:
 
-  * list expandedDirs, with each element a directory 
+  * list expandedDirs, with each element a directory
   * list starredDirs, with each element a dict with fields:
       * str path, the directory that is starred
       * str name, the name of the project (op.basename(path) by default)
@@ -34,7 +34,7 @@ The config consists of three fields:
   * see easily which files are opened (so it can be used as a secondary tab bar)
   * make visible the "current file" (if applicable)
   * single click on an file that is open selects it in the editor?
-  * context menu items to run scripts  
+  * context menu items to run scripts
   * Support for multiple browsers.
   
 """
@@ -73,8 +73,8 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         if 'path' not in self.config or not isdir(self.config.path):
             self.config.path = op.expanduser('~')
         
-        # Check expandedDirs and starredDirs. 
-        # Make path objects and remove invalid dirs. Also normalize case, 
+        # Check expandedDirs and starredDirs.
+        # Make path objects and remove invalid dirs. Also normalize case,
         # should not be necessary, but maybe the config was manually edited.
         expandedDirs, starredDirs = [], []
         for d in self.config.starredDirs:

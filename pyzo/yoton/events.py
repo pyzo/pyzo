@@ -8,7 +8,7 @@
 # signals system of Qt.
 
 # Note: Python has a buildin module (sched) that does some of the things
-# here. Hoever, only since Python3.3 is this buildin functionality 
+# here. Hoever, only since Python3.3 is this buildin functionality
 # thread safe. And we need thread safety!
 
 """ Module yoton.events
@@ -16,7 +16,7 @@
 Yoton comes with a simple event system to enable event-driven applications.
 
 All channels are capable of running without the event system, but some
-channels have limitations. See the documentation of the channels for 
+channels have limitations. See the documentation of the channels for
 more information. Note that signals only work if events are processed.
 
 """
@@ -52,7 +52,7 @@ class CallableObject(object):
             # Method, store object and method name
             self._ob = weakref.ref(c.__self__)
             self._func = c.__func__.__name__
-        elif hasattr(c, 'im_self'): 
+        elif hasattr(c, 'im_self'):
             # Method in older Python
             self._ob = weakref.ref(c.im_self)
             self._func = c.im_func.__name__
@@ -62,7 +62,7 @@ class CallableObject(object):
             self._ob = None
     
     def isdead(self):
-        """ Get whether the weak ref is dead. 
+        """ Get whether the weak ref is dead.
         """
         if self._ob:
             # Method
@@ -117,7 +117,7 @@ class Event(object):
     Instances of this class populate the event queue.
     
     """
-    __slots__ = ['_callable', '_args', '_kwargs', '_timeout'] 
+    __slots__ = ['_callable', '_args', '_kwargs', '_timeout']
     def __init__(self, callable, *args, **kwargs):
         if isinstance(callable, CallableObject):
             self._callable = callable
@@ -134,7 +134,7 @@ class Event(object):
         self._callable.call(*self._args, **self._kwargs)
     
     def _on_timeout(self):
-        """ This is what theTimerThread calls. 
+        """ This is what theTimerThread calls.
         """
         app.post_event(self)
 
@@ -143,14 +143,14 @@ class Event(object):
 class Signal:
     """ Signal()
     
-    The purpose of a signal is to provide an interface to bind/unbind 
-    to events and to fire them. 
+    The purpose of a signal is to provide an interface to bind/unbind
+    to events and to fire them.
     
     One can bind() or unbind() a callable to the signal. When emitted, an
     event is created for each bound handler. Therefore, the event loop
     must run for signals to work.
     
-    Some signals call the handlers using additional arguments to 
+    Some signals call the handlers using additional arguments to
     specify specific information.
     
     """
@@ -160,7 +160,7 @@ class Signal:
     
     @property
     def type(self):
-        """ The type (__class__) of this event. 
+        """ The type (__class__) of this event.
         """
         return self.__class__
     
@@ -168,10 +168,10 @@ class Signal:
     def bind(self, func):
         """ bind(func)
         
-        Add an eventhandler to this event.             
+        Add an eventhandler to this event.
         
         The callback/handler (func) must be a callable. It is called
-        with one argument: the event instance, which can contain 
+        with one argument: the event instance, which can contain
         additional information about the event.
         
         """
@@ -192,7 +192,7 @@ class Signal:
     def unbind(self, func=None):
         """ unbind(func=None)
         
-        Unsubscribe a handler, If func is None, remove all handlers.  
+        Unsubscribe a handler, If func is None, remove all handlers.
         
         """
         if func is None:
@@ -201,7 +201,7 @@ class Signal:
             cref = CallableObject(func)
             for c in [c for c in self._handlers]:
                 # remove if callable matches func or object is destroyed
-                if c.compare(cref) or c.isdead():  
+                if c.compare(cref) or c.isdead():
                     self._handlers.remove( c )
     
     
@@ -280,8 +280,8 @@ class TheTimerThread(threading.Thread):
     def add(self, timer):
         """ add(timer)
         Add item to the list of objects to track. The object should
-        have a _timeout attribute, representing the time.time() at which 
-        it runs out, and an _on_timeout() method to call when it does. 
+        have a _timeout attribute, representing the time.time() at which
+        it runs out, and an _on_timeout() method to call when it does.
         """
         # Check
         if not (hasattr(timer, '_timeout') and hasattr(timer, '_on_timeout')):
@@ -298,7 +298,7 @@ class TheTimerThread(threading.Thread):
             self._condition.release()
     
     def _sort(self):
-        self._timers = sorted(self._timers, 
+        self._timers = sorted(self._timers,
                 key=lambda x: x._timeout, reverse=True)
     
     def discard(self, timer):
@@ -354,10 +354,10 @@ theTimerThread.start()
 
 
 class Timer(Signal):
-    """ Timer(interval=1.0, oneshot=True) 
+    """ Timer(interval=1.0, oneshot=True)
     
-    Timer class. You can bind callbacks to the timer. The timer is 
-    fired when it runs out of time. 
+    Timer class. You can bind callbacks to the timer. The timer is
+    fired when it runs out of time.
     
     Parameters
     ----------
@@ -371,7 +371,7 @@ class Timer(Signal):
     def __init__(self, interval=1.0, oneshot=True):
         Signal.__init__(self)
         
-        # store Timer specific properties        
+        # store Timer specific properties
         self.interval = interval
         self.oneshot = oneshot
         #
@@ -407,7 +407,7 @@ class Timer(Signal):
     
     @property
     def running(self):
-        """ Get whether the timer is running. 
+        """ Get whether the timer is running.
         """
         return self._timeout > 0
     
@@ -415,7 +415,7 @@ class Timer(Signal):
     def start(self, interval=None, oneshot=None):
         """ start(interval=None, oneshot=None)
         
-        Start the timer. If interval or oneshot are not given, 
+        Start the timer. If interval or oneshot are not given,
         their current values are used.
         
         """
@@ -433,7 +433,7 @@ class Timer(Signal):
     def stop(self):
         """ stop()
         
-        Stop the timer from running. 
+        Stop the timer from running.
         
         """
         theTimerThread.discard(self)
@@ -441,7 +441,7 @@ class Timer(Signal):
     
     
     def _on_timeout(self):
-        """ Method to call when the timer finishes. Called from 
+        """ Method to call when the timer finishes. Called from
         event-loop-thread.
         """
         
@@ -466,7 +466,7 @@ class YotonApplication(object):
     
     Represents the yoton application and contains functions for
     the event system. Multiple instances can be created, they will
-    all operate on the same event queue and share attributes 
+    all operate on the same event queue and share attributes
     (because these are on the class, not on the instance).
     
     One instance of this class is always accesible via yoton.app.
@@ -563,11 +563,11 @@ class YotonApplication(object):
     def process_events(self, block=False):
         """ process_events(block=False)
         
-        Process all yoton events currently in the queue. 
+        Process all yoton events currently in the queue.
         This function should be called periodically
         in order to keep the yoton event system running.
         
-        block can be False (no blocking), True (block), or a float 
+        block can be False (no blocking), True (block), or a float
         blocking for maximally 'block' seconds.
         
         """
@@ -633,7 +633,7 @@ class YotonApplication(object):
         lead to a call to the process_events() method. The given callback
         should be thread safe.
         
-        Use None as an argument to disable the embedding. 
+        Use None as an argument to disable the embedding.
         
         """
         YotonApplication._embedding_callback1 = callback

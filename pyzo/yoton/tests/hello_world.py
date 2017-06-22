@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This example illustrates a simple pub/sub pattern.
-# This example can be run in one go or in two parts running in 
+# This example can be run in one go or in two parts running in
 # different processes.
 
 ## ========== One end

@@ -48,7 +48,7 @@ print(sub1.recv())
 ct4 = yoton.Context()
 sub2 = yoton.StateChannel(ct4, 'state A')
 
-# Connect 
+# Connect
 ct2.bind('localhost:test3')
 ct4.connect('localhost:test3')
 

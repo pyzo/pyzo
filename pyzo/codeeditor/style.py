@@ -8,11 +8,11 @@
 
 Provides basic functionaliy for styling.
 
-Styling is done using a dictionary of StyleFormat instances. Each 
-such instance reprsents a certain element being styled (e.g. keywords, 
-line numbers, indentation guides). 
+Styling is done using a dictionary of StyleFormat instances. Each
+such instance reprsents a certain element being styled (e.g. keywords,
+line numbers, indentation guides).
 
-All possible style elements are represented using StyleElementDescription 
+All possible style elements are represented using StyleElementDescription
 instances. These have a name, description and default format, which
 makes it easy to build a UI to allow the user to change the syle.
 
@@ -60,11 +60,11 @@ class StyleFormat:
     """ StyleFormat(format='')
     
     Represents the style format for a specific style element.
-    A "style" is a dictionary that maps names (of style elements) 
+    A "style" is a dictionary that maps names (of style elements)
     to StyleFormat instances.
     
     The given format can be a string or another StyleFormat instance.
-    Style formats can be combined using their update() method. 
+    Style formats can be combined using their update() method.
     
     A style format consists of multiple parts, where each "part" consists
     of a key and a value. The keys can be anything, depending
@@ -82,15 +82,15 @@ class StyleFormat:
       * linestyle: (int) what line style to use (e.g. for indent guides)
       * textCharFOrmat: (QTextCharFormat) for the syntax styles
     
-    The format neglects spaces and case. Parts are separated by commas 
+    The format neglects spaces and case. Parts are separated by commas
     or semicolons. If only a key is given it's value is interpreted
-    as 'yes'. If only a color is given, its key is interpreted as 'fore' 
+    as 'yes'. If only a color is given, its key is interpreted as 'fore'
     and back. Colors should be given using the '#' hex formatting.
     
     An example format string: 'fore:#334, bold, underline:dotLine'
     
-    By calling str(styleFormatInstance) the string representing of the 
-    format can be obtained. By iterating over the instance, a series 
+    By calling str(styleFormatInstance) the string representing of the
+    format can be obtained. By iterating over the instance, a series
     of key-value pairs is obtained.
     
     """
@@ -111,7 +111,7 @@ class StyleFormat:
     
     
     def __str__(self):
-        """ Get a (cleaned up) string representation of this style format. 
+        """ Get a (cleaned up) string representation of this style format.
         """
         parts = []
         for key in self._parts:
@@ -220,9 +220,9 @@ class StyleFormat:
             val = self._getValueSafe('underline')
             if val in ['yes', 'true']:
                 self._underline = QtGui.QTextCharFormat.SingleUnderline
-            elif val in ['dotted', 'dots', 'dotline']: 
+            elif val in ['dotted', 'dots', 'dotline']:
                 self._underline = QtGui.QTextCharFormat.DotLine
-            elif val in ['wave']: 
+            elif val in ['wave']:
                 self._underline = QtGui.QTextCharFormat.WaveUnderline
             else:
                 self._underline = QtGui.QTextCharFormat.NoUnderline
@@ -234,9 +234,9 @@ class StyleFormat:
             val = self._getValueSafe('linestyle')
             if val in ['yes', 'true']:
                 self._linestyle = Qt.SolidLine
-            elif val in ['dotted', 'dot', 'dots', 'dotline']: 
+            elif val in ['dotted', 'dot', 'dots', 'dotline']:
                 self._linestyle = Qt.DotLine
-            elif val in ['dashed', 'dash', 'dashes', 'dashline']: 
+            elif val in ['dashed', 'dash', 'dashes', 'dashline']:
                 self._linestyle = Qt.DashLine
             else:
                 self._linestyle = Qt.SolidLine # default to solid

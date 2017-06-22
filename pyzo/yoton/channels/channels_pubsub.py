@@ -24,8 +24,8 @@ class PubChannel(BaseChannel):
     """ PubChannel(context, slot_base, message_type=yoton.TEXT)
     
     The publish part of the publish/subscribe messaging pattern.
-    Sent messages are received by all yoton.SubChannel instances with 
-    the same slot. 
+    Sent messages are received by all yoton.SubChannel instances with
+    the same slot.
     
     There are no limitations for this channel if events are not processed.
     
@@ -38,9 +38,9 @@ class PubChannel(BaseChannel):
         message type and messaging pattern to create the final slot name.
         The final slot is used to connect channels at different contexts
         in a network
-    message_type : yoton.MessageType instance 
+    message_type : yoton.MessageType instance
         (default is yoton.TEXT)
-        Object to convert messages to bytes and bytes to messages. 
+        Object to convert messages to bytes and bytes to messages.
         Users can create their own message_type class to let channels
         any type of message they want.
     
@@ -58,10 +58,10 @@ class PubChannel(BaseChannel):
     def send(self, message):
         """ send(message)
         
-        Send a message over the channel. What is send as one 
+        Send a message over the channel. What is send as one
         message will also be received as one message.
         
-        The message is queued and delivered to all corresponding 
+        The message is queued and delivered to all corresponding
         SubChannels (i.e. with the same slot) in the network.
         
         """
@@ -98,15 +98,15 @@ class SubChannel(BaseChannel):
     """ SubChannel(context, slot_base, message_type=yoton.TEXT)
     
     The subscribe part of the publish/subscribe messaging pattern.
-    Received messages were sent by a yoton.PubChannel instance at the 
-    same slot. 
+    Received messages were sent by a yoton.PubChannel instance at the
+    same slot.
     
-    This channel can be used as an iterator, which yields all pending 
+    This channel can be used as an iterator, which yields all pending
     messages. The function yoton.select_sub_channel can
-    be used to synchronize multiple SubChannel instances. 
+    be used to synchronize multiple SubChannel instances.
     
-    If no events being processed this channel works as normal, except 
-    that the received signal will not be emitted, and sync mode will 
+    If no events being processed this channel works as normal, except
+    that the received signal will not be emitted, and sync mode will
     not work.
     
     Parameters
@@ -118,9 +118,9 @@ class SubChannel(BaseChannel):
         message type and messaging pattern to create the final slot name.
         The final slot is used to connect channels at different contexts
         in a network
-    message_type : yoton.MessageType instance 
+    message_type : yoton.MessageType instance
         (default is yoton.TEXT)
-        Object to convert messages to bytes and bytes to messages. 
+        Object to convert messages to bytes and bytes to messages.
         Users can create their own message_type class to let channels
         any type of message they want.
     
@@ -170,13 +170,13 @@ class SubChannel(BaseChannel):
     def set_sync_mode(self, value):
         """ set_sync_mode(value)
         
-        Set or unset the SubChannel in sync mode. When in sync mode, all 
-        channels that send messages to this channel are blocked if 
+        Set or unset the SubChannel in sync mode. When in sync mode, all
+        channels that send messages to this channel are blocked if
         the queue for this SubChannel reaches a certain size.
         
         This feature can be used to limit the rate of senders if the consumer
         (i.e. the one that calls recv()) cannot keep up with processing
-        the data. 
+        the data.
         
         This feature requires the yoton event loop to run at the side
         of the SubChannel (not necessary for the yoton.PubChannel side).
@@ -217,8 +217,8 @@ class SubChannel(BaseChannel):
     def _check_queue_status(self, dummy=None):
         """ _check_queue_status()
         
-        Check the queue status. Returns immediately unless this receiving 
-        channel runs in sync mode. 
+        Check the queue status. Returns immediately unless this receiving
+        channel runs in sync mode.
         
         If the queue is above a certain size, will send out a package that
         will make the sending side block. If the queue is below a certain
@@ -254,10 +254,10 @@ class SubChannel(BaseChannel):
     def recv(self, block=True):
         """ recv(block=True)
         
-        Receive a message from the channel. What was send as one 
+        Receive a message from the channel. What was send as one
         message is also received as one message.
         
-        If block is False, returns empty message if no data is available. 
+        If block is False, returns empty message if no data is available.
         If block is True, waits forever until data is available.
         If block is an int or float, waits that many seconds.
         If the channel is closed, returns empty message.
@@ -296,14 +296,14 @@ class SubChannel(BaseChannel):
     def recv_selected(self):
         """ recv_selected()
         
-        Receive a list of messages. Use only after calling 
+        Receive a list of messages. Use only after calling
         yoton.select_sub_channel with this channel as one of the arguments.
         
         The returned messages are all received before the first pending
         message in the other SUB-channels given to select_sub_channel.
         
         The combination of this method and the function select_sub_channel
-        enables users to combine multiple SUB-channels in a way that 
+        enables users to combine multiple SUB-channels in a way that
         preserves the original order of the messages.
         
         """
@@ -344,9 +344,9 @@ class SubChannel(BaseChannel):
         """
         
         # Check queue status, maybe we need to block the sender
-        self._check_queue_status() 
+        self._check_queue_status()
         
-        # Peek         
+        # Peek
         try:
             q = self._q_in
             return q.peek(0)._recv_seq, q.peek(-1)._recv_seq + 1
@@ -358,8 +358,8 @@ class SubChannel(BaseChannel):
 def select_sub_channel(*args):
     """ select_sub_channel(channel1, channel2, ...)
     
-    Returns the channel that has the oldest pending message of all 
-    given yoton.SubCannel instances. Returns None if there are no pending 
+    Returns the channel that has the oldest pending message of all
+    given yoton.SubCannel instances. Returns None if there are no pending
     messages.
     
     This function can be used to read from SubCannels instances in the
@@ -376,7 +376,7 @@ def select_sub_channel(*args):
     smallest_seq2 = 99999999999999999999999999
     first_channel = None
     
-    # For each channel ...    
+    # For each channel ...
     for channel in args:
         
         # Check if channel is of right type

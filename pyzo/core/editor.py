@@ -44,13 +44,13 @@ def determineEncoding(bb):
     firstTwoLines = bb.split(b'\n', 2)[:2]
     encoding = 'UTF-8'
     
-    for line in firstTwoLines:        
+    for line in firstTwoLines:
         
         # Try to make line a string
         try:
             line = line.decode('ASCII').strip()
         except Exception:
-            continue 
+            continue
         
         # Has comment?
         if line and line[0] == '#':
@@ -78,7 +78,7 @@ def determineLineEnding(text):
     """ Get the line ending style used in the text.
     \n, \r, \r\n,
     The EOLmode is determined by counting the occurrences of each
-    line ending...    
+    line ending...
     """
     # test line ending by counting the occurrence of each
     c_win = text.count("\r\n")
@@ -87,7 +87,7 @@ def determineLineEnding(text):
     # set the appropriate style
     if c_win > c_mac and c_win > c_lin:
         mode = '\r\n'
-    elif c_mac > c_win and c_mac > c_lin:            
+    elif c_mac > c_win and c_mac > c_lin:
         mode = '\r'
     else:
         mode = '\n'
@@ -98,7 +98,7 @@ def determineLineEnding(text):
 
 def determineIndentation(text):
     """ Get the indentation used in this document.
-    The text is analyzed to find the most used 
+    The text is analyzed to find the most used
     indentations.
     The result is -1 if tab indents are most common.
     A positive result means spaces are used; the amount
@@ -107,7 +107,7 @@ def determineIndentation(text):
     """
     
     # create dictionary of indents, -1 means a tab
-    indents = {}   
+    indents = {}
     indents[-1] = 0
     
     lines = text.splitlines()
@@ -121,10 +121,10 @@ def determineIndentation(text):
         line = tmp.rstrip()
         
         if line.startswith('#'):
-            continue        
+            continue
         else:
             # remove everything after the #
-            line = line.split("#",1)[0].rstrip()        
+            line = line.split("#",1)[0].rstrip()
         if not line:
             # continue of no line left
             continue
@@ -137,7 +137,7 @@ def determineIndentation(text):
                 line2 = lines[i+1]
                 tmp = line2.lstrip()
                 if not tmp:
-                    line2 = lines[i+2] 
+                    line2 = lines[i+2]
                     tmp = line2.lstrip()
                 if tmp:
                     ind2 = len(line2)-len(tmp)
@@ -147,13 +147,13 @@ def determineIndentation(text):
                     elif ind3>0:
                         if not ind3 in indents:
                             indents[ind3] = 1
-                        indents[ind3] += 1    
+                        indents[ind3] += 1
     
     # find which was the most common tab width.
     indent, maxvotes = 0,0
     for nspaces in indents:
         if indents[nspaces] > maxvotes:
-            indent, maxvotes = nspaces, indents[nspaces]            
+            indent, maxvotes = nspaces, indents[nspaces]
     #print "found tabwidth %i" % indent
     return indent
 
@@ -163,9 +163,9 @@ newFileCounter = 0
 
 def createEditor(parent, filename=None):
     """ Tries to load the file given by the filename and
-    if succesful, creates an editor instance to put it in, 
+    if succesful, creates an editor instance to put it in,
     which is returned.
-    If filename is None, an new/unsaved/temp file is created. 
+    If filename is None, an new/unsaved/temp file is created.
     """
     
     if filename is None:
@@ -259,7 +259,7 @@ class PyzoEditor(BaseTextCtrl):
         self.setHighlightCurrentLine(pyzo.config.view.highlightCurrentLine)
         self.setLongLineIndicatorPosition(pyzo.config.view.edgeColumn)
         self.setHighlightMatchingBracket(pyzo.config.view.highlightMatchingBracket)
-        #TODO: self.setFolding( int(view.codeFolding)*5 )        
+        #TODO: self.setFolding( int(view.codeFolding)*5 )
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth
         
@@ -270,7 +270,7 @@ class PyzoEditor(BaseTextCtrl):
         # Set encoding to default
         self.encoding = 'UTF-8'
         
-        # Modification time to test file change 
+        # Modification time to test file change
         self._modifyTime = 0
         
         self.modificationChanged.connect(self._onModificationChanged)
@@ -284,7 +284,7 @@ class PyzoEditor(BaseTextCtrl):
         # Add context menu (the offset is to prevent accidental auto-clicking)
         self._menu = EditorContextMenu(self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p)+QtCore.QPoint(0,3))) 
+        self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p)+QtCore.QPoint(0,3)))
     
     
     ## Properties
@@ -314,7 +314,7 @@ class PyzoEditor(BaseTextCtrl):
         except KeyError:
             raise ValueError('Invalid line endings style %r' % value)
     
-    @property 
+    @property
     def lineEndingsHumanReadable(self):
         """
         Current line-endings style, human readable (e.g. 'CR')
@@ -365,7 +365,7 @@ class PyzoEditor(BaseTextCtrl):
     
     
     def id(self):
-        """ Get an id of this editor. This is the filename, 
+        """ Get an id of this editor. This is the filename,
         or for tmp files, the name. """
         if self._filename:
             return self._filename
@@ -376,7 +376,7 @@ class PyzoEditor(BaseTextCtrl):
     def focusInEvent(self, event):
         """ Test whether the file has been changed 'behind our back'
         """
-        # Act normally to the focus event        
+        # Act normally to the focus event
         BaseTextCtrl.focusInEvent(self, event)
         # Test file change
         self.testWhetherFileWasChanged()
@@ -413,7 +413,7 @@ class PyzoEditor(BaseTextCtrl):
             self._modifyTime = os.path.getmtime(path)
             
             # get result and act
-            result = dlg.exec_()            
+            result = dlg.exec_()
             if result == QtWidgets.QMessageBox.AcceptRole:
                 self.reload()
             else:
@@ -443,7 +443,7 @@ class PyzoEditor(BaseTextCtrl):
     
     
     def dropEvent(self, event):
-        """ Drop files in the list. """   
+        """ Drop files in the list. """
         if event.mimeData().hasUrls():
             # file: let the editorstack do the work.
             pyzo.editors.dropEvent(event)
@@ -535,7 +535,7 @@ class PyzoEditor(BaseTextCtrl):
 
 
     def reload(self):
-        """ Reload text using the self._filename. 
+        """ Reload text using the self._filename.
         We do not have a load method; we first try to load the file
         and only when we succeed create an editor to show it in...
         This method is only for reloading in case the file was changed
@@ -612,7 +612,7 @@ class PyzoEditor(BaseTextCtrl):
             cursor.insertText('# ')
         
         self.doForSelectedBlocks(getIndent)
-        minindent = min(indents) if indents else 0 
+        minindent = min(indents) if indents else 0
         self.doForSelectedBlocks(commentBlock)
     
 
@@ -666,7 +666,7 @@ class PyzoEditor(BaseTextCtrl):
     ## Introspection processing methods
     
     def processCallTip(self, cto):
-        """ Processes a calltip request using a CallTipObject instance. 
+        """ Processes a calltip request using a CallTipObject instance.
         """
         # Try using buffer first
         if cto.tryUsingBuffer():
@@ -685,7 +685,7 @@ class PyzoEditor(BaseTextCtrl):
     
     
     def processAutoComp(self, aco):
-        """ Processes an autocomp request using an AutoCompObject instance. 
+        """ Processes an autocomp request using an AutoCompObject instance.
         """
         
         # Try using buffer first
@@ -743,7 +743,7 @@ if __name__=="__main__":
     class DummyParser:
         def parseThis(self, x):
             pass
-    pyzo.parser = DummyParser()    
+    pyzo.parser = DummyParser()
     EditorContextMenu = QtWidgets.QMenu  # noqa
     app = QtWidgets.QApplication([])
     win = PyzoEditor(None)
@@ -757,7 +757,7 @@ if __name__=="__main__":
     
     tmp = "foo(bar)\nfor bar in range(5):\n  print bar\n"
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
-    win.setPlainText(tmp)    
+    win.setPlainText(tmp)
     win.show()
     app.exec_()
     

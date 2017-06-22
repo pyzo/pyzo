@@ -40,8 +40,8 @@ QTabWidget::tab-bar {
  it reads QTabBar _not_ QTabWidget */
 QTabBar::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(220,220,220,128), 
-                stop: 0.4 rgba(200,200,200,128), 
+                stop: 0.0 rgba(220,220,220,128),
+                stop: 0.4 rgba(200,200,200,128),
                 stop: 1.0 rgba(100,100,100,128) );
     border: 1px solid #A09B90;
     border-bottom-color: #DAD5CC; /* same as the pane color */
@@ -54,31 +54,31 @@ QTabBar::tab {
     padding-right: PADDING_RIGHTpx;
     margin-right: -1px; /* "combine" borders */
 }
-QTabBar::tab:last {    
+QTabBar::tab:last {
     margin-right: 0px;
 }
 
 /* Style the selected tab, hoovered tab, and other tabs. */
 QTabBar::tab:hover {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(245,250,255,128), 
-                stop: 0.4 rgba(210,210,210,128), 
+                stop: 0.0 rgba(245,250,255,128),
+                stop: 0.4 rgba(210,210,210,128),
                 stop: 1.0 rgba(200,200,200,128) );
 }
 QTabBar::tab:selected {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(0,0,128,128), 
-                stop: 0.12 rgba(0,0,128,128), 
-                stop: 0.120001 rgba(245,250,255,128), 
-                stop: 0.4 rgba(210,210,210,128), 
+                stop: 0.0 rgba(0,0,128,128),
+                stop: 0.12 rgba(0,0,128,128),
+                stop: 0.120001 rgba(245,250,255,128),
+                stop: 0.4 rgba(210,210,210,128),
                 stop: 1.0 rgba(200,200,200,128) );
 }
 
-QTabBar::tab:selected {     
+QTabBar::tab:selected {
     border-width: 1px;
     border-bottom-width: 0px;
     border-top-left-radius: 5px;
-    border-top-right-radius: 5px;    
+    border-top-right-radius: 5px;
     border-color: #333;
 }
 
@@ -153,13 +153,13 @@ class CompactTabBar(QtWidgets.QTabBar):
         self.setStyleSheet(stylesheet)
         
         # We do our own eliding
-        self.setElideMode(QtCore.Qt.ElideNone) 
+        self.setElideMode(QtCore.Qt.ElideNone)
         
         # Make tabs wider if there's plenty space?
-        self.setExpanding(False) 
+        self.setExpanding(False)
         
         # If there's not enough space, use scroll buttons
-        self.setUsesScrollButtons(True) 
+        self.setUsesScrollButtons(True)
         
         # When a tab is removed, select previous
         self.setSelectionBehaviorOnRemove(self.SelectPreviousTab)
@@ -269,7 +269,7 @@ class CompactTabBar(QtWidgets.QTabBar):
     
     ## Overload events and protected functions
     
-    def tabInserted(self, i):        
+    def tabInserted(self, i):
         QtWidgets.QTabBar.tabInserted(self, i)
         
         # Is called when a tab is inserted
@@ -378,7 +378,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                 self._alignTimer.start()
                 #self._alignTimer.timeout.emit()
         
-        else:            
+        else:
             pass # margin is good
     
     
@@ -397,7 +397,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         Sets the maximum width of all items now, by eliding the names.
         Returns whether any items were elided.
         
-        """ 
+        """
         
         # Get whether an item was reduced in size
         itemReduced = False
@@ -456,8 +456,8 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         sure that enough characters are shown such that the names
         can be distinguished.
     
-    The kwargs are passed to the tab bar constructor. There are a few 
-    keywords arguments to influence the appearance of the tabs. See the 
+    The kwargs are passed to the tab bar constructor. There are a few
+    keywords arguments to influence the appearance of the tabs. See the
     CompactTabBar class.
     
     """
@@ -510,7 +510,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
 
 if __name__ == '__main__':
     
-    w = CompactTabWidget()    
+    w = CompactTabWidget()
     w.show()
     
     w.addTab(QtWidgets.QWidget(w), 'aapenootjedopje')

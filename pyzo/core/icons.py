@@ -20,7 +20,7 @@ class IconArtist:
     """ IconArtist(icon=None)
     
     Object to draw icons with. Can be instantiated with an existing icon
-    or as a blank icon. Perform operations and then use finish() to 
+    or as a blank icon. Perform operations and then use finish() to
     obtain the result.
     
     """
@@ -169,7 +169,7 @@ class TabCloseButton(QtWidgets.QToolButton):
         #
         artist.setPenColor((0,0,0,alpha))
         #
-        artist.addPoint(0,0); artist.addPoint(1,1)  
+        artist.addPoint(0,0); artist.addPoint(1,1)
         artist.addPoint(2,2); artist.addPoint(3,3)
         artist.addPoint(4,4)
         artist.addPoint(0,4); artist.addPoint(1,3)
@@ -177,7 +177,7 @@ class TabCloseButton(QtWidgets.QToolButton):
         #
         artist.setPenColor((0,0,0,int(0.5*alpha)))
         #
-        artist.addPoint(1,0); artist.addPoint(0,1)  
+        artist.addPoint(1,0); artist.addPoint(0,1)
         artist.addPoint(2,1); artist.addPoint(1,2)
         artist.addPoint(3,2); artist.addPoint(2,3)
         artist.addPoint(4,3); artist.addPoint(3,4)
@@ -211,8 +211,8 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
     contains a small arrow that lights up when hovering over the icon.
     
     The button itself is not drawn. If the icon is clicked, the
-    customContextMenuRequested signal of the "grandparent" is emitted. In 
-    this way we realize a suble icon that can be clicked on to show a menu. 
+    customContextMenuRequested signal of the "grandparent" is emitted. In
+    this way we realize a suble icon that can be clicked on to show a menu.
     
     """
     
@@ -418,7 +418,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         #
         artist.setPenColor((0,0,0,alpha))
         #
-        artist.addPoint(0,0); artist.addPoint(1,1)  
+        artist.addPoint(0,0); artist.addPoint(1,1)
         artist.addPoint(2,2); artist.addPoint(3,3)
         artist.addPoint(4,4)
         artist.addPoint(0,4); artist.addPoint(1,3)
@@ -426,7 +426,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         #
         artist.setPenColor((0,0,0,int(0.5*alpha)))
         #
-        artist.addPoint(1,0); artist.addPoint(0,1)  
+        artist.addPoint(1,0); artist.addPoint(0,1)
         artist.addPoint(2,1); artist.addPoint(1,2)
         artist.addPoint(3,2); artist.addPoint(2,3)
         artist.addPoint(4,3); artist.addPoint(3,4)
@@ -455,7 +455,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
 
 
 class EditorTabToolButton(TabToolButtonWithCloseButton):
-    """ Button for the tabs of the editors. This is just a 
+    """ Button for the tabs of the editors. This is just a
     tight wrapper for the icon.
     """
     
@@ -513,8 +513,8 @@ class ShellIconMaker:
     
     # Relative position for the wheel at two levels. Center is at (3,,3)
     POSITIONS1 = [(2,2), (3,2), (4,2), (4,3), (4,4), (3,4), (2,4), (2,3)]
-    POSITIONS2 = [  (2,1), (3,1), (4,1), (5,2), (5,3), (5,4), 
-                    (4,5), (3,5), (2,5), (1,4), (1,3), (1,2) ] 
+    POSITIONS2 = [  (2,1), (3,1), (4,1), (5,2), (5,3), (5,4),
+                    (4,5), (3,5), (2,5), (1,4), (1,3), (1,2) ]
     
     # Maps to make transitions between levels more natural
     MAP1to2 = [1,2, 4,5, 7,8, 10,11]
@@ -619,14 +619,14 @@ class ShellIconMaker:
         n = [0, 8, 12][self._level]
         index = self._index + n/2
         if index >= n:
-            index -= n 
+            index -= n
         return int(index)
     
     
     def onTimer(self):
         """ onTimer()
-        Invoked on each timer iteration. Will call the static drawing 
-        methods if in level 0. Otherwise will invoke drawInMotion(). 
+        Invoked on each timer iteration. Will call the static drawing
+        methods if in level 0. Otherwise will invoke drawInMotion().
         This method also checks if we should change levels and calculates
         how this is best achieved.
         """
@@ -661,7 +661,7 @@ class ShellIconMaker:
         """ drawReady()
         Draw static icon for when in ready mode.
         """
-        artist = IconArtist("application")        
+        artist = IconArtist("application")
         artist.addLayer(self._blob, *self.POSITION)
         self.setIcon(artist.finish())
     
@@ -670,7 +670,7 @@ class ShellIconMaker:
         """ drawDebug()
         Draw static icon for when in debug mode.
         """
-        artist = IconArtist("application")        
+        artist = IconArtist("application")
         artist.addLayer(self._blob, *self.POSITION)
         artist.addLayer(self._legs)
         self.setIcon(artist.finish())
@@ -687,7 +687,7 @@ class ShellIconMaker:
     def drawInMotion(self):
         """ drawInMotion()
         Draw one frame of the icon in motion. Position of the blobs
-        is determined from the index and the list of locations.        
+        is determined from the index and the list of locations.
         """
         
         # Init drawing

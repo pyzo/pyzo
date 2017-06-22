@@ -8,7 +8,7 @@ import re
 from . import Parser, BlockState, text_type
 from .tokens import ALPHANUM
 
-from .tokens import (Token, CommentToken, StringToken, 
+from .tokens import (Token, CommentToken, StringToken,
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken, KeywordToken,
     NumberToken)
 
@@ -53,7 +53,7 @@ class CParser(Parser):
         
         Parses a line of C code, yielding tokens.
         
-        """ 
+        """
         line = text_type(line)
         
         pos = 0 # Position following the previous match
@@ -72,7 +72,7 @@ class CParser(Parser):
             for token in tokens:
                 yield token
                 if isinstance(token, BlockState):
-                    return 
+                    return
             pos = token.end
         elif previousState == 2:
             token = MultilineCommentToken(line, 0, 0)
@@ -81,7 +81,7 @@ class CParser(Parser):
             for token in tokens:
                 yield token
                 if isinstance(token, BlockState):
-                    return 
+                    return
             pos = token.end
         
         # Enter the main loop that iterates over the tokens and skips strings
@@ -102,7 +102,7 @@ class CParser(Parser):
             for token in tokens:
                 yield token
                 if isinstance(token, BlockState):
-                    return 
+                    return
             pos = token.end
     
     
@@ -163,7 +163,7 @@ class CParser(Parser):
         # Find the start of the next string or comment
         match = tokenProg.search(line, pos)
         
-        # Process the Non-Identifier between pos and match.start() 
+        # Process the Non-Identifier between pos and match.start()
         # or end of line
         nonIdentifierEnd = match.start() if match else len(line)
         
@@ -183,7 +183,7 @@ class CParser(Parser):
             identifier = match.group(1)
             tokenArgs = line, match.start(), match.end()
             
-            if identifier in self._keywords: 
+            if identifier in self._keywords:
                 tokens.append( KeywordToken(*tokenArgs) )
             elif identifier[0] in '0123456789':
                 # identifierState = 0

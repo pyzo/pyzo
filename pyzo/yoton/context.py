@@ -27,16 +27,16 @@ from yoton.connection_itc import ItcConnection
 class Context(object):
     """ Context(verbose=0, queue_params=None)
     
-    A context represents a node in the network. It can connect to 
-    multiple other contexts (using a yoton.Connection. 
-    These other contexts can be in 
+    A context represents a node in the network. It can connect to
+    multiple other contexts (using a yoton.Connection.
+    These other contexts can be in
     another process on the same machine, or on another machine
     connected via a network or the internet.
     
     This class represents a context that can be used by channel instances
     to communicate to other channels in the network. (Thus the name.)
     
-    The context is the entity that queue routes the packages produced 
+    The context is the entity that queue routes the packages produced
     by the channels to the other context in the network, where
     the packages are distributed to the right channels. A context queues
     packages while it is not connected to any other context.
@@ -114,8 +114,8 @@ class Context(object):
         and all channels.
         
         Closing a connection means disconnecting two contexts. Closing
-        a channel means disasociating a channel from its context. 
-        Unlike connections and channels, a Context instance can be reused 
+        a channel means disasociating a channel from its context.
+        Unlike connections and channels, a Context instance can be reused
         after closing (although this might not always the best strategy).
         
         """
@@ -150,7 +150,7 @@ class Context(object):
     @property
     def connections_all(self):
         """ Get a list of all Connection instances currently
-        associated with this context, including pending connections 
+        associated with this context, including pending connections
         (connections waiting for another end to connect).
         In addition to normal list indexing, the connections objects can be
         queried from this list using their name.
@@ -167,10 +167,10 @@ class Context(object):
     @property
     def connections(self):
         """ Get a list of the Connection instances currently
-        active for this context. 
+        active for this context.
         In addition to normal list indexing, the connections objects can be
         queried  from this list using their name.
-        """        
+        """
         # Lock
         self._connections_lock.acquire()
         
@@ -224,19 +224,19 @@ class Context(object):
         the connection is closed.
         
         Returns a Connection instance that represents the
-        connection to the other context. These connection objects 
+        connection to the other context. These connection objects
         can also be obtained via the Context.connections property.
         
         Parameters
         ----------
         address : str
             Should be of the shape hostname:port. The port should be an
-            integer number between 1024 and 2**16. If port does not 
-            represent a number, a valid port number is created using a 
+            integer number between 1024 and 2**16. If port does not
+            represent a number, a valid port number is created using a
             hash function.
         max_tries : int
-            The number of ports to try; starting from the given port, 
-            subsequent ports are tried until a free port is available. 
+            The number of ports to try; starting from the given port,
+            subsequent ports are tried until a free port is available.
             The final port can be obtained using the 'port' property of
             the returned Connection instance.
         name : string
@@ -246,16 +246,16 @@ class Context(object):
         Notes on hostname
         -----------------
         The hostname can be:
-          * The IP address, or the string hostname of this computer. 
-          * 'localhost': the connections is only visible from this computer. 
+          * The IP address, or the string hostname of this computer.
+          * 'localhost': the connections is only visible from this computer.
             Also some low level networking layers are bypassed, which results
             in a faster connection. The other context should also connect to
             'localhost'.
-          * 'publichost': the connection is visible by other computers on the 
+          * 'publichost': the connection is visible by other computers on the
             same network. Optionally an integer index can be appended if
             the machine has multiple IP addresses (see socket.gethostbyname_ex).
         
-        """ 
+        """
         
         # Trigger cleanup of closed connections
         self.connections
@@ -290,24 +290,24 @@ class Context(object):
     def connect(self, address, timeout=1.0, name=''):
         """ connect(self, address, timeout=1.0, name='')
         
-        Setup a connection with another context, by connection to a 
+        Setup a connection with another context, by connection to a
         hosting context. An error is raised when the connection could
         not be made.
         
         Returns a Connection instance that represents the
-        connection to the other context. These connection objects 
+        connection to the other context. These connection objects
         can also be obtained via the Context.connections property.
         
         Parameters
         ----------
         address : str
             Should be of the shape hostname:port. The port should be an
-            integer number between 1024 and 2**16. If port does not 
-            represent a number, a valid port number is created using a 
+            integer number between 1024 and 2**16. If port does not
+            represent a number, a valid port number is created using a
             hash function.
         max_tries : int
-            The number of ports to try; starting from the given port, 
-            subsequent ports are tried until a free port is available. 
+            The number of ports to try; starting from the given port,
+            subsequent ports are tried until a free port is available.
             The final port can be obtained using the 'port' property of
             the returned Connection instance.
         name : string
@@ -317,12 +317,12 @@ class Context(object):
         Notes on hostname
         -----------------
         The hostname can be:
-          * The IP address, or the string hostname of this computer. 
-          * 'localhost': the connection is only visible from this computer. 
+          * The IP address, or the string hostname of this computer.
+          * 'localhost': the connection is only visible from this computer.
             Also some low level networking layers are bypassed, which results
             in a faster connection. The other context should also host as
             'localhost'.
-          * 'publichost': the connection is visible by other computers on the 
+          * 'publichost': the connection is visible by other computers on the
             same network. Optionally an integer index can be appended if
             the machine has multiple IP addresses (see socket.gethostbyname_ex).
         
@@ -387,10 +387,10 @@ class Context(object):
     def _register_sending_channel(self, channel, slot, slotname=''):
         """ _register_sending_channel(channel, slot, slotname='')
         
-        The channel objects use this method to register themselves 
+        The channel objects use this method to register themselves
         at a particular slot.
         
-        """ 
+        """
         
         # Check if this slot is free
         if slot in self._sending_channels:
@@ -403,10 +403,10 @@ class Context(object):
     def _register_receiving_channel(self, channel, slot, slotname=''):
         """ _register_receiving_channel(channel, slot, slotname='')
         
-        The channel objects use this method to register themselves 
+        The channel objects use this method to register themselves
         at a particular slot.
         
-        """ 
+        """
         
         # Check if this slot is free
         if slot in self._receiving_channels:
@@ -423,7 +423,7 @@ class Context(object):
         receive messages, and should no longer send messages.
         
         """
-        for D in [self._receiving_channels, self._sending_channels]:            
+        for D in [self._receiving_channels, self._sending_channels]:
             for key in [key for key in D.keys()]:
                 if D[key] == channel:
                     D.pop(key)
@@ -514,7 +514,7 @@ class Context(object):
         if deposit_here:
             if slot == SLOT_CONTEXT:
                 # Context-to-context messaging;
-                # A slot starting with a space reprsents the context 
+                # A slot starting with a space reprsents the context
                 self._recv_context_package(package)
             else:
                 # Give package to a channel (if applicable)
@@ -529,7 +529,7 @@ class Context(object):
         Process a package addressed at the context itself. This is how
         the context handles higher-level connection tasks.
         
-        """ 
+        """
         
         # Get message: context messages are always utf-8 encoded strings
         message = package._data.decode('utf-8')

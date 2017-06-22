@@ -20,15 +20,15 @@ def subprocess_with_callback(callback, cmd, **kwargs):
     
     # Execute command
     try:
-        p = subprocess.Popen(cmd, 
-                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, 
-                    **kwargs) 
+        p = subprocess.Popen(cmd,
+                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    **kwargs)
     except OSError:
         type, err, tb = sys.exc_info(); del tb
         callback(str(err)+'\n')
         return -1
     
-    pending = []    
+    pending = []
     while p.poll() is None:
         time.sleep(0.001)
         # Read text and process

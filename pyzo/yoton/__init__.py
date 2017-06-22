@@ -6,9 +6,9 @@
 # The full license can be found in 'license.txt'.
 
 
-""" 
+"""
 Yoton is a Python package that provides a simple interface
-to communicate between two or more processes. 
+to communicate between two or more processes.
 
 Yoton is ...
   * lightweight
@@ -16,7 +16,7 @@ Yoton is ...
   * without dependencies (except Python)
   * available on Python version >= 2.4, including Python 3
   * cross-platform
-  * pretty fast 
+  * pretty fast
 
 """
 
@@ -87,7 +87,7 @@ class SimpleSocket(Context):
     def recv(self, block=None):
         """ recv(block=None):
         
-        Read a text from the channel. What was send as one message is 
+        Read a text from the channel. What was send as one message is
         always received as one message.
         
         If the channel is closed and all messages are read, returns ''.

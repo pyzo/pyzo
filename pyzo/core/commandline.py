@@ -4,11 +4,11 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" Module to deal with command line arguments. 
+""" Module to deal with command line arguments.
 
 In specific, this allows doing "pyzo some_file.py" and the file will be
 opened in an existing pyzo window (if available) or a new pyzo process
-is started to open the file. 
+is started to open the file.
 
 This module is used at the very early stages of starting pyzo, and also
 in main.py to apply any command line args for the current process, and
@@ -53,7 +53,7 @@ class Server(RequestServer):
 
 def handle_command(command, arg):
     """ Function that handles all pyzo commands.
-    This gets called either from the server, or from the code that 
+    This gets called either from the server, or from the code that
     processed command line args.
     """
     if not command:
@@ -80,7 +80,7 @@ def handle_command(command, arg):
         return 'Opened file %r' % arg
     
     elif command == 'new':
-        # Open a new (temp) file in the editor 
+        # Open a new (temp) file in the editor
         pyzo.callLater(pyzo.editors.newFile)
         return 'Created new file'
     

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # This example defines a message type and sends such a message over pub/sub.
-# This example can be run in one go or in two parts running in 
+# This example can be run in one go or in two parts running in
 # different processes.
 
 

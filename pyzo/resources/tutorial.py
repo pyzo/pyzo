@@ -1,16 +1,16 @@
 ## Introduction
-""" 
-Welcome to the tutorial for Pyzo! This tutorial should get you 
+"""
+Welcome to the tutorial for Pyzo! This tutorial should get you
 familiarized with Pyzo in just a few minutes. If you feel this tutorial
 contains errors or lacks some information, please let us know via
 pyzo@googlegroups.com.
 
 Pyzo is a cross-platform Python IDE focused on interactivity and
-introspection, which makes it very suitable for scientific computing. 
-Its practical design is aimed at simplicity and efficiency. 
+introspection, which makes it very suitable for scientific computing.
+Its practical design is aimed at simplicity and efficiency.
 
-Pyzo consists of two main components, the editor and the shell, and 
-uses a set of pluggable tools to help the programmer in various ways. 
+Pyzo consists of two main components, the editor and the shell, and
+uses a set of pluggable tools to help the programmer in various ways.
 
 """
 
@@ -18,10 +18,10 @@ uses a set of pluggable tools to help the programmer in various ways.
 ## The editor
 """
 The editor (this window) is where your code is located; it is the central
-component of Pyzo. 
+component of Pyzo.
 
 In the editor, each open file is represented as a tab. By right-clicking on
-a tab, files can be run, saved, closed, etc. 
+a tab, files can be run, saved, closed, etc.
 
 The right mouse button also enables one to make a file the MAIN FILE of
 a project. This file can be recognized by its star symbol and its blue filename,
@@ -40,8 +40,8 @@ starts, a default shell is created. You can add more shells that run
 simultaneously, and which may be of different Python versions.
 
 It is good to know that the shells run in a sub-process, such that
-when it is busy, Pyzo itself stays responsive, which allows you to 
-keep coding and even run code in another shell. 
+when it is busy, Pyzo itself stays responsive, which allows you to
+keep coding and even run code in another shell.
 
 Another notable feature is that Pyzo can integrate the event loop of
 five different GUI toolkits, thus enabling interactive plotting with
@@ -98,10 +98,10 @@ Things done on shell startup in INTERACTIVE MODE:
   * The PYTHONSTARTUP script is run.
 
 Things done on shell startup in SCRIPT MODE:
-  * __file__ = <script_filename>  
-  * sys.argv = [ <script_filename> ]  
+  * __file__ = <script_filename>
+  * sys.argv = [ <script_filename> ]
   * sys.path is prepended with the directory containing the script.
-  * The working dir is set to the directory containing the script.  
+  * The working dir is set to the directory containing the script.
 
 Depending on the settings of the Project mananger, the current project
 directory may also be inserted in sys.path.
@@ -115,10 +115,10 @@ print('The answer is ' + str(a+b))
 ## The menu
 """
 Almost all functionality of Pyzo can be accessed via the menu. For more
-advanced/specific stuff, you can use the logger tool (see also 
+advanced/specific stuff, you can use the logger tool (see also
 Settings > Advanced settings)
 
-All actions in the menu can be accessed via a shortcut. Change the 
+All actions in the menu can be accessed via a shortcut. Change the
 shortcuts using the shortcut editor: Settings > Edit key mappings.
   
 """
@@ -136,7 +136,7 @@ as autocompletion, calltips, interactive help and source structure.
 
 ## Debugging
 """
-Pyzo supports post-mortem debugging, which means that after something 
+Pyzo supports post-mortem debugging, which means that after something
 went wrong, you can inspect the stack trace to find the error.
 
 The easiest way to start debugging is to press the "Debug" button
@@ -154,7 +154,7 @@ shell for more information.
 
 Below follows an example that you can run to test the debugging.
   
-""" 
+"""
 
 import random
 someModuleVariable = True
@@ -164,14 +164,14 @@ def getNumber():
 
 def foo():
     spam = 'yum'
-    eggs = 7 
+    eggs = 7
     value = bar()
     
 def bar():
     total = 0
     for i1 in range(100):
         i2 = getNumber()
-        total += i1/i2    
+        total += i1/i2
     return total
 
 foo()
@@ -179,15 +179,15 @@ foo()
 ## The Project manager
 """
 For working on projects, the Project manager tool can help you to keep
-an overview of all your files. To open up the Project manager tool, 
+an overview of all your files. To open up the Project manager tool,
 select it from the menu (Tools > Project manager).
 
 To add, remove, or edit your projects, click the button with the
 wrench icon. In the dialog, select 'New project' to add a project and
 select the directory where your project is located. When the project
-is added, you can change the Project description (name). 
+is added, you can change the Project description (name).
 
-You can select wether the project path is added to the Python 
+You can select wether the project path is added to the Python
 sys.path. This feature allows you to import project modules from the
 shell, or from scripts which are not in the project root directory.
 Note that this feature requires a restart of the shell to take effect

@@ -1,6 +1,6 @@
 """ _utest.py
 
-Unit tests for yoton. 
+Unit tests for yoton.
 
 """
 
@@ -9,15 +9,15 @@ import unittest
 
 # Go up one directory and then import the yoton package
 os.chdir('..')
-os.chdir('..')  
+os.chdir('..')
 sys.path.insert(0,'.')
 
 # Import yoton from there
 import yoton
 from yoton.misc import long
 
-class Tester(unittest.TestCase):    
-    """ Perform a set of tests using three contexts and 
+class Tester(unittest.TestCase):
+    """ Perform a set of tests using three contexts and
     each of the six channels at each context.
     
     """
@@ -229,7 +229,7 @@ class Tester(unittest.TestCase):
             #
             self._context1.bind('localhost:test1')
             freeNode.connect('localhost:test1')
-            freeNode.bind('localhost:test1f')            
+            freeNode.bind('localhost:test1f')
             self._context3.connect('localhost:test1f')
             #
             self._context1.bind('localhost:test2')
@@ -251,10 +251,10 @@ class Tester(unittest.TestCase):
                 yoton.stop_event_loop()
             else:
                 self.assertEqual(echo[:3], 'msg')
-                contextnr = {   self._context1.id:1, 
-                                self._context2.id:2, 
+                contextnr = {   self._context1.id:1,
+                                self._context2.id:2,
                                 self._context3.id:3}[long(id,16)]
-                print('request %s from %i handled by context %i.' % 
+                print('request %s from %i handled by context %i.' %
                                                 (echo, reqnr, contextnr))
         
         # Get echo functions
@@ -264,14 +264,14 @@ class Tester(unittest.TestCase):
         # Send requests on req 1
         sleepTimes = [1, 0.1, 1, 0.6, 0.6, 0.6, 0.6, 0.6]
         for i in range(len(sleepTimes)):
-            f = echoFun1('msg%i'%i, sleepTimes[i]) 
+            f = echoFun1('msg%i'%i, sleepTimes[i])
             f.add_done_callback(reply_handler)
             f.reqnr = 1
         
         # Send requests on req 2
         sleepTimes = [0.4, 0.4, 0.4, 0.4, 0.4]
         for i in range(len(sleepTimes)):
-            f = echoFun2('msg%i'%i, sleepTimes[i]) 
+            f = echoFun2('msg%i'%i, sleepTimes[i])
             f.add_done_callback(reply_handler)
             f.reqnr = 2
         

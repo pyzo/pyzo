@@ -17,7 +17,7 @@ tool_summary = "Logs messages, warnings and errors within Pyzo."
  
 
 class PyzoLogger(BaseShell):
-    """ Shell that logs all messages produced by pyzo. It also 
+    """ Shell that logs all messages produced by pyzo. It also
     allows to look inside pyzo, which can be handy for debugging
     and developing.
     """
@@ -41,11 +41,11 @@ class PyzoLogger(BaseShell):
         for name in ['linguist', 'lrelease', 'lupdate', 'lhelp']:
             locals[name] = getattr(pyzo.util._locale, name)
         
-        # Create interpreter to run code        
+        # Create interpreter to run code
         self._interpreter = code.InteractiveConsole(locals, "<logger>")
         
         # Show welcome text
-        moreBanner = "This is the Pyzo logger shell." 
+        moreBanner = "This is the Pyzo logger shell."
         self.write("Python %s on %s - %s\n\n" %
                        (sys.version[:5], sys.platform, moreBanner))
         self.write(str(sys.ps1), 2)
@@ -67,8 +67,8 @@ class PyzoLogger(BaseShell):
         more = self._interpreter.push(command.rstrip('\n'))
         if more:
             self.write(str(sys.ps2), 2)
-        else:            
-            self.write(str(sys.ps1), 2)  
+        else:
+            self.write(str(sys.ps1), 2)
     
     
     def writeErr(self, msg):
@@ -80,7 +80,7 @@ class PyzoLogger(BaseShell):
     # Note that I did not (yet) implement calltips
     
     def processAutoComp(self, aco):
-        """ Processes an autocomp request using an AutoCompObject instance. 
+        """ Processes an autocomp request using an AutoCompObject instance.
         """
         
         # Try using buffer first

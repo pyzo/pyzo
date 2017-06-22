@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Almar Klein
 
-""" 
+"""
 Defines the tree widget to display the contents of a selected directory.
 """
 
@@ -127,7 +127,7 @@ def createItemsFun(browser, parent):
     
     except (OSError, IOError) as err:
         ErrorItem(parent, str(err))
-        return 
+        return
     
     # Sort dirs (case insensitive)
     dirs.sort(key=filename2sortkey)
@@ -137,7 +137,7 @@ def createItemsFun(browser, parent):
     
     if not searchFilter:
         
-        # Create dirs 
+        # Create dirs
         for path in dirs:
             starred = op.normcase(path) in starredDirs
             item = DirItem(parent, fsProxy.dir(path), starred)
@@ -148,7 +148,7 @@ def createItemsFun(browser, parent):
                 item.setExpanded(True)
             item.setHidden(False)
         
-        # Create files        
+        # Create files
         for path in files:
             item = FileItem(parent, fsProxy.file(path))
     
@@ -308,7 +308,7 @@ class DirItem(BrowserItem):
         expandedDirs = self.treeWidget().parent().expandedDirs
         p = op.normcase(self.path())  # Normalize case!
         if p not in expandedDirs:
-            expandedDirs.append(p) 
+            expandedDirs.append(p)
         # Keep track of changes in our contents
         self._proxy.track()
         self._proxy.push()
@@ -365,7 +365,7 @@ class FileItem(BrowserItem):
                                     not QtCore.__file__.startswith('/usr/'):
             icon = iconprovider.icon(iconprovider.File)
         else:
-            icon = iconprovider.icon(QtCore.QFileInfo(dummy_filename))        
+            icon = iconprovider.icon(QtCore.QFileInfo(dummy_filename))
         icon = addIconOverlays(icon)
         self.setIcon(0, icon)
     
@@ -538,7 +538,7 @@ class TemporaryDirItem:
     def __init__(self, tree, pathProxy):
         self._tree = tree
         self._proxy = pathProxy
-        self._proxy.changed.connect(self.onChanged)        
+        self._proxy.changed.connect(self.onChanged)
         # Process asap, but do not track
         self._proxy.push()
         # Store ourself
@@ -565,7 +565,7 @@ class TemporaryFileItem:
     
     def __init__(self, tree, pathProxy):
         self._tree = tree
-        self._proxy = pathProxy   
+        self._proxy = pathProxy
         self._proxy.taskFinished.connect(self.onSearchResult)
         # Store ourself
         tree._temporaryItems.add(self)
@@ -625,7 +625,7 @@ class Tree(QtWidgets.QTreeWidget):
         
         # Define context menu
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.contextMenuTriggered)  
+        self.customContextMenuRequested.connect(self.contextMenuTriggered)
         
         # Initialize proxy (this is where the path is stored)
         self._proxy = None
@@ -640,9 +640,9 @@ class Tree(QtWidgets.QTreeWidget):
     def setPath(self, path):
         """ Set the current path shown by the treeview.
         """
-        # Close old proxy        
+        # Close old proxy
         if self._proxy is not None:
-            self._proxy.cancel()        
+            self._proxy.cancel()
             self._proxy.changed.disconnect(self.onChanged)
             self._proxy.deleted.disconnect(self.onDeleted)
             self._proxy.errored.disconnect(self.onErrored)
@@ -663,7 +663,7 @@ class Tree(QtWidgets.QTreeWidget):
             self._proxy.push()
         # Store dir in config
         self.parent().config.path = path
-        # Signal that the dir has changed 
+        # Signal that the dir has changed
         # Note that our contents may not be visible yet.
         self.dirChanged.emit(self.path())
     
@@ -765,10 +765,10 @@ class Tree(QtWidgets.QTreeWidget):
     
     
     def _restoreSelectionState(self):
-        # First select the first item 
+        # First select the first item
         # (otherwise the scrolling wont work for some reason)
         if self.topLevelItemCount():
-            self.setCurrentItem(self.topLevelItem(0))       
+            self.setCurrentItem(self.topLevelItem(0))
         # Restore selection
         if self._selectedPath:
             items = self.findItems(op.basename(self._selectedPath), QtCore.Qt.MatchExactly, 0)
@@ -815,10 +815,10 @@ class PopupMenu(pyzo.core.menu.Menu):
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
             if self._item.path().endswith('.py'):
-                self.addItem(translate("filebrowser", "Run as script"), 
+                self.addItem(translate("filebrowser", "Run as script"),
                     None, self._runAsScript)
             elif self._item.path().endswith('.ipynb'):
-                self.addItem(translate("filebrowser", "Run Jupyter notebook"), 
+                self.addItem(translate("filebrowser", "Run Jupyter notebook"),
                     None, self._runNotebook)
             else:
                 self.addItem(translate("filebrowser", "Import data..."),
@@ -828,13 +828,13 @@ class PopupMenu(pyzo.core.menu.Menu):
         # Create items for open and copy path
         if isinstance(self._item, (FileItem, DirItem)):
             if isplat('win') or isplat('darwin') or isplat('linux'):
-                self.addItem(translate("filebrowser", "Open outside Pyzo"), 
+                self.addItem(translate("filebrowser", "Open outside Pyzo"),
                     None, self._openOutsidePyzo)
-            if isplat('darwin'):            
-                self.addItem(translate("filebrowser", "Reveal in Finder"), 
+            if isplat('darwin'):
+                self.addItem(translate("filebrowser", "Reveal in Finder"),
                     None, self._showInFinder)
             if True:
-                self.addItem(translate("filebrowser", "Copy path"), 
+                self.addItem(translate("filebrowser", "Copy path"),
                     None, self._copyPath)
             self.addSeparator()
         
@@ -985,12 +985,12 @@ class PopupMenu(pyzo.core.menu.Menu):
     
     def onDelete(self):
         # Ask for new filename
-        b = QtWidgets.QMessageBox.question(self.parent(), 
-                    translate("filebrowser", "Delete"), 
-                    translate("filebrowser", "Are you sure that you want to delete") + 
+        b = QtWidgets.QMessageBox.question(self.parent(),
+                    translate("filebrowser", "Delete"),
+                    translate("filebrowser", "Are you sure that you want to delete") +
                     ':\n%s' % self._item.path(),
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel,
-                )       
+                )
         # Push delete task
-        if b is QtWidgets.QMessageBox.Yes:            
+        if b is QtWidgets.QMessageBox.Yes:
             self._item._proxy.pushTask(tasks.RemoveTask())

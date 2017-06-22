@@ -7,7 +7,7 @@
 """ Module codeparser
 
 Analyses the source code to get the structure of a module/script.
-This can be used for fictive introspection, and to display the 
+This can be used for fictive introspection, and to display the
 structure of a source file in for example a tree widget.
 
 """
@@ -62,7 +62,7 @@ class Parser(threading.Thread):
     """ Parser
     Parsing sourcecode in a separate thread, this class obtains
     introspection informarion. This class is also the interface
-    to the parsed information; it has methods that can be used 
+    to the parsed information; it has methods that can be used
     to extract information from the result.
     """
     
@@ -92,7 +92,7 @@ class Parser(threading.Thread):
         """ parseThis(editor)
         Give the parser new text to parse.
         If the parser is busy parsing text, it will stop doing that
-        and start anew with the most recent version of the text. 
+        and start anew with the most recent version of the text.
         """
         
         # Get text
@@ -160,7 +160,7 @@ class Parser(threading.Thread):
     def getFictiveSignature(self, name, editor, handleSelf=False):
         """ getFictiveSignature(name, editor, handleSelf=False)
         Get the signature of the fictive function or method of the
-        given name. Returns None if the given name is not a known 
+        given name. Returns None if the given name is not a known
         function or method. If handleSelf is True, automatically
         handles "self." names.
         """
@@ -189,8 +189,8 @@ class Parser(threading.Thread):
     def getFictiveImports(self, editor):
         """ getFictiveImports(editor)
         Get the fictive imports of this source file.
-        tuple: 
-        - list of names that are imported, 
+        tuple:
+        - list of names that are imported,
         - a dict with the line to import each name
         """
         
@@ -220,7 +220,7 @@ class Parser(threading.Thread):
     
     def _getFictiveItem(self, name, type, editor, handleSelf=False):
         """ _getFictiveItem(name, type, editor, handleSelf=False)
-        Obtain the fictive item of the given name and type. 
+        Obtain the fictive item of the given name and type.
         If handleSelf is True, will handle "self." correctly.
         Intended for internal use.
         """
@@ -230,10 +230,10 @@ class Parser(threading.Thread):
         if result is None or not result.isMatch(editor):
             return None
         
-        # Split name in parts 
+        # Split name in parts
         nameParts = name.split('.')
         
-        # Try if the first part represents a class instance 
+        # Try if the first part represents a class instance
         if handleSelf:
             item = self._getFictiveCurrentClass(editor, nameParts[0])
             if item:
@@ -291,9 +291,9 @@ class Parser(threading.Thread):
         
         while items:
             curitem = None
-            for item in items:                
+            for item in items:
                 # check if this is the one only last one remains
-                if item.linenr <= linenr:                    
+                if item.linenr <= linenr:
                     if not item.linenr2 > linenr:
                         continue
                     curitem = item
@@ -306,7 +306,7 @@ class Parser(threading.Thread):
             if curitem and curitem.indent < index:
                 items = curitem.children
             else:
-                items = []      
+                items = []
         
         # return
         return theclass
@@ -341,7 +341,7 @@ class Parser(threading.Thread):
                     self._result = result
                     self._lock.release()
                     
-                    # Notify 
+                    # Notify
                     if pyzo.editors is not None:
                         pyzo.editors.parserDone.emit()
             
@@ -356,7 +356,7 @@ class Parser(threading.Thread):
         - a tree of FictiveObject objects.
         - a (flat) list of the same object
         - a list of imports
-        """    
+        """
         
         # Remove multiline strings
         text = washMultilineStrings(job.text)
@@ -373,7 +373,7 @@ class Parser(threading.Thread):
         flatList = []
         
         # Cells and imports are inserted in the structure afterwards
-        leafs = [] 
+        leafs = []
         
         # Keep a list of imports
         importList = []
@@ -381,7 +381,7 @@ class Parser(threading.Thread):
         # To know when to make something new when for instance a class is defined
         # in an if statement, we keep track of the last valid node/object:
         # Put inside a list, so we can set it from inside a subfuncion
-        lastObject = [root] 
+        lastObject = [root]
         
         # Define funcion to put an item in the structure in the right parent
         def appendToStructure(object):
@@ -391,16 +391,16 @@ class Parser(threading.Thread):
                 node = node.parent
             # insert object
             flatList.append(object)
-            node.children.append(object)        
+            node.children.append(object)
             object.parent = node
-            lastObject[0] = object 
+            lastObject[0] = object
         
-        # Find objects! 
-        # type can be: cell, class, def, import, var 
+        # Find objects!
+        # type can be: cell, class, def, import, var
         for i in range( len(lines) ):
             
             # Obtain line
-            line = lines[i]            
+            line = lines[i]
             
             # Should we stop?
             if self._job or self._exit:
@@ -422,7 +422,7 @@ class Parser(threading.Thread):
                 item = FictiveObject('cell', i, indent, name)
                 leafs.append(item)
                 # Next! (we have to put this before the elif stuff below
-                # because it looks like a comment!)            
+                # because it looks like a comment!)
                 continue
                 
             # Split in line and comment
@@ -436,12 +436,12 @@ class Parser(threading.Thread):
                 leafs.append(item)
             
             # Continue of no line left
-            if not line:            
+            if not line:
                 continue
             
-            # Find last valid node. As the indent of the root is set to -1, 
+            # Find last valid node. As the indent of the root is set to -1,
             # this will always stop at the root
-            while indent <= lastObject[0].indent:            
+            while indent <= lastObject[0].indent:
                 lastObject[0].linenr2 = i # close object
                 lastObject[0] = lastObject[0].parent
             
@@ -453,11 +453,11 @@ class Parser(threading.Thread):
                 classResult = re.search(classPattern, line)
                 
                 if classResult:
-                    foundSomething = True                    
+                    foundSomething = True
                     # Get name
                     name = classResult.group(2)
                     item = FictiveObject('class', i, indent, name)
-                    appendToStructure(item)                
+                    appendToStructure(item)
                     item.supers = []
                     item.members = []
                     # Get inheritance
@@ -497,7 +497,7 @@ class Parser(threading.Thread):
                         if selfname:
                             item.selfname = selfname
             
-            elif line.count('import '):            
+            elif line.count('import '):
                 if line.startswith("import "):
                     for name in ParseImport(line[7:]):
                         item = FictiveObject('import', i, indent, name)
@@ -507,7 +507,7 @@ class Parser(threading.Thread):
                         importList.append(item)
                     
                 elif line.startswith("from "):
-                    i1 = line.find(" import ")                
+                    i1 = line.find(" import ")
                     for name in ParseImport(line[i1+8:]):
                         if not IsValidName(name):
                             continue # we cannot do that!
@@ -531,7 +531,7 @@ class Parser(threading.Thread):
                         # a valid method and contains the selfname before the =.
                         # Now we need to establish whether there is a valid
                         # assignment done here...
-                        parts = line.split(",") # handle tuples                    
+                        parts = line.split(",") # handle tuples
                         for part in parts:
                             part = part.strip()
                             part2 = part[len(selfname):]
@@ -550,16 +550,16 @@ class Parser(threading.Thread):
         ## Post processing
         
         def getTwoItems(series, linenr):
-            """ Return the two items just above and below the 
+            """ Return the two items just above and below the
             given linenr. The object always is a class or def.
             """
             # find object after linenr
             object1, object2 = None, None # if no items at all
-            i = -1  
+            i = -1
             for i in range(len(series)):
                 object = series[i]
                 if object.type not in ['class','def']:
-                    continue                
+                    continue
                 if object.linenr > linenr:
                     object2 = object
                     break
@@ -567,17 +567,17 @@ class Parser(threading.Thread):
             for ii in range(i,-1,-1):
                 object = series[ii]
                 if object.type not in ['class','def']:
-                    continue            
+                    continue
                 if object.linenr < linenr:
-                    object1 = object                    
+                    object1 = object
                     break
             # return result
             return object1, object2
                 
         # insert the leafs (backwards as the last inserted is at the top)
         for leaf in reversed(leafs):
-            ob1, ob2 = getTwoItems(flatList, leaf.linenr)           
-            if ob1 is None: # also if ob2 is None 
+            ob1, ob2 = getTwoItems(flatList, leaf.linenr)
+            if ob1 is None: # also if ob2 is None
                 # insert in root
                 root.children.insert(0,leaf)
                 leaf.parent = root
@@ -590,19 +590,19 @@ class Parser(threading.Thread):
             
             # get the object IN which to insert it: ob1
             sibling = None
-            while 1:            
+            while 1:
                 canGoDeeper = ob1 is not ob2parent
                 canGoDeeper = canGoDeeper and ob1 is not root
-                shouldGoDeeper = ob1.indent >= leaf.indent 
+                shouldGoDeeper = ob1.indent >= leaf.indent
                 shouldGoDeeper = shouldGoDeeper or ob1.linenr2 < leaf.linenr
                 if canGoDeeper and shouldGoDeeper:
                     sibling = ob1
-                    ob1 = ob1.parent                
+                    ob1 = ob1.parent
                 else:
                     break
             
             # insert into ob1, after sibling (if available)
-            L = ob1.children        
+            L = ob1.children
             if sibling:
                 i = L.index(sibling)
                 L.insert(i+1,leaf)
@@ -620,14 +620,14 @@ class Parser(threading.Thread):
 class FictiveObject:
     """ An un-instantiated object.
     type can be class, def, import, cell, todo
-    extra stuff: 
+    extra stuff:
     class   - supers, members
     def     - selfname
     imports - text
     cell    -
-    todo    -  
+    todo    -
     attribute -
-    """    
+    """
     def __init__(self, type, linenr, indent, name):
         self.children = []
         self.type = type
@@ -640,7 +640,7 @@ class FictiveObject:
 
 namechars = 'abcdefghijklmnopqrstuvwxyz_0123456789'
 def IsValidName(name):
-    """ Given a string, checks whether it is a 
+    """ Given a string, checks whether it is a
     valid name (dots are not valid!)
     """
     if not name:
@@ -653,9 +653,9 @@ def IsValidName(name):
     
     
 def ParseImport(names):
-    for part in names.split(","):                    
+    for part in names.split(","):
         i1 = part.find(' as ')
-        if i1>0:                        
+        if i1>0:
             name = part[i1+3:].strip()
         else:
             name = part.strip()
@@ -727,10 +727,10 @@ def washMultilineStrings(text):
     """ washMultilineStrings(text)
     Replace all text within multiline strings with dummy chars
     so that it is not parsed.
-    """ 
+    """
     i=0
     s1 = "'''"
-    s2 = '"""' 
+    s2 = '"""'
     while i<len(text):
         # Detect start of a multiline comment (there are two versions)
         i1 = findString(text, s1, i)
@@ -757,14 +757,14 @@ def washMultilineStrings(text):
             # Leave only the first two quotes of the start of the comment
             i3 -= 1
             i4 += 3
-            # Replace all non-newline chars 
+            # Replace all non-newline chars
             tmp = re.sub(r'\S', ' ', text[i3:i4])
             text = text[:i3] + tmp + text[i3+len(tmp):]
             # Prepare for next round
             i = i4+1
     return text
 
-""" 
+"""
 ## testing skipping of multiline strings
 def ThisShouldNotBeVisible():
   pass

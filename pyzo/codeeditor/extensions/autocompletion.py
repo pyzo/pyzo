@@ -60,7 +60,7 @@ class AutoCompletion(object):
     
     ## Properties
     def recentCompletionsList(self):
-        """ 
+        """
         The list of recent auto-completions. This property may be set to a
         list that is shared among several editors, in order to share the notion
         of recent auto-completions
@@ -139,7 +139,7 @@ class AutoCompletion(object):
         #Select the text from autocompleteStart until the current cursor
         cursor=self.textCursor()
         cursor.setPosition(self.__autocompleteStart.position(),cursor.KeepAnchor)
-        #Replace it with the selected text 
+        #Replace it with the selected text
         cursor.insertText(text)
         self.autocompleteCancel() #Reset the completer
         
@@ -149,7 +149,7 @@ class AutoCompletion(object):
         self.__recentCompletions.append(text)
         
     def autocompleteActive(self):
-        """ Returns whether an autocompletion list is currently shown. 
+        """ Returns whether an autocompletion list is currently shown.
         """
         return self.__autocompleteStart is not None
     
@@ -182,7 +182,7 @@ class AutoCompletion(object):
     
     def __updateAutocompleterPrefix(self):
         """
-        Find the autocompletion prefix (the part of the word that has been 
+        Find the autocompletion prefix (the part of the word that has been
         entered) and send it to the completer. Update the selected completion
         (out of several possiblilties) which is best suited
         """
@@ -251,7 +251,7 @@ class AutoCompletion(object):
                     event.ignore()
                     return 1  # Let key have effect as normal
                 elif event.modifiers() == Qt.NoModifier:
-                    # The key 
+                    # The key
                     self.onAutoComplete()  # No arg: select last highlighted
                     self.autocompleteCancel()
                     return 2  # Key should be consumed

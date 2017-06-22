@@ -1,6 +1,6 @@
 """
 
-The import wizard helps the user importing CSV-like data from a file into a 
+The import wizard helps the user importing CSV-like data from a file into a
 numpy array. The wizard containst three pages:
 
 SelectFilePage:
@@ -39,7 +39,7 @@ keywords = ['False', 'None', 'True', 'and', 'as', 'assert', 'break',
 
 
 class CodeView(
-    pyzo.codeeditor.IndentationGuides, 
+    pyzo.codeeditor.IndentationGuides,
     pyzo.codeeditor.CodeFolding,
     pyzo.codeeditor.Indentation,
     pyzo.codeeditor.HomeKey,
@@ -152,7 +152,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
             cbx.setEditable(True)
             return cbx
 
-        self.cbxDelimiter = genComboBox(",;")            
+        self.cbxDelimiter = genComboBox(",;")
         self.cbxComments = genComboBox("#%'")
         self.sbSkipHeader = QtWidgets.QSpinBox()
         
@@ -164,7 +164,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
 
         # Layout
 
-        formlayout = QtWidgets.QFormLayout()       
+        formlayout = QtWidgets.QFormLayout()
         formlayout.addRow('Delimiter', self.cbxDelimiter)
         formlayout.addRow('Comments', self.cbxComments)
         formlayout.addRow('Header rows to skip', self.sbSkipHeader)
@@ -208,7 +208,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
 
     def parseColumnNames(self, row):
         """
-        Use the data in the given row to create column names. First, try the 
+        Use the data in the given row to create column names. First, try the
         data in the data columns. If these are all empty, use the comments
         column, split by the given delimiter.
         
@@ -254,7 +254,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
                 name = 'd' + name
             
             if name in keywords:
-                name = name + '_'    
+                name = name + '_'
             
             return name
 
@@ -379,7 +379,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
         self.updateHorizontalHeaderLabels()
             
         
-class ResultPage(QtWidgets.QWizardPage): 
+class ResultPage(QtWidgets.QWizardPage):
     """
     The resultpage lets the user select wether to import the data as a single
     2D-array, or as one variable (1D-array) per column
@@ -391,7 +391,7 @@ class ResultPage(QtWidgets.QWizardPage):
     def __init__(self):
         QtWidgets.QWizardPage.__init__(self)
         self.setTitle("Execute import")
-        self.setButtonText(QtWidgets.QWizard.FinishButton, 
+        self.setButtonText(QtWidgets.QWizard.FinishButton,
             translate('importwizard', 'Close'))
 
         self.rbAsArray = QtWidgets.QRadioButton(translate('importwizard', 'Import data as single array'))
@@ -417,8 +417,8 @@ class ResultPage(QtWidgets.QWizardPage):
         layout.addWidget(QtWidgets.QLabel('Resulting import code:'))
         layout.addWidget(self.codeView)
         layout.addWidget(self.btnExecute)
-        layout.addWidget(self.btnInsert)  
-        self.setLayout(layout)   
+        layout.addWidget(self.btnInsert)
+        self.setLayout(layout)
         
         self.registerField('invalid_raise', self.chkInvalidRaise)
         
@@ -473,7 +473,7 @@ class ResultPage(QtWidgets.QWizardPage):
     def onBtnExecuteClicked(self):
         shell = pyzo.shells.getCurrentShell()
         if shell is None:
-            QtWidgets.QMessageBox.information(self, 
+            QtWidgets.QMessageBox.information(self,
                 translate('importwizard', 'Import data wizard'),
                 translate('importwizard', 'No current shell active'))
             return
@@ -483,7 +483,7 @@ class ResultPage(QtWidgets.QWizardPage):
     def onBtnInsertClicked(self):
         editor = pyzo.editors.getCurrentEditor()
         if editor is None:
-            QtWidgets.QMessageBox.information(self, 
+            QtWidgets.QMessageBox.information(self,
                 translate('importwizard', 'Import data wizard'),
                 translate('importwizard', 'No current file open'))
             return
@@ -531,7 +531,7 @@ class ImportWizard(QtWidgets.QWizard):
     
     def open(self, filename):
         if self.isVisible():
-            QtWidgets.QMessageBox.information(self, 
+            QtWidgets.QMessageBox.information(self,
                 translate('importwizard', 'Import data wizard'),
                 translate('importwizard', 'The import data wizard is already open'))
             return

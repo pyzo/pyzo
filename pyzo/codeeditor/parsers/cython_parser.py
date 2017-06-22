@@ -39,7 +39,7 @@ class CythonParser(PythonParser):
                 if self._idsCounter>0:
                     state = self._idsState
             except Exception:
-                pass            
+                pass
             self._idsState = 0
             self._idsCounter = 0
             return state

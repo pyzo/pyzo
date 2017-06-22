@@ -4,7 +4,7 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" 
+"""
 Magic commands for the Pyzo kernel.
 No need to use printDirect here, magic commands are just like normal Python
 commands, in the sense that they print something etc.
@@ -74,7 +74,7 @@ class Magician:
         """ convert_command(line)
         
         Convert a given command from a magic command to Python code.
-        Returns the converted command if it was a magic command, or 
+        Returns the converted command if it was a magic command, or
         the original otherwise.
         
         """
@@ -303,7 +303,7 @@ class Magician:
             print("There are no variables defined in this scope.")
             return ''
         else:
-            text = "VARIABLE: ".ljust(20,' ') + "TYPE: ".ljust(20,' ') 
+            text = "VARIABLE: ".ljust(20,' ') + "TYPE: ".ljust(20,' ')
             text += "REPRESENTATION: ".ljust(20,' ') + '\n'
         # Create list item for each variablee
         for name in L:
@@ -324,7 +324,7 @@ class Magician:
     
     def open(self, line, command):
         
-        # Get what to open            
+        # Get what to open
         name = line.split(' ',1)[1].strip()
         fname = ''
         linenr = None
@@ -391,7 +391,7 @@ class Magician:
     
     def run(self, line, command):
         
-        # Get what to open            
+        # Get what to open
         name = line.split(' ',1)[1].strip()
         fname = ''
         
@@ -504,7 +504,7 @@ class Magician:
     
     # todo: I think we can deprecate this
     def _check_imported_modules(self):
-        KNOWN_PURE_PYHON = ('conda', 'yaml', 'IPython', 'requests', 
+        KNOWN_PURE_PYHON = ('conda', 'yaml', 'IPython', 'requests',
                             'readline', 'pyreadline')
         if not sys.platform.startswith('win'):
             return  # Only a problem on Windows
@@ -524,7 +524,7 @@ class Magician:
         if loaded_modules:
             print('WARNING! The following modules are currently loaded:\n')
             print('  ' + ', '.join(sorted(loaded_modules)))
-            print('\nUpdating or removing them may fail if they are not ' 
+            print('\nUpdating or removing them may fail if they are not '
                   'pure Python.\nIf none of the listed packages is updated or '
                   'removed, it is safe\nto proceed (use "f" if necessary).\n')
             print('-'*80)
@@ -550,7 +550,7 @@ class Magician:
         
         # Go!
         try:
-            from pyzokernel.pipper import pip_command 
+            from pyzokernel.pipper import pip_command
             pip_command(*args)
         except SystemExit:  # as err:
             type, err, tb = sys.exc_info(); del tb

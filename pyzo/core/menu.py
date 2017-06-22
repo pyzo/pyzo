@@ -6,8 +6,8 @@
 
 """ Module menu
 
-Implements a menu that can be edited very easily. Every menu item is 
-represented by a class. Also implements a dialog to change keyboard 
+Implements a menu that can be edited very easily. Every menu item is
+represented by a class. Also implements a dialog to change keyboard
 shortcuts.
 
 """
@@ -56,7 +56,7 @@ def buildMenus(menuBar):
                 menuBar._lastAction = None
                 menuBar._haveRaisedTooltip = False
             if action is menuBar._lastAction:
-                if ((not menuBar._haveRaisedTooltip) and 
+                if ((not menuBar._haveRaisedTooltip) and
                             action.menu().isVisible()):
                     QtWidgets.QToolTip.hideText()
                     menuBar._haveRaisedTooltip = True
@@ -153,7 +153,7 @@ def unwrapText(text):
     for i in range(10):
         text = text.replace('  ', ' ')
     
-    # Convert \\r newlines 
+    # Convert \\r newlines
     text = text.replace('\r', '\n')
     
     # Remove spaces after newlines
@@ -171,7 +171,7 @@ class Menu(QtWidgets.QMenu):
     The add* methods all have the name and icon as first two arguments.
     This is not so consistent with the Qt API for addAction, but it allows
     for cleaner code to add items; the first item can be quite long because
-    it is a translation. In the current API, the second and subsequent 
+    it is a translation. In the current API, the second and subsequent
     arguments usually fit nicely on the second line.
     
     """
@@ -255,7 +255,7 @@ class Menu(QtWidgets.QMenu):
     
     
     def build(self):
-        """ 
+        """
         Add all actions to the menu. To be overridden.
         """
         pass
@@ -284,7 +284,7 @@ class Menu(QtWidgets.QMenu):
         with value as parameter
         """
         
-        # Add action 
+        # Add action
         a = self._addAction(text, icon)
         
         # Connect the menu item to its callback
@@ -300,7 +300,7 @@ class Menu(QtWidgets.QMenu):
     def addGroupItem(self, text, icon=None, callback=None, value=None, group=None):
         """
         Add a 'select-one' option to the menu. Items with equal group value form
-        a group. If callback is specified and not None, the callback is called 
+        a group. If callback is specified and not None, the callback is called
         for the new active item, with the value for that item as parameter
         whenever the selection is changed
         """
@@ -334,13 +334,13 @@ class Menu(QtWidgets.QMenu):
     
     def addCheckItem(self, text, icon=None, callback=None, value=None, selected=False):
         """
-        Add a true/false item to the menu. If callback is specified and not 
+        Add a true/false item to the menu. If callback is specified and not
         None, the callback is called when the item is changed. If value is not
         specified or None, callback is called with the new state as parameter.
         Otherwise, it is called with the new state and value as parameters
         """
         
-        # Add action 
+        # Add action
         a = self._addAction(text, icon, selected)
         
         # Connect the menu item to its callback
@@ -354,7 +354,7 @@ class Menu(QtWidgets.QMenu):
     
     
     def setCheckedOption(self, group, value):
-        """ 
+        """
         Set the selected value of a group. This will also activate the
         callback function of the item that gets selected.
         if group is None the default group is used.
@@ -384,9 +384,9 @@ class GeneralOptionsMenu(Menu):
         pass # We build when the options are given
     
     def setOptions(self, options, values=None):
-        """ 
+        """
         Set the list of options, clearing any existing options. The options
-        are added ad group items and registered to the callback given 
+        are added ad group items and registered to the callback given
         at initialization.
         """
         # Init
@@ -408,9 +408,9 @@ class IndentationMenu(Menu):
         
     def build(self):
         self._items = [
-            self.addGroupItem(translate("menu", "Use tabs"), 
+            self.addGroupItem(translate("menu", "Use tabs"),
                 None, self._setStyle, False, group="style"),
-            self.addGroupItem(translate("menu", "Use spaces"), 
+            self.addGroupItem(translate("menu", "Use spaces"),
                 None, self._setStyle, True, group="style")
             ]
         self.addSeparator()
@@ -466,7 +466,7 @@ class FileMenu(Menu):
         self.addItem(translate("menu", "Open... ::: Open an existing file from disk."),
             icons.folder_page, pyzo.editors.openFile)
         #
-        self._items += [ 
+        self._items += [
             self.addItem(translate("menu", "Save ::: Save the current file to disk."),
                 icons.disk, pyzo.editors.saveFile),
             self.addItem(translate("menu", "Save as... ::: Save the current file under another name."),
@@ -476,9 +476,9 @@ class FileMenu(Menu):
             self.addItem(translate("menu", "Close ::: Close the current file."),
                 icons.page_delete, pyzo.editors.closeFile),
             self.addItem(translate("menu", "Close all ::: Close all files."),
-                icons.page_delete_all, pyzo.editors.closeAllFiles),  
+                icons.page_delete_all, pyzo.editors.closeAllFiles),
             self.addItem(translate("menu", "Export to PDF ::: Export current file to PDF (e.g. for printing)."),
-                None, self._print),  
+                None, self._print),
             ]
         
         # Build file properties stuff
@@ -486,15 +486,15 @@ class FileMenu(Menu):
         self._items += [
                     self.addMenu(self._indentMenu, icons.page_white_gear),
                     self.addMenu(self._parserMenu, icons.page_white_gear),
-                    self.addMenu(self._lineEndingMenu, icons.page_white_gear), 
+                    self.addMenu(self._lineEndingMenu, icons.page_white_gear),
                     self.addMenu(self._encodingMenu, icons.page_white_gear),
                     ]
         
         # Closing of app
         self.addSeparator()
-        self.addItem(translate("menu", "Restart Pyzo ::: Restart the application."), 
+        self.addItem(translate("menu", "Restart Pyzo ::: Restart the application."),
             icons.arrow_rotate_clockwise, pyzo.main.restart)
-        self.addItem(translate("menu","Quit Pyzo ::: Close the application."), 
+        self.addItem(translate("menu","Quit Pyzo ::: Close the application."),
             icons.cancel, pyzo.main.close)
         
         # Start disabled
@@ -537,7 +537,7 @@ class FileMenu(Menu):
         editor.lineEndings = value
     
     def _updateEncoding(self, editor):
-        # Dict with encoding aliases (official to aliases)        
+        # Dict with encoding aliases (official to aliases)
         D  = {  'cp1250':  ('windows-1252', ),
                 'cp1251':  ('windows-1251', ),
                 'latin_1': ('iso-8859-1', 'iso8859-1', 'cp819', 'latin', 'latin1', 'L1')}
@@ -584,7 +584,7 @@ class FileMenu(Menu):
             from pyzo.util.qt import QtPrintSupport
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
             if True:
-                filename = QtWidgets.QFileDialog.getSaveFileName(None, 
+                filename = QtWidgets.QFileDialog.getSaveFileName(None,
                         'Export PDF', os.path.expanduser("~"), "*.pdf *.ps")
                 if isinstance(filename, tuple): # PySide
                     filename = filename[0]
@@ -624,49 +624,49 @@ class EditMenu(Menu):
         
         self.addItem(translate("menu", "Undo ::: Undo the latest editing action."),
             icons.arrow_undo, self._editItemCallback, "undo")
-        self.addItem(translate("menu", "Redo ::: Redo the last undone editong action."), 
+        self.addItem(translate("menu", "Redo ::: Redo the last undone editong action."),
             icons.arrow_redo, self._editItemCallback, "redo")
         self.addSeparator()
-        self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
+        self.addItem(translate("menu", "Cut ::: Cut the selected text."),
             icons.cut, self._editItemCallback, "cut")
-        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."), 
+        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."),
             icons.page_white_copy, self._editItemCallback, "copy")
-        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
+        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."),
             icons.paste_plain, self._editItemCallback, "paste")
         self.addItem(translate("menu", "Paste and select ::: Paste the text that is now on the clipboard and keep it selected in order to change its indentation."),  # noqa
             icons.paste_plain, self._editItemCallback, "pasteAndSelect")
-        self.addItem(translate("menu", "Select all ::: Select all text."), 
+        self.addItem(translate("menu", "Select all ::: Select all text."),
             icons.sum, self._editItemCallback, "selectAll")
         self.addSeparator()
-        self.addItem(translate("menu", "Indent ::: Indent the selected line."), 
+        self.addItem(translate("menu", "Indent ::: Indent the selected line."),
             icons.text_indent, self._editItemCallback, "indentSelection")
-        self.addItem(translate("menu", "Dedent ::: Unindent the selected line."), 
+        self.addItem(translate("menu", "Dedent ::: Unindent the selected line."),
             icons.text_indent_remove, self._editItemCallback, "dedentSelection")
-        self.addItem(translate("menu", "Comment ::: Comment the selected line."), 
+        self.addItem(translate("menu", "Comment ::: Comment the selected line."),
             icons.comment_add, self._editItemCallback, "commentCode")
-        self.addItem(translate("menu", "Uncomment ::: Uncomment the selected line."), 
+        self.addItem(translate("menu", "Uncomment ::: Uncomment the selected line."),
             icons.comment_delete, self._editItemCallback, "uncommentCode")
-        self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."), 
+        self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."),
             icons.text_align_justify, self._editItemCallback, "justifyText")
-        self.addItem(translate("menu", "Go to line ::: Go to a specific line number."), 
+        self.addItem(translate("menu", "Go to line ::: Go to a specific line number."),
             None, self._editItemCallback, "gotoLinePopup")
-        self.addItem(translate("menu", "Duplicate line ::: Duplicate the selected line(s)."), 
+        self.addItem(translate("menu", "Duplicate line ::: Duplicate the selected line(s)."),
             None, self._editItemCallback, "duplicateLines")
-        self.addItem(translate("menu", "Delete line ::: Delete the selected line(s)."), 
+        self.addItem(translate("menu", "Delete line ::: Delete the selected line(s)."),
             None, self._editItemCallback, "deleteLines")
         self.addSeparator()
-        self.addItem(translate("menu", "Toggle breakpoint ::: Toggle breakpoint on the current line."), 
+        self.addItem(translate("menu", "Toggle breakpoint ::: Toggle breakpoint on the current line."),
             None, self._editItemCallback, "toggleBreakpoint")
         self.addSeparator()
-        self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
+        self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."),
             icons.find, pyzo.editors._findReplace.startFind)
-        self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."), 
+        self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."),
             None, pyzo.editors._findReplace.findSelection)
-        self.addItem(translate("menu", "Find selection backward ::: Find the previous occurrence of the selected text."), 
+        self.addItem(translate("menu", "Find selection backward ::: Find the previous occurrence of the selected text."),
             None, pyzo.editors._findReplace.findSelectionBw)
-        self.addItem(translate("menu", "Find next ::: Find the next occurrence of the search string."), 
+        self.addItem(translate("menu", "Find next ::: Find the next occurrence of the search string."),
             None, pyzo.editors._findReplace.findNext)
-        self.addItem(translate("menu", "Find previous ::: Find the previous occurrence of the search string."), 
+        self.addItem(translate("menu", "Find previous ::: Find the previous occurrence of the search string."),
             None, pyzo.editors._findReplace.findPrevious)
     
     
@@ -704,7 +704,7 @@ class ZoomMenu(Menu):
 class FontMenu(Menu):
     def __init__(self, parent=None, name="Font", *args, **kwds):
         Menu.__init__(self, parent, name, *args, **kwds)
-        self.aboutToShow.connect(self._updateFonts)  
+        self.aboutToShow.connect(self._updateFonts)
     
     def _updateFonts(self):
         self.clear()
@@ -759,23 +759,23 @@ class ViewMenu(Menu):
         self._qtThemeMenu.setCheckedOption(None, pyzo.config.view.qtstyle.lower())
         
         # Build menu
-        self.addItem(translate("menu", "Select shell ::: Focus the cursor on the current shell."), 
+        self.addItem(translate("menu", "Select shell ::: Focus the cursor on the current shell."),
             icons.application_shell, self._selectShell)
-        self.addItem(translate("menu", "Select editor ::: Focus the cursor on the current editor."), 
+        self.addItem(translate("menu", "Select editor ::: Focus the cursor on the current editor."),
             icons.application_edit, self._selectEditor)
-        self.addItem(translate("menu", "Select previous file ::: Select the previously selected file."), 
+        self.addItem(translate("menu", "Select previous file ::: Select the previously selected file."),
             icons.application_double, pyzo.editors._tabs.selectPreviousItem)
         self.addSeparator()
-        self.addEditorItem(translate("menu", "Show whitespace ::: Show spaces and tabs."), 
+        self.addEditorItem(translate("menu", "Show whitespace ::: Show spaces and tabs."),
             None, "showWhitespace")
-        self.addEditorItem(translate("menu", "Show line endings ::: Show the end of each line."), 
+        self.addEditorItem(translate("menu", "Show line endings ::: Show the end of each line."),
             None, "showLineEndings")
-        self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."), 
+        self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."),
             None, "showIndentationGuides")
         self.addSeparator()
-        self.addEditorItem(translate("menu", "Wrap long lines ::: Wrap lines that do not fit on the screen (i.e. no horizontal scrolling)."), 
+        self.addEditorItem(translate("menu", "Wrap long lines ::: Wrap lines that do not fit on the screen (i.e. no horizontal scrolling)."),
             None, "wrap")
-        self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."), 
+        self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."),
             None, "highlightCurrentLine")
         self.addEditorItem(translate("menu", "Highlight brackets ::: Highlight matched and unmatched brackets."),
             None, "highlightMatchingBracket")
@@ -795,9 +795,9 @@ class ViewMenu(Menu):
         self.addMenu(self._qtThemeMenu, icons.application_view_tile)
     
     def addEditorItem(self, name, icon, param):
-        """ 
+        """
         Create a boolean item that reperesents a property of the editors,
-        whose value is stored in pyzo.config.view.param 
+        whose value is stored in pyzo.config.view.param
         """
         if hasattr(pyzo.config.view, param):
             default = getattr(pyzo.config.view, param)
@@ -951,7 +951,7 @@ class ShellMenu(Menu):
         self._shellActions = []
         Menu.__init__(self, parent, name)
         pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
-        self.aboutToShow.connect(self._updateShells)  
+        self.aboutToShow.connect(self._updateShells)
     
     def onCurrentShellChanged(self):
         """ Enable/disable shell actions based on wether a shell is available """
@@ -965,15 +965,15 @@ class ShellMenu(Menu):
         Returns a list of all items added"""
         icons = pyzo.icons
         return [
-            self.addItem(translate("menu", 'Clear screen ::: Clear the screen.'), 
+            self.addItem(translate("menu", 'Clear screen ::: Clear the screen.'),
                 icons.application_eraser, self._shellAction, "clearScreen"),
-            self.addItem(translate("menu", 'Interrupt ::: Interrupt the current running code (does not work for extension code).'), 
+            self.addItem(translate("menu", 'Interrupt ::: Interrupt the current running code (does not work for extension code).'),
                 icons.application_lightning, self._shellAction, "interrupt"),
-            self.addItem(translate("menu", 'Restart ::: Terminate and restart the interpreter.'), 
+            self.addItem(translate("menu", 'Restart ::: Terminate and restart the interpreter.'),
                 icons.application_refresh, self._shellAction, "restart"),
-            self.addItem(translate("menu", 'Terminate ::: Terminate the interpreter, leaving the shell open.'), 
+            self.addItem(translate("menu", 'Terminate ::: Terminate the interpreter, leaving the shell open.'),
                 icons.application_delete, self._shellAction, "terminate"),
-            self.addItem(translate("menu", 'Close ::: Terminate the interpreter and close the shell.'), 
+            self.addItem(translate("menu", 'Close ::: Terminate the interpreter and close the shell.'),
                 icons.cancel, self._shellAction, "closeShell"),
             ]
     
@@ -983,15 +983,15 @@ class ShellMenu(Menu):
         icons = pyzo.icons
         
         return [
-            self.addItem(translate("menu", 'Debug next: proceed until next line'), 
+            self.addItem(translate("menu", 'Debug next: proceed until next line'),
                 icons.debug_next, self._debugAction, "NEXT"),
-            self.addItem(translate("menu", 'Debug step into: proceed one step'), 
+            self.addItem(translate("menu", 'Debug step into: proceed one step'),
                 icons.debug_step, self._debugAction, "STEP"),
-            self.addItem(translate("menu", 'Debug return: proceed until returns'), 
+            self.addItem(translate("menu", 'Debug return: proceed until returns'),
                 icons.debug_return, self._debugAction, "RETURN"),
-            self.addItem(translate("menu", 'Debug continue: proceed to next breakpoint'), 
+            self.addItem(translate("menu", 'Debug continue: proceed to next breakpoint'),
                 icons.debug_continue, self._debugAction, "CONTINUE"),
-            self.addItem(translate("menu", 'Stop debugging'), 
+            self.addItem(translate("menu", 'Stop debugging'),
                 icons.debug_quit, self._debugAction, "STOP"),
             ]
     
@@ -1014,7 +1014,7 @@ class ShellMenu(Menu):
         self._debug_clear_text = translate('menu', 'Clear all {} breakpoints')
         self._debug_clear = self.addItem('', pyzo.icons.bug_delete, self._clearBreakPoints)
         self._debug_pm = self.addItem(
-            translate('menu', 'Postmortem: debug from last traceback'), 
+            translate('menu', 'Postmortem: debug from last traceback'),
             pyzo.icons.bug_delete, self._debugAction, "START")
         self._shellDebugActions = self.buildShellDebugActions()
         #
@@ -1023,9 +1023,9 @@ class ShellMenu(Menu):
         self.addSeparator()
         
         # Shell config
-        self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
+        self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'),
             pyzo.icons.application_wrench, self._editConfig2)
-        self.addItem(translate("menu", 'Create new Python environment... ::: Install miniconda.'), 
+        self.addItem(translate("menu", 'Create new Python environment... ::: Install miniconda.'),
             pyzo.icons.application_cascade, self._newPythonEnv)
         
         self.addSeparator()
@@ -1041,7 +1041,7 @@ class ShellMenu(Menu):
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
             name = translate('menu', 'Create shell %s: (%s)') % (i+1, config.name)
-            action = self.addItem(name, 
+            action = self.addItem(name,
                 pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)
     
@@ -1078,7 +1078,7 @@ class ShellMenu(Menu):
     
     def _editConfig2(self):
         """ Edit, add and remove configurations for the shells. """
-        from pyzo.core.shellInfoDialog import ShellInfoDialog 
+        from pyzo.core.shellInfoDialog import ShellInfoDialog
         d = ShellInfoDialog()
         d.exec_()
     
@@ -1093,7 +1093,7 @@ class ShellButtonMenu(ShellMenu):
     def build(self):
         self._shellActions = []
         
-        self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'), 
+        self.addItem(translate("menu", 'Edit shell configurations... ::: Add new shell configs and edit interpreter properties.'),
             pyzo.icons.application_wrench, self._editConfig2)
         
         submenu = Menu(self, translate("menu", 'New shell ... ::: Create new shell to run code in.'))
@@ -1109,7 +1109,7 @@ class ShellButtonMenu(ShellMenu):
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
             name = translate('menu', 'Create shell %s: (%s)') % (i+1, config.name)
-            action = self._newShellMenu.addItem(name, 
+            action = self._newShellMenu.addItem(name,
                 pyzo.icons.application_add, pyzo.shells.addShell, config)
             self._shellCreateActions.append(action)
 
@@ -1128,13 +1128,13 @@ class ShellContextMenu(ShellMenu):
         
         # This is a subset of the edit menu. Copied manually.
         self.addSeparator()
-        self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
+        self.addItem(translate("menu", "Cut ::: Cut the selected text."),
             icons.cut, self._editItemCallback, "cut")
-        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."), 
+        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."),
             icons.page_white_copy, self._editItemCallback, "copy")
-        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
+        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."),
             icons.paste_plain, self._editItemCallback, "paste")
-        self.addItem(translate("menu", "Select all ::: Select all text."), 
+        self.addItem(translate("menu", "Select all ::: Select all text."),
             icons.sum, self._editItemCallback, "selectAll")
         
         self.addSeparator()
@@ -1189,24 +1189,24 @@ class EditorContextMenu(Menu):
         icons = pyzo.icons
         
         # This is a subset of the edit menu. Copied manually.
-        self.addItem(translate("menu", "Cut ::: Cut the selected text."), 
+        self.addItem(translate("menu", "Cut ::: Cut the selected text."),
             icons.cut, self._editItemCallback, "cut")
-        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."), 
+        self.addItem(translate("menu", "Copy ::: Copy the selected text to the clipboard."),
             icons.page_white_copy, self._editItemCallback, "copy")
-        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
+        self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."),
             icons.paste_plain, self._editItemCallback, "paste")
-        self.addItem(translate("menu", "Select all ::: Select all text."), 
+        self.addItem(translate("menu", "Select all ::: Select all text."),
             icons.sum, self._editItemCallback, "selectAll")
         self.addSeparator()
-        self.addItem(translate("menu", "Indent ::: Indent the selected line."), 
+        self.addItem(translate("menu", "Indent ::: Indent the selected line."),
             icons.text_indent, self._editItemCallback, "indentSelection")
-        self.addItem(translate("menu", "Dedent ::: Unindent the selected line."), 
+        self.addItem(translate("menu", "Dedent ::: Unindent the selected line."),
             icons.text_indent_remove, self._editItemCallback, "dedentSelection")
-        self.addItem(translate("menu", "Comment ::: Comment the selected line."), 
+        self.addItem(translate("menu", "Comment ::: Comment the selected line."),
             icons.comment_add, self._editItemCallback, "commentCode")
-        self.addItem(translate("menu", "Uncomment ::: Uncomment the selected line."), 
+        self.addItem(translate("menu", "Uncomment ::: Uncomment the selected line."),
             icons.comment_delete, self._editItemCallback, "uncommentCode")
-        self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."), 
+        self.addItem(translate("menu", "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters."),
             icons.text_align_justify, self._editItemCallback, "justifyText")
         self.addSeparator()
         self.addItem(translate("menu", "Goto Definition ::: Go to definition of word under cursor."),
@@ -1214,9 +1214,9 @@ class EditorContextMenu(Menu):
         self.addItem(translate("menu", "Open directory in file browser"),
             None, self._editItemCallback, "opendir")
         self.addSeparator()
-        self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
+        self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."),
             icons.find, pyzo.editors._findReplace.startFind)
-        self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."), 
+        self.addItem(translate("menu", "Find selection ::: Find the next occurrence of the selected text."),
             None, pyzo.editors._findReplace.findSelection)
         self.addItem(translate("menu", "Find selection backward ::: Find the previous occurrence of the selected text."),
             None, pyzo.editors._findReplace.findSelectionBw)
@@ -1275,15 +1275,15 @@ class EditorTabContextMenu(Menu):
         
         self.addSeparator()
         # todo: remove feature to pin files?
-        self.addItem(translate("menu", "Pin/Unpin ::: Pinned files get closed less easily."), 
+        self.addItem(translate("menu", "Pin/Unpin ::: Pinned files get closed less easily."),
             None, self._fileAction, "pin")
-        self.addItem(translate("menu", "Set/Unset as MAIN file ::: The main file can be run while another file is selected."), 
+        self.addItem(translate("menu", "Set/Unset as MAIN file ::: The main file can be run while another file is selected."),
             icons.star, self._fileAction, "main")
         
         self.addSeparator()
-        self.addItem(translate("menu", "Run file ::: Run the code in this file."), 
+        self.addItem(translate("menu", "Run file ::: Run the code in this file."),
             icons.run_file, self._fileAction, "run")
-        self.addItem(translate("menu", "Run file as script ::: Run this file as a script (restarts the interpreter)."), 
+        self.addItem(translate("menu", "Run file as script ::: Run this file as a script (restarts the interpreter)."),
             icons.run_file_script, self._fileAction, "run_script")
     
     
@@ -1337,7 +1337,7 @@ class EditorTabContextMenu(Menu):
         pyzo.editors._tabs.updateItems()
 
 
-class RunMenu(Menu):       
+class RunMenu(Menu):
     def build(self):
         icons = pyzo.icons
         
@@ -1354,21 +1354,21 @@ class RunMenu(Menu):
             icons.run_cell, self._runCell)
         
         #In the _runFile calls, the parameter specifies (asScript, mainFile)
-        self.addItem(translate("menu", 'Execute file ::: Execute the current file in the current shell.'), 
+        self.addItem(translate("menu", 'Execute file ::: Execute the current file in the current shell.'),
             icons.run_file, self._runFile,(False, False))
-        self.addItem(translate("menu", 'Execute main file ::: Execute the main file in the current shell.'), 
+        self.addItem(translate("menu", 'Execute main file ::: Execute the main file in the current shell.'),
             icons.run_mainfile, self._runFile,(False, True))
         
         self.addSeparator()
         
-        self.addItem(translate("menu", 'Execute selection and advance'), 
+        self.addItem(translate("menu", 'Execute selection and advance'),
             icons.run_lines, self._runSelectedAdvance)
-        self.addItem(translate("menu", 'Execute cell and advance ::: Execute the current editors\'s cell and advance to the next cell.'), 
+        self.addItem(translate("menu", 'Execute cell and advance ::: Execute the current editors\'s cell and advance to the next cell.'),
             icons.run_cell, self._runCellAdvance)
         
         self.addSeparator()
         
-        self.addItem(translate("menu", 'Help on running code ::: Open the pyzo wizard at the page about running code.'), 
+        self.addItem(translate("menu", 'Help on running code ::: Open the pyzo wizard at the page about running code.'),
             icons.information, self._showHelp)
     
     
@@ -1423,7 +1423,7 @@ class RunMenu(Menu):
         self._runSelected(advance=True)
 
     def _runSelected(self, advance=False):
-        """ Run the selected whole lines in the current shell. 
+        """ Run the selected whole lines in the current shell.
         """
         # Get editor and shell
         shell, editor = self._getShellAndEditor('selection')
@@ -1470,7 +1470,7 @@ class RunMenu(Menu):
         self._runCell(advance=True)
     
     def _runCell(self, advance=False):
-        """ Run the code between two cell separaters ('##'). 
+        """ Run the code between two cell separaters ('##').
         """
         #TODO: ignore ## in multi-line strings
         # Maybe using source-structure information?
@@ -1478,13 +1478,13 @@ class RunMenu(Menu):
         # Get editor and shell
         shell, editor = self._getShellAndEditor('cell')
         if not shell or not editor:
-            return 
+            return
         
         cellName = ''
         
         # Get current cell
-        # Move up until the start of document 
-        # or right after a line starting with '##'  
+        # Move up until the start of document
+        # or right after a line starting with '##'
         runCursor = editor.textCursor() #The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         while True:
@@ -1507,7 +1507,7 @@ class RunMenu(Menu):
         if len(cellName) > 20:
             cellName = cellName[:17]+'...'
         
-        # Move down until a line before one starting with'##' 
+        # Move down until a line before one starting with'##'
         # or to end of document
         while True:
             line = runCursor.block().text().lstrip()
@@ -1548,7 +1548,7 @@ class RunMenu(Menu):
         text = editor.toPlainText()
         # Show what we execute
         self._showWhatToExecute(editor)
-        # Get filename and return 
+        # Get filename and return
         fname = editor.id() # editor._name or editor._filename
         return fname, text
     
@@ -1567,7 +1567,7 @@ class RunMenu(Menu):
         if givenEditor:
             editor = givenEditor
         if not shell or not editor:
-            return        
+            return
         
         if asScript:
             # Go
@@ -1605,7 +1605,7 @@ class ToolsMenu(Menu):
         Menu.__init__(self, *args, **kwds)
     
     def build(self):
-        self.addItem(translate("menu", 'Reload tools ::: For people who develop tools.'), 
+        self.addItem(translate("menu", 'Reload tools ::: For people who develop tools.'),
             pyzo.icons.plugin_refresh, pyzo.toolManager.reloadTools)
         self.addSeparator()
 
@@ -1621,7 +1621,7 @@ class ToolsMenu(Menu):
         # Add all tools, with checkmarks for those that are active
         self._toolActions = []
         for tool in pyzo.toolManager.getToolInfo():
-            action = self.addCheckItem(tool.name, pyzo.icons.plugin, 
+            action = self.addCheckItem(tool.name, pyzo.icons.plugin,
                 tool.menuLauncher, selected=bool(tool.instance))
             self._toolActions.append(action)
 
@@ -1631,29 +1631,29 @@ class HelpMenu(Menu):
     def build(self):
         icons = pyzo.icons
         
-        self.addUrlItem(translate("menu", "Pyzo website ::: Open the Pyzo website in your browser."), 
+        self.addUrlItem(translate("menu", "Pyzo website ::: Open the Pyzo website in your browser."),
             icons.help, "http://www.pyzo.org")
-        self.addUrlItem(translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."), 
+        self.addUrlItem(translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."),
             icons.help, "http://guide.pyzo.org")
-        self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."), 
+        self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."),
             icons.wand, self._showPyzoWizard)
         
         self.addSeparator()
         
-        self.addUrlItem(translate("menu", "Ask a question ::: Need help?"), 
+        self.addUrlItem(translate("menu", "Ask a question ::: Need help?"),
             icons.comments, "http://community.pyzo.org")
-        self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?"), 
+        self.addUrlItem(translate("menu", "Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?"),
             icons.error_add, "http://issues.pyzo.org")
-        self.addItem(translate("menu", "Local documentation ::: Documentation on Python and the Scipy Stack."), 
+        self.addItem(translate("menu", "Local documentation ::: Documentation on Python and the Scipy Stack."),
             icons.help, self._showPyzoDocs)
         self.addSeparator()
-        #self.addItem(translate("menu", "View code license ::: Legal stuff."), 
+        #self.addItem(translate("menu", "View code license ::: Legal stuff."),
         #    icons.script, lambda: pyzo.editors.loadFile(os.path.join(pyzo.pyzoDir,"license.txt")))
         
-        self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"), 
+        self.addItem(translate("menu", "Check for updates ::: Are you using the latest version?"),
            icons.application_go, self._checkUpdates)
         
-        self.addItem(translate("menu", "About Pyzo ::: More information about Pyzo."), 
+        self.addItem(translate("menu", "About Pyzo ::: More information about Pyzo."),
             icons.information, self._aboutPyzo)
     
     def addUrlItem(self, name, icon, url):
@@ -1678,8 +1678,8 @@ class HelpMenu(Menu):
         versions.sort()
         latest_version = '.'.join(str(i) for i in versions[-1]) if versions else '?'
         # Define message
-        text = "Your version of Pyzo is: {}\n" 
-        text += "Latest available version is: {}\n\n"         
+        text = "Your version of Pyzo is: {}\n"
+        text += "Latest available version is: {}\n\n"
         text = text.format(pyzo.__version__, latest_version)
         text += "Do you want to open the download page?\n"
         # Show message box
@@ -1718,7 +1718,7 @@ class AutocompMenu(Menu):
                  translate('menu', 'Automatic popup'),
                  translate('menu', 'Only show popup when pressing Tab')]
         for value, mode in enumerate(modes):
-            self.addGroupItem(mode, None, self._setMode, value, group='mode') 
+            self.addGroupItem(mode, None, self._setMode, value, group='mode')
         self.setCheckedOption('mode', pyzo.config.settings.autoComplete)
         
         self.addSeparator()
@@ -1733,7 +1733,7 @@ class AutocompMenu(Menu):
         self.addSeparator()
         
         # Booleans
-        self.addCheckItem(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'), 
+        self.addCheckItem(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'),
                           None, self._setCompleteKeywords, None, pyzo.config.settings.autoComplete_keywords)
     
     def _setAcceptKeys(self, autocompkeys):
@@ -1774,18 +1774,18 @@ class SettingsMenu(Menu):
         
         self.addBoolSetting(translate("menu", 'Automatically indent ::: Indent when pressing enter after a colon.'),
             'autoIndent', lambda state, key: [e.setAutoIndent(state) for e in pyzo.editors])
-        self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'), 
+        self.addBoolSetting(translate("menu", 'Enable calltips ::: Show calltips with function signatures.'),
             'autoCallTip')
         
         self.addMenu(AutocompMenu(self, translate("menu", 'Autocompletion')))
         
         self.addSeparator()
-        self.addItem(translate("menu", 'Edit key mappings... ::: Edit the shortcuts for menu items.'), 
+        self.addItem(translate("menu", 'Edit key mappings... ::: Edit the shortcuts for menu items.'),
             icons.keyboard, lambda: KeymappingDialog().exec_())
-        self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'), 
+        self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'),
             icons.style, self._editStyles)
         self.addMenu(self._languageMenu, icons.flag_green)
-        self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'), 
+        self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'),
             icons.cog, self._advancedSettings)
     
     def _editStyles(self):
@@ -1795,7 +1795,7 @@ class SettingsMenu(Menu):
         We selected a style which we like a lot. It's based on the
         solarized theme (http://ethanschoonover.com/solarized) isn't it pretty?
         \r\r
-        In case you really want to change the style, you can change the 
+        In case you really want to change the style, you can change the
         source code at:\r
         {}
         """.format(os.path.join(pyzo.pyzoDir, 'codeeditor', 'base.py'))
@@ -1832,7 +1832,7 @@ class SettingsMenu(Menu):
             if callback is not None:
                 callback(state, key)
                 
-        self.addCheckItem(name, None, _callback, key, 
+        self.addCheckItem(name, None, _callback, key,
             getattr(pyzo.config.settings,key)) #Default value
     
     def _selectLanguage(self, languageName):
@@ -1843,7 +1843,7 @@ class SettingsMenu(Menu):
         pyzo.config.settings.language = languageName
         # Notify user
         text = translate('menu dialog', """
-        The language has been changed. 
+        The language has been changed.
         Pyzo needs to restart for the change to take effect.
         """)
         m = QtWidgets.QMessageBox(self)
@@ -1963,7 +1963,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         # produce index and make menu if the action represents a menu
         childAction = parentMenu.actions()[row]
         if childAction.menu():
-            childAction = childAction.menu()        
+            childAction = childAction.menu()
         return self.createIndex(row, column, childAction)
         # This is the trick. The internal pointer is the way to establish
         # correspondence between ModelIndex and underlying data.
@@ -1971,13 +1971,13 @@ class KeyMapModel(QtCore.QAbstractItemModel):
 
 # Key to string mappings
 k = QtCore.Qt
-keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape', 
-    k.Key_Tab:'Tab', k.Key_Backspace:'Backspace', k.Key_Pause:'Pause', 
+keymap = {k.Key_Enter:'Enter', k.Key_Return:'Return', k.Key_Escape:'Escape',
+    k.Key_Tab:'Tab', k.Key_Backspace:'Backspace', k.Key_Pause:'Pause',
     k.Key_Backtab: 'Tab', #Backtab is actually shift+tab
     k.Key_F1:'F1', k.Key_F2:'F2', k.Key_F3:'F3', k.Key_F4:'F4', k.Key_F5:'F5',
-    k.Key_F6:'F6', k.Key_F7:'F7', k.Key_F8:'F8', k.Key_F9:'F9', 
+    k.Key_F6:'F6', k.Key_F7:'F7', k.Key_F8:'F8', k.Key_F9:'F9',
     k.Key_F10:'F10', k.Key_F11:'F11', k.Key_F12:'F12', k.Key_Space:'Space',
-    k.Key_Delete:'Delete', k.Key_Insert:'Insert', k.Key_Home:'Home', 
+    k.Key_Delete:'Delete', k.Key_Insert:'Insert', k.Key_Home:'Home',
     k.Key_End:'End', k.Key_PageUp:'PageUp', k.Key_PageDown:'PageDown',
     k.Key_Left:'Left', k.Key_Up:'Up', k.Key_Right:'Right', k.Key_Down:'Down' }
 
@@ -2050,7 +2050,7 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
         
         # apply!
         if text:
-            storeNativeKey, text0 = True, text       
+            storeNativeKey, text0 = True, text
             if QtWidgets.qApp.keyboardModifiers() & k.AltModifier:
                 text  = 'Alt+' + text
             if QtWidgets.qApp.keyboardModifiers() & k.ShiftModifier:
@@ -2070,8 +2070,8 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
 
 
 class KeyMapEditDialog(QtWidgets.QDialog):
-    """ The prompt that is shown when double clicking 
-    a keymap in the tree. 
+    """ The prompt that is shown when double clicking
+    a keymap in the tree.
     It notifies the user when the entered shortcut is already used
     elsewhere and applies the shortcut (removing it elsewhere if
     required) when the apply button is pressed.
@@ -2218,7 +2218,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
 class KeymappingDialog(QtWidgets.QDialog):
     """ The main keymap dialog, it has tabs corresponding with the
     different menus and each tab has a tree representing the structure
-    of these menus. The current shortcuts are displayed. 
+    of these menus. The current shortcuts are displayed.
     On double clicking on an item, the shortcut can be edited. """
     
     def __init__(self, *args):
@@ -2247,7 +2247,7 @@ class KeymappingDialog(QtWidgets.QDialog):
             # create treeview and model
             model = KeyMapModel()
             model.setRootMenu(menu)
-            tree = QtWidgets.QTreeView(self.tab) 
+            tree = QtWidgets.QTreeView(self.tab)
             tree.setModel(model)
             # configure treeview
             tree.clicked.connect(self.onClickSelect)
@@ -2277,7 +2277,7 @@ class KeymappingDialog(QtWidgets.QDialog):
             self.popupItem(index.internalPointer(), index.column())
     
     
-    def onDoubleClick(self, index):        
+    def onDoubleClick(self, index):
         if not index.column():
             self.popupItem(index.internalPointer())
     
