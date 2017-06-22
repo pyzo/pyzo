@@ -583,6 +583,7 @@ class FileMenu(Menu):
     def _print(self):
         editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
+            
             from pyzo.util.qt import QtPrintSupport
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
             if True:
@@ -601,8 +602,22 @@ class FileMenu(Menu):
                 ok = d.exec_()
                 if ok != d.Accepted:
                     return
-            # Print
-            editor.print_(printer)
+            # Print with line numbers
+            lines = editor.toPlainText().splitlines()
+            nzeros = len(str(len(lines)))
+            lines.insert(0, '# ' + editor.filename)
+            for i in range(1, len(lines)):
+                lines[i] = str(i).rjust(nzeros, '0') + '| ' + lines[i]
+            cursor0 = editor.textCursor()
+            cursor = editor.textCursor()
+            cursor.movePosition(cursor.Start)
+            cursor.movePosition(cursor.End, cursor.KeepAnchor)
+            cursor.insertText('\n'.join(lines))
+            try:
+                editor.print_(printer)
+            finally:
+                editor.undo()
+                editor.setTextCursor(cursor0)
 
 
 # todo: move to matching brace
