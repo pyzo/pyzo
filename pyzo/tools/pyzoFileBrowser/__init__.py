@@ -106,6 +106,13 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         layout.setContentsMargins(4,4,4,4)
     
     
+    def path(self):
+        """ Get the current path shown by the file browser.
+        """
+        browser = self._browsers[0]
+        return browser._tree.path()
+    
+    
     def setPath(self, path):
         """ Set the shown path.
         """

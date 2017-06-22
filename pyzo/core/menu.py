@@ -1143,6 +1143,8 @@ class ShellContextMenu(ShellMenu):
         self.addSeparator()
         self.addItem(translate("menu", "Open current directory in file browser"),
             None, self._editItemCallback, "opendir")
+        self.addItem(translate("menu", "Change current directory to the file browser's path"),
+            None, self._editItemCallback, "changedir")
         
     def getShell(self):
         """ Shell actions of this menu operate on the shell specified in the constructor """
@@ -1155,6 +1157,10 @@ class ShellContextMenu(ShellMenu):
             fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
             if curdir and fileBrowser:
                 fileBrowser.setPath(curdir)
+        elif action == 'changedir':
+            fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
+            if fileBrowser:
+                self._shell.executeCommand('cd ' + fileBrowser.path() + '\n')
         else:
             getattr(self._shell, action)()
     
