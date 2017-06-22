@@ -1246,8 +1246,11 @@ class EditorTabContextMenu(Menu):
             icons.page_delete_all, self._fileAction, "close_all")
         self.addItem(translate("menu", "Rename ::: Rename this file."),
             None, self._fileAction, "rename")
+        self.addSeparator()
         self.addItem(translate("menu", "Copy path ::: Copy the full path of this file."),
             None, self._fileAction, "copypath")
+        self.addItem(translate("menu", "Open directory in file browser"),
+            None, self._fileAction, "opendir")
         
         self.addSeparator()
         # todo: remove feature to pin files?
@@ -1290,6 +1293,10 @@ class EditorTabContextMenu(Menu):
         elif action == 'copypath':
             filename = item.filename
             QtWidgets.qApp.clipboard().setText(filename)
+        elif action == 'opendir':
+            fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
+            if fileBrowser:
+                fileBrowser.setPath(os.path.dirname(item.filename))
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":

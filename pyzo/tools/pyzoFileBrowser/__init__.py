@@ -106,6 +106,13 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         layout.setContentsMargins(4,4,4,4)
     
     
+    def setPath(self, path):
+        """ Set the shown path.
+        """
+        browser = self._browsers[0]
+        browser._tree.setPath(path)
+    
+    
     def getAddToPythonPath(self):
         """
         Returns the path to be added to the Python path when starting a shell
