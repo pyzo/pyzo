@@ -132,7 +132,7 @@ class PyzoAssistant(QtWidgets.QWidget):
             When collection_file is none, it is determined from the
             appDataDir.
         """
-        from pyzo.util.qt import QtHelp, QtWidgets, QtWidgets
+        from pyzo.util.qt import QtHelp
         super().__init__(parent)
         self.setWindowTitle('Help')
         pyzoDir, appDataDir = getResourceDirs()

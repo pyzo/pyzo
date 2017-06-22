@@ -19,7 +19,7 @@ import webbrowser
 from urllib.request import urlopen
 import json
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
+from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
@@ -583,6 +583,7 @@ class FileMenu(Menu):
     def _print(self):
         editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
+            from pyzo.util.qt import QtPrintSupport
             printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
             if True:
                 filename = QtWidgets.QFileDialog.getSaveFileName(None, 

@@ -69,15 +69,15 @@ excludes.extend(tk_excludes)
 excludes.append('numpy')
 
 # Excludes for Qt
-qt_excludes = 'QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg', 'QtHelp'
+qt_excludes = 'QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg',  # 'QtHelp'
 for qt_ver in ['PyQt5', 'PyQt4', 'PySide']:
     for excl in qt_excludes:
         excludes.append(qt_ver + '.' + excl)
 
 # For qt to work
-PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui']
-PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui']
-PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
+PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp', 'PyQt4.QtPrintSupport']
+PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtHelp', 'PyQt5.QtPrintSupport']
+PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp', 'PySide.QtPrintSupport']
 
 # SELECT BACKEND
 QT_API = 'PyQt5'
