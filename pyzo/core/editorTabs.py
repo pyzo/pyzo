@@ -84,8 +84,52 @@ def simpleDialog(item, action, question, options, defaultOption):
         return buttons[button]
     else:
         return None
+
+
+def get_shortest_unique_filename(filename, filenames):
+    """ Get a representation of filename in a way that makes it look
+    unique compared to the other given filenames. The most unique part
+    of the path is used, and every directory in between that part and the
+    actual filename is represented with a slash.
+    """
     
+    # Normalize and avoid having filename itself in filenames
+    filename1 = filename.replace('\\', '/')
+    filenames = [fn.replace('\\', '/') for fn in filenames]
+    filenames = [fn for fn in filenames if fn != filename1]
     
+    # Prepare for finding uniqueness
+    nameparts1 = filename1.split('/')
+    uniqueness = [len(filenames) for i in nameparts1]
+    
+    # Establish what parts of the filename are not unique when compared to
+    # each entry in filenames.
+    for filename2 in filenames:
+        nameparts2 = filename2.split('/')
+        nonunique_for_this_filename = set()
+        for i in range(len(nameparts1)):
+            if i < len(nameparts2):
+                if nameparts2[i] == nameparts1[i]:
+                    nonunique_for_this_filename.add(i)
+                if nameparts2[-1-i] == nameparts1[-1-i]:
+                    nonunique_for_this_filename.add(-i-1)
+        for i in nonunique_for_this_filename:
+            uniqueness[i] -= 1
+    
+    # How unique is the filename? If its not unique at all, use only base name
+    max_uniqueness = max(uniqueness[:-1])
+    if max_uniqueness == 0:
+        return nameparts1[-1]
+    
+    # Produce display name based on base name and last most-unique part
+    displayname = nameparts1[-1]
+    for i in reversed(range(len(uniqueness)-1)):
+        displayname = '/' + displayname
+        if uniqueness[i] == max_uniqueness:
+            displayname = nameparts1[i] + displayname
+            break
+    return displayname
+
 
 # todo: some management stuff could (should?) go here
 class FileItem:
@@ -834,6 +878,15 @@ class FileTabWidget(CompactTabWidget):
         items = self.items()
         tabBar = self.tabBar()
         
+        # Check whether we have name clashes, which we can try to resolve
+        namecounts = {}
+        for i in range(len(items)):
+            item = items[i]
+            if item is None:
+                continue
+            xx = namecounts.setdefault(item.name, [])
+            xx.append(item)
+        
         for i in range(len(items)):
             
             # Get item
@@ -841,12 +894,26 @@ class FileTabWidget(CompactTabWidget):
             if item is None:
                 continue
             
+            # Get display name
+            items_with_this_name = namecounts[item.name]
+            if len(items_with_this_name) <= 1:
+                display_name = item.name
+            else:
+                filenames = [j.filename for j in items_with_this_name]
+                try:
+                    display_name = get_shortest_unique_filename(item.filename, filenames)
+                except Exception as err:
+                    # Catch this, just in case ...
+                    print('could not get unique name for:\n%r' % filenames)
+                    print(err)
+                    display_name = item.name
+            
+            tabBar.setTabText(i, display_name)
+            
             # Update name and tooltip
             if item.dirty:
-                #tabBar.setTabText(i, '*'+item.name)
                 tabBar.setTabToolTip(i, item.filename + ' [modified]')
             else:
-                tabBar.setTabText(i, item.name)
                 tabBar.setTabToolTip(i, item.filename)
             
             # Determine text color. Is main file? Is current?

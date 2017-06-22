@@ -412,17 +412,21 @@ class CompactTabBar(QtWidgets.QTabBar):
             w = self._alignWidth
             
             # Get name
-            name = name0 = self._compactTabBarData(i).name
+            name = self._compactTabBarData(i).name
+            
+            # If its too long, first make it shorter by stripping dir names
+            if (w+1) < len(name) and '/' in name:
+                name = name.split('/')[-1]
             
             # Check if we can reduce the name size, correct w if necessary
-            if ( (w+1) < len(name0) ) and self._preventEqualTexts:
+            if ( (w+1) < len(name) ) and self._preventEqualTexts:
                 
                 # Increase w untill there are no names that start the same
                 allNames = self._getAllNames()
                 hasSimilarNames = True
                 diff = 2
                 w -= 1
-                while hasSimilarNames and w < len(name0):
+                while hasSimilarNames and w < len(name):
                     w += 1
                     w2 = w - (diff-1)
                     shortName = name[:w2]
@@ -430,7 +434,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                     hasSimilarNames = len(similarnames)>1
             
             # Check again, with corrected w
-            if (w+1) < len(name0):
+            if (w+1) < len(name):
                 name = name[:w] + ELLIPSIS
                 itemReduced = True
             
