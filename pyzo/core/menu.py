@@ -1198,6 +1198,8 @@ class EditorContextMenu(Menu):
         self.addSeparator()
         self.addItem(translate("menu", "Goto Definition ::: Go to definition of word under cursor."),
             icons.debug_return, self._editItemCallback, "gotoDef")
+        self.addItem(translate("menu", "Open directory in file browser"),
+            None, self._editItemCallback, "opendir")
         self.addSeparator()
         self.addItem(translate("menu", "Find or replace ::: Show find/replace widget. Initialize with selected text."), 
             icons.find, pyzo.editors._findReplace.startFind)
@@ -1214,7 +1216,12 @@ class EditorContextMenu(Menu):
     
     def _editItemCallback(self, action):
         #If the widget has a 'name' attribute, call it
-        getattr(self._editor, action)()
+        if action == 'opendir':
+            fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
+            if fileBrowser:
+                fileBrowser.setPath(os.path.dirname(self._editor.filename))
+        else:
+            getattr(self._editor, action)()
     
     def _runSelected(self):
         runMenu = pyzo.main.menuBar()._menumap['run']
@@ -1246,6 +1253,7 @@ class EditorTabContextMenu(Menu):
             icons.page_delete_all, self._fileAction, "close_all")
         self.addItem(translate("menu", "Rename ::: Rename this file."),
             None, self._fileAction, "rename")
+        
         self.addSeparator()
         self.addItem(translate("menu", "Copy path ::: Copy the full path of this file."),
             None, self._fileAction, "copypath")
