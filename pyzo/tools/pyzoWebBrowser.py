@@ -5,13 +5,12 @@
 # The full license can be found in 'license.txt'.
 
 
-import time
 import urllib.request, urllib.parse
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtWidgets
 imported_qtwebkit = True
 try:
-    from pyzo.util.qt import QtWebKit, QtWidgets
+    from pyzo.util.qt import QtWebKit
 except ImportError:
     imported_qtwebkit = False
 
@@ -263,7 +262,7 @@ class PyzoWebBrowser(QtWidgets.QFrame):
             degrees = event.delta() / 8.0
             steps = degrees / 15.0      
             # Set factor
-#             factor = self._view.zoomFactor() + steps/10.0
+            factor = self._view.zoomFactor() + steps/10.0
             if factor < 0.25:
                 factor = 0.25
             if factor > 4.0:

@@ -288,7 +288,7 @@ class KernelBroker:
         self._terminator = None
         self._streamReader = None
         
-        if destroy==True:
+        if destroy:
             
             # Stop timer
             self._timer.unbind(self.mainLoopIter)
@@ -690,9 +690,6 @@ class KernelTerminator:
     
     
     def getMessage(self, what):
-        # Get last performed action 
-        action = self._prev_action
-        
         # Get nice string of that
         D = {   '':     'exited',
                 'TERM': 'terminated', 

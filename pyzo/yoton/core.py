@@ -4,22 +4,18 @@
 # Yoton is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-import time
 import sys
+import time
 import struct
 import socket
-import threading
-import sys
-#import select  # to determine wheter a socket can receive data
 
+# import select  # to determine wheter a socket can receive data
 if sys.platform.startswith('java'):  # Jython
     from select import cpython_compatible_select as select, error as SelectErr
 else:
     from select import select, error as SelectErr
 
-import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg
+from yoton.misc import bytes
 
 
 ## Constants
@@ -118,7 +114,7 @@ def send_all(s, text, stutdown_after_sending=True):
     
     # Send all bytes
     try:
-        n = s.sendall(bb)
+        s.sendall(bb)  # -> n
     except socket.error:
         return -1 # Socket closed down badly
     

@@ -22,7 +22,7 @@ import sys
 
 # Imports that are maybe not used in Pyzo, but are/can be in the tools.
 # Import them now, so they are available in the frozen app.
-import shutil
+import shutil  # noqa
 
 
 if hasattr(sys, 'frozen') and sys.frozen:

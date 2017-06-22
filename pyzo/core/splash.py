@@ -10,10 +10,10 @@ Defines splash window shown during startup.
 
 """
 
-import os, sys, time
+import os
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import translate
 
 STYLESHEET = """

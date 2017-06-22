@@ -49,4 +49,4 @@ def hasHiddenAttribute(path):
         assert attrs != -1
         return bool(attrs & 2)
     except (AttributeError, AssertionError):
-        result = False
+        return False

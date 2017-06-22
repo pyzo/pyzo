@@ -12,8 +12,6 @@ check out indentation.
 
 """
 
-import time
-
 from .qt import QtGui, QtCore
 Qt = QtCore.Qt
 

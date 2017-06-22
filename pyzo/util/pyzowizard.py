@@ -173,7 +173,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         
         # Create label and checkbox
         t1 = translate('wizard', "This wizard can be opened using 'Help > Pyzo wizard'")
-        t2 = translate('wizard', "Show this wizard on startup")
+        # t2 = translate('wizard', "Show this wizard on startup")
         self._label_info = QtWidgets.QLabel(t1, self)
         #self._check_show = QtWidgets.QCheckBox(t2, self)
         #self._check_show.stateChanged.connect(self._setNewUser)

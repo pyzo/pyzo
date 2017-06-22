@@ -337,7 +337,7 @@ class ReaderWriter(object):
             return self.to_unicode(data, linenr)
         elif data.startswith('dict:'):  
             return self.to_dict(data, linenr)
-        elif data.startswith('list:') or  data[0] == '[':
+        elif data.startswith('list:') or data[0] == '[':
             return self.to_list(data, linenr)
         elif data.startswith('Null') or data.startswith('None'):
             return None

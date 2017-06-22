@@ -18,7 +18,7 @@ ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
 
 from ..style import StyleFormat, StyleElementDescription
-from ..misc import ustr, bstr
+from ..misc import ustr
 
 
 class Token(object):

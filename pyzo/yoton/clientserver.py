@@ -33,12 +33,11 @@ servers in a single process, that listen on different ports.
 
 """
 
-import os, sys, time
+import time
 import socket
 import threading
-from select import select  # to determine wheter a socket can receive data
 
-from yoton.misc import basestring, bytes, str, long
+from yoton.misc import basestring, str
 from yoton.misc import split_address, getErrorMsg
 from yoton.core import send_all, recv_all
 

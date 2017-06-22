@@ -14,7 +14,7 @@ import subprocess
 import urllib.request
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtWidgets
 from pyzo import translate
 
 base_url = 'http://repo.continuum.io/miniconda/'
@@ -290,7 +290,6 @@ class Installer(QtWidgets.QDialog):
         self.addStatus('Added Pyzo channel to conda env')
         
         # Add to pyzo shell config
-        first = None
         if pyzo.config.shellConfigs2 and pyzo.config.shellConfigs2[0]['exe'] == exe:
             pass
         else:
@@ -339,7 +338,7 @@ class Installer(QtWidgets.QDialog):
         self._progress.setValue(11)
         exe = py_exe(self._conda_dir)
         if not os.path.isfile(exe):
-           return 'Conda dir does not have Python exe' 
+            return 'Conda dir does not have Python exe' 
         
         self._progress.setValue(21)
         try:
@@ -426,7 +425,7 @@ def _fetch_file(url, file_name, progress=None):
     try:
         # Checking file size and displaying it alongside the download url
         response = urllib.request.urlopen(url, timeout=5.)
-        file_size = int(response.headers['Content-Length'].strip())
+        # file_size = int(response.headers['Content-Length'].strip())
         # Downloading data (can be extended to resume if need be)
         local_file = open(temp_file_name, "wb")
         _chunk_read(response, local_file, initial_size=initial_size, progress=progress)

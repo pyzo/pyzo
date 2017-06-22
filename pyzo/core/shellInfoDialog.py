@@ -11,11 +11,10 @@ Implements shell configuration dialog.
 
 """
 
-import os, sys, time, re
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+import os, sys
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
-from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.pyzoLogging import print
 from pyzo.core.kernelbroker import KernelInfo
 from pyzo import translate
@@ -196,8 +195,8 @@ class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
     
     
     def onEditChanged(self):
-       if self.DISABLE_SYSTEM_DEFAULT or not self._check.isChecked():
-           self._value = self.getWidgetText()
+        if self.DISABLE_SYSTEM_DEFAULT or not self._check.isChecked():
+            self._value = self.getWidgetText()
     
     
     def onCheckChanged(self, state):
@@ -476,7 +475,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
                     translate('shell', 'exe ::: The Python executable.'), 
                     translate('shell', 'ipython ::: Use IPython shell if available.'), 
                     translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'), 
-                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'), 
+                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'),  # noqa
                     translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
                     translate('shell', 'startDir ::: The start directory (not in script mode).'),
                     translate('shell', 'argv ::: The command line arguments (sys.argv).'),
@@ -490,7 +489,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setWidgetResizable(True)
-        self.setFrameShape(QtWidgets.QFrame.NoFrame);
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
         
         # Create widget and a layout
         self._content = QtWidgets.QWidget(parent)
@@ -558,10 +557,10 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         
         # Set widget values according to info
         try:            
-           for key in info:
-               widget = self._shellInfoWidgets.get(key, None)
-               if widget is not None:
-                   widget.setTheText(info[key])
+            for key in info:
+                widget = self._shellInfoWidgets.get(key, None)
+                if widget is not None:
+                    widget.setTheText(info[key])
         
         except Exception as why:
             print("Error setting info in shell config:", why)

@@ -4,9 +4,8 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-import os, sys, time
+import sys
 import yoton
-import inspect
 
 try:
     import thread # Python 2
@@ -147,7 +146,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 args, varargs, varkw, defaults = tmp
                 
                 # prepare defaults
-                if defaults == None:
+                if defaults is None:
                     defaults = ()
                 defaults = list(defaults)
                 defaults.reverse()

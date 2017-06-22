@@ -15,7 +15,6 @@ structure of a source file in for example a tree widget.
 #TODO: replace this module, get data from the syntax highlighter in the code editor
 
 import time, threading, re
-from pyzo.util.qt import QtCore, QtGui
 import pyzo
 
 
@@ -123,9 +122,9 @@ class Parser(threading.Thread):
         index = cursor.positionInBlock()
         
         # init empty namespace and item list
-        namespace = [];        
+        namespace = []
         items = result.rootItem.children
-        curIsClass = False # to not add methods (of classes)
+        curIsClass = False  # to not add methods (of classes)
         
         while items:
             curitem = None
@@ -134,8 +133,7 @@ class Parser(threading.Thread):
                 if not curIsClass and item.type in ['class', 'def']:
                     namespace.append( item.name )
                 # check if this is the one only last one remains
-                if (item.type in ['class', 'def'] and 
-                    item.linenr <= linenr and item.linenr2 > linenr):
+                if (item.type in ['class', 'def'] and item.linenr <= linenr and item.linenr2 > linenr):
                     curitem = item
             # prepare for next round
             if curitem and curitem.indent < index:
@@ -403,7 +401,6 @@ class Parser(threading.Thread):
             
             # Obtain line
             line = lines[i]            
-            linelen = len(line)
             
             # Should we stop?
             if self._job or self._exit:
@@ -450,7 +447,6 @@ class Parser(threading.Thread):
             
             # Make a lowercase version of the line
             foundSomething = False
-            linel = line.lower()
             
             # Detect classes
             if not foundSomething:

@@ -17,7 +17,7 @@ class NumberMessageType(yoton.MessageType):
     def message_to_bytes(self, number):
         return str(number).encode('utf-8')
     def message_type_name(self):
-       return 'num'
+        return 'num'
 
 # Create context, a channel, and connect
 ct1 = yoton.Context(verbose=verbosity)
@@ -40,7 +40,7 @@ class NumberMessageType(yoton.MessageType):
     def message_to_bytes(self, number):
         return str(number).encode('utf-8')
     def message_type_name(self):
-       return 'num'
+        return 'num'
 
 # Create a context, a channel, and connect
 ct2 = yoton.Context(verbose=verbosity)

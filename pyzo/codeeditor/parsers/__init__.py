@@ -28,15 +28,14 @@ Making a parser requires these things:
 
 """
 
-# Normal imports 
-import os, sys
-#import zipfile
+import sys
+
 from . import tokens
 
 if sys.version_info[0] >= 3:
     text_type = str
 else:
-    text_type = unicode 
+    text_type = unicode  # noqa
     
 
 class BlockState(object):
@@ -141,7 +140,7 @@ class Parser(object):
         
         """
         descriptions = {}
-        for token in self.getUsedTokens():
+        for token in cls.getUsedTokens(cls):
             descriptions[token.description.key] = token.description
         
         return list(descriptions.values())
@@ -198,8 +197,8 @@ class Parser(object):
 #
 # In summary: it takes a lot of trouble, which can be avoided by just
 # listing all parsers here.
-from . import (     python_parser, 
-                    cython_parser,
-                    c_parser,
-                                )
+from . import (     python_parser,  # noqa
+                    cython_parser,  # noqa
+                    c_parser,  # noqa
+              )
 

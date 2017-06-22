@@ -8,7 +8,6 @@
 import sys, os, code
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui
 from pyzo.core.shell import BaseShell
 from pyzo.core.pyzoLogging import splitConsole
 

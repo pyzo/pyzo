@@ -4,7 +4,7 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-from ..qt import QtCore, QtGui, QtWidgets
+from ..qt import QtCore, QtGui, QtWidgets  # noqa
 Qt = QtCore.Qt
 
 class Calltip(object):

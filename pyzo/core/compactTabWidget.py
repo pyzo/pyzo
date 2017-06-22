@@ -10,12 +10,12 @@ See docs of the tab widget.
 
 """
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 import sys
 
 if sys.version_info[0] < 3:
-    str = unicode
-    ELLIPSIS = unichr(8230)
+    str = unicode  # noqa
+    ELLIPSIS = unichr(8230)  # noqa
 else:
     ELLIPSIS = chr(8230)
 
@@ -398,10 +398,6 @@ class CompactTabBar(QtWidgets.QTabBar):
         Returns whether any items were elided.
         
         """ 
-        
-        # Prepare for measuring font sizes
-        font = self.font()
-        metrics = QtGui.QFontMetrics(font)
         
         # Get whether an item was reduced in size
         itemReduced = False

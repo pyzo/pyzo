@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 import re
-from . import tokens, Parser, BlockState, text_type
+from . import Parser, BlockState, text_type
 from .tokens import ALPHANUM
 
 from .tokens import (Token, CommentToken, StringToken, 
@@ -186,7 +186,7 @@ class CParser(Parser):
             if identifier in self._keywords: 
                 tokens.append( KeywordToken(*tokenArgs) )
             elif identifier[0] in '0123456789':
-                identifierState = 0
+                # identifierState = 0
                 tokens.append( NumberToken(*tokenArgs) )
             else:
                 tokens.append( IdentifierToken(*tokenArgs) )

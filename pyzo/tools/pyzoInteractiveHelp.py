@@ -5,9 +5,9 @@
 # The full license can be found in 'license.txt'.
 
 
-import sys, os, time, re
+import sys, re
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 import pyzo 
 
 tool_name = "Interactive help"
@@ -283,7 +283,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                 text = response
         
         # Done
-        size = self._config.fontSize
+        # size = self._config.fontSize
         self.setText(text)
     
     

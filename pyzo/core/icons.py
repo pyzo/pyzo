@@ -108,14 +108,14 @@ class IconArtist:
         a1, a2 = int(strength/2), strength
         # Zeroth line of 3+2
         self.setPenColor((0,0,0,a1))
-        self.addPoint(x+0,y-1); self.addPoint(x+4,y-1);
+        self.addPoint(x+0,y-1); self.addPoint(x+4,y-1)
         self.setPenColor((0,0,0,a2))
-        self.addPoint(x+1,y-1); self.addPoint(x+2,y-1); self.addPoint(x+3,y-1);
+        self.addPoint(x+1,y-1); self.addPoint(x+2,y-1); self.addPoint(x+3,y-1)
         # First line of 3+2
         self.setPenColor((0,0,0,a1))
-        self.addPoint(x+0,y+0); self.addPoint(x+4,y+0);
+        self.addPoint(x+0,y+0); self.addPoint(x+4,y+0)
         self.setPenColor((0,0,0,a2))
-        self.addPoint(x+1,y+0); self.addPoint(x+2,y+0); self.addPoint(x+3,y+0);
+        self.addPoint(x+1,y+0); self.addPoint(x+2,y+0); self.addPoint(x+3,y+0)
         # Second line of 3
         self.addPoint(x+1,y+1); self.addPoint(x+2,y+1); self.addPoint(x+3,y+1)
         # Third line of 1+2
@@ -124,7 +124,7 @@ class IconArtist:
         self.addPoint(x+1,y+2); self.addPoint(x+3,y+2)
         # Fourth line of 1
         self.setPenColor((0,0,0,a2))
-        self.addPoint(x+2,y+3);
+        self.addPoint(x+2,y+3)
 
 
 # todo: not used; remove me?
@@ -171,7 +171,7 @@ class TabCloseButton(QtWidgets.QToolButton):
         #
         artist.addPoint(0,0); artist.addPoint(1,1)  
         artist.addPoint(2,2); artist.addPoint(3,3)
-        artist.addPoint(4,4); 
+        artist.addPoint(4,4)
         artist.addPoint(0,4); artist.addPoint(1,3)
         artist.addPoint(3,1); artist.addPoint(4,0)
         #
@@ -420,7 +420,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         #
         artist.addPoint(0,0); artist.addPoint(1,1)  
         artist.addPoint(2,2); artist.addPoint(3,3)
-        artist.addPoint(4,4); 
+        artist.addPoint(4,4)
         artist.addPoint(0,4); artist.addPoint(1,3)
         artist.addPoint(3,1); artist.addPoint(4,0)
         #

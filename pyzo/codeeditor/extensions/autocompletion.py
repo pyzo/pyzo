@@ -225,7 +225,7 @@ class AutoCompletion(object):
 
             # apply the best match
             bestMatchRow = completions[0][0]
-            self.__completer.popup().setCurrentIndex(model.index(bestMatchRow,0));
+            self.__completer.popup().setCurrentIndex(model.index(bestMatchRow,0))
 
             return True
         

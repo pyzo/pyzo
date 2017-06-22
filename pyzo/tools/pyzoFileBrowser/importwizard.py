@@ -21,7 +21,6 @@ ResultPage:
 
 """
 
-import itertools
 import unicodedata
 import os.path as op
 

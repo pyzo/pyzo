@@ -39,12 +39,11 @@ The config consists of three fields:
   
 """
 
-import sys
 import os.path as op
 
 import pyzo
 from pyzo.util import zon as ssdf
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 from .browser import Browser
 from .utils import cleanpath, isdir

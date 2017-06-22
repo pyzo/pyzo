@@ -11,13 +11,9 @@ Defines the channel classes for the pub/sub pattern.
 """
 
 import time
-import sys
 
-import yoton
-from yoton.misc import basestring, bytes, str, xrange
-from yoton.misc import Property, getErrorMsg
+from yoton.misc import bytes, xrange
 from yoton.channels import BaseChannel
-from yoton.core import Package
 
 QUEUE_NULL = 0
 QUEUE_OK = 1

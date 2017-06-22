@@ -26,8 +26,7 @@ For distribution:
 
 import sys, os, stat, shutil, struct
 import subprocess
-import cx_Freeze
-from cx_Freeze import Executable, Freezer, setup
+from cx_Freeze import Executable, Freezer, setup  # noqa
 
 # Define app name and such
 name = "pyzo"
@@ -395,7 +394,8 @@ if applicationBundle:
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
     
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
-    potential_dirs = ['/opt/local/libexec/qt4/Library/Frameworks/QtGui.framework/Versions/4/Resources/', '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/']
+    potential_dirs = ['/opt/local/libexec/qt4/Library/Frameworks/QtGui.framework/Versions/4/Resources/',
+                      '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/']
     for d in potential_dirs:
         if os.path.isdir(d + 'qt_menu.nib'):
             shutil.copytree(d + 'qt_menu.nib', resourcesDir+'qt_menu.nib')
@@ -410,7 +410,7 @@ if applicationBundle:
     # Create the dmg
     if createDmg:
         if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
-            '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
-            '-srcfolder',appDir,'-volname', 'pyzo')!=0:
+                    '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
+                    '-srcfolder',appDir,'-volname', 'pyzo')!=0:
             raise OSError('creation of the dmg failed')
 

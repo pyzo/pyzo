@@ -13,8 +13,7 @@ is common for both shells and editors.
 """
 
 import pyzo
-import os, sys, time
-import weakref
+import os, time
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 
@@ -346,9 +345,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             name, needle = parseLine_autocomplete(tokens)
             
             if name or needle:
-               # Try to do auto completion
-               aco = AutoCompObject(self, name, needle)
-               self.processAutoComp(aco)
+                # Try to do auto completion
+                aco = AutoCompObject(self, name, needle)
+                self.processAutoComp(aco)
     
     
     def processCallTip(self, cto):

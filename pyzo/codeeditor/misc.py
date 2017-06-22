@@ -11,13 +11,13 @@ Defined ustr (Unicode string) class and the option property decorator.
 """
 
 import sys
-from .qt import QtGui, QtCore, QtWidgets
+from .qt import QtGui, QtCore, QtWidgets  # noqa
 
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
-    ustr = unicode
+    ustr = unicode  # noqa
     bstr = str
     from Queue import Queue, Empty
 else:

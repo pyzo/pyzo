@@ -270,7 +270,7 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
             success = True
             break
         except RuntimeError:
-           continue
+            continue
     
     if success:
         return v

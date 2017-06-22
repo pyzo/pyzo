@@ -10,18 +10,16 @@ Defines the context class.
 
 """
 
-import os, sys, time
 import threading
 
-from yoton import core
 from yoton import connection
 
-from yoton.misc import basestring, bytes, str, xrange, split_address
-from yoton.misc import Property, getErrorMsg, UID, PackageQueue
+from yoton.misc import str, split_address
+from yoton.misc import UID, PackageQueue
 from yoton.core import Package, BUF_MAX_LEN
 from yoton.core import SLOT_CONTEXT
 
-from yoton.connection import ConnectionCollection, Connection
+from yoton.connection import ConnectionCollection
 from yoton.connection_tcp import TcpConnection
 from yoton.connection_itc import ItcConnection
 

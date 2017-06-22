@@ -14,11 +14,11 @@ import time
 import threading
 
 import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg, slot_hash, PackageQueue
+from yoton.misc import basestring
+from yoton.misc import slot_hash, PackageQueue
 from yoton.core import Package
 from yoton.context import Context
-from yoton.channels.message_types import MessageType, BINARY, TEXT, OBJECT
+from yoton.channels.message_types import MessageType, TEXT
 
 
 class BaseChannel(object):

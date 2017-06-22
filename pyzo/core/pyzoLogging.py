@@ -11,8 +11,7 @@ Functionality for logging in pyzo.
 
 """
 
-import sys, os, time
-import code
+import sys, time
 import pyzo
 pyzo.status = None
 

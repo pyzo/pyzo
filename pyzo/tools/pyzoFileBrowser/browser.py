@@ -264,7 +264,7 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         
         # Set padding
         ss = "QLineEdit { padding-left: %ipx; padding-right: %ipx} "
-        self.setStyleSheet( ss % (paddingLeft, paddingRight) );
+        self.setStyleSheet( ss % (paddingLeft, paddingRight) )
         
         # Set minimum size
         if not light:
@@ -383,7 +383,7 @@ class Projects(QtWidgets.QWidget):
         # Create star button
         self._but = QtWidgets.QToolButton(self)
         self._but.setIcon( pyzo.icons.star3 )
-        self._but.setStyleSheet("QToolButton { padding: 0px; }");
+        self._but.setStyleSheet("QToolButton { padding: 0px; }")
         self._but.setIconSize(QtCore.QSize(18,18))
         self._but.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self._but.setPopupMode(self._but.InstantPopup)
@@ -635,7 +635,7 @@ class SearchFilter(LineEditWithToolButtons):
             self.filterChanged.emit()
     
     def forceFilterChanged(self):
-        self._lastValue = value = self.text()
+        self._lastValue = self.text()
         self.filterChanged.emit()
     
     def updateCancelButton(self, text):

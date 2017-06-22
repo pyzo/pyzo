@@ -12,10 +12,8 @@ History class, which is a Qt model, and the PyzoHistoryViewer, which is a Qt vie
 
 """
 
-import sys, os, time, re
-
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import translate
 from pyzo.core.menu import Menu
 

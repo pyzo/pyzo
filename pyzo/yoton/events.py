@@ -21,11 +21,10 @@ more information. Note that signals only work if events are processed.
 
 """
 
-import os, sys, time
+import time
 import threading
 import weakref
 
-import yoton
 from yoton.misc import Property, getErrorMsg, PackageQueue
 
 
@@ -531,7 +530,7 @@ class YotonApplication(object):
         """
         YotonApplication._event_queue.push(event)
         #
-        if  YotonApplication._embedding_callback2 is not None:
+        if YotonApplication._embedding_callback2 is not None:
             YotonApplication._embedding_callback2 = None
             YotonApplication._embedding_callback1()
     
@@ -545,7 +544,7 @@ class YotonApplication(object):
         """
         YotonApplication._event_queue.insert(event)
         #
-        if  YotonApplication._embedding_callback2 is not None:
+        if YotonApplication._embedding_callback2 is not None:
             YotonApplication._embedding_callback2 = None
             YotonApplication._embedding_callback1()
     
@@ -620,7 +619,8 @@ class YotonApplication(object):
             # Signal stop
             YotonApplication._stop_event_loop = True
             # Push an event so that process_events() unblocks
-            def dummy(): pass
+            def dummy():
+                pass
             self.post_event(Event(dummy))
     
     

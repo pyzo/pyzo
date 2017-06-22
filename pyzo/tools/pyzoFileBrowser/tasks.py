@@ -7,7 +7,6 @@ These inherit from proxies.Task and implement that specific interface.
 """
 
 import re
-import os.path as op
 
 from . import proxies
 
@@ -322,7 +321,7 @@ class CreateTask(proxies.Task):
     __slots__ = []
     
     def process(self, proxy, newpath=None, file=True):
-        path = proxy.path()
+        proxy.path()
         fsProxy = proxy._fsProxy
         
         if not newpath:

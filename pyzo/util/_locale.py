@@ -11,7 +11,7 @@ Module for locale stuff like language and translations.
 import os, sys, time
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtWidgets
 
 QLocale = QtCore.QLocale
 
@@ -216,7 +216,7 @@ def linguist(languageName):
     exe_ = 'linguist' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
-       exe = exe_
+        exe = exe_
     
     # Spawn process
     return subprocess.Popen([exe , filename])
@@ -237,7 +237,7 @@ def lupdate():
     exe_ = 'pylupdate' + pyzo.QtCore.__version__[0] + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
-       exe = exe_
+        exe = exe_
     
     # Spawn process
     cmd = [exe, '-noobsolete', '-verbose', filename]
@@ -266,7 +266,7 @@ def lrelease():
     exe_ = 'lrelease' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
-       exe = exe_
+        exe = exe_
     
     # Spawn process
     cmd = [exe, filename]

@@ -12,15 +12,14 @@ and a dialog to edit the shell configurations.
 
 """
 
-import os, sys, time, re
+import time
 import webbrowser
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
 from pyzo import translate
-from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.shell import PythonShell
-from pyzo.core.pyzoLogging import print
+from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.menu import ShellTabContextMenu, ShellButtonMenu
 from pyzo.core.icons import ShellIconMaker
 
@@ -142,7 +141,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         
         # Create shell and add to stack
         shell = PythonShell(self, shellInfo)
-        index = self._stack.addWidget(shell)
+        self._stack.addWidget(shell)
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)

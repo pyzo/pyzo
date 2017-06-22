@@ -285,7 +285,6 @@ class HighlightMatchingBracket(object):
         else:
             raise ValueError('invalid bracket character: ' + char)
         
-        other_char = self._matchingBrackets[char]
         stacked_paren = [(char, cursor.position())] # using a Python list as a stack
         # stack not empty because the _ParenIterator will not give back
         # the parenthesis we're matching
@@ -363,8 +362,9 @@ class HighlightMatchingBracket(object):
                             self._highlightSingleChar(painter, self._cursorAt(doc, match_res.offending), width, 'editor.highlightMisMatchingBracket')
                     
                     painter.end()
-                except _ParenNotFound : # is raised when current parenthesis is not
-                #found in its line token list, meaning it is in a string literal
+                except _ParenNotFound:
+                    # is raised when current parenthesis is not
+                    # found in its line token list, meaning it is in a string literal
                     pass
             
         super(HighlightMatchingBracket, self).paintEvent(event)
@@ -571,9 +571,7 @@ class CodeFolding(object):
         painter.begin(self.viewport())
  
         margin = self.document().documentMargin()
-        w = self.viewport().width()
-   
-   
+        
         def paintCodeFolders(cursor):
             y = self.cursorRect(cursor).top() 
             h = self.cursorRect(cursor).height()
@@ -778,7 +776,6 @@ class LineNumbers(object):
                 return
             
             # Get doc and viewport
-            doc = editor.document()
             viewport = editor.viewport()
             
             # Get format and margin
@@ -990,7 +987,6 @@ class BreakPoints(object):
         def mouseMoveEvent(self, event):
             y = self._getY(event.pos())
             editor = self.parent()
-            cursor = editor.textCursor()
             c1 = editor.cursorForPosition(QtCore.QPoint(0,y))
             self._virtualBreakpoint = c1.blockNumber() + 1
             self.update()
@@ -1002,21 +998,16 @@ class BreakPoints(object):
         def _toggleBreakPoint(self, y):
             # Get breakpoint corresponding to pressed pos
             editor = self.parent()
-            cursor = editor.textCursor()
             c1 = editor.cursorForPosition(QtCore.QPoint(0,y))
             linenr = c1.blockNumber() + 1
             # Toggle
-            bps = self.parent().toggleBreakpoint(linenr)
+            self.parent().toggleBreakpoint(linenr)
         
         def paintEvent(self, event):
             editor = self.parent()
             
             if not editor.showBreakPoints():
                 return
-            
-            # Get doc and viewport
-            doc = editor.document()
-            viewport = editor.viewport()
             
             # Get format and margin
             format = editor.getStyleElementFormat('editor.breakpoints')
@@ -1030,10 +1021,6 @@ class BreakPoints(object):
             
             # Get which part to paint. Just do all to avoid glitches
             y1, y2 = 0, editor.height()
-            
-            # Get offset        
-            tmp = self.mapToGlobal(QtCore.QPoint(0,0))
-            offset = viewport.mapFromGlobal(tmp).y()
             
             #Draw the background        
             painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)

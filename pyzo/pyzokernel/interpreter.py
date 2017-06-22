@@ -33,7 +33,7 @@ import shlex
 from codeop import CommandCompiler
 import traceback
 import keyword
-import inspect # Must be in this namespace
+import inspect # noqa - Must be in this namespace
 import bdb
 from distutils.version import LooseVersion as LV
 
@@ -50,9 +50,9 @@ sys.last_traceback = None
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
-    ustr = unicode
+    ustr = unicode  # noqa
     bstr = str
-    input = raw_input
+    input = raw_input  # noqa
 else:
     ustr = str
     bstr = bytes
@@ -222,7 +222,8 @@ class PyzoInterpreter:
             self.guiApp.run(self.process_commands, self.sleeptime) 
         except SystemExit:
             # Set self._exitException if it is not set yet
-            type, value, tb = sys.exc_info();  del tb
+            type, value, tb = sys.exc_info()
+            del tb
             if self._exitException is None:
                 self._exitException = value
         
@@ -307,7 +308,7 @@ class PyzoInterpreter:
             try:
                 self._load_ipyhon()
             except Exception:
-                type, value, tb = sys.exc_info();
+                type, value, tb = sys.exc_info()
                 del tb
                 printDirect('IPython could not be loaded: %s\n' % str(value))
                 self._ipython = None
@@ -498,7 +499,8 @@ class PyzoInterpreter:
         except Exception: # Catch any error
             # Get exception info (we do it using sys.exc_info() because
             # we cannot catch the exception in a version independent way.
-            type, value, tb = sys.exc_info();  del tb
+            type, value, tb = sys.exc_info()
+            del tb
             guiError = 'Failed to integrate event loop for %s: %s' % (
                 guiName, str(value))
         
@@ -571,7 +573,8 @@ class PyzoInterpreter:
                 self.ignore_sys_exit = False  # Never allow more than once
                 return
             # Get and store the exception so we can raise it later
-            type, value, tb = sys.exc_info();  del tb
+            type, value, tb = sys.exc_info()
+            del tb
             self._exitException = value
             # Stop debugger if it is running
             self.debugger.stopinteraction()
@@ -1014,7 +1017,8 @@ class PyzoInterpreter:
         """
         
         # Get info (do not store)
-        type, value, tb = sys.exc_info();  del tb
+        type, value, tb = sys.exc_info()
+        del tb
         
         # Work hard to stuff the correct filename in the exception
         if filename and type is SyntaxError:

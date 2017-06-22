@@ -5,13 +5,11 @@
 # The full license can be found in 'license.txt'.
 
 import os
-import sys
-import time
 import threading
 
 import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg, UID
+from yoton.misc import basestring
+from yoton.misc import Property
 
 
 # Minimum timout

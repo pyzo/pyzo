@@ -4,9 +4,6 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-
-import time
-
 import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
@@ -168,7 +165,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             
             # Notify
             text = translate('pyzoSourceStructure', 'Parsing ' + editor._name + ' ...')
-            thisItem = QtWidgets.QTreeWidgetItem(self._tree, [text])
+            QtWidgets.QTreeWidgetItem(self._tree, [text])
             
             # Try getting the  structure right now
             self.updateStructure()

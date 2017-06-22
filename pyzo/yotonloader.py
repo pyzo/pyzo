@@ -9,7 +9,7 @@ import sys
 
 # Import yoton 
 sys.path.insert(0, os.path.dirname(__file__))
-import yoton
+import yoton  # noqa
 
 # Reset
 sys.path.pop(0)

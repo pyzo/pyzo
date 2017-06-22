@@ -12,7 +12,7 @@ Qt = QtCore.Qt
 
 os.chdir('..') 
 sys.path.insert(0,'.')
-from codeeditor import *
+from codeeditor import CodeEditor
 
 
     

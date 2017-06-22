@@ -14,8 +14,8 @@ import time
 import threading
 
 import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg
+from yoton.misc import basestring, bytes
+from yoton.misc import getErrorMsg
 from yoton.channels import BaseChannel, OBJECT
 
 

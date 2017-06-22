@@ -12,9 +12,7 @@ shortcuts.
 
 """
 
-import os, sys, re, time
-import unicodedata
-import datetime
+import os, sys, re
 import webbrowser
 from urllib.request import urlopen
 import json
@@ -23,9 +21,8 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
-from pyzo.core.pyzoLogging import print
+from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.assistant import PyzoAssistant
-from pyzo.util import paths
 from pyzo import translate
 
 
@@ -636,7 +633,7 @@ class EditMenu(Menu):
             icons.page_white_copy, self._editItemCallback, "copy")
         self.addItem(translate("menu", "Paste ::: Paste the text that is now on the clipboard."), 
             icons.paste_plain, self._editItemCallback, "paste")
-        self.addItem(translate("menu", "Paste and select ::: Paste the text that is now on the clipboard and keep it selected in order to change its indentation."), 
+        self.addItem(translate("menu", "Paste and select ::: Paste the text that is now on the clipboard and keep it selected in order to change its indentation."),  # noqa
             icons.paste_plain, self._editItemCallback, "pasteAndSelect")
         self.addItem(translate("menu", "Select all ::: Select all text."), 
             icons.sum, self._editItemCallback, "selectAll")
@@ -1018,7 +1015,7 @@ class ShellMenu(Menu):
         self._debug_clear = self.addItem('', pyzo.icons.bug_delete, self._clearBreakPoints)
         self._debug_pm = self.addItem(
             translate('menu', 'Postmortem: debug from last traceback'), 
-                pyzo.icons.bug_delete, self._debugAction, "START")
+            pyzo.icons.bug_delete, self._debugAction, "START")
         self._shellDebugActions = self.buildShellDebugActions()
         #
         self.aboutToShow.connect(self._updateDebugButtons)
@@ -1226,7 +1223,7 @@ class EditorContextMenu(Menu):
         
         # This is a subset of the run menu. Copied manually.
         self.addSeparator()
-        self.addItem(translate("menu", 'Run selection ::: Run the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'), 
+        self.addItem(translate("menu", 'Run selection ::: Run the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'),   # noqa
             icons.run_lines, self._runSelected)
     
     
@@ -1344,16 +1341,16 @@ class RunMenu(Menu):
     def build(self):
         icons = pyzo.icons
         
-        self.addItem(translate("menu", 'Run file as script ::: Restart and run the current file as a script.'), 
+        self.addItem(translate("menu", 'Run file as script ::: Restart and run the current file as a script.'),  # noqa
             icons.run_file_script, self._runFile, (True, False))
-        self.addItem(translate("menu", 'Run main file as script ::: Restart and run the main file as a script.'), 
+        self.addItem(translate("menu", 'Run main file as script ::: Restart and run the main file as a script.'),  # noqa
             icons.run_mainfile_script, self._runFile, (True, True))
         
         self.addSeparator()
         
-        self.addItem(translate("menu", 'Execute selection ::: Execute the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'), 
+        self.addItem(translate("menu", 'Execute selection ::: Execute the current editor\'s selected lines, selected words on the current line, or current line if there is no selection.'),  # noqa
             icons.run_lines, self._runSelected)
-        self.addItem(translate("menu", 'Execute cell ::: Execute the current editors\'s cell in the current shell.'), 
+        self.addItem(translate("menu", 'Execute cell ::: Execute the current editors\'s cell in the current shell.'),  # noqa
             icons.run_cell, self._runCell)
         
         #In the _runFile calls, the parameter specifies (asScript, mainFile)
@@ -1808,7 +1805,7 @@ class SettingsMenu(Menu):
         m.setIcon(m.Information)
         m.setStandardButtons(m.Ok | m.Cancel)
         m.setDefaultButton(m.Ok)
-        result = m.exec_()
+        m.exec_()
     
     def _advancedSettings(self):
         """ How to edit the advanced settings. """
@@ -1855,117 +1852,6 @@ class SettingsMenu(Menu):
         m.setIcon(m.Information)
         m.exec_()
 
-
-# Remains of old settings menu. Leave here because some settings should some day be 
-# accessible via a dialog (advanced settings).
-BaseMenu=object
-class xSettingsMenu(BaseMenu):
-    def fill(self):
-        BaseMenu.fill(self)
-        addItem = self.addItem
-        
-        addItem( MI('Autocomplete case sensitive', self.fun_autoComplete_case, []) )
-        addItem( MI('Autocomplete select chars', self.fun_autoComplete_fillups, []) )
-        addItem( None )
-        addItem( MI('Default style', self.fun_defaultStyle, []) )
-        addItem( MI('Default indentation width', self.fun_defaultIndentWidth, []) )
-        addItem( MI('Default indentation style', self.fun_defaultIndentStyle, []) )
-        addItem( MI('Default line endings', self.fun_defaultLineEndings, []) )
- 
-    def fun_defaultStyle(self, value):
-        """ The style used for new files. """
-        if value is None:
-            current = pyzo.config.settings.defaultStyle
-            options = pyzo.styleManager.getStyleNames()
-            options.append(current)
-            return options
-        else:
-            # store
-            pyzo.config.settings.defaultStyle = value
-    
-    def fun_defaultIndentWidth(self, value):
-        """ The indentation used for new files and in the shells. """
-        
-        if value is None:
-            current = pyzo.config.settings.defaultIndentWidth
-            options = [2,3,4,5,6,7,8, current]           
-            return ['%d' % i for i in options]
-        
-        # parse value
-        try:
-            val = int(value[:2])
-        except ValueError:
-            val = 4      
-        # store
-        pyzo.config.settings.defaultIndentWidth = val
-        # Apply to shells
-        for shell in pyzo.shells:
-            shell.setIndentWidth(val)
-            
-    def fun_defaultIndentStyle(self,value):
-        """Whether to use tabs or spaces for indentation in the shells and in new files"""
-        # get editor
-        
-        if value is None:
-            options = ['Spaces', 'Tabs']        
-            return options + [options[0 if pyzo.config.settings.defaultIndentUsingSpaces else 1]]
-        else:
-            # parse value
-            val = None
-
-            try:
-                val = {'Spaces': True, 'Tabs': False}[value]
-            except KeyError:
-                val = True
-            # apply
-            pyzo.config.settings.defaultIndentUsingSpaces = val
-            
-    def fun_defaultLineEndings(self, value):
-        """ The line endings used for new files. """
-        if value is None:
-            current = pyzo.config.settings.defaultLineEndings
-            return ['LF', 'CR', 'CRLF', current]
-        else:
-            # store
-            pyzo.config.settings.defaultLineEndings = value
-    
-    
-    def fun_autoComplete_case(self, value):
-        """ Whether the autocompletion is case sensitive or not. """
-        if value is None:
-            return bool(pyzo.config.settings.autoComplete_caseSensitive)
-        else:
-            value = not bool(pyzo.config.settings.autoComplete_caseSensitive)
-            pyzo.config.settings.autoComplete_caseSensitive = value
-            # Apply
-            for e in pyzo.getAllScintillas():
-                e.SendScintilla(e.SCI_AUTOCSETIGNORECASE, not value)
-    
-    def fun_autoComplete_fillups(self, value):
-        """ Selected autocomp item is inserted when typing these chars. """
-        if value is None:
-            # Show options
-            options = ['Tab', 'Tab and Enter', 'Tab, Enter and " .(["']
-            if '.' in pyzo.config.settings.autoComplete_fillups:
-                options.append( options[2] )
-            elif '\n' in pyzo.config.settings.autoComplete_fillups:
-                options.append( options[1] )
-            else:
-                options.append( options[0] )
-            return options
-        else:
-            # Process selection
-            if '.' in value:
-                pyzo.config.settings.autoComplete_fillups = '\n .(['
-            elif 'enter' in value.lower():
-                pyzo.config.settings.autoComplete_fillups = '\n'
-            else:
-                pyzo.config.settings.autoComplete_fillups = ''
-            # Apply
-            tmp = pyzo.config.settings.autoComplete_fillups
-            for e in pyzo.getAllScintillas():                
-                e.SendScintilla(e.SCI_AUTOCSETFILLUPS, tmp)
- 
 
 ## Classes to enable editing the key mappings
 
@@ -2067,8 +1953,8 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             return isinstance(index.internalPointer(), QtWidgets.QMenu)
     
     def index(self, row, column, parent):
-#         if not self.hasIndex(row, column, parent):
-#             return QtCore.QModelIndex()
+        # if not self.hasIndex(row, column, parent):
+        #     return QtCore.QModelIndex()
         # establish parent
         if not parent.isValid():
             parentMenu = self._root

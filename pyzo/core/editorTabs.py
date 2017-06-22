@@ -14,7 +14,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 
 """
 
-import os, sys, time, gc
+import os, time, gc
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
@@ -78,7 +78,7 @@ def simpleDialog(item, action, question, options, defaultOption):
             dlg.setDefaultButton(button)
     
     # get result
-    result = dlg.exec_()
+    dlg.exec_()
     button = dlg.clickedButton()
     if button in buttons:
         return buttons[button]
@@ -439,7 +439,6 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # show
         self.show()
         self.autoHideTimerReset()
-        es = self.parent()
         
         # get needle
         editor = self.parent().getCurrentEditor()

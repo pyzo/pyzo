@@ -71,9 +71,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Init dockwidget settings
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas,QtWidgets.QTabWidget.South)
         self.setDockOptions(
-                QtWidgets.QMainWindow.AllowNestedDocks
-            |  QtWidgets.QMainWindow.AllowTabbedDocks
-            #|  QtWidgets.QMainWindow.AnimatedDocks
+                QtWidgets.QMainWindow.AllowNestedDocks |
+                QtWidgets.QMainWindow.AllowTabbedDocks
+                #|  QtWidgets.QMainWindow.AnimatedDocks
             )
         
         # Set window atrributes

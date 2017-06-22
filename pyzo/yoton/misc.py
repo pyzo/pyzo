@@ -13,7 +13,7 @@ are used for the low-level messaging.
 
 """
 
-import os, sys, time
+import sys, time
 import struct
 import socket
 import threading
@@ -33,8 +33,8 @@ if V2:
     bytes = D['str']
     str = D['unicode']
     xrange = D['xrange']
-    basestring = basestring
-    long = long
+    basestring = basestring  # noqa
+    long = long  # noqa
 else:
     basestring = str  # to check if instance is string
     bytes, str = bytes, str

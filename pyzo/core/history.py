@@ -1,9 +1,8 @@
 import os
-import time
 import datetime
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 
 class CommandHistory(QtCore.QObject):
@@ -37,7 +36,7 @@ class CommandHistory(QtCore.QObject):
         try:
             filename = os.path.join(pyzo.appDataDir, self._fname)
             if not os.path.isfile(filename):
-                with open(filename, 'wb') as f:
+                with open(filename, 'wb'):
                     pass
             
             # Load lines and add to commands

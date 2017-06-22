@@ -345,7 +345,7 @@ class App_qt(App_base):
                 return theApp
             
             def __init__(self, *args, **kwargs):
-               pass
+                pass
             
             def exec_(self, *args, **kwargs):
                 """ This function does nothing, except printing a
@@ -436,8 +436,8 @@ class App_pyqt5(App_qt):
     
     def importCoreAndGui(self):
         # Try importing qt        
-        import PyQt5
-        from PyQt5 import QtGui, QtCore, QtWidgets
+        import PyQt5  # noqa
+        from PyQt5 import QtGui, QtCore, QtWidgets  # noqa
         return QtWidgets, QtCore  # QApp sits on QtWidgets
 
 
@@ -447,7 +447,7 @@ class App_pyqt4(App_qt):
     
     def importCoreAndGui(self):
         # Try importing qt        
-        import PyQt4
+        import PyQt4  # noqa
         from PyQt4 import QtGui, QtCore
         return QtGui, QtCore
     
@@ -457,8 +457,8 @@ class App_pyside2(App_qt):
     
     def importCoreAndGui(self):
         # Try importing qt        
-        import PySide2
-        from PySide2 import QtGui, QtCore, QtWidgets
+        import PySide2  # noqa
+        from PySide2 import QtGui, QtCore, QtWidgets  # noqa
         return QtWidgets, QtCore  # QApp sits on QtWidgets
     
 class App_pyside(App_qt):
@@ -467,7 +467,7 @@ class App_pyside(App_qt):
     
     def importCoreAndGui(self):
         # Try importing qt        
-        import PySide
+        import PySide  # noqa
         from PySide import QtGui, QtCore
         return QtGui, QtCore
 
@@ -506,6 +506,7 @@ class App_wx(App_base):
             # Unable to find either wxPython version 2.4 or >= 2.5."
             raise ImportError
         
+        self._orig_mainloop = orig_mainloop
         # Store package wx
         self.wx = wx
         

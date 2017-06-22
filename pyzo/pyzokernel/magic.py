@@ -20,7 +20,7 @@ import inspect
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
-    input = raw_input
+    input = raw_input  # noqa
 
 MESSAGE = """List of *magic* commands:
     ?               - show this message
@@ -160,7 +160,6 @@ class Magician:
             
             # EDIT do not run code after editing
             if command.startswith('EDIT ') and not ' -X ' in command:
-                parts = line.split(' ')
                 return 'edit -x ' + line[5:]
             
             # In all cases stop processing magic commands
@@ -484,7 +483,7 @@ class Magician:
             try:
                 # older version of conda would spew dots to stderr during downloading
                 sys.stderr.write = lambda x: stderr_write(x) if x != '.' else 0
-                import conda
+                import conda  # noqa
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args) + channel_list
                 main()

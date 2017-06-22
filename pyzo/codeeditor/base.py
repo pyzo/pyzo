@@ -99,7 +99,6 @@ into account:
 
 """
 
-import sys
 from .qt import QtGui,QtCore, QtWidgets
 Qt = QtCore.Qt
 
@@ -107,7 +106,7 @@ from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option
 from .misc import callLater, ustr
 from .manager import Manager
 from .highlighter import Highlighter
-from .style import StyleFormat, StyleElementDescription
+from .style import StyleElementDescription
 
 
 class CodeEditorBase(QtWidgets.QPlainTextEdit):
@@ -184,12 +183,12 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         base3   = "#fdf6e3"
         yellow  = "#b58900"
         orange  = "#cb4b16"
-        red     = "#dc322f"
+        red     = "#dc322f"  # noqa
         magenta = "#d33682"
         violet  = "#6c71c4"
         blue    = "#268bd2"
         cyan    = "#2aa198"
-        green   = "#859900"
+        green   = "#859900"  # noqa
         
         if True: # Light vs dark
             #back1, back2, back3 = base3, base2, base1 # real solarised
@@ -197,9 +196,8 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             fore1, fore2, fore3, fore4 = base00, base01, base02, base03
         else:
             back1, back2, back3 = base03, base02, base01
-            fore1, fore2, fore3, fore4 = base0, base1, base2, base3
+            fore1, fore2, fore3, fore4 = base0, base1, base2, base3  # noqa
         
-        test_numbers  = 90 + 0000 + 1
         # todo: proper testing of syntax style
         
         # Define style using "Solarized" colors

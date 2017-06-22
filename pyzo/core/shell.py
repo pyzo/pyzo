@@ -17,7 +17,7 @@ code in it.
 """
 
 
-import os, sys, time, subprocess
+import sys, time
 import re
 
 import yoton
@@ -115,8 +115,6 @@ class ShellHighlighter(Highlighter):
     """
     
     def highlightBlock(self, line): 
-        
-        t0 = time.time()
         
         # Make sure this is a Unicode Python string
         line = str(line)
@@ -372,8 +370,8 @@ class BaseShell(BaseTextCtrl):
             if piece[1] != ':':
                 return
         else:
-           if not piece.startswith('/'):
-               return
+            if not piece.startswith('/'):
+                return
         #
         filename = piece
         
@@ -523,7 +521,6 @@ class BaseShell(BaseTextCtrl):
                     self._historyStep = 1
             
             # find the command
-            count = 0
             c = pyzo.command_history.find_starting_with(self._historyNeedle, self._historyStep)
             if c is None:
                 # found nothing-> reset
@@ -740,7 +737,7 @@ class BaseShell(BaseTextCtrl):
         # Remove last line if it ended with CR
         cursor = self._cursor1
         if ((self._lastline_had_cr and not text.startswith('\n')) or
-            (text.startswith('\r') and not text[1:].startswith('\n'))):
+                (text.startswith('\r') and not text[1:].startswith('\n'))):
             cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor, 1)
             cursor.removeSelectedText()
         # Is this new line ending in CR?
@@ -854,7 +851,6 @@ class BaseShell(BaseTextCtrl):
         #CLRS = ['#000', '#F00', '#0F0', '#FF0', '#00F', '#F0F', '#0FF', '#FFF']
         CLRS = ['#657b83', '#dc322f', '#859900', '#b58900', '#268bd2', 
                 '#d33682', '#2aa198', '#eee8d5']
-        pendingtext = ''
         i0 = 0
         
         
@@ -1195,7 +1191,7 @@ class PythonShell(BaseShell):
         editor2 = pyzo.shells.getCurrentShell()
         if cto.textCtrl not in [editor1, editor2]:
             # The editor or shell starting the autocomp is no longer active
-            aco.textCtrl.autocompleteCancel()
+            cto.textCtrl.autocompleteCancel()
             return
         
         # Invalid response
@@ -1429,7 +1425,7 @@ class PythonShell(BaseShell):
             prompt = 0
             if sub is self._strm_echo:
                 prompt = 1 
-            elif sub is  self._strm_prompt:
+            elif sub is self._strm_prompt:
                 prompt = 2
             # Get color
             color = None
@@ -1571,7 +1567,7 @@ class PythonShell(BaseShell):
         self._cursor1.movePosition(self._cursor1.End, A_MOVE)
         self._cursor2.movePosition(self._cursor2.End, A_MOVE)
         
-        self.write('\n\n');
+        self.write('\n\n')
         self.write('Lost connection with broker:\n')
         self.write(why)
         self.write('\n\n')

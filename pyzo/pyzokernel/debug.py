@@ -178,7 +178,7 @@ class Debugger(bdb.Bdb):
         list = self.breaks.setdefault(filename, [])
         if lineno not in list:
             list.append(lineno)
-        bp = bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
+        bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
     
     
     # Prevent stopping in bdb code or pyzokernel code
@@ -248,8 +248,7 @@ class Debugger(bdb.Bdb):
     def user_line(self, frame):
         """This function is called when we stop or break at this line."""
         if self._wait_for_mainpyfile:
-            if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
-                or frame.f_lineno <= 0):
+            if (self.mainpyfile != self.canonic(frame.f_code.co_filename) or frame.f_lineno <= 0):
                 return
             self._wait_for_mainpyfile = False
         if True: #self.bp_commands(frame):  from pdb
@@ -318,7 +317,6 @@ class Debugger(bdb.Bdb):
     def do_start(self, arg):
         """ Start postmortem debugging from the last uncaught exception.
         """
-        interpreter = sys._pyzoInterpreter
         
         # Get traceback
         try:
@@ -407,8 +405,6 @@ class Debugger(bdb.Bdb):
         """ Stop debugging, terminate process execution.
         """
         # Can be done both in postmortem and normal debugging
-        interpreter = sys._pyzoInterpreter 
-        
         if not self._debugmode:
             self.message("Not in debug mode.")
         else:
@@ -446,8 +442,6 @@ class Debugger(bdb.Bdb):
     def do_continue(self, arg):
         """ Continue the program execution.
         """
-        interpreter = sys._pyzoInterpreter 
-        
         if self._debugmode == 0:
             self.message("Not in debug mode.")
         elif self._debugmode == 1:
@@ -460,8 +454,6 @@ class Debugger(bdb.Bdb):
     def do_step(self, arg):
         """ Execute the current line, stop ASAP (step into).
         """
-        interpreter = sys._pyzoInterpreter 
-        
         if self._debugmode == 0:
             self.message("Not in debug mode.")
         elif self._debugmode == 1:

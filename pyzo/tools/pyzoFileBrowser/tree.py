@@ -8,7 +8,6 @@ Defines the tree widget to display the contents of a selected directory.
 
 import os
 import sys
-import time
 import subprocess
 import fnmatch
 import os.path as op
@@ -80,7 +79,7 @@ def createMounts(browser, tree):
     mountPoints.sort(key=lambda x: x.lower())
     for entry in mountPoints:
         entry = cleanpath(entry)
-        item = DriveItem(tree, fsProxy.dir(entry))
+        DriveItem(tree, fsProxy.dir(entry))
 
 
 def createItemsFun(browser, parent):
@@ -379,9 +378,8 @@ class FileItem(BrowserItem):
         # so that we can open files on any file system
         path = self.path()
         if ext(path) not in ['.pyc','.pyo','.png','.jpg','.ico']:
-            # Load and get editor
-            fileItem = pyzo.editors.loadFile(path)
-            editor = fileItem._editor
+            # Load file
+            pyzo.editors.loadFile(path)
             # Give focus
             pyzo.editors.getCurrentEditor().setFocus()
     

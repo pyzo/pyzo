@@ -5,9 +5,9 @@
 # The full license can be found in 'license.txt'.
 
 import re
-from . import tokens, Parser, BlockState, text_type
+from . import Parser, BlockState, text_type
 from .tokens import ALPHANUM
-from ..misc import ustr, bstr
+from ..misc import ustr
 
 # Import tokens in module namespace
 from .tokens import (CommentToken, StringToken, 
@@ -332,27 +332,3 @@ class Python3Parser(PythonParser):
     # The application should choose whether to set the Py 3 specific parser
     _extensions = []
     _keywords = python3Keywords
-
-    
-if __name__=='__main__':
-    print(list(tokenizeLine('this is "String" #Comment')))
-    print(list(tokenizeLine('this is "String\' #Comment')))
-    print(list(tokenizeLine('this is "String\' #Commen"t')))
-    print(list(tokenizeLine(r'this "test\""')))
-        
-    import random
-    stimulus=''
-    expect=[]
-    for i in range(10):
-        #Create a string with lots of ' and "
-        s=''.join("'\"\\ab#"[random.randint(0,5)] for i in range(10)  )
-        stimulus+=repr(s)
-        expect.append('S:'+repr(s))
-        stimulus+='test'
-        expect.append('I:test')
-    result=list(tokenizeLine(stimulus))
-    print (stimulus)
-    print (expect)
-    print (result)
-    
-    assert repr(result) == repr(expect)

@@ -5,8 +5,6 @@
 # The full license can be found in 'license.txt'.
 
 
-import sys, os, time
-
 import pyzo 
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 

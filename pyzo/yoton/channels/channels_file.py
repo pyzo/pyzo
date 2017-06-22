@@ -13,7 +13,7 @@ a file like interface.
 
 import sys
 import os
-from yoton.misc import basestring, bytes, str, long
+
 from yoton.channels import PubChannel, SubChannel
 
 PY2 = sys.version_info[0] == 2
@@ -88,7 +88,7 @@ class FileWrapper(object):
         Wait here until all messages have been send.
         
         """
-        context = self._channel._context.flush()
+        self._channel._context.flush()
     
     
     @property

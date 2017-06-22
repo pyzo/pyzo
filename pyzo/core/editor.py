@@ -21,7 +21,7 @@ qt = QtGui
 from pyzo.codeeditor import Manager
 from pyzo.core.menu import EditorContextMenu
 from pyzo.core.baseTextCtrl import BaseTextCtrl, normalizePath
-from pyzo.core.pyzoLogging import print
+from pyzo.core.pyzoLogging import print  # noqa
 import pyzo
 
 
@@ -114,7 +114,6 @@ def determineIndentation(text):
     lines.insert(0,"") # so the lines start at 1
     for i in range( len(lines) ):
         line = lines[i]
-        linelen = len(line)
         
         # remove indentation
         tmp = line.lstrip()
@@ -144,7 +143,7 @@ def determineIndentation(text):
                     ind2 = len(line2)-len(tmp)
                     ind3 = ind2 - indent
                     if line2.startswith("\t"):
-                       indents[-1] += 1
+                        indents[-1] += 1
                     elif ind3>0:
                         if not ind3 in indents:
                             indents[ind3] = 1
@@ -227,9 +226,9 @@ def createEditor(parent, filename=None):
     
     # Set parser
     if editor._filename:
-       ext = os.path.splitext(editor._filename)[1]
-       parser = Manager.suggestParserfromFilenameExtension(ext)
-       editor.setParser(parser)
+        ext = os.path.splitext(editor._filename)[1]
+        parser = Manager.suggestParserfromFilenameExtension(ext)
+        editor.setParser(parser)
     else:
         # todo: rename style -> parser
         editor.setParser(pyzo.config.settings.defaultStyle)
@@ -550,7 +549,6 @@ class PyzoEditor(BaseTextCtrl):
         # Remember where we are
         cursor = self.textCursor()
         linenr = cursor.blockNumber() + 1
-        index = cursor.positionInBlock()
         
         # Load file (as bytes)
         with open(filename, 'rb') as f:
@@ -746,7 +744,7 @@ if __name__=="__main__":
         def parseThis(self, x):
             pass
     pyzo.parser = DummyParser()    
-    EditorContextMenu = QtWidgets.QMenu
+    EditorContextMenu = QtWidgets.QMenu  # noqa
     app = QtWidgets.QApplication([])
     win = PyzoEditor(None)
     QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+C"), win).activated.connect(win.copy)

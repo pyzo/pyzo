@@ -18,7 +18,7 @@ import threading
 from queue import Queue, Empty
 import os.path as op
 
-from . import QtCore, QtGui
+from . import QtCore
 from .utils import isdir
 
 class Task:

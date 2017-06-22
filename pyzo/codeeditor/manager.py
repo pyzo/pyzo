@@ -13,7 +13,7 @@ management tasks.
 
 import os, sys
 
-from .qt import QtGui, QtCore, QtWidgets
+from .qt import QtGui, QtCore, QtWidgets  # noqa
 Qt = QtCore.Qt
 
 from . import parsers

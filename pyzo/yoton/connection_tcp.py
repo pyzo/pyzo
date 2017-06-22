@@ -10,16 +10,15 @@ import time
 import socket
 import threading
 
-import yoton
 from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg, UID
-from yoton.misc import PackageQueue, TinyPackageQueue
+from yoton.misc import getErrorMsg, UID
+from yoton.misc import TinyPackageQueue
 from yoton.core import Package, PACKAGE_HEARTBEAT, PACKAGE_CLOSE, EINTR
-from yoton.core import can_send, can_recv, send_all, recv_all, HEADER_SIZE
+from yoton.core import can_recv, send_all, recv_all, HEADER_SIZE
 
-from yoton.connection import Connection, TIMEOUT_MIN
-from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING
-from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING
+from yoton.connection import Connection, TIMEOUT_MIN  # noqa
+from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING  # noqa
+from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING  # noqa
 
 # Note that time.sleep(0) yields the current thread's timeslice to any 
 # other >= priority thread in the process, but is otherwise equivalent 0 delay.
@@ -437,7 +436,7 @@ class HandShaker:
                 self._send_during_handshaking('ERROR: could not parse id.')
                 return False, STOP_HANDSHAKE_FAILED
             # Respond and return
-            error = self._send_during_handshaking(message)
+            self._send_during_handshaking(message)  # returns error?
             if id == id2:
                 return False, STOP_HANDSHAKE_SELF
             else:
@@ -463,7 +462,7 @@ class HandShaker:
         message = 'YOTON!%s.%i' % (UID(id).get_hex(), os.getpid())
         
         # Do request
-        error = self._send_during_handshaking(message)
+        self._send_during_handshaking(message)  # returns error?
         
         # Get response
         response = self._recv_during_handshaking()
@@ -588,7 +587,6 @@ class SendingThread(BaseIOThread):
         
         timeout = 0.5*TIMEOUT_MIN
         queue = context_connection._qout
-        socket_send = bsd_socket.send
         socket_sendall = bsd_socket.sendall
         
         

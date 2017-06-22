@@ -10,8 +10,7 @@ Defines the channel class for state.
 
 """
 
-from yoton.misc import basestring, bytes, str, long
-from yoton.misc import Property
+from yoton.misc import bytes
 from yoton.channels import BaseChannel
 
 

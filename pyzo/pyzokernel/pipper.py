@@ -3,7 +3,6 @@
 
 # From pyzo/pyzokernel
 
-import os
 import sys
 import time
 import subprocess

@@ -53,7 +53,7 @@ class MessageType(object):
         raise NotImplementedError()
     
     def message_type_name(self):
-       raise NotImplementedError()
+        raise NotImplementedError()
 
 
 
@@ -66,7 +66,7 @@ class BinaryMessageType(MessageType):
     """
     
     def message_type_name(self):
-       return 'bin'
+        return 'bin'
     
     
     def message_to_bytes(self, message):
@@ -89,7 +89,7 @@ class TextMessageType(MessageType):
     """
     
     def message_type_name(self):
-       return 'txt'
+        return 'txt'
     
     def message_to_bytes(self, message):
         
@@ -136,7 +136,7 @@ class ObjectMessageType(MessageType):
     """
     
     def message_type_name(self):
-       return 'obj'
+        return 'obj'
     
     def message_to_bytes(self, message):
         packer = Packer()
@@ -290,7 +290,7 @@ class Unpacker:
             for i in range(self.read_number()):
                 key = self.unpack_object()
                 object[key] = self.unpack_object()
-            return  object
+            return object
         else:
             raise ValueError("Unsupported type: %s" % repr(object_type))
 

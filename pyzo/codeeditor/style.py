@@ -245,7 +245,7 @@ class StyleFormat:
     @property
     def textCharFormat(self):
         if self._textCharFormat is None:
-            self._textCharFormat = tcf = QtGui.QTextCharFormat()
+            self._textCharFormat = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
             self._textCharFormat.setUnderlineStyle(self.underline)
             if self.bold:
