@@ -613,6 +613,7 @@ class PyzoInterpreter:
                 self.context._stat_interpreter.send('More')
             else:
                 self.context._stat_interpreter.send('Ready')
+            self.context._stat_cd.send(os.getcwd())
         
         
         # Are we still connected?

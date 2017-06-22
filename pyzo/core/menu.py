@@ -1139,14 +1139,24 @@ class ShellContextMenu(ShellMenu):
             icons.paste_plain, self._editItemCallback, "paste")
         self.addItem(translate("menu", "Select all ::: Select all text."), 
             icons.sum, self._editItemCallback, "selectAll")
-    
+        
+        self.addSeparator()
+        self.addItem(translate("menu", "Open current directory in file browser"),
+            None, self._editItemCallback, "opendir")
+        
     def getShell(self):
         """ Shell actions of this menu operate on the shell specified in the constructor """
         return self._shell
     
     def _editItemCallback(self, action):
         #If the widget has a 'name' attribute, call it
-        getattr(self._shell, action)()
+        if action == 'opendir':
+            curdir = self._shell.get_kernel_cd()
+            fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
+            if curdir and fileBrowser:
+                fileBrowser.setPath(curdir)
+        else:
+            getattr(self._shell, action)()
     
     def _updateShells(self):
         pass

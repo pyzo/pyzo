@@ -1091,10 +1091,12 @@ class PythonShell(BaseShell):
         
         # Create status channels
         self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
+        self._stat_cd = yoton.StateChannel(ct, 'stat-cd')
         self._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
         self._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
-        self._stat_startup.received.bind(self._onReceivedStartupInfo)
         self._stat_breakpoints = yoton.StateChannel(ct, 'stat-breakpoints', yoton.OBJECT)
+        
+        self._stat_startup.received.bind(self._onReceivedStartupInfo)
         
         # Create introspection request channel
         self._request = yoton.ReqChannel(ct, 'reqp-introspect')
@@ -1115,7 +1117,11 @@ class PythonShell(BaseShell):
 #                 self._strm_action,
 #                 self._stat_interpreter, self._stat_debug]:
 #             c.received.bind(self.poll)
-        
+    
+    def get_kernel_cd(self):
+        """ Get current working dir of kernel.
+        """
+        return self._stat_cd.recv()
     
     def _onReceivedStartupInfo(self, channel):
         startup_info = channel.recv()

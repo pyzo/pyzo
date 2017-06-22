@@ -65,6 +65,7 @@ ct._strm_action = yoton.PubChannel(ct, 'strm-action', yoton.OBJECT)
 
 # Create status channels
 ct._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
+ct._stat_cd = yoton.StateChannel(ct, 'stat-cd')
 ct._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
 ct._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
 ct._stat_breakpoints = yoton.StateChannel(ct, 'stat-breakpoints', yoton.OBJECT)
