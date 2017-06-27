@@ -87,7 +87,7 @@ PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp']  # QtPri
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']  
 
 # SELECT BACKEND
-QT_API = 'PyQt4'
+QT_API = 'PySide' if sys.platform.startswith('darwin') else 'PyQt4'
 
 if QT_API == 'PyQt5':
     includes = PyQt5Modules
