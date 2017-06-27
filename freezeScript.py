@@ -68,18 +68,26 @@ excludes.extend(tk_excludes)
 excludes.append('numpy')
 
 # Excludes for Qt
-qt_excludes = 'QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg',  # 'QtHelp'
+qt_excludes = ['QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg',  # 'QtHelp'
+               'QtBluetooth', 'QtDBus', 'QtDesigner', 'QtLocation', 'QtPositioning',
+               'QtMultimedia', 'QtMultimediaWidgets', 'QtQml', 'QtQuick',
+               'QtSql', 'QtSvg', 'QtTest', 'QtWebKit', 'QtXml', 'QtXmlPatterns',
+               'QtDeclarative', 'QtScript', 'QtScriptTools', 'QtUiTools',
+               'QtQuickWidgets', 'QtSensors', 'QtSerialPort', 'QtWebChannel',
+               'QtWebKitWidgets', 'QtWebSockets',
+               ]
+
 for qt_ver in ['PyQt5', 'PyQt4', 'PySide']:
     for excl in qt_excludes:
         excludes.append(qt_ver + '.' + excl)
 
 # For qt to work
-PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp', 'PyQt4.QtPrintSupport']
 PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtHelp', 'PyQt5.QtPrintSupport']
-PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp', 'PySide.QtPrintSupport']
+PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp']  # QtPrintSupport is in QtGui
+PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']  
 
 # SELECT BACKEND
-QT_API = 'PyQt5'
+QT_API = 'PyQt4'
 
 if QT_API == 'PyQt5':
     includes = PyQt5Modules
@@ -114,7 +122,7 @@ for scriptFile in scriptFiles:
         ex = Executable(    scriptFile, 
                             targetName = 'pyzo.exe',
                             icon=iconFile,
-                            appendScriptToExe = True,
+                            # appendScriptToExe = True,
                             base = 'Win32GUI', # this is what hides the console                            
                             )
     else:
@@ -141,6 +149,18 @@ f.Freeze()
 
 
 ## Process source code and other resources
+
+
+
+for d in (os.path.join(distDir, 'PyQt5'), distDir):
+    if os.path.isdir(d):
+        for fname in os.listdir(d):
+            filename = os.path.join(d, fname)
+            for e in qt_excludes:
+                if fname.startswith(e + '.'):
+                    if os.path.isfile(filename):
+                        os.remove(filename)
+
 
 MANIFEST_TEMPLATE = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -177,6 +197,7 @@ def install_c_runtime(targetDir):
         t = t.replace('{PROC_ARCH}', 'x86') # {4:'x86', 8:'amd64'}
         manifest_filename = os.path.join(distDir,'Microsoft.VC90.CRT.manifest')
         open(manifest_filename, 'wb').write(t.encode('utf-8'))
+
 
 # taken from pyzo_build:
 def copydir_smart(path1, path2):
