@@ -369,6 +369,14 @@ if os.path.isdir(imformatsdir):
     shutil.rmtree(imformatsdir)
 
 
+OSX_INSTALL_NOTES = """Pyzo installation:
+- Move or copy the "pyzo" app to your Applications folder.
+- Run it.
+- If OS X says something about the app being from an unidentified
+  developer, right-click or control-click the app, select open,
+  and then confirm. This should only be needed once.
+"""
+
 # todo: this is now in cx_Freeze right?
 if applicationBundle:
     #Change the absolute paths in all library files to relative paths
@@ -443,7 +451,11 @@ if applicationBundle:
     else:
         raise RuntimeError('Could not find qt_menu.nib')
 
-
+    
+    # Add notes
+    with open(os.path.join(appDir, 'install.txt'), 'wb') as f:
+        f.write(OSX_INSTALL_NOTES.encode())
+    
     #Package in a dmg
     dmgFile=appDir+'pyzo.dmg'
 
