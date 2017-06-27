@@ -12,6 +12,12 @@ tool_name = "Source structure"
 tool_summary = "Shows the structure of your source code."
 
 
+class Navigation:
+    def __init__(self):
+        self.back = []
+        self.forward = []
+
+
 class PyzoSourceStructure(QtWidgets.QWidget):
     def __init__(self, parent):
         QtWidgets.QWidget.__init__(self, parent)
@@ -27,8 +33,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self._config.level = 2
         
         # Keep track of clicks so we can "go back"
-        self._nav_back = []
-        self._nav_forward = []
+        self._nav = {}  # editor-id -> Navigation object
         
         # Create buttons for navigation
         self._navbut_back = QtWidgets.QToolButton(self)
@@ -171,21 +176,30 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self.updateStructure()
     
     
+    def _getCurrentNav(self):
+        if not self._currentEditorId:
+            return None
+        if self._currentEditorId not in self._nav:
+            self._nav[self._currentEditorId] = Navigation()
+        return self._nav[self._currentEditorId]
+    
     def onNavBack(self):
-        if not self._nav_back:
+        nav = self._getCurrentNav()
+        if not nav or not nav.back:
             return
-        linenr = self._nav_back.pop(-1)
+        linenr = nav.back.pop(-1)
         old_linenr = self._navigate_to_line(linenr)
         if old_linenr is not None:
-            self._nav_forward.append(old_linenr)
+            nav.forward.append(old_linenr)
     
     def onNavForward(self):
-        if not self._nav_forward:
+        nav = self._getCurrentNav()
+        if not nav or not nav.forward:
             return
-        linenr = self._nav_forward.pop(-1)
+        linenr = nav.forward.pop(-1)
         old_linenr = self._navigate_to_line(linenr)
         if old_linenr is not None:
-            self._nav_back.append(old_linenr)
+            nav.back.append(old_linenr)
 
     def onItemClick(self, item):
         """ Go to the right line in the editor and give focus. """
@@ -197,9 +211,10 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         old_linenr = self._navigate_to_line(item.linenr)
         
         if old_linenr is not None:
-            if not self._nav_back or self._nav_back[-1] != old_linenr:
-                self._nav_back.append(old_linenr)
-                self._nav_forward = []
+            nav = self._getCurrentNav()
+            if nav and (not nav.back or nav.back[-1] != old_linenr):
+                nav.back.append(old_linenr)
+                nav.forward = []
     
     def _navigate_to_line(self, linenr):
         
