@@ -622,7 +622,7 @@ class CondaHelper(QtWidgets.QWidget):
         # self._label.setOpenExternalLinks(True)
         self._label.linkActivated.connect(self.handle_link)
         font = self._label.font()
-        font.setPointSize(font.pointSize()+1)
+        font.setPointSize(font.pointSize()+2)
         self._label.setFont(font)
         
         layout = QtWidgets.QVBoxLayout()
@@ -660,10 +660,10 @@ class CondaHelper(QtWidgets.QWidget):
             self._the_exe = conda_interpreters[0].path
             text = """Pyzo detected a conda environment in:
                       <br />%s<br /><br />
-                      You can <a href='usefound'>use this environment</a>
+                      You can <a href='usefound'>use&nbsp;this&nbsp;environment</a>
                       (recommended), or manually specify an interpreter
-                      by setting the exe in the <a href='config'>shell config</a>.
-                      <br /><br />(<a href='refresh'>refresh</a>)
+                      by setting the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
                    """ % (self._the_exe)
         elif conda_interpreters:
             text = """Pyzo detected a conda environment,
@@ -671,15 +671,15 @@ class CondaHelper(QtWidgets.QWidget):
                       <br /><br />
                       If you installed %s in a non-default location,
                       or if you want to manually specify an interpreter,
-                      set the exe in the <a href='config'>shell config</a>.
-                      <br /><br />(<a href='refresh'>refresh</a>)
+                      set the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
                    """ % link
         elif interpreters:
             text = """Pyzo detected a Python interpreter,
                       but for scientific programming we recommend %s.
                       If you want to manually specify the interpreter,
-                      set the exe in the <a href='config'>shell config</a>.
-                      <br /><br />(<a href='refresh'>refresh</a>)
+                      set the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
                    """ % link
         else:
             text = """Pyzo did not detect any Python interpreters.
@@ -688,10 +688,11 @@ class CondaHelper(QtWidgets.QWidget):
                       <br /><br />
                       If you installed miniconda in a non-default location,
                       or if you want to manually specify the interpreter,
-                      set the exe in the <a href='config'>shell config</a>.
+                      set the exe in the <a href='config'>shell&nbsp;config</a>.
                    """ % link
         
-        self._label.setText(text)
+        link_style = 'font-weight: bold; color:#369; text-decoration:underline;'
+        self._label.setText(text.replace('<a ', '<a style="%s" ' % link_style))
     
     def handle_link(self, url):
         if url == 'refresh':
