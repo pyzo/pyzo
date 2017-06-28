@@ -28,6 +28,23 @@ import sys, os, stat, shutil, struct
 import subprocess
 from cx_Freeze import Executable, Freezer, setup  # noqa
 
+
+# Notes to self:
+# - I used to build the Windows binaries on a WinXP VM, but newer versions
+#   of Python (3.5 and up) do not work on XP anymore. So we stick to 3.4.
+# - This is not so bad, since with newer versions of Python I have not been
+#   able to ship the MSVC runtime in the correct way (see win7 VM).
+# - But now, somehow, the Python on my WinXP VM seems broken. I can still
+#   use the old binary as a template though. Otherwise, recover old version
+#   of VM from backup (and make a snapshot!)
+# - For Linux, use Lucid Lynx VM, stick to Python 3.4 and PySide from conda-forge.
+# - For OS X, use Python and PySide from macports (since cx_Freeze does not work
+#   from conda env).
+
+# SELECT BACKEND
+QT_API = 'PyQt4' if sys.platform.startswith('win') else 'PySide'
+
+
 # Define app name and such
 name = "pyzo"
 baseDir = os.path.abspath('') + '/'
@@ -85,9 +102,6 @@ for qt_ver in ['PyQt5', 'PyQt4', 'PySide']:
 PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtHelp', 'PyQt5.QtPrintSupport']
 PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp']  # QtPrintSupport is in QtGui
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']  
-
-# SELECT BACKEND
-QT_API = 'PySide' if sys.platform.startswith('darwin') else 'PyQt4'
 
 if QT_API == 'PyQt5':
     includes = PyQt5Modules
