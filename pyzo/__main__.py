@@ -26,7 +26,7 @@ import shutil  # noqa
 
 
 if hasattr(sys, 'frozen') and sys.frozen:
-    app_dir = os.dirname(os.path.abspath(sys.executable))
+    app_dir = os.path.dirname(os.path.abspath(sys.executable))
     # Enable loading from source
     sys.path.insert(0, os.path.join(app_dir, 'source'))
     sys.path.insert(0, os.path.join(app_dir, 'source/more'))
