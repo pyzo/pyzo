@@ -34,15 +34,13 @@ from cx_Freeze import Executable, Freezer, setup  # noqa
 #   of Python (3.5 and up) do not work on XP anymore. So we stick to 3.4.
 # - This is not so bad, since with newer versions of Python I have not been
 #   able to ship the MSVC runtime in the correct way (see win7 VM).
-# - But now, somehow, the Python on my WinXP VM seems broken. I can still
-#   use the old binary as a template though. Otherwise, recover old version
-#   of VM from backup (and make a snapshot!)
+# - The conda executable on my winXP seems broken, but can still use "python -m conda".
 # - For Linux, use Lucid Lynx VM, stick to Python 3.4 and PySide from conda-forge.
 # - For OS X, use Python and PySide from macports (since cx_Freeze does not work
 #   from conda env).
 
 # SELECT BACKEND
-QT_API = 'PyQt4' if sys.platform.startswith('win') else 'PySide'
+QT_API = 'PySide'
 
 
 # Define app name and such
@@ -119,6 +117,9 @@ excludes.extend(PyQt5Modules)
 for mod in includes:
     if mod in excludes:
         excludes.remove(mod)
+
+# More includes
+includes.extend(['code'])
 
 
 ## Freeze
