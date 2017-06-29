@@ -35,7 +35,7 @@ from cx_Freeze import Executable, Freezer, setup  # noqa
 # - This is not so bad, since with newer versions of Python I have not been
 #   able to ship the MSVC runtime in the correct way (see win7 VM).
 # - The conda executable on my winXP seems broken, but can still use "python -m conda".
-# - For Linux, use Lucid Lynx VM, stick to Python 3.4 and PySide from conda-forge.
+# - For Linux, use the Pingulin VM, and PySide from conda-forge.
 # - For OS X, use Python and PySide from macports (since cx_Freeze does not work
 #   from conda env).
 
