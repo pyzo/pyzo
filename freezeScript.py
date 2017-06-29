@@ -101,6 +101,7 @@ PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtHelp', 'PyQt5.Q
 PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp']  # QtPrintSupport is in QtGui
 PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']  
 
+
 if QT_API == 'PyQt5':
     includes = PyQt5Modules
 elif QT_API == 'PyQt4':
@@ -331,11 +332,14 @@ if sys.platform.startswith('linux'):
     
     # Libs further (newer version of cx_freeze puts libs in /lib/python3.5
     qt_platform_dir = os.path.join(distDir, 'platforms')
-    for entry in os.listdir(qt_platform_dir):
-        filename = os.path.join(qt_platform_dir, entry)
-        if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
-            continue
-        rpaths = '', '..', '../lib', '../lib/python' + sys.version[:3]
+    if not os.path.isdir(qt_platform_dir):
+        print('Could not find Qt platform dir')
+    else:
+        for entry in os.listdir(qt_platform_dir):
+            filename = os.path.join(qt_platform_dir, entry)
+            if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
+                continue
+            rpaths = '', '..', '../lib', '../lib/python' + sys.version[:3]
         libs2fix.append((filename, rpaths))
     
     # Apply
