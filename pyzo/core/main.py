@@ -527,7 +527,9 @@ def loadFonts():
     
     # Load fonts that are in the fonts directory
     if os.path.isdir(fontDir):
-        for fname in sorted(os.listdir(fontDir), key=len):
+        for fname in os.listdir(fontDir):
+            if 'oblique' in fname.lower():  # issue #461
+                continue
             if os.path.splitext(fname)[1].lower() in ['.otf', '.ttf']:
                 try:
                     db.addApplicationFont( os.path.join(fontDir, fname) )
