@@ -41,7 +41,7 @@ and workspace.
 """
 
 # Set version number
-__version__ = '4.3.1'
+__version__ = '4.4.0'
 
 import os
 import sys
@@ -63,7 +63,7 @@ if hasattr(sys, 'frozen') and sys.frozen:
                                                     'fonts/linux_fonts.conf')
 
 # Import yoton as an absolute package
-from pyzo import yotonloader
+from pyzo import yotonloader  # noqa
 from pyzo.util import paths
 
 # If there already is an instance of Pyzo, and the user is trying an
@@ -87,7 +87,7 @@ from pyzo.util import zon as ssdf  # zon is ssdf-light
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 # Import language/translation tools
-from pyzo.util._locale import translate, setLanguage
+from pyzo.util._locale import translate, setLanguage  # noqa
 
 # Set environ to let kernel know some stats about us
 os.environ['PYZO_PREFIX'] = sys.prefix
@@ -112,7 +112,7 @@ class MyApp(QtWidgets.QApplication):
         return QtWidgets.QApplication.event(self, event)
 
 if not sys.platform.startswith('darwin'):
-    MyApp = QtWidgets.QApplication
+    MyApp = QtWidgets.QApplication  # noqa
 
 ## Install excepthook
 # In PyQt5 exceptions in Python will cuase an abort
@@ -236,7 +236,7 @@ def start():
     """
 
     # Do some imports
-    from pyzo.core import pyzoLogging # to start logging asap
+    from pyzo.core import pyzoLogging  # noqa - to start logging asap
     from pyzo.core.main import MainWindow
 
     # Apply users' preferences w.r.t. date representation etc
@@ -261,7 +261,7 @@ def start():
     appLocale = setLanguage(config.settings.language)
 
     # Create main window, using the selected locale
-    frame = MainWindow(None, appLocale)
+    MainWindow(None, appLocale)
 
     # Enter the main loop
     QtWidgets.qApp.exec_()

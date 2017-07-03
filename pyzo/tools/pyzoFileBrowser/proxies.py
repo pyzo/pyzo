@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Almar Klein
 
-""" 
+"""
 This module defines file system proxies to be used for the file browser.
 For now, there is only one: the native file system. But in time,
 we may add proxies for ftp, S3, remote computing, etc.
@@ -18,7 +18,7 @@ import threading
 from queue import Queue, Empty
 import os.path as op
 
-from . import QtCore, QtGui
+from . import QtCore
 from .utils import isdir
 
 class Task:
@@ -28,7 +28,7 @@ class Task:
     When overloading, dont forget to set __slots__.
     
     Overload and implement the 'process' method to create a task.
-    Then use pushTask on a pathProxy object. Use the 'result' method to 
+    Then use pushTask on a pathProxy object. Use the 'result' method to
     obtain the result (or raise an error).
     """
     __slots__ = ['_params', '_result', '_error']
@@ -44,7 +44,7 @@ class Task:
         """ process(pathProxy, **params):
         This is the method that represents the task. Overload this to make
         the task do what is intended.
-        """ 
+        """
         pass
     
     def _run(self, proxy):
@@ -53,13 +53,13 @@ class Task:
         try:
             params = self._params or {}
             self._result = self.process(proxy, **params)
-        except Exception as err:            
+        except Exception as err:
             self._error = 'Task failed: {}:\n{}'.format(self, str(err))
             print(self._error)
     
     def result(self):
         """ Get the result. Raises an error if the task failed.
-        """ 
+        """
         if self._error:
             raise Exception(self._error)
         else:
@@ -89,7 +89,7 @@ class PathProxy(QtCore.QObject):
     taskFinished = QtCore.Signal(Task)
     
     def __init__(self, fsProxy, path):
-        QtCore.QObject.__init__(self)        
+        QtCore.QObject.__init__(self)
         self._lock = threading.RLock()
         self._fsProxy = fsProxy
         self._path = path
@@ -109,29 +109,29 @@ class PathProxy(QtCore.QObject):
     def track(self):
         """ Start tracking this proxy object in the idle time of the
         FSProxy thread.
-        """ 
+        """
         self._fsProxy._track(self)
     
     def push(self):
         """ Process this proxy object asap; the object is put in the queue
         of the FSProxy, so it is updated as fast as possible.
-        """ 
+        """
         self._cancelled = False
         self._fsProxy._push(self)
     
     def cancel(self):
-        """ Stop tracking this proxy object. Cancel processing if this 
+        """ Stop tracking this proxy object. Cancel processing if this
         object was in the queue.
-        """ 
+        """
         self._fsProxy._unTrack(self)
         self._cancelled = True
     
     def pushTask(self, task):
         """ pushTask(task)
         Give a task to the proxy to be executed in the FSProxy
-        thread. The taskFinished signal will be emitted with the given 
+        thread. The taskFinished signal will be emitted with the given
         task when it is done.
-        """ 
+        """
         shouldPush = False
         with self._lock:
             if not self._pendingTasks:
@@ -167,11 +167,11 @@ class DirProxy(PathProxy):
         self._files = set()
     
     def dirs(self):
-        with self._lock:        
+        with self._lock:
             return set(self._dirs)
     
     def files(self):
-        with self._lock:        
+        with self._lock:
             return set(self._files)
     
     def _process(self, forceUpdate=False):
@@ -203,7 +203,7 @@ class FileProxy(PathProxy):
         self._modified = 0
     
     def modified(self):
-        with self._lock:        
+        with self._lock:
             return self._modified
     
     def _process(self, forceUpdate=False):
@@ -216,7 +216,7 @@ class FileProxy(PathProxy):
         # All seems ok. Update if necessary
         if modified != self._modified:
             with self._lock:
-                self._modified = modified                
+                self._modified = modified
             self.changed.emit()
         elif forceUpdate:
             self.changed.emit()
@@ -251,12 +251,12 @@ class BaseFSProxy(threading.Thread):
     """
     
     # Define how often the registered dirs and files are checked
-    IDLE_TIMEOUT = 1.0 
+    IDLE_TIMEOUT = 1.0
     
-    # For testing to induce extra delay. Should normally be close to zero,  
+    # For testing to induce extra delay. Should normally be close to zero,
     # but not exactly zero!
     IDLE_DELAY = 0.01
-    QUEUE_DELAY = 0.01  # 0.5  
+    QUEUE_DELAY = 0.01  # 0.5
     
     def __init__(self):
         threading.Thread.__init__(self)
@@ -264,7 +264,7 @@ class BaseFSProxy(threading.Thread):
         #
         self._interrupt = False
         self._exit = False
-        #        
+        #
         self._lock = threading.RLock()
         self._q = Queue()
         self._pathProxies = set()
@@ -272,7 +272,7 @@ class BaseFSProxy(threading.Thread):
         self.start()
     
     def _track(self, pathProxy):
-        # todo: use weak references 
+        # todo: use weak references
         with self._lock:
             self._pathProxies.add(pathProxy)
     
@@ -294,19 +294,19 @@ class BaseFSProxy(threading.Thread):
     
     def dir(self, path):
         """ Convenience function to create a new DirProxy object.
-        """ 
+        """
         return DirProxy(self, path)
     
     def file(self, path):
         """ Convenience function to create a new FileProxy object.
-        """ 
+        """
         return FileProxy(self, path)
     
     
     def run(self):
         
         try:
-            try: 
+            try:
                 self._run()
             except Exception as err:
                 if Empty is None or self._lock is None:

@@ -49,7 +49,7 @@ class Debugger(bdb.Bdb):
     def interaction(self, frame, traceback=None, pm=False):
         """ Enter an interaction-loop for debugging. No GUI events are
         processed here. We leave this event loop at some point, after
-        which the conrol flow will proceed. 
+        which the conrol flow will proceed.
         
         This is called to enter debug-mode at a breakpoint, or to enter
         post-mortem debugging.
@@ -101,13 +101,13 @@ class Debugger(bdb.Bdb):
         
     
     def stopinteraction(self):
-        """ Stop the interaction loop. 
+        """ Stop the interaction loop.
         """
         self._interacting = False
     
     
     def set_on(self):
-        """ To turn debugging on right before executing code. 
+        """ To turn debugging on right before executing code.
         """
         # Reset and set bottom frame
         self.reset()
@@ -162,7 +162,7 @@ class Debugger(bdb.Bdb):
             #frames.append(text)
         
         # Send info object
-        state = {   'index': interpreter._dbFrameIndex, 
+        state = {   'index': interpreter._dbFrameIndex,
                     'frames': frames,
                     'debugmode': self._debugmode}
         interpreter.context._stat_debug.send(state)
@@ -178,7 +178,7 @@ class Debugger(bdb.Bdb):
         list = self.breaks.setdefault(filename, [])
         if lineno not in list:
             list.append(lineno)
-        bp = bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
+        bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
     
     
     # Prevent stopping in bdb code or pyzokernel code
@@ -248,8 +248,7 @@ class Debugger(bdb.Bdb):
     def user_line(self, frame):
         """This function is called when we stop or break at this line."""
         if self._wait_for_mainpyfile:
-            if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
-                or frame.f_lineno <= 0):
+            if (self.mainpyfile != self.canonic(frame.f_code.co_filename) or frame.f_lineno <= 0):
                 return
             self._wait_for_mainpyfile = False
         if True: #self.bp_commands(frame):  from pdb
@@ -293,7 +292,7 @@ class Debugger(bdb.Bdb):
         if not arg:
             print('All debug commands:')
             # Show docs in  order
-            for name in [   'start', 'stop', 'frame', 'up', 'down', 
+            for name in [   'start', 'stop', 'frame', 'up', 'down',
                             'next', 'step','return', 'continue',
                             'where', 'events']:
                 doc = docs.pop(name)
@@ -318,7 +317,6 @@ class Debugger(bdb.Bdb):
     def do_start(self, arg):
         """ Start postmortem debugging from the last uncaught exception.
         """
-        interpreter = sys._pyzoInterpreter
         
         # Get traceback
         try:
@@ -366,7 +364,7 @@ class Debugger(bdb.Bdb):
     def do_up(self, arg):
         """ Go one frame up the stack.
         """
-        interpreter = sys._pyzoInterpreter 
+        interpreter = sys._pyzoInterpreter
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -386,7 +384,7 @@ class Debugger(bdb.Bdb):
     def do_down(self, arg):
         """ Go one frame down the stack.
         """
-        interpreter = sys._pyzoInterpreter 
+        interpreter = sys._pyzoInterpreter
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -407,8 +405,6 @@ class Debugger(bdb.Bdb):
         """ Stop debugging, terminate process execution.
         """
         # Can be done both in postmortem and normal debugging
-        interpreter = sys._pyzoInterpreter 
-        
         if not self._debugmode:
             self.message("Not in debug mode.")
         else:
@@ -419,7 +415,7 @@ class Debugger(bdb.Bdb):
     def do_where(self, arg):
         """ Print the stack trace and indicate the current frame.
         """
-        interpreter = sys._pyzoInterpreter 
+        interpreter = sys._pyzoInterpreter
         
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -430,7 +426,7 @@ class Debugger(bdb.Bdb):
                 f = interpreter._dbFrames[i]
                 # Get fname and lineno, and correct if required
                 fname, lineno = f.f_code.co_filename, f.f_lineno
-                fname, lineno = interpreter.correctfilenameandlineno(fname, 
+                fname, lineno = interpreter.correctfilenameandlineno(fname,
                                                                         lineno)
                 # Build string
                 text = 'File "%s", line %i, in %s' % (
@@ -446,8 +442,6 @@ class Debugger(bdb.Bdb):
     def do_continue(self, arg):
         """ Continue the program execution.
         """
-        interpreter = sys._pyzoInterpreter 
-        
         if self._debugmode == 0:
             self.message("Not in debug mode.")
         elif self._debugmode == 1:
@@ -460,8 +454,6 @@ class Debugger(bdb.Bdb):
     def do_step(self, arg):
         """ Execute the current line, stop ASAP (step into).
         """
-        interpreter = sys._pyzoInterpreter 
-        
         if self._debugmode == 0:
             self.message("Not in debug mode.")
         elif self._debugmode == 1:
@@ -472,9 +464,9 @@ class Debugger(bdb.Bdb):
     
     
     def do_next(self, arg):
-        """ Continue execution until the next line (step over). 
+        """ Continue execution until the next line (step over).
         """
-        interpreter = sys._pyzoInterpreter 
+        interpreter = sys._pyzoInterpreter
         
         if self._debugmode == 0:
             self.message("Not in debug mode.")
@@ -489,7 +481,7 @@ class Debugger(bdb.Bdb):
     def do_return(self, arg):
         """ Continue execution until the current function returns (step out).
         """
-        interpreter = sys._pyzoInterpreter 
+        interpreter = sys._pyzoInterpreter
         
         if self._debugmode == 0:
             self.message("Not in debug mode.")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This example demponstrates simple req rep.
-# This example can be run in one go or in two parts running in 
+# This example can be run in one go or in two parts running in
 # different processes.
 
 ## ========== One end
@@ -34,7 +34,7 @@ req = yoton.ReqChannel(ct2, 'duplicate')
 # Connect
 ct2.connect('publichost:test')
 
-# Duplicate a string 
+# Duplicate a string
 print(req.add('foo', 'bar').result(1))
 print(req.add(3,4).result(1))
 

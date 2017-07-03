@@ -25,7 +25,7 @@ def retranslate(t):
     """
     if hasattr(t, 'original'):
         return translate('wizard', t.original)
-    else:        
+    else:
         return t
 
 
@@ -47,26 +47,26 @@ class PyzoWizard(QtWidgets.QWizard):
         self.setPixmap(self.LogoPixmap, pm)
         
         # Define pages
-        klasses = [ IntroWizardPage, 
-                    TwocomponentsWizardPage, EditorWizardPage, 
+        klasses = [ IntroWizardPage,
+                    TwocomponentsWizardPage, EditorWizardPage,
                     ShellWizardPage1, ShellWizardPage2,
-                    RuncodeWizardPage1, RuncodeWizardPage2, 
+                    RuncodeWizardPage1, RuncodeWizardPage2,
                     ToolsWizardPage1, ToolsWizardPage2,
                     FinalPage]
         
         # Create pages
-        self._n = len(klasses)        
+        self._n = len(klasses)
         for i, klass in enumerate(klasses):
             self.addPage(klass(self, i))
     
     def show(self, startPage=None):
-        """ Show the wizard. If startPage is given, open the Wizard at 
+        """ Show the wizard. If startPage is given, open the Wizard at
         that page. startPage can be an integer or a string that matches
         the classname of a page.
-        """ 
+        """
         QtWidgets.QWizard.show(self)
         
-        # Check startpage        
+        # Check startpage
         if isinstance(startPage, int):
             pass
         elif isinstance(startPage, str):
@@ -75,14 +75,14 @@ class PyzoWizard(QtWidgets.QWizard):
                 if page.__class__.__name__.lower() == startPage.lower():
                     startPage = i
                     break
-            else:                
+            else:
                 print('Pyzo wizard: Could not find start page: %r' % startPage)
                 startPage = None
-        elif startPage is not None:            
+        elif startPage is not None:
             print('Pyzo wizard: invalid start page: %r' % startPage)
             startPage = None
         
-        # Go to start page            
+        # Go to start page
         if startPage is not None:
             for i in range(startPage):
                 self.next()
@@ -106,7 +106,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
         self._text_label.setWordWrap(True)
         
         # Create label for image
-        self._comicLabel = QtWidgets.QLabel(self)        
+        self._comicLabel = QtWidgets.QLabel(self)
         pm = QtGui.QPixmap()
         if 'logo' in self._image_filename:
             pm.load(os.path.join(pyzo.pyzoDir, 'resources', 'appicons', self._image_filename))
@@ -142,7 +142,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
         # Emphasis on words is set to italic tags.
         lines = []
         descriptions = [retranslate(d).strip() for d in self._descriptions]
-        for description in descriptions:            
+        for description in descriptions:
             for line in description.splitlines():
                 line = line.strip()
                 line = re.sub(r'\*(.+?)\*', r'<b>\1</b>', line)
@@ -173,7 +173,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         
         # Create label and checkbox
         t1 = translate('wizard', "This wizard can be opened using 'Help > Pyzo wizard'")
-        t2 = translate('wizard', "Show this wizard on startup")
+        # t2 = translate('wizard', "Show this wizard on startup")
         self._label_info = QtWidgets.QLabel(t1, self)
         #self._check_show = QtWidgets.QCheckBox(t2, self)
         #self._check_show.stateChanged.connect(self._setNewUser)
@@ -219,7 +219,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         pyzo.config.state.newUser = newUser
     
     def onLanguageChange(self):
-        languageName = self._langBox.currentText()        
+        languageName = self._langBox.currentText()
         if pyzo.config.settings.language == languageName:
             return
         # Save new language
@@ -239,7 +239,7 @@ class IntroWizardPage(BasePyzoWizardPage):
         # Get props of current wizard
         geo = self.wizard().geometry()
         parent = self.wizard().parent()
-        # Close ourself!        
+        # Close ourself!
         self.wizard().close()
         # Start new one
         w = PyzoWizard(parent)
@@ -253,7 +253,7 @@ class TwocomponentsWizardPage(BasePyzoWizardPage):
     _title = translate('wizard', 'Pyzo consists of two main components')
     _image_filename = 'pyzo_two_components.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         "You can execute commands directly in the *shell*,"),
         translate('wizard',
         "or you can write code in the *editor* and execute that."),
@@ -265,11 +265,11 @@ class EditorWizardPage(BasePyzoWizardPage):
     _title = translate('wizard', 'The editor is where you write your code')
     _image_filename = 'pyzo_editor.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         """In the *editor*, each open file is represented as a tab. By
         right-clicking on a tab, files can be run, saved, closed, etc."""),
         translate('wizard',
-        """The right mouse button also enables one to make a file the 
+        """The right mouse button also enables one to make a file the
         *main file* of a project. This file can be recognized by its star
         symbol, and it enables running the file more easily."""),
         ]
@@ -280,7 +280,7 @@ class ShellWizardPage1(BasePyzoWizardPage):
     _title = translate('wizard', 'The shell is where your code gets executed')
     _image_filename = 'pyzo_shell1.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         """When Pyzo starts, a default *shell* is created. You can add more
         shells that run simultaneously, and which may be of different
         Python versions."""),
@@ -296,7 +296,7 @@ class ShellWizardPage2(BasePyzoWizardPage):
     _title = translate('wizard', 'Configuring shells')
     _image_filename = 'pyzo_shell2.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         """Pyzo can integrate the event loop of five different *GUI toolkits*,
         thus enabling interactive plotting with e.g. Visvis or Matplotlib."""),
         translate('wizard',
@@ -311,10 +311,10 @@ class RuncodeWizardPage1(BasePyzoWizardPage):
     _title = translate('wizard', 'Running code')
     _image_filename = 'pyzo_run1.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         "Pyzo supports several ways to run source code in the editor. (see the 'Run' menu)."),
         translate('wizard',
-        """*Run selection:* if there is no selected text, the current line 
+        """*Run selection:* if there is no selected text, the current line
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines."""),
@@ -332,8 +332,8 @@ class RuncodeWizardPage2(BasePyzoWizardPage):
     _title = translate('wizard', 'Interactive mode vs running as script')
     _image_filename = ''
     _descriptions = [
-        translate('wizard', 
-        """You can run the current file or the main file normally, or as a script. 
+        translate('wizard',
+        """You can run the current file or the main file normally, or as a script.
         When run as script, the shell is restared to provide a clean
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution."""),
@@ -341,7 +341,7 @@ class RuncodeWizardPage2(BasePyzoWizardPage):
         """In interactive mode, sys.path[0] is an empty string (i.e. the current dir),
         and sys.argv is set to ['']."""),
         translate('wizard',
-        """In script mode, __file__ and sys.argv[0] are set to the scripts filename, 
+        """In script mode, __file__ and sys.argv[0] are set to the scripts filename,
         sys.path[0] and the working dir are set to the directory containing the script."""),
         ]
 
@@ -351,7 +351,7 @@ class ToolsWizardPage1(BasePyzoWizardPage):
     _title = translate('wizard', 'Tools for your convenience')
     _image_filename = 'pyzo_tools1.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         """Via the *Tools menu*, one can select which tools to use. The tools can
         be positioned in any way you want, and can also be un-docked."""),
         translate('wizard',
@@ -366,7 +366,7 @@ class ToolsWizardPage2(BasePyzoWizardPage):
     _title = translate('wizard', 'Recommended tools')
     _image_filename = 'pyzo_tools2.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         """We especially recommend the following tools:"""),
         translate('wizard',
         """The *Source structure tool* gives an outline of the source code."""),
@@ -381,7 +381,7 @@ class FinalPage(BasePyzoWizardPage):
     _title = translate('wizard', 'Get coding!')
     _image_filename = 'pyzologo128.png'
     _descriptions = [
-        translate('wizard', 
+        translate('wizard',
         """This concludes the Pyzo wizard. Now, get coding and have fun!"""),
         ]
 
@@ -389,7 +389,7 @@ class FinalPage(BasePyzoWizardPage):
 # def smooth_images():
 #     """ This was used to create the images from their raw versions.
 #     """
-#     
+#
 #     import os
 #     import visvis as vv
 #     import scipy as sp
@@ -404,6 +404,6 @@ class FinalPage(BasePyzoWizardPage):
 
 
 if __name__ == '__main__':
-    w = PyzoWizard(None)    
+    w = PyzoWizard(None)
     w.show()
     

@@ -8,33 +8,32 @@
 """ Module shellStack
 
 Implements the stack of shells. Also implements the nifty debug button
-and a dialog to edit the shell configurations. 
+and a dialog to edit the shell configurations.
 
 """
 
-import os, sys, time, re
+import time
 import webbrowser
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
 from pyzo import translate
-from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.shell import PythonShell
-from pyzo.core.pyzoLogging import print
+from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.menu import ShellTabContextMenu, ShellButtonMenu
 from pyzo.core.icons import ShellIconMaker
 
 
 def shellTitle(shell, moreinfo=False):
     """ Given a shell instance, build the text title to represent it.
-    """ 
+    """
     
     # Get name
     nameText = shell._info.name
     
     # Build version text
     if shell._version:
-        versionText = 'v{}'.format(shell._version) 
+        versionText = 'v{}'.format(shell._version)
     else:
         versionText = 'v?'
     
@@ -69,7 +68,7 @@ def shellTitle(shell, moreinfo=False):
 class ShellStackWidget(QtWidgets.QWidget):
     """ The shell stack widget provides a stack of shells.
     
-    It wrapps a QStackedWidget that contains the shell objects. This 
+    It wrapps a QStackedWidget that contains the shell objects. This
     stack is used as a reference to synchronize the shell selection with.
     We keep track of what is the current selected shell and apply updates
     if necessary. Therefore, changing the current shell in the stack
@@ -81,9 +80,9 @@ class ShellStackWidget(QtWidgets.QWidget):
     currentShellChanged = QtCore.Signal()
     
     # When the current shells state (or debug state) changes,
-    # or when a new prompt is received. 
+    # or when a new prompt is received.
     # Also fired when the current shell changes.
-    currentShellStateChanged = QtCore.Signal() 
+    currentShellStateChanged = QtCore.Signal()
     
     def __init__(self, parent):
         QtWidgets.QWidget.__init__(self, parent)
@@ -126,7 +125,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         while i < self._stack.count():
             w = self._stack.widget(i)
             i += 1
-            yield w 
+            yield w
     
     
     def showCondaHelper(self, show=True):
@@ -142,7 +141,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         
         # Create shell and add to stack
         shell = PythonShell(self, shellInfo)
-        index = self._stack.addWidget(shell)
+        self._stack.addWidget(shell)
         # Bind to signals
         shell.stateChanged.connect(self.onShellStateChange)
         shell.debugStateChanged.connect(self.onShellDebugStateChange)
@@ -160,7 +159,7 @@ class ShellStackWidget(QtWidgets.QWidget):
     
     
     def onCurrentChanged(self, index):
-        """ When another shell is selected, update some things. 
+        """ When another shell is selected, update some things.
         """
         
         # Get current
@@ -326,18 +325,18 @@ class ShellControl(QtWidgets.QToolButton):
         """ Update the shell menu. Ensure that there is a menu item
         for each shell. If shellToUpdate is given, updates the corresponding
         menu item.
-        """ 
+        """
         menu = self.menu()
         
         # Get shells now active
-        currentShell = self._shellStack.currentWidget() 
+        currentShell = self._shellStack.currentWidget()
         shells = [self._shellStack.widget(i) for i in range(self._shellStack.count())]
         
         # Synchronize actions. Remove invalid actions
         for action in self._shellActions:
             # Check match with shells
             if action._shell in shells:
-                shells.remove(action._shell)  
+                shells.remove(action._shell)
             else:
                 menu.removeAction(action)
             # Update checked state
@@ -381,55 +380,55 @@ class ShellControl(QtWidgets.QToolButton):
 
 # todo: remove this?
 # class DebugControl(QtWidgets.QToolButton):
-#     """ A button to control debugging. 
+#     """ A button to control debugging.
 #     """
-#     
+#
 #     def __init__(self, parent):
 #         QtWidgets.QToolButton.__init__(self, parent)
-#         
+#
 #         # Flag
 #         self._debugmode = False
-#         
+#
 #         # Set text
 #         self.setText(translate('debug', 'Debug'))
 #         self.setIcon(pyzo.icons.bug)
 #         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 #         #self.setPopupMode(self.InstantPopup)
-#         
+#
 #         # Bind to triggers
 #         self.triggered.connect(self.onTriggered)
 #         self.pressed.connect(self.onPressed)
 #         self.buildMenu()
-#     
-#     
+#
+#
 #     def buildMenu(self):
-#         
+#
 #         # Count breakpoints
 #         bpcount = 0
 #         for e in pyzo.editors:
 #             bpcount += len(e.breakPoints())
-#         
+#
 #         # Prepare a text
 #         clearallbps = translate('debug', 'Clear all {} breakpoints')
 #         clearallbps = clearallbps.format(bpcount)
-#         
+#
 #         # Set menu
 #         menu = QtWidgets.QMenu(self)
 #         self.setMenu(menu)
-#         
-#         for cmd, enabled, icon, text in [ 
+#
+#         for cmd, enabled, icon, text in [
 #                 ('CLEAR', self._debugmode==0, pyzo.icons.bug_delete, clearallbps),
-#                 ('PM', self._debugmode==0, pyzo.icons.bug_error, 
+#                 ('PM', self._debugmode==0, pyzo.icons.bug_error,
 #                     translate('debug', 'Postmortem: debug from last traceback')),
-#                 ('STOP', self._debugmode>0, pyzo.icons.debug_quit, 
+#                 ('STOP', self._debugmode>0, pyzo.icons.debug_quit,
 #                     translate('debug', 'Stop debugging')),
-# #                 ('NEXT', self._debugmode==2, pyzo.icons.debug_next, 
+# #                 ('NEXT', self._debugmode==2, pyzo.icons.debug_next,
 # #                     translate('debug', 'Next: proceed until next line')),
-# #                 ('STEP', self._debugmode==2, pyzo.icons.debug_step, 
+# #                 ('STEP', self._debugmode==2, pyzo.icons.debug_step,
 # #                     translate('debug', 'Step: proceed one step')),
-# #                 ('RETURN', self._debugmode==2, pyzo.icons.debug_return, 
+# #                 ('RETURN', self._debugmode==2, pyzo.icons.debug_return,
 # #                     translate('debug', 'Return: proceed until returns')),
-# #                 ('CONTINUE', self._debugmode==2, pyzo.icons.debug_continue, 
+# #                 ('CONTINUE', self._debugmode==2, pyzo.icons.debug_continue,
 # #                     translate('debug', 'Continue: proceed to next breakpoint')),
 #                 ]:
 #             if cmd is None:
@@ -440,37 +439,37 @@ class ShellControl(QtWidgets.QToolButton):
 #                 else:
 #                     a = menu.addAction(text)
 #                 if hasattr(text, 'tt'):
-#                     a.setToolTip(text.tt)    
+#                     a.setToolTip(text.tt)
 #                 a.cmd = cmd
 #                 a.setEnabled(enabled)
-#     
-#     
+#
+#
 #     def onPressed(self, show=True):
 #         self.buildMenu()
 #         self.showMenu()
-#     
-#     
+#
+#
 #     def onTriggered(self, action):
-#         if action.cmd == 'PM':  
+#         if action.cmd == 'PM':
 #             # Initiate postmortem debugging
 #             shell = pyzo.shells.getCurrentShell()
 #             if shell:
 #                 shell.executeCommand('DB START\n')
-#         
+#
 #         elif action.cmd == 'CLEAR':
 #             # Clear all breakpoints
 #             for e in pyzo.editors:
 #                 e.clearBreakPoints()
-#         
+#
 #         else:
 #             command = action.cmd.upper()
 #             shell = pyzo.shells.getCurrentShell()
 #             if shell:
 #                 shell.executeCommand('DB %s\n' % command)
-#     
-#     
+#
+#
 #     def setTrace(self, info):
-#         """ Determine whether we are in debug mode. 
+#         """ Determine whether we are in debug mode.
 #         """
 #         if info is None:
 #             self._debugmode = 0
@@ -516,7 +515,7 @@ class DebugStack(QtWidgets.QToolButton):
     def setTrace(self, info):
         """ Set the stack trace. This method is called from
         the shell that receives the trace via its status channel
-        directly from the interpreter. 
+        directly from the interpreter.
         If trace is None, removes the trace
         """
         
@@ -589,7 +588,7 @@ class DebugStack(QtWidgets.QToolButton):
             linenr = int(tmp[1].strip())
         except Exception:
             return 'Could not focus!'
-        # Cannot open <console>            
+        # Cannot open <console>
         if filename == '<console>':
             return 'Stack frame is <console>.'
         elif filename.startswith('<ipython-input-'):
@@ -623,7 +622,7 @@ class CondaHelper(QtWidgets.QWidget):
         # self._label.setOpenExternalLinks(True)
         self._label.linkActivated.connect(self.handle_link)
         font = self._label.font()
-        font.setPointSize(font.pointSize()+1)
+        font.setPointSize(font.pointSize()+2)
         self._label.setFont(font)
         
         layout = QtWidgets.QVBoxLayout()
@@ -661,10 +660,10 @@ class CondaHelper(QtWidgets.QWidget):
             self._the_exe = conda_interpreters[0].path
             text = """Pyzo detected a conda environment in:
                       <br />%s<br /><br />
-                      You can <a href='usefound'>use this environment</a>
-                      (recommended), or manually specify an interpreter 
-                      by setting the exe in the <a href='config'>shell config</a>.
-                      <br /><br />(<a href='refresh'>refresh</a>)
+                      You can <a href='usefound'>use&nbsp;this&nbsp;environment</a>
+                      (recommended), or manually specify an interpreter
+                      by setting the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
                    """ % (self._the_exe)
         elif conda_interpreters:
             text = """Pyzo detected a conda environment,
@@ -672,15 +671,15 @@ class CondaHelper(QtWidgets.QWidget):
                       <br /><br />
                       If you installed %s in a non-default location,
                       or if you want to manually specify an interpreter,
-                      set the exe in the <a href='config'>shell config</a>.
-                      <br /><br />(<a href='refresh'>refresh</a>)
+                      set the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
                    """ % link
         elif interpreters:
-            text = """Pyzo detected a Python interpreter,  
+            text = """Pyzo detected a Python interpreter,
                       but for scientific programming we recommend %s.
                       If you want to manually specify the interpreter,
-                      set the exe in the <a href='config'>shell config</a>.
-                      <br /><br />(<a href='refresh'>refresh</a>)
+                      set the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
                    """ % link
         else:
             text = """Pyzo did not detect any Python interpreters.
@@ -689,10 +688,11 @@ class CondaHelper(QtWidgets.QWidget):
                       <br /><br />
                       If you installed miniconda in a non-default location,
                       or if you want to manually specify the interpreter,
-                      set the exe in the <a href='config'>shell config</a>.
+                      set the exe in the <a href='config'>shell&nbsp;config</a>.
                    """ % link
         
-        self._label.setText(text)
+        link_style = 'font-weight: bold; color:#369; text-decoration:underline;'
+        self._label.setText(text.replace('<a ', '<a style="%s" ' % link_style))
     
     def handle_link(self, url):
         if url == 'refresh':
@@ -707,7 +707,7 @@ class CondaHelper(QtWidgets.QWidget):
             raise ValueError('Unknown link in conda helper: %s' % url)
     
     def editShellConfig(self):
-        from pyzo.core.shellInfoDialog import ShellInfoDialog 
+        from pyzo.core.shellInfoDialog import ShellInfoDialog
         d = ShellInfoDialog()
         d.exec_()
         self.refresh()

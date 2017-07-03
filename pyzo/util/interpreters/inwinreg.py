@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2016, Almar Klein
 
-""" 
-This module implements functionality to obtain registered 
-Python interpreters and to register a Python interpreter in the Windows 
+"""
+This module implements functionality to obtain registered
+Python interpreters and to register a Python interpreter in the Windows
 registry.
 
 """
@@ -71,10 +71,10 @@ class PythonInReg:
             winreg.CloseKey(reg)
             #print('Unable to create Python version %s: already exists.' % self.version())
         
-        else:        
+        else:
             # Try to create
             try:
-                reg = winreg.CreateKey(self._root(), self._key)                
+                reg = winreg.CreateKey(self._root(), self._key)
                 winreg.CloseKey(reg)
             except Exception:
                 raise RuntimeError('Unable to create python version %s.' % self.version())
@@ -103,7 +103,7 @@ class PythonInReg:
             winreg.DeleteKey(self._root(), self._key)
         except Exception:
             print('Could not delete %s.' % str(self))
-            return 
+            return
         print('Deleted %s.' % str(self))
     
     def setInstallPath(self, installPath):
@@ -209,7 +209,7 @@ def _get_interpreter_in_reg(user, wow64=False):
     # Query all
     versions = []
     for i in range(nsub):
-        # Get name and subkey 
+        # Get name and subkey
         version = winreg.EnumKey(reg, i)
         versions.append( PythonInReg(user, version, wow64) )
     
@@ -255,10 +255,10 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
                 continue # Key the same, but existing entry is invalid
             if ev.installPath() == installPath:
                 # Exactly the same, no action required, return now!
-                return ev 
+                return ev
             # Ok, there's a problem
             ok = False
-            print('Warning: version %s is already installed in "%s".' 
+            print('Warning: version %s is already installed in "%s".'
                                             % (version, ev.installPath()))
         if not ok:
             continue
@@ -270,7 +270,7 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
             success = True
             break
         except RuntimeError:
-           continue
+            continue
     
     if success:
         return v

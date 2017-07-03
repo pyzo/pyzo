@@ -6,7 +6,7 @@
 
 
 class TextReshaper:
-    """ Object to reshape a piece of text, taking indentation, paragraphs, 
+    """ Object to reshape a piece of text, taking indentation, paragraphs,
     comments and bulletpoints into account.
     """
     
@@ -129,7 +129,7 @@ class TextReshaper:
             
             if currentLineWidth < self.lw:
                 # Not enough words in buffer yet
-                pass 
+                pass
             elif len(self._wordBuffer) > 1:
                 # Enough words to compose a line
                 marginWith = currentLineWidth - self.lw
@@ -152,28 +152,28 @@ testText = """
 
 # This is a piece
 # of comment
-Lorem ipsum dolor sit amet, consectetur 
-adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-ut aliquip ex ea 
-commodo consequat. Duis aute irure dolor 
-in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat 
-non proident, sunt in culpa qui officia deserunt mollit anim 
+Lorem ipsum dolor sit amet, consectetur
+adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+ut aliquip ex ea
+commodo consequat. Duis aute irure dolor
+in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+non proident, sunt in culpa qui officia deserunt mollit anim
 id est laborum.
 
-        # Indented comments 
+        # Indented comments
         # should work
         # as well
     
 skdb-a-very-long-word-ksdbfksasdvbassdfhjsdfbjdfbvhjdbvhjbdfhjvbdfjbvjdfbvjdfbvjdbfvj
 
-   A change in indentation makes it a separate line 
+   A change in indentation makes it a separate line
 sdckj bsdkjcb sdc
 sdckj  foo bar
 aap noot mies
 
   * Bullet points are preserved
-  * Even if they are very long the should be preserved. I know that brevity is a great virtue but you know, 
-    sometimes you just need those 
+  * Even if they are very long the should be preserved. I know that brevity is a great virtue but you know,
+    sometimes you just need those
     extra words to make a point.
 
 """

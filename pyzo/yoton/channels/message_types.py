@@ -7,10 +7,10 @@
 """ Module yoton.channels.message_types
 
 Defines a few basic message_types for the channels. A MessageType object
-defines how a message of that type should be converted to bytes and 
+defines how a message of that type should be converted to bytes and
 vice versa.
 
-The Packer and Unpacker classes for the ObjectMessageType are based on 
+The Packer and Unpacker classes for the ObjectMessageType are based on
 the xdrrpc Python module by Rob Reilink and Windel Bouwman.
 
 """
@@ -32,16 +32,16 @@ class MessageType(object):
     """ MessageType()
     
     Instances of this class are used to convert messages to bytes and
-    bytes to messages. 
+    bytes to messages.
     
-    Users can easily inherit from this class to make channels work for 
+    Users can easily inherit from this class to make channels work for
     user specific message types. Three methods should be overloaded:
       * message_to_bytes()  - given a message, returns bytes
       * message_from_bytes() - given bytes, returns the message
       * message_type_name() - a string (for example 'text', 'array')
     
     The message_type_name() method is used by the channel to add an
-    extension to the slot name, such that only channels of the same 
+    extension to the slot name, such that only channels of the same
     message type (well, with the same message type name) can connect.
     
     """
@@ -49,24 +49,24 @@ class MessageType(object):
     def message_to_bytes(self, message):
         raise NotImplementedError()
     
-    def message_from_bytes(self, bb): 
+    def message_from_bytes(self, bb):
         raise NotImplementedError()
     
     def message_type_name(self):
-       raise NotImplementedError()
+        raise NotImplementedError()
 
 
 
 class BinaryMessageType(MessageType):
     """ BinaryMessageType()
     
-    To let channels handle binary messages. 
+    To let channels handle binary messages.
     Available as yoton.BINARY.
     
     """
     
     def message_type_name(self):
-       return 'bin'
+        return 'bin'
     
     
     def message_to_bytes(self, message):
@@ -75,7 +75,7 @@ class BinaryMessageType(MessageType):
         return message
     
     
-    def message_from_bytes(self, bb): 
+    def message_from_bytes(self, bb):
         return bb
 
 
@@ -89,7 +89,7 @@ class TextMessageType(MessageType):
     """
     
     def message_type_name(self):
-       return 'txt'
+        return 'txt'
     
     def message_to_bytes(self, message):
         
@@ -99,11 +99,11 @@ class TextMessageType(MessageType):
         
         # If using py2k and the string is not unicode, make unicode first
         # by try encoding using UTF-8. When a piece of code stored
-        # in a unicode string is executed, str objects are utf-8 encoded. 
-        # Otherwise they are encoded using __stdin__.encoding. In specific 
+        # in a unicode string is executed, str objects are utf-8 encoded.
+        # Otherwise they are encoded using __stdin__.encoding. In specific
         # cases, a non utf-8 encoded str might be succesfully encoded
         # using utf-8, but this is rare. Since I would not
-        # know how to tell the encoding beforehand, we'll take our 
+        # know how to tell the encoding beforehand, we'll take our
         # chances... Note that in Pyzo (for which this package was created,
         # all executed code is unicode, so str instrances are always
         # utf-8 encoded.
@@ -121,7 +121,7 @@ class TextMessageType(MessageType):
         return message.encode('utf-8')
     
     
-    def message_from_bytes(self, bb): 
+    def message_from_bytes(self, bb):
         return bb.decode('utf-8')
 
 
@@ -129,21 +129,21 @@ class TextMessageType(MessageType):
 class ObjectMessageType(MessageType):
     """ ObjectMessageType()
     
-    To let channels handle messages consisting of any of the following 
+    To let channels handle messages consisting of any of the following
     Python objects: None, bool, int, float, string, list, tuple, dict.
     Available as yoton.OBJECT.
     
     """
     
     def message_type_name(self):
-       return 'obj'
+        return 'obj'
     
     def message_to_bytes(self, message):
         packer = Packer()
         packer.pack_object(message)
         return packer.get_buffer()
     
-    def message_from_bytes(self, bb): 
+    def message_from_bytes(self, bb):
         if bb:
             unpacker = Unpacker(bb)
             return unpacker.unpack_object()
@@ -171,7 +171,7 @@ _TYPE_DICT = ord('d')
 
 class Packer:
     
-    # Note that while xdrlib uses StringIO/BytesIO, this approach using 
+    # Note that while xdrlib uses StringIO/BytesIO, this approach using
     # a list is actually faster.
     
     def __init__(self):
@@ -223,7 +223,7 @@ class Packer:
             self.write_number(len(object))
             # call recursive
             for key in object:
-                self.pack_object(key) 
+                self.pack_object(key)
                 self.pack_object(object[key])
         else:
             raise ValueError("Unsupported type: %s" % repr(type(object)))
@@ -290,7 +290,7 @@ class Unpacker:
             for i in range(self.read_number()):
                 key = self.unpack_object()
                 object[key] = self.unpack_object()
-            return  object
+            return object
         else:
             raise ValueError("Unsupported type: %s" % repr(object_type))
 
@@ -302,7 +302,7 @@ OBJECT = ObjectMessageType()
 
 
 if __name__ == '__main__':
-    # Test 
+    # Test
     
     s = {}
     s['foo'] = 3

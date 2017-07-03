@@ -13,7 +13,7 @@ are used for the low-level messaging.
 
 """
 
-import os, sys, time
+import sys, time
 import struct
 import socket
 import threading
@@ -33,8 +33,8 @@ if V2:
     bytes = D['str']
     str = D['unicode']
     xrange = D['xrange']
-    basestring = basestring
-    long = long
+    basestring = basestring  # noqa
+    long = long  # noqa
 else:
     basestring = str  # to check if instance is string
     bytes, str = bytes, str
@@ -87,7 +87,7 @@ def getErrorMsg():
     type, value, tb = sys.exc_info()
     
     # Store for debugging?
-    if True:        
+    if True:
         sys.last_type = type
         sys.last_value = value
         sys.last_traceback = tb
@@ -127,9 +127,9 @@ def slot_hash(name):
 def port_hash(name):
     """ port_hash(name)
     
-    Given a string, returns a port number between 49152 and 65535. 
+    Given a string, returns a port number between 49152 and 65535.
     (2**14 (16384) different posibilities)
-    This range is the range for dynamic and/or private ports 
+    This range is the range for dynamic and/or private ports
     (ephemeral ports) specified by iana.org.
     The algorithm is deterministic, thus providing a way to map names
     to port numbers.
@@ -146,11 +146,11 @@ def port_hash(name):
 def split_address(address):
     """ split_address(address) -> (protocol, hostname, port)
     
-    Split address in protocol, hostname and port. The address has the 
+    Split address in protocol, hostname and port. The address has the
     following format: "protocol://hostname:port". If the protocol is
     omitted, TCP is assumed.
     
-    The hostname is the name or ip-address of the computer to connect to. 
+    The hostname is the name or ip-address of the computer to connect to.
     One can use "localhost" for a connection that bypasses some
     network layers (and is not visible from the outside). One can use
     "publichost" for a connection at the current computers IP address
@@ -230,7 +230,7 @@ class UID:
     
     Represents an 8-byte (64 bit) Unique Identifier.
     
-    """ 
+    """
     
     _last_timestamp = 0
     
@@ -301,7 +301,7 @@ class UID:
 class PackageQueue(object):
     """ PackageQueue(N, discard_mode='old')
     
-    A queue implementation that can be used in blocking and non-blocking 
+    A queue implementation that can be used in blocking and non-blocking
     mode and allows peeking. The queue has a limited size. The user
     can specify whether old or new messages should be discarted.
     
@@ -339,17 +339,17 @@ class PackageQueue(object):
         """ full()
         
         Returns True if the number of elements is at its maximum right now.
-        Note that in theory, another thread might pop an element right 
+        Note that in theory, another thread might pop an element right
         after this function returns.
         
-        """ 
+        """
         return len(self) >= self._maxlen
     
     
     def empty(self):
         """ empty()
         
-        Returns True if the number of elements is zero right now. Note 
+        Returns True if the number of elements is zero right now. Note
         that in theory, another thread might add an element right
         after this function returns.
         
@@ -434,7 +434,7 @@ class PackageQueue(object):
             elif isinstance(block, float):
                 # Wait if no items, then raise error if still no items
                 if not len(q):
-                    condition.wait(block) 
+                    condition.wait(block)
                     if not len(q):
                         raise self.Empty()
             else:
@@ -483,10 +483,10 @@ class PackageQueue(object):
 class TinyPackageQueue(PackageQueue):
     """ TinyPackageQueue(N1, N2, discard_mode='old', timeout=1.0)
     
-    A queue implementation that can be used in blocking and non-blocking 
+    A queue implementation that can be used in blocking and non-blocking
     mode and allows peeking. The queue has a tiny-size (N1). When this size
     is reached, a call to push() blocks for up to timeout seconds. The
-    real size (N2) is the same as in the PackageQueue class. 
+    real size (N2) is the same as in the PackageQueue class.
     
     The tinysize mechanism can be used to semi-synchronize a consumer
     and a producer, while still having a small queue and without having
@@ -510,7 +510,7 @@ class TinyPackageQueue(PackageQueue):
     def push(self, x):
         """ push(item)
         
-        Add an item to the queue. If the queue has >= n1 values, 
+        Add an item to the queue. If the queue has >= n1 values,
         this function will block timeout seconds, or until an item is
         popped from another thread.
         
@@ -571,7 +571,7 @@ class TinyPackageQueue(PackageQueue):
             elif isinstance(block, float):
                 # Wait if no items, then raise error if still no items
                 if not len(q):
-                    condition.wait(block) 
+                    condition.wait(block)
                     if not len(q):
                         raise self.Empty()
             else:

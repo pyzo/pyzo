@@ -24,7 +24,7 @@ else:
 float_types = float,
 
 
-## Dict class 
+## Dict class
 
 try:  # pragma: no cover
     from collections import OrderedDict as _dict
@@ -35,7 +35,7 @@ def isidentifier(s):
     # http://stackoverflow.com/questions/2544972/
     if not isinstance(s, str):
         return False
-    return re.match(r'^\w+$', s, re.UNICODE) and re.match(r'^[0-9]', s) is None 
+    return re.match(r'^\w+$', s, re.UNICODE) and re.match(r'^[0-9]', s) is None
 
 class Dict(_dict):
     """ A dict in which the items can be get/set as attributes.
@@ -216,9 +216,9 @@ class ReaderWriter(object):
             # Strip line
             line2 = line.lstrip()
             
-            # Skip comments and empty lines        
-            if not line2 or line2[0] == '#':        
-                continue 
+            # Skip comments and empty lines
+            if not line2 or line2[0] == '#':
+                continue
             
             # Find the indentation
             prev_indent = indent
@@ -303,7 +303,7 @@ class ReaderWriter(object):
         elif isinstance(value, (list, tuple)):
             data = self.from_list(value, indent)
         else:
-            # We do not know            
+            # We do not know
             data = 'Null'
             tmp = repr(value)
             if len(tmp) > 64:
@@ -335,9 +335,9 @@ class ReaderWriter(object):
             return self.to_int_or_float(data, linenr)
         elif data[0] == "'":
             return self.to_unicode(data, linenr)
-        elif data.startswith('dict:'):  
+        elif data.startswith('dict:'):
             return self.to_dict(data, linenr)
-        elif data.startswith('list:') or  data[0] == '[':
+        elif data.startswith('list:') or data[0] == '[':
             return self.to_list(data, linenr)
         elif data.startswith('Null') or data.startswith('None'):
             return None
@@ -362,8 +362,8 @@ class ReaderWriter(object):
     def from_float(self, value):
         # Use general specifier with a very high precision.
         # Any spurious zeros are automatically removed. The precision
-        # should be sufficient such that any numbers saved and loaded 
-        # back will have the exact same value again. 
+        # should be sufficient such that any numbers saved and loaded
+        # back will have the exact same value again.
         # see e.g. http://bugs.python.org/issue1580
         return repr(float(value))  # '%0.17g' % value
     
@@ -388,7 +388,7 @@ class ReaderWriter(object):
         else:
             line = m.group(0)[1:-1]
         
-        # Decode stuff        
+        # Decode stuff
         line = line.replace('\\n','\n')
         line = line.replace('\\r','\r')
         line = line.replace('\\x0b', '\x0b').replace('\\x0c', '\x0c')
@@ -398,13 +398,13 @@ class ReaderWriter(object):
     
     def from_dict(self, value, indent):
         lines = ["dict:"]
-        # Process children        
+        # Process children
         for key, val in value.items():
             # Skip all the builtin stuff
             if key.startswith("__"):
                 continue
             # Skip methods, or anything else we can call
-            if hasattr(val, '__call__'): 
+            if hasattr(val, '__call__'):
                 continue  # Note: py3.x does not have function callable
             # Add!
             lines.extend(self.from_object(key, val, indent+2))
@@ -428,7 +428,7 @@ class ReaderWriter(object):
         # Return data
         if isSmallList:
             return '[%s]' % (', '.join(subItems))
-        else:            
+        else:
             data = ["list:"]
             ind = ' ' * (indent + 2)
             for item in subItems:

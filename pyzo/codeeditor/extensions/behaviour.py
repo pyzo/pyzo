@@ -22,7 +22,7 @@ class MoveLinesUpDown(object):
     
     def keyPressEvent(self,event):
         if event.key() in (Qt.Key_Up, Qt.Key_Down) and (
-                                    Qt.ControlModifier & event.modifiers() and 
+                                    Qt.ControlModifier & event.modifiers() and
                                     Qt.ShiftModifier & event.modifiers()):
             
             cursor = self.textCursor()
@@ -37,35 +37,48 @@ class MoveLinesUpDown(object):
     
     def _swaplines(self, cursor, key):
         
-        other = [cursor.NextBlock, cursor.PreviousBlock][int(bool(key == Qt.Key_Up))]
-        back = [cursor.PreviousBlock, cursor.NextBlock][int(bool(key == Qt.Key_Up))]
+        # Get positions of selection
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
         
-        # Get text of current block
+        # Get text of selected blocks
+        cursor.setPosition(start, cursor.MoveAnchor)
         cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
+        cursor.setPosition(end, cursor.KeepAnchor)
         cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         text1 = cursor.selectedText()
+        cursor.removeSelectedText()
+        pos1 = cursor.position()
         
         # Move up/down
+        other = [cursor.NextBlock, cursor.PreviousBlock][int(bool(key == Qt.Key_Up))]
         cursor.movePosition(other, cursor.MoveAnchor)
         
         # Select text of other block
         cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
         cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
         text2 = cursor.selectedText()
+        cursor.removeSelectedText()
+        pos2 = cursor.position()
         
-        # Replace text
+        # Insert text
         cursor.insertText(text1)
+        pos3 = cursor.position()
         
         # Move back
-        cursor.movePosition(back, cursor.MoveAnchor)
-        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
-        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        if key == Qt.Key_Up:
+            cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor)
+        else:
+            cursor.setPosition(pos1, cursor.MoveAnchor)
+            pos2 += len(text2)
+            pos3 += len(text2)
         
         # Replace text
         cursor.insertText(text2)
         
-        # Leave textcursor in a good place
-        cursor.movePosition(other, cursor.MoveAnchor)
+        # Leave original lines selected for continued movement
+        cursor.setPosition(pos2, cursor.MoveAnchor)
+        cursor.setPosition(pos3, cursor.KeepAnchor)
         self.setTextCursor(cursor)
 
 
@@ -189,7 +202,7 @@ class Indentation(object):
             else: #Some other modifiers + Tab: ignore
                 return
 
-        # If backspace is pressed in the leading whitespace, (except for at the first 
+        # If backspace is pressed in the leading whitespace, (except for at the first
         # position of the line), and there is no selection
         # dedent that line and move cursor to end of whitespace
         if key == Qt.Key_Backspace and modifiers == Qt.NoModifier and \
@@ -236,7 +249,7 @@ class AutoIndent(object):
     def setAutoIndent(self,value):
         """ setAutoIndent(value)
         
-        Set whether to enable auto indentation.  
+        Set whether to enable auto indentation.
         
         """
         self.__autoIndent = bool(value)
@@ -253,11 +266,18 @@ class PythonAutoIndent(object):
         
         if event.key() in (Qt.Key_Enter,Qt.Key_Return):
             cursor=self.textCursor()
+            
+            # Prevent in-block newlines (issue #482)
+            if not cursor.atBlockStart() and not cursor.hasSelection():
+                cursor.deletePreviousChar()
+                cursor.insertBlock()
+                cursor=self.textCursor()
+
             previousBlock=cursor.block().previous()
             if previousBlock.isValid():
                 line = ustr(previousBlock.text())
                 indent=line[:len(line)-len(line.lstrip())]
-                if line.endswith(':'): 
+                if line.endswith(':'):
                     # We only need to add indent if the : is not in a (multiline)
                     # string or comment. Therefore, find out what the syntax
                     # highlighter thinks of the previous line.
@@ -288,7 +308,7 @@ class SmartCopyAndPaste(object):
         cursor.setPosition(anchor)
         cursor.setPosition(position, cursor.KeepAnchor)
         
-    @classmethod    
+    @classmethod
     def __ensureCursorBeforeAnchor(cls, cursor):
         """
         Given a cursor, modify it such that the cursor.position() is before or
@@ -329,7 +349,7 @@ class SmartCopyAndPaste(object):
         if end > (block.position() + block.length()):
 
             # Now check if there is only whitespace before the start of selection
-            # If so, include this whitespace in the selection and update the 
+            # If so, include this whitespace in the selection and update the
             # selection of the editor
             textBeforeSelection = block.text()[:cursor.positionInBlock()]
             if len(textBeforeSelection.strip()) == 0:
@@ -369,7 +389,7 @@ class SmartCopyAndPaste(object):
         Smart paste
         If you paste on a position that has only whitespace in front of it,
         remove the whitespace before pasting. Combined with smart copy,
-        this ensure indentation of the 
+        this ensure indentation of the
         """
         self._paste(keepSelection = False)
     

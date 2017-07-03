@@ -7,12 +7,10 @@
 """ Module highlighter
 
 Defines the highlighter class for the base code editor class. It will do
-the styling when syntax highlighting is enabled. If it is not, will only 
+the styling when syntax highlighting is enabled. If it is not, will only
 check out indentation.
 
 """
-
-import time
 
 from .qt import QtGui, QtCore
 Qt = QtCore.Qt
@@ -31,7 +29,7 @@ class BlockData(QtGui.QTextBlockUserData):
         self.tokens = []
 
 
-# The highlighter should be part of the base class, because 
+# The highlighter should be part of the base class, because
 # some extensions rely on them (e.g. the indent guuides).
 class Highlighter(QtGui.QSyntaxHighlighter):
     
@@ -55,14 +53,14 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         return bd
     
     
-    def highlightBlock(self, line): 
+    def highlightBlock(self, line):
         """ highlightBlock(line)
         
-        This method is automatically called when a line must be 
+        This method is automatically called when a line must be
         re-highlighted.
         
         If the code editor has an active parser. This method will use
-        it to perform syntax highlighting. If not, it will only 
+        it to perform syntax highlighting. If not, it will only
         check out the indentation.
         
         """

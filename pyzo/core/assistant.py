@@ -15,7 +15,7 @@ Copy the "docs" directory to the pyzo root!
 
 """
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import getResourceDirs
 import os
 
@@ -77,7 +77,7 @@ class Settings(QtWidgets.QWidget):
             "Select a compressed help file",
             filter="Qt compressed help files (*.qch)")
         if isinstance(doc_file, tuple):
-            doc = doc[0]
+            doc_file = doc_file[0]
         self.add_doc_do(doc_file)
 
     def add_doc_do(self, doc_file):
@@ -132,7 +132,7 @@ class PyzoAssistant(QtWidgets.QWidget):
             When collection_file is none, it is determined from the
             appDataDir.
         """
-        from pyzo.util.qt import QtHelp, QtWidgets, QtWidgets
+        from pyzo.util.qt import QtHelp
         super().__init__(parent)
         self.setWindowTitle('Help')
         pyzoDir, appDataDir = getResourceDirs()
@@ -147,7 +147,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         # If no files are loaded, register at least the pyzo docs:
         if len(self._engine.registeredDocumentations()) == 0:
             doc_file = os.path.join(pyzoDir, 'resources', 'pyzo.qch')
-            ok = self._engine.registerDocumentation(doc_file)
+            self._engine.registerDocumentation(doc_file)
 
         # The main players:
         self._content = self._engine.contentWidget()
@@ -257,7 +257,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         self._helpBrowser.setSource(QtCore.QUrl(url))
 
     def showHelpForTerm(self, name):
-        from pyzo.util.qt import QtHelp, QtWidgets, QtWidgets
+        from pyzo.util.qt import QtHelp
         # Cache for later use:
         self._search_term = name
 

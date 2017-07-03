@@ -5,10 +5,10 @@
 # The full license can be found in 'license.txt'.
 
 
-import sys, os, time, re
+import sys, re
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
-import pyzo 
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+import pyzo
 
 tool_name = "Interactive help"
 tool_summary = "Shows help on an object when using up/down in autocomplete."
@@ -71,7 +71,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._options.setMenu(self._options._menu)
         
         # Create browser
-        self._browser = QtWidgets.QTextBrowser(self)        
+        self._browser = QtWidgets.QTextBrowser(self)
         self._browser_text = initText
         
         # Create two sizers
@@ -148,7 +148,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             # Swap value
             current = bool(self._config.smartNewlines)
             self._config.smartNewlines = not current
-            # Update 
+            # Update
             self.queryDoc()
         
         elif 'size' in text:
@@ -220,7 +220,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         
         try:
             # Get parts
-            parts = response.split('\n')                
+            parts = response.split('\n')
             objectName, h_class, h_fun, h_repr = tuple(parts[:4])
             h_text = '\n'.join(parts[4:])
             
@@ -235,9 +235,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             text = ''
             
             # These signs will fool the html
-            h_repr = h_repr.replace("<","&lt;") 
+            h_repr = h_repr.replace("<","&lt;")
             h_repr = h_repr.replace(">","&gt;")
-            h_text = h_text.replace("<","&lt;") 
+            h_text = h_text.replace("<","&lt;")
             h_text = h_text.replace(">","&gt;")
             
             if self._config.smartNewlines:
@@ -261,7 +261,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                         #h_text = header + '\n\n' + docs
                         h_text = docs
                 
-                # Parse the text as rest/numpy like docstring  
+                # Parse the text as rest/numpy like docstring
                 h_text = self.smartFormat(h_text)
                 if header:
                     h_text = "<p style='color:#005;'><b>%s</b></p>\n%s" % (
@@ -269,7 +269,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                     #h_text = "<b>%s</b><br /><br />\n%s" % (header, h_text)
             else:
                 # Make newlines html
-                h_text = h_text.replace("\n","<br />")  
+                h_text = h_text.replace("\n","<br />")
             
             # Compile rich text
             text += get_title_text(objectName, h_class, h_repr)
@@ -283,7 +283,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                 text = response
         
         # Done
-        size = self._config.fontSize
+        # size = self._config.fontSize
         self.setText(text)
     
     
@@ -302,10 +302,10 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         
         # Remove minimal indentation
         lines2 = [lines[0]]
-        for line in lines[1:]:            
+        for line in lines[1:]:
             lines2.append( line[minIndent:] )
         
-        # Prepare        
+        # Prepare
         prevLine_ = ''
         prevIndent = 0
         prevWasHeader = False

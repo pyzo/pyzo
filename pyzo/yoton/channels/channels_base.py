@@ -14,17 +14,17 @@ import time
 import threading
 
 import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg, slot_hash, PackageQueue
+from yoton.misc import basestring
+from yoton.misc import slot_hash, PackageQueue
 from yoton.core import Package
 from yoton.context import Context
-from yoton.channels.message_types import MessageType, BINARY, TEXT, OBJECT
+from yoton.channels.message_types import MessageType, TEXT
 
 
 class BaseChannel(object):
     """ BaseChannel(context, slot_base, message_type=yoton.TEXT)
     
-    Abstract class for all channels. 
+    Abstract class for all channels.
     
     Parameters
     ----------
@@ -35,25 +35,25 @@ class BaseChannel(object):
         message type and messaging pattern to create the final slot name.
         The final slot is used to connect channels at different contexts
         in a network
-    message_type : yoton.MessageType instance 
+    message_type : yoton.MessageType instance
         (default is yoton.TEXT)
-        Object to convert messages to bytes and bytes to messages. 
-        Users can create their own message_type class to enable 
+        Object to convert messages to bytes and bytes to messages.
+        Users can create their own message_type class to enable
         communicating any type of message they want.
     
     Details
     -------
-    Messages send via a channel are delivered asynchronically to the 
+    Messages send via a channel are delivered asynchronically to the
     corresponding channels.
     
     All channels are associated with a context and can be used to send
     messages to other channels in the network. Each channel is also
-    associated with a slot, which is a string that represents a kind 
-    of address. A message send by a channel at slot X can only be received 
-    by a channel with slot X. 
+    associated with a slot, which is a string that represents a kind
+    of address. A message send by a channel at slot X can only be received
+    by a channel with slot X.
     
     Note that the channel appends an extension
-    to the user-supplied slot name, that represents the message type 
+    to the user-supplied slot name, that represents the message type
     and messaging pattern of the channel. In this way, it is prevented
     that for example a PubChannel can communicate with a RepChannel.
     
@@ -66,7 +66,7 @@ class BaseChannel(object):
             raise ValueError('Context not valid.')
         self._context = context
         
-        # Check message type 
+        # Check message type
         if message_type is None:
             message_type = TEXT
         if isinstance(message_type, type) and issubclass(message_type, MessageType):
@@ -130,7 +130,7 @@ class BaseChannel(object):
             # Get full name
             slot = slot_base + '.' + ext_type + '.' + ext_pattern
             # Store text version
-            slots_t.append(slot) 
+            slots_t.append(slot)
             # Strip and make lowercase
             slot = slot.strip().lower()
             # Hash
@@ -138,7 +138,7 @@ class BaseChannel(object):
         
         # Store slots
         self._slot_out = slots_t[0]
-        self._slot_in = slots_t[1]        
+        self._slot_in = slots_t[1]
         self._slot_out_h = slots_h[0]
         self._slot_in_h = slots_h[1]
         
@@ -167,9 +167,9 @@ class BaseChannel(object):
         Close the channel, i.e. unregisters this channel at the context.
         A closed channel cannot be reused.
         
-        Future attempt to send() messages will result in an IOError 
-        being raised. Messages currently in the channel's queue can 
-        still be recv()'ed, but no new messages will be delivered at 
+        Future attempt to send() messages will result in an IOError
+        being raised. Messages currently in the channel's queue can
+        still be recv()'ed, but no new messages will be delivered at
         this channel.
         
         """
@@ -182,9 +182,9 @@ class BaseChannel(object):
     def _send(self, message, dest_id=0, dest_seq=0):
         """ _send(message, dest_id=0, dest_seq=0)
         
-        Sends a message of raw bytes without checking whether they're bytes. 
-        Optionally, dest_id and dest_seq represent the message that 
-        this message  replies to. These are used for the request/reply 
+        Sends a message of raw bytes without checking whether they're bytes.
+        Optionally, dest_id and dest_seq represent the message that
+        this message  replies to. These are used for the request/reply
         pattern.
         
         Returns the package that will be send (or None). The context
@@ -312,7 +312,7 @@ class BaseChannel(object):
         result in a single call to this method. There is also no
         guarantee that recv() has not been called in the mean time.
         
-        Also sets the variabele so that a new event for this may be 
+        Also sets the variabele so that a new event for this may be
         created. This method is called from the event loop.
         
         """
@@ -325,9 +325,9 @@ class BaseChannel(object):
     # catch status messages from the SubChannel by overloading _recv_package().
     @property
     def received(self):
-        """ Signal that is emitted when new data is received. Multiple 
-        arrived messages may result in a single call to this method. 
-        There is no guarantee that recv() has not been called in the 
+        """ Signal that is emitted when new data is received. Multiple
+        arrived messages may result in a single call to this method.
+        There is no guarantee that recv() has not been called in the
         mean time. The signal is emitted with the channel instance
         as argument.
         """
@@ -339,14 +339,14 @@ class BaseChannel(object):
     
     @property
     def pending(self):
-        """ Get the number of pending incoming messages. 
+        """ Get the number of pending incoming messages.
         """
         return len(self._q_in)
     
     
     @property
     def closed(self):
-        """ Get whether the channel is closed. 
+        """ Get whether the channel is closed.
         """
         return self._closed
     

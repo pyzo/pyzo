@@ -5,13 +5,11 @@
 # The full license can be found in 'license.txt'.
 
 import os
-import sys
-import time
 import threading
 
 import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg, UID
+from yoton.misc import basestring
+from yoton.misc import Property
 
 
 # Minimum timout
@@ -67,9 +65,9 @@ class Connection(object):
     This base class defines the full interface; subclasses only need
     to implement a few private methods.
     
-    The connection classes are intended as a simple interface for the 
-    user, for example to query port number, and be notified of timeouts 
-    and closing of the connection. 
+    The connection classes are intended as a simple interface for the
+    user, for example to query port number, and be notified of timeouts
+    and closing of the connection.
     
     All connection instances are intended for one-time use. To make
     a new connection, instantiate a new Connection object. After
@@ -94,7 +92,7 @@ class Connection(object):
         self._id2 = 0
         self._pid2 = 0
         
-        # Timeout value (if no data is received for this long, 
+        # Timeout value (if no data is received for this long,
         # the timedout signal is fired). Because we do not know the timeout
         # that the other side uses, we apply a minimum timeout.
         self._timeout = TIMEOUT_MIN
@@ -175,7 +173,7 @@ class Connection(object):
     
     @property
     def is_alive(self):
-        """ Get whether this connection instance is alive (i.e. either 
+        """ Get whether this connection instance is alive (i.e. either
         waiting or connected, and not in the process of closing).
         """
         self._lock.acquire()
@@ -198,8 +196,8 @@ class Connection(object):
     
     @property
     def is_waiting(self):
-        """ Get whether this connection instance is waiting for a connection. 
-        This is the state after using bind() and before another context 
+        """ Get whether this connection instance is waiting for a connection.
+        This is the state after using bind() and before another context
         connects to it.
         """
         self._lock.acquire()
@@ -212,17 +210,17 @@ class Connection(object):
     @property
     def closed(self):
         """ Signal emitted when the connection closes. The first argument
-        is the ContextConnection instance, the second argument is the 
+        is the ContextConnection instance, the second argument is the
         reason for the disconnection (as a string).
         """
         return self._closed_signal
     
     
-    @Property   
+    @Property
     def timeout():
         """ Set/get the amount of seconds that no data is received from
-        the other side after which the timedout signal is emitted. 
-        """ 
+        the other side after which the timedout signal is emitted.
+        """
         def fget(self):
             return self._timeout
         def fset(self, value):
@@ -236,25 +234,25 @@ class Connection(object):
     
     @property
     def timedout(self):
-        """ This signal is emitted when no data has been received for 
-        over 'timeout' seconds. This can mean that the connection is unstable, 
+        """ This signal is emitted when no data has been received for
+        over 'timeout' seconds. This can mean that the connection is unstable,
         or that the other end is running extension code.
         
-        Handlers are called with two arguments: the ContextConnection 
+        Handlers are called with two arguments: the ContextConnection
         instance, and a boolean. The latter is True when the connection
         times out, and False when data is received again.
         """
         return self._timedout_signal
     
     
-    @Property   
+    @Property
     def name():
         """ Set/get the name that this connection is known by. This name
-        can be used to obtain the instance using the Context.connections 
+        can be used to obtain the instance using the Context.connections
         property. The name can be used in networks in which each context
         has a particular role, to easier distinguish between the different
         connections. Other than that, the name has no function.
-        """ 
+        """
         def fget(self):
             return self._name
         def fset(self, value):
@@ -280,8 +278,8 @@ class Connection(object):
     def close(self, reason=None):
         """ close(reason=None)
         
-        Close the connection, disconnecting the two contexts and 
-        stopping all trafic. If the connection was waiting for a 
+        Close the connection, disconnecting the two contexts and
+        stopping all trafic. If the connection was waiting for a
         connection, it stops waiting.
         
         Optionally, a reason for closing can be specified. A closed
@@ -345,7 +343,7 @@ class Connection(object):
         self._set_status(STATUS_CLOSING)
         
         # Check reason
-        if not isinstance(reason, basestring):        
+        if not isinstance(reason, basestring):
             reason = STOP_INVALID_REASON
         
         # Tell other end to close?
@@ -389,9 +387,9 @@ class Connection(object):
         raise NotImplemented()
     
     def _set_status(self, status):
-        """ Used to change the status. Subclasses can reimplement this 
+        """ Used to change the status. Subclasses can reimplement this
         to get the desired behavior.
-        """ 
+        """
         self._lock.acquire()
         try:
             

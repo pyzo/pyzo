@@ -11,11 +11,10 @@ Implements shell configuration dialog.
 
 """
 
-import os, sys, time, re
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+import os, sys
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
-from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.pyzoLogging import print
 from pyzo.core.kernelbroker import KernelInfo
 from pyzo import translate
@@ -48,7 +47,7 @@ class ShellInfo_name(ShellInfoLineEdit):
         self.onValueChanged()
     
     
-    def onValueChanged(self): 
+    def onValueChanged(self):
         self.parent().parent().parent().setTabTitle(self.getTheText())
 
 
@@ -74,7 +73,7 @@ class ShellInfo_exe(QtWidgets.QComboBox):
         # Get known interpreters from shellDialog (which are sorted by version)
         shellDialog = self
         while not isinstance(shellDialog, ShellInfoDialog):
-            shellDialog = shellDialog.parent()        
+            shellDialog = shellDialog.parent()
         interpreters = shellDialog.interpreters
         exes = [p.path for p in interpreters]
         
@@ -169,12 +168,12 @@ class ShellInfo_gui(QtWidgets.QComboBox):
 
 class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
     
-    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
+    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin'
     SYSTEM_VALUE = ''
     
     def __init__(self, parent, widget):
         # Do not pass parent, because is a sublayout
-        QtWidgets.QVBoxLayout.__init__(self) 
+        QtWidgets.QVBoxLayout.__init__(self)
         
         # Layout
         self.setSpacing(1)
@@ -196,8 +195,8 @@ class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
     
     
     def onEditChanged(self):
-       if self.DISABLE_SYSTEM_DEFAULT or not self._check.isChecked():
-           self._value = self.getWidgetText()
+        if self.DISABLE_SYSTEM_DEFAULT or not self._check.isChecked():
+            self._value = self.getWidgetText()
     
     
     def onCheckChanged(self, state):
@@ -252,7 +251,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         self._edit.textChanged.connect(self.onEditChanged)
         
         # Instantiate
-        ShellinfoWithSystemDefault.__init__(self, parent, self._edit) 
+        ShellinfoWithSystemDefault.__init__(self, parent, self._edit)
     
     
     def getWidgetText(self):
@@ -269,44 +268,44 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 
 
 # class ShellInfo_startupScript(ShellinfoWithSystemDefault):
-#     
+#
 #     SYSTEM_VALUE = '$PYTHONSTARTUP'
-#     
+#
 #     def __init__(self, parent):
-#         
+#
 #         # Create sub-widget
 #         self._edit = QtWidgets.QLineEdit(parent)
 #         self._edit.textEdited.connect(self.onEditChanged)
-#         
+#
 #         # Instantiate
-#         ShellinfoWithSystemDefault.__init__(self, parent, self._edit) 
-#     
-#     
+#         ShellinfoWithSystemDefault.__init__(self, parent, self._edit)
+#
+#
 #     def getWidgetText(self):
 #         return self._edit.text()
-#     
-#     
+#
+#
 #     def setWidgetText(self, value=None):
 #         if value is None:
 #             pp = os.environ.get('PYTHONSTARTUP','').strip()
-#             if pp:          
+#             if pp:
 #                 value = '$PYTHONSTARTUP: "%s"' % pp
 #             else:
 #                 value = '$PYTHONSTARTUP: None'
-#         
+#
 #         self._edit.setText(value)
 
 
 
 class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
     
-    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin' 
+    DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin'
     SYSTEM_VALUE = '$PYTHONSTARTUP'
     RUN_AFTER_GUI_TEXT = '# AFTER_GUI - remove to run the code BEFORE integrating the GUI\n'
     
     def __init__(self, parent):
         # Do not pass parent, because is a sublayout
-        QtWidgets.QVBoxLayout.__init__(self) 
+        QtWidgets.QVBoxLayout.__init__(self)
         
         # Create sub-widget
         self._edit1 = QtWidgets.QLineEdit(parent)
@@ -386,7 +385,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
             if init:
                 self._radio_system.setChecked(True)
             pp = os.environ.get('PYTHONSTARTUP','').strip()
-            if pp:          
+            if pp:
                 value = '$PYTHONSTARTUP: "%s"' % pp
             else:
                 value = '$PYTHONSTARTUP: None'
@@ -472,12 +471,12 @@ class ShellInfo_environ(QtWidgets.QTextEdit):
 
 class ShellInfoTab(QtWidgets.QScrollArea):
     
-    INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'), 
-                    translate('shell', 'exe ::: The Python executable.'), 
-                    translate('shell', 'ipython ::: Use IPython shell if available.'), 
-                    translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'), 
-                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'), 
-                    translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'), 
+    INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'),
+                    translate('shell', 'exe ::: The Python executable.'),
+                    translate('shell', 'ipython ::: Use IPython shell if available.'),
+                    translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'),
+                    translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'),  # noqa
+                    translate('shell', 'startupScript ::: The script to run at startup (not in script mode).'),
                     translate('shell', 'startDir ::: The start directory (not in script mode).'),
                     translate('shell', 'argv ::: The command line arguments (sys.argv).'),
                     translate('shell', 'environ ::: Extra environment variables (os.environ).'),
@@ -490,7 +489,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setWidgetResizable(True)
-        self.setFrameShape(QtWidgets.QFrame.NoFrame);
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
         
         # Create widget and a layout
         self._content = QtWidgets.QWidget(parent)
@@ -509,16 +508,16 @@ class ShellInfoTab(QtWidgets.QScrollArea):
             # Instantiate and store
             instance = cls(self._content)
             self._shellInfoWidgets[t.key] = instance
-            # Create label 
+            # Create label
             label = QtWidgets.QLabel(t, self._content)
             label.setToolTip(t.tt)
             # Add to layout
             self._formLayout.addRow(label, instance)
         
-        # Add delete button  
+        # Add delete button
         
         t = translate('shell', 'Delete ::: Delete this shell configuration')
-        label = QtWidgets.QLabel('', self._content)        
+        label = QtWidgets.QLabel('', self._content)
         instance = QtWidgets.QPushButton(pyzo.icons.cancel, t, self._content)
         instance.setToolTip(t.tt)
         instance.setAutoDefault(False)
@@ -543,7 +542,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
     def setInfo(self, info=None):
         """  Set the shell info struct, and use it to update the widgets.
         Not via init, because this function also sets the tab name.
-        """ 
+        """
         
         # If info not given, use default as specified by the KernelInfo struct
         if info is None:
@@ -557,11 +556,11 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         self._info = info
         
         # Set widget values according to info
-        try:            
-           for key in info:
-               widget = self._shellInfoWidgets.get(key, None)
-               if widget is not None:
-                   widget.setTheText(info[key])
+        try:
+            for key in info:
+                widget = self._shellInfoWidgets.get(key, None)
+                if widget is not None:
+                    widget.setTheText(info[key])
         
         except Exception as why:
             print("Error setting info in shell config:", why)
@@ -573,7 +572,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         info = self._info
         
         # Set struct values according to widgets
-        try:   
+        try:
             for key, widget in self._shellInfoWidgets.items():
                 info[key] = widget.getTheText()
         
@@ -596,7 +595,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
         # Set title
         self.setWindowTitle(pyzo.translate('shell', 'Shell configurations'))
         # Create tab widget
-        self._tabs = QtWidgets.QTabWidget(self) 
+        self._tabs = QtWidgets.QTabWidget(self)
         #self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
         #self._tabs.setDocumentMode(False)
         self._tabs.setMovable(True)
@@ -618,8 +617,8 @@ class ShellInfoDialog(QtWidgets.QDialog):
             self._tabs.addTab(w, '---')
             w.setInfo(item)
         
-        # Enable making new tabs and closing tabs    
-        self._add = QtWidgets.QToolButton(self)        
+        # Enable making new tabs and closing tabs
+        self._add = QtWidgets.QToolButton(self)
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
         self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -630,7 +629,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
         self._tabs.tabCloseRequested.connect(self.onTabClose)
         
         # Create buttons
-        cancelBut = QtWidgets.QPushButton("Cancel", self)        
+        cancelBut = QtWidgets.QPushButton("Cancel", self)
         okBut = QtWidgets.QPushButton("Done", self)
         cancelBut.clicked.connect(self.close)
         okBut.clicked.connect(self.applyAndClose)

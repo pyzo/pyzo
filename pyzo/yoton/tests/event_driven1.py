@@ -63,7 +63,7 @@ def reply_handler(future):
         yoton.stop_event_loop()
 
 
-# Send first message 
+# Send first message
 new_future = req.reduce(7)
 new_future.add_done_callback(reply_handler)
 

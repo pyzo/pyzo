@@ -1,4 +1,4 @@
-import sys, os
+import os
 
 def count_lines(filename):
     
@@ -12,7 +12,7 @@ def count_lines(filename):
     for line in text.splitlines():
         line = line.strip()
         if '"'*3 in line:
-            inDocstring = not inDocstring        
+            inDocstring = not inDocstring
         if not line:
             count4 += 1
         elif inDocstring:
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     path = os.path.dirname(os.path.abspath(__file__))
     path = os.path.split(path)[0]
     
-    # Init files    
+    # Init files
     files = []
     # Get files in root
     for fname in os.listdir(path):

@@ -26,8 +26,22 @@ For distribution:
 
 import sys, os, stat, shutil, struct
 import subprocess
-import cx_Freeze
-from cx_Freeze import Executable, Freezer, setup
+from cx_Freeze import Executable, Freezer, setup  # noqa
+
+
+# Notes to self:
+# - I used to build the Windows binaries on a WinXP VM, but newer versions
+#   of Python (3.5 and up) do not work on XP anymore. So we stick to 3.4.
+# - This is not so bad, since with newer versions of Python I have not been
+#   able to ship the MSVC runtime in the correct way (see win7 VM).
+# - The conda executable on my winXP seems broken, but can still use "python -m conda".
+# - For Linux, use the Pingulin VM, and PySide from conda-forge.
+# - For OS X, use Python and PySide from macports (since cx_Freeze does not work
+#   from conda env).
+
+# SELECT BACKEND
+QT_API = 'PySide'
+
 
 # Define app name and such
 name = "pyzo"
@@ -69,18 +83,24 @@ excludes.extend(tk_excludes)
 excludes.append('numpy')
 
 # Excludes for Qt
-qt_excludes = 'QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg', 'QtHelp'
+qt_excludes = ['QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg',  # 'QtHelp'
+               'QtBluetooth', 'QtDBus', 'QtDesigner', 'QtLocation', 'QtPositioning',
+               'QtMultimedia', 'QtMultimediaWidgets', 'QtQml', 'QtQuick',
+               'QtSql', 'QtSvg', 'QtTest', 'QtWebKit', 'QtXml', 'QtXmlPatterns',
+               'QtDeclarative', 'QtScript', 'QtScriptTools', 'QtUiTools',
+               'QtQuickWidgets', 'QtSensors', 'QtSerialPort', 'QtWebChannel',
+               'QtWebKitWidgets', 'QtWebSockets',
+               ]
+
 for qt_ver in ['PyQt5', 'PyQt4', 'PySide']:
     for excl in qt_excludes:
         excludes.append(qt_ver + '.' + excl)
 
 # For qt to work
-PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui']
-PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui']
-PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui']
+PyQt5Modules = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtHelp', 'PyQt5.QtPrintSupport']
+PyQt4Modules = ['PyQt4', 'PyQt4.QtCore', 'PyQt4.QtGui', 'PyQt4.QtHelp']  # QtPrintSupport is in QtGui
+PySideModules = ['PySide', 'PySide.QtCore', 'PySide.QtGui', 'PySide.QtHelp']  
 
-# SELECT BACKEND
-QT_API = 'PyQt5'
 
 if QT_API == 'PyQt5':
     includes = PyQt5Modules
@@ -99,6 +119,9 @@ for mod in includes:
     if mod in excludes:
         excludes.remove(mod)
 
+# More includes
+includes.extend(['code'])
+
 
 ## Freeze
 
@@ -115,7 +138,7 @@ for scriptFile in scriptFiles:
         ex = Executable(    scriptFile, 
                             targetName = 'pyzo.exe',
                             icon=iconFile,
-                            appendScriptToExe = True,
+                            # appendScriptToExe = True,
                             base = 'Win32GUI', # this is what hides the console                            
                             )
     else:
@@ -142,6 +165,18 @@ f.Freeze()
 
 
 ## Process source code and other resources
+
+
+
+for d in (os.path.join(distDir, 'PyQt5'), distDir):
+    if os.path.isdir(d):
+        for fname in os.listdir(d):
+            filename = os.path.join(d, fname)
+            for e in qt_excludes:
+                if fname.startswith(e + '.'):
+                    if os.path.isfile(filename):
+                        os.remove(filename)
+
 
 MANIFEST_TEMPLATE = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -178,6 +213,7 @@ def install_c_runtime(targetDir):
         t = t.replace('{PROC_ARCH}', 'x86') # {4:'x86', 8:'amd64'}
         manifest_filename = os.path.join(distDir,'Microsoft.VC90.CRT.manifest')
         open(manifest_filename, 'wb').write(t.encode('utf-8'))
+
 
 # taken from pyzo_build:
 def copydir_smart(path1, path2):
@@ -296,11 +332,14 @@ if sys.platform.startswith('linux'):
     
     # Libs further (newer version of cx_freeze puts libs in /lib/python3.5
     qt_platform_dir = os.path.join(distDir, 'platforms')
-    for entry in os.listdir(qt_platform_dir):
-        filename = os.path.join(qt_platform_dir, entry)
-        if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
-            continue
-        rpaths = '', '..', '../lib', '../lib/python' + sys.version[:3]
+    if not os.path.isdir(qt_platform_dir):
+        print('Could not find Qt platform dir')
+    else:
+        for entry in os.listdir(qt_platform_dir):
+            filename = os.path.join(qt_platform_dir, entry)
+            if not (os.path.isfile(filename ) and (entry.endswith('.so') or '.so.' in entry)):
+                continue
+            rpaths = '', '..', '../lib', '../lib/python' + sys.version[:3]
         libs2fix.append((filename, rpaths))
     
     # Apply
@@ -395,7 +434,8 @@ if applicationBundle:
     shutil.copy(baseDir+'Info.plist',contentsDir+'Info.plist')
     
     #Copy the qt_menu.nib directory (TODO: is this the place to look for it?)
-    potential_dirs = ['/opt/local/libexec/qt4/Library/Frameworks/QtGui.framework/Versions/4/Resources/', '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/']
+    potential_dirs = ['/opt/local/libexec/qt4/Library/Frameworks/QtGui.framework/Versions/4/Resources/',
+                      '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/']
     for d in potential_dirs:
         if os.path.isdir(d + 'qt_menu.nib'):
             shutil.copytree(d + 'qt_menu.nib', resourcesDir+'qt_menu.nib')
@@ -410,7 +450,7 @@ if applicationBundle:
     # Create the dmg
     if createDmg:
         if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
-            '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
-            '-srcfolder',appDir,'-volname', 'pyzo')!=0:
+                    '-format','UDZO',dmgFile, '-imagekey', 'zlib-level=9',
+                    '-srcfolder',appDir,'-volname', 'pyzo')!=0:
             raise OSError('creation of the dmg failed')
 

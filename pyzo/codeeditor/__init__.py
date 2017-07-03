@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 # Copyright (C) 2013, the codeeditor development team
 #
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-""" CodeEditor 
+""" CodeEditor
 
 A full featured code editor component based on QPlainTextEdit.
 
@@ -15,7 +16,7 @@ from .base import CodeEditorBase
 
 from .extensions.appearance import (    HighlightMatchingBracket,
                                         HighlightMatchingOccurrences,
-                                        HighlightCurrentLine, 
+                                        HighlightCurrentLine,
                                         FullUnderlines,
                                         IndentationGuides,
                                         CodeFolding,
@@ -49,14 +50,14 @@ class CodeEditor(
     HighlightMatchingOccurrences,
     HighlightMatchingBracket,
     FullUnderlines,
-    IndentationGuides, 
+    IndentationGuides,
     CodeFolding,
     LongLineIndicator,
-    ShowWhitespace, 
-    ShowLineEndings, 
+    ShowWhitespace,
+    ShowLineEndings,
     Wrap,
     BreakPoints,
-    LineNumbers, 
+    LineNumbers,
 
     AutoCompletion, #Escape: first remove autocompletion,
     Calltip,               #then calltip
@@ -77,7 +78,7 @@ class CodeEditor(
 
     CodeEditorBase, #CodeEditorBase must be the last one in the list
     
-    ):  
+    ):
     """
     CodeEditor with all the extensions
     """

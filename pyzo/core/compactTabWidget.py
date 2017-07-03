@@ -10,12 +10,12 @@ See docs of the tab widget.
 
 """
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 import sys
 
 if sys.version_info[0] < 3:
-    str = unicode
-    ELLIPSIS = unichr(8230)
+    str = unicode  # noqa
+    ELLIPSIS = unichr(8230)  # noqa
 else:
     ELLIPSIS = chr(8230)
 
@@ -40,8 +40,8 @@ QTabWidget::tab-bar {
  it reads QTabBar _not_ QTabWidget */
 QTabBar::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(220,220,220,128), 
-                stop: 0.4 rgba(200,200,200,128), 
+                stop: 0.0 rgba(220,220,220,128),
+                stop: 0.4 rgba(200,200,200,128),
                 stop: 1.0 rgba(100,100,100,128) );
     border: 1px solid #A09B90;
     border-bottom-color: #DAD5CC; /* same as the pane color */
@@ -54,31 +54,31 @@ QTabBar::tab {
     padding-right: PADDING_RIGHTpx;
     margin-right: -1px; /* "combine" borders */
 }
-QTabBar::tab:last {    
+QTabBar::tab:last {
     margin-right: 0px;
 }
 
 /* Style the selected tab, hoovered tab, and other tabs. */
 QTabBar::tab:hover {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(245,250,255,128), 
-                stop: 0.4 rgba(210,210,210,128), 
+                stop: 0.0 rgba(245,250,255,128),
+                stop: 0.4 rgba(210,210,210,128),
                 stop: 1.0 rgba(200,200,200,128) );
 }
 QTabBar::tab:selected {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(0,0,128,128), 
-                stop: 0.12 rgba(0,0,128,128), 
-                stop: 0.120001 rgba(245,250,255,128), 
-                stop: 0.4 rgba(210,210,210,128), 
+                stop: 0.0 rgba(0,0,128,128),
+                stop: 0.12 rgba(0,0,128,128),
+                stop: 0.120001 rgba(245,250,255,128),
+                stop: 0.4 rgba(210,210,210,128),
                 stop: 1.0 rgba(200,200,200,128) );
 }
 
-QTabBar::tab:selected {     
+QTabBar::tab:selected {
     border-width: 1px;
     border-bottom-width: 0px;
     border-top-left-radius: 5px;
-    border-top-right-radius: 5px;    
+    border-top-right-radius: 5px;
     border-color: #333;
 }
 
@@ -153,13 +153,13 @@ class CompactTabBar(QtWidgets.QTabBar):
         self.setStyleSheet(stylesheet)
         
         # We do our own eliding
-        self.setElideMode(QtCore.Qt.ElideNone) 
+        self.setElideMode(QtCore.Qt.ElideNone)
         
         # Make tabs wider if there's plenty space?
-        self.setExpanding(False) 
+        self.setExpanding(False)
         
         # If there's not enough space, use scroll buttons
-        self.setUsesScrollButtons(True) 
+        self.setUsesScrollButtons(True)
         
         # When a tab is removed, select previous
         self.setSelectionBehaviorOnRemove(self.SelectPreviousTab)
@@ -269,7 +269,7 @@ class CompactTabBar(QtWidgets.QTabBar):
     
     ## Overload events and protected functions
     
-    def tabInserted(self, i):        
+    def tabInserted(self, i):
         QtWidgets.QTabBar.tabInserted(self, i)
         
         # Is called when a tab is inserted
@@ -378,7 +378,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                 self._alignTimer.start()
                 #self._alignTimer.timeout.emit()
         
-        else:            
+        else:
             pass # margin is good
     
     
@@ -397,11 +397,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         Sets the maximum width of all items now, by eliding the names.
         Returns whether any items were elided.
         
-        """ 
-        
-        # Prepare for measuring font sizes
-        font = self.font()
-        metrics = QtGui.QFontMetrics(font)
+        """
         
         # Get whether an item was reduced in size
         itemReduced = False
@@ -412,17 +408,21 @@ class CompactTabBar(QtWidgets.QTabBar):
             w = self._alignWidth
             
             # Get name
-            name = name0 = self._compactTabBarData(i).name
+            name = self._compactTabBarData(i).name
+            
+            # If its too long, first make it shorter by stripping dir names
+            if (w+1) < len(name) and '/' in name:
+                name = name.split('/')[-1]
             
             # Check if we can reduce the name size, correct w if necessary
-            if ( (w+1) < len(name0) ) and self._preventEqualTexts:
+            if ( (w+1) < len(name) ) and self._preventEqualTexts:
                 
                 # Increase w untill there are no names that start the same
                 allNames = self._getAllNames()
                 hasSimilarNames = True
                 diff = 2
                 w -= 1
-                while hasSimilarNames and w < len(name0):
+                while hasSimilarNames and w < len(name):
                     w += 1
                     w2 = w - (diff-1)
                     shortName = name[:w2]
@@ -430,7 +430,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                     hasSimilarNames = len(similarnames)>1
             
             # Check again, with corrected w
-            if (w+1) < len(name0):
+            if (w+1) < len(name):
                 name = name[:w] + ELLIPSIS
                 itemReduced = True
             
@@ -456,8 +456,8 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         sure that enough characters are shown such that the names
         can be distinguished.
     
-    The kwargs are passed to the tab bar constructor. There are a few 
-    keywords arguments to influence the appearance of the tabs. See the 
+    The kwargs are passed to the tab bar constructor. There are a few
+    keywords arguments to influence the appearance of the tabs. See the
     CompactTabBar class.
     
     """
@@ -510,7 +510,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
 
 if __name__ == '__main__':
     
-    w = CompactTabWidget()    
+    w = CompactTabWidget()
     w.show()
     
     w.addTab(QtWidgets.QWidget(w), 'aapenootjedopje')

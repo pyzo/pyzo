@@ -6,14 +6,14 @@
 
 """ Module yoton.channels.file
 
-Defines a class that can be used to wrap a channel to give it 
+Defines a class that can be used to wrap a channel to give it
 a file like interface.
 
 """
 
 import sys
 import os
-from yoton.misc import basestring, bytes, str, long
+
 from yoton.channels import PubChannel, SubChannel
 
 PY2 = sys.version_info[0] == 2
@@ -23,7 +23,7 @@ class FileWrapper(object):
     """ FileWrapper(channel, chunksize=0, echo=None)
     
     Class that wraps a PubChannel or SubChannel instance to provide
-    a file-like interface by implementing methods such as read() and 
+    a file-like interface by implementing methods such as read() and
     write(), and other stuff specified in:
     [[http://docs.python.org/library/stdtypes.html#bltin-file-objects]]
     
@@ -70,14 +70,14 @@ class FileWrapper(object):
     
     @property
     def encoding(self):
-        """ The encoding used to encode strings to bytes and vice versa. 
+        """ The encoding used to encode strings to bytes and vice versa.
         """
         return 'UTF-8'
     
     
     @property
     def closed(self):
-        """ Get whether the file is closed. 
+        """ Get whether the file is closed.
         """
         return self._channel._closed
     
@@ -88,13 +88,13 @@ class FileWrapper(object):
         Wait here until all messages have been send.
         
         """
-        context = self._channel._context.flush()
+        self._channel._context.flush()
     
     
     @property
     def newlines(self):
         """ The type of newlines used. Returns None; we never know what the
-        other end could be sending! 
+        other end could be sending!
         """
         return None
     
@@ -164,7 +164,7 @@ class FileWrapper(object):
         """ readline(size=0)
         
         Read one string that was send as one from the other end (always
-        in blocking mode). A newline character is appended if it does not 
+        in blocking mode). A newline character is appended if it does not
         end with one.
         
         If size is given, returns only up to that many characters, the rest

@@ -4,7 +4,7 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-from ..qt import QtCore, QtGui, QtWidgets
+from ..qt import QtCore, QtGui, QtWidgets  # noqa
 Qt = QtCore.Qt
 
 class Calltip(object):
@@ -43,7 +43,7 @@ class Calltip(object):
     def __afterSetStyle(self):
         format = self.getStyleElementFormat('editor.calltip')
         ss = "QLabel { color:%s; background:%s; border:%ipx solid %s; }" % (
-                    format['fore'], format['back'], 
+                    format['fore'], format['back'],
                     int(format['border']), format['fore'] )
         self.__calltipLabel.setStyleSheet(ss)
     

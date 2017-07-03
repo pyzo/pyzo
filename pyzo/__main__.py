@@ -7,7 +7,7 @@
 
 """ Pyzo __main__ module
 
-This module takes enables starting Pyzo via either "python3 -m pyzo" or 
+This module takes enables starting Pyzo via either "python3 -m pyzo" or
 "python3 path/to/pyzo".
 
 In the first case it simply imports pyzo. In the latter case, that import
@@ -22,11 +22,11 @@ import sys
 
 # Imports that are maybe not used in Pyzo, but are/can be in the tools.
 # Import them now, so they are available in the frozen app.
-import shutil
+import shutil  # noqa
 
 
 if hasattr(sys, 'frozen') and sys.frozen:
-    app_dir = os.dirname(os.path.abspath(sys.executable))
+    app_dir = os.path.dirname(os.path.abspath(sys.executable))
     # Enable loading from source
     sys.path.insert(0, os.path.join(app_dir, 'source'))
     sys.path.insert(0, os.path.join(app_dir, 'source/more'))

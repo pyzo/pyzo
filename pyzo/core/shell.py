@@ -9,7 +9,7 @@
 
 Defines the shell to be used in pyzo.
 This is done in a few inheritance steps:
-  - BaseShell inherits BaseTextCtrl and adds the typical shell behaviour.    
+  - BaseShell inherits BaseTextCtrl and adds the typical shell behaviour.
   - PythonShell makes it specific to Python.
 This module also implements ways to communicate with the shell and to run
 code in it.
@@ -17,7 +17,7 @@ code in it.
 """
 
 
-import os, sys, time, subprocess
+import sys, time
 import re
 
 import yoton
@@ -83,7 +83,7 @@ def finishKernelInfo(info, scriptFile=None):
     Get a copy of the kernel info struct, with the scriptFile
     and the projectPath set.
     
-    """ 
+    """
 
     # Make a copy, we do not want to change the original
     info = ssdf.copy(info)
@@ -114,9 +114,7 @@ class ShellHighlighter(Highlighter):
     only the input lines are highlighted with this highlighter.
     """
     
-    def highlightBlock(self, line): 
-        
-        t0 = time.time()
+    def highlightBlock(self, line):
         
         # Make sure this is a Unicode Python string
         line = str(line)
@@ -177,7 +175,7 @@ class ShellHighlighter(Highlighter):
                         except KeyError:
                             #print(repr(nameToFormat(token.name)))
                             continue
-                        # Set format                    
+                        # Set format
                         #format.setFontWeight(75)
                         if token.start >= pos2:
                             self.setFormat(token.start,token.end-token.start,format)
@@ -225,8 +223,8 @@ class BaseShell(BaseTextCtrl):
 
     
     def __init__(self, parent, **kwds):
-        super().__init__(parent, wrap=True, showLineNumbers=False, 
-            showBreakPoints=False, highlightCurrentLine=False, parser='python', 
+        super().__init__(parent, wrap=True, showLineNumbers=False,
+            showBreakPoints=False, highlightCurrentLine=False, parser='python',
             **kwds)
         
         # Use a special highlighter that only highlights the input.
@@ -250,7 +248,7 @@ class BaseShell(BaseTextCtrl):
         
         # When inserting/removing text at the edit line (thus also while typing)
         # keep cursor2 at its place. Only when text is written before
-        # the prompt (i.e. in write), this flag is temporarily set to False. 
+        # the prompt (i.e. in write), this flag is temporarily set to False.
         # Same for cursor1, because sometimes (when there is no prompt) it
         # is at the same position.
         self._cursor1.setKeepPositionOnInsert(True)
@@ -308,8 +306,8 @@ class BaseShell(BaseTextCtrl):
     
     
     def mousePressEvent(self, event):
-        """ 
-        - Disable right MB and middle MB (which pastes by default). 
+        """
+        - Disable right MB and middle MB (which pastes by default).
         - Focus policy
             If a user clicks this shell, while it has no focus, we do
             not want the cursor position to change (since generally the
@@ -321,7 +319,7 @@ class BaseShell(BaseTextCtrl):
         """
         
         if not self.hasFocus():
-            self.setFocus()  
+            self.setFocus()
             return
         
         if event.button() != QtCore.Qt.MidButton:
@@ -340,7 +338,7 @@ class BaseShell(BaseTextCtrl):
     
     def _handleClickOnFilename(self, mousepos):
         """ Check whether the text that is clicked is a filename
-        and open the file in the editor. If a line number can also be 
+        and open the file in the editor. If a line number can also be
         detected, open the file at that line number.
         """
         
@@ -372,8 +370,8 @@ class BaseShell(BaseTextCtrl):
             if piece[1] != ':':
                 return
         else:
-           if not piece.startswith('/'):
-               return
+            if not piece.startswith('/'):
+                return
         #
         filename = piece
         
@@ -471,7 +469,7 @@ class BaseShell(BaseTextCtrl):
         
         if event.key() == Qt.Key_Escape:
             # Escape clears command
-            if not ( self.autocompleteActive() or self.calltipActive() ): 
+            if not ( self.autocompleteActive() or self.calltipActive() ):
                 self.clearCommand()
             
         if event.key() == Qt.Key_Home:
@@ -506,7 +504,7 @@ class BaseShell(BaseTextCtrl):
             if self._historyNeedle is None:
                 # get partly-written-command
                 #
-                # Select text                
+                # Select text
                 cursor = self.textCursor()
                 cursor.setPosition(self._cursor2.position(), A_MOVE)
                 cursor.movePosition(cursor.End, A_KEEP)
@@ -523,12 +521,11 @@ class BaseShell(BaseTextCtrl):
                     self._historyStep = 1
             
             # find the command
-            count = 0
             c = pyzo.command_history.find_starting_with(self._historyNeedle, self._historyStep)
             if c is None:
                 # found nothing-> reset
                 self._historyStep = 0
-                c = self._historyNeedle  
+                c = self._historyNeedle
             
             # Replace text
             cursor = self.textCursor()
@@ -740,7 +737,7 @@ class BaseShell(BaseTextCtrl):
         # Remove last line if it ended with CR
         cursor = self._cursor1
         if ((self._lastline_had_cr and not text.startswith('\n')) or
-            (text.startswith('\r') and not text[1:].startswith('\n'))):
+                (text.startswith('\r') and not text[1:].startswith('\n'))):
             cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor, 1)
             cursor.removeSelectedText()
         # Is this new line ending in CR?
@@ -749,7 +746,7 @@ class BaseShell(BaseTextCtrl):
     
     def _splitLinesForPrinting(self, text):
         """ Given a text, split the text in lines. Lines that are extremely
-        long are split in pieces of 80 characters to increase performance for 
+        long are split in pieces of 80 characters to increase performance for
         wrapping. This is kind of a failsafe for when the user accidentally
         prints a bitmap or huge list. See issue 98.
         """
@@ -766,7 +763,7 @@ class BaseShell(BaseTextCtrl):
         
         Write to the shell. Fauto-ind
         
-        If prompt is 0 (default) the text is printed before the prompt. If 
+        If prompt is 0 (default) the text is printed before the prompt. If
         prompt is 1, the text is printed after the prompt, the new prompt
         becomes null. If prompt is 2, the given text becomes the new prompt.
         
@@ -774,9 +771,9 @@ class BaseShell(BaseTextCtrl):
         
         """
         
-        # From The Qt docs: Note that a cursor always moves when text is 
-        # inserted before the current position of the cursor, and it always 
-        # keeps its position when text is inserted after the current position 
+        # From The Qt docs: Note that a cursor always moves when text is
+        # inserted before the current position of the cursor, and it always
+        # keeps its position when text is inserted after the current position
         # of the cursor.
         
         # Make sure there's text and make sure its a string
@@ -834,7 +831,7 @@ class BaseShell(BaseTextCtrl):
         elif self.blockCount() == MAXBLOCKCOUNT:
             n = text.count('\n')
             sb = self.verticalScrollBar()
-            sb.setValue(sb.value()-n) 
+            sb.setValue(sb.value()-n)
     
     
     def _insertText(self, cursor, text, format):
@@ -852,9 +849,8 @@ class BaseShell(BaseTextCtrl):
         # Init. We use the solarised color theme
         pattern = r'\x1b\[(.*?)m'
         #CLRS = ['#000', '#F00', '#0F0', '#FF0', '#00F', '#F0F', '#0FF', '#FFF']
-        CLRS = ['#657b83', '#dc322f', '#859900', '#b58900', '#268bd2', 
+        CLRS = ['#657b83', '#dc322f', '#859900', '#b58900', '#268bd2',
                 '#d33682', '#2aa198', '#eee8d5']
-        pendingtext = ''
         i0 = 0
         
         
@@ -926,9 +922,9 @@ class BaseShell(BaseTextCtrl):
         """ processLine(self, line=None, execute=True)
        
         Process the given line or the current line at the prompt if not given.
-        Called when the user presses enter.        
+        Called when the user presses enter.
         
-        If execute is False will not execute the command. This way 
+        If execute is False will not execute the command. This way
         a message can be written while other ways are used to process
         the command.
         """
@@ -970,8 +966,8 @@ class BaseShell(BaseTextCtrl):
     
     
     def executeCommand(self, command):
-        """ Execute the given command. 
-        Should be overridden. 
+        """ Execute the given command.
+        Should be overridden.
         """
         # this is a stupid simulation version
         self.write("you executed: "+command+'\n')
@@ -1015,7 +1011,7 @@ class PythonShell(BaseShell):
         
         # Create timer to keep polling any results
         # todo: Maybe use yoton events to process messages as they arrive.
-        # I tried this briefly, but it seemd to be less efficient because 
+        # I tried this briefly, but it seemd to be less efficient because
         # messages are not so much bach-processed anymore. We should decide
         # on either method.
         self._timer = QtCore.QTimer(self)
@@ -1027,7 +1023,7 @@ class PythonShell(BaseShell):
         # Add context menu
         self._menu = ShellContextMenu(shell=self, parent=self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p+QtCore.QPoint(0,3)))) 
+        self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p+QtCore.QPoint(0,3))))
         
         # Keep track of breakpoints
         pyzo.editors.breakPointsChanged.connect(self.sendBreakPoints)
@@ -1043,7 +1039,7 @@ class PythonShell(BaseShell):
         # Reset read state
         self.setReadOnly(False)
         
-        # Variables to store state, python version, builtins and keywords 
+        # Variables to store state, python version, builtins and keywords
         self._state = ''
         self._debugState = {}
         self._version = ""
@@ -1069,7 +1065,7 @@ class PythonShell(BaseShell):
         # Create yoton context
         self._context = ct = yoton.Context()
         
-        # Create stream channels        
+        # Create stream channels
         self._strm_out = yoton.SubChannel(ct, 'strm-out')
         self._strm_err = yoton.SubChannel(ct, 'strm-err')
         self._strm_raw = yoton.SubChannel(ct, 'strm-raw')
@@ -1091,10 +1087,12 @@ class PythonShell(BaseShell):
         
         # Create status channels
         self._stat_interpreter = yoton.StateChannel(ct, 'stat-interpreter')
+        self._stat_cd = yoton.StateChannel(ct, 'stat-cd')
         self._stat_debug = yoton.StateChannel(ct, 'stat-debug', yoton.OBJECT)
         self._stat_startup = yoton.StateChannel(ct, 'stat-startup', yoton.OBJECT)
-        self._stat_startup.received.bind(self._onReceivedStartupInfo)
         self._stat_breakpoints = yoton.StateChannel(ct, 'stat-breakpoints', yoton.OBJECT)
+        
+        self._stat_startup.received.bind(self._onReceivedStartupInfo)
         
         # Create introspection request channel
         self._request = yoton.ReqChannel(ct, 'reqp-introspect')
@@ -1109,13 +1107,17 @@ class PythonShell(BaseShell):
         pyzo.editors.updateBreakPoints()
         
         # todo: see polling vs events
-#         # Detect incoming messages 
-#         for c in [self._strm_out, self._strm_err, self._strm_raw, 
+#         # Detect incoming messages
+#         for c in [self._strm_out, self._strm_err, self._strm_raw,
 #                 self._strm_echo, self._strm_prompt, self._strm_broker,
 #                 self._strm_action,
 #                 self._stat_interpreter, self._stat_debug]:
 #             c.received.bind(self.poll)
-        
+    
+    def get_kernel_cd(self):
+        """ Get current working dir of kernel.
+        """
+        return self._stat_cd.recv()
     
     def _onReceivedStartupInfo(self, channel):
         startup_info = channel.recv()
@@ -1150,7 +1152,7 @@ class PythonShell(BaseShell):
     
     
     def processCallTip(self, cto):
-        """ Processes a calltip request using a CallTipObject instance. 
+        """ Processes a calltip request using a CallTipObject instance.
         """
         
         # Try using buffer first (not if we're not the requester)
@@ -1170,7 +1172,7 @@ class PythonShell(BaseShell):
     
     
     def _processCallTip_response(self, future):
-        """ Process response of shell to show signature. 
+        """ Process response of shell to show signature.
         """
         
         # Process future
@@ -1189,7 +1191,7 @@ class PythonShell(BaseShell):
         editor2 = pyzo.shells.getCurrentShell()
         if cto.textCtrl not in [editor1, editor2]:
             # The editor or shell starting the autocomp is no longer active
-            aco.textCtrl.autocompleteCancel()
+            cto.textCtrl.autocompleteCancel()
             return
         
         # Invalid response
@@ -1205,7 +1207,7 @@ class PythonShell(BaseShell):
     
     
     def processAutoComp(self, aco):
-        """ Processes an autocomp request using an AutoCompObject instance. 
+        """ Processes an autocomp request using an AutoCompObject instance.
         """
         
         # Try using buffer first (not if we're not the requester)
@@ -1231,8 +1233,8 @@ class PythonShell(BaseShell):
     
     
     def _processAutoComp_response(self, future):
-        """ Process the response of the shell for the auto completion. 
-        """ 
+        """ Process the response of the shell for the auto completion.
+        """
         
         # Process future
         if future.cancelled():
@@ -1293,7 +1295,7 @@ class PythonShell(BaseShell):
     
     def executeCommand(self, text):
         """ executeCommand(text)
-        Execute one-line command in the remote Python session. 
+        Execute one-line command in the remote Python session.
         """
         
         # Ensure edit line is selected (to reset scrolling to end)
@@ -1315,8 +1317,8 @@ class PythonShell(BaseShell):
         - remove all empty lines at the end
         - remove commented lines at the end
         - convert tabs to spaces
-        - dedent so minimal indentation is zero        
-        """ 
+        - dedent so minimal indentation is zero
+        """
         
         # Convert tabs to spaces
         text = text.replace("\t"," "*4)
@@ -1332,7 +1334,7 @@ class PythonShell(BaseShell):
         # Examine the text line by line...
         # - check for empty/commented lined at the end
         # - calculate minimal indentation
-        lines = text.splitlines()        
+        lines = text.splitlines()
         lastLineOfCode = 0
         minIndent = 99
         for linenr in range(len(lines)):
@@ -1348,15 +1350,15 @@ class PythonShell(BaseShell):
             tmp = line.lstrip(" ")
             indent = len(line) - len(tmp)
             if indent < minIndent:
-                minIndent = indent 
+                minIndent = indent
         
-        # Copy all proper lines to a new list, 
-        # remove minimal indentation, but only if we then would only remove 
+        # Copy all proper lines to a new list,
+        # remove minimal indentation, but only if we then would only remove
         # spaces (in the case of commented lines)
         lines2 = []
         for linenr in range(lastLineOfCode+1):
             line = lines[linenr]
-            # Remove indentation, 
+            # Remove indentation,
             if line[:minIndent].count(" ") == minIndent:
                 line = line[minIndent:]
             else:
@@ -1375,7 +1377,7 @@ class PythonShell(BaseShell):
     
     
     def sendBreakPoints(self, breaks):
-        """ Send all breakpoints. 
+        """ Send all breakpoints.
         """
         # breaks is a dict of filenames to integers
         self._stat_breakpoints.send(breaks)
@@ -1386,7 +1388,7 @@ class PythonShell(BaseShell):
     def poll(self, channel=None):
         """ poll()
         To keep the shell up-to-date.
-        Call this periodically. 
+        Call this periodically.
         """
         
         if self._write_buffer:
@@ -1394,7 +1396,7 @@ class PythonShell(BaseShell):
             sub, M = self._write_buffer
         else:
             # Check what subchannel has the latest message pending
-            sub = yoton.select_sub_channel(self._strm_out, self._strm_err, 
+            sub = yoton.select_sub_channel(self._strm_out, self._strm_err,
                                 self._strm_echo, self._strm_raw,
                                 self._strm_broker, self._strm_prompt )
             # Read messages from it
@@ -1422,8 +1424,8 @@ class PythonShell(BaseShell):
             # Get how to deal with prompt
             prompt = 0
             if sub is self._strm_echo:
-                prompt = 1 
-            elif sub is  self._strm_prompt:
+                prompt = 1
+            elif sub is self._strm_prompt:
                 prompt = 2
             # Get color
             color = None
@@ -1471,7 +1473,7 @@ class PythonShell(BaseShell):
             self.stateChanged.emit(self)
         
         # Update debug status
-        state = self._stat_debug.recv()        
+        state = self._stat_debug.recv()
         if state != self._debugState:
             self._debugState = state
             self.debugStateChanged.emit(self)
@@ -1479,8 +1481,8 @@ class PythonShell(BaseShell):
     
     def interrupt(self):
         """ interrupt()
-        Send a Keyboard interrupt signal to the main thread of the 
-        remote process. 
+        Send a Keyboard interrupt signal to the main thread of the
+        remote process.
         """
         # Ensure edit line is selected (to reset scrolling to end)
         self.ensureCursorAtEditLine()
@@ -1490,7 +1492,7 @@ class PythonShell(BaseShell):
     
     def restart(self, scriptFile=None):
         """ restart(scriptFile=None)
-        Terminate the shell, after which it is restarted. 
+        Terminate the shell, after which it is restarted.
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
@@ -1511,7 +1513,7 @@ class PythonShell(BaseShell):
     
     def terminate(self):
         """ terminate()
-        Terminates the python process. It will first try gently, but 
+        Terminates the python process. It will first try gently, but
         if that does not work, the process shall be killed.
         To be notified of the termination, connect to the "terminated"
         signal of the shell.
@@ -1532,12 +1534,12 @@ class PythonShell(BaseShell):
         The broker will be cleaned up if there are no clients connected
         and if there is no active kernel. In a multi-user environment,
         we should thus be able to close the shell without killing the
-        kernel. But in a closed 1-to-1 environment we really want to 
+        kernel. But in a closed 1-to-1 environment we really want to
         prevent loose brokers and kernels dangling around.
         
         In both cases however, it is the responsibility of the broker to
         terminate the kernel, and the shell will simply assume that this
-        will work :) 
+        will work :)
         
         """
         
@@ -1565,7 +1567,7 @@ class PythonShell(BaseShell):
         self._cursor1.movePosition(self._cursor1.End, A_MOVE)
         self._cursor2.movePosition(self._cursor2.End, A_MOVE)
         
-        self.write('\n\n');
+        self.write('\n\n')
         self.write('Lost connection with broker:\n')
         self.write(why)
         self.write('\n\n')

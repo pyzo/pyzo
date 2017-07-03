@@ -32,12 +32,12 @@ if EXE_DIR.endswith('.app/Contents/MacOS'):
 class KernelInfo(ssdf.Struct):
     """ KernelInfo
     
-    Describes all information for a kernel. This class can be used at 
+    Describes all information for a kernel. This class can be used at
     the IDE as well as the kernelbroker.
     
     This information goes a long way from the pyzo config file to the
     kernel. The list pyzo.config.shellConfigs2 contains the configs
-    for all kernels. These objects are edited in-place by the 
+    for all kernels. These objects are edited in-place by the
     shell config.
     
     The shell keeps a reference of the shell config used to start the
@@ -49,7 +49,7 @@ class KernelInfo(ssdf.Struct):
     the shell might send no config information (or only partially
     update the config information) on a restart. This is not so
     relevant now, but it can be when we are running multiple people
-    on a single kernel, and there is only one user who has the 
+    on a single kernel, and there is only one user who has the
     original config.
     
     """
@@ -57,17 +57,17 @@ class KernelInfo(ssdf.Struct):
         super().__init__()
         # ----- Fixed parameters that define a shell -----
         
-        # scriptFile is used to define the mode. If given, we run in 
+        # scriptFile is used to define the mode. If given, we run in
         # script-mode. Otherwise we run in interactive mode.
         
         # The name of this shell config. Can be used to name the kernel
         self.name = 'Python'
         
-        # The executable. This can be '/usr/bin/python3.1' or 
+        # The executable. This can be '/usr/bin/python3.1' or
         # 'c:/program files/python2.6/python.exe', etc.
         self.exe = ''
         
-        # The GUI toolkit to embed the event loop of. 
+        # The GUI toolkit to embed the event loop of.
         # Instantiate with a value that is settable
         self.gui = 'Auto'
         
@@ -75,13 +75,13 @@ class KernelInfo(ssdf.Struct):
         # '$PYTHONPATH' is replaced by environment variable by broker
         self.pythonPath = ''
         
-        # The path of the current project, the kernel will prepend this 
+        # The path of the current project, the kernel will prepend this
         # to the sys.path. The broker could prepend to PYTHONPATH, but
         # in this way it is more explicit (kernel can tell the user that
         # the project path was prepended).
         self.projectPath = ''
         
-        # The full filename of the script to run. 
+        # The full filename of the script to run.
         # If given, the kernel should run in script-mode.
         # The kernel will check whether this file exists, and will
         # revert to interactive mode if it doesn't.
@@ -91,10 +91,10 @@ class KernelInfo(ssdf.Struct):
         
         # The initial directory. Only used for interactive-mode; in
         # script-mode the initial directory is the dir of the script.
-        self.startDir = '' 
+        self.startDir = ''
         
         # The Startup script (only used for interactive-mode).
-        # - Empty string means run nothing, 
+        # - Empty string means run nothing,
         # - Single line means file name
         # - multiple lines means source code.
         # - '$PYTHONSTARTUP' uses the code in that file. Broker replaces this.
@@ -166,11 +166,11 @@ def getEnvFromKernelInfo(info):
     # Recombine using the OS's path separator
     pythonPath = os.pathsep.join(pythonPaths)
     # Add entry to Pythopath, so that we can import yoton
-    # Note: an empty entry might cause trouble if the start-directory is 
+    # Note: an empty entry might cause trouble if the start-directory is
     # somehow overriden (see issue 128).
     pythonPath = pyzo.pyzoDir + os.pathsep + pythonPath
     
-    # Prepare environment, remove references to tk libraries, 
+    # Prepare environment, remove references to tk libraries,
     # since they're wrong when frozen. Python will insert the
     # correct ones if required.
     env = os.environ.copy()
@@ -250,7 +250,7 @@ class KernelBroker:
         # Close any existing channels first
         self._context.close_channels()
         
-        # Create stream channels. 
+        # Create stream channels.
         # Stdout is for the C-level stdout/stderr streams.
         self._strm_broker = yoton.PubChannel(ct, 'strm-broker')
         self._strm_raw = yoton.PubChannel(ct, 'strm-raw')
@@ -288,7 +288,7 @@ class KernelBroker:
         self._terminator = None
         self._streamReader = None
         
-        if destroy==True:
+        if destroy:
             
             # Stop timer
             self._timer.unbind(self.mainLoopIter)
@@ -350,7 +350,7 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'PYZO')
-        self._kernelCon = self._context.bind('localhost:PYZO', 
+        self._kernelCon = self._context.bind('localhost:PYZO',
                                                 max_tries=256, name='kernel')
         
         # Get command to execute, and environment to use
@@ -362,7 +362,7 @@ class KernelBroker:
             # as the author from Pype writes:
             #if we don't run via a command shell, then either sometimes we
             #don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.                
+            # And I also see problems with Tk.
             # But we only use it if we are sure that cmd is available.
             # See pyzo issue #240
             try:
@@ -373,14 +373,14 @@ class KernelBroker:
                 command = 'cmd /c "{}"'.format(command)
         
         # Start process
-        self._process = subprocess.Popen(   command, shell=True, 
+        self._process = subprocess.Popen(   command, shell=True,
                                             env=env, cwd=cwd,
                                             stdin=subprocess.PIPE,  # Fixes issue 165
-                                            stdout=subprocess.PIPE, 
-                                            stderr=subprocess.STDOUT 
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.STDOUT
                                         )
         
-        # Set timeout for connection, i.e. after how much time of 
+        # Set timeout for connection, i.e. after how much time of
         # unresponsive ness is the kernel found to be running extension code
         # Better set this before connecting
         self._kernelCon.timeout = 0.5
@@ -441,7 +441,7 @@ class KernelBroker:
             return
         
         # The only reasonable way that the connection
-        # can be lost without the kernel closing, is if the yoton context 
+        # can be lost without the kernel closing, is if the yoton context
         # crashed or was stopped somehow. In both cases, we lost control,
         # and should put it down!
         if not self._terminator:
@@ -457,16 +457,16 @@ class KernelBroker:
         
         # If the kernel did not start yet, probably the command is invalid
         if self._kernelCon and self._kernelCon.is_waiting:
-            msg = 'The process failed to start (invalid command?).'        
+            msg = 'The process failed to start (invalid command?).'
         elif not self.isTerminating():
             msg = 'Kernel process exited.'
-        elif not self._terminator._prev_action: 
+        elif not self._terminator._prev_action:
             # We did not actually take any terminating action
-            # This happens, because if the kernel is killed from outside, 
-            # _onKernelConnectionClose() triggers a terminate sequence 
+            # This happens, because if the kernel is killed from outside,
+            # _onKernelConnectionClose() triggers a terminate sequence
             # (but with a delay).
             # Note the "The" to be able to distinguish this case
-            msg = 'The kernel process exited.' 
+            msg = 'The kernel process exited.'
         else:
             msg = self._terminator.getMessage('Kernel process')
         
@@ -528,7 +528,7 @@ class KernelBroker:
             hasClients = self._context.connection_count > int(hasKernelConnection)
         
         
-        # Should we clean the whole thing up? 
+        # Should we clean the whole thing up?
         if not (hasProcess or hasClients):
             self._reset(True) # Also unregisters this timer callback
             return
@@ -584,7 +584,7 @@ class KernelBroker:
     
     def _commandTerminate(self):
         # Start termination procedure
-        # Kernel will receive term and act (if it can). 
+        # Kernel will receive term and act (if it can).
         # If it wont, we will act in a second or so.
         if self._process is None:
             self._strm_broker.send('Cannot terminate: process is dead.\n')
@@ -592,7 +592,7 @@ class KernelBroker:
             # The user gave kill command while the kill process
             # is running. We could do an immediate kill now,
             # or we let the terminate process run its course.
-            pass 
+            pass
         else:
             self.terminate('by user')
 
@@ -621,7 +621,7 @@ class KernelBroker:
 class KernelTerminator:
     """ KernelTerminator(broker, reason='user terminated', action='TERM', timeout=0.0)
     
-    Simple class to help terminating the kernel. It has a next() method 
+    Simple class to help terminating the kernel. It has a next() method
     that should be periodically called. It keeps track whether the timeout
     has passed and will undertake increaslingly ruder actions to terminate
     the kernel.
@@ -635,7 +635,7 @@ class KernelTerminator:
         self._next_action = ''
         
         # Go
-        self._do(action, timeout)    
+        self._do(action, timeout)
     
     
     def _do(self, action, timeout):
@@ -643,7 +643,7 @@ class KernelTerminator:
         self._next_action = action
         self._timeout = time.time() + timeout
         if not timeout:
-            self.next() 
+            self.next()
     
     
     def next(self):
@@ -690,12 +690,9 @@ class KernelTerminator:
     
     
     def getMessage(self, what):
-        # Get last performed action 
-        action = self._prev_action
-        
         # Get nice string of that
         D = {   '':     'exited',
-                'TERM': 'terminated', 
+                'TERM': 'terminated',
                 'INT':  'terminated (after interrupting)',
                 'KILL': 'killed'}
         actionMsg = D.get(self._prev_action, 'stopped for unknown reason')
@@ -739,19 +736,19 @@ class StreamReader(threading.Thread):
                 pass # Channel is closed
             # Process dead?
             if not msg:# or self._process.poll() is not None:
-                break            
+                break
         #self._strm_broker.send('streamreader exit\n')
     
 
 class Kernelmanager:
     """ Kernelmanager
     
-    This class manages a set of kernels. These kernels run on the 
+    This class manages a set of kernels. These kernels run on the
     same machine as this broker. IDE's can ask which kernels are available
     and can connect to them via this broker.
     
-    The Pyzo process runs an instance of this class that connects at 
-    localhost. At a later stage, we may make it possible to create 
+    The Pyzo process runs an instance of this class that connects at
+    localhost. At a later stage, we may make it possible to create
     a kernel-server at a remote machine.
     
     """
@@ -769,7 +766,7 @@ class Kernelmanager:
         """ create_kernel(info, name=None)
         
         Create a new kernel. Returns the port number to connect to the
-        broker's context. 
+        broker's context.
         
         """
         
@@ -809,7 +806,7 @@ class Kernelmanager:
     def terminateAll(self):
         """ terminateAll()
         
-        Terminates all kernels. Required when shutting down Pyzo. 
+        Terminates all kernels. Required when shutting down Pyzo.
         When this function returns, all kernels will be terminated.
         
         """
@@ -819,7 +816,7 @@ class Kernelmanager:
             terminator = KernelTerminator(kernel, 'for closing down')
             
             # Terminate
-            while (kernel._kernelCon and kernel._kernelCon.is_connected and 
+            while (kernel._kernelCon and kernel._kernelCon.is_connected and
                     kernel._process and (kernel._process.poll() is None) ):
                 time.sleep(0.02)
                 terminator.next()

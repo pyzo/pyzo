@@ -18,7 +18,7 @@ ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
 
 from ..style import StyleFormat, StyleElementDescription
-from ..misc import ustr, bstr
+from ..misc import ustr
 
 
 class Token(object):
@@ -32,7 +32,7 @@ class Token(object):
     Each token class should have a docstring describing the meaning
     of the characters it is applied to.
     
-    """ 
+    """
     defaultStyle = 'fore:#000, bold:no, underline:no, italic:no'
     isToken = True # For the BlockState object, which is also returned by the parsers, this is False
     def __init__(self, line='', start=0, end=0):
@@ -116,11 +116,11 @@ class UnterminatedStringToken(StringToken):
 # todo: request from user: whitespace token
 
 class TextToken(Token):
-    """ Anything that is not a string or comment. """ 
+    """ Anything that is not a string or comment. """
     defaultStyle = 'fore:#000'
 
 class IdentifierToken(TextToken):
-    """ Characters representing normal text (i.e. words). """ 
+    """ Characters representing normal text (i.e. words). """
     defaultStyle = ''
 
 class NonIdentifierToken(TextToken):

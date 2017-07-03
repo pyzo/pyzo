@@ -12,10 +12,8 @@ History class, which is a Qt model, and the PyzoHistoryViewer, which is a Qt vie
 
 """
 
-import sys, os, time, re
-
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import translate
 from pyzo.core.menu import Menu
 
@@ -28,7 +26,7 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
     """
     The history viewer has several ways of using the data stored in the history:
      - double click a single item to execute in the current shell
-     - drag and drop one or multiple selected lines into the editor or any 
+     - drag and drop one or multiple selected lines into the editor or any
        other widget or application accepting plain text
      - copy selected items using the copy item in the pyzo edit menu
      - copy selected items using the context menu

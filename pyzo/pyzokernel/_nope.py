@@ -49,7 +49,7 @@ NSActivityLatencyCritical                      = 0xFF00000000
 def beginActivityWithOptions(options, reason=""):
     """Wrapper for:
     
-    [ [ NSProcessInfo processInfo] 
+    [ [ NSProcessInfo processInfo]
         beginActivityWithOptions: (uint64)options
                           reason: (str)reason
     ]

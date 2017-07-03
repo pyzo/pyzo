@@ -11,13 +11,13 @@ Defined ustr (Unicode string) class and the option property decorator.
 """
 
 import sys
-from .qt import QtGui, QtCore, QtWidgets
+from .qt import QtGui, QtCore, QtWidgets  # noqa
 
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
 if PYTHON_VERSION < 3:
-    ustr = unicode
+    ustr = unicode  # noqa
     bstr = str
     from Queue import Queue, Empty
 else:
@@ -31,13 +31,13 @@ DEFAULT_OPTION_NAME = '_ce_default_value'
 DEFAULT_OPTION_NONE = '_+_just some absurd value_+_'
 
 def ce_option(arg1):
-    """ Decorator for properties of the code editor. 
+    """ Decorator for properties of the code editor.
     
     It should be used on the setter function, with its default value
     as an argument. The default value is then  stored on the function
-    object. 
+    object.
     
-    At the end of the initialization, the base codeeditor class will 
+    At the end of the initialization, the base codeeditor class will
     check all members and (by using the default-value-attribute as a
     flag) select the ones that are options. These are then set to
     their default values.
@@ -66,7 +66,7 @@ def ce_option(arg1):
     
 
 class _CallbackEventHandler(QtCore.QObject):
-    """ Helper class to provide the callLater function. 
+    """ Helper class to provide the callLater function.
     """
     
     def __init__(self):
@@ -92,10 +92,10 @@ class _CallbackEventHandler(QtCore.QObject):
 def callLater(callback, *args):
     """ callLater(callback, *args)
     
-    Post a callback to be called in the main thread. 
+    Post a callback to be called in the main thread.
     
     """
     _callbackEventHandler.postEventWithCallback(callback, *args)
     
 # Create callback event handler instance and insert function in Pyzo namespace
-_callbackEventHandler = _CallbackEventHandler()   
+_callbackEventHandler = _CallbackEventHandler()

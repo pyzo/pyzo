@@ -4,9 +4,8 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-import os, sys, time
+import sys
 import yoton
-import inspect
 
 try:
     import thread # Python 2
@@ -15,14 +14,14 @@ except ImportError:
 
 
 class PyzoIntrospector(yoton.RepChannel):
-    """ This is a RepChannel object that runs a thread to respond to 
+    """ This is a RepChannel object that runs a thread to respond to
     requests from the IDE.
     """
     
     def _getNameSpace(self, name=''):
         """ _getNameSpace(name='')
         
-        Get the namespace to apply introspection in. 
+        Get the namespace to apply introspection in.
         If name is given, will find that name. For example sys.stdin.
         
         """
@@ -80,7 +79,7 @@ class PyzoIntrospector(yoton.RepChannel):
         """
         
         # if a class, get init
-        # not if an instance! -> try __call__ instead        
+        # not if an instance! -> try __call__ instead
         # what about self?
         
         # Get valid object names
@@ -126,7 +125,7 @@ class PyzoIntrospector(yoton.RepChannel):
             if sigs:
                 kind = 'builtin'
             else:
-                kind = ''            
+                kind = ''
         
         elif fun2 or fun3 or fun4 or fun5:
             
@@ -147,7 +146,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 args, varargs, varkw, defaults = tmp
                 
                 # prepare defaults
-                if defaults == None:
+                if defaults is None:
                     defaults = ()
                 defaults = list(defaults)
                 defaults.reverse()
@@ -198,7 +197,7 @@ class PyzoIntrospector(yoton.RepChannel):
         try:
             command = "dir(%s.__class__)" % (objectName)
             d = eval(command, {}, NS)
-        except Exception:            
+        except Exception:
             pass
         else:
             names.update(d)
@@ -207,7 +206,7 @@ class PyzoIntrospector(yoton.RepChannel):
         try:
             command = "%s.__dict__.keys()" % (objectName)
             d = eval(command, {}, NS)
-        except Exception:            
+        except Exception:
             pass
         else:
             names.update(d)
@@ -217,7 +216,7 @@ class PyzoIntrospector(yoton.RepChannel):
         try:
             command = "dir(%s)" % (objectName)
             d = eval(command, {}, NS)
-        except Exception:            
+        except Exception:
             pass
         else:
             names.update(d)
@@ -233,7 +232,7 @@ class PyzoIntrospector(yoton.RepChannel):
         Returns a list with strings, which each contain a (comma separated)
         list of elements: name, type, kind, repr.
         
-        """ 
+        """
         try:
             name = ''
             names = ['','']
@@ -334,7 +333,7 @@ class PyzoIntrospector(yoton.RepChannel):
             if not h_text:
                 h_text = eval("%s.__doc__"%(objectName), {}, NS )
             
-            # collect more data            
+            # collect more data
             h_repr = eval("repr(%s)"%(objectName), {}, NS )
             try:
                 h_class = eval("%s.__class__.__name__"%(objectName), {}, NS )
@@ -352,7 +351,7 @@ class PyzoIntrospector(yoton.RepChannel):
             
             # cut repr if too long
             if len(h_repr) > 200:
-                h_repr = h_repr[:200] + "..."                
+                h_repr = h_repr[:200] + "..."
             # replace newlines so we can separates the different parts
             h_repr = h_repr.replace('\n', '\r')
             
@@ -364,7 +363,7 @@ class PyzoIntrospector(yoton.RepChannel):
         
         # The lines below can be uncomented for debugging, but they don't
         # work on python < 2.6.
-#         except Exception as why:            
+#         except Exception as why:
 #            text = "No help available." + str(why)
         
         # Done
@@ -374,7 +373,7 @@ class PyzoIntrospector(yoton.RepChannel):
     def eval(self, command):
         """ eval(command)
         
-        Evaluate a command and return result. 
+        Evaluate a command and return result.
         
         """
         
@@ -384,7 +383,7 @@ class PyzoIntrospector(yoton.RepChannel):
         try:
             # here globals is None, so we can look into sys, time, etc...
             return eval(command, None, NS)
-        except Exception:            
+        except Exception:
             return 'Error evaluating: ' + command
     
     

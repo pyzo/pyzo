@@ -41,8 +41,8 @@ class Browser(QtWidgets.QWidget):
         
         # Create name filter
         self._nameFilter = NameFilter(self)
-        #self._nameFilter.lineEdit().setToolTip('File filter pattern')  
-        self._nameFilter.setToolTip(translate('filebrowser', 'Filename filter'))  
+        #self._nameFilter.lineEdit().setToolTip('File filter pattern')
+        self._nameFilter.setToolTip(translate('filebrowser', 'Filename filter'))
         self._nameFilter.setPlaceholderText(self._nameFilter.toolTip())
         
         # Create search filter
@@ -50,7 +50,7 @@ class Browser(QtWidgets.QWidget):
         self._searchFilter.setToolTip(translate('filebrowser', 'Search in files'))
         self._searchFilter.setPlaceholderText(self._searchFilter.toolTip())
         
-        # Signals to sync path. 
+        # Signals to sync path.
         # Widgets that can change the path transmit signal to _tree
         self._pathEdit.dirUp.connect(self._tree.setFocus)
         self._pathEdit.dirUp.connect(self._tree.setPathUp)
@@ -86,7 +86,7 @@ class Browser(QtWidgets.QWidget):
         layout.setContentsMargins(0,0,0,0)
         #layout.setSpacing(6)
         self.setLayout(layout)
-        #        
+        #
         layout.addWidget(self._projects)
         layout.addWidget(self._pathEdit)
         layout.addWidget(self._tree)
@@ -115,7 +115,7 @@ class Browser(QtWidgets.QWidget):
     
     @property
     def expandedDirs(self):
-        """ The list of the expanded directories. 
+        """ The list of the expanded directories.
         """
         return self.parent().config.expandedDirs
     
@@ -205,7 +205,7 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         # Customize appearance
         button.setIcon(icon)
         button.setIconSize(QtCore.QSize(16,16))
-        button.setStyleSheet("QToolButton { border: none; padding: 0px; }")        
+        button.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         #button.setStyleSheet("QToolButton { border: none; padding: 0px; background-color:red;}");
         # Set behavior
         button.setCursor(QtCore.Qt.ArrowCursor)
@@ -259,12 +259,12 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
                 sz = but.sizeHint()
                 paddingRight += sz.width() + 1
                 height = max(height, sz.height())
-                but.move(   rect.right()-1-paddingRight, 
+                but.move(   rect.right()-1-paddingRight,
                             (rect.bottom() + 1 - sz.height())/2 )
         
         # Set padding
         ss = "QLineEdit { padding-left: %ipx; padding-right: %ipx} "
-        self.setStyleSheet( ss % (paddingLeft, paddingRight) );
+        self.setStyleSheet( ss % (paddingLeft, paddingRight) )
         
         # Set minimum size
         if not light:
@@ -349,7 +349,7 @@ class PathInput(LineEditWithToolButtons):
     
     def onTextEdited(self, dummy=None):
         text = self.text()
-        if self.checkValid():            
+        if self.checkValid():
             self.dirChanged.emit(cleanpath(text))
     
     
@@ -383,7 +383,7 @@ class Projects(QtWidgets.QWidget):
         # Create star button
         self._but = QtWidgets.QToolButton(self)
         self._but.setIcon( pyzo.icons.star3 )
-        self._but.setStyleSheet("QToolButton { padding: 0px; }");
+        self._but.setStyleSheet("QToolButton { padding: 0px; }")
         self._but.setIconSize(QtCore.QSize(18,18))
         self._but.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self._but.setPopupMode(self._but.InstantPopup)
@@ -402,7 +402,7 @@ class Projects(QtWidgets.QWidget):
         
         # Layout
         layout = QtWidgets.QHBoxLayout(self)
-        self.setLayout(layout)        
+        self.setLayout(layout)
         layout.addWidget(self._but)
         layout.addWidget(self._combo)
         layout.setSpacing(2)
@@ -411,7 +411,7 @@ class Projects(QtWidgets.QWidget):
     
     def currentDict(self):
         """ Return the current project-dict, or None.
-        """ 
+        """
         path = self._combo.itemData(self._combo.currentIndex())
         return self.parent().dictForStarredDir(path)
     
@@ -494,7 +494,7 @@ class Projects(QtWidgets.QWidget):
         
         elif action._id == 'name':
             # Open dialog to ask for name
-            name = QtWidgets.QInputDialog.getText(self.parent(), 
+            name = QtWidgets.QInputDialog.getText(self.parent(),
                                 translate('filebrowser', 'Project name'),
                                 translate('filebrowser', 'New project name:'),
                                 text=d['name'],
@@ -555,7 +555,7 @@ class NameFilter(LineEditWithToolButtons):
         #
         # Add common patterns
         for pattern in ['*', '!hidden', '!*.pyc !hidden',
-                        '*.py *.pyw', '*.py *.pyw *.pyx *.pxd', 
+                        '*.py *.pyw', '*.py *.pyw *.pyx *.pxd',
                         '*.h *.c *.cpp']:
             self._menu.addAction(pattern)
         
@@ -564,7 +564,7 @@ class NameFilter(LineEditWithToolButtons):
         self.returnPressed.connect(self.checkFilterValue)
         self.editingFinished.connect(self.checkFilterValue)
         
-        # Ensure the namefilter is in the config and initialize 
+        # Ensure the namefilter is in the config and initialize
         config = self.parent().config
         if 'nameFilter' not in config:
             config.nameFilter = '!*.pyc'
@@ -572,7 +572,7 @@ class NameFilter(LineEditWithToolButtons):
     
     def setText(self, value, test=False):
         """ To initialize the name filter.
-        """ 
+        """
         QtWidgets.QLineEdit.setText(self, value)
         if test:
             self.checkFilterValue()
@@ -592,7 +592,7 @@ class NameFilter(LineEditWithToolButtons):
 
 class SearchFilter(LineEditWithToolButtons):
     """ Line edit to do a search in the files.
-    """ 
+    """
     
     filterChanged = QtCore.Signal()
     
@@ -611,11 +611,11 @@ class SearchFilter(LineEditWithToolButtons):
         self._cancelBut.setVisible(False)
         
         # Keep track of last value of search (initialized empty)
-        self._lastValue = '' 
+        self._lastValue = ''
         
         # Connect signals
         self._cancelBut.pressed.connect(self.onCancelPressed)
-        self.textChanged.connect(self.updateCancelButton)        
+        self.textChanged.connect(self.updateCancelButton)
         self.editingFinished.connect(self.checkFilterValue)
         self.returnPressed.connect(self.forceFilterChanged)
     
@@ -635,7 +635,7 @@ class SearchFilter(LineEditWithToolButtons):
             self.filterChanged.emit()
     
     def forceFilterChanged(self):
-        self._lastValue = value = self.text()
+        self._lastValue = self.text()
         self.filterChanged.emit()
     
     def updateCancelButton(self, text):

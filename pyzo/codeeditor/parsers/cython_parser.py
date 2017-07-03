@@ -4,21 +4,8 @@
 # Pyzo is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-import re
-from . import tokens, Parser, BlockState
-from .tokens import ALPHANUM
-
-
 # Import tokens in module namespace
-from .tokens import (CommentToken, StringToken, 
-    UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
-    KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
-    TodoCommentToken)
-
-from .python_parser import (  PythonParser,
-                                                MultilineStringToken,
-                                                CellCommentToken,
-                                                pythonKeywords)
+from .python_parser import PythonParser, pythonKeywords
 
 # Set keywords
 cythonExtraKeywords = set(['cdef', 'cpdef', 'ctypedef', 'cimport',
@@ -52,7 +39,7 @@ class CythonParser(PythonParser):
                 if self._idsCounter>0:
                     state = self._idsState
             except Exception:
-                pass            
+                pass
             self._idsState = 0
             self._idsCounter = 0
             return state

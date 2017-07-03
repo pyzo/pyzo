@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # This example defines a message type and sends such a message over pub/sub.
-# This example can be run in one go or in two parts running in 
+# This example can be run in one go or in two parts running in
 # different processes.
 
 
@@ -17,7 +17,7 @@ class NumberMessageType(yoton.MessageType):
     def message_to_bytes(self, number):
         return str(number).encode('utf-8')
     def message_type_name(self):
-       return 'num'
+        return 'num'
 
 # Create context, a channel, and connect
 ct1 = yoton.Context(verbose=verbosity)
@@ -40,7 +40,7 @@ class NumberMessageType(yoton.MessageType):
     def message_to_bytes(self, number):
         return str(number).encode('utf-8')
     def message_type_name(self):
-       return 'num'
+        return 'num'
 
 # Create a context, a channel, and connect
 ct2 = yoton.Context(verbose=verbosity)

@@ -35,7 +35,7 @@ elif PYQT4:
                              QItemSelectionRange, QSortFilterProxyModel,
                              QStringListModel)
     from PyQt4.QtCore import QT_VERSION_STR as __version__
-    
+
     # Those are imported from `import *`
     del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
 elif PYSIDE:

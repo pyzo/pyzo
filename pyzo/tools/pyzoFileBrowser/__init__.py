@@ -19,7 +19,7 @@ Config
 
 The config consists of three fields:
 
-  * list expandedDirs, with each element a directory 
+  * list expandedDirs, with each element a directory
   * list starredDirs, with each element a dict with fields:
       * str path, the directory that is starred
       * str name, the name of the project (op.basename(path) by default)
@@ -34,17 +34,16 @@ The config consists of three fields:
   * see easily which files are opened (so it can be used as a secondary tab bar)
   * make visible the "current file" (if applicable)
   * single click on an file that is open selects it in the editor?
-  * context menu items to run scripts  
+  * context menu items to run scripts
   * Support for multiple browsers.
   
 """
 
-import sys
 import os.path as op
 
 import pyzo
 from pyzo.util import zon as ssdf
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 from .browser import Browser
 from .utils import cleanpath, isdir
@@ -74,8 +73,8 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         if 'path' not in self.config or not isdir(self.config.path):
             self.config.path = op.expanduser('~')
         
-        # Check expandedDirs and starredDirs. 
-        # Make path objects and remove invalid dirs. Also normalize case, 
+        # Check expandedDirs and starredDirs.
+        # Make path objects and remove invalid dirs. Also normalize case,
         # should not be necessary, but maybe the config was manually edited.
         expandedDirs, starredDirs = [], []
         for d in self.config.starredDirs:
@@ -104,6 +103,20 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         layout.addWidget(self._browsers[0])
         layout.setSpacing(0)
         layout.setContentsMargins(4,4,4,4)
+    
+    
+    def path(self):
+        """ Get the current path shown by the file browser.
+        """
+        browser = self._browsers[0]
+        return browser._tree.path()
+    
+    
+    def setPath(self, path):
+        """ Set the shown path.
+        """
+        browser = self._browsers[0]
+        browser._tree.setPath(path)
     
     
     def getAddToPythonPath(self):
