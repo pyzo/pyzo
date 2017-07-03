@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="nl_NL" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="nl_NL">
 <context>
     <name>debug</name>
     <message>
@@ -934,57 +935,57 @@
     <message>
         <location filename="../../core/menu.py" line="655"/>
         <source>Duplicate line ::: Duplicate the selected line(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Dupliceer regel ::: Dupliceer de geselecteerde regel(s)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="657"/>
         <source>Delete line ::: Delete the selected line(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Verwijder regel ::: Verwijder de huidige regel(s)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="759"/>
         <source>default</source>
-        <translation type="unfinished"></translation>
+        <translation>standaard</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1143"/>
         <source>Open current directory in file browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Open huidige directory in de file browser</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1145"/>
         <source>Change current directory to the file browser&apos;s path</source>
-        <translation type="unfinished"></translation>
+        <translation>Verander huidige directoru naar huidige pad in file browser</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1275"/>
         <source>Open directory in file browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Open directory in file browser</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1393"/>
         <source>No shell to run code in.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen shell om code in uit te voeren</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1403"/>
         <source>No editor selected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen editor geselecteerd</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1817"/>
         <source>
         More settings are available via the logger-tool:
-        <byte value="xd"/><byte value="xd"/>
+        
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1045,7 +1046,8 @@
         The language has been changed.
         Pyzo needs to restart for the change to take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>De taal is aangepast
+Herstart Pyzo om de verandering door te voeren.</translation>
     </message>
 </context>
 <context>
@@ -1197,7 +1199,7 @@
     <message>
         <location filename="../../core/splash.py" line="68"/>
         <source>This is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;the Python IDE for scientific computing</source>
-        <translation type="unfinished">Dit is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;de Python omgeving voor wetenschappelijk coderen</translation>
+        <translation>Dit is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;de Python omgeving voor wetenschappelijk coderen</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="69"/>
@@ -1419,7 +1421,7 @@ op de online wiki.voor meer informatie.</translation>
         <source>The right mouse button also enables one to make a file the
         *main file* of a project. This file can be recognized by its star
         symbol, and it enables running the file more easily.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="318"/>
@@ -1427,7 +1429,7 @@ op de online wiki.voor meer informatie.</translation>
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="338"/>
@@ -1435,13 +1437,13 @@ op de online wiki.voor meer informatie.</translation>
         When run as script, the shell is restared to provide a clean
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="346"/>
         <source>In script mode, __file__ and sys.argv[0] are set to the scripts filename,
         sys.path[0] and the working dir are set to the directory containing the script.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 </TS>
