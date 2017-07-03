@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -934,57 +935,69 @@
     <message>
         <location filename="../../core/menu.py" line="655"/>
         <source>Duplicate line ::: Duplicate the selected line(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Dupliquer la/les ligne(s) ::: Dupliquer la/les ligne(s) sélectionnée(s).</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="657"/>
         <source>Delete line ::: Delete the selected line(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Effacer la/les ligne(s) ::: Effacer la/les ligne(s) sélectionnée(s).</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="759"/>
         <source>default</source>
-        <translation type="unfinished"></translation>
+        <translation>Défaut</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1143"/>
         <source>Open current directory in file browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouvrir le répertoire courant dans le gestionnaire de fichiers</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1145"/>
         <source>Change current directory to the file browser&apos;s path</source>
-        <translation type="unfinished"></translation>
+        <translation>Aller dans le répertoire sélectionné dans le gestionnaire de fichiers</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1275"/>
         <source>Open directory in file browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouvrir le répertoire dans le gestionnaire de fichiers</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1393"/>
         <source>No shell to run code in.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucun shell dans lequel exécuter le code.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1403"/>
         <source>No editor selected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucun éditeur sélectionné.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1817"/>
         <source>
         More settings are available via the logger-tool:
-        <byte value="xd"/><byte value="xd"/>
+        
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>
+        Des paramètres supplémentaires son accessibles au travers de l&apos;outil logger :
+        
+
+        - Les paramètres avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
+          Entrez &quot;print(pyzo.config.advanced)&quot; pour voir tous les paramètres avancés.
+        - Exécutez &quot;pyzo.resetConfig()&quot; pour remettre les paramètres à leur valeur par défaut.
+        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour remettre les paramètres et l&apos;état à leur 
+          valeur par défaut.
+
+        Notez que la plupart des réglages de paramètres nécessitent un redémarrage pour
+        prendre effet.
+        </translation>
     </message>
 </context>
 <context>
@@ -1045,7 +1058,10 @@
         The language has been changed.
         Pyzo needs to restart for the change to take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>
+        Le langage a été modifié.
+        Pyzo doit être redémarré pour que les modifications prennent effet.
+        </translation>
     </message>
 </context>
 <context>
@@ -1437,7 +1453,9 @@ avec par exemple Visvis ou Matplotlib.</translation>
         <source>The right mouse button also enables one to make a file the
         *main file* of a project. This file can be recognized by its star
         symbol, and it enables running the file more easily.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le bouton droit de la souris permet de choisir un fichier comme
+        *fichier principal* (*main file*) dans un projet. Ce fichier est repéré par le 
+        symbole étoile, et il permet de lancer l&apos;exécution du projet plus facilement.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="318"/>
@@ -1445,7 +1463,10 @@ avec par exemple Visvis ou Matplotlib.</translation>
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
-        <translation type="unfinished"></translation>
+        <translation>*Exécuter la sélection:* s&apos;il n&apos;y a pas de texte sélectionné, la ligne courante
+        est exécutée ; si la sélection appartient à une seule ligne, la sélection seule
+        est évaluée ; si la sélection s&apos;étend sur plusieurs lignes, Pyzo exécutera
+        la totalité des lignes sélectionnées.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="338"/>
@@ -1453,13 +1474,17 @@ avec par exemple Visvis ou Matplotlib.</translation>
         When run as script, the shell is restared to provide a clean
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vous pouvez exécuter le fichier courant ou le fichier principal normalement, ou en tant que script.
+        Si vous exécutez un fichier en tant que script, le shell redémarre et l&apos;environnement est 
+        vierge. Le shell est aussi initialisé d&apos;une manière différente de manière à se comporter comme
+        dans le cas d&apos;une exécution normale de script Python.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="346"/>
         <source>In script mode, __file__ and sys.argv[0] are set to the scripts filename,
         sys.path[0] and the working dir are set to the directory containing the script.</source>
-        <translation type="unfinished"></translation>
+        <translation>Dans le mode script, __file__ et sys.argv[0] contiennent le nom du fichier,
+        sys.path[0] et le répertoire de travail seront réglés au nom du répertoire contenant le script.</translation>
     </message>
 </context>
 </TS>
