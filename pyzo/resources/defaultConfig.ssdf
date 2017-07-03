@@ -54,6 +54,7 @@ settings= dict:
     autoComplete_acceptKeys = 'Tab'
     justificationWidth = 70
     removeTrailingWhitespaceWhenSaving = 0
+    changeDirOnFileExec = 0
 
 advanced = dict:
     shellMaxLines = 10000

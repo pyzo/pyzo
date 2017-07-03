@@ -1368,10 +1368,15 @@ class RunMenu(Menu):
         
         self.addSeparator()
         
+        self.addCheckItem(translate("menu", 'Change directory when executing file ::: like Run File As Script does'),
+                          None, self._cdonfileexec, None, pyzo.config.settings.changeDirOnFileExec)
         self.addItem(translate("menu", 'Help on running code ::: Open the pyzo wizard at the page about running code.'),
             icons.information, self._showHelp)
     
     
+    def _cdonfileexec(self, value):
+        pyzo.config.settings.changeDirOnFileExec = bool(value)
+        
     def _showHelp(self):
         """ Show more information about ways to run code. """
         from pyzo.util.pyzowizard import PyzoWizard
@@ -1575,7 +1580,7 @@ class RunMenu(Menu):
         else:
             # Obtain source code and fname
             fname, text = self._getCodeOfFile(editor)
-            shell.executeCode(text, fname)
+            shell.executeCode(text, fname, changeDir=pyzo.config.settings.changeDirOnFileExec)
     
     def _runScript(self, editor, shell):
         # Obtain fname and try running
