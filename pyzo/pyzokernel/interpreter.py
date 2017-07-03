@@ -780,7 +780,6 @@ class PyzoInterpreter:
         source += '\n'
         
         # Change directory?
-        print(msg.get('changeDir', False), 'asd')
         if msg.get('changeDir', False) and os.path.isfile(fname):
             d = os.path.normpath(os.path.normcase(os.path.dirname(fname)))
             if d != os.getcwd():
