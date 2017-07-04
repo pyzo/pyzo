@@ -1142,6 +1142,8 @@ class ShellContextMenu(ShellMenu):
             None, self._editItemCallback, "opendir")
         self.addItem(translate("menu", "Change current directory to the file browser's path"),
             None, self._editItemCallback, "changedir")
+        self.addItem(translate("menu", "Change current directory to editor file path"),
+            None, self._editItemCallback, "changedirtoeditor")
         
     def getShell(self):
         """ Shell actions of this menu operate on the shell specified in the constructor """
@@ -1158,6 +1160,21 @@ class ShellContextMenu(ShellMenu):
             fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
             if fileBrowser:
                 self._shell.executeCommand('cd ' + fileBrowser.path() + '\n')
+        elif action == 'changedirtoeditor':
+            msg = ''
+            editor = pyzo.editors.getCurrentEditor()
+            if editor is None:
+                msg += translate("menu", "No editor selected.")
+            # Show error dialog
+            if msg:
+                m = QtWidgets.QMessageBox(self)
+                m.setWindowTitle(translate("menu dialog", "Could not change dir"))
+                m.setText(translate("menu", "Could not  change dir" + ":\n\n" + msg))
+                m.setIcon(m.Warning)
+                m.exec_()
+            else:
+                self._shell.executeCommand('cd ' + os.path.dirname(editor.filename) + '\n')
+                
         else:
             getattr(self._shell, action)()
     
@@ -1589,7 +1606,14 @@ class RunMenu(Menu):
             saveOk = pyzo.editors.saveFile(editor) # Always try to save
             if saveOk or not editor.document().isModified():
                 self._showWhatToExecute(editor)
-                shell.restart(editor._filename)
+                if shell._startup_info['ipython'] == 'yes':
+                    # If we have a ipython shell we use %run -i instead
+                    # This works better when python autoreload is used
+                    d = os.path.normpath(os.path.normcase(os.path.dirname(editor._filename)))
+                    shell._ctrl_command.send('%%cd %s' % d)
+                    shell._ctrl_command.send('%%run -i %s\n' % editor._filename)                
+                else:
+                    shell.restart(editor._filename)
             else:
                 err = translate("menu", "Could not save the file.")
         else:
