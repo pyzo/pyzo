@@ -167,7 +167,10 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Create floater for shell
         self._shellDock = dock = QtWidgets.QDockWidget(self)
-        dock.setFeatures(dock.DockWidgetMovable|dock.DockWidgetFloatable)
+        if pyzo.config.settings.allowFloatingShell:
+            dock.setFeatures(dock.DockWidgetMovable | dock.DockWidgetFloatable)
+        else:
+            dock.setFeatures(dock.DockWidgetMovable)
         dock.setObjectName('shells')
         dock.setWindowTitle('Shells')
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)

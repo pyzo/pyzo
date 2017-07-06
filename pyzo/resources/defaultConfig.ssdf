@@ -55,6 +55,7 @@ settings= dict:
     justificationWidth = 70
     removeTrailingWhitespaceWhenSaving = 0
     changeDirOnFileExec = 0
+    allowFloatingShell = 0
 
 advanced = dict:
     shellMaxLines = 10000
