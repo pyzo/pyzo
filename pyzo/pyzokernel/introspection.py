@@ -6,6 +6,8 @@
 
 import sys
 import yoton
+import inspect  # noqa - used in eval()
+
 
 try:
     import thread # Python 2
@@ -359,13 +361,10 @@ class PyzoIntrospector(yoton.RepChannel):
             text = '\n'.join([objectName, h_class, h_fun, h_repr, h_text])
             
         except Exception:
-            text = '\n'.join([objectName, '', '', '', 'No help available.'])
-        
-        # The lines below can be uncomented for debugging, but they don't
-        # work on python < 2.6.
-#         except Exception as why:
-#            text = "No help available." + str(why)
-        
+            type, value, tb = sys.exc_info()
+            del tb
+            text = '\n'.join([objectName, '', '', '', 'No help available. ', str(value)])
+
         # Done
         return text
     
