@@ -1128,9 +1128,12 @@ class PyzoInterpreter:
             frames = None
         
         except Exception:
-            self.write('An error occured, but could not write traceback.\n')
+            type, value, tb = sys.exc_info()
             tb = None
             frames = None
+            t = 'An error occured, but then another one when trying to write the traceback: '
+            t += str(value) + '\n'
+            self.write(t)
     
     
     def correctfilenameandlineno(self, fname, lineno):
@@ -1174,7 +1177,10 @@ class ExecutedSourceCollection:
                 return [line+'\n' for line in src.splitlines()]
             else:
                 import linecache
-                return linecache._getlines(filename, module_globals)
+                if module_globals is None:
+                    return linecache._getlines(filename)  # only valid sig in 2.4
+                else:
+                    return linecache._getlines(filename, module_globals)
         
         # Monkey patch
         import linecache
