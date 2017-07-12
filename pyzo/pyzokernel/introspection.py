@@ -122,16 +122,11 @@ class PyzoIntrospector(yoton.RepChannel):
             if (not hasSig) or (sigs.count("(") != sigs.count(")")):
                 sigs = ""
         
-        if fun1:
-            # We only have docstring, because we cannot introspect
-            if sigs:
-                kind = 'builtin'
-            else:
-                kind = ''
-        
-        elif fun2 or fun3 or fun4 or fun5:
+        if fun1 or fun2 or fun3 or fun4 or fun5:
             
-            if fun2:
+            if fun1:
+                kind = 'builtin'
+            elif fun2:
                 kind = 'function'
             elif fun3:
                 kind = 'method'
@@ -144,31 +139,37 @@ class PyzoIntrospector(yoton.RepChannel):
                 # Use intospection
                 
                 # collect
-                tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
-                args, varargs, varkw, defaults = tmp
+                try:
+                    tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
+                except Exception:  # the above fails on 2.4 (+?) for builtins
+                    tmp = None
+                    kind = ''
                 
-                # prepare defaults
-                if defaults is None:
-                    defaults = ()
-                defaults = list(defaults)
-                defaults.reverse()
-                # make list (back to forth)
-                args2 = []
-                for i in range(len(args)-fun4):
-                    arg = args.pop()
-                    if i < len(defaults):
-                        args2.insert(0, "%s=%s" % (arg, defaults[i]) )
-                    else:
-                        args2.insert(0, arg )
-                # append varargs and kwargs
-                if varargs:
-                    args2.append( "*"+varargs )
-                if varkw:
-                    args2.append( "**"+varkw )
-                
-                # append the lot to our  string
-                funname = objectName.split('.')[-1]
-                sigs = "%s(%s)" % ( funname, ", ".join(args2) )
+                if tmp is not None:
+                    args, varargs, varkw, defaults = tmp
+                    
+                    # prepare defaults
+                    if defaults is None:
+                        defaults = ()
+                    defaults = list(defaults)
+                    defaults.reverse()
+                    # make list (back to forth)
+                    args2 = []
+                    for i in range(len(args)-fun4):
+                        arg = args.pop()
+                        if i < len(defaults):
+                            args2.insert(0, "%s=%s" % (arg, defaults[i]) )
+                        else:
+                            args2.insert(0, arg )
+                    # append varargs and kwargs
+                    if varargs:
+                        args2.append( "*"+varargs )
+                    if varkw:
+                        args2.append( "**"+varkw )
+                    
+                    # append the lot to our  string
+                    funname = objectName.split('.')[-1]
+                    sigs = "%s(%s)" % ( funname, ", ".join(args2) )
         
         elif sigs:
             kind = "function"
