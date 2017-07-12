@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-# Copyright (C) 2013 Almar Klein
+# Copyright (C) 2013, the Pyzo development team
 #
 # Yoton is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
