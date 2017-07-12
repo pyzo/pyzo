@@ -472,8 +472,13 @@ class Magician:
         # Add channels when using install, this gets added last, so
         # that user-specified channels take preference
         channel_list = []
-        if args[0] == 'install':
+        if args and args[0] == 'install':
             channel_list = ['-c', 'conda-forge', '-c', 'pyzo']
+        
+        def write_no_dots(x):
+            if x.strip() == '.':  # note, no "x if y else z" in Python 2.4
+                return 0
+            return stderr_write(x)
         
         # Go!
         # Weird double-try, to make work on Python 2.4
@@ -482,7 +487,7 @@ class Magician:
         try:
             try:
                 # older version of conda would spew dots to stderr during downloading
-                sys.stderr.write = lambda x: stderr_write(x) if x != '.' else 0
+                sys.stderr.write = write_no_dots
                 import conda  # noqa
                 from conda.cli import main
                 sys.argv = ['conda'] + list(args) + channel_list
