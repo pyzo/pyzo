@@ -278,7 +278,7 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../../core/main.py" line="221"/>
+        <location filename="../../core/main.py" line="224"/>
         <source>unsaved</source>
         <translation type="unfinished"></translation>
     </message>
@@ -372,12 +372,12 @@
         <translation>Abrir... ::: Abrir archivo del disco.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1259"/>
+        <location filename="../../core/menu.py" line="1277"/>
         <source>Save ::: Save the current file to disk.</source>
         <translation>Guardar ::: Guardar archivo en disco.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1261"/>
+        <location filename="../../core/menu.py" line="1279"/>
         <source>Save as... ::: Save the current file under another name.</source>
         <translation>Guardar como... ::: Guardar archivo actual con otro nombre.</translation>
     </message>
@@ -387,12 +387,12 @@
         <translation>Guardar todos ::: Guardar todos los archivos abiertos.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1263"/>
+        <location filename="../../core/menu.py" line="1281"/>
         <source>Close ::: Close the current file.</source>
         <translation>Cerrar ::: Cerrar archivo actual.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1267"/>
+        <location filename="../../core/menu.py" line="1285"/>
         <source>Close all ::: Close all files.</source>
         <translation>Cerrar todos ::: Cerrar todos los archivos abiertos.</translation>
     </message>
@@ -407,47 +407,47 @@
         <translation>Rehacer ::: Rehacer la última edición deshecha.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1194"/>
+        <location filename="../../core/menu.py" line="1212"/>
         <source>Cut ::: Cut the selected text.</source>
         <translation>Cortar ::: Cortar el texto seleccionado.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1196"/>
+        <location filename="../../core/menu.py" line="1214"/>
         <source>Copy ::: Copy the selected text to the clipboard.</source>
         <translation>Copiar ::: Copiar el texto seleccionado.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1198"/>
+        <location filename="../../core/menu.py" line="1216"/>
         <source>Paste ::: Paste the text that is now on the clipboard.</source>
         <translation>Pegar ::: Pegar el texto del portapapeles.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1200"/>
+        <location filename="../../core/menu.py" line="1218"/>
         <source>Select all ::: Select all text.</source>
         <translation>Selecionar todo ::: Seleccionar todo el texto.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1203"/>
+        <location filename="../../core/menu.py" line="1221"/>
         <source>Indent ::: Indent the selected line.</source>
         <translation>Sangrar ::: Sangrar línea seleccionada.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1205"/>
+        <location filename="../../core/menu.py" line="1223"/>
         <source>Dedent ::: Unindent the selected line.</source>
         <translation>Desangrar ::: Desangrar línea seleccionada.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1207"/>
+        <location filename="../../core/menu.py" line="1225"/>
         <source>Comment ::: Comment the selected line.</source>
         <translation>Comentar ::: Comentar líneas selección.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1209"/>
+        <location filename="../../core/menu.py" line="1227"/>
         <source>Uncomment ::: Uncomment the selected line.</source>
         <translation>Descomentar ::: descomentar líneas selección.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1211"/>
+        <location filename="../../core/menu.py" line="1229"/>
         <source>Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters.</source>
         <translation>Justifica cometario/docstring ::: Remodela el texto seleccionado para que se alinee a 70 carácteres.</translation>
     </message>
@@ -462,17 +462,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1219"/>
+        <location filename="../../core/menu.py" line="1237"/>
         <source>Find or replace ::: Show find/replace widget. Initialize with selected text.</source>
         <translation>Buscar o remplazar ::: Muestra widget buscar/remplazar. Se inicializa con el texto seleccionado.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1221"/>
+        <location filename="../../core/menu.py" line="1239"/>
         <source>Find selection ::: Find the next occurrence of the selected text.</source>
         <translation>Buscar selección ::: Busca la siguiente ocurrencia del texto seleccionado.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1223"/>
+        <location filename="../../core/menu.py" line="1241"/>
         <source>Find selection backward ::: Find the previous occurrence of the selected text.</source>
         <translation>Buscar selección hacia atrás ::: Busca la ocurrencia anterior del texto seleccionado.</translation>
     </message>
@@ -487,7 +487,7 @@
         <translation>Buscar anterior ::: Buscar anterior ocurrencia de la cadena de busca.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1733"/>
+        <location filename="../../core/menu.py" line="1763"/>
         <source>Accept autocompletion with:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -602,77 +602,77 @@
         <translation>Consola nueva... ::: Crea una consola nueva donde ejecutar código. </translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1228"/>
+        <location filename="../../core/menu.py" line="1246"/>
         <source>Run selection ::: Run the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
         <translation>Ejecuta selección ::: Ejecuta las líneas selecionadas en el editor o la selección de palabras en la línia actual o la línia actual si no se ha efectuado ninguna selección.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1265"/>
+        <location filename="../../core/menu.py" line="1283"/>
         <source>Close others::: Close all files but this one.</source>
         <translation>Cerrar otros ::: Cierra todos los archivos a excepción de este.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1269"/>
+        <location filename="../../core/menu.py" line="1287"/>
         <source>Rename ::: Rename this file.</source>
         <translation>Renombra ::: Renombra este archivo.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1273"/>
+        <location filename="../../core/menu.py" line="1291"/>
         <source>Copy path ::: Copy the full path of this file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1280"/>
+        <location filename="../../core/menu.py" line="1298"/>
         <source>Pin/Unpin ::: Pinned files get closed less easily.</source>
         <translation>Pinzar/desprender ::: Archivos pinzados son más difíciles de cerrar.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1282"/>
+        <location filename="../../core/menu.py" line="1300"/>
         <source>Set/Unset as MAIN file ::: The main file can be run while another file is selected.</source>
         <translation>Marcar/desmarcar como archivo MAESTRO ::: El archivo maestro se puede ejecutar mientras otro está seleccionado.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1286"/>
+        <location filename="../../core/menu.py" line="1304"/>
         <source>Run file ::: Run the code in this file.</source>
         <translation>Ejecuta archivo ::: Ejecuta el código en este archivo.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1288"/>
+        <location filename="../../core/menu.py" line="1306"/>
         <source>Run file as script ::: Run this file as a script (restarts the interpreter).</source>
         <translation>Ejecuta el archivo como guión ::: Ejecuta el archivo com un guión (reinicia el intérprete).</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1613"/>
+        <location filename="../../core/menu.py" line="1643"/>
         <source>Reload tools ::: For people who develop tools.</source>
         <translation>Recarga herramientas ::: Para programadores que desarrollan herramientas.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1648"/>
+        <location filename="../../core/menu.py" line="1678"/>
         <source>Ask a question ::: Need help?</source>
         <translation>Haz una pregunta ::: Necesitas ayuda?</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1780"/>
+        <location filename="../../core/menu.py" line="1810"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>Sangría automática ::: Sangrar código automaticamente cuando presiones tecla retorno después de dos puntos.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1782"/>
+        <location filename="../../core/menu.py" line="1812"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>Habilitar ayuda funcions ::: Enseñar ayudas prototipo funciones.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1741"/>
+        <location filename="../../core/menu.py" line="1771"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>Autocompletado palabras clave ::: La lista de autocompletado incluye palabras clave.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1788"/>
+        <location filename="../../core/menu.py" line="1818"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>Editar asignaciones de teclas... ::: Editar los accesos directos para elementos de menú.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1790"/>
+        <location filename="../../core/menu.py" line="1820"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>Edita estilo sintaxis... ::: Cambiar colores sintaxis texto de tu código.</translation>
     </message>
@@ -712,37 +712,37 @@
         <translation>Etapa de depuración a dentro: proceder a un paso</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1346"/>
+        <location filename="../../core/menu.py" line="1364"/>
         <source>Run file as script ::: Restart and run the current file as a script.</source>
         <translation>Ejecutar el archivo como un script ::: Reiniciar ejecutar el archivo actual como un script.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1348"/>
+        <location filename="../../core/menu.py" line="1366"/>
         <source>Run main file as script ::: Restart and run the main file as a script.</source>
         <translation>Ejecutar el archivo principal como script ::: Reiniciar y ejecutar el archivo principal como un script.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1353"/>
+        <location filename="../../core/menu.py" line="1371"/>
         <source>Execute selection ::: Execute the current editor&apos;s selected lines, selected words on the current line, or current line if there is no selection.</source>
         <translation>Ejecutar selección ::: Ejecutar líneas del editor seleccionadas, palabras seleccionados en la línea actual, o la línea actual si no hay ninguna selección.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1355"/>
+        <location filename="../../core/menu.py" line="1373"/>
         <source>Execute cell ::: Execute the current editors&apos;s cell in the current shell.</source>
         <translation>Ejecutar celda ::: Ejecutar la celda del editor actual en el terminal actual.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1368"/>
+        <location filename="../../core/menu.py" line="1386"/>
         <source>Execute cell and advance ::: Execute the current editors&apos;s cell and advance to the next cell.</source>
         <translation>Ejecutar celda y avanzar ::: Ejecutar celda actual y avance a la siguiente.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1359"/>
+        <location filename="../../core/menu.py" line="1377"/>
         <source>Execute file ::: Execute the current file in the current shell.</source>
         <translation>Ejecutar fichero ::: Ejecute el archivo actual en el terminal actual.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1361"/>
+        <location filename="../../core/menu.py" line="1379"/>
         <source>Execute main file ::: Execute the main file in the current shell.</source>
         <translation>Ejecutar fichero principal ::: Ejecute el archivo principal en el terminal actual.</translation>
     </message>
@@ -777,7 +777,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1214"/>
+        <location filename="../../core/menu.py" line="1232"/>
         <source>Goto Definition ::: Go to definition of word under cursor.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -792,37 +792,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1650"/>
+        <location filename="../../core/menu.py" line="1680"/>
         <source>Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1658"/>
+        <location filename="../../core/menu.py" line="1688"/>
         <source>Check for updates ::: Are you using the latest version?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1661"/>
+        <location filename="../../core/menu.py" line="1691"/>
         <source>About Pyzo ::: More information about Pyzo.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1774"/>
+        <location filename="../../core/menu.py" line="1804"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1639"/>
+        <location filename="../../core/menu.py" line="1669"/>
         <source>Pyzo website ::: Open the Pyzo website in your browser.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1641"/>
+        <location filename="../../core/menu.py" line="1671"/>
         <source>Pyzo guide ::: Open the Pyzo guide in your browser.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1652"/>
+        <location filename="../../core/menu.py" line="1682"/>
         <source>Local documentation ::: Documentation on Python and the Scipy Stack.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -832,22 +832,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1399"/>
+        <location filename="../../core/menu.py" line="1422"/>
         <source>There is no main file selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1594"/>
+        <location filename="../../core/menu.py" line="1624"/>
         <source>Could not save the file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1596"/>
+        <location filename="../../core/menu.py" line="1626"/>
         <source>Can only run scripts that are in the file system.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1643"/>
+        <location filename="../../core/menu.py" line="1673"/>
         <source>Pyzo wizard ::: Get started quickly.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -867,47 +867,47 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1366"/>
+        <location filename="../../core/menu.py" line="1384"/>
         <source>Execute selection and advance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1373"/>
+        <location filename="../../core/menu.py" line="1393"/>
         <source>Help on running code ::: Open the pyzo wizard at the page about running code.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1568"/>
+        <location filename="../../core/menu.py" line="1591"/>
         <source> (as script)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1722"/>
+        <location filename="../../core/menu.py" line="1752"/>
         <source>No autocompletion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1723"/>
+        <location filename="../../core/menu.py" line="1753"/>
         <source>Automatic popup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1724"/>
+        <location filename="../../core/menu.py" line="1754"/>
         <source>Only show popup when pressing Tab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1785"/>
+        <location filename="../../core/menu.py" line="1815"/>
         <source>Autocompletion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1793"/>
+        <location filename="../../core/menu.py" line="1823"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1817"/>
+        <location filename="../../core/menu.py" line="1847"/>
         <source>
         More settings are available via the logger-tool:
         <byte value="xd"/><byte value="xd"/>
@@ -972,18 +972,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1275"/>
+        <location filename="../../core/menu.py" line="1293"/>
         <source>Open directory in file browser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1393"/>
+        <location filename="../../core/menu.py" line="1416"/>
         <source>No shell to run code in.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1403"/>
+        <location filename="../../core/menu.py" line="1426"/>
         <source>No editor selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1147"/>
+        <source>Change current directory to editor file path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1391"/>
+        <source>Change directory when executing file ::: like Run File As Script does</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -995,37 +1005,37 @@
         <translation>No se puede ejecutar</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1600"/>
+        <location filename="../../core/menu.py" line="1630"/>
         <source>Could not run script.</source>
         <translation>No se puede ejecutar el guión.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1692"/>
+        <location filename="../../core/menu.py" line="1722"/>
         <source>Check for the latest version.</source>
         <translation>Compruebe si es la versión más reciente.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1808"/>
+        <location filename="../../core/menu.py" line="1838"/>
         <source>Edit syntax styling</source>
         <translation>Edita estilo sintaxis</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1829"/>
+        <location filename="../../core/menu.py" line="1859"/>
         <source>Advanced settings</source>
         <translation>Configuración avanzada</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1855"/>
+        <location filename="../../core/menu.py" line="1885"/>
         <source>Language changed</source>
         <translation>Idioma cambiado</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2092"/>
+        <location filename="../../core/menu.py" line="2122"/>
         <source>Edit shortcut mapping</source>
         <translation>Editar asignación de accesos directos</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2241"/>
+        <location filename="../../core/menu.py" line="2271"/>
         <source>Shortcut mappings</source>
         <translation>Asignaciones de acceso directo</translation>
     </message>
@@ -1040,11 +1050,16 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1850"/>
+        <location filename="../../core/menu.py" line="1880"/>
         <source>
         The language has been changed.
         Pyzo needs to restart for the change to take effect.
         </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1174"/>
+        <source>Could not change dir</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
