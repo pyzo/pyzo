@@ -1606,7 +1606,7 @@ class RunMenu(Menu):
             saveOk = pyzo.editors.saveFile(editor) # Always try to save
             if saveOk or not editor.document().isModified():
                 self._showWhatToExecute(editor)
-                if shell._startup_info['ipython'] == 'yes':
+                if shell._startup_info.get('ipython', '') == 'yes':
                     # If we have a ipython shell we use %run -i instead
                     # This works better when python autoreload is used
                     d = os.path.normpath(os.path.normcase(os.path.dirname(editor._filename)))
