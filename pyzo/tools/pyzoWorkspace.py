@@ -8,7 +8,7 @@
 import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
-tool_name = "Workspace"
+tool_name = pyzo.translate("pyzoWorkspace","Workspace")
 tool_summary = "Lists the variables in the current shell's namespace."
 
 
