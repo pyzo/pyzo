@@ -210,7 +210,7 @@ class ToolManager(QtCore.QObject):
                     if i<0: continue
                     line = line.rstrip("\n").rstrip("\r")
                     line = line[i+1:].strip(" ")
-                    toolName = line.strip("'").strip('"')
+                    toolName = eval(line)
                 elif line.startswith("tool_summary"):
                     i = line.find("=")
                     if i<0: continue
