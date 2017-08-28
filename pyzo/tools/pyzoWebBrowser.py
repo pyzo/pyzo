@@ -16,7 +16,7 @@ except ImportError:
 
 import pyzo
 
-tool_name = "Web browser"
+tool_name = pyzo.translate("pyzoWebBrowser","Web browser")
 tool_summary = "A very simple web browser."
 
 
