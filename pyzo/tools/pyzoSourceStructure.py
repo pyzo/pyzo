@@ -8,7 +8,7 @@ import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
-tool_name = "Source structure"
+tool_name = translate('pyzoSourceStructure', 'Source structure')
 tool_summary = "Shows the structure of your source code."
 
 
