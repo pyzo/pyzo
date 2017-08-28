@@ -17,7 +17,7 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import translate
 from pyzo.core.menu import Menu
 
-tool_name = "History viewer"
+tool_name = translate('pyzoHistoryViewer', 'History viewer')
 tool_summary = "Shows the last used commands."
 
 
