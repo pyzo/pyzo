@@ -10,7 +10,7 @@ import sys, re
 from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 import pyzo
 
-tool_name = translate("pyzoInteractiveHelp","Interactive help")
+tool_name = pyzo.translate("pyzoInteractiveHelp","Interactive help")
 tool_summary = "Shows help on an object when using up/down in autocomplete."
 
 #
