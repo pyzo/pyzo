@@ -169,7 +169,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self._currentEditorId = id(editor)
             
             # Notify
-            text = translate('pyzoSourceStructure', 'Parsing ' + editor._name + ' ...')
+            text = translate('pyzoSourceStructure', 'Parsing ') + editor._name + ' ...'
             QtWidgets.QTreeWidgetItem(self._tree, [text])
             
             # Try getting the  structure right now
