@@ -103,6 +103,208 @@ class MainWindow(QtWidgets.QMainWindow):
         self.restoreState()
         self.paintNow()
         self.restoreState()
+
+        self.blackStyle = '''
+            QMainWindow 
+                {
+                background-color: #ffffff;
+                color:#888888;
+                }
+                
+            QWidget     
+                {
+                background-color:#393939;
+                color:#bbbbbb;
+                }
+                
+            QMenu       
+                {
+                background-color:#eeeeee;
+                color:#191919;
+                border:1px solid #191919;
+                }
+                
+            TabToolButtonWithCloseButton 
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(0,0,0,0), 
+                    stop: 1.0 rgba(0,0,0,0),
+                    );
+                color:red;
+                }
+
+            /* Style the tab using the tab sub-control. Note that
+               it reads QTabBar _not_ QTabWidget */
+               
+            QTabBar::tab
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(220,220,220,128),
+                    stop: 0.4 rgba(200,200,200,128),
+                    stop: 1.0 rgba(100,100,100,128));
+                border: 1px solid #A09B90;
+                border-bottom-color: #DAD5CC; /* same as the pane color */
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                min-width: 5ex;
+                padding-bottom: PADDING_BOTTOMpx;
+                padding-top: PADDING_TOPpx;
+                padding-left: PADDING_LEFTpx;
+                padding-right: PADDING_RIGHTpx;
+                margin-right: -1px; /* "combine" borders */
+                }
+
+            QTabBar::tab:last
+                {
+                margin-right: 0px;
+                }
+
+            /* Style the selected tab, hoovered tab, and other tabs. */
+            QTabBar::tab:hover
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(245,250,255,128),
+                    stop: 0.4 rgba(210,210,210,128),
+                    stop: 1.0 rgba(200,200,200,128));
+                }
+                
+            QTabBar::tab:selected
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(255,255,255,255),
+                    stop: 0.12 rgba(255,255,255,255),
+                    stop: 0.120001 rgba(245,250,255,128),
+                    stop: 0.4 rgba(210,210,210,128),
+                    stop: 1.0 rgba(200,200,200,128));
+                }
+
+            QTabBar::tab:selected
+                {
+                border-width: 1px;
+                border-bottom-width: 0px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                border-color: #333;
+                }
+            
+            QTabBar::tab:!selected
+                {
+                margin-top: 3px; /* make non-selected tabs look smaller */
+                }
+                
+            QTabWidget::pane 
+                { 
+                border-top: 0px solid #A09B90; /* The tab widget frame */
+                }
+
+            QTabWidget::tab-bar
+                {
+                left: 0px; /* move to the right by x px */
+                }
+            
+            '''
+        self.whiteStyle = '''
+            QMainWindow 
+                {
+                background-color: #ffffff;
+                color:#333333;
+                }
+                
+            QWidget     
+                {
+                background-color:#fefefe;
+                color:#333333;
+                }
+                
+            QMenu       
+                {
+                background-color:#eeeeee;
+                color:#191919;
+                border:1px solid #191919;
+                }
+                
+            TabToolButtonWithCloseButton 
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(0,0,0,0), 
+                    stop: 1.0 rgba(0,0,0,0),
+                    );
+                color:red;
+                }
+
+            /* Style the tab using the tab sub-control. Note that
+               it reads QTabBar _not_ QTabWidget */
+               
+            QTabBar::tab
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(220,220,220,128),
+                    stop: 0.4 rgba(200,200,200,128),
+                    stop: 1.0 rgba(100,100,100,128));
+                border: 1px solid #A09B90;
+                border-bottom-color: #DAD5CC; /* same as the pane color */
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                min-width: 5ex;
+                padding-bottom: PADDING_BOTTOMpx;
+                padding-top: PADDING_TOPpx;
+                padding-left: PADDING_LEFTpx;
+                padding-right: PADDING_RIGHTpx;
+                margin-right: -1px; /* "combine" borders */
+                }
+
+            QTabBar::tab:last
+                {
+                margin-right: 0px;
+                }
+
+            /* Style the selected tab, hoovered tab, and other tabs. */
+            QTabBar::tab:hover
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(245,250,255,128),
+                    stop: 0.4 rgba(210,210,210,128),
+                    stop: 1.0 rgba(200,200,200,128));
+                }
+
+            QTabBar::tab:selected
+                {
+                background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
+                    stop: 0.0 rgba(0,0,128,128),
+                    stop: 0.12 rgba(0,0,128,128),
+                    stop: 0.120001 rgba(245,250,255,128),
+                    stop: 0.4 rgba(210,210,210,128),
+                    stop: 1.0 rgba(200,200,200,128));
+                }
+            
+            QTabBar::tab:selected
+                {
+                color: #191919;
+                border-width: 1px;
+                border-bottom-width: 0px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                border-color: #333;
+                }
+            
+            QTabBar::tab:!selected
+                {
+                margin-top: 3px; /* make non-selected tabs look smaller */
+                }
+                
+            QTabWidget::pane 
+                { 
+                border-top: 0px solid #A09B90; /* The tab widget frame */
+                }
+
+            QTabWidget::tab-bar
+                {
+                left: 0px; /* move to the right by x px */
+                }
+            
+            '''
+
+        self.setStyleSheet(self.blackStyle)
         
         # Present user with wizard if he/she is new.
         if False:  # pyzo.config.state.newUser:
