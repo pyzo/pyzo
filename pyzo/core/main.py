@@ -316,7 +316,7 @@ class MainWindow(QtWidgets.QMainWindow):
             
             '''
  
-        self.setStyleSheet(self.blackStyle) # blackStyle/whiteStyle
+        self.setStyleSheet(self.whiteStyle) # blackStyle/whiteStyle
         
         # Present user with wizard if he/she is new.
         if False:  # pyzo.config.state.newUser:
