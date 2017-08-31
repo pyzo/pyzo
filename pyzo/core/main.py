@@ -113,7 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 
             QWidget     
                 {
-                background-color:#393939;
+                background-color:#191919;
                 color:#bbbbbb;
                 }
                 
@@ -122,6 +122,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 background-color:#eeeeee;
                 color:#191919;
                 border:1px solid #191919;
+                }
+                
+            QPlainTextEdit
+                {
+                background-color: #191919;
+                color: #ffffff;
                 }
                 
             TabToolButtonWithCloseButton 
@@ -206,7 +212,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.whiteStyle = '''
             QMainWindow 
                 {
-                background-color: #ffffff;
+                background-color: #fefefe;
                 color:#333333;
                 }
                 
@@ -223,6 +229,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 border:1px solid #191919;
                 }
                 
+            QPlainTextEdit
+                {
+                background-color: #fefefe;
+                color: #000000;
+                }
+
             TabToolButtonWithCloseButton 
                 {
                 background: qlineargradient(x1: 0,y1: 0,x2: 0,y2: 1,
@@ -303,8 +315,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 }
             
             '''
-
-        self.setStyleSheet(self.blackStyle)
+ 
+        self.setStyleSheet(self.blackStyle) # blackStyle/whiteStyle
         
         # Present user with wizard if he/she is new.
         if False:  # pyzo.config.state.newUser:
