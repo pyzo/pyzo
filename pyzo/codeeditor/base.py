@@ -615,14 +615,14 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         
         """
         
-        # Set text style using editor style sheet
-        format = self.getStyleElementFormat('editor.text')
-        ss = 'QPlainTextEdit{ color:%s; background-color:%s; }' %  (
-                            format['fore'], format['back'])
-        self.setStyleSheet(ss)
-        
-        # Make sure the style is applied
-        self.viewport().update()
+        # # Set text style using editor style sheet
+        # format = self.getStyleElementFormat('editor.text')
+        # ss = 'QPlainTextEdit{ color:%s; background-color:%s; }' %  (
+        #                     format['fore'], format['back'])
+        # self.setStyleSheet(ss)
+        # 
+        # # Make sure the style is applied
+        # self.viewport().update()
         
         # Re-highlight
         callLater(self.__highlighter.rehighlight)
