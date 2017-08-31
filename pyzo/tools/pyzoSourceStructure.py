@@ -254,9 +254,14 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         ln += 1  # is ln as in line number area
         
         # Define colours
-        colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F',
-                    'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333',
-                    'nameismain':'#007F00'}
+        colours = { 'cell':"#646464", # gray
+                    'class':"#0a8aff", # blue
+                    'def':"#1db0b8", # greenBlue
+                    'attribute':"#ff9900", # orange
+                    'import':"#f92672", # lightPurple
+                    'todo':"#FF0000", # red
+                    'nameismain': '#007f00', # lightBlue
+                    }
         
         # Define what to show
         showTypes = self._config.showTypes
