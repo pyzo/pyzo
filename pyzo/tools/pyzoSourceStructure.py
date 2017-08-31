@@ -276,16 +276,20 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     continue
                 # Construct text
                 if type in ('cell', '##', '#%%', '# %%'):
-                    type = 'cell:'
+                    type = '## '
                 elif type=='attribute':
-                    type = 'attr'
+                    type = '*'
                 #
                 if type == 'import':
-                    text = "%s (%s)" % (object.name, object.text)
+                    text = "→%s (%s)" % (object.name, object.text)
                 elif type=='todo':
                     text = object.name
                 elif type=='nameismain':
                     text = object.text
+                elif type=='class':
+                    text = object.name
+                elif type=='def':
+                    text = object.name+'()'
                 else:
                     text = "%s %s" % (type, object.name)
                 # Create item
