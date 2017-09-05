@@ -254,9 +254,12 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         ln += 1  # is ln as in line number area
         
         # Define colours
-        colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F',
-                    'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333',
-                    'nameismain':'#007F00'}
+        colours = {'cell':'#b58900', 'class':'#cb4b16', 'def':'#073642',
+                   'attribute':'#657b83', 'import':'#268bd2', 'todo':'#d33682',
+                   'nameismain':'#859900'}
+        #colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F',
+        #            'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333',
+        #            'nameismain':'#007F00'}
         
         # Define what to show
         showTypes = self._config.showTypes
@@ -278,10 +281,10 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 if type in ('cell', '##', '#%%', '# %%'):
                     type = '## '
                 elif type=='attribute':
-                    type = '*'
+                    type = '-'
                 #
                 if type == 'import':
-                    text = "→%s (%s)" % (object.name, object.text)
+                    text = "→ %s (%s)" % (object.name, object.text)
                 elif type=='todo':
                     text = object.name
                 elif type=='nameismain':
