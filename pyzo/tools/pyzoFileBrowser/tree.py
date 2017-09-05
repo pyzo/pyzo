@@ -992,5 +992,5 @@ class PopupMenu(pyzo.core.menu.Menu):
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel,
                 )
         # Push delete task
-        if b is QtWidgets.QMessageBox.Yes:
+        if b == QtWidgets.QMessageBox.Yes:
             self._item._proxy.pushTask(tasks.RemoveTask())
