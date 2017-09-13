@@ -278,11 +278,6 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 if type not in showTypes and type != 'nameismain':
                     continue
                 # Construct text
-                if type in ('cell', '##', '#%%', '# %%'):
-                    type = '## '
-                elif type=='attribute':
-                    type = '-'
-                #
                 if type == 'import':
                     text = "→ %s (%s)" % (object.name, object.text)
                 elif type=='todo':
@@ -292,7 +287,12 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 elif type=='class':
                     text = object.name
                 elif type=='def':
-                    text = object.name+'()'
+                    text = object.name + '()'
+                elif type=='attribute':
+                    text = '- ' + object.name
+                elif type in ('cell', '##', '#%%', '# %%'):
+                    type = 'cell'
+                    text = '## ' + object.name + ' ' * 120
                 else:
                     text = "%s %s" % (type, object.name)
                 # Create item
@@ -301,6 +301,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 thisItem.setForeground(0, QtGui.QBrush(color))
                 font = thisItem.font(0)
                 font.setBold(True)
+                if type == 'cell':
+                    font.setUnderline(True)
                 thisItem.setFont(0, font)
                 thisItem.linenr = object.linenr
                 # Is this the current item?
