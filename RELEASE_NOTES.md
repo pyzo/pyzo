@@ -1,3 +1,123 @@
+# Release notes
+
+### Version 4.4.2 (13-09-2017)
+
+* Fix that running file as script would not work if the IPython flag was never turned on (#498)
+* Fix delete action in filer browser (#505) 
+* Nicer appearance and coloring of source structure content (thanks to WangYi)
+* more translations (e.g. for tool titles) (thanks to WangYi)
+
+
+### Version 4.4.1 (14-07-2017)
+
+Fixes:
+
+* Fix that code editor fonts are oblique on some OS X machines.
+* Restore broken introspection (for interactive help and calltips).
+* Calltips now also work for builtins.
+* Restore ability to run Python kernels as low as version 2.4.
+* More updates to translations.
+
+Small improvements:
+
+* Added config option to change directory when executing file (not as script).
+* Use `%run -i` to run script when ipython console is used (Diti24).
+* Added another shell context menu entry to change directory.
+* Added a config option to make the shell widget floatable.
+
+
+### Version 4.4 (29-06-2017)
+
+This release represents a large amount of new features and improvements:
+
+Editor and shell:
+    
+* Tab titles also show part of the filename path if multiple files with the same name are present.
+* The command history is now shared between all shells, and saved between sessions.
+* Running selection will add to command history, also more options for command history tool.
+* The Autocompletion accept keys can now be configured via the menu.
+* The Autocompletion has more modes: automatic popup and popup only when pressing tab.
+* Ctrl+up/down now "scrolls" the editor.
+* Menu action (and shortcut Ctr+Shift+up/down) to move (selected) lines up/down (with help from Yehuda Davis).
+* Menu action (and shortcut) to duplicate lines.
+* Breakpoints can now be toggled with a menu action (and shortcut).
+* Breakpoints now move along when lines are inserted above it.
+* Fixed that Shift+Enter inserted a newline.
+* Menu action in editor context menu and editor tab menu to open the directory in the file browser.
+* Menu action in shell context menu to open current directory in file browser.
+* Menu action in shell context menu to change the current directory to match the file browser.
+* Fixes to shell help system (#422).
+* Add new `install xx`, `update xx` and `remove xx` commands as shortcuts for conda commands.
+
+Tools:
+
+* Fix file browser's data import wizard.
+* The file browser now logically sorts files and directories.
+* The file browser can now show hidden files (can be turned off by filtering with `!hidden`).
+* The `if __name__ == '__main__':` thingy is now shown in the source structure.
+* The source structure tool has back/forward buttons (i.e. you can click on a method and then jump back).
+* Methods and builtin functions are now also hidden in workspace when "hide function" filter is used.
+
+Other:
+
+* Added GUI integration support for PySide2 (by Rob Reilink).
+* Improved support for high resolution (retina) displays (by Seb Jachec).
+* Fixed the sometimes blurry icons.
+* Fix PDF printing and include line numbers.
+* Fix that keyboard shortcuts were not working on Linux with Qt5 (#470).
+* More text is now translatable (and more translations have been made, though not yet in all languages).
+* Fix that conda' errors messages were not shown.
+* And many more small tweaks and fixes ...
+
+### Version 4.3.1 (28-09-2016)
+
+* Fix in workspace variable introspection
+* Fix severe regression in PyQt4 GUI integration
+* Add PyQt5 GUI integration
+
+### Version 4.3 (27-09-2016)
+
+* Pyzo can now run on PyQt5 (in addition to PyQt4 and PySide)
+* Remove dependency on pyzolib
+* Reduced scrolling while stepping through the debugger (#417)
+* Updated translations
+* Fixed regression in call tip (#421)
+* The binaries for Linux have improved (fonts, load time, #423, #414)
+* Numeric items in workspace are correctly sorted (#428)
+* Improved Tornado integration
+* And more ...
+
+
+### Version 4.2 (27-06-2016)
+
+No big refactoring, but a few improvements and fixes:
+
+* Much improved brace matching (skips strings, shows missing/wrong) (thanks to Yann Salmon)
+* Brace matching can be configured
+* `conda install` looks in `conda-forge` by default
+* Add `isatty()` to standard file streams to fix interop with pip (#400)
+* Fixed a breakpoint bug
+* Fixed TypeError on Fedora #393
+* Added freedesktop file (thanks to Ghis Vaillant)
+* Passed sys.argv to the QApplication, which helps Linux associate the program (thanks to Mark Harfouche)
+* Tornado event loop is now integrated by running Tornado's event loop for real. The downside is that events cannot be processed during debugging, but at least there are no weird delays now (Tornado was not meant to run the way we ran it).
+* Fix "open outside Pyzo" on Windows when a path has spaces in it.
+* Workspace can hide private variables
+
+### Version 4.1  (04-04-2016)
+
+First announced release after merging the Pyzo and IEP projects.
+
+* Improved dialog that detects an interpreter and guides the user.
+* Detect interpreters relative to the Pyzo executable. This way Pyzo can be shipped along with a prebuild anaconda (#382).
+* Fixed bug that made Pyzo slow on new Linux kernel (#381).
+* New translations for Traditional Chinese.
+* Ability to start Jupyter notebook from shell and from file browser tool.
+* Clicking on a syntax error for code run as cell brings you to correct line.
+* Breakpoints work in cells and code an as selected lines.
+* Conda command no longer spams the shell with loads of messages.
+* Shell can deal with clearline using `\r`, e.g. used in conda commands.
+
 ### Version 4.0
 
 We smashed the Pyzo and IEP projects together into a single project:
@@ -5,6 +125,12 @@ We smashed the Pyzo and IEP projects together into a single project:
 * The name is Pyzo
 * The logo is the one from IEP
 * It is not longer a distribution, but a lightweight IDE (like IEP was) that helps the user install a (miniconda) environment.
+
+Other improvements:
+* Cells can be written as in Spyder: `# %% this is a cell`.
+* Autodetection of a GUI toolkit.
+* Minor tweaks here and there.
+
 
 
 ### Version 3.6 (18-02-2015)
@@ -54,7 +180,6 @@ We smashed the Pyzo and IEP projects together into a single project:
 * issue #287: Starup script got cleared in shell config
 * Added functionality for easily creating screenshots (`iep.screenshot()` in logger shell)
 * The Windows installer does not need admin priveleges if installing in the right place.
-
 
 ### Version 3.4 (02-04-2014)
 
