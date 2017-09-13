@@ -974,12 +974,12 @@
     <message>
         <location filename="../../core/menu.py" line="1147"/>
         <source>Change current directory to editor file path</source>
-        <translation type="unfinished"></translation>
+        <translation>Verander huidige directory naar directory van bestand in editor</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1391"/>
         <source>Change directory when executing file ::: like Run File As Script does</source>
-        <translation type="unfinished"></translation>
+        <translation>Verander directory als een file uitgevoerd wordt.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1847"/>
@@ -1061,7 +1061,28 @@ Herstart Pyzo om de verandering door te voeren.</translation>
     <message>
         <location filename="../../core/menu.py" line="1174"/>
         <source>Could not change dir</source>
-        <translation type="unfinished"></translation>
+        <translation>Kon de directory niet veranderen</translation>
+    </message>
+</context>
+<context>
+    <name>pyzoHistoryViewer</name>
+    <message>
+        <location filename="../../tools/pyzoHistoryViewer.py" line="20"/>
+        <source>History viewer</source>
+        <translation>Geschiedenis</translation>
+    </message>
+</context>
+<context>
+    <name>pyzoSourceStructure</name>
+    <message>
+        <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
+        <source>Source structure</source>
+        <translation>Code structuur</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoSourceStructure.py" line="172"/>
+        <source>Parsing </source>
+        <translation>Parsen van</translation>
     </message>
 </context>
 <context>

@@ -1073,6 +1073,27 @@
     </message>
 </context>
 <context>
+    <name>pyzoHistoryViewer</name>
+    <message>
+        <location filename="../../tools/pyzoHistoryViewer.py" line="20"/>
+        <source>History viewer</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>pyzoSourceStructure</name>
+    <message>
+        <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
+        <source>Source structure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoSourceStructure.py" line="172"/>
+        <source>Parsing </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>search</name>
     <message>
         <location filename="../../core/editorTabs.py" line="219"/>
