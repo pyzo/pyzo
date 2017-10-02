@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2014 Almar Klein -->
+<!-- Copyright 2014-2017 Almar Klein -->
 <!-- This is a appdata file for freedesktop software centers. -->
 <!-- Please let me know if this needs changes. -->
-<application>
+<component>
  <id type="desktop">pyzo.desktop</id>
  <metadata_license>CC0-1.0</metadata_license>
  <project_license>BSD-2-Clause</project_license>
- <name>Interactive Editor for Python</name>
+ <name>Pyzo</name>
+ <provides>
+   <binary>pyzo</binary>
+</provides>
  <summary>A Python IDE aimed at simplicity and interactivity</summary>
  <description>
     <p>
@@ -32,12 +35,5 @@
  </screenshots>
  <url type="homepage">http://pyzo.org</url>
  <url type="translate">https://github.com/pyzo/pyzo/wiki/Translations</url>
- <updatecontact>almar.klein@gmail.com</updatecontact>
- <keywords>
-    <keyword>Python</keyword>
-    <keyword>IDE</keyword>
-    <keyword>Editor</keyword>
-    <keyword>Science</keyword>
-    <keyword>Interactive</keyword>
- </keywords>
-</application>
+ <update_contact>almar.klein@gmail.com</update_contact>
+</component>
