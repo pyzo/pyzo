@@ -100,7 +100,7 @@ if sys.platform.startswith('linux') and sys.prefix.startswith('/usr'):
     if len(sys.argv) >= 2 and sys.argv[1] == 'install':
         fname = 'pyzo.appdata.xml'
         filename1 = os.path.join(os.path.dirname(__file__), fname)
-        filename2 = os.path.join('/usr/share/appdata', fname)
+        filename2 = os.path.join('/usr/share/metainfo', fname)
         try:
             bb = open(filename1, 'rb').read()
             open(filename2, 'wb').write(bb)
