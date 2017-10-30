@@ -160,7 +160,7 @@ def getResourceDirs():
 
 def resetConfig(preserveState=True):
     """ resetConfig()
-    Replaces the config file with the default and prevent Pyzo from storing
+    Deletes the config file to revert to default and prevent Pyzo from storing
     its config on the next shutdown.
     """
     # Get filenames
@@ -173,7 +173,7 @@ def resetConfig(preserveState=True):
 
 def loadConfig(defaultsOnly=False):
     """ loadConfig(defaultsOnly=False)
-    Load default configuration file and that of the user (if it exists).
+    Load default and site-wide configuration file(s) and that of the user (if it exists).
     Any missing fields in the user config are set to the defaults.
     """
 
