@@ -170,10 +170,10 @@ def resetConfig(preserveState=True):
     tmp = ssdf.load(configFileName1)
     if preserveState:
         tmp.state = config.state
-    ssdf.save(configFileName2, tmp)
+    os.remove(configFileName2)
     global _saveConfigFile
     _saveConfigFile = False
-    print("Replaced config file. Restart Pyzo to revert to the default config.")
+    print("Deleted user config file. Restart Pyzo to revert to the default config.")
 
 
 def loadConfig(defaultsOnly=False):
