@@ -164,12 +164,7 @@ def resetConfig(preserveState=True):
     its config on the next shutdown.
     """
     # Get filenames
-    configFileName1 = os.path.join(pyzoDir, 'resources', 'defaultConfig.ssdf')
     configFileName2 = os.path.join(appDataDir, 'config.ssdf')
-    # Read, edit, write
-    tmp = ssdf.load(configFileName1)
-    if preserveState:
-        tmp.state = config.state
     os.remove(configFileName2)
     global _saveConfigFile
     _saveConfigFile = False
