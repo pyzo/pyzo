@@ -197,6 +197,17 @@ def loadConfig(defaultsOnly=False):
     if sys.platform == 'darwin':
         config.shortcuts2.view__select_previous_file = 'Alt+Tab,'
 
+    # Load site-wide config if it exists and inject in pyzo.config
+    fname = os.path.join(pyzoDir, 'resources', 'siteConfig.ssdf')
+    if os.path.isfile(fname):
+        try:
+            siteConfig = ssdf.load(fname)
+            replaceFields(config, siteConfig)
+        except Exception:
+            t = 'Error while reading config file %r, maybe its corrupt?'
+            print(t % fname)
+            raise
+
     # Load user config and inject in pyzo.config
     fname = os.path.join(appDataDir, "config.ssdf")
     if os.path.isfile(fname):
