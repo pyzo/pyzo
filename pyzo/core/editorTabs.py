@@ -193,8 +193,9 @@ class FileItem:
 class FindReplaceWidget(QtWidgets.QFrame):
     """ A widget to find and replace text. """
     
-    def __init__(self, *args):
-        QtWidgets.QFrame.__init__(self, *args)
+    def __init__(self, editors):
+        QtWidgets.QFrame.__init__(self, editors)
+        self.editors = editors
         
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         
@@ -279,6 +280,11 @@ class FindReplaceWidget(QtWidgets.QFrame):
             self._replaceAll.setText(t);  self._replaceAll.setToolTip(t.tt)
             hsubLayout.addWidget(self._replaceAll, 0)
             
+            # Add 'replace in all files' button
+            self._replaceInAllFiles = QtWidgets.QToolButton(self)
+            self._replaceInAllFiles.setText('Replace in all files')
+            hsubLayout.addWidget(self._replaceInAllFiles, 0)
+            
             hsubLayout.addStretch(1)
             
             # Add replace button
@@ -341,7 +347,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         
         # Set focus policy
         for but in [self._findPrev, self._findNext,
-                    self._replaceAll, self._replace,
+                    self._replaceAll, self._replaceInAllFiles, self._replace,
                     self._caseCheck, self._wholeWord, self._regExp]:
             #but.setFocusPolicy(QtCore.Qt.ClickFocus)
             but.clicked.connect(self.autoHideTimerReset)
@@ -365,6 +371,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._findPrev.clicked.connect(self.findPrevious)
         self._replace.clicked.connect(self.replaceOne)
         self._replaceAll.clicked.connect(self.replaceAll)
+        self._replaceInAllFiles.clicked.connect(self.replaceInAllFiles)
         #
         self._regExp.stateChanged.connect(self.handleReplacePossible)
         
@@ -427,7 +434,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     def handleReplacePossible(self, state):
         """ Disable replacing when using regular expressions.
         """
-        for w in [self._replaceText, self._replaceAll, self._replace]:
+        for w in [self._replaceText, self._replaceAll, self._replaceInAllFiles, self._replace]:
             w.setEnabled(not state)
     
     
@@ -481,7 +488,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self.startFind()
         self.findPrevious()
     
-    def find(self, forward=True, wrapAround=True):
+    def find(self, forward=True, wrapAround=True, editor=None):
         """ The main find method.
         Returns True if a match was found. """
         
@@ -489,7 +496,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self.autoHideTimerReset()
         
         # get editor
-        editor = self.parent().getCurrentEditor()
+        if not editor:
+            editor = self.parent().getCurrentEditor()
         if not editor:
             return
         
@@ -544,14 +552,15 @@ class FindReplaceWidget(QtWidgets.QFrame):
         return not result.isNull()
     
     
-    def replaceOne(self,event=None, wrapAround=True):
+    def replaceOne(self, event=None, wrapAround=True, editor=None):
         """ If the currently selected text matches the find string,
         replaces that text. Then it finds and selects the next match.
         Returns True if a next match was found.
         """
         
         # get editor
-        editor = self.parent().getCurrentEditor()
+        if not editor:
+            editor = self.parent().getCurrentEditor()
         if not editor:
             return
         
@@ -582,18 +591,19 @@ class FindReplaceWidget(QtWidgets.QFrame):
             cursor.insertText( replacement )
         
         # next!
-        return self.find(wrapAround=wrapAround)
+        return self.find(wrapAround=wrapAround, editor=editor)
     
     
-    def replaceAll(self,event=None):
+    def replaceAll(self, event=None, editor=None):
         #TODO: share a cursor between all replaces, in order to
         #make this one undo/redo-step
         
         # get editor
-        editor = self.parent().getCurrentEditor()
+        if not editor:
+            editor = self.parent().getCurrentEditor()
         if not editor:
             return
-        
+        print(editor)
         # get current position
         originalPosition = editor.textCursor()
         
@@ -604,7 +614,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         try:
             cursor.movePosition(cursor.Start)
             editor.setTextCursor(cursor)
-            while self.replaceOne(wrapAround=False):
+            while self.replaceOne(wrapAround=False, editor=editor):
                 pass
         finally:
             cursor.endEditBlock()
@@ -612,7 +622,10 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # reset position
         editor.setTextCursor(originalPosition)
 
+    def replaceInAllFiles(self, event=None):
 
+        for editor in self.editors:
+            self.replaceAll(event, editor)
 
 class FileTabWidget(CompactTabWidget):
     """ FileTabWidget(parent)
