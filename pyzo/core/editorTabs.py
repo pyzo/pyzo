@@ -603,7 +603,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             editor = self.parent().getCurrentEditor()
         if not editor:
             return
-        print(editor)
+
         # get current position
         originalPosition = editor.textCursor()
         
