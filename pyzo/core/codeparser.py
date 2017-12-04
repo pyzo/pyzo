@@ -27,6 +27,7 @@ classPattern += r'(\(.*?\))?' # The superclass(es)
 classPattern += r'\s*:' # Optional whitespace and the colon
 #
 defPattern  = r'^\s*' # Optional whitespace
+defPattern += r'(async )?' # Optional async keyword
 defPattern += r'(cp?)?def\s+' # The Cython preamble, def keyword and whitespace
 defPattern += r'([a-zA-Z_][\*a-zA-Z_0-9]*\s+)?' # Optional Cython return type
 defPattern += r'([a-zA-Z_][a-zA-Z_0-9]*)\s*' # The NAME + optional whitespace
@@ -477,11 +478,11 @@ class Parser(threading.Thread):
                 defResult = re.search(defPattern, multiLine)
                 if defResult:
                     # Get name
-                    name = defResult.group(3)
+                    name = defResult.group(4)
                     item = FictiveObject('def', i, indent, name)
                     appendToStructure(item)
                     item.selfname = None # will be filled in if a valid method
-                    item.sig = defResult.group(4)
+                    item.sig = defResult.group(5)
                     # is it a method? -> add method to attr and find selfname
                     if item.parent.type == 'class':
                         item.parent.members.append(name)
