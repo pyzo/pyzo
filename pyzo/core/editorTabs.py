@@ -193,9 +193,8 @@ class FileItem:
 class FindReplaceWidget(QtWidgets.QFrame):
     """ A widget to find and replace text. """
     
-    def __init__(self, editors):
-        QtWidgets.QFrame.__init__(self, editors)
-        self.editors = editors
+    def __init__(self, *args):
+        QtWidgets.QFrame.__init__(self, *args)
         
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         
@@ -498,8 +497,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # get editor
         if not editor:
             editor = self.parent().getCurrentEditor()
-        if not editor:
-            return
+            if not editor:
+                return
         
         # find flags
         flags = QtGui.QTextDocument.FindFlags()
@@ -561,8 +560,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # get editor
         if not editor:
             editor = self.parent().getCurrentEditor()
-        if not editor:
-            return
+            if not editor:
+                return
         
         #Create a cursor to do the editing
         cursor = editor.textCursor()
@@ -601,8 +600,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # get editor
         if not editor:
             editor = self.parent().getCurrentEditor()
-        if not editor:
-            return
+            if not editor:
+                return
 
         # get current position
         originalPosition = editor.textCursor()
@@ -624,7 +623,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
 
     def replaceInAllFiles(self, event=None):
 
-        for editor in self.editors:
+        for editor in pyzo.editors:
             self.replaceAll(event, editor)
 
 class FileTabWidget(CompactTabWidget):
