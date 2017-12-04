@@ -273,25 +273,21 @@ class FindReplaceWidget(QtWidgets.QFrame):
             
             vsubLayout.addLayout(hsubLayout)
             
-            # Add replace-all button
-            self._replaceAll = QtWidgets.QToolButton(self)
-            t = translate('search', 'Repl. all ::: Replace all matches in current document.')
-            self._replaceAll.setText(t);  self._replaceAll.setToolTip(t.tt)
-            hsubLayout.addWidget(self._replaceAll, 0)
-            
-            # Add 'replace in all files' button
-            self._replaceInAllFiles = QtWidgets.QToolButton(self)
-            self._replaceInAllFiles.setText('Replace in all files')
-            hsubLayout.addWidget(self._replaceInAllFiles, 0)
+            # Add replace button
+            t = translate('search', 'Replace ::: Replace this match.')
+            self._replaceBut = QtWidgets.QToolButton(self)
+            self._replaceBut.setText(t)
+            self._replaceBut.setToolTip(t.tt)
+            hsubLayout.addWidget(self._replaceBut, 0)
             
             hsubLayout.addStretch(1)
             
-            # Add replace button
-            self._replace = QtWidgets.QToolButton(self)
-            t = translate('search', 'Replace ::: Replace this match.')
-            self._replace.setText(t);  self._replace.setToolTip(t.tt)
-            hsubLayout.addWidget(self._replace, 0)
-        
+            # Add replace kind combo
+            self._replaceKind = QtWidgets.QComboBox(self)
+            self._replaceKind.addItem(translate('search', 'one'))
+            self._replaceKind.addItem(translate('search', 'all in this file'))
+            self._replaceKind.addItem(translate('search', 'all in all files'))
+            hsubLayout.addWidget(self._replaceKind, 0)
         
         layout.addSpacing(10)
         
@@ -346,7 +342,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         
         # Set focus policy
         for but in [self._findPrev, self._findNext,
-                    self._replaceAll, self._replaceInAllFiles, self._replace,
+                    self._replaceBut,
                     self._caseCheck, self._wholeWord, self._regExp]:
             #but.setFocusPolicy(QtCore.Qt.ClickFocus)
             but.clicked.connect(self.autoHideTimerReset)
@@ -368,9 +364,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._hidebut.clicked.connect(self.hideMe)
         self._findNext.clicked.connect(self.findNext)
         self._findPrev.clicked.connect(self.findPrevious)
-        self._replace.clicked.connect(self.replaceOne)
-        self._replaceAll.clicked.connect(self.replaceAll)
-        self._replaceInAllFiles.clicked.connect(self.replaceInAllFiles)
+        self._replaceBut.clicked.connect(self.replace)
         #
         self._regExp.stateChanged.connect(self.handleReplacePossible)
         
@@ -407,6 +401,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     def hideMe(self):
         """ Hide the find/replace widget. """
         self.hide()
+        self._replaceKind.setCurrentIndex(0)  # set replace to "one"
         es = self.parent() # editor stack
         #es._boxLayout.activate()
         editor = es.getCurrentEditor()
@@ -433,7 +428,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     def handleReplacePossible(self, state):
         """ Disable replacing when using regular expressions.
         """
-        for w in [self._replaceText, self._replaceAll, self._replaceInAllFiles, self._replace]:
+        for w in [self._replaceText, self._replaceBut, self._replaceKind]:
             w.setEnabled(not state)
     
     
@@ -550,6 +545,16 @@ class FindReplaceWidget(QtWidgets.QFrame):
         editor.setFocus()
         return not result.isNull()
     
+    def replace(self, event=None):
+        i = self._replaceKind.currentIndex()
+        if i == 0:
+            self.replaceOne(event)
+        elif i == 1:
+            self.replaceAll(event)
+        elif i == 2:
+            self.replaceInAllFiles(event)
+        else:
+            raise RuntimeError('Unexpected kind of replace %s' % i)
     
     def replaceOne(self, event=None, wrapAround=True, editor=None):
         """ If the currently selected text matches the find string,
@@ -1346,7 +1351,6 @@ class EditorTabs(QtWidgets.QWidget):
             return self.saveFile(editor, filename)
         else:
             return False # Cancel was pressed
-    
     
     def saveFile(self, editor=None, filename=None):
         """ Save the file.
