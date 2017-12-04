@@ -456,6 +456,7 @@ class PyzoInterpreter:
         self.guiApp = guiintegration.App_base()
         self.guiName = guiName = startup_info['gui'].upper()
         guiError = ''
+        
         try:
             if guiName in ['', 'NONE']:
                 guiName = ''
@@ -465,6 +466,7 @@ class PyzoInterpreter:
                                         ('PYSIDE2', guiintegration.App_pyside2),
                                         ('PYSIDE', guiintegration.App_pyside),
                                         #('WX', guiintegration.App_wx),
+                                        ('ASYNCIO', guiintegration.App_asyncio),
                                         ('TK', guiintegration.App_tk),
                                         ]:
                     try:
@@ -475,6 +477,8 @@ class PyzoInterpreter:
                     break
                 else:
                     guiName = ''
+            elif guiName == 'ASYNCIO':
+                self.guiApp = guiintegration.App_asyncio()
             elif guiName == 'TK':
                 self.guiApp = guiintegration.App_tk()
             elif guiName == 'WX':

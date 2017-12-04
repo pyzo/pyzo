@@ -103,6 +103,69 @@ class App_base:
         raise SystemExit()
 
 
+class App_asyncio(App_base):
+    """ Based on asyncio (standard Python) event loop.
+    
+    We do not run the event loop and a timer to keep the REPL active, because
+    asyncio does allow creating new loops while one is running. So we stick to
+    a simple and non-intrusive mechanism to regularly process events from
+    whatever event loop is current at any given moment.
+    
+    """
+    
+    def __init__(self):
+        import asyncio
+        self.app = asyncio.get_event_loop()
+        self.app._in_event_loop = 'Pyzo'
+        self._warned_about_process_events = False
+        self._blocking = False
+        
+        # Hijack 
+        
+        # Prevent entering forever, not giving control back to repl
+        self.app._original_run_forever = self.app.run_forever
+        self.app.run_forever = self.stub_run_forever
+        # The run_until_complete() calls run_forever and then checks that future completed
+        self.app._original_run_until_complete = self.app.run_until_complete
+        self.app.run_until_complete = self.stub_run_until_complete
+        # Prevent the loop from being destroyed
+        self.app._original_close = self.app.close
+        self.app.close = self.stub_close
+        # Stop is fine, since we don't "run" the loop, but just keep it active
+    
+    def stub_run_until_complete(self, *args):
+        self._blocking = True
+        return self.app._original_run_until_complete(*args)
+    
+    def stub_run_forever(self):
+        if self._blocking:
+            self._blocking = False
+            self.app._original_run_forever()
+    
+    def stub_close(self):
+        pass
+    
+    def process_events(self):
+        loop = self.app
+        if loop.is_closed():
+            pass  # not much we can do
+        elif loop.is_running():
+            if not self._warned_about_process_events:
+                print('Warning: cannot process events synchronously in asyncio')
+                self._warned_about_process_events = True
+        else:
+            # First calling stop and then run_forever() process all pending events
+            loop.stop()
+            loop._original_run_forever()
+    
+    def quit(self):
+        loop = self.app
+        try:
+            if not loop.is_closed():
+                loop.close()
+        finally:
+            raise SystemExit()
+        
 
 class App_tk(App_base):
     """ Tries to import tkinter and returns a withdrawn tkinter root
@@ -200,7 +263,6 @@ class App_fltk2(App_base):
         self.app.wait(0)
 
 
-
 class App_tornado(App_base):
     """ Hijack Tornado event loop.
     
@@ -272,6 +334,7 @@ class App_tornado(App_base):
     
     def quit(self):
         self.app._original_stop()
+        # raise SystemExit()
 
 
 class App_qt(App_base):
