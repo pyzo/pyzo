@@ -1610,8 +1610,8 @@ class RunMenu(Menu):
                     # If we have a ipython shell we use %run -i instead
                     # This works better when python autoreload is used
                     d = os.path.normpath(os.path.normcase(os.path.dirname(editor._filename)))
-                    shell._ctrl_command.send('%%cd %s' % d)
-                    shell._ctrl_command.send('%%run -i %s\n' % editor._filename)                
+                    shell._ctrl_command.send('%%cd "%s"\n' % d)
+                    shell._ctrl_command.send('%%run -i "%s"\n' % editor._filename)                
                 else:
                     shell.restart(editor._filename)
             else:
