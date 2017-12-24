@@ -130,7 +130,7 @@ class Magician:
             return
         pos = pos + 1
         # command is alone on the line
-        if pos >= len(ltok) or ltok[pos][0] == token.ENDMARKER :
+        if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, token.COMMENT] :
             if command in interpreter.locals :
                 return
             if interpreter.globals and command in interpreter.globals:
