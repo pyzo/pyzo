@@ -110,33 +110,51 @@ class Magician:
         # Get interpreter
         interpreter = sys._pyzoInterpreter
         
-        # Check that line is not some valid python input
-        try :
-            # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
-            ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
-        except tokenize.TokenError :  # typically this means an unmatched parenthesis
-                                    # (which should not happen because these are detected before)
-            return
+
+        if PYTHON_VERSION >= 3 :
         
-        # ignore garbage and indentation at the beginning
-        pos = 0
-        while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING] : # 59 is BACKQUOTE but there is no token.BACKQUOTE...
+            # Check that line is not some valid python input
+            try :
+                # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
+                ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
+            except tokenize.TokenError :  # typically this means an unmatched parenthesis
+                                        # (which should not happen because these are detected before)
+                return
+            
+            # ignore garbage and indentation at the beginning
+            pos = 0
+            while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING] : # 59 is BACKQUOTE but there is no token.BACKQUOTE...
+                pos = pos + 1
+            # when line is only garbage or does not begin with a name
+            if pos >= len(ltok) or ltok[pos][0] != token.NAME :
+                return
+            command = ltok[pos][1]
+            if keyword.iskeyword(command) :
+                return
             pos = pos + 1
-        # when line is only garbage or does not begin with a name
-        if pos >= len(ltok) or ltok[pos][0] != token.NAME :
-            return
-        command = ltok[pos][1]
-        if keyword.iskeyword(command) :
-            return
-        pos = pos + 1
-        # command is alone on the line
-        if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, token.COMMENT] :
-            if command in interpreter.locals :
-                return
-            if interpreter.globals and command in interpreter.globals:
-                return
-        else : # command is not alone ; next token should not be an operator (this includes parentheses)
-            if ltok[pos][0] == token.OP :
+            # command is alone on the line
+            if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, token.COMMENT] :
+                if command in interpreter.locals :
+                    return
+                if interpreter.globals and command in interpreter.globals:
+                    return
+            else : # command is not alone ; next token should not be an operator (this includes parentheses)
+                if ltok[pos][0] == token.OP :
+                    return
+        else :
+            # Old, not as good check for outdated Python version
+            # Check if it is a variable
+            command = line.rstrip()
+            if ' ' not in command:
+                if command in interpreter.locals:
+                    return
+                if interpreter.globals and command in interpreter.globals:
+                    return
+            
+            # Clean and make case insensitive
+            command = line.upper().rstrip()
+            
+            if not command:
                 return
 
 
