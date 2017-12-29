@@ -54,6 +54,37 @@ TIMEIT_MESSAGE = """Time execution duration. Usage:
     timeit 20 fun/expression  # tests 20 passes
 """
 
+def _should_not_interpret_as_magic(line) :
+    # Check that line is not some valid python input
+    try :
+        # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
+        ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
+    except tokenize.TokenError :  # typically this means an unmatched parenthesis
+                                # (which should not happen because these are detected before)
+        return True
+    
+    # ignore garbage and indentation at the beginning
+    pos = 0
+    while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING] : # 59 is BACKQUOTE but there is no token.BACKQUOTE...
+        pos = pos + 1
+    # when line is only garbage or does not begin with a name
+    if pos >= len(ltok) or ltok[pos][0] != token.NAME :
+        return True
+    command = ltok[pos][1]
+    if keyword.iskeyword(command) :
+        return True
+    pos = pos + 1
+    # command is alone on the line
+    if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, token.COMMENT] :
+        if command in interpreter.locals :
+            return True
+        if interpreter.globals and command in interpreter.globals:
+            return True
+    else : # command is not alone ; next token should not be an operator (this includes parentheses)
+        if ltok[pos][0] == token.OP :
+            return True
+    
+    return False
 
 class Magician:
     
@@ -112,35 +143,8 @@ class Magician:
         
 
         if PYTHON_VERSION >= 3 :
-        
-            # Check that line is not some valid python input
-            try :
-                # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
-                ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
-            except tokenize.TokenError :  # typically this means an unmatched parenthesis
-                                        # (which should not happen because these are detected before)
+            if _should_not_interpret_as_magic(line) :
                 return
-            
-            # ignore garbage and indentation at the beginning
-            pos = 0
-            while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING] : # 59 is BACKQUOTE but there is no token.BACKQUOTE...
-                pos = pos + 1
-            # when line is only garbage or does not begin with a name
-            if pos >= len(ltok) or ltok[pos][0] != token.NAME :
-                return
-            command = ltok[pos][1]
-            if keyword.iskeyword(command) :
-                return
-            pos = pos + 1
-            # command is alone on the line
-            if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, token.COMMENT] :
-                if command in interpreter.locals :
-                    return
-                if interpreter.globals and command in interpreter.globals:
-                    return
-            else : # command is not alone ; next token should not be an operator (this includes parentheses)
-                if ltok[pos][0] == token.OP :
-                    return
         else :
             # Old, not as good check for outdated Python version
             # Check if it is a variable
