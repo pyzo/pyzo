@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
++# -*- coding: utf-8 -*-
 # Copyright (C) 2016, the Pyzo development team
 #
 # Pyzo is distributed under the terms of the (new) BSD License.
@@ -668,6 +668,11 @@ class EditMenu(Menu):
             None, pyzo.editors._findReplace.findNext)
         self.addItem(translate("menu", "Find previous ::: Find the previous occurrence of the search string."),
             None, pyzo.editors._findReplace.findPrevious)
+        self.addSeparator()
+        self.addItem(translate("menu", "Toggle Case ::: Change selected text to lower or upper case"),
+            None, self._editItemCallback, "toggleCase")
+        self.addItem(translate("menu", "Printify ::: Insert selected or clipboard text as print('TEXT: ' + text)"),
+            None, self._editItemCallback, "printify")
     
     
     def _editItemCallback(self, action):
