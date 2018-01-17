@@ -671,8 +671,7 @@ class EditMenu(Menu):
         self.addSeparator()
         self.addItem(translate("menu", "Toggle Case ::: Change selected text to lower or upper case"),
             None, self._editItemCallback, "toggleCase")
-        self.addItem(translate("menu", "Printify ::: Insert selected or clipboard text as print('TEXT: ' + text)"),
-            None, self._editItemCallback, "printify")
+
     
     
     def _editItemCallback(self, action):

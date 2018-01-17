@@ -896,22 +896,3 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         cursor.setPosition(end_pos, QtGui.QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
-
-    def printify(self):
-        """ Insert selected or clipboard text as print('TEXT: ' + text).
-        """
-
-        # Get cursor
-        cursor = self.textCursor()
-
-        # Get selected text
-        selection = cursor.selectedText()
-
-        if selection == '':
-            # Get clipboard text
-            import pyzo
-            selection = pyzo.MyApp.instance().clipboard().text()
-
-        # Update the selection
-        newText = "print('{}: ' + {})".format(selection.upper(), selection)
-        cursor.insertText(newText)
