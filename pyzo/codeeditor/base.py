@@ -189,7 +189,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         blue    = "#268bd2"
         cyan    = "#2aa198"
         green   = "#859900"  # noqa
-        
+
         if True: # Light vs dark
             #back1, back2, back3 = base3, base2, base1 # real solarised
             back1, back2, back3 = "#fff", base2, base1 # crispier
@@ -223,7 +223,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         S["Editor.Highlight current line"] = "back:%s" % back2
         S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % back2
         S["Editor.Line numbers"] = "back:%s, fore:%s" % (back2, back3)
-        
+
+        S["Syntax.builtins"] = "fore:%s, bold:yes, italic:no, underline:no" % violet
+        S["Syntax.instance"] = "fore:%s, bold:yes, italic:yes, underline:no" % yellow
+        S["Syntax.constant"] = "fore:%s, bold:yes, italic:no, underline:no" % green
+
         # Define style using html color names. All 140 legal HTML colour
         # names can be used (in addition to HEX codes). A full list of
         # recognized colour names is available e.g. here
