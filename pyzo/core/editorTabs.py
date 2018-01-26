@@ -1528,12 +1528,14 @@ class EditorTabs(QtWidgets.QWidget):
         
         # Restore opened editors
         if pyzo.config.state.editorState2:
-            self._setCurrentOpenFilesAsSsdfList(pyzo.config.state.editorState2)
+            ok = self._setCurrentOpenFilesAsSsdfList(pyzo.config.state.editorState2)
+            if not ok:
+                self.newFile()
         else:
             self.newFile()
         
         # The find/replace state is set in the corresponding class during init
-    
+
     
     def _getCurrentOpenFilesAsSsdfList(self):
         """ Get the state as it currently is as an ssdf list.
@@ -1593,32 +1595,34 @@ class EditorTabs(QtWidgets.QWidget):
         # Process items
         for item in state:
             fname = item[0]
-            if item[1] == 'hist':
-                # select item (to make the history right)
-                if fname in fileItems:
-                    self._tabs.setCurrentItem( fileItems[fname] )
-            elif fname:
-                # a file item, create editor-item and store
-                itm = self.loadFile(fname)
-                fileItems[fname] = itm
-                # set position
-                if itm:
-                    try:
-                        ed = itm.editor
-                        cursor = ed.textCursor()
-                        cursor.setPosition(int(item[1]))
-                        ed.setTextCursor(cursor)
-                        # set scrolling
-                        ed.verticalScrollBar().setValue(int(item[2]))
-                        #ed.centerCursor() #TODO: this does not work properly yet
-                        # set main and/or pinned?
-                        if 'main' in item:
-                            self._tabs._mainFile = itm.id
-                        if 'pinned' in item:
-                            itm._pinned = True
-                    except Exception as err:
-                        print('Could not set position for %s' % fname, err)
-        
+            if os.path.exists(fname):
+                if item[1] == 'hist':
+                    # select item (to make the history right)
+                    if fname in fileItems:
+                        self._tabs.setCurrentItem( fileItems[fname] )
+                elif fname:
+                    # a file item, create editor-item and store
+                    itm = self.loadFile(fname)
+                    fileItems[fname] = itm
+                    # set position
+                    if itm:
+                        try:
+                            ed = itm.editor
+                            cursor = ed.textCursor()
+                            cursor.setPosition(int(item[1]))
+                            ed.setTextCursor(cursor)
+                            # set scrolling
+                            ed.verticalScrollBar().setValue(int(item[2]))
+                            #ed.centerCursor() #TODO: this does not work properly yet
+                            # set main and/or pinned?
+                            if 'main' in item:
+                                self._tabs._mainFile = itm.id
+                            if 'pinned' in item:
+                                itm._pinned = True
+                        except Exception as err:
+                            print('Could not set position for %s' % fname, err)
+                            
+        return len(fileItems) != 0
     
     def closeAll(self):
         """ Close all files (well technically, we don't really close them,
