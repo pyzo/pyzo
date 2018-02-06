@@ -392,6 +392,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         if self._autoHide.isChecked():
             if (time.time() - self._timerAutoHide_t0) > timeout: # seconds
                 # Hide if editor has focus
+                self._replaceKind.setCurrentIndex(0)  # set replace to "one"
                 es = self.parent() # editor stack
                 editor = es.getCurrentEditor()
                 if editor and editor.hasFocus():
