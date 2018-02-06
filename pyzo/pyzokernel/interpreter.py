@@ -257,7 +257,8 @@ class PyzoInterpreter:
         startup_info['builtins'] = [builtin for builtin in builtins.keys()]
         startup_info['version'] = tuple(sys.version_info)
         startup_info['keywords'] = keyword.kwlist
-        self.context._stat_startup.send(startup_info)
+        # Update startup info, we update again at the end of this method
+        self.context._stat_startup.send(startup_info.copy())
         
         # Prepare the Python environment
         self._prepare_environment(startup_info)
@@ -312,6 +313,7 @@ class PyzoInterpreter:
                 del tb
                 printDirect('IPython could not be loaded: %s\n' % str(value))
                 self._ipython = None
+                startup_info['ipython'] = 'no'
         
         # Set prompts
         sys.ps1 = PS1(self)
@@ -359,6 +361,9 @@ class PyzoInterpreter:
         if not root_logger.handlers:
             root_logger.addHandler(logging.StreamHandler())
         root_logger.addHandler(PMHandler())
+        
+        # Update startup info
+        self.context._stat_startup.send(startup_info)
     
     
     def _prepare_environment(self, startup_info):
