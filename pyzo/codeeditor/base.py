@@ -867,7 +867,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         accordingly.
         """
         leftmargin = self.getLeftMargin()
-        self.setViewportMargins(leftmargin , 0, 0, 0
+        self.setViewportMargins(leftmargin , 0, 0, 0)
 
 
     def toggleCase(self):
