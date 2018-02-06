@@ -867,4 +867,32 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         accordingly.
         """
         leftmargin = self.getLeftMargin()
-        self.setViewportMargins(leftmargin , 0, 0, 0)
+        self.setViewportMargins(leftmargin , 0, 0, 0
+
+
+    def toggleCase(self):
+        """ Change selected text to lower or upper case.
+        """
+
+        # Get cursor
+        cursor = self.textCursor()
+        position = cursor.position()
+        start_pos = cursor.selectionStart()
+        end_pos = cursor.selectionEnd()
+
+        # Get selected text
+        selection = cursor.selectedText()
+
+        if selection.islower():
+            newText = selection.upper()
+        elif selection.isupper():
+            newText = selection.lower()
+        else:
+            newText = selection.lower()
+
+        # Update the selection
+        cursor.insertText(newText)
+        cursor.setPosition(start_pos)
+        cursor.setPosition(end_pos, QtGui.QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+
