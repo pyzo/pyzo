@@ -54,37 +54,41 @@ TIMEIT_MESSAGE = """Time execution duration. Usage:
     timeit 20 fun/expression  # tests 20 passes
 """
 
-def _should_not_interpret_as_magic(line) :
+def _should_not_interpret_as_magic(line):
+    interpreter = sys._pyzoInterpreter
+    
     # Check that line is not some valid python input
-    try :
+    try:
         # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
         ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
-    except tokenize.TokenError :  # typically this means an unmatched parenthesis
-                                # (which should not happen because these are detected before)
+    except tokenize.TokenError:  # typically this means an unmatched parenthesis
+                                 # (which should not happen because these are detected before)
         return True
     
     # ignore garbage and indentation at the beginning
     pos = 0
-    while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING] : # 59 is BACKQUOTE but there is no token.BACKQUOTE...
+    while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING]:
+        # 59 is BACKQUOTE but there is no token.BACKQUOTE...
         pos = pos + 1
     # when line is only garbage or does not begin with a name
-    if pos >= len(ltok) or ltok[pos][0] != token.NAME :
+    if pos >= len(ltok) or ltok[pos][0] != token.NAME:
         return True
     command = ltok[pos][1]
-    if keyword.iskeyword(command) :
+    if keyword.iskeyword(command):
         return True
     pos = pos + 1
     # command is alone on the line
-    if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, token.COMMENT] :
-        if command in interpreter.locals :
+    if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, tokenize.COMMENT]:
+        if command in interpreter.locals:
             return True
         if interpreter.globals and command in interpreter.globals:
             return True
-    else : # command is not alone ; next token should not be an operator (this includes parentheses)
-        if ltok[pos][0] == token.OP :
+    else: # command is not alone ; next token should not be an operator (this includes parentheses)
+        if ltok[pos][0] == token.OP:
             return True
     
     return False
+
 
 class Magician:
     
@@ -141,11 +145,14 @@ class Magician:
         # Get interpreter
         interpreter = sys._pyzoInterpreter
         
-
-        if PYTHON_VERSION >= 3 :
-            if _should_not_interpret_as_magic(line) :
-                return
-        else :
+        if PYTHON_VERSION >= 3:
+            try:
+                if _should_not_interpret_as_magic(line):
+                    return
+            except Exception:
+                pass  # dont break interpreter if above func has a bug ...
+                
+        else:
             # Old, not as good check for outdated Python version
             # Check if it is a variable
             command = line.rstrip()
@@ -155,20 +162,15 @@ class Magician:
                 if interpreter.globals and command in interpreter.globals:
                     return
             
-            # Clean and make case insensitive
-            command = line.upper().rstrip()
-            
-            if not command:
-                return
-
-
         # Clean and make case insensitive
-        command = line.strip().upper()
-
+        command = line.upper().rstrip()
         
         # Commands to always support (also with IPython)
         
-        if command.startswith('DB'):
+        if not command:
+            return
+        
+        elif command.startswith('DB'):
             return self.debug(line, command)
         
         elif command.startswith('NOTEBOOK'):
