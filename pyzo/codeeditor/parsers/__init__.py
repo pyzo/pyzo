@@ -200,5 +200,6 @@ class Parser(object):
 from . import (     python_parser,  # noqa
                     cython_parser,  # noqa
                     c_parser,  # noqa
+                    s_expr_parser,  # noqa
               )
 
