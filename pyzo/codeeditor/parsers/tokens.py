@@ -139,10 +139,6 @@ class InstanceToken(IdentifierToken):
     """ Characters representing a instance in the code. """
     defaultStyle = ''
 
-class ConstantToken(IdentifierToken):
-    """ Characters representing a constant in the code. """
-    defaultStyle = ''
-
 class NumberToken(IdentifierToken):
     """ Characters represening a number. """
     defaultStyle = 'fore:#007F7F'
