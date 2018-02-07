@@ -12,7 +12,7 @@ from ..misc import ustr
 # Import tokens in module namespace
 from .tokens import (CommentToken, StringToken,
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
-    KeywordToken, BuiltinsToken, InstanceToken, ConstantToken, NumberToken, FunctionNameToken, ClassNameToken,
+    KeywordToken, BuiltinsToken, InstanceToken, NumberToken, FunctionNameToken, ClassNameToken,
     TodoCommentToken, OpenParenToken, CloseParenToken)
 
 # Keywords sets
@@ -64,23 +64,24 @@ python2Builtins = set(['ArithmeticError', 'AssertionError', 'AttributeError',
         'super', 'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange',
         'zip'])
 
-# Soutce: import builtins; dir(builtins) (Python 3.5.2)
+# Source: import builtins; dir(builtins) (Python 3.5.2)
+# Note: Removed 'False', 'None', 'True'. They are keyword in Python 3
 python3Builtins = set(['ArithmeticError', 'AssertionError', 'AttributeError',
         'BaseException', 'BlockingIOError', 'BrokenPipeError', 'BufferError',
         'BytesWarning', 'ChildProcessError', 'ConnectionAbortedError',
         'ConnectionError', 'ConnectionRefusedError', 'ConnectionResetError',
         'DeprecationWarning', 'EOFError', 'Ellipsis', 'EnvironmentError',
-        'Exception', 'False', 'FileExistsError', 'FileNotFoundError',
+        'Exception', 'FileExistsError', 'FileNotFoundError',
         'FloatingPointError', 'FutureWarning', 'GeneratorExit', 'IOError',
         'ImportError', 'ImportWarning', 'IndentationError', 'IndexError',
         'InterruptedError', 'IsADirectoryError', 'KeyError',
-        'KeyboardInterrupt', 'LookupError', 'MemoryError', 'NameError', 'None',
+        'KeyboardInterrupt', 'LookupError', 'MemoryError', 'NameError',
         'NotADirectoryError', 'NotImplemented', 'NotImplementedError',
         'OSError', 'OverflowError', 'PendingDeprecationWarning',
         'PermissionError', 'ProcessLookupError', 'RecursionError',
         'ReferenceError', 'ResourceWarning', 'RuntimeError', 'RuntimeWarning',
         'StopAsyncIteration', 'StopIteration', 'SyntaxError', 'SyntaxWarning',
-        'SystemError', 'SystemExit', 'TabError', 'TimeoutError', 'True',
+        'SystemError', 'SystemExit', 'TabError', 'TimeoutError',
         'TypeError', 'UnboundLocalError', 'UnicodeDecodeError',
         'UnicodeEncodeError', 'UnicodeError', 'UnicodeTranslateError',
         'UnicodeWarning', 'UserWarning', 'ValueError', 'Warning',
@@ -371,8 +372,6 @@ class PythonParser(Parser):
                     tokens.append(BuiltinsToken(*tokenArgs))
             elif identifier in self._instance:
                 tokens.append(InstanceToken(*tokenArgs))
-            elif identifier.isupper():
-                tokens.append( ConstantToken(*tokenArgs) )
             elif identifier[0] in '0123456789':
                 self._identifierState(None)
                 tokens.append( NumberToken(*tokenArgs) )
