@@ -206,27 +206,27 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         S['Syntax.identifier'] = "fore:%s, bold:no, italic:no, underline:no" % fore1
         S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % fore2
         S["Syntax.keyword"] = "fore:%s, bold:yes, italic:no, underline:no" % fore2
-        #
+
+        S["Syntax.builtins"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+        S["Syntax.instance"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+
         S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore3
         S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % orange
-        #
+
         S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
         S["Syntax.unterminatedstring"] = "fore:%s, bold:no, italic:no, underline:dotted" % violet
         S["Syntax.python.multilinestring"] = "fore:%s, bold:no, italic:no, underline:no" % blue
-        #
+
         S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
-        S["Syntax.comment"] ="fore:%s, bold:no, italic:no, underline:no" % yellow
+        S["Syntax.comment"] = "fore:%s, bold:no, italic:no, underline:no" % yellow
         S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
         S["Syntax.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:full" % yellow
-        #
+
         S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2
         S["Editor.Highlight current line"] = "back:%s" % back2
         S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % back2
         S["Editor.Line numbers"] = "back:%s, fore:%s" % (back2, back3)
 
-        S["Syntax.builtins"] = "fore:%s, bold:yes, italic:no, underline:no" % violet
-        S["Syntax.instance"] = "fore:%s, bold:yes, italic:yes, underline:no" % yellow
-        S["Syntax.constant"] = "fore:%s, bold:yes, italic:no, underline:no" % green
 
         # Define style using html color names. All 140 legal HTML colour
         # names can be used (in addition to HEX codes). A full list of
@@ -250,7 +250,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 #         S["Editor.Highlight current line"] = "back: light grey"
 #         S["Editor.Indentation guides"] = "linestyle:solid, fore: light grey"
 #         S["Editor.Line numbers"] = "back: light grey, fore: black"
-        
+
         # Apply style
         self.setStyle(S)
     
