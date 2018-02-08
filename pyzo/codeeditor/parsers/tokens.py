@@ -131,6 +131,14 @@ class KeywordToken(IdentifierToken):
     """ A keyword is a word with a special meaning to the language. """
     defaultStyle = 'fore:#00007F, bold:yes'
 
+class BuiltinsToken(IdentifierToken):
+    """ Characters representing a builtins in the code. """
+    defaultStyle = ''
+
+class InstanceToken(IdentifierToken):
+    """ Characters representing a instance in the code. """
+    defaultStyle = ''
+
 class NumberToken(IdentifierToken):
     """ Characters represening a number. """
     defaultStyle = 'fore:#007F7F'
@@ -154,4 +162,6 @@ class OpenParenToken(ParenthesisToken) :
 class CloseParenToken(ParenthesisToken) :
     """ Closing parenthesis (and square and curly brackets). """
     defaultStyle = ''
+
+
 

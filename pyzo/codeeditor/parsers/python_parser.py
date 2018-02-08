@@ -12,7 +12,7 @@ from ..misc import ustr
 # Import tokens in module namespace
 from .tokens import (CommentToken, StringToken,
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
-    KeywordToken, NumberToken, FunctionNameToken, ClassNameToken,
+    KeywordToken, BuiltinsToken, InstanceToken, NumberToken, FunctionNameToken, ClassNameToken,
     TodoCommentToken, OpenParenToken, CloseParenToken)
 
 # Keywords sets
@@ -33,16 +33,91 @@ python3Keywords = set(['False', 'None', 'True', 'and', 'as', 'assert', 'break',
 # Merge the two sets to get a general Python keyword list
 pythonKeywords = python2Keywords | python3Keywords
 
+# Builtins sets
+
+# Source: dir (__builtins__) (Python 2.7.12)
+python2Builtins = set(['ArithmeticError', 'AssertionError', 'AttributeError',
+        'BaseException', 'BufferError', 'BytesWarning', 'DeprecationWarning',
+        'EOFError', 'Ellipsis', 'EnvironmentError', 'Exception', 'False',
+        'FloatingPointError', 'FutureWarning', 'GeneratorExit', 'IOError',
+        'ImportError', 'ImportWarning', 'IndentationError', 'IndexError',
+        'KeyError', 'KeyboardInterrupt', 'LookupError', 'MemoryError',
+        'NameError', 'None', 'NotImplemented', 'NotImplementedError',
+        'OSError', 'OverflowError', 'PendingDeprecationWarning',
+        'ReferenceError', 'RuntimeError', 'RuntimeWarning', 'StandardError',
+        'StopIteration', 'SyntaxError', 'SyntaxWarning', 'SystemError',
+        'SystemExit', 'TabError', 'True', 'TypeError', 'UnboundLocalError',
+        'UnicodeDecodeError', 'UnicodeEncodeError', 'UnicodeError',
+        'UnicodeTranslateError', 'UnicodeWarning', 'UserWarning', 'ValueError',
+        'Warning', 'ZeroDivisionError', '__debug__', '__doc__', '__import__',
+        '__name__', '__package__', 'abs', 'all', 'any', 'apply', 'basestring',
+        'bin', 'bool', 'buffer', 'bytearray', 'bytes', 'callable', 'chr',
+        'classmethod', 'cmp', 'coerce', 'compile', 'complex', 'copyright',
+        'credits', 'delattr', 'dict', 'dir', 'divmod', 'enumerate', 'eval',
+        'execfile', 'exit', 'file', 'filter', 'float', 'format', 'frozenset',
+        'getattr', 'globals', 'hasattr', 'hash', 'help', 'hex', 'id', 'input',
+        'int', 'intern', 'isinstance', 'issubclass', 'iter', 'len', 'license',
+        'list', 'locals', 'long', 'map', 'max', 'memoryview', 'min', 'next',
+        'object', 'oct', 'open', 'ord', 'pow', 'print', 'property', 'quit',
+        'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed', 'round',
+        'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum',
+        'super', 'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange',
+        'zip'])
+
+# Source: import builtins; dir(builtins) (Python 3.5.2)
+# Note: Removed 'False', 'None', 'True'. They are keyword in Python 3
+python3Builtins = set(['ArithmeticError', 'AssertionError', 'AttributeError',
+        'BaseException', 'BlockingIOError', 'BrokenPipeError', 'BufferError',
+        'BytesWarning', 'ChildProcessError', 'ConnectionAbortedError',
+        'ConnectionError', 'ConnectionRefusedError', 'ConnectionResetError',
+        'DeprecationWarning', 'EOFError', 'Ellipsis', 'EnvironmentError',
+        'Exception', 'FileExistsError', 'FileNotFoundError',
+        'FloatingPointError', 'FutureWarning', 'GeneratorExit', 'IOError',
+        'ImportError', 'ImportWarning', 'IndentationError', 'IndexError',
+        'InterruptedError', 'IsADirectoryError', 'KeyError',
+        'KeyboardInterrupt', 'LookupError', 'MemoryError', 'NameError',
+        'NotADirectoryError', 'NotImplemented', 'NotImplementedError',
+        'OSError', 'OverflowError', 'PendingDeprecationWarning',
+        'PermissionError', 'ProcessLookupError', 'RecursionError',
+        'ReferenceError', 'ResourceWarning', 'RuntimeError', 'RuntimeWarning',
+        'StopAsyncIteration', 'StopIteration', 'SyntaxError', 'SyntaxWarning',
+        'SystemError', 'SystemExit', 'TabError', 'TimeoutError',
+        'TypeError', 'UnboundLocalError', 'UnicodeDecodeError',
+        'UnicodeEncodeError', 'UnicodeError', 'UnicodeTranslateError',
+        'UnicodeWarning', 'UserWarning', 'ValueError', 'Warning',
+        'ZeroDivisionError', '__build_class__', '__debug__', '__doc__',
+        '__import__', '__loader__', '__name__', '__package__', '__spec__',
+        'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'bytearray', 'bytes',
+        'callable', 'chr', 'classmethod', 'compile', 'complex', 'copyright',
+        'credits', 'delattr', 'dict', 'dir', 'divmod', 'enumerate', 'eval',
+        'exec', 'exit', 'filter', 'float', 'format', 'frozenset', 'getattr',
+        'globals', 'hasattr', 'hash', 'help', 'hex', 'id', 'input', 'int',
+        'isinstance', 'issubclass', 'iter', 'len', 'license', 'list', 'locals',
+        'map', 'max', 'memoryview', 'min', 'next', 'object', 'oct', 'open',
+        'ord', 'pow', 'print', 'property', 'quit', 'range', 'repr', 'reversed',
+        'round', 'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str',
+        'sum', 'super', 'tuple', 'type', 'vars', 'zip'])
+
+
+# Merge the two sets to get a general Python builtins list
+pythonBuiltins = python2Builtins | python3Builtins
+
+# Instance sets
+python2Instance = set(['self'])
+
+python3Instance = set(['self'])
+
+pythonInstance = python2Instance | python3Instance
 
 
 class MultilineStringToken(StringToken):
     """ Characters representing a multi-line string. """
     defaultStyle = 'fore:#7F0000'
 
+
 class CellCommentToken(CommentToken):
     """ Characters representing a cell separator comment: "##". """
     defaultStyle = 'bold:yes, underline:yes'
-
 
 
 # This regexp is used to find special stuff, such as comments, numbers and
@@ -60,11 +135,11 @@ tokenProg = re.compile(
     )
 
 
-#For a given type of string ( ', " , ''' , """ ),get  the RegExp
-#program that matches the end. (^|[^\\]) means: start of the line
-#or something that is not \ (since \ is supposed to escape the following
-#quote) (\\\\)* means: any number of two slashes \\ since each slash will
-#escape the next one
+# For a given type of string ( ', " , ''' , """ ),get  the RegExp
+# program that matches the end. (^|[^\\]) means: start of the line
+# or something that is not \ (since \ is supposed to escape the following
+# quote) (\\\\)* means: any number of two slashes \\ since each slash will
+# escape the next one
 endProgs = {
     "'": re.compile(r"(^|[^\\])(\\\\)*'"),
     '"': re.compile(r'(^|[^\\])(\\\\)*"'),
@@ -77,8 +152,11 @@ class PythonParser(Parser):
     """ Parser for Python in general (2.x or 3.x).
     """
     _extensions = ['.py' , '.pyw']
-    #The list of keywords is overridden by the Python2/3 specific parsers
+    # The list of keywords is overridden by the Python2/3 specific parsers
     _keywords = pythonKeywords
+    # The list of builtins and instances is overridden by the Python2/3 specific parsers
+    _builtins = pythonBuiltins
+    _instance = pythonInstance
     
     
     def _identifierState(self, identifier=None):
@@ -289,6 +367,11 @@ class PythonParser(Parser):
             
             if identifier in self._keywords:
                 tokens.append( KeywordToken(*tokenArgs) )
+            elif identifier in self._builtins:
+                if '.' + identifier not in line:
+                    tokens.append(BuiltinsToken(*tokenArgs))
+            elif identifier in self._instance:
+                tokens.append(InstanceToken(*tokenArgs))
             elif identifier[0] in '0123456789':
                 self._identifierState(None)
                 tokens.append( NumberToken(*tokenArgs) )
@@ -322,9 +405,12 @@ class PythonParser(Parser):
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.
     """
-     # The application should choose whether to set the Py 2 specific parser
+    # The application should choose whether to set the Py 2 specific parser
     _extensions = []
     _keywords = python2Keywords
+    _builtins = python2Builtins
+    _instance = python2Instance
+
 
 class Python3Parser(PythonParser):
     """ Parser for Python 3.x code.
@@ -332,3 +418,5 @@ class Python3Parser(PythonParser):
     # The application should choose whether to set the Py 3 specific parser
     _extensions = []
     _keywords = python3Keywords
+    _builtins = python3Builtins
+    _instance = python3Instance
