@@ -84,7 +84,7 @@ def _should_not_interpret_as_magic(line):
         if interpreter.globals and command in interpreter.globals:
             return True
     else: # command is not alone ; next token should not be an operator (this includes parentheses)
-        if ltok[pos][0] == token.OP:
+        if ltok[pos][0] == token.OP and not line.endswith('?'):
             return True
     
     return False
