@@ -75,6 +75,11 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         for command in pyzo.command_history.get_commands():
             self._list.addItem(command)
         
+        # Scroll to end of list on start up
+        self._list.setCurrentRow(self._list.count()-1)
+        item = self._list.currentItem()
+        self._list.scrollToItem(item)
+        
         # Keep up to date ...
         pyzo.command_history.command_added.connect(self._on_command_added)
         pyzo.command_history.command_removed.connect(self._on_command_removed)
@@ -93,6 +98,7 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         self._list.addItem(item)
         needle = self._search.text()
         item.setHidden(bool(needle and needle not in command))
+        self._list.scrollToItem(item)
     
     def _on_command_removed(self, index):
         self._list.takeItem(index)
