@@ -43,7 +43,7 @@ from yoton.core import send_all, recv_all
 
 
 class RequestServer(threading.Thread):
-    """ RequestServer(address, async=False, verbose=0)
+    """ RequestServer(address, basync=False, verbose=0)
     
     Setup a simple server that handles requests similar to a telnet server,
     or asyncore. Starting the server using run() will run the server in
@@ -58,7 +58,7 @@ class RequestServer(threading.Thread):
     ----------
     address : str
         Should be of the shape hostname:port.
-    async : bool
+    basync : bool
         If True, handles each incoming connection in a separate thread.
         This might be advantageous if a the handle_request() method
         takes a long time to execute.
@@ -78,11 +78,11 @@ class RequestServer(threading.Thread):
     
     """
     
-    def __init__(self, address, async=False, verbose=0):
+    def __init__(self, address, basync=False, verbose=0):
         threading.Thread.__init__(self)
         
         # Store whether to handle requests asynchronously
-        self._async = async
+        self._async = basync
         
         # Verbosity
         self._verbose = verbose
