@@ -26,7 +26,7 @@ def get_version_and_doc(filename):
             elif docStatus == 1:
                 docStatus = 2
         if docStatus == 1:
-            NS['__doc__'] += line + '\n'
+            NS['__doc__'] += line.rstrip() + '\n'
     if not NS['__version__']:
         raise RuntimeError('Could not find __version__')
     return NS['__version__'], NS['__doc__']

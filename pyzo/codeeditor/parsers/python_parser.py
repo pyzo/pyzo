@@ -367,7 +367,8 @@ class PythonParser(Parser):
             
             if identifier in self._keywords:
                 tokens.append( KeywordToken(*tokenArgs) )
-            elif identifier in self._builtins and '.' + identifier not in line:
+            elif identifier in self._builtins and ('.' + identifier not in line and
+                                                   'def ' + identifier not in line):
                 tokens.append(BuiltinsToken(*tokenArgs))
             elif identifier in self._instance:
                 tokens.append(InstanceToken(*tokenArgs))
