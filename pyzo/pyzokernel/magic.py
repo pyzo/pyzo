@@ -144,8 +144,10 @@ class Magician:
         
         # Get interpreter
         interpreter = sys._pyzoInterpreter
+        command = line.rstrip()
         
-        if PYTHON_VERSION >= 3:
+        have_hard_chars = 'cd ',
+        if PYTHON_VERSION >= 3 and not command.lower().startswith(have_hard_chars):
             try:
                 if _should_not_interpret_as_magic(line):
                     return
@@ -155,7 +157,6 @@ class Magician:
         else:
             # Old, not as good check for outdated Python version
             # Check if it is a variable
-            command = line.rstrip()
             if ' ' not in command:
                 if command in interpreter.locals:
                     return
