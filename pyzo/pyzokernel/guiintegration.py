@@ -68,7 +68,12 @@ class App_base:
         every sleeptime seconds.
         """
         
-        _sleeptime = sleeptime
+        if hasattr(time, 'perf_counter'):
+            perf_counter= time.perf_counter
+        else:
+            perf_counter = time.time
+        
+        _sleeptime = 0.0
         
         # The toplevel while-loop is just to catch Keyboard interrupts
         # and then proceed. The inner while-loop is the actual event loop.
@@ -79,9 +84,9 @@ class App_base:
                     time.sleep(_sleeptime)
                     repl_callback()
                     
-                    t0 = time.time()
+                    t0 = perf_counter()
                     self.process_events()
-                    ptime = time.time() - t0
+                    ptime = perf_counter() - t0
                     
                     # Throttle
                     if ptime > 0.001:
