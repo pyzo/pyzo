@@ -73,7 +73,7 @@ class App_base:
         else:
             perf_counter = time.time
         
-        _sleeptime = 0.0
+        _sleeptime = sleeptime
         
         # The toplevel while-loop is just to catch Keyboard interrupts
         # and then proceed. The inner while-loop is the actual event loop.
@@ -83,16 +83,7 @@ class App_base:
                 while True:
                     time.sleep(_sleeptime)
                     repl_callback()
-                    
-                    t0 = perf_counter()
                     self.process_events()
-                    ptime = perf_counter() - t0
-                    
-                    # Throttle
-                    if ptime > 0.001:
-                        _sleeptime = 0.0
-                    else:
-                        _sleeptime = min(_sleeptime + 0.0001, sleeptime)
             
             except KeyboardInterrupt:
                 self._keyboard_interrupt()
@@ -159,9 +150,14 @@ class App_asyncio(App_base):
                 print('Warning: cannot process events synchronously in asyncio')
                 self._warned_about_process_events = True
         else:
-            # First calling stop and then run_forever() process all pending events
-            loop.stop()
-            loop._original_run_forever()
+            # First calling stop and then run_forever() process all pending events.
+            # We do this multiple times to work around the limited frequence that this
+            # method gets called, but we need to use a private attribute for that :/
+            for i in range(20):
+                loop.stop()
+                loop._original_run_forever()
+                if len(getattr(loop, '_ready', ())) == 0:
+                    break
     
     def quit(self):
         loop = self.app
