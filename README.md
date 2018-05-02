@@ -23,9 +23,9 @@ system (Python 2.4 - 3.x, including Pypy).
 
 ### Installation
 
-Pyzo runs on Python3 and needs Pyside or PyQt4 or PyQt5. On a modern
+Pyzo runs on Python3 and needs PySide/PySide2/PyQt4/PyQt5. On a modern
 OS these should be easy to obtain. One can then install Pyzo with
-`sudo python3 -m pip install pyzo`
+`python3 -m pip install pyzo`
 
 We also provide binaries for Windows, Linux and OS X.
 

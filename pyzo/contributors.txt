@@ -1,3 +1,6 @@
+This list is not up-to-date;
+check https://github.com/pyzo/pyzo/graphs/contributors for a more complete list.
+
 ### Project coordination
 
 Almar Klein
