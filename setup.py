@@ -64,7 +64,7 @@ setup(
 
     platforms = 'any',
     provides = ['pyzo'],
-    install_requires = [],  # and 'PySide' or 'PyQt5' or 'PyQt4'
+    install_requires = [],  # and 'PySide' or 'PySide2' or 'PyQt5' or 'PyQt4'
 
     packages = package_tree(name),
     package_dir = {'pyzo': 'pyzo'},
