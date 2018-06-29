@@ -37,6 +37,7 @@ from .extensions.behaviour import (     Indentation,
                                         SmartCopyAndPaste,
                                         MoveLinesUpDown,
                                         ScrollWithUpDownKeys,
+                                        AutoCloseQuotesAndBrackets,
                                    )
 from .extensions.autocompletion import AutoCompletion
 from .extensions.calltip import Calltip
@@ -71,7 +72,7 @@ class CodeEditor(
     
     AutoIndent,
     PythonAutoIndent,
-    
+    AutoCloseQuotesAndBrackets,
     SyntaxHighlighting,
     
     SmartCopyAndPaste, # overrides cut(), copy(), paste()
