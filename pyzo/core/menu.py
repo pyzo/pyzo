@@ -1769,6 +1769,22 @@ class AutocompMenu(Menu):
         # Booleans
         self.addCheckItem(translate("menu", 'Autocomplete keywords ::: The autocompletion list includes keywords.'),
                           None, self._setCompleteKeywords, None, pyzo.config.settings.autoComplete_keywords)
+
+        self.addSeparator()
+
+        # auto closing options
+        self.addCheckItem(translate("menu", "Auto close single quotes ' ' ::: Auto close single quotes."),
+                          None, self._setSingleQuotes, None, pyzo.config.settings.autoClose_SingleQuotes)
+
+        self.addCheckItem(translate("menu", 'Auto close double quotes " " ::: Auto close double quotes.'),
+                          None, self._setDoubleQuotes, None, pyzo.config.settings.autoClose_DoubleQuotes)
+
+        self.addCheckItem(translate("menu", 'Auto close curly brackets { } ::: Auto close curly brackets.'),
+                          None, self._setCurlyBrackets, None, pyzo.config.settings.autoClose_CurlyBrackets)
+
+        self.addCheckItem(translate("menu", 'Auto close square brackets [ ] ::: Auto close square brackets.'),
+                          None, self._setSquareBrackets, None, pyzo.config.settings.autoClose_SquareBrackets)
+
     
     def _setAcceptKeys(self, autocompkeys):
         # Skip if setting is not changes
@@ -1787,6 +1803,21 @@ class AutocompMenu(Menu):
 
     def _setCompleteKeywords(self, value):
         pyzo.config.settings.autoComplete_keywords = bool(value)
+
+    def _setCompleteKeywords(self, value):
+        pyzo.config.settings.autoComplete_keywords = bool(value)
+
+    def _setSingleQuotes(self, value):
+        pyzo.config.settings.autoClose_SingleQuotes = bool(value)
+
+    def _setDoubleQuotes(self, value):
+        pyzo.config.settings.autoClose_DoubleQuotes = bool(value)
+
+    def _setCurlyBrackets(self, value):
+        pyzo.config.settings.autoClose_CurlyBrackets = bool(value)
+
+    def _setSquareBrackets(self, value):
+        pyzo.config.settings.autoClose_SquareBrackets = bool(value)
 
 
 class SettingsMenu(Menu):
