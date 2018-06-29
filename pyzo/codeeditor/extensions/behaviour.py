@@ -12,6 +12,7 @@ Code editor extensions that change its behaviour (i.e. how it reacts to keys)
 from ..qt import QtGui,QtCore
 Qt = QtCore.Qt
 
+import pyzo
 from ..misc import ustr, ce_option
 from ..parsers.tokens import (CommentToken,UnterminatedStringToken)
 from ..parsers import BlockState
@@ -441,3 +442,57 @@ class SmartCopyAndPaste(object):
             cursor.setKeepPositionOnInsert(False)
             self.setTextCursor(cursor)
 
+
+class AutoCloseQuotesAndBrackets(object):
+    """
+    Automatic insertion of quotes, braces and brackets
+
+    """
+
+    def keyPressEvent(self, event):
+
+        if event.key() in [Qt.Key_Apostrophe, Qt.Key_QuoteDbl, Qt.Key_BracketLeft, Qt.Key_BraceLeft]:
+
+            cursor = self.textCursor()
+            self._autoClose(cursor, event)
+
+        else:
+            super().keyPressEvent(event)
+
+    def _autoClose(self, cursor, event):
+
+        if event.key() == Qt.Key_Apostrophe:
+            if pyzo.config.settings.autoClose_SingleQuotes:
+                cursor.insertText("''")
+                self._moveCursorLeft(1)
+            else:
+                super().keyPressEvent(event)
+
+        elif event.key() == Qt.Key_QuoteDbl:
+            if pyzo.config.settings.autoClose_DoubleQuotes:
+                cursor.insertText('""')
+                self._moveCursorLeft(1)
+            else:
+                super().keyPressEvent(event)
+
+        elif event.key() == Qt.Key_BraceLeft:
+            if pyzo.config.settings.autoClose_CurlyBrackets:
+                cursor.insertText('{}')
+                self._moveCursorLeft(1)
+            else:
+                super().keyPressEvent(event)
+
+        elif event.key() == Qt.Key_BracketLeft:
+            if pyzo.config.settings.autoClose_SquareBrackets:
+                cursor.insertText('[]')
+                self._moveCursorLeft(1)
+            else:
+                super().keyPressEvent(event)
+
+    def _moveCursorLeft(self, n):
+        """
+        Move cursor left betwene inserted eg. brackets
+        """
+        cursor2 = self.textCursor()
+        cursor2.movePosition(cursor2.Left, cursor2.MoveAnchor, n)
+        self.setTextCursor(cursor2)
