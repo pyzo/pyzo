@@ -1773,19 +1773,12 @@ class AutocompMenu(Menu):
         self.addSeparator()
 
         # auto closing options
-        self.addCheckItem(translate("menu", "Auto close single quotes ' ' ::: Auto close single quotes."),
-                          None, self._setSingleQuotes, None, pyzo.config.settings.autoClose_SingleQuotes)
+        self.addCheckItem(translate("menu", 'Auto close quotes ::: Auto close single and double quotes.'),
+                          None, self._setQuotes, None, pyzo.config.settings.autoClose_Quotes)
 
-        self.addCheckItem(translate("menu", 'Auto close double quotes " " ::: Auto close double quotes.'),
-                          None, self._setDoubleQuotes, None, pyzo.config.settings.autoClose_DoubleQuotes)
+        self.addCheckItem(translate("menu", 'Auto close brackets ::: Auto close ( { [ ] } ).'),
+                          None, self._setBrackets, None, pyzo.config.settings.autoClose_Brackets)
 
-        self.addCheckItem(translate("menu", 'Auto close curly brackets { } ::: Auto close curly brackets.'),
-                          None, self._setCurlyBrackets, None, pyzo.config.settings.autoClose_CurlyBrackets)
-
-        self.addCheckItem(translate("menu", 'Auto close square brackets [ ] ::: Auto close square brackets.'),
-                          None, self._setSquareBrackets, None, pyzo.config.settings.autoClose_SquareBrackets)
-
-    
     def _setAcceptKeys(self, autocompkeys):
         # Skip if setting is not changes
         if pyzo.config.settings.autoComplete_acceptKeys == autocompkeys:
@@ -1807,17 +1800,13 @@ class AutocompMenu(Menu):
     def _setCompleteKeywords(self, value):
         pyzo.config.settings.autoComplete_keywords = bool(value)
 
-    def _setSingleQuotes(self, value):
-        pyzo.config.settings.autoClose_SingleQuotes = bool(value)
+    def _setQuotes(self, value):
+        # Set automatic insertion of single and double quotes
+        pyzo.config.settings.autoClose_Quotes = bool(value)
 
-    def _setDoubleQuotes(self, value):
-        pyzo.config.settings.autoClose_DoubleQuotes = bool(value)
-
-    def _setCurlyBrackets(self, value):
-        pyzo.config.settings.autoClose_CurlyBrackets = bool(value)
-
-    def _setSquareBrackets(self, value):
-        pyzo.config.settings.autoClose_SquareBrackets = bool(value)
+    def _setBrackets(self, value):
+        # Set automatic insertion of parenthesis, braces and brackets
+        pyzo.config.settings.autoClose_Brackets = bool(value)
 
 
 class SettingsMenu(Menu):
