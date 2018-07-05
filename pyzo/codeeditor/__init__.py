@@ -38,7 +38,6 @@ from .extensions.behaviour import (     Indentation,
                                         MoveLinesUpDown,
                                         ScrollWithUpDownKeys,
                                         AutoCloseQuotesAndBrackets,
-                                        AutoInsertColons,
                                    )
 from .extensions.autocompletion import AutoCompletion
 from .extensions.calltip import Calltip
@@ -70,7 +69,7 @@ class CodeEditor(
     HomeKey,
     EndKey,
     NumpadPeriodKey,
-    AutoInsertColons, ###
+
     AutoIndent,
     PythonAutoIndent,
     AutoCloseQuotesAndBrackets,
