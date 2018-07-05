@@ -445,54 +445,87 @@ class SmartCopyAndPaste(object):
 
 class AutoCloseQuotesAndBrackets(object):
     """
-    Automatic insertion of quotes, braces and brackets
+    Automatic insertion of quotes, parenthesis, braces and brackets
 
     """
-
+    
     def keyPressEvent(self, event):
+        
+        quotesKeys = [Qt.Key_Apostrophe, Qt.Key_QuoteDbl]
+        openBrackets = [Qt.Key_BraceLeft,Qt.Key_BracketLeft, Qt.Key_ParenLeft]
+        closeBrackets = [Qt.Key_BraceRight, Qt.Key_BracketRight, Qt.Key_ParenRight]
 
-        if event.key() in [Qt.Key_Apostrophe, Qt.Key_QuoteDbl, Qt.Key_BracketLeft, Qt.Key_BraceLeft]:
-
-            cursor = self.textCursor()
-            self._autoClose(cursor, event)
-
+        cursor = self.textCursor()
+        
+        # opening brackets
+        if event.key() in openBrackets and pyzo.config.settings.autoClose_Brackets:
+            idx = openBrackets.index(event.key())
+            insert_txt = "{}{}".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
+            cursor.insertText(insert_txt)
+            self._moveCursorLeft(1)
+        
+        # closing brackets
+        elif event.key() in closeBrackets and pyzo.config.settings.autoClose_Brackets:
+            idx = closeBrackets.index(event.key())
+            next_character = self._getNextCharacter(cursor)
+            if next_character:
+                # skip
+                if ord(next_character) in closeBrackets:
+                    self._moveCursorRight(1)
+                # close
+                else:
+                    insert_txt = chr(event.key())
+                    cursor.insertText(insert_txt)
+            else:
+                super().keyPressEvent(event)
+        
+        # quotes
+        elif event.key() in quotesKeys and pyzo.config.settings.autoClose_Quotes:
+            idx = quotesKeys.index(event.key())
+            next_character = self._getNextCharacter(cursor)
+            if next_character:
+                # skip
+                if ord(next_character) == event.key():
+                    self._moveCursorRight(1)
+                # close
+                else:
+                    insert_txt = "{}{}".format(chr(quotesKeys[idx]), chr(quotesKeys[idx]))
+                    cursor.insertText(insert_txt)
+                    self._moveCursorLeft(1)
+            else:
+                insert_txt = "{}{}".format(chr(quotesKeys[idx]), chr(quotesKeys[idx]))
+                cursor.insertText(insert_txt)
+                self._moveCursorLeft(1)
+                # triple-quoted
+                cursor2 = self.textCursor()
+                textBeforeCursor = ustr(cursor2.block().text())[:cursor2.positionInBlock()]
+                if textBeforeCursor.endswith(chr(event.key())*3):
+                    cursor2.insertText(insert_txt)
+                    self._moveCursorLeft(2)
         else:
             super().keyPressEvent(event)
 
-    def _autoClose(self, cursor, event):
-
-        if event.key() == Qt.Key_Apostrophe:
-            if pyzo.config.settings.autoClose_SingleQuotes:
-                cursor.insertText("''")
-                self._moveCursorLeft(1)
-            else:
-                super().keyPressEvent(event)
-
-        elif event.key() == Qt.Key_QuoteDbl:
-            if pyzo.config.settings.autoClose_DoubleQuotes:
-                cursor.insertText('""')
-                self._moveCursorLeft(1)
-            else:
-                super().keyPressEvent(event)
-
-        elif event.key() == Qt.Key_BraceLeft:
-            if pyzo.config.settings.autoClose_CurlyBrackets:
-                cursor.insertText('{}')
-                self._moveCursorLeft(1)
-            else:
-                super().keyPressEvent(event)
-
-        elif event.key() == Qt.Key_BracketLeft:
-            if pyzo.config.settings.autoClose_SquareBrackets:
-                cursor.insertText('[]')
-                self._moveCursorLeft(1)
-            else:
-                super().keyPressEvent(event)
-
+    def _getNextCharacter(self, cursor):
+        pos = cursor.position()
+        cursor.movePosition(cursor.NextCharacter, cursor.KeepAnchor)
+        next_char = cursor.selectedText()
+        # reset cursor position
+        cursor.setPosition(pos)
+        self.setTextCursor(cursor)
+        return next_char
+    
     def _moveCursorLeft(self, n):
         """
-        Move cursor left betwene inserted eg. brackets
+        Move cursor left between eg. brackets
         """
         cursor2 = self.textCursor()
         cursor2.movePosition(cursor2.Left, cursor2.MoveAnchor, n)
+        self.setTextCursor(cursor2)
+    
+    def _moveCursorRight(self, n):
+        """
+        Move cursor out of eg. brackets
+        """
+        cursor2 = self.textCursor()
+        cursor2.movePosition(cursor2.Right, cursor2.MoveAnchor, n)
         self.setTextCursor(cursor2)
