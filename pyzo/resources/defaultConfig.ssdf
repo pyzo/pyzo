@@ -56,11 +56,8 @@ settings= dict:
     removeTrailingWhitespaceWhenSaving = 0
     changeDirOnFileExec = 0
     allowFloatingShell = 0
-    autoClose_SingleQuotes = 0
-    autoClose_DoubleQuotes = 0
-    autoClose_CurlyBrackets = 0
-    autoClose_SquareBrackets = 0
-
+    autoClose_Quotes = 0
+    autoClose_Brackets = 0
 advanced = dict:
     shellMaxLines = 10000
     fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
