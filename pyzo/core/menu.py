@@ -1797,9 +1797,6 @@ class AutocompMenu(Menu):
     def _setCompleteKeywords(self, value):
         pyzo.config.settings.autoComplete_keywords = bool(value)
 
-    def _setCompleteKeywords(self, value):
-        pyzo.config.settings.autoComplete_keywords = bool(value)
-
     def _setQuotes(self, value):
         # Set automatic insertion of single and double quotes
         pyzo.config.settings.autoClose_Quotes = bool(value)
