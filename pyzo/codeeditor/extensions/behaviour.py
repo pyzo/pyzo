@@ -467,10 +467,10 @@ class AutoCloseQuotesAndBrackets(object):
         # closing brackets
         elif event.key() in closeBrackets and pyzo.config.settings.autoClose_Brackets:
             idx = closeBrackets.index(event.key())
-            next_character = self._getNextCharacter(cursor)
+            next_character = self.__getNextCharacter(cursor)
             if next_character:
                 # skip
-                if ord(next_character) in closeBrackets:
+                if ord(next_character) == event.key():
                     self._moveCursorRight(1)
                 # close
                 else:
@@ -482,7 +482,7 @@ class AutoCloseQuotesAndBrackets(object):
         # quotes
         elif event.key() in quotesKeys and pyzo.config.settings.autoClose_Quotes:
             idx = quotesKeys.index(event.key())
-            next_character = self._getNextCharacter(cursor)
+            next_character = self.__getNextCharacter(cursor)
             if next_character:
                 # skip
                 if ord(next_character) == event.key():
@@ -505,7 +505,7 @@ class AutoCloseQuotesAndBrackets(object):
         else:
             super().keyPressEvent(event)
 
-    def _getNextCharacter(self, cursor):
+    def __getNextCharacter(self, cursor):
         pos = cursor.position()
         cursor.movePosition(cursor.NextCharacter, cursor.KeepAnchor)
         next_char = cursor.selectedText()
