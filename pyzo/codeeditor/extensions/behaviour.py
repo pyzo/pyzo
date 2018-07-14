@@ -496,12 +496,20 @@ class AutoCloseQuotesAndBrackets(object):
                 insert_txt = "{}{}".format(chr(quotesKeys[idx]), chr(quotesKeys[idx]))
                 cursor.insertText(insert_txt)
                 self._moveCursorLeft(1)
-                # triple-quoted
-                cursor2 = self.textCursor()
-                textBeforeCursor = ustr(cursor2.block().text())[:cursor2.positionInBlock()]
+                # triple-quoted string
+                triple_cursor = self.textCursor()
+                textBeforeCursor = ustr(triple_cursor.block().text())[:triple_cursor.positionInBlock()]
                 if textBeforeCursor.endswith(chr(event.key())*3):
-                    cursor2.insertText(insert_txt)
-                    self._moveCursorLeft(2)
+                    next_chr = self.__getNextCharacter(triple_cursor)
+                    if ord(next_chr) == event.key():
+                        if 'python' in self.parser().name().lower():
+                            self._moveCursorRight(1)
+                            edit_cursor = self.textCursor()
+                            for i in range(0,5):
+                                edit_cursor.deletePreviousChar()
+                            insert_docstrings = "{}".format(chr(quotesKeys[1])*6)
+                            edit_cursor.insertText(insert_docstrings)
+                            self._moveCursorLeft(3)
         else:
             super().keyPressEvent(event)
 
