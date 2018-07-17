@@ -465,6 +465,7 @@ class AutoCloseQuotesAndBrackets(object):
                 new_text = chr(openBrackets[idx]) + cursor.selectedText() + chr(closeBrackets[idx])
                 cursor.setKeepPositionOnInsert(True)
                 cursor.insertText(new_text)
+                cursor.setKeepPositionOnInsert(False)
                 self.setTextCursor(cursor)
             else:
                 # Auto-close bracket
@@ -502,6 +503,7 @@ class AutoCloseQuotesAndBrackets(object):
                     new_text = quote_character * 2 + new_text + quote_character * 2
                 cursor.setKeepPositionOnInsert(True)
                 cursor.insertText(new_text)
+                cursor.setKeepPositionOnInsert(False)
                 self.setTextCursor(cursor)
             elif next_character and next_character == quote_character:
                 # Skip
