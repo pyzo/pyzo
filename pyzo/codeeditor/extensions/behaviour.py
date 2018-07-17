@@ -481,35 +481,23 @@ class AutoCloseQuotesAndBrackets(object):
         
         # quotes
         elif event.key() in quotesKeys and pyzo.config.settings.autoClose_Quotes:
-            idx = quotesKeys.index(event.key())
+            quote_character = chr(event.key())
             next_character = self.__getNextCharacter(cursor)
-            if next_character:
-                # skip
-                if ord(next_character) == event.key():
-                    self._moveCursorRight(1)
-                # close
-                else:
-                    insert_txt = "{}{}".format(chr(quotesKeys[idx]), chr(quotesKeys[idx]))
-                    cursor.insertText(insert_txt)
-                    self._moveCursorLeft(1)
+            if next_character and next_character == quote_character:
+                # Skip
+                self._moveCursorRight(1)
             else:
-                insert_txt = "{}{}".format(chr(quotesKeys[idx]), chr(quotesKeys[idx]))
-                cursor.insertText(insert_txt)
+                # Auto-close
+                cursor.insertText("{}{}".format(quote_character, quote_character))
                 self._moveCursorLeft(1)
-                # triple-quoted string
-                triple_cursor = self.textCursor()
-                textBeforeCursor = ustr(triple_cursor.block().text())[:triple_cursor.positionInBlock()]
-                if textBeforeCursor.endswith(chr(event.key())*3):
-                    next_chr = self.__getNextCharacter(triple_cursor)
-                    if ord(next_chr) == event.key():
-                        if 'python' in self.parser().name().lower():
-                            self._moveCursorRight(1)
-                            edit_cursor = self.textCursor()
-                            for i in range(0,5):
-                                edit_cursor.deletePreviousChar()
-                            insert_docstrings = "{}".format(chr(quotesKeys[1])*6)
-                            edit_cursor.insertText(insert_docstrings)
-                            self._moveCursorLeft(3)
+                # Maybe handle tripple quotes (add 2 more if we now have 3 on the left)
+                if 'python' in self.parser().name().lower():
+                    cursor = self.textCursor()
+                    cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor, 3)
+                    if cursor.selectedText() == quote_character * 3:
+                        edit_cursor = self.textCursor()
+                        edit_cursor.insertText(quote_character * 2)
+                        self._moveCursorLeft(2)
         else:
             super().keyPressEvent(event)
 
