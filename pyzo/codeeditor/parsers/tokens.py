@@ -151,7 +151,7 @@ class ClassNameToken(IdentifierToken):
     """ Characters represening the name of a class. """
     defaultStyle = 'fore:#0000FF, bold:yes'
 
-class ParenthesisToken(Token) :
+class ParenthesisToken(TextToken) :
     """ Parenthesis (and square and curly brackets). """
     defaultStyle = ''
 
