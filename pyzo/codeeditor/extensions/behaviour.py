@@ -16,6 +16,7 @@ import pyzo
 from ..misc import ustr, ce_option
 from ..parsers.tokens import (CommentToken, IdentifierToken, NonIdentifierToken, ParenthesisToken,
                               StringToken, UnterminatedStringToken)
+from ..parsers.python_parser import MultilineStringToken
 from ..parsers import BlockState
 
 
@@ -459,8 +460,11 @@ class AutoCloseQuotesAndBrackets(object):
         tokens = cursor.block().userData().tokens
         token = None
         for token in tokens:
-            if getattr(token, 'start', -99) >= pos:
-                break
+            if hasattr(token, 'start'):
+                if token.start >= pos:
+                    break
+            elif getattr(token, 'state', 0) in (1, 2):
+                token = MultilineStringToken()  # 1 and 2 are mls, by convention, sortof
         return token
     
     def keyPressEvent(self, event):
@@ -477,55 +481,66 @@ class AutoCloseQuotesAndBrackets(object):
         quotesKeys = [Qt.Key_Apostrophe, Qt.Key_QuoteDbl]
         openBrackets = [Qt.Key_BraceLeft,Qt.Key_BracketLeft, Qt.Key_ParenLeft]
         closeBrackets = [Qt.Key_BraceRight, Qt.Key_BracketRight, Qt.Key_ParenRight]
+        bracketKeys = openBrackets + closeBrackets
         
         cursor = self.textCursor()
         
-        # Dont autoquote or autobracket inside comments and strings
-        if isinstance(self._get_token_at_cursor(cursor),
-                      (CommentToken, StringToken, UnterminatedStringToken)):
-            super().keyPressEvent(event)
-            return
-        
-        # opening brackets
-        if event.key() in openBrackets and pyzo.config.settings.autoClose_Brackets:
+        #  brackets
+        if event.key() in bracketKeys and pyzo.config.settings.autoClose_Brackets:
             
-            idx = openBrackets.index(event.key())
-            next_character = self.__getNextCharacter()
-            if cursor.selectedText():
-                # Surround selection with brackets
-                new_text = chr(openBrackets[idx]) + cursor.selectedText() + chr(closeBrackets[idx])
-                cursor.setKeepPositionOnInsert(True)
-                cursor.insertText(new_text)
-                cursor.setKeepPositionOnInsert(False)
-                self.setTextCursor(cursor)
-            elif next_character.strip():  # str.strip() conveniently removes all kinds of whitespace
-                # Only autoclose if the char on the right is whitespace
-                cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
-            else:
-                # Auto-close bracket
-                insert_txt = "{}{}".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
-                cursor.insertText(insert_txt)
-                self._moveCursorLeft(1)
-        
-        # closing brackets
-        elif event.key() in closeBrackets and pyzo.config.settings.autoClose_Brackets:
-            idx = closeBrackets.index(event.key())
-            next_character = self.__getNextCharacter()
-            if cursor.selectedText():
-                # Replace
-                cursor.insertText(chr(event.key()))
-            elif next_character and ord(next_character) == event.key():
-                # Skip
-                self._moveCursorRight(1)
-            else:
-                # Normal
-                cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
+            # Dont autobracket inside comments and strings
+            if isinstance(self._get_token_at_cursor(cursor),
+                        (CommentToken, StringToken, MultilineStringToken, UnterminatedStringToken)):
+                super().keyPressEvent(event)
+                return
+            
+            if event.key() in openBrackets:
+                idx = openBrackets.index(event.key())
+                next_character = self.__getNextCharacter()
+                if cursor.selectedText():
+                    # Surround selection with brackets
+                    new_text = chr(openBrackets[idx]) + cursor.selectedText() + chr(closeBrackets[idx])
+                    cursor.setKeepPositionOnInsert(True)
+                    cursor.insertText(new_text)
+                    cursor.setKeepPositionOnInsert(False)
+                    self.setTextCursor(cursor)
+                elif next_character.strip():  # str.strip() conveniently removes all kinds of whitespace
+                    # Only autoclose if the char on the right is whitespace
+                    cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
+                else:
+                    # Auto-close bracket
+                    insert_txt = "{}{}".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
+                    cursor.insertText(insert_txt)
+                    self._moveCursorLeft(1)
+            
+            elif event.key() in closeBrackets:
+                idx = closeBrackets.index(event.key())
+                next_character = self.__getNextCharacter()
+                if cursor.selectedText():
+                    # Replace
+                    cursor.insertText(chr(event.key()))
+                elif next_character and ord(next_character) == event.key():
+                    # Skip
+                    self._moveCursorRight(1)
+                else:
+                    # Normal
+                    cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
         
         # quotes
         elif event.key() in quotesKeys and pyzo.config.settings.autoClose_Quotes:
-            
             quote_character = chr(event.key())
             next_character = self.__getNextCharacter()
+            
+            # Dont autoquote inside comments and multiline strings
+            # Only allow "doing our thing" when we're at the end of a normal string
+            token = self._get_token_at_cursor(cursor)
+            if isinstance(token, (CommentToken, MultilineStringToken)):
+                super().keyPressEvent(event)
+                return
+            elif isinstance(token, StringToken) and quote_character != next_character:
+                super().keyPressEvent(event)
+                return
+            
             if cursor.selectedText() in ('"', "'"):
                 # Skip over char if its one char and a quote
                 self._moveCursorRight(1)
@@ -552,17 +567,19 @@ class AutoCloseQuotesAndBrackets(object):
                 # Auto-close
                 cursor.insertText("{}{}".format(quote_character, quote_character))
                 self._moveCursorLeft(1)
-                # Maybe handle tripple quotes (add 2 more if we now have 3 on the left)
-                if 'python' in self.parser().name().lower():
-                    cursor = self.textCursor()
-                    cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor, 3)
-                    if cursor.selectedText() == quote_character * 3:
-                        edit_cursor = self.textCursor()
-                        edit_cursor.insertText(quote_character * 2)
-                        self._moveCursorLeft(2)
+                # # Maybe handle tripple quotes (add 2 more if we now have 3 on the left)
+                # Disabled: this feature too easily gets in the way
+                # if 'python' in self.parser().name().lower():
+                #     cursor = self.textCursor()
+                #     cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor, 3)
+                #     if cursor.selectedText() == quote_character * 3:
+                #         edit_cursor = self.textCursor()
+                #         edit_cursor.insertText(quote_character * 2)
+                #         self._moveCursorLeft(2)
+        
         else:
             super().keyPressEvent(event)
-
+    
     def __getNextCharacter(self):
         cursor = self.textCursor()
         cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
