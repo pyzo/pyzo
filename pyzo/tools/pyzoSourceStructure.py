@@ -34,6 +34,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         
         # Keep track of clicks so we can "go back"
         self._nav = {}  # editor-id -> Navigation object
+
+        # Keep track of sorting order
+        self._sort_order = None
         
         # Create buttons for navigation
         self._navbut_back = QtWidgets.QToolButton(self)
@@ -47,7 +50,15 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._navbut_forward.setIconSize(QtCore.QSize(16,16))
         self._navbut_forward.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         self._navbut_forward.clicked.connect(self.onNavForward)
-        
+
+        # Create button for sorting
+        self._sortbut = QtWidgets.QToolButton(self)
+        self._sortbut.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self._sortbut.setArrowType(QtCore.Qt.DownArrow)
+        self._sortbut.setStyleSheet("QToolButton { border: none; padding: 0px; }")
+        self._sortbut.setText('A-z')
+        self._sortbut.clicked.connect(self.onSortPress)
+
         # # Create icon for slider
         # self._sliderIcon = QtWidgets.QToolButton(self)
         # self._sliderIcon.setIcon(pyzo.icons.text_align_right)
@@ -93,6 +104,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._tree, 1)
         # self._sizer2.addWidget(self._sliderIcon, 0)
+        self._sizer2.addWidget(self._sortbut, 0)
         self._sizer2.addWidget(self._navbut_back, 0)
         self._sizer2.addWidget(self._navbut_forward, 0)
         self._sizer2.addStretch(1)
@@ -325,3 +337,18 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         if selectedItem:
             selectedItem.setBackground(0, QtGui.QBrush(QtGui.QColor('#CCC')))
             self._tree.scrollToItem(selectedItem) # ensure visible
+
+    def onSortPress(self):
+        """ Sort the tree alphabetically. """
+
+        if self._sort_order in [None, 'DSC']:
+            self._tree.sortItems(0, QtCore.Qt.AscendingOrder)
+            self._sort_order = 'ASC'
+            self._sortbut.setText('A-z')
+            self._sortbut.setArrowType(QtCore.Qt.DownArrow)
+
+        elif self._sort_order == 'ASC':
+            self._tree.sortItems(0, QtCore.Qt.DescendingOrder)
+            self._sort_order = 'DSC'
+            self._sortbut.setText('Z-a')
+            self._sortbut.setArrowType(QtCore.Qt.UpArrow)
