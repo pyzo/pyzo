@@ -1,11 +1,46 @@
 # Release notes
 
+### Version 4.6.0 (06-08-2018)
+
+* Make Pyzo work with Python 3.7 (thanks @stonebig)
+* Fix the broken `xx?` command
+* Fix the broken `cd` command
+* Fix in history viewer autoscroll (thanks @ssoel)
+* New feature: autoclose brackets (thanks to @kelsa-pi)
+* New feature: autoclose quotes (thanks to @kelsa-pi)
+* Play nice with tools like `click` (see #542)
+* Make environment variable settings more resilient to whitespace
+* Improvements to asyncio integrated event loop
+
+### Version 4.5.1 (14-02-2018)
+
+* Fixed a few bugs introduced in the previous release.
+
+### Version 4.5.0 (08-02-2018)
+
+* Add toggle case and printify in Edit menu (#518 by kelsa-pi).
+* Add syntax highlighting for builtins and `self` (#519 by kelsa-pi).
+* Suppress errors for unfound files on startup (#520 by Federico Miorelli).
+* Don't try to open source file for e.g. ``open ('foo.txt')`` (#515 by Yann Salmon).
+* Allow files with spaces to run as script in IPython (#514 by Yehuda Davis).
+* Replace single/all/all files now available as combo box (includes #513 by Antoine Fourmy).
+* Allow for a site-wide config file (#512 by Yann Salmon).
+* Fix for when ipython checkbox is set but ipython is not available (#517).
+* Support for event loop integration with asyncio.
+* Add syntax highlighting for async and await keywords.
+* Add syntax highlighting for textual Web Assembly (.wat).
+
+### Version 4.4.3 (09-10-2017)
+
+* Fix to appdata format to fix building Pyzo on Freedesktop (#510).
+
+
 ### Version 4.4.2 (13-09-2017)
 
-* Fix that running file as script would not work if the IPython flag was never turned on (#498)
-* Fix delete action in filer browser (#505) 
-* Nicer appearance and coloring of source structure content (thanks to WangYi)
-* more translations (e.g. for tool titles) (thanks to WangYi)
+* Fix that running file as script would not work if the IPython flag was never turned on (#498).
+* Fix delete action in filer browser (#505).
+* Nicer appearance and coloring of source structure content (thanks to WangYi).
+* more translations (e.g. for tool titles) (thanks to WangYi).
 
 
 ### Version 4.4.1 (14-07-2017)
