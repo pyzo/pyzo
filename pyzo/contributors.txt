@@ -1,6 +1,3 @@
-This list is not up-to-date;
-check https://github.com/pyzo/pyzo/graphs/contributors for a more complete list.
-
 ### Project coordination
 
 Almar Klein
@@ -8,17 +5,14 @@ Almar Klein
 
 ### Development
 
-Rob Reilink
-Ludo Visser
-Gijs van Oort
-David Salter
-Scott Logan
-Laurent Signac
-Jan Müller
-Jason Sexauer
-Julien Enselme
-Yann Salmon
-Ghislain Vaillant (Debian building)
+Over 25 contributors: https://github.com/pyzo/pyzo/graphs/contributors
+
+
+### Packaging / Distribution
+
+Ghislain Vaillant
+Ismaël Lachheb
+
 
 ### Translators
 
