@@ -602,3 +602,27 @@ class AutoCloseQuotesAndBrackets(object):
         cursor2 = self.textCursor()
         cursor2.movePosition(cursor2.Right, cursor2.MoveAnchor, n)
         self.setTextCursor(cursor2)
+
+
+class AutoInsertColons(object):
+    """
+    Automatic insertion of colons after class, def, if...
+    """
+
+    def keyPressEvent(self, event):
+
+        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+            if pyzo.config.settings.autoInsert_Colons:
+
+                cursor = self.textCursor()
+                textBeforeCursor = ustr(cursor.block().text())[:cursor.positionInBlock()]
+                textBeforeCursor = textBeforeCursor.strip()
+
+                if textBeforeCursor.startswith('def') and textBeforeCursor.endswith(')'):
+                    cursor.insertText(':')
+
+                elif textBeforeCursor.startswith(('class', 'if', 'elif', 'else', 'for', 'while', 'try',
+                                                  'except')) and not textBeforeCursor.endswith(':'):
+                    cursor.insertText(':')
+
+        super().keyPressEvent(event)

@@ -1779,6 +1779,12 @@ class AutocompMenu(Menu):
         self.addCheckItem(translate("menu", 'Auto close brackets ::: Auto close ( { [ ] } ).'),
                           None, self._setBrackets, None, pyzo.config.settings.autoClose_Brackets)
 
+        self.addSeparator()
+
+        # auto closing colons
+        self.addCheckItem(translate("menu", 'Auto insert colons ::: Auto insert :'),
+                          None, self._setColons, None, pyzo.config.settings.autoInsert_Colons)
+
     def _setAcceptKeys(self, autocompkeys):
         # Skip if setting is not changes
         if pyzo.config.settings.autoComplete_acceptKeys == autocompkeys:
@@ -1804,6 +1810,10 @@ class AutocompMenu(Menu):
     def _setBrackets(self, value):
         # Set automatic insertion of parenthesis, braces and brackets
         pyzo.config.settings.autoClose_Brackets = bool(value)
+
+    def _setColons(self, value):
+        # Set automatic insertion of colons
+        pyzo.config.settings.autoInsert_Colons = bool(value)
 
 
 class SettingsMenu(Menu):
