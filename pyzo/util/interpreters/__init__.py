@@ -70,7 +70,11 @@ def _get_interpreters_win():
         found.append(v.installPath() )
     
     # Check common locations
-    for rootname in ['c:/', 'C:/program files/', 'C:/program files (x86)/', '~']:
+    for rootname in ['C:/', '~/',
+                     'C:/program files/', 'C:/program files (x86)/', 'C:/ProgramData/',
+                     '~/appdata/local/programs/python/',
+                     '~/appdata/local/continuum/', '~/appdata/local/anaconda/',
+                     ]:
         rootname = os.path.expanduser(rootname)
         if not os.path.isdir(rootname):
             continue
