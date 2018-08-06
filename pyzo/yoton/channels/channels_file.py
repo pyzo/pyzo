@@ -143,7 +143,7 @@ class FileWrapper(object):
             return
         
         chunkSize = self._chunksize
-        if chunkSize > 0:
+        if chunkSize > 0 and chunkSize < len(message):
             for i in range(0, len(message), chunkSize):
                 self._channel.send( message[i:i+chunkSize] )
         else:
