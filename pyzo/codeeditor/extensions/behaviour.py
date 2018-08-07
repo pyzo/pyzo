@@ -20,7 +20,6 @@ from ..parsers.python_parser import MultilineStringToken
 from ..parsers import BlockState
 
 
-
 class MoveLinesUpDown(object):
     
     def keyPressEvent(self,event):
@@ -508,10 +507,28 @@ class AutoCloseQuotesAndBrackets(object):
                     # Only autoclose if the char on the right is whitespace
                     cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
                 else:
-                    # Auto-close bracket
-                    insert_txt = "{}{}".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
-                    cursor.insertText(insert_txt)
-                    self._moveCursorLeft(1)
+                    # Help for AutoInsertColons
+                    if event.key() == Qt.Key_ParenLeft:
+                        if pyzo.config.settings.autoInsert_Colons:
+                            if 'python' in self.parser().name().lower():
+                                idx = openBrackets.index(event.key())
+                                textBeforeCursor = ustr(cursor.block().text())[:cursor.positionInBlock()]
+                                textBeforeCursor = textBeforeCursor.strip()
+                                # Auto-close parenthesis and  auto-insert colons
+                                if textBeforeCursor.startswith('def'):
+                                    insert_txt = "{}{}:".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
+                                    cursor.insertText(insert_txt)
+                                    self._moveCursorLeft(2)
+                                
+                                if textBeforeCursor.startswith('if'):
+                                    insert_txt = "{}{}:".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
+                                    cursor.insertText(insert_txt)
+                                    self._moveCursorLeft(2)
+                    else:
+                        # Auto-close bracket
+                        insert_txt = "{}{}".format(chr(openBrackets[idx]), chr(closeBrackets[idx]))
+                        cursor.insertText(insert_txt)
+                        self._moveCursorLeft(1)
             
             elif event.key() in closeBrackets:
                 idx = closeBrackets.index(event.key())
@@ -608,21 +625,110 @@ class AutoInsertColons(object):
     """
     Automatic insertion of colons after class, def, if...
     """
+    
+    def _get_token_at_cursor(self, cursor=None, relpos=0):
+        """ Get token at the (current or given) cursor position. Can be None.
+        """
+        if cursor is None:
+            cursor = self.textCursor()
+        pos = cursor.positionInBlock() + relpos
+        tokens = cursor.block().userData().tokens
+        token = None
+        for token in tokens:
+            if hasattr(token, 'start'):
+                if token.start >= pos:
+                    break
+            elif getattr(token, 'state', 0) in (1, 2):
+                token = MultilineStringToken()  # 1 and 2 are mls, by convention, sortof
+        return token
+    
+    def __getNextCharacter(self):
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
+        cursor.movePosition(cursor.NextCharacter, cursor.KeepAnchor)
+        next_char = cursor.selectedText()
+        return next_char
+
+    def __hasOpenBraces(self, text):
+        """Check for balanced parenthesis, braces and brackets"""
+        
+        find = { '(': ')', '[': ']', '{': '}' }
+        # cleanup
+        braces = [x for x in list(text) if x in find.keys() or x in find.values()]
+        stack = []
+        for b in braces:
+            c = find.get(b)
+            if c:
+                stack.append(c)
+            elif not stack or stack.pop() != b:
+                return False
+        if stack:
+            return True
+        else:
+            return False
 
     def keyPressEvent(self, event):
 
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             if pyzo.config.settings.autoInsert_Colons:
+                if 'python' in self.parser().name().lower():
 
-                cursor = self.textCursor()
-                textBeforeCursor = ustr(cursor.block().text())[:cursor.positionInBlock()]
-                textBeforeCursor = textBeforeCursor.strip()
-
-                if textBeforeCursor.startswith('def') and textBeforeCursor.endswith(')'):
-                    cursor.insertText(':')
-
-                elif textBeforeCursor.startswith(('class', 'if', 'elif', 'else', 'for', 'while', 'try',
-                                                  'except')) and not textBeforeCursor.endswith(':'):
-                    cursor.insertText(':')
-
+                    cursor = self.textCursor()
+                    textBeforeCursor = ustr(cursor.block().text())[:cursor.positionInBlock()]
+                    textBeforeCursor = textBeforeCursor.strip()
+                    next_character = self.__getNextCharacter()
+                    
+                    if textBeforeCursor.startswith('def'):
+                        
+                        # Dont autoinsert inside comments and strings
+                        if isinstance(self._get_token_at_cursor(cursor),
+                                    (CommentToken, StringToken, MultilineStringToken, UnterminatedStringToken)):
+                            super().keyPressEvent(event)
+                            return 
+                        
+                        # Dont autoinsert if next character is ) 
+                        if next_character == ')':
+                            super().keyPressEvent(event)
+                            return
+                        
+                        # Dont autoinsert if text ends.. 
+                        if textBeforeCursor.endswith((':', '(', '[', '{', '\\')):
+                            super().keyPressEvent(event)
+                            return
+                        
+                        # Dont autoinsert if text has open braces
+                        if self.__hasOpenBraces(textBeforeCursor):
+                            super().keyPressEvent(event)
+                            return
+                        
+                        # Autoinsert
+                        if textBeforeCursor.endswith(')'):
+                            cursor.insertText(':')
+                        else:
+                            cursor.insertText(':')
+                    
+                    elif textBeforeCursor.startswith(('class', 'if', 'elif', 'else', 'for', 'while', 'try', 'except', 'finally')):
+                        # Dont autoinsert inside comments and strings
+                        if isinstance(self._get_token_at_cursor(cursor),
+                                    (CommentToken, StringToken, MultilineStringToken, UnterminatedStringToken)):
+                            super().keyPressEvent(event)
+                            return
+                        
+                        # Dont autoinsert if next character is )
+                        if next_character == ')':
+                            super().keyPressEvent(event)
+                            return
+                        
+                        # Dont autoinsert if text ends..
+                        if textBeforeCursor.endswith((':', '(', '[', '{', '\\')):
+                            super().keyPressEvent(event)
+                            return
+                        
+                        # Dont autoinsert if text has open braces
+                        if self.__hasOpenBraces(textBeforeCursor):
+                            super().keyPressEvent(event)
+                            return
+                        else:
+                            cursor.insertText(':')
+                    
         super().keyPressEvent(event)
