@@ -227,7 +227,7 @@ def createEditor(parent, filename=None):
     # Set parser
     if editor._filename:
         ext = os.path.splitext(editor._filename)[1]
-        parser = Manager.suggestParserfromFilenameExtension(ext)
+        parser = Manager.suggestParser(ext, text)
         editor.setParser(parser)
     else:
         # todo: rename style -> parser
