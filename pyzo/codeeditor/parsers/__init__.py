@@ -75,6 +75,7 @@ class Parser(object):
     This base class generates a 'TextToken' for each line
     """
     _extensions = []
+    _shebangKeywords = []
     _keywords = []
     
     
@@ -130,6 +131,15 @@ class Parser(object):
         
         """
         return ['.'+e.lstrip('.').lower() for e in self._extensions]
+        
+    def shebangKeywords(self):
+        """ shebangKeywords()
+        
+        Get a list of shebang keywords for which this parser
+        is appropriate.
+        
+        """
+        return self._shebangKeywords.copy()
     
     
     def getStyleElementDescriptions(cls):

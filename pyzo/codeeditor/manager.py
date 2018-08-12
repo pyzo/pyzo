@@ -35,6 +35,7 @@ class Manager:
     # Static dict of all parsers
     _parserInstances = {}
     _fileExtensions = {}
+    _shebangKeywords = {}
     
     ## Parsers
     
@@ -129,9 +130,11 @@ class Manager:
                     print('Could not instantiate parser "%s".'%name)
                     continue
                 
-                # Register extensions for this parser
+                # Register extensions and shebang keywords for this parser
                 for ext in parserInstance.filenameExtensions():
                     cls._fileExtensions[ext] = name
+                for skw in parserInstance.shebangKeywords():
+                    cls._shebangKeywords[skw] = name
         
         # Store
         cls._parserInstances = parserInstances
@@ -198,7 +201,7 @@ class Manager:
     def suggestParserfromFilenameExtension(cls, ext):
         """ suggestParserfromFilenameExtension(ext)
         
-        Given a filename extension, rerurns the name of the suggested
+        Given a filename extension, returns the name of the suggested
         parser corresponding to the language of the file.
         
         See also registerFilenameExtension()
@@ -212,7 +215,48 @@ class Manager:
             return cls._fileExtensions[ext]
         else:
             return ''
+
+    @classmethod
+    def suggestParserfromText(cls, text) :
+        """ suggestParserfromText(text)
+        
+        Given a text, returns the name of the suggested
+        parser corresponding to the language of the file.
+        
+        See also registerShebangKeyword()
+        """
+        shebangline = None
+        for line in text.splitlines()[:5] : # is there a simple way to not read all of text ?
+            line = line.strip()
+            if line.startswith("#!") :
+                shebangline = line
+                break
+        if shebangline is None :
+            return ''
+        shebangline = shebangline[2:].split() # takes care of eventual space after #!
+        interpreter = os.path.basename(shebangline[0])
+        if interpreter == "env" and len(shebangline) > 1 :
+            interpreter = shebangline[1]
+        
+        # Get parser
+        if interpreter in cls._shebangKeywords:
+            return cls._shebangKeywords[ext]
+        else:
+            return ''
     
+    @classmethod
+    def suggestParser(cls, ext, text) :
+        """ suggestParser(ext, text)
+        
+        Given a filename extension and text, returns the name of the suggested
+        parser corresponding to the language of the file.
+        
+        See also registerFilenameExtension() and registerShebangKeyword()
+        """
+        parser = cls.suggestParserfromFilenameExtension(ext)
+        if parser == "" :
+            parser = cls.suggestParserfromText(text)
+        return parser
     
     @classmethod
     def registerFilenameExtension(cls, ext, parser):
@@ -233,7 +277,23 @@ class Manager:
         # Register
         cls._fileExtensions[ext] = parser
     
-    
+    @classmethod
+    def registerShebangKeyword(cls, shebangKeyword, parser):
+        """ registerShebangKeyword(shebangKeyword, parser)
+        
+        Registers the given shebang keyword (interpreter) to the given parser.
+        The parser can be a Parser instance or its name.
+        
+        This function can be used to register shebang keywords to parsers
+        that are not registered by default.
+        
+        """
+        # Check parser
+        if isinstance(parser, parsers.Parser):
+            parser = parser.name()
+        # Register
+        cls._shebangKeywords[shebangKeyword] = parser
+        
     ## Fonts
     
     
