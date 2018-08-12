@@ -974,12 +974,12 @@
     <message>
         <location filename="../../core/menu.py" line="1147"/>
         <source>Change current directory to editor file path</source>
-        <translation type="unfinished"></translation>
+        <translation>Définir le répertoire courant en accord avec le fichier ouvert dans l'éditeur</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1391"/>
         <source>Change directory when executing file ::: like Run File As Script does</source>
-        <translation type="unfinished"></translation>
+        <translation>Changer le répertoire courant lors de l'exécution d'un fichier ::: comme le fait Exécuter en tant que script</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1847"/>
@@ -994,7 +994,15 @@
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>
+        Plus de paramètres sont disponibles via l'outil journal (logger) :
+        <byte value="xd"/><byte value="xd"/>
+        - Les paramètres avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
+          Exécutez &quot;print(pyzo.config.advanced)&quot; pour voir les paramètres avancés.<byte value="xd"/>
+        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser tous les paramètres.<byte value="xd"/>
+        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour réinitialiser tous les paramètres ainsi que l'état.<byte value="xd"/>
+        <byte value="xd"/><byte value="xd"/>
+        Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu'après un redémarrage de l'application.</translation>
     </message>
 </context>
 <context>
@@ -1063,7 +1071,7 @@
     <message>
         <location filename="../../core/menu.py" line="1174"/>
         <source>Could not change dir</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de modifier le répertoire courant</translation>
     </message>
 </context>
 <context>
@@ -1071,7 +1079,7 @@
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="20"/>
         <source>History viewer</source>
-        <translation type="unfinished"></translation>
+        <translation>Visionneur de l'historique</translation>
     </message>
 </context>
 <context>
@@ -1079,7 +1087,7 @@
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
         <source>Source structure</source>
-        <translation type="unfinished"></translation>
+        <translation>Structure du programme</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="172"/>
