@@ -240,7 +240,7 @@ class Manager:
         
         # Get parser
         if interpreter in cls._shebangKeywords:
-            return cls._shebangKeywords[ext]
+            return cls._shebangKeywords[interpreter]
         else:
             return ''
     
