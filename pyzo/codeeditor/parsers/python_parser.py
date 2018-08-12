@@ -152,6 +152,7 @@ class PythonParser(Parser):
     """ Parser for Python in general (2.x or 3.x).
     """
     _extensions = ['.py' , '.pyw']
+    _shebangKeywords = ["python", "python3", "python2"]
     # The list of keywords is overridden by the Python2/3 specific parsers
     _keywords = pythonKeywords
     # The list of builtins and instances is overridden by the Python2/3 specific parsers
@@ -407,6 +408,7 @@ class Python2Parser(PythonParser):
     """
     # The application should choose whether to set the Py 2 specific parser
     _extensions = []
+    _shebangKeywords = []
     _keywords = python2Keywords
     _builtins = python2Builtins
     _instance = python2Instance
@@ -417,6 +419,7 @@ class Python3Parser(PythonParser):
     """
     # The application should choose whether to set the Py 3 specific parser
     _extensions = []
+    _shebangKeywords = []
     _keywords = python3Keywords
     _builtins = python3Builtins
     _instance = python3Instance
