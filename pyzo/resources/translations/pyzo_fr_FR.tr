@@ -983,29 +983,6 @@
         <translation>Changer le répertoire courant lors de l&apos;exécution d&apos;un fichier ::: comme le fait Exécuter en tant que script</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1869"/>
-        <source>
-        More settings are available via the logger-tool:
-        
-        - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
-        
-        Note that most settings require a restart for the change to
-        take effect.
-        </source>
-        <translation>
-        Plus de paramètres sont disponibles via l&apos;outil journal (logger) :
-        
-        - Les paramètres avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
-          Exécutez &quot;print(pyzo.config.advanced)&quot; pour voir les paramètres avancés.
-        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser tous les paramètres.
-        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour réinitialiser tous les paramètres ainsi que l&apos;état.
-        
-        Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu&apos;après un redémarrage de l&apos;application.</translation>
-    </message>
-    <message>
         <location filename="../../core/menu.py" line="663"/>
         <source>Toggle Case ::: Change selected text to lower or upper case</source>
         <translation>Changer la casse ::: Passe le texte sélectionné en bas de casse ou en capitales</translation>
@@ -1019,6 +996,30 @@
         <location filename="../../core/menu.py" line="1785"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
         <translation>Refermer les parenthèses ::: Ferme automatiquement ( { [ ] } ).</translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1869"/>
+        <source>
+        More settings are available via the logger-tool:
+        
+        - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
+        Note that most settings require a restart for the change to
+        take effect.
+        </source>
+        <translation>
+Plus de paramètres sont disponibles via l&amp;apos;outil journal (logger) :
+
+
+        - Les paramètres avancés sont stockés dans la structure &amp;quot;pyzo.config.advanced&amp;quot;.
+          Exécutez &amp;quot;print(pyzo.config.advanced)&amp;quot; pour voir les paramètres avancés.
+        - Exécutez &amp;quot;pyzo.resetConfig()&amp;quot; pour réinitialiser tous les paramètres.
+        - Exécutez &amp;quot;pyzo.resetConfig(True)&amp;quot; pour réinitialiser tous les paramètres ainsi que l&amp;apos;état.
+
+        Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu&amp;apos;après un redémarrage de l&amp;apos;application.</translation>
     </message>
 </context>
 <context>
