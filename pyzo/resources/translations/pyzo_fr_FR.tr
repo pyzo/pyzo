@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="fr_FR">
+<TS version="2.1" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -885,7 +885,7 @@
     <message>
         <location filename="../../core/menu.py" line="1596"/>
         <source> (as script)</source>
-        <translation>(en tant que script)</translation>
+        <translation> (en tant que script)</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1757"/>
@@ -1011,15 +1011,17 @@
         take effect.
         </source>
         <translation>
-Plus de paramètres sont disponibles via l&amp;apos;outil journal (logger) :
+        Plus de paramètres sont disponibles via l&apos;outil journal (logger) :
+        
 
+        - Les paramètres avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
+          Exécutez &quot;print(pyzo.config.advanced)&quot; pour voir les paramètres avancés.
+        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser tous les paramètres.
+        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour réinitialiser tous les paramètres ainsi que l&apos;état.
+        
 
-        - Les paramètres avancés sont stockés dans la structure &amp;quot;pyzo.config.advanced&amp;quot;.
-          Exécutez &amp;quot;print(pyzo.config.advanced)&amp;quot; pour voir les paramètres avancés.
-        - Exécutez &amp;quot;pyzo.resetConfig()&amp;quot; pour réinitialiser tous les paramètres.
-        - Exécutez &amp;quot;pyzo.resetConfig(True)&amp;quot; pour réinitialiser tous les paramètres ainsi que l&amp;apos;état.
-
-        Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu&amp;apos;après un redémarrage de l&amp;apos;application.</translation>
+        Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu&apos;après un redémarrage de l&apos;application.
+        </translation>
     </message>
 </context>
 <context>
@@ -1190,8 +1192,7 @@ Plus de paramètres sont disponibles via l&amp;apos;outil journal (logger) :
     <message>
         <location filename="../../core/shellInfoDialog.py" line="481"/>
         <source>name ::: The name of this configuration.</source>
-        <translation>nom ::: Nom de la configuration.
-</translation>
+        <translation>nom ::: Nom de la configuration.</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="482"/>
@@ -1291,8 +1292,7 @@ Plus de paramètres sont disponibles via l&amp;apos;outil journal (logger) :
     <message>
         <location filename="../../util/pyzowizard.py" line="93"/>
         <source>Step</source>
-        <translation>Étape
-</translation>
+        <translation>Étape</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="162"/>
@@ -1328,8 +1328,8 @@ Plus de paramètres sont disponibles via l&amp;apos;outil journal (logger) :
         <location filename="../../util/pyzowizard.py" line="270"/>
         <source>In the *editor*, each open file is represented as a tab. By
         right-clicking on a tab, files can be run, saved, closed, etc.</source>
-        <translation>Dans l&apos;*éditeur*, chaque fichier ouvert est représenté par un onglet. En 
-        faisant un clic droit sur l&apos;onglet, le fichier correspondant peut être exécuté, sauvegardé, fermé etc.   </translation>
+        <translation>Dans l&apos;*éditeur*, chaque fichier ouvert est représenté par un onglet. En
+        faisant un clic droit sur l&apos;onglet, le fichier correspondant peut être exécuté, sauvegardé, fermé etc.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="282"/>
@@ -1462,8 +1462,10 @@ design se veut *simple* et *efficace*.</translation>
         The language has been changed for this wizard.
         Pyzo needs to restart for the change to take effect application-wide.
         </source>
-        <translation>La langue a été modifiée. Pyzo doit redémarrer pour que les
-modifications prennent effet dans toute l&apos;application.</translation>
+        <translation>
+        La langue a été modifiée. Pyzo doit redémarrer pour que les
+        modifications prennent effet dans toute l&apos;application.
+        </translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="255"/>
