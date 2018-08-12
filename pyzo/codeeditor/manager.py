@@ -234,6 +234,8 @@ class Manager:
         if shebangline is None :
             return ''
         shebangline = shebangline[2:].split() # takes care of eventual space after #!
+        if len(shebangline) == 0 :
+            return ""
         interpreter = os.path.basename(shebangline[0])
         if interpreter == "env" and len(shebangline) > 1 :
             interpreter = shebangline[1]
