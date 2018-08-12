@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -985,39 +986,39 @@
         <location filename="../../core/menu.py" line="1869"/>
         <source>
         More settings are available via the logger-tool:
-        <byte value="xd"/><byte value="xd"/>
+        
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
-          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.<byte value="xd"/>
-        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
+        - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
+        - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
+        
         Note that most settings require a restart for the change to
         take effect.
         </source>
         <translation>
         Plus de paramètres sont disponibles via l&apos;outil journal (logger) :
-        <byte value="xd"/><byte value="xd"/>
+        
         - Les paramètres avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
-          Exécutez &quot;print(pyzo.config.advanced)&quot; pour voir les paramètres avancés.<byte value="xd"/>
-        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser tous les paramètres.<byte value="xd"/>
-        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour réinitialiser tous les paramètres ainsi que l&apos;état.<byte value="xd"/>
-        <byte value="xd"/><byte value="xd"/>
+          Exécutez &quot;print(pyzo.config.advanced)&quot; pour voir les paramètres avancés.
+        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser tous les paramètres.
+        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour réinitialiser tous les paramètres ainsi que l&apos;état.
+        
         Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu&apos;après un redémarrage de l&apos;application.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="663"/>
         <source>Toggle Case ::: Change selected text to lower or upper case</source>
-        <translation type="unfinished"></translation>
+        <translation>Changer la casse ::: Passe le texte sélectionné en bas de casse ou en capitales</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1782"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Refermer les guillemets ::: Ferme automatiquement les guillemets simples et doubles.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1785"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
-        <translation type="unfinished"></translation>
+        <translation>Refermer les parenthèses ::: Ferme automatiquement ( { [ ] } ).</translation>
     </message>
 </context>
 <context>
@@ -1107,7 +1108,7 @@
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="172"/>
         <source>Parsing </source>
-        <translation type="unfinished"></translation>
+        <translation>Analyse de </translation>
     </message>
 </context>
 <context>
@@ -1165,17 +1166,17 @@
     <message>
         <location filename="../../core/editorTabs.py" line="287"/>
         <source>one</source>
-        <translation type="unfinished"></translation>
+        <translation>un</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="288"/>
         <source>all in this file</source>
-        <translation type="unfinished"></translation>
+        <translation>tous dans ce fichier</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="289"/>
         <source>all in all files</source>
-        <translation type="unfinished"></translation>
+        <translation>tous dans tous fichiers</translation>
     </message>
 </context>
 <context>
