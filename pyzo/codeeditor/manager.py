@@ -226,7 +226,7 @@ class Manager:
         See also registerShebangKeyword()
         """
         shebangline = None
-        for line in text.splitlines()[:5] : # is there a simple way to not read all of text ?
+        for line in text[:1000].splitlines() :
             line = line.strip()
             if line.startswith("#!") :
                 shebangline = line
