@@ -502,7 +502,7 @@
         <translation>尋找上一個 :::尋找上一個搜尋字串。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1768"/>
+        <location filename="../../core/menu.py" line="1772"/>
         <source>Accept autocompletion with:</source>
         <translation>接受自動完成：</translation>
     </message>
@@ -802,37 +802,37 @@
         <translation>有關 Pyzo ::: 更多有關 Pyzo 的資訊。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1826"/>
+        <location filename="../../core/menu.py" line="1830"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation>選擇語言 ::: Pyzo 所使用的語言。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1832"/>
+        <location filename="../../core/menu.py" line="1836"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>自動縮排 ::: 在冒號之後按下 Enter 鍵會自動縮排。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1834"/>
+        <location filename="../../core/menu.py" line="1838"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>啟用呼叫提示 ::: 顯示函式的呼叫提示。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1776"/>
+        <location filename="../../core/menu.py" line="1780"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>自動完成關鍵字 ::: 自動完成清單包含關鍵字。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1840"/>
+        <location filename="../../core/menu.py" line="1844"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>編輯鍵盤對應... ::: 編輯功能選項的快捷鍵。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1842"/>
+        <location filename="../../core/menu.py" line="1846"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>編輯語法樣式... ::: 更改程式碼的顏色。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1845"/>
+        <location filename="../../core/menu.py" line="1849"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
         <translation>進階設定... ::: 進一步組態 Pyzo。</translation>
     </message>
@@ -897,12 +897,12 @@
         <translation>只有在按下 Tab 鍵時才出現彈出視窗</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1837"/>
+        <location filename="../../core/menu.py" line="1841"/>
         <source>Autocompletion</source>
         <translation>自動完成</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1869"/>
+        <location filename="../../core/menu.py" line="1873"/>
         <source>
         More settings are available via the logger-tool:
         <byte value="xd"/><byte value="xd"/>
@@ -1011,13 +1011,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1782"/>
+        <location filename="../../core/menu.py" line="1786"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1785"/>
+        <location filename="../../core/menu.py" line="1789"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1767"/>
+        <source>Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1768"/>
+        <source>Enter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1769"/>
+        <source>Tab, Enter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1770"/>
+        <source>Tab, (, [</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1771"/>
+        <source>Tab, Enter, (, [</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1039,27 +1064,27 @@
         <translation>檢查最新版本。</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1860"/>
+        <location filename="../../core/menu.py" line="1864"/>
         <source>Edit syntax styling</source>
         <translation>編輯語法樣式</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1881"/>
+        <location filename="../../core/menu.py" line="1885"/>
         <source>Advanced settings</source>
         <translation>進階設定</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1907"/>
+        <location filename="../../core/menu.py" line="1911"/>
         <source>Language changed</source>
         <translation>語言已變更</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2144"/>
+        <location filename="../../core/menu.py" line="2148"/>
         <source>Edit shortcut mapping</source>
         <translation>編輯快捷鍵對應</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2293"/>
+        <location filename="../../core/menu.py" line="2297"/>
         <source>Shortcut mappings</source>
         <translation>快捷鍵對應</translation>
     </message>
@@ -1074,7 +1099,7 @@
         <translation>有關 Pyzo</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1902"/>
+        <location filename="../../core/menu.py" line="1906"/>
         <source>
         The language has been changed.
         Pyzo needs to restart for the change to take effect.

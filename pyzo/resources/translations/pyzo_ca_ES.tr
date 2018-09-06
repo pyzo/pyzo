@@ -487,7 +487,7 @@
         <translation>Cercar anterior ::: Cerca l&apos;anterior ocurrència de la cadena de cerca.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1768"/>
+        <location filename="../../core/menu.py" line="1772"/>
         <source>Accept autocompletion with:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -652,27 +652,27 @@
         <translation>Fes una pregunta ::: Necessites ajuda? </translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1832"/>
+        <location filename="../../core/menu.py" line="1836"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>Sangria automàtica ::: Sangrar codi automaticament quan pressiones tecla retorn després de dos punts.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1834"/>
+        <location filename="../../core/menu.py" line="1838"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>Habilitar ajuda funcions ::: Ensenyar ajuda prototip funcions.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1776"/>
+        <location filename="../../core/menu.py" line="1780"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>Autocompletet paraules clau ::: La llista d&apos;autocopletat inclou paraules clau.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1840"/>
+        <location filename="../../core/menu.py" line="1844"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>Edita assignacions de tecles... ::: Edita els accessos directes per elements de menú.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1842"/>
+        <location filename="../../core/menu.py" line="1846"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>Edició estil sintàxis... ::: Canvia colors sintaxi texte del teu códic.</translation>
     </message>
@@ -802,7 +802,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1826"/>
+        <location filename="../../core/menu.py" line="1830"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -897,17 +897,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1837"/>
+        <location filename="../../core/menu.py" line="1841"/>
         <source>Autocompletion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1845"/>
+        <location filename="../../core/menu.py" line="1849"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1869"/>
+        <location filename="../../core/menu.py" line="1873"/>
         <source>
         More settings are available via the logger-tool:
         <byte value="xd"/><byte value="xd"/>
@@ -1002,13 +1002,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1782"/>
+        <location filename="../../core/menu.py" line="1786"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1785"/>
+        <location filename="../../core/menu.py" line="1789"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1767"/>
+        <source>Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1768"/>
+        <source>Enter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1769"/>
+        <source>Tab, Enter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1770"/>
+        <source>Tab, (, [</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1771"/>
+        <source>Tab, Enter, (, [</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1030,27 +1055,27 @@
         <translation>Comproveu si és la versió més recent.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1860"/>
+        <location filename="../../core/menu.py" line="1864"/>
         <source>Edit syntax styling</source>
         <translation>Edita estil sintaxis</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1881"/>
+        <location filename="../../core/menu.py" line="1885"/>
         <source>Advanced settings</source>
         <translation>Configuració avançada</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1907"/>
+        <location filename="../../core/menu.py" line="1911"/>
         <source>Language changed</source>
         <translation>Idioma canviat</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2144"/>
+        <location filename="../../core/menu.py" line="2148"/>
         <source>Edit shortcut mapping</source>
         <translation>Edita assignació d&apos;accessos directes</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2293"/>
+        <location filename="../../core/menu.py" line="2297"/>
         <source>Shortcut mappings</source>
         <translation>Assignacions d&apos;accés directe</translation>
     </message>
@@ -1065,7 +1090,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1902"/>
+        <location filename="../../core/menu.py" line="1906"/>
         <source>
         The language has been changed.
         Pyzo needs to restart for the change to take effect.

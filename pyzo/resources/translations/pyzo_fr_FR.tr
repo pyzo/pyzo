@@ -488,7 +488,7 @@
         <translation>Rechercher précédent ::: Recherche l&apos;occurence précédente de la chaîne.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1768"/>
+        <location filename="../../core/menu.py" line="1772"/>
         <source>Accept autocompletion with:</source>
         <translation></translation>
     </message>
@@ -653,27 +653,27 @@
         <translation>Poser une question ::: Besoin d&apos;aide ?</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1832"/>
+        <location filename="../../core/menu.py" line="1836"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>Indentation automatique ::: Indente automatiquement lors d&apos;un passage à la ligne après deux point.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1834"/>
+        <location filename="../../core/menu.py" line="1838"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>Activer les bulles d&apos;aides ::: Affiche les bulles d&apos;aide avec le prototype des fonctions.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1776"/>
+        <location filename="../../core/menu.py" line="1780"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>Complétion automatique des mots clés ::: La liste de complétion automatique contient aussi les mots clés.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1840"/>
+        <location filename="../../core/menu.py" line="1844"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>Éditer les raccourcis... ::: Modifie les raccourcis pour accéder aux éléments des menus.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1842"/>
+        <location filename="../../core/menu.py" line="1846"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>Éditer les styles du code... ::: Modifie la coloration syntaxique du code.</translation>
     </message>
@@ -818,12 +818,12 @@
         <translation>À propos de Pyzo ::: Plus d&apos;information à propos de Pyzo.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1826"/>
+        <location filename="../../core/menu.py" line="1830"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation>Sélectionner la langue ::: Langue utilisée par Pyzo.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1845"/>
+        <location filename="../../core/menu.py" line="1849"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
         <translation>Paramètres avancés ::: Configure Pyzo un peu plus en détail.</translation>
     </message>
@@ -903,7 +903,7 @@
         <translation>Voir la bulle d&apos;aide uniquement en pressant Tab</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1837"/>
+        <location filename="../../core/menu.py" line="1841"/>
         <source>Autocompletion</source>
         <translation>Complétion automatique</translation>
     </message>
@@ -988,17 +988,42 @@
         <translation>Changer la casse ::: Passe le texte sélectionné en bas de casse ou en capitales</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1782"/>
+        <location filename="../../core/menu.py" line="1786"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
         <translation>Refermer les guillemets ::: Ferme automatiquement les guillemets simples et doubles.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1785"/>
+        <location filename="../../core/menu.py" line="1789"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
         <translation>Refermer les parenthèses ::: Ferme automatiquement ( { [ ] } ).</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1869"/>
+        <location filename="../../core/menu.py" line="1767"/>
+        <source>Tab</source>
+        <translation>Tab</translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1768"/>
+        <source>Enter</source>
+        <translation>Entrée</translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1769"/>
+        <source>Tab, Enter</source>
+        <translation>Tab, Entrée</translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1770"/>
+        <source>Tab, (, [</source>
+        <translation>Tab, (, [</translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1771"/>
+        <source>Tab, Enter, (, [</source>
+        <translation>Tab, Entréee, (, [</translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1873"/>
         <source>
         More settings are available via the logger-tool:
         
@@ -1010,18 +1035,7 @@
         Note that most settings require a restart for the change to
         take effect.
         </source>
-        <translation>
-        Plus de paramètres sont disponibles via l&apos;outil journal (logger) :
-        
-
-        - Les paramètres avancés sont stockés dans la structure &quot;pyzo.config.advanced&quot;.
-          Exécutez &quot;print(pyzo.config.advanced)&quot; pour voir les paramètres avancés.
-        - Exécutez &quot;pyzo.resetConfig()&quot; pour réinitialiser tous les paramètres.
-        - Exécutez &quot;pyzo.resetConfig(True)&quot; pour réinitialiser tous les paramètres ainsi que l&apos;état.
-        
-
-        Notez que les modifications apportées à la plupart des paramètres ne prennent effet qu&apos;après un redémarrage de l&apos;application.
-        </translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1042,27 +1056,27 @@
         <translation>Rechercher la dernière version.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1860"/>
+        <location filename="../../core/menu.py" line="1864"/>
         <source>Edit syntax styling</source>
         <translation>Modifier la coloration syntaxique</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1881"/>
+        <location filename="../../core/menu.py" line="1885"/>
         <source>Advanced settings</source>
         <translation>Paramètres avancés</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1907"/>
+        <location filename="../../core/menu.py" line="1911"/>
         <source>Language changed</source>
         <translation>Langue modifiée</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2144"/>
+        <location filename="../../core/menu.py" line="2148"/>
         <source>Edit shortcut mapping</source>
         <translation>Édition des raccourcis clavier</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2293"/>
+        <location filename="../../core/menu.py" line="2297"/>
         <source>Shortcut mappings</source>
         <translation>Raccourcis clavier</translation>
     </message>
@@ -1077,7 +1091,7 @@
         <translation>À propos de Pyzo</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1902"/>
+        <location filename="../../core/menu.py" line="1906"/>
         <source>
         The language has been changed.
         Pyzo needs to restart for the change to take effect.

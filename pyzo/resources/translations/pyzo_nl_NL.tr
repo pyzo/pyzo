@@ -487,7 +487,7 @@
         <translation>Vind vorige ::: Vind het vorige voorkomen van de zoek tekst.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1768"/>
+        <location filename="../../core/menu.py" line="1772"/>
         <source>Accept autocompletion with:</source>
         <translation>Accepteer autocompletion met:</translation>
     </message>
@@ -642,27 +642,27 @@
         <translation>Stel een vraag</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1832"/>
+        <location filename="../../core/menu.py" line="1836"/>
         <source>Automatically indent ::: Indent when pressing enter after a colon.</source>
         <translation>Automatisch inspringen ::: Inspringen bij een nieuwe regel na een dubbele punt.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1834"/>
+        <location filename="../../core/menu.py" line="1838"/>
         <source>Enable calltips ::: Show calltips with function signatures.</source>
         <translation>Pas uitvoertips toe ::: Laat uitvoertips zien.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1776"/>
+        <location filename="../../core/menu.py" line="1780"/>
         <source>Autocomplete keywords ::: The autocompletion list includes keywords.</source>
         <translation>Autocomplete keywords ::: De autocomple lijst laat ook keywords zien.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1840"/>
+        <location filename="../../core/menu.py" line="1844"/>
         <source>Edit key mappings... ::: Edit the shortcuts for menu items.</source>
         <translation>Bewerk  sneltoetsen...</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1842"/>
+        <location filename="../../core/menu.py" line="1846"/>
         <source>Edit syntax styles... ::: Change the coloring of your code.</source>
         <translation>Bewerk syntax stijlen...</translation>
     </message>
@@ -817,12 +817,12 @@
         <translation>Over Pyzo</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1826"/>
+        <location filename="../../core/menu.py" line="1830"/>
         <source>Select language ::: The language used by Pyzo.</source>
         <translation>Selecteer taal</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1845"/>
+        <location filename="../../core/menu.py" line="1849"/>
         <source>Advanced settings... ::: Configure Pyzo even further.</source>
         <translation>Geavanceerde instellingen</translation>
     </message>
@@ -902,7 +902,7 @@
         <translation>Laal alleen popup zien door Tab te gebruiken</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1837"/>
+        <location filename="../../core/menu.py" line="1841"/>
         <source>Autocompletion</source>
         <translation>Autocompletion</translation>
     </message>
@@ -982,7 +982,7 @@
         <translation>Verander directory als een file uitgevoerd wordt.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1869"/>
+        <location filename="../../core/menu.py" line="1873"/>
         <source>
         More settings are available via the logger-tool:
         <byte value="xd"/><byte value="xd"/>
@@ -1002,13 +1002,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1782"/>
+        <location filename="../../core/menu.py" line="1786"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1785"/>
+        <location filename="../../core/menu.py" line="1789"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1767"/>
+        <source>Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1768"/>
+        <source>Enter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1769"/>
+        <source>Tab, Enter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1770"/>
+        <source>Tab, (, [</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/menu.py" line="1771"/>
+        <source>Tab, Enter, (, [</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1030,27 +1055,27 @@
         <translation>Check laatste versie.</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1860"/>
+        <location filename="../../core/menu.py" line="1864"/>
         <source>Edit syntax styling</source>
         <translation>Pas syntax stijlen aan</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1881"/>
+        <location filename="../../core/menu.py" line="1885"/>
         <source>Advanced settings</source>
         <translation>Geavanceerde instellingen</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2144"/>
+        <location filename="../../core/menu.py" line="2148"/>
         <source>Edit shortcut mapping</source>
         <translation>Pas sneltoetsen aan</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="2293"/>
+        <location filename="../../core/menu.py" line="2297"/>
         <source>Shortcut mappings</source>
         <translation>Sneltoets lijst</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1907"/>
+        <location filename="../../core/menu.py" line="1911"/>
         <source>Language changed</source>
         <translation>Taal aangepast</translation>
     </message>
@@ -1065,7 +1090,7 @@
         <translation>Over pyzo</translation>
     </message>
     <message>
-        <location filename="../../core/menu.py" line="1902"/>
+        <location filename="../../core/menu.py" line="1906"/>
         <source>
         The language has been changed.
         Pyzo needs to restart for the change to take effect.
