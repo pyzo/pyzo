@@ -15,7 +15,7 @@ Apply the following steps (in the IEP logger shell):
 Alternatively, you can invoke the tools from a system shell (with
 this directory as working directory):
 
-  * Run lupdate -noobsolete -verbose ../../../pyzo.pro
+  * Run pylupdate5 -noobsolete -verbose ../../../pyzo.pro
   * Use linguist or a plain text editor to edit .tr files
   * Run lrelease ../../../pyzo.pro
 
