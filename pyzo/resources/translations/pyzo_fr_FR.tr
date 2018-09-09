@@ -1020,18 +1020,20 @@
     <message>
         <location filename="../../core/menu.py" line="1771"/>
         <source>Tab, Enter, (, [</source>
-        <translation>Tab, Entréee, (, [</translation>
+        <translation>Tab, Entrée, (, [</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1873"/>
         <source>
         More settings are available via the logger-tool:
-        
+        
+
         - Advanced settings are stored in the struct &quot;pyzo.config.advanced&quot;.
           Type &quot;print(pyzo.config.advanced)&quot; to view all advanced settings.
         - Call &quot;pyzo.resetConfig()&quot; to reset all settings.
         - Call &quot;pyzo.resetConfig(True)&quot; to reset all settings and state.
-        
+        
+
         Note that most settings require a restart for the change to
         take effect.
         </source>
