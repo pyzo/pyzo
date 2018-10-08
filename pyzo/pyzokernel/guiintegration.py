@@ -501,6 +501,7 @@ class App_pyqt5(App_qt):
     def importCoreAndGui(self):
         # Try importing qt
         import PyQt5  # noqa
+        from PyQt5 import QtWebEngineWidgets
         from PyQt5 import QtGui, QtCore, QtWidgets  # noqa
         return QtWidgets, QtCore  # QApp sits on QtWidgets
 
