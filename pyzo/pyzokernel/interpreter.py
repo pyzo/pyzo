@@ -437,13 +437,20 @@ class PyzoInterpreter:
         
         if '\n' in script:
             # Run code later or now
-            firstline = script.split('\n')[0].replace(' ', '')
-            if firstline.startswith('#AFTER_GUI'):
-                self._codeToRunOnStartup = script
+            scriptSplit = script.split('\n')
+            foundAfter = False
+            for idx, line in enumerate(scriptSplit):
+                if line.replace(' ', '').startswith('#AFTER_GUI'):
+                    foundAfter = True
+                    break
+            if foundAfter:
+                self._codeToRunOnStartup = '\n'.join(scriptSplit[idx::])
+                runBefore = '\n'.join(scriptSplit[0:idx])
             else:
-                self.context._stat_interpreter.send('Busy')
-                msg = {'source': script, 'fname': '<startup>', 'lineno': 0}
-                self.runlargecode(msg, True)
+                runBefore = script
+            self.context._stat_interpreter.send('Busy')
+            msg = {'source': runBefore, 'fname': '<startup>', 'lineno': 0}
+            self.runlargecode(msg, True)
         elif script and os.path.isfile(script):
             # Run script
             self.context._stat_interpreter.send('Busy')
