@@ -11,6 +11,13 @@ Apply the following steps (in the IEP logger shell):
   * Translators write translations (stored in one .tr file per language)
   * Translators send modified version of .tr file back to us
   * Run lrelease()
+  
+Alternatively, you can invoke the tools from a system shell (with
+this directory as working directory):
+
+  * Run pylupdate5 -noobsolete -verbose ../../../pyzo.pro
+  * Use linguist or a plain text editor to edit .tr files
+  * Run lrelease ../../../pyzo.pro
 
 The lupdate tool parses the source code of the files specified 
 in iep.pro and detects usages of any "translate()" function call.

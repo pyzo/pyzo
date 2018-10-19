@@ -1758,7 +1758,11 @@ class AutocompMenu(Menu):
         self.addSeparator()
         
         # Part for accept key
-        accept_keys = ['Tab', 'Enter', 'Tab, Enter', 'Tab, (, [', 'Tab, Enter, (, [']
+        accept_keys = [translate('menu', 'Tab'),
+                      translate('menu', 'Enter'),
+                      translate('menu', 'Tab, Enter'),
+                      translate('menu', 'Tab, (, ['),
+                      translate('menu', 'Tab, Enter, (, [')]
         prefix = translate("menu", "Accept autocompletion with:")
         for keys in accept_keys:
             self.addGroupItem(prefix + ' ' + keys, None, self._setAcceptKeys, keys, group="acceptkeys")
