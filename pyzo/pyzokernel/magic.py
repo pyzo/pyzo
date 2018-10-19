@@ -16,8 +16,10 @@ import re
 import time
 import inspect
 import tokenize, token, keyword
-import io
-
+try:
+    import io
+except ImportError:  # Not on Python 2.4
+    pass
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
