@@ -104,7 +104,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         self._toolbar.addSeparator()
         # self._toolbar.addWidget(self._dbc) -> delayed, see addContextMenu()
         
-        self._condahelp = CondaHelper(self)
+        self._interpreterhelp = InterpreterHelper(self)
         
         # widget layout
         layout = QtWidgets.QVBoxLayout()
@@ -112,13 +112,13 @@ class ShellStackWidget(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._toolbar)
         layout.addWidget(self._stack, 0)
-        layout.addWidget(self._condahelp, 0)
+        layout.addWidget(self._interpreterhelp, 0)
         self.setLayout(layout)
         
         # make callbacks
         self._stack.currentChanged.connect(self.onCurrentChanged)
 
-        self.showCondaHelper()
+        self.showInterpreterHelper()
     
     def __iter__(self):
         i = 0
@@ -127,13 +127,12 @@ class ShellStackWidget(QtWidgets.QWidget):
             i += 1
             yield w
     
-    
-    def showCondaHelper(self, show=True):
-        self._condahelp.setVisible(show)
+    def showInterpreterHelper(self, show=True):
+        self._interpreterhelp.setVisible(show)
         self._toolbar.setVisible(not show)
         self._stack.setVisible(not show)
         if show:
-            self._condahelp.detect()
+            self._interpreterhelp.detect()
     
     def addShell(self, shellInfo=None):
         """ addShell()
@@ -609,7 +608,7 @@ class DebugStack(QtWidgets.QToolButton):
             editor.setTextCursor(cursor)
 
 
-class CondaHelper(QtWidgets.QWidget):
+class InterpreterHelper(QtWidgets.QWidget):
     """ This sits in place of a shell to help the user download miniconda.
     """
     
@@ -637,7 +636,8 @@ class CondaHelper(QtWidgets.QWidget):
         
     def detect(self):
         
-        link = '<a href="http://miniconda.pyzo.org">miniconda</a>'
+        python_link = '<a href="https://www.python.org/">Python</a>'
+        conda_link = '<a href="https://miniconda.pyzo.org">Miniconda</a>'
         self._the_exe = None
         configs = pyzo.config.shellConfigs2
         
@@ -649,7 +649,7 @@ class CondaHelper(QtWidgets.QWidget):
         
         # Try to find an interpreter
         from pyzo.util.interpreters import get_interpreters
-        interpreters = reversed(get_interpreters('2.4'))
+        interpreters = list(reversed(get_interpreters('2.4')))
         conda_interpreters = [i for i in interpreters if i.is_conda]
         conda_interpreters.sort(key=lambda x:len(x.path.replace('pyzo', 'pyzo'*10)))
         
@@ -664,32 +664,34 @@ class CondaHelper(QtWidgets.QWidget):
                       (recommended), or manually specify an interpreter
                       by setting the exe in the <a href='config'>shell&nbsp;config</a>.
                       <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
-                   """ % (self._the_exe)
-        elif conda_interpreters:
-            text = """Pyzo detected a conda environment,
+                   """ % (self._the_exe, )
+        elif interpreters and interpreters[0].version > '3':
+            self._the_exe = interpreters[0].path
+            text = """Pyzo detected a Python interpreter in:
+                      <br />%s<br /><br />
+                      You can <a href='usefound'>use&nbsp;this&nbsp;environment</a>
+                      (recommended), or manually specify an interpreter
+                      by setting the exe in the <a href='config'>shell&nbsp;config</a>.
+                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
+                   """ % (self._the_exe, )
+        elif interpreters:
+            text = """Pyzo detected a Python interpreter,
                       but it is Python 2. We strongly recommend using Python 3 instead.
                       <br /><br />
-                      If you installed %s in a non-default location,
+                      If you installed %s or %s in a non-default location,
                       or if you want to manually specify an interpreter,
                       set the exe in the <a href='config'>shell&nbsp;config</a>.
                       <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
-                   """ % link
-        elif interpreters:
-            text = """Pyzo detected a Python interpreter,
-                      but for scientific programming we recommend %s.
-                      If you want to manually specify the interpreter,
-                      set the exe in the <a href='config'>shell&nbsp;config</a>.
-                      <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
-                   """ % link
+                   """ % (python_link, conda_link)
         else:
             text = """Pyzo did not detect any Python interpreters.
-                      We recomment installing %s for scientific programming
+                      We recomment installing %s or %s
                       (and click <a href='refresh'>refresh</a> when done).
                       <br /><br />
-                      If you installed miniconda in a non-default location,
+                      If you installed Python or Miniconda in a non-default location,
                       or if you want to manually specify the interpreter,
                       set the exe in the <a href='config'>shell&nbsp;config</a>.
-                   """ % link
+                   """ % (python_link, conda_link)
         
         link_style = 'font-weight: bold; color:#369; text-decoration:underline;'
         self._label.setText(text.replace('<a ', '<a style="%s" ' % link_style))
@@ -701,7 +703,7 @@ class CondaHelper(QtWidgets.QWidget):
             self.editShellConfig()
         elif url == 'usefound':
             self.useFound()
-        elif url.startswith('http://'):
+        elif url.startswith(('http://', 'https://')):
             webbrowser.open(url)
         else:
             raise ValueError('Unknown link in conda helper: %s' % url)
@@ -726,7 +728,7 @@ class CondaHelper(QtWidgets.QWidget):
     
     def hide_this(self):
         shells = self.parent()
-        shells.showCondaHelper(False)
+        shells.showInterpreterHelper(False)
     
     def restart_shell(self):
         shells = self.parent()

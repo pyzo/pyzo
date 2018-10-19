@@ -1666,7 +1666,7 @@ class HelpMenu(Menu):
         icons = pyzo.icons
         
         self.addUrlItem(translate("menu", "Pyzo website ::: Open the Pyzo website in your browser."),
-            icons.help, "http://www.pyzo.org")
+            icons.help, "http://pyzo.org")
         self.addUrlItem(translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."),
             icons.help, "http://guide.pyzo.org")
         self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."),
@@ -1726,7 +1726,7 @@ class HelpMenu(Menu):
         result = m.exec_()
         # Goto webpage if user chose to
         if result == m.Yes:
-            webbrowser.open("http://www.pyzo.org/start.html")
+            webbrowser.open("http://pyzo.org/start.html")
     
     def _aboutPyzo(self):
         from pyzo.core.about import AboutDialog
