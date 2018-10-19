@@ -173,9 +173,9 @@ if API in PYSIDE_API:
 
 # If a correct API name is passed to QT_API and it could not be found,
 # switches to another and informs through the warning
-if API != initial_api:
-    warnings.warn('Selected binding "{}" could not be found, '
-                  'using "{}"'.format(initial_api, API), RuntimeWarning)
+# if API != initial_api:
+#     warnings.warn('Selected binding "{}" could not be found, '
+#                   'using "{}"'.format(initial_api, API), RuntimeWarning)
 
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
             'pyside': 'PySide', 'pyside2':'PySide2'}[API]
