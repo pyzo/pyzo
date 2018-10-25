@@ -173,7 +173,8 @@ def createItemsFun(browser, parent):
         # Create temporary dir items
         if searchFilter['subDirs']:
             for path in dirs:
-                item = TemporaryDirItem(parent, fsProxy.dir(path))
+                if not os.path.basename(path) in (".git", ".hg"):
+                    item = TemporaryDirItem(parent, fsProxy.dir(path))
     
     
     # Return number of files added
