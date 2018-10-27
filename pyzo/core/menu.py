@@ -1862,25 +1862,6 @@ class SettingsMenu(Menu):
         m.setDefaultButton(m.Ok)
         m.exec_()
     
-    # def _advancedSettings(self):
-    #     """ How to edit the advanced settings. """
-    #     text = translate("menu", """
-    #     More settings are available via the logger-tool:
-    #     \r\r
-    #     - Advanced settings are stored in the struct "pyzo.config.advanced".
-    #       Type "print(pyzo.config.advanced)" to view all advanced settings.\r
-    #     - Call "pyzo.resetConfig()" to reset all settings.\r
-    #     - Call "pyzo.resetConfig(True)" to reset all settings and state.\r
-    #     \r\r
-    #     Note that most settings require a restart for the change to
-    #     take effect.
-    #     """)
-    #     m = QtWidgets.QMessageBox(self)
-    #     m.setWindowTitle(translate("menu dialog", "Advanced settings"))
-    #     m.setText(unwrapText(text))
-    #     m.setIcon(m.Information)
-    #     m.exec_()
-
     def _advancedSettings(self):
         """ How to edit the advanced settings. """
         text = translate("menu", """
