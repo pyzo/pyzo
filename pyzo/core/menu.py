@@ -1655,7 +1655,7 @@ class ToolsMenu(Menu):
         # Add all tools, with checkmarks for those that are active
         self._toolActions = []
         for tool in pyzo.toolManager.getToolInfo():
-            action = self.addCheckItem(tool.name, pyzo.icons.plugin,
+            action = self.addCheckItem(translate("menu", tool.name + ':::' + tool.description), pyzo.icons.plugin,
                 tool.menuLauncher, selected=bool(tool.instance))
             self._toolActions.append(action)
 
