@@ -1841,7 +1841,7 @@ class SettingsMenu(Menu):
             icons.style, self._editStyles)
         self.addMenu(self._languageMenu, icons.flag_green)
         self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'),
-            icons.cog, self._advancedSettings)
+            icons.cog, lambda: AdvancedSettings().exec_())
     
     def _editStyles(self):
         """ Edit the style file. """
@@ -1861,26 +1861,6 @@ class SettingsMenu(Menu):
         m.setStandardButtons(m.Ok | m.Cancel)
         m.setDefaultButton(m.Ok)
         m.exec_()
-    
-    def _advancedSettings(self):
-        """ How to edit the advanced settings. """
-        text = translate("menu", """
-        WARNING TEXT HERE\r\r
-        \r\r
-        Note that most settings require a restart for the change to take effect.
-
-        """)
-        m = QtWidgets.QMessageBox(self)
-        m.setWindowTitle(translate("menu dialog", "Advanced settings - Warning"))
-        m.setText(unwrapText(text))
-        m.setIcon(m.Warning)
-        m.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        m.setDefaultButton(QtWidgets.QMessageBox.No)
-        reply = m.exec_()
-        if reply == QtWidgets.QMessageBox.Yes:
-            AdvancedSettings().exec_()
-        elif reply == QtWidgets.QMessageBox.No:
-            m.close()
 
     def addBoolSetting(self, name, key, callback = None):
         def _callback(state, key):
@@ -2350,20 +2330,21 @@ class KeymappingDialog(QtWidgets.QDialog):
 
 class AdvancedSettings(QtWidgets.QDialog):
     """Advanced settings
+    The Advanced settings dialog contains configuration settings for Pyzo and plugins.
     Click on an item, to edit settings.
     """
 
     def __init__(self, *args):
         QtWidgets.QDialog.__init__(self, *args)
 
-        text = """ 
-        WARNING: You could cause serious problems!
+        text = """
+        WARNING: Do this at your own risk.
 
-        Click on an value, to edit settings.
-
+        To modify an existing setting, click on the value.
         Note that most settings require a restart for the change to take effect.
-
-        """
+        
+        The settings file: {}
+        """.format(os.path.join(pyzo.appDataDir, 'config.ssdf'))
 
         # Set title
         self.setWindowTitle(translate("menu dialog", 'Advanced Settings'))
@@ -2378,7 +2359,6 @@ class AdvancedSettings(QtWidgets.QDialog):
         # Label
         self._label = QtWidgets.QLabel(self)
         self._label.setText(text)
-        self._label.setToolTip("Reset configuration")
         # Tree
         self.tree = QtWidgets.QTreeWidget(self)
         self.tree.setColumnCount(3)
@@ -2402,7 +2382,6 @@ class AdvancedSettings(QtWidgets.QDialog):
         self.setLayout(mainLayout)
         # Fill tree
         self.fillTree()
-
         # Bind events
         self.tree.itemClicked.connect(self.onClickSelect)
         self.tree.itemChanged.connect(self.currentItemChanged)
