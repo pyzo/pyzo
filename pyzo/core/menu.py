@@ -735,6 +735,56 @@ class FontMenu(Menu):
             logger.setFont(pyzo.config.view.fontname)
 
 
+class ToolbarMenu(Menu):
+    """
+    Small menu for the toolbars. Part of the View menu.
+    """
+
+    def build(self):
+
+        self.addItem(translate("menu", "Show/Hide all toolbars ::: Show or hide all toolbars."),
+                     pyzo.icons.disk, self._setShowOrHideAllToolbars)
+
+        self.addSeparator()
+
+        self.addCheckItem(translate("menu", 'File toolbar ::: Show the File toolbar.'),
+                          None, self._setFileToolbar, None, pyzo.config.view.showFileToolbar)
+        self.addCheckItem(translate("menu", 'Edit toolbar ::: Show the Edit toolbar.'),
+                          None, self._setEditToolbar, None, pyzo.config.view.showEditToolbar)
+        self.addCheckItem(translate("menu", 'Run toolbar ::: Show the Run toolbar.'),
+                          None, self._setRunToolbar, None, pyzo.config.view.showRunToolbar)
+        self.addCheckItem(translate("menu", 'Main toolbar ::: Show the Main toolbar.'),
+                          None, self._setMainToolbar, None, pyzo.config.view.showMainToolbar)
+
+    def _setShowOrHideAllToolbars(self):
+        """ Show or hide all toolbars"""
+        pyzo.main.toolbarShowHide()
+
+    def _setFileToolbar(self, value):
+        """Show or hide the File Toolbar"""
+        toolbar = 'FileToolBar'
+        pyzo.main.showToolbar(toolbar, value)
+        pyzo.config.view.showFileToolbar = bool(value)
+
+    def _setEditToolbar(self, value):
+        """Show or hide the Edit Toolbar"""
+        toolbar = 'EditToolBar'
+        pyzo.main.showToolbar(toolbar, value)
+        pyzo.config.view.showEditToolbar = bool(value)
+
+    def _setRunToolbar(self, value):
+        """Show or hide the Run Toolbar"""
+        toolbar = 'RunToolBar'
+        pyzo.main.showToolbar(toolbar, value)
+        pyzo.config.view.showRunToolbar = bool(value)
+
+    def _setMainToolbar(self, value):
+        """Show or hide the Main Toolbar"""
+        toolbar = 'MainToolBar'
+        pyzo.main.showToolbar(toolbar, value)
+        pyzo.config.view.showMainToolbar = bool(value)
+
+
 # todo: brace matching
 # todo: code folding?
 # todo: maybe move qt theme to settings
@@ -798,6 +848,10 @@ class ViewMenu(Menu):
         self.addMenu(FontMenu(self, translate("menu", "Font")), icons.style)
         self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
         self.addMenu(self._qtThemeMenu, icons.application_view_tile)
+
+        self.addSeparator()
+        self.addMenu(ToolbarMenu(self, translate("menu", "Toolbars")), icons.style)
+
     
     def addEditorItem(self, name, icon, param):
         """
@@ -2459,3 +2513,180 @@ class AdvancedSettings(QtWidgets.QDialog):
         if column == 1:
             item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
             self.tree.editItem(item, column)
+
+
+# -------------------------------------
+#               TOOLBARS
+# -------------------------------------
+
+TOOLBARSIZE = pyzo.config.view.toolbarSize
+
+
+def addItem(target, text, icon=None, callback=None, value=None):
+    """
+    Add an item to the toolbar. If callback is given and not None,
+    connect triggered signal to the callback. If value is None or not
+    given, callback is called without parameteres, otherwise it is called
+    with value as parameter
+    """
+
+    # Add action
+    a = target.addAction(icon, text)
+
+    # Connect the menu item to its callback
+    if callback:
+        if value is not None:
+            a.triggered.connect(lambda b=None, v=value: callback(v))
+        else:
+            a.triggered.connect(lambda b=None: callback())
+
+    return a
+
+
+class Toolbars(Menu):
+
+    def __init__(self):
+
+        # init toolbars
+        self.fileToolbar = FileToolbar()
+        self.editToolbar = EditToolbar()
+        self.runToolbar = RunToolbar()
+        self.mainToolbar = MainToolbar()
+
+    def getToolbars(self):
+        """"""
+        toolbars = [self.fileToolbar, self.editToolbar, self.runToolbar, self.mainToolbar]
+        return toolbars
+
+    def getToolbarsNames(self):
+        toolbar_names = ['FileToolbar', 'EditToolbar', 'RunToolbar', 'MainToolbar']
+        return toolbar_names
+
+    def getToolbarConfNames(self):
+        toolbar_conf_names = ['showFileToolbar', 'showEditToolbar', 'showRunToolbar', 'showMainToolbar']
+        return toolbar_conf_names
+
+    def getToolbarsStates(self):
+        toolbar_states = [pyzo.config.view[x] for x in self.getToolbarConfNames()]
+        return toolbar_states
+
+    def getToolbarState(self, toolbar_name):
+        res = None
+        for idx, item in enumerate(self.toolbars.getToolbars()):
+            # determine toolbar
+            if item.objectName() == toolbar_name:
+                conf_name = self.getToolbarConfNames()[idx]
+                res =  pyzo.config.view[conf_name]
+
+        return res
+
+
+class FileToolbar(QtWidgets.QToolBar):
+    """FileToolbar"""
+
+    def __init__(self):
+        QtWidgets.QToolBar.__init__(self, "FileToolBar", parent=None)
+        self.setObjectName("FileToolBar")
+        self.setMovable(True)
+        self.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
+        self.setMinimumSize(TOOLBARSIZE, TOOLBARSIZE)
+        self.setIconSize(QtCore.QSize(TOOLBARSIZE, TOOLBARSIZE))
+
+        # Add items
+        addItem(self, "New", pyzo.icons.page_add, pyzo.editors.newFile, None)
+
+        addItem(self, "Open", pyzo.icons.folder_page, pyzo.editors.openFile, None)
+
+        addItem(self, "Save", pyzo.icons.disk, pyzo.editors.saveFile, None)
+
+        addItem(self, "Save all", pyzo.icons.disk_multiple, pyzo.editors.saveAllFiles, None)
+
+
+class EditToolbar(QtWidgets.QToolBar):
+    """EditToolbar"""
+
+    def __init__(self):
+        QtWidgets.QToolBar.__init__(self, "EditToolBar", parent=None)
+        self.setObjectName("EditToolBar")
+        self.setMovable(True)
+        self.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
+        self.setMinimumSize(TOOLBARSIZE, TOOLBARSIZE)
+        self.setIconSize(QtCore.QSize(TOOLBARSIZE, TOOLBARSIZE))
+
+        # Add items
+        addItem(self, "Undo", pyzo.icons.arrow_undo, self.itemActionCallback, 'undo')
+
+        addItem(self, "Redo", pyzo.icons.arrow_redo, self.itemActionCallback, 'redo')
+
+        self.addSeparator()
+
+        addItem(self, "Cut", pyzo.icons.cut, self.itemActionCallback, 'cut')
+
+        addItem(self, "Copy", pyzo.icons.page_white_copy, self.itemActionCallback, 'copy')
+
+        addItem(self, "Paste", pyzo.icons.paste_plain, self.itemActionCallback, 'paste')
+
+        self.addSeparator()
+
+        addItem(self, "Indent", pyzo.icons.text_indent, self.itemActionCallback, 'indentSelection')
+
+        addItem(self, "Dedent", pyzo.icons.text_indent_remove, self.itemActionCallback, 'dedentSelection')
+
+        self.addSeparator()
+
+        addItem(self, "Comment", pyzo.icons.comment_add, self.itemActionCallback, 'commentCode')
+
+        addItem(self, "Uncomment", pyzo.icons.comment_delete, self.itemActionCallback, 'uncommentCode')
+
+        self.addSeparator()
+
+        addItem(self, "Find or replace", pyzo.icons.find, pyzo.editors._findReplace.startFind, None)
+
+    def itemActionCallback(self, action):
+        widget = QtWidgets.qApp.focusWidget()
+        if hasattr(widget, action):
+            getattr(widget, action)()
+
+
+class RunToolbar(QtWidgets.QToolBar):
+    """EditToolbar"""
+
+    def __init__(self):
+        QtWidgets.QToolBar.__init__(self, "RunToolBar", parent=None)
+        self.setObjectName("RunToolBar")
+        self.setMovable(True)
+        self.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
+        self.setMinimumSize(TOOLBARSIZE, TOOLBARSIZE)
+        self.setIconSize(QtCore.QSize(TOOLBARSIZE, TOOLBARSIZE))
+
+        # Add items
+        addItem(self, "Run file as script", pyzo.icons.run_file_script, RunMenu(name='Run')._runFile, (True, False))
+
+        addItem(self, "Run main file as script", pyzo.icons.run_mainfile_script, RunMenu(name='Run')._runFile, (True, False))
+
+
+class MainToolbar(QtWidgets.QToolBar):
+    """MainToolbar"""
+
+    def __init__(self):
+        QtWidgets.QToolBar.__init__(self, "MainToolBar", parent=None)
+        self.setObjectName("MainToolBar")
+        self.setMovable(True)
+        self.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
+        self.setMinimumSize(TOOLBARSIZE, TOOLBARSIZE)
+        self.setIconSize(QtCore.QSize(TOOLBARSIZE, TOOLBARSIZE))
+
+        # Add items
+        addItem(self, "Advanced settings", pyzo.icons.cog, lambda: AdvancedSettings().exec_(), None)
+
+        addItem(self, "Edit shell configurations", pyzo.icons.application_wrench, self._editShellConfig, None)
+
+        addItem(self, "Local documentation", pyzo.icons.help, PyzoAssistant().show, None)
+
+    def _editShellConfig(self):
+        """ Edit, add and remove configurations for the shells. """
+        from pyzo.core.shellInfoDialog import ShellInfoDialog
+        d = ShellInfoDialog()
+        d.exec_()
+
+
