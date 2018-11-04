@@ -25,6 +25,7 @@ from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 from pyzo.util import zon as ssdf  # zon is ssdf-light
 from pyzo import translate
+from pyzo.core.menu import Toolbars
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -139,7 +140,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.qApp.flush()
             QtWidgets.qApp.processEvents()
             time.sleep(0.01)
-    
+
     def _populate(self):
         
         # Delayed imports
@@ -148,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         from pyzo.core import codeparser
         from pyzo.core.history import CommandHistory
         from pyzo.tools import ToolManager
-        
+
         # Instantiate tool manager
         pyzo.toolManager = ToolManager()
         
@@ -200,7 +201,17 @@ class MainWindow(QtWidgets.QMainWindow):
         # Add the context menu to the editor
         pyzo.editors.addContextMenu()
         pyzo.shells.addContextMenu()
-        
+
+        # Create toolbars
+        self.toolbars = Toolbars()
+        for idx, toolbar in enumerate(self.toolbars.getToolbars()):
+            # start visible/hidden
+            bVisible = self.toolbars.getToolbarsStates()[idx]
+            bVisible = bool(bVisible)
+
+            if bVisible:
+                self.addToolBar(toolbar)
+
         # Load tools
         if pyzo.config.state.newUser and not pyzo.config.state.loadedTools:
             pyzo.toolManager.loadTool('pyzosourcestructure')
@@ -208,7 +219,79 @@ class MainWindow(QtWidgets.QMainWindow):
         elif pyzo.config.state.loadedTools:
             for toolId in pyzo.config.state.loadedTools:
                 pyzo.toolManager.loadTool(toolId)
-    
+
+    def showToolbar(self, toolbar_name, value):
+        """showToolbar
+        Show or hide toolbar
+        Note: no  order
+        """
+
+        for item in self.toolbars.getToolbars():
+            # determine toolbar
+            if item.objectName() == toolbar_name:
+                toolbar = item
+                value = bool(value)
+                if value:
+                    # add toolbar
+                    self.addToolBar(toolbar)
+                    toolbar.toggleViewAction().setChecked(value)
+                    toolbar.setVisible(value)
+                    self.update()
+
+                else:
+                    # remove toolbar
+                    self.removeToolBar(toolbar)
+                    toolbar.toggleViewAction().setChecked(value)
+                    toolbar.setVisible(value)
+                    self.update()
+
+    def toolbarShowHide(self):
+        """ Show or hide all toolbars"""
+
+        # Hide all toolbars
+        if 1 in self.toolbars.getToolbarsStates():
+            bVisible = 0
+            for idx, toolbar in enumerate(self.toolbars.getToolbars()):
+                self.removeToolBar(toolbar)
+                toolbar.toggleViewAction().setChecked(bVisible)
+                toolbar.setVisible(bVisible)
+                self.update()
+
+        # Show all toolbars
+        else:
+            bVisible = 1
+            for idx, toolbar in enumerate(self.toolbars.getToolbars()):
+                self.addToolBar(toolbar)
+                toolbar.toggleViewAction().setChecked(bVisible)
+                toolbar.setVisible(bVisible)
+                self.update()
+
+        # Update config
+        d = pyzo.config.view
+        for x in self.toolbars.getToolbarConfNames():
+            d[x] = bVisible
+
+        # Update checkable toolbars items in submenu
+        tlbs = self.getMenuActions('View', 'Toolbars')
+        for item in tlbs.menu().actions():
+            if item.isCheckable():
+                item.setChecked(bVisible)
+
+    def getMenuActions(self, menu, item=None):
+        """Get item in the menu eg. menu=View, item=Select shell"""
+        main_menu = pyzo.main.menuBar()
+        for itm in main_menu.actions():
+            if itm.text() == menu:
+                # Return menu object
+                if not item:
+                    return itm
+                # return item object
+                else:
+                    main_submenu = itm.menu()
+                    for sub in main_submenu.actions():
+                        if sub.text() == item:
+                            return sub
+
     def setMainTitle(self, path=None):
         """ Set the title of the main window, by giving a file path.
         """
