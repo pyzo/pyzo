@@ -25,6 +25,11 @@ view = dict:
     showWrapSymbols = 0
     showIndentationGuides = 1
     showStatusbar = 0
+    showFileToolbar = 0
+    showEditToolbar = 0
+    showRunToolbar = 0
+    showMainToolbar = 0
+    toolbarSize = 35
     #
     wrap = 1
     highlightCurrentLine = 1
