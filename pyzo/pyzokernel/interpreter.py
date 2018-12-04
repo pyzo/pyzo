@@ -450,7 +450,6 @@ class PyzoInterpreter:
                 self.context._stat_interpreter.send('Busy')
                 msg = {'source': scriptBefore, 'fname': '<startup>', 'lineno': 0}
                 self.runlargecode(msg, True)
-                
         elif script and os.path.isfile(script):
             # Run script
             self.context._stat_interpreter.send('Busy')
