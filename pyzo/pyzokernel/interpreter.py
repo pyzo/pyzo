@@ -434,7 +434,7 @@ class PyzoInterpreter:
         # Should we use the default startupScript?
         if script == '$PYTHONSTARTUP':
             script = os.environ.get('PYTHONSTARTUP','')
-            
+        
         if '\n' in script:
             # Run code later or now
             linesBefore = []
