@@ -434,23 +434,22 @@ class PyzoInterpreter:
         # Should we use the default startupScript?
         if script == '$PYTHONSTARTUP':
             script = os.environ.get('PYTHONSTARTUP','')
-        
         if '\n' in script:
             # Run code later or now
-            scriptSplit = script.split('\n')
-            foundAfter = False
-            for idx, line in enumerate(scriptSplit):
-                if line.replace(' ', '').startswith('#AFTER_GUI'):
-                    foundAfter = True
+            linesBefore = []
+            linesAfter = script.splitlines()
+            while linesAfter:
+                if linesAfter[0].startswith('# AFTER_GUI'):
+                    linesAfter.pop(0)
                     break
-            if foundAfter:
-                self._codeToRunOnStartup = '\n'.join(scriptSplit[idx::])
-                runBefore = '\n'.join(scriptSplit[0:idx])
-            else:
-                runBefore = script
-            self.context._stat_interpreter.send('Busy')
-            msg = {'source': runBefore, 'fname': '<startup>', 'lineno': 0}
-            self.runlargecode(msg, True)
+                linesBefore.append(linesAfter.pop(0))
+            scriptBefore  = '\n'.join(linesBefore)
+            self._codeToRunOnStartup = '\n'.join(linesAfter)
+            if scriptBefore.strip():  # don't trigger when only empty lines
+                self.context._stat_interpreter.send('Busy')
+                msg = {'source': scriptBefore, 'fname': '<startup>', 'lineno': 0}
+                self.runlargecode(msg, True)
+                
         elif script and os.path.isfile(script):
             # Run script
             self.context._stat_interpreter.send('Busy')
