@@ -437,12 +437,18 @@ class PyzoInterpreter:
         
         if '\n' in script:
             # Run code later or now
-            firstline = script.split('\n')[0].replace(' ', '')
-            if firstline.startswith('#AFTER_GUI'):
-                self._codeToRunOnStartup = script
-            else:
+            linesBefore = []
+            linesAfter = script.splitlines()
+            while linesAfter:
+                if linesAfter[0].startswith('# AFTER_GUI'):
+                    linesAfter.pop(0)
+                    break
+                linesBefore.append(linesAfter.pop(0))
+            scriptBefore  = '\n'.join(linesBefore)
+            self._codeToRunOnStartup = '\n'.join(linesAfter)
+            if scriptBefore.strip():  # don't trigger when only empty lines
                 self.context._stat_interpreter.send('Busy')
-                msg = {'source': script, 'fname': '<startup>', 'lineno': 0}
+                msg = {'source': scriptBefore, 'fname': '<startup>', 'lineno': 0}
                 self.runlargecode(msg, True)
         elif script and os.path.isfile(script):
             # Run script
