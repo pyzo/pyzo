@@ -16,8 +16,10 @@ import re
 import time
 import inspect
 import tokenize, token, keyword
-import io
-
+try:
+    import io
+except ImportError:  # Not on Python 2.4
+    pass
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
@@ -39,6 +41,7 @@ MESSAGE = """List of *magic* commands:
     install         - install a new package
     update          - update an installed package
     remove          - remove (i.e. uninstall) an installed package
+    uninstall       - alias for remove
     conda           - manage packages using conda
     pip             - manage packages using pip
     db X            - debug commands
@@ -187,7 +190,6 @@ class Magician:
         
         elif command.startswith('REMOVE') or command.startswith('UNINSTALL'):
             line = line.replace('uninstall', 'remove')
-            command = command.replace('UNINSTALL', 'REMOVE')
             return self.remove(line, command)
         
         elif command.startswith('CONDA'):
@@ -463,43 +465,71 @@ class Magician:
         return ''
     
     
+    def _hasconda(self):
+        try:
+            from conda import __version__
+        except ImportError:
+            return False
+        return True
+    
     def install(self, line, command):
-        if not (command == 'INSTALL' or command.startswith('INSTALL ')):
+        if not command.startswith('INSTALL '):
             return
         
-        text = "\x1b[34m\x1b[1m"
-        text += "Trying installation via conda. If this does not work, try:\n"
-        text += "   pip " + line + "\n"
-        text += "\x1b[0m"
-        print(text)
+        hasconda = self._hasconda()
+        
+        if hasconda:
+            text = "Trying installation with conda. If this does not work, try:\n"
+            text += "   pip " + line + "\n"
+        else:
+            text = "Trying installation with pip\n"
+            
+        print("\x1b[34m\x1b[1m" + text + "\x1b[0m")
         time.sleep(0.2)
-        self.conda('conda ' + line, 'CONDA')
+        
+        if hasconda:
+            self.conda('conda ' + line, 'CONDA')
+        else:
+            self.pip('pip ' + line, 'PIP')
         return ''
     
     def update(self, line, command):
-        if not (command == 'UPDATE' or command.startswith('UPDATE ')):
+        if not command.startswith('UPDATE '):
             return
         
-        text = "\x1b[34m\x1b[1m"
-        text += "Trying update via conda. If this does not work, try:\n"
-        text += "   pip " + line.replace('update', 'install') + " --upgrade\n"
-        text += "\x1b[0m"
-        print(text)
+        hasconda = self._hasconda()
+        
+        if hasconda:
+            text = "Trying update with conda. If this does not work, try:\n"
+            text += "   pip " + line.replace('update', 'install') + " --upgrade\n"
+        else:
+            text = "Trying pip install --upgrade\n"
+        
+        print("\x1b[34m\x1b[1m" + text + "\x1b[0m")
         time.sleep(0.2)
-        self.conda('conda ' + line, 'CONDA')
+        
+        if hasconda:
+            self.conda('conda ' + line, 'CONDA')
+        else:
+            self.pip('pip ' + line.replace('update', 'install') + " --upgrade", 'PIP')
         return ''
     
     def remove(self, line, command):
-        if not (command == 'REMOVE' or command.startswith('REMOVE ')):
+        if not command.startswith(('REMOVE ', 'UNINSTALL')):
             return
         
-        text = "\x1b[34m\x1b[1m"
-        text += "Trying remove via conda. If this does not work, try:\n"
-        text += "   pip " + line.replace('remove', 'uninstall') + "\n"
-        text += "\x1b[0m"
-        print(text)
-        time.sleep(0.2)
-        self.conda('conda ' + line, 'CONDA')
+        hasconda = self._hasconda()
+        
+        if hasconda:
+            text = "Trying remove/uninstall with conda. If this does not work, try:\n"
+            text += "   pip " + line.replace('remove', 'uninstall') + "\n"
+        else:
+            text = "Trying remove/uninstall with pip\n"
+        
+        if hasconda:
+            self.conda('conda ' + line, 'CONDA')
+        else:
+            self.pip('pip ' + line.replace('remove', 'uninstall'), 'PIP')
         return ''
     
     def conda(self, line, command):

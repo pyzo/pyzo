@@ -1326,6 +1326,8 @@ class EditorTabs(QtWidgets.QWidget):
                 startdir = fileBrowser.getDefaultSavePath()
             if projectManager and not startdir:
                 startdir = projectManager.getDefaultSavePath()
+            if not startdir:
+                startdir = os.path.expanduser('~')
         
         if not os.path.isdir(startdir):
             startdir = ''

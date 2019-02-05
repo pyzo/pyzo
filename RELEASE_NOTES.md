@@ -1,5 +1,14 @@
 # Release notes
 
+
+### Version 4.6.1 (19-10-2018)
+
+* A few tweaks to make Pyzo work better with non-conda environments
+  (interpreter selection and install/uodate/remove commands).
+* Kernel works with Python 2.4 again.
+* French translations.
+
+
 ### Version 4.6.0 (06-08-2018)
 
 * Make Pyzo work with Python 3.7 (thanks @stonebig)
@@ -12,9 +21,11 @@
 * Make environment variable settings more resilient to whitespace
 * Improvements to asyncio integrated event loop
 
+
 ### Version 4.5.1 (14-02-2018)
 
 * Fixed a few bugs introduced in the previous release.
+
 
 ### Version 4.5.0 (08-02-2018)
 
@@ -29,6 +40,7 @@
 * Support for event loop integration with asyncio.
 * Add syntax highlighting for async and await keywords.
 * Add syntax highlighting for textual Web Assembly (.wat).
+
 
 ### Version 4.4.3 (09-10-2017)
 

@@ -302,6 +302,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
     
     DISABLE_SYSTEM_DEFAULT = sys.platform == 'darwin'
     SYSTEM_VALUE = '$PYTHONSTARTUP'
+
     RUN_AFTER_GUI_TEXT = '# AFTER_GUI - code above this tag will run BEFORE; while code below this tag will run AFTER integrating the GUI\n'
     
     def __init__(self, parent):

@@ -38,8 +38,11 @@ def get_interpreters(minimumVersion=None):
     # Get Pyzo paths
     pyzos = set([PythonInterpreter(p) for p in _get_interpreters_pyzo()])
     
+    # Get pipenv paths
+    pipenvs = set([PythonInterpreter(p) for p in _get_interpreters_pipenv()])
+    
     # Almost done
-    interpreters = set.union(pythons, condas, relative, pyzos)
+    interpreters = set.union(pythons, condas, relative, pyzos, pipenvs)
     minimumVersion = minimumVersion or '0'
     return _select_interpreters(interpreters, minimumVersion)
 
@@ -174,6 +177,24 @@ def _get_interpreters_conda():
             exe_filename = os.path.join(line, pythonname)
             if line and os.path.isfile(exe_filename):
                 exes.append(exe_filename)
+    return exes
+
+
+def _get_interpreters_pipenv():
+    """ Get known pipenv environments
+    """
+    if sys.platform.startswith('win'):
+        pythonname = 'Scripts\\python' + '.exe'
+    else:
+        pythonname = 'bin/python'
+    
+    exes = []
+    for basedir in [os.path.join(os.path.expanduser('~'), '.virtualenvs')]:
+        if os.path.isdir(basedir):
+            for d in os.listdir(basedir):
+                exe_filename = os.path.join(basedir, d, pythonname)
+                if os.path.isfile(exe_filename):
+                    exes.append(exe_filename)
     return exes
 
 

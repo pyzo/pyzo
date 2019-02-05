@@ -40,7 +40,18 @@ LANGUAGES = {
 
 LANGUAGE_SYNONYMS = {   None: 'English (US)',
                         '': 'English (US)',
-                        'English': 'English (US)'}
+                        'English': 'English (US)',
+                        'ca_ES' : 'Catalan',
+                        'de_DE' : 'German',
+                        'es_ES' : 'Spanish',
+                        'fr_FR' : 'French',
+                        'nl_NL' : 'Dutch',
+                        'pt_BR' : 'Portuguese (BR)',
+                        'pt_PT' : 'Portuguese',
+                        'ru_RU' : 'Russian',
+                        'zh_CN' : 'Simplified Chinese',
+                        'zh_TW' : 'Traditional Chinese'
+                     }
 
 
 def getLocale(languageName):
@@ -48,9 +59,17 @@ def getLocale(languageName):
     Get the QLocale object for the given language (as a string).
     """
     
+    # Try System  Language if nothing defined
+    if languageName == "":
+         languageName = QLocale.system().name()
+            
     # Apply synonyms
     languageName = LANGUAGE_SYNONYMS.get(languageName, languageName)
     
+    # if no language applicable, get back to default
+    if LANGUAGES.get(languageName, None) is None:
+         languageName = LANGUAGE_SYNONYMS.get("", "")
+            
     # Select language in qt terms
     qtLanguage = LANGUAGES.get(languageName, None)
     if qtLanguage is None:

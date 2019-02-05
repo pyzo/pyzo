@@ -1666,7 +1666,7 @@ class HelpMenu(Menu):
         icons = pyzo.icons
         
         self.addUrlItem(translate("menu", "Pyzo website ::: Open the Pyzo website in your browser."),
-            icons.help, "http://www.pyzo.org")
+            icons.help, "http://pyzo.org")
         self.addUrlItem(translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."),
             icons.help, "http://guide.pyzo.org")
         self.addItem(translate("menu", "Pyzo wizard ::: Get started quickly."),
@@ -1726,7 +1726,7 @@ class HelpMenu(Menu):
         result = m.exec_()
         # Goto webpage if user chose to
         if result == m.Yes:
-            webbrowser.open("http://www.pyzo.org/start.html")
+            webbrowser.open("http://pyzo.org/start.html")
     
     def _aboutPyzo(self):
         from pyzo.core.about import AboutDialog
@@ -1841,7 +1841,7 @@ class SettingsMenu(Menu):
             icons.style, self._editStyles)
         self.addMenu(self._languageMenu, icons.flag_green)
         self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'),
-            icons.cog, self._advancedSettings)
+            icons.cog, lambda: AdvancedSettings().exec_())
     
     def _editStyles(self):
         """ Edit the style file. """
@@ -1860,25 +1860,6 @@ class SettingsMenu(Menu):
         m.setIcon(m.Information)
         m.setStandardButtons(m.Ok | m.Cancel)
         m.setDefaultButton(m.Ok)
-        m.exec_()
-    
-    def _advancedSettings(self):
-        """ How to edit the advanced settings. """
-        text = translate("menu", """
-        More settings are available via the logger-tool:
-        \r\r
-        - Advanced settings are stored in the struct "pyzo.config.advanced".
-          Type "print(pyzo.config.advanced)" to view all advanced settings.\r
-        - Call "pyzo.resetConfig()" to reset all settings.\r
-        - Call "pyzo.resetConfig(True)" to reset all settings and state.\r
-        \r\r
-        Note that most settings require a restart for the change to
-        take effect.
-        """)
-        m = QtWidgets.QMessageBox(self)
-        m.setWindowTitle(translate("menu dialog", "Advanced settings"))
-        m.setText(unwrapText(text))
-        m.setIcon(m.Information)
         m.exec_()
 
     def addBoolSetting(self, name, key, callback = None):
@@ -2345,3 +2326,136 @@ class KeymappingDialog(QtWidgets.QDialog):
             dlg.setFullName( item.menuPath, shortCutId==1 )
             # show it
             dlg.exec_()
+
+
+class AdvancedSettings(QtWidgets.QDialog):
+    """Advanced settings
+    The Advanced settings dialog contains configuration settings for Pyzo and plugins.
+    Click on an item, to edit settings.
+    """
+
+    def __init__(self, *args):
+        QtWidgets.QDialog.__init__(self, *args)
+
+        text = """
+        WARNING: Do this at your own risk.
+
+        To modify an existing setting, click on the value.
+        Note that most settings require a restart for the change to take effect.
+        
+        The settings file: {}
+        """.format(os.path.join(pyzo.appDataDir, 'config.ssdf'))
+
+        # Set title
+        self.setWindowTitle(translate("menu dialog", 'Advanced Settings'))
+
+        # Set size
+        size = 800, 600
+        offset = 0
+        size2 = size[0], size[1] + offset
+        self.resize(*size2)
+        self.setMaximumSize(*size2)
+        self.setMinimumSize(*size2)
+        # Label
+        self._label = QtWidgets.QLabel(self)
+        self._label.setText(text)
+        # Tree
+        self.tree = QtWidgets.QTreeWidget(self)
+        self.tree.setColumnCount(3)
+        self.tree.setHeaderLabels(["key", "value", "type"])
+        self.tree.setSortingEnabled(True)
+        self.tree.sortItems(0, QtCore.Qt.AscendingOrder)
+        self.tree.setColumnWidth(0, 300)
+        self.tree.setColumnWidth(1, 300)
+        #
+        layout_1 = QtWidgets.QHBoxLayout()
+        layout_1.addWidget(self._label, 0)
+        #
+        layout_2 = QtWidgets.QVBoxLayout()
+        layout_2.addWidget(self.tree, 0)
+        # Layout
+        mainLayout = QtWidgets.QVBoxLayout(self)
+        mainLayout.addLayout(layout_1, 0)
+        mainLayout.addLayout(layout_2, 0)
+        mainLayout.setSpacing(2)
+        mainLayout.setContentsMargins(4, 4, 4, 4)
+        self.setLayout(mainLayout)
+        # Fill tree
+        self.fillTree()
+        # Bind events
+        self.tree.itemClicked.connect(self.onClickSelect)
+        self.tree.itemChanged.connect(self.currentItemChanged)
+
+    def currentItemChanged(self, item, column):
+
+        parent = None
+        node = None
+
+        if column == 1:
+            # node, parent
+            parent = item.parent()
+            parent_val = self.tree.indexFromItem(parent, 0).data()
+            node = parent.parent()
+            node_val = self.tree.indexFromItem(node, 0).data()
+            # key, vaalue
+            key = self.tree.indexFromItem(item, 0).data()
+            value = self.tree.indexFromItem(item, 1).data()
+            typ = self.tree.indexFromItem(item, 2).data()
+
+            # convert type
+            if not typ is type(value):
+                if typ == "<class 'int'>":
+                    value = int(value)
+                elif typ == "<class 'list'>":
+                    value = ast.literal_eval(value)
+
+            # change value
+            if node:
+                # case: node - parent - key - value
+                if node_val in pyzo.config.keys():
+                    if parent_val in pyzo.config.keys():
+                        pyzo.config[node_val][parent_val][key] = value
+            else:
+                # case: parent - key - value
+                if parent:
+                    if parent_val in pyzo.config.keys():
+                        pyzo.config[parent_val][key] = value
+
+            # bold changed item
+            font = item.font(column)
+            font.setBold(True)
+            item.setFont(column, QtGui.QFont(font))
+
+    def fillTree(self):
+        # fill tree
+        for item in pyzo.config.keys():
+            root = QtWidgets.QTreeWidgetItem(self.tree, [item])
+            node = pyzo.config[item]
+            if isinstance(node, pyzo.util.zon.Dict):
+                for k, v in node.items():
+                    if isinstance(v, pyzo.util.zon.Dict):
+                        A = QtWidgets.QTreeWidgetItem(root, ['{}'.format(str(k))])
+                        for kk, vv in v.items():
+                            if isinstance(vv, pyzo.util.zon.Dict):
+                                B = QtWidgets.QTreeWidgetItem(A, ['{}'.format(str(kk))])
+                                for kkk, vvv in vv.items():
+                                    QtWidgets.QTreeWidgetItem(B, [str(kkk), str(vvv), str(type(vvv))])
+                            else:
+                                QtWidgets.QTreeWidgetItem(A, [str(kk), str(vv), str(type(vv))])
+                    else:
+                        QtWidgets.QTreeWidgetItem(root, [str(k), str(v), str(type(v))])
+
+            elif isinstance(node, list):
+                n = 1
+                for k in node:
+                    if isinstance(k, pyzo.util.zon.Dict):
+                        A = QtWidgets.QTreeWidgetItem(root, ['shell_{}'.format(str(n))])
+                        for kk, vv in k.items():
+                            QtWidgets.QTreeWidgetItem(A, [str(kk), str(vv), str(type(vv))])
+                        n += 1
+
+    def onClickSelect(self, item, column):
+        # to allow editing only of column 1
+        if column == 1:
+            item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
+            self.tree.editItem(item, column)
