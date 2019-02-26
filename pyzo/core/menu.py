@@ -24,7 +24,7 @@ from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.assistant import PyzoAssistant
 from pyzo import translate
-from pyzo.core.baseTextCtrl import BaseTextCtrl
+import pyzo.core.baseTextCtrl 
 
 def buildMenus(menuBar):
     """
@@ -71,7 +71,6 @@ def buildMenus(menuBar):
     menuBar.hovered.connect(onHover)
 
 
-# todo: syntax styles now uses a new system. Make dialog for it!
 # todo: put many settings in an advanced settings dialog:
 # - autocomp use keywords
 # - autocomp case sensitive
@@ -1977,6 +1976,9 @@ class ColorLineEdit(QtWidgets.QLineEdit):
         
         
     def openColorDialog(self):
+        """A simple function that opens a QColorDialog 
+           and link the dialog current color selection 
+           to the QLineEdit text """
         dlg = QtWidgets.QColorDialog(self)
         dlg.setWindowTitle("Pick a color for the "+self.name.lower())
         dlg.setCurrentColor(QtGui.QColor(self.text()))
@@ -2077,6 +2079,11 @@ class StyleEdit(QtWidgets.QWidget):
         combo = QtWidgets.QComboBox()
         combo.addItems(items)
         combo.currentTextChanged.connect(lambda txt, key=key: self.__update(key, txt))
+        
+        # Note: those setters may become problematic if 
+        # someone use the synonyms (defined in codeeditor/style.py)
+        # i.e. a stylement is of form "linestyle:dashline" 
+        # instead of the "linestyle:dashed" 
         self.setters[key] = lambda txt,cmb=combo: cmb.setCurrentText(txt.capitalize())
         self.layout.addWidget(TitledWidget(name, combo))
         
@@ -2160,7 +2167,6 @@ class ThemeEditorWidget(QtWidgets.QWidget):
             curThemeCmb.addItem(themeName, userData=themeName)
         curThemeCmb.addItem("New...")
                 
-        curThemeCmb.currentTextChanged.connect(lambda x: print("New text:", x))
         curThemeCmb.currentIndexChanged.connect(self.indexChanged)
         curThemeCmb.currentTextChanged.connect(self.setTheme)
         
@@ -2196,6 +2202,9 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
         
     def createTheme(self):
+        """ Create a new theme based on the current
+        theme selected. """
+        
         index = self.curThemeCmb.currentIndex() 
         if index != self.curThemeCmb.count()-1:
             return self.curThemeCmb.setCurrentIndex(self.curThemeCmb.count()-1)
@@ -2203,27 +2212,27 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         themeName = "My New Theme"
         print("Creating theme '%s'"%themeName)
         
-        self.themes[themeName] = self.cur_theme.copy()
+        self.themes[themeName] = {}
+        self.themes[themeName]["data"] = self.cur_theme["data"].copy()
         self.themes[themeName]["builtin"] = False
         
         self.curThemeCmb.setItemText(index,themeName)
         self.curThemeCmb.setItemData(index,themeName)
         
-        print("Changed item")
         self.curThemeCmb.lineEdit().setCursorPosition(0)
         self.curThemeCmb.lineEdit().selectAll()
         
         self.curThemeCmb.addItem("New...",)
 
-        print("End of creation")
     
     
         
         
     def setTheme(self, name):
-        """ Set the theme by its name. 
-            The combobox becomes editable only 
-            if the theme is not builtin """
+        """ Set the theme by its name. The combobox becomes editable only 
+            if the theme is not builtin. This method is connected to the signal
+            self.curThemeCmb.currentTextChanged ; so it also filters 
+            parasites events """
         
         print("Set theme to '%s'"%name)
         
@@ -2254,7 +2263,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         if self.cur_theme["builtin"]: return
         themeName = self.curThemeCmb.currentText().strip()
 
-        # Try to delete the delete the old file if 
+        # Try to delete the delete the old file if it exists 
         # (useful if it was renamed)
         try:
             oldfname = os.path.join(pyzo.appDataDir, "themes",
@@ -2263,10 +2272,12 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         except:
             pass
             
-        self.cur_theme["theme_name"] = themeName
         fname = os.path.join(pyzo.appDataDir, "themes", themeName+".theme")
         
+        # This is the needed because of the SSDF format:
+        # it doesn't accept dots, so we put underscore instead
         data = {x.replace(".", "_"):y for x,y in self.cur_theme["data"].items()}
+        
         ssdf.save(fname, {"theme_name":themeName, "data":data})
         print("Saved theme '%s' to '%s'" %(themeName, fname))
         
@@ -2286,14 +2297,11 @@ class ThemeEditorWidget(QtWidgets.QWidget):
             self.done.emit(1)
             
     def indexChanged(self, index):
-        """If the user select the New... button """
-        print("Index changed")
         # User selected the "new..." button
         if index == self.curThemeCmb.count()-1:
             self.createTheme()
     
-        self.cur_theme = self.themes[self.curThemeCmb.currentText()]
-    
+        
     def focusOnStyle(self, key):
         self.styleEdits[key].setFocus(True)
         self.scrollArea.ensureWidgetVisible(self.styleEdits[key])
@@ -2317,7 +2325,7 @@ class EditColorDialog(QtWidgets.QDialog):
         super().__init__(*args, **kwargs)
         
         self.setWindowTitle("Color scheme")
-        size = 1200,400
+        size = 1200,800
         offset = 0
         size2 = size[0], size[1]+offset
         self.resize(*size2)
@@ -2332,21 +2340,6 @@ class EditColorDialog(QtWidgets.QDialog):
         self.setLayout(layout)
         
 
-if __name__ == "__main__":
-    darkTheme = """theme_name='''Dark Theme''', data={'''editor.highlightcurrentline''': '''back:#1b1c18''', '''editor.highlightmatchingoccurrences''': '''back:#859900''', '''editor.highlightmatchingbracket''': '''back:#ccc''', '''editor.highlightunmatchedbracket''': '''back:#f7be81''', '''editor.highlightmismatchingbracket''': '''back:#f7819f''', '''editor.indentationguides''': '''fore:#586e75, linestyle:solid''','''editor.longlineindicator''': '''fore:#073642, linestyle:solid''', '''editor.breakpoints''': '''fore:#fdff41, back:#272822''', '''editor.linenumbers''': '''fore:#586e75, back:#1b1c18''', '''editor.calltip''': '''fore:#555, back:#ff9, border:1''', '''syntax.comment''': '''fore:#686c58, bold:no, underline:no, italic:no''', '''syntax.string''': '''fore:#e6db72, bold:no, underline:no, italic:no''','''syntax.unterminatedstring''': '''fore:#fdff41, bold:no, underline:dotted, italic:no''', '''syntax.identifier''': '''fore:#ffffff, bold:no, underline:no, italic:no''', '''syntax.nonidentifier''': '''fore:#f9aeca, bold:no, underline:no, italic:no''', '''syntax.keyword''': '''fore:#f92672, bold:no, underline:no, italic:no''', '''syntax.builtins''': '''fore:#c5d9ff, bold:no, underline:no, italic:no''', '''syntax.instance''': '''fore:#2aa198, bold:no, underline:no, italic:yes''', '''syntax.number''': '''fore:#ae81f0, bold:no, underline:no, italic:no''', '''syntax.functionname''': '''fore:#96df2b, bold:yes, underline:no, italic:no''','''syntax.classname''': '''fore:#f9da42, bold:yes, underline:no, italic:no''', '''syntax.todocomment''': '''fore:#128ee5, bold:yes, underline:yes, italic:no''', '''syntax.openparen''': '''fore:#686c58, bold:no, underline:no, italic:no''', '''syntax.closeparen''': '''fore:#686c58, bold:no, underline:no, italic:no''', '''syntax.python.multilinestring''': '''fore:#e6db72, bold:no, underline:no, italic:no''', '''syntax.python.cellcomment''': '''fore:#f9da42, bold:yes, underline:full, italic:no''', '''syntax.c.multilinecomment''': '''fore:#007f00, bold:no, underline:no, italic:no''', '''syntax.c.char''': '''fore:#7f007f, bold:no, underline:no, italic:no''', '''editor.text''': '''fore:#c5d9ff, back:#272822'''}, builtin=True"""
-    darkTheme = eval("dict(%s)"%darkTheme)
-
-    from PyQt5.QtWidgets import QApplication
-    import pyzo
-    class X:pass
-    pyzo.icons = X()
-    pyzo.icons.cog=None
-    pyzo.themes = {"Dark Theme": darkTheme}
-    pyzo.config.settings.theme = "Dark Theme"
-    app = QApplication([])
-    main = EditColorDialog()
-    main.show()
-    app.exec_()
     
 ## Classes to enable editing the key mappings
 

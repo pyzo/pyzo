@@ -130,8 +130,6 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     # appropriate extension is in use
     breakPointsChanged = QtCore.Signal(object)
     
-    def getStyle(self):
-        return self.__style
     def __init__(self,*args, **kwds):
         super(CodeEditorBase, self).__init__(*args)
         
