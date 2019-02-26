@@ -24,7 +24,7 @@ from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.assistant import PyzoAssistant
 from pyzo import translate
-
+from pyzo.core.baseTextCtrl import BaseTextCtrl
 
 def buildMenus(menuBar):
     """
@@ -1838,7 +1838,7 @@ class SettingsMenu(Menu):
         self.addItem(translate("menu", 'Edit key mappings... ::: Edit the shortcuts for menu items.'),
             icons.keyboard, lambda: KeymappingDialog().exec_())
         self.addItem(translate("menu", 'Edit syntax styles... ::: Change the coloring of your code.'),
-            icons.style, self._editStyles)
+            icons.style, lambda: EditColorDialog().exec_())
         self.addMenu(self._languageMenu, icons.flag_green)
         self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'),
             icons.cog, lambda: AdvancedSettings().exec_())
@@ -1888,7 +1888,466 @@ class SettingsMenu(Menu):
         m.setIcon(m.Information)
         m.exec_()
 
+## Classes to enable editing the color scheme
 
+class FakeEditor(pyzo.core.baseTextCtrl.BaseTextCtrl):
+    
+    """This "fake" editor emits a signal when
+    the user clicks on a word with a token :
+    a click on the word "class" emits with arg "syntax.keyword".
+    
+    It may be improved by adding text with specific token
+    like Editor.text which are not present by default
+    """
+    
+    tokenClicked = QtCore.Signal(str)
+    
+    def __init__(self, text=""):
+        super().__init__()
+        
+        #set parser to enable syntaxic coloration
+        self.setParser("python3")
+        self.setReadOnly(False)
+        self.setLongLineIndicatorPosition(30)
+        
+        #set sample text
+        tmp = """
+## Foo class
+# This is a comment
+class Foo:
+''' This class does nothing. '''
+    #TODO: be amazing
+        def baz(self, arg1):
+            return max(arg1, 42)
+    bar = "Hello wor
+"""
+        
+        self.setPlainText(tmp)
+    
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        
+        # get the text position of the click 
+        pos = self.textCursor().columnNumber()
+        tokens = self.textCursor().block().userData().tokens
+        
+        # Find the token which contains the click pos
+        for tok in tokens:
+            if tok.start <= pos <= tok.end:
+                self.tokenClicked.emit(tok.description.key)
+                break
+
+
+class TitledWidget(QtWidgets.QWidget):
+    """ A litle helper class to "name" a widget :
+    it displays a QLabel to left of the given widget"""
+    
+    def __init__(self, name, other):
+        super().__init__()
+        self.widget = other
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(QtWidgets.QLabel(text=name.capitalize().strip()+" :"))
+        layout.addWidget(other)
+
+        self.setLayout(layout)
+    def setFocus(self, val):
+        self.widget.setFocus(val)
+
+class ColorLineEdit(QtWidgets.QLineEdit):
+    
+    """A subclass of the QLineEdit that can open
+    a QColorDialog on click of a button """
+    
+    def __init__(self, name, *args, **kwargs):
+        """The name is displayed in the QColorDialog"""
+        super().__init__(*args, **kwargs)
+        self.name = name
+        self.button = QtWidgets.QToolButton(self)
+        self.button.setIcon(QtGui.QIcon(pyzo.icons.cog))
+        self.button.setStyleSheet('border: 0px; padding: 0px')
+        self.button.clicked.connect(self.openColorDialog)
+        
+
+        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
+        buttonSize = self.button.sizeHint()
+
+        self.setStyleSheet('QLineEdit {padding-right: %dpx; }' % (buttonSize.width() + frameWidth + 1))
+        # self.setMinimumSize(max(100, buttonSize.width() + frameWidth*2 + 2),
+                            # max(self.minimumSizeHint().height(), buttonSize.height() + frameWidth*2 + 2))
+        
+        
+    def openColorDialog(self):
+        dlg = QtWidgets.QColorDialog(self)
+        dlg.setWindowTitle("Pick a color for the "+self.name.lower())
+        dlg.setCurrentColor(QtGui.QColor(self.text()))
+        dlg.currentColorChanged.connect(lambda clr: self.setText(clr.name()))
+        dlg.setModal(False)
+        dlg.exec_()
+    
+    
+    def resizeEvent(self, event):
+            buttonSize = self.button.sizeHint()
+            frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
+            self.button.move(self.rect().right() - frameWidth - buttonSize.width(),
+                            (self.rect().bottom() - buttonSize.height() + 1)/2)
+            super().resizeEvent(event)
+
+from pyzo.codeeditor.style import StyleFormat
+class StyleEdit(QtWidgets.QWidget):
+    
+    """ The StyleLineEdit is a line that allows the edition
+        of one style (i.e. "Editor.Text" or  "Syntax.identifier")
+        with a given StyleElementDescription it find the editable 
+        parts and display the adaptated widgets for edition
+        (checkbok for bold and italic, combo box for linestyles...).
+    """
+    
+    styleChanged = QtCore.Signal(str, str)
+    
+    def __init__(self, defaultStyle, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        #The styleKey is sent with the styleChanged signal for easy identification
+        self.styleKey = defaultStyle.key
+
+        self.layout = layout = QtWidgets.QHBoxLayout()
+        # The setters are used when setting the style 
+        self.setters = {}
+        
+        #TODO: the use of StyleFormat._parts should be avoided
+        # We use the StyleFormat._parts keys, to find the elements
+        # Useful to edits, because the property may return a value
+        # Even if they were not defined in the defaultFormat
+        fmtParts = defaultStyle.defaultFormat._parts
+        
+        # Add the widgets corresponding to the fields 
+        if "fore" in fmtParts:
+            self.__add_clrLineEdit("fore", "Foreground")
+        if "back" in fmtParts:
+            self.__add_clrLineEdit("back", "Background")
+        if "bold" in fmtParts:
+            self.__add_checkBox("bold", "Bold")
+        if "italic" in fmtParts:
+            self.__add_checkBox("italic", "Italic")
+        if "underline" in fmtParts:
+            self.__add_comboBox("underline","Underline","No", "Dotted", "Wave", "Full", "Yes")
+        if "linestyle" in fmtParts:
+            self.__add_comboBox("linestyle", "Linestyle", "Dashed", "Dotted", "Full")
+            
+        self.setLayout(layout)
+
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,                     
+                           QtWidgets.QSizePolicy.Minimum)
+        
+    
+    def __add_clrLineEdit(self, key, name):
+        """this is a helper method to create a ColorLineEdit
+            it adds the created widget (as a TitledWidget) to the layout and
+            register a setter and listen to changes 
+        """
+        clrEdit = ColorLineEdit(name)
+        clrEdit.textChanged.connect(lambda txt, key=key: self.__update(key, txt)) 
+        self.setters[key] = clrEdit.setText       
+        self.layout.addWidget(TitledWidget(name, clrEdit),0)
+        
+        
+    def __add_checkBox(self, key, name):
+        """this is a helper method to create a QCheckBox
+            it adds the created widget (as a TitledWidget) to the layout and
+            register a setter and listen to changes
+        """
+        
+        checkBox = QtWidgets.QCheckBox()        
+        
+        self.setters[key] = (lambda val, check=checkBox : 
+                                check.setCheckState(val=="yes"))
+                                
+        checkBox.stateChanged.connect(lambda state, key=key: 
+                                    self.__update(key, "yes" if state else "no"))
+                                    
+        self.layout.addWidget(TitledWidget(name, checkBox))
+        
+    def __add_comboBox(self, key, name, *items):
+        
+        """this is a helper method to create a comboBox
+            it adds the created widget (as a TitledWidget) to the layout and
+            register a setter and listen to changes
+        """
+        
+        combo = QtWidgets.QComboBox()
+        combo.addItems(items)
+        combo.currentTextChanged.connect(lambda txt, key=key: self.__update(key, txt))
+        self.setters[key] = lambda txt,cmb=combo: cmb.setCurrentText(txt.capitalize())
+        self.layout.addWidget(TitledWidget(name, combo))
+        
+        
+    def __update(self, key, value):
+        """ this function is called everytime one of the children
+        widget data has been modified by the user """
+        self.styleChanged.emit(self.styleKey, key+":"+value)
+    
+    
+    def setStyle(self, text):
+        """ updates every children to match the StyleFormat(text) fields"""
+        style =StyleFormat(text)
+        for key, setter in self.setters.items():
+            setter(style[key])
+          
+            
+    def setFocus(self, val):
+        self.layout.itemAt(0).widget().setFocus(True)
+
+
+class ThemeEditorWidget(QtWidgets.QWidget):
+    
+    """ The ThemeEditorWidgets allows to edits themes,
+        it has one StyleEdit widget per StyleElements ("Editor.Text", 
+        "Syntax.string"). It emits a signal on each style changes
+        
+        It also manages basic theme I/O :
+            - adding new theme
+            - renaming theme
+            
+    """
+        
+    styleChanged = QtCore.Signal(dict)
+    done = QtCore.Signal(int)
+    
+    def __init__(self, themes, *args, editor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.themes = themes
+        self.editor = editor
+        # If an editor is given, connect to it
+        if self.editor is not None:
+            self.editor.tokenClicked.connect(self.focusOnStyle)
+            self.styleChanged.connect(self.editor.setStyle)
+            
+        
+        # Display editables style formats in a scroll area
+        self.scrollArea = scrollArea = QtWidgets.QScrollArea()
+        self.scrollArea.setWidgetResizable(True)
+        
+        formLayout = QtWidgets.QFormLayout()
+        self.styleEdits = {}
+
+        # Add one pair of label and StyleEdit per style element description
+        # to the formLayout and connect the StyleEdit signals to the updatedStyle method
+        for styleDesc in pyzo.codeeditor.CodeEditor.getStyleElementDescriptions():
+            
+            label = QtWidgets.QLabel(text=styleDesc.name, toolTip=styleDesc.description)
+            label.setWordWrap(True)
+            styleEdit = StyleEdit(styleDesc, toolTip = styleDesc.description)
+            styleEdit.styleChanged.connect(self.updatedStyle)
+            
+            self.styleEdits[styleDesc.key] = styleEdit
+            formLayout.addRow(label, styleEdit)
+        
+        wrapper = QtWidgets.QWidget()
+        wrapper.setLayout(formLayout)
+        wrapper.setMinimumWidth(650)
+        scrollArea.setWidget(wrapper)
+        
+        
+        
+        # Basic theme I/O
+        
+        curThemeLbl = QtWidgets.QLabel(text="Themes :")
+        
+        self.curThemeCmb = curThemeCmb = QtWidgets.QComboBox()
+        for themeName in pyzo.themes.keys():
+            # We store the themeName in data in case the user renames one
+            curThemeCmb.addItem(themeName, userData=themeName)
+        curThemeCmb.addItem("New...")
+                
+        curThemeCmb.currentTextChanged.connect(lambda x: print("New text:", x))
+        curThemeCmb.currentIndexChanged.connect(self.indexChanged)
+        curThemeCmb.currentTextChanged.connect(self.setTheme)
+        
+        # Load the theme set in the settings
+        self.cur_theme_key = None
+        curThemeCmb.setCurrentText(pyzo.config.settings.theme)
+        
+        # Manual load if setCurrentText doesn't emit currentTextChanged
+        # Is it a bug or am I missing something ? but I don't think I
+        # have consistent behavior.
+        if not hasattr(self, "cur_theme"):
+            print("Signal not triggered. Enabling manual callback.")
+            self.setTheme(curThemeCmb.currentText())
+        
+        loadLayout = QtWidgets.QHBoxLayout()
+        loadLayout.addWidget(curThemeLbl)
+        loadLayout.addWidget(curThemeCmb)
+        
+        saveBtn = QtWidgets.QPushButton(text="Save")
+        saveBtn.clicked.connect(self.saveTheme)
+        exitBtn = QtWidgets.QPushButton(text="OK")
+        exitBtn.clicked.connect(self.ok)
+        
+        exitLayout = QtWidgets.QHBoxLayout()
+        exitLayout.addWidget(exitBtn)
+        exitLayout.addWidget(saveBtn)
+        
+        # Packing it up
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.addLayout(loadLayout)
+        mainLayout.addWidget(scrollArea)
+        mainLayout.addLayout(exitLayout)
+        self.setLayout(mainLayout)
+        
+    def createTheme(self):
+        index = self.curThemeCmb.currentIndex() 
+        if index != self.curThemeCmb.count()-1:
+            return self.curThemeCmb.setCurrentIndex(self.curThemeCmb.count()-1)
+        
+        themeName = "My New Theme"
+        print("Creating theme '%s'"%themeName)
+        
+        self.themes[themeName] = self.cur_theme.copy()
+        self.themes[themeName]["builtin"] = False
+        
+        self.curThemeCmb.setItemText(index,themeName)
+        self.curThemeCmb.setItemData(index,themeName)
+        
+        print("Changed item")
+        self.curThemeCmb.lineEdit().setCursorPosition(0)
+        self.curThemeCmb.lineEdit().selectAll()
+        
+        self.curThemeCmb.addItem("New...",)
+
+        print("End of creation")
+    
+    
+        
+        
+    def setTheme(self, name):
+        """ Set the theme by its name. 
+            The combobox becomes editable only 
+            if the theme is not builtin """
+        
+        print("Set theme to '%s'"%name)
+        
+        if name != self.curThemeCmb.currentText():
+            # An item was added to the comboBox
+            # But it's not a user action so we quit
+            print(" -> Cancelled because this was not a user action")
+            return
+        
+        if self.cur_theme_key == self.curThemeCmb.currentData():
+            # The user renamed an existing theme
+            self.cur_theme["theme_name"] = name
+            return
+            
+        # Sets the curent theme key
+        self.cur_theme_key = name
+        self.cur_theme = self.themes[name]
+        
+        self.curThemeCmb.setEditable(not self.cur_theme["builtin"])
+        for key, le in self.styleEdits.items():
+            le.setStyle(self.cur_theme["data"][key])
+    
+    def saveTheme(self):
+        """ Saves the current theme to the disk, in appDataDir/themes """        
+        from pyzo.util import zon as ssdf 
+        import os 
+        
+        if self.cur_theme["builtin"]: return
+        themeName = self.curThemeCmb.currentText().strip()
+
+        # Try to delete the delete the old file if 
+        # (useful if it was renamed)
+        try:
+            oldfname = os.path.join(pyzo.appDataDir, "themes",
+                                    self.cur_theme_key+".theme")
+            os.remove(oldfname)
+        except:
+            pass
+            
+        self.cur_theme["theme_name"] = themeName
+        fname = os.path.join(pyzo.appDataDir, "themes", themeName+".theme")
+        
+        data = {x.replace(".", "_"):y for x,y in self.cur_theme["data"].items()}
+        ssdf.save(fname, {"theme_name":themeName, "data":data})
+        print("Saved theme '%s' to '%s'" %(themeName, fname))
+        
+    def ok(self):
+        """ On user click saves the cur_theme if modified
+            and restart pyzo if the theme changed"""
+        prev = pyzo.config.settings.theme 
+        new = self.cur_theme["theme_name"]
+        
+        self.saveTheme()
+        
+        if prev != new:
+            pyzo.config.settings.theme = new
+            #This may be better
+            pyzo.main.restart()
+        else:
+            self.done.emit(1)
+            
+    def indexChanged(self, index):
+        """If the user select the New... button """
+        print("Index changed")
+        # User selected the "new..." button
+        if index == self.curThemeCmb.count()-1:
+            self.createTheme()
+    
+        self.cur_theme = self.themes[self.curThemeCmb.currentText()]
+    
+    def focusOnStyle(self, key):
+        self.styleEdits[key].setFocus(True)
+        self.scrollArea.ensureWidgetVisible(self.styleEdits[key])
+    
+    def updatedStyle(self, style, text):
+        fmt = StyleFormat(self.cur_theme["data"][style])
+        fmt.update(text)
+        self.cur_theme["data"][style] = str(fmt) 
+        self.styleChanged.emit({style:text})
+        
+
+class EditColorDialog(QtWidgets.QDialog):
+    
+    """ This dialog allows to edit color schemes,
+        it is composed of two main components :
+            - a "fake" editor to visualize the changes
+            - a theme editor to make the edits
+    """
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.setWindowTitle("Color scheme")
+        size = 1200,400
+        offset = 0
+        size2 = size[0], size[1]+offset
+        self.resize(*size2)
+
+
+        self.editor = FakeEditor()
+        self.editColor = ThemeEditorWidget(themes = pyzo.themes.copy(), editor=self.editor)
+        self.editColor.done.connect(self.done)
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.editor, 1)
+        layout.addWidget(self.editColor,2)
+        self.setLayout(layout)
+        
+
+if __name__ == "__main__":
+    darkTheme = """theme_name='''Dark Theme''', data={'''editor.highlightcurrentline''': '''back:#1b1c18''', '''editor.highlightmatchingoccurrences''': '''back:#859900''', '''editor.highlightmatchingbracket''': '''back:#ccc''', '''editor.highlightunmatchedbracket''': '''back:#f7be81''', '''editor.highlightmismatchingbracket''': '''back:#f7819f''', '''editor.indentationguides''': '''fore:#586e75, linestyle:solid''','''editor.longlineindicator''': '''fore:#073642, linestyle:solid''', '''editor.breakpoints''': '''fore:#fdff41, back:#272822''', '''editor.linenumbers''': '''fore:#586e75, back:#1b1c18''', '''editor.calltip''': '''fore:#555, back:#ff9, border:1''', '''syntax.comment''': '''fore:#686c58, bold:no, underline:no, italic:no''', '''syntax.string''': '''fore:#e6db72, bold:no, underline:no, italic:no''','''syntax.unterminatedstring''': '''fore:#fdff41, bold:no, underline:dotted, italic:no''', '''syntax.identifier''': '''fore:#ffffff, bold:no, underline:no, italic:no''', '''syntax.nonidentifier''': '''fore:#f9aeca, bold:no, underline:no, italic:no''', '''syntax.keyword''': '''fore:#f92672, bold:no, underline:no, italic:no''', '''syntax.builtins''': '''fore:#c5d9ff, bold:no, underline:no, italic:no''', '''syntax.instance''': '''fore:#2aa198, bold:no, underline:no, italic:yes''', '''syntax.number''': '''fore:#ae81f0, bold:no, underline:no, italic:no''', '''syntax.functionname''': '''fore:#96df2b, bold:yes, underline:no, italic:no''','''syntax.classname''': '''fore:#f9da42, bold:yes, underline:no, italic:no''', '''syntax.todocomment''': '''fore:#128ee5, bold:yes, underline:yes, italic:no''', '''syntax.openparen''': '''fore:#686c58, bold:no, underline:no, italic:no''', '''syntax.closeparen''': '''fore:#686c58, bold:no, underline:no, italic:no''', '''syntax.python.multilinestring''': '''fore:#e6db72, bold:no, underline:no, italic:no''', '''syntax.python.cellcomment''': '''fore:#f9da42, bold:yes, underline:full, italic:no''', '''syntax.c.multilinecomment''': '''fore:#007f00, bold:no, underline:no, italic:no''', '''syntax.c.char''': '''fore:#7f007f, bold:no, underline:no, italic:no''', '''editor.text''': '''fore:#c5d9ff, back:#272822'''}, builtin=True"""
+    darkTheme = eval("dict(%s)"%darkTheme)
+
+    from PyQt5.QtWidgets import QApplication
+    import pyzo
+    class X:pass
+    pyzo.icons = X()
+    pyzo.icons.cog=None
+    pyzo.themes = {"Dark Theme": darkTheme}
+    pyzo.config.settings.theme = "Dark Theme"
+    app = QApplication([])
+    main = EditColorDialog()
+    main.show()
+    app.exec_()
+    
 ## Classes to enable editing the key mappings
 
 

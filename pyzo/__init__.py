@@ -175,6 +175,27 @@ def resetConfig(preserveState=True):
     _saveConfigFile = False
     print("Deleted user config file. Restart Pyzo to revert to the default config.")
 
+def loadThemes():
+    """
+    Load default and user themes (if exist)
+    """
+    
+    def loadThemesFromDir(dname, isBuiltin=False):
+        for fname in filter(lambda fname: fname.endswith(".theme"), os.listdir(dname)):
+            try:
+                theme = ssdf.load(os.path.join(dname, fname))
+                theme["data"] = {x.replace("_", "."):y for x,y in theme["data"].items()}
+                theme["builtin"] = isBuiltin
+                themes[theme["theme_name"]] = theme
+                print("Loaded theme %r" % theme["theme_name"])
+            except Exception as ex:
+                print(""""Warning ! Error while reading %r, is it valid ? 
+                check it has a "theme_name" attribute\n error %r""" % (fname, ex))
+    
+    loadThemesFromDir(os.path.join(pyzoDir, 'resources'), True)
+    loadThemesFromDir(os.path.join(appDataDir, 'themes'))
+    
+    
 
 def loadConfig(defaultsOnly=False):
     """ loadConfig(defaultsOnly=False)
@@ -241,7 +262,8 @@ def saveConfig():
     if _saveConfigFile:
         ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
 
-
+    
+    
 def start():
     """ Run Pyzo.
     """
@@ -298,5 +320,8 @@ _saveConfigFile = True
 config = ssdf.new()
 loadConfig()
 
+# Create style dict and fill it
+themes = {}
+loadThemes()
 # Init default style name (set in main.restorePyzoState())
 defaultQtStyleName = ''
