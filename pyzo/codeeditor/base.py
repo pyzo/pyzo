@@ -169,12 +169,61 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # while the extension's init is not yet finished.
         self.__initOptions(kwds)
         
+        # Define colors from Solarized theme
+        base03  = "#002b36"
+        base02  = "#073642"
+        base01  = "#586e75"
+        base00  = "#657b83"
+        base0   = "#839496"
+        base1   = "#93a1a1"
+        base2   = "#eee8d5"
+        base3   = "#fdf6e3"
+        yellow  = "#b58900"
+        orange  = "#cb4b16"
+        red     = "#dc322f"  # noqa
+        magenta = "#d33682"
+        violet  = "#6c71c4"
+        blue    = "#268bd2"
+        cyan    = "#2aa198"
+        green   = "#859900"  # noqa
+
+        if True: # Light vs dark
+            #back1, back2, back3 = base3, base2, base1 # real solarised
+            back1, back2, back3 = "#fff", base2, base1 # crispier
+            fore1, fore2, fore3, fore4 = base00, base01, base02, base03
+        else:
+            back1, back2, back3 = base03, base02, base01
+            fore1, fore2, fore3, fore4 = base0, base1, base2, base3  # noqa
+
+        # Define style using "Solarized" colors
+        S  = {}
+        S["Editor.text"] = "back:%s, fore:%s" % (back1, fore1)
+        S['Syntax.identifier'] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+        S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % fore2
+        S["Syntax.keyword"] = "fore:%s, bold:yes, italic:no, underline:no" % fore2
+
+        S["Syntax.builtins"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+        S["Syntax.instance"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+
+        S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore3
+        S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % orange
+
+        S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
+        S["Syntax.unterminatedstring"] = "fore:%s, bold:no, italic:no, underline:dotted" % violet
+        S["Syntax.python.multilinestring"] = "fore:%s, bold:no, italic:no, underline:no" % blue
+
+        S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
+        S["Syntax.comment"] = "fore:%s, bold:no, italic:no, underline:no" % yellow
+        S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
+        S["Syntax.python.cellcomment"] = "fore:%s, bold:yes, italic:no, underline:full" % yellow
+
+        S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2
+        S["Editor.Highlight current line"] = "back:%s" % back2
+        S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % back2
+        S["Editor.Line numbers"] = "back:%s, fore:%s" % (back2, back3)
         
-    ## Style import settings
-        import pyzo
-        # Apply style
-        self.setStyle(pyzo.themes[pyzo.config.settings.theme]["data"])
-    
+        # Apply a good default style
+        self.setStyle(S)
     
     def _setHighlighter(self, highlighterClass):
         self.__highlighter = highlighterClass(self, self.document())
