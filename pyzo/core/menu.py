@@ -2244,7 +2244,8 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         
         if self.cur_theme_key == self.curThemeCmb.currentData():
             # The user renamed an existing theme
-            self.cur_theme["theme_name"] = name
+            #self.cur_theme["name"] = name
+            # todo: xxxx
             return
             
         # Sets the curent theme key
@@ -2278,14 +2279,14 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         # it doesn't accept dots, so we put underscore instead
         data = {x.replace(".", "_"):y for x,y in self.cur_theme["data"].items()}
         
-        ssdf.save(fname, {"theme_name":themeName, "data":data})
+        ssdf.save(fname, {"name":themeName, "data":data})
         print("Saved theme '%s' to '%s'" %(themeName, fname))
         
     def ok(self):
         """ On user click saves the cur_theme if modified
             and restart pyzo if the theme changed"""
         prev = pyzo.config.settings.theme 
-        new = self.cur_theme["theme_name"]
+        new = self.cur_theme["name"]
         
         self.saveTheme()
         

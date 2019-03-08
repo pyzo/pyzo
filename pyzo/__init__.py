@@ -175,27 +175,29 @@ def resetConfig(preserveState=True):
     _saveConfigFile = False
     print("Deleted user config file. Restart Pyzo to revert to the default config.")
 
+
 def loadThemes():
     """
     Load default and user themes (if exist)
     """
     
     def loadThemesFromDir(dname, isBuiltin=False):
-        for fname in filter(lambda fname: fname.endswith(".theme"), os.listdir(dname)):
+        if not os.path.isdir(dname):
+            return
+        for fname in [fname for fname in os.listdir(dname) if fname.endswith(".theme")]:
             try:
                 theme = ssdf.load(os.path.join(dname, fname))
-                theme["data"] = {x.replace("_", "."):y for x,y in theme["data"].items()}
+                assert theme.name.lower() == fname.lower().split(".")[0], "Theme name does not match filename"
+                theme.data = {key.replace("_", "."): val  for key, val in theme.data.items()}
                 theme["builtin"] = isBuiltin
-                themes[theme["theme_name"]] = theme
-                print("Loaded theme %r" % theme["theme_name"])
+                themes[theme.name.lower()] = theme
+                print("Loaded theme %r" % theme.name)
             except Exception as ex:
-                print(""""Warning ! Error while reading %r, is it valid ? 
-                check it has a "theme_name" attribute\n error %r""" % (fname, ex))
+                print("Warning ! Error while reading %s: %s" % (fname, ex))
     
-    loadThemesFromDir(os.path.join(pyzoDir, 'resources'), True)
+    loadThemesFromDir(os.path.join(pyzoDir, 'resources', 'themes'), True)
     loadThemesFromDir(os.path.join(appDataDir, 'themes'))
-    
-    
+
 
 def loadConfig(defaultsOnly=False):
     """ loadConfig(defaultsOnly=False)
@@ -244,6 +246,7 @@ def loadConfig(defaultsOnly=False):
             t = 'Error while reading config file %r, maybe its corrupt?'
             print(t % fname)
             raise
+
 
 def saveConfig():
     """ saveConfig()
