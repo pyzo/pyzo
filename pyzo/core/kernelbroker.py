@@ -182,6 +182,15 @@ def getEnvFromKernelInfo(info):
     env['JYTHONPATH'] = pyzo.pyzoDir + os.pathsep + os.environ.get('JYTHONPATH', '')
     env['TERM'] = 'dumb'  # we have a "dumb" terminal (see #422)
     
+    # Add dirs specific to this Python interpreter. Especially important with
+    # Miniconda/Anaconda on Windows, see issue #591
+    prefix = os.path.dirname(info.exe)
+    envdirs = ["", "Library/usr/bin", "Library/bin", "bin"]
+    if sys.platform.startswith("win"):
+        envdirs.extend([r"Scripts", r"Library\mingw-w64\bin", r"Library\mingw-w32\bin"])
+    curpath = env.get("PATH", "").strip(os.pathsep)
+    env["PATH"] = os.pathsep.join(os.path.join(prefix, d) for d in envdirs) + os.pathsep + curpath
+    
     # Add environment variables specified in shell config
     for line in info.environ.splitlines():
         line = line.strip()
