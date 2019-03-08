@@ -62,6 +62,11 @@ if hasattr(sys, 'frozen') and sys.frozen:
         os.environ['FONTCONFIG_FILE'] = os.path.join(app_dir, 'source/pyzo/resources',
                                                     'fonts/linux_fonts.conf')
 
+# Automatically scale along on HDPI displays (I think. I cannot test it for real
+# but if I change the Windows scale factor, things stay crisp with this setting
+# while they are blurry without).
+os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = "true"
+
 # Import yoton as an absolute package
 from pyzo import yotonloader  # noqa
 from pyzo.util import paths
