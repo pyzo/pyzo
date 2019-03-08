@@ -500,6 +500,36 @@ class PyzoEditor(BaseTextCtrl):
         if self.testWhetherFileWasChanged():
             return
 
+        # Remove whitespace in a single undo-able action
+        if self.removeTrailingWS or pyzo.config.settings.removeTrailingWhitespaceWhenSaving:
+            # Original cursor to put state back at the end
+            oricursor = self.textCursor()
+            # Screen cursor to select document
+            screenCursor = self.textCursor()
+            screenCursor.movePosition(screenCursor.Start)
+            screenCursor.movePosition(screenCursor.End, screenCursor.KeepAnchor)
+            # Cursor for doing the editor
+            editCursor = self.textCursor()
+            # Go!
+            editCursor.beginEditBlock()
+            try:
+                editCursor.setPosition(screenCursor.selectionStart())
+                editCursor.movePosition(editCursor.StartOfBlock)
+                while editCursor.position()<screenCursor.selectionEnd() or \
+                        editCursor.position()<=screenCursor.selectionStart():
+                    editCursor.movePosition(editCursor.StartOfBlock)
+                    editCursor.movePosition(editCursor.EndOfBlock, editCursor.KeepAnchor)
+                    text1 = editCursor.selectedText()
+                    text2 = text1.rstrip()
+                    if len(text1) != len(text2):
+                        editCursor.insertText(text2)
+                    if not editCursor.block().next().isValid():
+                        break
+                    editCursor.movePosition(editCursor.NextBlock)
+            finally:
+                self.setTextCursor(oricursor)
+                editCursor.endEditBlock()
+
         # Get text and remember where we are
         text = self.toPlainText()
         cursor = self.textCursor()
@@ -507,23 +537,8 @@ class PyzoEditor(BaseTextCtrl):
         index = cursor.positionInBlock()
         scroll = self.verticalScrollBar().value()
 
-        # Convert line endings (optionally remove trailing whitespace
-        if self.removeTrailingWS or pyzo.config.settings.removeTrailingWhitespaceWhenSaving:
-            lines = [line.rstrip() for line in text.split('\n')]
-            if lines[-1]:
-                lines.append('')  # Ensure the file ends in an empty line
-            text = self.lineEndings.join(lines)
-            self.setPlainText(text)
-            # Go back to where we were
-            cursor = self.textCursor()
-            cursor.movePosition(cursor.Start) # move to begin of the document
-            cursor.movePosition(cursor.NextBlock,n=linenr-1) # n blocks down
-            index = min(index, cursor.block().length()-1)
-            cursor.movePosition(cursor.Right,n=index) # n chars right
-            self.setTextCursor(cursor)
-            self.verticalScrollBar().setValue(scroll)
-        else:
-            text = text.replace('\n', self.lineEndings)
+        # Convert line endings
+        text = text.replace('\n', self.lineEndings)
 
         # Make bytes
         bb = text.encode(self.encoding)
