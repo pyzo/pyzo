@@ -451,9 +451,11 @@ class EditColorDialog(QtWidgets.QDialog):
         self.resize(*size2)
 
         # Make a deep copy
-        themes = pyzo.themes.copy()
-        for key in themes.keys():
-            themes[key]["data"] = themes[key]["data"].copy()
+        themes = {}
+        for name, theme in pyzo.themes.items():
+            theme = theme.copy()
+            theme["data"] = theme["data"].copy()
+            themes[name] = theme
         
         self.editor = FakeEditor()
         self.editColor = ThemeEditorWidget(themes=themes, editor=self.editor)
