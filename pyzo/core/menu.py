@@ -26,7 +26,6 @@ from pyzo.core.themeEdit import EditColorDialog
 from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.assistant import PyzoAssistant
 from pyzo import translate
-import pyzo.core.baseTextCtrl 
 
 
 def buildMenus(menuBar):
@@ -1845,25 +1844,6 @@ class SettingsMenu(Menu):
         self.addItem(translate("menu", 'Advanced settings... ::: Configure Pyzo even further.'),
             icons.cog, lambda: AdvancedSettings().exec_())
     
-    def _editStyles(self):
-        """ Edit the style file. """
-        text = """
-        Chosing or editing the syntax style is currently not available.
-        We selected a style which we like a lot. It's based on the
-        solarized theme (http://ethanschoonover.com/solarized) isn't it pretty?
-        \r\r
-        In case you really want to change the style, you can change the
-        source code at:\r
-        {}
-        """.format(os.path.join(pyzo.pyzoDir, 'codeeditor', 'base.py'))
-        m = QtWidgets.QMessageBox(self)
-        m.setWindowTitle(translate("menu dialog", "Edit syntax styling"))
-        m.setText(unwrapText(text))
-        m.setIcon(m.Information)
-        m.setStandardButtons(m.Ok | m.Cancel)
-        m.setDefaultButton(m.Ok)
-        m.exec_()
-
     def addBoolSetting(self, name, key, callback = None):
         def _callback(state, key):
             setattr(pyzo.config.settings, key, state)
