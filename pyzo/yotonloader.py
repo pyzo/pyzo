@@ -7,8 +7,10 @@ module does...
 import os
 import sys
 
-# Import yoton
+# Allow importing yoton
 sys.path.insert(0, os.path.dirname(__file__))
+
+# Import yoton
 import yoton  # noqa
 
 # Reset
