@@ -3,16 +3,16 @@
 [Setup]
 AppName = pyzo
 AppId = pyzo
-AppVerName = pyzo version X.Y
+AppVerName = pyzo version X.Y.Z
 AppPublisher = The Pyzo team
 AppPublisherURL = http://pyzo.org
 
 DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo
 
-SourceDir = frozen/
+SourceDir = frozen/pyzo
 OutputDir = ../
-OutputBaseFilename = pyzo-X.Y-win32
+OutputBaseFilename = pyzo-X.Y.Z-win64
 
 WizardImageBackColor=$d28b26
 WizardImageStretch=no
