@@ -173,7 +173,7 @@ with open(os.path.join(distDir, 'pyzo', '_settings', 'README.txt'), 'wb') as fil
 
 if sys.platform.startswith("darwin"):
     print("Packing up into dmg ...")
-    appDir = distDir + "pyzo"
+    appDir = distDir + "pyzo.app"
     dmgFile = distDir + 'pyzo.dmg'
 
     if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
