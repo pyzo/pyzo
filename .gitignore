@@ -3,5 +3,6 @@ _famfamfam/
 _feedstock/
 build/
 dist/
+frozen/
 *.pyc
 pyzo.egg-info/*

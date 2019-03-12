@@ -1,10 +1,27 @@
 # Release notes
 
 
+### Version 4.7.0 (12-03-2019)
+
+
+* Pyzo properly works with Miniconda/Anaconda environments on Windows again
+  (they now need some specific entries in the PATH environment variable).
+* We (finally) have different styles to choose from, and they can be tweaked (thanks Erik Helmers).
+* Pyzo should scale propertly on high resolution displays (at least on Windows).
+* Can now specify startup code both for before *and* after integrating the GUI (thanks @Diti24).
+* There is now a primitive dialog to set advanced settings (thanks kelsa-pi).
+* Pyzo will remove trailing whitespace if the original file contained very little trailing whitespace.
+* Pyzo can now detect pipenv interpreters.
+* The binaries are now build with PyInstaller and should thus be more
+  robust. Windows binaries are build on Windows 7./ Linux on Ubuntu
+  16.04, OSX on Sierra (?). All binaries are 64 bit.
+
+
 ### Version 4.6.1 (19-10-2018)
 
 * A few tweaks to make Pyzo work better with non-conda environments
   (interpreter selection and install/uodate/remove commands).
+* The editor can now guess the file type from the shebang, if present (thanks Yann Salmon).
 * Kernel works with Python 2.4 again.
 * French translations.
 
