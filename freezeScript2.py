@@ -163,3 +163,20 @@ use this standard. For more info, contact either of us.
 """.lstrip()
 with open(os.path.join(distDir, 'pyzo', '_settings', 'README.txt'), 'wb') as file:
     file.write(SETTINGS_TEXT.encode('utf-8'))
+
+
+## Package things up
+
+# On Windows we have the iss script that we run manually, and we can zip easily.
+# On Linux we can compress the dir easily.
+# On OS X we want a DMG and this is what we do below.
+
+if sys.platform.startswith("darwin"):
+    print("Packing up into dmg ...")
+    appDir = distDir + "pyzo"
+    dmgFile = distDir + 'pyzo.dmg'
+
+    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
+                '-format','UDZO', dmgFile, '-imagekey', 'zlib-level=9',
+                '-srcfolder', appDir, '-volname', 'pyzo') != 0:
+        raise OSError('creation of the dmg failed')
