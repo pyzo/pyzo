@@ -202,6 +202,12 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     def __init__(self, *args, **kwds):
         super().__init__(*args, **kwds)
         
+        # Set style/theme
+        try:
+            self.setStyle(pyzo.themes[pyzo.config.settings.theme.lower()]['data'])
+        except Exception as err:
+            print("Could not load theme: " + str(err))
+        
         # Set font and zooming
         self.setFont(pyzo.config.view.fontname)
         self.setZoom(pyzo.config.view.zoom)

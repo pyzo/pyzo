@@ -258,13 +258,7 @@ class PyzoEditor(BaseTextCtrl):
 
     def __init__(self, parent, **kwds):
         super().__init__(parent, showLineNumbers = True, **kwds)
-        
-        # Set style/theme
-        try:
-            self.setStyle(pyzo.themes[pyzo.config.settings.theme.lower()]['data'])
-        except Exception as err:
-            print("Could not load theme: " + str(err))
-        
+
         # Init filename and name
         self._filename = ''
         self._name = '<TMP>'
