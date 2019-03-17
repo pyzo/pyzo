@@ -131,13 +131,6 @@ def copydir_smart(path1, path2):
     return count
 
 
-# Copy the whole Pyzo package
-copydir_smart(os.path.join(srcDir), os.path.join(distDir, 'pyzo', 'source', 'pyzo'))
-
-
-# Create settings folder and put in a file
-os.mkdir(os.path.join(distDir, 'pyzo', '_settings'))
-
 SETTINGS_TEXT = """
 Portable settings folder
 ------------------------
@@ -161,8 +154,21 @@ from https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py to
 use this standard. For more info, contact either of us.
 
 """.lstrip()
-with open(os.path.join(distDir, 'pyzo', '_settings', 'README.txt'), 'wb') as file:
-    file.write(SETTINGS_TEXT.encode('utf-8'))
+
+# Post process the frozen dir (and the frozen app-dir on OS X)
+frozenDirs = [os.path.join(distDir, 'pyzo')]
+if sys.platform.startswith("darwin"):
+    frozenDirs.append(os.path.join(distDir, 'pyzo.app', 'Contents', 'MacOS'))
+
+for frozenDir in frozenDirs:
+
+    # Copy the whole Pyzo package
+    copydir_smart(os.path.join(srcDir), os.path.join(frozenDir, 'source', 'pyzo'))
+
+    # Create settings folder and put in a file
+    os.mkdir(os.path.join(frozenDir, '_settings'))
+    with open(os.path.join(frozenDir, '_settings', 'README.txt'), 'wb') as file:
+        file.write(SETTINGS_TEXT.encode('utf-8'))
 
 
 ## Package things up
