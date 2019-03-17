@@ -5,6 +5,10 @@
 # The full license can be found in 'license.txt'.
 
 """ FREEZING Pyzo WITH CX_FREEZE
+
+!!! DEPRECATED, USE THE VERSION THAT USES PYINSTALLER INSTEAD !!!
+
+
 This script can be run as a script (no need to do distutils stuff...)
 
 Pyzo is frozen in such a way that it still uses the plain source code.
