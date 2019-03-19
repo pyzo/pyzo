@@ -190,6 +190,7 @@ def createEditor(parent, filename=None):
         # Create editor
         editor = PyzoEditor(parent)
         editor.document().setModified(True)
+        editor.removeTrailingWS = True
 
         # Set name
         editor._name = "<tmp {}>".format(newFileCounter)
