@@ -85,6 +85,9 @@ def _get_interpreters_win():
             if dname.lower().startswith(('python', 'pypy', 'miniconda', 'anaconda')):
                 found.append(os.path.join(rootname, dname))
     
+    # remove 'None' path added in the found list (when badly registered python in the user system)
+    found = [v for v in found if v]
+
     # Normalize all paths, and remove trailing backslashes
     found = [os.path.normcase(os.path.abspath(v)).strip('\\') for v in found]
     
