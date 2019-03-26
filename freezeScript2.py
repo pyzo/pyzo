@@ -97,6 +97,7 @@ elif sys.platform.startswith("darwin"):
     cmd.extend(["--icon", iconFile[:-3] + "icns"])
 
 cmd.append(srcDir + "__main__.py")
+
 PyInstaller.__main__.run(cmd)
 
 os.remove(baseDir + "pyzo.spec")

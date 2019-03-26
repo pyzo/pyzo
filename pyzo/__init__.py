@@ -52,13 +52,13 @@ import traceback
 if sys.version < '3':
     raise RuntimeError('Pyzo requires Python 3.x to run.')
 
-# Make each OS find platform plugins etc.
+# Make each OS find platform plugins etc. - or let PyInstaller do its thing?
 if hasattr(sys, 'frozen') and sys.frozen:
     app_dir = os.path.dirname(sys.executable)
-    if sys.platform.startswith('win'):
-        os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = app_dir
+    # if sys.platform.startswith('win'):
+    #     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = app_dir
     if sys.platform.startswith('linux'):
-        os.environ['QT_XKB_CONFIG_ROOT'] = '.'
+        # os.environ['QT_XKB_CONFIG_ROOT'] = '.'
         os.environ['FONTCONFIG_FILE'] = os.path.join(app_dir, 'source/pyzo/resources',
                                                     'fonts/linux_fonts.conf')
 
@@ -284,7 +284,7 @@ def start():
         try:
             locale.setlocale(locale.LC_ALL, x)
             break
-        except locale.Error:
+        except Exception:
             pass
 
     # Set to be aware of the systems native colors, fonts, etc.
