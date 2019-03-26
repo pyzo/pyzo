@@ -191,6 +191,12 @@ def getEnvFromKernelInfo(info):
     curpath = env.get("PATH", "").strip(os.pathsep)
     env["PATH"] = os.pathsep.join(os.path.join(prefix, d) for d in envdirs) + os.pathsep + curpath
     
+    # Remove Qt plugin directories, because it breaks Qt integration for the kernel
+    # on several systems. E.g. QT_QPA_PLATFORM_PLUGIN_PATH, QT_PLUGIN_PATH
+    for key, val in list(env.items()):
+        if key.startswith("QT_") and ("/" in val or "\\" in val):
+            env.pop(key)
+    
     # Add environment variables specified in shell config
     for line in info.environ.splitlines():
         line = line.strip()
