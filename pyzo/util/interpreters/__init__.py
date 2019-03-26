@@ -100,7 +100,7 @@ def _get_interpreters_win():
                 found2.append(exename)
                 break
     
-    # Returnas set (remove duplicates)
+    # Return as set (remove duplicates)
     return set(found2)
 
 

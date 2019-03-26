@@ -103,7 +103,7 @@ class PythonInterpreter:
         try:
             v = subprocess.check_output(cmd, stderr=subprocess.STDOUT,
                                         shell=sys.platform.startswith('win'))
-        except (OSError, IOError, subprocess.CalledProcessError) as e:
+        except Exception as e:  # Don't risk not catching an unforeseen exception ...
             self._problem = str(e)
             return ''
         
