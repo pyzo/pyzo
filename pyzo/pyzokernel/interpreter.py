@@ -821,7 +821,7 @@ class PyzoInterpreter:
                     source2 = "\n".join(lines).rstrip() + "\nif _ is not None:\n  print(repr(_))\n"
                     ast.parse(source2, fname, "exec")  # This is to make sure it still compiles
                     source = source2
-            except Exception as err:
+            except Exception:
                 pass
         elif lineno1 == lineno2:
             runtext = '(executing line %i of "%s")\n' % (lineno1, fname_show)
