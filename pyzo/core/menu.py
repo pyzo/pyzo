@@ -1555,7 +1555,7 @@ class RunMenu(Menu):
         self._showWhatToExecute(editor, runCursor)
         # Get filename and run code
         fname = editor.id() # editor._name or editor._filename
-        shell.executeCode(code, fname, lineNumber, cellName)
+        shell.executeCode(code, fname, lineNumber, cellName or " ")  # ensure that bool(cellName) == True
         
         if advance:
             self._advance(runCursor)

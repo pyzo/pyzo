@@ -809,7 +809,20 @@ class PyzoInterpreter:
         if cellName == fname:
             runtext = '(executing file "%s")\n' % fname_show
         elif cellName:
-            runtext = '(executing cell "%s" (line %i of "%s"))\n' % (cellName, lineno1, fname_show)
+            runtext = '(executing cell "%s" (line %i of "%s"))\n' % (cellName.strip(), lineno1, fname_show)
+            # Try to get the last expression printed in the cell.
+            try:
+                import ast
+                tree = ast.parse(source, fname, "exec")
+                if isinstance(tree.body[-1], ast.Expr) and tree.body[-1].col_offset == 0:
+                    e = tree.body[-1]
+                    lines = source.splitlines()
+                    lines[e.lineno-1] = "_=\\\n" + lines[e.lineno-1]
+                    source2 = "\n".join(lines).rstrip() + "\nif _ is not None:\n  print(repr(_))\n"
+                    ast.parse(source2, fname, "exec")  # This is to make sure it still compiles
+                    source = source2
+            except Exception as err:
+                pass
         elif lineno1 == lineno2:
             runtext = '(executing line %i of "%s")\n' % (lineno1, fname_show)
         else:
