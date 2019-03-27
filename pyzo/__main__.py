@@ -34,7 +34,7 @@ class SourceImporter:
             return None
 
 
-if hasattr(sys, 'frozen') and sys.frozen:
+if getattr(sys, "frozen", False):
     # Allow importing from the source dir, and install spec finder to overload
     # PyInstaller's finder when appropriate.
     source_dir= os.path.join(sys._MEIPASS, 'source')

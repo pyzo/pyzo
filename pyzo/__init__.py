@@ -53,7 +53,7 @@ if sys.version < '3':
     raise RuntimeError('Pyzo requires Python 3.x to run.')
 
 # Make each OS find platform plugins etc. - or let PyInstaller do its thing?
-if hasattr(sys, 'frozen') and sys.frozen:
+if getattr(sys, "frozen", False):
     app_dir = os.path.dirname(sys.executable)
     # if sys.platform.startswith('win'):
     #     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = app_dir

@@ -182,6 +182,23 @@ def getEnvFromKernelInfo(info):
     env['JYTHONPATH'] = pyzo.pyzoDir + os.pathsep + os.environ.get('JYTHONPATH', '')
     env['TERM'] = 'dumb'  # we have a "dumb" terminal (see #422)
     
+    # PyInstaller uses DllDirectory, but this leaks down to subprocesses,
+    # causing GUI integration with QT-based libs to fail. Turn it off now.
+    # https://github.com/pyinstaller/pyinstaller/issues/3795
+    if sys.platform.startswith("win32"):
+        ctypes.windll.kernel32.SetDllDirectoryA(None)
+    
+    # Remove Qt plugin directories, because it breaks Qt integration for the kernel
+    # on several systems. E.g. QT_QPA_PLATFORM_PLUGIN_PATH, QT_PLUGIN_PATH
+    if getattr(sys, "frozen", False):
+        frozen_path = os.path.normpath(sys.prefix).lower()
+        for key, val in list(env.items()):
+            if key.startswith(("QT_", "QML2_")):
+                if frozen_path in os.path.normpath(val).lower():
+                    env.pop(key, None)
+        env["PATH"] = os.pathsep.join(x for x in os.getenv("PATH", "").split(os.pathsep)
+                                      if not os.path.normpath(x).lower().startswith(frozen_path))
+    
     # Add dirs specific to this Python interpreter. Especially important with
     # Miniconda/Anaconda on Windows, see issue #591
     prefix = os.path.dirname(info.exe)
@@ -190,12 +207,6 @@ def getEnvFromKernelInfo(info):
         envdirs.extend([r"Scripts", r"Library\mingw-w64\bin", r"Library\mingw-w32\bin"])
     curpath = env.get("PATH", "").strip(os.pathsep)
     env["PATH"] = os.pathsep.join(os.path.join(prefix, d) for d in envdirs) + os.pathsep + curpath
-    
-    # Remove Qt plugin directories, because it breaks Qt integration for the kernel
-    # on several systems. E.g. QT_QPA_PLATFORM_PLUGIN_PATH, QT_PLUGIN_PATH
-    for key, val in list(env.items()):
-        if key.startswith("QT_") and ("/" in val or "\\" in val):
-            env.pop(key)
     
     # Add environment variables specified in shell config
     for line in info.environ.splitlines():
