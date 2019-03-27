@@ -1,6 +1,13 @@
 # Release notes
 
 
+### Version 4.7.3 (27-03-2019)
+
+A few fixes related to the new freezing process with PyInstaller, causing
+a failure to integrate Qt-based GUI toolkits. Also a fix related to the
+discovery of Python interpreters.
+
+
 ### Version 4.7.0 (17-03-2019)
 
 * Pyzo properly works with Miniconda/Anaconda environments on Windows again
