@@ -12,8 +12,9 @@ shortcuts.
 
 """
 
-import os, sys, re
+import os, sys, shutil, re
 import webbrowser
+from datetime import datetime
 from urllib.request import urlopen
 import ast
 import json
@@ -2319,57 +2320,168 @@ class AdvancedSettings(QtWidgets.QDialog):
     def __init__(self, *args):
         QtWidgets.QDialog.__init__(self, *args)
 
-        text = """
-        WARNING: Do this at your own risk.
-
-        To modify an existing setting, click on the value.
-        Note that most settings require a restart for the change to take effect.
+        self.conf_file = os.path.join(pyzo.appDataDir, 'config.ssdf')
+        self.backup_file = os.path.join(pyzo.appDataDir, 'config.ssdf.bak')
         
-        The settings file: {}
-        """.format(os.path.join(pyzo.appDataDir, 'config.ssdf'))
+        if not os.path.exists(self.conf_file):
+            pyzo.saveConfig()
+
+        if not os.path.exists(self.backup_file):
+            self.backupConfig()
+
+        text = """
+        Before you begin, backup your settings. To modify an existing setting, click on the value
+        to change it. Note that most settings require a restart for the change to take effect.
+        """
 
         # Set title
         self.setWindowTitle(translate("menu dialog", 'Advanced Settings'))
 
-        # Set size
+        # Set dialog size
         size = 800, 600
         offset = 0
         size2 = size[0], size[1] + offset
         self.resize(*size2)
         self.setMaximumSize(*size2)
         self.setMinimumSize(*size2)
+        
         # Label
         self._label = QtWidgets.QLabel(self)
         self._label.setText(text)
+        
+        # Search
+        self._search = QtWidgets.QLineEdit(self)
+        self._search.setPlaceholderText('Search...')
+        self._search.setToolTip("Use the search box to find the setting of interest.")
+        # event
+        self._search.textChanged.connect(self.searchTextChanged)
+        
         # Tree
-        self.tree = QtWidgets.QTreeWidget(self)
-        self.tree.setColumnCount(3)
-        self.tree.setHeaderLabels(["key", "value", "type"])
-        self.tree.setSortingEnabled(True)
-        self.tree.sortItems(0, QtCore.Qt.AscendingOrder)
-        self.tree.setColumnWidth(0, 300)
-        self.tree.setColumnWidth(1, 300)
-        #
+        self._tree = QtWidgets.QTreeWidget(self)
+        self._tree.setColumnCount(3)
+        self._tree.setHeaderLabels(["key", "value", "type"])
+        self._tree.setSortingEnabled(True)
+        self._tree.sortItems(0, QtCore.Qt.AscendingOrder)
+        self._tree.setColumnWidth(0, 300)
+        self._tree.setColumnWidth(1, 300)
+        # event
+        self._tree.itemClicked.connect(self.onClickSelect)
+        self._tree.itemChanged.connect(self.currentItemChanged)
+        
+        # Backup label
+        self._backup_label = QtWidgets.QLabel(self)
+        self._backup_label.setText(self.setBackupDate())
+
+        # Buttons
+        self._btnFactoryDefault = QtWidgets.QPushButton('Factory Defaults', self)
+        self._btnFactoryDefault.setToolTip("Reset a IDE to its original settings.")
+        self._btnFactoryDefault.clicked.connect(self.btnFactoryDefaultClicked)
+
+        self._btnBackup = QtWidgets.QPushButton('Backup', self)
+        self._btnBackup.setToolTip("Make backup file of the current settings.")
+        self._btnBackup.setDefault(True)
+        self._btnBackup.clicked.connect(self.btnBackupClicked)
+
+        self._btnRestore = QtWidgets.QPushButton('Restore', self)
+        self._btnRestore.setToolTip("Restore settings from last backup file, then restart Pyzo.")
+        self._btnRestore.clicked.connect(self.btnRestoreClicked)
+
+        # Layouts
         layout_1 = QtWidgets.QHBoxLayout()
         layout_1.addWidget(self._label, 0)
         #
-        layout_2 = QtWidgets.QVBoxLayout()
-        layout_2.addWidget(self.tree, 0)
-        # Layout
+        layout_2 = QtWidgets.QHBoxLayout()
+        layout_2.addWidget(self._search, 0)
+        #
+        layout_3 = QtWidgets.QVBoxLayout()
+        layout_3.addWidget(self._tree, 0)
+        layout_3.addWidget(self._backup_label, 0)
+        #
+        layout_4 = QtWidgets.QHBoxLayout()
+        layout_4.addWidget(self._btnFactoryDefault, 0)
+        layout_4.addWidget(self._btnBackup, 0)
+        layout_4.addWidget(self._btnRestore, 0)
+
+        # Main Layout
         mainLayout = QtWidgets.QVBoxLayout(self)
         mainLayout.addLayout(layout_1, 0)
         mainLayout.addLayout(layout_2, 0)
+        mainLayout.addLayout(layout_3, 0)
+        mainLayout.addLayout(layout_4, 0)
         mainLayout.setSpacing(2)
         mainLayout.setContentsMargins(4, 4, 4, 4)
         self.setLayout(mainLayout)
+
         # Fill tree
         self.fillTree()
-        # Bind events
-        self.tree.itemClicked.connect(self.onClickSelect)
-        self.tree.itemChanged.connect(self.currentItemChanged)
+        self._tree.expandAll()
+        
+    def searchTextChanged(self):
+        """ As you type hide unmached settings. """
+        # find all mached settings
+        find = self._tree.findItems(self._search.text(), QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0)
+        items = [i.text(0) for i in find]
+        
+        # tree items
+        root = self._tree.invisibleRootItem()
+        root_count = root.childCount()
+        
+        # level 1
+        for idx_0 in range(root_count):
+            item = root.child(idx_0)
+            # level 2
+            if item.childCount() > 0:
+                for idx_1 in range(item.childCount()):
+                    child = item.child(idx_1)
+                    hasVisibleChild = False
+                    # level 3
+                    if child.childCount() > 0:
+                        for idx_2 in range(child.childCount()):
+                            subchild = child.child(idx_2)
+                            # hide options
+                            if subchild.text(0) in items:
+                                subchild.setHidden(False)
+                                hasVisibleChild = True
+                            else:
+                                subchild.setHidden(True)
+                    # hide options
+                    if child.text(0) in items:
+                        child.setHidden(False)
+                    else:
+                        if not hasVisibleChild:
+                            child.setHidden(True)
+
+    def backupConfig(self):
+        """ Backup settings. """
+        shutil.copyfile(self.conf_file, self.backup_file)
+
+    def setBackupDate(self):
+        """ Show backup file name and backup date. """
+        lastmodified = os.stat(self.backup_file).st_mtime
+        datetime.fromtimestamp(lastmodified)
+
+        backup_text = """Backup file: {}, {} """.format(self.backup_file, datetime.fromtimestamp(lastmodified))
+        return backup_text
+
+    def btnFactoryDefaultClicked(self):
+        """ Reset a IDE to its original settings. """
+        pyzo.saveConfig()
+        pyzo.resetConfig()
+        pyzo.main.restart()
+
+    def btnBackupClicked(self):
+        """ Make backup file of the current settings. """
+        self.backupConfig()
+        self._backup_label.setText(self.setBackupDate())
+
+    def btnRestoreClicked(self):
+        """ Restore settings from last backup file, then restart Pyzo. """
+        pyzo.resetConfig()
+        shutil.copyfile(self.backup_file, self.conf_file)
+        pyzo.main.restart()
 
     def currentItemChanged(self, item, column):
-
+        """ Save new settings. """
         parent = None
         node = None
 
@@ -2379,7 +2491,7 @@ class AdvancedSettings(QtWidgets.QDialog):
             parent_val = self.tree.indexFromItem(parent, 0).data()
             node = parent.parent()
             node_val = self.tree.indexFromItem(node, 0).data()
-            # key, vaalue
+            # key, value
             key = self.tree.indexFromItem(item, 0).data()
             value = self.tree.indexFromItem(item, 1).data()
             typ = self.tree.indexFromItem(item, 2).data()
@@ -2407,11 +2519,14 @@ class AdvancedSettings(QtWidgets.QDialog):
             font = item.font(column)
             font.setBold(True)
             item.setFont(column, QtGui.QFont(font))
+            # save
+            pyzo.saveConfig()
 
     def fillTree(self):
+        """ Fill the tree with settings """
         # fill tree
         for item in pyzo.config.keys():
-            root = QtWidgets.QTreeWidgetItem(self.tree, [item])
+            root = QtWidgets.QTreeWidgetItem(self._tree, [item])
             node = pyzo.config[item]
             if isinstance(node, pyzo.util.zon.Dict):
                 for k, v in node.items():
@@ -2437,7 +2552,7 @@ class AdvancedSettings(QtWidgets.QDialog):
                         n += 1
 
     def onClickSelect(self, item, column):
-        # to allow editing only of column 1
+        """ Allow editing only column 1 """
         if column == 1:
             item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
-            self.tree.editItem(item, column)
+            self._tree.editItem(item, column)
