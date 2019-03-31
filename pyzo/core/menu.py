@@ -2349,6 +2349,22 @@ class AdvancedSettings(QtWidgets.QDialog):
         self._label = QtWidgets.QLabel(self)
         self._label.setText(text)
         
+        # Folding buttons
+        
+        # fold
+        self._btnFold = QtWidgets.QToolButton(self)
+        self._btnFold.setIcon(pyzo.icons.text_align_justify)
+        self._btnFold.setToolTip("Fold")
+        # event
+        self._btnFold.clicked.connect(self.btnFoldClicked)
+        
+        # unfold
+        self._btnUnfold = QtWidgets.QToolButton(self)
+        self._btnUnfold.setIcon(pyzo.icons.text_align_right)
+        self._btnUnfold.setToolTip("Unfold")
+        # event
+        self._btnUnfold.clicked.connect(self.btnUnfoldClicked)
+        
         # Search
         self._search = QtWidgets.QLineEdit(self)
         self._search.setPlaceholderText('Search...')
@@ -2391,6 +2407,8 @@ class AdvancedSettings(QtWidgets.QDialog):
         layout_1.addWidget(self._label, 0)
         #
         layout_2 = QtWidgets.QHBoxLayout()
+        layout_2.addWidget(self._btnFold, 0)
+        layout_2.addWidget(self._btnUnfold, 0)
         layout_2.addWidget(self._search, 0)
         #
         layout_3 = QtWidgets.QVBoxLayout()
@@ -2414,6 +2432,12 @@ class AdvancedSettings(QtWidgets.QDialog):
 
         # Fill tree
         self.fillTree()
+        self._tree.expandAll()
+    
+    def btnFoldClicked(self):
+        self._tree.collapseAll()
+        
+    def btnUnfoldClicked(self):
         self._tree.expandAll()
         
     def searchTextChanged(self):
