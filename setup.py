@@ -70,8 +70,11 @@ setup(
     package_dir = {'pyzo': 'pyzo'},
     package_data = {'pyzo': ['license.txt', 'contributors.txt',
                             'resources/*.*',
-                            'resources/icons/*.*', 'resources/appicons/*.*',
-                            'resources/images/*.*', 'resources/fonts/*.*',
+                            'resources/icons/*.*',
+                            'resources/appicons/*.*',
+                            'resources/images/*.*',
+                            'resources/fonts/*.*',
+                            'resources/themes/*.*',
                             'resources/translations/*.*']},
     zip_safe = False,
 
@@ -88,7 +91,7 @@ setup(
           'Operating System :: POSIX',
           'Programming Language :: Python :: 3',
           ],
-        
+
     entry_points = {'console_scripts': ['pyzo = pyzo.__main__:main',], },
     )
 
