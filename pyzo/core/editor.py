@@ -630,6 +630,7 @@ class PyzoEditor(BaseTextCtrl):
         Comment the lines that are currently selected
         """
         indents = []
+        indentChar = ' ' if self.indentUsingSpaces() else '\t'
 
         def getIndent(cursor):
             text = cursor.block().text().rstrip()
@@ -637,6 +638,13 @@ class PyzoEditor(BaseTextCtrl):
                 indents.append(len(text) - len(text.lstrip()))
 
         def commentBlock(cursor):
+            blockText = cursor.block().text()
+            numMissingIndentChars = (minindent -
+                (len(blockText) - len(blockText.lstrip(indentChar))))
+            if numMissingIndentChars > 0:
+                # Prevent setPosition from leaving bounds of the current block
+                # if there are too few indent characters (e.g. an empty line)
+                cursor.insertText(indentChar * numMissingIndentChars)
             cursor.setPosition(cursor.block().position() + minindent)
             cursor.insertText('# ')
 
