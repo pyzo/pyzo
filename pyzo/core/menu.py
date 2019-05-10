@@ -625,7 +625,7 @@ class EditMenu(Menu):
         
         self.addItem(translate("menu", "Undo ::: Undo the latest editing action."),
             icons.arrow_undo, self._editItemCallback, "undo")
-        self.addItem(translate("menu", "Redo ::: Redo the last undone editong action."),
+        self.addItem(translate("menu", "Redo ::: Redo the last undone editing action."),
             icons.arrow_redo, self._editItemCallback, "redo")
         self.addSeparator()
         self.addItem(translate("menu", "Cut ::: Cut the selected text."),
