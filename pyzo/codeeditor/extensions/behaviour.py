@@ -504,7 +504,7 @@ class AutoCloseQuotesAndBrackets(object):
                     cursor.insertText(new_text)
                     cursor.setKeepPositionOnInsert(False)
                     self.setTextCursor(cursor)
-                elif next_character.strip():  # str.strip() conveniently removes all kinds of whitespace
+                elif next_character.strip() and next_character not in ['(',')','[',']','{','}'] :  # str.strip() conveniently removes all kinds of whitespace
                     # Only autoclose if the char on the right is whitespace
                     cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
                 else:
@@ -577,15 +577,45 @@ class AutoCloseQuotesAndBrackets(object):
                 #         edit_cursor.insertText(quote_character * 2)
                 #         self._moveCursorLeft(2)
         
-        else:
+        
+        
+        # remove whole couple of brackets when hitting backspace
+        elif event.key() == Qt.Key_Backspace and pyzo.config.settings.autoClose_Brackets:
+            if isinstance(self._get_token_at_cursor(cursor),
+                        (CommentToken, StringToken, MultilineStringToken, UnterminatedStringToken)):
+                super().keyPressEvent(event)
+                return
+
+            if event.key() == Qt.Key_Backspace :
+                previous_character = self.__getPreviousCharacter()
+                next_character = self.__getNextCharacter()
+                
+                if previous_character == '(' and next_character == ')':
+                    cursor.deleteChar()
+                elif previous_character == '[' and next_character == ']':
+                    cursor.deleteChar()
+                elif previous_character == '{' and next_character == '}':
+                    cursor.deleteChar()
+                
+                super().keyPressEvent(event)
+          
+          else:
             super().keyPressEvent(event)
-    
+      
+      
     def __getNextCharacter(self):
         cursor = self.textCursor()
         cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
         cursor.movePosition(cursor.NextCharacter, cursor.KeepAnchor)
         next_char = cursor.selectedText()
         return next_char
+    
+    def __getPreviousCharacter(self):
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
+        cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor)
+        previous_char = cursor.selectedText()
+        return previous_char
     
     def _moveCursorLeft(self, n):
         """
