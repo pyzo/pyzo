@@ -482,6 +482,7 @@ class AutoCloseQuotesAndBrackets(object):
         openBrackets = [Qt.Key_BraceLeft,Qt.Key_BracketLeft, Qt.Key_ParenLeft]
         closeBrackets = [Qt.Key_BraceRight, Qt.Key_BracketRight, Qt.Key_ParenRight]
         bracketKeys = openBrackets + closeBrackets
+        closeBracketsCharacters = "}])"
         
         cursor = self.textCursor()
         
@@ -504,7 +505,7 @@ class AutoCloseQuotesAndBrackets(object):
                     cursor.insertText(new_text)
                     cursor.setKeepPositionOnInsert(False)
                     self.setTextCursor(cursor)
-                elif next_character.strip() and next_character not in ['(',')','[',']','{','}'] :  # str.strip() conveniently removes all kinds of whitespace
+                elif next_character.strip() and next_character not in closeBracketsCharacters:  # str.strip() conveniently removes all kinds of whitespace
                     # Only autoclose if the char on the right is whitespace
                     cursor.insertText(chr(event.key()))  # == super().keyPressEvent(event) 
                 else:
