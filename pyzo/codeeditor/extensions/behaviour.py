@@ -600,10 +600,9 @@ class AutoCloseQuotesAndBrackets(object):
                 
                 super().keyPressEvent(event)
           
-          else:
+        else:
             super().keyPressEvent(event)
-      
-      
+    
     def __getNextCharacter(self):
         cursor = self.textCursor()
         cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
