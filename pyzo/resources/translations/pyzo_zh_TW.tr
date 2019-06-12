@@ -13,7 +13,7 @@
     <message>
         <location filename="../../core/editorTabs.py" line="1423"/>
         <source>Close, Discard, Cancel, Save</source>
-        <translation>關閉, 丟棄, 放棄, 儲存</translation>
+        <translation>關閉, 刪除, 取消, 儲存</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="1450"/>
@@ -953,97 +953,97 @@
     <message>
         <location filename="../../core/menu.py" line="1234"/>
         <source>Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters.</source>
-        <translation type="unfinished"></translation>
+        <translation>註解/長字串對齊::: 重新排列所選文字，以大約 70 個字元對齊</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="655"/>
         <source>Duplicate line ::: Duplicate the selected line(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>複製行 ::: 複製所選取行</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="657"/>
         <source>Delete line ::: Delete the selected line(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>刪除行 ::: 刪除所選取行</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="764"/>
         <source>default</source>
-        <translation type="unfinished"></translation>
+        <translation>預設</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1148"/>
         <source>Open current directory in file browser</source>
-        <translation type="unfinished"></translation>
+        <translation>以檔案瀏覽器開啟目前目錄</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1150"/>
         <source>Change current directory to the file browser&apos;s path</source>
-        <translation type="unfinished"></translation>
+        <translation>更改目前目錄到檔案瀏覽器的路徑</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1298"/>
         <source>Open directory in file browser</source>
-        <translation type="unfinished"></translation>
+        <translation>在檔案瀏覽器開啟目錄</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1421"/>
         <source>No shell to run code in.</source>
-        <translation type="unfinished"></translation>
+        <translation>尚未開啟 Shell 來執行程式</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1431"/>
         <source>No editor selected.</source>
-        <translation type="unfinished"></translation>
+        <translation>未選取編輯器</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1152"/>
         <source>Change current directory to editor file path</source>
-        <translation type="unfinished"></translation>
+        <translation>更改目前目錄為目前編輯檔案之路徑</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1396"/>
         <source>Change directory when executing file ::: like Run File As Script does</source>
-        <translation type="unfinished"></translation>
+        <translation>執行檔案時更改目錄 ::: 如同「以腳本方式執行檔案」</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="663"/>
         <source>Toggle Case ::: Change selected text to lower or upper case</source>
-        <translation type="unfinished"></translation>
+        <translation>切換大小寫 ::: 將選取文字改為小寫或大寫</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1786"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
-        <translation type="unfinished"></translation>
+        <translation>自動加上結束引號 ::: 自動加上結束單引號或雙引號</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1789"/>
         <source>Auto close brackets ::: Auto close ( { [ ] } ).</source>
-        <translation type="unfinished"></translation>
+        <translation>自動加上結束括號 ::: 自動加上結束括號 ( { [ ] } )</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1767"/>
         <source>Tab</source>
-        <translation type="unfinished"></translation>
+        <translation>定位鍵</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1768"/>
         <source>Enter</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter 健</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1769"/>
         <source>Tab, Enter</source>
-        <translation type="unfinished"></translation>
+        <translation>定位鍵、Enter鍵</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1770"/>
         <source>Tab, (, [</source>
-        <translation type="unfinished"></translation>
+        <translation>定位鍵、(、[</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1771"/>
         <source>Tab, Enter, (, [</source>
-        <translation type="unfinished"></translation>
+        <translation>定位鍵、Enter 鍵、(、[</translation>
     </message>
 </context>
 <context>
@@ -1104,12 +1104,12 @@
         The language has been changed.
         Pyzo needs to restart for the change to take effect.
         </source>
-        <translation type="unfinished"></translation>
+        <translation>語言已改變，需重啟 Pyzo 才能生效</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1179"/>
         <source>Could not change dir</source>
-        <translation type="unfinished"></translation>
+        <translation>無法更改目錄</translation>
     </message>
 </context>
 <context>
@@ -1117,7 +1117,7 @@
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="20"/>
         <source>History viewer</source>
-        <translation type="unfinished"></translation>
+        <translation>瀏覽歷史</translation>
     </message>
 </context>
 <context>
@@ -1125,12 +1125,12 @@
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
         <source>Source structure</source>
-        <translation type="unfinished"></translation>
+        <translation>原始碼架構</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="172"/>
         <source>Parsing </source>
-        <translation type="unfinished"></translation>
+        <translation>解析 </translation>
     </message>
 </context>
 <context>
@@ -1188,17 +1188,17 @@
     <message>
         <location filename="../../core/editorTabs.py" line="287"/>
         <source>one</source>
-        <translation type="unfinished"></translation>
+        <translation>置換一次</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="288"/>
         <source>all in this file</source>
-        <translation type="unfinished"></translation>
+        <translation>在此檔中置換所有</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="289"/>
         <source>all in all files</source>
-        <translation type="unfinished"></translation>
+        <translation>在所有檔案中置換所有</translation>
     </message>
 </context>
 <context>
@@ -1514,7 +1514,7 @@
         <source>The right mouse button also enables one to make a file the
         *main file* of a project. This file can be recognized by its star
         symbol, and it enables running the file more easily.</source>
-        <translation type="unfinished"></translation>
+        <translation>滑鼠右鍵亦可設定檔案為專案「主檔」，此檔案可藉由星形符號識別，讓檔案執行更方便。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="318"/>
@@ -1522,7 +1522,7 @@
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
-        <translation type="unfinished"></translation>
+        <translation>*執行所選取：* 如果沒有選取文字，就執行目前行；如果僅選取單行，就執行該行；如果選取多行，Pyzo 會執行所有選取行</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="338"/>
@@ -1530,13 +1530,14 @@
         When run as script, the shell is restared to provide a clean
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution.</source>
-        <translation type="unfinished"></translation>
+        <translation>您可以腳本方式正常執行目前檔案或者主檔。當以腳本方時執行時，Shell 會重新啟動，
+        以提供一個乾淨的執行環境。Shell 也會以不同方式啟動，以符合正常腳本執行的模式。</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="346"/>
         <source>In script mode, __file__ and sys.argv[0] are set to the scripts filename,
         sys.path[0] and the working dir are set to the directory containing the script.</source>
-        <translation type="unfinished"></translation>
+        <translation>在腳本模式，__file__ 與 sys.argv[0] 的內容都會設定為檔名，sys.path[0] 與 工作目錄則會設定為包含此腳本的目錄。</translation>
     </message>
 </context>
 </TS>
