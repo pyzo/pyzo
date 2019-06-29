@@ -70,24 +70,24 @@ def _should_not_interpret_as_magic(line):
     
     # ignore garbage and indentation at the beginning
     pos = 0
-    while pos < len(ltok) and ltok[pos][0] in [59, token.INDENT, tokenize.ENCODING]:
+    while pos < len(ltok) and ltok[pos].type in [59, token.INDENT, tokenize.ENCODING]:
         # 59 is BACKQUOTE but there is no token.BACKQUOTE...
         pos = pos + 1
     # when line is only garbage or does not begin with a name
-    if pos >= len(ltok) or ltok[pos][0] != token.NAME:
+    if pos >= len(ltok) or ltok[pos].type != token.NAME:
         return True
-    command = ltok[pos][1]
+    command = ltok[pos].string
     if keyword.iskeyword(command):
         return True
     pos = pos + 1
     # command is alone on the line
-    if pos >= len(ltok) or ltok[pos][0] in [token.ENDMARKER, tokenize.COMMENT]:
+    if pos >= len(ltok) or ltok[pos].type in [token.ENDMARKER, tokenize.COMMENT]:
         if command in interpreter.locals:
             return True
         if interpreter.globals and command in interpreter.globals:
             return True
     else: # command is not alone ; next token should not be an operator (this includes parentheses)
-        if ltok[pos][0] == token.OP and not line.endswith('?'):
+        if ltok[pos].type == token.OP and not line.endswith('?'):
             return True
     
     return False
