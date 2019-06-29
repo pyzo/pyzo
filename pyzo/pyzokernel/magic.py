@@ -16,6 +16,7 @@ import re
 import time
 import inspect
 import tokenize, token, keyword
+import itertools
 try:
     import io
 except ImportError:  # Not on Python 2.4
@@ -59,15 +60,17 @@ TIMEIT_MESSAGE = """Time execution duration. Usage:
 
 def _detect_equalbang(line) :
     try:
-        # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
-        ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
-    except tokenize.TokenError:  # typically this means an unmatched parenthesis
-                                 # (which should not happen because these are detected before)
+        gtoks = tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline)
+        # iteration on two successive elements, https://docs.python.org/3/library/itertools.html#itertools-recipes
+        first, second = itertools.tee(gtoks)
+        next(second, None)
+        for tok1, tok2 in zip(first, second) :
+            if tok1.type == token.OP and tok1.string == "=" and tok2.type == token.ERRORTOKEN and tok2.string == "!" :
+                return True
         return False
-    for pos in range(0, len(ltok)-1) :
-        if ltok[pos].type == token.OP and ltok[pos].string == "=" and ltok[pos+1].type == token.ERRORTOKEN and ltok[pos+1].string == "!" :
-            return True
-    return False
+    except tokenize.TokenError:  # typically this means an unmatched parenthesis
+        return False
+
 
 def _should_not_interpret_as_magic(line):
     interpreter = sys._pyzoInterpreter
