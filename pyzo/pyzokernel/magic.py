@@ -57,6 +57,18 @@ TIMEIT_MESSAGE = """Time execution duration. Usage:
     timeit 20 fun/expression  # tests 20 passes
 """
 
+def _detect_equalbang(line) :
+    try:
+        # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
+        ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
+    except tokenize.TokenError:  # typically this means an unmatched parenthesis
+                                 # (which should not happen because these are detected before)
+        return False
+    for pos in range(0, len(ltok)-1) :
+        if ltok[pos].type == token.OP and ltok[pos].string == "=" and ltok[pos+1].type == token.ERRORTOKEN and ltok[pos+1].string == "!" :
+            return True
+    return False
+
 def _should_not_interpret_as_magic(line):
     interpreter = sys._pyzoInterpreter
     
@@ -148,6 +160,9 @@ class Magician:
         # Get interpreter
         interpreter = sys._pyzoInterpreter
         command = line.rstrip()
+        
+        if interpreter._ipython and _detect_equalbang(line) :
+                return self.equalbang_quirk(line, command)
         
         have_hard_chars = 'cd ', '?'
         if PYTHON_VERSION >= 3 and not command.lower().startswith(have_hard_chars):
@@ -271,6 +286,10 @@ class Magician:
         # Done (no code to execute)
         return ''
     
+    def equalbang_quirk(self, line, command) :
+        print("`=!' is not valid Python. To check for non-equality, use `!='.")
+        print("If you intend to use IPython's ! magic feature and assign its result, please write `= !'.")
+        return ''
     
     def cd(self, line, command):
         if command == 'CD' or command.startswith("CD ") and '=' not in command:
