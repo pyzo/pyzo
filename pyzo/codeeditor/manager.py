@@ -260,9 +260,9 @@ class Manager:
         
         See also registerFilenameExtension() and registerShebangKeyword()
         """
-        parser = cls.suggestParserfromFilenameExtension(ext)
+        parser = cls.suggestParserfromText(text)
         if parser == "" :
-            parser = cls.suggestParserfromText(text)
+            parser = cls.suggestParserfromFilenameExtension(ext)
         return parser
     
     @classmethod
