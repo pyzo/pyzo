@@ -115,11 +115,7 @@ class Manager:
         # Put in list with the parser names as keys
         parserInstances = {}
         for parserClass in foundParsers:
-            name = parserClass.__name__
-            if name.endswith('Parser') and len(name)>6:
-                
-                # Get parser identifier name
-                name = name[:-6].lower()
+                name = cls.getParserName(parserClass)
                 
                 # Try instantiating the parser
                 try:
@@ -139,6 +135,15 @@ class Manager:
         # Store
         cls._parserInstances = parserInstances
     
+    
+    @staticmethod
+    def getParserName(parserClass) :
+        name = parserClass.__name__
+        if name.endswith('Parser') and len(name)>6:
+            
+            # Get parser identifier name
+            name = name[:-6].lower()
+        return name
     
     @classmethod
     def getParserNames(cls):
