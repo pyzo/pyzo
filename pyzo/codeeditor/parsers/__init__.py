@@ -78,6 +78,9 @@ class Parser(object):
     _shebangKeywords = []
     _keywords = []
     
+    @classmethod
+    def disambiguate(cls, text) :
+        return cls
     
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
