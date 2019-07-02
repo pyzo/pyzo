@@ -263,6 +263,7 @@ class Manager:
         parser = cls.suggestParserfromText(text)
         if parser == "" :
             parser = cls.suggestParserfromFilenameExtension(ext)
+        parser = cls.getParserName(cls.getParserByName(parser).disambiguate(text))
         return parser
     
     @classmethod

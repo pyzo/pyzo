@@ -149,15 +149,15 @@ endProgs = {
 
 
 class PythonParser(Parser):
-    """ Parser for Python in general (2.x or 3.x).
+    """ Parser for Python in general.
     """
-    _extensions = ['.py' , '.pyw']
-    _shebangKeywords = ["python", "python3", "python2"]
+    _extensions = []
+    _shebangKeywords = []
     # The list of keywords is overridden by the Python2/3 specific parsers
-    _keywords = pythonKeywords
+    _keywords = set()
     # The list of builtins and instances is overridden by the Python2/3 specific parsers
-    _builtins = pythonBuiltins
-    _instance = pythonInstance
+    _builtins = set()
+    _instance = set()
     
     
     def _identifierState(self, identifier=None):
@@ -402,13 +402,27 @@ class PythonParser(Parser):
         # Done
         return tokens
 
+class AmbiguousPythonParser(PythonParser):
+    """ Parser for either Python2 or Python3, and we do not know which.
+    """
+    _extensions = ['.py', '.pyw']
+    _shebangKeywords = ['python']
+    # The list of keywords is overridden by the Python2/3 specific parsers
+    _keywords = pythonKeywords
+    # The list of builtins and instances is overridden by the Python2/3 specific parsers
+    _builtins = pythonBuiltins
+    _instance = pythonInstance
+
+    @classmethod
+    def disambiguate(cls, text) :
+        return cls
 
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.
     """
     # The application should choose whether to set the Py 2 specific parser
     _extensions = []
-    _shebangKeywords = []
+    _shebangKeywords = ["python2"]
     _keywords = python2Keywords
     _builtins = python2Builtins
     _instance = python2Instance
@@ -419,7 +433,7 @@ class Python3Parser(PythonParser):
     """
     # The application should choose whether to set the Py 3 specific parser
     _extensions = []
-    _shebangKeywords = []
+    _shebangKeywords = ["python3"]
     _keywords = python3Keywords
     _builtins = python3Builtins
     _instance = python3Instance
