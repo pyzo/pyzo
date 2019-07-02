@@ -2504,17 +2504,16 @@ class AdvancedSettings(QtWidgets.QDialog):
         """ Save new settings. """
         parent = None
         node = None
-
         if column == 1:
             # node, parent
             parent = item.parent()
-            parent_val = self.tree.indexFromItem(parent, 0).data()
+            parent_val = self._tree.indexFromItem(parent, 0).data()
             node = parent.parent()
-            node_val = self.tree.indexFromItem(node, 0).data()
+            node_val = self._tree.indexFromItem(node, 0).data()
             # key, value
-            key = self.tree.indexFromItem(item, 0).data()
-            value = self.tree.indexFromItem(item, 1).data()
-            typ = self.tree.indexFromItem(item, 2).data()
+            key = self._tree.indexFromItem(item, 0).data()
+            value = self._tree.indexFromItem(item, 1).data()
+            typ = self._tree.indexFromItem(item, 2).data()
 
             # convert type
             if typ is not type(value):
