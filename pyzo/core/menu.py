@@ -2329,25 +2329,21 @@ class AdvancedSettings(QtWidgets.QDialog):
         if not os.path.exists(self.backup_file):
             self.backupConfig()
 
-        text = """
-        Before you begin, backup your settings. To modify an existing setting, click on the value
-        to change it. Note that most settings require a restart for the change to take effect.
-        """
-
         # Set title
         self.setWindowTitle(translate("menu dialog", 'Advanced Settings'))
 
         # Set dialog size
-        size = 800, 600
+        size = 1000, 600
         offset = 0
         size2 = size[0], size[1] + offset
         self.resize(*size2)
-        self.setMaximumSize(*size2)
         self.setMinimumSize(*size2)
         
         # Label
+        text = "Before you begin, backup your settings. To modify an existing setting, click on the value to change it.\nNote that most settings require a restart for the change to take effect."
         self._label = QtWidgets.QLabel(self)
-        self._label.setText(text)
+        self._label.setWordWrap(True)
+        self._label.setText(translate("menu dialog", text))
         
         # Folding buttons
         
@@ -2441,8 +2437,8 @@ class AdvancedSettings(QtWidgets.QDialog):
         self._tree.expandAll()
         
     def searchTextChanged(self):
-        """ As you type hide unmached settings. """
-        # find all mached settings
+        """ As you type hide unmatched settings. """
+        # find all matched settings
         find = self._tree.findItems(self._search.text(), QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0)
         items = [i.text(0) for i in find]
         
