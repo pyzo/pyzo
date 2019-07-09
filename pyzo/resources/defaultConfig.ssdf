@@ -59,6 +59,8 @@ settings= dict:
     autoClose_Quotes = 1
     autoClose_Brackets = 1
     theme = 'default'
+    qtscalefactor = ''
+
 advanced = dict:
     shellMaxLines = 10000
     fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
