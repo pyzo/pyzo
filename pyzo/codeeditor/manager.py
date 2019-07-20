@@ -115,7 +115,7 @@ class Manager:
         # Put in list with the parser names as keys
         parserInstances = {}
         for parserClass in foundParsers:
-                name = cls.getParserName(parserClass)
+                name = parserClass.getParserName()
                 
                 # Try instantiating the parser
                 try:
@@ -134,16 +134,6 @@ class Manager:
         
         # Store
         cls._parserInstances = parserInstances
-    
-    
-    @staticmethod
-    def getParserName(parserClass) :
-        name = parserClass.__name__
-        if name.endswith('Parser') and len(name)>6:
-            
-            # Get parser identifier name
-            name = name[:-6].lower()
-        return name
     
     @classmethod
     def getParserNames(cls):
@@ -263,7 +253,7 @@ class Manager:
         parser = cls.suggestParserfromText(text)
         if parser == "" :
             parser = cls.suggestParserfromFilenameExtension(ext)
-        parser = cls.getParserName(cls.getParserByName(parser).disambiguate(text))
+        parser = cls.getParserByName(parser).disambiguate(text)
         return parser
     
     @classmethod
