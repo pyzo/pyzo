@@ -999,6 +999,9 @@ class PythonShell(BaseShell):
         # Store info so we can reuse it on a restart
         self._info = info
         
+        parser = info.parser if "parser" in info else pyzo.config.settings.defaultStyle
+        self.setParser(parser)
+
         # For the editor to keep track of attempted imports
         self._importAttempts = []
         
