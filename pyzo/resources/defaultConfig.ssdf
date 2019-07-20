@@ -42,6 +42,7 @@ view = dict:
 settings= dict:
     language = ''
     defaultStyle = 'python3'
+    pythonDefaultDisambiguation='python3'
     defaultIndentWidth = 4
     defaultIndentUsingSpaces = 1
     defaultLineEndings = '' # Set depending on OS

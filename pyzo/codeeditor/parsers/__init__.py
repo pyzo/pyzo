@@ -79,8 +79,17 @@ class Parser(object):
     _keywords = []
     
     @classmethod
+    def getParserName(cls) :
+        name = cls.__name__
+        if name.endswith('Parser') and len(name)>6:
+
+            # Get parser identifier name
+            name = name[:-6].lower()
+        return name
+
+    @classmethod
     def disambiguate(cls, text) :
-        return cls
+        return cls.getParserName()
     
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
