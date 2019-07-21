@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="fr_FR">
+<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<context>
+    <name>bootstrapconda</name>
+    <message>
+        <location filename="../../util/bootstrapconda.py" line="116"/>
+        <source>This will download and install miniconda on your computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../util/bootstrapconda.py" line="120"/>
+        <source>Also install scientific packages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../util/bootstrapconda.py" line="143"/>
+        <source>Waiting to start installation.
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 <context>
     <name>debug</name>
     <message>
@@ -1088,11 +1106,51 @@
     </message>
 </context>
 <context>
+    <name>pyzoFileBrowser</name>
+    <message>
+        <location filename="../../tools/pyzoFileBrowser/__init__.py" line="8"/>
+        <source>File Browser</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>pyzoHistoryViewer</name>
     <message>
         <location filename="../../tools/pyzoHistoryViewer.py" line="20"/>
         <source>History viewer</source>
         <translation>Visionneur de l&apos;historique</translation>
+    </message>
+</context>
+<context>
+    <name>pyzoInteractiveHelp</name>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="13"/>
+        <source>Interactive help</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="14"/>
+        <source>Shows help on an object when using up/down in autocomplete.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="45"/>
+        <source>
+Help information is queried from the current shell
+when moving up/down in the autocompletion list
+and when double clicking on a name.
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="126"/>
+        <source>Smart format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="137"/>
+        <source>Font size: %i</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1106,6 +1164,77 @@
         <location filename="../../tools/pyzoSourceStructure.py" line="172"/>
         <source>Parsing </source>
         <translation>Analyse de </translation>
+    </message>
+</context>
+<context>
+    <name>pyzoWebBrowser</name>
+    <message>
+        <location filename="../../tools/pyzoWebBrowser.py" line="19"/>
+        <source>Web browser</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>pyzoWorkspace</name>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="11"/>
+        <source>Workspace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="12"/>
+        <source>Lists the variables in the current shell&apos;s namespace.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="167"/>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="167"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="167"/>
+        <source>Repr</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="202"/>
+        <source>Show namespace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="202"/>
+        <source>Show help</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="202"/>
+        <source>Delete</source>
+        <translation type="unfinished">Effacer</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <source>Hide types</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <source>Hide functions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <source>Hide modules</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <source>Hide private identifiers</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1258,6 +1387,11 @@
         <location filename="../../core/shellInfoDialog.py" line="488"/>
         <source>parser ::: The name of the parser to use for highlighting.</source>
         <translation>parser ::: Le nom du parseur à utiliser pour la coloration syntaxique.</translation>
+    </message>
+    <message>
+        <location filename="../../core/shellInfoDialog.py" line="58"/>
+        <source>Typically python3 or python2</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
