@@ -59,6 +59,15 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._text = QtWidgets.QLineEdit(self)
         self._printBut = QtWidgets.QPushButton("Print", self)
         
+        style = QtWidgets.qApp.style()
+
+        self._backBut = QtWidgets.QToolButton(self)
+        self._backBut.setIcon( style.standardIcon(style.SP_ArrowLeft) )
+        self._backBut.setIconSize(QtCore.QSize(16,16))
+        self._forwBut = QtWidgets.QToolButton(self)
+        self._forwBut.setIcon( style.standardIcon(style.SP_ArrowRight) )
+        self._forwBut.setIconSize(QtCore.QSize(16,16))
+
         # Create options button
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.wrench)
@@ -79,9 +88,11 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._sizer2 = QtWidgets.QHBoxLayout()
         
         # Put the elements together
+        self._sizer2.addWidget(self._backBut, 1)
+        self._sizer2.addWidget(self._forwBut, 2)
         self._sizer2.addWidget(self._text, 4)
         self._sizer2.addWidget(self._printBut, 0)
-        self._sizer2.addWidget(self._options, 2)
+        self._sizer2.addWidget(self._options, 3)
         #
         self._sizer1.addLayout(self._sizer2, 0)
         self._sizer1.addWidget(self._browser, 1)
@@ -105,11 +116,15 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Create callbacks
         self._text.returnPressed.connect(self.queryDoc)
         self._printBut.clicked.connect(self.printDoc)
+        self._backBut.clicked.connect(self.goBack)
+        self._forwBut.clicked.connect(self.goForward)
         #
         self._options.pressed.connect(self.onOptionsPress)
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
         
         # Start
+        self._history = []
+        self._histindex = 0
         self.setText()  # Set default text
         self.onOptionsPress() # Fill menu
     
@@ -175,12 +190,37 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._browser.setHtml(htmlWrap.format(size,text))
     
     
-    def setObjectName(self, name):
+    def setObjectName(self, name, addToHist = False):
         """ Set the object name programatically
         and query documentation for it. """
         self._text.setText(name)
-        self.queryDoc()
+        self.queryDoc(addToHist)
+
+    def helpFromCompletion(self, name, addToHist = False) :
+        self.setObjectName(name, addToHist)
+
+    def currentHist(self) :
+        try :
+            return self._history[self._histindex]
+        except :
+            return None
     
+    def addToHist(self, name) :
+        if name == self.currentHist() :
+            return
+        self._history = self._history[:self._histindex+1]
+        self._history.append(name)
+        self._histindex = len(self._history)-1
+        
+    def goBack(self) :
+        if self._histindex > 0 and self._history != [] :
+            self._histindex -= 1
+            self.setObjectName(self.currentHist())
+            
+    def goForward(self) :
+        if self._histindex < len(self._history) - 1 :
+            self._histindex += 1
+            self.setObjectName(self.currentHist())
     
     def printDoc(self):
         """ Print the doc for the text in the line edit. """
@@ -192,10 +232,12 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             shell.processLine('print({}.__doc__)'.format(name))
     
     
-    def queryDoc(self):
+    def queryDoc(self, addToHistory = True):
         """ Query the doc for the text in the line edit. """
         # Get name
         name = self._text.text()
+        if addToHistory :
+            self.addToHist(name)
         # Get shell and ask for the documentation
         shell = pyzo.shells.getCurrentShell()
         if shell and name:

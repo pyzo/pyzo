@@ -370,10 +370,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     
     def _onDoubleClick(self):
         """ When double clicking on a name, autocomplete it. """
-        self.processHelp()
+        self.processHelp(addToHist = True)
     
-    
-    def processHelp(self, name=None, showError=False):
+    def processHelp(self, name=None, showError=False, addToHist = False):
         """ Show help on the given full object name.
         - called when going up/down in the autocompletion list.
         - called when double clicking a name
@@ -404,10 +403,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                     name = "%s.%s" % (nameBefore, name)
         
         if name:
-            hw.setObjectName(name)
+            hw.helpFromCompletion(name, addToHist)
         if ass:
             ass.showHelpForTerm(name)
-    
+
     ## Callbacks
     def updateHelp(self,name):
         """A name has been highlighted, show help on that name"""
