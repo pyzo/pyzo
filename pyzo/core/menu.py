@@ -264,6 +264,9 @@ class Menu(QtWidgets.QMenu):
         """
         pass
     
+    def popup(self, pos, action=None) :
+        self._pos = pos
+        super().popup(pos, action)
     
     def addMenu(self, menu, icon=None):
         """
@@ -1097,6 +1100,10 @@ class ShellContextMenu(ShellMenu):
     
     def build(self):
         """ Build menu """
+        self.addItem(translate("menu", "Help ::: Show help for the selected expression."), None, self._editItemCallback, "helpOnText")
+
+        self.addSeparator()
+
         self.buildShellActions()
         icons = pyzo.icons
         
@@ -1148,7 +1155,8 @@ class ShellContextMenu(ShellMenu):
                 m.exec_()
             else:
                 self._shell.executeCommand('cd ' + os.path.dirname(editor.filename) + '\n')
-                
+        elif action == "helpOnText" :
+            self._shell.helpOnText(self._pos)
         else:
             getattr(self._shell, action)()
     
@@ -1179,6 +1187,10 @@ class EditorContextMenu(Menu):
         """ Build menu """
         icons = pyzo.icons
         
+        self.addItem(translate("menu", "Help ::: Show help for the selected expression."), None, self._editItemCallback, "helpOnText")
+
+        self.addSeparator()
+
         # This is a subset of the edit menu. Copied manually.
         self.addItem(translate("menu", "Cut ::: Cut the selected text."),
             icons.cut, self._editItemCallback, "cut")
@@ -1224,6 +1236,8 @@ class EditorContextMenu(Menu):
             fileBrowser = pyzo.toolManager.getTool('pyzofilebrowser')
             if fileBrowser:
                 fileBrowser.setPath(os.path.dirname(self._editor.filename))
+        elif action == "helpOnText" :
+            self._editor.helpOnText(self._pos)
         else:
             getattr(self._editor, action)()
     

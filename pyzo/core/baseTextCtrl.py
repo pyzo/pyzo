@@ -267,6 +267,19 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         """
         #TODO:
         return True
+    
+    def getTokensUpToCursor(self, cursor) :
+        # In order to find the tokens, we need the userState from the highlighter
+        if cursor.block().previous().isValid():
+            previousState = cursor.block().previous().userState()
+        else:
+            previousState = 0
+        
+        text = cursor.block().text()[:cursor.positionInBlock()]
+        
+        return text, list(
+                filter(lambda token:token.isToken, #filter to remove BlockStates
+                self.parser().parseLine(text, previousState)))
 
     def introspect(self, tryAutoComp=False, delay=True):
         """ introspect(tryAutoComp=False, delay=True)
@@ -292,17 +305,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Find the tokens up to the cursor
         cursor = self.textCursor()
         
-        # In order to find the tokens, we need the userState from the highlighter
-        if cursor.block().previous().isValid():
-            previousState = cursor.block().previous().userState()
-        else:
-            previousState = 0
-        
-        text = cursor.block().text()[:cursor.positionInBlock()]
-        
-        tokensUptoCursor = list(
-                filter(lambda token:token.isToken, #filter to remove BlockStates
-                self.parser().parseLine(text, previousState)))
+        text, tokensUptoCursor = self.getTokensUpToCursor(cursor)
         
         # TODO: Only proceed if valid python (no need to check for comments/
         # strings, this is done by the processing of the tokens). Check for python style
@@ -372,6 +375,25 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         """ When double clicking on a name, autocomplete it. """
         self.processHelp(addToHist = True)
     
+    def helpOnText(self, pos) :
+        hw = pyzo.toolManager.getTool('pyzointeractivehelp')
+        if not hw :
+            return
+        name = self.textCursor().selectedText().strip()
+        if name == "" :
+            name = None
+            cursor = self.cursorForPosition(pos-self.mapToGlobal(QtCore.QPoint(0,0)))
+            line = cursor.block().text()
+            limit = cursor.positionInBlock()
+            while limit < len(line) and (line[limit].isalnum() or line[limit] in (".", "_")) :
+                limit += 1
+                cursor.movePosition(cursor.Right)
+            _, tokens = self.getTokensUpToCursor(cursor)
+            nameBefore, name = parseLine_autocomplete(tokens)
+            if nameBefore:
+                name = "%s.%s" % (nameBefore, name)
+        hw.setObjectName(name, True)
+
     def processHelp(self, name=None, showError=False, addToHist = False):
         """ Show help on the given full object name.
         - called when going up/down in the autocompletion list.
