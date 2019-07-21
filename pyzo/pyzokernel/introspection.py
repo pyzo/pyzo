@@ -47,7 +47,9 @@ class PyzoIntrospector(yoton.RepChannel):
                 
                 # Get namespace for this object
                 if isinstance(ob, dict):
-                    NS = ob
+                    NS = {}
+                    for el in ob :
+                        NS['[' + repr(el) + ']'] = el
                 elif isinstance(ob, (list, tuple)):
                     NS = {}
                     count = -1
