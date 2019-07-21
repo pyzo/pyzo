@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr_FR">
 <context>
     <name>debug</name>
     <message>
@@ -1019,7 +1020,7 @@
     <message>
         <location filename="../../core/menu.py" line="629"/>
         <source>Redo ::: Redo the last undone editing action.</source>
-        <translation type="unfinished"></translation>
+        <translation>Refaire ::: Refaire la dernière action précédemment annulée.</translation>
     </message>
 </context>
 <context>
@@ -1083,7 +1084,7 @@
     <message>
         <location filename="../../core/menu.py" line="2333"/>
         <source>Advanced Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Réglages avancés</translation>
     </message>
 </context>
 <context>
@@ -1246,7 +1247,7 @@
     <message>
         <location filename="../../core/shellInfoDialog.py" line="494"/>
         <source>argv ::: The command line arguments (sys.argv).</source>
-        <translation>argv ;:; Arguments en ligne de commande (sys.argv).</translation>
+        <translation>argv ::: Arguments en ligne de commande (sys.argv).</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="495"/>
@@ -1256,7 +1257,7 @@
     <message>
         <location filename="../../core/shellInfoDialog.py" line="488"/>
         <source>parser ::: The name of the parser to use for highlighting.</source>
-        <translation type="unfinished"></translation>
+        <translation>parser ::: Le nom du parseur à utiliser pour la coloration syntaxique.</translation>
     </message>
 </context>
 <context>
@@ -1539,7 +1540,10 @@ avec par exemple Visvis ou Matplotlib.</translation>
         When run as script, the shell is restarted to provide a clean
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vous pouvez exécuter le fichier courant normalement ou en tant que script.
+        Lors d&apos;une exécution en tant que script, le shell est redémarré pour avoir
+        un environnement propre. Le shell est de plus initialisé différemment de façon
+        à ressembler fortement à l&apos;exécution normale d&apos;un script.</translation>
     </message>
 </context>
 </TS>
