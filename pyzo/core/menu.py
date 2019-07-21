@@ -1760,14 +1760,14 @@ class AutocompMenu(Menu):
         self.addSeparator()
         
         # Part for accept key
-        accept_keys = [translate('menu', 'Tab'),
-                      translate('menu', 'Enter'),
-                      translate('menu', 'Tab, Enter'),
-                      translate('menu', 'Tab, (, ['),
-                      translate('menu', 'Tab, Enter, (, [')]
+        accept_keys = [('Tab', translate('menu', 'Tab')),
+                      ('Enter', translate('menu', 'Enter')),
+                      ('Tab, Enter', translate('menu', 'Tab, Enter')),
+                      ('Tab, (, [', translate('menu', 'Tab, (, [')),
+                      ('Tab, Enter, (, [', translate('menu', 'Tab, Enter, (, ['))]
         prefix = translate("menu", "Accept autocompletion with:")
-        for keys in accept_keys:
-            self.addGroupItem(prefix + ' ' + keys, None, self._setAcceptKeys, keys, group="acceptkeys")
+        for keys, display in accept_keys:
+            self.addGroupItem(prefix + ' ' + display, None, self._setAcceptKeys, keys, group="acceptkeys")
         self.setCheckedOption('acceptkeys', pyzo.config.settings.autoComplete_acceptKeys)
         
         self.addSeparator()
