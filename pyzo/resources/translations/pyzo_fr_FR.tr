@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr_FR" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr_FR">
 <context>
     <name>bootstrapconda</name>
     <message>
         <location filename="../../util/bootstrapconda.py" line="116"/>
         <source>This will download and install miniconda on your computer.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ceci va télécharger et installer miniconda sur votre ordinateur.</translation>
     </message>
     <message>
         <location filename="../../util/bootstrapconda.py" line="120"/>
         <source>Also install scientific packages</source>
-        <translation type="unfinished"></translation>
+        <translation>Installer également les paquets scientifiques</translation>
     </message>
     <message>
         <location filename="../../util/bootstrapconda.py" line="143"/>
@@ -1110,7 +1111,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/__init__.py" line="8"/>
         <source>File Browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Explorateur de fichiers</translation>
     </message>
 </context>
 <context>
@@ -1126,12 +1127,12 @@
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="13"/>
         <source>Interactive help</source>
-        <translation type="unfinished"></translation>
+        <translation>Aide interactive</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="14"/>
         <source>Shows help on an object when using up/down in autocomplete.</source>
-        <translation type="unfinished"></translation>
+        <translation>Affiche de l&apos;aide sur un objet lors de l&apos;utilisation des flèches dans l&apos;autocomplétion.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="45"/>
@@ -1140,17 +1141,21 @@ Help information is queried from the current shell
 when moving up/down in the autocompletion list
 and when double clicking on a name.
 </source>
-        <translation type="unfinished"></translation>
+        <translation>
+L&apos;aide est obtenue du shell courant lorsque vous
+vous déplacez vers le haut ou le bas dans la liste
+d&apos;autocomplétion et lorsque vous double-cliquez sur un nom.
+</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="126"/>
         <source>Smart format</source>
-        <translation type="unfinished"></translation>
+        <translation>Format intelligent</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="137"/>
         <source>Font size: %i</source>
-        <translation type="unfinished"></translation>
+        <translation>Taille de police : %i</translation>
     </message>
 </context>
 <context>
@@ -1171,7 +1176,7 @@ and when double clicking on a name.
     <message>
         <location filename="../../tools/pyzoWebBrowser.py" line="19"/>
         <source>Web browser</source>
-        <translation type="unfinished"></translation>
+        <translation>Navigateur web</translation>
     </message>
 </context>
 <context>
@@ -1179,62 +1184,62 @@ and when double clicking on a name.
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="11"/>
         <source>Workspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Environnement</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="12"/>
         <source>Lists the variables in the current shell&apos;s namespace.</source>
-        <translation type="unfinished"></translation>
+        <translation>Liste les variables de l&apos;environnement du shell courant.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="167"/>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nom</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="167"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Type</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="167"/>
         <source>Repr</source>
-        <translation type="unfinished"></translation>
+        <translation>Repr</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="202"/>
         <source>Show namespace</source>
-        <translation type="unfinished"></translation>
+        <translation>Afficher l&apos;espace de nom</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="202"/>
         <source>Show help</source>
-        <translation type="unfinished"></translation>
+        <translation>Afficher de l&apos;aide</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="202"/>
         <source>Delete</source>
-        <translation type="unfinished">Effacer</translation>
+        <translation>Effacer</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="379"/>
         <source>Hide types</source>
-        <translation type="unfinished"></translation>
+        <translation>Cacher les types</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="379"/>
         <source>Hide functions</source>
-        <translation type="unfinished"></translation>
+        <translation>Cacher les fonctions</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="379"/>
         <source>Hide modules</source>
-        <translation type="unfinished"></translation>
+        <translation>Cacher les modules</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="379"/>
         <source>Hide private identifiers</source>
-        <translation type="unfinished"></translation>
+        <translation>Cacher les identifiants privés</translation>
     </message>
 </context>
 <context>
@@ -1391,7 +1396,7 @@ and when double clicking on a name.
     <message>
         <location filename="../../core/shellInfoDialog.py" line="58"/>
         <source>Typically python3 or python2</source>
-        <translation type="unfinished"></translation>
+        <translation>Typiquement python3 ou python2</translation>
     </message>
 </context>
 <context>
