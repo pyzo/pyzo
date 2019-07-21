@@ -1207,39 +1207,44 @@ d&apos;autocomplétion et lorsque vous double-cliquez sur un nom.
         <translation>Repr</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="202"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="204"/>
         <source>Show namespace</source>
         <translation>Afficher l&apos;espace de nom</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="202"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="204"/>
         <source>Show help</source>
         <translation>Afficher de l&apos;aide</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="202"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="204"/>
         <source>Delete</source>
         <translation>Effacer</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="383"/>
         <source>Hide types</source>
         <translation>Cacher les types</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="383"/>
         <source>Hide functions</source>
         <translation>Cacher les fonctions</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="383"/>
         <source>Hide modules</source>
         <translation>Cacher les modules</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoWorkspace.py" line="379"/>
+        <location filename="../../tools/pyzoWorkspace.py" line="383"/>
         <source>Hide private identifiers</source>
         <translation>Cacher les identifiants privés</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoWorkspace.py" line="383"/>
+        <source>Hide the shell&apos;s startup variables</source>
+        <translation>Cacher les variables initiales du shell</translation>
     </message>
 </context>
 <context>
