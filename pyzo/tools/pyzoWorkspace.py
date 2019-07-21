@@ -8,8 +8,8 @@
 import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
-tool_name = pyzo.translate("pyzoWorkspace","Workspace")
-tool_summary = "Lists the variables in the current shell's namespace."
+tool_name = pyzo.translate("pyzoWorkspace", "Workspace")
+tool_summary = pyzo.translate("pyzoWorkspace", "Lists the variables in the current shell's namespace.")
 
 
 
@@ -164,7 +164,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         # Set header stuff
         self.setHeaderHidden(False)
         self.setColumnCount(3)
-        self.setHeaderLabels(['Name', 'Type', 'Repr'])
+        self.setHeaderLabels([pyzo.translate("pyzoWorkspace", 'Name'), pyzo.translate("pyzoWorkspace", 'Type'), pyzo.translate("pyzoWorkspace", 'Repr')])
         #self.setColumnWidth(0, 100)
         self.setSortingEnabled(True)
         
@@ -199,8 +199,10 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         
         # Create menu
         self._menu.clear()
-        for a in ['Show namespace', 'Show help', 'Delete']:
-            action = self._menu.addAction(a)
+        commands = [('Show namespace', pyzo.translate("pyzoWorkspace", 'Show namespace')), ('Show help', pyzo.translate("pyzoWorkspace", 'Show help')), ('Delete', pyzo.translate("pyzoWorkspace", 'Delete'))]
+        for a, display in commands :
+            action = self._menu.addAction(display)
+            action._what = a
             parts = splitName(self._proxy._name)
             parts.append(item.text(0))
             action._objectName = joinName(parts)
@@ -216,7 +218,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         """
         
         # Get text
-        req = action.text().lower()
+        req = action._what.lower()
         
         if 'namespace' in req:
             # Go deeper
@@ -374,9 +376,12 @@ class PyzoWorkspace(QtWidgets.QWidget):
         menu = self._options._menu
         menu.clear()
         
-        for type in ['type', 'function', 'module', 'private']:
+        hideables = [('type', pyzo.translate("pyzoWorkspace", 'Hide types')), ('function', pyzo.translate("pyzoWorkspace", 'Hide functions')), ('module', pyzo.translate("pyzoWorkspace", 'Hide modules')), ('private', pyzo.translate("pyzoWorkspace", 'Hide private identifiers'))]
+        
+        for type, display in hideables :
             checked = type in self._config.hideTypes
-            action = menu.addAction('Hide %s'%type)
+            action = menu.addAction(display)
+            action._what = type
             action.setCheckable(True)
             action.setChecked(checked)
     
@@ -385,7 +390,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         """  The user decides what to hide in the workspace. """
         
         # What to show
-        type = action.text().split(' ',1)[1]
+        type = action._what.lower()
         
         # Swap
         if type in self._config.hideTypes:
