@@ -184,6 +184,8 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         # Bind to events
         self.itemActivated.connect(self.onItemExpand)
     
+        self._startUpVariables = ["In", "Out", "exit", "get_ipython", "quit"]
+
     
     def contextMenuEvent(self, event):
         """ contextMenuEvent(event)
@@ -283,6 +285,8 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
                 continue
             if name.startswith('_') and 'private' in self._config.hideTypes:
                 continue
+            if "startup" in self._config.hideTypes and name in self._startUpVariables :
+                continue
             
             # Create item
             item = WorkspaceItem(parts, 0)
@@ -376,7 +380,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         menu = self._options._menu
         menu.clear()
         
-        hideables = [('type', pyzo.translate("pyzoWorkspace", 'Hide types')), ('function', pyzo.translate("pyzoWorkspace", 'Hide functions')), ('module', pyzo.translate("pyzoWorkspace", 'Hide modules')), ('private', pyzo.translate("pyzoWorkspace", 'Hide private identifiers'))]
+        hideables = [('type', pyzo.translate("pyzoWorkspace", 'Hide types')), ('function', pyzo.translate("pyzoWorkspace", 'Hide functions')), ('module', pyzo.translate("pyzoWorkspace", 'Hide modules')), ('private', pyzo.translate("pyzoWorkspace", 'Hide private identifiers')), ('startup', pyzo.translate("pyzoWorkspace", "Hide the shell's startup variables"))]
         
         for type, display in hideables :
             checked = type in self._config.hideTypes
