@@ -298,6 +298,9 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             item.setToolTip(1,tt)
             item.setToolTip(2,tt)
 
+        self.parent().displayEmptyWorkspace(self.topLevelItemCount() == 0 and self._proxy._name == "")
+
+
 
 class PyzoWorkspace(QtWidgets.QWidget):
     """ PyzoWorkspace
@@ -353,6 +356,13 @@ class PyzoWorkspace(QtWidgets.QWidget):
         # Create tree
         self._tree = WorkspaceTree(self)
         
+        # Create message for when tree is empty
+        self._initText = QtWidgets.QLabel(pyzo.translate("pyzoWorkspace", """Lists the variables in the current shell's namespace.
+
+Currently, there are none. Some of them may be hidden because of the filters you configured."""), self)
+        self._initText.setVisible(False)
+        self._initText.setWordWrap(True)
+
         # Set layout
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self._up, 0)
@@ -361,7 +371,8 @@ class PyzoWorkspace(QtWidgets.QWidget):
         #
         mainLayout = QtWidgets.QVBoxLayout(self)
         mainLayout.addLayout(layout, 0)
-        mainLayout.addWidget(self._tree, 1)
+        mainLayout.addWidget(self._initText, 1)
+        mainLayout.addWidget(self._tree, 2)
         mainLayout.setSpacing(2)
         mainLayout.setContentsMargins(4,4,4,4)
         self.setLayout(mainLayout)
@@ -371,6 +382,10 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._options.pressed.connect(self.onOptionsPress)
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
     
+    def displayEmptyWorkspace(self, empty) :
+        self._tree.setVisible(not empty)
+        self._initText.setVisible(empty)
+
     
     def onOptionsPress(self):
         """ Create the menu for the button, Do each time to make sure
