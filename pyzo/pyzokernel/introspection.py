@@ -234,13 +234,12 @@ class PyzoIntrospector(yoton.RepChannel):
         """ dir2(objectName)
         
         Get variable names in currently active namespace plus extra information.
-        Returns a list with strings, which each contain a (comma separated)
-        list of elements: name, type, kind, repr.
+        Returns a list of tuple of strings: name, type, kind, repr.
         
         """
         try:
             name = ''
-            names = ['','']
+            names = []
             def storeInfo(name, val):
                 # Determine type
                 typeName = type(val).__name__
@@ -274,7 +273,7 @@ class PyzoIntrospector(yoton.RepChannel):
                     if len(repres) > 80:
                         repres = repres[:77] + '...'
                 # Store
-                tmp = ','.join([name, typeName, kind, repres])
+                tmp = (name, typeName, kind, repres)
                 names.append(tmp)
             
             # Get locals
