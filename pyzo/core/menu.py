@@ -1100,12 +1100,15 @@ class ShellContextMenu(ShellMenu):
     
     def build(self):
         """ Build menu """
-        self.addItem(translate("menu", "Help ::: Show help for the selected expression."), None, self._editItemCallback, "helpOnText")
+
+        icons = pyzo.icons
+
+
+        self.addItem(translate("menu", "Help on this expression ::: Show help for the selected expression."), icons.help, self._editItemCallback, "helpOnText")
 
         self.addSeparator()
 
         self.buildShellActions()
-        icons = pyzo.icons
         
         # This is a subset of the edit menu. Copied manually.
         self.addSeparator()
@@ -1187,7 +1190,7 @@ class EditorContextMenu(Menu):
         """ Build menu """
         icons = pyzo.icons
         
-        self.addItem(translate("menu", "Help ::: Show help for the selected expression."), None, self._editItemCallback, "helpOnText")
+        self.addItem(translate("menu", "Help on this expression ::: Show help for the selected expression."), icons.help, self._editItemCallback, "helpOnText")
 
         self.addSeparator()
 
