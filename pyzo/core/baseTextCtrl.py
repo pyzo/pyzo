@@ -381,7 +381,6 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             return
         name = self.textCursor().selectedText().strip()
         if name == "" :
-            name = None
             cursor = self.cursorForPosition(pos-self.mapToGlobal(QtCore.QPoint(0,0)))
             line = cursor.block().text()
             limit = cursor.positionInBlock()
@@ -392,7 +391,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             nameBefore, name = parseLine_autocomplete(tokens)
             if nameBefore:
                 name = "%s.%s" % (nameBefore, name)
-        hw.setObjectName(name, True)
+        if name != "" :
+            hw.setObjectName(name, True)
 
     def processHelp(self, name=None, showError=False, addToHist = False):
         """ Show help on the given full object name.
