@@ -127,7 +127,7 @@ class StyleFormat:
         try:
             return self._parts[key]
         except KeyError:
-            raise KeyError('Invalid part key for style format.')
+            raise KeyError('Invalid part key ' + key + ' for style format.')
     
     def __iter__(self):
         """ Yields a series of tuples (key, val).

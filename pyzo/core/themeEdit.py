@@ -373,7 +373,10 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         self.curThemeCmb.setEditable(not self.cur_theme["builtin"])
         
         for key, le in self.styleEdits.items():
-            le.setStyle(self.cur_theme["data"][key])
+            try :
+                le.setStyle(self.cur_theme["data"][key])
+            except Exception as e :
+                print("Exception while setting style", key, "for theme", name, ":", e)
     
     def saveTheme(self):
         """ Saves the current theme to the disk, in appDataDir/themes """        
