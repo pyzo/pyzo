@@ -247,6 +247,10 @@ class StyleFormat:
         if self._textCharFormat is None:
             self._textCharFormat = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
+            try :  # not all styles have a back property
+                self._textCharFormat.setBackground(self.back)
+            except :
+                pass
             self._textCharFormat.setUnderlineStyle(self.underline)
             if self.bold:
                 self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
