@@ -13,7 +13,7 @@ from ..misc import ustr
 from .tokens import (CommentToken, StringToken,
     UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
     KeywordToken, BuiltinsToken, InstanceToken, NumberToken, FunctionNameToken, ClassNameToken,
-    TodoCommentToken, OpenParenToken, CloseParenToken)
+    TodoCommentToken, OpenParenToken, CloseParenToken, IllegalToken)
 
 # Keywords sets
 
@@ -131,7 +131,8 @@ tokenProg = re.compile(
     '("""|\'\'\'|"|\')' +		# String start (triple qoutes first, group 4)
     ')|' +						# End of string group
     '(\(|\[|\{)|' +             # Opening parenthesis (gr 5)
-    '(\)|\]|\})'                # Closing parenthesis (gr 6)
+    '(\)|\]|\})|' +              # Closing parenthesis (gr 6)
+    '('+chr(160)+')'                         # non-breaking space (gr 7)
     )
 
 
@@ -398,6 +399,10 @@ class PythonParser(Parser):
         elif match.group(6) is not None :
             token = CloseParenToken(line, match.start(), match.end())
             token._style = match.group(6)
+            tokens.append(token)
+        elif match.group(7) is not None :
+            token = IllegalToken(line, match.start(), match.end())
+            token._style = match.group(7)
             tokens.append(token)
         # Done
         return tokens

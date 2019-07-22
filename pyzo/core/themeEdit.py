@@ -19,7 +19,7 @@ class Foo:
         def baz(self, arg1):
             return max(arg1, 42)
     bar = "Hello wor
-"""
+"""+chr(160)
 
 
 class FakeEditor(pyzo.core.baseTextCtrl.BaseTextCtrl):

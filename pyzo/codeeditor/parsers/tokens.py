@@ -163,5 +163,7 @@ class CloseParenToken(ParenthesisToken) :
     """ Closing parenthesis (and square and curly brackets). """
     defaultStyle = ''
 
-
+class IllegalToken(Token) :
+    """ Illegal tokens, eg. NBSP  . """
+    defaultStyle = 'back:#ffd7c7'
 
