@@ -774,7 +774,7 @@ class ViewMenu(Menu):
             icons.application_double, pyzo.editors._tabs.selectPreviousItem)
         self.addSeparator()
         self.addEditorItem(translate("menu", "Show whitespace ::: Show spaces and tabs."),
-            None, "showWhitespace")
+            None, "showWhitespace", True)
         self.addEditorItem(translate("menu", "Show line endings ::: Show the end of each line."),
             None, "showLineEndings")
         self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."),
@@ -785,7 +785,7 @@ class ViewMenu(Menu):
         self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."),
             None, "highlightCurrentLine")
         self.addEditorItem(translate("menu", "Highlight brackets ::: Highlight matched and unmatched brackets."),
-            None, "highlightMatchingBracket")
+            None, "highlightMatchingBracket", True)
         self.addSeparator()
         self.addItem(translate("menu", "Previous cell ::: Go back to the previous cell."),
             None, self._previousCell )
