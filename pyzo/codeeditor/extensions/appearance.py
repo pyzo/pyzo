@@ -136,7 +136,7 @@ class _ParenIterator :
         try:
             return list(filter(lambda x : isinstance(x, ParenthesisToken), self.cur_block.userData().tokens))
         except AttributeError:
-            return []  # can be a piece of text that we do not tokenize (e.g. in shell)
+            return []  # can be a piece of text that we do not tokenize or have not stored tokens
     
     def __iter__(self) :
         return self
