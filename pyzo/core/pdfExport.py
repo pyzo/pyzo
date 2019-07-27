@@ -8,7 +8,8 @@ from pyzo.codeeditor import Manager
 class PdfExport(QtWidgets.QDialog):
     """
     This class is used to export an editor to a pdf.
-    The content of the editor is copied in another editor with chosen options
+    The content of the editor is copied in another editor,
+    and then the options chosen are applied by _print()
     """
 
     def __init__(self):
