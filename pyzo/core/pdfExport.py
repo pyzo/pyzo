@@ -70,7 +70,7 @@ class PdfExport(QtWidgets.QDialog):
 
         # Option for syntax highlighting
         self.checkbox_syntax_highlighting = QtWidgets.QCheckBox("Enable syntax highlighting", self,
-                                                              checked=self._enable_syntax_highliting)
+                                                              checked=self._enable_syntax_highlighting)
         self.checkbox_syntax_highlighting.stateChanged.connect(self._change_syntax_highlighting_option)
 
         self.combobox_file_name = QtWidgets.QComboBox(self)
