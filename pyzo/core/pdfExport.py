@@ -17,7 +17,9 @@ class PdfExport(QtWidgets.QDialog):
         from pyzo.util.qt import QtPrintSupport
 
         self.printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution, )
-        self.printer.setColorMode(QtPrintSupport.QPrinter.Color)  # To allow pdf export with color
+
+        # To allow pdf export with color
+        self.printer.setColorMode(QtPrintSupport.QPrinter.Color)
 
         # Default settings
         self.show_line_number = True
@@ -46,7 +48,10 @@ class PdfExport(QtWidgets.QDialog):
         self.preview = QtPrintSupport.QPrintPreviewWidget(self.printer)
 
         # Lines numbers option
-        self.checkbox_line_number = QtWidgets.QCheckBox("Print line number", self, checked = self.show_line_number)
+        self.checkbox_line_number = QtWidgets.QCheckBox(
+            "Print line number", self, checked = self.show_line_number
+            )
+
         self.checkbox_line_number.stateChanged.connect(self._get_show_line_number)
 
         # Make of copy of the editor
@@ -69,8 +74,11 @@ class PdfExport(QtWidgets.QDialog):
         self.zoom_slider.valueChanged.connect(self._zoom_value_changed)
 
         # Option for syntax highlighting
-        self.checkbox_syntax_highlighting = QtWidgets.QCheckBox("Enable syntax highlighting", self,
-                                                              checked=self._enable_syntax_highlighting)
+        self.checkbox_syntax_highlighting = QtWidgets.QCheckBox(
+            "Enable syntax highlighting", self,
+            checked=self._enable_syntax_highlighting
+            )
+
         self.checkbox_syntax_highlighting.stateChanged.connect(self._change_syntax_highlighting_option)
 
         self.combobox_file_name = QtWidgets.QComboBox(self)
@@ -82,8 +90,12 @@ class PdfExport(QtWidgets.QDialog):
 
         # Orientation
         self.combobox_orientation = QtWidgets.QComboBox(self)
-        self.combobox_orientation.addItem("Portrait", QtPrintSupport.QPrinter.Portrait)
-        self.combobox_orientation.addItem("Landscape", QtPrintSupport.QPrinter.Landscape)
+        self.combobox_orientation.addItem("Portrait",
+            QtPrintSupport.QPrinter.Portrait
+            )
+        self.combobox_orientation.addItem("Landscape",
+            QtPrintSupport.QPrinter.Landscape
+            )
         self.combobox_orientation.setToolTip("Orientation of the document")
 
         # Layout
@@ -144,7 +156,9 @@ class PdfExport(QtWidgets.QDialog):
             # Print line numbers in the editor
             if self.show_line_number:
                 for i in range(starting_line, len(lines)):
-                    lines[i] = str(i+1-starting_line).rjust(nzeros, '0') + '| ' + lines[i]
+                    lines[i] = str(i+1-starting_line).rjust(nzeros, '0') \
+                        + '| ' + lines[i]
+
             cursor = self.editor.textCursor()
             cursor.movePosition(cursor.Start)
             cursor.movePosition(cursor.End, cursor.KeepAnchor)
@@ -180,8 +194,11 @@ class PdfExport(QtWidgets.QDialog):
             from pyzo.util.qt import QtPrintSupport
 
             if True:
-                filename = QtWidgets.QFileDialog.getSaveFileName(None,
-                                                                 'Export PDF', os.path.expanduser("~"), "*.pdf *.ps")
+                filename = QtWidgets.QFileDialog.getSaveFileName(
+                                                        None,
+                                                        'Export PDF',
+                                                        os.path.expanduser("~"),
+                                                        "*.pdf *.ps")
                 if isinstance(filename, tuple):  # PySide
                     filename = filename[0]
                 if not filename:
@@ -190,7 +207,9 @@ class PdfExport(QtWidgets.QDialog):
             else:
                 d = QtWidgets.QPrintDialog(printer)
                 d.setWindowTitle('Print code')
-                d.setOption(d.PrintSelection, self.editor.textCursor().hasSelection())
+                d.setOption(d.PrintSelection,
+                            self.editor.textCursor().hasSelection()
+                            )
                 d.setOption(d.PrintToFile, True)
                 ok = d.exec_()
                 if ok != d.Accepted:
@@ -211,7 +230,8 @@ class PdfExport(QtWidgets.QDialog):
             self.show_line_number = False
 
     def _set_zoom(self, value):
-        """Apply zoom setting only to the editor used to generate the pdf (and the preview)"""
+        """Apply zoom setting only to the editor used to generate the pdf
+        (and the preview)"""
         self.editor.setZoom(pyzo.config.view.zoom + value)
 
     def _zoom_value_changed(self):
@@ -221,7 +241,8 @@ class PdfExport(QtWidgets.QDialog):
         self.zoom_value_label.setText(f"Zoom level : {zoom_level}")
 
     def _change_syntax_highlighting_option(self, state):
-        """Used for the syntax highlight checkbox when its state change to change the option value"""
+        """Used for the syntax highlight checkbox when its state change
+        to change the option value"""
         if state == QtCore.Qt.Checked:
             self._enable_syntax_highlighting = True
         else:
