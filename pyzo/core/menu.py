@@ -28,6 +28,8 @@ from pyzo.core.pyzoLogging import print  # noqa
 from pyzo.core.assistant import PyzoAssistant
 from pyzo import translate
 
+from pyzo.core.pdfExport import PdfExport
+
 
 def buildMenus(menuBar):
     """
@@ -480,7 +482,7 @@ class FileMenu(Menu):
             self.addItem(translate("menu", "Close all ::: Close all files."),
                 icons.page_delete_all, pyzo.editors.closeAllFiles),
             self.addItem(translate("menu", "Export to PDF ::: Export current file to PDF (e.g. for printing)."),
-                None, self._print),
+                None, lambda: PdfExport().exec()),
             ]
         
         # Build file properties stuff
@@ -578,45 +580,7 @@ class FileMenu(Menu):
         editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
             editor.encoding = value
-    
-    def _print(self):
-        editor = pyzo.editors.getCurrentEditor()
-        if editor is not None:
-            
-            from pyzo.util.qt import QtPrintSupport
-            printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-            if True:
-                filename = QtWidgets.QFileDialog.getSaveFileName(None,
-                        'Export PDF', os.path.expanduser("~"), "*.pdf *.ps")
-                if isinstance(filename, tuple): # PySide
-                    filename = filename[0]
-                if not filename:
-                    return
-                printer.setOutputFileName(filename)
-            else:
-                d = QtWidgets.QPrintDialog(printer)
-                d.setWindowTitle('Print code')
-                d.setOption(d.PrintSelection, editor.textCursor().hasSelection())
-                d.setOption(d.PrintToFile, True)
-                ok = d.exec_()
-                if ok != d.Accepted:
-                    return
-            # Print with line numbers
-            lines = editor.toPlainText().splitlines()
-            nzeros = len(str(len(lines)))
-            lines.insert(0, '# ' + editor.filename)
-            for i in range(1, len(lines)):
-                lines[i] = str(i).rjust(nzeros, '0') + '| ' + lines[i]
-            cursor0 = editor.textCursor()
-            cursor = editor.textCursor()
-            cursor.movePosition(cursor.Start)
-            cursor.movePosition(cursor.End, cursor.KeepAnchor)
-            cursor.insertText('\n'.join(lines))
-            try:
-                editor.print_(printer)
-            finally:
-                editor.undo()
-                editor.setTextCursor(cursor0)
+
 
 
 # todo: move to matching brace
