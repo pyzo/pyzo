@@ -10,8 +10,8 @@ import sys, re
 from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 import pyzo
 
-tool_name = pyzo.translate("pyzoInteractiveHelp","Interactive help")
-tool_summary = "Shows help on an object when using up/down in autocomplete."
+tool_name = pyzo.translate("pyzoInteractiveHelp", "Interactive help")
+tool_summary = pyzo.translate("pyzoInteractiveHelp", "Shows help on an object when using up/down in autocomplete.")
 
 #
 htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
@@ -42,11 +42,11 @@ def get_title_text(objectName, h_class='', h_repr=''):
     title_text += '</p>\n'
     return title_text
 
-initText =  """
+initText =  pyzo.translate("pyzoInteractiveHelp", """
 Help information is queried from the current shell
 when moving up/down in the autocompletion list
 and when double clicking on a name.
-"""
+""")
 
 
 class PyzoInteractiveHelp(QtWidgets.QWidget):
@@ -123,7 +123,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         menu.clear()
         
         # Add smart format option
-        action = menu.addAction('Smart format')
+        action = menu.addAction(pyzo.translate("pyzoInteractiveHelp", 'Smart format'))
+        action._what = "smart"
         action.setCheckable(True)
         action.setChecked(bool(self._config.smartNewlines))
         
@@ -133,7 +134,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Add font size options
         currentSize = self._config.fontSize
         for i in range(8,15):
-            action = menu.addAction('font-size: %ipx' % i)
+            action = menu.addAction(pyzo.translate("pyzoInteractiveHelp", 'Font size: %i') % i)
+            action._what = 'font-size: %ipx' % i
             action.setCheckable(True)
             action.setChecked(i==currentSize)
     
@@ -142,7 +144,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         """  The user decides what to show in the structure. """
         
         # Get text
-        text = action.text().lower()
+        text = action._what.lower()
         
         if 'smart' in text:
             # Swap value

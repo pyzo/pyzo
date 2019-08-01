@@ -55,7 +55,7 @@ class ShellInfo_parser(ShellInfoLineEdit):
     def __init__(self, *args, **kwargs):
         ShellInfoLineEdit.__init__(self, *args, **kwargs)
         t = translate('shell', 'parser ::: The name of the parser to use for highlighting.')
-        self.setPlaceholderText("Typically python3 or python2")
+        self.setPlaceholderText(translate('shell', "Typically python3 or python2"))
     
     def setTheText(self, value):
         ShellInfoLineEdit.setTheText(self, value)
