@@ -3,7 +3,7 @@
 
 # Some parameters are named xxx2. This was done in case the representation
 # of a parameter was changed, or if we wanted to "refresh" the parameter for
-# another reason. This enables using the same config file for all versions, 
+# another reason. This enables using the same config file for all versions,
 # which means that users that start using a new version dont have to recreate
 # all their settings each time.
 
@@ -15,11 +15,11 @@ state = dict:
     find_autoHide = 1
     editorState2 = [] # What files where loaded and where the cursor was
     loadedTools = []
-    windowState = '' # Of window and tools  
+    windowState = '' # Of window and tools
     windowGeometry = '' # Position and size of window, whether maximized, etc.
     newUser = 1 # So we can guide new users a bit
 
-view = dict:       
+view = dict:
     showWhitespace = 0
     showLineEndings = 0
     showWrapSymbols = 0
@@ -34,7 +34,7 @@ view = dict:
     autoComplete_popupSize = [300, 100]
     #
     qtstyle = ''
-    edgeColumn = 80    
+    edgeColumn = 80
     fontname = 'DejaVu Sans Mono'
     zoom = 0  # Both for editor and shell
     tabWidth = 4
@@ -42,7 +42,6 @@ view = dict:
 settings= dict:
     language = ''
     defaultStyle = 'python3'
-    pythonDefaultDisambiguation='python3'
     defaultIndentWidth = 4
     defaultIndentUsingSpaces = 1
     defaultLineEndings = '' # Set depending on OS
@@ -69,7 +68,7 @@ advanced = dict:
     titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
     homeAndEndWorkOnDisplayedLine = 0
     find_autoHide_timeout = 10
-  
+
 tools = dict:
     pyzologger = dict:
     pyzointeractivehelp = dict:

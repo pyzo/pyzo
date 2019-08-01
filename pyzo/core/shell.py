@@ -1001,12 +1001,6 @@ class PythonShell(BaseShell):
         # Store info so we can reuse it on a restart
         self._info = info
         
-        if "parser" in info and info.parser != '' :
-            parser = info.parser
-        else :
-            parser = pyzo.config.settings.defaultStyle
-        self.setParser(parser)
-
         # For the editor to keep track of attempted imports
         self._importAttempts = []
         
@@ -1139,6 +1133,10 @@ class PythonShell(BaseShell):
         # Set version
         version = startup_info.get('version', None)
         if isinstance(version, tuple):
+            if version < (3, ):
+                self.setParser("python2")
+            else:
+                self.setParser("python3")
             version = [str(v) for v in version]
             self._version = '.'.join(version[:2])
         
