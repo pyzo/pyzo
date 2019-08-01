@@ -229,8 +229,14 @@ def linguist(languageName):
     if not os.path.isfile(filename):
         raise ValueError('Could not find {}'.format(filename))
     
+    # PyQt5 does not come with linguist anymore? Install PySide2 and check the
+    # pyside2 package directory for the linguist exe ...
+    
     # Get Command for linguist
-    pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
+    qtcore_mod_name = pyzo.QtCore.QObject.__module__
+    qtcore_mod_path = sys.modules[qtcore_mod_name].__file__
+    pysideDir = os.path.abspath(os.path.dirname(qtcore_mod_path))
+    print(pysideDir)
     ISWIN = sys.platform.startswith('win')
     exe_ = 'linguist' + '.exe' * ISWIN
     exe = os.path.join(pysideDir, exe_)
