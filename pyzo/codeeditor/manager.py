@@ -115,8 +115,9 @@ class Manager:
         # Put in list with the parser names as keys
         parserInstances = {}
         for parserClass in foundParsers:
-                name = parserClass.getParserName()
-                
+            name = parserClass.getParserName()
+            if name:
+            
                 # Try instantiating the parser
                 try:
                     parserInstances[name] = parserInstance = parserClass()

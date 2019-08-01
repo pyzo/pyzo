@@ -81,9 +81,7 @@ class Parser(object):
     @classmethod
     def getParserName(cls) :
         name = cls.__name__
-        if name.endswith('Parser') and len(name)>6:
-
-            # Get parser identifier name
+        if name.endswith('Parser') and len(name)>=6:
             name = name[:-6].lower()
         return name
 
