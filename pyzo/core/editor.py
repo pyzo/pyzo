@@ -265,7 +265,6 @@ class PyzoEditor(BaseTextCtrl):
         self._name = '<TMP>'
 
         # View settings
-        self.setShowWhitespace(pyzo.config.view.showWhitespace)
         #TODO: self.setViewWrapSymbols(view.showWrapSymbols)
         self.setShowLineEndings(pyzo.config.view.showLineEndings)
         self.setShowIndentationGuides(pyzo.config.view.showIndentationGuides)
@@ -273,7 +272,6 @@ class PyzoEditor(BaseTextCtrl):
         self.setWrap(bool(pyzo.config.view.wrap))
         self.setHighlightCurrentLine(pyzo.config.view.highlightCurrentLine)
         self.setLongLineIndicatorPosition(pyzo.config.view.edgeColumn)
-        self.setHighlightMatchingBracket(pyzo.config.view.highlightMatchingBracket)
         #TODO: self.setFolding( int(view.codeFolding)*5 )
         # bracematch is set in baseTextCtrl, since it also applies to shells
         # dito for zoom and tabWidth

@@ -211,7 +211,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Set font and zooming
         self.setFont(pyzo.config.view.fontname)
         self.setZoom(pyzo.config.view.zoom)
-        
+        self.setShowWhitespace(pyzo.config.view.showWhitespace)
+        self.setHighlightMatchingBracket(pyzo.config.view.highlightMatchingBracket)
+
         # Create timer for autocompletion delay
         self._delayTimer = QtCore.QTimer(self)
         self._delayTimer.setSingleShot(True)

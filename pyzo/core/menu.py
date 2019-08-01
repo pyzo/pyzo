@@ -774,7 +774,7 @@ class ViewMenu(Menu):
             icons.application_double, pyzo.editors._tabs.selectPreviousItem)
         self.addSeparator()
         self.addEditorItem(translate("menu", "Show whitespace ::: Show spaces and tabs."),
-            None, "showWhitespace")
+            None, "showWhitespace", True)
         self.addEditorItem(translate("menu", "Show line endings ::: Show the end of each line."),
             None, "showLineEndings")
         self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."),
@@ -785,7 +785,7 @@ class ViewMenu(Menu):
         self.addEditorItem(translate("menu", "Highlight current line ::: Highlight the line where the cursor is."),
             None, "highlightCurrentLine")
         self.addEditorItem(translate("menu", "Highlight brackets ::: Highlight matched and unmatched brackets."),
-            None, "highlightMatchingBracket")
+            None, "highlightMatchingBracket", True)
         self.addSeparator()
         self.addItem(translate("menu", "Previous cell ::: Go back to the previous cell."),
             None, self._previousCell )
@@ -801,7 +801,7 @@ class ViewMenu(Menu):
         self.addMenu(ZoomMenu(self, translate("menu", "Zooming")), icons.magnifier)
         self.addMenu(self._qtThemeMenu, icons.application_view_tile)
     
-    def addEditorItem(self, name, icon, param):
+    def addEditorItem(self, name, icon, param, shellsToo = False):
         """
         Create a boolean item that reperesents a property of the editors,
         whose value is stored in pyzo.config.view.param
@@ -811,9 +811,9 @@ class ViewMenu(Menu):
         else:
             default = True
             
-        self.addCheckItem(name, icon, self._configEditor, param, default)
+        self.addCheckItem(name, icon, lambda state, param : self._configEditor(state, param, shellsToo), param, default)
     
-    def _configEditor(self, state, param):
+    def _configEditor(self, state, param, shellsToo = False):
         """
         Callback for addEditorItem items
         """
@@ -823,6 +823,9 @@ class ViewMenu(Menu):
         setter = 'set' + param[0].upper() + param[1:]
         for editor in pyzo.editors:
             getattr(editor,setter)(state)
+        if shellsToo :
+            for shell in pyzo.shells :
+                getattr(shell,setter)(state)
     
     def _selectShell(self):
         shell = pyzo.shells.getCurrentShell()

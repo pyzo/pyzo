@@ -148,6 +148,8 @@ class ShellHighlighter(Highlighter):
             # Do not highlight anything but current and last prompts
             return
         
+        # Get user data
+        bd = self.getCurrentBlockUserData()
         
         if parser:
             if atCurrentPrompt:
@@ -164,7 +166,9 @@ class ShellHighlighter(Highlighter):
             if specialinput:
                 pass # Let the kernel decide formatting
             else:
-                for token in parser.parseLine(line, previousState):
+                tokens = list(parser.parseLine(line, previousState))
+                bd.tokens = tokens
+                for token in tokens :
                     # Handle block state
                     if isinstance(token, parsers.BlockState):
                         self.setCurrentBlockState(token.state)
@@ -189,8 +193,6 @@ class ShellHighlighter(Highlighter):
         #Get the indentation setting of the editors
         indentUsingSpaces = self._codeEditor.indentUsingSpaces()
         
-        # Get user data
-        bd = self.getCurrentBlockUserData()
         
         leadingWhitespace=line[:len(line)-len(line.lstrip())]
         if '\t' in leadingWhitespace and ' ' in leadingWhitespace:
