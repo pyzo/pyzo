@@ -8,7 +8,6 @@ import re
 from . import Parser, BlockState, text_type
 from .tokens import ALPHANUM
 from ..misc import ustr
-import pyzo
 
 # Import tokens in module namespace
 from .tokens import (CommentToken, StringToken,
@@ -417,9 +416,8 @@ class AmbiguousPythonParser(PythonParser):
     @classmethod
     def disambiguate(cls, text) :
         # try to look into the source...
-        
-        # if this is inconclusive, use settings.pythonDefaultDisambiguation
-        return pyzo.config.settings.pythonDefaultDisambiguation
+        # or ... well, ppl should use Python3. Use a shebang to annotate a Python file as Python 2
+        return "python3"
 
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.

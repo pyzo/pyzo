@@ -50,18 +50,6 @@ class ShellInfo_name(ShellInfoLineEdit):
     def onValueChanged(self):
         self.parent().parent().parent().setTabTitle(self.getTheText())
 
-class ShellInfo_parser(ShellInfoLineEdit):
-    
-    def __init__(self, *args, **kwargs):
-        ShellInfoLineEdit.__init__(self, *args, **kwargs)
-        t = translate('shell', 'parser ::: The name of the parser to use for highlighting.')
-        self.setPlaceholderText(translate('shell', "Typically python3 or python2"))
-    
-    def setTheText(self, value):
-        ShellInfoLineEdit.setTheText(self, value)
-    
-    def getTheText(self) :
-        return self.text().strip()
 
 class ShellInfo_exe(QtWidgets.QComboBox):
     
@@ -485,7 +473,6 @@ class ShellInfoTab(QtWidgets.QScrollArea):
     
     INFO_KEYS = [   translate('shell', 'name ::: The name of this configuration.'),
                     translate('shell', 'exe ::: The Python executable.'),
-                    translate('shell', 'parser ::: The name of the parser to use for highlighting.'),
                     translate('shell', 'ipython ::: Use IPython shell if available.'),
                     translate('shell', 'gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).'),
                     translate('shell', 'pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.'),  # noqa
