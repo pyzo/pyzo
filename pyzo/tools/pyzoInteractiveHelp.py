@@ -69,10 +69,11 @@ def get_title_text(objectName, h_class='', h_repr=''):
     title_text = "<p style='background-color:#def;'>"
     if h_class == "~python_keyword~" :
         title_text += "<b>Keyword:</b> {}".format(objectName)
+    elif h_class == "" :
+        title_text += "<b>Unknown construct:</b> {}".format(objectName)
     else :
         title_text += "<b>Object:</b> {}".format(objectName)
-        if h_class:
-            title_text += ", <b>class:</b> {}".format(h_class)
+        title_text += ", <b>class:</b> {}".format(h_class)
         if h_repr:
             if len(h_repr) > 40:
                 h_repr = h_repr[:37] + '...'
