@@ -109,6 +109,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Create browser
         self._browser = QtWidgets.QTextBrowser(self)
         self._browser_text = initText
+        self._browser.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self._browser.customContextMenuRequested.connect(self.showMenu)
+
         
         # Create two sizers
         self._sizer1 = QtWidgets.QVBoxLayout(self)
@@ -155,6 +158,21 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self.setText()  # Set default text
         self.onOptionsPress() # Fill menu
     
+    def showMenu(self, pos) :
+        menu = self._browser.createStandardContextMenu()
+        help = QtWidgets.QAction(pyzo.icons.help, pyzo.translate("pyzoInteractiveHelp", "Help on this"), menu)
+        help.triggered.connect(partial(self.helpOnThis, pos=pos))
+        menu.insertAction(menu.actions()[0], help)
+        menu.exec(self.mapToGlobal(pos))
+    
+    def helpOnThis(self, pos) :
+        name = self._browser.textCursor().selectedText().strip()
+        if name == "" :
+            cursor = self._browser.cursorForPosition(pos)
+            cursor.select(cursor.WordUnderCursor)
+            name = cursor.selectedText()
+        if name != "" :
+            self.setObjectName(name, True)
     
     def onOptionsPress(self):
         """ Create the menu for the button, Do each time to make sure
