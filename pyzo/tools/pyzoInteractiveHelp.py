@@ -49,6 +49,9 @@ keywordsHelp = {
     "yield" : "A keyword of the Python language."
 }
 
+operators = ["+", "-", "*", "**", "/", "//", "%", "@", "<<", ">>", "&", "|", "^", "~", "<", ">", "<=", ">=", "==", "!="]
+operatorsHelp = "No help is available for operators because they are ambiguous: their meaning depend on the type of the first operand."
+
 
 #
 htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
@@ -69,6 +72,8 @@ def get_title_text(objectName, h_class='', h_repr=''):
     title_text = "<p style='background-color:#def;'>"
     if h_class == "~python_keyword~" :
         title_text += "<b>Keyword:</b> {}".format(objectName)
+    elif h_class == "~python_operator~" :
+        title_text += "<b>Operator:</b> {}".format(objectName)
     elif h_class == "" :
         title_text += "<b>Unknown construct:</b> {}".format(objectName)
     else :
@@ -314,7 +319,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Tell shell to print doc
         shell = pyzo.shells.getCurrentShell()
         if shell and name:
-            if name in keywordsHelp :
+            if name in operators :
+                shell.processLine('print("""{}""")'.format("Help on keyword: " + name + "\n\n" + operatorsHelp))
+            elif name in keywordsHelp :
                 shell.processLine('print("""{}""")'.format("Help on keyword: " + name + "\n\n" + keywordsHelp[name]))
             else :
                 shell.processLine('print({}.__doc__)'.format(name))
@@ -326,7 +333,10 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         name = self._text.text()
         if addToHistory :
             self.addToHist(name)
-        if name in keywordsHelp :
+        if name in operators :
+            text = name + "\n~python_operator~\n\n\n" + operatorsHelp
+            self.displayResponse(text)
+        elif name in keywordsHelp :
             text = name + "\n~python_keyword~\n\n\n"+ keywordsHelp[name]
             self.displayResponse(text)
         else :
