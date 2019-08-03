@@ -14,6 +14,42 @@ import pyzo
 tool_name = pyzo.translate("pyzoInteractiveHelp", "Interactive help")
 tool_summary = pyzo.translate("pyzoInteractiveHelp", "Shows help on an object when using up/down in autocomplete.")
 
+keywordsHelp = {
+    "await" : "A keyword of the Python language.",
+    "else" : "A keyword of the Python language.",
+    "import" : "A keyword of the Python language.",
+    "pass" : "A keyword of the Python language.",
+    "break" : "A keyword of the Python language.",
+    "except" : "A keyword of the Python language.",
+    "in" : "A keyword of the Python language.",
+    "raise" : "A keyword of the Python language.",
+    "class" : "A keyword of the Python language.",
+    "finally" : "A keyword of the Python language.",
+    "is" : "A keyword of the Python language.",
+    "return" : "A keyword of the Python language.",
+    "and" : "A keyword of the Python language.",
+    "continue" : "A keyword of the Python language.",
+    "for" : "A keyword of the Python language.",
+    "lambda" : "A keyword of the Python language.",
+    "try" : "A keyword of the Python language.",
+    "as" : "A keyword of the Python language.",
+    "def" : "A keyword of the Python language.",
+    "from" : "A keyword of the Python language.",
+    "nonlocal" : "A keyword of the Python language.",
+    "while" : "A keyword of the Python language.",
+    "assert" : "A keyword of the Python language.",
+    "del" : "A keyword of the Python language.",
+    "global" : "A keyword of the Python language.",
+    "not" : "A keyword of the Python language.",
+    "with" : "A keyword of the Python language.",
+    "async" : "A keyword of the Python language.",
+    "elif" : "A keyword of the Python language.",
+    "if" : "A keyword of the Python language.",
+    "or" : "A keyword of the Python language.",
+    "yield" : "A keyword of the Python language."
+}
+
+
 #
 htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
 "http://www.w3.org/TR/REC-html40/strict.dtd">
@@ -31,13 +67,16 @@ htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
 # Define title text (font-size percentage does not seem to work sadly.)
 def get_title_text(objectName, h_class='', h_repr=''):
     title_text = "<p style='background-color:#def;'>"
-    title_text += "<b>Object:</b> {}".format(objectName)
-    if h_class:
-        title_text += ", <b>class:</b> {}".format(h_class)
-    if h_repr:
-        if len(h_repr) > 40:
-            h_repr = h_repr[:37] + '...'
-        title_text += ", <b>repr:</b> {}".format(h_repr)
+    if h_class == "~python_keyword~" :
+        title_text += "<b>Keyword:</b> {}".format(objectName)
+    else :
+        title_text += "<b>Object:</b> {}".format(objectName)
+        if h_class:
+            title_text += ", <b>class:</b> {}".format(h_class)
+        if h_repr:
+            if len(h_repr) > 40:
+                h_repr = h_repr[:37] + '...'
+            title_text += ", <b>repr:</b> {}".format(h_repr)
         
     # Finish
     title_text += '</p>\n'
@@ -274,7 +313,10 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Tell shell to print doc
         shell = pyzo.shells.getCurrentShell()
         if shell and name:
-            shell.processLine('print({}.__doc__)'.format(name))
+            if name in keywordsHelp :
+                shell.processLine('print("""{}""")'.format("Help on keyword: " + name + "\n\n" + keywordsHelp[name]))
+            else :
+                shell.processLine('print({}.__doc__)'.format(name))
     
     
     def queryDoc(self, addToHistory = True):
@@ -283,13 +325,17 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         name = self._text.text()
         if addToHistory :
             self.addToHist(name)
-        # Get shell and ask for the documentation
-        shell = pyzo.shells.getCurrentShell()
-        if shell and name:
-            future = shell._request.doc(name)
-            future.add_done_callback(self.queryDoc_response)
-        elif not name:
-            self.setText(initText)
+        if name in keywordsHelp :
+            text = name + "\n~python_keyword~\n\n\n"+ keywordsHelp[name]
+            self.displayResponse(text)
+        else :
+            # Get shell and ask for the documentation
+            shell = pyzo.shells.getCurrentShell()
+            if shell and name:
+                future = shell._request.doc(name)
+                future.add_done_callback(self.queryDoc_response)
+            elif not name:
+                self.setText(initText)
     
     
     def queryDoc_response(self, future):
@@ -306,7 +352,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             response = future.result()
             if not response:
                 return
-        
+            self.displayResponse(response)
+            
+    def displayResponse(self, response) :    
         try:
             # Get parts
             parts = response.split('\n')
