@@ -6,6 +6,7 @@
 
 
 import sys, re
+from functools import partial
 
 from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 import pyzo
@@ -48,6 +49,25 @@ when moving up/down in the autocompletion list
 and when double clicking on a name.
 """)
 
+class PyzoInteractiveHelpHistoryMenu(QtWidgets.QMenu) :
+    def __init__(self, title, parent, forward) :
+        super().__init__(title, parent)
+        self._forward = forward
+        self.aboutToShow.connect(self.populate)
+
+    def populate(self) :
+        self.clear()
+        if self._forward :
+            indices = range(self.parent()._histindex + 1, len(self.parent()._history))
+        else :
+            indices = range(self.parent()._histindex - 1, -1, -1)
+        for i in indices :
+            action = self.addAction(self.parent()._history[i])
+            action.triggered.connect(partial(self.doAction, i=i))
+            
+    def doAction(self, i) :
+        self.parent()._histindex = i
+        self.parent().setObjectName(self.parent().currentHist())
 
 class PyzoInteractiveHelp(QtWidgets.QWidget):
     
@@ -64,9 +84,16 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._backBut = QtWidgets.QToolButton(self)
         self._backBut.setIcon( style.standardIcon(style.SP_ArrowLeft) )
         self._backBut.setIconSize(QtCore.QSize(16,16))
+        self._backBut.setPopupMode(self._backBut.DelayedPopup)
+        self._backBut.setMenu(PyzoInteractiveHelpHistoryMenu("Backward menu", self, False))
+
         self._forwBut = QtWidgets.QToolButton(self)
         self._forwBut.setIcon( style.standardIcon(style.SP_ArrowRight) )
         self._forwBut.setIconSize(QtCore.QSize(16,16))
+        self._forwBut.setPopupMode(self._forwBut.DelayedPopup)
+        self._forwBut.setMenu(PyzoInteractiveHelpHistoryMenu("Forward menu", self, True))
+
+
 
         # Create options button
         self._options = QtWidgets.QToolButton(self)
