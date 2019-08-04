@@ -14,21 +14,9 @@ import pyzo
 tool_name = pyzo.translate("pyzoInteractiveHelp", "Interactive help")
 tool_summary = pyzo.translate("pyzoInteractiveHelp", "Shows help on an object when using up/down in autocomplete.")
 
-ifthenExample = pyzo.translate("pyzoInteractiveHelp", """
-Example:
-
-if condition1 :
-    doSomething       # when condition1 evaluates to True
-elif condition2 :     # optional
-    doSomeOtherthing  # when condition1 evaluates to False and condition2 to True
-else :                # optional
-    doAnotherThing    # when all conditions evaluate to False
-""")
-
 keywordsHelp = {
     "await" : pyzo.translate("pyzoInteractiveHelp", "Suspend the execution of coroutine on an awaitable object. Can only be used inside a coroutine function."),
-    "else" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It introduces the statement to execute when all conditions are false.
-""") + ifthenExample,
+    "else" : pyzo.translate("pyzoInteractiveHelp", """This keyword can appear as part of an alternative (see: if) or a loop (see: for, while)."""),
     "import" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
     "pass" : pyzo.translate("pyzoInteractiveHelp", "This is an instruction that does nothing. It is useful in cases where an instruction must appear because of syntactic constraints but we have nothing to do."),
     "break" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the loop early, regardless of the loop condition.
@@ -75,10 +63,17 @@ See also: nonlocal"""),
 See also: and, or, True, False"""),
     "with" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
     "async" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
-    "elif" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It is followed by a conditon and introduces the statement to execute when the preceding conditions are false but this condition is true.
-""") + ifthenExample,
-    "if" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It is followed by a conditon and introduces the statement to execute when this condition is true.
-""") + ifthenExample,
+    "elif" : pyzo.translate("pyzoInteractiveHelp", "This keyword can only appear as part of an alternative. See: if"),
+    "if" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It is followed by a conditon and introduces the statement to execute when this condition is true. The alternative can only have one if clause, at the beginning. It can also comprise one or more elif clauses and at most one else clause at the end.
+
+Example:
+
+if condition1 :
+    doSomething       # when condition1 evaluates to True
+elif condition2 :     # optional, may have several such clauses
+    doSomeOtherthing  # when condition1 evaluates to False and condition2 to True
+else :                # optional
+    doAnotherThing    # when all conditions evaluate to False"""),
     "or" : pyzo.translate("pyzoInteractiveHelp", """This operator computes the boolean disjunction in a lazy manner. More precisely, the expression `x or y' first evaluates `x'; if `x' is true, its value is returned; otherwise, `y' is evaluated and the resulting value is returned.
 
 See also: and, not, True, False"""),
