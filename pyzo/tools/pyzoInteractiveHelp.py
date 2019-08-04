@@ -14,43 +14,79 @@ import pyzo
 tool_name = pyzo.translate("pyzoInteractiveHelp", "Interactive help")
 tool_summary = pyzo.translate("pyzoInteractiveHelp", "Shows help on an object when using up/down in autocomplete.")
 
+ifthenExample = pyzo.translate("pyzoInteractiveHelp", """
+Example:
+
+if condition1 :
+    doSomething       # when condition1 evaluates to True
+elif condition2 :     # optional
+    doSomeOtherthing  # when condition1 evaluates to False and condition2 to True
+else :                # optional
+    doAnotherThing    # when all conditions evaluate to False
+""")
+
 keywordsHelp = {
-    "await" : "A keyword of the Python language.",
-    "else" : "A keyword of the Python language.",
-    "import" : "A keyword of the Python language.",
-    "pass" : "A keyword of the Python language.",
-    "break" : "A keyword of the Python language.",
-    "except" : "A keyword of the Python language.",
-    "in" : "A keyword of the Python language.",
-    "raise" : "A keyword of the Python language.",
-    "class" : "A keyword of the Python language.",
-    "finally" : "A keyword of the Python language.",
-    "is" : "A keyword of the Python language.",
-    "return" : "A keyword of the Python language.",
-    "and" : "A keyword of the Python language.",
-    "continue" : "A keyword of the Python language.",
-    "for" : "A keyword of the Python language.",
-    "lambda" : "A keyword of the Python language.",
-    "try" : "A keyword of the Python language.",
-    "as" : "A keyword of the Python language.",
-    "def" : "A keyword of the Python language.",
-    "from" : "A keyword of the Python language.",
-    "nonlocal" : "A keyword of the Python language.",
-    "while" : "A keyword of the Python language.",
-    "assert" : "A keyword of the Python language.",
-    "del" : "A keyword of the Python language.",
-    "global" : "A keyword of the Python language.",
-    "not" : "A keyword of the Python language.",
-    "with" : "A keyword of the Python language.",
-    "async" : "A keyword of the Python language.",
-    "elif" : "A keyword of the Python language.",
-    "if" : "A keyword of the Python language.",
-    "or" : "A keyword of the Python language.",
-    "yield" : "A keyword of the Python language."
+    "await" : pyzo.translate("pyzoInteractiveHelp", "Suspend the execution of coroutine on an awaitable object. Can only be used inside a coroutine function."),
+    "else" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It introduces the statement to execute when all conditions are false.
+""") + ifthenExample,
+    "import" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "pass" : pyzo.translate("pyzoInteractiveHelp", "This is an instruction that does nothing. It is useful in cases where an instruction must appear because of syntactic constraints but we have nothing to do."),
+    "break" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the loop early, regardless of the loop condition.
+
+See also: continue"""),
+    "except" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "in" : pyzo.translate("pyzoInteractiveHelp", """This keyword usually refers to membership of an object in a structure. There are actually two different kinds of `in'.
+
+In a construct of the form `for identifier in iterable', `in' is a purely syntactic element that bears no meaning per se. See: for
+
+Outside such constructs, `in' is an operator and its precise meaning depends on the type of the first operand."""),
+    "raise" : pyzo.translate("pyzoInteractiveHelp", "This keyword is a special instruction to raise an Exception"),
+    "class" : pyzo.translate("pyzoInteractiveHelp", "This keyword introduces the definition of a class."),
+    "finally" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "is" : pyzo.translate("pyzoInteractiveHelp", """This operator tests for an object’s identity: `x is y' is true if and only if `x' and `y' are the same object.
+
+See also: id"""),
+    "return" : pyzo.translate("pyzoInteractiveHelp", "This keyword can only appear in the definition of a function. It is usually followed by an expression. It means that the execution of the function call terminates here and that the result of the call is the value of the following expression. If return is not followed by an expression, the result is None."),
+    "and" : pyzo.translate("pyzoInteractiveHelp", """This operator computes the boolean conjunction in a lazy manner. More precisely, the expression `x and y' first evaluates `x'; if `x' is false, its value is returned; otherwise, `y' is evaluated and the resulting value is returned.
+
+See also: or, not, True, False"""),
+    "continue" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the current run of the body early. The loop may still make additional runs of its body if its condition is still true .
+
+See also: break"""),
+    "for" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "lambda" : pyzo.translate("pyzoInteractiveHelp", """This keyword is used to produce an anonymous function.
+
+Example: lambda x,y,z : (x+y) * z"""),
+    "try" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "as" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "def" : pyzo.translate("pyzoInteractiveHelp", "This keyword introduces the definition of a function."),
+    "from" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "nonlocal" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the definition of a function. It is followed by identifiers and indicates that those identifier refer variables from the outer scope, not local variables in the function being defined.
+
+See also: global"""),
+    "while" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "assert" : pyzo.translate("pyzoInteractiveHelp", "Assert statements are a convenient way to insert debugging assertions into a program."),
+    "del" : pyzo.translate("pyzoInteractiveHelp", """Deletion of a name removes the binding of that name from the local or global namespace. It is also possible to delete an item in a list."""),
+    "global" : pyzo.translate("pyzoInteractiveHelp", """This keyword is followed by identifiers and indicates that those identifier refer variables from the module scope, not local variables.
+
+See also: nonlocal"""),
+    "not" : pyzo.translate("pyzoInteractiveHelp", """The operator not yields True if its argument is false, False otherwise.
+
+See also: and, or, True, False"""),
+    "with" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "async" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "elif" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It is followed by a conditon and introduces the statement to execute when the preceding conditions are false but this condition is true.
+""") + ifthenExample,
+    "if" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It is followed by a conditon and introduces the statement to execute when this condition is true.
+""") + ifthenExample,
+    "or" : pyzo.translate("pyzoInteractiveHelp", """This operator computes the boolean disjunction in a lazy manner. More precisely, the expression `x or y' first evaluates `x'; if `x' is true, its value is returned; otherwise, `y' is evaluated and the resulting value is returned.
+
+See also: and, not, True, False"""),
+    "yield" : pyzo.translate("pyzoInteractiveHelp", """The yield expression is used when defining a generator function or an asynchronous generator function and thus can only be used in the body of a function definition. Using a yield expression in a function’s body causes that function to be a generator, and using it in an async def function’s body causes that coroutine function to be an asynchronous generator.""")
 }
 
 operators = ["+", "-", "*", "**", "/", "//", "%", "@", "<<", ">>", "&", "|", "^", "~", "<", ">", "<=", ">=", "==", "!="]
-operatorsHelp = "No help is available for operators because they are ambiguous: their meaning depend on the type of the first operand."
+operatorsHelp = pyzo.translate("pyzoInteractiveHelp", "No help is available for operators because they are ambiguous: their meaning depend on the type of the first operand.")
 
 
 #
