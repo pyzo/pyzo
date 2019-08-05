@@ -92,6 +92,7 @@ htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
 <html>
 <head>
 <style type="text/css">
+pre, code {{background-color: #F2F2F2;}}
 </style>
 </head>
 <body style=" font-family:'Sans Serif'; font-size:{}pt; font-weight:400; font-style:normal;">
