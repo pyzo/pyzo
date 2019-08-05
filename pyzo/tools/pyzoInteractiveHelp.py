@@ -16,8 +16,19 @@ tool_summary = pyzo.translate("pyzoInteractiveHelp", "Shows help on an object wh
 
 keywordsHelp = {
     "await" : pyzo.translate("pyzoInteractiveHelp", "Suspend the execution of coroutine on an awaitable object. Can only be used inside a coroutine function."),
-    "else" : pyzo.translate("pyzoInteractiveHelp", """This keyword can appear as part of an alternative (see: ``if``) or a loop (see: ``for``, ``while``)."""),
-    "import" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "else" : pyzo.translate("pyzoInteractiveHelp", """This keyword can appear as part of an alternative (see: ``if``), a loop (see: ``for``, ``while``) or a ``try`` statement."""),
+    "import" : pyzo.translate("pyzoInteractiveHelp", """Find and load modules or members of modules.
+    
+Examples:
+```
+import foo                 # foo imported and bound locally
+import foo.bar.baz         # foo.bar.baz imported, foo bound locally
+import foo.bar.baz as fbb  # foo.bar.baz imported and bound as fbb
+from foo.bar import baz    # foo.bar.baz imported and bound as baz
+from foo import attr       # foo imported and foo.attr bound as attr
+from foo import *          # foo imported and all its members bound
+                                    # under their respective names
+```"""),
     "pass" : pyzo.translate("pyzoInteractiveHelp", "This is an instruction that does nothing. It is useful in cases where an instruction must appear because of syntactic constraints but we have nothing to do."),
     "break" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the loop early, regardless of the loop condition.
 
@@ -28,7 +39,7 @@ See also: ``continue``"""),
 In a construct of the form ``for identifier in iterable``, ``in`` is a purely syntactic element that bears no meaning per se. See: ``for``
 
 Outside such constructs, ``in`` is an operator and its precise meaning depends on the type of the first operand."""),
-    "raise" : pyzo.translate("pyzoInteractiveHelp", "This keyword is a special instruction to raise an Exception"),
+    "raise" : pyzo.translate("pyzoInteractiveHelp", "This keyword is a special instruction to raise an Exception."),
     "class" : pyzo.translate("pyzoInteractiveHelp", "This keyword introduces the definition of a class."),
     "finally" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
     "is" : pyzo.translate("pyzoInteractiveHelp", """This operator tests for an object’s identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
@@ -41,18 +52,50 @@ See also: ``or``, ``not``, ``True``, ``False``"""),
     "continue" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the current run of the body early. The loop may still make additional runs of its body if its condition is still true .
 
 See also: ``break``"""),
-    "for" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "for" : pyzo.translate("pyzoInteractiveHelp", """The ``for`` statement is used to iterate over the elements of an iterable object:
+
+```
+for variable in iterable:
+    body
+else:       # optional
+    suite
+```
+
+The expression ``iterable`` is evaluated once; it should yield an iterable object. An iterator is created for the result of that expression. The ``body`` is then executed once for each item provided by the iterator, in the order returned by the iterator: each item in turn is assigned to the ``variable`` and then the ``body`` is executed. When the items are exhausted (which is immediately when the ``iterable`` is empty), the ``suite`` in the ``else`` clause, if present, is executed, and the loop terminates.
+
+A ``break`` statement executed in the first suite terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the first suite skips the rest of the ``body`` and continues with the next item, or with the ``else`` clause if there is no next item.
+
+The for-loop makes assignments to the ``variable``. This overwrites all previous assignments to that variable including those made in the ``body`` of the for-loop:
+```
+for i in range(10):
+    print(i)
+    i = 5             # this will not affect the for-loop
+                      # because i will be overwritten with the next
+                      # index in the range
+```
+"""),
     "lambda" : pyzo.translate("pyzoInteractiveHelp", """This keyword is used to produce an anonymous function.
 
 Example: ``lambda x,y,z : (x+y) * z``"""),
     "try" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
     "as" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
     "def" : pyzo.translate("pyzoInteractiveHelp", "This keyword introduces the definition of a function."),
-    "from" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "from" : pyzo.translate("pyzoInteractiveHelp", "This keyword can appear as a part of an ``import`` or a ``raise``. It has different meanings; see help on those keywords."),
     "nonlocal" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the definition of a function. It is followed by identifiers and indicates that those identifier refer variables from the outer scope, not local variables in the function being defined.
 
 See also: ``global``"""),
-    "while" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "while" : pyzo.translate("pyzoInteractiveHelp", """The while statement is used for repeated execution as long as an expression is true:
+
+```
+while expression:
+    body
+else:           # optional
+    suite
+```
+
+This repeatedly tests the ``expression`` and, if it is true, executes the ``body``; if the ``expression`` is false (which may be the first time it is tested) the ``suite`` of the ``else`` clause, if present, is executed and the loop terminates.
+
+A ``break`` statement executed in the ``body`` terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the ``body`` skips the rest of the ``body`` and goes back to testing the ``expression``."""),
     "assert" : pyzo.translate("pyzoInteractiveHelp", "Assert statements are a convenient way to insert debugging assertions into a program."),
     "del" : pyzo.translate("pyzoInteractiveHelp", """Deletion of a name removes the binding of that name from the local or global namespace. It is also possible to delete an item in a list."""),
     "global" : pyzo.translate("pyzoInteractiveHelp", """This keyword is followed by identifiers and indicates that those identifiers refer variables from the module scope, not local variables.
