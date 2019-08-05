@@ -444,6 +444,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                 
                 # Parse the text as rest/numpy like docstring
                 h_text = self.smartFormat(h_text)
+                h_text = re.sub("``(.*?)``", r"<code>\1</code>", h_text)
                 if header:
                     h_text = "<p style='color:#005;'><b>%s</b></p>\n%s" % (
                                                             header, h_text)
@@ -471,7 +472,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
     def smartFormat(self, text):
         
         # Get lines
-        lines = text.splitlines()
+        lines = text.splitlines(True)
         
         # Test minimal indentation
         minIndent = 9999
@@ -492,6 +493,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         prevWasHeader = False
         inExample = False
         forceNewline = False
+        inPre = False
         
         # Format line by line
         lines3 = []
@@ -500,54 +502,62 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             
             # Get indentation
             line_ = line.lstrip()
-            indent = len(line) - len(line_)
-            #indentPart = line[:indent-minIndent]
-            indentPart = line[:indent]
-            
-            if not line_:
-                lines3.append("<br />")
-                forceNewline = True
-                continue
-            
-            # Indent in html
-            line = "&nbsp;" * len(indentPart) + line
-            
-            # Determine if we should introduce a newline
-            isHeader = False
-            if ("---" in line or "===" in line) and indent == prevIndent:
-                # Header
-                lines3[-1] = '<b>' + lines3[-1] + '</b>'
-                line = ''#'<br /> ' + line
-                isHeader = True
-                inExample = False
-                # Special case, examples
-                if prevLine_.lower().startswith('example'):
-                    inExample = True
-                else:
+            if line_ in ("```", "```\n") :
+                if inPre :
+                    line = "</pre>"
+                    inPre = False
+                else :
+                    line = "<pre>"
+                    inPre = True
+            elif not inPre :
+                indent = len(line) - len(line_)
+                #indentPart = line[:indent-minIndent]
+                indentPart = line[:indent]
+                
+                if not line_:
+                    lines3.append("<br />")
+                    forceNewline = True
+                    continue
+                
+                # Indent in html
+                line = "&nbsp;" * len(indentPart) + line
+                
+                # Determine if we should introduce a newline
+                isHeader = False
+                if ("---" in line or "===" in line) and indent == prevIndent:
+                    # Header
+                    lines3[-1] = '<b>' + lines3[-1] + '</b>'
+                    line = ''#'<br /> ' + line
+                    isHeader = True
                     inExample = False
-            elif ' : ' in line:
-                tmp = line.split(' : ',1)
-                line = '<br /><u>' + tmp[0] + '</u> : ' + tmp[1]
-            elif line_.startswith('* '):
-                line = '<br />&nbsp;&nbsp;&nbsp;&#8226;' + line_[2:]
-            elif prevWasHeader or inExample or forceNewline:
-                line = '<br />' + line
-            else:
-                if prevLine_:
-                    line = " " + line_
+                    # Special case, examples
+                    if prevLine_.lower().startswith('example'):
+                        inExample = True
+                    else:
+                        inExample = False
+                elif ' : ' in line:
+                    tmp = line.split(' : ',1)
+                    line = '<br /><u>' + tmp[0] + '</u> : ' + tmp[1]
+                elif line_.startswith('* '):
+                    line = '<br />&nbsp;&nbsp;&nbsp;&#8226;' + line_[2:]
+                elif prevWasHeader or inExample or forceNewline:
+                    line = '<br />' + line
                 else:
-                    line = line_
-            
-            # Force next line to be on a new line if using a colon
-            if ' : ' in line:
-                forceNewline = True
-            else:
-                forceNewline = False
-            
-            # Prepare for next line
-            prevLine_ = line_
-            prevIndent = indent
-            prevWasHeader = isHeader
+                    if prevLine_:
+                        line = " " + line_
+                    else:
+                        line = line_
+
+                # Force next line to be on a new line if using a colon
+                if ' : ' in line:
+                    forceNewline = True
+                else:
+                    forceNewline = False
+
+                # Prepare for next line
+                prevLine_ = line_
+                prevIndent = indent
+                prevWasHeader = isHeader
             
             # Done with line
             lines3.append(line)
