@@ -354,7 +354,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         shell = pyzo.shells.getCurrentShell()
         if shell and name:
             if name in operators :
-                shell.processLine('print("""{}""")'.format("Help on keyword: " + name + "\n\n" + operatorsHelp))
+                shell.processLine('print("""{}""")'.format("Help on operator: " + name + "\n\n" + operatorsHelp))
             elif name in keywordsHelp :
                 shell.processLine('print("""{}""")'.format("Help on keyword: " + name + "\n\n" + keywordsHelp[name]))
             else :
