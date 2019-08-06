@@ -499,7 +499,7 @@ class PyzoEditor(BaseTextCtrl):
             return
 
         # Remove whitespace in a single undo-able action
-        if self.removeTrailingWS or pyzo.config.settings.removeTrailingWhitespaceWhenSaving:
+        if self.removeTrailingWS and pyzo.config.settings.removeTrailingWhitespaceWhenSaving:
             # Original cursor to put state back at the end
             oricursor = self.textCursor()
             # Screen cursor to select document
