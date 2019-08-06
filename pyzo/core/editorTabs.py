@@ -994,6 +994,9 @@ class EditorTabs(QtWidgets.QWidget):
         self._boxLayout.addWidget(self._findReplace, 0)
         # spacing of widgets
         self._boxLayout.setSpacing(0)
+        # set margins
+        margins = pyzo.config.view.margins
+        self._boxLayout.setContentsMargins(*margins)
         # apply
         self.setLayout(self._boxLayout)
         

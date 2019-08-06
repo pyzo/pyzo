@@ -374,7 +374,9 @@ Currently, there are none. Some of them may be hidden because of the filters you
         mainLayout.addWidget(self._initText, 1)
         mainLayout.addWidget(self._tree, 2)
         mainLayout.setSpacing(2)
-        mainLayout.setContentsMargins(4,4,4,4)
+        # set margins
+        margins = pyzo.config.view.margins
+        mainLayout.setContentsMargins(*margins)
         self.setLayout(mainLayout)
         
         # Bind events
