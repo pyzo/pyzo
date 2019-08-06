@@ -29,19 +29,19 @@ from foo import attr       # foo imported and foo.attr bound as attr
 from foo import *          # foo imported and all its members bound
                                     # under their respective names
 ```"""),
-    "pass" : pyzo.translate("pyzoInteractiveHelp", "This is an instruction that does nothing. It is useful in cases where an instruction must appear because of syntactic constraints but we have nothing to do."),
-    "break" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the loop early, regardless of the loop condition.
+    "pass" : pyzo.translate("pyzoInteractiveHelp", "This is an instruction that does nothing. It is useful in cases where a statement must appear because of syntactic constraints but we have nothing to do."),
+    "break" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a ``for`` or ``while`` loop. It terminates the loop early, regardless of the loop condition.
 
 See also: ``continue``"""),
-    "except" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "except" : pyzo.translate("pyzoInteractiveHelp", "An ``except`` clause can appear as a part of a ``try`` statement."),
     "in" : pyzo.translate("pyzoInteractiveHelp", """This keyword usually refers to membership of an object in a structure. There are actually two different kinds of ``in``.
 
 In a construct of the form ``for identifier in iterable``, ``in`` is a purely syntactic element that bears no meaning per se. See: ``for``
 
 Outside such constructs, ``in`` is an operator and its precise meaning depends on the type of the first operand."""),
-    "raise" : pyzo.translate("pyzoInteractiveHelp", "This keyword is a special instruction to raise an Exception."),
+    "raise" : pyzo.translate("pyzoInteractiveHelp", "The ``raise`` statement is used to raise an Exception. Raising an exception will cause the program to abort, unless the exception is handled by a surrounding ``try``/``except`` statement or ``with`` statement."),
     "class" : pyzo.translate("pyzoInteractiveHelp", "This keyword introduces the definition of a class."),
-    "finally" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+    "finally" : pyzo.translate("pyzoInteractiveHelp", "An ``finally`` clause can appear as a part of a ``try`` statement."),
     "is" : pyzo.translate("pyzoInteractiveHelp", """This operator tests for an object’s identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
 
 See also: ``id``"""),
@@ -49,7 +49,7 @@ See also: ``id``"""),
     "and" : pyzo.translate("pyzoInteractiveHelp", """This operator computes the boolean conjunction in a lazy manner. More precisely, the expression ``x and y`` first evaluates ``x``; if ``x`` is false, its value is returned; otherwise, ``y`` is evaluated and the resulting value is returned.
 
 See also: ``or``, ``not``, ``True``, ``False``"""),
-    "continue" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a loop. It terminates the current run of the body early. The loop may still make additional runs of its body if its condition is still true .
+    "continue" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the body of a ``for`` or ``while`` loop. It terminates the current run of the body early. The loop may still make additional runs of its body if its condition is still true .
 
 See also: ``break``"""),
     "for" : pyzo.translate("pyzoInteractiveHelp", """The ``for`` statement is used to iterate over the elements of an iterable object:
@@ -60,8 +60,7 @@ for variable in iterable:
 else:       # optional
     suite
 ```
-
-The expression ``iterable`` is evaluated once; it should yield an iterable object. An iterator is created for the result of that expression. The ``body`` is then executed once for each item provided by the iterator, in the order returned by the iterator: each item in turn is assigned to the ``variable`` and then the ``body`` is executed. When the items are exhausted (which is immediately when the ``iterable`` is empty), the ``suite`` in the ``else`` clause, if present, is executed, and the loop terminates.
+The expression ``iterable`` is evaluated once; its value should be an iterable object. An iterator is created for the result of that expression. The ``body`` is then executed once for each item provided by the iterator, in the order returned by the iterator: each item in turn is assigned to the ``variable`` and then the ``body`` is executed. When the items are exhausted (which is immediately when the ``iterable`` is empty), the ``suite`` in the ``else`` clause, if present, is executed, and the loop terminates.
 
 A ``break`` statement executed in the first suite terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the first suite skips the rest of the ``body`` and continues with the next item, or with the ``else`` clause if there is no next item.
 
@@ -73,12 +72,44 @@ for i in range(10):
                       # because i will be overwritten with the next
                       # index in the range
 ```
+
+The ``for`` keyword can also be part of a generator.
+
+Example:
+```
+[2*x for x in T]
+```
+This builds from ``T`` a list where each item was doubled.
 """),
     "lambda" : pyzo.translate("pyzoInteractiveHelp", """This keyword is used to produce an anonymous function.
 
-Example: ``lambda x,y,z : (x+y) * z``"""),
-    "try" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
-    "as" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
+Example: 
+```
+lambda x,y,z : (x+y) * z
+```"""),
+    "try" : pyzo.translate("pyzoInteractiveHelp", """The ``try`` statement allows to recover when an Exception was raised. It has two main forms.
+    
+```
+try:
+    critical_section
+except SomeExceptionType as e:
+    suite   # manage exceptions of type Exception1
+else:       # optional
+    everything_ok
+```
+If ``critical_section`` raises an exception of type ``SomeExceptionType``, the whole program will not abort but the ``suite`` will be executed, with ``e`` being bound to the actual exception. Several ``except`` clauses may be specified, each dealing with some kind of exception. If an exception is raised in ``critical_section`` but is not managed by any ``except`` clause, the whole program aborts. If there is an ``else`` clause, its body is executed if the control flow leaves the ``critical_section``, no exception was raised, and no ``return``, ``continue`` or ``break`` statement was executed. Exceptions in the ``else`` clause are not handled by the preceding ``except`` clauses.
+
+
+```
+try:
+    critical_section
+finally:
+    suite
+```
+If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed ‘on the way out.’ A ``continue`` statement is illegal in the ``finally`` clause.
+
+Both mechanisms can be combined, the ``finally`` clause coming after the last ``except`` clause or after the optional ``else`` clause."""),
+    "as" : pyzo.translate("pyzoInteractiveHelp", "The ``as`` keyword can appear in an ``import`` statement, in an ``except`` clause of a ``try`` statement or in a ``with`` statement."),
     "def" : pyzo.translate("pyzoInteractiveHelp", "This keyword introduces the definition of a function."),
     "from" : pyzo.translate("pyzoInteractiveHelp", "This keyword can appear as a part of an ``import`` or a ``raise``. It has different meanings; see help on those keywords."),
     "nonlocal" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear in the definition of a function. It is followed by identifiers and indicates that those identifier refer variables from the outer scope, not local variables in the function being defined.
@@ -92,7 +123,6 @@ while expression:
 else:           # optional
     suite
 ```
-
 This repeatedly tests the ``expression`` and, if it is true, executes the ``body``; if the ``expression`` is false (which may be the first time it is tested) the ``suite`` of the ``else`` clause, if present, is executed and the loop terminates.
 
 A ``break`` statement executed in the ``body`` terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the ``body`` skips the rest of the ``body`` and goes back to testing the ``expression``."""),
@@ -101,13 +131,21 @@ A ``break`` statement executed in the ``body`` terminates the loop without execu
     "global" : pyzo.translate("pyzoInteractiveHelp", """This keyword is followed by identifiers and indicates that those identifiers refer variables from the module scope, not local variables.
 
 See also: ``nonlocal``"""),
-    "not" : pyzo.translate("pyzoInteractiveHelp", """The operator ``not`` yields ``True`` if its argument is false, ``False`` otherwise.
+    "not" : pyzo.translate("pyzoInteractiveHelp", """The operator ``not`` returns ``True`` if its argument is false, ``False`` otherwise.
 
 See also: ``and``, ``or``, ``True``, ``False``"""),
-    "with" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
-    "async" : pyzo.translate("pyzoInteractiveHelp", "A keyword of the Python language."),
-    "elif" : pyzo.translate("pyzoInteractiveHelp", "This keyword can only appear as part of an alternative. See: if"),
-    "if" : pyzo.translate("pyzoInteractiveHelp", """This keyword can only appear as part of an alternative. It is followed by a conditon and introduces the statement to execute when this condition is true. The alternative can only have one ``if`` clause, at the beginning. It can also comprise one or more ``elif`` clauses and at most one ``else`` clause at the end.
+    "with" : pyzo.translate("pyzoInteractiveHelp", """The ``with`` statement is used to wrap the execution of a block with methods defined by a context manager.
+
+Example:
+```
+with open(filename) as infile:
+    header = infile.readline()
+    # etc.
+```
+In this example, the context manager will ensure correct closing of the file upon exiting the ``with`` statement, even if an exception was raised."""),
+    "async" : pyzo.translate("pyzoInteractiveHelp", "This keyword appears as part of the ``async def``, ``async for`` and ``async with`` constructs and allows for writing coroutines."),
+    "elif" : pyzo.translate("pyzoInteractiveHelp", "This keyword can only appear as part of an alternative. See: ``if``"),
+    "if" : pyzo.translate("pyzoInteractiveHelp", """This keyword usually introduces an alternative. It is followed by a conditon and introduces the statement to execute when this condition is true. The alternative can only have one ``if`` clause, at the beginning. It can also comprise one or more ``elif`` clauses and at most one ``else`` clause at the end.
 
 Example:
 
@@ -118,7 +156,16 @@ elif condition2 :     # optional, may have several such clauses
     doSomeOtherthing  # when condition1 evaluates to False and condition2 to True
 else :                # optional
     doAnotherThing    # when all conditions evaluate to False
-```"""),
+```
+
+
+The ``if`` keyword can also appear in a generator.
+
+Example:
+```
+[x for x in T if x%2==0]
+```
+This filters ``T`` to keep only its even items."""),
     "or" : pyzo.translate("pyzoInteractiveHelp", """This operator computes the boolean disjunction in a lazy manner. More precisely, the expression ``x or y`` first evaluates ``x``; if ``x`` is true, its value is returned; otherwise, ``y`` is evaluated and the resulting value is returned.
 
 See also: ``and``, ``not``, ``True``, ``False``"""),
