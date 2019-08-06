@@ -233,6 +233,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
         self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
+        self.setCancelCallback(self.restoreHelp)
     
     def setAutoCompletionAcceptKeysFromStr(self, keys):
         """ Set the keys that can accept an autocompletion from a comma delimited string.
@@ -443,6 +444,11 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Apply
         self.processHelp(name,True)
    
+    @staticmethod
+    def restoreHelp() :
+        hw = pyzo.toolManager.getTool('pyzointeractivehelp')
+        if hw :
+            hw.restoreCurrent()
    
     def event(self,event):
         """ event(event)

@@ -426,6 +426,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._history.append(name)
         self._histindex = len(self._history)-1
         
+    def restoreCurrent(self) :
+        self.setObjectName(self.currentHist())
+        
     def goBack(self) :
         if self._histindex > 0 and self._history != [] :
             self._histindex -= 1

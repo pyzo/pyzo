@@ -37,6 +37,8 @@ class AutoCompletion(object):
         self.__completerNames = []
         self.__recentCompletions = [] #List of recently selected completions
         
+        self.__cancelCallback = None
+        
         # geometry
         self.__popupSize = 300, 100
         
@@ -80,6 +82,8 @@ class AutoCompletion(object):
         """
         self.__autocompletionAcceptKeys = keys
     
+    def setCancelCallback(self, cb) :
+        self.__cancelCallback = cb
     
     ## Autocompletion
     
@@ -132,6 +136,8 @@ class AutoCompletion(object):
     def autocompleteCancel(self):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
+        if self.__cancelCallback is not None :
+            self.__cancelCallback()
         
     def onAutoComplete(self, text=None):
         if text is None:
