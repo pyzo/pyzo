@@ -93,7 +93,7 @@ lambda x,y,z : (x+y) * z
 try:
     critical_section
 except SomeExceptionType as e:
-    suite   # manage exceptions of type Exception1
+    suite   # manage exceptions of type SomeExceptionType
 else:       # optional
     everything_ok
 ```
