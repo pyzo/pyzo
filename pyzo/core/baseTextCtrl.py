@@ -233,6 +233,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
         self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
+        self.setCancelCallback(self.restoreHelp)
     
     def setAutoCompletionAcceptKeysFromStr(self, keys):
         """ Set the keys that can accept an autocompletion from a comma delimited string.
@@ -267,6 +268,19 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         """
         #TODO:
         return True
+    
+    def getTokensUpToCursor(self, cursor) :
+        # In order to find the tokens, we need the userState from the highlighter
+        if cursor.block().previous().isValid():
+            previousState = cursor.block().previous().userState()
+        else:
+            previousState = 0
+        
+        text = cursor.block().text()[:cursor.positionInBlock()]
+        
+        return text, list(
+                filter(lambda token:token.isToken, #filter to remove BlockStates
+                self.parser().parseLine(text, previousState)))
 
     def introspect(self, tryAutoComp=False, delay=True):
         """ introspect(tryAutoComp=False, delay=True)
@@ -292,17 +306,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Find the tokens up to the cursor
         cursor = self.textCursor()
         
-        # In order to find the tokens, we need the userState from the highlighter
-        if cursor.block().previous().isValid():
-            previousState = cursor.block().previous().userState()
-        else:
-            previousState = 0
-        
-        text = cursor.block().text()[:cursor.positionInBlock()]
-        
-        tokensUptoCursor = list(
-                filter(lambda token:token.isToken, #filter to remove BlockStates
-                self.parser().parseLine(text, previousState)))
+        text, tokensUptoCursor = self.getTokensUpToCursor(cursor)
         
         # TODO: Only proceed if valid python (no need to check for comments/
         # strings, this is done by the processing of the tokens). Check for python style
@@ -370,10 +374,28 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     
     def _onDoubleClick(self):
         """ When double clicking on a name, autocomplete it. """
-        self.processHelp()
+        self.processHelp(addToHist = True)
     
-    
-    def processHelp(self, name=None, showError=False):
+    def helpOnText(self, pos) :
+        hw = pyzo.toolManager.getTool('pyzointeractivehelp')
+        if not hw :
+            return
+        name = self.textCursor().selectedText().strip()
+        if name == "" :
+            cursor = self.cursorForPosition(pos-self.mapToGlobal(QtCore.QPoint(0,0)))
+            line = cursor.block().text()
+            limit = cursor.positionInBlock()
+            while limit < len(line) and (line[limit].isalnum() or line[limit] in (".", "_")) :
+                limit += 1
+                cursor.movePosition(cursor.Right)
+            _, tokens = self.getTokensUpToCursor(cursor)
+            nameBefore, name = parseLine_autocomplete(tokens)
+            if nameBefore:
+                name = "%s.%s" % (nameBefore, name)
+        if name != "" :
+            hw.setObjectName(name, True)
+
+    def processHelp(self, name=None, showError=False, addToHist = False):
         """ Show help on the given full object name.
         - called when going up/down in the autocompletion list.
         - called when double clicking a name
@@ -404,10 +426,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                     name = "%s.%s" % (nameBefore, name)
         
         if name:
-            hw.setObjectName(name)
+            hw.helpFromCompletion(name, addToHist)
         if ass:
             ass.showHelpForTerm(name)
-    
+
     ## Callbacks
     def updateHelp(self,name):
         """A name has been highlighted, show help on that name"""
@@ -422,6 +444,11 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         # Apply
         self.processHelp(name,True)
    
+    @staticmethod
+    def restoreHelp() :
+        hw = pyzo.toolManager.getTool('pyzointeractivehelp')
+        if hw :
+            hw.restoreCurrent()
    
     def event(self,event):
         """ event(event)

@@ -230,7 +230,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             # Show help in help tool (if loaded)
             hw = pyzo.toolManager.getTool('pyzointeractivehelp')
             if hw:
-                hw.setObjectName(action._objectName)
+                hw.setObjectName(action._objectName, addToHist=True)
         
         elif 'delete' in req:
             # Delete the variable
