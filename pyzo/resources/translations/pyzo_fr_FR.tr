@@ -1479,7 +1479,7 @@ for variable in iterable:
 else:       # facultatif
     suite
 ```
-L&apos;expression ``iterable`` est évaluée une seule fois ; elle doit produire un objet itérable. Un itérateur est créé pour le résultat de cette expression. Le ``corps`` est ensuite exécuté une fois pour chaque élément fourni par l&apos;itérateur, dans l&apos;ordre renvoyé par l&apos;itérateur : Chaque élément est affecté, à tour de rôle, `à `variable`` puis le ``corps`` est exécuté. Lorsque les éléments sont épuisés (ce qui est immédiat lorsque l&apos;``iterable`` est vide), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
+L&apos;expression ``iterable`` est évaluée une seule fois ; elle doit produire un objet itérable. Un itérateur est créé pour le résultat de cette expression. Le ``corps`` est ensuite exécuté une fois pour chaque élément fourni par l&apos;itérateur, dans l&apos;ordre renvoyé par l&apos;itérateur : Chaque élément est affecté, à tour de rôle, à ``variable`` puis le ``corps`` est exécuté. Lorsque les éléments sont épuisés (ce qui est immédiat lorsque l&apos;``iterable`` est vide), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
 
 Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et continue avec l&apos;élément suivant, ou avec la clause ``else`` s&apos;il n&apos;y a pas d&apos;élément suivant.
 
