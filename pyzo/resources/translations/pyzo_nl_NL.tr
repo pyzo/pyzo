@@ -1307,32 +1307,6 @@ lambda x,y,z : (x+y) * z
 ```</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
-        <location filename="../../tools/pyzoInteractiveHelp.py" line="90"/>
-        <source>The ``try`` statement allows to recover when an Exception was raised. It has two main forms.
-    
-```
-try:
-    critical_section
-except SomeExceptionType as e:
-    suite   # manage exceptions of type Exception1
-else:       # optional
-    everything_ok
-```
-If ``critical_section`` raises an exception of type ``SomeExceptionType``, the whole program will not abort but the ``suite`` will be executed, with ``e`` being bound to the actual exception. Several ``except`` clauses may be specified, each dealing with some kind of exception. If an exception is raised in ``critical_section`` but is not managed by any ``except`` clause, the whole program aborts. If there is an ``else`` clause, its body is executed if the control flow leaves the ``critical_section``, no exception was raised, and no ``return``, ``continue`` or ``break`` statement was executed. Exceptions in the ``else`` clause are not handled by the preceding ``except`` clauses.
-
-
-```
-try:
-    critical_section
-finally:
-    suite
-```
-If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed ‘on the way out.’ A ``continue`` statement is illegal in the ``finally`` clause.
-
-Both mechanisms can be combined, the ``finally`` clause coming after the last ``except`` clause or after the optional ``else`` clause.</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="112"/>
         <source>The ``as`` keyword can appear in an ``import`` statement, in an ``except`` clause of a ``try`` statement or in a ``with`` statement.</source>
@@ -1447,6 +1421,32 @@ See also: ``and``, ``not``, ``True``, ``False``</source>
     <message encoding="UTF-8">
         <location filename="../../tools/pyzoInteractiveHelp.py" line="172"/>
         <source>The ``yield`` expression is used when defining a generator function or an asynchronous generator function and thus can only be used in the body of a function definition. Using a yield expression in a function’s body causes that function to be a generator, and using it in an ``async def`` function’s body causes that coroutine function to be an asynchronous generator.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message encoding="UTF-8">
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="90"/>
+        <source>The ``try`` statement allows to recover when an Exception was raised. It has two main forms.
+    
+```
+try:
+    critical_section
+except SomeExceptionType as e:
+    suite   # manage exceptions of type SomeExceptionType
+else:       # optional
+    everything_ok
+```
+If ``critical_section`` raises an exception of type ``SomeExceptionType``, the whole program will not abort but the ``suite`` will be executed, with ``e`` being bound to the actual exception. Several ``except`` clauses may be specified, each dealing with some kind of exception. If an exception is raised in ``critical_section`` but is not managed by any ``except`` clause, the whole program aborts. If there is an ``else`` clause, its body is executed if the control flow leaves the ``critical_section``, no exception was raised, and no ``return``, ``continue`` or ``break`` statement was executed. Exceptions in the ``else`` clause are not handled by the preceding ``except`` clauses.
+
+
+```
+try:
+    critical_section
+finally:
+    suite
+```
+If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed ‘on the way out.’ A ``continue`` statement is illegal in the ``finally`` clause.
+
+Both mechanisms can be combined, the ``finally`` clause coming after the last ``except`` clause or after the optional ``else`` clause.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

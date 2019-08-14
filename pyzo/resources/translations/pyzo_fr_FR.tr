@@ -1262,15 +1262,6 @@ En dehors de telles constructions, ``in`` est un opérateur et son sens précis 
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoInteractiveHelp.py" line="45"/>
-        <source>This operator tests for an object’s identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
-
-See also: ``id``</source>
-        <translation>Cet opérateur teste l&apos;égalité des identifiants des objets : ``x is y`` est vrai si et seulement si ``x`` et ``y`` sont le même objet.
-
-Voir aussi : ``id``</translation>
-    </message>
-    <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="48"/>
         <source>This keyword can only appear in the definition of a function. It is usually followed by an expression. It means that the execution of the function call terminates here and that the result of the call is the value of the following expression. If ``return`` is not followed by an expression, the result is ``None``.</source>
         <translation>Ce mot-clé ne peut se trouver que dans la définition d&apos;une fonction. Il est habituellement suivi d&apos;une expression. Il signifie que l&apos;exécution de l&apos;appel de fonction se termine ici et que le résultat de l&apos;appel est la valeur de l&apos;expression située après. Si ``return`` n&apos;est pas suivi d&apos;une expression, le résultat est ``None``.</translation>
@@ -1294,67 +1285,6 @@ See also: ``break``</source>
 Voir aussi : ``break``</translation>
     </message>
     <message>
-        <location filename="../../tools/pyzoInteractiveHelp.py" line="55"/>
-        <source>The ``for`` statement is used to iterate over the elements of an iterable object:
-
-```
-for variable in iterable:
-    body
-else:       # optional
-    suite
-```
-The expression ``iterable`` is evaluated once; its value should be an iterable object. An iterator is created for the result of that expression. The ``body`` is then executed once for each item provided by the iterator, in the order returned by the iterator: each item in turn is assigned to the ``variable`` and then the ``body`` is executed. When the items are exhausted (which is immediately when the ``iterable`` is empty), the ``suite`` in the ``else`` clause, if present, is executed, and the loop terminates.
-
-A ``break`` statement executed in the first suite terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the first suite skips the rest of the ``body`` and continues with the next item, or with the ``else`` clause if there is no next item.
-
-The for-loop makes assignments to the ``variable``. This overwrites all previous assignments to that variable including those made in the ``body`` of the for-loop:
-```
-for i in range(10):
-    print(i)
-    i = 5             # this will not affect the for-loop
-                      # because i will be overwritten with the next
-                      # index in the range
-```
-
-The ``for`` keyword can also be part of a generator.
-
-Example:
-```
-[2*x for x in T]
-```
-This builds from ``T`` a list where each item was doubled.
-</source>
-        <translation>L&apos;instruction ``for`` sert à itérer sur les éléments d&apos;un objet itérable :
-
-```
-for variable in iterable:
-    corps
-else:       # facultatif
-    suite
-```
-L&apos;expression ``iterable`` est évaluée une seule fois ; elle doit produire un objet itérable. Un itérateur est créé pour le résultat de cette expression. Le ``corps`` est ensuite exécuté une fois pour chaque élément fourni par l&apos;itérateur, dans l&apos;ordre renvoyé par l&apos;itérateur : Chaque élément est affecté, à tour de rôle, `à `variable`` puis le ``corps`` est exécuté. Lorsque les éléments sont épuisés (ce qui est immédiat lorsque l&apos;``iterable`` est vide), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
-
-Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et continue avec l&apos;élément suivant, ou avec la clause ``else`` s&apos;il n&apos;y a pas d&apos;élément suivant.
-
-La boucle ``for`` effectue des affectations à la ``variable``, ce qui écrase toutes les affectations antérieures de cette ``variable, y compris celles effectuées dans le ``corps`` de la boucle for :
-```
-for i in range(10):
-    print(i)
-    i = 5             # cette affectation n&apos;aura pas d&apos;influence
-                      # sur la boucle car elle sera écrasée par la
-                      # prochaine valeur du range
-```
-
-Le mot-clé ``for`` peut aussi exprimer un générateur.
-
-Exemple :
-```
-[2*x for x in T]
-```
-Ceci construit à partir de ``T`` une liste en doublant chaque élément.
-</translation>
-    </message>
-    <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="84"/>
         <source>This keyword is used to produce an anonymous function.
 
@@ -1368,32 +1298,6 @@ Exemple :
 ```
 lambda x,y,z : (x+y) * z
 ```</translation>
-    </message>
-    <message>
-        <location filename="../../tools/pyzoInteractiveHelp.py" line="90"/>
-        <source>The ``try`` statement allows to recover when an Exception was raised. It has two main forms.
-    
-```
-try:
-    critical_section
-except SomeExceptionType as e:
-    suite   # manage exceptions of type Exception1
-else:       # optional
-    everything_ok
-```
-If ``critical_section`` raises an exception of type ``SomeExceptionType``, the whole program will not abort but the ``suite`` will be executed, with ``e`` being bound to the actual exception. Several ``except`` clauses may be specified, each dealing with some kind of exception. If an exception is raised in ``critical_section`` but is not managed by any ``except`` clause, the whole program aborts. If there is an ``else`` clause, its body is executed if the control flow leaves the ``critical_section``, no exception was raised, and no ``return``, ``continue`` or ``break`` statement was executed. Exceptions in the ``else`` clause are not handled by the preceding ``except`` clauses.
-
-
-```
-try:
-    critical_section
-finally:
-    suite
-```
-If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed ‘on the way out.’ A ``continue`` statement is illegal in the ``finally`` clause.
-
-Both mechanisms can be combined, the ``finally`` clause coming after the last ``except`` clause or after the optional ``else`` clause.</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="112"/>
@@ -1413,31 +1317,6 @@ See also: ``global``</source>
         <translation>Ce mot-clé ne peut apparaitre que dans la définition d&apos;une fonction. Il est suivi d&apos;identifiants et indique que ces identifiants se rapportent à des variables de la portée englobante et non des variables locales de la fonction en cours de définition.
 
 Voir aussi : ``global``</translation>
-    </message>
-    <message>
-        <location filename="../../tools/pyzoInteractiveHelp.py" line="118"/>
-        <source>The while statement is used for repeated execution as long as an expression is true:
-
-```
-while expression:
-    body
-else:           # optional
-    suite
-```
-This repeatedly tests the ``expression`` and, if it is true, executes the ``body``; if the ``expression`` is false (which may be the first time it is tested) the ``suite`` of the ``else`` clause, if present, is executed and the loop terminates.
-
-A ``break`` statement executed in the ``body`` terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the ``body`` skips the rest of the ``body`` and goes back to testing the ``expression``.</source>
-        <translation>L&apos;instruction while permet l&apos;exécution répétée d&apos;un corps tant qu&apos;une expression est vraie.
-
-```
-while expression:
-    corps
-else:           # facultatif
-    suite
-```
-Python évalue l&apos;``expression`` de manière répétée et, tant qu&apos;elle est vraie, exécute le ``corps`` ; si l&apos;``expression`` est fausse (ce qui peut arriver même lors de la première évaluation), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
-
-Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et retourne à l&apos;évaluation de l&apos;``expression``.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="129"/>
@@ -1551,6 +1430,148 @@ See also: ``and``, ``not``, ``True``, ``False``</source>
         <translation>Cet opérateur calcule la disjonction booléenne de façon paresseuse. Plus précisément, l&apos;expression ``x or y`` commence par évaluer ``x`` ; si ``x`` est vrai, sa valeur est renvoyée ; sinon, ``y`` est évalué et la valeur résultante est renvoyée.
 
 Voir aussi : ``and``, ``not``, ``True``, ``False``</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="45"/>
+        <source>This operator tests for an object’s identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
+
+See also: ``id``</source>
+        <translation>Cet opérateur teste l&apos;égalité des identifiants des objets : ``x is y`` est vrai si et seulement si ``x`` et ``y`` sont le même objet.
+
+Voir aussi : ``id``</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="55"/>
+        <source>The ``for`` statement is used to iterate over the elements of an iterable object:
+
+```
+for variable in iterable:
+    body
+else:       # optional
+    suite
+```
+The expression ``iterable`` is evaluated once; its value should be an iterable object. An iterator is created for the result of that expression. The ``body`` is then executed once for each item provided by the iterator, in the order returned by the iterator: each item in turn is assigned to the ``variable`` and then the ``body`` is executed. When the items are exhausted (which is immediately when the ``iterable`` is empty), the ``suite`` in the ``else`` clause, if present, is executed, and the loop terminates.
+
+A ``break`` statement executed in the first suite terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the first suite skips the rest of the ``body`` and continues with the next item, or with the ``else`` clause if there is no next item.
+
+The for-loop makes assignments to the ``variable``. This overwrites all previous assignments to that variable including those made in the ``body`` of the for-loop:
+```
+for i in range(10):
+    print(i)
+    i = 5             # this will not affect the for-loop
+                      # because i will be overwritten with the next
+                      # index in the range
+```
+
+The ``for`` keyword can also be part of a generator.
+
+Example:
+```
+[2*x for x in T]
+```
+This builds from ``T`` a list where each item was doubled.
+</source>
+        <translation>L&apos;instruction ``for`` sert à itérer sur les éléments d&apos;un objet itérable :
+
+```
+for variable in iterable:
+    corps
+else:       # facultatif
+    suite
+```
+L&apos;expression ``iterable`` est évaluée une seule fois ; elle doit produire un objet itérable. Un itérateur est créé pour le résultat de cette expression. Le ``corps`` est ensuite exécuté une fois pour chaque élément fourni par l&apos;itérateur, dans l&apos;ordre renvoyé par l&apos;itérateur : Chaque élément est affecté, à tour de rôle, `à `variable`` puis le ``corps`` est exécuté. Lorsque les éléments sont épuisés (ce qui est immédiat lorsque l&apos;``iterable`` est vide), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
+
+Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et continue avec l&apos;élément suivant, ou avec la clause ``else`` s&apos;il n&apos;y a pas d&apos;élément suivant.
+
+La boucle ``for`` effectue des affectations à la ``variable``, ce qui écrase toutes les affectations antérieures de cette ``variable, y compris celles effectuées dans le ``corps`` de la boucle for :
+```
+for i in range(10):
+    print(i)
+    i = 5             # cette affectation n&apos;aura pas d&apos;influence
+                      # sur la boucle car elle sera écrasée par la
+                      # prochaine valeur du range
+```
+
+Le mot-clé ``for`` peut aussi exprimer un générateur.
+
+Exemple :
+```
+[2*x for x in T]
+```
+Ceci construit à partir de ``T`` une liste en doublant chaque élément.
+</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="90"/>
+        <source>The ``try`` statement allows to recover when an Exception was raised. It has two main forms.
+    
+```
+try:
+    critical_section
+except SomeExceptionType as e:
+    suite   # manage exceptions of type SomeExceptionType
+else:       # optional
+    everything_ok
+```
+If ``critical_section`` raises an exception of type ``SomeExceptionType``, the whole program will not abort but the ``suite`` will be executed, with ``e`` being bound to the actual exception. Several ``except`` clauses may be specified, each dealing with some kind of exception. If an exception is raised in ``critical_section`` but is not managed by any ``except`` clause, the whole program aborts. If there is an ``else`` clause, its body is executed if the control flow leaves the ``critical_section``, no exception was raised, and no ``return``, ``continue`` or ``break`` statement was executed. Exceptions in the ``else`` clause are not handled by the preceding ``except`` clauses.
+
+
+```
+try:
+    critical_section
+finally:
+    suite
+```
+If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed ‘on the way out.’ A ``continue`` statement is illegal in the ``finally`` clause.
+
+Both mechanisms can be combined, the ``finally`` clause coming after the last ``except`` clause or after the optional ``else`` clause.</source>
+        <translation>L&apos;instruction ``try`` permet de gérer les cas où une Exception est levée. Elle a deux formes principales.
+    
+```
+try:
+    section_critique
+except SomeExceptionType as e:
+    suite   # gère les exceptions de type SomeExceptionType
+else:       # facultatif
+    tout_va_bien
+```
+Si ``section_critique`` lève une exception de type ``SomeExceptionType``, le programme entier ne va pas être avorté mais la ``suite`` sera exécutée, ``e`` étant lié à l&apos;exception levée. Plusieurs clauses ``except`` peuvent être spécifiées, chacune gérant une catégorie d&apos;exception. Si une exception est levée dans la ``section_critique`` mais n&apos;est gérée par aucune des clauses ``except``, le programme est avorté. S&apos;il y a une clause ``else``, son corps est exécuté si l&apos;exécution de la ``section_critique`` s&apos;achève sans qu&apos;une exception ait été levée et sans qu&apos;une instruction ``return``, ``continue`` ou ``break`` ait été exécutée. Les exceptions qui seraient levées dans la clause ``else`` ne sont pas gérée par les clauses ``except`` la précédent.
+
+
+```
+try:
+    section_critique
+finally:
+    suite
+```
+Si ``section_critique`` lève une exception , la ``suite`` sera exécutée avant d&apos;avorter l&apos;exécution du programme. La ``suite`` est également exécutée lorsqu&apos;aucune exception n&apos;est levée. Si une instruction ``return``, ``break`` ou ``continue`` est exécutée dans la ``section_critique``, la clause ``finally`` est également exécutée &quot;en sortant&quot;. Il est illégal de mettre une instruction ``continue`` dans la clause ``finally``.
+
+Les deux mécanisme peuvent être combinés, ala clause``finally`` venant après la dernière clause ``except`` ou après la clau se ``else``.</translation>
+    </message>
+    <message>
+        <location filename="../../tools/pyzoInteractiveHelp.py" line="118"/>
+        <source>The while statement is used for repeated execution as long as an expression is true:
+
+```
+while expression:
+    body
+else:           # optional
+    suite
+```
+This repeatedly tests the ``expression`` and, if it is true, executes the ``body``; if the ``expression`` is false (which may be the first time it is tested) the ``suite`` of the ``else`` clause, if present, is executed and the loop terminates.
+
+A ``break`` statement executed in the ``body`` terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the ``body`` skips the rest of the ``body`` and goes back to testing the ``expression``.</source>
+        <translation>L&apos;instruction while permet l&apos;exécution répétée d&apos;un corps tant qu&apos;une expression est vraie.
+
+```
+while expression:
+    corps
+else:           # facultatif
+    suite
+```
+Python évalue l&apos;``expression`` de manière répétée et, tant qu&apos;elle est vraie, exécute le ``corps`` ; si l&apos;``expression`` est fausse (ce qui peut arriver même lors de la première évaluation), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
+
+Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et retourne à l&apos;évaluation de l&apos;``expression``.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="172"/>
