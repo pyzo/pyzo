@@ -402,7 +402,8 @@ class PythonParser(Parser):
         # Done
         return tokens
 
-class AmbiguousPythonParser(PythonParser):
+
+class PythonParser(PythonParser):  # Ambiguous Python parser
     """ Parser for either Python2 or Python3, and we do not know which.
     """
     _extensions = ['.py', '.pyw']
@@ -418,6 +419,7 @@ class AmbiguousPythonParser(PythonParser):
         # try to look into the source...
         # or ... well, ppl should use Python3. Use a shebang to annotate a Python file as Python 2
         return "python3"
+
 
 class Python2Parser(PythonParser):
     """ Parser for Python 2.x code.
