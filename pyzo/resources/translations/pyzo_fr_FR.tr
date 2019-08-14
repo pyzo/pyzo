@@ -84,7 +84,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="445"/>
         <source>Projects:</source>
-        <translation>Projets :</translation>
+        <translation>Projets :</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="450"/>
@@ -114,7 +114,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="497"/>
         <source>New project name:</source>
-        <translation>Nouveau nom du projet :</translation>
+        <translation>Nouveau nom du projet :</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/browser.py" line="650"/>
@@ -242,12 +242,12 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="83"/>
         <source>Preview:</source>
-        <translation>Aperçu :</translation>
+        <translation>Aperçu :</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="174"/>
         <source>Select columns to import:</source>
-        <translation>Sélectionnez les colonnes à importer :</translation>
+        <translation>Sélectionnez les colonnes à importer :</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="394"/>
@@ -704,7 +704,7 @@
     <message>
         <location filename="../../core/menu.py" line="969"/>
         <source>Debug continue: proceed to next breakpoint</source>
-        <translation>Débugage : exécuter jusqu&apos;à prochain point d&apos;arrêt</translation>
+        <translation>Débugage : exécuter jusqu&apos;à prochain point d&apos;arrêt</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="971"/>
@@ -719,7 +719,7 @@
     <message>
         <location filename="../../core/menu.py" line="993"/>
         <source>Postmortem: debug from last traceback</source>
-        <translation>Postmortem : débuguer à partir de la dernière pile des appels</translation>
+        <translation>Postmortem : débuguer à partir de la dernière pile des appels</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="965"/>
@@ -1160,7 +1160,7 @@ d&apos;autocomplétion et lorsque vous double-cliquez sur un nom.
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="366"/>
         <source>Font size: %i</source>
-        <translation>Taille de police : %i</translation>
+        <translation>Taille de police : %i</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="43"/>
@@ -1175,7 +1175,7 @@ d&apos;autocomplétion et lorsque vous double-cliquez sur un nom.
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="176"/>
         <source>No help is available for operators because they are ambiguous: their meaning depend on the type of the first operand.</source>
-        <translation>Il n&apos;y a pas d&apos;aide pour les opérateurs car ils sont ambigus : leur signification dépend du type du premier opérande.</translation>
+        <translation>Il n&apos;y a pas d&apos;aide pour les opérateurs car ils sont ambigus : leur signification dépend du type du premier opérande.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="332"/>
@@ -1190,7 +1190,7 @@ d&apos;autocomplétion et lorsque vous double-cliquez sur un nom.
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="19"/>
         <source>This keyword can appear as part of an alternative (see: ``if``), a loop (see: ``for``, ``while``) or a ``try`` statement.</source>
-        <translation>Ce mot-clé peut se trouver dans une alternative (voir : ``if``), une boucle (voir : ``for``, ``while``) ou une instruction``try``.</translation>
+        <translation>Ce mot-clé peut se trouver dans une alternative (voir : ``if``), une boucle (voir : ``for``, ``while``) ou une instruction``try``.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="20"/>
@@ -1231,7 +1231,7 @@ from foo import *          # foo importé et tous ses membres liés
 See also: ``continue``</source>
         <translation>Ce mot-clé ne peut apparaitre que dans le corps d&apos;une boucle ``for`` ou ``while``. Il arrête la boucle prématurément, indépendamment de la condition de boucle.
 
-Voir aussi : ``continue``</translation>
+Voir aussi : ``continue``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="36"/>
@@ -1247,7 +1247,7 @@ In a construct of the form ``for identifier in iterable``, ``in`` is a purely sy
 Outside such constructs, ``in`` is an operator and its precise meaning depends on the type of the first operand.</source>
         <translation>Ce mot-clé désigne usuellement l&apos;appartenance d&apos;un objet à une structure. Il y a en fait deux sortes de ``in``.
 
-Dans une construction de la forme ``for identifier in iterable``, ``in`` est un élément purement syntaxique qui n&apos;a pas de signification propre. Voir : ``for``.
+Dans une construction de la forme ``for identifier in iterable``, ``in`` est un élément purement syntaxique qui n&apos;a pas de signification propre. Voir : ``for``.
 
 En dehors de telles constructions, ``in`` est un opérateur et son sens précis dépend du type du premier opérande.</translation>
     </message>
@@ -1271,9 +1271,9 @@ En dehors de telles constructions, ``in`` est un opérateur et son sens précis 
         <source>This operator computes the boolean conjunction in a lazy manner. More precisely, the expression ``x and y`` first evaluates ``x``; if ``x`` is false, its value is returned; otherwise, ``y`` is evaluated and the resulting value is returned.
 
 See also: ``or``, ``not``, ``True``, ``False``</source>
-        <translation>Cet opérateur calcule la conjonction booléenne de façon paresseuse. Plus précisément, l&apos;expression ``x and y`` commence par évaluer ``x`` ; si ``x`` est faux, sa valeur est renvoyée ; sinon, ``y`` est évalué et la valeur résultante est renvoyée.
+        <translation>Cet opérateur calcule la conjonction booléenne de façon paresseuse. Plus précisément, l&apos;expression ``x and y`` commence par évaluer ``x`` ; si ``x`` est faux, sa valeur est renvoyée ; sinon, ``y`` est évalué et la valeur résultante est renvoyée.
 
-Voir aussi : ``or``, ``not``, ``True``, ``False``</translation>
+Voir aussi : ``or``, ``not``, ``True``, ``False``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="52"/>
@@ -1282,7 +1282,7 @@ Voir aussi : ``or``, ``not``, ``True``, ``False``</translation>
 See also: ``break``</source>
         <translation>Ce mot-clé ne peut apparaitre que dans le corps d&apos;une boucle ``for`` ou ``while``. Il abandonne prématurément le tour de boucle courant. La boucle peut faire d&apos;autre tours si sa condition est toujours vraie.
 
-Voir aussi : ``break``</translation>
+Voir aussi : ``break``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="84"/>
@@ -1307,7 +1307,7 @@ lambda x,y,z : (x+y) * z
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="114"/>
         <source>This keyword can appear as a part of an ``import`` or a ``raise``. It has different meanings; see help on those keywords.</source>
-        <translation>Ce mot-clé peut apparaitre dans un ``import`` ou un ``raise``. Il a des significations différentes ; voyez l&apos;aide sur ces mots-clés.</translation>
+        <translation>Ce mot-clé peut apparaitre dans un ``import`` ou un ``raise``. Il a des significations différentes ; voyez l&apos;aide sur ces mots-clés.</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="115"/>
@@ -1316,7 +1316,7 @@ lambda x,y,z : (x+y) * z
 See also: ``global``</source>
         <translation>Ce mot-clé ne peut apparaitre que dans la définition d&apos;une fonction. Il est suivi d&apos;identifiants et indique que ces identifiants se rapportent à des variables de la portée englobante et non des variables locales de la fonction en cours de définition.
 
-Voir aussi : ``global``</translation>
+Voir aussi : ``global``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="129"/>
@@ -1335,7 +1335,7 @@ Voir aussi : ``global``</translation>
 See also: ``nonlocal``</source>
         <translation>Ce mot-clé est suivi par des identificateurs et indique que ces identificateurs se rapportznt à des variables de la portée globale du module et non des variables locales.
 
-Voir aussi : ``nonlocal``</translation>
+Voir aussi : ``nonlocal``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="134"/>
@@ -1344,7 +1344,7 @@ Voir aussi : ``nonlocal``</translation>
 See also: ``and``, ``or``, ``True``, ``False``</source>
         <translation>L&apos;opérateur ``not`` renvoie ``True`` si son argument est faux, ``False`` sinon.
 
-Voir aussi : ``and``, ``or``, ``True``, ``False``</translation>
+Voir aussi : ``and``, ``or``, ``True``, ``False``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="137"/>
@@ -1375,7 +1375,7 @@ Dans cet exemple, le gestionnaire de contexte va assurer la fermeture correcte d
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="147"/>
         <source>This keyword can only appear as part of an alternative. See: ``if``</source>
-        <translation>Ce mot-clé ne peut apparaitre que dans une alternative. Voir : ``if``</translation>
+        <translation>Ce mot-clé ne peut apparaitre que dans une alternative. Voir : ``if``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="148"/>
@@ -1427,18 +1427,18 @@ Ceci filtre ``T`` pour n&apos;en conserver que ses termes impairs.</translation>
         <source>This operator computes the boolean disjunction in a lazy manner. More precisely, the expression ``x or y`` first evaluates ``x``; if ``x`` is true, its value is returned; otherwise, ``y`` is evaluated and the resulting value is returned.
 
 See also: ``and``, ``not``, ``True``, ``False``</source>
-        <translation>Cet opérateur calcule la disjonction booléenne de façon paresseuse. Plus précisément, l&apos;expression ``x or y`` commence par évaluer ``x`` ; si ``x`` est vrai, sa valeur est renvoyée ; sinon, ``y`` est évalué et la valeur résultante est renvoyée.
+        <translation>Cet opérateur calcule la disjonction booléenne de façon paresseuse. Plus précisément, l&apos;expression ``x or y`` commence par évaluer ``x`` ; si ``x`` est vrai, sa valeur est renvoyée ; sinon, ``y`` est évalué et la valeur résultante est renvoyée.
 
-Voir aussi : ``and``, ``not``, ``True``, ``False``</translation>
+Voir aussi : ``and``, ``not``, ``True``, ``False``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="45"/>
         <source>This operator tests for an object’s identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
 
 See also: ``id``</source>
-        <translation>Cet opérateur teste l&apos;égalité des identifiants des objets : ``x is y`` est vrai si et seulement si ``x`` et ``y`` sont le même objet.
+        <translation>Cet opérateur teste l&apos;égalité des identifiants des objets : ``x is y`` est vrai si et seulement si ``x`` et ``y`` sont le même objet.
 
-Voir aussi : ``id``</translation>
+Voir aussi : ``id``</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoInteractiveHelp.py" line="55"/>
@@ -1479,7 +1479,7 @@ for variable in iterable:
 else:       # facultatif
     suite
 ```
-L&apos;expression ``iterable`` est évaluée une seule fois ; elle doit produire un objet itérable. Un itérateur est créé pour le résultat de cette expression. Le ``corps`` est ensuite exécuté une fois pour chaque élément fourni par l&apos;itérateur, dans l&apos;ordre renvoyé par l&apos;itérateur : Chaque élément est affecté, à tour de rôle, à ``variable`` puis le ``corps`` est exécuté. Lorsque les éléments sont épuisés (ce qui est immédiat lorsque l&apos;``iterable`` est vide), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
+L&apos;expression ``iterable`` est évaluée une seule fois ; elle doit produire un objet itérable. Un itérateur est créé pour le résultat de cette expression. Le ``corps`` est ensuite exécuté une fois pour chaque élément fourni par l&apos;itérateur, dans l&apos;ordre renvoyé par l&apos;itérateur : Chaque élément est affecté, à tour de rôle, à ``variable`` puis le ``corps`` est exécuté. Lorsque les éléments sont épuisés (ce qui est immédiat lorsque l&apos;``iterable`` est vide), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
 
 Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et continue avec l&apos;élément suivant, ou avec la clause ``else`` s&apos;il n&apos;y a pas d&apos;élément suivant.
 
@@ -1569,7 +1569,7 @@ while expression:
 else:           # facultatif
     suite
 ```
-Python évalue l&apos;``expression`` de manière répétée et, tant qu&apos;elle est vraie, exécute le ``corps`` ; si l&apos;``expression`` est fausse (ce qui peut arriver même lors de la première évaluation), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
+Python évalue l&apos;``expression`` de manière répétée et, tant qu&apos;elle est vraie, exécute le ``corps`` ; si l&apos;``expression`` est fausse (ce qui peut arriver même lors de la première évaluation), la ``suite`` de la clause ``else``, si elle existe, est exécutée et la boucle se termine.
 
 Une instruction ``break`` exécutée dans le ``corps`` termine la boucle sans exécuter la ``suite`` de la clause ``else``. Une instruction ``continue`` exécutée dans le ``corps`` saute le reste du ``corps`` et retourne à l&apos;évaluation de l&apos;``expression``.</translation>
     </message>
@@ -1921,17 +1921,17 @@ Actuellement, il n&apos;y en a aucune. Certaines sont peut-être cachées par le
     <message>
         <location filename="../../util/pyzowizard.py" line="321"/>
         <source>*Run cell:* a cell is everything between two lines starting with &apos;##&apos;.</source>
-        <translation>*Exécuter une cellule :* une cellule est tout ce qui se trouve entre deux lignes commençant par &apos;##&apos;.</translation>
+        <translation>*Exécuter une cellule :* une cellule est tout ce qui se trouve entre deux lignes commençant par &apos;##&apos;.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="323"/>
         <source>*Run file:* run all the code in the current file.</source>
-        <translation>*Exécuter le contenu de l&apos;onglet courant :* Exécute tout le code contenu dans l&apos;onglet courant, même s&apos;il n&apos;a pas été sauvegardé.</translation>
+        <translation>*Exécuter le contenu de l&apos;onglet courant :* Exécute tout le code contenu dans l&apos;onglet courant, même s&apos;il n&apos;a pas été sauvegardé.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="325"/>
         <source>*Run project main file:* run the code in the current project&apos;s main file.</source>
-        <translation>*Exécuter le contenu de l&apos;onglet principal :* Exécute tout le code contenu dans l&apos;onglet principal, même s&apos;il n&apos;a pas été sauvegardé.</translation>
+        <translation>*Exécuter le contenu de l&apos;onglet principal :* Exécute tout le code contenu dans l&apos;onglet principal, même s&apos;il n&apos;a pas été sauvegardé.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="332"/>
@@ -1974,7 +1974,7 @@ Actuellement, il n&apos;y en a aucune. Certaines sont peut-être cachées par le
     <message>
         <location filename="../../util/pyzowizard.py" line="369"/>
         <source>We especially recommend the following tools:</source>
-        <translation>Nous recommandons tout particulièrement les outils suivants :</translation>
+        <translation>Nous recommandons tout particulièrement les outils suivants :</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="371"/>
@@ -2087,8 +2087,8 @@ avec par exemple Visvis ou Matplotlib.</translation>
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.</source>
         <translation>*Exécuter la sélection:* s&apos;il n&apos;y a pas de texte sélectionné, la ligne courante
-        est exécutée ; si la sélection appartient à une seule ligne, la sélection seule
-        est évaluée ; si la sélection s&apos;étend sur plusieurs lignes, Pyzo exécutera
+        est exécutée ; si la sélection appartient à une seule ligne, la sélection seule
+        est évaluée ; si la sélection s&apos;étend sur plusieurs lignes, Pyzo exécutera
         la totalité des lignes sélectionnées.</translation>
     </message>
     <message>
