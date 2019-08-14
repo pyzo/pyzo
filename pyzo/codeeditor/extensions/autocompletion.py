@@ -139,7 +139,7 @@ class AutoCompletion(object):
         if self.__cancelCallback is not None :
             try :
                 self.__cancelCallback()
-            except Exception as e :
+            except Exception as err :
                 print("Exception in autocomp cancel callback: " + str(err))
         
     def onAutoComplete(self, text=None):
