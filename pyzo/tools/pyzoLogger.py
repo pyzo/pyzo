@@ -20,23 +20,30 @@ class PyzoLogger(QtWidgets.QWidget):
 
         The main widget for this tool.
 
-        """
-    
+    """
+
     def __init__(self, parent):
         QtWidgets.QWidget.__init__(self, parent)
 
         # logger widget
         self._logger_shell = PyzoLoggerShell(self)
-
+        
         # set layout
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.addWidget(self._logger_shell, 1)
         # spacing of widgets
         self.layout.setSpacing(0)
         # set margins
-        margins = pyzo.config.view.margins
+        margins = pyzo.config.view.widgetMargins
         self.layout.setContentsMargins(*margins)
         self.setLayout(self.layout)
+
+    def updateZoom(self):
+        self._logger_shell.setZoom(pyzo.config.view.zoom)
+
+    def updateFont(self):
+        self._logger_shell.setFont(pyzo.config.view.fontname)
+        
  
 
 class PyzoLoggerShell(BaseShell):

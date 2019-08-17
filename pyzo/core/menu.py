@@ -669,7 +669,7 @@ class ZoomMenu(Menu):
             pyzo.config.view.zoom = shell.setZoom(pyzo.config.view.zoom)
         logger = pyzo.toolManager.getTool('pyzologger')
         if logger:
-            logger.setZoom(pyzo.config.view.zoom)
+            logger.updateZoom()
 
 
 class FontMenu(Menu):
@@ -698,7 +698,7 @@ class FontMenu(Menu):
             shell.setFont(pyzo.config.view.fontname)
         logger = pyzo.toolManager.getTool('pyzologger')
         if logger:
-            logger.setFont(pyzo.config.view.fontname)
+            logger.updateFont()
 
 
 # todo: brace matching

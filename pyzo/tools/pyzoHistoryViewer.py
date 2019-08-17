@@ -50,7 +50,7 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         layout.addWidget(self._search, 0)
         layout.addWidget(self._list, 1)
         # set margins
-        margins = pyzo.config.view.margins
+        margins = pyzo.config.view.widgetMargins
         layout.setContentsMargins(*margins)
         
         # Customize line edit

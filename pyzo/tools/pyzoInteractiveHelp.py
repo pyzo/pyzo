@@ -88,7 +88,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         #
         self._sizer1.setSpacing(2)
         # set margins
-        margins = pyzo.config.view.margins
+        margins = pyzo.config.view.widgetMargins
         self._sizer1.setContentsMargins(*margins)
         
         self.setLayout(self._sizer1)

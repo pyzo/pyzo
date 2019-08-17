@@ -110,7 +110,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         layout.setSpacing(0)
         # set margins
-        margins = pyzo.config.view.margins
+        margins = pyzo.config.view.widgetMargins
         layout.setContentsMargins(*margins)
         
         layout.addWidget(self._toolbar)

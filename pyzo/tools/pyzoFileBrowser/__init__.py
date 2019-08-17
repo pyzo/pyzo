@@ -104,7 +104,7 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         layout.addWidget(self._browsers[0])
         layout.setSpacing(0)
         # set margins
-        margins = pyzo.config.view.margins
+        margins = pyzo.config.view.widgetMargins
         layout.setContentsMargins(*margins)
     
     
