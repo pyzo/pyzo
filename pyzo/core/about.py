@@ -83,6 +83,7 @@ class AboutDialog(QtWidgets.QDialog):
         
         <b>Pyzo directories</b><br>
         Pyzo source directory: {}<br>
+        Pyzo config directory: {}<br>
         Pyzo userdata directory: {}<br>
         <br>
         
@@ -107,7 +108,7 @@ class AboutDialog(QtWidgets.QDialog):
                         sys.platform,
                         sys.version.split(' ')[0],
                         qtVersion, qtWrapper, qtWrapperVersion,
-                        pyzo.pyzoDir, pyzo.appDataDir)
+                        pyzo.pyzoDir, pyzo.appConfigDir, pyzo.appDataDir)
         
         self.addTab("General", aboutText)
     
