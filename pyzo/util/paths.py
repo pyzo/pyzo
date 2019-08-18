@@ -178,29 +178,29 @@ def common_appdata_dir(appname=None):
     If appname is given, a subdir is appended (and created if necessary).
     """
     
-    # Try to get path
-    path = None
+    # Try to get data_path
+    data_path = None
     if sys.platform.startswith('win'):
-        path = os.getenv('ALLUSERSPROFILE', os.getenv('PROGRAMDATA'))
+        data_path = os.getenv('ALLUSERSPROFILE', os.getenv('PROGRAMDATA'))
     elif sys.platform.startswith('darwin'):
-        path = '/Library/Application Support'
+        data_path = '/Library/Application Support'
     else:
         # Not sure what to use. Apps are only allowed to write to the home
         # dir and tmp dir, right?
         pass
     
     # If no success, use appdata_dir() instead
-    if not (path and os.path.isdir(path)):
-        path = appdata_dir()
+    if not (data_path and os.path.isdir(data_path)):
+        data_path = appdata_dir()[0]
     
     # Get path specific for this app
     if appname:
-        path = os.path.join(path, appname)
-        if not os.path.isdir(path):
-            os.mkdir(path)
+        data_path = os.path.join(data_path, appname)
+        if not os.path.isdir(data_path):
+            os.mkdir(data_path)
 
     # Done
-    return path
+    return data_path
 
 
 
