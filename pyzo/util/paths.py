@@ -49,10 +49,10 @@ def temp_dir(appname=None, nospaces=False):
     If appname is given, a subdir is appended (and created if necessary).
     If nospaces, will ensure that the path has no spaces.
     """
-    
+
     # Do it the Python way
     path = tempfile.gettempdir()
-    
+
     # Try harder if we have to
     if nospaces and ' ' in path:
         if sys.platform.startswith('win'):
@@ -67,7 +67,7 @@ def temp_dir(appname=None, nospaces=False):
                     break
             else:
                 raise RuntimeError('Could not locate temporary directory.')
-    
+
     # Get path specific for this app
     if appname:
         path = os.path.join(path, appname)
@@ -119,7 +119,7 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     # On Linux and as fallback
     if not (path and os.path.isdir(path)):
         path = userDir
-    
+
     # Maybe we should store things local to the executable (in case of a
     # portable distro or a frozen application that wants to be portable)
     prefix = sys.prefix
@@ -153,8 +153,10 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
             standard_config_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.ConfigLocation)
 
             # Check if QStandardPaths succeeded to find the location, otherwise use old path
-            if standard_config_path != "" and standard_data_path != "":
-                data_path, config_path = standard_data_path, standard_config_path
+            if standard_config_path:
+                config_path = standard_config_path
+            if standard_data_path:
+                data_path = standard_data_path
             appname = appname.lstrip('.')
             data_path = os.path.join(data_path, appname)
             config_path = os.path.join(config_path, appname)
@@ -177,7 +179,7 @@ def common_appdata_dir(appname=None):
     appdata_dir().
     If appname is given, a subdir is appended (and created if necessary).
     """
-    
+
     # Try to get data_path
     data_path = None
     if sys.platform.startswith('win'):
@@ -188,11 +190,11 @@ def common_appdata_dir(appname=None):
         # Not sure what to use. Apps are only allowed to write to the home
         # dir and tmp dir, right?
         pass
-    
+
     # If no success, use appdata_dir() instead
     if not (data_path and os.path.isdir(data_path)):
         data_path = appdata_dir()[0]
-    
+
     # Get path specific for this app
     if appname:
         data_path = os.path.join(data_path, appname)
