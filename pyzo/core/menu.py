@@ -2304,8 +2304,8 @@ class AdvancedSettings(QtWidgets.QDialog):
     def __init__(self, *args):
         QtWidgets.QDialog.__init__(self, *args)
 
-        self.conf_file = os.path.join(pyzo.appDataDir, 'config.ssdf')
-        self.backup_file = os.path.join(pyzo.appDataDir, 'config.ssdf.bak')
+        self.conf_file = os.path.join(pyzo.appConfigDir, 'config.ssdf')
+        self.backup_file = os.path.join(pyzo.appConfigDir, 'config.ssdf.bak')
         
         if not os.path.exists(self.conf_file):
             pyzo.saveConfig()

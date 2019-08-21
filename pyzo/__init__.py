@@ -153,14 +153,14 @@ def getResourceDirs():
         raise RuntimeError('The Pyzo package cannot be run from a zipfile.')
 
     # Get where the application data is stored (use old behavior on Mac)
-    appDataDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
+    appDataDir, appConfigDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
 
     # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, 'tools')
     if not os.path.isdir(toolDir):
         os.mkdir(toolDir)
 
-    return pyzoDir, appDataDir
+    return pyzoDir, appDataDir, appConfigDir
 
 
 def resetConfig(preserveState=True):
@@ -169,7 +169,7 @@ def resetConfig(preserveState=True):
     its config on the next shutdown.
     """
     # Get filenames
-    configFileName2 = os.path.join(appDataDir, 'config.ssdf')
+    configFileName2 = os.path.join(appConfigDir, 'config.ssdf')
     os.remove(configFileName2)
     global _saveConfigFile
     _saveConfigFile = False
@@ -237,7 +237,7 @@ def loadConfig(defaultsOnly=False):
             raise
 
     # Load user config and inject in pyzo.config
-    fname = os.path.join(appDataDir, "config.ssdf")
+    fname = os.path.join(appConfigDir, "config.ssdf")
     if os.path.isfile(fname):
         try:
             userConfig = ssdf.load(fname)
@@ -263,7 +263,7 @@ def saveConfig():
 
     # Store config
     if _saveConfigFile:
-        ssdf.save( os.path.join(appDataDir, "config.ssdf"), config )
+        ssdf.save( os.path.join(appConfigDir, "config.ssdf"), config )
 
 
 
@@ -314,7 +314,7 @@ parser = None # The source parser
 status = None # The statusbar (or None)
 
 # Get directories of interest
-pyzoDir, appDataDir = getResourceDirs()
+pyzoDir, appDataDir, appConfigDir = getResourceDirs()
 
 # Whether the config file should be saved
 _saveConfigFile = True

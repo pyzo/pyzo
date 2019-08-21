@@ -20,6 +20,7 @@ This code was first part of pyzolib, and later moved to pyzo.
 # * See docstring: that's why the functions tend to not re-use each-other
 
 import sys
+from pyzo.util.qt import QtCore
 
 ISWIN = sys.platform.startswith('win')
 ISMAC = sys.platform.startswith('darwin')
@@ -72,7 +73,7 @@ def temp_dir(appname=None, nospaces=False):
         path = os.path.join(path, appname)
         if not os.path.isdir(path):
             os.mkdir(path)
-    
+
     # Done
     return path
 
@@ -92,17 +93,22 @@ def user_dir():
 import os, sys
 def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     """ appdata_dir(appname=None, roaming=False,  macAsLinux=False)
-    Get the path to the application directory, where applications are allowed
-    to write user specific files (e.g. configurations). For non-user specific
-    data, consider using common_appdata_dir().
+    Get the path to the application data and config directory, where applications are allowed
+    to write user specific files (e.g. configurations).
+    Applications should write their configurations files in the config folder,
+    and other data (e.g. history files) in the data folder.
+    For non-user specific data, consider using common_appdata_dir().
     If appname is given, a subdir is appended (and created if necessary).
     If roaming is True, will prefer a roaming directory (Windows Vista/7).
     If macAsLinux is True, will return the Linux-like location on Mac.
+
+    The behaviour of this function changed, it now uses QStandardPaths to provide location
+    of data folder and config folder, but for retro-compatibility pyzo will use the old folder if it exists
     """
-    
+
     # Define default user directory
     userDir = os.path.expanduser('~')
-    
+
     # Get system app data dir
     path = None
     if sys.platform.startswith('win'):
@@ -130,18 +136,36 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
             else:
                 path = localpath
                 break
-    
+    data_path, config_path = path, path
+
     # Get path specific for this app
     if appname:
         if path == userDir:
             appname = '.' + appname.lstrip('.') # Make it a hidden directory
         path = os.path.join(path, appname)
-        if not os.path.isdir(path):
-            os.mkdir(path)
-    
-    # Done
-    return path
+        data_path, config_path = path, path
 
+        if not os.path.isdir(path):
+            # Better way to get config/data folder especially on *nix system (see XDG_CONFIG_HOME standard),
+            # but this should work on any os.
+            # For retro-compatibility, check if old folder exist, and if not, use standard path.
+            standard_data_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.AppDataLocation)
+            standard_config_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.ConfigLocation)
+
+            # Check if QStandardPaths succeeded to find the location, otherwise use old path
+            if standard_config_path != "" and standard_data_path != "":
+                data_path, config_path = standard_data_path, standard_config_path
+            appname = appname.lstrip('.')
+            data_path = os.path.join(data_path, appname)
+            config_path = os.path.join(config_path, appname)
+
+            if not os.path.isdir(data_path):
+                os.mkdir(data_path)
+            if not os.path.isdir(config_path):
+                os.mkdir(config_path)
+
+    # Done
+    return data_path, config_path
 
 
 # From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
@@ -154,29 +178,29 @@ def common_appdata_dir(appname=None):
     If appname is given, a subdir is appended (and created if necessary).
     """
     
-    # Try to get path
-    path = None
+    # Try to get data_path
+    data_path = None
     if sys.platform.startswith('win'):
-        path = os.getenv('ALLUSERSPROFILE', os.getenv('PROGRAMDATA'))
+        data_path = os.getenv('ALLUSERSPROFILE', os.getenv('PROGRAMDATA'))
     elif sys.platform.startswith('darwin'):
-        path = '/Library/Application Support'
+        data_path = '/Library/Application Support'
     else:
         # Not sure what to use. Apps are only allowed to write to the home
         # dir and tmp dir, right?
         pass
     
     # If no success, use appdata_dir() instead
-    if not (path and os.path.isdir(path)):
-        path = appdata_dir()
+    if not (data_path and os.path.isdir(data_path)):
+        data_path = appdata_dir()[0]
     
     # Get path specific for this app
     if appname:
-        path = os.path.join(path, appname)
-        if not os.path.isdir(path):
-            os.mkdir(path)
-    
+        data_path = os.path.join(data_path, appname)
+        if not os.path.isdir(data_path):
+            os.mkdir(data_path)
+
     # Done
-    return path
+    return data_path
 
 
 
@@ -254,7 +278,15 @@ def pyzo_dirs2(path=None, version='0', **kwargs):
     else:
         path = os.path.join(userDir, '.pyzo')  # On Linux and as fallback
     if not os.path.isdir(path):
-        os.mkdir(path)
+        # Better way to get config folder especially on *nix system (see XDG_CONFIG_HOME standard),
+        # but this should work on any os.
+        # For retro-compatibility, check if old folder exist and use new path otherwise.
+        standard_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.ConfigLocation)
+        if standard_path != "":  # Check if QStandardPaths succeeded to find the location, otherwise use old path
+            path = standard_path
+        path = os.path.join(path, 'pyzo')
+        if not os.path.isdir(path):
+            os.mkdir(path)
     # Open file and parse
     fname = os.path.join(path, 'pyzodirs')
     pyzos, npyzos = [], 0
