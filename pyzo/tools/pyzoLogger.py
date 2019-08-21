@@ -34,8 +34,8 @@ class PyzoLogger(QtWidgets.QWidget):
         # spacing of widgets
         self.layout.setSpacing(0)
         # set margins
-        margins = pyzo.config.view.widgetMargins
-        self.layout.setContentsMargins(*margins)
+        margin = pyzo.config.view.widgetMargin
+        self.layout.setContentsMargins(margin, margin, margin, margin)
         self.setLayout(self.layout)
 
     def updateZoom(self):

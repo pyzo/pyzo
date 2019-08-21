@@ -88,8 +88,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._sizer2 = QtWidgets.QHBoxLayout()
         self._sizer1.setSpacing(2)
         # set margins
-        margins = pyzo.config.view.widgetMargins
-        self._sizer1.setContentsMargins(*margins)
+        margin = pyzo.config.view.widgetMargin
+        self._sizer1.setContentsMargins(margin, margin, margin, margin)
         
         # Set layout
         self._sizer1.addLayout(self._sizer2, 0)
