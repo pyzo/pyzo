@@ -38,6 +38,7 @@ view = dict:
     fontname = 'DejaVu Sans Mono'
     zoom = 0  # Both for editor and shell
     tabWidth = 4
+    widgetMargin = 4
 
 settings= dict:
     language = ''

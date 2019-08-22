@@ -6,17 +6,47 @@
 
 
 import sys, os, code
-
 import pyzo
+from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo.core.shell import BaseShell
 from pyzo.core.pyzoLogging import splitConsole
 
-
 tool_name = pyzo.translate("pyzoLogger","Logger")
 tool_summary = "Logs messages, warnings and errors within Pyzo."
+
+
+class PyzoLogger(QtWidgets.QWidget):
+    """ PyzoLogger
+
+        The main widget for this tool.
+
+    """
+
+    def __init__(self, parent):
+        QtWidgets.QWidget.__init__(self, parent)
+
+        # logger widget
+        self._logger_shell = PyzoLoggerShell(self)
+        
+        # set layout
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.addWidget(self._logger_shell, 1)
+        # spacing of widgets
+        self.layout.setSpacing(0)
+        # set margins
+        margin = pyzo.config.view.widgetMargin
+        self.layout.setContentsMargins(margin, margin, margin, margin)
+        self.setLayout(self.layout)
+
+    def updateZoom(self):
+        self._logger_shell.setZoom(pyzo.config.view.zoom)
+
+    def updateFont(self):
+        self._logger_shell.setFont(pyzo.config.view.fontname)
+        
  
 
-class PyzoLogger(BaseShell):
+class PyzoLoggerShell(BaseShell):
     """ Shell that logs all messages produced by pyzo. It also
     allows to look inside pyzo, which can be handy for debugging
     and developing.

@@ -49,6 +49,9 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         self.setLayout(layout)
         layout.addWidget(self._search, 0)
         layout.addWidget(self._list, 1)
+        # set margins
+        margin = pyzo.config.view.widgetMargin
+        layout.setContentsMargins(margin, margin, margin, margin)
         
         # Customize line edit
         self._search.setPlaceholderText(translate('menu', 'Search'))

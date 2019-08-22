@@ -210,6 +210,10 @@ class PyzoWebBrowser(QtWidgets.QFrame):
         self._sizer1.addWidget(self._view, 1)
         #
         self._sizer1.setSpacing(2)
+        # set margins
+        margin = pyzo.config.view.widgetMargin
+        self._sizer1.setContentsMargins(margin, margin, margin, margin)
+
         self.setLayout(self._sizer1)
         
         # Bind signals
