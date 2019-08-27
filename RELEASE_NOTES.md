@@ -1,6 +1,28 @@
 # Release notes
 
 
+### Version 4.8.0 (27-08-2019)
+
+- Fix block commenting when having empty lines (Thanks adddvent)
+- Improve automatic insertion of braces and brackets 
+- Improvements to advanced Settings (thanks Kelsi-Pi and Yann Salmon)
+- The Python 3 parser does not show Python 2 specifics (like print as a keyword) anymore (Thanks Yann Salmon)
+- Unified margins between widgets (thanks Kelsi-Pi)
+- Enable brace matching in shell (thanks Yann Salmon)
+- Improved PDF export (thanks filman230)
+- Improved variable explorer (thanks Yann Salmon)
+- Interactive help can now show help for operators and keywords, and has backward and forward buttons (thanks Yann Salmon)
+- Pyzo stores config data in a more suitable place on Unix (thanks filman230)
+- Increase limit for number of lines of a function def for it to be still shown in the source structure tool.
+
+
+### Version 4.7.4 (12-04-2019)
+
+- The shell now prints the last expression from a run cell (like Spyder does)
+- Fix support for Python 2.4
+- fix that themes are not packaged in source dist
+
+
 ### Version 4.7.3 (27-03-2019)
 
 A few fixes related to the new freezing process with PyInstaller, causing
