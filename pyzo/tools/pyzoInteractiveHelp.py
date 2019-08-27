@@ -278,7 +278,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Create browser
         self._browser = QtWidgets.QTextBrowser(self)
         self._browser_text = initText
-        self._browser.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self._browser.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._browser.customContextMenuRequested.connect(self.showMenu)
 
         
