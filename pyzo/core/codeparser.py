@@ -472,7 +472,7 @@ class Parser(threading.Thread):
             if (not foundSomething) and line.count('def '):
                 # Get a multiline version (for long defs)
                 multiLine = line
-                for ii in range(1,5):
+                for ii in range(1,16):
                     if i+ii<len(lines): multiLine += ' '+lines[i+ii].strip()
                 # Get result
                 defResult = re.search(defPattern, multiLine)
