@@ -239,7 +239,7 @@ class PdfExport(QtWidgets.QDialog):
         """Triggered when the zoom slider is changed"""
         self.zoom_selected = self.zoom_slider.value()
         zoom_level = self.zoom_selected - self.zoom_slider.minimum()
-        self.zoom_value_label.setText(f"Zoom level : {zoom_level}")
+        self.zoom_value_label.setText("Zoom level : {}".format(zoom_level))
 
     def _change_syntax_highlighting_option(self, state):
         """Used for the syntax highlight checkbox when its state change
