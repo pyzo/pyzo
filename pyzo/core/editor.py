@@ -21,9 +21,9 @@ qt = QtGui
 from pyzo.codeeditor import Manager
 from pyzo.core.menu import EditorContextMenu
 from pyzo.core.baseTextCtrl import BaseTextCtrl, normalizePath
+from pyzo.core.statusbar import StatusBar
 from pyzo.core.pyzoLogging import print  # noqa
 import pyzo
-
 
 
 # Set default line ending (if not set)
@@ -299,6 +299,9 @@ class PyzoEditor(BaseTextCtrl):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(lambda p: self._menu.popup(self.mapToGlobal(p)+QtCore.QPoint(0,3)))
 
+        # Update status bar
+        self.cursorPositionChanged.connect(self._updateStatusBar)
+
     ## Properties
 
     @property
@@ -442,6 +445,11 @@ class PyzoEditor(BaseTextCtrl):
     def _onModified(self):
         pyzo.parser.parseThis(self)
 
+    def _updateStatusBar(self):
+        editor = pyzo.editors.getCurrentEditor()
+        sb = pyzo.main.statusBar()
+        sb.updateCursorInfo(editor)
+        sb.updateFileEncodingInfo(editor)
 
     def dragMoveEvent(self, event):
         """ Otherwise cursor can get stuck.

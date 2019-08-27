@@ -1037,8 +1037,12 @@ class EditorTabs(QtWidgets.QWidget):
     
     def onCurrentChanged(self):
         self.currentChanged.emit()
-    
-    
+        # Update status bar
+        editor = pyzo.editors.getCurrentEditor()
+        sb = pyzo.main.statusBar()
+        sb.updateCursorInfo(editor)
+        sb.updateFileEncodingInfo(editor)
+
     def getCurrentEditor(self):
         """ Get the currently active editor. """
         item = self._tabs.currentItem()

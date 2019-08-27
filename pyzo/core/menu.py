@@ -746,6 +746,8 @@ class ViewMenu(Menu):
             None, "showLineEndings")
         self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."),
             None, "showIndentationGuides")
+        self.addCheckItem(translate("menu", "Show status bar ::: Show status bar."),
+                          None, self._setStatusBar, None, pyzo.config.view.showStatusbar)
         self.addSeparator()
         self.addEditorItem(translate("menu", "Wrap long lines ::: Wrap lines that do not fit on the screen (i.e. no horizontal scrolling)."),
             None, "wrap")
@@ -812,6 +814,13 @@ class ViewMenu(Menu):
     def _setQtTheme(self, value):
         pyzo.config.view.qtstyle = value
         pyzo.main.setQtStyle(value)
+
+    def _setStatusBar(self, value):
+        """
+        Show or hide status bar.
+        """
+        pyzo.config.view.showStatusbar = value
+        pyzo.main.statusBar().setVisible(value)
 
     def _previousCell(self):
         """
