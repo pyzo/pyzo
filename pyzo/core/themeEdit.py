@@ -369,7 +369,12 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         self.cur_theme_key = name
         self.cur_theme = self.themes[name]
         
-        self.saveBtn.setEnabled(not self.cur_theme["builtin"])
+        if self.cur_theme["builtin"]:
+            self.saveBtn.setEnabled(False)
+            self.saveBtn.setText("Cannot save builtin style")
+        else:
+            self.saveBtn.setEnabled(True)
+            self.saveBtn.setText("Save")
         self.curThemeCmb.setEditable(not self.cur_theme["builtin"])
         
         for key, le in self.styleEdits.items():
