@@ -139,7 +139,7 @@ sys.excepthook = pyzo_excepthook
 
 def getResourceDirs():
     """ getResourceDirs()
-    Get the directories to the resources: (pyzoDir, appDataDir).
+    Get the directories to the resources: (pyzoDir, appDataDir, appConfigDir).
     Also makes sure that the appDataDir has a "tools" directory and
     a style file.
     """
