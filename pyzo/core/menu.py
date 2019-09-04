@@ -73,7 +73,8 @@ def buildMenus(menuBar):
         if hasattr(action, '_shortcutsText'):
             tt = tt + ' ({})'.format(action._shortcutsText) # Add shortcuts text in it
         QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), tt)
-    menuBar.hovered.connect(onHover)
+    if not hasattr(QtWidgets.QMenu, 'setToolTipsVisible'):
+        menuBar.hovered.connect(onHover)
 
 
 # todo: put many settings in an advanced settings dialog:
@@ -188,9 +189,14 @@ class Menu(QtWidgets.QMenu):
         else:
             raise ValueError
         
-        # Set tooltip too?
+        try:
+            self.setToolTipsVisible(True)            
+        except:
+            pass
+        # Set tooltip too.
         if hasattr(name, 'tt'):
             self.setStatusTip(name.tt)
+            self.setToolTip(name.tt)
         
         # Action groups within the menu keep track of the selected value
         self._groups = {}
@@ -244,6 +250,7 @@ class Menu(QtWidgets.QMenu):
          # Set tooltip if we can find it
         if hasattr(text, 'tt'):
             a.setStatusTip(text.tt)
+            a.setToolTip(text.tt)
         
         # Find the key (untranslated name) for this menu item
         key = a.text()
