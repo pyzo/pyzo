@@ -135,7 +135,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         from pyzo.util.qt import QtHelp
         super().__init__(parent)
         self.setWindowTitle('Help')
-        pyzoDir, appDataDir = getResourceDirs()
+        pyzoDir, appDataDir, appConfigDir = getResourceDirs()
         if collection_filename is None:
             # Collection file is stored in pyzo data dir:
             collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
