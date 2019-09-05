@@ -422,6 +422,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 lastBit = os.path.basename(sys.executable)
                 args.insert(0, lastBit)
             
+            # When running from the pip entry point pyzo.exe ... (issue #641)
+            if len(args) == 2 and args[0] == "python.exe" and not os.path.isfile(args[1]):
+                args = ["python.exe", "-m", "pyzo"]
+            
             # Replace the process!
             os.execv(sys.executable, args)
     
