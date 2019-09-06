@@ -149,17 +149,21 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
             # Better way to get config/data folder especially on *nix system (see XDG_CONFIG_HOME standard),
             # but this should work on any os.
             # For retro-compatibility, check if old folder exist, and if not, use standard path.
-            standard_data_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.AppDataLocation)
-            standard_config_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.ConfigLocation)
+            try :
+                standard_data_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.AppDataLocation)
+                standard_config_path = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.ConfigLocation)
+            except AttributeError :
+                pass
+            else :
 
-            # Check if QStandardPaths succeeded to find the location, otherwise use old path
-            if standard_config_path:
-                config_path = standard_config_path
-            if standard_data_path:
-                data_path = standard_data_path
-            appname = appname.lstrip('.')
-            data_path = os.path.join(data_path, appname)
-            config_path = os.path.join(config_path, appname)
+                # Check if QStandardPaths succeeded to find the location, otherwise use old path
+                if standard_config_path:
+                    config_path = standard_config_path
+                if standard_data_path:
+                    data_path = standard_data_path
+                appname = appname.lstrip('.')
+                data_path = os.path.join(data_path, appname)
+                config_path = os.path.join(config_path, appname)
 
             if not os.path.isdir(data_path):
                 os.mkdir(data_path)
