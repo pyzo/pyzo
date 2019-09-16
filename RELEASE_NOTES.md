@@ -1,6 +1,23 @@
 # Release notes
 
 
+### Version 4.9.0 (16-09-2019)
+
+- Fix a problem where shells do not start on Windows 10 (For some reason, on some machines, aftter a Windows update, some (ranges of) ports are blocked). Resulting in a "warming up" message. See issue #644 for details.
+- Pyzo now has a status bar (thanks kelsa-pi).
+- Fix that running as script fails when the "use IPython shell" checkbox in on in the shell config, but IPython is unavailable.
+- Fix config path detection on older systems.
+- Fix that restart did not work when running Pyzo from source.
+- Let the menu display the tooltips correctly - no more black rectangles (thanks Tontyna).
+
+
+
+### Version 4.8.1 (27-08-2019)
+
+- A fix to make sure Pyzo runs on Python 3.5
+- A fix to make sure Pyzo runs correctly on Debian.
+
+
 ### Version 4.8.0 (27-08-2019)
 
 - Fix block commenting when having empty lines (Thanks adddvent)
