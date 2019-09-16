@@ -35,7 +35,7 @@ class StatusBar(QtWidgets.QStatusBar):
         if editor:
             nrow = editor.textCursor().blockNumber()
             nrow += 1  # is ln as in line number area
-            ncol = editor.textCursor().columnNumber()
+            ncol = editor.textCursor().positionInBlock()
             ncol += 1
 
         position_txt = "Line: {}, Column: {} ".format(str(nrow), str(ncol))
