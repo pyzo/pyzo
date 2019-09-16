@@ -377,7 +377,7 @@ class KernelBroker:
         
         # Host connection for the kernel to connect
         # (tries several port numbers, staring from 'PYZO')
-        self._kernelCon = self._context.bind('localhost:PYZO',
+        self._kernelCon = self._context.bind('localhost:pyzo',
                                                 max_tries=256, name='kernel')
         
         # Get command to execute, and environment to use
@@ -435,7 +435,7 @@ class KernelBroker:
         the ide can connect.
         
         """
-        c = self._context.bind(address+':PYZO+256', max_tries=32)
+        c = self._context.bind(address+':pyzo+256', max_tries=256, name='ide')
         return c.port1
     
     
