@@ -268,6 +268,8 @@ class PyzoIntrospector(yoton.RepChannel):
                     repres = '<list with %i elements>' % len(val)
                 elif kind == 'tuple':
                     repres = '<tuple with %i elements>' % len(val)
+                elif kind == 'dict' :
+                    repres = '<dict with {:d} keys>'.format(len(val))
                 else:
                     repres = repr(val)
                     if len(repres) > 80:
