@@ -49,7 +49,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 if isinstance(ob, dict):
                     NS = {}
                     for el in ob :
-                        NS['[' + repr(el) + ']'] = el
+                        NS['[' + repr(el) + ']'] = ob[el]
                 elif isinstance(ob, (list, tuple)):
                     NS = {}
                     count = -1
