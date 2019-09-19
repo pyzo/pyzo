@@ -142,13 +142,17 @@ class PyzoIntrospector(yoton.RepChannel):
                 
                 # collect
                 try:
-                    tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
-                except Exception:  # the above fails on 2.4 (+?) for builtins
-                    tmp = None
-                    kind = ''
+                    tmp = eval("inspect.getfullargspec(%s)"%(objectName), None, NS)  # py3
+                except Exception:
+                    try:
+                        tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)  # py2
+                    except Exception:  # the above fails on 2.4 (+?) for builtins
+                        tmp = None
+                        kind = ''
                 
                 if tmp is not None:
-                    args, varargs, varkw, defaults = tmp
+                    
+                    args, varargs, varkw, defaults = tmp[:4]
                     
                     # prepare defaults
                     if defaults is None:
