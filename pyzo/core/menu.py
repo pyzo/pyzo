@@ -2389,6 +2389,10 @@ class AdvancedSettings(QtWidgets.QDialog):
         self._btnFactoryDefault.setToolTip("Reset a IDE to its original settings.")
         self._btnFactoryDefault.clicked.connect(self.btnFactoryDefaultClicked)
 
+        self._btnOverwriteShellSettings = QtWidgets.QPushButton('Overwrite shell settings', self)
+        self._btnOverwriteShellSettings.setToolTip("Overwrite an existing shell settings with backup shell settings.")
+        self._btnOverwriteShellSettings.clicked.connect(self.replaceShellSettings)
+
         self._btnBackup = QtWidgets.QPushButton('Backup', self)
         self._btnBackup.setToolTip("Make backup file of the current settings.")
         self._btnBackup.setDefault(True)
@@ -2413,6 +2417,7 @@ class AdvancedSettings(QtWidgets.QDialog):
         #
         layout_4 = QtWidgets.QHBoxLayout()
         layout_4.addWidget(self._btnFactoryDefault, 0)
+        layout_4.addWidget(self._btnOverwriteShellSettings, 0)
         layout_4.addWidget(self._btnBackup, 0)
         layout_4.addWidget(self._btnRestore, 0)
 
@@ -2526,7 +2531,7 @@ class AdvancedSettings(QtWidgets.QDialog):
             if node:
                 # case: node - parent - key - value
                 if node_val in pyzo.config.keys():
-                    if parent_val in pyzo.config.keys():
+                    if parent_val in pyzo.config[node_val].keys():            # bugfix +[node_val]+
                         pyzo.config[node_val][parent_val][key] = value
             else:
                 # case: parent - key - value
@@ -2575,3 +2580,19 @@ class AdvancedSettings(QtWidgets.QDialog):
         if column == 1:
             item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
             self._tree.editItem(item, column)
+
+    def getBackupShellSettings(self):
+        """ Extract shell settings from backup file. """
+        backup_dict = pyzo.util.zon.load(self.backup_file)
+        backup_shell = backup_dict['shellConfigs2']
+        return backup_shell
+
+    def replaceShellSettings(self):
+        """ Replace current shell setting with backup shell settings. """
+
+        old_shell_settings = self.getBackupShellSettings()
+        pyzo.config["shellConfigs2"] = old_shell_settings
+        pyzo.saveConfig()
+
+
+
