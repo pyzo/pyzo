@@ -144,7 +144,7 @@ This functionality is enabled if the folder is named "settings" and is
 writable by the application (i.e. should not be in "c:\program files\..."
 or "/usr/..."). This functionality can be deactivated by renaming
 it (e.g. prepending an underscore). To reset config files, clear the
-contents of this folder (but do not remove the folder itself).
+contents of the "pyzo" sub-folder (but do not remove the folder itself).
 
 Note that some libraries may ignore this functionality and use the
 normal system configuration directory instead.
@@ -168,6 +168,7 @@ for frozenDir in frozenDirs:
 
     # Create settings folder and put in a file
     os.mkdir(os.path.join(frozenDir, '_settings'))
+    os.mkdir(os.path.join(frozenDir, '_settings', 'pyzo'))
     with open(os.path.join(frozenDir, '_settings', 'README.txt'), 'wb') as file:
         file.write(SETTINGS_TEXT.encode('utf-8'))
 
