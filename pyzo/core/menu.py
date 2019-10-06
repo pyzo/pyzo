@@ -73,7 +73,8 @@ def buildMenus(menuBar):
         if hasattr(action, '_shortcutsText'):
             tt = tt + ' ({})'.format(action._shortcutsText) # Add shortcuts text in it
         QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), tt)
-    menuBar.hovered.connect(onHover)
+    if not hasattr(QtWidgets.QMenu, 'setToolTipsVisible'):
+        menuBar.hovered.connect(onHover)
 
 
 # todo: put many settings in an advanced settings dialog:
@@ -188,9 +189,14 @@ class Menu(QtWidgets.QMenu):
         else:
             raise ValueError
         
-        # Set tooltip too?
+        try:
+            self.setToolTipsVisible(True)            
+        except:
+            pass
+        # Set tooltip too.
         if hasattr(name, 'tt'):
             self.setStatusTip(name.tt)
+            self.setToolTip(name.tt)
         
         # Action groups within the menu keep track of the selected value
         self._groups = {}
@@ -244,6 +250,7 @@ class Menu(QtWidgets.QMenu):
          # Set tooltip if we can find it
         if hasattr(text, 'tt'):
             a.setStatusTip(text.tt)
+            a.setToolTip(text.tt)
         
         # Find the key (untranslated name) for this menu item
         key = a.text()
@@ -746,6 +753,8 @@ class ViewMenu(Menu):
             None, "showLineEndings")
         self.addEditorItem(translate("menu", "Show indentation guides ::: Show vertical lines to indicate indentation."),
             None, "showIndentationGuides")
+        self.addCheckItem(translate("menu", "Show status bar ::: Show status bar."),
+                          None, self._setStatusBar, None, pyzo.config.view.showStatusbar)
         self.addSeparator()
         self.addEditorItem(translate("menu", "Wrap long lines ::: Wrap lines that do not fit on the screen (i.e. no horizontal scrolling)."),
             None, "wrap")
@@ -812,6 +821,13 @@ class ViewMenu(Menu):
     def _setQtTheme(self, value):
         pyzo.config.view.qtstyle = value
         pyzo.main.setQtStyle(value)
+
+    def _setStatusBar(self, value):
+        """
+        Show or hide status bar.
+        """
+        pyzo.config.view.showStatusbar = value
+        pyzo.main.statusBar().setVisible(value)
 
     def _previousCell(self):
         """
@@ -2373,6 +2389,10 @@ class AdvancedSettings(QtWidgets.QDialog):
         self._btnFactoryDefault.setToolTip("Reset a IDE to its original settings.")
         self._btnFactoryDefault.clicked.connect(self.btnFactoryDefaultClicked)
 
+        self._btnOverwriteShellSettings = QtWidgets.QPushButton('Overwrite shell settings', self)
+        self._btnOverwriteShellSettings.setToolTip("Overwrite an existing shell settings with backup shell settings.")
+        self._btnOverwriteShellSettings.clicked.connect(self.replaceShellSettings)
+
         self._btnBackup = QtWidgets.QPushButton('Backup', self)
         self._btnBackup.setToolTip("Make backup file of the current settings.")
         self._btnBackup.setDefault(True)
@@ -2397,6 +2417,7 @@ class AdvancedSettings(QtWidgets.QDialog):
         #
         layout_4 = QtWidgets.QHBoxLayout()
         layout_4.addWidget(self._btnFactoryDefault, 0)
+        layout_4.addWidget(self._btnOverwriteShellSettings, 0)
         layout_4.addWidget(self._btnBackup, 0)
         layout_4.addWidget(self._btnRestore, 0)
 
@@ -2510,7 +2531,7 @@ class AdvancedSettings(QtWidgets.QDialog):
             if node:
                 # case: node - parent - key - value
                 if node_val in pyzo.config.keys():
-                    if parent_val in pyzo.config.keys():
+                    if parent_val in pyzo.config[node_val].keys():            # bugfix +[node_val]+
                         pyzo.config[node_val][parent_val][key] = value
             else:
                 # case: parent - key - value
@@ -2559,3 +2580,19 @@ class AdvancedSettings(QtWidgets.QDialog):
         if column == 1:
             item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
             self._tree.editItem(item, column)
+
+    def getBackupShellSettings(self):
+        """ Extract shell settings from backup file. """
+        backup_dict = pyzo.util.zon.load(self.backup_file)
+        backup_shell = backup_dict['shellConfigs2']
+        return backup_shell
+
+    def replaceShellSettings(self):
+        """ Replace current shell setting with backup shell settings. """
+
+        old_shell_settings = self.getBackupShellSettings()
+        pyzo.config["shellConfigs2"] = old_shell_settings
+        pyzo.saveConfig()
+
+
+

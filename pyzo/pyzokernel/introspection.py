@@ -49,7 +49,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 if isinstance(ob, dict):
                     NS = {}
                     for el in ob :
-                        NS['[' + repr(el) + ']'] = el
+                        NS['[' + repr(el) + ']'] = ob[el]
                 elif isinstance(ob, (list, tuple)):
                     NS = {}
                     count = -1
@@ -142,13 +142,17 @@ class PyzoIntrospector(yoton.RepChannel):
                 
                 # collect
                 try:
-                    tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)
-                except Exception:  # the above fails on 2.4 (+?) for builtins
-                    tmp = None
-                    kind = ''
+                    tmp = eval("inspect.getfullargspec(%s)"%(objectName), None, NS)  # py3
+                except Exception:
+                    try:
+                        tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)  # py2
+                    except Exception:  # the above fails on 2.4 (+?) for builtins
+                        tmp = None
+                        kind = ''
                 
                 if tmp is not None:
-                    args, varargs, varkw, defaults = tmp
+                    
+                    args, varargs, varkw, defaults = tmp[:4]
                     
                     # prepare defaults
                     if defaults is None:
@@ -268,6 +272,8 @@ class PyzoIntrospector(yoton.RepChannel):
                     repres = '<list with %i elements>' % len(val)
                 elif kind == 'tuple':
                     repres = '<tuple with %i elements>' % len(val)
+                elif kind == 'dict' :
+                    repres = '<dict with {:d} keys>'.format(len(val))
                 else:
                     repres = repr(val)
                     if len(repres) > 80:

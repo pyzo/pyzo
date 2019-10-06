@@ -19,6 +19,7 @@ from queue import Queue, Empty
 import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
+from pyzo.core.statusbar import StatusBar
 from pyzo.util import qt
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
@@ -185,13 +186,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create the default shell when returning to the event queue
         callLater(pyzo.shells.addShell)
         
-        # Create statusbar
-        if pyzo.config.view.showStatusbar:
-            pyzo.status = self.statusBar()
-        else:
-            pyzo.status = None
-            self.setStatusBar(None)
-        
+        # Create status bar
+        self.setStatusBar(StatusBar())
+        # show or hide
+        self.statusBar().setVisible(pyzo.config.view.showStatusbar)
+
         # Create menu
         from pyzo.core import menu
         pyzo.keyMapper = menu.KeyMapper()
@@ -208,7 +207,7 @@ class MainWindow(QtWidgets.QMainWindow):
         elif pyzo.config.state.loadedTools:
             for toolId in pyzo.config.state.loadedTools:
                 pyzo.toolManager.loadTool(toolId)
-    
+
     def setMainTitle(self, path=None):
         """ Set the title of the main window, by giving a file path.
         """
@@ -421,6 +420,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Prepend the executable name (required on Linux)
                 lastBit = os.path.basename(sys.executable)
                 args.insert(0, lastBit)
+            
+            # When running from the pip entry point pyzo.exe ... (issue #641)
+            if len(args) == 2 and args[0] == "python.exe" and not os.path.isfile(args[1]):
+                args = ["python.exe", "-m", "pyzo"]
             
             # Replace the process!
             os.execv(sys.executable, args)

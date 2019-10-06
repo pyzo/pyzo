@@ -314,6 +314,9 @@ class PyzoInterpreter:
                 printDirect('IPython could not be loaded: %s\n' % str(value))
                 self._ipython = None
                 startup_info['ipython'] = 'no'
+            if not self._ipython:
+                startup_info['ipython'] = 'no'
+                
         
         # Set prompts
         sys.ps1 = PS1(self)
