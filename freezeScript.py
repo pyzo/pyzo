@@ -261,6 +261,7 @@ for fname in [tmp1, tmp2]:
 
 # Create settings folder and put in a file
 os.mkdir(os.path.join(distDir, '_settings'))
+os.mkdir(os.path.join(distDir, '_settings', 'pyzo'))
 
 SETTINGS_TEXT = """
 Portable settings folder
@@ -274,7 +275,7 @@ This functionality is enabled if the folder is named "settings" and is
 writable by the application (i.e. should not be in "c:\program files\..." 
 or "/usr/..."). This functionality can be deactivated by renaming
 it (e.g. prepending an underscore). To reset config files, clear the
-contents of this folder (but do not remove the folder itself).
+contents of the "pyzo" subfolder (but do not remove the folder itself).
 
 Note that some libraries may ignore this functionality and use the
 normal system configuration directory instead.
