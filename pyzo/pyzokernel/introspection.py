@@ -140,9 +140,11 @@ class PyzoIntrospector(yoton.RepChannel):
             if not sigs:
                 # Use intospection
                 
-                # collect
+                funname = objectName.split('.')[-1]
+                
                 try:
-                    tmp = eval("inspect.getfullargspec(%s)"%(objectName), None, NS)  # py3
+                    tmp = eval("inspect.signature(%s)"%(objectName), None, NS)  # py3.3
+                    sigs = funname + str(tmp)
                 except Exception:
                     try:
                         tmp = eval("inspect.getargspec(%s)"%(objectName), None, NS)  # py2
@@ -150,32 +152,28 @@ class PyzoIntrospector(yoton.RepChannel):
                         tmp = None
                         kind = ''
                 
-                if tmp is not None:
-                    
-                    args, varargs, varkw, defaults = tmp[:4]
-                    
-                    # prepare defaults
-                    if defaults is None:
-                        defaults = ()
-                    defaults = list(defaults)
-                    defaults.reverse()
-                    # make list (back to forth)
-                    args2 = []
-                    for i in range(len(args)-fun4):
-                        arg = args.pop()
-                        if i < len(defaults):
-                            args2.insert(0, "%s=%s" % (arg, defaults[i]) )
-                        else:
-                            args2.insert(0, arg )
-                    # append varargs and kwargs
-                    if varargs:
-                        args2.append( "*"+varargs )
-                    if varkw:
-                        args2.append( "**"+varkw )
-                    
-                    # append the lot to our  string
-                    funname = objectName.split('.')[-1]
-                    sigs = "%s(%s)" % ( funname, ", ".join(args2) )
+                    if tmp is not None:
+                        args, varargs, varkw, defaults = tmp[:4]
+                        # prepare defaults
+                        if defaults is None:
+                            defaults = ()
+                        defaults = list(defaults)
+                        defaults.reverse()
+                        # make list (back to forth)
+                        args2 = []
+                        for i in range(len(args)-fun4):
+                            arg = args.pop()
+                            if i < len(defaults):
+                                args2.insert(0, "%s=%s" % (arg, defaults[i]) )
+                            else:
+                                args2.insert(0, arg )
+                        # append varargs and kwargs
+                        if varargs:
+                            args2.append( "*"+varargs )
+                        if varkw:
+                            args2.append( "**"+varkw )
+                        # append the lot to our  string
+                        sigs = "%s(%s)" % ( funname, ", ".join(args2) )
         
         elif sigs:
             kind = "function"
