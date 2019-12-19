@@ -33,3 +33,4 @@ TRANSLATIONS += pyzo/resources/translations/pyzo_sk_SK.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_ru_RU.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_pt_PT.tr
 TRANSLATIONS += pyzo/resources/translations/pyzo_pt_BR.tr
+TRANSLATIONS += pyzo/resources/translations/pyzo_pl_PL.tr

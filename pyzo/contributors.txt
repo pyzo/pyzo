@@ -22,3 +22,4 @@ Yann Salmon - French
 Diogo Costa - Portuguese
 Gerd Schmitt - German
 George Volkov - Russian
+Łukasz Wojniłowicz - Polish
