@@ -419,7 +419,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
     def currentHist(self) :
         try :
             return self._history[self._histindex]
-        except :
+        except Exception:
             return None
     
     def addToHist(self, name) :

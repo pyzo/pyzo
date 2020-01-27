@@ -225,9 +225,9 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Apply a good default style
         self.setStyle(S)
     
-     # see https://bugreports.qt.io/browse/QTBUG-57552?focusedCommentId=469402&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-469402
-     # and https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/qtextdocument.cpp#n1183
-     # and https://doc.qt.io/qt-5/qchar.html
+    # see https://bugreports.qt.io/browse/QTBUG-57552?focusedCommentId=469402&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-469402
+    # and https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/qtextdocument.cpp#n1183
+    # and https://doc.qt.io/qt-5/qchar.html
     _plainTextTrans = str.maketrans({"\u2029":"\n", "\u2028":"\n", "\ufdd0":"\n", "\ufdd1":"\n"})
     
     def toPlainText(self) :

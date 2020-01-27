@@ -323,10 +323,10 @@ _saveConfigFile = True
 config = ssdf.new()
 loadConfig()
 
-try :
+try:
     # uses the fact that float("") raises ValueError to be NOP when qtscalefactor setting is not set
     os.environ["QT_SCREEN_SCALE_FACTORS"] = str(float(config.settings.qtscalefactor))
-except :
+except Exception:
     pass
 
 # Create style dict and fill it
