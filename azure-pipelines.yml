@@ -54,6 +54,13 @@ jobs:
         black --check .
         flake8 .
   - task: Bash@3
+    displayName: Install sdist
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        python setup.py sdist install
+  - task: Bash@3
     displayName: Test
     inputs:
       targetType: inline
