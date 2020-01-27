@@ -1,0 +1,126 @@
+trigger:
+  branches:
+    include:
+    - master
+  tags:
+    include:
+    - v*
+
+variables:
+  NAME: pyzo
+  PY_ARCH: x64
+  PY_VERSION: 3.6
+
+jobs:
+- job: Build
+  strategy:
+    matrix:
+      Linux:
+        vmImage: ubuntu-16.04
+        SDIST: 1
+        LINT: 1
+      MacOS:
+        vmImage: macOS-10.14
+        MACOSX_DEPLOYMENT_TARGET: '10.13'
+      Windows:
+        vmImage: vs2017-win2016
+      Windows-32:
+        vmImage: vs2017-win2016
+        PY_ARCH: x86
+  pool:
+    vmImage: $(vmImage)
+  steps:
+  - task: UsePythonVersion@0
+    displayName: Select Python
+    inputs:
+      versionSpec: $(PY_VERSION)
+      architecture: $(PY_ARCH)
+  - task: Bash@3
+    displayName: Install development requirements
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        python -m pip install -U pip
+        pip install -U PyQt5
+        pip install -U pytest flake8 pyinstaller
+  - task: Bash@3
+    displayName: Lint (flake8)
+    condition: and(succeeded(), eq(variables['LINT'], '1'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        flake8 .
+  - task: Bash@3
+    displayName: Test
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        pytest --junit-xml=results.xml || true
+
+        # Fail the task if results.xml was not created
+        if [[ ! -f results.xml ]]
+        then
+          echo "##vso[task.logissue type=error]No test results were found"
+          exit 1
+        fi
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: results.xml
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: Test $(vmImage)
+  - task: Bash@3
+    displayName: Freeze
+    inputs:
+      targetType: inline
+      script: |
+        python freezeScript2.py
+  - task: PublishBuildArtifacts@1
+    displayName: Publish distributions
+    inputs:
+      pathtoPublish: frozen
+      artifactName: frozen
+
+- job: Release
+  dependsOn: Build
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  pool:
+    vmImage: ubuntu-16.04
+  steps:
+  - task: Bash@3
+    displayName: git tag == git branch
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        IS_TAG_BUILD=$(expr $(git describe --tags) == $(Build.SourceBranchName)) || true
+        echo "##vso[task.setvariable variable=IS_TAG_BUILD]$IS_TAG_BUILD"
+        if [[ $IS_TAG_BUILD != 1 ]]; then
+          echo This build was not triggered by a tag, aborting release
+        fi
+  - task: UsePythonVersion@0
+    displayName: Select Python
+    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    inputs:
+      versionSpec: $(PY_VERSION)
+  - task: DownloadBuildArtifacts@0
+    displayName: Download dist
+    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    inputs:
+      artifactName: dist
+      downloadPath: .
+  - task: GithubRelease@1
+    displayName: GitHub Release
+    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    inputs:
+      gitHubConnection: github.com_almarklein
+      repositoryName: 'pyzo/pyzo'
+      assets: |
+        dist/*.whl
+        dist/*.tar.gz
+      isDraft: true
+      addChangeLog: false
+      assetUploadMode: replace
