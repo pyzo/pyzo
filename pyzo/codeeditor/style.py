@@ -127,7 +127,7 @@ class StyleFormat:
         try:
             return self._parts[key]
         except KeyError:
-            raise KeyError('Invalid part key for style format.')
+            raise KeyError('Invalid part key ' + key + ' for style format.')
     
     def __iter__(self):
         """ Yields a series of tuples (key, val).
@@ -247,6 +247,10 @@ class StyleFormat:
         if self._textCharFormat is None:
             self._textCharFormat = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
+            try :  # not all styles have a back property
+                self._textCharFormat.setBackground(self.back)
+            except :
+                pass
             self._textCharFormat.setUnderlineStyle(self.underline)
             if self.bold:
                 self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
