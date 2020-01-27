@@ -7,59 +7,62 @@
 ## ========== One end
 
 import yoton
+
 verbosity = 0
 
 # Create a replier class by subclassing RepChannel
 class Reducer(yoton.RepChannel):
     def reduce(self, item):
         if item == 2:
-            raise ValueError('I do not like 2.')
+            raise ValueError("I do not like 2.")
         return item - 1
+
 
 # Create a context and a rep channel
 ct1 = yoton.Context(verbose=verbosity)
-rep = Reducer(ct1, 'reduce')
+rep = Reducer(ct1, "reduce")
 
 # Connect and turn duplicator on
-ct1.bind('publichost:test')
-rep.set_mode('event')
+ct1.bind("publichost:test")
+rep.set_mode("event")
 
 
 ## ========== Other end
 
 import yoton
 import time
+
 verbosity = 0
 
 # Create a context and a req channel
 ct2 = yoton.Context(verbose=verbosity)
-req = yoton.ReqChannel(ct2, 'reduce')
+req = yoton.ReqChannel(ct2, "reduce")
 
 # Connect
-ct2.connect('publichost:test')
+ct2.connect("publichost:test")
 
 
 # Create reply handler and bind it
 def reply_handler(future):
-    
+
     # Check error, cancelled, or get number
     if future.exception():
         # Calling result() would raise the exception, so lets just
         # print it and make up our own number
-        print('oops: ' + str(future.exception()))
+        print("oops: " + str(future.exception()))
         number = 1
     elif future.cancelled():
-        print('oops: request was cancelled.')
+        print("oops: request was cancelled.")
     else:
         number = future.result()
-    
+
     if number > 0:
-        print('we now have %i.' % number)
+        print("we now have %i." % number)
         time.sleep(0.5)
         new_future = req.reduce(number)
         new_future.add_done_callback(reply_handler)
     else:
-        print('Done')
+        print("Done")
         yoton.stop_event_loop()
 
 

@@ -45,33 +45,32 @@ def patch_qcombobox(QComboBox):
     from ..QtGui import QIcon
     from ..QtCore import Qt, QObject
 
-    class userDataWrapper():
+    class userDataWrapper:
         """
         This class is used to wrap any userData object. If we don't do this,
         then certain types of objects can cause segmentation faults or issues
         depending on whether/how __getitem__ is defined.
         """
+
         def __init__(self, data):
             self.data = data
 
     _addItem = QComboBox.addItem
 
     def addItem(self, *args, **kwargs):
-        if len(args) == 3 or (not isinstance(args[0], QIcon)
-                              and len(args) == 2):
-            args, kwargs['userData'] = args[:-1], args[-1]
-        if 'userData' in kwargs:
-            kwargs['userData'] = userDataWrapper(kwargs['userData'])
+        if len(args) == 3 or (not isinstance(args[0], QIcon) and len(args) == 2):
+            args, kwargs["userData"] = args[:-1], args[-1]
+        if "userData" in kwargs:
+            kwargs["userData"] = userDataWrapper(kwargs["userData"])
         _addItem(self, *args, **kwargs)
 
     _insertItem = QComboBox.insertItem
 
     def insertItem(self, *args, **kwargs):
-        if len(args) == 4 or (not isinstance(args[1], QIcon)
-                              and len(args) == 3):
-            args, kwargs['userData'] = args[:-1], args[-1]
-        if 'userData' in kwargs:
-            kwargs['userData'] = userDataWrapper(kwargs['userData'])
+        if len(args) == 4 or (not isinstance(args[1], QIcon) and len(args) == 3):
+            args, kwargs["userData"] = args[:-1], args[-1]
+        if "userData" in kwargs:
+            kwargs["userData"] = userDataWrapper(kwargs["userData"])
         _insertItem(self, *args, **kwargs)
 
     _setItemData = QComboBox.setItemData

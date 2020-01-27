@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2016, the Pyzo development team
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """ compact tab widget class
@@ -90,10 +90,12 @@ QTabBar::tab:!selected {
 
 ## Define tab widget class
 
+
 class TabData:
     """ To keep track of real names of the tabs, but also keep supporting
     tabData.
     """
+
     def __init__(self, name):
         self.name = name
         self.data = None
@@ -114,91 +116,89 @@ class CompactTabBar(QtWidgets.QTabBar):
     distinguished.
     
     """
-    
+
     # Add signal to be notified of double clicks on tabs
     tabDoubleClicked = QtCore.Signal(int)
     barDoubleClicked = QtCore.Signal()
-    
-    def __init__(self, *args, padding=(4,4,6,6), preventEqualTexts=True):
+
+    def __init__(self, *args, padding=(4, 4, 6, 6), preventEqualTexts=True):
         QtWidgets.QTabBar.__init__(self, *args)
-        
+
         # Put tab widget in document mode
         self.setDocumentMode(True)
-        
+
         # Widget needs to draw its background (otherwise Mac has a dark bg)
         self.setDrawBase(False)
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             self.setAutoFillBackground(True)
-        
+
         # Set whether we want to prevent eliding for names that start the same.
         self._preventEqualTexts = preventEqualTexts
-        
+
         # Allow moving tabs around
         self.setMovable(True)
-        
+
         # Get padding
         if isinstance(padding, (int, float)):
             padding = padding, padding, padding, padding
         elif isinstance(padding, (tuple, list)):
             pass
         else:
-            raise ValueError('Invalid value for padding.')
-        
+            raise ValueError("Invalid value for padding.")
+
         # Set style sheet
         stylesheet = STYLESHEET
-        stylesheet = stylesheet.replace('PADDING_TOP', str(padding[0]))
-        stylesheet = stylesheet.replace('PADDING_BOTTOM', str(padding[1]))
-        stylesheet = stylesheet.replace('PADDING_LEFT', str(padding[2]))
-        stylesheet = stylesheet.replace('PADDING_RIGHT', str(padding[3]))
+        stylesheet = stylesheet.replace("PADDING_TOP", str(padding[0]))
+        stylesheet = stylesheet.replace("PADDING_BOTTOM", str(padding[1]))
+        stylesheet = stylesheet.replace("PADDING_LEFT", str(padding[2]))
+        stylesheet = stylesheet.replace("PADDING_RIGHT", str(padding[3]))
         self.setStyleSheet(stylesheet)
-        
+
         # We do our own eliding
         self.setElideMode(QtCore.Qt.ElideNone)
-        
+
         # Make tabs wider if there's plenty space?
         self.setExpanding(False)
-        
+
         # If there's not enough space, use scroll buttons
         self.setUsesScrollButtons(True)
-        
+
         # When a tab is removed, select previous
         self.setSelectionBehaviorOnRemove(self.SelectPreviousTab)
-        
+
         # Init alignment parameters
         self._alignWidth = MIN_NAME_WIDTH  # Width in characters
-        self._alignWidthIsReducing = False # Whether in process of reducing
-        
+        self._alignWidthIsReducing = False  # Whether in process of reducing
+
         # Create timer for aligning
         self._alignTimer = QtCore.QTimer(self)
         self._alignTimer.setInterval(10)
         self._alignTimer.setSingleShot(True)
         self._alignTimer.timeout.connect(self._alignRecursive)
-    
-    
+
     def _compactTabBarData(self, i):
         """ _compactTabBarData(i)
         
         Get the underlying tab data for tab i. Only for internal use.
         
         """
-        
+
         # Get current TabData instance
         tabData = QtWidgets.QTabBar.tabData(self, i)
-        if (tabData is not None) and hasattr(tabData, 'toPyObject'):
-            tabData = tabData.toPyObject() # Older version of Qt
-        
+        if (tabData is not None) and hasattr(tabData, "toPyObject"):
+            tabData = tabData.toPyObject()  # Older version of Qt
+
         # If none, make it as good as we can
         if not tabData:
             name = str(QtWidgets.QTabBar.tabText(self, i))
-            tabData = TabData( name )
+            tabData = TabData(name)
             QtWidgets.QTabBar.setTabData(self, i, tabData)
-        
+
         # Done
         return tabData
-    
-    
+
     ## Overload a few methods
-    
+
     def mouseDoubleClickEvent(self, event):
         i = self.tabAt(event.pos())
         if i == -1:
@@ -207,8 +207,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         else:
             # Tab was double clicked
             self.tabDoubleClicked.emit(i)
-    
-    
+
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MiddleButton:
             i = self.tabAt(event.pos())
@@ -216,8 +215,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                 self.parent().tabCloseRequested.emit(i)
                 return
         super().mousePressEvent(event)
-    
-    
+
     def setTabData(self, i, data):
         """ setTabData(i, data)
         
@@ -226,25 +224,23 @@ class CompactTabBar(QtWidgets.QTabBar):
         """
         # Get underlying python instance
         tabData = self._compactTabBarData(i)
-        
+
         # Attach given data
         tabData.data = data
-    
-    
+
     def tabData(self, i):
         """ tabData(i)
         
         Get the tab data at item i. Always returns a Python object.
         
         """
-        
+
         # Get underlying python instance
         tabData = self._compactTabBarData(i)
-        
+
         # Return stored data
         return tabData.data
-    
-    
+
     def setTabText(self, i, text):
         """ setTabText(i, text)
         
@@ -255,8 +251,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         if text != tabData.name:
             tabData.name = text
             self.alignTabs()
-    
-    
+
     def tabText(self, i):
         """ tabText(i)
         
@@ -265,43 +260,38 @@ class CompactTabBar(QtWidgets.QTabBar):
         """
         tabData = self._compactTabBarData(i)
         return tabData.name
-    
-    
+
     ## Overload events and protected functions
-    
+
     def tabInserted(self, i):
         QtWidgets.QTabBar.tabInserted(self, i)
-        
+
         # Is called when a tab is inserted
-        
+
         # Get given name and store
         name = str(QtWidgets.QTabBar.tabText(self, i))
         tabData = TabData(name)
         QtWidgets.QTabBar.setTabData(self, i, tabData)
-        
+
         # Update
         self.alignTabs()
-    
-        
+
     def tabRemoved(self, i):
         QtWidgets.QTabBar.tabRemoved(self, i)
-        
+
         # Update
         self.alignTabs()
-    
-        
+
     def resizeEvent(self, event):
         QtWidgets.QTabBar.resizeEvent(self, event)
         self.alignTabs()
-    
-    
+
     def showEvent(self, event):
         QtWidgets.QTabBar.showEvent(self, event)
         self.alignTabs()
-    
-        
+
     ## For aligning
-    
+
     def alignTabs(self):
         """ alignTabs()
         
@@ -310,15 +300,14 @@ class CompactTabBar(QtWidgets.QTabBar):
         space, the QTabBar will kick in and draw scroll arrows.
         
         """
-        
+
         # Set name widths correct (in case new names were added)
         self._setMaxWidthOfAllItems()
-        
+
         # Start alignment process
         self._alignWidthIsReducing = False
         self._alignTimer.start()
-        
-        
+
     def _alignRecursive(self):
         """ _alignRecursive()
         
@@ -326,17 +315,17 @@ class CompactTabBar(QtWidgets.QTabBar):
         should be initiated from alignTabs().
         
         """
-        
+
         # Only if visible
         if not self.isVisible():
             return
-        
+
         # Get tab bar and number of items
         N = self.count()
-        
+
         # Get right edge of last tab and left edge of corner widget
         pos1 = self.tabRect(0).topLeft()
-        pos2 = self.tabRect(N-1).topRight()
+        pos2 = self.tabRect(N - 1).topRight()
         cornerWidget = self.parent().cornerWidget()
         if cornerWidget:
             pos3 = cornerWidget.pos()
@@ -345,43 +334,42 @@ class CompactTabBar(QtWidgets.QTabBar):
         x1 = pos1.x()
         x2 = pos2.x()
         x3 = pos3.x()
-        alignMargin = x3 - (x2-x1) -3  # Must be positive (has margin)
-        
+        alignMargin = x3 - (x2 - x1) - 3  # Must be positive (has margin)
+
         # Are the tabs too wide?
         if alignMargin < 0:
             # Tabs extend beyond corner widget
-            
+
             # Reduce width then
             self._alignWidth -= 1
             self._alignWidth = max(self._alignWidth, MIN_NAME_WIDTH)
-            
+
             # Apply
             self._setMaxWidthOfAllItems()
             self._alignWidthIsReducing = True
-            
+
             # Try again if there's still room for reduction
             if self._alignWidth > MIN_NAME_WIDTH:
                 self._alignTimer.start()
-        
+
         elif alignMargin > 10 and not self._alignWidthIsReducing:
             # Gap between tabs and corner widget is a bit large
-            
+
             # Increase width then
             self._alignWidth += 1
             self._alignWidth = min(self._alignWidth, MAX_NAME_WIDTH)
-            
+
             # Apply
             itemsElided = self._setMaxWidthOfAllItems()
-            
+
             # Try again if there's still room for increment
             if itemsElided and self._alignWidth < MAX_NAME_WIDTH:
                 self._alignTimer.start()
-                #self._alignTimer.timeout.emit()
-        
+                # self._alignTimer.timeout.emit()
+
         else:
-            pass # margin is good
-    
-    
+            pass  # margin is good
+
     def _getAllNames(self):
         """ _getAllNames()
         
@@ -389,8 +377,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         
         """
         return [self._compactTabBarData(i).name for i in range(self.count())]
-    
-    
+
     def _setMaxWidthOfAllItems(self):
         """ _setMaxWidthOfAllItems()
         
@@ -398,25 +385,25 @@ class CompactTabBar(QtWidgets.QTabBar):
         Returns whether any items were elided.
         
         """
-        
+
         # Get whether an item was reduced in size
         itemReduced = False
-        
+
         for i in range(self.count()):
-            
+
             # Get width
             w = self._alignWidth
-            
+
             # Get name
             name = self._compactTabBarData(i).name
-            
+
             # If its too long, first make it shorter by stripping dir names
-            if (w+1) < len(name) and '/' in name:
-                name = name.split('/')[-1]
-            
+            if (w + 1) < len(name) and "/" in name:
+                name = name.split("/")[-1]
+
             # Check if we can reduce the name size, correct w if necessary
-            if ( (w+1) < len(name) ) and self._preventEqualTexts:
-                
+            if ((w + 1) < len(name)) and self._preventEqualTexts:
+
                 # Increase w untill there are no names that start the same
                 allNames = self._getAllNames()
                 hasSimilarNames = True
@@ -424,22 +411,21 @@ class CompactTabBar(QtWidgets.QTabBar):
                 w -= 1
                 while hasSimilarNames and w < len(name):
                     w += 1
-                    w2 = w - (diff-1)
+                    w2 = w - (diff - 1)
                     shortName = name[:w2]
-                    similarnames = [n for n in allNames if n[:w2]==shortName]
-                    hasSimilarNames = len(similarnames)>1
-            
+                    similarnames = [n for n in allNames if n[:w2] == shortName]
+                    hasSimilarNames = len(similarnames) > 1
+
             # Check again, with corrected w
-            if (w+1) < len(name):
+            if (w + 1) < len(name):
                 name = name[:w] + ELLIPSIS
                 itemReduced = True
-            
+
             # Set text now
             QtWidgets.QTabBar.setTabText(self, i, name)
-        
+
         # Done
         return itemReduced
-
 
 
 class CompactTabWidget(QtWidgets.QTabWidget):
@@ -461,17 +447,16 @@ class CompactTabWidget(QtWidgets.QTabWidget):
     CompactTabBar class.
     
     """
-    
+
     def __init__(self, *args, **kwargs):
         QtWidgets.QTabWidget.__init__(self, *args)
-        
+
         # Set tab bar
         self.setTabBar(CompactTabBar(self, **kwargs))
-        
+
         # Draw tabs at the top by default
         self.setTabPosition(QtWidgets.QTabWidget.North)
-    
-    
+
     def setTabData(self, i, data):
         """ setTabData(i, data)
         
@@ -479,8 +464,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         
         """
         self.tabBar().setTabData(i, data)
-    
-    
+
     def tabData(self, i):
         """ tabData(i)
         
@@ -488,8 +472,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         
         """
         return self.tabBar().tabData(i)
-    
-    
+
     def setTabText(self, i, text):
         """ setTabText(i, text)
         
@@ -497,8 +480,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         
         """
         self.tabBar().setTabText(i, text)
-    
-    
+
     def tabText(self, i):
         """ tabText(i)
         
@@ -506,17 +488,17 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         
         """
         return self.tabBar().tabText(i)
-    
 
-if __name__ == '__main__':
-    
+
+if __name__ == "__main__":
+
     w = CompactTabWidget()
     w.show()
-    
-    w.addTab(QtWidgets.QWidget(w), 'aapenootjedopje')
-    w.addTab(QtWidgets.QWidget(w), 'aapenootjedropje')
-    w.addTab( QtWidgets.QWidget(w), 'noot en mies')
-    w.addTab( QtWidgets.QWidget(w), 'boom bijv een iep')
-    w.addTab( QtWidgets.QWidget(w), 'roosemarijnus')
-    w.addTab( QtWidgets.QWidget(w), 'vis')
-    w.addTab( QtWidgets.QWidget(w), 'vuurvuurvuur')
+
+    w.addTab(QtWidgets.QWidget(w), "aapenootjedopje")
+    w.addTab(QtWidgets.QWidget(w), "aapenootjedropje")
+    w.addTab(QtWidgets.QWidget(w), "noot en mies")
+    w.addTab(QtWidgets.QWidget(w), "boom bijv een iep")
+    w.addTab(QtWidgets.QWidget(w), "roosemarijnus")
+    w.addTab(QtWidgets.QWidget(w), "vis")
+    w.addTab(QtWidgets.QWidget(w), "vuurvuurvuur")

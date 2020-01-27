@@ -1,15 +1,15 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2013 Min RK
 #
 #  Distributed under the terms of the 2-clause BSD License.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from contextlib import contextmanager
 
 import ctypes
 import ctypes.util
 
-objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('objc'))
+objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library("objc"))
 
 void_p = ctypes.c_void_p
 ull = ctypes.c_uint64
@@ -21,30 +21,37 @@ objc.objc_msgSend.argtypes = [void_p, void_p]
 
 msg = objc.objc_msgSend
 
+
 def _utf8(s):
     """ensure utf8 bytes"""
     if not isinstance(s, bytes):
-        s = s.encode('utf8')
+        s = s.encode("utf8")
     return s
+
 
 def n(name):
     """create a selector name (for methods)"""
     return objc.sel_registerName(_utf8(name))
 
+
 def C(classname):
     """get an ObjC Class by name"""
     return objc.objc_getClass(_utf8(classname))
 
+
 # constants from Foundation
 
-NSActivityIdleDisplaySleepDisabled             = (1 << 40)
-NSActivityIdleSystemSleepDisabled              = (1 << 20)
-NSActivitySuddenTerminationDisabled            = (1 << 14)
-NSActivityAutomaticTerminationDisabled         = (1 << 15)
-NSActivityUserInitiated                        = (0x00FFFFFF | NSActivityIdleSystemSleepDisabled)
-NSActivityUserInitiatedAllowingIdleSystemSleep = (NSActivityUserInitiated & ~NSActivityIdleSystemSleepDisabled)
-NSActivityBackground                           = 0x000000FF
-NSActivityLatencyCritical                      = 0xFF00000000
+NSActivityIdleDisplaySleepDisabled = 1 << 40
+NSActivityIdleSystemSleepDisabled = 1 << 20
+NSActivitySuddenTerminationDisabled = 1 << 14
+NSActivityAutomaticTerminationDisabled = 1 << 15
+NSActivityUserInitiated = 0x00FFFFFF | NSActivityIdleSystemSleepDisabled
+NSActivityUserInitiatedAllowingIdleSystemSleep = (
+    NSActivityUserInitiated & ~NSActivityIdleSystemSleepDisabled
+)
+NSActivityBackground = 0x000000FF
+NSActivityLatencyCritical = 0xFF00000000
+
 
 def beginActivityWithOptions(options, reason=""):
     """Wrapper for:
@@ -54,33 +61,34 @@ def beginActivityWithOptions(options, reason=""):
                           reason: (str)reason
     ]
     """
-    NSProcessInfo = C('NSProcessInfo')
-    NSString = C('NSString')
-    
+    NSProcessInfo = C("NSProcessInfo")
+    NSString = C("NSString")
+
     reason = msg(NSString, n("stringWithUTF8String:"), _utf8(reason))
-    info = msg(NSProcessInfo, n('processInfo'))
-    activity = msg(info,
-        n('beginActivityWithOptions:reason:'),
-        ull(options),
-        void_p(reason)
+    info = msg(NSProcessInfo, n("processInfo"))
+    activity = msg(
+        info, n("beginActivityWithOptions:reason:"), ull(options), void_p(reason)
     )
     return activity
 
+
 def endActivity(activity):
     """end a process activity assertion"""
-    NSProcessInfo = C('NSProcessInfo')
-    info = msg(NSProcessInfo, n('processInfo'))
+    NSProcessInfo = C("NSProcessInfo")
+    info = msg(NSProcessInfo, n("processInfo"))
     msg(info, n("endActivity:"), void_p(activity))
 
+
 _theactivity = None
+
 
 def nope():
     """disable App Nap by setting NSActivityUserInitiatedAllowingIdleSystemSleep"""
     global _theactivity
     _theactivity = beginActivityWithOptions(
-        NSActivityUserInitiatedAllowingIdleSystemSleep,
-        "Because Reasons"
+        NSActivityUserInitiatedAllowingIdleSystemSleep, "Because Reasons"
     )
+
 
 def nap():
     """end the caffeinated state started by `nope`"""
@@ -89,15 +97,16 @@ def nap():
         endActivity(_theactivity)
         _theactivity = None
 
+
 def napping_allowed():
     """is napping allowed?"""
     return _theactivity is None
 
+
 @contextmanager
 def nope_scope(
-        options=NSActivityUserInitiatedAllowingIdleSystemSleep,
-        reason="Because Reasons"
-    ):
+    options=NSActivityUserInitiatedAllowingIdleSystemSleep, reason="Because Reasons"
+):
     """context manager for beginActivityWithOptions.
     
     Within this context, App Nap will be disabled.
@@ -107,6 +116,7 @@ def nope_scope(
         yield
     finally:
         endActivity(activity)
+
 
 __all__ = [
     "NSActivityIdleDisplaySleepDisabled",

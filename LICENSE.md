@@ -1,6 +1,6 @@
-Codeeditor is subject to the 2-Clause BSD license:
+Pyzo is subject to the (new) BSD license:
 
-Copyright (C) 2013, the codeeditor development team
+Copyright (C) 2008-2020, the Pyzo development team
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

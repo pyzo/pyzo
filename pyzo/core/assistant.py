@@ -2,7 +2,7 @@
 # Copyright (C) 2016, the Pyzo development team
 # Author: Windel Bouwman
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """
@@ -75,7 +75,8 @@ class Settings(QtWidgets.QWidget):
         doc_file = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select a compressed help file",
-            filter="Qt compressed help files (*.qch)")
+            filter="Qt compressed help files (*.qch)",
+        )
         if isinstance(doc_file, tuple):
             doc_file = doc_file[0]
         self.add_doc_do(doc_file)
@@ -100,6 +101,7 @@ class Settings(QtWidgets.QWidget):
 
 class HelpBrowser(QtWidgets.QTextBrowser):
     """ Override textbrowser to implement load resource """
+
     def __init__(self, engine):
         super().__init__()
         self._engine = engine
@@ -110,7 +112,7 @@ class HelpBrowser(QtWidgets.QTextBrowser):
 
     def handle_url(self, url):
         """ Open external urls not in this viewer """
-        if url.scheme() in ['http', 'https']:
+        if url.scheme() in ["http", "https"]:
             QtGui.QDesktopServices.openUrl(url)
         else:
             self.setSource(url)
@@ -126,6 +128,7 @@ class PyzoAssistant(QtWidgets.QWidget):
     """
         Show help contents and browse qt help files.
     """
+
     def __init__(self, parent=None, collection_filename=None):
         """
             Initializes an assistance instance.
@@ -133,12 +136,13 @@ class PyzoAssistant(QtWidgets.QWidget):
             appDataDir.
         """
         from pyzo.util.qt import QtHelp
+
         super().__init__(parent)
-        self.setWindowTitle('Help')
+        self.setWindowTitle("Help")
         pyzoDir, appDataDir, appConfigDir = getResourceDirs()
         if collection_filename is None:
             # Collection file is stored in pyzo data dir:
-            collection_filename = os.path.join(appDataDir, 'tools', 'docs.qhc')
+            collection_filename = os.path.join(appDataDir, "tools", "docs.qhc")
         self._engine = QtHelp.QHelpEngine(collection_filename)
 
         # Important, call setup data to load the files:
@@ -146,7 +150,7 @@ class PyzoAssistant(QtWidgets.QWidget):
 
         # If no files are loaded, register at least the pyzo docs:
         if len(self._engine.registeredDocumentations()) == 0:
-            doc_file = os.path.join(pyzoDir, 'resources', 'pyzo.qch')
+            doc_file = os.path.join(pyzoDir, "resources", "pyzo.qch")
             self._engine.registerDocumentation(doc_file)
 
         # The main players:
@@ -166,7 +170,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         pl = QtWidgets.QHBoxLayout(self._progress)
         bar = QtWidgets.QProgressBar()
         bar.setMaximum(0)
-        pl.addWidget(QtWidgets.QLabel('Indexing'))
+        pl.addWidget(QtWidgets.QLabel("Indexing"))
         pl.addWidget(bar)
 
         self._searchResultWidget = self._searchEngine.resultWidget()
@@ -227,7 +231,10 @@ class PyzoAssistant(QtWidgets.QWidget):
         try:
             # Try to find max with fuzzy wuzzy:
             from fuzzywuzzy import fuzz
-            url, title = max(hits, key=lambda hit: fuzz.ratio(hit[1], self._search_term))
+
+            url, title = max(
+                hits, key=lambda hit: fuzz.ratio(hit[1], self._search_term)
+            )
             return url
         except ImportError:
             pass
@@ -258,6 +265,7 @@ class PyzoAssistant(QtWidgets.QWidget):
 
     def showHelpForTerm(self, name):
         from pyzo.util.qt import QtHelp
+
         # Cache for later use:
         self._search_term = name
 
@@ -266,7 +274,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         self._searchEngine.search([query])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     view = PyzoAssistant()
     view.show()

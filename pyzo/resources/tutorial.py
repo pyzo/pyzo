@@ -109,7 +109,7 @@ directory may also be inserted in sys.path.
 
 a = 3
 b = 4
-print('The answer is ' + str(a+b))
+print("The answer is " + str(a + b))
 
 
 ## The menu
@@ -123,7 +123,7 @@ shortcuts using the shortcut editor: Settings > Edit key mappings.
   
 """
 
-  
+
 ## Introspection
 """
 Pyzo has strong introspection capabilities. Pyzo knows about the objects
@@ -157,22 +157,27 @@ Below follows an example that you can run to test the debugging.
 """
 
 import random
+
 someModuleVariable = True
+
 
 def getNumber():
     return random.choice(range(10))
 
+
 def foo():
-    spam = 'yum'
+    spam = "yum"
     eggs = 7
     value = bar()
-    
+
+
 def bar():
     total = 0
     for i1 in range(100):
         i2 = getNumber()
-        total += i1/i2
+        total += i1 / i2
     return total
+
 
 foo()
 
@@ -199,4 +204,3 @@ directories in your project. Files can be hidden using the filter that
 is specified at the bottom of the Project manager, e.g. !*.pyc to hide
 all files that have the extension pyc.
 """
-

@@ -9,7 +9,7 @@
 Provides QtPrintSupport classes and functions.
 """
 
-from . import PYQT5, PYQT4,PYSIDE2, PYSIDE, PythonQtError
+from . import PYQT5, PYQT4, PYSIDE2, PYSIDE, PythonQtError
 
 
 if PYQT5:
@@ -17,12 +17,26 @@ if PYQT5:
 elif PYSIDE2:
     from PySide2.QtPrintSupport import *
 elif PYQT4:
-    from PyQt4.QtGui import (QAbstractPrintDialog, QPageSetupDialog,
-                             QPrintDialog, QPrintEngine, QPrintPreviewDialog,
-                             QPrintPreviewWidget, QPrinter, QPrinterInfo)
+    from PyQt4.QtGui import (
+        QAbstractPrintDialog,
+        QPageSetupDialog,
+        QPrintDialog,
+        QPrintEngine,
+        QPrintPreviewDialog,
+        QPrintPreviewWidget,
+        QPrinter,
+        QPrinterInfo,
+    )
 elif PYSIDE:
-    from PySide.QtGui import (QAbstractPrintDialog, QPageSetupDialog,
-                              QPrintDialog, QPrintEngine, QPrintPreviewDialog,
-                              QPrintPreviewWidget, QPrinter, QPrinterInfo)
+    from PySide.QtGui import (
+        QAbstractPrintDialog,
+        QPageSetupDialog,
+        QPrintDialog,
+        QPrintEngine,
+        QPrintPreviewDialog,
+        QPrintPreviewWidget,
+        QPrinter,
+        QPrinterInfo,
+    )
 else:
-    raise PythonQtError('No Qt bindings could be found')
+    raise PythonQtError("No Qt bindings could be found")

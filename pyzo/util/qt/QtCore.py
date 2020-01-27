@@ -24,12 +24,14 @@ if PYQT5:
     del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
 elif PYSIDE2:
     from PySide2.QtCore import *
-    try:  # may be limited to PySide-5.11a1 only 
+
+    try:  # may be limited to PySide-5.11a1 only
         from PySide2.QtGui import QStringListModel
-    except:
+    except Exception:
         pass
 elif PYQT4:
     from PyQt4.QtCore import *
+
     # Those are things we inherited from Spyder that fix crazy crashes under
     # some specific situations. (See #34)
     from PyQt4.QtCore import QCoreApplication
@@ -37,9 +39,13 @@ elif PYQT4:
     from PyQt4.QtCore import pyqtSignal as Signal
     from PyQt4.QtCore import pyqtSlot as Slot
     from PyQt4.QtCore import pyqtProperty as Property
-    from PyQt4.QtGui import (QItemSelection, QItemSelectionModel,
-                             QItemSelectionRange, QSortFilterProxyModel,
-                             QStringListModel)
+    from PyQt4.QtGui import (
+        QItemSelection,
+        QItemSelectionModel,
+        QItemSelectionRange,
+        QSortFilterProxyModel,
+        QStringListModel,
+    )
     from PyQt4.QtCore import QT_VERSION_STR as __version__
     from PyQt4.QtCore import qInstallMsgHandler as qInstallMessageHandler
 
@@ -48,7 +54,7 @@ elif PYQT4:
     # This creates a dummy class that emulates QStandardPaths
     from PyQt4.QtGui import QDesktopServices as _QDesktopServices
 
-    class QStandardPaths():
+    class QStandardPaths:
         StandardLocation = _QDesktopServices.StandardLocation
         displayName = _QDesktopServices.displayName
         DesktopLocation = _QDesktopServices.DesktopLocation
@@ -68,10 +74,15 @@ elif PYQT4:
     del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR, qInstallMsgHandler
 elif PYSIDE:
     from PySide.QtCore import *
-    from PySide.QtGui import (QItemSelection, QItemSelectionModel,
-                              QItemSelectionRange, QSortFilterProxyModel,
-                              QStringListModel)
+    from PySide.QtGui import (
+        QItemSelection,
+        QItemSelectionModel,
+        QItemSelectionRange,
+        QSortFilterProxyModel,
+        QStringListModel,
+    )
     from PySide.QtCore import qInstallMsgHandler as qInstallMessageHandler
+
     del qInstallMsgHandler
 
     # QDesktopServices has has been split into (QDesktopServices and
@@ -79,7 +90,7 @@ elif PYSIDE:
     # This creates a dummy class that emulates QStandardPaths
     from PySide.QtGui import QDesktopServices as _QDesktopServices
 
-    class QStandardPaths():
+    class QStandardPaths:
         StandardLocation = _QDesktopServices.StandardLocation
         displayName = _QDesktopServices.displayName
         DesktopLocation = _QDesktopServices.DesktopLocation
@@ -96,6 +107,7 @@ elif PYSIDE:
         writableLocation = _QDesktopServices.storageLocation
 
     import PySide.QtCore
+
     __version__ = PySide.QtCore.__version__
 else:
-    raise PythonQtError('No Qt bindings could be found')
+    raise PythonQtError("No Qt bindings could be found")

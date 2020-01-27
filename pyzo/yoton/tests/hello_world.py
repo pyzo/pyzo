@@ -4,32 +4,34 @@
 # different processes.
 
 ## ========== One end
- 
+
 import yoton
-verbosity = 0 # Python 2.4 can crash with verbosity on
+
+verbosity = 0  # Python 2.4 can crash with verbosity on
 
 # Create one context and a pub channel
 ct1 = yoton.Context(verbose=verbosity)
-pub = yoton.PubChannel(ct1, 'chat')
+pub = yoton.PubChannel(ct1, "chat")
 
 # Connect
-ct1.bind('publichost:test')
+ct1.bind("publichost:test")
 
 # Send
-pub.send('hello world')
+pub.send("hello world")
 
 
 ## ========== Other end
 
 import yoton
+
 verbosity = 0
 
 # Create another context and a sub channel
 ct2 = yoton.Context(verbose=verbosity)
-sub = yoton.SubChannel(ct2, 'chat')
+sub = yoton.SubChannel(ct2, "chat")
 
 # Connect
-ct2.connect('publichost:test')
+ct2.connect("publichost:test")
 
 # Receive
 print(sub.recv())
