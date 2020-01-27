@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, the codeeditor development team
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 # Import tokens in module namespace
@@ -16,19 +16,19 @@ class CythonParser(PythonParser):
     """ Parser for Cython/Pyrex.
     """
     _extensions = ['pyi', '.pyx' , '.pxd']
-    
+
     _keywords = pythonKeywords | cythonExtraKeywords
-    
-    
+
+
     def _identifierState(self, identifier=None):
         """ Given an identifier returs the identifier state:
         3 means the current identifier can be a function.
         4 means the current identifier can be a class.
         0 otherwise.
-        
+
         This method enables storing the state during the line,
         and helps the Cython parser to reuse the Python parser's code.
-        
+
         This implementation keeps a counter. If the counter is 0, the
         state is zero.
         """

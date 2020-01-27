@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2014, the Pyzo development team
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """ Module to deal with command line arguments.
@@ -30,14 +30,14 @@ class Server(RequestServer):
     The commands can be send by executing the Pyzo executable with
     command line arguments.
     """
-    
+
     def handle_request(self, request):
         """ This is where the requests enter.
         """
         # Get command
         request = request.strip()
         command, _, arg = request.partition(' ')
-        
+
         # Handle command
         try:
             reply = handle_command(command, arg)
@@ -58,10 +58,10 @@ def handle_command(command, arg):
     """
     if not command:
         return 'empty command?'
-    
+
     elif command == 'testerr':
         return 1/0
-    
+
     elif command == 'stopserver':
         # For efficiently stopping the server
         if server:
@@ -71,24 +71,24 @@ def handle_command(command, arg):
     elif command == 'echo':
         # For testing
         return 'echo %r' % arg
-    
+
     elif command == 'open':
         # Open a file in the editor
         if not arg:
             return 'The open command requires a filename.'
         pyzo.callLater(pyzo.editors.loadFile, arg)
         return 'Opened file %r' % arg
-    
+
     elif command == 'new':
         # Open a new (temp) file in the editor
         pyzo.callLater(pyzo.editors.newFile)
         return 'Created new file'
-    
+
     elif command == 'close':
         # Close pyzo
         pyzo.callLater(pyzo.main.close)
         return 'Closing Pyzo'
-    
+
     else:
         # Assume the user wanted to open a file
         fname = (command + ' ' + arg).rstrip()
@@ -97,7 +97,7 @@ def handle_command(command, arg):
         else:
             pyzo.callLater(pyzo.editors.loadFile, fname)
             return 'Try opening file %r' % fname
-    
+
     # We should always return. So if we get here, it is a bug.
     # Return something so that we can be aware.
     return 'error ' + command

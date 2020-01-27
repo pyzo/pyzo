@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, the Pyzo development team
 #
-# Yoton is distributed under the terms of the (new) BSD License.
+# Yoton is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 # flake8: noqa
@@ -21,15 +21,15 @@ from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING
 
 class ItcConnection(Connection):
     """ ItcConnection(context, hostname, port, name='')
-    
+
     Not implemented .
-    
+
     The inter-thread-communication connection class implements a
     connection between two contexts that are in the same process.
     Two instances of this class are connected using a weak reference.
     In case one of the ends is cleaned up by the garbadge collector,
     the other end will close the connection.
-    
+
     """
     pass
     # todo: implement me

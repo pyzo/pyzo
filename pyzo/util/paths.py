@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2016, Almar Klein, Rob Reilink
 #
-# This file is distributed under the terms of the (new) BSD License.
+# This file is distributed under the terms of the 2-Clause BSD License.
 
 """ Module paths
 

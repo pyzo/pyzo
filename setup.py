@@ -53,7 +53,7 @@ setup(
     version = version,
     author = 'Almar Klein',
     author_email = 'almar.klein@gmail.com',
-    license = '(new) BSD',
+    license = '2-Clause BSD',
 
     url = 'https://pyzo.org',
     keywords = "Python interactive IDE Qt science computing",
