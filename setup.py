@@ -62,6 +62,7 @@ setup(
     long_description=doc,
     platforms="any",
     provides=["pyzo"],
+    python_requires=">=3.6.0",
     install_requires=[],  # and 'PySide' or 'PySide2' or 'PyQt5' or 'PyQt4'
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_dir={"pyzo": "pyzo"},

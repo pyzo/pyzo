@@ -61,8 +61,7 @@ def temp_dir(appname=None, nospaces=False):
             for path in ["c:\\TEMP", "c:\\TMP"]:
                 if os.path.isdir(path):
                     break
-            if not os.path.isdir(path):
-                os.mkdir(path)
+            os.makedirs(path, exist_ok=True)
         else:
             for path in [
                 "/tmp",
@@ -76,8 +75,7 @@ def temp_dir(appname=None, nospaces=False):
     # Get path specific for this app
     if appname:
         path = os.path.join(path, appname)
-        if not os.path.isdir(path):
-            os.mkdir(path)
+        os.makedirs(path, exist_ok=True)
 
     # Done
     return path
@@ -176,10 +174,8 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
                 data_path = os.path.join(data_path, appname)
                 config_path = os.path.join(config_path, appname)
 
-            if not os.path.isdir(data_path):
-                os.mkdir(data_path)
-            if not os.path.isdir(config_path):
-                os.mkdir(config_path)
+            os.makedirs(data_path, exist_ok=True)
+            os.makedirs(config_path, exist_ok=True)
 
     # Done
     return data_path, config_path
@@ -215,8 +211,7 @@ def common_appdata_dir(appname=None):
     # Get path specific for this app
     if appname:
         data_path = os.path.join(data_path, appname)
-        if not os.path.isdir(data_path):
-            os.mkdir(data_path)
+        os.makedirs(data_path, exist_ok=True)
 
     # Done
     return data_path
@@ -313,8 +308,7 @@ def pyzo_dirs2(path=None, version="0", **kwargs):
         ):  # Check if QStandardPaths succeeded to find the location, otherwise use old path
             path = standard_path
         path = os.path.join(path, "pyzo")
-        if not os.path.isdir(path):
-            os.mkdir(path)
+        os.makedirs(path, exist_ok=True)
     # Open file and parse
     fname = os.path.join(path, "pyzodirs")
     pyzos, npyzos = [], 0

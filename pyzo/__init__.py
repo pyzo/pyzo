@@ -164,8 +164,7 @@ def getResourceDirs():
 
     # Create tooldir if necessary
     toolDir = os.path.join(appDataDir, "tools")
-    if not os.path.isdir(toolDir):
-        os.mkdir(toolDir)
+    os.makedirs(toolDir, exist_ok=True)
 
     return pyzoDir, appDataDir, appConfigDir
 

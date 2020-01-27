@@ -407,8 +407,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
         # Get user theme dir and make sure it exists
         dir = os.path.join(pyzo.appDataDir, "themes")
-        if not os.path.isdir(dir):
-            os.mkdir(dir)
+        os.makedirs(dir, exist_ok=True)
 
         # Try to delete the old file if it exists (useful if it was renamed)
         try:
