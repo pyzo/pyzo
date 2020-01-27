@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """ Setup script for the Pyzo package.
 """
 
@@ -8,7 +6,7 @@ import os
 import sys
 
 try:
-    from setuptools import setup
+    from setuptools import find_packages, setup
 except ImportError:
     from distutils.core import setup
 
@@ -57,7 +55,7 @@ setup(
     author_email = 'almar.klein@gmail.com',
     license = '(new) BSD',
 
-    url = 'http://www.pyzo.org',
+    url = 'https://pyzo.org',
     keywords = "Python interactive IDE Qt science computing",
     description = description,
     long_description = doc,
@@ -66,9 +64,9 @@ setup(
     provides = ['pyzo'],
     install_requires = [],  # and 'PySide' or 'PySide2' or 'PyQt5' or 'PyQt4'
 
-    packages = package_tree(name),
+    packages = find_packages(exclude=["tests", "tests.*"]),
     package_dir = {'pyzo': 'pyzo'},
-    package_data = {'pyzo': ['license.txt', 'contributors.txt',
+    package_data = {'pyzo': ['contributors.txt',
                             'resources/*.*',
                             'resources/icons/*.*',
                             'resources/appicons/*.*',
@@ -76,6 +74,7 @@ setup(
                             'resources/fonts/*.*',
                             'resources/themes/*.*',
                             'resources/translations/*.*']},
+    data_files=[("", ["README.md", "LICENSE.md", "pyzo.appdata.xml", "pyzolauncher.py"])],
     zip_safe = False,
 
     classifiers = [
