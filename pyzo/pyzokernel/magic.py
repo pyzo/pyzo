@@ -133,11 +133,11 @@ class Magician:
 
     def convert_command(self, line):
         """ convert_command(line)
-        
+
         Convert a given command from a magic command to Python code.
         Returns the converted command if it was a magic command, or
         the original otherwise.
-        
+
         """
         # Get converted command, catch and report errors
         try:
@@ -235,7 +235,7 @@ class Magician:
             # Patch IPython magic
 
             # EDIT do not run code after editing
-            if command.startswith("EDIT ") and not " -X " in command:
+            if command.startswith("EDIT ") and " -X " not in command:
                 return "edit -x " + line[5:]
 
             # In all cases stop processing magic commands

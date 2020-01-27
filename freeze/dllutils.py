@@ -25,7 +25,7 @@ _COMMAND_TO_SEARCH_PATH = []
 
 def get_command_to_set_search_path():
     """ Get the command to change the RPATH of executables and dynamic
-    libraries. Returns None if there is no such command or if it 
+    libraries. Returns None if there is no such command or if it
     cannot be found.
     """
 
@@ -68,18 +68,18 @@ def set_search_path(fname, *args):
     """ set_search_path(fname, *args)
     For the given library/executable, set the search path to the
     relative paths specified in args.
-    
+
     For Linux: The RPATH is the path to search for its dependencies.
     http://enchildfone.wordpress.com/2010/03/23/a-description-of-rpath-origin-ld_library_path-and-portable-linux-binaries/
-    
+
     For Mac: We use the @rpath identifier to get similar behavior to
     Linux. But each dependency must be specified. To realize this, we
     need to check for each dependency whether it is on one of te given
     search paths.
-    
+
     For Windows: not supported in any way. Windows searches next to the
     library and then in system paths and PATH.
-    
+
     """
 
     # Prepare
@@ -193,17 +193,17 @@ def remove_CRT_dependency(filename):
     such that it no longer depends on the Windows C runtime.
     In effect, the dll will fall back to using the C runtime that
     the executable depends on (and has loaded in memory).
-    
+
     This function is not necessary for dll's and pyd's that come with
     Python, because these are build without the CRT dependencies for a
     while. However, some third party packages (e.g. PySide) do have
     these dependencies, and they need to be removed in order to work
     on a system that does not have the C-runtime installed.
-    
+
     Based on this diff by C. Gohlke:
     http://bugs.python.org/file15113/msvc9compiler_stripruntimes_regexp2.diff
     See discussion at: http://bugs.python.org/issue4120
-    
+
     """
     if "QtCore" in filename:
         1 / 0

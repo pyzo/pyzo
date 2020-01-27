@@ -28,7 +28,7 @@ keywordsHelp = {
     "import": pyzo.translate(
         "pyzoInteractiveHelp",
         """Find and load modules or members of modules.
-    
+
 Examples:
 ```
 import foo                 # foo imported and bound locally
@@ -131,7 +131,7 @@ This builds from ``T`` a list where each item was doubled.
         "pyzoInteractiveHelp",
         """This keyword is used to produce an anonymous function.
 
-Example: 
+Example:
 ```
 lambda x,y,z : (x+y) * z
 ```""",
@@ -139,7 +139,7 @@ lambda x,y,z : (x+y) * z
     "try": pyzo.translate(
         "pyzoInteractiveHelp",
         """The ``try`` statement allows to recover when an Exception was raised. It has two main forms.
-    
+
 ```
 try:
     critical_section

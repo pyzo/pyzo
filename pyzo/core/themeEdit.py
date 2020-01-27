@@ -25,9 +25,9 @@ class Foo:
 
 class FakeEditor(pyzo.core.baseTextCtrl.BaseTextCtrl):
     """This "fake" editor emits a signal when
-    the user clicks on a word with a token :
+    the user clicks on a word with a token:
     a click on the word "class" emits with arg "syntax.keyword".
-    
+
     It may be improved by adding text with specific token
     like Editor.text which are not present by default
     """
@@ -168,7 +168,7 @@ class StyleEdit(QtWidgets.QWidget):
     def __add_clrLineEdit(self, key, name):
         """this is a helper method to create a ColorLineEdit
             it adds the created widget (as a TitledWidget) to the layout and
-            register a setter and listen to changes 
+            register a setter and listen to changes
         """
         clrEdit = ColorLineEdit(name)
         clrEdit.textChanged.connect(lambda txt, key=key: self.__update(key, txt))
@@ -228,13 +228,13 @@ class StyleEdit(QtWidgets.QWidget):
 
 class ThemeEditorWidget(QtWidgets.QWidget):
     """ The ThemeEditorWidgets allows to edits themes,
-        it has one StyleEdit widget per StyleElements ("Editor.Text", 
+        it has one StyleEdit widget per StyleElements ("Editor.Text",
         "Syntax.string"). It emits a signal on each style changes
-        
+
         It also manages basic theme I/O :
             - adding new theme
             - renaming theme
-            
+
     """
 
     styleChanged = QtCore.Signal(dict)
@@ -321,7 +321,8 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
     def createTheme(self):
         """ Create a new theme based on the current
-        theme selected. """
+        theme selected.
+        """
 
         index = self.curThemeCmb.currentIndex()
         if index != self.curThemeCmb.count() - 1:
@@ -355,9 +356,9 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         self.curThemeCmb.addItem("New...",)
 
     def setTheme(self, name):
-        """ Set the theme by its name. The combobox becomes editable only 
+        """ Set the theme by its name. The combobox becomes editable only
             if the theme is not builtin. This method is connected to the signal
-            self.curThemeCmb.currentTextChanged ; so it also filters 
+            self.curThemeCmb.currentTextChanged ; so it also filters
             parasites events """
 
         name = name.lower()
@@ -395,7 +396,8 @@ class ThemeEditorWidget(QtWidgets.QWidget):
                 print("Exception while setting style", key, "for theme", name, ":", e)
 
     def saveTheme(self):
-        """ Saves the current theme to the disk, in appDataDir/themes """
+        """ Saves the current theme to the disk, in appDataDir/themes
+        """
 
         if self.cur_theme["builtin"]:
             return

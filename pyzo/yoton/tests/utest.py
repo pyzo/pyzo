@@ -20,7 +20,7 @@ from yoton.misc import long
 class Tester(unittest.TestCase):
     """ Perform a set of tests using three contexts and
     each of the six channels at each context.
-    
+
     """
 
     def setUp(self):
@@ -133,9 +133,9 @@ class Tester(unittest.TestCase):
         sub2 = yoton.SubChannel(self._context2, "foo2")
 
         # Send a bunch of messages
-        I = [0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1]
-        for i in range(len(I)):
-            pub = [pub1, pub2][I[i]]
+        ii = [0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1]
+        for i in range(len(ii)):
+            pub = [pub1, pub2][ii[i]]
             pub.send(str(i))
 
         time.sleep(0.1)
@@ -152,7 +152,7 @@ class Tester(unittest.TestCase):
                 break
 
         # Test count
-        self.assertEqual(count, len(I))
+        self.assertEqual(count, len(ii))
 
     def test_pubstate_substate(self):
 

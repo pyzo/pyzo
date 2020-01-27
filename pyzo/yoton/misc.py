@@ -167,7 +167,7 @@ def split_address(address):
     # Check
     if not isinstance(address, basestring):
         raise ValueError("Address should be a string.")
-    if not ":" in address:
+    if ":" not in address:
         raise ValueError("Address should be in format 'host:port'.")
 
     # Is the protocol explicitly defined (zeromq compatibility)

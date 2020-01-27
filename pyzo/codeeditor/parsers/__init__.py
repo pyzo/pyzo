@@ -213,9 +213,8 @@ class Parser(object):
 #
 # In summary: it takes a lot of trouble, which can be avoided by just
 # listing all parsers here.
-from . import (
-    python_parser,  # noqa
-    cython_parser,  # noqa
-    c_parser,  # noqa
-    s_expr_parser,  # noqa
-)
+
+from . import python_parser  # noqa
+from . import cython_parser  # noqa
+from . import c_parser  # noqa
+from . import s_expr_parser  # noqa

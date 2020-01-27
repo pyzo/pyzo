@@ -119,7 +119,7 @@ class WebView(QtWidgets.QTextBrowser):
         if url.startswith("#"):
             base, path, frag = self._getUrlParts()
             url = base + path + url
-        elif not "//" in url:
+        elif "//" not in url:
             base, path, frag = self._getUrlParts()
             url = base + "/" + url.lstrip("/")
 

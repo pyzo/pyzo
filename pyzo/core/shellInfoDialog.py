@@ -377,7 +377,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
             self._edit2.hide()
             self._edit1.setText(value)
 
-        elif not "\n" in value:
+        elif "\n" not in value:
             # File
             if init:
                 self._radio_file.setChecked(True)

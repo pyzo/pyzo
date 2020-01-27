@@ -43,14 +43,15 @@ jobs:
         set -ex
         python -m pip install -U pip
         pip install -U PyQt5
-        pip install -U pytest flake8 pyinstaller
+        pip install -U pytest black flake8 pyinstaller
   - task: Bash@3
-    displayName: Lint (flake8)
+    displayName: Lint (black & flake8)
     condition: and(succeeded(), eq(variables['LINT'], '1'))
     inputs:
       targetType: inline
       script: |
         set -ex
+        black --check .
         flake8 .
   - task: Bash@3
     displayName: Test
@@ -58,7 +59,7 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        pytest --junit-xml=results.xml || true
+        pytest --junit-xml=results.xml tests || true
 
         # Fail the task if results.xml was not created
         if [[ ! -f results.xml ]]
