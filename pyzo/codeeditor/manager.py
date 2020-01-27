@@ -14,6 +14,7 @@ management tasks.
 import os, sys
 
 from .qt import QtGui, QtCore, QtWidgets  # noqa
+
 Qt = QtCore.Qt
 
 from . import parsers
@@ -29,62 +30,60 @@ class Manager:
       * Font information
     
     """
-    
-    _defaultFontFamily = 'dummy_font_family_name'
-    
+
+    _defaultFontFamily = "dummy_font_family_name"
+
     # Static dict of all parsers
     _parserInstances = {}
     _fileExtensions = {}
     _shebangKeywords = {}
-    
-    ## Parsers
-    
-#     @classmethod
-#     def collectParsersDynamically(cls):
-#         """ insert the function is this module's namespace.
-#         """
-#
-#         # Get the path of this subpackage
-#         path = __file__
-#         path = os.path.dirname( os.path.abspath(path) )
-#
-#         # Determine if we're in a zipfile
-#         i = path.find('.zip')
-#         if i>0:
-#             # get list of files from zipfile
-#             path = path[:i+4]
-#             z = zipfile.ZipFile(path)
-#             files = [os.path.split(i)[-1] for i in z.namelist()
-#                         if 'codeeditor' in i and 'parsers' in i]
-#         else:
-#             # get list of files from file system
-#             files = os.listdir(path)
-#
-#         # Extract all parsers
-#         parserModules = []
-#         for file in files:
-#
-#             # Only python files
-#             if file.endswith('.pyc'):
-#                 if file[:-1] in files:
-#                     continue # Only try import once
-#             elif not file.endswith('.py'):
-#                 continue
-#             # Only syntax files
-#             if '_parser.' not in file:
-#                 continue
-#
-#             # Import module
-#             fullfile = os.path.join(path, file)
-#             modname = os.path.splitext(file)[0]
-#             print('modname', modname)
-#             mod = __import__("codeeditor.parsers."+modname, fromlist=[modname])
-#             parserModules.append(mod)
-#
-#         print(parserModules)
-    
 
-    
+    ## Parsers
+
+    #     @classmethod
+    #     def collectParsersDynamically(cls):
+    #         """ insert the function is this module's namespace.
+    #         """
+    #
+    #         # Get the path of this subpackage
+    #         path = __file__
+    #         path = os.path.dirname( os.path.abspath(path) )
+    #
+    #         # Determine if we're in a zipfile
+    #         i = path.find('.zip')
+    #         if i>0:
+    #             # get list of files from zipfile
+    #             path = path[:i+4]
+    #             z = zipfile.ZipFile(path)
+    #             files = [os.path.split(i)[-1] for i in z.namelist()
+    #                         if 'codeeditor' in i and 'parsers' in i]
+    #         else:
+    #             # get list of files from file system
+    #             files = os.listdir(path)
+    #
+    #         # Extract all parsers
+    #         parserModules = []
+    #         for file in files:
+    #
+    #             # Only python files
+    #             if file.endswith('.pyc'):
+    #                 if file[:-1] in files:
+    #                     continue # Only try import once
+    #             elif not file.endswith('.py'):
+    #                 continue
+    #             # Only syntax files
+    #             if '_parser.' not in file:
+    #                 continue
+    #
+    #             # Import module
+    #             fullfile = os.path.join(path, file)
+    #             modname = os.path.splitext(file)[0]
+    #             print('modname', modname)
+    #             mod = __import__("codeeditor.parsers."+modname, fromlist=[modname])
+    #             parserModules.append(mod)
+    #
+    #         print(parserModules)
+
     @classmethod
     def _collectParsers(cls):
         """ _collectParsers()
@@ -92,18 +91,18 @@ class Manager:
         Collect all parser classes. This function is called on startup.
         
         """
-        
+
         # Prepare (use a set to prevent duplicates)
         foundParsers = set()
         G = parsers.__dict__
         ModuleClass = os.__class__
-        
+
         # Collect parser classes
         for module_name in G:
             # Check if it is indeed a module, and if it has the right name
             if not isinstance(G[module_name], ModuleClass):
                 continue
-            if not module_name.endswith('_parser'):
+            if not module_name.endswith("_parser"):
                 continue
             # Collect all valid classes from the module
             moduleDict = G[module_name].__dict__
@@ -111,31 +110,31 @@ class Manager:
                 ob = moduleDict[name_in_module]
                 if isinstance(ob, type) and issubclass(ob, parsers.Parser):
                     foundParsers.add(ob)
-        
+
         # Put in list with the parser names as keys
         parserInstances = {}
         for parserClass in foundParsers:
             name = parserClass.getParserName()
             if name:
-            
+
                 # Try instantiating the parser
                 try:
                     parserInstances[name] = parserInstance = parserClass()
                 except Exception:
                     # We cannot get the exception object in a Python2/Python3
                     # compatible way
-                    print('Could not instantiate parser "%s".'%name)
+                    print('Could not instantiate parser "%s".' % name)
                     continue
-                
+
                 # Register extensions and shebang keywords for this parser
                 for ext in parserInstance.filenameExtensions():
                     cls._fileExtensions[ext] = name
                 for skw in parserInstance.shebangKeywords():
                     cls._shebangKeywords[skw] = name
-        
+
         # Store
         cls._parserInstances = parserInstances
-    
+
     @classmethod
     def getParserNames(cls):
         """ getParserNames()
@@ -144,8 +143,7 @@ class Manager:
         
         """
         return list(cls._parserInstances.keys())
-    
-    
+
     @classmethod
     def getParserByName(cls, parserName):
         """ getParserByName(parserName)
@@ -156,20 +154,19 @@ class Manager:
         
         """
         if not parserName:
-            return parsers.Parser() #Default dummy parser
-            
+            return parsers.Parser()  # Default dummy parser
+
         # Case insensitive
         parserName = parserName.lower()
-        
+
         # Return instantiated parser object.
         if parserName in cls._parserInstances:
             return cls._parserInstances[parserName]
         else:
-            print('Warning: no parser known by the name "%s".'%parserName)
-            print('I know these: ', cls._parserInstances.keys())
-            return parsers.Parser() #Default dummy parser
-    
-    
+            print('Warning: no parser known by the name "%s".' % parserName)
+            print("I know these: ", cls._parserInstances.keys())
+            return parsers.Parser()  # Default dummy parser
+
     @classmethod
     def getStyleElementDescriptionsForAllParsers(cls):
         """ getStyleElementDescriptionsForAllParsers()
@@ -186,13 +183,11 @@ class Manager:
             for token in parser.getUsedTokens():
                 description = token.description
                 descriptions[description.key] = description
-        
+
         return list(descriptions.values())
-    
-    
+
     ## File extensions
-    
-    
+
     @classmethod
     def suggestParserfromFilenameExtension(cls, ext):
         """ suggestParserfromFilenameExtension(ext)
@@ -202,18 +197,18 @@ class Manager:
         
         See also registerFilenameExtension()
         """
-        
+
         # Normalize ext
-        ext = '.' + ext.lstrip('.').lower()
-        
+        ext = "." + ext.lstrip(".").lower()
+
         # Get parser
         if ext in cls._fileExtensions:
             return cls._fileExtensions[ext]
         else:
-            return ''
+            return ""
 
     @classmethod
-    def suggestParserfromText(cls, text) :
+    def suggestParserfromText(cls, text):
         """ suggestParserfromText(text)
         
         Given a text, returns the name of the suggested
@@ -222,28 +217,28 @@ class Manager:
         See also registerShebangKeyword()
         """
         shebangline = None
-        for line in text[:1000].splitlines() :
+        for line in text[:1000].splitlines():
             line = line.strip()
-            if line.startswith("#!") :
+            if line.startswith("#!"):
                 shebangline = line
                 break
-        if shebangline is None :
-            return ''
-        shebangline = shebangline[2:].split() # takes care of eventual space after #!
-        if len(shebangline) == 0 :
+        if shebangline is None:
+            return ""
+        shebangline = shebangline[2:].split()  # takes care of eventual space after #!
+        if len(shebangline) == 0:
             return ""
         interpreter = os.path.basename(shebangline[0])
-        if interpreter == "env" and len(shebangline) > 1 :
+        if interpreter == "env" and len(shebangline) > 1:
             interpreter = shebangline[1]
-        
+
         # Get parser
         if interpreter in cls._shebangKeywords:
             return cls._shebangKeywords[interpreter]
         else:
-            return ''
-    
+            return ""
+
     @classmethod
-    def suggestParser(cls, ext, text) :
+    def suggestParser(cls, ext, text):
         """ suggestParser(ext, text)
         
         Given a filename extension and text, returns the name of the suggested
@@ -252,11 +247,11 @@ class Manager:
         See also registerFilenameExtension() and registerShebangKeyword()
         """
         parser = cls.suggestParserfromText(text)
-        if parser == "" :
+        if parser == "":
             parser = cls.suggestParserfromFilenameExtension(ext)
         parser = cls.getParserByName(parser).disambiguate(text)
         return parser
-    
+
     @classmethod
     def registerFilenameExtension(cls, ext, parser):
         """ registerFilenameExtension(ext, parser)
@@ -269,13 +264,13 @@ class Manager:
         
         """
         # Normalize ext
-        ext = '.' + ext.lstrip('.').lower()
+        ext = "." + ext.lstrip(".").lower()
         # Check parser
         if isinstance(parser, parsers.Parser):
             parser = parser.name()
         # Register
         cls._fileExtensions[ext] = parser
-    
+
     @classmethod
     def registerShebangKeyword(cls, shebangKeyword, parser):
         """ registerShebangKeyword(shebangKeyword, parser)
@@ -292,10 +287,9 @@ class Manager:
             parser = parser.name()
         # Register
         cls._shebangKeywords[shebangKeyword] = parser
-        
+
     ## Fonts
-    
-    
+
     @classmethod
     def fontNames(cls):
         """ fontNames()
@@ -307,8 +301,7 @@ class Manager:
         QFont, QFontInfo = QtGui.QFont, QtGui.QFontInfo
         # fn = font_name (str)
         return [fn for fn in db.families() if QFontInfo(QFont(fn)).fixedPitch()]
-    
-    
+
     @classmethod
     def setDefaultFontFamily(cls, name):
         """ setDefaultFontFamily(name)
@@ -318,8 +311,7 @@ class Manager:
         
         """
         cls._defaultFontFamily = name
-    
-    
+
     @classmethod
     def defaultFont(cls):
         """ defaultFont()
@@ -328,21 +320,21 @@ class Manager:
         object.
         
         """
-    
+
         # Get font family
         f = QtGui.QFont(cls._defaultFontFamily)
         f.setStyleHint(f.TypeWriter, f.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
-        
+
         # Get the font size
         size = 9
-        if sys.platform.startswith('darwin'):
+        if sys.platform.startswith("darwin"):
             # Account for Qt font size difference
             # http://qt-project.org/forums/viewthread/27201
             # Win/linux use 96 ppi, OS X uses 72 -> 133% ratio
-            size = int(size*1.33333+0.4999)
-        
+            size = int(size * 1.33333 + 0.4999)
+
         # Done
         return QtGui.QFont(family, size)
 
@@ -351,5 +343,5 @@ class Manager:
 try:
     Manager._collectParsers()
 except Exception as why:
-    print('Error collecting parsers')
+    print("Error collecting parsers")
     print(why)

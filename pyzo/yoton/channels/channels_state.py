@@ -49,10 +49,10 @@ class StateChannel(BaseChannel):
         any type of message they want.
     
     """
-    
+
     def __init__(self, *args, **kwargs):
         BaseChannel.__init__(self, *args, **kwargs)
-        
+
         # Variables to hold the current state. We use only the message
         # as a reference, so we dont need a lock.
         # The package is used to make _recv() function more or less,
@@ -60,12 +60,10 @@ class StateChannel(BaseChannel):
         # message may be set to None)
         self._current_package = None
         self._current_message = self.message_from_bytes(bytes())
-    
-    
+
     def _messaging_patterns(self):
-        return 'state', 'state'
-    
-    
+        return "state", "state"
+
     def send(self, message):
         """ send(message)
         
@@ -83,10 +81,9 @@ class StateChannel(BaseChannel):
         #    a.append(4)
         #    status.send(a)
         if message != self._current_message:
-            self._current_package = self._send( self.message_to_bytes(message) )
+            self._current_package = self._send(self.message_to_bytes(message))
             self._current_message = self.message_from_bytes(self._current_package._data)
-    
-    
+
     def send_last(self):
         """ send_last()
         
@@ -94,9 +91,8 @@ class StateChannel(BaseChannel):
         
         """
         if self._current_package is not None:
-            self._send( self.message_to_bytes(self._current_message) )
-    
-    
+            self._send(self.message_to_bytes(self._current_message))
+
     def recv(self, block=False):
         """ recv(block=False)
         
@@ -105,8 +101,7 @@ class StateChannel(BaseChannel):
         
         """
         return self._current_message
-    
-    
+
     def _recv_package(self, package):
         """ _recv_package(package)
         
@@ -117,8 +112,7 @@ class StateChannel(BaseChannel):
         self._current_package = package
         #
         self._maybe_emit_received()
-    
-    
+
     def _inject_package(self, package):
         """ Non-blocking version of recv_package. Does the same.
         """
@@ -126,8 +120,7 @@ class StateChannel(BaseChannel):
         self._current_package = package
         #
         self._maybe_emit_received()
-    
-    
+
     def _recv(self, block=None):
         """ _recv(block=None)
         

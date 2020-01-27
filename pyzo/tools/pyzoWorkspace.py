@@ -9,16 +9,17 @@ import pyzo
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 tool_name = pyzo.translate("pyzoWorkspace", "Workspace")
-tool_summary = pyzo.translate("pyzoWorkspace", "Lists the variables in the current shell's namespace.")
-
+tool_summary = pyzo.translate(
+    "pyzoWorkspace", "Lists the variables in the current shell's namespace."
+)
 
 
 def splitName(name):
     """ splitName(name)
     Split an object name in parts, taking dots and indexing into account.
     """
-    name = name.replace('[', '.[')
-    parts = name.split('.')
+    name = name.replace("[", ".[")
+    parts = name.split(".")
     return [p for p in parts if p]
 
 
@@ -26,8 +27,8 @@ def joinName(parts):
     """ joinName(parts)
     Join the parts of an object name, taking dots and indexing into account.
     """
-    name = '.'.join(parts)
-    return name.replace('.[', '[')
+    name = ".".join(parts)
+    return name.replace(".[", "[")
 
 
 class WorkspaceProxy(QtCore.QObject):
@@ -38,27 +39,25 @@ class WorkspaceProxy(QtCore.QObject):
     class notifies when new data is available using a qt signal.
     
     """
-    
+
     haveNewData = QtCore.Signal()
-    
+
     def __init__(self):
         QtCore.QObject.__init__(self)
-        
+
         # Variables
         self._variables = []
-        
+
         # Element to get more info of
-        self._name = ''
-        
+        self._name = ""
+
         # Bind to events
         pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         pyzo.shells.currentShellStateChanged.connect(self.onCurrentShellStateChanged)
-        
+
         # Initialize
         self.onCurrentShellStateChanged()
-    
-    
-    
+
     def addNamePart(self, part):
         """ addNamePart(part)
         Add a part to the name.
@@ -66,20 +65,18 @@ class WorkspaceProxy(QtCore.QObject):
         parts = splitName(self._name)
         parts.append(part)
         self.setName(joinName(parts))
-    
-    
+
     def setName(self, name):
         """ setName(name)
         Set the name that we want to know more of.
         """
         self._name = name
-        
+
         shell = pyzo.shells.getCurrentShell()
         if shell:
             future = shell._request.dir2(self._name)
             future.add_done_callback(self.processResponse)
-    
-    
+
     def goUp(self):
         """ goUp()
         Cut the last part off the name.
@@ -88,8 +85,7 @@ class WorkspaceProxy(QtCore.QObject):
         if parts:
             parts.pop()
         self.setName(joinName(parts))
-    
-    
+
     def onCurrentShellChanged(self):
         """ onCurrentShellChanged()
         When no shell is selected now, update this. In all other cases,
@@ -99,8 +95,7 @@ class WorkspaceProxy(QtCore.QObject):
         if not shell:
             self._variables = []
             self.haveNewData.emit()
-    
-    
+
     def onCurrentShellStateChanged(self):
         """ onCurrentShellStateChanged()
         Do a request for information!
@@ -109,36 +104,36 @@ class WorkspaceProxy(QtCore.QObject):
         if not shell:
             # Should never happen I think, but just to be sure
             self._variables = []
-        elif shell._state.lower() != 'busy':
+        elif shell._state.lower() != "busy":
             future = shell._request.dir2(self._name)
             future.add_done_callback(self.processResponse)
-    
-    
+
     def processResponse(self, future):
         """ processResponse(response)
         We got a response, update our list and notify the tree.
         """
-        
+
         response = []
-        
+
         # Process future
         if future.cancelled():
-            pass #print('Introspect cancelled') # No living kernel
+            pass  # print('Introspect cancelled') # No living kernel
         elif future.exception():
-            print('Introspect-queryDoc-exception: ', future.exception())
+            print("Introspect-queryDoc-exception: ", future.exception())
         else:
             response = future.result()
-        
+
         self._variables = response
         self.haveNewData.emit()
-    
+
 
 class WorkspaceItem(QtWidgets.QTreeWidgetItem):
-    
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
         try:
-            return float( self.text(column).strip('[]') ) > float( otherItem.text(column).strip('[]') )
+            return float(self.text(column).strip("[]")) > float(
+                otherItem.text(column).strip("[]")
+            )
         except ValueError:
             return self.text(column) > otherItem.text(column)
 
@@ -155,123 +150,128 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
     easily, so I'll stick with that ...
     
     """
-    
+
     def __init__(self, parent):
         QtWidgets.QTreeWidget.__init__(self, parent)
-        
+
         self._config = parent._config
-        
+
         # Set header stuff
         self.setHeaderHidden(False)
         self.setColumnCount(3)
-        self.setHeaderLabels([pyzo.translate("pyzoWorkspace", 'Name'), pyzo.translate("pyzoWorkspace", 'Type'), pyzo.translate("pyzoWorkspace", 'Repr')])
-        #self.setColumnWidth(0, 100)
+        self.setHeaderLabels(
+            [
+                pyzo.translate("pyzoWorkspace", "Name"),
+                pyzo.translate("pyzoWorkspace", "Type"),
+                pyzo.translate("pyzoWorkspace", "Repr"),
+            ]
+        )
+        # self.setColumnWidth(0, 100)
         self.setSortingEnabled(True)
-        
+
         # Nice rows
         self.setAlternatingRowColors(True)
         self.setRootIsDecorated(False)
-        
+
         # Create proxy
         self._proxy = WorkspaceProxy()
         self._proxy.haveNewData.connect(self.fillWorkspace)
-        
+
         # For menu
         self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         self._menu = QtWidgets.QMenu()
         self._menu.triggered.connect(self.contextMenuTriggered)
-        
+
         # Bind to events
         self.itemActivated.connect(self.onItemExpand)
-    
+
         self._startUpVariables = ["In", "Out", "exit", "get_ipython", "quit"]
 
-    
     def contextMenuEvent(self, event):
         """ contextMenuEvent(event)
         Show the context menu.
         """
-        
+
         QtWidgets.QTreeView.contextMenuEvent(self, event)
-        
+
         # Get if an item is selected
         item = self.currentItem()
         if not item:
             return
-        
+
         # Create menu
         self._menu.clear()
-        commands = [('Show namespace', pyzo.translate("pyzoWorkspace", 'Show namespace')), ('Show help', pyzo.translate("pyzoWorkspace", 'Show help')), ('Delete', pyzo.translate("pyzoWorkspace", 'Delete'))]
-        for a, display in commands :
+        commands = [
+            ("Show namespace", pyzo.translate("pyzoWorkspace", "Show namespace")),
+            ("Show help", pyzo.translate("pyzoWorkspace", "Show help")),
+            ("Delete", pyzo.translate("pyzoWorkspace", "Delete")),
+        ]
+        for a, display in commands:
             action = self._menu.addAction(display)
             action._what = a
             parts = splitName(self._proxy._name)
             parts.append(item.text(0))
             action._objectName = joinName(parts)
             action._item = item
-        
+
         # Show
-        self._menu.popup(QtGui.QCursor.pos()+QtCore.QPoint(3,3))
-    
-    
+        self._menu.popup(QtGui.QCursor.pos() + QtCore.QPoint(3, 3))
+
     def contextMenuTriggered(self, action):
         """ contextMenuTriggered(action)
         Process a request from the context menu.
         """
-        
+
         # Get text
         req = action._what.lower()
-        
-        if 'namespace' in req:
+
+        if "namespace" in req:
             # Go deeper
             self.onItemExpand(action._item)
-        
-        elif 'help' in req:
+
+        elif "help" in req:
             # Show help in help tool (if loaded)
-            hw = pyzo.toolManager.getTool('pyzointeractivehelp')
+            hw = pyzo.toolManager.getTool("pyzointeractivehelp")
             if hw:
                 hw.setObjectName(action._objectName, addToHist=True)
-        
-        elif 'delete' in req:
+
+        elif "delete" in req:
             # Delete the variable
             shell = pyzo.shells.getCurrentShell()
             if shell:
-                shell.processLine('del ' + action._objectName)
-    
-    
+                shell.processLine("del " + action._objectName)
+
     def onItemExpand(self, item):
         """ onItemExpand(item)
         Inspect the attributes of that item.
         """
         self._proxy.addNamePart(item.text(0))
-    
-    
+
     def fillWorkspace(self):
         """ fillWorkspace()
         Update the workspace tree.
         """
-        
+
         # Clear first
         self.clear()
-        
+
         # Set name
         line = self.parent()._line
         line.setText(self._proxy._name)
-        
-        
+
         # Add elements
         for des in self._proxy._variables:
-            
+
             # Get parts
             parts = list(des)
             if len(parts) < 4:
                 continue
-            
+
             name = parts[0]
-            
+
             # Pop the 'kind' element
             kind = parts.pop(2)
-            
+
             # <kludge 2>
             # the typeTranslation dictionary contains "synonyms" for types that will be hidden
             # Currently only "method"->"function" is used
@@ -283,23 +283,24 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             # </kludge 2>
             if kind in self._config.hideTypes:
                 continue
-            if name.startswith('_') and 'private' in self._config.hideTypes:
+            if name.startswith("_") and "private" in self._config.hideTypes:
                 continue
-            if "startup" in self._config.hideTypes and name in self._startUpVariables :
+            if "startup" in self._config.hideTypes and name in self._startUpVariables:
                 continue
-            
+
             # Create item
             item = WorkspaceItem(parts, 0)
             self.addTopLevelItem(item)
-            
+
             # Set tooltip
-            tt = '%s: %s' % (parts[0], parts[-1])
-            item.setToolTip(0,tt)
-            item.setToolTip(1,tt)
-            item.setToolTip(2,tt)
+            tt = "%s: %s" % (parts[0], parts[-1])
+            item.setToolTip(0, tt)
+            item.setToolTip(1, tt)
+            item.setToolTip(2, tt)
 
-        self.parent().displayEmptyWorkspace(self.topLevelItemCount() == 0 and self._proxy._name == "")
-
+        self.parent().displayEmptyWorkspace(
+            self.topLevelItemCount() == 0 and self._proxy._name == ""
+        )
 
 
 class PyzoWorkspace(QtWidgets.QWidget):
@@ -308,58 +309,64 @@ class PyzoWorkspace(QtWidgets.QWidget):
     The main widget for this tool.
     
     """
-    
+
     def __init__(self, parent):
         QtWidgets.QWidget.__init__(self, parent)
-        
+
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in
         # config.tools before the tool is instantiated.
         toolId = self.__class__.__name__.lower()
         self._config = pyzo.config.tools[toolId]
-        if not hasattr(self._config, 'hideTypes'):
+        if not hasattr(self._config, "hideTypes"):
             self._config.hideTypes = []
         # <kludge 2>
         # configuring the typeTranslation dictionary
-        if not hasattr(self._config, 'typeTranslation'):
+        if not hasattr(self._config, "typeTranslation"):
             # to prevent the exception to be raised, one could init to :
             # {"method": "function", "function": "function", "type": "type", "private": "private", "module": "module"}
             self._config.typeTranslation = {}
         # Defaults
-        self._config.typeTranslation['method'] = 'function'
-        self._config.typeTranslation['builtin_function_or_method'] = 'function'
+        self._config.typeTranslation["method"] = "function"
+        self._config.typeTranslation["builtin_function_or_method"] = "function"
         # <kludge 2>
-        
+
         # Create tool button
         self._up = QtWidgets.QToolButton(self)
         style = QtWidgets.qApp.style()
-        self._up.setIcon( style.standardIcon(style.SP_ArrowLeft) )
-        self._up.setIconSize(QtCore.QSize(16,16))
-        
+        self._up.setIcon(style.standardIcon(style.SP_ArrowLeft))
+        self._up.setIconSize(QtCore.QSize(16, 16))
+
         # Create "path" line edit
         self._line = QtWidgets.QLineEdit(self)
         self._line.setReadOnly(True)
         self._line.setStyleSheet("QLineEdit { background:#ddd; }")
         self._line.setFocusPolicy(QtCore.Qt.NoFocus)
-        
+
         # Create options menu
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
-        self._options.setIconSize(QtCore.QSize(16,16))
+        self._options.setIconSize(QtCore.QSize(16, 16))
         self._options.setPopupMode(self._options.InstantPopup)
         self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         #
         self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
         self.onOptionsPress()  # create menu now
-        
+
         # Create tree
         self._tree = WorkspaceTree(self)
-        
-        # Create message for when tree is empty
-        self._initText = QtWidgets.QLabel(pyzo.translate("pyzoWorkspace", """Lists the variables in the current shell's namespace.
 
-Currently, there are none. Some of them may be hidden because of the filters you configured."""), self)
+        # Create message for when tree is empty
+        self._initText = QtWidgets.QLabel(
+            pyzo.translate(
+                "pyzoWorkspace",
+                """Lists the variables in the current shell's namespace.
+
+Currently, there are none. Some of them may be hidden because of the filters you configured.""",
+            ),
+            self,
+        )
         self._initText.setVisible(False)
         self._initText.setWordWrap(True)
 
@@ -378,47 +385,54 @@ Currently, there are none. Some of them may be hidden because of the filters you
         margin = pyzo.config.view.widgetMargin
         mainLayout.setContentsMargins(margin, margin, margin, margin)
         self.setLayout(mainLayout)
-        
+
         # Bind events
         self._up.pressed.connect(self._tree._proxy.goUp)
         self._options.pressed.connect(self.onOptionsPress)
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
-    
-    def displayEmptyWorkspace(self, empty) :
+
+    def displayEmptyWorkspace(self, empty):
         self._tree.setVisible(not empty)
         self._initText.setVisible(empty)
 
-    
     def onOptionsPress(self):
         """ Create the menu for the button, Do each time to make sure
         the checks are right. """
-        
+
         # Get menu
         menu = self._options._menu
         menu.clear()
-        
-        hideables = [('type', pyzo.translate("pyzoWorkspace", 'Hide types')), ('function', pyzo.translate("pyzoWorkspace", 'Hide functions')), ('module', pyzo.translate("pyzoWorkspace", 'Hide modules')), ('private', pyzo.translate("pyzoWorkspace", 'Hide private identifiers')), ('startup', pyzo.translate("pyzoWorkspace", "Hide the shell's startup variables"))]
-        
-        for type, display in hideables :
+
+        hideables = [
+            ("type", pyzo.translate("pyzoWorkspace", "Hide types")),
+            ("function", pyzo.translate("pyzoWorkspace", "Hide functions")),
+            ("module", pyzo.translate("pyzoWorkspace", "Hide modules")),
+            ("private", pyzo.translate("pyzoWorkspace", "Hide private identifiers")),
+            (
+                "startup",
+                pyzo.translate("pyzoWorkspace", "Hide the shell's startup variables"),
+            ),
+        ]
+
+        for type, display in hideables:
             checked = type in self._config.hideTypes
             action = menu.addAction(display)
             action._what = type
             action.setCheckable(True)
             action.setChecked(checked)
-    
-    
+
     def onOptionMenuTiggered(self, action):
         """  The user decides what to hide in the workspace. """
-        
+
         # What to show
         type = action._what.lower()
-        
+
         # Swap
         if type in self._config.hideTypes:
             while type in self._config.hideTypes:
                 self._config.hideTypes.remove(type)
         else:
             self._config.hideTypes.append(type)
-        
+
         # Update
         self._tree.fillWorkspace()

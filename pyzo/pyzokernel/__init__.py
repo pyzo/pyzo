@@ -13,6 +13,7 @@ See pyzokernel/start.py for more information.
 
 """
 
+
 def printDirect(msg):
     """ Small function that writes directly to the strm_out channel.
     This means that regardless if stdout was hijacked, the message ends
@@ -21,4 +22,5 @@ def printDirect(msg):
     the Python banner is one example.
     """
     import sys
+
     sys._pyzoInterpreter.context._strm_out.send(msg)

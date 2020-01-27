@@ -9,11 +9,11 @@ import asgish
 
 @asgish.to_asgi
 async def handler(request):
-    assert request.method == 'POST'
-    filename2 = request.path.strip('/')
-    filename1 = filename2 + '.part'
-    assert '/' not in filename1
-    with open(filename1, 'wb') as f:
+    assert request.method == "POST"
+    filename2 = request.path.strip("/")
+    filename1 = filename2 + ".part"
+    assert "/" not in filename1
+    with open(filename1, "wb") as f:
         async for chunk in request.iter_body():
             f.write(chunk)
     if os.path.isfile(filename2):
@@ -22,5 +22,6 @@ async def handler(request):
     print("received", filename2)
     return "Success!"
 
-if __name__ == '__main__':
-    asgish.run(handler, 'uvicorn', '0.0.0.0:80')
+
+if __name__ == "__main__":
+    asgish.run(handler, "uvicorn", "0.0.0.0:80")

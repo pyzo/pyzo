@@ -24,21 +24,21 @@ from collections import deque
 # Version dependent defs
 V2 = sys.version_info[0] == 2
 if V2:
-    if sys.platform.startswith('java'):
+    if sys.platform.startswith("java"):
         import __builtin__ as D  # Jython
     else:
         D = __builtins__
     if not isinstance(D, dict):
         D = D.__dict__
-    bytes = D['str']
-    str = D['unicode']
-    xrange = D['xrange']
+    bytes = D["str"]
+    str = D["unicode"]
+    xrange = D["xrange"]
     basestring = basestring  # noqa
     long = long  # noqa
 else:
     basestring = str  # to check if instance is string
     bytes, str = bytes, str
-    long = int # for the port
+    long = int  # for the port
     xrange = range
 
 
@@ -53,25 +53,25 @@ def Property(function):
     http://code.activestate.com/recipes/410698/#c6
     
     """
-    
+
     # Define known keys
-    known_keys = 'fget', 'fset', 'fdel', 'doc'
-    
+    known_keys = "fget", "fset", "fdel", "doc"
+
     # Get elements for defining the property. This should return a dict
     func_locals = function()
     if not isinstance(func_locals, dict):
         raise RuntimeError('Property function should "return locals()".')
-    
+
     # Create dict with kwargs for property(). Init doc with docstring.
-    D = {'doc': function.__doc__}
-    
+    D = {"doc": function.__doc__}
+
     # Copy known keys. Check if there are invalid keys
     for key in func_locals.keys():
         if key in known_keys:
             D[key] = func_locals[key]
         else:
-            raise RuntimeError('Invalid Property element: %s' % key)
-    
+            raise RuntimeError("Invalid Property element: %s" % key)
+
     # Done
     return property(**D)
 
@@ -82,23 +82,25 @@ def getErrorMsg():
     there is no uniform way to catch exception objects in Python 2.x and
     Python 3.x.
     """
-    
+
     # Get traceback info
     type, value, tb = sys.exc_info()
-    
+
     # Store for debugging?
     if True:
         sys.last_type = type
         sys.last_value = value
         sys.last_traceback = tb
-    
+
     # Print
-    err = ''
+    err = ""
     try:
         if not isinstance(value, (OverflowError, SyntaxError, ValueError)):
             while tb:
                 err = "line %i of %s." % (
-                        tb.tb_frame.f_lineno, tb.tb_frame.f_code.co_filename)
+                    tb.tb_frame.f_lineno,
+                    tb.tb_frame.f_code.co_filename,
+                )
                 tb = tb.tb_next
     finally:
         del tb
@@ -115,13 +117,13 @@ def slot_hash(name):
     Slots 0-7 are reseved slots.
     
     """
-    fac = 0xd2d84a61
+    fac = 0xD2D84A61
     val = 0
     offset = 8
     for c in name:
-        val += ( val>>3 ) + ( ord(c)*fac )
-    val += (val>>3) + (len(name)*fac)
-    return offset + (val % (2**64-offset))
+        val += (val >> 3) + (ord(c) * fac)
+    val += (val >> 3) + (len(name) * fac)
+    return offset + (val % (2 ** 64 - offset))
 
 
 def port_hash(name):
@@ -135,12 +137,12 @@ def port_hash(name):
     to port numbers.
     
     """
-    fac = 0xd2d84a61
+    fac = 0xD2D84A61
     val = 0
     for c in name:
-        val += ( val>>3 ) + ( ord(c)*fac )
-    val += (val>>3) + (len(name)*fac)
-    return 49152 + (val % 2**14)
+        val += (val >> 3) + (ord(c) * fac)
+    val += (val >> 3) + (len(name) * fac)
+    return 49152 + (val % 2 ** 14)
 
 
 def split_address(address):
@@ -161,66 +163,66 @@ def split_address(address):
     to specify an integer offset for the port number.
     
     """
-    
+
     # Check
     if not isinstance(address, basestring):
         raise ValueError("Address should be a string.")
     if not ":" in address:
         raise ValueError("Address should be in format 'host:port'.")
-    
+
     # Is the protocol explicitly defined (zeromq compatibility)
-    protocol = ''
-    if '://' in address:
+    protocol = ""
+    if "://" in address:
         # Get protocol and stripped address
-        tmp = address.split('://',1)
+        tmp = address.split("://", 1)
         protocol = tmp[0].lower()
         address = tmp[1]
     if not protocol:
-        protocol = 'tcp'
-    
+        protocol = "tcp"
+
     # Split
-    tmp = address.split(':',1)
+    tmp = address.split(":", 1)
     host, port = tuple(tmp)
-    
+
     # Process host
-    if host.lower() == 'localhost':
-        host = '127.0.0.1'
-    if host.lower() == 'publichost':
-        host = 'publichost' + '0'
-    if host.lower().startswith('publichost') and host[10:] in '0123456789':
+    if host.lower() == "localhost":
+        host = "127.0.0.1"
+    if host.lower() == "publichost":
+        host = "publichost" + "0"
+    if host.lower().startswith("publichost") and host[10:] in "0123456789":
         index = int(host[10:])
         hostname = socket.gethostname()
         tmp = socket.gethostbyname_ex(hostname)
         try:
             host = tmp[2][index]  # This resolves to 127.0.1.1 on some Linuxes
         except IndexError:
-            raise ValueError('Invalid index (%i) in public host addresses.' % index)
-    
+            raise ValueError("Invalid index (%i) in public host addresses." % index)
+
     # Process port
     try:
         port = int(port)
     except ValueError:
         # Convert to int, using a hash
-        
+
         # Is there an offset?
         offset = 0
         if "+" in port:
-            tmp = port.split('+',1)
+            tmp = port.split("+", 1)
             port, offset = tuple(tmp)
             try:
                 offset = int(offset)
             except ValueError:
                 raise ValueError("Invalid offset in address")
-        
+
         # Convert
         port = port_hash(port) + offset
-    
+
     # Check port
-    #if port < 1024 or port > 2**16:
+    # if port < 1024 or port > 2**16:
     #    raise ValueError("The port must be in the range [1024, 2^16>.")
-    if port > 2**16:
+    if port > 2 ** 16:
         raise ValueError("The port must be in the range [0, 2^16>.")
-    
+
     # Done
     return protocol, host, port
 
@@ -231,9 +233,9 @@ class UID:
     Represents an 8-byte (64 bit) Unique Identifier.
     
     """
-    
+
     _last_timestamp = 0
-    
+
     def __init__(self, id=None):
         # Create nr consisting of two parts
         if id is None:
@@ -242,12 +244,12 @@ class UID:
         elif isinstance(id, (int, long)):
             self._nr = id
         else:
-            raise ValueError('The id given to UID() should be an int.')
-    
+            raise ValueError("The id given to UID() should be an int.")
+
     def __repr__(self):
         h = self.get_hex()
         return "<UID %s-%s>" % (h[:8], h[8:])
-    
+
     def get_hex(self):
         """ get_hex()
         
@@ -256,18 +258,18 @@ class UID:
         
         """
         h = hex(self._nr)
-        h = h[2:].rstrip('L')
-        h = h.ljust(2*8, '0')
+        h = h[2:].rstrip("L")
+        h = h.ljust(2 * 8, "0")
         return h
-    
+
     def get_bytes(self):
         """ get_bytes()
         
         Get the UID as bytes.
         
         """
-        return struct.pack('<Q', self._nr)
-    
+        return struct.pack("<Q", self._nr)
+
     def get_int(self):
         """ get_int()
         
@@ -275,9 +277,9 @@ class UID:
         
         """
         return self._nr
-    
+
     def _get_random_int(self):
-        return random.randrange(0xffffffff)
+        return random.randrange(0xFFFFFFFF)
 
     def _get_time_int(self):
         # Get time stamp in steps of miliseconds
@@ -289,13 +291,12 @@ class UID:
         UID._last_timestamp = timestamp
         # Truncate to 4 bytes. If the time goes beyond the integer limit, we just
         # restart counting. With this setup, the cycle is almost 25 days
-        timestamp  = timestamp & 0xffffffff
+        timestamp = timestamp & 0xFFFFFFFF
         # Don't allow 0
         if timestamp == 0:
             timestamp += 1
             UID._last_timestamp += 1
         return timestamp
-
 
 
 class PackageQueue(object):
@@ -309,32 +310,31 @@ class PackageQueue(object):
     the blocking.
     
     """
-    
+
     class Empty(Exception):
         def __init__(self):
-            Exception.__init__(self, 'pop from an empty PackageQueue')
+            Exception.__init__(self, "pop from an empty PackageQueue")
+
         pass
-    
-    
-    def __init__(self, N, discard_mode='old'):
-        
+
+    def __init__(self, N, discard_mode="old"):
+
         # Instantiate queue and condition
         self._q = deque()
         self._condition = threading.Condition()
-        
+
         # Store max number of elements in queue
         self._maxlen = int(N)
-        
+
         # Store discard mode as integer
         discard_mode = discard_mode.lower()
-        if discard_mode == 'old':
+        if discard_mode == "old":
             self._discard_mode = 1
-        elif discard_mode == 'new':
+        elif discard_mode == "new":
             self._discard_mode = 2
         else:
-            raise ValueError('Invalid discard mode.')
-    
-    
+            raise ValueError("Invalid discard mode.")
+
     def full(self):
         """ full()
         
@@ -344,8 +344,7 @@ class PackageQueue(object):
         
         """
         return len(self) >= self._maxlen
-    
-    
+
     def empty(self):
         """ empty()
         
@@ -355,8 +354,7 @@ class PackageQueue(object):
         
         """
         return len(self) == 0
-    
-    
+
     def push(self, x):
         """ push(item)
         
@@ -364,28 +362,27 @@ class PackageQueue(object):
         item in the queue, or the given item is discarted.
         
         """
-        
+
         condition = self._condition
         condition.acquire()
         try:
             q = self._q
-        
+
             if len(q) < self._maxlen:
                 # Add now and notify any waiting threads in get()
                 q.append(x)
-                condition.notify() # code at wait() procedes
+                condition.notify()  # code at wait() procedes
             else:
                 # Full, either discard or pop (no need to notify)
                 if self._discard_mode == 1:
-                    q.popleft() # pop old
+                    q.popleft()  # pop old
                     q.append(x)
                 elif self._discard_mode == 2:
-                    pass # Simply do not add
-        
+                    pass  # Simply do not add
+
         finally:
             condition.release()
-    
-    
+
     def insert(self, x):
         """ insert(x)
         
@@ -395,16 +392,15 @@ class PackageQueue(object):
         be discarted.
         
         """
-        
+
         condition = self._condition
         condition.acquire()
         try:
             self._q.appendleft(x)
-            condition.notify() # code at wait() procedes
+            condition.notify()  # code at wait() procedes
         finally:
             condition.release()
-    
-    
+
     def pop(self, block=True):
         """ pop(block=True)
         
@@ -417,12 +413,12 @@ class PackageQueue(object):
             is a float).
         
         """
-        
+
         condition = self._condition
         condition.acquire()
         try:
             q = self._q
-            
+
             if not block:
                 # Raise empty if no items in the queue
                 if not len(q):
@@ -438,15 +434,14 @@ class PackageQueue(object):
                     if not len(q):
                         raise self.Empty()
             else:
-                raise ValueError('Invalid value for block in PackageQueue.pop().')
-            
+                raise ValueError("Invalid value for block in PackageQueue.pop().")
+
             # Return item
             return q.popleft()
-        
+
         finally:
             condition.release()
-    
-    
+
     def peek(self, index=0):
         """ peek(index=0)
         
@@ -459,25 +454,22 @@ class PackageQueue(object):
         
         """
         return self._q[index]
-    
-    
+
     def __len__(self):
         return self._q.__len__()
-    
-    
+
     def clear(self):
         """ clear()
         
         Remove all items from the queue.
         
         """
-        
+
         self._condition.acquire()
         try:
             self._q.clear()
         finally:
             self._condition.release()
-
 
 
 class TinyPackageQueue(PackageQueue):
@@ -496,17 +488,16 @@ class TinyPackageQueue(PackageQueue):
     the blocking.
     
     """
-    
-    def __init__(self, N1, N2, discard_mode='old', timeout=1.0):
+
+    def __init__(self, N1, N2, discard_mode="old", timeout=1.0):
         PackageQueue.__init__(self, N2, discard_mode)
-        
+
         # Store limit above which the push() method will block
         self._tinylen = int(N1)
-        
+
         # Store timeout
         self._timeout = timeout
-    
-    
+
     def push(self, x):
         """ push(item)
         
@@ -515,17 +506,17 @@ class TinyPackageQueue(PackageQueue):
         popped from another thread.
         
         """
-        
+
         condition = self._condition
         condition.acquire()
         try:
             q = self._q
             lq = len(q)
-            
+
             if lq < self._tinylen:
                 # We are on safe side. Wake up any waiting threads if queue was empty
                 q.append(x)
-                condition.notify() # pop() at wait() procedes
+                condition.notify()  # pop() at wait() procedes
             elif lq < self._maxlen:
                 # The queue is above its limit, but not full
                 condition.wait(self._timeout)
@@ -533,15 +524,14 @@ class TinyPackageQueue(PackageQueue):
             else:
                 # Full, either discard or pop (no need to notify)
                 if self._discard_mode == 1:
-                    q.popleft() # pop old
+                    q.popleft()  # pop old
                     q.append(x)
                 elif self._discard_mode == 2:
-                    pass # Simply do not add
-            
+                    pass  # Simply do not add
+
         finally:
             condition.release()
-    
-    
+
     def pop(self, block=True):
         """ pop(block=True)
         
@@ -554,12 +544,12 @@ class TinyPackageQueue(PackageQueue):
             is a float).
         
         """
-        
+
         condition = self._condition
         condition.acquire()
         try:
             q = self._q
-            
+
             if not block:
                 # Raise empty if no items in the queue
                 if not len(q):
@@ -575,27 +565,25 @@ class TinyPackageQueue(PackageQueue):
                     if not len(q):
                         raise self.Empty()
             else:
-                raise ValueError('Invalid value for block in PackageQueue.pop().')
-            
-            
+                raise ValueError("Invalid value for block in PackageQueue.pop().")
+
             # Notify if this pop would reduce the length below the threshold
             if len(q) <= self._tinylen:
-                condition.notifyAll() # wait() procedes
-            
+                condition.notifyAll()  # wait() procedes
+
             # Return item
             return q.popleft()
-        
+
         finally:
             condition.release()
-    
-    
+
     def clear(self):
         """ clear()
         
         Remove all items from the queue.
         
         """
-        
+
         self._condition.acquire()
         try:
             lq = len(self._q)

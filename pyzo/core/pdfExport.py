@@ -17,7 +17,7 @@ class PdfExport(QtWidgets.QDialog):
 
         from pyzo.util.qt import QtPrintSupport
 
-        self.printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution, )
+        self.printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution,)
 
         # To allow pdf export with color
         self.printer.setColorMode(QtPrintSupport.QPrinter.Color)
@@ -27,7 +27,7 @@ class PdfExport(QtWidgets.QDialog):
         self._enable_syntax_highlighting = True
 
         # Set title
-        self.setWindowTitle(translate("menu dialog", 'Pdf Export'))
+        self.setWindowTitle(translate("menu dialog", "Pdf Export"))
 
         # Set dialog size
         size = 1000, 600
@@ -41,7 +41,7 @@ class PdfExport(QtWidgets.QDialog):
         self.validation_button.clicked.connect(self._export_pdf)
 
         # Button to update the preview
-        self.button_update_preview = QtWidgets.QPushButton('Update preview', self)
+        self.button_update_preview = QtWidgets.QPushButton("Update preview", self)
         self.button_update_preview.clicked.connect(self._update_preview)
 
         # Previw widget
@@ -49,8 +49,8 @@ class PdfExport(QtWidgets.QDialog):
 
         # Lines numbers option
         self.checkbox_line_number = QtWidgets.QCheckBox(
-            "Print line number", self, checked = self.show_line_number
-            )
+            "Print line number", self, checked=self.show_line_number
+        )
 
         self.checkbox_line_number.stateChanged.connect(self._get_show_line_number)
 
@@ -58,7 +58,9 @@ class PdfExport(QtWidgets.QDialog):
         self.current_editor = pyzo.editors.getCurrentEditor()
         self.editor_name = self.current_editor.name
         self.editor_filename = self.current_editor.filename
-        self.editor = pyzo.core.editor.PyzoEditor(pyzo.editors.getCurrentEditor().toPlainText())
+        self.editor = pyzo.core.editor.PyzoEditor(
+            pyzo.editors.getCurrentEditor().toPlainText()
+        )
 
         # Zoom
         # The default zoom is the current zoom used by the editor
@@ -75,11 +77,12 @@ class PdfExport(QtWidgets.QDialog):
 
         # Option for syntax highlighting
         self.checkbox_syntax_highlighting = QtWidgets.QCheckBox(
-            "Enable syntax highlighting", self,
-            checked=self._enable_syntax_highlighting
-            )
+            "Enable syntax highlighting", self, checked=self._enable_syntax_highlighting
+        )
 
-        self.checkbox_syntax_highlighting.stateChanged.connect(self._change_syntax_highlighting_option)
+        self.checkbox_syntax_highlighting.stateChanged.connect(
+            self._change_syntax_highlighting_option
+        )
 
         self.combobox_file_name = QtWidgets.QComboBox(self)
         self.combobox_file_name.addItem("Do not print the file name", 0)
@@ -90,20 +93,17 @@ class PdfExport(QtWidgets.QDialog):
 
         # Orientation
         self.combobox_orientation = QtWidgets.QComboBox(self)
-        self.combobox_orientation.addItem("Portrait",
-            QtPrintSupport.QPrinter.Portrait
-            )
-        self.combobox_orientation.addItem("Landscape",
-            QtPrintSupport.QPrinter.Landscape
-            )
+        self.combobox_orientation.addItem("Portrait", QtPrintSupport.QPrinter.Portrait)
+        self.combobox_orientation.addItem(
+            "Landscape", QtPrintSupport.QPrinter.Landscape
+        )
         self.combobox_orientation.setToolTip("Orientation of the document")
 
         # Layout
         self.main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(self.main_layout)
         self.preview.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Expanding
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
         )
         self.right_layout = QtWidgets.QVBoxLayout()
         self.option_layout = QtWidgets.QFormLayout()
@@ -149,20 +149,21 @@ class PdfExport(QtWidgets.QDialog):
             if self.combobox_file_name.currentIndex():
                 starting_line = 1
                 if self.combobox_file_name.currentIndex() == 1:
-                    lines.insert(0, '# ' + self.editor_name + '\n')
+                    lines.insert(0, "# " + self.editor_name + "\n")
                 elif self.combobox_file_name.currentIndex() == 2:
-                    lines.insert(0, '# ' + self.editor_filename + '\n')
+                    lines.insert(0, "# " + self.editor_filename + "\n")
 
             # Print line numbers in the editor
             if self.show_line_number:
                 for i in range(starting_line, len(lines)):
-                    lines[i] = str(i+1-starting_line).rjust(nzeros, '0') \
-                        + '| ' + lines[i]
+                    lines[i] = (
+                        str(i + 1 - starting_line).rjust(nzeros, "0") + "| " + lines[i]
+                    )
 
             cursor = self.editor.textCursor()
             cursor.movePosition(cursor.Start)
             cursor.movePosition(cursor.End, cursor.KeepAnchor)
-            cursor.insertText('\n'.join(lines))
+            cursor.insertText("\n".join(lines))
 
             # Highlight line numbers
             if self.show_line_number:
@@ -193,10 +194,8 @@ class PdfExport(QtWidgets.QDialog):
 
             if True:
                 filename = QtWidgets.QFileDialog.getSaveFileName(
-                                                        None,
-                                                        'Export PDF',
-                                                        os.path.expanduser("~"),
-                                                        "*.pdf *.ps")
+                    None, "Export PDF", os.path.expanduser("~"), "*.pdf *.ps"
+                )
                 if isinstance(filename, tuple):  # PySide
                     filename = filename[0]
                 if not filename:
@@ -204,10 +203,8 @@ class PdfExport(QtWidgets.QDialog):
                 self.printer.setOutputFileName(filename)
             else:
                 d = QtWidgets.QPrintDialog(self.printer)
-                d.setWindowTitle('Print code')
-                d.setOption(d.PrintSelection,
-                            self.editor.textCursor().hasSelection()
-                            )
+                d.setWindowTitle("Print code")
+                d.setOption(d.PrintSelection, self.editor.textCursor().hasSelection())
                 d.setOption(d.PrintToFile, True)
                 ok = d.exec_()
                 if ok != d.Accepted:

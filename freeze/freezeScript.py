@@ -28,48 +28,80 @@ import PyInstaller.__main__
 
 # Define app name and such
 name = "pyzo"
-baseDir = os.path.abspath('') + '/'
-srcDir = baseDir + 'pyzo/'
-distDir = baseDir + 'frozen/'
-iconFile = srcDir + 'resources/appicons/pyzologo.ico'
+baseDir = os.path.abspath("") + "/"
+srcDir = baseDir + "pyzo/"
+distDir = baseDir + "frozen/"
+iconFile = srcDir + "resources/appicons/pyzologo.ico"
 
-sys.path.insert(0, '')
+sys.path.insert(0, "")
 
 
 ## Includes and excludes
 
 # The Qt toolkit that we use
-QT_API = 'PyQt5'
+QT_API = "PyQt5"
 
 # All known Qt toolkits, mainly to exlcude them
 qt_kits = {"PySide", "PySide2", "PyQt4", "PyQt5"}
 
 # Imports that PyInstaller may have missed, or that are simply common/useful
 # and may be used by some tools.
-includes = ['code', 'shutil']
+includes = ["code", "shutil"]
 
 # Exclude stuff that somehow gets, or may get, selected by PyInstaller
-excludes = ['numpy', 'scipy', 'win32com', 'conda', 'pip', 'IPython']
+excludes = ["numpy", "scipy", "win32com", "conda", "pip", "IPython"]
 
 # Excludes for tk
-tk_excludes = ["pywin", "pywin.debugger", "pywin.debugger.dbgcon",
-               "pywin.dialogs", "pywin.dialogs.list",
-               "Tkconstants", "Tkinter", "tcl"]
+tk_excludes = [
+    "pywin",
+    "pywin.debugger",
+    "pywin.debugger.dbgcon",
+    "pywin.dialogs",
+    "pywin.dialogs.list",
+    "Tkconstants",
+    "Tkinter",
+    "tcl",
+]
 excludes.extend(tk_excludes)
 
 # Excludes for Qt
-qt_excludes = ['QtNetwork', 'QtOpenGL', 'QtXml', 'QtTest', 'QtSql', 'QtSvg',
-               'QtBluetooth', 'QtDBus', 'QtDesigner', 'QtLocation', 'QtPositioning',
-               'QtMultimedia', 'QtMultimediaWidgets', 'QtQml', 'QtQuick',
-               'QtSql', 'QtSvg', 'QtTest', 'QtWebKit', 'QtXml', 'QtXmlPatterns',
-               'QtDeclarative', 'QtScript', 'QtScriptTools', 'QtUiTools',
-               'QtQuickWidgets', 'QtSensors', 'QtSerialPort', 'QtWebChannel',
-               'QtWebKitWidgets', 'QtWebSockets',
-               ]
+qt_excludes = [
+    "QtNetwork",
+    "QtOpenGL",
+    "QtXml",
+    "QtTest",
+    "QtSql",
+    "QtSvg",
+    "QtBluetooth",
+    "QtDBus",
+    "QtDesigner",
+    "QtLocation",
+    "QtPositioning",
+    "QtMultimedia",
+    "QtMultimediaWidgets",
+    "QtQml",
+    "QtQuick",
+    "QtSql",
+    "QtSvg",
+    "QtTest",
+    "QtWebKit",
+    "QtXml",
+    "QtXmlPatterns",
+    "QtDeclarative",
+    "QtScript",
+    "QtScriptTools",
+    "QtUiTools",
+    "QtQuickWidgets",
+    "QtSensors",
+    "QtSerialPort",
+    "QtWebChannel",
+    "QtWebKitWidgets",
+    "QtWebSockets",
+]
 
 for qt_ver in qt_kits:
     for excl in qt_excludes:
-        excludes.append(qt_ver + '.' + excl)
+        excludes.append(qt_ver + "." + excl)
 
 excludes.extend(qt_kits.difference([QT_API]))
 
@@ -119,9 +151,9 @@ def copydir_smart(path1, path2):
     for sub in os.listdir(path1):
         fullsub1 = os.path.join(path1, sub)
         fullsub2 = os.path.join(path2, sub)
-        if sub in ['__pycache__', '.hg', '.svn', '.git']:
+        if sub in ["__pycache__", ".hg", ".svn", ".git"]:
             continue
-        elif sub.endswith('.pyc') and os.path.isfile(fullsub1[:-1]):
+        elif sub.endswith(".pyc") and os.path.isfile(fullsub1[:-1]):
             continue
         elif os.path.isdir(fullsub1):
             count += copydir_smart(fullsub1, fullsub2)
@@ -157,20 +189,20 @@ use this standard. For more info, contact either of us.
 """.lstrip()
 
 # Post process the frozen dir (and the frozen app-dir on OS X)
-frozenDirs = [os.path.join(distDir, 'pyzo')]
+frozenDirs = [os.path.join(distDir, "pyzo")]
 if sys.platform.startswith("darwin"):
-    frozenDirs.append(os.path.join(distDir, 'pyzo.app', 'Contents', 'MacOS'))
+    frozenDirs.append(os.path.join(distDir, "pyzo.app", "Contents", "MacOS"))
 
 for frozenDir in frozenDirs:
 
     # Copy the whole Pyzo package
-    copydir_smart(os.path.join(srcDir), os.path.join(frozenDir, 'source', 'pyzo'))
+    copydir_smart(os.path.join(srcDir), os.path.join(frozenDir, "source", "pyzo"))
 
     # Create settings folder and put in a file
-    os.mkdir(os.path.join(frozenDir, '_settings'))
-    os.mkdir(os.path.join(frozenDir, '_settings', 'pyzo'))
-    with open(os.path.join(frozenDir, '_settings', 'README.txt'), 'wb') as file:
-        file.write(SETTINGS_TEXT.encode('utf-8'))
+    os.mkdir(os.path.join(frozenDir, "_settings"))
+    os.mkdir(os.path.join(frozenDir, "_settings", "pyzo"))
+    with open(os.path.join(frozenDir, "_settings", "README.txt"), "wb") as file:
+        file.write(SETTINGS_TEXT.encode("utf-8"))
 
 
 ## Package things up
@@ -182,9 +214,26 @@ for frozenDir in frozenDirs:
 if sys.platform.startswith("darwin"):
     print("Packing up into dmg ...")
     appDir = distDir + "pyzo.app"
-    dmgFile = distDir + 'pyzo.dmg'
+    dmgFile = distDir + "pyzo.dmg"
 
-    if os.spawnlp(os.P_WAIT,'hdiutil','hdiutil','create','-fs','HFSX',
-                '-format','UDZO', dmgFile, '-imagekey', 'zlib-level=9',
-                '-srcfolder', appDir, '-volname', 'pyzo') != 0:
-        raise OSError('creation of the dmg failed')
+    if (
+        os.spawnlp(
+            os.P_WAIT,
+            "hdiutil",
+            "hdiutil",
+            "create",
+            "-fs",
+            "HFSX",
+            "-format",
+            "UDZO",
+            dmgFile,
+            "-imagekey",
+            "zlib-level=9",
+            "-srcfolder",
+            appDir,
+            "-volname",
+            "pyzo",
+        )
+        != 0
+    ):
+        raise OSError("creation of the dmg failed")

@@ -17,6 +17,12 @@ network.
 from yoton.channels.message_types import MessageType, TEXT, BINARY, OBJECT
 from yoton.channels.channels_base import BaseChannel
 from yoton.channels.channels_pubsub import PubChannel, SubChannel, select_sub_channel
-from yoton.channels.channels_reqrep import ReqChannel, RepChannel, Future, TimeoutError, CancelledError
+from yoton.channels.channels_reqrep import (
+    ReqChannel,
+    RepChannel,
+    Future,
+    TimeoutError,
+    CancelledError,
+)
 from yoton.channels.channels_state import StateChannel
 from yoton.channels.channels_file import FileWrapper

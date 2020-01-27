@@ -41,7 +41,7 @@ and workspace.
 """
 
 # Set version number
-__version__ = '4.9.0'
+__version__ = "4.9.0"
 
 import os
 import sys
@@ -49,18 +49,19 @@ import locale
 import traceback
 
 # Check Python version
-if sys.version < '3':
-    raise RuntimeError('Pyzo requires Python 3.x to run.')
+if sys.version < "3":
+    raise RuntimeError("Pyzo requires Python 3.x to run.")
 
 # Make each OS find platform plugins etc. - or let PyInstaller do its thing?
 if getattr(sys, "frozen", False):
     app_dir = os.path.dirname(sys.executable)
     # if sys.platform.startswith('win'):
     #     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = app_dir
-    if sys.platform.startswith('linux'):
+    if sys.platform.startswith("linux"):
         # os.environ['QT_XKB_CONFIG_ROOT'] = '.'
-        os.environ['FONTCONFIG_FILE'] = os.path.join(app_dir, 'source/pyzo/resources',
-                                                    'fonts/linux_fonts.conf')
+        os.environ["FONTCONFIG_FILE"] = os.path.join(
+            app_dir, "source/pyzo/resources", "fonts/linux_fonts.conf"
+        )
 
 # Automatically scale along on HDPI displays. See issue #531 and e.g.
 # https://wiki.archlinux.org/index.php/HiDPI#Qt_5
@@ -75,8 +76,9 @@ from pyzo.util import paths
 # Pyzo command, we should send the command to the other process and quit.
 # We do this here, were we have not yet loaded Qt, so we are very light.
 from pyzo.core import commandline
+
 if commandline.is_our_server_running():
-    print('Started our command server')
+    print("Started our command server")
 else:
     # Handle command line args now
     res = commandline.handle_cmd_args()
@@ -85,7 +87,7 @@ else:
         sys.exit()
     else:
         # No args, proceed with starting up
-        print('Our command server is *not* running')
+        print("Our command server is *not* running")
 
 
 from pyzo.util import zon as ssdf  # zon is ssdf-light
@@ -95,19 +97,20 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets
 from pyzo.util._locale import translate, setLanguage  # noqa
 
 # Set environ to let kernel know some stats about us
-os.environ['PYZO_PREFIX'] = sys.prefix
-_is_pyqt4 = hasattr(QtCore, 'PYQT_VERSION_STR')
-os.environ['PYZO_QTLIB'] = 'PyQt4' if _is_pyqt4 else 'PySide'
+os.environ["PYZO_PREFIX"] = sys.prefix
+_is_pyqt4 = hasattr(QtCore, "PYQT_VERSION_STR")
+os.environ["PYZO_QTLIB"] = "PyQt4" if _is_pyqt4 else "PySide"
 
 
 class MyApp(QtWidgets.QApplication):
     """ So we an open .py files on OSX.
     OSX is smart enough to call this on the existing process.
     """
+
     def event(self, event):
         if isinstance(event, QtGui.QFileOpenEvent):
             fname = str(event.file())
-            if fname and fname != 'pyzo':
+            if fname and fname != "pyzo":
                 sys.argv[1:] = []
                 sys.argv.append(fname)
                 res = commandline.handle_cmd_args()
@@ -116,18 +119,21 @@ class MyApp(QtWidgets.QApplication):
                     sys.exit()
         return QtWidgets.QApplication.event(self, event)
 
-if not sys.platform.startswith('darwin'):
+
+if not sys.platform.startswith("darwin"):
     MyApp = QtWidgets.QApplication  # noqa
 
 ## Install excepthook
 # In PyQt5 exceptions in Python will cuase an abort
 # http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html
 
+
 def pyzo_excepthook(type, value, tb):
-    out = 'Uncaught Python exception: ' + str(value) + '\n'
-    out += ''.join(traceback.format_list(traceback.extract_tb(tb)))
-    out += '\n'
+    out = "Uncaught Python exception: " + str(value) + "\n"
+    out += "".join(traceback.format_list(traceback.extract_tb(tb)))
+    out += "\n"
     sys.stderr.write(out)
+
 
 sys.excepthook = pyzo_excepthook
 
@@ -137,6 +143,7 @@ sys.excepthook = pyzo_excepthook
 
 # todo: move some stuff out of this module ...
 
+
 def getResourceDirs():
     """ getResourceDirs()
     Get the directories to the resources: (pyzoDir, appDataDir, appConfigDir).
@@ -144,19 +151,19 @@ def getResourceDirs():
     a style file.
     """
 
-#     # Get root of the Pyzo code. If frozen its in a subdir of the app dir
-#     pyzoDir = paths.application_dir()
-#     if paths.is_frozen():
-#         pyzoDir = os.path.join(pyzoDir, 'source')
+    #     # Get root of the Pyzo code. If frozen its in a subdir of the app dir
+    #     pyzoDir = paths.application_dir()
+    #     if paths.is_frozen():
+    #         pyzoDir = os.path.join(pyzoDir, 'source')
     pyzoDir = os.path.abspath(os.path.dirname(__file__))
-    if '.zip' in pyzoDir:
-        raise RuntimeError('The Pyzo package cannot be run from a zipfile.')
+    if ".zip" in pyzoDir:
+        raise RuntimeError("The Pyzo package cannot be run from a zipfile.")
 
     # Get where the application data is stored (use old behavior on Mac)
-    appDataDir, appConfigDir = paths.appdata_dir('pyzo', roaming=True, macAsLinux=True)
+    appDataDir, appConfigDir = paths.appdata_dir("pyzo", roaming=True, macAsLinux=True)
 
     # Create tooldir if necessary
-    toolDir = os.path.join(appDataDir, 'tools')
+    toolDir = os.path.join(appDataDir, "tools")
     if not os.path.isdir(toolDir):
         os.mkdir(toolDir)
 
@@ -169,7 +176,7 @@ def resetConfig(preserveState=True):
     its config on the next shutdown.
     """
     # Get filenames
-    configFileName2 = os.path.join(appConfigDir, 'config.ssdf')
+    configFileName2 = os.path.join(appConfigDir, "config.ssdf")
     os.remove(configFileName2)
     global _saveConfigFile
     _saveConfigFile = False
@@ -187,16 +194,20 @@ def loadThemes():
         for fname in [fname for fname in os.listdir(dname) if fname.endswith(".theme")]:
             try:
                 theme = ssdf.load(os.path.join(dname, fname))
-                assert theme.name.lower() == fname.lower().split(".")[0], "Theme name does not match filename"
-                theme.data = {key.replace("_", "."): val  for key, val in theme.data.items()}
+                assert (
+                    theme.name.lower() == fname.lower().split(".")[0]
+                ), "Theme name does not match filename"
+                theme.data = {
+                    key.replace("_", "."): val for key, val in theme.data.items()
+                }
                 theme["builtin"] = isBuiltin
                 themes[theme.name.lower()] = theme
                 print("Loaded theme %r" % theme.name)
             except Exception as ex:
                 print("Warning ! Error while reading %s: %s" % (fname, ex))
 
-    loadThemesFromDir(os.path.join(pyzoDir, 'resources', 'themes'), True)
-    loadThemesFromDir(os.path.join(appDataDir, 'themes'))
+    loadThemesFromDir(os.path.join(pyzoDir, "resources", "themes"), True)
+    loadThemesFromDir(os.path.join(appDataDir, "themes"))
 
 
 def loadConfig(defaultsOnly=False):
@@ -217,22 +228,22 @@ def loadConfig(defaultsOnly=False):
     ssdf.clear(config)
 
     # Load default and inject in the pyzo.config
-    fname = os.path.join(pyzoDir, 'resources', 'defaultConfig.ssdf')
+    fname = os.path.join(pyzoDir, "resources", "defaultConfig.ssdf")
     defaultConfig = ssdf.load(fname)
     replaceFields(config, defaultConfig)
 
     # Platform specific keybinding: on Mac, Ctrl+Tab (actually Cmd+Tab) is a system shortcut
-    if sys.platform == 'darwin':
-        config.shortcuts2.view__select_previous_file = 'Alt+Tab,'
+    if sys.platform == "darwin":
+        config.shortcuts2.view__select_previous_file = "Alt+Tab,"
 
     # Load site-wide config if it exists and inject in pyzo.config
-    fname = os.path.join(pyzoDir, 'resources', 'siteConfig.ssdf')
+    fname = os.path.join(pyzoDir, "resources", "siteConfig.ssdf")
     if os.path.isfile(fname):
         try:
             siteConfig = ssdf.load(fname)
             replaceFields(config, siteConfig)
         except Exception:
-            t = 'Error while reading config file %r, maybe its corrupt?'
+            t = "Error while reading config file %r, maybe its corrupt?"
             print(t % fname)
             raise
 
@@ -243,7 +254,7 @@ def loadConfig(defaultsOnly=False):
             userConfig = ssdf.load(fname)
             replaceFields(config, userConfig)
         except Exception:
-            t = 'Error while reading config file %r, maybe its corrupt?'
+            t = "Error while reading config file %r, maybe its corrupt?"
             print(t % fname)
             raise
 
@@ -263,8 +274,7 @@ def saveConfig():
 
     # Store config
     if _saveConfigFile:
-        ssdf.save( os.path.join(appConfigDir, "config.ssdf"), config )
-
+        ssdf.save(os.path.join(appConfigDir, "config.ssdf"), config)
 
 
 def start():
@@ -279,8 +289,8 @@ def start():
     # this is required for e.g. strftime("%c")
     # Just using '' does not seem to work on OSX. Thus
     # this odd loop.
-    #locale.setlocale(locale.LC_ALL, "")
-    for x in ('', 'C', 'en_US', 'en_US.utf8', 'en_US.UTF-8'):
+    # locale.setlocale(locale.LC_ALL, "")
+    for x in ("", "C", "en_US", "en_US.utf8", "en_US.UTF-8"):
         try:
             locale.setlocale(locale.LC_ALL, x)
             break
@@ -306,12 +316,12 @@ def start():
 ## Init
 
 # List of names that are later overriden (in main.py)
-editors = None # The editor stack instance
-shells = None # The shell stack instance
-main = None # The mainwindow
-icon = None # The icon
-parser = None # The source parser
-status = None # The statusbar (or None)
+editors = None  # The editor stack instance
+shells = None  # The shell stack instance
+main = None  # The mainwindow
+icon = None  # The icon
+parser = None  # The source parser
+status = None  # The statusbar (or None)
 
 # Get directories of interest
 pyzoDir, appDataDir, appConfigDir = getResourceDirs()
@@ -333,4 +343,4 @@ except Exception:
 themes = {}
 loadThemes()
 # Init default style name (set in main.restorePyzoState())
-defaultQtStyleName = ''
+defaultQtStyleName = ""

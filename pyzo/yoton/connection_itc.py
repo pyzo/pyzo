@@ -31,5 +31,6 @@ class ItcConnection(Connection):
     the other end will close the connection.
 
     """
+
     pass
     # todo: implement me

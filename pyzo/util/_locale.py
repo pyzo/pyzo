@@ -20,63 +20,67 @@ QLocale = QtCore.QLocale
 # object we obtain the name for the .tr file.
 # Chinese:
 LANGUAGES = {
-    'English (US)': QLocale.C,
+    "English (US)": QLocale.C,
     # == (QLocale.English, QLocale.UnitedStates),
     #'English (UK)': (QLocale.English, QLocale.UnitedKingdom),
-    'Dutch': QLocale.Dutch,
-    'Spanish': QLocale.Spanish,
-    'Catalan': QLocale.Catalan,
-    'French': QLocale.French,
-    'German': QLocale.German,
-    'Russian': QLocale.Russian,  # not updated for 3.4
-    'Polish': QLocale.Polish,
-    'Portuguese': QLocale.Portuguese,
-    'Portuguese (BR)': (QLocale.Portuguese, QLocale.Brazil),
-    'Simplified Chinese': QLocale.Chinese,
-    'Traditional Chinese': (QLocale.Chinese, QLocale.Taiwan),  # https://bugreports.qt.io/browse/QTBUG-1573
+    "Dutch": QLocale.Dutch,
+    "Spanish": QLocale.Spanish,
+    "Catalan": QLocale.Catalan,
+    "French": QLocale.French,
+    "German": QLocale.German,
+    "Russian": QLocale.Russian,  # not updated for 3.4
+    "Polish": QLocale.Polish,
+    "Portuguese": QLocale.Portuguese,
+    "Portuguese (BR)": (QLocale.Portuguese, QLocale.Brazil),
+    "Simplified Chinese": QLocale.Chinese,
+    "Traditional Chinese": (
+        QLocale.Chinese,
+        QLocale.Taiwan,
+    ),  # https://bugreports.qt.io/browse/QTBUG-1573
     # Languages for which the is a .tr file, but no translations available yet:
     # 'Slovak': QLocale.Slovak,
-    }
+}
 
 
-LANGUAGE_SYNONYMS = {   None: 'English (US)',
-                        '': 'English (US)',
-                        'English': 'English (US)',
-                        'ca_ES' : 'Catalan',
-                        'de_DE' : 'German',
-                        'es_ES' : 'Spanish',
-                        'fr_FR' : 'French',
-                        'nl_NL' : 'Dutch',
-                        'pl_PL' : 'Polish',
-                        'pt_BR' : 'Portuguese (BR)',
-                        'pt_PT' : 'Portuguese',
-                        'ru_RU' : 'Russian',
-                        'zh_CN' : 'Simplified Chinese',
-                        'zh_TW' : 'Traditional Chinese'
-                     }
+LANGUAGE_SYNONYMS = {
+    None: "English (US)",
+    "": "English (US)",
+    "English": "English (US)",
+    "ca_ES": "Catalan",
+    "de_DE": "German",
+    "es_ES": "Spanish",
+    "fr_FR": "French",
+    "nl_NL": "Dutch",
+    "pl_PL": "Polish",
+    "pt_BR": "Portuguese (BR)",
+    "pt_PT": "Portuguese",
+    "ru_RU": "Russian",
+    "zh_CN": "Simplified Chinese",
+    "zh_TW": "Traditional Chinese",
+}
 
 
 def getLocale(languageName):
     """ getLocale(languageName)
     Get the QLocale object for the given language (as a string).
     """
-    
+
     # Try System  Language if nothing defined
     if languageName == "":
         languageName = QLocale.system().name()
-        
+
     # Apply synonyms
     languageName = LANGUAGE_SYNONYMS.get(languageName, languageName)
-    
+
     # if no language applicable, get back to default
     if LANGUAGES.get(languageName, None) is None:
         languageName = LANGUAGE_SYNONYMS.get("", "")
-            
+
     # Select language in qt terms
     qtLanguage = LANGUAGES.get(languageName, None)
     if qtLanguage is None:
-        raise ValueError('Unknown language')
-    
+        raise ValueError("Unknown language")
+
     # Return locale
     if isinstance(qtLanguage, tuple):
         return QLocale(*qtLanguage)
@@ -89,49 +93,49 @@ def setLanguage(languageName):
     Set the language for the app. Loads qt and pyzo translations.
     Returns the QLocale instance to pass to the main widget.
     """
-    
+
     # Get locale
     locale = getLocale(languageName)
-    
+
     # Get paths were language files are
-    qtTransPath = str(QtCore.QLibraryInfo.location(
-                    QtCore.QLibraryInfo.TranslationsPath))
-    pyzoTransPath = os.path.join(pyzo.pyzoDir, 'resources', 'translations')
-    
+    qtTransPath = str(
+        QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)
+    )
+    pyzoTransPath = os.path.join(pyzo.pyzoDir, "resources", "translations")
+
     # Get possible names for language files
     # (because Qt's .tr files may not have the language component.)
     localeName1 = locale.name()
-    localeName2 = localeName1.split('_')[0]
-    
+    localeName2 = localeName1.split("_")[0]
+
     # Uninstall translators
-    if not hasattr(QtCore, '_translators'):
+    if not hasattr(QtCore, "_translators"):
         QtCore._translators = []
     for trans in QtCore._translators:
         QtWidgets.QApplication.removeTranslator(trans)
-    
+
     # The default language
-    if localeName1 == 'C':
+    if localeName1 == "C":
         return locale
-    
+
     # Set Qt translations
     # Note that the translator instances must be stored
     # Note that the load() method is very forgiving with the file name
-    for what, where in [('qt', qtTransPath),('pyzo', pyzoTransPath)]:
+    for what, where in [("qt", qtTransPath), ("pyzo", pyzoTransPath)]:
         trans = QtCore.QTranslator()
         # Try loading both names
         for localeName in [localeName1, localeName2]:
-            success = trans.load(what + '_' + localeName + '.tr', where)
+            success = trans.load(what + "_" + localeName + ".tr", where)
             if success:
                 QtWidgets.QApplication.installTranslator(trans)
                 QtCore._translators.append(trans)
-                print('loading %s %s: ok' % (what, languageName))
+                print("loading %s %s: ok" % (what, languageName))
                 break
         else:
-            print('loading %s %s: failed' % (what, languageName))
-    
+            print("loading %s %s: failed" % (what, languageName))
+
     # Done
     return locale
-
 
 
 class Translation(str):
@@ -150,15 +154,16 @@ class Translation(str):
     use this feature or do not know about this feature, everything
     keeps working as expected.
     """
+
     pass
 
 
 def _splitMainAndTt(s):
-    if ':::' in s:
-        parts = s.split(':::', 1)
+    if ":::" in s:
+        parts = s.split(":::", 1)
         return parts[0].rstrip(), parts[1].lstrip()
     else:
-        return s, ''
+        return s, ""
 
 
 def translate(context, text, disambiguation=None):
@@ -174,7 +179,6 @@ def translate(context, text, disambiguation=None):
     translation.tt = tt
     translation.key = _splitMainAndTt(text)[0].strip()
     return translation
-
 
 
 ## Development tools
@@ -209,6 +213,7 @@ To update a language:
 
 """
 
+
 def lhelp():
     """ lhelp()
     Print help text on using the language tools.
@@ -224,56 +229,62 @@ def linguist(languageName):
     """
     # Get locale
     locale = getLocale(languageName)
-    
+
     # Get file to open
-    fname = 'pyzo_{}.tr'.format(locale.name())
-    filename = os.path.join(pyzo.pyzoDir, 'resources', 'translations', fname)
+    fname = "pyzo_{}.tr".format(locale.name())
+    filename = os.path.join(pyzo.pyzoDir, "resources", "translations", fname)
     if not os.path.isfile(filename):
-        raise ValueError('Could not find {}'.format(filename))
-    
+        raise ValueError("Could not find {}".format(filename))
+
     # PyQt5 does not come with linguist anymore? Install PySide2 and check the
     # pyside2 package directory for the linguist exe ...
-    
+
     # Get Command for linguist
     qtcore_mod_name = pyzo.QtCore.QObject.__module__
     qtcore_mod_path = sys.modules[qtcore_mod_name].__file__
     pysideDir = os.path.abspath(os.path.dirname(qtcore_mod_path))
     print(pysideDir)
-    ISWIN = sys.platform.startswith('win')
-    exe_ = 'linguist' + '.exe' * ISWIN
+    ISWIN = sys.platform.startswith("win")
+    exe_ = "linguist" + ".exe" * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
         exe = exe_
-    
+
     # Spawn process
-    return subprocess.Popen([exe , filename])
+    return subprocess.Popen([exe, filename])
 
 
 def lupdate():
     """ For developers. From pyzo.pro create the .tr files
     """
     # Get file to open
-    fname = 'pyzo.pro'
-    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, '..', fname))
+    fname = "pyzo.pro"
+    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
     if not os.path.isfile(filename):
-        raise ValueError('Could not find {}. This function must run from the source repo.'.format(fname))
-   
+        raise ValueError(
+            "Could not find {}. This function must run from the source repo.".format(
+                fname
+            )
+        )
+
     # Get Command for python lupdate
     pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
-    ISWIN = sys.platform.startswith('win')
-    exe_ = 'pylupdate' + pyzo.QtCore.__version__[0] + '.exe' * ISWIN
+    ISWIN = sys.platform.startswith("win")
+    exe_ = "pylupdate" + pyzo.QtCore.__version__[0] + ".exe" * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
         exe = exe_
-    
+
     # Spawn process
-    cmd = [exe, '-noobsolete', '-verbose', filename]
-    p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    cmd = [exe, "-noobsolete", "-verbose", filename]
+    p = subprocess.Popen(
+        cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
     while p.poll() is None:
         time.sleep(0.1)
-    output =  p.stdout.read().decode('utf-8')
+    output = p.stdout.read().decode("utf-8")
     if p.returncode:
-        raise RuntimeError('lupdate failed (%i): %s' % (p.returncode, output))
+        raise RuntimeError("lupdate failed (%i): %s" % (p.returncode, output))
     else:
         print(output)
 
@@ -282,35 +293,41 @@ def lrelease():
     """ For developers. From pyzo.pro and the .tr files, create the .qm files.
     """
     # Get file to open
-    fname = 'pyzo.pro'
-    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, '..', fname))
+    fname = "pyzo.pro"
+    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
     if not os.path.isfile(filename):
-        raise ValueError('Could not find {}. This function must run from the source repo.'.format(fname))
-   
+        raise ValueError(
+            "Could not find {}. This function must run from the source repo.".format(
+                fname
+            )
+        )
+
     # Get Command for lrelease
     pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
-    ISWIN = sys.platform.startswith('win')
-    exe_ = 'lrelease' + '.exe' * ISWIN
+    ISWIN = sys.platform.startswith("win")
+    exe_ = "lrelease" + ".exe" * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
         exe = exe_
-    
+
     # Spawn process
     cmd = [exe, filename]
-    p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen(
+        cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
     while p.poll() is None:
         time.sleep(0.1)
-    output =  p.stdout.read().decode('utf-8')
+    output = p.stdout.read().decode("utf-8")
     if p.returncode:
-        raise RuntimeError('lrelease failed (%i): %s' % (p.returncode, output))
+        raise RuntimeError("lrelease failed (%i): %s" % (p.returncode, output))
     else:
         print(output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Print names of translator files
-    
-    print('Language data files:')
+
+    print("Language data files:")
     for key in LANGUAGES:
-        s = '{}: {}'.format(key, getLocale(key).name()+'.tr')
+        s = "{}: {}".format(key, getLocale(key).name() + ".tr")
         print(s)

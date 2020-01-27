@@ -58,40 +58,44 @@ so you don't have to depend on IPython.
 
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2008-2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # wx
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def get_app_wx(*args, **kwargs):
     """Create a new wx app or return an exiting one."""
     import wx
+
     app = wx.GetApp()
     if app is None:
-        if 'redirect' not in kwargs:
-            kwargs['redirect'] = False
+        if "redirect" not in kwargs:
+            kwargs["redirect"] = False
         # app = wx.PySimpleApp(*args, **kwargs) Deprecated!
         app = wx.App(*args, **kwargs)
     return app
+
 
 def is_event_loop_running_wx(app=None):
     """Is the wx event loop running."""
     if app is None:
         app = get_app_wx()
-    if hasattr(app, '_in_event_loop'):
+    if hasattr(app, "_in_event_loop"):
         return app._in_event_loop
     else:
         return app.IsMainLoopRunning()
+
 
 def start_event_loop_wx(app=None):
     """Start the wx event loop in a consistent manner."""
@@ -104,34 +108,39 @@ def start_event_loop_wx(app=None):
     else:
         app._in_event_loop = True
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # qt4
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def get_app_qt4(*args, **kwargs):
     """Create a new qt4 app or return an existing one."""
     from PyQt4 import QtWidgets
+
     app = QtWidgets.QApplication.instance()
     if app is None:
         if not args:
-            args = ([''],)
+            args = ([""],)
         app = QtWidgets.QApplication(*args, **kwargs)
     return app
+
 
 def is_event_loop_running_qt4(app=None):
     """Is the qt4 event loop running."""
     if app is None:
-        app = get_app_qt4([''])
-    if hasattr(app, '_in_event_loop'):
+        app = get_app_qt4([""])
+    if hasattr(app, "_in_event_loop"):
         return app._in_event_loop
     else:
         # Does qt4 provide a other way to detect this?
         return False
 
+
 def start_event_loop_qt4(app=None):
     """Start the qt4 event loop in a consistent manner."""
     if app is None:
-        app = get_app_qt4([''])
+        app = get_app_qt4([""])
     if not is_event_loop_running_qt4(app):
         app._in_event_loop = True
         app.exec_()
@@ -139,10 +148,11 @@ def start_event_loop_qt4(app=None):
     else:
         app._in_event_loop = True
 
-#-----------------------------------------------------------------------------
-# Tk
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Tk
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # gtk
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------

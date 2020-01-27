@@ -22,40 +22,43 @@ import re
 
 _COMMAND_TO_SEARCH_PATH = []
 
+
 def get_command_to_set_search_path():
     """ Get the command to change the RPATH of executables and dynamic
     libraries. Returns None if there is no such command or if it 
     cannot be found.
     """
-    
+
     # Check if already computed
     if _COMMAND_TO_SEARCH_PATH:
         return _COMMAND_TO_SEARCH_PATH[0]
-    
+
     # Get name of the utility
     # In Pyzo it should be present in 'shared'.
     utilCommand = None
-    if sys.platform.startswith('win'):
-        return 
-    if sys.platform.startswith('linux'):
-        utilname = 'patchelf'
-    if sys.platform.startswith('darwin'):
-        utilname = 'install_name_tool'
+    if sys.platform.startswith("win"):
+        return
+    if sys.platform.startswith("linux"):
+        utilname = "patchelf"
+    if sys.platform.startswith("darwin"):
+        utilname = "install_name_tool"
     if True:
         # Try old Pyzo
-        utilCommand = os.path.join(sys.prefix, 'shared', utilname)
+        utilCommand = os.path.join(sys.prefix, "shared", utilname)
         if not os.path.isfile(utilCommand):
             utilCommand = utilname
         # Try new Pyzo / anaconda
-        utilCommand = os.path.join(sys.prefix, 'bin', utilname)
+        utilCommand = os.path.join(sys.prefix, "bin", utilname)
         if not os.path.isfile(utilCommand):
             utilCommand = utilname
         # Test whether it exists
         try:
-            subprocess.check_output(['which', utilCommand])
+            subprocess.check_output(["which", utilCommand])
         except Exception:
-            raise RuntimeError('Could not get command (%s) to set search path.' % utilCommand)
-    
+            raise RuntimeError(
+                "Could not get command (%s) to set search path." % utilCommand
+            )
+
     # Store and return
     _COMMAND_TO_SEARCH_PATH.append(utilCommand)
     return utilCommand
@@ -78,65 +81,78 @@ def set_search_path(fname, *args):
     library and then in system paths and PATH.
     
     """
-    
+
     # Prepare
-    args = [arg.lstrip('/') for arg in args if arg]
-    args = [arg for arg in args if arg != '.']  # Because we add empty dir anyway
-    args.append('')  # make libs search next to themselves
+    args = [arg.lstrip("/") for arg in args if arg]
+    args = [arg for arg in args if arg != "."]  # Because we add empty dir anyway
+    args.append("")  # make libs search next to themselves
     command = get_command_to_set_search_path()
-    
-    if sys.platform.startswith('linux'):
+
+    if sys.platform.startswith("linux"):
         # Create search path value
-        rpath = ':'.join( ['$ORIGIN/'+arg for arg in args] )
+        rpath = ":".join(["$ORIGIN/" + arg for arg in args])
         # Modify rpath using a call to patchelf utility
-        cmd = [command, '--set-rpath', rpath, fname]
+        cmd = [command, "--set-rpath", rpath, fname]
         subprocess.check_call(cmd)
-        print('Set RPATH for %r' % os.path.basename(fname))
-        #print('Set RPATH for %r: %r' % (os.path.basename(fname), rpath))
-        
-    elif sys.platform.startswith('darwin'):
+        print("Set RPATH for %r" % os.path.basename(fname))
+        # print('Set RPATH for %r: %r' % (os.path.basename(fname), rpath))
+
+    elif sys.platform.startswith("darwin"):
         # ensure write permissions
         mode = os.stat(fname).st_mode
         if not (mode & stat.S_IWUSR):
             os.chmod(fname, mode | stat.S_IWUSR)
         # let the file itself know its place (simpyl on rpath)
         name = os.path.basename(fname)
-        subprocess.call(('install_name_tool', '-id', '@rpath/'+name, fname))
+        subprocess.call(("install_name_tool", "-id", "@rpath/" + name, fname))
         # find the references: call otool -L on the file
-        otool = subprocess.Popen(('otool', '-L', fname),
-                stdout = subprocess.PIPE)
+        otool = subprocess.Popen(("otool", "-L", fname), stdout=subprocess.PIPE)
         references = otool.stdout.readlines()[1:]
-        
+
         # Replace each reference
         rereferencedlibs = []
         for reference in references:
             # find the actual referenced file name
             referencedFile = reference.decode().strip().split()[0]
-            if referencedFile.startswith('@'):
+            if referencedFile.startswith("@"):
                 continue  # the referencedFile is already a relative path
             # Get lib name
             _, name = os.path.split(referencedFile)
-            if name.lower() == 'python':
-                name = 'libpython'  # Rename Python lib on Mac
+            if name.lower() == "python":
+                name = "libpython"  # Rename Python lib on Mac
             # see if we provided the referenced file
-            potentiallibs = [os.path.join(os.path.dirname(fname), arg, name) 
-                            for arg in args]
+            potentiallibs = [
+                os.path.join(os.path.dirname(fname), arg, name) for arg in args
+            ]
             # if so, change the reference and rpath
             if any([os.path.isfile(p) for p in potentiallibs]):
-                subprocess.call(('install_name_tool', '-change',
-                        referencedFile, '@rpath/'+name, fname))
+                subprocess.call(
+                    (
+                        "install_name_tool",
+                        "-change",
+                        referencedFile,
+                        "@rpath/" + name,
+                        fname,
+                    )
+                )
                 for arg in args:
-                    mac_add_rpath(fname, '@loader_path/' + arg)
-                mac_add_rpath(fname, '@executable_path/')  # use libpython next to exe
+                    mac_add_rpath(fname, "@loader_path/" + arg)
+                mac_add_rpath(fname, "@executable_path/")  # use libpython next to exe
                 rereferencedlibs.append(name)
         if rereferencedlibs:
-            print('Replaced refs for "%s": %s' % 
-                    (os.path.basename(fname), ', '.join(rereferencedlibs)) )
-    
-    elif sys.platform.startswith('win'):
-        raise RuntimeError('Windows has no way of setting the search path on a library or exe.')
+            print(
+                'Replaced refs for "%s": %s'
+                % (os.path.basename(fname), ", ".join(rereferencedlibs))
+            )
+
+    elif sys.platform.startswith("win"):
+        raise RuntimeError(
+            "Windows has no way of setting the search path on a library or exe."
+        )
     else:
-        raise RuntimeError('Do not know how to set search path of library or exe on %s' % sys.platform)
+        raise RuntimeError(
+            "Do not know how to set search path of library or exe on %s" % sys.platform
+        )
 
 
 def mac_add_rpath(fname, rpath):
@@ -144,16 +160,16 @@ def mac_add_rpath(fname, rpath):
     Set the rpath for a Mac library or executble. If the rpath is already
     registered, it is ignored.
     """
-    cmd = ['install_name_tool', '-add_rpath', rpath, fname]
+    cmd = ["install_name_tool", "-add_rpath", rpath, fname]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     while p.poll() is None:
         time.sleep(0.01)
     if p.returncode:
-        msg = p.stdout.read().decode('utf-8')
-        if 'would duplicate path' in msg:
+        msg = p.stdout.read().decode("utf-8")
+        if "would duplicate path" in msg:
             pass  # Ignore t
         else:
-            raise RuntimeError('Could not set rpath: ' + msg)
+            raise RuntimeError("Could not set rpath: " + msg)
 
 
 def remove_CRT_dependencies(dirname, recurse=True):
@@ -162,7 +178,7 @@ def remove_CRT_dependencies(dirname, recurse=True):
     subdirectories if recurse is True), removing the dependency on the
     Windows C runtime from the embedded manifest.
     """
-    dllExt = ['.dll', '.pyd']
+    dllExt = [".dll", ".pyd"]
     for entry in os.listdir(dirname):
         p = os.path.join(dirname, entry)
         if recurse and os.path.isdir(p):
@@ -189,43 +205,44 @@ def remove_CRT_dependency(filename):
     See discussion at: http://bugs.python.org/issue4120
     
     """
-    if 'QtCore' in filename:
-        1/0
-        
+    if "QtCore" in filename:
+        1 / 0
+
     # Read the whole file
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         try:
-            bb = f.read()        
-        except IOError:           
-            #raise IOError('Could not read %s'%filename)
-            print('Warning: could not read %s'%filename)
+            bb = f.read()
+        except IOError:
+            # raise IOError('Could not read %s'%filename)
+            print("Warning: could not read %s" % filename)
             return
-    
+
     # Remove assemblyIdentity tag
     # This code is different from that in python's distutils/msvc9compiler.py
     # by removing re.DOTALL and replaceing the second DOT with "(.|\n|\r)",
     # which means that the first DOT cannot contain newlines. Would we not do
     # this, the match is too greedy (and causes tk85.dll to break).
-    pattern =   r"""<assemblyIdentity.*?name=("|')Microsoft\."""\
-                r"""VC\d{2}\.CRT("|')(.|\n|\r)*?(/>|</assemblyIdentity>)"""
-    pattern = re.compile(pattern.encode('ascii'))
-    bb, hasMatch = _replacePatternWithSpaces(pattern, bb)    
+    pattern = (
+        r"""<assemblyIdentity.*?name=("|')Microsoft\."""
+        r"""VC\d{2}\.CRT("|')(.|\n|\r)*?(/>|</assemblyIdentity>)"""
+    )
+    pattern = re.compile(pattern.encode("ascii"))
+    bb, hasMatch = _replacePatternWithSpaces(pattern, bb)
     if hasMatch:
         # Remove dependentAssembly tag if it's empty
-        pattern = "<dependentAssembly>\s*</dependentAssembly>".encode('ascii')
+        pattern = "<dependentAssembly>\s*</dependentAssembly>".encode("ascii")
         bb, hasMatch = _replacePatternWithSpaces(pattern, bb)
-        # Write back    
-        with open(filename, "wb") as f: 
+        # Write back
+        with open(filename, "wb") as f:
             f.write(bb)
-        print('Removed embedded MSVCR dependency for: %s' % filename)
+        print("Removed embedded MSVCR dependency for: %s" % filename)
 
 
 def _replacePatternWithSpaces(pattern, bb):
     match = re.search(pattern, bb)
     if match is not None:
         L = match.end() - match.start()
-        bb = re.sub(pattern, b" "*L, bb)
+        bb = re.sub(pattern, b" " * L, bb)
         return bb, True
     else:
         return bb, False
-

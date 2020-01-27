@@ -28,7 +28,6 @@ import weakref
 from yoton.misc import Property, getErrorMsg, PackageQueue
 
 
-
 class CallableObject(object):
     """ CallableObject(callable)
     
@@ -39,20 +38,21 @@ class CallableObject(object):
     prevented from being cleaned up.
     
     """
-    __slots__ = ['_ob', '_func']  # Use __slots__ to reduce memory footprint
-    
+
+    __slots__ = ["_ob", "_func"]  # Use __slots__ to reduce memory footprint
+
     def __init__(self, c):
-        
+
         # Check
-        if not hasattr(c, '__call__'):
-            raise ValueError('Error: given callback is not callable.')
-        
+        if not hasattr(c, "__call__"):
+            raise ValueError("Error: given callback is not callable.")
+
         # Store funcion and object
-        if hasattr(c, '__self__'):
+        if hasattr(c, "__self__"):
             # Method, store object and method name
             self._ob = weakref.ref(c.__self__)
             self._func = c.__func__.__name__
-        elif hasattr(c, 'im_self'):
+        elif hasattr(c, "im_self"):
             # Method in older Python
             self._ob = weakref.ref(c.im_self)
             self._func = c.im_func.__name__
@@ -60,7 +60,7 @@ class CallableObject(object):
             # Plain function
             self._func = c
             self._ob = None
-    
+
     def isdead(self):
         """ Get whether the weak ref is dead.
         """
@@ -69,7 +69,7 @@ class CallableObject(object):
             return self._ob() is None
         else:
             return False
-    
+
     def compare(self, other):
         """ compare this instance with another.
         """
@@ -79,17 +79,17 @@ class CallableObject(object):
             return self._func == other._func
         else:
             return False
-    
+
     def __str__(self):
         return self._func.__str__()
-    
+
     def call(self, *args, **kwargs):
         """ call(*args, **kwargs)
         Call the callable. Exceptions are caught and printed.
         """
         if self.isdead():
             return
-        
+
         # Get function
         try:
             if self._ob:
@@ -98,14 +98,13 @@ class CallableObject(object):
                 func = self._func
         except Exception:
             return
-        
+
         # Call it
         try:
             return func(*args, **kwargs)
         except Exception:
-            print('Exception while handling event:')
+            print("Exception while handling event:")
             print(getErrorMsg())
-
 
 
 class Event(object):
@@ -117,7 +116,9 @@ class Event(object):
     Instances of this class populate the event queue.
     
     """
-    __slots__ = ['_callable', '_args', '_kwargs', '_timeout']
+
+    __slots__ = ["_callable", "_args", "_kwargs", "_timeout"]
+
     def __init__(self, callable, *args, **kwargs):
         if isinstance(callable, CallableObject):
             self._callable = callable
@@ -125,19 +126,18 @@ class Event(object):
             self._callable = CallableObject(callable)
         self._args = args
         self._kwargs = kwargs
-    
+
     def dispatch(self):
         """ dispatch()
         Call the callable with the arguments and keyword-arguments specified
         at initialization.
         """
         self._callable.call(*self._args, **self._kwargs)
-    
+
     def _on_timeout(self):
         """ This is what theTimerThread calls.
         """
         app.post_event(self)
-
 
 
 class Signal:
@@ -154,17 +154,16 @@ class Signal:
     specify specific information.
     
     """
-    
+
     def __init__(self):
         self._handlers = []
-    
+
     @property
     def type(self):
         """ The type (__class__) of this event.
         """
         return self.__class__
-    
-    
+
     def bind(self, func):
         """ bind(func)
         
@@ -175,19 +174,18 @@ class Signal:
         additional information about the event.
         
         """
-        
+
         # make callable object (checks whether func is callable)
         cnew = CallableObject(func)
-        
+
         # check -> warn
         for c in self._handlers:
             if cnew.compare(c):
-                print("Warning: handler %s already present for %s" %(func, self))
+                print("Warning: handler %s already present for %s" % (func, self))
                 return
-        
+
         # add the handler
         self._handlers.append(cnew)
-
 
     def unbind(self, func=None):
         """ unbind(func=None)
@@ -202,9 +200,8 @@ class Signal:
             for c in [c for c in self._handlers]:
                 # remove if callable matches func or object is destroyed
                 if c.compare(cref) or c.isdead():
-                    self._handlers.remove( c )
-    
-    
+                    self._handlers.remove(c)
+
     def emit(self, *args, **kwargs):
         """ emit(*args, **kwargs)
         
@@ -213,7 +210,7 @@ class Signal:
         Therefore it is safe to call this method from another thread.
         
         """
-        
+
         # Add an event for each callback
         toremove = []
         for func in self._handlers:
@@ -222,12 +219,11 @@ class Signal:
             else:
                 event = Event(func, *args, **kwargs)
                 app.post_event(event)
-        
+
         # Remove dead ones
         for func in toremove:
             self._handlers.remove(func)
-    
-    
+
     def emit_now(self, *args, **kwargs):
         """ emit_now(*args, **kwargs)
         
@@ -236,7 +232,7 @@ class Signal:
         that runs the event loop.
         
         """
-        
+
         # Add an event for each callback
         toremove = []
         for func in self._handlers:
@@ -244,11 +240,10 @@ class Signal:
                 toremove.append(func)
             else:
                 func.call(*args, **kwargs)
-        
+
         # Remove dead ones
         for func in toremove:
             self._handlers.remove(func)
-
 
 
 class TheTimerThread(threading.Thread):
@@ -260,6 +255,7 @@ class TheTimerThread(threading.Thread):
     at the same time, adding a timer may become a bit inefficient because
     the registered objects must be sorted each time an object is added.
     """
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -267,7 +263,7 @@ class TheTimerThread(threading.Thread):
         self._timers = []
         self._somethingChanged = False
         self._condition = threading.Condition(threading.Lock())
-    
+
     def stop(self, timeout=1.0):
         self._exit = True
         self._condition.acquire()
@@ -276,7 +272,7 @@ class TheTimerThread(threading.Thread):
         finally:
             self._condition.release()
         self.join(timeout)
-    
+
     def add(self, timer):
         """ add(timer)
         Add item to the list of objects to track. The object should
@@ -284,8 +280,8 @@ class TheTimerThread(threading.Thread):
         it runs out, and an _on_timeout() method to call when it does.
         """
         # Check
-        if not (hasattr(timer, '_timeout') and hasattr(timer, '_on_timeout')):
-            raise ValueError('Cannot add this object to theTimerThread.')
+        if not (hasattr(timer, "_timeout") and hasattr(timer, "_on_timeout")):
+            raise ValueError("Cannot add this object to theTimerThread.")
         # Add item
         self._condition.acquire()
         try:
@@ -296,11 +292,10 @@ class TheTimerThread(threading.Thread):
             self._condition.notify()
         finally:
             self._condition.release()
-    
+
     def _sort(self):
-        self._timers = sorted(self._timers,
-                key=lambda x: x._timeout, reverse=True)
-    
+        self._timers = sorted(self._timers, key=lambda x: x._timeout, reverse=True)
+
     def discard(self, timer):
         """Stop the timer if it hasn't finished yet"""
         self._condition.acquire()
@@ -311,20 +306,20 @@ class TheTimerThread(threading.Thread):
             self._condition.notify()
         finally:
             self._condition.release()
-    
+
     def run(self):
         self._condition.acquire()
         try:
             self._mainloop()
         finally:
             self._condition.release()
-    
+
     def _mainloop(self):
         while not self._exit:
-            
+
             # Set flag
             self._somethingChanged = False
-            
+
             # Wait here, in wait() the undelying lock is released
             if self._timers:
                 timer = self._timers[-1]
@@ -334,7 +329,7 @@ class TheTimerThread(threading.Thread):
             else:
                 timer = None
                 self._condition.wait()
-            
+
             # Here the lock has been re-acquired. Take action?
             if self._exit:
                 break
@@ -342,7 +337,8 @@ class TheTimerThread(threading.Thread):
                 if timer._on_timeout():
                     self._sort()  # Keep and resort
                 else:
-                    self._timers.pop() # Pop
+                    self._timers.pop()  # Pop
+
 
 # Instantiate and start the single timer thread
 # We can do this as long as we do not wait for the threat, and the threat
@@ -350,7 +346,6 @@ class TheTimerThread(threading.Thread):
 # http://docs.python.org/library/threading.html#importing-in-threaded-code
 theTimerThread = TheTimerThread()
 theTimerThread.start()
-
 
 
 class Timer(Signal):
@@ -367,51 +362,53 @@ class Timer(Signal):
         Whether the timer should do a single shot, or run continuously.
     
     """
-    
+
     def __init__(self, interval=1.0, oneshot=True):
         Signal.__init__(self)
-        
+
         # store Timer specific properties
         self.interval = interval
         self.oneshot = oneshot
         #
         self._timeout = 0
-    
-    
+
     @Property
     def interval():
         """ Set/get the timer's interval in seconds.
         """
+
         def fget(self):
             return self._interval
+
         def fset(self, value):
             if not isinstance(value, (int, float)):
-                raise ValueError('interval must be a float or integer.')
+                raise ValueError("interval must be a float or integer.")
             if value <= 0:
-                raise ValueError('interval must be larger than 0.')
+                raise ValueError("interval must be larger than 0.")
             self._interval = float(value)
+
         return locals()
-    
-    
+
     @Property
     def oneshot():
         """ Set/get whether this is a oneshot timer. If not is runs
         continuously.
         """
+
         def fget(self):
             return self._oneshot
+
         def fset(self, value):
             self._oneshot = bool(value)
+
         return locals()
-    
-    
+
     @property
     def running(self):
         """ Get whether the timer is running.
         """
         return self._timeout > 0
-    
-    
+
     def start(self, interval=None, oneshot=None):
         """ start(interval=None, oneshot=None)
         
@@ -424,12 +421,11 @@ class Timer(Signal):
             self.interval = interval
         if oneshot is not None:
             self.oneshot = oneshot
-        
+
         # put on
         self._timeout = time.time() + self.interval
         theTimerThread.add(self)
-    
-    
+
     def stop(self):
         """ stop()
         
@@ -438,16 +434,15 @@ class Timer(Signal):
         """
         theTimerThread.discard(self)
         self._timeout = 0
-    
-    
+
     def _on_timeout(self):
         """ Method to call when the timer finishes. Called from
         event-loop-thread.
         """
-        
+
         # Emit signal
         self.emit()
-        #print('timer timeout', self.oneshot)
+        # print('timer timeout', self.oneshot)
         # Do we need to stop it now, or restart it
         if self.oneshot:
             # This timer instance is removed from the list of Timers
@@ -458,7 +453,6 @@ class Timer(Signal):
             # keep in the thread
             self._timeout = time.time() + self.interval
             return True
-
 
 
 class YotonApplication(object):
@@ -474,22 +468,21 @@ class YotonApplication(object):
     directly from the yoton module namespace.
     
     """
-    
+
     # Event queues
-    _event_queue = PackageQueue(10000, 'new')
-    
+    _event_queue = PackageQueue(10000, "new")
+
     # Flag to stop event loop
     _stop_event_loop = False
-    
+
     # Flag to signal whether we are in an event loop
     # Can be set externally if the event loop is hijacked.
     _in_event_loop = False
-    
+
     # To allow other event loops to embed the yoton event loop
-    _embedding_callback1 = None # The reference
-    _embedding_callback2 = None # Used in post_event
-    
-    
+    _embedding_callback1 = None  # The reference
+    _embedding_callback2 = None  # Used in post_event
+
     def call_later(self, func, timeout=0.0, *args, **kwargs):
         """ call_later(func, timeout=0.0, *args, **kwargs)
         
@@ -509,19 +502,18 @@ class YotonApplication(object):
             The keyword arguments to call func with.
         
         """
-        
+
         # Wrap the object in an event
         event = Event(func, *args, **kwargs)
-        
+
         # Put it in the queue
         if timeout > 0:
             self.post_event_later(event, timeout)
         elif timeout < 0:
-            self.post_event_asap(event) # priority event
+            self.post_event_asap(event)  # priority event
         else:
             self.post_event(event)
-    
-    
+
     def post_event(self, event):
         """ post_event(events)
         
@@ -533,8 +525,7 @@ class YotonApplication(object):
         if YotonApplication._embedding_callback2 is not None:
             YotonApplication._embedding_callback2 = None
             YotonApplication._embedding_callback1()
-    
-    
+
     def post_event_asap(self, event):
         """ post_event_asap(event)
         
@@ -547,8 +538,7 @@ class YotonApplication(object):
         if YotonApplication._embedding_callback2 is not None:
             YotonApplication._embedding_callback2 = None
             YotonApplication._embedding_callback1()
-    
-    
+
     def post_event_later(self, event, delay):
         """ post_event_later(event, delay)
         
@@ -558,8 +548,7 @@ class YotonApplication(object):
         event._timeout = time.time() + delay
         theTimerThread.add(event)
         # Calls post_event in due time
-    
-    
+
     def process_events(self, block=False):
         """ process_events(block=False)
         
@@ -573,17 +562,16 @@ class YotonApplication(object):
         """
         # Reset callback for the embedding event loop
         YotonApplication._embedding_callback2 = YotonApplication._embedding_callback1
-        
+
         # Process events
         try:
             while True:
                 event = YotonApplication._event_queue.pop(block)
                 event.dispatch()
-                block = False # Proceed until there are now more events
+                block = False  # Proceed until there are now more events
         except PackageQueue.Empty:
             pass
-    
-    
+
     def start_event_loop(self):
         """ start_event_loop()
         
@@ -591,15 +579,15 @@ class YotonApplication(object):
         The event loop can be stopped using stop_event_loop().
         
         """
-        
+
         # Dont go if we are in an event loop
         if YotonApplication._in_event_loop:
             return
-        
+
         # Set flags
         YotonApplication._stop_event_loop = False
         YotonApplication._in_event_loop = True
-        
+
         try:
             # Keep blocking for 3 seconds so a keyboardinterrupt still works
             while not YotonApplication._stop_event_loop:
@@ -607,8 +595,7 @@ class YotonApplication(object):
         finally:
             # Unset flag
             YotonApplication._in_event_loop = False
-    
-    
+
     def stop_event_loop(self):
         """ stop_event_loop()
         
@@ -621,9 +608,9 @@ class YotonApplication(object):
             # Push an event so that process_events() unblocks
             def dummy():
                 pass
+
             self.post_event(Event(dummy))
-    
-    
+
     def embed_event_loop(self, callback):
         """ embed_event_loop(callback)
         

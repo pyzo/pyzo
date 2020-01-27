@@ -21,7 +21,6 @@ import sys
 
 
 class SourceImporter:
-
     def __init__(self, dir):
         self.module_names = {"pyzo", "yoton"}
         for name in os.listdir(dir):
@@ -37,7 +36,7 @@ class SourceImporter:
 if getattr(sys, "frozen", False):
     # Allow importing from the source dir, and install spec finder to overload
     # PyInstaller's finder when appropriate.
-    source_dir= os.path.join(sys._MEIPASS, 'source')
+    source_dir = os.path.join(sys._MEIPASS, "source")
     sys.path.insert(0, source_dir)
     sys.meta_path.insert(0, SourceImporter(source_dir))
     # Import
@@ -55,12 +54,12 @@ else:
         try:
             import pyzo
         except ImportError:
-            raise ImportError('Could not import Pyzo in either way.')
+            raise ImportError("Could not import Pyzo in either way.")
 
 
 def main():
     pyzo.start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

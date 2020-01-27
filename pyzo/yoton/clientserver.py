@@ -77,72 +77,69 @@ class RequestServer(threading.Thread):
         same network.
     
     """
-    
+
     def __init__(self, address, async_val=False, verbose=0):
         threading.Thread.__init__(self)
-        
+
         # Store whether to handle requests asynchronously
         self._async = async_val
-        
+
         # Verbosity
         self._verbose = verbose
-        
+
         # Determine host and port (assume tcp)
         protocol, host, port = split_address(address)
-        
+
         # Create socket. Apply SO_REUSEADDR when binding, so that a
         # improperly closed socket on the same port will not prevent
         # us connecting.
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
+
         # Bind (can raise error is port is not available)
-        s.bind((host,port))
-        
+        s.bind((host, port))
+
         # Store socket instance
         self._bsd_socket = s
-        
+
         # To stop serving
         self._stop_me = False
-        
+
         # Make deamon
         self.setDaemon(True)
-    
-    
+
     def start(self):
         """ start()
         Start the server in a separate thread.
         """
         self._stop_me = False
         threading.Thread.start(self)
-    
-    
+
     def stop(self):
         """ stop()
         Stop the server.
         """
         self._stop_me = True
-    
-    
+
     def run(self):
         """ run()
         The server's main loop.
         """
-        
+
         # Get socket instance
         s = self._bsd_socket
-        
+
         # Notify
         hostname, port = s.getsockname()
         if self._verbose:
-            print('Yoton: hosting at %s, port %i' % (hostname, port))
-        
+            print("Yoton: hosting at %s, port %i" % (hostname, port))
+
         # Tell the socket it is a host, accept multiple
         s.listen(1)
-        
+
         # Set timeout so that we can check _stop_me from time to time
         self._bsd_socket.settimeout(0.25)
-        
+
         # Enter main loop
         while not self._stop_me:
             try:
@@ -154,21 +151,20 @@ class RequestServer(threading.Thread):
             else:
                 # Show handling?
                 if self._verbose:
-                    print('handling request from: '+str(addr))
+                    print("handling request from: " + str(addr))
                 # Handle request
-                if self._async :
+                if self._async:
                     rh = SocketHandler(self, s)
                     rh.start()
                 else:
                     self._handle_connection(s)
-        
+
         # Close down
         try:
             self._bsd_socket.close()
         except socket.error:
             pass
-    
-    
+
     def _handle_connection(self, s):
         """ _handle_connection(s)
         Handle an incoming connection.
@@ -176,10 +172,9 @@ class RequestServer(threading.Thread):
         try:
             self._really_handle_connection(s)
         except Exception:
-            print('Error handling request:')
+            print("Error handling request:")
             print(getErrorMsg())
-    
-    
+
     def _really_handle_connection(self, s):
         """ _really_handle_connection(s)
         Really handle an incoming connection.
@@ -188,23 +183,23 @@ class RequestServer(threading.Thread):
         request = recv_all(s, True)
         if request is None:
             return
-        
+
         # Get reply
         reply = self.handle_request(request)
-        
+
         # Test
         if not isinstance(reply, basestring):
-            raise ValueError('handle_request() should return a string.')
-        
+            raise ValueError("handle_request() should return a string.")
+
         # Send reply
         send_all(s, reply, True)
-        
+
         # Close the socket
         try:
             s.close()
         except socket.error:
             pass
-    
+
     def handle_request(self, request):
         """ handle_request(request)
         
@@ -216,27 +211,27 @@ class RequestServer(threading.Thread):
         
         """
         # Special cases
-        if request == 'wait':
+        if request == "wait":
             time.sleep(1.0)
-        elif request == 'stop':
+        elif request == "stop":
             self._stop_me = True
-        
+
         # Echo
-        return 'Requested: ' + request
+        return "Requested: " + request
 
 
 class SocketHandler(threading.Thread):
     """ SocketHandler(server, s)
     Simple thread that handles a connection.
     """
+
     def __init__(self, server, s):
         threading.Thread.__init__(self)
         self._server = server
         self._bsd_socket = s
-    
+
     def run(self):
         self._server._handle_connection(self._bsd_socket)
-
 
 
 def do_request(address, request, timeout=-1):
@@ -269,52 +264,52 @@ def do_request(address, request, timeout=-1):
         same network.
     
     """
-    
+
     # Determine host (assume tcp)
     protocol, host, port = split_address(address)
-    
+
     # Check request
     if not isinstance(request, basestring):
-        raise ValueError('request should be a string.')
-    
+        raise ValueError("request should be a string.")
+
     # Check timeout
     if timeout is None:
         timeout = -1
-    
+
     # Create socket and connect
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.connect((host,port))
+        s.connect((host, port))
     except socket.error:
-        raise RuntimeError('No server is listening at the given port.')
-    
+        raise RuntimeError("No server is listening at the given port.")
+
     # Send request
     send_all(s, request, True)
-    
+
     # Receive reply
     reply = recv_all(s, timeout)
-    
+
     # Close socket
     try:
         s.close()
     except socket.error:
         pass
-    
+
     # Done
     return reply
 
 
-if __name__ == '__main__':
-    
+if __name__ == "__main__":
+
     class Lala(RequestServer):
         def handle_request(self, req):
-            print('REQ:',repr(req))
+            print("REQ:", repr(req))
             return "The current time is %i" % time.time()
-        
-    s = Lala('localhost:test', 0, 1)
+
+    s = Lala("localhost:test", 0, 1)
     s.start()
     if False:
-        print(do_request('localhost:test', 'wait', 5))
+        print(do_request("localhost:test", "wait", 5))
         for i in range(10):
-            print(do_request('localhost:test', 'hi'+str(i)))
+            print(do_request("localhost:test", "hi" + str(i)))
     # do_request('localhost:test', 'wait'); do_request('localhost:test', 'hi');

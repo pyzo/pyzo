@@ -14,7 +14,7 @@ elif PYQT4:
 
 else:
 
-    __all__ = ['loadUi']
+    __all__ = ["loadUi"]
 
     # In PySide, loadUi does not exist, so we define it using QUiLoader, and
     # then make sure we expose that function. This is adapted from qt-helpers
@@ -122,7 +122,7 @@ else:
             else:
                 self.customWidgets = customWidgets
 
-        def createWidget(self, class_name, parent=None, name=''):
+        def createWidget(self, class_name, parent=None, name=""):
             """
             Function that is called for each widget defined in ui file,
             overridden here to populate baseinstance instead.
@@ -137,7 +137,7 @@ else:
 
                 # For some reason, Line is not in the list of available
                 # widgets, but works fine, so we have to special case it here.
-                if class_name in self.availableWidgets() or class_name == 'Line':
+                if class_name in self.availableWidgets() or class_name == "Line":
                     # create a new widget for child widgets
                     widget = QUiLoader.createWidget(self, class_name, parent, name)
 
@@ -149,8 +149,10 @@ else:
                     try:
                         widget = self.customWidgets[class_name](parent)
                     except KeyError:
-                        raise Exception('No custom widget ' + class_name + ' '
-                                        'found in customWidgets')
+                        raise Exception(
+                            "No custom widget " + class_name + " "
+                            "found in customWidgets"
+                        )
 
                 if self.baseinstance:
                     # set an attribute for the new child widget on the base
@@ -174,7 +176,7 @@ else:
         ui = etree.parse(ui_file)
 
         # Get the customwidgets section
-        custom_widgets = ui.find('customwidgets')
+        custom_widgets = ui.find("customwidgets")
 
         if custom_widgets is None:
             return {}
@@ -183,8 +185,8 @@ else:
 
         for custom_widget in custom_widgets.getchildren():
 
-            cw_class = custom_widget.find('class').text
-            cw_header = custom_widget.find('header').text
+            cw_class = custom_widget.find("class").text
+            cw_header = custom_widget.find("header").text
 
             module = importlib.import_module(cw_header)
 

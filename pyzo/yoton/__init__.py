@@ -41,7 +41,7 @@ from yoton.channels import *
 
 
 # Set yoton version
-__version__ = '2.2'
+__version__ = "2.2"
 
 
 # Define convenience class
@@ -67,14 +67,14 @@ class SimpleSocket(Context):
     print(s.recv())
     
     """
-    
+
     def __init__(self, verbose=False):
         Context.__init__(self, verbose)
-        
+
         # Create channels
-        self._cs = PubChannel(self, 'text')
-        self._cr = SubChannel(self, 'text')
-    
+        self._cs = PubChannel(self, "text")
+        self._cr = SubChannel(self, "text")
+
     def send(self, s):
         """ send(message)
         
@@ -83,7 +83,7 @@ class SimpleSocket(Context):
         
         """
         self._cs.send(s)
-    
+
     def recv(self, block=None):
         """ recv(block=None):
         

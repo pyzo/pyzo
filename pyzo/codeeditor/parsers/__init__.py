@@ -36,7 +36,7 @@ if sys.version_info[0] >= 3:
     text_type = str
 else:
     text_type = unicode  # noqa
-    
+
 
 class BlockState(object):
     """ BlockState(state=0, info=None)
@@ -50,17 +50,19 @@ class BlockState(object):
     valid.
     
     """
+
     isToken = False
+
     def __init__(self, state=0, info=None):
         self._state = int(state)
         self._info = info
-    
+
     @property
     def state(self):
         """ The integer value representing the block state.
         """
         return self._state
-    
+
     @property
     def info(self):
         """ Get the information corresponding to the block.
@@ -74,21 +76,22 @@ class Parser(object):
     All parsers should inherit from this class.
     This base class generates a 'TextToken' for each line
     """
+
     _extensions = []
     _shebangKeywords = []
     _keywords = []
-    
+
     @classmethod
-    def getParserName(cls) :
+    def getParserName(cls):
         name = cls.__name__
-        if name.endswith('Parser') and len(name)>=6:
+        if name.endswith("Parser") and len(name) >= 6:
             name = name[:-6].lower()
         return name
 
     @classmethod
-    def disambiguate(cls, text) :
+    def disambiguate(cls, text):
         return cls.getParserName()
-    
+
     def parseLine(self, line, previousState=0):
         """ parseLine(line, previousState=0)
         
@@ -103,9 +106,9 @@ class Parser(object):
         next block.
         
         """
-        
-        yield tokens.TextToken(line,0,len(line))
-            
+
+        yield tokens.TextToken(line, 0, len(line))
+
     def name(self):
         """ name()
         
@@ -113,17 +116,15 @@ class Parser(object):
         
         """
         name = self.__class__.__name__.lower()
-        if name.endswith('parser'):
+        if name.endswith("parser"):
             name = name[:-6]
         return name
-    
-    
+
     def __repr__(self):
         """ String representation of the parser.
         """
         return '<Parser for "%s">' % self.name()
-    
-    
+
     def keywords(self):
         """ keywords()
         
@@ -131,8 +132,7 @@ class Parser(object):
         
         """
         return [k for k in self._keywords]
-    
-    
+
     def filenameExtensions(self):
         """ filenameExtensions()
         
@@ -140,8 +140,8 @@ class Parser(object):
         is appropriate.
         
         """
-        return ['.'+e.lstrip('.').lower() for e in self._extensions]
-        
+        return ["." + e.lstrip(".").lower() for e in self._extensions]
+
     def shebangKeywords(self):
         """ shebangKeywords()
         
@@ -150,8 +150,7 @@ class Parser(object):
         
         """
         return self._shebangKeywords.copy()
-    
-    
+
     def getStyleElementDescriptions(cls):
         """ getStyleElementDescriptions()
         
@@ -162,36 +161,33 @@ class Parser(object):
         descriptions = {}
         for token in cls.getUsedTokens(cls):
             descriptions[token.description.key] = token.description
-        
+
         return list(descriptions.values())
-    
-    
+
     def getUsedTokens(self):
         """ getUsedTokens()
         
         Get a a list of token instances used by this parser.
         
         """
-        
+
         # Get module object of the parser
         try:
             mod = sys.modules[self.__module__]
         except KeyError:
             return []
-        
+
         # Get token classes from module
         tokenClasses = []
         for name in mod.__dict__:
             member = mod.__dict__[name]
-            if isinstance(member, type) and \
-                                    issubclass(member, tokens.Token):
+            if isinstance(member, type) and issubclass(member, tokens.Token):
                 if member is not tokens.Token:
                     tokenClasses.append(member)
-        
+
         # Return as instances
         return [t() for t in tokenClasses]
-    
-    
+
     def _isTodoItem(self, text):
         """ _isTodoItem(text)
         
@@ -201,13 +197,13 @@ class Parser(object):
         
         """
         # Get first word
-        word = text.lstrip().split(' ',1)[0].rstrip(':')
+        word = text.lstrip().split(" ", 1)[0].rstrip(":")
         # Test
-        if word.lower() in ['todo', '2do', 'fixme']:
+        if word.lower() in ["todo", "2do", "fixme"]:
             return True
         else:
             return False
-    
+
 
 ## Import parsers statically
 # We could load the parser dynamically from the source files in the
@@ -217,9 +213,9 @@ class Parser(object):
 #
 # In summary: it takes a lot of trouble, which can be avoided by just
 # listing all parsers here.
-from . import (     python_parser,  # noqa
-                    cython_parser,  # noqa
-                    c_parser,  # noqa
-                    s_expr_parser,  # noqa
-              )
-
+from . import (
+    python_parser,  # noqa
+    cython_parser,  # noqa
+    c_parser,  # noqa
+    s_expr_parser,  # noqa
+)

@@ -22,7 +22,7 @@ from yoton.clientserver import RequestServer, do_request
 import pyzo
 
 # Local address to host on. we use yoton's port hash to have an arbitrary port
-ADDRESS = 'localhost:pyzoserver'
+ADDRESS = "localhost:pyzoserver"
 
 
 class Server(RequestServer):
@@ -36,18 +36,18 @@ class Server(RequestServer):
         """
         # Get command
         request = request.strip()
-        command, _, arg = request.partition(' ')
+        command, _, arg = request.partition(" ")
 
         # Handle command
         try:
             reply = handle_command(command, arg)
         except Exception as err:
-            msg = 'Error handling request %r:\n%s' % (request, str(err))
+            msg = "Error handling request %r:\n%s" % (request, str(err))
             pyzo.callLater(print, msg)
             return msg
         else:
-            pyzo.callLater(print, 'Request:', request)
-            pyzo.callLater(print, 'Reply:', reply)
+            pyzo.callLater(print, "Request:", request)
+            pyzo.callLater(print, "Reply:", reply)
             return reply
 
 
@@ -57,50 +57,50 @@ def handle_command(command, arg):
     processed command line args.
     """
     if not command:
-        return 'empty command?'
+        return "empty command?"
 
-    elif command == 'testerr':
-        return 1/0
+    elif command == "testerr":
+        return 1 / 0
 
-    elif command == 'stopserver':
+    elif command == "stopserver":
         # For efficiently stopping the server
         if server:
             server.stop()
-            return 'Stopped the server'
+            return "Stopped the server"
 
-    elif command == 'echo':
+    elif command == "echo":
         # For testing
-        return 'echo %r' % arg
+        return "echo %r" % arg
 
-    elif command == 'open':
+    elif command == "open":
         # Open a file in the editor
         if not arg:
-            return 'The open command requires a filename.'
+            return "The open command requires a filename."
         pyzo.callLater(pyzo.editors.loadFile, arg)
-        return 'Opened file %r' % arg
+        return "Opened file %r" % arg
 
-    elif command == 'new':
+    elif command == "new":
         # Open a new (temp) file in the editor
         pyzo.callLater(pyzo.editors.newFile)
-        return 'Created new file'
+        return "Created new file"
 
-    elif command == 'close':
+    elif command == "close":
         # Close pyzo
         pyzo.callLater(pyzo.main.close)
-        return 'Closing Pyzo'
+        return "Closing Pyzo"
 
     else:
         # Assume the user wanted to open a file
-        fname = (command + ' ' + arg).rstrip()
+        fname = (command + " " + arg).rstrip()
         if not pyzo.editors:
-            return 'Still warming up ...'
+            return "Still warming up ..."
         else:
             pyzo.callLater(pyzo.editors.loadFile, fname)
-            return 'Try opening file %r' % fname
+            return "Try opening file %r" % fname
 
     # We should always return. So if we get here, it is a bug.
     # Return something so that we can be aware.
-    return 'error ' + command
+    return "error " + command
 
 
 def handle_cmd_args():
@@ -109,9 +109,9 @@ def handle_cmd_args():
     otherwise.
     """
     args = sys.argv[1:]
-    request = ' '.join(args)
-    if 'psn_' in request and not os.path.isfile(request):
-        request = ' '.join(args[1:])  # An OSX thing when clicking app icon
+    request = " ".join(args)
+    if "psn_" in request and not os.path.isfile(request):
+        request = " ".join(args[1:])  # An OSX thing when clicking app icon
     request = request.strip()
     #
     if not request:
@@ -121,7 +121,7 @@ def handle_cmd_args():
         try:
             return do_request(ADDRESS, request, 0.4).rstrip()
         except Exception as err:
-            print('Could not process command line args:\n%s' % str(err))
+            print("Could not process command line args:\n%s" % str(err))
             return None
 
 
@@ -134,10 +134,10 @@ def stop_our_server():
     if is_our_server_running():
         try:
             server.stop()  # Post a stop message
-            do_request(ADDRESS, 'stopserver', 0.1)  # trigger
-            print('Stopped our command server.')
+            do_request(ADDRESS, "stopserver", 0.1)  # trigger
+            print("Stopped our command server.")
         except Exception as err:
-            print('Failed to stop command server:')
+            print("Failed to stop command server:")
             print(err)
 
 
@@ -155,15 +155,15 @@ def is_pyzo_server_running():
     necesarily in this process).
     """
     try:
-        res = do_request(ADDRESS, 'echo', 0.2)
-        return res.startswith('echo')
+        res = do_request(ADDRESS, "echo", 0.2)
+        return res.startswith("echo")
     except Exception:
         return False
 
 
 # Shold we start the server?
 _try_start_server = True
-if sys.platform.startswith('win'):
+if sys.platform.startswith("win"):
     _try_start_server = not is_pyzo_server_running()
 
 
@@ -177,4 +177,3 @@ try:
 except OSError as err:
     server_err = err
     server = None
-
