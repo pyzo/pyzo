@@ -50,8 +50,6 @@ class AboutDialog(QtWidgets.QDialog):
         
         # Create tabs
         self.createGeneralTab()
-        self.createContributorsTab()
-        self.createLicenseTab()
 
     def addTab(self, title, text, rich=True):
         # Create label to show info
@@ -87,6 +85,15 @@ class AboutDialog(QtWidgets.QDialog):
         Pyzo userdata directory: {}<br>
         <br>
         
+        <b>License</b><br>
+        Pyzo is open source, it's code is distributed under the BSD license.
+        <br><br>
+        
+        <b>Contributors</b><br>
+        Pyzo is coded with ♥ by Almar Klein and over 30 contributors:<br>
+        https://github.com/pyzo/pyzo/graphs/contributors
+        <br><br>
+        
         <b>Acknowledgements</b><br>
         Pyzo is written in Python 3 and uses the Qt widget
         toolkit. Pyzo uses code and concepts that are inspired by
@@ -111,35 +118,6 @@ class AboutDialog(QtWidgets.QDialog):
                         pyzo.pyzoDir, pyzo.appConfigDir, pyzo.appDataDir)
         
         self.addTab("General", aboutText)
-    
-    
-    def createContributorsTab(self):
-        fname = os.path.join(pyzo.pyzoDir, 'contributors.txt')
-        try:
-            with open(fname, 'rb') as f:
-                text = f.read().decode('utf-8', 'ignore').strip()
-        except Exception as err:
-            text = str(err)
-        label = self.addTab('Contributors', text, False)
-        # Decrease font
-        font = label.font()
-        font.setPointSize(int(font.pointSize()*0.9))
-        label.setFont(font)
-    
-    
-    def createLicenseTab(self):
-        fname = os.path.join(pyzo.pyzoDir, 'license.txt')
-        try:
-            with open(fname, 'rb') as f:
-                text = f.read().decode('utf-8', 'ignore').strip()
-        except Exception as err:
-            text = str(err)
-        label = self.addTab('BSD license', text, False)
-        # Decrease font
-        font = label.font()
-        font.setPointSize(int(font.pointSize()*0.9))
-        label.setFont(font)
-        
 
 if __name__ == '__main__':
     #pyzo.license = {'name': 'AK', 'company': ''}
