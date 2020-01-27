@@ -606,7 +606,7 @@ class YotonApplication(object):
             # Signal stop
             YotonApplication._stop_event_loop = True
             # Push an event so that process_events() unblocks
-            
+
             def dummy():
                 pass
 
