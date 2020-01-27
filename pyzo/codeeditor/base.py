@@ -328,7 +328,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             if defaultVal != DEFAULT_OPTION_NONE:
                 try:
                     member_set(defaultVal)
-                except Exception as why:
+                except Exception:
                     print('Error initing option ', member_set.__name__)
         
         # Also set using given opions?
@@ -860,7 +860,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Get cursor
         cursor = self.textCursor()
-        position = cursor.position()
+        # position = cursor.position()
         start_pos = cursor.selectionStart()
         end_pos = cursor.selectionEnd()
 

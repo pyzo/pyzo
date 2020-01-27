@@ -63,14 +63,14 @@ def getLocale(languageName):
     
     # Try System  Language if nothing defined
     if languageName == "":
-         languageName = QLocale.system().name()
-            
+        languageName = QLocale.system().name()
+        
     # Apply synonyms
     languageName = LANGUAGE_SYNONYMS.get(languageName, languageName)
     
     # if no language applicable, get back to default
     if LANGUAGES.get(languageName, None) is None:
-         languageName = LANGUAGE_SYNONYMS.get("", "")
+        languageName = LANGUAGE_SYNONYMS.get("", "")
             
     # Select language in qt terms
     qtLanguage = LANGUAGES.get(languageName, None)
@@ -154,11 +154,11 @@ class Translation(str):
 
 
 def _splitMainAndTt(s):
-        if ':::' in s:
-            parts = s.split(':::', 1)
-            return parts[0].rstrip(), parts[1].lstrip()
-        else:
-            return s, ''
+    if ':::' in s:
+        parts = s.split(':::', 1)
+        return parts[0].rstrip(), parts[1].lstrip()
+    else:
+        return s, ''
 
 
 def translate(context, text, disambiguation=None):

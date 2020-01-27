@@ -434,13 +434,13 @@ class BaseShell(BaseTextCtrl):
         # Try opening the file (at the line number if we have one)
         result = pyzo.editors.loadFile(filename)
         if result and linenr is not None:
-                editor = result._editor
-                editor.gotoLine(linenr)
-                cursor = editor.textCursor()
-                cursor.movePosition(cursor.StartOfBlock)
-                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
-                editor.setTextCursor(cursor)
-    
+            editor = result._editor
+            editor.gotoLine(linenr)
+            cursor = editor.textCursor()
+            cursor.movePosition(cursor.StartOfBlock)
+            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            editor.setTextCursor(cursor)
+
     
     ##Indentation: override code editor behaviour
     def indentSelection(self):

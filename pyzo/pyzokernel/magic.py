@@ -79,8 +79,9 @@ def _should_not_interpret_as_magic(line):
     try:
         # gets a list of 5-tuples, of which [0] is the type of token and [1] is the token string
         ltok = list(tokenize.tokenize(io.BytesIO(line.encode('utf-8')).readline))
-    except tokenize.TokenError:  # typically this means an unmatched parenthesis
-                                 # (which should not happen because these are detected before)
+    except tokenize.TokenError:
+        # typically this means an unmatched parenthesis
+        # (which should not happen because these are detected before)
         return True
     
     # ignore garbage and indentation at the beginning
@@ -165,7 +166,7 @@ class Magician:
         command = line.rstrip()
         
         if interpreter._ipython and _detect_equalbang(line) :
-                return self.equalbang_quirk(line, command)
+            return self.equalbang_quirk(line, command)
         
         have_hard_chars = 'cd ', '?'
         if PYTHON_VERSION >= 3 and not command.lower().startswith(have_hard_chars):
@@ -489,7 +490,7 @@ class Magician:
     
     def _hasconda(self):
         try:
-            from conda import __version__
+            from conda import __version__  # noqa
         except ImportError:
             return False
         return True

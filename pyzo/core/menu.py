@@ -191,7 +191,7 @@ class Menu(QtWidgets.QMenu):
         
         try:
             self.setToolTipsVisible(True)            
-        except:
+        except Exception:
             pass
         # Set tooltip too.
         if hasattr(name, 'tt'):
@@ -247,7 +247,7 @@ class Menu(QtWidgets.QMenu):
             a.setCheckable(True)
             a.setChecked(selected)
         
-         # Set tooltip if we can find it
+        # Set tooltip if we can find it
         if hasattr(text, 'tt'):
             a.setStatusTip(text.tt)
             a.setToolTip(text.tt)

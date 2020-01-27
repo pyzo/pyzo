@@ -459,11 +459,12 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         """
         if isinstance(event, QtGui.QKeyEvent):
             # Ignore CTRL+{A-Z} since those keys are handled through the menu
-            if (event.modifiers() & QtCore.Qt.ControlModifier) and \
-                (event.key()>=QtCore.Qt.Key_A) and (event.key()<=QtCore.Qt.Key_Z):
-                    event.ignore()
-                    return False
-        
+            if ((event.modifiers() & QtCore.Qt.ControlModifier) and 
+                (event.key()>=QtCore.Qt.Key_A) and (event.key()<=QtCore.Qt.Key_Z)
+            ):
+                event.ignore()
+                return False
+    
         # Default behavior
         codeeditor.CodeEditor.event(self, event)
         return True

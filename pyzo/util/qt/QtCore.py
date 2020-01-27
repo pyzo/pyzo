@@ -24,9 +24,9 @@ if PYQT5:
     del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
 elif PYSIDE2:
     from PySide2.QtCore import *
-    try:  # may be limited to PySide-5.11a1 only 
+    try:  # may be limited to PySide-5.11a1 only
         from PySide2.QtGui import QStringListModel
-    except:
+    except Exception:
         pass
 elif PYQT4:
     from PyQt4.QtCore import *

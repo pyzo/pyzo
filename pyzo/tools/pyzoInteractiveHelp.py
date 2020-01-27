@@ -554,7 +554,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             text += get_title_text(objectName, h_class, h_repr)
             text += '{}<br />'.format(h_text)
         
-        except Exception as why:
+        except Exception:
             try:
                 text += get_title_text(objectName, h_class, h_repr)
                 text += h_text

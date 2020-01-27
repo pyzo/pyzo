@@ -14,7 +14,7 @@ Qt = QtCore.Qt
 
 import pyzo
 from ..misc import ustr, ce_option
-from ..parsers.tokens import (CommentToken, IdentifierToken, NonIdentifierToken, ParenthesisToken,
+from ..parsers.tokens import (CommentToken, IdentifierToken,
                               StringToken, UnterminatedStringToken)
 from ..parsers.python_parser import MultilineStringToken
 from ..parsers import BlockState
@@ -287,7 +287,7 @@ class PythonAutoIndent(object):
                     ppreviousBlock = previousBlock.previous() # the block before previous
                     ppreviousState = ppreviousBlock.userState() if previousBlock.isValid() else 0
                     lastElementToken = list(self.parser().parseLine(previousBlock.text(),ppreviousState))[-1]
-                        # Because there's at least a : on that line, the list is never empty
+                    # Because there's at least a : on that line, the list is never empty
                     
                     if (not isinstance(lastElementToken, (CommentToken, UnterminatedStringToken, BlockState))):
                         #TODO: check correct identation (no mixed space/tabs)

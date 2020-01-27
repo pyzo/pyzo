@@ -26,7 +26,6 @@ class PdfExport(QtWidgets.QDialog):
         self.show_line_number = True
         self._enable_syntax_highlighting = True
 
-        m = QtWidgets.QMessageBox(self)
         # Set title
         self.setWindowTitle(translate("menu dialog", 'Pdf Export'))
 
@@ -192,8 +191,6 @@ class PdfExport(QtWidgets.QDialog):
         """Exports the code as pdf, and opens file manager"""
         if self.editor is not None:
 
-            from pyzo.util.qt import QtPrintSupport
-
             if True:
                 filename = QtWidgets.QFileDialog.getSaveFileName(
                                                         None,
@@ -206,7 +203,7 @@ class PdfExport(QtWidgets.QDialog):
                     return
                 self.printer.setOutputFileName(filename)
             else:
-                d = QtWidgets.QPrintDialog(printer)
+                d = QtWidgets.QPrintDialog(self.printer)
                 d.setWindowTitle('Print code')
                 d.setOption(d.PrintSelection,
                             self.editor.textCursor().hasSelection()
@@ -220,7 +217,7 @@ class PdfExport(QtWidgets.QDialog):
             self._print()
             self.editor.print_(self.printer)
 
-        except print_error:
+        except Exception as print_error:
             print(print_error)
 
     def _get_show_line_number(self, state):

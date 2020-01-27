@@ -578,7 +578,7 @@ class TinyPackageQueue(PackageQueue):
                 raise ValueError('Invalid value for block in PackageQueue.pop().')
             
             
-             # Notify if this pop would reduce the length below the threshold
+            # Notify if this pop would reduce the length below the threshold
             if len(q) <= self._tinylen:
                 condition.notifyAll() # wait() procedes
             

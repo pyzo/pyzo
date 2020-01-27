@@ -4,7 +4,6 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.util import zon as ssdf 
-from pyzo import translate
 from pyzo.core.pyzoLogging import print  # noqa
 import pyzo.core.baseTextCtrl 
 from pyzo.codeeditor.style import StyleFormat
@@ -90,7 +89,7 @@ class ColorLineEdit(QtWidgets.QLineEdit):
 
         self.setStyleSheet('QLineEdit {padding-right: %dpx; }' % (buttonSize.width() + frameWidth + 1))
         # self.setMinimumSize(max(100, buttonSize.width() + frameWidth*2 + 2),
-                            # max(self.minimumSizeHint().height(), buttonSize.height() + frameWidth*2 + 2))
+        #                     max(self.minimumSizeHint().height(), buttonSize.height() + frameWidth*2 + 2))
 
     def openColorDialog(self):
         """A simple function that opens a QColorDialog 

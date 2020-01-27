@@ -1059,7 +1059,7 @@ class PyzoInterpreter:
                 msg, (dummy_filename, lineno, offset, line) = value
                 # correct line-number
                 fname, lineno = self.correctfilenameandlineno(filename, lineno)
-            except:
+            except Exception:
                 # Not the format we expect; leave it alone
                 pass
             else:

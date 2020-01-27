@@ -8,8 +8,8 @@ from . import Parser, BlockState, text_type
 
 # Import tokens in module namespace
 from .tokens import (CommentToken, StringToken,
-    UnterminatedStringToken, IdentifierToken, NonIdentifierToken,
-    FunctionNameToken, ClassNameToken, KeywordToken,
+    UnterminatedStringToken, IdentifierToken,
+    ClassNameToken, KeywordToken,
     NumberToken, OpenParenToken, CloseParenToken)
 
 

@@ -72,6 +72,7 @@ class App_base:
             perf_counter= time.perf_counter
         else:
             perf_counter = time.time
+        perf_counter
         
         _sleeptime = sleeptime
         

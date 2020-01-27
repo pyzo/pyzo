@@ -249,20 +249,20 @@ class HighlightMatchingBracket(object):
         
     
     def _highlightSingleChar(self, painter, cursor, width, colorname):
-            """ _highlightSingleChar(painter, cursor, width, colorname)
-            
-            Draws a highlighting rectangle around the single character to the
-            left of the specified cursor.
-            
-            """
-            cursor_rect = self.cursorRect(cursor)
-            top = cursor_rect.top()
-            left = cursor_rect.left() - width
-            height = cursor_rect.bottom() - top + 1
-            color = self.getStyleElementFormat(colorname).back
-            painter.setBrush(color)
-            painter.setPen(color.darker(110))
-            painter.drawRect(QtCore.QRect(left, top, width, height))
+        """ _highlightSingleChar(painter, cursor, width, colorname)
+        
+        Draws a highlighting rectangle around the single character to the
+        left of the specified cursor.
+        
+        """
+        cursor_rect = self.cursorRect(cursor)
+        top = cursor_rect.top()
+        left = cursor_rect.left() - width
+        height = cursor_rect.bottom() - top + 1
+        color = self.getStyleElementFormat(colorname).back
+        painter.setBrush(color)
+        painter.setPen(color.darker(110))
+        painter.drawRect(QtCore.QRect(left, top, width, height))
 
 
     _matchingBrackets = {'(':')', '[':']', '{':'}', ')':'(', ']':'[', '}':'{'}

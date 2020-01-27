@@ -21,7 +21,6 @@ qt = QtGui
 from pyzo.codeeditor import Manager
 from pyzo.core.menu import EditorContextMenu
 from pyzo.core.baseTextCtrl import BaseTextCtrl, normalizePath
-from pyzo.core.statusbar import StatusBar
 from pyzo.core.pyzoLogging import print  # noqa
 import pyzo
 
@@ -536,14 +535,8 @@ class PyzoEditor(BaseTextCtrl):
                 self.setTextCursor(oricursor)
                 editCursor.endEditBlock()
 
-        # Get text and remember where we are
+        # Get text and convert line endings
         text = self.toPlainText()
-        cursor = self.textCursor()
-        linenr = cursor.blockNumber() + 1
-        index = cursor.positionInBlock()
-        scroll = self.verticalScrollBar().value()
-
-        # Convert line endings
         text = text.replace('\n', self.lineEndings)
 
         # Make bytes

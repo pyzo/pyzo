@@ -458,9 +458,9 @@ class ResultPage(QtWidgets.QWizardPage):
             ('usecols', None),
             ('invalid_raise', True),
             ):
-                value = self.wizard().field(param)
-                if value != default:
-                    code += "\t%s = %r,\n" % (param, value)
+            value = self.wizard().field(param)
+            if value != default:
+                code += "\t%s = %r,\n" % (param, value)
         if perColumn:
             code += '\tunpack = True,\n'
         code += '\t)\n'

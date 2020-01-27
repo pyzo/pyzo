@@ -77,7 +77,7 @@ class SearchTask(proxies.Task):
     def _getIndicesRegExp(self, text, pattern):
         indices = []
         for match in re.finditer(pattern, text, re.MULTILINE | re.UNICODE):
-                indices.append( match.start() )
+            indices.append( match.start() )
         return indices
     
     
