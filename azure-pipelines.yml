@@ -42,8 +42,17 @@ jobs:
       script: |
         set -ex
         python -m pip install -U pip
-        pip install -U PyQt5
+        pip install -U pyqt5
         pip install -U pytest black flake8 pyinstaller
+  - task: Bash@3
+    displayName: Install inno setup (on Windows)
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        # Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        choco install innosetup
   - task: Bash@3
     displayName: Lint (black & flake8)
     condition: and(succeeded(), eq(variables['LINT'], '1'))
@@ -86,7 +95,8 @@ jobs:
     inputs:
       targetType: inline
       script: |
-        python freezeScript2.py
+        python freeze/freezeScript.py
+        rm -rf ./frozen/pyzo
   - task: PublishBuildArtifacts@1
     displayName: Publish distributions
     inputs:
@@ -119,7 +129,7 @@ jobs:
     displayName: Download dist
     condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
     inputs:
-      artifactName: dist
+      artifactName: frozen
       downloadPath: .
   - task: GithubRelease@1
     displayName: GitHub Release
@@ -128,8 +138,11 @@ jobs:
       gitHubConnection: github.com_almarklein
       repositoryName: 'pyzo/pyzo'
       assets: |
-        dist/*.whl
-        dist/*.tar.gz
+        frozen/*.zip
+        frozen/*.tar.gz
+        frozen/*.exe
+        frozen/*.msi
+        frozen/*.dmg
       isDraft: true
       addChangeLog: false
       assetUploadMode: replace
