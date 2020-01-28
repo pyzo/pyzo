@@ -1,6 +1,9 @@
 # Pyzo - The Interactive editor for scientific Python
 
-Main website: [pyzo.org](http://pyzo.org)
+[![PyPI Version](https://img.shields.io/pypi/v/pyzo.svg)](https://pypi.python.org/pypi/pyzo/)
+[![Build Status](https://dev.azure.com/pyzo/pyzo/_apis/build/status/pyzo.pyzo?branchName=master)](https://dev.azure.com/pyzo/pyzo/_build/latest?definitionId=1&branchName=master)
+
+Website: [pyzo.org](http://pyzo.org)
 
 
 ### Description
