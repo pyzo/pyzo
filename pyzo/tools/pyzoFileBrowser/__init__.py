@@ -38,7 +38,6 @@ The config consists of three fields:
   * single click on an file that is open selects it in the editor?
   * context menu items to run scripts
   * Support for multiple browsers.
-  
 """
 
 import os.path as op

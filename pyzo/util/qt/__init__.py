@@ -85,9 +85,7 @@ PYSIDE_API = ["pyside"]
 PYSIDE2_API = ["pyside2"]
 
 # Setting a default value for QT_API
-os.environ.setdefault(QT_API, "pyqt5")
-
-API = os.environ[QT_API].lower()
+API = os.environ[QT_API] = os.getenv(QT_API, "").lower() or "pyqt5"
 initial_api = API
 assert API in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API)
 
