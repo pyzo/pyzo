@@ -123,18 +123,18 @@ jobs:
         fi
   - task: UsePythonVersion@0
     displayName: Select Python
-    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    # condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
     inputs:
       versionSpec: $(PY_VERSION)
   - task: DownloadBuildArtifacts@0
     displayName: Download dist
-    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    # condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
     inputs:
       artifactName: frozen
       downloadPath: .
   - task: GithubRelease@1
     displayName: GitHub Release
-    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    # condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
     inputs:
       gitHubConnection: github.com_almarklein
       repositoryName: 'pyzo/pyzo'
