@@ -30,7 +30,7 @@ Pyzo runs on Python3 and needs PySide/PySide2/PyQt4/PyQt5. On a modern
 OS these should be easy to obtain. One can then install Pyzo with
 `python3 -m pip install pyzo`
 
-We also provide binaries for Windows, Linux and MacOS.
+We also provide [binaries](https://github.com/pyzo/pyzo/releases) for Windows, Linux and MacOS.
 
 
 ### License
