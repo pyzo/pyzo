@@ -6,34 +6,27 @@ Pyzo is frozen in such a way that it still uses the plain source code.
 This is achieved by putting the Pyzo package in a subdirectory called
 "source". This source directory is added to sys.path by __main__.py.
 
-For distribution:
-  * Write release notes
-  * Update __version__
-  * Build binaries for Windows, Linux and Mac
-  * Upload binaries to pyzo website
-  * Upload source to pypi
-  * Announce
-
-  * Add tag to released commit
-  * Incease version number to dev
-
 """
 
 import os
 import sys
 import shutil
+import zipfile
+import tarfile
+import subprocess
 
 import PyInstaller.__main__
 
 
 # Define app name and such
 name = "pyzo"
-baseDir = os.path.abspath("") + "/"
+thisDir = os.path.abspath(os.path.dirname(__file__))
+baseDir = os.path.abspath(os.path.join(thisDir, "..")) + "/"
 srcDir = baseDir + "pyzo/"
 distDir = baseDir + "frozen/"
 iconFile = srcDir + "resources/appicons/pyzologo.ico"
 
-sys.path.insert(0, "")
+sys.path.insert(0, baseDir)
 
 
 ## Includes and excludes
@@ -41,7 +34,7 @@ sys.path.insert(0, "")
 # The Qt toolkit that we use
 QT_API = "PyQt5"
 
-# All known Qt toolkits, mainly to exlcude them
+# All known Qt toolkits, mainly to exclude them
 qt_kits = {"PySide", "PySide2", "PyQt4", "PyQt5"}
 
 # Imports that PyInstaller may have missed, or that are simply common/useful
@@ -207,14 +200,77 @@ for frozenDir in frozenDirs:
 
 ## Package things up
 
-# On Windows we have the iss script that we run manually, and we can zip easily.
-# On Linux we can compress the dir easily.
-# On OS X we want a DMG and this is what we do below.
+# Linux: .tar.gz
+# Windows: zip and exe installer
+# MacOS: DMG
+
+
+from pyzo import __version__
+
+bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
+
+
+if sys.platform.startswith("linux"):
+    print("Packing up into tar.gz ...")
+
+    oridir = os.getcwd()
+    os.chdir(distDir)
+    try:
+        tarfilename = "pyzo-" + __version__ + "-linux" + bitness + ".tar.gz"
+        tf = tarfile.open(tarfilename, "w|gz")
+        with tf:
+            tf.add("pyzo", arcname="pyzo-" + __version__)
+    finally:
+        os.chdir(oridir)
+
+
+if sys.platform.startswith("win"):
+    print("Packing up into zip ...")
+
+    zipfilename = "pyzo-" + __version__ + "-win" + bitness + ".zip"
+    zf = zipfile.ZipFile(
+        os.path.join(distDir, zipfilename), "w", compression=zipfile.ZIP_DEFLATED
+    )
+    with zf:
+        for root, dirs, files in os.walk(os.path.join(distDir, "pyzo")):
+            for fname in files:
+                filename1 = os.path.join(root, fname)
+                filename2 = os.path.relpath(filename1, os.path.join(distDir, "pyzo"))
+                filename2 = os.path.join("pyzo-" + __version__, filename2)
+                zf.write(filename1, filename2)
+
+
+if sys.platform.startswith("win"):
+    print("Packing up into exe installer (via Inno Setup) ...")
+
+    exes = [
+        r"c:\Program Files (x86)\Inno Setup 5\ISCC.exe",
+        r"c:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+    ]
+    for exe in exes:
+        if os.path.isfile(exe):
+            break
+    else:
+        raise RuntimeError("Could not find Inno Setup exe")
+
+    # Set inno file
+    innoFile1 = os.path.join(thisDir, "installerBuilderScript.iss")
+    innoFile2 = os.path.join(thisDir, "installerBuilderScript2.iss")
+    text = open(innoFile1, "rb").read().decode()
+    text = text.replace("X.Y.Z", __version__).replace("64", bitness)
+    with open(innoFile2, "wb") as f:
+        f.write(text.encode())
+    try:
+        subprocess.check_call([exe, "/Qp", innoFile2])
+    finally:
+        os.remove(innoFile2)
+
 
 if sys.platform.startswith("darwin"):
-    print("Packing up into dmg ...")
+    print("Packing up into DMG ...")
+
     appDir = distDir + "pyzo.app"
-    dmgFile = distDir + "pyzo.dmg"
+    dmgFile = distDir + "pyzo-" + __version__ + "-macos.dmg"
 
     if (
         os.spawnlp(
