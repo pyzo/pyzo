@@ -1,4 +1,14 @@
 """ Setup script for the Pyzo package.
+
+Notes on how to do a release. Mostly for my own convenience:
+
+* Write release notes
+* Bump `__version__`
+* `git tag vx.y.z`
+* `git push vx.y.z` (makes Azure build the binaries and push to a GH release)
+* Update links on Pyzo website
+* `python setup.py sdist upload`
+
 """
 
 import os
