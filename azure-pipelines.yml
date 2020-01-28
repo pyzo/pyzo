@@ -97,6 +97,7 @@ jobs:
       script: |
         python freeze/freezeScript.py
         rm -rf ./frozen/pyzo
+        rm -rf ./frozen/pyzo.app
   - task: PublishBuildArtifacts@1
     displayName: Publish distributions
     inputs:

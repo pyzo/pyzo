@@ -216,13 +216,7 @@ if sys.platform.startswith("linux"):
     tarfilename = "pyzo-" + __version__ + "-linux" + bitness + ".tar.gz"
     tf = tarfile.open(os.path.join(distDir, tarfilename), "w|gz")
     with tf:
-        # tf.add(os.path.join(distDir, "pyzo"))
-        for root, dirs, files in os.walk(os.path.join(distDir, "pyzo")):
-            for fname in files:
-                filename1 = os.path.join(root, fname)
-                filename2 = os.path.relpath(filename1, os.path.join(distDir, "pyzo"))
-                filename2 = os.path.join("pyzo-" + __version__, filename2)
-                tf.add(filename1, filename2)
+        tf.add(os.path.join(distDir, "pyzo"), arcname=distDir)
 
 
 if sys.platform.startswith("win"):
