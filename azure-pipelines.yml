@@ -59,7 +59,8 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        python setup.py sdist install
+        python setup.py sdist
+        pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
   - task: Bash@3
     displayName: Test
     inputs:

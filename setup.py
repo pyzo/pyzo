@@ -1,7 +1,6 @@
 """ Setup script for the Pyzo package.
 """
 
-
 import os
 import sys
 
@@ -30,36 +29,21 @@ def get_version_and_doc(filename):
     return NS["__version__"], NS["__doc__"]
 
 
-def package_tree(pkgroot):
-    subdirs = [
-        os.path.relpath(i[0], THIS_DIR).replace(os.path.sep, ".")
-        for i in os.walk(os.path.join(THIS_DIR, pkgroot))
-        if "__init__.py" in i[2]
-    ]
-    return subdirs
+version, doc = get_version_and_doc(
+    os.path.join(os.path.dirname(__file__), "pyzo", "__init__.py")
+)
 
 
-## Define info of this package
-
-THIS_DIR = os.path.dirname(__file__)
-
-name = "pyzo"
-description = "the Python IDE for scientific computing"
-
-version, doc = get_version_and_doc(os.path.join(THIS_DIR, name, "__init__.py"))
-
-
-## Setup
 setup(
-    name=name,
+    name="pyzo",
     version=version,
+    description="the Python IDE for scientific computing",
+    long_description=doc,
     author="Almar Klein",
     author_email="almar.klein@gmail.com",
     license="2-Clause BSD",
     url="https://pyzo.org",
     keywords="Python interactive IDE Qt science computing",
-    description=description,
-    long_description=doc,
     platforms="any",
     provides=["pyzo"],
     python_requires=">=3.6.0",
@@ -98,8 +82,7 @@ setup(
 )
 
 
-## Post processing
-
+# Post processing:
 # Install appdata.xml on Linux if we are installing in the system Python
 if sys.platform.startswith("linux") and sys.prefix.startswith("/usr"):
     if len(sys.argv) >= 2 and sys.argv[1] == "install":
