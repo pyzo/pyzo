@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2016, the Pyzo development team
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """
@@ -105,6 +105,76 @@ class App_base:
         raise SystemExit()
 
 
+# WIP
+class App_asyncio_new(App_base):
+    """ Based on asyncio (standard Python) event loop.
+    
+    Actually run an event loop and support switching to another loop.
+    """
+    
+    def __init__(self):
+        import asyncio
+        
+        asyncio.integrate_with_ide = self.enable
+        self._loop = None
+    
+    def run(self, repl_callback, sleeptime=0.01):
+        import asyncio
+        
+        self._repl_callback = repl_callback
+        self._sleeptime = sleeptime
+        
+        loop = asyncio.get_event_loop()
+        self.enable(loop, True)
+        
+    def enable(self, loop, run=False):
+        
+        # If using qasync, create a tiny window to prevent closing. Naah ugly
+        # if hasattr(loop, "_QEventLoop__app"):
+        #     mod = sys.modules[loop._QEventLoop__app.__module__]
+        #     self._w = mod.QWidget(None)
+        #     self._w.resize(1, 1)
+        #     self._w.show()
+       
+        self.swap_loops_when_new_one_starts(self._loop, loop)
+        
+        loop.call_later(self._sleeptime, self._ping_repl_callback)
+        if run:
+            loop.run_forever()
+    
+    def swap_loops_when_new_one_starts(self, old_loop, new_loop):
+        
+        def new_run_forever(*args, **kwargs):
+            if old_loop and old_loop.is_running():
+                old_loop.stop()
+            self._loop = new_loop
+            new_loop.original_run_forever(*args, **kwargs)
+        
+        if not hasattr(new_loop, "original_run_forever"):
+            new_loop.original_run_forever = new_loop.run_forever
+        new_loop.run_forever = new_run_forever
+    
+    def _ping_repl_callback(self):
+        import asyncio
+        
+        self._repl_callback()
+        
+        # Get loop that (probably) called this
+        try:
+            loop = asyncio.get_running_loop()
+        except Exception:
+            loop = None
+        
+        # If its the same as our current loop, we want to be called again
+        if loop:
+            self._loop.call_later(self._sleeptime, self._ping_repl_callback)
+    
+    def quit(self):
+        if self._loop:
+            self._loop.stop()
+        # raise SystemExit()
+
+
 class App_asyncio(App_base):
     """ Based on asyncio (standard Python) event loop.
     
@@ -149,6 +219,14 @@ class App_asyncio(App_base):
         pass
 
     def process_events(self):
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+        except Exception:
+            loop = None
+        if loop is not self.app:
+            # print("loop was replaced!")
+            return
         loop = self.app
         if loop.is_closed():
             pass  # not much we can do
