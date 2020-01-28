@@ -213,10 +213,15 @@ bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
 if sys.platform.startswith("linux"):
     print("Packing up into tar.gz ...")
 
-    tarfilename = "pyzo-" + __version__ + "-linux" + bitness + ".tar.gz"
-    tf = tarfile.open(os.path.join(distDir, tarfilename), "w|gz")
-    with tf:
-        tf.add(os.path.join(distDir, "pyzo"), arcname=distDir)
+    oridir = os.getcwd()
+    os.chdir(distDir)
+    try:
+        tarfilename = "pyzo-" + __version__ + "-linux" + bitness + ".tar.gz"
+        tf = tarfile.open(tarfilename, "w|gz")
+        with tf:
+            tf.add("pyzo", arcname="pyzo-" + __version__)
+    finally:
+        os.chdir(oridir)
 
 
 if sys.platform.startswith("win"):
