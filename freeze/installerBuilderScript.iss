@@ -5,7 +5,7 @@ AppName = pyzo
 AppId = pyzo
 AppVerName = pyzo version X.Y.Z
 AppPublisher = The Pyzo team
-AppPublisherURL = http://pyzo.org
+AppPublisherURL = https://pyzo.org
 
 DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo

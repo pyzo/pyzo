@@ -9,7 +9,7 @@ trigger:
 variables:
   NAME: pyzo
   PY_ARCH: x64
-  PY_VERSION: 3.6
+  PY_VERSION: 3.7
 
 jobs:
 - job: Build
@@ -51,7 +51,7 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        choco install innosetup
+        choco install innosetup --version=5.6.1
   - task: Bash@3
     displayName: Lint (black & flake8)
     condition: and(succeeded(), eq(variables['LINT'], '1'))
