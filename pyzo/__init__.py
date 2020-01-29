@@ -45,6 +45,7 @@ __version__ = "4.10.0"
 
 import os
 import sys
+import ctypes
 import locale
 import traceback
 
@@ -93,6 +94,14 @@ else:
 from pyzo.util import zon as ssdf  # zon is ssdf-light
 from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
+# Enable high-res displays
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(True)
+except Exception:
+    pass
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+
 # Import language/translation tools
 from pyzo.util._locale import translate, setLanguage  # noqa
 
@@ -122,6 +131,7 @@ class MyApp(QtWidgets.QApplication):
 
 if not sys.platform.startswith("darwin"):
     MyApp = QtWidgets.QApplication  # noqa
+
 
 ## Install excepthook
 # In PyQt5 exceptions in Python will cuase an abort
