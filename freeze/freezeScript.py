@@ -125,7 +125,10 @@ cmd.append(srcDir + "__main__.py")
 
 PyInstaller.__main__.run(cmd)
 
-os.remove(os.path.join(thisDir, "pyzo.spec"))
+try:
+    os.remove(os.path.join(thisDir, "pyzo.spec"))
+except Exception:
+    pass
 
 
 ## Process source code and other resources
