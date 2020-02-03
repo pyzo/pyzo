@@ -133,6 +133,10 @@ except Exception:
 
 ## Process source code and other resources
 
+from pyzo import __version__
+
+bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
+
 
 def copydir_smart(path1, path2):
     """ like shutil.copytree, but ...
@@ -227,11 +231,6 @@ if sys.platform.startswith("darwin"):
 # Linux: .tar.gz
 # Windows: zip and exe installer
 # MacOS: DMG
-
-
-from pyzo import __version__
-
-bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
 
 
 if sys.platform.startswith("linux"):
