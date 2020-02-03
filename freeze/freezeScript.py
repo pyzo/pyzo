@@ -125,7 +125,7 @@ cmd.append(srcDir + "__main__.py")
 
 PyInstaller.__main__.run(cmd)
 
-os.remove(baseDir + "pyzo.spec")
+os.remove(os.path.join(thisDir, "pyzo.spec"))
 
 
 ## Process source code and other resources
@@ -279,6 +279,8 @@ if sys.platform.startswith("win"):
     innoFile2 = os.path.join(thisDir, "installerBuilderScript2.iss")
     text = open(innoFile1, "rb").read().decode()
     text = text.replace("X.Y.Z", __version__).replace("64", bitness)
+    if bitness == "32":
+        text = text.replace("ArchitecturesInstallIn64BitMode = x64", "")
     with open(innoFile2, "wb") as f:
         f.write(text.encode())
     try:

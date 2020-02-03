@@ -7,6 +7,7 @@ AppVerName = pyzo version X.Y.Z
 AppPublisher = The Pyzo team
 AppPublisherURL = https://pyzo.org
 
+ArchitecturesInstallIn64BitMode = x64
 DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo
 
