@@ -59,7 +59,7 @@ jobs:
           /opt/python/cp38-cp38/bin/python -m pip install -U pyqt5 pyinstaller &&\
           /opt/python/cp38-cp38/bin/python -m pip install . &&\
           /opt/python/cp38-cp38/bin/python freeze/freezeScript.py &&\
-          rm -rf ./frozen/pyzo)
+          rm -rf ./frozen/pyzo")
         docker start -ai $CID
         mkdir -p frozen
         docker cp $CID:/tmp/pyzo/frozen/. ./frozen/.
@@ -138,6 +138,7 @@ jobs:
         rm -rf ./frozen/pyzo.app
   - task: PublishBuildArtifacts@1
     displayName: Publish distributions
+    condition: and(succeeded(), or(ne(variables['DOCKERIMAGE'], ''), eq(variables['FREEZE'], '1')))
     inputs:
       pathtoPublish: frozen
       artifactName: frozen
