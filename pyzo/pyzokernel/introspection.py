@@ -250,7 +250,11 @@ class PyzoIntrospector(yoton.RepChannel):
                 # Determine kind
                 kind = typeName
                 if typeName != "type":
-                    if hasattr(val, "__array__") and hasattr(val, "dtype"):
+                    if (
+                        hasattr(val, "__array__")
+                        and hasattr(val, "dtype")
+                        and hasattr(val, "shape")
+                    ):
                         kind = "array"
                     elif isinstance(val, list):
                         kind = "list"
@@ -260,7 +264,18 @@ class PyzoIntrospector(yoton.RepChannel):
                 if kind == "array":
                     tmp = "x".join([str(s) for s in val.shape])
                     if tmp:
-                        repres = "<array %s %s>" % (tmp, val.dtype.name)
+                        values_repr = ""
+                        if hasattr(val, "flat"):
+                            for el in val.flat:
+                                values_repr += ", " + repr(el)
+                                if len(values_repr) > 70:
+                                    values_repr = values_repr[:67] + ", …"
+                                    break
+                        repres = "<array %s %s: %s>" % (
+                            tmp,
+                            val.dtype.name,
+                            values_repr,
+                        )
                     elif val.size:
                         tmp = str(float(val))
                         if "int" in val.dtype.name:
@@ -269,15 +284,33 @@ class PyzoIntrospector(yoton.RepChannel):
                     else:
                         repres = "<array empty %s>" % (val.dtype.name)
                 elif kind == "list":
-                    repres = "<list with %i elements>" % len(val)
+                    values_repr = ""
+                    for el in val:
+                        values_repr += ", " + repr(el)
+                        if len(values_repr) > 70:
+                            values_repr = values_repr[:67] + ", …"
+                            break
+                    repres = "<%i-element list: %s>" % (len(val), values_repr)
                 elif kind == "tuple":
-                    repres = "<tuple with %i elements>" % len(val)
+                    values_repr = ""
+                    for el in val:
+                        values_repr += ", " + repr(el)
+                        if len(values_repr) > 70:
+                            values_repr = values_repr[:67] + ", …"
+                            break
+                    repres = "<%i-element tuple: %s>" % (len(val), values_repr)
                 elif kind == "dict":
-                    repres = "<dict with {:d} keys>".format(len(val))
+                    values_repr = ""
+                    for k, v in val.items():
+                        values_repr += ", " + repr(k) + ": " + repr(v)
+                        if len(values_repr) > 70:
+                            values_repr = values_repr[:67] + ", …"
+                            break
+                    repres = "<%i-item dict: %s>" % (len(val), values_repr)
                 else:
                     repres = repr(val)
                     if len(repres) > 80:
-                        repres = repres[:77] + "..."
+                        repres = repres[:77] + "…"
                 # Store
                 tmp = (name, typeName, kind, repres)
                 names.append(tmp)
