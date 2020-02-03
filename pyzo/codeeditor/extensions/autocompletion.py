@@ -134,7 +134,8 @@ class AutoCompletion(object):
             self.__updateAutocompleterPrefix()
 
     def autocompleteAccept(self):
-        pass
+        self.__completer.popup().hide()
+        self.__autocompleteStart = None
 
     def autocompleteCancel(self):
         self.__completer.popup().hide()
@@ -153,7 +154,7 @@ class AutoCompletion(object):
         cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
         # Replace it with the selected text
         cursor.insertText(text)
-        self.autocompleteCancel()  # Reset the completer
+        self.autocompleteAccept()  # Reset the completer
 
         # Update the recent completions list
         if text in self.__recentCompletions:
@@ -259,13 +260,11 @@ class AutoCompletion(object):
             if event.key() in self.__autocompletionAcceptKeys:
                 if event.key() <= 128:
                     self.onAutoComplete()  # No arg: select last highlighted
-                    self.autocompleteCancel()
                     event.ignore()
                     return 1  # Let key have effect as normal
                 elif event.modifiers() == Qt.NoModifier:
                     # The key
                     self.onAutoComplete()  # No arg: select last highlighted
-                    self.autocompleteCancel()
                     return 2  # Key should be consumed
         return 0
 
