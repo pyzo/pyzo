@@ -24,7 +24,7 @@ jobs:
         TEST: 1
       Linux-64:
         vmImage: ubuntu-16.04
-        DOCKERIMAGE: manylinux2010_x86_64
+        DOCKERIMAGE: manylinux2014_x86_64
         FREEZE: 0 because freezing must only happen on container
       MacOS-64:
         vmImage: macOS-10.14
