@@ -261,7 +261,8 @@ if sys.platform.startswith("win"):
                 zf.write(filename1, filename2)
 
 
-if sys.platform.startswith("win"):
+if sys.platform.startswith("win") and bitness == "64":
+    # Note: for some reason the 32bit installer is broken. Ah well, the zip works.
     print("Packing up into exe installer (via Inno Setup) ...")
 
     exes = [
