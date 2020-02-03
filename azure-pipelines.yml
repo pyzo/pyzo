@@ -9,7 +9,7 @@ trigger:
 variables:
   NAME: pyzo
   PY_ARCH: x64
-  PY_VERSION: 3.7
+  PY_VERSION: 3.8
 
 
 jobs:
@@ -20,24 +20,26 @@ jobs:
     matrix:
       Linux-tester:
         vmImage: ubuntu-16.04
-        SDIST: 1
         LINT: 1
         TEST: 1
       Linux-64:
         vmImage: ubuntu-16.04
-        ARCH: 64
         DOCKERIMAGE: manylinux2010_x86_64
+        FREEZE: 0 because freezing must only happen on container
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
         TEST: 1
+        FREEZE: 1
       Windows-64:
         vmImage: vs2017-win2016
         TEST: 1
+        FREEZE: 1
       Windows-32:
         vmImage: vs2017-win2016
         PY_ARCH: x86
         TEST: 1
+        FREEZE: 1
 
   pool:
     vmImage: $(vmImage)
@@ -45,19 +47,23 @@ jobs:
   steps:
   - task: Bash@3
     displayName: Docker build
-    condition: and(succeeded(), neq(variables['DOCKERIMAGE'], ''))
+    condition: and(succeeded(), ne(variables['DOCKERIMAGE'], ''))
     inputs:
       targetType: inline
       script: |
         set -ex
         CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro quay.io/pypa/$(DOCKERIMAGE) bash -c "\
           cp -r /tmp/src/. . && \
-          rm -rf ./frozen)
+          rm -rf ./frozen && \
+          /opt/python/cp38-cp38/bin/python -m pip install -U pip &&\
+          /opt/python/cp38-cp38/bin/python -m pip install -U pyqt5 pyinstaller &&\
+          /opt/python/cp38-cp38/bin/python -m pip install . &&\
+          /opt/python/cp38-cp38/bin/python freeze/freezeScript.py &&\
+          rm -rf ./frozen/pyzo)
         docker start -ai $CID
         mkdir -p frozen
         docker cp $CID:/tmp/pyzo/frozen/. ./frozen/.
         docker rm $CID
-        rm -rf ./frozen/pyzo
   - task: UsePythonVersion@0
     displayName: Select Python
     condition: and(succeeded(), eq(variables['DOCKERIMAGE'], ''))
@@ -123,7 +129,7 @@ jobs:
       testRunTitle: Test $(vmImage)
   - task: Bash@3
     displayName: Freeze
-    condition: and(succeeded(), eq(variables['DOCKERIMAGE'], ''))
+    condition: and(succeeded(), eq(variables['FREEZE'], '1'))
     inputs:
       targetType: inline
       script: |
