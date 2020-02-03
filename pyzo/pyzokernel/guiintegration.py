@@ -105,70 +105,69 @@ class App_base:
         raise SystemExit()
 
 
-# WIP
+# Experimental and WIP - not used at the moment
 class App_asyncio_new(App_base):
     """ Based on asyncio (standard Python) event loop.
-    
+
     Actually run an event loop and support switching to another loop.
     """
-    
+
     def __init__(self):
         import asyncio
-        
+
         asyncio.integrate_with_ide = self.enable
         self._loop = None
-    
+
     def run(self, repl_callback, sleeptime=0.01):
         import asyncio
-        
+
         self._repl_callback = repl_callback
         self._sleeptime = sleeptime
-        
+
         loop = asyncio.get_event_loop()
         self.enable(loop, True)
-        
+
     def enable(self, loop, run=False):
-        
+
         # If using qasync, create a tiny window to prevent closing. Naah ugly
         # if hasattr(loop, "_QEventLoop__app"):
         #     mod = sys.modules[loop._QEventLoop__app.__module__]
         #     self._w = mod.QWidget(None)
         #     self._w.resize(1, 1)
         #     self._w.show()
-       
+
         self.swap_loops_when_new_one_starts(self._loop, loop)
-        
+
         loop.call_later(self._sleeptime, self._ping_repl_callback)
         if run:
             loop.run_forever()
-    
+
     def swap_loops_when_new_one_starts(self, old_loop, new_loop):
-        
         def new_run_forever(*args, **kwargs):
             if old_loop and old_loop.is_running():
                 old_loop.stop()
             self._loop = new_loop
             new_loop.original_run_forever(*args, **kwargs)
-        
+
         if not hasattr(new_loop, "original_run_forever"):
             new_loop.original_run_forever = new_loop.run_forever
         new_loop.run_forever = new_run_forever
-    
+
     def _ping_repl_callback(self):
         import asyncio
-        
+
         self._repl_callback()
-        
+
         # Get loop that (probably) called this
         try:
             loop = asyncio.get_running_loop()
         except Exception:
             loop = None
-        
+
         # If its the same as our current loop, we want to be called again
         if loop:
             self._loop.call_later(self._sleeptime, self._ping_repl_callback)
-    
+
     def quit(self):
         if self._loop:
             self._loop.stop()
@@ -177,12 +176,12 @@ class App_asyncio_new(App_base):
 
 class App_asyncio(App_base):
     """ Based on asyncio (standard Python) event loop.
-    
+
     We do not run the event loop and a timer to keep the REPL active, because
     asyncio does allow creating new loops while one is running. So we stick to
     a simple and non-intrusive mechanism to regularly process events from
     whatever event loop is current at any given moment.
-    
+
     """
 
     def __init__(self):
@@ -220,13 +219,13 @@ class App_asyncio(App_base):
 
     def process_events(self):
         import asyncio
+
         try:
             loop = asyncio.get_event_loop()
         except Exception:
             loop = None
         if loop is not self.app:
-            # print("loop was replaced!")
-            return
+            return  # The loop was replaced
         loop = self.app
         if loop.is_closed():
             pass  # not much we can do
@@ -356,7 +355,7 @@ class App_fltk2(App_base):
 
 class App_tornado(App_base):
     """ Hijack Tornado event loop.
-    
+
     Tornado does have a function to process events, but it does not
     work when the event loop is already running. Therefore we don't
     enter the real Tornado event loop, but just poll it regularly.
@@ -450,15 +449,15 @@ class App_qt(App_base):
 
         class QApplication_hijacked(QtGui.QApplication):
             """ QApplication_hijacked(*args, **kwargs)
-            
+
             Hijacked QApplication class. This class has a __new__()
             method that always returns the global application
             instance, i.e. QtGui.qApp.
-            
+
             The QtGui.qApp instance is an instance of the original
             QtGui.QApplication, but with its __init__() and exec_()
             methods replaced.
-            
+
             You can subclass this class; the global application instance
             will be given the methods and attributes so it will behave
             like the subclass.
