@@ -198,6 +198,27 @@ for frozenDir in frozenDirs:
         file.write(SETTINGS_TEXT.encode("utf-8"))
 
 
+# Patch info.plist
+if sys.platform.startswith("darwin"):
+    extra_plist_info = """
+    <key>CFBundleShortVersionString</key>
+    <string>X.Y.Z</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    """.strip()
+    extra_plist_info = "\n\t".join(
+        line.strip() for line in extra_plist_info.splitlines()
+    )
+    extra_plist_info = extra_plist_info.replace("X.Y.Z", __version__)
+    plist_filename = os.path.join(distDir, "pyzo", "pyzo.app", "Contents", "Info.plist")
+    text = open(plist_filename, "rb").read().decode()
+    i1 = text.index("<key>CFBundleShortVersionString</key")
+    i2 = text.index("</string>", i1) + len("</string>")
+    text = text[:i1] + extra_plist_info + text[i2:]
+    with open(plist_filename, "wb") as f:
+        f.write(text.encode())
+
+
 ## Package things up
 
 # Linux: .tar.gz

@@ -372,11 +372,23 @@ class PyzoInterpreter:
                     sys.last_type, sys.last_value, sys.last_traceback = record.exc_info
                 return record
 
-        #
+        # Setup logging
         root_logger = logging.getLogger()
         if not root_logger.handlers:
             root_logger.addHandler(logging.StreamHandler())
         root_logger.addHandler(PMHandler())
+
+        # Warn when logging.basicConfig is used (see issue #645)
+        def basicConfigDoesNothing(*args, **kwargs):
+            logging.warn(
+                "Pyzo already added handlers to the root handler, "
+                + "so logging.basicConfig() does nothing."
+            )
+
+        try:
+            logging.basicConfig = basicConfigDoesNothing
+        except Exception:
+            pass
 
         # Update startup info
         self.context._stat_startup.send(startup_info)

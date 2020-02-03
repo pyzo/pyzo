@@ -3,9 +3,9 @@
 Codeeditor - The core editing component
 =======================================
 
-This subpackage is independent of any other components of IEP and 
-only has Qt (PySide or PyQt4) as a dependency. It works on 
-Python version 2.7 and up (including 3.x).
+This subpackage is independent of any other components of IEP and
+only has Qt (PySide2 or PyQt5) as a dependency. It works on Python 3
+and may also still work on Python2.
 
 Content and API will come here.
 
