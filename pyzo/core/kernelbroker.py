@@ -192,6 +192,11 @@ def getEnvFromKernelInfo(info):
     if sys.platform.startswith("win32"):
         ctypes.windll.kernel32.SetDllDirectoryA(None)
 
+    # PyInstaller prepends the root app dir to LD_LIBRARY_PATH (see #665)
+    if getattr(sys, "frozen", False) and "LD_LIBRARY_PATH" in env:
+        rem = os.path.dirname(sys.executable) + os.pathsep
+        env["LD_LIBRARY_PATH"] = env["LD_LIBRARY_PATH"].replace(rem, "")
+
     # Remove Qt plugin directories, because it breaks Qt integration for the kernel
     # on several systems. E.g. QT_QPA_PLATFORM_PLUGIN_PATH, QT_PLUGIN_PATH
     if getattr(sys, "frozen", False):
