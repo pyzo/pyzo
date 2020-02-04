@@ -97,7 +97,7 @@ jobs:
       script: |
         set -ex
         $(PY_EXE) setup.py sdist
-        pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
+        $(PY_EXE) -m pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
   - task: Bash@3
     displayName: Test
     condition: and(succeeded(), eq(variables['TEST'], '1'))
