@@ -56,7 +56,7 @@ setup(
     keywords="Python interactive IDE Qt science computing",
     platforms="any",
     provides=["pyzo"],
-    python_requires=">=3.6.0",
+    python_requires=">=3.5.0",
     install_requires=[],  # and 'PySide2' or 'PyQt5' (less sure about PySide/PyQt4)
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_dir={"pyzo": "pyzo"},
