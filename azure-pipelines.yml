@@ -60,9 +60,9 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        add-apt-repository -y ppa:deadsnakes/ppa
-        apt-get update
-        apt-get install python3.6
+        sudo add-apt-repository -y ppa:deadsnakes/ppa
+        sudo apt-get update
+        sudo apt-get install python3.6
   - task: Bash@3
     displayName: Install development requirements
     inputs:
