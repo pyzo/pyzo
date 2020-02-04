@@ -23,11 +23,11 @@ jobs:
         LINT: 1
         TEST: 1
       Linux-64:
-        vmImage: ubuntu-16.04
-        DOCKERIMAGE: manylinux2014_x86_64
-        FREEZE: 0 because freezing must only happen on container
-        #TEST: 1
-        #FREEZE: 1
+        vmImage: ubuntu-14.04
+        # DOCKERIMAGE: manylinux2014_x86_64
+        # FREEZE: 0 because freezing must only happen on container
+        TEST: 1
+        FREEZE: 1
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
