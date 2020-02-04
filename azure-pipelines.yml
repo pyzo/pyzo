@@ -54,6 +54,16 @@ jobs:
       versionSpec: $(PY_VERSION)
       architecture: $(PY_ARCH)
   - task: Bash@3
+    displayName: Install Python 3.6 (on Linux)
+    condition: eq(variables['PY_VERSION'], 'native')
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        add-apt-repository -y ppa:deadsnakes/ppa
+        apt-get update
+        apt-get install python3.6
+  - task: Bash@3
     displayName: Install development requirements
     inputs:
       targetType: inline
@@ -61,7 +71,7 @@ jobs:
         set -ex
         $(PY_EXE) -m pip install -U pip
         $(PY_EXE) -m pip install -U pyqt5
-        $(PY_EXE) -m pip install -U pytest pyinstaller==3.6
+        $(PY_EXE) -m pip install -U pytest black flake8 pyinstaller==3.6
   - task: Bash@3
     displayName: Install inno setup (on Windows)
     condition: eq(variables['Agent.OS'], 'Windows')
@@ -77,7 +87,6 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        $(PY_EXE) -m pip install -U black flake8
         black --check .
         flake8 .
   - task: Bash@3
