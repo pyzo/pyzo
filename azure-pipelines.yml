@@ -23,9 +23,7 @@ jobs:
         LINT: 1
         TEST: 1
       Linux-64:
-        vmImage: ubuntu-14.04
-        # DOCKERIMAGE: manylinux2014_x86_64
-        # FREEZE: 0 because freezing must only happen on container
+        vmImage: ubuntu-16.04
         TEST: 1
         FREEZE: 1
       MacOS-64:
@@ -47,44 +45,23 @@ jobs:
     vmImage: $(vmImage)
 
   steps:
-  - task: Bash@3
-    displayName: Docker build
-    condition: and(succeeded(), ne(variables['DOCKERIMAGE'], ''))
-    inputs:
-      targetType: inline
-      script: |
-        set -ex
-        CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro quay.io/pypa/$(DOCKERIMAGE) bash -c "\
-          cp -r /tmp/src/. . && \
-          rm -rf ./frozen && \
-          /opt/python/cp36-cp36m/bin/python -m pip install -U pip &&\
-          /opt/python/cp36-cp36m/bin/python -m pip install -U pyqt5 pyinstaller &&\
-          /opt/python/cp36-cp36m/bin/python -m pip install . &&\
-          /opt/python/cp36-cp36m/bin/python freeze/freezeScript.py &&\
-          rm -rf ./frozen/pyzo")
-        docker start -ai $CID
-        mkdir -p frozen
-        docker cp $CID:/tmp/pyzo/frozen/. ./frozen/.
-        docker rm $CID
   - task: UsePythonVersion@0
     displayName: Select Python
-    condition: and(succeeded(), eq(variables['DOCKERIMAGE'], ''))
     inputs:
       versionSpec: $(PY_VERSION)
       architecture: $(PY_ARCH)
   - task: Bash@3
     displayName: Install development requirements
-    condition: and(succeeded(), eq(variables['DOCKERIMAGE'], ''))
     inputs:
       targetType: inline
       script: |
         set -ex
         python -m pip install -U pip
         pip install -U pyqt5
-        pip install -U pytest black flake8 pyinstaller
+        pip install -U pytest black flake8 pyinstaller==3.4
   - task: Bash@3
     displayName: Install inno setup (on Windows)
-    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
+    condition: eq(variables['Agent.OS'], 'Windows')
     inputs:
       targetType: inline
       script: |
@@ -140,7 +117,7 @@ jobs:
         rm -rf ./frozen/pyzo.app
   - task: PublishBuildArtifacts@1
     displayName: Publish distributions
-    condition: and(succeeded(), or(ne(variables['DOCKERIMAGE'], ''), eq(variables['FREEZE'], '1')))
+    condition: and(succeeded(), eq(variables['FREEZE'], '1'))
     inputs:
       pathtoPublish: frozen
       artifactName: frozen
