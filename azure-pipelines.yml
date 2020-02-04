@@ -10,7 +10,7 @@ variables:
   NAME: pyzo
   PY_ARCH: x64
   PY_VERSION: 3.7
-
+  PY_EXE: python
 
 jobs:
 
@@ -26,6 +26,8 @@ jobs:
         vmImage: ubuntu-16.04
         TEST: 1
         FREEZE: 1
+        PY_VERSION: native
+        PY_EXE: python3
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
@@ -47,6 +49,7 @@ jobs:
   steps:
   - task: UsePythonVersion@0
     displayName: Select Python
+    condition: ne(variables['PY_VERSION'], 'native')
     inputs:
       versionSpec: $(PY_VERSION)
       architecture: $(PY_ARCH)
@@ -56,9 +59,9 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        python -m pip install -U pip
-        pip install -U pyqt5
-        pip install -U pytest black flake8 pyinstaller==3.6
+        $(PY_EXE) -m pip install -U pip
+        $(PY_EXE) -m pip install -U pyqt5
+        $(PY_EXE) -m pip install -U pytest black flake8 pyinstaller==3.6
   - task: Bash@3
     displayName: Install inno setup (on Windows)
     condition: eq(variables['Agent.OS'], 'Windows')
@@ -83,7 +86,7 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        python setup.py sdist
+        $(PY_EXE) setup.py sdist
         pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
   - task: Bash@3
     displayName: Test
@@ -92,7 +95,7 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        pytest --junit-xml=results.xml tests || true
+        $(PY_EXE) -m pytest --junit-xml=results.xml tests || true
         # Fail the task if results.xml was not created
         if [[ ! -f results.xml ]]
         then
@@ -112,7 +115,7 @@ jobs:
     inputs:
       targetType: inline
       script: |
-        python freeze/freezeScript.py
+        $(PY_EXE) freeze/freezeScript.py
         rm -rf ./frozen/pyzo
         rm -rf ./frozen/pyzo.app
   - task: PublishBuildArtifacts@1
