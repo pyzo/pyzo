@@ -57,10 +57,10 @@ jobs:
         CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro quay.io/pypa/$(DOCKERIMAGE) bash -c "\
           cp -r /tmp/src/. . && \
           rm -rf ./frozen && \
-          /opt/python/cp37-cp37m/bin/python -m pip install -U pip &&\
-          /opt/python/cp37-cp37m/bin/python -m pip install -U pyqt5 pyinstaller==3.5 &&\
-          /opt/python/cp37-cp37m/bin/python -m pip install . &&\
-          /opt/python/cp37-cp37m/bin/python freeze/freezeScript.py &&\
+          /opt/python/cp36-cp36m/bin/python -m pip install -U pip &&\
+          /opt/python/cp36-cp36m/bin/python -m pip install -U pyqt5 pyinstaller &&\
+          /opt/python/cp36-cp36m/bin/python -m pip install . &&\
+          /opt/python/cp36-cp36m/bin/python freeze/freezeScript.py &&\
           rm -rf ./frozen/pyzo")
         docker start -ai $CID
         mkdir -p frozen
