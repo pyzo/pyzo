@@ -32,7 +32,7 @@ sys.path.insert(0, baseDir)
 ## Includes and excludes
 
 # The Qt toolkit that we use
-QT_API = "PySide2"
+QT_API = "PyQt5"
 
 # All known Qt toolkits, mainly to exclude them
 qt_kits = {"PySide", "PySide2", "PyQt4", "PyQt5"}
