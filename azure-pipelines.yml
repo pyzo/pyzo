@@ -27,7 +27,7 @@ jobs:
         TEST: 1
         FREEZE: 1
         PY_VERSION: native
-        PY_EXE: python3
+        PY_EXE: python3.6
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
