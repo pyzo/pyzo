@@ -26,7 +26,6 @@ jobs:
         vmImage: ubuntu-16.04
         TEST: 1
         FREEZE: 1
-        PY_VERSION: 3.5
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
@@ -59,7 +58,7 @@ jobs:
         set -ex
         python -m pip install -U pip
         pip install -U pyqt5
-        pip install -U pytest pyinstaller==3.6
+        pip install -U pytest black flake8 pyinstaller==3.6
   - task: Bash@3
     displayName: Install inno setup (on Windows)
     condition: eq(variables['Agent.OS'], 'Windows')
@@ -75,7 +74,6 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        pip install -U black flake8
         black --check .
         flake8 .
   - task: Bash@3
