@@ -28,7 +28,7 @@ jobs:
         FREEZE: 0
         PY_VERSION: native
         #PY_EXE: python
-        DOCKERIMAGE: cdrx/pyinstaller-linux:python3
+        DOCKERIMAGE: python:3.7-stretch
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
