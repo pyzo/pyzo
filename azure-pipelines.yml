@@ -55,7 +55,7 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro quay.io/pypa/$(DOCKERIMAGE) bash -c "\
+        CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro $(DOCKERIMAGE) bash -c "\
           cp -r /tmp/src/. . && \
           rm -rf ./frozen && \
           python -m pip install -U pip &&\
