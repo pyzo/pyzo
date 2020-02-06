@@ -58,6 +58,7 @@ jobs:
         CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro $(DOCKERIMAGE) bash -c "\
           cp -r /tmp/src/. . && \
           rm -rf ./frozen && \
+          apt-get update
           apt-get install software-properties-common python-software-properties
           add-apt-repository -y ppa:deadsnakes/ppa
           apt-get update
