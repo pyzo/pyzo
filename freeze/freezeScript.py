@@ -12,6 +12,7 @@ https://gist.github.com/phfaist/a5b8a895b003822df5397731f4673042
 """
 
 import os
+import re
 import sys
 import shutil
 import zipfile
@@ -137,7 +138,8 @@ except Exception:
 
 ## Process source code and other resources
 
-from pyzo import __version__
+with open(srcDir + "__init__.py") as fh:
+    __version__ = re.search(r"__version__ = \"(.*?)\"", fh.read()).group(1)
 
 bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
 
