@@ -218,7 +218,7 @@ if sys.platform.startswith("darwin"):
         line.strip() for line in extra_plist_info.splitlines()
     )
     extra_plist_info = extra_plist_info.replace("X.Y.Z", __version__)
-    plist_filename = os.path.join(distDir, "pyzo", "pyzo.app", "Contents", "Info.plist")
+    plist_filename = os.path.join(distDir, "pyzo.app", "Contents", "Info.plist")
     text = open(plist_filename, "rb").read().decode()
     i1 = text.index("<key>CFBundleShortVersionString</key")
     i2 = text.index("</string>", i1) + len("</string>")
