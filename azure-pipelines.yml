@@ -23,11 +23,11 @@ jobs:
         LINT: 1
         TEST: 1
       Linux-64:
-        vmImage: ubuntu-16.04
+        vmImage: ubuntu-18.04
         TEST: 1
         FREEZE: 1
         PY_VERSION: native
-        PY_EXE: python3.6
+        PY_EXE: python3
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
@@ -54,16 +54,6 @@ jobs:
       versionSpec: $(PY_VERSION)
       architecture: $(PY_ARCH)
   - task: Bash@3
-    displayName: Install Python 3.6 (on Linux)
-    condition: eq(variables['PY_VERSION'], 'native')
-    inputs:
-      targetType: inline
-      script: |
-        set -ex
-        sudo add-apt-repository -y ppa:deadsnakes/ppa
-        sudo apt-get update
-        sudo apt-get install python3.6 python3.6-dev
-  - task: Bash@3
     displayName: Install development requirements
     inputs:
       targetType: inline
@@ -71,8 +61,7 @@ jobs:
         set -ex
         $(PY_EXE) -m pip install -U pip
         $(PY_EXE) -m pip install -U pyqt5
-        $(PY_EXE) -m pip install -U pytest black flake8
-        $(PY_EXE) -m pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
+        $(PY_EXE) -m pip install -U pytest black flake8 pyinstaller
   - task: Bash@3
     displayName: Install inno setup (on Windows)
     condition: eq(variables['Agent.OS'], 'Windows')
