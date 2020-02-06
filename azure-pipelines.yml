@@ -62,7 +62,9 @@ jobs:
           apt-get install -y software-properties-common python-software-properties
           add-apt-repository -y ppa:deadsnakes/ppa
           apt-get update
-          apt-get install -y python3.6 python3.6-dev python3.6-pip
+          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+          python3.6 get-pip.py
+          apt-get install -y python3.6 python3.6-dev
           python3.6 -m pip install -U pip &&\
           python3.6 -m pip install -U pyqt5 pyinstaller &&\
           python3.6 -m pip install . &&\
