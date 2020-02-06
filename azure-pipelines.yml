@@ -27,7 +27,7 @@ jobs:
         TEST: 0
         FREEZE: 0
         PY_VERSION: native
-        #PY_EXE: python3
+        #PY_EXE: python
         DOCKERIMAGE: cdrx/pyinstaller-linux:python3
       MacOS-64:
         vmImage: macOS-10.14
