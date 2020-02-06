@@ -59,10 +59,11 @@ jobs:
           cp -r /tmp/src/. . && \
           rm -rf ./frozen && \
           apt-get update
+          apt-get install -y curl objdump
           apt-get install -y software-properties-common python-software-properties
           add-apt-repository -y ppa:deadsnakes/ppa
           apt-get update
-          apt-get install -y python3.6 python3.6-dev curl
+          apt-get install -y python3.6 python3.6-dev
           curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
           python3.6 get-pip.py
           python3.6 -m pip install -U pip &&\
