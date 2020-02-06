@@ -24,10 +24,11 @@ jobs:
         TEST: 1
       Linux-64:
         vmImage: ubuntu-18.04
-        TEST: 1
-        FREEZE: 1
+        TEST: 0
+        FREEZE: 0
         PY_VERSION: native
-        PY_EXE: python3
+        #PY_EXE: python3
+        DOCKERIMAGE: cdrx/pyinstaller-linux:python3
       MacOS-64:
         vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
@@ -47,6 +48,25 @@ jobs:
     vmImage: $(vmImage)
 
   steps:
+  - task: Bash@3
+    displayName: Docker build
+    condition: and(succeeded(), ne(variables['DOCKERIMAGE'], ''))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro quay.io/pypa/$(DOCKERIMAGE) bash -c "\
+          cp -r /tmp/src/. . && \
+          rm -rf ./frozen && \
+          python -m pip install -U pip &&\
+          python -m pip install -U pyqt5 pyinstaller &&\
+          python -m pip install . &&\
+          python freeze/freezeScript.py &&\
+          rm -rf ./frozen/pyzo")
+        docker start -ai $CID
+        mkdir -p frozen
+        docker cp $CID:/tmp/pyzo/frozen/. ./frozen/.
+        docker rm $CID
   - task: UsePythonVersion@0
     displayName: Select Python
     condition: ne(variables['PY_VERSION'], 'native')
@@ -120,7 +140,7 @@ jobs:
         rm -rf ./frozen/pyzo.app
   - task: PublishBuildArtifacts@1
     displayName: Publish distributions
-    condition: and(succeeded(), eq(variables['FREEZE'], '1'))
+    condition: and(succeeded(), or(ne(variables['DOCKERIMAGE'], ''), eq(variables['FREEZE'], '1')))
     inputs:
       pathtoPublish: frozen
       artifactName: frozen

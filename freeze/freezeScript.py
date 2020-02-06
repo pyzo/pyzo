@@ -6,6 +6,9 @@ Pyzo is frozen in such a way that it still uses the plain source code.
 This is achieved by putting the Pyzo package in a subdirectory called
 "source". This source directory is added to sys.path by __main__.py.
 
+In case we need better support for older MacOS:
+https://gist.github.com/phfaist/a5b8a895b003822df5397731f4673042
+
 """
 
 import os
