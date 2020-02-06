@@ -50,7 +50,7 @@ jobs:
   steps:
   - task: Bash@3
     displayName: Docker build
-    condition: and(succeeded(), ne(variables['DOCKERIMAGE'], ''))
+    condition: ne(variables['DOCKERIMAGE'], '')
     inputs:
       targetType: inline
       script: |
@@ -75,6 +75,7 @@ jobs:
       architecture: $(PY_ARCH)
   - task: Bash@3
     displayName: Install development requirements
+    condition: or(eq(variables['TEST'], '1'), eq(variables['FREEZE'], '1'))
     inputs:
       targetType: inline
       script: |
