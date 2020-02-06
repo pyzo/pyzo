@@ -71,7 +71,8 @@ jobs:
         set -ex
         $(PY_EXE) -m pip install -U pip
         $(PY_EXE) -m pip install -U pyqt5
-        $(PY_EXE) -m pip install -U pytest black flake8 pyinstaller==3.6
+        $(PY_EXE) -m pip install -U pytest black flake8
+        $(PY_EXE) -m pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
   - task: Bash@3
     displayName: Install inno setup (on Windows)
     condition: eq(variables['Agent.OS'], 'Windows')

@@ -120,6 +120,7 @@ if sys.platform.startswith("win"):
 elif sys.platform.startswith("darwin"):
     cmd.append("--windowed")  # makes a .app bundle
     cmd.extend(["--icon", iconFile[:-3] + "icns"])
+    cmd.extend(["--osx-bundle-identifier", "org.pyzo.pyzo4"])
 
 cmd.append(srcDir + "__main__.py")
 
