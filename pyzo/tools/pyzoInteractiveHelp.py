@@ -686,11 +686,15 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
 
             # Compile rich text
             text += get_title_text(objectName, h_class, h_repr)
+            if h_fun is not None and h_fun != "" :
+                text += "<p><b>Signature:</b> {}</p>".format(h_fun)
             text += "{}<br />".format(h_text)
 
         except Exception:
             try:
                 text += get_title_text(objectName, h_class, h_repr)
+                if h_fun is not None and h_fun != "" :
+                    text += "<p><b>Signature:</b> {}</p>".format(h_fun)
                 text += h_text
             except Exception:
                 text = response
