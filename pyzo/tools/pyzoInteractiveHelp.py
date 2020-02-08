@@ -670,9 +670,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                         header, sep, docs = h_text.partition("\n")
                         # h_text = header + '\n\n' + docs
                         h_text = docs
-                    elif h_fun is not None and h_fun != "" :
+                    elif h_fun is not None and h_fun != "":
                         header = h_fun
-
 
                 # Parse the text as rest/numpy like docstring
                 h_text = self.smartFormat(h_text)
@@ -689,14 +688,14 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
 
             # Compile rich text
             text += get_title_text(objectName, h_class, h_repr)
-            if not self._config.smartNewlines and h_fun is not None and h_fun != "" :
+            if not self._config.smartNewlines and h_fun is not None and h_fun != "":
                 text += "<p><b>Signature:</b> {}</p>".format(h_fun)
             text += "{}<br />".format(h_text)
 
         except Exception:
             try:
                 text += get_title_text(objectName, h_class, h_repr)
-                if h_fun is not None and h_fun != "" :
+                if h_fun is not None and h_fun != "":
                     text += "<p><b>Signature:</b> {}</p>".format(h_fun)
                 text += h_text
             except Exception:
