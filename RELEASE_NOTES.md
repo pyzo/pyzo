@@ -5,6 +5,7 @@
 
 - We've now automized the building of binaries on Azure Pipelines!
 - Our code is now formatted with Black, and checked with Flake8.
+- CI does not have a lot of tests yet, but we do check linting and importing on Python 3.5 and 3.8.
 - Implemented support for highres displays (although I am unable to verify myself).
 - Improve the workspace display of list, tuple, dict and array.
 - Clean up `LD_LIBRARY_PATH` for the kernels (#665).
