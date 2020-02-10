@@ -21,12 +21,12 @@ d = response.json()
 alltime_count = 0
 
 for release in reversed(d):
-    print("{} @ {}".format(release['name'], release['created_at']))
+    print("{} @ {}".format(release["name"], release["created_at"]))
     total_count = 0
     for asset in release["assets"]:
         count = asset["download_count"]
         total_count += count
-        print("    {}: {}".format(asset['name'], count))
+        print("    {}: {}".format(asset["name"], count))
     print("    Total: {}\n".format(total_count))
     alltime_count += total_count
 

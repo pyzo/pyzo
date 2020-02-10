@@ -88,7 +88,7 @@ jobs:
         set -ex
         $(PY_EXE) -m pip install -U pip
         $(PY_EXE) -m pip install -U pyqt5
-        $(PY_EXE) -m pip install -U pytest black flake8 pyinstaller
+        $(PY_EXE) -m pip install -U pytest pyinstaller
   - task: Bash@3
     displayName: Install inno setup (on Windows)
     condition: eq(variables['Agent.OS'], 'Windows')
@@ -98,13 +98,22 @@ jobs:
         set -ex
         choco install innosetup --version=5.6.1
   - task: Bash@3
-    displayName: Lint (black & flake8)
+    displayName: Lint black
+    condition: and(succeeded(), eq(variables['LINT'], '1'), ne(variables['PY_VERSION'], '3.5'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        $(PY_EXE) -m pip install -U pytest black
+        black --check .
+  - task: Bash@3
+    displayName: Lint flake8
     condition: and(succeeded(), eq(variables['LINT'], '1'))
     inputs:
       targetType: inline
       script: |
         set -ex
-        black --check .
+        $(PY_EXE) -m pip install -U pytest flake8
         flake8 .
   - task: Bash@3
     displayName: Install sdist
