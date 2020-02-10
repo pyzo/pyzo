@@ -194,8 +194,11 @@ def getEnvFromKernelInfo(info):
 
     # PyInstaller prepends the root app dir to LD_LIBRARY_PATH (see #665)
     if getattr(sys, "frozen", False) and "LD_LIBRARY_PATH" in env:
-        rem = os.path.dirname(sys.executable) + os.pathsep
-        env["LD_LIBRARY_PATH"] = env["LD_LIBRARY_PATH"].replace(rem, "")
+        to_remove = os.path.normpath(os.path.dirname(sys.executable))
+        paths = env["LD_LIBRARY_PATH"].split(os.pathsep)
+        paths = [os.path.normpath(p) for p in paths]
+        paths = [p for p in paths if p != to_remove]
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(paths)
 
     # Remove Qt plugin directories, because it breaks Qt integration for the kernel
     # on several systems. E.g. QT_QPA_PLATFORM_PLUGIN_PATH, QT_PLUGIN_PATH
