@@ -18,27 +18,33 @@ jobs:
 
   strategy:
     matrix:
-      Linux-tester:
+      Tester-3.5:
         vmImage: ubuntu-16.04
+        PY_VERSION: 3.5
         LINT: 1
         TEST: 1
-      Linux-64:
+      Tester-3.8:
         vmImage: ubuntu-18.04
+        PY_VERSION: 3.8
+        LINT: 1
+        TEST: 1
+      Build-Linux-64:
+        vmImage: ubuntu-18.04
+        PY_VERSION: native
         TEST: 0
         FREEZE: 0
-        PY_VERSION: native
         #PY_EXE: python
         DOCKERIMAGE:  python:3.7-stretch
-      MacOS-64:
+      Build-MacOS-64:
         vmImage: macOS-10.13
         MACOSX_DEPLOYMENT_TARGET: '10.13'
         TEST: 1
         FREEZE: 1
-      Windows-64:
+      Build-Windows-64:
         vmImage: vs2017-win2016
         TEST: 1
         FREEZE: 1
-      Windows-32:
+      Build-Windows-32:
         vmImage: vs2017-win2016
         PY_ARCH: x86
         TEST: 1
