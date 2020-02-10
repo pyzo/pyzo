@@ -86,7 +86,7 @@ jobs:
       targetType: inline
       script: |
         set -ex
-        $(PY_EXE) -m pip install -U pip
+        $(PY_EXE) -m pip install -U pip setuptools
         $(PY_EXE) -m pip install -U pyqt5
         $(PY_EXE) -m pip install -U pytest pyinstaller
   - task: Bash@3
