@@ -1,6 +1,11 @@
 # Release notes
 
 
+### Version 4.10.2 (10-02-2020)
+
+- Fix that PyInstaller's changes to `LD_LIBRARY_PATH` leak through to the kernels (#665).
+
+
 ### Version 4.10.1 (10-02-2020)
 
 - We've now automized the building of binaries on Azure Pipelines!
