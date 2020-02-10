@@ -10,43 +10,82 @@ variables:
   NAME: pyzo
   PY_ARCH: x64
   PY_VERSION: 3.7
+  PY_EXE: python
 
 jobs:
+
 - job: Build
+
   strategy:
     matrix:
-      Linux:
+      Linux-tester:
         vmImage: ubuntu-16.04
-        SDIST: 1
         LINT: 1
-      MacOS:
-        vmImage: macOS-10.14
+        TEST: 1
+      Linux-64:
+        vmImage: ubuntu-18.04
+        TEST: 0
+        FREEZE: 0
+        PY_VERSION: native
+        #PY_EXE: python
+        DOCKERIMAGE:  python:3.7-stretch
+      MacOS-64:
+        vmImage: macOS-10.13
         MACOSX_DEPLOYMENT_TARGET: '10.13'
-      Windows:
+        TEST: 1
+        FREEZE: 1
+      Windows-64:
         vmImage: vs2017-win2016
+        TEST: 1
+        FREEZE: 1
       Windows-32:
         vmImage: vs2017-win2016
         PY_ARCH: x86
+        TEST: 1
+        FREEZE: 1
+
   pool:
     vmImage: $(vmImage)
+
   steps:
+  - task: Bash@3
+    displayName: Docker build
+    condition: ne(variables['DOCKERIMAGE'], '')
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro $(DOCKERIMAGE) bash -c "\
+          cp -r /tmp/src/. . && \
+          rm -rf ./frozen && \
+          python -m pip install -U pip &&\
+          python -m pip install -U pyqt5 pyinstaller &&\
+          python -m pip install . &&\
+          python freeze/freezeScript.py &&\
+          rm -rf ./frozen/pyzo")
+        docker start -ai $CID
+        mkdir -p frozen
+        docker cp $CID:/tmp/pyzo/frozen/. ./frozen/.
+        docker rm $CID
   - task: UsePythonVersion@0
     displayName: Select Python
+    condition: ne(variables['PY_VERSION'], 'native')
     inputs:
       versionSpec: $(PY_VERSION)
       architecture: $(PY_ARCH)
   - task: Bash@3
     displayName: Install development requirements
+    condition: or(eq(variables['TEST'], '1'), eq(variables['FREEZE'], '1'))
     inputs:
       targetType: inline
       script: |
         set -ex
-        python -m pip install -U pip
-        pip install -U pyqt5
-        pip install -U pytest black flake8 pyinstaller
+        $(PY_EXE) -m pip install -U pip
+        $(PY_EXE) -m pip install -U pyqt5
+        $(PY_EXE) -m pip install -U pytest black flake8 pyinstaller
   - task: Bash@3
     displayName: Install inno setup (on Windows)
-    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
+    condition: eq(variables['Agent.OS'], 'Windows')
     inputs:
       targetType: inline
       script: |
@@ -63,19 +102,21 @@ jobs:
         flake8 .
   - task: Bash@3
     displayName: Install sdist
+    condition: and(succeeded(), eq(variables['TEST'], '1'))
     inputs:
       targetType: inline
       script: |
         set -ex
-        python setup.py sdist
-        pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
+        $(PY_EXE) setup.py sdist
+        $(PY_EXE) -m pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
   - task: Bash@3
     displayName: Test
+    condition: and(succeeded(), eq(variables['TEST'], '1'))
     inputs:
       targetType: inline
       script: |
         set -ex
-        pytest --junit-xml=results.xml tests || true
+        $(PY_EXE) -m pytest --junit-xml=results.xml tests || true
         # Fail the task if results.xml was not created
         if [[ ! -f results.xml ]]
         then
@@ -83,6 +124,7 @@ jobs:
           exit 1
         fi
   - task: PublishTestResults@2
+    condition: and(succeeded(), eq(variables['TEST'], '1'))
     inputs:
       testResultsFiles: results.xml
       mergeTestResults: true
@@ -90,23 +132,30 @@ jobs:
       testRunTitle: Test $(vmImage)
   - task: Bash@3
     displayName: Freeze
+    condition: and(succeeded(), eq(variables['FREEZE'], '1'))
     inputs:
       targetType: inline
       script: |
-        python freeze/freezeScript.py
+        $(PY_EXE) freeze/freezeScript.py
         rm -rf ./frozen/pyzo
         rm -rf ./frozen/pyzo.app
   - task: PublishBuildArtifacts@1
     displayName: Publish distributions
+    condition: and(succeeded(), or(ne(variables['DOCKERIMAGE'], ''), eq(variables['FREEZE'], '1')))
     inputs:
       pathtoPublish: frozen
       artifactName: frozen
 
+
 - job: Release
+
   dependsOn: Build
+
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
   pool:
     vmImage: ubuntu-16.04
+
   steps:
   - task: Bash@3
     displayName: git tag == git branch

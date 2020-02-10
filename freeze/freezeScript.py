@@ -6,9 +6,13 @@ Pyzo is frozen in such a way that it still uses the plain source code.
 This is achieved by putting the Pyzo package in a subdirectory called
 "source". This source directory is added to sys.path by __main__.py.
 
+In case we need better support for older MacOS:
+https://gist.github.com/phfaist/a5b8a895b003822df5397731f4673042
+
 """
 
 import os
+import re
 import sys
 import shutil
 import zipfile
@@ -120,15 +124,24 @@ if sys.platform.startswith("win"):
 elif sys.platform.startswith("darwin"):
     cmd.append("--windowed")  # makes a .app bundle
     cmd.extend(["--icon", iconFile[:-3] + "icns"])
+    cmd.extend(["--osx-bundle-identifier", "org.pyzo.pyzo4"])
 
 cmd.append(srcDir + "__main__.py")
 
 PyInstaller.__main__.run(cmd)
 
-os.remove(baseDir + "pyzo.spec")
+try:
+    os.remove(os.path.join(thisDir, "pyzo.spec"))
+except Exception:
+    pass
 
 
 ## Process source code and other resources
+
+with open(srcDir + "__init__.py") as fh:
+    __version__ = re.search(r"__version__ = \"(.*?)\"", fh.read()).group(1)
+
+bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
 
 
 def copydir_smart(path1, path2):
@@ -210,7 +223,7 @@ if sys.platform.startswith("darwin"):
         line.strip() for line in extra_plist_info.splitlines()
     )
     extra_plist_info = extra_plist_info.replace("X.Y.Z", __version__)
-    plist_filename = os.path.join(distDir, "pyzo", "pyzo.app", "Contents", "Info.plist")
+    plist_filename = os.path.join(distDir, "pyzo.app", "Contents", "Info.plist")
     text = open(plist_filename, "rb").read().decode()
     i1 = text.index("<key>CFBundleShortVersionString</key")
     i2 = text.index("</string>", i1) + len("</string>")
@@ -224,11 +237,6 @@ if sys.platform.startswith("darwin"):
 # Linux: .tar.gz
 # Windows: zip and exe installer
 # MacOS: DMG
-
-
-from pyzo import __version__
-
-bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
 
 
 if sys.platform.startswith("linux"):
@@ -261,7 +269,8 @@ if sys.platform.startswith("win"):
                 zf.write(filename1, filename2)
 
 
-if sys.platform.startswith("win"):
+if sys.platform.startswith("win") and bitness == "64":
+    # Note: for some reason the 32bit installer is broken. Ah well, the zip works.
     print("Packing up into exe installer (via Inno Setup) ...")
 
     exes = [
@@ -279,6 +288,8 @@ if sys.platform.startswith("win"):
     innoFile2 = os.path.join(thisDir, "installerBuilderScript2.iss")
     text = open(innoFile1, "rb").read().decode()
     text = text.replace("X.Y.Z", __version__).replace("64", bitness)
+    if bitness == "32":
+        text = text.replace("ArchitecturesInstallIn64BitMode = x64", "")
     with open(innoFile2, "wb") as f:
         f.write(text.encode())
     try:
