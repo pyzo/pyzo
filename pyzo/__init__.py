@@ -98,9 +98,12 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
 except Exception:
-    pass
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+    pass  # fail on non-windows
+try:
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+except Exception:
+    pass  # fail on older Qt's
 
 # Import language/translation tools
 from pyzo.util._locale import translate, setLanguage  # noqa
