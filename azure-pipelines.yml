@@ -34,7 +34,7 @@ jobs:
         TEST: 0
         FREEZE: 0
         #PY_EXE: python
-        DOCKERIMAGE:  python:3.7-stretch
+        DOCKERIMAGE: ubuntu:16.04
       Build-MacOS-64:
         vmImage: macOS-10.13
         MACOSX_DEPLOYMENT_TARGET: '10.13'
@@ -64,10 +64,10 @@ jobs:
         CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro $(DOCKERIMAGE) bash -c "\
           cp -r /tmp/src/. . && \
           rm -rf ./frozen && \
-          python -m pip install -U pip &&\
-          python -m pip install -U pyqt5 pyinstaller &&\
-          python -m pip install . &&\
-          python freeze/freezeScript.py &&\
+          python3 -m pip install -U pip &&\
+          python3 -m pip install -U pyqt5 pyinstaller &&\
+          python3 -m pip install . &&\
+          python3 freeze/freezeScript.py &&\
           rm -rf ./frozen/pyzo")
         docker start -ai $CID
         mkdir -p frozen
