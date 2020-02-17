@@ -130,7 +130,11 @@ class AutoCompletion(object):
             # Popup the autocompleter. Don't use .complete() since we want to
             # position the popup manually
             self.__positionAutocompleter()
-            if self.__updateAutocompleterPrefix() and len (self.__completer.completionPrefix()) >= self.__autocompleteMinChars:
+            if (
+                self.__updateAutocompleterPrefix()
+                and len(self.__completer.completionPrefix())
+                >= self.__autocompleteMinChars
+            ):
                 self.__autocompleteVisible = True
                 self.__completer.popup().show()
             if self.__autocompleteDebug:
