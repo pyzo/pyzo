@@ -47,6 +47,10 @@ class AutoCompletion(object):
         # Text position corresponding to first charcter of the word being completed
         self.__autocompleteStart = None
 
+        # We show the popup when this many chars have been input
+        self.__autocompleteMinChars = 3
+        self.__autocompleteVisible = False
+
         self.__autocompleteDebug = False
 
         self.__autocompletionAcceptKeys = (Qt.Key_Tab,)
@@ -117,6 +121,7 @@ class AutoCompletion(object):
         if (
             not self.autocompleteActive()
             or startcursor.position() != self.__autocompleteStart.position()
+            or not self.autocompleteVisible()
         ):
 
             self.__autocompleteStart = startcursor
@@ -125,7 +130,8 @@ class AutoCompletion(object):
             # Popup the autocompleter. Don't use .complete() since we want to
             # position the popup manually
             self.__positionAutocompleter()
-            if self.__updateAutocompleterPrefix():
+            if self.__updateAutocompleterPrefix() and len (self.__completer.completionPrefix()) >= self.__autocompleteMinChars:
+                self.__autocompleteVisible = True
                 self.__completer.popup().show()
             if self.__autocompleteDebug:
                 print("self.__completer.popup().show() called")
@@ -136,10 +142,12 @@ class AutoCompletion(object):
     def autocompleteAccept(self):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
+        self.__autocompleteVisible = False
 
     def autocompleteCancel(self):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
+        self.__autocompleteVisible = False
         if self.__cancelCallback is not None:
             try:
                 self.__cancelCallback()
@@ -162,9 +170,14 @@ class AutoCompletion(object):
         self.__recentCompletions.append(text)
 
     def autocompleteActive(self):
-        """ Returns whether an autocompletion list is currently shown.
+        """ Returns whether an autocompletion list is currently started.
         """
         return self.__autocompleteStart is not None
+
+    def autocompleteVisible(self):
+        """ Returns whether an autocompletion list is currently shown.
+        """
+        return self.__autocompleteVisible
 
     def __positionAutocompleter(self):
         """Move the autocompleter list to a proper position"""
@@ -199,6 +212,7 @@ class AutoCompletion(object):
         """
         if not self.autocompleteActive():
             self.__completer.popup().hide()  # TODO: why is this required?
+            self.__autocompleteVisible = False
             return False
 
         # Select the text from autocompleteStart until the current cursor
