@@ -53,6 +53,7 @@ settings= dict:
     autoComplete_caseSensitive = 0
     autoComplete_fillups = '\n'
     autoComplete_acceptKeys = 'Tab'
+    autoComplete_minChars = 3
     justificationWidth = 70
     removeTrailingWhitespaceWhenSaving = 0
     changeDirOnFileExec = 0
