@@ -98,6 +98,12 @@ class AutoCompletion(object):
         """
         self.__popupSize = width, height
 
+    def setAutocompleteMinChars(self, n) :
+        """
+        Set the number of chars where we show the popup.
+        """
+        self.__autocompleteMinChars = n
+
     def autocompleteShow(self, offset=0, names=None):
         """
         Pop-up the autocompleter (if not already visible) and position it at current
