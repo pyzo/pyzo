@@ -188,7 +188,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
     """ The base text control class.
     Inherited by the shell class and the Pyzo editor.
     The class implements autocompletion, calltips, and auto-help
-    
+
     Inherits from QsciScintilla. I tried to clean up the rather dirty api
     by using more sensible names. Hereby I apply the following rules:
     - if you set something, the method starts with "set"
@@ -240,6 +240,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
         self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
+        self.setAutocompleteMinChars(pyzo.config.settings.autoComplete_minChars)
         self.setCancelCallback(self.restoreHelp)
 
     def setAutoCompletionAcceptKeysFromStr(self, keys):
@@ -297,19 +298,19 @@ class BaseTextCtrl(codeeditor.CodeEditor):
 
     def introspect(self, tryAutoComp=False, delay=True):
         """ introspect(tryAutoComp=False, delay=True)
-        
+
         The starting point for introspection (autocompletion and calltip).
         It will always try to produce a calltip. If tryAutoComp is True,
         will also try to produce an autocompletion list (which, on success,
         will hide the calltip).
-        
+
         This method will obtain the line and (re)start a timer that will
         call _introspectNow() after a short while. This way, if the
         user types a lot of characters, there is not a stream of useless
         introspection attempts; the introspection is only really started
         after he stops typing for, say 0.1 or 0.5 seconds (depending on
         pyzo.config.autoCompDelay).
-        
+
         The method _introspectNow() will parse the line to obtain
         information required to obtain the autocompletion and signature
         information. Then it calls processCallTip and processAutoComp
@@ -466,10 +467,10 @@ class BaseTextCtrl(codeeditor.CodeEditor):
 
     def event(self, event):
         """ event(event)
-        
+
         Overload main event handler so we can pass Ctrl-C Ctr-v etc, to the main
         window.
-        
+
         """
         if isinstance(event, QtGui.QKeyEvent):
             # Ignore CTRL+{A-Z} since those keys are handled through the menu
