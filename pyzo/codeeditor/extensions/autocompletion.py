@@ -98,7 +98,7 @@ class AutoCompletion(object):
         """
         self.__popupSize = width, height
 
-    def setAutocompleteMinChars(self, n) :
+    def setAutocompleteMinChars(self, n):
         """
         Set the number of chars where we show the popup.
         """
@@ -226,11 +226,11 @@ class AutoCompletion(object):
         cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
 
         prefix = cursor.selectedText()
-        if len(prefix) < self.__autocompleteMinChars :
+        if len(prefix) < self.__autocompleteMinChars:
             self.__completer.setCompletionPrefix("")
             self.autocompleteCancel()
             return False
-        else :
+        else:
             self.__completer.setCompletionPrefix(prefix)
             model = self.__completer.completionModel()
             if model.rowCount():
@@ -243,7 +243,9 @@ class AutoCompletion(object):
                 completions = [
                     (
                         row,
-                        model.data(model.index(row, 0), self.__completer.completionRole()),
+                        model.data(
+                            model.index(row, 0), self.__completer.completionRole()
+                        ),
                     )
                     for row in range(model.rowCount())
                 ]
