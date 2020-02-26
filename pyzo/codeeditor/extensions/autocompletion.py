@@ -47,6 +47,10 @@ class AutoCompletion(object):
         # Text position corresponding to first charcter of the word being completed
         self.__autocompleteStart = None
 
+        # We show the popup when this many chars have been input
+        self.__autocompleteMinChars = 3
+        self.__autocompleteVisible = False
+
         self.__autocompleteDebug = False
 
         self.__autocompletionAcceptKeys = (Qt.Key_Tab,)
@@ -94,6 +98,12 @@ class AutoCompletion(object):
         """
         self.__popupSize = width, height
 
+    def setAutocompleteMinChars(self, n):
+        """
+        Set the number of chars where we show the popup.
+        """
+        self.__autocompleteMinChars = n
+
     def autocompleteShow(self, offset=0, names=None):
         """
         Pop-up the autocompleter (if not already visible) and position it at current
@@ -117,6 +127,7 @@ class AutoCompletion(object):
         if (
             not self.autocompleteActive()
             or startcursor.position() != self.__autocompleteStart.position()
+            or not self.autocompleteVisible()
         ):
 
             self.__autocompleteStart = startcursor
@@ -126,6 +137,7 @@ class AutoCompletion(object):
             # position the popup manually
             self.__positionAutocompleter()
             if self.__updateAutocompleterPrefix():
+                self.__autocompleteVisible = True
                 self.__completer.popup().show()
             if self.__autocompleteDebug:
                 print("self.__completer.popup().show() called")
@@ -136,10 +148,12 @@ class AutoCompletion(object):
     def autocompleteAccept(self):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
+        self.__autocompleteVisible = False
 
     def autocompleteCancel(self):
         self.__completer.popup().hide()
         self.__autocompleteStart = None
+        self.__autocompleteVisible = False
         if self.__cancelCallback is not None:
             try:
                 self.__cancelCallback()
@@ -162,9 +176,14 @@ class AutoCompletion(object):
         self.__recentCompletions.append(text)
 
     def autocompleteActive(self):
-        """ Returns whether an autocompletion list is currently shown.
+        """ Returns whether an autocompletion list is currently started.
         """
         return self.__autocompleteStart is not None
+
+    def autocompleteVisible(self):
+        """ Returns whether an autocompletion list is currently shown.
+        """
+        return self.__autocompleteVisible
 
     def __positionAutocompleter(self):
         """Move the autocompleter list to a proper position"""
@@ -199,6 +218,7 @@ class AutoCompletion(object):
         """
         if not self.autocompleteActive():
             self.__completer.popup().hide()  # TODO: why is this required?
+            self.__autocompleteVisible = False
             return False
 
         # Select the text from autocompleteStart until the current cursor
@@ -206,47 +226,54 @@ class AutoCompletion(object):
         cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
 
         prefix = cursor.selectedText()
-        self.__completer.setCompletionPrefix(prefix)
-        model = self.__completer.completionModel()
-        if model.rowCount():
-            # Create a list of all possible completions, and select the one
-            # which is best suited. Use the one which is highest in the
-            # __recentCompletions list, but prefer completions with matching
-            # case if they exists
-
-            # Create a list of (row, value) tuples of all possible completions
-            completions = [
-                (
-                    row,
-                    model.data(model.index(row, 0), self.__completer.completionRole()),
-                )
-                for row in range(model.rowCount())
-            ]
-
-            # Define a function to get the position in the __recentCompletions
-            def completionIndex(data):
-                try:
-                    return self.__recentCompletions.index(data)
-                except ValueError:
-                    return -1
-
-            # Sort twice; the last sort has priority over the first
-
-            # Sort on most recent completions
-            completions.sort(key=lambda c: completionIndex(c[1]), reverse=True)
-            # Sort on matching case (prefer matching case)
-            completions.sort(key=lambda c: c[1].startswith(prefix), reverse=True)
-
-            # apply the best match
-            bestMatchRow = completions[0][0]
-            self.__completer.popup().setCurrentIndex(model.index(bestMatchRow, 0))
-
-            return True
-
-        else:
-            # No match, just hide
+        if len(prefix) < self.__autocompleteMinChars:
+            self.__completer.setCompletionPrefix("")
             self.autocompleteCancel()
             return False
+        else:
+            self.__completer.setCompletionPrefix(prefix)
+            model = self.__completer.completionModel()
+            if model.rowCount():
+                # Create a list of all possible completions, and select the one
+                # which is best suited. Use the one which is highest in the
+                # __recentCompletions list, but prefer completions with matching
+                # case if they exists
+
+                # Create a list of (row, value) tuples of all possible completions
+                completions = [
+                    (
+                        row,
+                        model.data(
+                            model.index(row, 0), self.__completer.completionRole()
+                        ),
+                    )
+                    for row in range(model.rowCount())
+                ]
+
+                # Define a function to get the position in the __recentCompletions
+                def completionIndex(data):
+                    try:
+                        return self.__recentCompletions.index(data)
+                    except ValueError:
+                        return -1
+
+                # Sort twice; the last sort has priority over the first
+
+                # Sort on most recent completions
+                completions.sort(key=lambda c: completionIndex(c[1]), reverse=True)
+                # Sort on matching case (prefer matching case)
+                completions.sort(key=lambda c: c[1].startswith(prefix), reverse=True)
+
+                # apply the best match
+                bestMatchRow = completions[0][0]
+                self.__completer.popup().setCurrentIndex(model.index(bestMatchRow, 0))
+
+                return True
+
+            else:
+                # No match, just hide
+                self.autocompleteCancel()
+                return False
 
     def potentiallyAutoComplete(self, event):
         """ potentiallyAutoComplete(event)
