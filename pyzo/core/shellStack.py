@@ -622,13 +622,13 @@ class InterpreterHelper(QtWidgets.QWidget):
         self.setLayout(layout)
         layout.addWidget(self._label, 1)
 
-    def refresh(self):
+    def refresh(self, noRedetect = False):
         self._label.setText("Detecting interpreters ...")
         QtWidgets.qApp.flush()
         QtWidgets.qApp.processEvents()
-        self.detect()
+        self.detect(noRedetect)
 
-    def detect(self):
+    def detect(self, noRedetect = False):
 
         python_link = '<a href="https://www.python.org/">Python</a>'
         conda_link = '<a href="https://miniconda.pyzo.org">Miniconda</a>'
@@ -636,10 +636,13 @@ class InterpreterHelper(QtWidgets.QWidget):
         configs = pyzo.config.shellConfigs2
 
         # Hide now?
-        if pyzo.config.settings.auto_useFound < 2 and configs and configs[0].exe:
+        if (noRedetect or pyzo.config.settings.auto_useFound < 2) and configs and configs[0].exe:
             self._label.setText("Happy coding!")
             QtCore.QTimer.singleShot(1200, self.hide_this)
             return
+
+        # Always sleep for a bit, so show that we've refreshed
+        time.sleep(0.05)
 
         # Try to find an interpreter
         from pyzo.util.interpreters import get_interpreters
@@ -694,11 +697,10 @@ class InterpreterHelper(QtWidgets.QWidget):
                 python_link,
                 conda_link,
             )
-        if pyzo.config.settings.auto_useFound > 0 and self._the_exe :
+        if pyzo.config.settings.auto_useFound > 0 and not noRedetect and self._the_exe :
+            QtWidgets.qApp.flush()
+            QtWidgets.qApp.processEvents()
             self.useFound()
-        else :
-            # Always sleep for a bit, so show that we've refreshed
-            time.sleep(0.05)
 
         link_style = "font-weight: bold; color:#369; text-decoration:underline;"
         self._label.setText(text.replace("<a ", '<a style="%s" ' % link_style))
@@ -740,19 +742,25 @@ class InterpreterHelper(QtWidgets.QWidget):
                 from pyzo.core.kernelbroker import KernelInfo
                 configs.insert(0, KernelInfo())
                 config_to_use = configs[0]
-            if config_to_use :
+            if config_to_use is not None :
                 config_to_use.exe = self._the_exe
                 config_to_use.wasAutodetected = True
-                self.restart_shell()
-        self.refresh()
+                self.restart_shell(config_to_use)
+            self.refresh(True)
+        else:
+            self.refresh()
 
     def hide_this(self):
         shells = self.parent()
         shells.showInterpreterHelper(False)
 
-    def restart_shell(self):
+    def restart_shell(self, config = None):
+        if config is None and len(pyzo.config.shellConfigs2) > 0 :
+            config = pyzo.config.shellConfigs2[0]
+        if config is None :
+            return
         shells = self.parent()
         shell = shells.getCurrentShell()
         if shell is not None:
             shell.closeShell()
-        shells.addShell(pyzo.config.shellConfigs2[0])
+        shells.addShell(config)
