@@ -73,13 +73,13 @@ def shellTitle(shell, moreinfo=False):
 
 class ShellStackWidget(QtWidgets.QWidget):
     """ The shell stack widget provides a stack of shells.
-    
+
     It wrapps a QStackedWidget that contains the shell objects. This
     stack is used as a reference to synchronize the shell selection with.
     We keep track of what is the current selected shell and apply updates
     if necessary. Therefore, changing the current shell in the stack
     should be enough to invoke a full update.
-    
+
     """
 
     # When the current shell changes.
@@ -648,9 +648,6 @@ class InterpreterHelper(QtWidgets.QWidget):
         conda_interpreters = [i for i in interpreters if i.is_conda]
         conda_interpreters.sort(key=lambda x: len(x.path.replace("pyzo", "pyzo" * 10)))
 
-        # Always sleep for a bit, so show that we've refreshed
-        time.sleep(0.05)
-
         if conda_interpreters and conda_interpreters[0].version > "3":
             self._the_exe = conda_interpreters[0].path
             text = """Pyzo detected a conda environment in:
@@ -697,6 +694,11 @@ class InterpreterHelper(QtWidgets.QWidget):
                 python_link,
                 conda_link,
             )
+        if pyzo.config.settings.auto_useFound > 0 and self._the_exe :
+            self.useFound()
+        else :
+            # Always sleep for a bit, so show that we've refreshed
+            time.sleep(0.05)
 
         link_style = "font-weight: bold; color:#369; text-decoration:underline;"
         self._label.setText(text.replace("<a ", '<a style="%s" ' % link_style))
