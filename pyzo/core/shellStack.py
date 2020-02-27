@@ -636,7 +636,7 @@ class InterpreterHelper(QtWidgets.QWidget):
         configs = pyzo.config.shellConfigs2
 
         # Hide now?
-        if configs and configs[0].exe:
+        if pyzo.config.settings.auto_useFound < 2 and configs and configs[0].exe:
             self._label.setText("Happy coding!")
             QtCore.QTimer.singleShot(1200, self.hide_this)
             return
