@@ -727,12 +727,23 @@ class InterpreterHelper(QtWidgets.QWidget):
         # Set newfound interpreter
         if self._the_exe:
             configs = pyzo.config.shellConfigs2
-            if not configs:
+            config_to_use = None
+            # if there is no shell : create one and use it
+            # if auto_useFound == 2 and there is an autodetected shell : update it
+            # if auto_useFound == 2 and there is no autodetected shell : create one and use it
+            if pyzo.config.settings.auto_useFound == 2 :
+                for conf in configs :
+                    if getattr(conf, "wasAutodetected", False) :
+                        config_to_use = conf
+                        break
+            if len(configs) == 0 or pyzo.config.settings.auto_useFound == 2 and config_to_use is None :
                 from pyzo.core.kernelbroker import KernelInfo
-
-                pyzo.config.shellConfigs2.append(KernelInfo())
-            configs[0].exe = self._the_exe
-            self.restart_shell()
+                configs.insert(0, KernelInfo())
+                config_to_use = configs[0]
+            if config_to_use :
+                config_to_use.exe = self._the_exe
+                config_to_use.wasAutodetected = True
+                self.restart_shell()
         self.refresh()
 
     def hide_this(self):
