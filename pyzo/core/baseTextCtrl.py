@@ -643,7 +643,7 @@ class AutoCompObject:
 
     def _finish(self, names):
         # Show completion list if required.
-        self.textCtrl.autocompleteShow(len(self.needle), names)
+        self.textCtrl.autocompleteShow(len(self.needle), names, self.name != "")
 
     def nameInImportNames(self, importNames):
         """ nameInImportNames(importNames)
