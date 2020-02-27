@@ -228,7 +228,10 @@ class AutoCompletion(object):
         cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
 
         prefix = cursor.selectedText()
-        if not self.__autocompleteFromObject and len(prefix) < self.__autocompleteMinChars:
+        if (
+            not self.__autocompleteFromObject
+            and len(prefix) < self.__autocompleteMinChars
+        ):
             self.__completer.setCompletionPrefix("")
             self.autocompleteCancel()
             return False
