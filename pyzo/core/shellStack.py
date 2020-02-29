@@ -697,9 +697,7 @@ class InterpreterHelper(QtWidgets.QWidget):
                 conda_link,
             )
         if pyzo.config.settings.auto_useFound > 0 and self._the_exe :
-            QtWidgets.qApp.flush()
-            QtWidgets.qApp.processEvents()
-            self.useFound()
+            QtCore.QTimer.singleShot(100, self.useFound)
 
         link_style = "font-weight: bold; color:#369; text-decoration:underline;"
         self._label.setText(text.replace("<a ", '<a style="%s" ' % link_style))
