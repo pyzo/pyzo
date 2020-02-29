@@ -622,13 +622,13 @@ class InterpreterHelper(QtWidgets.QWidget):
         self.setLayout(layout)
         layout.addWidget(self._label, 1)
 
-    def refresh(self, noRedetect = False):
+    def refresh(self):
         self._label.setText("Detecting interpreters ...")
         QtWidgets.qApp.flush()
         QtWidgets.qApp.processEvents()
-        self.detect(noRedetect)
+        self.detect()
 
-    def detect(self, noRedetect = False):
+    def detect(self):
 
         python_link = '<a href="https://www.python.org/">Python</a>'
         conda_link = '<a href="https://miniconda.pyzo.org">Miniconda</a>'
@@ -636,9 +636,8 @@ class InterpreterHelper(QtWidgets.QWidget):
         configs = pyzo.config.shellConfigs2
 
         # Hide now?
-        if (noRedetect or pyzo.config.settings.auto_useFound < 2) and configs and configs[0].exe:
-            self._label.setText("Happy coding!")
-            QtCore.QTimer.singleShot(1200, self.hide_this)
+        if pyzo.config.settings.auto_useFound < 2 and configs and configs[0].exe:
+            self.finish()
             return
 
         # Always sleep for a bit, so show that we've refreshed
@@ -697,7 +696,7 @@ class InterpreterHelper(QtWidgets.QWidget):
                 python_link,
                 conda_link,
             )
-        if pyzo.config.settings.auto_useFound > 0 and not noRedetect and self._the_exe :
+        if pyzo.config.settings.auto_useFound > 0 and self._the_exe :
             QtWidgets.qApp.flush()
             QtWidgets.qApp.processEvents()
             self.useFound()
@@ -746,9 +745,15 @@ class InterpreterHelper(QtWidgets.QWidget):
                 config_to_use.exe = self._the_exe
                 config_to_use.wasAutodetected = True
                 self.restart_shell(config_to_use)
-            self.refresh(True)
+            self.finish()
         else:
             self.refresh()
+
+    def finish(self) :
+        QtWidgets.qApp.flush()
+        QtWidgets.qApp.processEvents()
+        self._label.setText("Happy coding!")
+        QtCore.QTimer.singleShot(1200, self.hide_this)
 
     def hide_this(self):
         shells = self.parent()
