@@ -640,15 +640,15 @@ class InterpreterHelper(QtWidgets.QWidget):
             self.finish()
             return
 
-        # Always sleep for a bit, so show that we've refreshed
-        time.sleep(0.05)
-
         # Try to find an interpreter
         from pyzo.util.interpreters import get_interpreters
 
         interpreters = list(reversed(get_interpreters("2.4")))
         conda_interpreters = [i for i in interpreters if i.is_conda]
         conda_interpreters.sort(key=lambda x: len(x.path.replace("pyzo", "pyzo" * 10)))
+
+        # Always sleep for a bit, so show that we've refreshed
+        time.sleep(0.05)
 
         if conda_interpreters and conda_interpreters[0].version > "3":
             self._the_exe = conda_interpreters[0].path
