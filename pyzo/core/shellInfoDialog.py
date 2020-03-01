@@ -559,7 +559,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         try:
             for key, widget in self._shellInfoWidgets.items():
                 info[key] = widget.getTheText()
-            if info["exe"] != self._shellInfoWidgets["exe"].original_value :
+            if info["exe"] != self._shellInfoWidgets["exe"].original_value:
                 info["wasAutodetected"] = False
 
         except Exception as why:
