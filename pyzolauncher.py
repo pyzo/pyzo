@@ -23,13 +23,15 @@ import sys
 
 # faulthandler helps debugging hard crashes, it is included in py3.3
 try:
-    if sys.executable.lower().endswith('pythonw.exe'):
-        raise ImportError('Dont use faulthandler in pythonw.exe')
+    if sys.executable.lower().endswith("pythonw.exe"):
+        raise ImportError("Dont use faulthandler in pythonw.exe")
     import faulthandler
+
     faulthandler.enable()
 except ImportError:
     pass
 
 
 import pyzo
+
 pyzo.start()

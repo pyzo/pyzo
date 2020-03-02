@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, the Pyzo development team
 #
-# Yoton is distributed under the terms of the (new) BSD License.
+# Yoton is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """ Module yoton.channels.channels_reqprep
@@ -20,24 +20,27 @@ from yoton.channels import BaseChannel, OBJECT
 
 
 # For the req/rep channels to negotiate (simple load balancing)
-REQREP_SEQ_REF = 2**63
+REQREP_SEQ_REF = 2 ** 63
 
 # Define object to recognize errors
-ERROR_OBJECT = 'yoton_ERROR_HANDLING_REQUEST'
+ERROR_OBJECT = "yoton_ERROR_HANDLING_REQUEST"
 
 
 # Define exceoptions
 class TimeoutError(Exception):
     pass
+
+
 class CancelledError(Exception):
     pass
+
+
 # # Try loading the exceptions from the concurrency framework
 # # (or maybe not; it makes yoton less lightweight)
 # try:
 #     from concurrent.futures import TimeoutError, CancelledError
 # except ImportError:
 #     pass
-
 
 
 class Future(object):
@@ -53,42 +56,40 @@ class Future(object):
       * registering callbacks to handle the result when it is available
     
     """
-    
+
     def __init__(self, req_channel, req, request_id):
-        
+
         # For being a Future object
         self._result = None
-        self._status = 0 # 0:waiting, 1:running, 2:canceled, 3:error, 4:success
+        self._status = 0  # 0:waiting, 1:running, 2:canceled, 3:error, 4:success
         self._callbacks = []
-        
+
         # For handling req/rep
         self._req_channel = req_channel
         self._req = req
         self._request_id = request_id
         self._rep = bytes()
         self._replier = 0
-        
+
         # For resending
         self._first_send_time = time.time()
         self._next_send_time = self._first_send_time + 0.5
         self._auto_cancel_timeout = 10.0
-    
-    
+
     def _send(self, msg):
         """ _send(msg)
         
         For sending pre-request messages 'req?', 'req-'.
         
         """
-        msg = msg.encode('utf-8')
+        msg = msg.encode("utf-8")
         try:
-            self._req_channel._send(msg, 0, self._request_id+REQREP_SEQ_REF)
+            self._req_channel._send(msg, 0, self._request_id + REQREP_SEQ_REF)
         except IOError:
             # if self._closed, will call _send again, and catch IOerror,
             # which will result in one more call to cancel().
             self.cancel()
-    
-    
+
     def _resend_if_necessary(self):
         """ _resend_if_necessary()
         
@@ -104,10 +105,9 @@ class Future(object):
         elif timetime > self._first_send_time + self._auto_cancel_timeout:
             self.cancel()
         elif timetime > self._next_send_time:
-            self._send('req?')
+            self._send("req?")
             self._next_send_time = timetime + 0.5
-    
-    
+
     def set_auto_cancel_timeout(self, timeout):
         """ set_auto_cancel_timeout(timeout):
         
@@ -122,9 +122,8 @@ class Future(object):
         if timeout > 0:
             self._auto_cancel_timeout = float(timeout)
         else:
-            raise ValueError('A timeout cannot be negative')
-    
-    
+            raise ValueError("A timeout cannot be negative")
+
     def cancel(self):
         """ cancel()
         
@@ -133,22 +132,21 @@ class Future(object):
         the call will be cancelled and the method will return True.
         
         """
-        
+
         if self._status == 1:
             # Running, cannot cancel
             return False
         elif self._status == 0:
             # Cancel now
             self._status = 2
-            self._send('req-')
+            self._send("req-")
             for fn in self._callbacks:
                 yoton.call_later(fn, 0, self)
             return True
         else:
             # Already done or canceled
             return True
-    
-    
+
     def cancelled(self):
         """ cancelled()
         
@@ -156,8 +154,7 @@ class Future(object):
         
         """
         return self._status == 2
-    
-    
+
     def running(self):
         """ running()
         
@@ -166,17 +163,15 @@ class Future(object):
         
         """
         return self._status == 1
-    
-    
+
     def done(self):
         """ done()
         
         Return True if the call was successfully cancelled or finished running.
         
         """
-        return self._status in [2,3,4]
-    
-    
+        return self._status in [2, 3, 4]
+
     def _wait(self, timeout):
         """ _wait(timeout)
         
@@ -185,19 +180,18 @@ class Future(object):
         pre-request messages can be exchanged.
         
         """
-        
+
         # No timout means a veeeery long timeout
         if timeout is None:
             timeout = 999999999999999999.0
-        
+
         # Receive packages untill we receive the one we want,
         # or untill time runs out
         timestamp = time.time() + timeout
         while (self._status < 2) and (time.time() < timestamp):
             self._req_channel._process_events_local()
-            time.sleep(0.01) # 10 ms
-    
-    
+            time.sleep(0.01)  # 10 ms
+
     def result(self, timeout=None):
         """ result(timeout=None)
         
@@ -213,21 +207,20 @@ class Future(object):
         If the call raised, this method will raise the same exception.
 
         """
-        
+
         # Wait
         self._wait(timeout)
-        
+
         # Return or raise error
-        if self._status < 2 :
-            raise TimeoutError('Result unavailable within the specified time.')
+        if self._status < 2:
+            raise TimeoutError("Result unavailable within the specified time.")
         elif self._status == 2:
-            raise CancelledError('Result unavailable because request was cancelled.')
+            raise CancelledError("Result unavailable because request was cancelled.")
         elif self._status == 3:
             raise self._result
         else:
             return self._result
-    
-    
+
     def result_or_cancel(self, timeout=1.0):
         """ result_or_cancel(timeout=1.0)
         
@@ -237,18 +230,17 @@ class Future(object):
         cancelled and the method will return None.
         
         """
-        
+
         # Wait
         self._wait(timeout)
-        
+
         # Return
         if self._status == 4:
             return self._result
         else:
             self.cancel()
             return None
-    
-    
+
     def exception(self, timeout=None):
         """ exception(timeout)
         
@@ -264,21 +256,20 @@ class Future(object):
         If the call completed without raising, None is returned.
         
         """
-        
+
         # Wait
         self._wait(timeout)
-        
+
         # Return or raise error
-        if self._status < 2 :
-            raise TimeoutError('Exception unavailable within the specified time.')
+        if self._status < 2:
+            raise TimeoutError("Exception unavailable within the specified time.")
         elif self._status == 2:
-            raise CancelledError('Exception unavailable because request was cancelled.')
+            raise CancelledError("Exception unavailable because request was cancelled.")
         elif self._status == 3:
             return self._result
         else:
-            return None # no exception
-    
-    
+            return None  # no exception
+
     def add_done_callback(self, fn):
         """ add_done_callback(fn)
         
@@ -295,18 +286,17 @@ class Future(object):
         called immediately.
         
         """
-        
+
         # Check
-        if not hasattr(fn, '__call__'):
-            raise ValueError('add_done_callback expects a callable.')
-        
+        if not hasattr(fn, "__call__"):
+            raise ValueError("add_done_callback expects a callable.")
+
         # Add
         if self.done():
             yoton.call_later(fn, 0, self)
         else:
             self._callbacks.append(fn)
-    
-    
+
     def set_running_or_notify_cancel(self):
         """ set_running_or_notify_cancel()
         
@@ -324,16 +314,17 @@ class Future(object):
         Future.set_result() or Future.set_exception() have been called.
         
         """
-        
+
         if self._status == 2:
             return False
         elif self._status == 0:
             self._status = 1
             return True
         else:
-            raise RuntimeError('set_running_or_notify_cancel should be called when in a clear state.')
-    
-    
+            raise RuntimeError(
+                "set_running_or_notify_cancel should be called when in a clear state."
+            )
+
     def set_result(self, result):
         """ set_result(result)
         
@@ -342,15 +333,14 @@ class Future(object):
         unit tests.
         
         """
-        
+
         # Set result if indeed in running state
         if self._status == 1:
             self._result = result
             self._status = 4
             for fn in self._callbacks:
                 yoton.call_later(fn, 0, self)
-    
-    
+
     def set_exception(self, exception):
         """ set_exception(exception)
         
@@ -359,13 +349,13 @@ class Future(object):
         implementations and unit tests.
         
         """
-        
+
         # Check
         if isinstance(exception, basestring):
             exception = Exception(exception)
         if not isinstance(exception, Exception):
-            raise ValueError('exception must be an Exception instance.')
-        
+            raise ValueError("exception must be an Exception instance.")
+
         # Set result if indeed in running state
         if self._status == 1:
             self._result = exception
@@ -419,7 +409,7 @@ class ReqChannel(BaseChannel):
     future.add_done_callback(reply_handler)
     
     """
-    
+
     # Notes on load balancing:
     #
     # Firstly, each request has an id. Which is an integer number
@@ -458,23 +448,22 @@ class ReqChannel(BaseChannel):
     # On the request channel, a dictionary of request items is maintained.
     # Each item has an attribute specifying whether a replier has
     # acknowledged it (and which one).
-    
-    
+
     def __init__(self, context, slot_base):
         BaseChannel.__init__(self, context, slot_base, OBJECT)
-        
+
         # Queue with pending requests
         self._request_items = {}
-        
+
         # Timeout
         self._next_recheck_time = time.time() + 0.2
-        
+
         # Counter
         self._request_counter = 0
-        
+
         # The req channel is always in event driven mode
         self._run_mode = 1
-        
+
         # Bind signals to process the events for this channel
         # Bind to "received" signal for quick response and a timer
         # so we can resend requests if we do not receive anything.
@@ -482,23 +471,22 @@ class ReqChannel(BaseChannel):
         self._timer = yoton.events.Timer(0.5, False)
         self._timer.bind(self._process_events_local)
         self._timer.start()
-    
-    
+
     def _messaging_patterns(self):
-        return 'req-rep', 'rep-req'
-    
-   
+        return "req-rep", "rep-req"
+
     def __getattr__(self, name):
-        if name.startswith('_'):
+        if name.startswith("_"):
             return object.__getattribute__(self, name)
         try:
             return object.__getattribute__(self, name)
         except AttributeError:
+
             def proxy_function(*args, **kwargs):
                 return self._handle_request(name, *args, **kwargs)
+
             return proxy_function
-    
-    
+
     def _handle_request(self, name, *args, **kwargs):
         """ _handle_request(request, callback, **kwargs)
         
@@ -509,27 +497,26 @@ class ReqChannel(BaseChannel):
         is received. This all hapens in the yoton event loop.
         
         """
-        
+
         # Create request object
         request = name, args, kwargs
-        
+
         # Check and convert request message
         bb = self.message_to_bytes(request)
-        
+
         # Get new request id
         request_id = self._request_counter = self._request_counter + 1
-        
+
         # Create new item for this request and store under the request id
         item = Future(self, bb, request_id)
         self._request_items[request_id] = item
-        
+
         # Send pre-request (ask repliers who want to reply to a request)
-        item._send('req?')
-        
+        item._send("req?")
+
         # Return the Future instance
         return item
-    
-    
+
     def _resend_requests(self):
         """ _resend_requests()
         
@@ -548,8 +535,7 @@ class ReqChannel(BaseChannel):
                 self._request_items.pop(request_id)
             else:
                 item._resend_if_necessary()
-    
-    
+
     def _recv_item(self):
         """ _recv_item()
         
@@ -561,22 +547,22 @@ class ReqChannel(BaseChannel):
         called periodically to keep things going.
         
         """
-        
+
         # Receive package
         package = self._recv(False)
         if not package:
             return
-        
+
         # Get the package reply id and sequence number
         dest_id = package._dest_id
         request_id = package._dest_seq
-        
+
         # Check dest_id
         if not dest_id:
-            return # We only want messages that are directed directly at us
+            return  # We only want messages that are directed directly at us
         elif dest_id != self._context._id:
-            return # This should not happen; context should make sure
-        
+            return  # This should not happen; context should make sure
+
         if request_id > REQREP_SEQ_REF:
             # We received a reply to us asking who can handle the request.
             # Get item, send actual request. We set the replier to indicate
@@ -584,55 +570,57 @@ class ReqChannel(BaseChannel):
             # acknowledgements from other repliers.
             request_id -= REQREP_SEQ_REF
             item = self._request_items.get(request_id, None)
-            
+
             if item and not item._replier:
                 # Status now changes to "running" canceling is not possible
                 ok = item.set_running_or_notify_cancel()
                 if not ok:
                     return
-                
+
                 # Send actual request to specific replier
                 try:
                     self._send(item._req, package._source_id, request_id)
                 except IOError:
-                    pass # Channel closed, will auto-cancel at item._send()
-                item._replier = package._source_id # mark as being processed
-                
+                    pass  # Channel closed, will auto-cancel at item._send()
+                item._replier = package._source_id  # mark as being processed
+
                 # Send pre-request-cancel message to everyone
-                item._send('req-')
-        
+                item._send("req-")
+
         elif request_id > 0:
             # We received a reply to an actual request
-            
+
             # Get item, remove from queue, set reply, return
             item = self._request_items.pop(request_id, None)
             if item:
                 item._rep = package._data
                 return item
-    
-    
+
     def _process_events_local(self, dummy=None):
         """ _process_events_local()
         
         Process events only for this object. Used by _handle_now().
         
         """
-        
+
         # Check periodically if we should resend (or clean up) old requests
         if time.time() > self._next_recheck_time:
             self._resend_requests()
             self._next_recheck_time = time.time() + 0.1
-        
+
         # Process all received messages
         while self.pending:
             item = self._recv_item()
             if item:
                 reply = self.message_from_bytes(item._rep)
-                if isinstance(reply, tuple) and len(reply)==2 and reply[0]==ERROR_OBJECT:
+                if (
+                    isinstance(reply, tuple)
+                    and len(reply) == 2
+                    and reply[0] == ERROR_OBJECT
+                ):
                     item.set_exception(reply[1])
                 else:
                     item.set_result(reply)
-
 
 
 class RepChannel(BaseChannel):
@@ -663,32 +651,30 @@ class RepChannel(BaseChannel):
         in a network
     
     """
-    
+
     def __init__(self, context, slot_base):
         BaseChannel.__init__(self, context, slot_base, OBJECT)
-        
+
         # Pending pre-requests
         self._pre_requests = []
-        
+
         # Current pre-request and time that it was acknowledged
         self._pre_request = None
         self._pre_request_time = 0
-        
+
         # Create thread
         self._thread = ThreadForReqChannel(self)
-        
+
         # Create timer (do not start)
         self._timer = yoton.events.Timer(2.0, False)
         self._timer.bind(self._process_events_local)
-        
+
         # By default, the replier is off
         self._run_mode = 0
-    
-    
+
     def _messaging_patterns(self):
-        return 'rep-req', 'req-rep'
-    
-    
+        return "rep-req", "req-rep"
+
     # Node that setters for normal and event_driven mode are specified in
     # channels_base.py
     def set_mode(self, mode):
@@ -702,24 +688,23 @@ class RepChannel(BaseChannel):
           * 2 or 'thread': process requests in a separate thread
         
         """
-        
+
         if isinstance(mode, basestring):
             mode = mode.lower()
-        
-        if mode in [0, 'off']:
+
+        if mode in [0, "off"]:
             self._run_mode = 0
-        elif mode in [1, 'event', 'event-driven']:
+        elif mode in [1, "event", "event-driven"]:
             self._run_mode = 1
             self.received.bind(self._process_events_local)
             self._timer.start()
-        elif mode in [2, 'thread', 'thread-driven']:
+        elif mode in [2, "thread", "thread-driven"]:
             self._run_mode = 2
             if not self._thread.isAlive():
                 self._thread.start()
         else:
-            raise ValueError('Invalid mode for ReqChannel instance.')
-    
-    
+            raise ValueError("Invalid mode for ReqChannel instance.")
+
     def _handle_request(self, message):
         """ _handle_request(message)
         
@@ -730,24 +715,23 @@ class RepChannel(BaseChannel):
         """
         # Get name and args
         name, args, kwargs = message
-        
+
         # Get function
         if not hasattr(self, name):
             raise RuntimeError("Method '%s' not implemented." % name)
         else:
             func = getattr(self, name)
-        
+
         # Call
         return func(*args, **kwargs)
-    
-    
+
     def _acknowledge_next_pre_request(self):
-        
+
         # Cancel current pre-request ourselves if it takes too long.
         # Failsafe, only for if resetting by requester fails somehow.
         if time.time() - self._pre_request_time > 10.0:
             self._pre_request = None
-        
+
         # Send any pending pre requests
         if self._pre_requests and not self._pre_request:
 
@@ -755,96 +739,98 @@ class RepChannel(BaseChannel):
             package = self._pre_requests.pop(0)
             self._pre_request = package
             self._pre_request_time = time.time()
-            
+
             # Send acknowledgement
-            msg = 'req!'.encode('utf-8')
+            msg = "req!".encode("utf-8")
             try:
                 self._send(msg, package._source_id, package._dest_seq)
             except IOError:
-                pass # Channel closed, nothing we can do about that
+                pass  # Channel closed, nothing we can do about that
             #
-            #print 'ack', self._context.id,  package._dest_seq-REQREP_SEQ_REF
-    
-    
+            # print 'ack', self._context.id,  package._dest_seq-REQREP_SEQ_REF
+
     def _replier_iteration(self, package):
         """ _replier_iteration()
         
         Do one iteration: process one request.
         
         """
-        
+
         # Get request id
         request_id = package._dest_seq
-        
+
         if request_id > REQREP_SEQ_REF:
             # Pre-request stuff
-            
+
             # Remove offset
             request_id -= REQREP_SEQ_REF
-            
+
             # Get action and pre request id
-            action = package._data.decode('utf-8')
-            
+            action = package._data.decode("utf-8")
+
             # Remove pre-request from pending requests in case of both actions:
             # Cancel pending pre-request, prevent stacking of the same request.
             for prereq in [prereq for prereq in self._pre_requests]:
-                if (    package._source_id == prereq._source_id and
-                        package._dest_seq == prereq._dest_seq):
+                if (
+                    package._source_id == prereq._source_id
+                    and package._dest_seq == prereq._dest_seq
+                ):
                     self._pre_requests.remove(prereq)
-            
-            if action == 'req-':
+
+            if action == "req-":
                 # Cancel current pre-request
-                if (    self._pre_request and
-                        package._source_id == self._pre_request._source_id and
-                        package._dest_seq == self._pre_request._dest_seq):
+                if (
+                    self._pre_request
+                    and package._source_id == self._pre_request._source_id
+                    and package._dest_seq == self._pre_request._dest_seq
+                ):
                     self._pre_request = None
-            
-            elif action == 'req?':
+
+            elif action == "req?":
                 # New pre-request
                 self._pre_requests.append(package)
-        
+
         else:
             # We are asked to handle an actual request
-            
+
             # We can reset the state
             self._pre_request = None
-            
+
             # Get request
             request = self.message_from_bytes(package._data)
-            
+
             # Get reply
             try:
                 reply = self._handle_request(request)
             except Exception:
                 reply = ERROR_OBJECT, getErrorMsg()
-                print('yoton.RepChannel: error handling request:')
+                print("yoton.RepChannel: error handling request:")
                 print(reply[1])
-            
+
             # Send reply
             if True:
                 try:
                     bb = self.message_to_bytes(reply)
                     self._send(bb, package._source_id, request_id)
                 except IOError:
-                    pass # Channel is closed
+                    pass  # Channel is closed
                 except Exception:
                     # Probably wrong type of reply returned by handle_request()
-                    print('Warning: request could not be send:')
+                    print("Warning: request could not be send:")
                     print(getErrorMsg())
-    
-    
+
     def _process_events_local(self, dummy=None):
         """ _process_events_local()
         
         Called when a message (or more) has been received.
         
         """
-        
+
         # If closed, unregister from signal and stop the timer
-        if self.closed or self._run_mode!=1:
+        if self.closed or self._run_mode != 1:
             self.received.unbind(self._process_events_local)
             self._timer.stop()
-        
+
         # Iterate while we receive data
         while True:
             package = self._recv(False)
@@ -855,8 +841,7 @@ class RepChannel(BaseChannel):
                 # We always enter this the last time
                 self._acknowledge_next_pre_request()
                 return
-    
-    
+
     def echo(self, arg1, sleep=0.0):
         """ echo(arg1, sleep=0.0)
         
@@ -868,43 +853,41 @@ class RepChannel(BaseChannel):
         return arg1, hex(self._context.id)
 
 
-
 class ThreadForReqChannel(threading.Thread):
     """ ThreadForReqChannel(channel)
     
     Thread to run a RepChannel in threaded mode.
     
     """
-    
+
     def __init__(self, channel):
         threading.Thread.__init__(self)
-        
+
         # Check channel
         if not isinstance(channel, RepChannel):
-            raise ValueError('The given channel must be a REP channel.')
-        
+            raise ValueError("The given channel must be a REP channel.")
+
         # Store channel
         self._channel = channel
-        
+
         # Make deamon
         self.setDaemon(True)
-    
-    
+
     def run(self):
         """ run()
         
         The handler's main loop.
         
         """
-        
+
         # Get ref to channel. Remove ref from instance
         channel = self._channel
         del self._channel
-        
+
         while True:
-            
+
             # Stop?
-            if channel.closed or channel._run_mode!=2:
+            if channel.closed or channel._run_mode != 2:
                 break
 
             # Wait for data (blocking, look Rob, without spinlocks :)

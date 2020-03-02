@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, the Pyzo development team
 #
-# Yoton is distributed under the terms of the (new) BSD License.
+# Yoton is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """ Module yoton.channels.file
@@ -33,26 +33,26 @@ class FileWrapper(object):
     On Python 2, the read methods return str (utf-8 encoded Unicode).
     
     """
-    
+
     # Our file-like objects should not implement:
     # explicitly stated: fileno, isatty
     # don't seem to make sense: readlines, seek, tell, truncate, errors,
     # mode, name,
-    
+
     def __init__(self, channel, chunksize=0, echo=None, isatty=False):
         if not isinstance(channel, (PubChannel, SubChannel)):
-            raise ValueError('FileWrapper needs a PubChannel or SubChannel.')
+            raise ValueError("FileWrapper needs a PubChannel or SubChannel.")
         if echo is not None:
             if not isinstance(echo, PubChannel):
-                raise ValueError('FileWrapper echo needs to be a PubChannel.')
-        
+                raise ValueError("FileWrapper echo needs to be a PubChannel.")
+
         self._channel = channel
         self._chunksize = int(chunksize)
         self._echo = echo
         self._pid = os.getpid()  # To detect whether we are in multi-process
-        self.errors = 'strict'  # compat
+        self.errors = "strict"  # compat
         self._isatty = isatty
-    
+
     def close(self):
         """ Close the file object.
         """
@@ -67,21 +67,19 @@ class FileWrapper(object):
             return
         # Normal behavior
         self._channel.close()
-    
+
     @property
     def encoding(self):
         """ The encoding used to encode strings to bytes and vice versa.
         """
-        return 'UTF-8'
-    
-    
+        return "UTF-8"
+
     @property
     def closed(self):
         """ Get whether the file is closed.
         """
         return self._channel._closed
-    
-    
+
     def flush(self):
         """ flush()
         
@@ -89,24 +87,23 @@ class FileWrapper(object):
         
         """
         self._channel._context.flush()
-    
-    
+
     @property
     def newlines(self):
         """ The type of newlines used. Returns None; we never know what the
         other end could be sending!
         """
         return None
-    
-    
+
     # this is for the print statement to keep track spacing stuff
     def _set_softspace(self, value):
         self._softspace = bool(value)
+
     def _get_softspace(self):
-        return hasattr(self, '_softspace') and self._softspace
-    softspace = property(_get_softspace, _set_softspace, None, '')
-        
-    
+        return hasattr(self, "_softspace") and self._softspace
+
+    softspace = property(_get_softspace, _set_softspace, None, "")
+
     def read(self, block=None):
         """ read(block=None)
         
@@ -117,11 +114,10 @@ class FileWrapper(object):
         if res and self._echo is not None:
             self._echo.send(res)
         if PY2:
-            return res.encode('utf-8')
+            return res.encode("utf-8")
         else:
             return res
-    
-    
+
     def write(self, message):
         """ write(message)
         
@@ -141,15 +137,14 @@ class FileWrapper(object):
                 sys.__stderr__.write(message)
                 sys.__stderr__.flush()
             return
-        
+
         chunkSize = self._chunksize
         if chunkSize > 0 and chunkSize < len(message):
             for i in range(0, len(message), chunkSize):
-                self._channel.send( message[i:i+chunkSize] )
+                self._channel.send(message[i : i + chunkSize])
         else:
             self._channel.send(message)
-    
-    
+
     def writelines(self, lines):
         """ writelines(lines)
         
@@ -158,8 +153,7 @@ class FileWrapper(object):
         """
         for line in lines:
             self._channel.send(line)
-    
-    
+
     def readline(self, size=0):
         """ readline(size=0)
         
@@ -171,30 +165,29 @@ class FileWrapper(object):
         of the message is thrown away.
         
         """
-        
+
         # Get line
         line = self._channel.recv(True)
-        
+
         # Echo
         if line and self._echo is not None:
             self._echo.send(line)
-        
+
         # Make sure it ends with newline
-        if not line.endswith('\n'):
-            line += '\n'
-        
+        if not line.endswith("\n"):
+            line += "\n"
+
         # Decrease size?
         if size:
             line = line[:size]
-        
+
         # Done
         if PY2:
-            return line.encode('utf-8')
+            return line.encode("utf-8")
         else:
             return line
-    
+
     def isatty(self):
         """ Get whether this is a terminal.
         """
         return self._isatty
-

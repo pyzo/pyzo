@@ -1,11 +1,9 @@
-
-
 """ Module statusbar
 
 Functionality for status bar in pyzo.
 
 """
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.util.qt import QtWidgets
 
 
 class StatusBar(QtWidgets.QStatusBar):
@@ -43,9 +41,8 @@ class StatusBar(QtWidgets.QStatusBar):
 
     def updateFileEncodingInfo(self, editor):
 
-        fe_txt = ''
+        fe_txt = ""
         if editor:
             fe_txt = editor.encoding.upper()
 
         self.file_encoding.setText(fe_txt)
-

@@ -1,6 +1,29 @@
 # Release notes
 
 
+### Version 4.10.2 (10-02-2020)
+
+- Fix that PyInstaller's changes to `LD_LIBRARY_PATH` leak through to the kernels (#665).
+
+
+### Version 4.10.1 (10-02-2020)
+
+- We've now automized the building of binaries on Azure Pipelines!
+- Our code is now formatted with Black, and checked with Flake8.
+- CI does not have a lot of tests yet, but we do check linting and importing on Python 3.5 and 3.8.
+- Implemented support for highres displays (although I am unable to verify myself).
+- Improve the workspace display of list, tuple, dict and array.
+- Clean up `LD_LIBRARY_PATH` for the kernels (#665).
+- Some improvements to asyncio integration.
+- Autocompletion no longer cancels the interactive help.
+- Issue a warning when `logging.basicConfig()` is called (because it does nothing).
+- Fix that non-breakable space was converted (#621, thanks Yann Salmon).
+- Add Jetbrains monospace font.
+- Fix introspection of signature containing kw-only args or annotations.
+- Add polish translation (thanks wojnilowicz)
+- Fix that Pyzo crashes on startup when non-english language is set and status bar is shown.
+
+
 ### Version 4.9.0 (16-09-2019)
 
 - Fix a problem where shells do not start on Windows 10 (For some reason, on some machines, aftter a Windows update, some (ranges of) ports are blocked). Resulting in a "warming up" message. See issue #644 for details.
@@ -9,7 +32,6 @@
 - Fix config path detection on older systems.
 - Fix that restart did not work when running Pyzo from source.
 - Let the menu display the tooltips correctly - no more black rectangles (thanks Tontyna).
-
 
 
 ### Version 4.8.1 (27-08-2019)

@@ -1,6 +1,9 @@
 # Pyzo - The Interactive editor for scientific Python
 
-Main website: [pyzo.org](http://pyzo.org)
+[![PyPI Version](https://img.shields.io/pypi/v/pyzo.svg)](https://pypi.python.org/pypi/pyzo/)
+[![Build Status](https://dev.azure.com/pyzo/pyzo/_apis/build/status/pyzo.pyzo?branchName=master)](https://dev.azure.com/pyzo/pyzo/_build/latest?definitionId=1&branchName=master)
+
+Website: [pyzo.org](http://pyzo.org)
 
 
 ### Description
@@ -23,33 +26,25 @@ system (Python 2.4 - 3.x, including Pypy).
 
 ### Installation
 
-Pyzo runs on Python3 and needs PySide/PySide2/PyQt4/PyQt5. On a modern
+Pyzo runs on Python3 and needs PySide2 or PyQt5. On a modern
 OS these should be easy to obtain. One can then install Pyzo with
 `python3 -m pip install pyzo`
 
-We also provide binaries for Windows, Linux and OS X.
+We also provide [binaries](https://github.com/pyzo/pyzo/releases) for Windows, Linux and MacOS.
 
 
 ### License
 
-Pyzo is free and open source. BSD licensed.
-
-
-### About us
-
-The development of Pyzo is coordinated by Almar Klein. See contributors.txt
-for a complete list of people who helped develop Pyzo.
+Pyzo is free and open source, licensed under the 2-clause BSD.
 
 
 ### Contributions
 
-If you want to help out, create a pull request or start a discussion
-in our mailing list.
+If you want to help out, create an issue or pull request on Github.
 
 
 ### More information
 
-* main website: http://pyzo.org
-* mailing list: http://groups.google.com/group/pyzo
-* code repository: http://github.com/pyzo/pyzo
-* wiki: http://github.com/pyzo/pyzo/wiki
+* main website: https://pyzo.org
+* code repository: https://github.com/pyzo/pyzo
+* mailing list: https://groups.google.com/group/pyzo

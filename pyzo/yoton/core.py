@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, the Pyzo development team
 #
-# Yoton is distributed under the terms of the (new) BSD License.
+# Yoton is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 import sys
@@ -10,7 +10,7 @@ import struct
 import socket
 
 # import select  # to determine wheter a socket can receive data
-if sys.platform.startswith('java'):  # Jython
+if sys.platform.startswith("java"):  # Jython
     from select import cpython_compatible_select as select, error as SelectErr
 else:
     from select import select, error as SelectErr
@@ -32,8 +32,8 @@ BUF_MAX_LEN = 10000
 # Define buffer size. For recv 4096 or 8192 chunk size is recommended.
 # For sending, in principle as large as possible, but prevent too much
 # message copying.
-BUFFER_SIZE_IN = 2**13
-BUFFER_SIZE_OUT = 1*2**20
+BUFFER_SIZE_IN = 2 ** 13
+BUFFER_SIZE_OUT = 1 * 2 ** 20
 
 # Reserved slots (slot 0 does not exist, so we can test "if slot: ")
 # The actual slots start counting from 8.
@@ -42,11 +42,11 @@ SLOT_CONTEXT = 2
 SLOT_DUMMY = 1
 
 # Struct header packing
-HEADER_FORMAT = '<QQQQQQQ'
+HEADER_FORMAT = "<QQQQQQQ"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 # Constant for control bytes
-CONTROL_BYTES = struct.unpack('<Q', 'YOTON   '.encode('utf-8'))[0]
+CONTROL_BYTES = struct.unpack("<Q", "YOTON   ".encode("utf-8"))[0]
 
 
 ## Helper functions
@@ -104,20 +104,20 @@ def send_all(s, text, stutdown_after_sending=True):
     It is made sure that the text ends with a CRLF double-newline code.
     
     """
-    
+
     # Ensure closing chars
-    if not text.endswith('\r\n'):
-        text += '\r\n'
-    
+    if not text.endswith("\r\n"):
+        text += "\r\n"
+
     # Make bytes
-    bb = text.encode('utf-8')
-    
+    bb = text.encode("utf-8")
+
     # Send all bytes
     try:
         s.sendall(bb)  # -> n
     except socket.error:
-        return -1 # Socket closed down badly
-    
+        return -1  # Socket closed down badly
+
     # Shutdown connection nicely from here
     if stutdown_after_sending:
         try:
@@ -136,61 +136,63 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
     and a shutdown is not necessary. This takes a tiny bit longer.
     
     """
-    
+
     # Init parts (start with one byte, such that len(parts) is always >= 2
-    parts = [' '.encode('ascii'),]
-    
+    parts = [
+        " ".encode("ascii"),
+    ]
+
     # Determine number of bytes to get per recv
     nbytesToGet = BUFFER_SIZE_IN
     if end_at_crlf:
         nbytesToGet = 1
-    
+
     # Set end bytes
-    end_bytes = '\r\n'.encode('ascii')
-    
+    end_bytes = "\r\n".encode("ascii")
+
     # Set max time
     if timeout <= 0:
-        timeout = 2**32
+        timeout = 2 ** 32
     maxtime = time.time() + timeout
-    
+
     # Receive data
     while True:
-        
+
         # Receive if we can
         if can_recv(s):
-            
+
             # Get part
             try:
                 part = s.recv(nbytesToGet)
                 parts.append(part)
             except socket.error:
-                return None # Socket closed down badly
-            
+                return None  # Socket closed down badly
+
             # Detect end by shutdown (EOF)
             if not part:
                 break
-            
+
             # Detect end by \r\n
             if end_at_crlf and (parts[-2] + parts[-1]).endswith(end_bytes):
                 break
-        
+
         else:
             # Sleep
             time.sleep(0.01)
-            
+
             # Check time
             if time.time() > maxtime:
-                bb  = bytes().join(parts[1:])
-                return bb.decode('utf-8', 'ignore')
-    
+                bb = bytes().join(parts[1:])
+                return bb.decode("utf-8", "ignore")
+
     # Combine parts (discared first (dummy) part)
     bb = bytes().join(parts[1:])
-    
+
     # Try returning as Unicode
     try:
-        return bb.decode('utf-8','ignore')
+        return bb.decode("utf-8", "ignore")
     except UnicodeError:
-        return '<UnicodeError>'
+        return "<UnicodeError>"
 
 
 ## Package class
@@ -236,7 +238,7 @@ class Package(object):
     are ignored.
     
     """
-    
+
     # The __slots__ makes instances of this class consume < 20% of memory
     # Note that this only works for new style classes.
     # This is important because many packages can exist at the same time
@@ -244,13 +246,17 @@ class Package(object):
     # garbage collector collects the objects after they're "consumed",
     # it does not release the memory, because it hopes to reuse it in
     # an efficient way later.
-    __slots__ = [   '_data', '_slot',
-                    '_source_id', '_source_seq',
-                    '_dest_id', '_dest_seq',
-                    '_recv_seq']
-    
-    def __init__(self, data, slot,
-                source_id, source_seq, dest_id, dest_seq, recv_seq):
+    __slots__ = [
+        "_data",
+        "_slot",
+        "_source_id",
+        "_source_seq",
+        "_dest_id",
+        "_dest_seq",
+        "_recv_seq",
+    ]
+
+    def __init__(self, data, slot, source_id, source_seq, dest_id, dest_seq, recv_seq):
         self._data = data
         self._slot = slot
         #
@@ -259,8 +265,7 @@ class Package(object):
         self._dest_id = dest_id
         self._dest_seq = dest_seq
         self._recv_seq = recv_seq
-    
-    
+
     def parts(self):
         """ parts()
         
@@ -269,23 +274,27 @@ class Package(object):
         we prevent unnecesary copying of data.
         
         """
-        
+
         # Obtain header
         L = len(self._data)
-        header = struct.pack(HEADER_FORMAT, CONTROL_BYTES, self._slot,
-                            self._source_id, self._source_seq,
-                            self._dest_id, self._dest_seq,
-                            L)
-        
+        header = struct.pack(
+            HEADER_FORMAT,
+            CONTROL_BYTES,
+            self._slot,
+            self._source_id,
+            self._source_seq,
+            self._dest_id,
+            self._dest_seq,
+            L,
+        )
+
         # Return header and message
         return header, self._data
-    
-    
+
     def __str__(self):
         """ Representation of the package. Mainly for debugging. """
-        return 'At slot %i: %s' % (self._slot, repr(self._data))
-    
-    
+        return "At slot %i: %s" % (self._slot, repr(self._data))
+
     @classmethod
     def from_header(cls, header):
         """ from_header(header)
@@ -308,5 +317,5 @@ class Package(object):
 
 
 # Constant Package instances (source_seq represents the signal)
-PACKAGE_HEARTBEAT   = Package(bytes(), SLOT_DUMMY, 0, 0, 0, 0, 0)
-PACKAGE_CLOSE       = Package(bytes(), SLOT_DUMMY, 0, 1, 0, 0, 0)
+PACKAGE_HEARTBEAT = Package(bytes(), SLOT_DUMMY, 0, 0, 0, 0, 0)
+PACKAGE_CLOSE = Package(bytes(), SLOT_DUMMY, 0, 1, 0, 0, 0)

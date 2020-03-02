@@ -1,0 +1,213 @@
+trigger:
+  branches:
+    include:
+    - master
+  tags:
+    include:
+    - v*
+
+variables:
+  NAME: pyzo
+  PY_ARCH: x64
+  PY_VERSION: 3.7
+  PY_EXE: python
+
+jobs:
+
+- job: Build
+
+  strategy:
+    matrix:
+      Tester-3.5:
+        vmImage: ubuntu-16.04
+        PY_VERSION: 3.5
+        LINT: 1
+        TEST: 1
+      Tester-3.8:
+        vmImage: ubuntu-18.04
+        PY_VERSION: 3.8
+        LINT: 1
+        TEST: 1
+      Build-Linux-64:
+        vmImage: ubuntu-18.04
+        PY_VERSION: native
+        TEST: 0
+        FREEZE: 0
+        #PY_EXE: python
+        DOCKERIMAGE: ubuntu:18.04
+      Build-MacOS-64:
+        vmImage: macOS-10.13
+        MACOSX_DEPLOYMENT_TARGET: '10.13'
+        TEST: 1
+        FREEZE: 1
+      Build-Windows-64:
+        vmImage: vs2017-win2016
+        TEST: 1
+        FREEZE: 1
+      Build-Windows-32:
+        vmImage: vs2017-win2016
+        PY_ARCH: x86
+        TEST: 1
+        FREEZE: 1
+
+  pool:
+    vmImage: $(vmImage)
+
+  steps:
+  - task: Bash@3
+    displayName: Docker build
+    condition: ne(variables['DOCKERIMAGE'], '')
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        CID=$(docker create -t -w /tmp/pyzo -v $PWD:/tmp/src:ro $(DOCKERIMAGE) bash -c "\
+          cp -r /tmp/src/. . && \
+          rm -rf ./frozen && \
+          apt-get update
+          apt-get install -y python3 python3-dev python3-pip python3-pyqt5 &&\
+          python3 -m pip install -U pip &&\
+          python3 -m pip install -U pyinstaller &&\
+          python3 -m pip install . &&\
+          python3 freeze/freezeScript.py &&\
+          rm -rf ./frozen/pyzo")
+        docker start -ai $CID
+        mkdir -p frozen
+        docker cp $CID:/tmp/pyzo/frozen/. ./frozen/.
+        docker rm $CID
+  - task: UsePythonVersion@0
+    displayName: Select Python
+    condition: ne(variables['PY_VERSION'], 'native')
+    inputs:
+      versionSpec: $(PY_VERSION)
+      architecture: $(PY_ARCH)
+  - task: Bash@3
+    displayName: Install development requirements
+    condition: or(eq(variables['TEST'], '1'), eq(variables['FREEZE'], '1'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        $(PY_EXE) -m pip install -U pip setuptools
+        $(PY_EXE) -m pip install -U pyqt5
+        $(PY_EXE) -m pip install -U pytest pyinstaller
+  - task: Bash@3
+    displayName: Install inno setup (on Windows)
+    condition: eq(variables['Agent.OS'], 'Windows')
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        choco install innosetup --version=5.6.1
+  - task: Bash@3
+    displayName: Lint black
+    condition: and(succeeded(), eq(variables['LINT'], '1'), ne(variables['PY_VERSION'], '3.5'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        $(PY_EXE) -m pip install -U pytest black
+        black --check .
+  - task: Bash@3
+    displayName: Lint flake8
+    condition: and(succeeded(), eq(variables['LINT'], '1'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        $(PY_EXE) -m pip install -U pytest flake8
+        flake8 .
+  - task: Bash@3
+    displayName: Install sdist
+    condition: and(succeeded(), eq(variables['TEST'], '1'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        $(PY_EXE) setup.py sdist
+        $(PY_EXE) -m pip install $(echo "$(Build.SourcesDirectory)" | sed -e 's/\\/\//g')/dist/*.tar.gz
+  - task: Bash@3
+    displayName: Test
+    condition: and(succeeded(), eq(variables['TEST'], '1'))
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        $(PY_EXE) -m pytest --junit-xml=results.xml tests || true
+        # Fail the task if results.xml was not created
+        if [[ ! -f results.xml ]]
+        then
+          echo "##vso[task.logissue type=error]No test results were found"
+          exit 1
+        fi
+  - task: PublishTestResults@2
+    condition: and(succeeded(), eq(variables['TEST'], '1'))
+    inputs:
+      testResultsFiles: results.xml
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: Test $(vmImage)
+  - task: Bash@3
+    displayName: Freeze
+    condition: and(succeeded(), eq(variables['FREEZE'], '1'))
+    inputs:
+      targetType: inline
+      script: |
+        $(PY_EXE) freeze/freezeScript.py
+        rm -rf ./frozen/pyzo
+        rm -rf ./frozen/pyzo.app
+  - task: PublishBuildArtifacts@1
+    displayName: Publish distributions
+    condition: and(succeeded(), or(ne(variables['DOCKERIMAGE'], ''), eq(variables['FREEZE'], '1')))
+    inputs:
+      pathtoPublish: frozen
+      artifactName: frozen
+
+
+- job: Release
+
+  dependsOn: Build
+
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+  pool:
+    vmImage: ubuntu-16.04
+
+  steps:
+  - task: Bash@3
+    displayName: git tag == git branch
+    inputs:
+      targetType: inline
+      script: |
+        set -ex
+        IS_TAG_BUILD=$(expr $(git describe --tags) == $(Build.SourceBranchName)) || true
+        echo "##vso[task.setvariable variable=IS_TAG_BUILD]$IS_TAG_BUILD"
+        if [[ $IS_TAG_BUILD != 1 ]]; then
+          echo This build was not triggered by a tag, aborting release
+        fi
+  - task: UsePythonVersion@0
+    displayName: Select Python
+    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    inputs:
+      versionSpec: $(PY_VERSION)
+  - task: DownloadBuildArtifacts@0
+    displayName: Download dist
+    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    inputs:
+      artifactName: frozen
+      downloadPath: .
+  - task: GithubRelease@1
+    displayName: GitHub Release
+    condition: and(succeeded(), eq(variables['IS_TAG_BUILD'], '1'))
+    inputs:
+      gitHubConnection: github.com_almarklein
+      repositoryName: 'pyzo/pyzo'
+      assets: |
+        frozen/*.zip
+        frozen/*.tar.gz
+        frozen/*.exe
+        frozen/*.msi
+        frozen/*.dmg
+      isDraft: true
+      addChangeLog: false
+      assetUploadMode: replace

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2016, the Pyzo development team
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """
@@ -13,6 +13,7 @@ See pyzokernel/start.py for more information.
 
 """
 
+
 def printDirect(msg):
     """ Small function that writes directly to the strm_out channel.
     This means that regardless if stdout was hijacked, the message ends
@@ -21,4 +22,5 @@ def printDirect(msg):
     the Python banner is one example.
     """
     import sys
+
     sys._pyzoInterpreter.context._strm_out.send(msg)

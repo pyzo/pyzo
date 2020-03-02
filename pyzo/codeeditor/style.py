@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013, the codeeditor development team
 #
-# Pyzo is distributed under the terms of the (new) BSD License.
+# Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """ Modyule style
@@ -18,6 +18,7 @@ makes it easy to build a UI to allow the user to change the syle.
 
 """
 from .qt import QtGui, QtCore
+
 Qt = QtCore.Qt
 
 
@@ -30,27 +31,27 @@ class StyleElementDescription:
     that can be styled.
     
     """
-    
+
     def __init__(self, name, description, defaultFormat):
         self._name = name
         self._description = description
         self._defaultFormat = StyleFormat(defaultFormat)
-    
+
     def __repr__(self):
         return '<"%s": "%s">' % (self.name, self.defaultFormat)
-    
+
     @property
     def name(self):
         return self._name
-    
+
     @property
     def key(self):
-        return self._name.replace(' ', '').lower()
-    
+        return self._name.replace(" ", "").lower()
+
     @property
     def description(self):
         return self._description
-    
+
     @property
     def defaultFormat(self):
         return self._defaultFormat
@@ -94,12 +95,11 @@ class StyleFormat:
     of key-value pairs is obtained.
     
     """
-    
-    def __init__(self, format=''):
+
+    def __init__(self, format=""):
         self._parts = {}
         self.update(format)
-    
-    
+
     def _resetProperties(self):
         self._fore = None
         self._back = None
@@ -108,145 +108,144 @@ class StyleFormat:
         self._underline = None
         self._linestyle = None
         self._textCharFormat = None
-    
-    
+
     def __str__(self):
         """ Get a (cleaned up) string representation of this style format.
         """
         parts = []
         for key in self._parts:
-            parts.append('%s:%s' % (key, self._parts[key]))
-        return ', '.join(parts)
-    
-    
+            parts.append("%s:%s" % (key, self._parts[key]))
+        return ", ".join(parts)
+
     def __repr__(self):
         return '<StyleFormat "%s">' % str(self)
-    
-    
+
     def __getitem__(self, key):
         try:
             return self._parts[key]
         except KeyError:
-            raise KeyError('Invalid part key for style format.')
-    
+            raise KeyError("Invalid part key " + key + " for style format.")
+
     def __iter__(self):
         """ Yields a series of tuples (key, val).
         """
         parts = []
         for key in self._parts:
-            parts.append( (key, self._parts[key]) )
+            parts.append((key, self._parts[key]))
         return parts.__iter__()
-    
-    
+
     def update(self, format):
         """ update(format)
         
         Update this style format with the given format.
         
         """
-        
+
         # Reset buffered values
         self._resetProperties()
-        
+
         # Make a string, so we update the format with the given one
         if isinstance(format, StyleFormat):
             format = str(format)
-        
+
         # Split on ',' and ',', ignore spaces
-        styleParts = [p for p in
-                        format.replace('=',':').replace(';',',').split(',')]
-        
+        styleParts = [p for p in format.replace("=", ":").replace(";", ",").split(",")]
+
         for stylePart in styleParts:
-            
+
             # Make sure it consists of identifier and value pair
             # e.g. fore:#xxx, bold:yes, underline:no
-            if not ':' in stylePart:
-                if stylePart.startswith('#'):
-                    stylePart = 'foreandback:' + stylePart
+            if ":" not in stylePart:
+                if stylePart.startswith("#"):
+                    stylePart = "foreandback:" + stylePart
                 else:
-                    stylePart += ':yes'
-            
+                    stylePart += ":yes"
+
             # Get key value and strip and make lowecase
-            key, _, val = [i.strip().lower() for i in stylePart.partition(':')]
-            
+            key, _, val = [i.strip().lower() for i in stylePart.partition(":")]
+
             # Store in parts
-            if key == 'foreandback':
-                self._parts['fore'] = val
-                self._parts['back'] = val
+            if key == "foreandback":
+                self._parts["fore"] = val
+                self._parts["back"] = val
             elif key:
                 self._parts[key] = val
-    
+
     ## Properties
-    
+
     def _getValueSafe(self, key):
         try:
             return self._parts[key]
         except KeyError:
-            return 'no'
-    
+            return "no"
+
     @property
     def fore(self):
         if self._fore is None:
-            self._fore = QtGui.QColor(self._parts['fore'])
+            self._fore = QtGui.QColor(self._parts["fore"])
         return self._fore
-    
+
     @property
     def back(self):
         if self._back is None:
-            self._back = QtGui.QColor(self._parts['back'])
+            self._back = QtGui.QColor(self._parts["back"])
         return self._back
-    
+
     @property
     def bold(self):
         if self._bold is None:
-            if self._getValueSafe('bold') in ['yes', 'true']:
+            if self._getValueSafe("bold") in ["yes", "true"]:
                 self._bold = True
             else:
                 self._bold = False
         return self._bold
-    
+
     @property
     def italic(self):
         if self._italic is None:
-            if self._getValueSafe('italic') in ['yes', 'true']:
+            if self._getValueSafe("italic") in ["yes", "true"]:
                 self._italic = True
             else:
                 self._italic = False
         return self._italic
-    
+
     @property
     def underline(self):
         if self._underline is None:
-            val = self._getValueSafe('underline')
-            if val in ['yes', 'true']:
+            val = self._getValueSafe("underline")
+            if val in ["yes", "true"]:
                 self._underline = QtGui.QTextCharFormat.SingleUnderline
-            elif val in ['dotted', 'dots', 'dotline']:
+            elif val in ["dotted", "dots", "dotline"]:
                 self._underline = QtGui.QTextCharFormat.DotLine
-            elif val in ['wave']:
+            elif val in ["wave"]:
                 self._underline = QtGui.QTextCharFormat.WaveUnderline
             else:
                 self._underline = QtGui.QTextCharFormat.NoUnderline
         return self._underline
-    
+
     @property
     def linestyle(self):
         if self._linestyle is None:
-            val = self._getValueSafe('linestyle')
-            if val in ['yes', 'true']:
+            val = self._getValueSafe("linestyle")
+            if val in ["yes", "true"]:
                 self._linestyle = Qt.SolidLine
-            elif val in ['dotted', 'dot', 'dots', 'dotline']:
+            elif val in ["dotted", "dot", "dots", "dotline"]:
                 self._linestyle = Qt.DotLine
-            elif val in ['dashed', 'dash', 'dashes', 'dashline']:
+            elif val in ["dashed", "dash", "dashes", "dashline"]:
                 self._linestyle = Qt.DashLine
             else:
-                self._linestyle = Qt.SolidLine # default to solid
+                self._linestyle = Qt.SolidLine  # default to solid
         return self._linestyle
-    
+
     @property
     def textCharFormat(self):
         if self._textCharFormat is None:
             self._textCharFormat = QtGui.QTextCharFormat()
             self._textCharFormat.setForeground(self.fore)
+            try:  # not all styles have a back property
+                self._textCharFormat.setBackground(self.back)
+            except Exception:
+                pass
             self._textCharFormat.setUnderlineStyle(self.underline)
             if self.bold:
                 self._textCharFormat.setFontWeight(QtGui.QFont.Bold)

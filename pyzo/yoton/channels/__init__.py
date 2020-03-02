@@ -2,7 +2,7 @@
 # flake8: noqa
 # Copyright (C) 2013, the Pyzo development team
 #
-# Yoton is distributed under the terms of the (new) BSD License.
+# Yoton is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
 """
@@ -17,6 +17,12 @@ network.
 from yoton.channels.message_types import MessageType, TEXT, BINARY, OBJECT
 from yoton.channels.channels_base import BaseChannel
 from yoton.channels.channels_pubsub import PubChannel, SubChannel, select_sub_channel
-from yoton.channels.channels_reqrep import ReqChannel, RepChannel, Future, TimeoutError, CancelledError
+from yoton.channels.channels_reqrep import (
+    ReqChannel,
+    RepChannel,
+    Future,
+    TimeoutError,
+    CancelledError,
+)
 from yoton.channels.channels_state import StateChannel
 from yoton.channels.channels_file import FileWrapper
