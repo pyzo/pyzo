@@ -49,6 +49,7 @@ class AutoCompletion(object):
 
         # We show the popup when this many chars have been input
         self.__autocompleteMinChars = 3
+        self.__autocompleteFromObject = False
         self.__autocompleteVisible = False
 
         self.__autocompleteDebug = False
@@ -104,7 +105,7 @@ class AutoCompletion(object):
         """
         self.__autocompleteMinChars = n
 
-    def autocompleteShow(self, offset=0, names=None):
+    def autocompleteShow(self, offset=0, names=None, fromObject=False):
         """
         Pop-up the autocompleter (if not already visible) and position it at current
         cursor position minus offset. If names is given and not None, it is set
@@ -113,6 +114,7 @@ class AutoCompletion(object):
         # Pop-up the autocompleteList
         startcursor = self.textCursor()
         startcursor.movePosition(startcursor.Left, n=offset)
+        self.__autocompleteFromObject = fromObject
 
         if self.__autocompleteDebug:
             print("autocompleteShow called")
@@ -226,7 +228,10 @@ class AutoCompletion(object):
         cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
 
         prefix = cursor.selectedText()
-        if len(prefix) < self.__autocompleteMinChars:
+        if (
+            not self.__autocompleteFromObject
+            and len(prefix) < self.__autocompleteMinChars
+        ):
             self.__completer.setCompletionPrefix("")
             self.autocompleteCancel()
             return False
