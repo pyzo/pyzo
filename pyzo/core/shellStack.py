@@ -753,8 +753,6 @@ class InterpreterHelper(QtWidgets.QWidget):
             self.refresh()
 
     def finish(self):
-        QtWidgets.qApp.flush()
-        QtWidgets.qApp.processEvents()
         self._label.setText("Happy coding!")
         QtCore.QTimer.singleShot(1200, self.hide_this)
 
