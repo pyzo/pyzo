@@ -58,11 +58,11 @@ if getattr(sys, "frozen", False):
     app_dir = os.path.dirname(sys.executable)
     # if sys.platform.startswith('win'):
     #     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = app_dir
-    if sys.platform.startswith("linux"):
-        # os.environ['QT_XKB_CONFIG_ROOT'] = '.'
-        os.environ["FONTCONFIG_FILE"] = os.path.join(
-            app_dir, "source/pyzo/resources", "fonts/linux_fonts.conf"
-        )
+    # if sys.platform.startswith("linux"):
+    #    # os.environ['QT_XKB_CONFIG_ROOT'] = '.'
+    #    os.environ["FONTCONFIG_FILE"] = os.path.join(
+    #        app_dir, "source/pyzo/resources", "fonts/linux_fonts.conf"
+    #    )
 
 # Automatically scale along on HDPI displays. See issue #531 and e.g.
 # https://wiki.archlinux.org/index.php/HiDPI#Qt_5
