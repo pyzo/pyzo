@@ -96,7 +96,7 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets
 
 # Enable high-res displays
 try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(True)
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
 except Exception:
     pass  # fail on non-windows
 try:
