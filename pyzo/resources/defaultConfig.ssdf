@@ -32,6 +32,7 @@ view = dict:
     doBraceMatch = 1  # Both in editor and shell
     codeFolding = 0
     autoComplete_popupSize = [300, 100]
+    autoComplete_theme = 0
     #
     qtstyle = ''
     edgeColumn = 80
