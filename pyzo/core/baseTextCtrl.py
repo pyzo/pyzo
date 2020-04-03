@@ -216,7 +216,9 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 editor_text_theme = theme["editor.text"].split(",")
                 popup_background = editor_text_theme[1].split(":")[1]
                 popup_text = editor_text_theme[0].split(":")[1]
-                autoComplete_theme = "color: {}; background-color:{};".format(popup_text, popup_background)
+                autoComplete_theme = "color: {}; background-color:{};".format(
+                    popup_text, popup_background
+                )
                 self.completer().popup().setStyleSheet(autoComplete_theme)
         except Exception as err:
             print("Could not load theme: " + str(err))
