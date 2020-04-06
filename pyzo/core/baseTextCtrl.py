@@ -209,7 +209,17 @@ class BaseTextCtrl(codeeditor.CodeEditor):
 
         # Set style/theme
         try:
-            self.setStyle(pyzo.themes[pyzo.config.settings.theme.lower()]["data"])
+            theme = pyzo.themes[pyzo.config.settings.theme.lower()]["data"]
+            self.setStyle(theme)
+            # autocomplete popup theme
+            if pyzo.config.view.autoComplete_withTheme:
+                editor_text_theme = theme["editor.text"].split(",")
+                popup_background = editor_text_theme[1].split(":")[1]
+                popup_text = editor_text_theme[0].split(":")[1]
+                autoComplete_theme = "color: {}; background-color:{};".format(
+                    popup_text, popup_background
+                )
+                self.completer().popup().setStyleSheet(autoComplete_theme)
         except Exception as err:
             print("Could not load theme: " + str(err))
 
