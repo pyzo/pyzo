@@ -715,17 +715,20 @@ class BaseShell(BaseTextCtrl):
             #  e.g. texts = ['msg', '\r']
             return texts
         for i in range(len(texts) - 1):
-            if (texts[i].endswith("\r") and not texts[i + 1].startswith("\n")
-                and not (i > 0 and texts[i - 1].endswith("\n"))) or (
-                texts[i + 1].startswith("\r") and not
-                texts[i + 1][1:].startswith("\n") and not
-                texts[i].endswith("\n")
+            if (
+                texts[i].endswith("\r")
+                and not texts[i + 1].startswith("\n")
+                and not (i > 0 and texts[i - 1].endswith("\n"))
+            ) or (
+                texts[i + 1].startswith("\r")
+                and not texts[i + 1][1:].startswith("\n")
+                and not texts[i].endswith("\n")
             ):
                 texts[i] = ""
 
         texts = [t for t in texts if t]
-        
-        if len(texts) == 1 and texts[0] == '\r':
+
+        if len(texts) == 1 and texts[0] == "\r":
             # Never return an isolated carriage return
             texts = []
 
@@ -741,8 +744,9 @@ class BaseShell(BaseTextCtrl):
         # Remove last line if it ended with CR
         cursor = self._cursor1
         if (self._lastline_had_cr and not text.startswith("\n")) or (
-            text.startswith("\r") and not text[1:].startswith("\n") and not
-            self._lastline_had_lf
+            text.startswith("\r")
+            and not text[1:].startswith("\n")
+            and not self._lastline_had_lf
         ):
             cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor, 1)
             cursor.removeSelectedText()
