@@ -717,7 +717,7 @@ class BaseShell(BaseTextCtrl):
         for i in range(len(texts) - 1):
             if (texts[i].endswith("\r") and not texts[i + 1].startswith("\n")
                 and not (i > 0 and texts[i - 1].endswith("\n"))) or (
-                texts[i + 1].startswith("\r") and not 
+                texts[i + 1].startswith("\r") and not
                 texts[i + 1][1:].startswith("\n") and not
                 texts[i].endswith("\n")
             ):
