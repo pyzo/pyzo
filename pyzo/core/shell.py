@@ -726,7 +726,7 @@ class BaseShell(BaseTextCtrl):
         texts = [t for t in texts if t]
         
         if len(texts) == 1 and texts[0] == '\r':
-            # Never return a isolated carriage return
+            # Never return an isolated carriage return
             texts = []
 
         return texts
