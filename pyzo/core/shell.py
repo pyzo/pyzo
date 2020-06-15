@@ -254,6 +254,7 @@ class BaseShell(BaseTextCtrl):
         self._cursor2 = self.textCursor()
         self._lastCommandCursor = self.textCursor()
         self._lastline_had_cr = False
+        self._lastline_had_lf = False
 
         # When inserting/removing text at the edit line (thus also while typing)
         # keep cursor2 at its place. Only when text is written before
