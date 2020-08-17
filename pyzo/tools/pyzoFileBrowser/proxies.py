@@ -24,10 +24,10 @@ from .utils import isdir
 
 class Task:
     """ Task(**params)
-    
+
     A task object. Accepts params as keyword arguments.
     When overloading, dont forget to set __slots__.
-    
+
     Overload and implement the 'process' method to create a task.
     Then use pushTask on a pathProxy object. Use the 'result' method to
     obtain the result (or raise an error).
@@ -73,15 +73,15 @@ class Task:
 
 class PathProxy(QtCore.QObject):
     """ Proxy base class for DirProxy and FileProxy.
-    
+
     A proxy object is used to get information on a path (folder
     contents, or file modification time), and keep being updated about
     changes in that information.
-    
+
     One uses an object by connecting to the 'changed' or 'deleted' signal.
     Use setActive(True) to receive updates on these signals. If the proxy
     is no longer needed, use close() to unregister it.
-    
+
     """
 
     changed = QtCore.Signal()
@@ -233,25 +233,25 @@ class FileProxy(PathProxy):
 
 class BaseFSProxy(threading.Thread):
     """ Abstract base class for file system proxies.
-    
+
     The file system proxy defines an interface that subclasses can implement
     to "become" a usable file system proxy.
-    
+
     This class implements the polling of information for the DirProxy
     and FileProxy objects, and keeping them up-to-date. For this purpose
     it keeps a set of PathProxy instances that are polled when idle.
     There is also a queue for items that need processing asap. This is
     where objects are put in when they are activated.
-    
+
     This class has methods to use the file system (list files and
     directories, etc.). These can be used directly, but may be slow.
     Therefor it is recommended to use the FileProxy and DirProxy objects
     instead.
-    
+
     """
 
     # Define how often the registered dirs and files are checked
-    IDLE_TIMEOUT = 1.0
+    IDLE_TIMEOUT = 0.1
 
     # For testing to induce extra delay. Should normally be close to zero,
     # but not exactly zero!

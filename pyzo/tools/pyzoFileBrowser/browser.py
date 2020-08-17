@@ -15,7 +15,7 @@ class Browser(QtWidgets.QWidget):
     """ A browser consists of an address bar, and tree view, and other
     widets to help browse the file system. The browser object is responsible
     for tying the different browser-components together.
-    
+
     It is also provides the API for dealing with starred dirs.
     """
 
@@ -98,9 +98,7 @@ class Browser(QtWidgets.QWidget):
         subLayout.addWidget(self._searchFilter, 5)
         layout.addLayout(subLayout)
 
-    def closeEvent(self, event):
-        # print('Closing browser, stopping file system proxy')
-        super().closeEvent(event)
+    def cleanUp(self):
         self._fsProxy.stop()
 
     def nameFilter(self):
