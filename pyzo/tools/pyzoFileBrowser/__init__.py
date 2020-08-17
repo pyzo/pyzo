@@ -147,7 +147,10 @@ class PyzoFileBrowser(QtWidgets.QWidget):
             return path
 
     def closeEvent(self, event):
+        self.cleanUp()
+        return QtWidgets.QWidget.closeEvent(self, event)
+
+    def cleanUp(self):
         # Close all browsers so they can clean up the file system proxies
         for browser in self._browsers:
-            browser.close()
-        return QtWidgets.QWidget.closeEvent(self, event)
+            browser.cleanUp()

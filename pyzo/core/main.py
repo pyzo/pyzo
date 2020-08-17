@@ -369,15 +369,18 @@ class MainWindow(QtWidgets.QMainWindow):
             self._closeflag = True
             # event.accept()  # Had to comment on Windows+py3.3 to prevent error
 
+
         # Proceed with closing shells
         pyzo.localKernelManager.terminateAll()
+
         for shell in pyzo.shells:
             shell._context.close()
 
         # The tools need to be explicitly closed to allow them to clean up
         for toolname in pyzo.toolManager.getLoadedTools():
             tool = pyzo.toolManager.getTool(toolname)
-            tool.close()
+            if hasattr(tool, "cleanUp"):
+                tool.cleanUp()
 
         # Stop all threads (this should really only be daemon threads)
         import threading
