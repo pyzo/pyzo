@@ -848,8 +848,9 @@ class Kernelmanager:
                 and kernel._process
                 and (kernel._process.poll() is None)
             ):
-                time.sleep(0.02)
                 terminator.next()
+                time.sleep(0.02)
+                yoton.process_events(False)
 
             # Clean up
             kernel._reset(True)

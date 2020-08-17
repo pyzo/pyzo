@@ -374,11 +374,6 @@ class MainWindow(QtWidgets.QMainWindow):
         for shell in pyzo.shells:
             shell._context.close()
 
-        # Close tools
-        for toolname in pyzo.toolManager.getLoadedTools():
-            tool = pyzo.toolManager.getTool(toolname)
-            tool.close()
-
         # Stop all threads (this should really only be daemon threads)
         import threading
 
