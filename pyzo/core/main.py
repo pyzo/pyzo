@@ -369,7 +369,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self._closeflag = True
             # event.accept()  # Had to comment on Windows+py3.3 to prevent error
 
-
         # Proceed with closing shells
         pyzo.localKernelManager.terminateAll()
 
