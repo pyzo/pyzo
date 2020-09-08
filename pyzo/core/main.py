@@ -238,7 +238,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set
         self.setWindowTitle(title)
 
-     def saveWindowState(self):
+    def saveWindowState(self):
         """ Save:
             * which tools are loaded
             * geometry of the top level windows
