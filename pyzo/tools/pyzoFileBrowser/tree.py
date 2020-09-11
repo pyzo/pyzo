@@ -105,10 +105,13 @@ def createItemsFun(browser, parent):
         dirs = []
         for entry in dirProxy.dirs():
             entry = cleanpath(entry)
-            if hideHidden and op.basename(entry).startswith("."):
-                continue  # Skip hidden files
-            if hideHidden and hasHiddenAttribute(entry):
-                continue  # Skip hidden files on Windows
+            if hideHidden:
+                if op.basename(entry).startswith("."):
+                    continue  # Skip hidden files
+                if hasHiddenAttribute(entry):
+                    continue  # Skip hidden files on Windows
+                if op.basename(entry) == "node_modules":
+                    continue
             if op.basename(entry) == "__pycache__":
                 continue
             dirs.append(entry)
