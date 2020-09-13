@@ -147,7 +147,7 @@ def is_our_server_running():
     not running, this is probably not the first Pyzo, but there might
     also be problem with starting the server.
     """
-    return server and server.isAlive()
+    return server and server.is_alive()
 
 
 def is_pyzo_server_running():
