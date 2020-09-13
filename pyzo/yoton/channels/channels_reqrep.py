@@ -700,7 +700,7 @@ class RepChannel(BaseChannel):
             self._timer.start()
         elif mode in [2, "thread", "thread-driven"]:
             self._run_mode = 2
-            if not self._thread.isAlive():
+            if not self._thread.is_alive():
                 self._thread.start()
         else:
             raise ValueError("Invalid mode for ReqChannel instance.")
