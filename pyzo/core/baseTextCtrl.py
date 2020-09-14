@@ -212,7 +212,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             theme = pyzo.themes[pyzo.config.settings.theme.lower()]["data"]
             self.setStyle(theme)
             # autocomplete popup theme
-            if pyzo.config.view.autoComplete_withTheme:
+            if pyzo.config.view.get("autoComplete_withTheme", False):
                 editor_text_theme = theme["editor.text"].split(",")
                 popup_background = editor_text_theme[1].split(":")[1]
                 popup_text = editor_text_theme[0].split(":")[1]

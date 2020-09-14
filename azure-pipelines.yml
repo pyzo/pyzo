@@ -36,7 +36,7 @@ jobs:
         #PY_EXE: python
         DOCKERIMAGE: ubuntu:18.04
       Build-MacOS-64:
-        vmImage: macOS-10.13
+        vmImage: macOS-10.14
         MACOSX_DEPLOYMENT_TARGET: '10.13'
         TEST: 1
         FREEZE: 1
