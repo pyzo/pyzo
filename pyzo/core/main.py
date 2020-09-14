@@ -250,21 +250,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Store window geometry
         geometry = self.saveGeometry()
-        try:
-            # geometry = bytes(geometry)  # PyQt4
-            pass
-        except Exception:
-            geometry = bytes().join(geometry)  # PySide
         geometry = base64.encodebytes(geometry.data()).decode("ascii")
         pyzo.config.state.windowGeometry = geometry
 
         # Store window state
         state = self.saveState()
-        try:
-            # state = bytes(state)  # PyQt4
-            pass
-        except Exception:
-            state = bytes().join(state)  # PySide
         state = base64.encodebytes(state.data()).decode("ascii")
         pyzo.config.state.windowState = state
 
