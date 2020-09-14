@@ -30,7 +30,7 @@ default_bookmarks = [
 
 
 class WebView(QtWidgets.QTextBrowser):
-    """ Inherit the webview class to implement zooming using
+    """Inherit the webview class to implement zooming using
     the mouse wheel.
     """
 
@@ -108,7 +108,7 @@ class WebView(QtWidgets.QTextBrowser):
         url = self._load(url)
 
     def _load(self, url):
-        """ _load(url)
+        """_load(url)
         Convert url and load page, returns new url.
         """
         # Make url a string
@@ -140,7 +140,7 @@ class WebView(QtWidgets.QTextBrowser):
 
 
 class PyzoWebBrowser(QtWidgets.QFrame):
-    """ The main window, containing buttons, address bar and
+    """The main window, containing buttons, address bar and
     browser widget.
     """
 

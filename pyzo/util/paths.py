@@ -35,7 +35,7 @@ import sys
 
 
 def is_frozen():
-    """ is_frozen()
+    """is_frozen()
     Return whether this app is a frozen application (using e.g. cx_freeze).
     """
     return bool(getattr(sys, "frozen", None))
@@ -46,7 +46,7 @@ import os, sys, tempfile
 
 
 def temp_dir(appname=None, nospaces=False):
-    """ temp_dir(appname=None, nospaces=False)
+    """temp_dir(appname=None, nospaces=False)
     Get path to a temporary directory with write access.
     If appname is given, a subdir is appended (and created if necessary).
     If nospaces, will ensure that the path has no spaces.
@@ -86,7 +86,7 @@ import os
 
 
 def user_dir():
-    """ user_dir()
+    """user_dir()
     Get the path to the user directory. (e.g. "/home/jack", "c:/Users/jack")
     """
     return os.path.expanduser("~")
@@ -97,7 +97,7 @@ import os, sys
 
 
 def appdata_dir(appname=None, roaming=False, macAsLinux=False):
-    """ appdata_dir(appname=None, roaming=False,  macAsLinux=False)
+    """appdata_dir(appname=None, roaming=False,  macAsLinux=False)
     Get the path to the application data and config directory, where applications are allowed
     to write user specific files (e.g. configurations).
     Applications should write their configurations files in the config folder,
@@ -186,7 +186,7 @@ import os, sys
 
 
 def common_appdata_dir(appname=None):
-    """ common_appdata_dir(appname=None)
+    """common_appdata_dir(appname=None)
     Get the path to the common application directory. Applications are
     allowed to write files here. For user specific data, consider using
     appdata_dir().
@@ -232,7 +232,7 @@ import os, sys
 
 
 def application_dir():
-    """ application_dir()
+    """application_dir()
     Get the directory in which the current application is located.
     The "application" can be a Python script or a frozen application.
     This function raises a RuntimeError if in interpreter mode.
@@ -262,7 +262,7 @@ def application_dir():
 
 
 def pyzo_dirs(newdir=None, makelast=False):
-    """ pyzo_dirs(newdir=None,  makelast=False)
+    """pyzo_dirs(newdir=None,  makelast=False)
     Compatibility function. Like pyzo_dirs2, but returns a list of
     directories and does not allow setting the version.
     """
@@ -274,7 +274,7 @@ import os, sys
 
 
 def pyzo_dirs2(path=None, version="0", **kwargs):
-    """ pyzo_dirs2(dir=None, version='0', makelast=False)
+    """pyzo_dirs2(dir=None, version='0', makelast=False)
     Get the locations of installed Pyzo directories. Returns a list of
     tuples: (dirname, version). In future versions more information may
     be added to the file, so please take larger tuples into account.

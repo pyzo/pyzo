@@ -58,7 +58,7 @@ class FakeEditor(pyzo.core.baseTextCtrl.BaseTextCtrl):
 
 
 class TitledWidget(QtWidgets.QWidget):
-    """ A litle helper class to "name" a widget :
+    """A litle helper class to "name" a widget :
     it displays a QLabel to left of the given widget"""
 
     def __init__(self, name, other):
@@ -99,8 +99,8 @@ class ColorLineEdit(QtWidgets.QLineEdit):
 
     def openColorDialog(self):
         """A simple function that opens a QColorDialog
-           and link the dialog current color selection
-           to the QLineEdit text
+        and link the dialog current color selection
+        to the QLineEdit text
         """
         dlg = QtWidgets.QColorDialog(self)
         dlg.setWindowTitle("Pick a color for the " + self.name.lower())
@@ -120,11 +120,11 @@ class ColorLineEdit(QtWidgets.QLineEdit):
 
 
 class StyleEdit(QtWidgets.QWidget):
-    """ The StyleLineEdit is a line that allows the edition
-        of one style (i.e. "Editor.Text" or  "Syntax.identifier")
-        with a given StyleElementDescription it find the editable
-        parts and display the adaptated widgets for edition
-        (checkbok for bold and italic, combo box for linestyles...).
+    """The StyleLineEdit is a line that allows the edition
+    of one style (i.e. "Editor.Text" or  "Syntax.identifier")
+    with a given StyleElementDescription it find the editable
+    parts and display the adaptated widgets for edition
+    (checkbok for bold and italic, combo box for linestyles...).
     """
 
     styleChanged = QtCore.Signal(str, str)
@@ -167,8 +167,8 @@ class StyleEdit(QtWidgets.QWidget):
 
     def __add_clrLineEdit(self, key, name):
         """this is a helper method to create a ColorLineEdit
-            it adds the created widget (as a TitledWidget) to the layout and
-            register a setter and listen to changes
+        it adds the created widget (as a TitledWidget) to the layout and
+        register a setter and listen to changes
         """
         clrEdit = ColorLineEdit(name)
         clrEdit.textChanged.connect(lambda txt, key=key: self.__update(key, txt))
@@ -177,8 +177,8 @@ class StyleEdit(QtWidgets.QWidget):
 
     def __add_checkBox(self, key, name):
         """this is a helper method to create a QCheckBox
-            it adds the created widget (as a TitledWidget) to the layout and
-            register a setter and listen to changes
+        it adds the created widget (as a TitledWidget) to the layout and
+        register a setter and listen to changes
         """
 
         checkBox = QtWidgets.QCheckBox()
@@ -196,8 +196,8 @@ class StyleEdit(QtWidgets.QWidget):
     def __add_comboBox(self, key, name, *items):
 
         """this is a helper method to create a comboBox
-            it adds the created widget (as a TitledWidget) to the layout and
-            register a setter and listen to changes
+        it adds the created widget (as a TitledWidget) to the layout and
+        register a setter and listen to changes
         """
 
         combo = QtWidgets.QComboBox()
@@ -212,8 +212,8 @@ class StyleEdit(QtWidgets.QWidget):
         self.layout.addWidget(TitledWidget(name, combo))
 
     def __update(self, key, value):
-        """ this function is called everytime one of the children
-        widget data has been modified by the user """
+        """this function is called everytime one of the children
+        widget data has been modified by the user"""
         self.styleChanged.emit(self.styleKey, key + ":" + value)
 
     def setStyle(self, text):
@@ -227,13 +227,13 @@ class StyleEdit(QtWidgets.QWidget):
 
 
 class ThemeEditorWidget(QtWidgets.QWidget):
-    """ The ThemeEditorWidgets allows to edits themes,
-        it has one StyleEdit widget per StyleElements ("Editor.Text",
-        "Syntax.string"). It emits a signal on each style changes
+    """The ThemeEditorWidgets allows to edits themes,
+    it has one StyleEdit widget per StyleElements ("Editor.Text",
+    "Syntax.string"). It emits a signal on each style changes
 
-        It also manages basic theme I/O :
-            - adding new theme
-            - renaming theme
+    It also manages basic theme I/O :
+        - adding new theme
+        - renaming theme
 
     """
 
@@ -320,7 +320,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
             self.setTheme(pyzo.config.settings.theme)
 
     def createTheme(self):
-        """ Create a new theme based on the current
+        """Create a new theme based on the current
         theme selected.
         """
 
@@ -353,13 +353,15 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
         self.saveBtn.setEnabled(True)
 
-        self.curThemeCmb.addItem("New...",)
+        self.curThemeCmb.addItem(
+            "New...",
+        )
 
     def setTheme(self, name):
-        """ Set the theme by its name. The combobox becomes editable only
-            if the theme is not builtin. This method is connected to the signal
-            self.curThemeCmb.currentTextChanged ; so it also filters
-            parasites events """
+        """Set the theme by its name. The combobox becomes editable only
+        if the theme is not builtin. This method is connected to the signal
+        self.curThemeCmb.currentTextChanged ; so it also filters
+        parasites events"""
 
         name = name.lower()
 
@@ -396,8 +398,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
                 print("Exception while setting style", key, "for theme", name, ":", e)
 
     def saveTheme(self):
-        """ Saves the current theme to the disk, in appDataDir/themes
-        """
+        """Saves the current theme to the disk, in appDataDir/themes"""
 
         if self.cur_theme["builtin"]:
             return
@@ -424,8 +425,8 @@ class ThemeEditorWidget(QtWidgets.QWidget):
         print("Saved theme '%s' to '%s'" % (themeName, fname))
 
     def ok(self):
-        """ On user click saves the cur_theme if modified
-            and restart pyzo if the theme changed"""
+        """On user click saves the cur_theme if modified
+        and restart pyzo if the theme changed"""
         prev = pyzo.config.settings.theme
         new = self.cur_theme["name"]
 
@@ -455,10 +456,10 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
 
 class EditColorDialog(QtWidgets.QDialog):
-    """ This dialog allows to edit color schemes,
-        it is composed of two main components :
-            - a "fake" editor to visualize the changes
-            - a theme editor to make the edits
+    """This dialog allows to edit color schemes,
+    it is composed of two main components :
+        - a "fake" editor to visualize the changes
+        - a theme editor to make the edits
     """
 
     def __init__(self, *args, **kwargs):

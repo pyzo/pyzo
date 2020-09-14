@@ -15,24 +15,24 @@ from yoton.channels import BaseChannel
 
 
 class StateChannel(BaseChannel):
-    """ StateChannel(context, slot_base, message_type=yoton.TEXT)
-    
+    """StateChannel(context, slot_base, message_type=yoton.TEXT)
+
     Channel class for the state messaging pattern. A state is synchronized
     over all state channels of the same slot. Each channel can
     send (i.e. set) the state and recv (i.e. get) the current state.
     Note however, that if two StateChannel instances set the state
     around the same time, due to the network delay, it is undefined
     which one sets the state the last.
-    
+
     The context will automatically call this channel's send_last()
     method when a new context enters the network.
-    
+
     The recv() call is always non-blocking and always returns the last
     received message: i.e. the current state.
-    
+
     There are no limitations for this channel if events are not
     processed, except that the received signal is not emitted.
-    
+
     Parameters
     ----------
     context : yoton.Context instance
@@ -47,7 +47,7 @@ class StateChannel(BaseChannel):
         Object to convert messages to bytes and bytes to messages.
         Users can create their own message_type class to let channels
         any type of message they want.
-    
+
     """
 
     def __init__(self, *args, **kwargs):
@@ -65,13 +65,13 @@ class StateChannel(BaseChannel):
         return "state", "state"
 
     def send(self, message):
-        """ send(message)
-        
+        """send(message)
+
         Set the state of this channel.
-        
+
         The state-message is queued and send over the socket by the IO-thread.
         Zero-length messages are ignored.
-        
+
         """
         # Send message only if it is different from the current state
         # set current_message by unpacking the send binary. This ensures
@@ -85,28 +85,28 @@ class StateChannel(BaseChannel):
             self._current_message = self.message_from_bytes(self._current_package._data)
 
     def send_last(self):
-        """ send_last()
-        
+        """send_last()
+
         Resend the last message.
-        
+
         """
         if self._current_package is not None:
             self._send(self.message_to_bytes(self._current_message))
 
     def recv(self, block=False):
-        """ recv(block=False)
-        
+        """recv(block=False)
+
         Get the state of the channel. Always non-blocking. Returns the
         most up to date state.
-        
+
         """
         return self._current_message
 
     def _recv_package(self, package):
-        """ _recv_package(package)
-        
+        """_recv_package(package)
+
         Bypass queue and just store it in a variable.
-        
+
         """
         self._current_message = self.message_from_bytes(package._data)
         self._current_package = package
@@ -114,18 +114,17 @@ class StateChannel(BaseChannel):
         self._maybe_emit_received()
 
     def _inject_package(self, package):
-        """ Non-blocking version of recv_package. Does the same.
-        """
+        """Non-blocking version of recv_package. Does the same."""
         self._current_message = self.message_from_bytes(package._data)
         self._current_package = package
         #
         self._maybe_emit_received()
 
     def _recv(self, block=None):
-        """ _recv(block=None)
-        
+        """_recv(block=None)
+
         Returns the last received or send set package. The package
         may not reflect the current state.
-        
+
         """
         return self._current_package

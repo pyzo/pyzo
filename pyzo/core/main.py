@@ -131,7 +131,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._ispainted = True
 
     def paintNow(self):
-        """ Enforce a repaint and keep calling processEvents until
+        """Enforce a repaint and keep calling processEvents until
         we are repainted.
         """
         self._ispainted = False
@@ -210,8 +210,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pyzo.toolManager.loadTool(toolId)
 
     def setMainTitle(self, path=None):
-        """ Set the title of the main window, by giving a file path.
-        """
+        """Set the title of the main window, by giving a file path."""
         if not path:
             # Plain title
             title = "Interactive Editor for Python"
@@ -239,10 +238,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(title)
 
     def saveWindowState(self):
-        """ Save:
-            * which tools are loaded
-            * geometry of the top level windows
-            * layout of dockwidgets and toolbars
+        """Save:
+        * which tools are loaded
+        * geometry of the top level windows
+        * layout of dockwidgets and toolbars
         """
 
         # Save tool list
@@ -252,7 +251,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Store window geometry
         geometry = self.saveGeometry()
         try:
-            #geometry = bytes(geometry)  # PyQt4
+            # geometry = bytes(geometry)  # PyQt4
             pass
         except Exception:
             geometry = bytes().join(geometry)  # PySide
@@ -262,7 +261,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Store window state
         state = self.saveState()
         try:
-            #state = bytes(state)  # PyQt4
+            # state = bytes(state)  # PyQt4
             pass
         except Exception:
             state = bytes().join(state)  # PySide
@@ -300,7 +299,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 print("Could not restore window state: " + str(err))
 
     def setQtStyle(self, stylename=None):
-        """ Set the style and the palette, based on the given style name.
+        """Set the style and the palette, based on the given style name.
         If stylename is None or not given will do some initialization.
         If bool(stylename) evaluates to False will use the default style
         for this system. Returns the QStyle instance.
@@ -464,7 +463,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def loadAppIcons():
-    """ loadAppIcons()
+    """loadAppIcons()
     Load the application iconsr.
     """
     # Get directory containing the icons
@@ -499,7 +498,7 @@ def loadAppIcons():
 
 
 def loadIcons():
-    """ loadIcons()
+    """loadIcons()
     Load all icons in the icon dir.
     """
     # Get directory containing the icons
@@ -526,7 +525,7 @@ def loadIcons():
 
 
 def loadFonts():
-    """ loadFonts()
+    """loadFonts()
     Load all fonts that come with Pyzo.
     """
     import pyzo.codeeditor  # we need pyzo and codeeditor namespace here
@@ -553,8 +552,7 @@ def loadFonts():
 
 
 class _CallbackEventHandler(QtCore.QObject):
-    """ Helper class to provide the callLater function.
-    """
+    """Helper class to provide the callLater function."""
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -577,7 +575,7 @@ class _CallbackEventHandler(QtCore.QObject):
 
 
 def callLater(callback, *args):
-    """ callLater(callback, *args)
+    """callLater(callback, *args)
     Post a callback to be called in the main thread.
     """
     _callbackEventHandler.postEventWithCallback(callback, *args)

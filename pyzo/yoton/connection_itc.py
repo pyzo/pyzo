@@ -20,7 +20,7 @@ from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING
 
 
 class ItcConnection(Connection):
-    """ ItcConnection(context, hostname, port, name='')
+    """ItcConnection(context, hostname, port, name='')
 
     Not implemented .
 

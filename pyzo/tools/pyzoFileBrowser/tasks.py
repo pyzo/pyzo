@@ -122,7 +122,7 @@ class SearchTask(proxies.Task):
         return lines
 
     def _determineLineEnding(self, text):
-        """ function to determine quickly whether LF or CR is used
+        """function to determine quickly whether LF or CR is used
         as line endings. Windows endings (CRLF) result in LF
         (you can split lines with either char).
         """
@@ -140,8 +140,7 @@ class SearchTask(proxies.Task):
 
 
 class PeekTask(proxies.Task):
-    """ To peek the high level structure of a task.
-    """
+    """To peek the high level structure of a task."""
 
     __slots__ = []
 

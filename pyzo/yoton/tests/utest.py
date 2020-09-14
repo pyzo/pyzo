@@ -18,7 +18,7 @@ from yoton.misc import long
 
 
 class Tester(unittest.TestCase):
-    """ Perform a set of tests using three contexts and
+    """Perform a set of tests using three contexts and
     each of the six channels at each context.
 
     """

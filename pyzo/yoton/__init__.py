@@ -46,26 +46,26 @@ __version__ = "2.2"
 
 # Define convenience class
 class SimpleSocket(Context):
-    """ SimpleSocket()
-    
+    """SimpleSocket()
+
     A simple socket has an API similar to a BSD socket. This socket
     sends whole text messages from one end to the other.
-    
+
     This class subclasses the Yoton.Context class, which makes setting
     up this socket very easy.
-    
+
     Example
     -------
     # One end
     s = SimpleSocket()
     s.bind('localhost:test')
     s.send("Hi")
-    
+
     # Other end
     s = SimpleSocket()
     s.connect('localhost:test')
     print(s.recv())
-    
+
     """
 
     def __init__(self, verbose=False):
@@ -76,21 +76,21 @@ class SimpleSocket(Context):
         self._cr = SubChannel(self, "text")
 
     def send(self, s):
-        """ send(message)
-        
+        """send(message)
+
         Send a text message. The message is queued and send
         over the socket by the IO-thread.
-        
+
         """
         self._cs.send(s)
 
     def recv(self, block=None):
-        """ recv(block=None):
-        
+        """recv(block=None):
+
         Read a text from the channel. What was send as one message is
         always received as one message.
-        
+
         If the channel is closed and all messages are read, returns ''.
-        
+
         """
         return self._cr.recv(block)

@@ -23,7 +23,7 @@ PATH_KEY = "PythonPath"
 
 
 class PythonInReg:
-    """ Class to represent a specific version of the Python interpreter
+    """Class to represent a specific version of the Python interpreter
     registered (or being registered in the registry).
     This is a helper class for the functions defined in this module; it
     should not be instantiated directly.
@@ -65,8 +65,7 @@ class PythonInReg:
             return None
 
     def create(self):
-        """ Create key. If already exists, does nothing.
-        """
+        """Create key. If already exists, does nothing."""
 
         # Get key for this version
         reg = self._reg()
@@ -176,13 +175,12 @@ class PythonInReg:
             return None
 
     def version(self):
-        """ Get the Python version.
-        """
+        """Get the Python version."""
         return self._key[-3:]
 
 
 def get_interpreters_in_reg():
-    """ get_interpreters_in_reg()
+    """get_interpreters_in_reg()
     Get a list of PythonInReg instances: one for each interpreter
     in the registry. This function checks both LOCAL_MACHINE and CURRENT_USER.
     """
@@ -229,7 +227,7 @@ def _get_interpreter_in_reg(user, wow64=False):
 
 
 def register_interpreter(version=None, installPath=None, user=None, wow64=False):
-    """ register_interpreter(version=None, installPath=None, user=None, wow64=False)
+    """register_interpreter(version=None, installPath=None, user=None, wow64=False)
     Register a certain Python version. If version and installPath
     are not given, the current Python process is registered.
     if user is not given, tries LOCAL_MACHINE first but uses CURRENT_USER

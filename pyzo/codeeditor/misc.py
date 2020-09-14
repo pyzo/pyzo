@@ -31,20 +31,20 @@ DEFAULT_OPTION_NONE = "_+_just some absurd value_+_"
 
 
 def ce_option(arg1):
-    """ Decorator for properties of the code editor.
-    
+    """Decorator for properties of the code editor.
+
     It should be used on the setter function, with its default value
     as an argument. The default value is then  stored on the function
     object.
-    
+
     At the end of the initialization, the base codeeditor class will
     check all members and (by using the default-value-attribute as a
     flag) select the ones that are options. These are then set to
     their default values.
-    
+
     Similarly this information is used by the setOptions method to
     know which members are "options".
-    
+
     """
 
     # If the decorator is used without arguments, arg1 is the function
@@ -66,8 +66,7 @@ def ce_option(arg1):
 
 
 class _CallbackEventHandler(QtCore.QObject):
-    """ Helper class to provide the callLater function.
-    """
+    """Helper class to provide the callLater function."""
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -90,10 +89,10 @@ class _CallbackEventHandler(QtCore.QObject):
 
 
 def callLater(callback, *args):
-    """ callLater(callback, *args)
-    
+    """callLater(callback, *args)
+
     Post a callback to be called in the main thread.
-    
+
     """
     _callbackEventHandler.postEventWithCallback(callback, *args)
 

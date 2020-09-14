@@ -89,9 +89,9 @@ def buildMenus(menuBar):
 
 
 def getShortcut(fullName):
-    """ Given the full name or an action, get the shortcut
+    """Given the full name or an action, get the shortcut
     from the pyzo.config.shortcuts2 dict. A tuple is returned
-    representing the two shortcuts. """
+    representing the two shortcuts."""
     if isinstance(fullName, QtWidgets.QAction):
         fullName = fullName.menuPath  # the menuPath property is set in Menu._addAction
     shortcut = "", ""
@@ -153,7 +153,7 @@ class KeyMapper(QtCore.QObject):
 
 
 def unwrapText(text):
-    """ Unwrap text to display in message boxes. This just removes all
+    """Unwrap text to display in message boxes. This just removes all
     newlines. If you want to insert newlines, use \\r."""
 
     # Removes newlines
@@ -174,16 +174,16 @@ def unwrapText(text):
 
 
 class Menu(QtWidgets.QMenu):
-    """ Menu(parent=None, name=None)
-    
+    """Menu(parent=None, name=None)
+
     Base class for all menus. Has methods to add actions of all sorts.
-    
+
     The add* methods all have the name and icon as first two arguments.
     This is not so consistent with the Qt API for addAction, but it allows
     for cleaner code to add items; the first item can be quite long because
     it is a translation. In the current API, the second and subsequent
     arguments usually fit nicely on the second line.
-    
+
     """
 
     def __init__(self, parent=None, name=None):
@@ -237,8 +237,7 @@ class Menu(QtWidgets.QMenu):
         return name.lower()
 
     def _addAction(self, text, icon, selected=None):
-        """ Convenience function that makes the right call to addAction().
-        """
+        """Convenience function that makes the right call to addAction()."""
 
         # Add the action
         if icon is None:
@@ -383,11 +382,11 @@ class Menu(QtWidgets.QMenu):
 
 
 class GeneralOptionsMenu(Menu):
-    """ GeneralOptionsMenu(parent, name, callback, options=None)
-    
+    """GeneralOptionsMenu(parent, name, callback, options=None)
+
     Menu to present the user with a list from which to select one item.
     We need this a lot.
-    
+
     """
 
     def __init__(self, parent=None, name=None, callback=None, options=None):
@@ -1189,9 +1188,9 @@ class ShellMenu(Menu):
             shellAction.setEnabled(bool(pyzo.shells.getCurrentShell()))
 
     def buildShellActions(self):
-        """ Create the menu items which are also avaliable in the
+        """Create the menu items which are also avaliable in the
         ShellTabContextMenu
-        
+
         Returns a list of all items added"""
         icons = pyzo.icons
         return [
@@ -1236,7 +1235,7 @@ class ShellMenu(Menu):
         ]
 
     def buildShellDebugActions(self):
-        """ Create the menu items for debug shell actions.
+        """Create the menu items for debug shell actions.
         Returns a list of all items added"""
         icons = pyzo.icons
 
@@ -1274,7 +1273,7 @@ class ShellMenu(Menu):
         ]
 
     def getShell(self):
-        """ Returns the shell on which to apply the menu actions. Default is
+        """Returns the shell on which to apply the menu actions. Default is
         the current shell, this is overridden in the shell/shell tab context
         menus"""
         return pyzo.shells.getCurrentShell()
@@ -1352,8 +1351,7 @@ class ShellMenu(Menu):
         # The _shellDebugActions are enabled/disabled by the shellStack
 
     def _shellAction(self, action):
-        """ Call the method specified by 'action' on the current shell.
-        """
+        """Call the method specified by 'action' on the current shell."""
         shell = self.getShell()
         if shell:
             # Call the specified action
@@ -1533,7 +1531,7 @@ class ShellContextMenu(ShellMenu):
 
 
 class ShellTabContextMenu(ShellContextMenu):
-    """ The context menu for the shell tab is similar to the shell context menu,
+    """The context menu for the shell tab is similar to the shell context menu,
     but only has the shell actions defined in ShellMenu.buildShellActions()"""
 
     def build(self):
@@ -1955,7 +1953,7 @@ class RunMenu(Menu):
         w.show("RuncodeWizardPage1")  # Start wizard at page about running code
 
     def _getShellAndEditor(self, what, mainEditor=False):
-        """ Get the shell and editor. Shows a warning dialog when one of
+        """Get the shell and editor. Shows a warning dialog when one of
         these is not available.
         """
         # Init empty error message
@@ -1999,8 +1997,7 @@ class RunMenu(Menu):
         self._runSelected(advance=True)
 
     def _runSelected(self, advance=False):
-        """ Run the selected whole lines in the current shell.
-        """
+        """Run the selected whole lines in the current shell."""
         # Get editor and shell
         shell, editor = self._getShellAndEditor("selection")
         if not shell or not editor:
@@ -2046,8 +2043,7 @@ class RunMenu(Menu):
         self._runCell(advance=True)
 
     def _runCell(self, advance=False):
-        """ Run the code between two cell separaters ('##').
-        """
+        """Run the code between two cell separaters ('##')."""
         # TODO: ignore ## in multi-line strings
         # Maybe using source-structure information?
 
@@ -2137,9 +2133,9 @@ class RunMenu(Menu):
         return fname, text
 
     def _runFile(self, runMode, givenEditor=None):
-        """ Run a file
-         runMode is a tuple (asScript, mainFile)
-         """
+        """Run a file
+        runMode is a tuple (asScript, mainFile)
+        """
         asScript, mainFile = runMode
 
         # Get editor and shell
@@ -2534,8 +2530,8 @@ class SettingsMenu(Menu):
 
 
 class KeyMapModel(QtCore.QAbstractItemModel):
-    """ The model to view the structure of the menu and the shortcuts
-    currently mapped. """
+    """The model to view the structure of the menu and the shortcuts
+    currently mapped."""
 
     def __init__(self, *args):
         QtCore.QAbstractItemModel.__init__(self, *args)
@@ -2682,7 +2678,7 @@ keymap = {
 
 
 class KeyMapLineEdit(QtWidgets.QLineEdit):
-    """ A modified version of a lineEdit object that catches the key event
+    """A modified version of a lineEdit object that catches the key event
     and displays "Ctrl" when control was pressed, and similarly for alt and
     shift, function keys and other keys.
     """
@@ -2770,7 +2766,7 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
 
 
 class KeyMapEditDialog(QtWidgets.QDialog):
-    """ The prompt that is shown when double clicking
+    """The prompt that is shown when double clicking
     a keymap in the tree.
     It notifies the user when the entered shortcut is already used
     elsewhere and applies the shortcut (removing it elsewhere if
@@ -2824,9 +2820,9 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         self._isprimary = True
 
     def setFullName(self, fullname, isprimary):
-        """ To be called right after initialization to let the user
+        """To be called right after initialization to let the user
         know what he's updating, and show the current shortcut for that
-        in the line edit. """
+        in the line edit."""
 
         # store
         self._isprimary = isprimary
@@ -2914,10 +2910,10 @@ class KeyMapEditDialog(QtWidgets.QDialog):
 
 
 class KeymappingDialog(QtWidgets.QDialog):
-    """ The main keymap dialog, it has tabs corresponding with the
+    """The main keymap dialog, it has tabs corresponding with the
     different menus and each tab has a tree representing the structure
     of these menus. The current shortcuts are displayed.
-    On double clicking on an item, the shortcut can be edited. """
+    On double clicking on an item, the shortcut can be edited."""
 
     def __init__(self, *args):
         QtWidgets.QDialog.__init__(self, *args)

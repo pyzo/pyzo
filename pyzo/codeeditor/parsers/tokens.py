@@ -22,16 +22,16 @@ from ..misc import ustr
 
 
 class Token(object):
-    """ Token(line, start, end)
-    
+    """Token(line, start, end)
+
     Base token class.
-    
+
     A token is a group of characters representing "something".
     What is represented, is specified by the subclass.
-    
+
     Each token class should have a docstring describing the meaning
     of the characters it is applied to.
-    
+
     """
 
     defaultStyle = "fore:#000, bold:no, underline:no, italic:no"
@@ -84,17 +84,16 @@ class Token(object):
 
     @property
     def name(self):
-        """ The name of this token. Used to identify it and attach a style.
-        """
+        """The name of this token. Used to identify it and attach a style."""
         return self._name
 
     @property
     def description(self):
-        """ description()
-        
+        """description()
+
         Returns a StyleElementDescription instance that describes the
         style element that this token represents.
-        
+
         """
         format = self.getDefaultStyleFormat()
         des = "syntax: " + self.__doc__

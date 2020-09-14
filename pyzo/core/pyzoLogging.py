@@ -66,7 +66,7 @@ def print(*args, **kwargs):
 
 
 def splitConsole(stdoutFun=None, stderrFun=None):
-    """ splitConsole(stdoutFun=None, stderrFun=None)
+    """splitConsole(stdoutFun=None, stderrFun=None)
     Splits the stdout and stderr streams. On each call
     to their write methods, in addition to the original
     write method being called, will call the given
@@ -94,7 +94,7 @@ def splitConsole(stdoutFun=None, stderrFun=None):
 
 
 class OutputStreamSplitter:
-    """ This class is used to replace stdout and stderr output
+    """This class is used to replace stdout and stderr output
     streams. It defers the stream to the original and to
     a function that can be registered.
     Used by the logger shell.

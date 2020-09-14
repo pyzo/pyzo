@@ -51,7 +51,7 @@ from .utils import cleanpath, isdir
 
 
 class PyzoFileBrowser(QtWidgets.QWidget):
-    """ The main tool widget. An instance of this class contains one or
+    """The main tool widget. An instance of this class contains one or
     more Browser instances. If there are more, they can be selected
     using a tab bar.
     """
@@ -108,14 +108,12 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         layout.setContentsMargins(margin, margin, margin, margin)
 
     def path(self):
-        """ Get the current path shown by the file browser.
-        """
+        """Get the current path shown by the file browser."""
         browser = self._browsers[0]
         return browser._tree.path()
 
     def setPath(self, path):
-        """ Set the shown path.
-        """
+        """Set the shown path."""
         browser = self._browsers[0]
         browser._tree.setPath(path)
 

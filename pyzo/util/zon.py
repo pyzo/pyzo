@@ -40,8 +40,7 @@ def isidentifier(s):
 
 
 class Dict(_dict):
-    """ A dict in which the items can be get/set as attributes.
-    """
+    """A dict in which the items can be get/set as attributes."""
 
     __reserved_names__ = dir(_dict())  # Also from OrderedDict
     __pure_names__ = dir(dict())
@@ -101,8 +100,8 @@ Struct.__is_ssdf_struct__ = True
 
 
 def isstruct(ob):  # SSDF compatibility
-    """ isstruct(ob)
-    
+    """isstruct(ob)
+
     Returns whether the given object is an SSDF struct.
     """
     if hasattr(ob, "__is_ssdf_struct__"):
@@ -112,24 +111,24 @@ def isstruct(ob):  # SSDF compatibility
 
 
 def new():
-    """ new()
-    
+    """new()
+
     Create a new Dict object. The same as "Dict()".
     """
     return Dict()
 
 
 def clear(d):  # SSDF compatibility
-    """ clear(d)
-    
+    """clear(d)
+
     Clear all elements of the given Dict object.
     """
     d.clear()
 
 
 def copy(object):
-    """ copy(objec)
-    
+    """copy(objec)
+
     Return a deep copy the given object. The object and its children
     should be dict-compatible data types. Note that dicts are converted
     to Dict and tuples to lists.
@@ -147,8 +146,8 @@ def copy(object):
 
 
 def count(object, cache=None):
-    """ count(object):
-    
+    """count(object):
+
     Count the number of elements in the given object. An element is
     defined as one of the 6 datatypes supported by ZON (dict,
     tuple/list, string, int, float, None).
@@ -170,8 +169,8 @@ def count(object, cache=None):
 
 
 def loads(text):
-    """ loads(text)
-    
+    """loads(text)
+
     Load a Dict from the given Unicode) string in ZON syntax.
     """
     if not isinstance(text, string_types):
@@ -181,8 +180,8 @@ def loads(text):
 
 
 def load(file):
-    """ load(filename)
-    
+    """load(filename)
+
     Load a Dict from the given file or filename.
     """
     if isinstance(file, string_types):
@@ -192,8 +191,8 @@ def load(file):
 
 
 def saves(d):
-    """ saves(d)
-    
+    """saves(d)
+
     Serialize the given dict to a (Unicode) string.
     """
     if not (isstruct(d) or isinstance(d, dict)):
@@ -204,8 +203,8 @@ def saves(d):
 
 
 def save(file, d):
-    """ save(file, d)
-    
+    """save(file, d)
+
     Serialize the given dict to the given file or filename.
     """
     text = saves(d)

@@ -29,8 +29,7 @@ iconprovider = QtWidgets.QFileIconProvider()
 
 
 def addIconOverlays(icon, *overlays, offset=(8, 0), overlay_offset=(0, 0)):
-    """ Create an overlay for an icon.
-    """
+    """Create an overlay for an icon."""
     # Create painter and pixmap
     pm0 = QtGui.QPixmap(16 + offset[0], 16)  # icon.pixmap(16+offset[0],16+offset[1])
     pm0.fill(QtGui.QColor(0, 0, 0, 0))
@@ -70,8 +69,7 @@ def _filterFileByName(basename, filters):
 
 
 def createMounts(browser, tree):
-    """ Create items for all known mount points (i.e. drives on Windows).
-    """
+    """Create items for all known mount points (i.e. drives on Windows)."""
     fsProxy = browser._fsProxy
 
     mountPoints = getMounts()
@@ -82,8 +80,7 @@ def createMounts(browser, tree):
 
 
 def createItemsFun(browser, parent):
-    """ Create the tree widget items for a Tree or DirItem.
-    """
+    """Create the tree widget items for a Tree or DirItem."""
 
     # Get file system proxy and dir proxy for which we shall create items
     fsProxy = browser._fsProxy
@@ -183,7 +180,7 @@ def createItemsFun(browser, parent):
 
 
 def filename2sortkey(name):
-    """ Convert a file or dir name to a tuple that can be used to
+    """Convert a file or dir name to a tuple that can be used to
     logically sort them. Sorting first by extension.
     """
     # Normalize name
@@ -209,8 +206,7 @@ def filename2sortkey(name):
 
 
 class BrowserItem(QtWidgets.QTreeWidgetItem):
-    """ Abstract item in the tree widget.
-    """
+    """Abstract item in the tree widget."""
 
     def __init__(self, parent, pathProxy, *args):
         self._proxy = pathProxy
@@ -240,8 +236,7 @@ class BrowserItem(QtWidgets.QTreeWidgetItem):
         self._proxy.cancel()
 
     def clear(self):
-        """ Clear method that calls onDestroyed on its children.
-        """
+        """Clear method that calls onDestroyed on its children."""
         for i in reversed(range(self.childCount())):
             item = self.child(i)
             if hasattr(item, "onDestroyed"):
@@ -267,8 +262,7 @@ class BrowserItem(QtWidgets.QTreeWidgetItem):
 
 
 class DriveItem(BrowserItem):
-    """ Tree widget item for directories.
-    """
+    """Tree widget item for directories."""
 
     def __init__(self, parent, pathProxy):
         BrowserItem.__init__(self, parent, pathProxy)
@@ -283,8 +277,7 @@ class DriveItem(BrowserItem):
 
 
 class DirItem(BrowserItem):
-    """ Tree widget item for directories.
-    """
+    """Tree widget item for directories."""
 
     def __init__(self, parent, pathProxy, starred=False):
         self._starred = starred
@@ -330,7 +323,7 @@ class DirItem(BrowserItem):
     # No need to implement onDeleted: the parent will get a changed event.
 
     def onChanged(self):
-        """ Called when a change in the contents has occured, or when
+        """Called when a change in the contents has occured, or when
         we just activated the proxy. Update our items!
         """
         if not self.isExpanded():
@@ -340,8 +333,7 @@ class DirItem(BrowserItem):
 
 
 class FileItem(BrowserItem):
-    """ Tree widget item for files.
-    """
+    """Tree widget item for files."""
 
     def __init__(self, parent, pathProxy, mode="normal"):
         BrowserItem.__init__(self, parent, pathProxy)
@@ -438,8 +430,7 @@ class FileItem(BrowserItem):
 
 
 class SubFileItem(QtWidgets.QTreeWidgetItem):
-    """ Tree widget item for search items.
-    """
+    """Tree widget item for search items."""
 
     def __init__(self, parent, linenr, text, showlinenr=False):
         QtWidgets.QTreeWidgetItem.__init__(self, parent)
@@ -465,8 +456,7 @@ class SubFileItem(QtWidgets.QTreeWidgetItem):
 
 
 class DocstringItem(QtWidgets.QTreeWidgetItem):
-    """ Tree widget item for docstring placeholder items.
-    """
+    """Tree widget item for docstring placeholder items."""
 
     def __init__(self, parent, docstring):
         QtWidgets.QTreeWidgetItem.__init__(self, parent)
@@ -491,8 +481,7 @@ class DocstringItem(QtWidgets.QTreeWidgetItem):
 
 
 class ErrorItem(QtWidgets.QTreeWidgetItem):
-    """ Tree widget item for errors and information.
-    """
+    """Tree widget item for errors and information."""
 
     def __init__(self, parent, info):
         QtWidgets.QTreeWidgetItem.__init__(self, parent)
@@ -504,8 +493,7 @@ class ErrorItem(QtWidgets.QTreeWidgetItem):
 
 
 class SearchInfoItem(ErrorItem):
-    """ Tree widget item that displays info on the search.
-    """
+    """Tree widget item that displays info on the search."""
 
     def __init__(self, parent):
         ErrorItem.__init__(self, parent, "Searching ...")
@@ -530,7 +518,7 @@ class SearchInfoItem(ErrorItem):
 
 
 class TemporaryDirItem:
-    """ Created when searching. This object posts a requests for its contents
+    """Created when searching. This object posts a requests for its contents
     which are then processed, after which this object disbands itself.
     """
 
@@ -556,7 +544,7 @@ class TemporaryDirItem:
 
 
 class TemporaryFileItem:
-    """ Created when searching. This object posts a requests to search
+    """Created when searching. This object posts a requests to search
     its contents which are then processed, after which this object
     disbands itself, passin the proxy object to a real FileItem if the
     search had results.
@@ -592,7 +580,7 @@ class TemporaryFileItem:
 
 
 class Tree(QtWidgets.QTreeWidget):
-    """ Representation of the tree view.
+    """Representation of the tree view.
     Instances of this class are responsible for keeping the contents
     up-to-date. The Item classes above are dumb objects.
     """
@@ -631,13 +619,11 @@ class Tree(QtWidgets.QTreeWidget):
         self._proxy = None
 
     def path(self):
-        """ Get the current path shown by the treeview.
-        """
+        """Get the current path shown by the treeview."""
         return self._proxy.path()
 
     def setPath(self, path):
-        """ Set the current path shown by the treeview.
-        """
+        """Set the current path shown by the treeview."""
         # Close old proxy
         if self._proxy is not None:
             self._proxy.cancel()
@@ -666,8 +652,7 @@ class Tree(QtWidgets.QTreeWidget):
         self.dirChanged.emit(self.path())
 
     def setPathUp(self):
-        """ Go one directory up.
-        """
+        """Go one directory up."""
         newPath = op.dirname(self.path())
 
         if op.normcase(newPath) == op.normcase(self.path()):
@@ -676,7 +661,7 @@ class Tree(QtWidgets.QTreeWidget):
             self.setPath(newPath)
 
     def clear(self):
-        """ Overload the clear method to remove the items in a nice
+        """Overload the clear method to remove the items in a nice
         way, alowing the pathProxy instance to be closed correctly.
         """
         # Clear temporary (invisible) items
@@ -693,7 +678,7 @@ class Tree(QtWidgets.QTreeWidget):
         QtWidgets.QTreeWidget.clear(self)
 
     def mouseDoubleClickEvent(self, event):
-        """ Bypass expanding an item when double-cliking it.
+        """Bypass expanding an item when double-cliking it.
         Only activate the item.
         """
         item = self.itemAt(event.x(), event.y())
@@ -701,12 +686,11 @@ class Tree(QtWidgets.QTreeWidget):
             self.onItemActivated(item)
 
     def onChanged(self):
-        """ Called when our contents change or when we just changed directories.
-        """
+        """Called when our contents change or when we just changed directories."""
         self.createItems(self)
 
     def createItems(self, parent):
-        """ High level method to create the items of the tree or a DirItem.
+        """High level method to create the items of the tree or a DirItem.
         This method will handle the restoring of state etc.
         The actual filtering of entries and creation of tree widget items
         is done in the createItemsFun() function.
@@ -741,7 +725,7 @@ class Tree(QtWidgets.QTreeWidget):
             item.onClicked()
 
     def onItemActivated(self, item):
-        """ When an item is "activated", make that the new directory,
+        """When an item is "activated", make that the new directory,
         or open that file.
         """
         if hasattr(item, "onActivated"):

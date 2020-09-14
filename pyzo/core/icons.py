@@ -17,12 +17,12 @@ import pyzo
 
 
 class IconArtist:
-    """ IconArtist(icon=None)
-    
+    """IconArtist(icon=None)
+
     Object to draw icons with. Can be instantiated with an existing icon
     or as a blank icon. Perform operations and then use finish() to
     obtain the result.
-    
+
     """
 
     def __init__(self, icon=None):
@@ -35,7 +35,7 @@ class IconArtist:
         self._painter.begin(self._pm)
 
     def finish(self, icon=None):
-        """ finish()
+        """finish()
         Finish the drawing and return the resulting icon.
         """
         self._painter.end()
@@ -64,7 +64,7 @@ class IconArtist:
             raise ValueError("Icon for IconArtis should be icon, pixmap or name.")
 
     def setPenColor(self, color):
-        """ setPenColor(color)
+        """setPenColor(color)
         Set the color of the pen. Color can be anything that can be passed to
         Qcolor().
         """
@@ -76,26 +76,26 @@ class IconArtist:
         self._painter.setPen(pen)
 
     def addLayer(self, overlay, x=0, y=0):
-        """ addOverlay(overlay, x=0, y=0)
+        """addOverlay(overlay, x=0, y=0)
         Add an overlay icon to the icon (add the specified position).
         """
         pm = self._getPixmap(overlay)
         self._painter.drawPixmap(x, y, pm)
 
     def addLine(self, x1, y1, x2, y2):
-        """ addLine( x1, y1, x2, y2)
+        """addLine( x1, y1, x2, y2)
         Add a line to the icon.
         """
         self._painter.drawLine(x1, y1, x2, y2)
 
     def addPoint(self, x, y):
-        """ addPoint( x, y)
+        """addPoint( x, y)
         Add a point to the icon.
         """
         self._painter.drawPoint(x, y)
 
     def addMenuArrow(self, strength=100):
-        """ addMenuArrow()
+        """addMenuArrow()
         Adds a menu arrow to the icon to let the user know the icon
         is clickable.
         """
@@ -133,12 +133,12 @@ class IconArtist:
 
 # todo: not used; remove me?
 class TabCloseButton(QtWidgets.QToolButton):
-    """ TabCloseButton
-    
+    """TabCloseButton
+
     This class implements a very compact close button to be used in tabs.
     It allows managing tab (the closing part of it) in a fast and intuitive
     fashion.
-    
+
     """
 
     SIZE = 5, 8
@@ -219,15 +219,15 @@ class TabCloseButton(QtWidgets.QToolButton):
 
 # todo: not used; remove me?
 class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
-    """ ToolButtonWithMenuIndication
-    
+    """ToolButtonWithMenuIndication
+
     Tool button that wraps the icon in a slightly larger icon that
     contains a small arrow that lights up when hovering over the icon.
-    
+
     The button itself is not drawn. If the icon is clicked, the
     customContextMenuRequested signal of the "grandparent" is emitted. In
     this way we realize a suble icon that can be clicked on to show a menu.
-    
+
     """
 
     SIZE = 21, 16
@@ -305,10 +305,10 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
 
 
 class TabToolButton(QtWidgets.QToolButton):
-    """ TabToolButton
-    
+    """TabToolButton
+
     Base menu for editor and shell tabs.
-    
+
     """
 
     SIZE = 16, 16
@@ -326,11 +326,11 @@ class TabToolButton(QtWidgets.QToolButton):
 
 
 class TabToolButtonWithCloseButton(TabToolButton):
-    """ TabToolButtonWithCloseButton
-    
+    """TabToolButtonWithCloseButton
+
     Tool button that wraps the icon in a slightly larger icon that
     contains a small cross that can be used to invoke a close request.
-    
+
     """
 
     SIZE = 22, 16
@@ -466,7 +466,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
 
 
 class EditorTabToolButton(TabToolButtonWithCloseButton):
-    """ Button for the tabs of the editors. This is just a
+    """Button for the tabs of the editors. This is just a
     tight wrapper for the icon.
     """
 
@@ -522,8 +522,7 @@ class EditorTabToolButton(TabToolButtonWithCloseButton):
 
 
 class ShellIconMaker:
-    """ Object that can make an icon for the shells
-    """
+    """Object that can make an icon for the shells"""
 
     POSITION = (6, 7)  # absolute position of center of wheel.
 
@@ -610,7 +609,7 @@ class ShellIconMaker:
         return artist.finish().pixmap(16, 16)
 
     def updateIcon(self, status="Ready"):
-        """ updateIcon(status)
+        """updateIcon(status)
         Public method to set what state the icon must show.
         """
 
@@ -656,7 +655,7 @@ class ShellIconMaker:
         return int(index)
 
     def onTimer(self):
-        """ onTimer()
+        """onTimer()
         Invoked on each timer iteration. Will call the static drawing
         methods if in level 0. Otherwise will invoke drawInMotion().
         This method also checks if we should change levels and calculates
@@ -689,7 +688,7 @@ class ShellIconMaker:
             self._nextIndex()
 
     def drawReady(self):
-        """ drawReady()
+        """drawReady()
         Draw static icon for when in ready mode.
         """
         artist = IconArtist("application")
@@ -697,7 +696,7 @@ class ShellIconMaker:
         self.setIcon(artist.finish())
 
     def drawDebug(self):
-        """ drawDebug()
+        """drawDebug()
         Draw static icon for when in debug mode.
         """
         artist = IconArtist("application")
@@ -706,14 +705,14 @@ class ShellIconMaker:
         self.setIcon(artist.finish())
 
     def drawDead(self):
-        """ drawDead()
+        """drawDead()
         Draw static empty icon for when the kernel is dead.
         """
         artist = IconArtist("application")
         self.setIcon(artist.finish())
 
     def drawInMotion(self):
-        """ drawInMotion()
+        """drawInMotion()
         Draw one frame of the icon in motion. Position of the blobs
         is determined from the index and the list of locations.
         """

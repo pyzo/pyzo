@@ -23,13 +23,13 @@ Qt = QtCore.Qt
 
 
 class StyleElementDescription:
-    """ StyleElementDescription(name, defaultFormat, description)
-    
+    """StyleElementDescription(name, defaultFormat, description)
+
     Describes a style element by its name, default format, and description.
-    
+
     A style description is a simple placeholder for something
     that can be styled.
-    
+
     """
 
     def __init__(self, name, description, defaultFormat):
@@ -58,20 +58,20 @@ class StyleElementDescription:
 
 
 class StyleFormat:
-    """ StyleFormat(format='')
-    
+    """StyleFormat(format='')
+
     Represents the style format for a specific style element.
     A "style" is a dictionary that maps names (of style elements)
     to StyleFormat instances.
-    
+
     The given format can be a string or another StyleFormat instance.
     Style formats can be combined using their update() method.
-    
+
     A style format consists of multiple parts, where each "part" consists
     of a key and a value. The keys can be anything, depending
     on what kind of thing is being styled. The value can be obtained using
     the index operator (e.g. styleFomat['fore'])
-    
+
     For a few special keys, properties are defined that return the Qt object
     corresponding to the value. These values are also buffered to enable
     fast access. These keys are:
@@ -82,18 +82,18 @@ class StyleFormat:
       * underline: (int) whether an underline should be used (and which one)
       * linestyle: (int) what line style to use (e.g. for indent guides)
       * textCharFOrmat: (QTextCharFormat) for the syntax styles
-    
+
     The format neglects spaces and case. Parts are separated by commas
     or semicolons. If only a key is given it's value is interpreted
     as 'yes'. If only a color is given, its key is interpreted as 'fore'
     and back. Colors should be given using the '#' hex formatting.
-    
+
     An example format string: 'fore:#334, bold, underline:dotLine'
-    
+
     By calling str(styleFormatInstance) the string representing of the
     format can be obtained. By iterating over the instance, a series
     of key-value pairs is obtained.
-    
+
     """
 
     def __init__(self, format=""):
@@ -110,8 +110,7 @@ class StyleFormat:
         self._textCharFormat = None
 
     def __str__(self):
-        """ Get a (cleaned up) string representation of this style format.
-        """
+        """Get a (cleaned up) string representation of this style format."""
         parts = []
         for key in self._parts:
             parts.append("%s:%s" % (key, self._parts[key]))
@@ -127,18 +126,17 @@ class StyleFormat:
             raise KeyError("Invalid part key " + key + " for style format.")
 
     def __iter__(self):
-        """ Yields a series of tuples (key, val).
-        """
+        """Yields a series of tuples (key, val)."""
         parts = []
         for key in self._parts:
             parts.append((key, self._parts[key]))
         return parts.__iter__()
 
     def update(self, format):
-        """ update(format)
-        
+        """update(format)
+
         Update this style format with the given format.
-        
+
         """
 
         # Reset buffered values

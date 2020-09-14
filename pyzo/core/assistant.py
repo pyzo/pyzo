@@ -126,14 +126,14 @@ class HelpBrowser(QtWidgets.QTextBrowser):
 
 class PyzoAssistant(QtWidgets.QWidget):
     """
-        Show help contents and browse qt help files.
+    Show help contents and browse qt help files.
     """
 
     def __init__(self, parent=None, collection_filename=None):
         """
-            Initializes an assistance instance.
-            When collection_file is none, it is determined from the
-            appDataDir.
+        Initializes an assistance instance.
+        When collection_file is none, it is determined from the
+        appDataDir.
         """
         from pyzo.util.qt import QtHelp
 

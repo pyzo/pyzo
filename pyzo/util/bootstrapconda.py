@@ -42,7 +42,7 @@ default_conda_dir = (
 
 
 def check_for_conda_env(parent=None):
-    """ Check if it is reasonable to ask to install a conda env. If
+    """Check if it is reasonable to ask to install a conda env. If
     users says yes, do it. If user says no, don't, and remember.
     """
 
@@ -336,7 +336,7 @@ class Installer(QtWidgets.QDialog):
         return self._run_process(cmd)
 
     def _run_process(self, cmd):
-        """ Run command in a separate process, catch stdout, show lines
+        """Run command in a separate process, catch stdout, show lines
         in the output label. On fail, show all output in output text.
         """
         p = subprocess.Popen(
@@ -397,7 +397,7 @@ class Installer(QtWidgets.QDialog):
 
 
 def is_64bit():
-    """ Get whether the OS is 64 bit. On WIndows yields what it *really*
+    """Get whether the OS is 64 bit. On WIndows yields what it *really*
     is, not what the process is.
     """
     if False:  # sys.platform.startswith('win'):  ARG, causes problems with subprocess
@@ -416,8 +416,7 @@ def py_exe(dir):
 
 
 def _chunk_read(response, local_file, chunk_size=1024, initial_size=0, progress=None):
-    """Download a file chunk by chunk and show advancement
-    """
+    """Download a file chunk by chunk and show advancement"""
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
 
@@ -443,8 +442,7 @@ def _chunk_read(response, local_file, chunk_size=1024, initial_size=0, progress=
 
 
 def _fetch_file(url, file_name, progress=None):
-    """Load requested file, downloading it if needed or requested
-    """
+    """Load requested file, downloading it if needed or requested"""
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
 

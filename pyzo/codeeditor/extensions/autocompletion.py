@@ -62,7 +62,7 @@ class AutoCompletion(object):
         self.__completer.highlighted.connect(self._setHighlightedCompletion)
 
     def _setHighlightedCompletion(self, value):
-        """ Keeping track of the highlighted item allows us
+        """Keeping track of the highlighted item allows us
         to 'manually' perform an autocompletion.
         """
         self.__highlightedCompletion = value
@@ -83,7 +83,7 @@ class AutoCompletion(object):
         return self.__completer
 
     def setAutoCompletionAcceptKeys(self, *keys):
-        """ Set the keys (Qt enums) that can accept an autocompletion.
+        """Set the keys (Qt enums) that can accept an autocompletion.
         Like Tab, or Enter. Defaut Tab.
         """
         self.__autocompletionAcceptKeys = keys
@@ -178,13 +178,11 @@ class AutoCompletion(object):
         self.__recentCompletions.append(text)
 
     def autocompleteActive(self):
-        """ Returns whether an autocompletion list is currently started.
-        """
+        """Returns whether an autocompletion list is currently started."""
         return self.__autocompleteStart is not None
 
     def autocompleteVisible(self):
-        """ Returns whether an autocompletion list is currently shown.
-        """
+        """Returns whether an autocompletion list is currently shown."""
         return self.__autocompleteVisible
 
     def __positionAutocompleter(self):
@@ -281,7 +279,7 @@ class AutoCompletion(object):
                 return False
 
     def potentiallyAutoComplete(self, event):
-        """ potentiallyAutoComplete(event)
+        """potentiallyAutoComplete(event)
         Given a keyEvent, check if we should perform an autocompletion.
         Returns 0 if no autocompletion was performed. Return 1 if
         autocompletion was performed, but the key event should be processed

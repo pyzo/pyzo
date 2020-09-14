@@ -35,7 +35,7 @@ if not pyzo.config.settings.defaultLineEndings:
 
 
 def determineEncoding(bb):
-    """ Get the encoding used to encode a file.
+    """Get the encoding used to encode a file.
     Accepts the bytes of the file. Returns the codec name. If the
     codec could not be determined, uses UTF-8.
     """
@@ -75,7 +75,7 @@ def determineEncoding(bb):
 
 
 def determineLineEnding(text):
-    """ Get the line ending style used in the text.
+    """Get the line ending style used in the text.
     \n, \r, \r\n,
     The EOLmode is determined by counting the occurrences of each
     line ending...
@@ -103,7 +103,7 @@ def determineIndentation(text):
 
 
 def determineIndentationAndTrailingWS(text):
-    """ Get the indentation used in this document and whether there is
+    """Get the indentation used in this document and whether there is
     any trailing whitespace.
     The text is analyzed to find the most used indentations.
     The result is -1 if tab indents are most common.
@@ -177,7 +177,7 @@ newFileCounter = 0
 
 
 def createEditor(parent, filename=None):
-    """ Tries to load the file given by the filename and
+    """Tries to load the file given by the filename and
     if succesful, creates an editor instance to put it in,
     which is returned.
     If filename is None, an new/unsaved/temp file is created.
@@ -341,8 +341,7 @@ class PyzoEditor(BaseTextCtrl):
 
     @property
     def encoding(self):
-        """ Encoding used to convert the text of this file to bytes.
-        """
+        """Encoding used to convert the text of this file to bytes."""
         return self._encoding
 
     @encoding.setter
@@ -359,7 +358,7 @@ class PyzoEditor(BaseTextCtrl):
     ##
 
     def justifyText(self):
-        """ Overloaded version of justifyText to make it use our
+        """Overloaded version of justifyText to make it use our
         configurable justificationwidth.
         """
         super().justifyText(pyzo.config.settings.justificationWidth)
@@ -377,23 +376,22 @@ class PyzoEditor(BaseTextCtrl):
         self._showRunCursorTimer.singleShot(200, lambda: self.setExtraSelections([]))
 
     def id(self):
-        """ Get an id of this editor. This is the filename,
-        or for tmp files, the name. """
+        """Get an id of this editor. This is the filename,
+        or for tmp files, the name."""
         if self._filename:
             return self._filename
         else:
             return self._name
 
     def focusInEvent(self, event):
-        """ Test whether the file has been changed 'behind our back'
-        """
+        """Test whether the file has been changed 'behind our back'"""
         # Act normally to the focus event
         BaseTextCtrl.focusInEvent(self, event)
         # Test file change
         self.testWhetherFileWasChanged()
 
     def testWhetherFileWasChanged(self):
-        """ testWhetherFileWasChanged()
+        """testWhetherFileWasChanged()
         Test to see whether the file was changed outside our backs,
         and let the user decide what to do.
         Returns True if it was changed.
@@ -448,7 +446,7 @@ class PyzoEditor(BaseTextCtrl):
         sb.updateFileEncodingInfo(editor)
 
     def dragMoveEvent(self, event):
-        """ Otherwise cursor can get stuck.
+        """Otherwise cursor can get stuck.
         https://bitbucket.org/iep-project/iep/issue/252
         https://qt-project.org/forums/viewthread/3180
         """
@@ -562,11 +560,11 @@ class PyzoEditor(BaseTextCtrl):
         # self.somethingChanged.emit()
 
     def reload(self):
-        """ Reload text using the self._filename.
+        """Reload text using the self._filename.
         We do not have a load method; we first try to load the file
         and only when we succeed create an editor to show it in...
         This method is only for reloading in case the file was changed
-        outside of the editor. """
+        outside of the editor."""
 
         # We can only load if the filename is known
         if not self._filename:
@@ -700,8 +698,7 @@ class PyzoEditor(BaseTextCtrl):
     ## Introspection processing methods
 
     def processCallTip(self, cto):
-        """ Processes a calltip request using a CallTipObject instance.
-        """
+        """Processes a calltip request using a CallTipObject instance."""
         # Try using buffer first
         if cto.tryUsingBuffer():
             return
@@ -718,8 +715,7 @@ class PyzoEditor(BaseTextCtrl):
                 shell.processCallTip(cto)
 
     def processAutoComp(self, aco):
-        """ Processes an autocomp request using an AutoCompObject instance.
-        """
+        """Processes an autocomp request using an AutoCompObject instance."""
 
         # Try using buffer first
         if aco.tryUsingBuffer():

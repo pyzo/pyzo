@@ -16,11 +16,11 @@ def make_abs(path):
 
 
 class PythonInterpreter:
-    """ Class to represent a Python interpreter. It has properties
+    """Class to represent a Python interpreter. It has properties
     to get the path and version. Upon creation the version number is
     acquired by calling the interpreter in a subprocess. If this fails,
     the version becomes ''.
-    
+
     """
 
     def __init__(self, path):
@@ -51,7 +51,7 @@ class PythonInterpreter:
 
     @property
     def path(self):
-        """ The path to the executable of the Python interpreter.
+        """The path to the executable of the Python interpreter.
         If relative (starting with a dot), it is relative to the current
         sys.executable.
         """
@@ -59,33 +59,30 @@ class PythonInterpreter:
 
     @property
     def prefix(self):
-        """ The prefix of this executable.
-        """
+        """The prefix of this executable."""
         return self._prefix
 
     @property
     def is_conda(self):
-        """ Whether this interpreter is part of a conda environment (either
+        """Whether this interpreter is part of a conda environment (either
         a root or an env).
         """
         return os.path.isdir(os.path.join(make_abs(self._prefix), "conda-meta"))
 
     @property
     def version(self):
-        """ The version number as a string, usually 3 numbers.
-        """
+        """The version number as a string, usually 3 numbers."""
         if self._version is None:
             self._version = self._getversion()
         return self._version
 
     @property
     def version_info(self):
-        """ The version number as a tuple of integers. For comparing.
-        """
+        """The version number as a tuple of integers. For comparing."""
         return versionStringToTuple(self.version)
 
     def register(self):
-        """ Register this Python intepreter. On Windows this modifies
+        """Register this Python intepreter. On Windows this modifies
         the CURRENT_USER. On All other OS's this is a no-op.
         """
         if sys.platform.startswith("win"):

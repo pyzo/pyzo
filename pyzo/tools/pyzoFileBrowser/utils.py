@@ -41,8 +41,7 @@ def getDrivesWin():
 
 
 def hasHiddenAttribute(path):
-    """ Test (on Windows) whether a file should be hidden.
-    """
+    """Test (on Windows) whether a file should be hidden."""
     if not sys.platform.startswith("win"):
         return False
     try:

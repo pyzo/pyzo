@@ -21,8 +21,7 @@ from pyzo.util._locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage
 
 
 def retranslate(t):
-    """ To allow retranslating after selecting the language.
-    """
+    """To allow retranslating after selecting the language."""
     if hasattr(t, "original"):
         return translate("wizard", t.original)
     else:
@@ -64,7 +63,7 @@ class PyzoWizard(QtWidgets.QWizard):
             self.addPage(klass(self, i))
 
     def show(self, startPage=None):
-        """ Show the wizard. If startPage is given, open the Wizard at
+        """Show the wizard. If startPage is given, open the Wizard at
         that page. startPage can be an integer or a string that matches
         the classname of a page.
         """

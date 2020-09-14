@@ -39,16 +39,16 @@ else:
 
 
 class BlockState(object):
-    """ BlockState(state=0, info=None)
-    
+    """BlockState(state=0, info=None)
+
     The blockstate object should be used by parsers to
     return the block state of the processed line.
-    
+
     This would typically be the last item to be yielded, but this
     it may also be yielded befor the last yielded token. One can even
     yield multiple of these items, in which case the last one considered
     valid.
-    
+
     """
 
     isToken = False
@@ -59,20 +59,18 @@ class BlockState(object):
 
     @property
     def state(self):
-        """ The integer value representing the block state.
-        """
+        """The integer value representing the block state."""
         return self._state
 
     @property
     def info(self):
-        """ Get the information corresponding to the block.
-        """
+        """Get the information corresponding to the block."""
         return self._info
 
 
 # Base parser class (needs to be defined before importing parser modules)
 class Parser(object):
-    """ Base parser class.
+    """Base parser class.
     All parsers should inherit from this class.
     This base class generates a 'TextToken' for each line
     """
@@ -93,27 +91,27 @@ class Parser(object):
         return cls.getParserName()
 
     def parseLine(self, line, previousState=0):
-        """ parseLine(line, previousState=0)
-        
+        """parseLine(line, previousState=0)
+
         The method that should be implemented by the parser. The
         previousState argument can be used to determine how
         the previous block ended (e.g. for multiline comments). It
         is an integer, the meaning of which is only known to the
         specific parser.
-        
+
         This method should yield token instances. The last token can
         be a BlockState to specify the previousState for the
         next block.
-        
+
         """
 
         yield tokens.TextToken(line, 0, len(line))
 
     def name(self):
-        """ name()
-        
+        """name()
+
         Get the name of the parser.
-        
+
         """
         name = self.__class__.__name__.lower()
         if name.endswith("parser"):
@@ -121,42 +119,41 @@ class Parser(object):
         return name
 
     def __repr__(self):
-        """ String representation of the parser.
-        """
+        """String representation of the parser."""
         return '<Parser for "%s">' % self.name()
 
     def keywords(self):
-        """ keywords()
-        
+        """keywords()
+
         Get a list of keywords valid for this parser.
-        
+
         """
         return [k for k in self._keywords]
 
     def filenameExtensions(self):
-        """ filenameExtensions()
-        
+        """filenameExtensions()
+
         Get a list of filename extensions for which this parser
         is appropriate.
-        
+
         """
         return ["." + e.lstrip(".").lower() for e in self._extensions]
 
     def shebangKeywords(self):
-        """ shebangKeywords()
-        
+        """shebangKeywords()
+
         Get a list of shebang keywords for which this parser
         is appropriate.
-        
+
         """
         return self._shebangKeywords.copy()
 
     def getStyleElementDescriptions(cls):
-        """ getStyleElementDescriptions()
-        
+        """getStyleElementDescriptions()
+
         This method returns a list of the StyleElementDescription
         instances used by this parser.
-        
+
         """
         descriptions = {}
         for token in cls.getUsedTokens(cls):
@@ -165,10 +162,10 @@ class Parser(object):
         return list(descriptions.values())
 
     def getUsedTokens(self):
-        """ getUsedTokens()
-        
+        """getUsedTokens()
+
         Get a a list of token instances used by this parser.
-        
+
         """
 
         # Get module object of the parser
@@ -189,12 +186,12 @@ class Parser(object):
         return [t() for t in tokenClasses]
 
     def _isTodoItem(self, text):
-        """ _isTodoItem(text)
-        
+        """_isTodoItem(text)
+
         Get whether the given text (which should be a comment) represents
         a todo item. Todo items start with "todo", "2do" or "fixme",
         optionally with a colon at the end.
-        
+
         """
         # Get first word
         word = text.lstrip().split(" ", 1)[0].rstrip(":")

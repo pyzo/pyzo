@@ -474,8 +474,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             self.setObjectName(name, True)
 
     def onOptionsPress(self):
-        """ Create the menu for the button, Do each time to make sure
-        the checks are right. """
+        """Create the menu for the button, Do each time to make sure
+        the checks are right."""
 
         # Get menu
         menu = self._options._menu
@@ -534,8 +534,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._browser.setHtml(htmlWrap.format(size, text))
 
     def setObjectName(self, name, addToHist=False):
-        """ Set the object name programatically
-        and query documentation for it. """
+        """Set the object name programatically
+        and query documentation for it."""
         self._text.setText(name)
         self.queryDoc(addToHist)
 

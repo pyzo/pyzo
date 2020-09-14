@@ -39,19 +39,19 @@ SOCKET_BUFFERS_SIZE = 10 * 1024
 
 
 class TcpConnection(Connection):
-    """ TcpConnection(context, name='')
-    
+    """TcpConnection(context, name='')
+
     The TcpConnection class implements a connection between two
     contexts that are in differenr processes or on different machines
     connected via the internet.
-    
+
     This class handles the low-level communication for the context.
     A ContextConnection instance wraps a single BSD socket for its
     communication, and uses TCP/IP as the underlying communication
     protocol. A persisten connection is used (the BSD sockets stay
     connected). This allows to better distinguish between connection
     problems and timeouts caused by the other side being busy.
-    
+
     """
 
     def __init__(self, context, name=""):
@@ -67,14 +67,14 @@ class TcpConnection(Connection):
         Connection.__init__(self, context, name)
 
     def _set_status(self, status, bsd_socket=None):
-        """ _connected(status, bsd_socket=None)
-        
+        """_connected(status, bsd_socket=None)
+
         This method is called when a connection is made.
-        
+
         Private method to apply the bsd_socket.
         Sets the socket and updates the status.
         Also instantiates the IO threads.
-        
+
         """
 
         # Lock the connection while we change its status
@@ -134,7 +134,7 @@ class TcpConnection(Connection):
             self._lock.release()
 
     def _bind(self, hostname, port, max_tries=1):
-        """ Bind the bsd socket. Launches a dedicated thread that waits
+        """Bind the bsd socket. Launches a dedicated thread that waits
         for incoming connections and to do the handshaking procedure.
         """
 
@@ -191,8 +191,7 @@ class TcpConnection(Connection):
         self._hostThread.start()
 
     def _connect(self, hostname, port, timeout=1.0):
-        """ Connect to a bound socket.
-        """
+        """Connect to a bound socket."""
 
         # Create socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -243,8 +242,7 @@ class TcpConnection(Connection):
         self._set_status(STATUS_CONNECTED, s)
 
     def _notify_other_end_of_closing(self):
-        """ Send PACKAGE_CLOSE.
-        """
+        """Send PACKAGE_CLOSE."""
         self._qout.push(PACKAGE_CLOSE)
         try:
             self.flush(1.0)
@@ -252,7 +250,7 @@ class TcpConnection(Connection):
             pass  # Well, we tried ...
 
     def _flush(self, timeout=5.0):
-        """ Put a dummy message on the queue and spinlock until
+        """Put a dummy message on the queue and spinlock until
         the thread has popped it from the queue.
         """
 
@@ -272,27 +270,26 @@ class TcpConnection(Connection):
                 raise RuntimeError("Sending the packages timed out.")
 
     def _send_package(self, package):
-        """ Put package on the queue, where the sending thread will
+        """Put package on the queue, where the sending thread will
         pick it up.
         """
         self._qout.push(package)
 
     def _inject_package(self, package):
-        """ Put package in queue, but bypass potential blocking.
-        """
+        """Put package in queue, but bypass potential blocking."""
         self._qout._q.append(package)
 
 
 class HostThread(threading.Thread):
-    """ HostThread(context_connection, bds_socket)
-    
+    """HostThread(context_connection, bds_socket)
+
     The host thread is used by the ContextConnection when hosting a
     connection. This thread waits for another context to connect
     to it, and then performs the handshaking procedure.
-    
+
     When a successful connection is made, the context_connection's
     _connected() method is called and this thread then exits.
-    
+
     """
 
     def __init__(self, context_connection, bsd_socket):
@@ -306,11 +303,11 @@ class HostThread(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
-        """ run()
-        
+        """run()
+
         The main loop. Waits for a connection and performs handshaking
         if successfull.
-        
+
         """
 
         # Try making a connection until success or the context is stopped
@@ -348,11 +345,11 @@ class HostThread(threading.Thread):
         del self._bsd_host_socket
 
     def _wait_for_connection(self):
-        """ _wait_for_connection()
-            
+        """_wait_for_connection()
+
         The thread will wait here until someone connects. When a
         connections is made, the new socket is returned.
-        
+
         """
 
         # Set timeout so that we can check _stop_me from time to time
@@ -374,20 +371,20 @@ class HostThread(threading.Thread):
 
 
 class HandShaker:
-    """ HandShaker(bsd_socket)
-    
+    """HandShaker(bsd_socket)
+
     Class that performs the handshaking procedure for Tcp connections.
-    
+
     Essentially, the connecting side starts by sending 'YOTON!'
     followed by its id as a hex string. The hosting side responds
     with the same message (but with a different id).
-    
+
     This process is very similar to a client/server pattern (both
     messages are also terminated with '\r\n'). This is done such that
     if for example a web client tries to connect, a sensible error
     message can be returned. Or when a ContextConnection tries to connect
     to a web server, it will be able to determine the error gracefully.
-    
+
     """
 
     def __init__(self, bsd_socket):
@@ -396,14 +393,14 @@ class HandShaker:
         self._bsd_socket = bsd_socket
 
     def shake_hands_as_host(self, id):
-        """ _shake_hands_as_host(id)
-        
+        """_shake_hands_as_host(id)
+
         As the host, we wait for the client to ask stuff, so when
         for example a http client connects, we can stop the connection.
-        
+
         Returns (success, info), where info is the id of the context at
         the other end, or the error message in case success is False.
-        
+
         """
 
         # Make our message with id and pid
@@ -435,14 +432,14 @@ class HandShaker:
             return False, STOP_HANDSHAKE_FAILED
 
     def shake_hands_as_client(self, id):
-        """ _shake_hands_as_client(id)
-        
+        """_shake_hands_as_client(id)
+
         As the client, we ask the host whether it is a Yoton context
         and whether the channels we want to support are all right.
-        
+
         Returns (success, info), where info is the id of the context at
         the other end, or the error message in case success is False.
-        
+
         """
 
         # Make our message with id and pif
@@ -480,7 +477,7 @@ class HandShaker:
 
 
 class BaseIOThread(threading.Thread):
-    """ The base class for the sending and receiving IO threads.
+    """The base class for the sending and receiving IO threads.
     Implements some common functionality.
     """
 
@@ -497,7 +494,7 @@ class BaseIOThread(threading.Thread):
         self._bsd_socket = context_connection._bsd_socket
 
     def run(self):
-        """ Method to prepare to enter main loop. There is a try-except here
+        """Method to prepare to enter main loop. There is a try-except here
         to catch exceptions caused by interpreter shutdown.
         """
 
@@ -517,7 +514,7 @@ class BaseIOThread(threading.Thread):
             pass
 
     def run2(self, context_connection, bsd_socket):
-        """ Method to enter main loop. There is a try-except here to
+        """Method to enter main loop. There is a try-except here to
         catch exceptions in the main loop (such as socket errors and
         errors due to bugs in the code.
         """
@@ -557,14 +554,13 @@ class BaseIOThread(threading.Thread):
 
 
 class SendingThread(BaseIOThread):
-    """ The thread that reads packages from the queue and sends them over
+    """The thread that reads packages from the queue and sends them over
     the socket. It uses a timeout while reading from the queue, so it can
     send heart beat packages if no packages are send.
     """
 
     def _run(self, context_connection, bsd_socket):
-        """  The main loop. Get package from queue, send package to socket.
-        """
+        """The main loop. Get package from queue, send package to socket."""
 
         timeout = 0.5 * TIMEOUT_MIN
         queue = context_connection._qout
@@ -590,22 +586,21 @@ class SendingThread(BaseIOThread):
 
 
 class ReceivingThread(BaseIOThread):
-    """ The thread that reads packages from the socket and passes them to
+    """The thread that reads packages from the socket and passes them to
     the kernel. It uses select() to see if data is available on the socket.
     This allows using a timeout without putting the socket in timeout mode.
-    
+
     If the timeout has expired, the timedout event for the connection is
     emitted.
-    
+
     Upon receiving a package, the _recv_package() method of the context
     is called, so this thread will eventually dispose the package in
     one or more queues (of the channel or of another connection).
-    
+
     """
 
     def _run(self, context_connection, bsd_socket):
-        """ The main loop. Get package from socket, deposit package in queue(s).
-        """
+        """The main loop. Get package from socket, deposit package in queue(s)."""
 
         # Short names in local namespace avoid dictionary lookups
         socket_recv = bsd_socket.recv
@@ -659,8 +654,7 @@ class ReceivingThread(BaseIOThread):
                 print(getErrorMsg())
 
     def _getPackage(self, socket_recv, HS, package_from_header):
-        """ Get exactly one package from the socket. Blocking.
-        """
+        """Get exactly one package from the socket. Blocking."""
 
         # Get header and instantiate package object from it
         try:
@@ -691,8 +685,7 @@ class ReceivingThread(BaseIOThread):
             return package
 
     def _recv_n_bytes(self, socket_recv, n):
-        """ Receive exactly n bytes from the socket.
-        """
+        """Receive exactly n bytes from the socket."""
 
         # First round
         data = socket_recv(n)

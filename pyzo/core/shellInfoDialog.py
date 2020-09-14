@@ -524,7 +524,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         tabWidget.setTabText(tabWidget.indexOf(self), name)
 
     def setInfo(self, info=None):
-        """  Set the shell info struct, and use it to update the widgets.
+        """Set the shell info struct, and use it to update the widgets.
         Not via init, because this function also sets the tab name.
         """
 

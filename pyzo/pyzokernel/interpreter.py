@@ -59,7 +59,7 @@ else:
 
 
 class PS1:
-    """ Dynamic prompt for PS1. Show IPython prompt if available, and
+    """Dynamic prompt for PS1. Show IPython prompt if available, and
     show current stack frame when debugging.
     """
 
@@ -83,8 +83,7 @@ class PS1:
 
 
 class PS2:
-    """ Dynamic prompt for PS2.
-    """
+    """Dynamic prompt for PS2."""
 
     def __init__(self, pyzo):
         self._pyzo = pyzo
@@ -104,23 +103,23 @@ class PS2:
 
 
 class PyzoInterpreter:
-    """ PyzoInterpreter
-    
+    """PyzoInterpreter
+
     The pyzo interpreter is the part that makes the pyzo kernel interactive.
     It executes code, integrates the GUI toolkit, parses magic commands, etc.
     The pyzo interpreter has been designed to emulate the standard interactive
     Python console as much as possible, but with a lot of extra goodies.
-    
+
     There is one instance of this class, stored at sys._pyzoInterpreter and
     at the __pyzo__ variable in the global namespace.
-    
+
     The global instance has a couple of interesting attributes:
       * context: the yoton Context instance at the kernel (has all channels)
       * introspector: the introspector instance (a subclassed yoton.RepChannel)
       * magician: the object that handles the magic commands
       * guiApp: a wrapper for the integrated GUI application
       * sleeptime: the amount of time (in seconds) to sleep at each iteration
-    
+
     """
 
     # Simular working as code.InteractiveConsole. Some code was copied, but
@@ -193,27 +192,27 @@ class PyzoInterpreter:
                 sys.path.remove(p)
 
     def run(self):
-        """ Run (start the mainloop)
-        
+        """Run (start the mainloop)
+
         Here we enter the main loop, which is provided by the guiApp.
         This event loop calls process_commands on a regular basis.
-        
+
         We may also enter the debug intereaction loop, either from a
         request for post-mortem debugging, or *during* execution by
         means of a breakpoint. When in this debug-loop, the guiApp event
         loop lays still, but the debug-loop does call process-commands
         for user interaction.
-        
+
         When the user wants to quit, SystemExit is raised (one way or
         another). This is detected in process_commands and the exception
         instance is stored in self._exitException. Then the debug-loop
         is stopped if necessary, and the guiApp is told to stop its event
         loop.
-        
+
         And that brings us back here, where we exit using in order of
         preference: self._exitException, the exception with which the
         event loop was exited (if any), or a new exception.
-        
+
         """
 
         # Prepare
@@ -236,7 +235,7 @@ class PyzoInterpreter:
         raise self._exitException
 
     def _prepare(self):
-        """ Prepare for running the main loop.
+        """Prepare for running the main loop.
         Here we do some initialization like obtaining the startup info,
         creating the GUI application wrapper, etc.
         """
@@ -394,7 +393,7 @@ class PyzoInterpreter:
         self.context._stat_startup.send(startup_info)
 
     def _prepare_environment(self, startup_info):
-        """ Prepare the Python environment. There are two possibilities:
+        """Prepare the Python environment. There are two possibilities:
         either we run a script or we run interactively.
         """
 
@@ -453,8 +452,7 @@ class PyzoInterpreter:
                 os.chdir(os.path.expanduser("~"))  # home dir
 
     def _run_startup_code(self, startup_info):
-        """ Execute the startup code or script.
-        """
+        """Execute the startup code or script."""
 
         # Run startup script (if set)
         script = startup_info["startupScript"]
@@ -486,7 +484,7 @@ class PyzoInterpreter:
             pass
 
     def _integrate_gui(self, startup_info):
-        """ Integrate event loop of GUI toolkit (or use pure Python
+        """Integrate event loop of GUI toolkit (or use pure Python
         event loop).
         """
 
@@ -551,7 +549,7 @@ class PyzoInterpreter:
         return guiName, guiError
 
     def _load_ipyhon(self):
-        """ Try loading IPython shell. The result is set in self._ipython
+        """Try loading IPython shell. The result is set in self._ipython
         (can be None if IPython not available).
         """
 
@@ -606,8 +604,7 @@ class PyzoInterpreter:
             msvcrt.getwch = msvcrt.getch = input  # input is deffed above
 
     def process_commands(self):
-        """ Do one iteration of processing commands (the REPL).
-        """
+        """Do one iteration of processing commands (the REPL)."""
         try:
 
             self._process_commands()
@@ -723,7 +720,7 @@ class PyzoInterpreter:
 
     def pushline(self, line):
         """Push a line to the interpreter.
-        
+
         The line should not have a trailing newline; it may have
         internal newlines.  The line is appended to a buffer and the
         interpreter's _runlines() method is called with the
@@ -733,7 +730,7 @@ class PyzoInterpreter:
         is left as it was after the line was appended.  The return
         value is 1 if more input is required, 0 if the line was dealt
         with in some way (this is the same as _runlines()).
-        
+
         """
         # Get buffer, join to get source
         buffer = self._buffer
@@ -749,27 +746,27 @@ class PyzoInterpreter:
 
     def _runlines(self, source, filename="<input>", symbol="single"):
         """Compile and run some source in the interpreter.
-        
+
         Arguments are as for compile_command().
-        
+
         One several things can happen:
-        
+
         1) The input is incorrect; compile_command() raised an
         exception (SyntaxError or OverflowError).  A syntax traceback
         will be printed by calling the showsyntaxerror() method.
-        
+
         2) The input is incomplete, and more input is required;
         compile_command() returned None.  Nothing happens.
-        
+
         3) The input is complete; compile_command() returned a code
         object.  The code is executed by calling self.execcode() (which
         also handles run-time exceptions, except for SystemExit).
-        
+
         The return value is True in case 2, False in the other cases (unless
         an exception is raised).  The return value can be used to
         decide whether to use sys.ps1 or sys.ps2 to prompt the next
         line.
-        
+
         """
 
         use_ipython = self._ipython and not self._dbFrames
@@ -945,9 +942,9 @@ class PyzoInterpreter:
             self.write("Could not run code because it is incomplete.\n")
 
     def compilecode(self, source, filename, mode, *args, **kwargs):
-        """ Compile source code.
+        """Compile source code.
         Will mangle coding definitions on first two lines.
-        
+
         * This method should be called with Unicode sources.
         * Source newlines should consist only of LF characters.
         """
@@ -979,15 +976,15 @@ class PyzoInterpreter:
 
     def execcode(self, code):
         """Execute a code object.
-        
+
         When an exception occurs, self.showtraceback() is called to
         display a traceback.  All exceptions are caught except
         SystemExit, which is reraised.
-        
+
         A note about KeyboardInterrupt: this exception may occur
         elsewhere in this code, and may not always be caught.  The
         caller should be prepared to deal with it.
-        
+
         The globals variable is used when in debug mode.
         """
 
@@ -1011,7 +1008,7 @@ class PyzoInterpreter:
             self.showtraceback()
 
     def apply_breakpoints(self):
-        """ Breakpoints are updated at each time a command is given,
+        """Breakpoints are updated at each time a command is given,
         including commands like "db continue".
         """
         try:
@@ -1030,8 +1027,7 @@ class PyzoInterpreter:
     ## Handlers and hooks
 
     def ipython_pre_run_cell_hook(self, ipython=None):
-        """ Hook that IPython calls right before executing code.
-        """
+        """Hook that IPython calls right before executing code."""
         self.apply_breakpoints()
         self.debugger.set_on()
 
@@ -1069,7 +1065,7 @@ class PyzoInterpreter:
         If a filename is given, it is stuffed in the exception instead
         of what was there before (because Python's parser always uses
         "<string>" when reading from a string).
-        
+
         Pyzo version: support to display the right line number,
         see doc of showtraceback for details.
         """
@@ -1102,12 +1098,12 @@ class PyzoInterpreter:
         """Display the exception that just occurred.
         We remove the first stack item because it is our own code.
         The output is written by self.write(), below.
-        
+
         In the pyzo version, before executing a block of code,
         the filename is modified by appending " [x]". Where x is
         the index in a list that we keep, of tuples
         (sourcecode, filename, lineno).
-        
+
         Here, showing the traceback, we check if we see such [x],
         and if so, we extract the line of code where it went wrong,
         and correct the lineno, so it will point at the right line
@@ -1192,7 +1188,7 @@ class PyzoInterpreter:
             self.write(t)
 
     def correctfilenameandlineno(self, fname, lineno):
-        """ Given a filename and lineno, this function returns
+        """Given a filename and lineno, this function returns
         a modified (if necessary) version of the two.
         As example:
         "foo.py+7", 22  -> "foo.py", 29
@@ -1208,7 +1204,7 @@ class PyzoInterpreter:
 
 
 class ExecutedSourceCollection:
-    """ Stores the source of executed pieces of code, so that the right
+    """Stores the source of executed pieces of code, so that the right
     traceback can be reproduced when an error occurs. The filename
     (including the +lineno suffix) is used as a key. We monkey-patch
     the linecache module so that we first try our cache to look up the

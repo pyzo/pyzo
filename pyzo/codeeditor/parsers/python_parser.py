@@ -474,8 +474,7 @@ endProgs = {
 
 
 class PythonParser(Parser):
-    """ Parser for Python in general.
-    """
+    """Parser for Python in general."""
 
     _extensions = []
     _shebangKeywords = []
@@ -486,11 +485,11 @@ class PythonParser(Parser):
     _instance = set()
 
     def _identifierState(self, identifier=None):
-        """ Given an identifier returs the identifier state:
+        """Given an identifier returs the identifier state:
         3 means the current identifier can be a function.
         4 means the current identifier can be a class.
         0 otherwise.
-        
+
         This method enables storing the state during the line,
         and helps the Cython parser to reuse the Python parser's code.
         """
@@ -517,12 +516,12 @@ class PythonParser(Parser):
             return state
 
     def parseLine(self, line, previousState=0):
-        """ parseLine(line, previousState=0)
-        
+        """parseLine(line, previousState=0)
+
         Parse a line of Python code, yielding tokens.
         previousstate is the state of the previous block, and is used
         to handle line continuation and multiline strings.
-        
+
         """
         line = text_type(line)
 
@@ -573,13 +572,13 @@ class PythonParser(Parser):
             pos = token.end
 
     def _findEndOfString(self, line, token):
-        """ _findEndOfString(line, token)
-        
+        """_findEndOfString(line, token)
+
         Find the end of a string. Returns (token, endToken). The first
         is the given token or a replacement (UnterminatedStringToken).
         The latter is None, or the BlockState. If given, the line is
         finished.
-        
+
         """
 
         # Set state
@@ -609,10 +608,10 @@ class PythonParser(Parser):
                 return [UnterminatedStringToken(*tokenArgs)]
 
     def _findNextToken(self, line, pos):
-        """ _findNextToken(line, pos):
-        
+        """_findNextToken(line, pos):
+
         Returns a token or None if no new tokens can be found.
-        
+
         """
 
         # Init tokens, if pos too large, were done
@@ -732,8 +731,7 @@ class PythonParser(Parser):
 
 
 class PythonParser(PythonParser):  # Ambiguous Python parser
-    """ Parser for either Python2 or Python3, and we do not know which.
-    """
+    """Parser for either Python2 or Python3, and we do not know which."""
 
     _extensions = [".py", ".pyw"]
     _shebangKeywords = ["python"]
@@ -751,8 +749,7 @@ class PythonParser(PythonParser):  # Ambiguous Python parser
 
 
 class Python2Parser(PythonParser):
-    """ Parser for Python 2.x code.
-    """
+    """Parser for Python 2.x code."""
 
     # The application should choose whether to set the Py 2 specific parser
     _extensions = []
@@ -763,8 +760,7 @@ class Python2Parser(PythonParser):
 
 
 class Python3Parser(PythonParser):
-    """ Parser for Python 3.x code.
-    """
+    """Parser for Python 3.x code."""
 
     # The application should choose whether to set the Py 3 specific parser
     _extensions = []

@@ -42,7 +42,7 @@ from pyzo import translate  # noqa (we have an eval down here)
 
 
 class ToolDockWidget(QtWidgets.QDockWidget):
-    """ A dock widget that holds a tool.
+    """A dock widget that holds a tool.
     It sets all settings, initializes the tool widget, and notifies the
     tool manager on closing.
     """
@@ -64,8 +64,8 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         )
 
     def setTool(self, toolId, toolName, toolClass):
-        """ Set the tool information. Call this right after
-        initialization. """
+        """Set the tool information. Call this right after
+        initialization."""
 
         # Store id and set object name to enable saving/restoring state
         self._toolId = toolId
@@ -103,7 +103,7 @@ class ToolDockWidget(QtWidgets.QDockWidget):
 
 
 class ToolDescription:
-    """ Provides a description of a tool and has a reference to
+    """Provides a description of a tool and has a reference to
     the tool dock instance if it is loaded.
     """
 
@@ -123,8 +123,7 @@ class ToolDescription:
         self.instance = None
 
     def menuLauncher(self, value):
-        """ Function that is called by the menu when this tool is selected.
-        """
+        """Function that is called by the menu when this tool is selected."""
         if value is None:
             return bool(self.instance)
             # return self.id in pyzo.toolManager._activeTools
@@ -149,8 +148,7 @@ class ToolManager(QtCore.QObject):
         self._activeTools = {}
 
     def loadToolInfo(self):
-        """ (re)load the tool information.
-        """
+        """(re)load the tool information."""
         # Get paths to load files from
         toolDir1 = os.path.join(pyzo.pyzoDir, "tools")
         toolDir2 = os.path.join(pyzo.appDataDir, "tools")
@@ -228,8 +226,8 @@ class ToolManager(QtCore.QObject):
         return self._toolInfo
 
     def updateToolInstances(self):
-        """ Make tool instances up to date, so that it can be seen what
-        tools are now active. """
+        """Make tool instances up to date, so that it can be seen what
+        tools are now active."""
         for toolDes in self.getToolInfo():
             if toolDes.id in self._activeTools:
                 toolDes.instance = self._activeTools[toolDes.id]
@@ -240,14 +238,13 @@ class ToolManager(QtCore.QObject):
         self.toolInstanceChange.emit()
 
     def getToolInfo(self):
-        """ Like loadToolInfo(), but use buffered instance if available.
-        """
+        """Like loadToolInfo(), but use buffered instance if available."""
         if self._toolInfo is None:
             self.loadToolInfo()
         return self._toolInfo
 
     def getToolClass(self, toolId):
-        """ Get the class of the tool.
+        """Get the class of the tool.
         It will import (and reload) the module and get the class.
         Some checks are performed, like whether the class inherits
         from QWidget.
@@ -303,8 +300,7 @@ class ToolManager(QtCore.QObject):
         return plug
 
     def loadTool(self, toolId, splitWith=None):
-        """ Load a tool by creating a dock widget containing the tool widget.
-        """
+        """Load a tool by creating a dock widget containing the tool widget."""
 
         # A tool id should always be lower case
         toolId = toolId.lower()
@@ -359,15 +355,14 @@ class ToolManager(QtCore.QObject):
             self.loadTool(id)
 
     def closeTool(self, toolId):
-        """ Close the tool with specified id.
-        """
+        """Close the tool with specified id."""
         if toolId in self._activeTools:
             dock = self._activeTools[toolId]
             dock.close()
 
     def getTool(self, toolId):
-        """ Get the tool widget instance, or None
-        if not available. """
+        """Get the tool widget instance, or None
+        if not available."""
         if toolId in self._activeTools:
             return self._activeTools[toolId].widget()
         else:

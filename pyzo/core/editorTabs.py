@@ -31,15 +31,15 @@ MAX_NAME_WIDTH = 200
 
 
 def simpleDialog(item, action, question, options, defaultOption):
-    """ simpleDialog(editor, action, question, options, defaultOption)
-    
+    """simpleDialog(editor, action, question, options, defaultOption)
+
     Options with special buttons
     ----------------------------
     ok, open, save, cancel, close, discard, apply, reset, restoredefaults,
     help, saveall, yes, yestoall, no, notoall, abort, retry, ignore.
-    
+
     Returns the selected option as a string, or None if canceled.
-    
+
     """
 
     # Get filename
@@ -101,7 +101,7 @@ def simpleDialog(item, action, question, options, defaultOption):
 
 
 def get_shortest_unique_filename(filename, filenames):
-    """ Get a representation of filename in a way that makes it look
+    """Get a representation of filename in a way that makes it look
     unique compared to the other given filenames. The most unique part
     of the path is used, and every directory in between that part and the
     actual filename is represented with a slash.
@@ -147,11 +147,11 @@ def get_shortest_unique_filename(filename, filenames):
 
 # todo: some management stuff could (should?) go here
 class FileItem:
-    """ FileItem(editor)
-    
+    """FileItem(editor)
+
     A file item represents an open file. It is associated with an editing
     component and has a filename.
-    
+
     """
 
     def __init__(self, editor):
@@ -164,14 +164,13 @@ class FileItem:
 
     @property
     def editor(self):
-        """ Get the editor component corresponding to this item.
-        """
+        """Get the editor component corresponding to this item."""
         return self._editor
 
     @property
     def id(self):
-        """ Get an id of this editor. This is the filename,
-        or for tmp files, the name. """
+        """Get an id of this editor. This is the filename,
+        or for tmp files, the name."""
         if self.filename:
             return self.filename
         else:
@@ -179,25 +178,22 @@ class FileItem:
 
     @property
     def filename(self):
-        """ Get the full filename corresponding to this item.
-        """
+        """Get the full filename corresponding to this item."""
         return self._editor.filename
 
     @property
     def name(self):
-        """ Get the name corresponding to this item.
-        """
+        """Get the name corresponding to this item."""
         return self._editor.name
 
     @property
     def dirty(self):
-        """ Get whether the file has been changed since it is changed.
-        """
+        """Get whether the file has been changed since it is changed."""
         return self._editor.document().isModified()
 
     @property
     def pinned(self):
-        """ Get whether this item is pinned (i.e. will not be closed
+        """Get whether this item is pinned (i.e. will not be closed
         when closing all files.
         """
         return self._pinned
@@ -408,8 +404,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._timerAutoHide_t0 = time.time()
 
     def autoHideTimerCallback(self):
-        """ Check whether we should hide the tool.
-        """
+        """Check whether we should hide the tool."""
         timeout = pyzo.config.advanced.find_autoHide_timeout
         if self._autoHide.isChecked():
             if (time.time() - self._timerAutoHide_t0) > timeout:  # seconds
@@ -431,7 +426,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             editor.setFocus()
 
     def event(self, event):
-        """ Handle tab key and escape key. For the tab key we need to
+        """Handle tab key and escape key. For the tab key we need to
         overload event instead of KeyPressEvent.
         """
         if isinstance(event, QtGui.QKeyEvent):
@@ -446,13 +441,12 @@ class FindReplaceWidget(QtWidgets.QFrame):
         return QtWidgets.QFrame.event(self, event)
 
     def handleReplacePossible(self, state):
-        """ Disable replacing when using regular expressions.
-        """
+        """Disable replacing when using regular expressions."""
         for w in [self._replaceText, self._replaceBut, self._replaceKind]:
             w.setEnabled(not state)
 
     def startFind(self, event=None):
-        """ Use this rather than show(). It will check if anything is
+        """Use this rather than show(). It will check if anything is
         selected in the current editor, and if so, will set that as the
         initial search string
         """
@@ -477,8 +471,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self.setStyleSheet("QFrame {}")
 
     def selectFindText(self):
-        """ Select the textcontrol for the find needle,
-        and the text in it """
+        """Select the textcontrol for the find needle,
+        and the text in it"""
         # select text
         self._findText.selectAll()
         # focus
@@ -501,8 +495,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self.findPrevious()
 
     def find(self, forward=True, wrapAround=True, editor=None):
-        """ The main find method.
-        Returns True if a match was found. """
+        """The main find method.
+        Returns True if a match was found."""
 
         # Reset timer
         self.autoHideTimerReset()
@@ -581,7 +575,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             raise RuntimeError("Unexpected kind of replace %s" % i)
 
     def replaceOne(self, event=None, wrapAround=True, editor=None):
-        """ If the currently selected text matches the find string,
+        """If the currently selected text matches the find string,
         replaces that text. Then it finds and selects the next match.
         Returns True if a next match was found.
         """
@@ -656,10 +650,10 @@ class FindReplaceWidget(QtWidgets.QFrame):
 
 
 class FileTabWidget(CompactTabWidget):
-    """ FileTabWidget(parent)
-    
+    """FileTabWidget(parent)
+
     The tab widget that contains the editors and lists all open files.
-    
+
     """
 
     def __init__(self, parent):
@@ -698,7 +692,7 @@ class FileTabWidget(CompactTabWidget):
     ## Item management
 
     def items(self):
-        """ Get the items in the tab widget. These are Item instances, and
+        """Get the items in the tab widget. These are Item instances, and
         are in the order in which they are at the tab bar.
         """
         tabBar = self.tabBar()
@@ -711,8 +705,7 @@ class FileTabWidget(CompactTabWidget):
         return items
 
     def currentItem(self):
-        """ Get the item corresponding to the currently active tab.
-        """
+        """Get the item corresponding to the currently active tab."""
         i = self.currentIndex()
         if i >= 0:
             return self.tabBar().tabData(i)
@@ -721,7 +714,7 @@ class FileTabWidget(CompactTabWidget):
         return self.tabBar().tabData(i)
 
     def mainItem(self):
-        """ Get the item corresponding to the "main" file. Returns None
+        """Get the item corresponding to the "main" file. Returns None
         if there is no main file.
         """
         for item in self.items():
@@ -731,11 +724,11 @@ class FileTabWidget(CompactTabWidget):
             return None
 
     def trackHistory(self, index):
-        """ trackHistory(index)
-        
+        """trackHistory(index)
+
         Called when a tab is changed. Puts the current item on top of
         the history.
-        
+
         """
 
         # Valid index?
@@ -754,11 +747,11 @@ class FileTabWidget(CompactTabWidget):
         self._itemHistory[10:] = []
 
     def setCurrentItem(self, item):
-        """ _setCurrentItem(self, item)
-        
+        """_setCurrentItem(self, item)
+
         Set a FileItem instance to be the current. If the given item
         is not in the list, no action is taken.
-        
+
         item can be an int, FileItem, or file name.
         """
 
@@ -800,20 +793,20 @@ class FileTabWidget(CompactTabWidget):
     ## Closing, adding and updating
 
     def onClose(self):
-        """ onClose()
-        
+        """onClose()
+
         Request to close the current tab.
-        
+
         """
 
         self.tabCloseRequested.emit(self.currentIndex())
 
     def removeTab(self, which):
-        """ removeTab(which)
-        
+        """removeTab(which)
+
         Removes the specified tab. which can be an integer, an item,
         or an editor.
-        
+
         """
 
         # Init
@@ -857,12 +850,12 @@ class FileTabWidget(CompactTabWidget):
             gc.collect()
 
     def addItem(self, item, update=True):
-        """ addItem(item, update=True)
-        
+        """addItem(item, update=True)
+
         Add item to the tab widget. Set update to false if you are
         calling this method many times in a row. Then use updateItemsFull()
         to update the tab widget.
-        
+
         """
 
         # Add tab and widget
@@ -887,20 +880,20 @@ class FileTabWidget(CompactTabWidget):
             self.updateItems()
 
     def updateItemsFull(self):
-        """ updateItemsFull()
-        
+        """updateItemsFull()
+
         Update the appearance of the items and also updates names and
         re-aligns the items.
-        
+
         """
         self.updateItems()
         self.tabBar().alignTabs()
 
     def updateItems(self):
-        """ updateItems()
-        
+        """updateItems()
+
         Update the appearance of the items.
-        
+
         """
 
         # Get items and tab bar
@@ -966,7 +959,7 @@ class FileTabWidget(CompactTabWidget):
 
 
 class EditorTabs(QtWidgets.QWidget):
-    """ The EditorTabs instance manages the open files and corresponding
+    """The EditorTabs instance manages the open files and corresponding
     editors. It does the saving loading etc.
     """
 
@@ -1062,8 +1055,8 @@ class EditorTabs(QtWidgets.QWidget):
             return None
 
     def getMainEditor(self):
-        """ Get the editor that represents the main file, or None if
-        there is no main file. """
+        """Get the editor that represents the main file, or None if
+        there is no main file."""
         item = self._tabs.mainItem()
         if item:
             return item.editor
@@ -1097,7 +1090,7 @@ class EditorTabs(QtWidgets.QWidget):
         self.breakPointsChanged.emit(self._breakPoints)
 
     def setDebugLineIndicators(self, *filename_linenr):
-        """ Set the debug line indicator. There is one indicator
+        """Set the debug line indicator. There is one indicator
         global to pyzo, corresponding to the last shell for which we
         received the indicator.
         """
@@ -1223,7 +1216,7 @@ class EditorTabs(QtWidgets.QWidget):
         self.loadDir(dirname)
 
     def loadFile(self, filename, updateTabs=True):
-        """ Load the specified file.
+        """Load the specified file.
         On success returns the item of the file, also if it was
         already open."""
 
@@ -1274,7 +1267,7 @@ class EditorTabs(QtWidgets.QWidget):
         return item
 
     def loadDir(self, path):
-        """ Create a project with the dir's name and add all files
+        """Create a project with the dir's name and add all files
         contained in the directory to it.
         extensions is a komma separated list of extenstions of files
         to accept...
@@ -1311,7 +1304,7 @@ class EditorTabs(QtWidgets.QWidget):
         return item
 
     def saveFileAs(self, editor=None):
-        """ Create a dialog for the user to select a file.
+        """Create a dialog for the user to select a file.
         returns: True if succesfull, False if fails
         """
 
@@ -1362,7 +1355,7 @@ class EditorTabs(QtWidgets.QWidget):
             return False  # Cancel was pressed
 
     def saveFile(self, editor=None, filename=None):
-        """ Save the file.
+        """Save the file.
         returns: True if succesfull, False if fails
         """
 
@@ -1435,16 +1428,16 @@ class EditorTabs(QtWidgets.QWidget):
         return close_txt, discard_txt, cancel_txt, save_txt
 
     def askToSaveFileIfDirty(self, editor):
-        """ askToSaveFileIfDirty(editor)
-        
+        """askToSaveFileIfDirty(editor)
+
         If the given file is not saved, pop up a dialog
         where the user can save the file
-        
+
         Returns 1 if file need not be saved.
         Returns 2 if file was saved.
         Returns 3 if user discarded changes.
         Returns 0 if cancelled.
-        
+
         """
 
         # should we ask to save the file?
@@ -1471,8 +1464,8 @@ class EditorTabs(QtWidgets.QWidget):
         return 1
 
     def closeFile(self, editor=None):
-        """ Close the selected (or current) editor.
-        Returns same result as askToSaveFileIfDirty() """
+        """Close the selected (or current) editor.
+        Returns same result as askToSaveFileIfDirty()"""
 
         # get editor
         if editor is None:
@@ -1529,8 +1522,7 @@ class EditorTabs(QtWidgets.QWidget):
             self.closeFile(editor)
 
     def saveEditorState(self):
-        """ Save the editor's state configuration.
-        """
+        """Save the editor's state configuration."""
         fr = self._findReplace
         pyzo.config.state.find_matchCase = fr._caseCheck.isChecked()
         pyzo.config.state.find_regExp = fr._regExp.isChecked()
@@ -1540,8 +1532,7 @@ class EditorTabs(QtWidgets.QWidget):
         pyzo.config.state.editorState2 = self._getCurrentOpenFilesAsSsdfList()
 
     def restoreEditorState(self):
-        """ Restore the editor's state configuration.
-        """
+        """Restore the editor's state configuration."""
 
         # Restore opened editors
         if pyzo.config.state.editorState2:
@@ -1554,7 +1545,7 @@ class EditorTabs(QtWidgets.QWidget):
         # The find/replace state is set in the corresponding class during init
 
     def _getCurrentOpenFilesAsSsdfList(self):
-        """ Get the state as it currently is as an ssdf list.
+        """Get the state as it currently is as an ssdf list.
         The state entails all open files and their structure in the
         projects. The being collapsed of projects and their main files.
         The position of the cursor in the editors.
@@ -1599,7 +1590,7 @@ class EditorTabs(QtWidgets.QWidget):
         return state
 
     def _setCurrentOpenFilesAsSsdfList(self, state):
-        """ Set the state of the editor in terms of opened files.
+        """Set the state of the editor in terms of opened files.
         The input should be a list object as returned by
         ._getCurrentOpenFilesAsSsdfList().
         """
@@ -1640,7 +1631,7 @@ class EditorTabs(QtWidgets.QWidget):
         return len(fileItems) != 0
 
     def closeAll(self):
-        """ Close all files (well technically, we don't really close them,
+        """Close all files (well technically, we don't really close them,
         so that they are all stil there when the user presses cancel).
         Returns False if the user pressed cancel when asked for
         saving an unsaved file.

@@ -43,17 +43,17 @@ from yoton.core import send_all, recv_all
 
 
 class RequestServer(threading.Thread):
-    """ RequestServer(address, async_val=False, verbose=0)
-    
+    """RequestServer(address, async_val=False, verbose=0)
+
     Setup a simple server that handles requests similar to a telnet server,
     or asyncore. Starting the server using run() will run the server in
     the calling thread. Starting the server using start() will run the
     server in a separate thread.
-    
+
     To create a server, subclass this class and re-implement the
     handle_request method. It accepts a request and should return a
     reply. This server assumes utf-8 encoded messages.
-    
+
     Parameters
     ----------
     address : str
@@ -64,7 +64,7 @@ class RequestServer(threading.Thread):
         takes a long time to execute.
     verbose : bool
         If True, print a message each time a connection is accepted.
-    
+
     Notes on hostname
     -----------------
     The hostname can be:
@@ -75,7 +75,7 @@ class RequestServer(threading.Thread):
         'localhost'.
       * 'publichost': the connection is visible by other computers on the
         same network.
-    
+
     """
 
     def __init__(self, address, async_val=False, verbose=0):
@@ -109,20 +109,20 @@ class RequestServer(threading.Thread):
         self.setDaemon(True)
 
     def start(self):
-        """ start()
+        """start()
         Start the server in a separate thread.
         """
         self._stop_me = False
         threading.Thread.start(self)
 
     def stop(self):
-        """ stop()
+        """stop()
         Stop the server.
         """
         self._stop_me = True
 
     def run(self):
-        """ run()
+        """run()
         The server's main loop.
         """
 
@@ -166,7 +166,7 @@ class RequestServer(threading.Thread):
             pass
 
     def _handle_connection(self, s):
-        """ _handle_connection(s)
+        """_handle_connection(s)
         Handle an incoming connection.
         """
         try:
@@ -176,7 +176,7 @@ class RequestServer(threading.Thread):
             print(getErrorMsg())
 
     def _really_handle_connection(self, s):
-        """ _really_handle_connection(s)
+        """_really_handle_connection(s)
         Really handle an incoming connection.
         """
         # Get request
@@ -201,14 +201,14 @@ class RequestServer(threading.Thread):
             pass
 
     def handle_request(self, request):
-        """ handle_request(request)
-        
+        """handle_request(request)
+
         Return a reply, given the request. Overload this method to create
         a server.
-        
+
         De standard implementation echos the request, waits one second
         when receiving 'wait' and stop the server when receiving 'stop'.
-        
+
         """
         # Special cases
         if request == "wait":
@@ -221,7 +221,7 @@ class RequestServer(threading.Thread):
 
 
 class SocketHandler(threading.Thread):
-    """ SocketHandler(server, s)
+    """SocketHandler(server, s)
     Simple thread that handles a connection.
     """
 
@@ -235,13 +235,13 @@ class SocketHandler(threading.Thread):
 
 
 def do_request(address, request, timeout=-1):
-    """ do_request(address, request, timeout=-1)
-    
+    """do_request(address, request, timeout=-1)
+
     Do a request at the server at the specified address. The server can
     be a yoton.RequestServer, or any other server listening on a socket
     and following a REQ/REP pattern, such as html or telnet. For example:
     ``html = do_request('www.google.com:80', 'GET http/1.1\\r\\n')``
-    
+
     Parameters
     ----------
     address : str
@@ -251,7 +251,7 @@ def do_request(address, request, timeout=-1):
     timeout : float
         If larger than 0, will wait that many seconds for the respons, and
         return None if timed out.
-    
+
     Notes on hostname
     -----------------
     The hostname can be:
@@ -262,7 +262,7 @@ def do_request(address, request, timeout=-1):
         'localhost'.
       * 'publichost': the connection is visible by other computers on the
         same network.
-    
+
     """
 
     # Determine host (assume tcp)

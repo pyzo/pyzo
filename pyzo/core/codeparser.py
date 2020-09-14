@@ -53,9 +53,9 @@ class Result:
         self.editorId = editorId
 
     def isMatch(self, editorId):
-        """ isMatch(editorId):
+        """isMatch(editorId):
         Returns whether the result matches with the given editorId.
-        The editorId can also be an editor instance. """
+        The editorId can also be an editor instance."""
         if isinstance(editorId, int):
             return self.editorId == editorId
         else:
@@ -63,7 +63,7 @@ class Result:
 
 
 class Parser(threading.Thread):
-    """ Parser
+    """Parser
     Parsing sourcecode in a separate thread, this class obtains
     introspection informarion. This class is also the interface
     to the parsed information; it has methods that can be used
@@ -91,7 +91,7 @@ class Parser(threading.Thread):
         self.join(timeout)
 
     def parseThis(self, editor):
-        """ parseThis(editor)
+        """parseThis(editor)
         Give the parser new text to parse.
         If the parser is busy parsing text, it will stop doing that
         and start anew with the most recent version of the text.
@@ -106,7 +106,7 @@ class Parser(threading.Thread):
         self._lock.release()
 
     def getFictiveNameSpace(self, editor):
-        """ getFictiveNameSpace(editor)
+        """getFictiveNameSpace(editor)
         Produce the fictive namespace, based on the current position.
         A list of names is returned.
         """
@@ -153,7 +153,7 @@ class Parser(threading.Thread):
         return namespace
 
     def getFictiveClass(self, name, editor, handleSelf=False):
-        """ getFictiveClass(name, editor, handleSelf=False)
+        """getFictiveClass(name, editor, handleSelf=False)
         Return the fictive class object of the given name, or None
         if it does not exist. If handleSelf is True, automatically
         handles "self." names.
@@ -161,7 +161,7 @@ class Parser(threading.Thread):
         return self._getFictiveItem(name, "class", editor, handleSelf)
 
     def getFictiveSignature(self, name, editor, handleSelf=False):
-        """ getFictiveSignature(name, editor, handleSelf=False)
+        """getFictiveSignature(name, editor, handleSelf=False)
         Get the signature of the fictive function or method of the
         given name. Returns None if the given name is not a known
         function or method. If handleSelf is True, automatically
@@ -189,7 +189,7 @@ class Parser(threading.Thread):
             return None
 
     def getFictiveImports(self, editor):
-        """ getFictiveImports(editor)
+        """getFictiveImports(editor)
         Get the fictive imports of this source file.
         tuple:
         - list of names that are imported,
@@ -210,7 +210,7 @@ class Parser(threading.Thread):
         return imports, importlines
 
     def _getResult(self):
-        """ getResult()
+        """getResult()
         Savely Obtain result.
         """
         self._lock.acquire()
@@ -219,7 +219,7 @@ class Parser(threading.Thread):
         return result
 
     def _getFictiveItem(self, name, type, editor, handleSelf=False):
-        """ _getFictiveItem(name, type, editor, handleSelf=False)
+        """_getFictiveItem(name, type, editor, handleSelf=False)
         Obtain the fictive item of the given name and type.
         If handleSelf is True, will handle "self." correctly.
         Intended for internal use.
@@ -267,7 +267,7 @@ class Parser(threading.Thread):
         return theItem
 
     def _getFictiveCurrentClass(self, editor, selfname):
-        """ _getFictiveCurrentClass(editor, selfname)
+        """_getFictiveCurrentClass(editor, selfname)
         Get the fictive object for the class referenced
         using selfname (usually 'self').
         Intendef for internal use.
@@ -310,7 +310,7 @@ class Parser(threading.Thread):
         return theclass
 
     def run(self):
-        """ run()
+        """run()
         This is the main loop.
         """
 
@@ -346,7 +346,7 @@ class Parser(threading.Thread):
             pass  # when python exits, time can be None...
 
     def _analyze(self, job):
-        """ The core function.
+        """The core function.
         Analyses the source code.
         Produces:
         - a tree of FictiveObject objects.
@@ -552,7 +552,7 @@ class Parser(threading.Thread):
         ## Post processing
 
         def getTwoItems(series, linenr):
-            """ Return the two items just above and below the
+            """Return the two items just above and below the
             given linenr. The object always is a class or def.
             """
             # find object after linenr
@@ -618,7 +618,7 @@ class Parser(threading.Thread):
 
 
 class FictiveObject:
-    """ An un-instantiated object.
+    """An un-instantiated object.
     type can be class, def, import, cell, todo
     extra stuff:
     class   - supers, members
@@ -643,7 +643,7 @@ namechars = "abcdefghijklmnopqrstuvwxyz_0123456789"
 
 
 def IsValidName(name):
-    """ Given a string, checks whether it is a
+    """Given a string, checks whether it is a
     valid name (dots are not valid!)
     """
     if not name:
@@ -666,9 +666,9 @@ def ParseImport(names):
 
 
 def findString(text, s, i):
-    """ findString(text, s)
+    """findString(text, s)
     Find s in text, but only if s is not in a string or commented
-    Helper function for washMultilineStrings """
+    Helper function for washMultilineStrings"""
 
     while True:
         i = _findString(text, s, i)
@@ -680,8 +680,8 @@ def findString(text, s, i):
 
 
 def _findString(text, s, i):
-    """ Helper function of findString, which is called recursively
-    until a match is found, or it is clear there is no match. """
+    """Helper function of findString, which is called recursively
+    until a match is found, or it is clear there is no match."""
 
     # Find occurrence
     i2 = text.find(s, i)
@@ -727,7 +727,7 @@ def _findString(text, s, i):
 
 
 def washMultilineStrings(text):
-    """ washMultilineStrings(text)
+    """washMultilineStrings(text)
     Replace all text within multiline strings with dummy chars
     so that it is not parsed.
     """

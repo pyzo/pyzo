@@ -25,26 +25,26 @@ from yoton.connection_itc import ItcConnection
 
 
 class Context(object):
-    """ Context(verbose=0, queue_params=None)
-    
+    """Context(verbose=0, queue_params=None)
+
     A context represents a node in the network. It can connect to
     multiple other contexts (using a yoton.Connection.
     These other contexts can be in
     another process on the same machine, or on another machine
     connected via a network or the internet.
-    
+
     This class represents a context that can be used by channel instances
     to communicate to other channels in the network. (Thus the name.)
-    
+
     The context is the entity that queue routes the packages produced
     by the channels to the other context in the network, where
     the packages are distributed to the right channels. A context queues
     packages while it is not connected to any other context.
-    
+
     If messages are send on a channel registered at this context while
     the context is not connected, the messages are stored by the
     context and will be send to the first connecting context.
-    
+
     Example 1
     ---------
     # Create context and bind to a port on localhost
@@ -53,7 +53,7 @@ class Context(object):
     # Create a channel and send a message
     pub = yoton.PubChannel(context, 'test')
     pub.send('Hello world!')
-    
+
     Example 2
     ---------
     # Create context and connect to the port on localhost
@@ -62,7 +62,7 @@ class Context(object):
     # Create a channel and receive a message
     sub = yoton.SubChannel(context, 'test')
     print(sub.recv() # Will print 'Hello world!'
-    
+
     Queue params
     ------------
     The queue_params parameter allows one to specify the package queues
@@ -71,7 +71,7 @@ class Context(object):
     be a 2-element tuple specifying queue size and discard mode. The
     latter can be 'old' (default) or 'new', meaning that if the queue
     is full, either the oldest or newest messages are discarted.
-    
+
     """
 
     def __init__(self, verbose=0, queue_params=None):
@@ -107,16 +107,16 @@ class Context(object):
         self._source_map = {}
 
     def close(self):
-        """ close()
-        
+        """close()
+
         Close the context in a nice way, by closing all connections
         and all channels.
-        
+
         Closing a connection means disconnecting two contexts. Closing
         a channel means disasociating a channel from its context.
         Unlike connections and channels, a Context instance can be reused
         after closing (although this might not always the best strategy).
-        
+
         """
 
         # Close all connections (also the waiting connections!)
@@ -127,11 +127,11 @@ class Context(object):
         self.close_channels()
 
     def close_channels(self):
-        """ close_channels()
-        
+        """close_channels()
+
         Close all channels associated with this context. This does
         not close the connections. See also close().
-        
+
         """
 
         # Get all channels
@@ -146,7 +146,7 @@ class Context(object):
 
     @property
     def connections_all(self):
-        """ Get a list of all Connection instances currently
+        """Get a list of all Connection instances currently
         associated with this context, including pending connections
         (connections waiting for another end to connect).
         In addition to normal list indexing, the connections objects can be
@@ -162,7 +162,7 @@ class Context(object):
 
     @property
     def connections(self):
-        """ Get a list of the Connection instances currently
+        """Get a list of the Connection instances currently
         active for this context.
         In addition to normal list indexing, the connections objects can be
         queried  from this list using their name.
@@ -193,32 +193,31 @@ class Context(object):
 
     @property
     def connection_count(self):
-        """ Get the number of connected contexts. Can be used as a boolean
+        """Get the number of connected contexts. Can be used as a boolean
         to check if the context is connected to any other context.
         """
         return len(self.connections)
 
     @property
     def id(self):
-        """ The 8-byte UID of this context.
-        """
+        """The 8-byte UID of this context."""
         return self._id
 
     ## Public methods
 
     def bind(self, address, max_tries=1, name=""):
-        """ bind(address, max_tries=1, name='')
-        
+        """bind(address, max_tries=1, name='')
+
         Setup a connection with another Context, by being the host.
         This method starts a thread that waits for incoming connections.
         Error messages are printed when an attemped connect fails. the
         thread keeps trying until a successful connection is made, or until
         the connection is closed.
-        
+
         Returns a Connection instance that represents the
         connection to the other context. These connection objects
         can also be obtained via the Context.connections property.
-        
+
         Parameters
         ----------
         address : str
@@ -234,7 +233,7 @@ class Context(object):
         name : string
             The name for the created Connection instance. It can
             be used as a key in the connections property.
-        
+
         Notes on hostname
         -----------------
         The hostname can be:
@@ -246,7 +245,7 @@ class Context(object):
           * 'publichost': the connection is visible by other computers on the
             same network. Optionally an integer index can be appended if
             the machine has multiple IP addresses (see socket.gethostbyname_ex).
-        
+
         """
 
         # Trigger cleanup of closed connections
@@ -279,16 +278,16 @@ class Context(object):
         return connection
 
     def connect(self, address, timeout=1.0, name=""):
-        """ connect(self, address, timeout=1.0, name='')
-        
+        """connect(self, address, timeout=1.0, name='')
+
         Setup a connection with another context, by connection to a
         hosting context. An error is raised when the connection could
         not be made.
-        
+
         Returns a Connection instance that represents the
         connection to the other context. These connection objects
         can also be obtained via the Context.connections property.
-        
+
         Parameters
         ----------
         address : str
@@ -304,7 +303,7 @@ class Context(object):
         name : string
             The name for the created Connection instance. It can
             be used as a key in the connections property.
-        
+
         Notes on hostname
         -----------------
         The hostname can be:
@@ -316,7 +315,7 @@ class Context(object):
           * 'publichost': the connection is visible by other computers on the
             same network. Optionally an integer index can be appended if
             the machine has multiple IP addresses (see socket.gethostbyname_ex).
-        
+
         """
 
         # Trigger cleanup of closed connections
@@ -354,14 +353,14 @@ class Context(object):
         return connection
 
     def flush(self, timeout=5.0):
-        """ flush(timeout=5.0)
-        
+        """flush(timeout=5.0)
+
         Wait until all pending messages are send. This will flush all
         messages posted from the calling thread. However, it is not
         guaranteed that no new messages are posted from another thread.
-        
+
         Raises an error when the flushing times out.
-        
+
         """
         # Flush all connections
         for c in self.connections:
@@ -373,11 +372,11 @@ class Context(object):
     ## Private methods used by the Channel classes
 
     def _register_sending_channel(self, channel, slot, slotname=""):
-        """ _register_sending_channel(channel, slot, slotname='')
-        
+        """_register_sending_channel(channel, slot, slotname='')
+
         The channel objects use this method to register themselves
         at a particular slot.
-        
+
         """
 
         # Check if this slot is free
@@ -388,11 +387,11 @@ class Context(object):
         self._sending_channels[slot] = channel
 
     def _register_receiving_channel(self, channel, slot, slotname=""):
-        """ _register_receiving_channel(channel, slot, slotname='')
-        
+        """_register_receiving_channel(channel, slot, slotname='')
+
         The channel objects use this method to register themselves
         at a particular slot.
-        
+
         """
 
         # Check if this slot is free
@@ -403,11 +402,11 @@ class Context(object):
         self._receiving_channels[slot] = channel
 
     def _unregister_channel(self, channel):
-        """ _unregister_channel(channel)
-        
+        """_unregister_channel(channel)
+
         Unregisters the given channel. That channel can no longer
         receive messages, and should no longer send messages.
-        
+
         """
         for D in [self._receiving_channels, self._sending_channels]:
             for key in [key for key in D.keys()]:
@@ -417,13 +416,13 @@ class Context(object):
     ## Private methods to pass packages between context and io-threads
 
     def _send_package(self, package):
-        """ _send_package(package)
-        
+        """_send_package(package)
+
         Used by the channels to send a package into the network.
         This method routes the package to all currentlt connected
         connections. If there are none, the packages is queued at
         the context.
-        
+
         """
 
         # Add number
@@ -445,13 +444,13 @@ class Context(object):
             self._connections_lock.release()
 
     def _recv_package(self, package, connection):
-        """ _recv_package(package, connection)
-        
+        """_recv_package(package, connection)
+
         Used by the connections to receive a package at this
         context. The package is distributed to all connections
         except the calling one. The package is also distributed
         to the right channel (if applicable).
-        
+
         """
 
         # Get slot
@@ -504,11 +503,11 @@ class Context(object):
                     channel._recv_package(package)
 
     def _recv_context_package(self, package):
-        """ _recv_context_package(package)
-        
+        """_recv_context_package(package)
+
         Process a package addressed at the context itself. This is how
         the context handles higher-level connection tasks.
-        
+
         """
 
         # Get message: context messages are always utf-8 encoded strings

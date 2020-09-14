@@ -123,8 +123,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self.onEditorsCurrentChanged()
 
     def onOptionsPress(self):
-        """ Create the menu for the button, Do each time to make sure
-        the checks are right. """
+        """Create the menu for the button, Do each time to make sure
+        the checks are right."""
 
         # Get menu
         menu = self._options._menu
@@ -153,9 +153,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self.updateStructure()
 
     def onEditorsCurrentChanged(self):
-        """ Notify that the file is being parsed and make
+        """Notify that the file is being parsed and make
         sure that not the structure of a previously selected
-        file is shown. """
+        file is shown."""
 
         # Get editor and clear list
         editor = pyzo.editors.getCurrentEditor()
@@ -231,8 +231,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         return old_linenr
 
     def updateStructure(self):
-        """ Updates the tree.
-        """
+        """Updates the tree."""
 
         # Get editor
         editor = pyzo.editors.getCurrentEditor()
