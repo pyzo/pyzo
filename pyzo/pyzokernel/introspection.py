@@ -16,16 +16,16 @@ except ImportError:
 
 
 class PyzoIntrospector(yoton.RepChannel):
-    """ This is a RepChannel object that runs a thread to respond to
+    """This is a RepChannel object that runs a thread to respond to
     requests from the IDE.
     """
 
     def _getNameSpace(self, name=""):
-        """ _getNameSpace(name='')
-        
+        """_getNameSpace(name='')
+
         Get the namespace to apply introspection in.
         If name is given, will find that name. For example sys.stdin.
-        
+
         """
 
         # Get namespace
@@ -72,13 +72,13 @@ class PyzoIntrospector(yoton.RepChannel):
                 return {}
 
     def _getSignature(self, objectName):
-        """ _getSignature(objectName)
-        
+        """_getSignature(objectName)
+
         Get the signature of builtin, function or method.
         Returns a tuple (signature_string, kind), where kind is a string
         of one of the above. When none of the above, both elements in
         the tuple are an empty string.
-        
+
         """
 
         # if a class, get init
@@ -188,10 +188,10 @@ class PyzoIntrospector(yoton.RepChannel):
 
     # todo: variant that also says whether it's a property/function/class/other
     def dir(self, objectName):
-        """ dir(objectName)
-        
+        """dir(objectName)
+
         Get list of attributes for the given name.
-        
+
         """
         # sys.__stdout__.write('handling '+objectName+'\n')
         # sys.__stdout__.flush()
@@ -234,11 +234,11 @@ class PyzoIntrospector(yoton.RepChannel):
         return list(names)
 
     def dir2(self, objectName):
-        """ dir2(objectName)
-        
+        """dir2(objectName)
+
         Get variable names in currently active namespace plus extra information.
         Returns a list of tuple of strings: name, type, kind, repr.
-        
+
         """
         try:
             name = ""
@@ -331,10 +331,10 @@ class PyzoIntrospector(yoton.RepChannel):
             return []
 
     def signature(self, objectName):
-        """ signature(objectName)
-        
+        """signature(objectName)
+
         Get signature.
-        
+
         """
         try:
             text, kind = self._getSignature(objectName)
@@ -343,10 +343,10 @@ class PyzoIntrospector(yoton.RepChannel):
             return None
 
     def doc(self, objectName):
-        """ doc(objectName)
-        
+        """doc(objectName)
+
         Get documentation for an object.
-        
+
         """
 
         # Get namespace
@@ -416,10 +416,10 @@ class PyzoIntrospector(yoton.RepChannel):
         return text
 
     def eval(self, command):
-        """ eval(command)
-        
+        """eval(command)
+
         Evaluate a command and return result.
-        
+
         """
 
         # Get namespace
@@ -432,25 +432,25 @@ class PyzoIntrospector(yoton.RepChannel):
             return "Error evaluating: " + command
 
     def interrupt(self, command=None):
-        """ interrupt()
-        
+        """interrupt()
+
         Interrupt the main thread. This does not work if the main thread
         is running extension code.
-        
+
         A bit of a hack to do this in the introspector, but it's the
         easeast way and prevents having to launch another thread just
         to wait for an interrupt/terminare command.
-        
+
         Note that on POSIX we can send an OS INT signal, which is faster
         and maybe more effective in some situations.
-        
+
         """
         thread.interrupt_main()
 
     def terminate(self, command=None):
-        """ terminate()
-        
+        """terminate()
+
         Ask the kernel to terminate by closing the stdin.
-        
+
         """
         sys.stdin._channel.close()

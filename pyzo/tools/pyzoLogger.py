@@ -16,9 +16,9 @@ tool_summary = "Logs messages, warnings and errors within Pyzo."
 
 
 class PyzoLogger(QtWidgets.QWidget):
-    """ PyzoLogger
+    """PyzoLogger
 
-        The main widget for this tool.
+    The main widget for this tool.
 
     """
 
@@ -46,7 +46,7 @@ class PyzoLogger(QtWidgets.QWidget):
 
 
 class PyzoLoggerShell(BaseShell):
-    """ Shell that logs all messages produced by pyzo. It also
+    """Shell that logs all messages produced by pyzo. It also
     allows to look inside pyzo, which can be handy for debugging
     and developing.
     """
@@ -100,15 +100,13 @@ class PyzoLoggerShell(BaseShell):
             self.write(str(sys.ps1), 2)
 
     def writeErr(self, msg):
-        """ This is what the logger uses to write errors.
-        """
+        """This is what the logger uses to write errors."""
         self.write(msg, 0, "#C00")
 
     # Note that I did not (yet) implement calltips
 
     def processAutoComp(self, aco):
-        """ Processes an autocomp request using an AutoCompObject instance.
-        """
+        """Processes an autocomp request using an AutoCompObject instance."""
 
         # Try using buffer first
         if aco.tryUsingBuffer():

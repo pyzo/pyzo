@@ -22,10 +22,10 @@ from yoton.channels.message_types import MessageType, TEXT
 
 
 class BaseChannel(object):
-    """ BaseChannel(context, slot_base, message_type=yoton.TEXT)
-    
+    """BaseChannel(context, slot_base, message_type=yoton.TEXT)
+
     Abstract class for all channels.
-    
+
     Parameters
     ----------
     context : yoton.Context instance
@@ -40,23 +40,23 @@ class BaseChannel(object):
         Object to convert messages to bytes and bytes to messages.
         Users can create their own message_type class to enable
         communicating any type of message they want.
-    
+
     Details
     -------
     Messages send via a channel are delivered asynchronically to the
     corresponding channels.
-    
+
     All channels are associated with a context and can be used to send
     messages to other channels in the network. Each channel is also
     associated with a slot, which is a string that represents a kind
     of address. A message send by a channel at slot X can only be received
     by a channel with slot X.
-    
+
     Note that the channel appends an extension
     to the user-supplied slot name, that represents the message type
     and messaging pattern of the channel. In this way, it is prevented
     that for example a PubChannel can communicate with a RepChannel.
-    
+
     """
 
     def __init__(self, context, slot_base, message_type=None):
@@ -102,10 +102,10 @@ class BaseChannel(object):
         self._init_slots(slot_base)
 
     def _init_slots(self, slot_base):
-        """ _init_slots(slot_base)
-        
+        """_init_slots(slot_base)
+
         Called from __init__ to initialize the slots and perform all checks.
-        
+
         """
 
         # Check if slot is string
@@ -154,25 +154,25 @@ class BaseChannel(object):
             raise ValueError("This channel does not have valid slots.")
 
     def _messaging_patterns(self):
-        """ _messaging_patterns()
-        
+        """_messaging_patterns()
+
         Implement to return a string that specifies the pattern
         for sending and receiving, respecitively.
-        
+
         """
         raise NotImplementedError()
 
     def close(self):
-        """ close()
-        
+        """close()
+
         Close the channel, i.e. unregisters this channel at the context.
         A closed channel cannot be reused.
-        
+
         Future attempt to send() messages will result in an IOError
         being raised. Messages currently in the channel's queue can
         still be recv()'ed, but no new messages will be delivered at
         this channel.
-        
+
         """
         # We keep a reference to the context, otherwise we need locks
         # The context clears the reference to this channel when unregistering.
@@ -180,17 +180,17 @@ class BaseChannel(object):
         self._context._unregister_channel(self)
 
     def _send(self, message, dest_id=0, dest_seq=0):
-        """ _send(message, dest_id=0, dest_seq=0)
-        
+        """_send(message, dest_id=0, dest_seq=0)
+
         Sends a message of raw bytes without checking whether they're bytes.
         Optionally, dest_id and dest_seq represent the message that
         this message  replies to. These are used for the request/reply
         pattern.
-        
+
         Returns the package that will be send (or None). The context
         will set _source_id on the package right before
         sending it away.
-        
+
         """
 
         # Check if still open
@@ -219,10 +219,10 @@ class BaseChannel(object):
             return None
 
     def _recv(self, block):
-        """ _recv(block)
-        
+        """_recv(block)
+
         Receive a package (or None).
-        
+
         """
 
         if block is True:
@@ -241,10 +241,10 @@ class BaseChannel(object):
                 return None
 
     def _set_send_lock(self, value):
-        """ _set_send_lock(self, value)
-        
+        """_set_send_lock(self, value)
+
         Set or unset the blocking for the _send() method.
-        
+
         """
         # Set send lock variable. We adopt a timeout (10s) just in case
         # the SubChannel that locks the PubChannel gets disconnected and
@@ -264,32 +264,32 @@ class BaseChannel(object):
     ## How packages are inserted in this channel for receiving
 
     def _inject_package(self, package):
-        """ _inject_package(package)
-        
+        """_inject_package(package)
+
         Same as _recv_package, but by definition do not block.
         _recv_package is overloaded in SubChannel. _inject_package is not.
-        
+
         """
         self._q_in.push(package)
         self._maybe_emit_received()
 
     def _recv_package(self, package):
-        """ _recv_package(package)
-        
+        """_recv_package(package)
+
         Put package in the queue.
-        
+
         """
         self._q_in.push(package)
         self._maybe_emit_received()
 
     def _maybe_emit_received(self):
-        """ _maybe_emit_received()
-        
+        """_maybe_emit_received()
+
         We want to emit a signal, but in such a way that multiple
         arriving packages result in a single emit. This methods
         only posts an event if it has not been done, or if the previous
         event has been handled.
-        
+
         """
         if not self._posted_received_event:
             self._posted_received_event = True
@@ -297,16 +297,16 @@ class BaseChannel(object):
             yoton.app.post_event(event)
 
     def _emit_received(self):
-        """ _emit_received()
-        
+        """_emit_received()
+
         Emits the "received" signal. This method is called once new data
         has been received. However, multiple arrived messages may
         result in a single call to this method. There is also no
         guarantee that recv() has not been called in the mean time.
-        
+
         Also sets the variabele so that a new event for this may be
         created. This method is called from the event loop.
-        
+
         """
         self._posted_received_event = False  # Reset
         self.received.emit_now(self)
@@ -316,7 +316,7 @@ class BaseChannel(object):
     # catch status messages from the SubChannel by overloading _recv_package().
     @property
     def received(self):
-        """ Signal that is emitted when new data is received. Multiple
+        """Signal that is emitted when new data is received. Multiple
         arrived messages may result in a single call to this method.
         There is no guarantee that recv() has not been called in the
         mean time. The signal is emitted with the channel instance
@@ -328,24 +328,20 @@ class BaseChannel(object):
 
     @property
     def pending(self):
-        """ Get the number of pending incoming messages.
-        """
+        """Get the number of pending incoming messages."""
         return len(self._q_in)
 
     @property
     def closed(self):
-        """ Get whether the channel is closed.
-        """
+        """Get whether the channel is closed."""
         return self._closed
 
     @property
     def slot_outgoing(self):
-        """ Get the outgoing slot name.
-        """
+        """Get the outgoing slot name."""
         return self._slot_out
 
     @property
     def slot_incoming(self):
-        """ Get the incoming slot name.
-        """
+        """Get the incoming slot name."""
         return self._slot_in

@@ -53,8 +53,7 @@ def print_mainloop_warning(msg=None):
 
 
 class App_base:
-    """ Defines the interface.
-    """
+    """Defines the interface."""
 
     def process_events(self):
         pass
@@ -68,7 +67,7 @@ class App_base:
             interpreter.newPrompt = True
 
     def run(self, repl_callback, sleeptime=0.01):
-        """ Very simple mainloop. Subclasses can overload this to use
+        """Very simple mainloop. Subclasses can overload this to use
         the native event loop. Attempt to process GUI events at least
         every sleeptime seconds.
         """
@@ -107,7 +106,7 @@ class App_base:
 
 # Experimental and WIP - not used at the moment
 class App_asyncio_new(App_base):
-    """ Based on asyncio (standard Python) event loop.
+    """Based on asyncio (standard Python) event loop.
 
     Actually run an event loop and support switching to another loop.
     """
@@ -175,7 +174,7 @@ class App_asyncio_new(App_base):
 
 
 class App_asyncio(App_base):
-    """ Based on asyncio (standard Python) event loop.
+    """Based on asyncio (standard Python) event loop.
 
     We do not run the event loop and a timer to keep the REPL active, because
     asyncio does allow creating new loops while one is running. So we stick to
@@ -253,7 +252,7 @@ class App_asyncio(App_base):
 
 
 class App_tk(App_base):
-    """ Tries to import tkinter and returns a withdrawn tkinter root
+    """Tries to import tkinter and returns a withdrawn tkinter root
     window.  If tkinter is already imported or not available, this
     returns None.
     Modifies tkinter's mainloop with a dummy so when a module calls
@@ -297,7 +296,7 @@ class App_tk(App_base):
 
 
 class App_fltk(App_base):
-    """ Hijack fltk 1.
+    """Hijack fltk 1.
     This one is easy. Just call fl.wait(0.0) now and then.
     Note that both tk and fltk try to bind to PyOS_InputHook. Fltk
     will warn about not being able to and Tk does not, so we should
@@ -329,8 +328,7 @@ class App_fltk(App_base):
 
 
 class App_fltk2(App_base):
-    """ Hijack fltk 2.
-    """
+    """Hijack fltk 2."""
 
     def __init__(self):
         # Try importing
@@ -354,7 +352,7 @@ class App_fltk2(App_base):
 
 
 class App_tornado(App_base):
-    """ Hijack Tornado event loop.
+    """Hijack Tornado event loop.
 
     Tornado does have a function to process events, but it does not
     work when the event loop is already running. Therefore we don't
@@ -433,8 +431,7 @@ class App_tornado(App_base):
 
 
 class App_qt(App_base):
-    """ Common functionality for pyqt and pyside
-    """
+    """Common functionality for pyqt and pyside"""
 
     def __init__(self):
         import types
@@ -448,7 +445,7 @@ class App_qt(App_base):
             QtGui.real_QApplication = QtGui.QApplication
 
         class QApplication_hijacked(QtGui.QApplication):
-            """ QApplication_hijacked(*args, **kwargs)
+            """QApplication_hijacked(*args, **kwargs)
 
             Hijacked QApplication class. This class has a __new__()
             method that always returns the global application
@@ -505,7 +502,7 @@ class App_qt(App_base):
                 pass
 
             def exec_(self, *args, **kwargs):
-                """ This function does nothing, except printing a
+                """This function does nothing, except printing a
                 warning message. The point is that a Qt App can crash
                 quite hard if an object goes out of scope, and the error
                 is not obvious.
@@ -584,8 +581,7 @@ class App_qt(App_base):
 
 
 class App_pyqt5(App_qt):
-    """ Hijack the PyQt5 mainloop.
-    """
+    """Hijack the PyQt5 mainloop."""
 
     def importCoreAndGui(self):
         # Try importing qt
@@ -596,8 +592,7 @@ class App_pyqt5(App_qt):
 
 
 class App_pyqt4(App_qt):
-    """ Hijack the PyQt4 mainloop.
-    """
+    """Hijack the PyQt4 mainloop."""
 
     def importCoreAndGui(self):
         # Try importing qt
@@ -608,8 +603,7 @@ class App_pyqt4(App_qt):
 
 
 class App_pyside2(App_qt):
-    """ Hijack the PySide2 mainloop.
-    """
+    """Hijack the PySide2 mainloop."""
 
     def importCoreAndGui(self):
         # Try importing qt
@@ -620,8 +614,7 @@ class App_pyside2(App_qt):
 
 
 class App_pyside(App_qt):
-    """ Hijack the PySide mainloop.
-    """
+    """Hijack the PySide mainloop."""
 
     def importCoreAndGui(self):
         # Try importing qt
@@ -632,8 +625,7 @@ class App_pyside(App_qt):
 
 
 class App_wx(App_base):
-    """ Hijack the wxWidgets mainloop.
-    """
+    """Hijack the wxWidgets mainloop."""
 
     def __init__(self):
 
@@ -697,7 +689,7 @@ class App_wx(App_base):
 
 
 class App_gtk(App_base):
-    """ Modifies pyGTK's mainloop with a dummy so user code does not
+    """Modifies pyGTK's mainloop with a dummy so user code does not
     block IPython.  processing events is done using the module'
     main_iteration function.
     """

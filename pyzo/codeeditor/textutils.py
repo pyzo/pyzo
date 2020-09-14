@@ -6,7 +6,7 @@
 
 
 class TextReshaper:
-    """ Object to reshape a piece of text, taking indentation, paragraphs,
+    """Object to reshape a piece of text, taking indentation, paragraphs,
     comments and bulletpoints into account.
     """
 
@@ -30,19 +30,16 @@ class TextReshaper:
         return tr.popText()
 
     def pushLine(self, line):
-        """ Push a single line to the input.
-        """
+        """Push a single line to the input."""
         self._lines1.append(line.rstrip())
 
     def pushText(self, text):
-        """ Push a (multiline) text to the input.
-        """
+        """Push a (multiline) text to the input."""
         for line in text.splitlines():
             self.pushLine(line)
 
     def popLines(self):
-        """ Get all available lines from the output.
-        """
+        """Get all available lines from the output."""
         try:
             while True:
                 self._popLine()
@@ -52,8 +49,7 @@ class TextReshaper:
         return [line for line in self._lines2]
 
     def popText(self):
-        """ Get all text from the output (i.e. lines joined with newline).
-        """
+        """Get all text from the output (i.e. lines joined with newline)."""
         return "\n".join(self.popLines())
 
     def _prefixString(self):
@@ -84,7 +80,7 @@ class TextReshaper:
         self._currentPrefix = None
 
     def _popLine(self):
-        """ Pop a line from the input. Examine how it starts and convert it
+        """Pop a line from the input. Examine how it starts and convert it
         to words.
         """
 

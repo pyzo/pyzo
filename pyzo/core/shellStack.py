@@ -25,8 +25,7 @@ from pyzo.core.icons import ShellIconMaker
 
 
 def shellTitle(shell, moreinfo=False):
-    """ Given a shell instance, build the text title to represent it.
-    """
+    """Given a shell instance, build the text title to represent it."""
 
     # Get name
     nameText = shell._info.name
@@ -72,14 +71,14 @@ def shellTitle(shell, moreinfo=False):
 
 
 class ShellStackWidget(QtWidgets.QWidget):
-    """ The shell stack widget provides a stack of shells.
-    
+    """The shell stack widget provides a stack of shells.
+
     It wrapps a QStackedWidget that contains the shell objects. This
     stack is used as a reference to synchronize the shell selection with.
     We keep track of what is the current selected shell and apply updates
     if necessary. Therefore, changing the current shell in the stack
     should be enough to invoke a full update.
-    
+
     """
 
     # When the current shell changes.
@@ -144,8 +143,8 @@ class ShellStackWidget(QtWidgets.QWidget):
             self._interpreterhelp.detect()
 
     def addShell(self, shellInfo=None):
-        """ addShell()
-        Add a shell to the widget. """
+        """addShell()
+        Add a shell to the widget."""
 
         # Create shell and add to stack
         shell = PythonShell(self, shellInfo)
@@ -159,14 +158,13 @@ class ShellStackWidget(QtWidgets.QWidget):
         return shell
 
     def removeShell(self, shell):
-        """ removeShell()
+        """removeShell()
         Remove an existing shell from the widget
         """
         self._stack.removeWidget(shell)
 
     def onCurrentChanged(self, index):
-        """ When another shell is selected, update some things.
-        """
+        """When another shell is selected, update some things."""
 
         # Get current
         shell = self.getCurrentShell()
@@ -177,7 +175,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         self.currentShellChanged.emit()
 
     def onShellStateChange(self, shell):
-        """ Called when the shell state changes, and is called
+        """Called when the shell state changes, and is called
         by onCurrentChanged. Sets the mainwindow's icon if busy.
         """
 
@@ -194,7 +192,7 @@ class ShellStackWidget(QtWidgets.QWidget):
             self.currentShellStateChanged.emit()
 
     def onShellDebugStateChange(self, shell):
-        """ Called when the shell debug state changes, and is called
+        """Called when the shell debug state changes, and is called
         by onCurrentChanged. Sets the debug button.
         """
 
@@ -217,7 +215,7 @@ class ShellStackWidget(QtWidgets.QWidget):
             self.currentShellStateChanged.emit()
 
     def getCurrentShell(self):
-        """ getCurrentShell()
+        """getCurrentShell()
         Get the currently active shell.
         """
 
@@ -292,8 +290,7 @@ class ShellStackWidget(QtWidgets.QWidget):
 
 
 class ShellControl(QtWidgets.QToolButton):
-    """ A button that can be used to select a shell and start a new shell.
-    """
+    """A button that can be used to select a shell and start a new shell."""
 
     def __init__(self, parent, shellStack):
         QtWidgets.QToolButton.__init__(self, parent)
@@ -321,7 +318,7 @@ class ShellControl(QtWidgets.QToolButton):
         self._elapsedTimesTimer.timeout.connect(self.onElapsedTimesTimer)
 
     def updateShellMenu(self, shellToUpdate=None):
-        """ Update the shell menu. Ensure that there is a menu item
+        """Update the shell menu. Ensure that there is a menu item
         for each shell. If shellToUpdate is given, updates the corresponding
         menu item.
         """
@@ -475,8 +472,7 @@ class ShellControl(QtWidgets.QToolButton):
 
 
 class DebugStack(QtWidgets.QToolButton):
-    """ A button that shows the stack trace.
-    """
+    """A button that shows the stack trace."""
 
     def __init__(self, parent):
         QtWidgets.QToolButton.__init__(self, parent)
@@ -507,7 +503,7 @@ class DebugStack(QtWidgets.QToolButton):
             self.debugFocus(line)
 
     def setTrace(self, info):
-        """ Set the stack trace. This method is called from
+        """Set the stack trace. This method is called from
         the shell that receives the trace via its status channel
         directly from the interpreter.
         If trace is None, removes the trace
@@ -571,7 +567,7 @@ class DebugStack(QtWidgets.QToolButton):
             self.setEnabled(True)
 
     def debugFocus(self, lineFromDebugState):
-        """ debugFocus(lineFromDebugState)
+        """debugFocus(lineFromDebugState)
         Open the file and show the linenr of the given lineFromDebugState.
         """
         # Get filenr and item
@@ -603,8 +599,7 @@ class DebugStack(QtWidgets.QToolButton):
 
 
 class InterpreterHelper(QtWidgets.QWidget):
-    """ This sits in place of a shell to help the user download miniconda.
-    """
+    """This sits in place of a shell to help the user download miniconda."""
 
     def __init__(self, parent):
         super().__init__(parent)

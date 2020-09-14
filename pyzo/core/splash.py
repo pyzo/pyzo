@@ -89,8 +89,7 @@ class LabelWidget(QtWidgets.QWidget):
 
 
 class SplashWidget(QtWidgets.QWidget):
-    """ A splash widget.
-    """
+    """A splash widget."""
 
     def __init__(self, parent, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)

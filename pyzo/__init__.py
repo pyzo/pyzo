@@ -116,7 +116,7 @@ os.environ["PYZO_QTLIB"] = "PyQt4" if _is_pyqt4 else "PySide"
 
 
 class MyApp(QtWidgets.QApplication):
-    """ So we an open .py files on OSX.
+    """So we an open .py files on OSX.
     OSX is smart enough to call this on the existing process.
     """
 
@@ -159,7 +159,7 @@ sys.excepthook = pyzo_excepthook
 
 
 def getResourceDirs():
-    """ getResourceDirs()
+    """getResourceDirs()
     Get the directories to the resources: (pyzoDir, appDataDir, appConfigDir).
     Also makes sure that the appDataDir has a "tools" directory and
     a style file.
@@ -184,7 +184,7 @@ def getResourceDirs():
 
 
 def resetConfig(preserveState=True):
-    """ resetConfig()
+    """resetConfig()
     Deletes the config file to revert to default and prevent Pyzo from storing
     its config on the next shutdown.
     """
@@ -224,7 +224,7 @@ def loadThemes():
 
 
 def loadConfig(defaultsOnly=False):
-    """ loadConfig(defaultsOnly=False)
+    """loadConfig(defaultsOnly=False)
     Load default and site-wide configuration file(s) and that of the user (if it exists).
     Any missing fields in the user config are set to the defaults.
     """
@@ -273,7 +273,7 @@ def loadConfig(defaultsOnly=False):
 
 
 def saveConfig():
-    """ saveConfig()
+    """saveConfig()
     Save all configureations to file.
     """
 
@@ -291,8 +291,7 @@ def saveConfig():
 
 
 def start():
-    """ Run Pyzo.
-    """
+    """Run Pyzo."""
 
     # Do some imports
     from pyzo.core import pyzoLogging  # noqa - to start logging asap

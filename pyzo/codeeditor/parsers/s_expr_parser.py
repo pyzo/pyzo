@@ -21,20 +21,19 @@ from .tokens import (
 
 
 class SExprParser(Parser):
-    """ Parser for S-expressions.
-    """
+    """Parser for S-expressions."""
 
     _extensions = [".lisp", ".ss", ".sls", ".scm"]
 
     _keywords = []  # can be overloaded
 
     def parseLine(self, line, comment_level=0):
-        """ parseLine(line, comment_level=0)
-        
+        """parseLine(line, comment_level=0)
+
         Parse a line of code, yielding tokens.
         previousstate is the state of the previous block, and is used
         to handle line continuation and multiline strings.
-        
+
         """
         line = text_type(line)
 
@@ -137,8 +136,7 @@ class SExprParser(Parser):
 
 
 class WatParser(SExprParser):
-    """ Parser for textual WASM (WAT) code.
-    """
+    """Parser for textual WASM (WAT) code."""
 
     _extensions = [".wat", ".wast"]
 

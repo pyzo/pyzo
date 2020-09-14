@@ -35,7 +35,7 @@ subStyleStuff = {}
 
 
 def normalizePath(path):
-    """ Normalize the path given.
+    """Normalize the path given.
     All slashes will be made the same (and doubles removed)
     The real case as stored on the file system is recovered.
     Returns None on error.
@@ -76,7 +76,7 @@ def normalizePath(path):
 
 
 def parseLine_autocomplete(tokens):
-    """ Given a list of tokens (from start to cursor position)
+    """Given a list of tokens (from start to cursor position)
     returns a tuple (base, name).
     autocomp_parse("eat = banan") -> "", "banan"
       ...("eat = food.fruit.ban") -> "food.fruit", "ban"
@@ -109,7 +109,7 @@ def parseLine_autocomplete(tokens):
 
 
 def parseLine_signature(tokens):
-    """ Given a list of tokens (from start to cursor position)
+    """Given a list of tokens (from start to cursor position)
     returns a tuple (name, needle, stats).
     stats is another tuple:
     - location of end bracket
@@ -154,8 +154,8 @@ class KeyEvent:
 
 
 def makeBytes(text):
-    """ Make sure the argument is bytes, converting with UTF-8 encoding
-    if it is a string. """
+    """Make sure the argument is bytes, converting with UTF-8 encoding
+    if it is a string."""
     if isinstance(text, bytes):
         return text
     elif isinstance(text, str):
@@ -168,7 +168,7 @@ _allScintillas = []
 
 
 def getAllScintillas():
-    """ Get a list of all the scintialla editing components that
+    """Get a list of all the scintialla editing components that
     derive from BaseTextCtrl. Used mainly by the menu.
     """
     for i in reversed(range(len(_allScintillas))):
@@ -185,7 +185,7 @@ from pyzo import codeeditor
 
 
 class BaseTextCtrl(codeeditor.CodeEditor):
-    """ The base text control class.
+    """The base text control class.
     Inherited by the shell class and the Pyzo editor.
     The class implements autocompletion, calltips, and auto-help
 
@@ -254,8 +254,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.setCancelCallback(self.restoreHelp)
 
     def setAutoCompletionAcceptKeysFromStr(self, keys):
-        """ Set the keys that can accept an autocompletion from a comma delimited string.
-        """
+        """Set the keys that can accept an autocompletion from a comma delimited string."""
         # Set autocomp accept key to default if necessary.
         # We force it to be string (see issue 134)
         if not isinstance(keys, str):
@@ -279,7 +278,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         self.setAutoCompletionAcceptKeys(*qtKeys)
 
     def _isValidPython(self):
-        """ _isValidPython()
+        """_isValidPython()
         Check if the code at the cursor is valid python:
         - the active lexer is the python lexer
         - the style at the cursor is "default"
@@ -307,7 +306,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         )
 
     def introspect(self, tryAutoComp=False, delay=True):
-        """ introspect(tryAutoComp=False, delay=True)
+        """introspect(tryAutoComp=False, delay=True)
 
         The starting point for introspection (autocompletion and calltip).
         It will always try to produce a calltip. If tryAutoComp is True,
@@ -352,7 +351,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             self._delayTimer.start(1)  # self._introspectNow()
 
     def _introspectNow(self):
-        """ This method is called a short while after introspect()
+        """This method is called a short while after introspect()
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
         """
@@ -421,7 +420,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             hw.setObjectName(name, True)
 
     def processHelp(self, name=None, showError=False, addToHist=False):
-        """ Show help on the given full object name.
+        """Show help on the given full object name.
         - called when going up/down in the autocompletion list.
         - called when double clicking a name
         """
@@ -476,7 +475,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             hw.restoreCurrent()
 
     def event(self, event):
-        """ event(event)
+        """event(event)
 
         Overload main event handler so we can pass Ctrl-C Ctr-v etc, to the main
         window.
@@ -497,7 +496,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         return True
 
     def keyPressEvent(self, event):
-        """ Receive qt key event.
+        """Receive qt key event.
         From here we'l dispatch the event to perform autocompletion
         or other stuff...
         """
@@ -537,7 +536,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
 
 
 class CallTipObject:
-    """ Object to help the process of call tips.
+    """Object to help the process of call tips.
     An instance of this class is created for each call tip action.
     """
 
@@ -548,7 +547,7 @@ class CallTipObject:
         self.offset = offset
 
     def tryUsingBuffer(self):
-        """ tryUsingBuffer()
+        """tryUsingBuffer()
         Try performing this callTip using the buffer.
         Returns True on success.
         """
@@ -561,7 +560,7 @@ class CallTipObject:
             return False
 
     def finish(self, callTipText):
-        """ finish(callTipText)
+        """finish(callTipText)
         Finish the introspection using the given calltipText.
         Will also automatically call setBuffer.
         """
@@ -569,8 +568,8 @@ class CallTipObject:
         self._finish(callTipText)
 
     def setBuffer(self, callTipText, timeout=4):
-        """ setBuffer(callTipText)
-        Sets the buffer with the provided text. """
+        """setBuffer(callTipText)
+        Sets the buffer with the provided text."""
         self.textCtrl._callTipBuffer_name = self.bufferName
         self.textCtrl._callTipBuffer_time = time.time() + timeout
         self.textCtrl._callTipBuffer_result = callTipText
@@ -580,7 +579,7 @@ class CallTipObject:
 
 
 class AutoCompObject:
-    """ Object to help the process of auto completion.
+    """Object to help the process of auto completion.
     An instance of this class is created for each auto completion action.
     """
 
@@ -594,13 +593,13 @@ class AutoCompObject:
         self.importLines = {}
 
     def addNames(self, names):
-        """ addNames(names)
+        """addNames(names)
         Add a list of names to the collection.
         Duplicates are removed."""
         self.names.update(names)
 
     def tryUsingBuffer(self):
-        """ tryUsingBuffer()
+        """tryUsingBuffer()
         Try performing this auto-completion using the buffer.
         Returns True on success.
         """
@@ -613,7 +612,7 @@ class AutoCompObject:
             return False
 
     def finish(self):
-        """ finish()
+        """finish()
         Finish the introspection using the collected names.
         Will automatically call setBuffer.
         """
@@ -624,9 +623,9 @@ class AutoCompObject:
         self._finish(names)
 
     def setBuffer(self, names=None, timeout=None):
-        """ setBuffer(names=None)
+        """setBuffer(names=None)
         Sets the buffer with the provided names (or the collected names).
-        Also returns a list with the sorted names. """
+        Also returns a list with the sorted names."""
         # Determine timeout
         # Global namespaces change more often than local one, plus when
         # typing a xxx.yyy, the autocompletion buffer changes and is thus
@@ -656,7 +655,7 @@ class AutoCompObject:
         self.textCtrl.autocompleteShow(len(self.needle), names, self.name != "")
 
     def nameInImportNames(self, importNames):
-        """ nameInImportNames(importNames)
+        """nameInImportNames(importNames)
         Test whether the name, or a base part of it is present in the
         given list of names. Returns the (part of) the name that's in
         the list, or None otherwise.

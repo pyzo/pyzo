@@ -9,7 +9,7 @@ import subprocess
 
 
 def subprocess_with_callback(callback, cmd, **kwargs):
-    """ Execute command in subprocess, stdout is passed to the
+    """Execute command in subprocess, stdout is passed to the
     callback function. Returns the returncode of the process.
     If callback is None, simply prints any stdout.
     """
@@ -53,8 +53,7 @@ def print_(p):
 
 
 def pip_command_exe(exe, *args):
-    """ Do a pip command in the interpreter with the given exe.
-    """
+    """Do a pip command in the interpreter with the given exe."""
 
     # Get pip command
     cmd = [exe, "-m", "pip"] + list(args)
@@ -64,7 +63,7 @@ def pip_command_exe(exe, *args):
 
 
 def pip_command(*args):
-    """ Do a pip command, e.g. "install networkx".
+    """Do a pip command, e.g. "install networkx".
     Installs in the current interpreter.
     """
     pip_command_exe(sys.executable, *args)

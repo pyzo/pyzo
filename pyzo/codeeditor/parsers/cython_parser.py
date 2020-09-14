@@ -14,15 +14,14 @@ cythonExtraKeywords = set(
 
 
 class CythonParser(PythonParser):
-    """ Parser for Cython/Pyrex.
-    """
+    """Parser for Cython/Pyrex."""
 
     _extensions = ["pyi", ".pyx", ".pxd"]
 
     _keywords = pythonKeywords | cythonExtraKeywords
 
     def _identifierState(self, identifier=None):
-        """ Given an identifier returs the identifier state:
+        """Given an identifier returs the identifier state:
         3 means the current identifier can be a function.
         4 means the current identifier can be a class.
         0 otherwise.

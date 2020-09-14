@@ -16,7 +16,7 @@ from .. import paths
 
 
 def get_interpreters(minimumVersion=None):
-    """ get_interpreters(minimumVersion=None)
+    """get_interpreters(minimumVersion=None)
     Returns a list of PythonInterpreter instances.
     If minimumVersion is given, return only the interprers with at least that
     version, and also sort the result by version number.
@@ -48,7 +48,7 @@ def get_interpreters(minimumVersion=None):
 
 
 def _select_interpreters(interpreters, minimumVersion):
-    """ Given a list of PythonInterpreter instances, return a list with
+    """Given a list of PythonInterpreter instances, return a list with
     the interpreters selected that are valid and have their version equal
     or larger than the given minimimVersion. The returned list is sorted
     by version number.
@@ -156,8 +156,7 @@ def _get_interpreters_posix():
 
 
 def _get_interpreters_pyzo():
-    """ Get a list of known Pyzo interpreters.
-    """
+    """Get a list of known Pyzo interpreters."""
     pythonname = "python" + ".exe" * sys.platform.startswith("win")
     exes = []
     for d in paths.pyzo_dirs():
@@ -172,8 +171,7 @@ def _get_interpreters_pyzo():
 
 
 def _get_interpreters_conda():
-    """ Get known conda environments
-    """
+    """Get known conda environments"""
     if sys.platform.startswith("win"):
         pythonname = "python" + ".exe"
     else:
@@ -191,8 +189,7 @@ def _get_interpreters_conda():
 
 
 def _get_interpreters_pipenv():
-    """ Get known pipenv environments
-    """
+    """Get known pipenv environments"""
     if sys.platform.startswith("win"):
         pythonname = "Scripts\\python" + ".exe"
     else:
@@ -209,7 +206,7 @@ def _get_interpreters_pipenv():
 
 
 def _get_interpreters_relative():
-    """ Get interpreters relative to our prefix and the parent directory.
+    """Get interpreters relative to our prefix and the parent directory.
     This allows Pyzo to be shipped inside a pre-installed conda env.
     """
     pythonname = "python" + ".exe" * sys.platform.startswith("win")

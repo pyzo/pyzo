@@ -23,7 +23,7 @@ from .utils import isdir
 
 
 class Task:
-    """ Task(**params)
+    """Task(**params)
 
     A task object. Accepts params as keyword arguments.
     When overloading, dont forget to set __slots__.
@@ -43,15 +43,14 @@ class Task:
         self._error = None
 
     def process(self, proxy, **params):
-        """ process(pathProxy, **params):
+        """process(pathProxy, **params):
         This is the method that represents the task. Overload this to make
         the task do what is intended.
         """
         pass
 
     def _run(self, proxy):
-        """ Run the task. Don't overload or use this.
-        """
+        """Run the task. Don't overload or use this."""
         try:
             params = self._params or {}
             self._result = self.process(proxy, **params)
@@ -60,8 +59,7 @@ class Task:
             print(self._error)
 
     def result(self):
-        """ Get the result. Raises an error if the task failed.
-        """
+        """Get the result. Raises an error if the task failed."""
         if self._error:
             raise Exception(self._error)
         else:
@@ -72,7 +70,7 @@ class Task:
 
 
 class PathProxy(QtCore.QObject):
-    """ Proxy base class for DirProxy and FileProxy.
+    """Proxy base class for DirProxy and FileProxy.
 
     A proxy object is used to get information on a path (folder
     contents, or file modification time), and keep being updated about
@@ -104,32 +102,31 @@ class PathProxy(QtCore.QObject):
         return '<{} "{}">'.format(self.__class__.__name__, self._path)
 
     def path(self):
-        """ Get the path of this proxy.
-        """
+        """Get the path of this proxy."""
         return self._path
 
     def track(self):
-        """ Start tracking this proxy object in the idle time of the
+        """Start tracking this proxy object in the idle time of the
         FSProxy thread.
         """
         self._fsProxy._track(self)
 
     def push(self):
-        """ Process this proxy object asap; the object is put in the queue
+        """Process this proxy object asap; the object is put in the queue
         of the FSProxy, so it is updated as fast as possible.
         """
         self._cancelled = False
         self._fsProxy._push(self)
 
     def cancel(self):
-        """ Stop tracking this proxy object. Cancel processing if this
+        """Stop tracking this proxy object. Cancel processing if this
         object was in the queue.
         """
         self._fsProxy._unTrack(self)
         self._cancelled = True
 
     def pushTask(self, task):
-        """ pushTask(task)
+        """pushTask(task)
         Give a task to the proxy to be executed in the FSProxy
         thread. The taskFinished signal will be emitted with the given
         task when it is done.
@@ -158,7 +155,7 @@ class PathProxy(QtCore.QObject):
 
 
 class DirProxy(PathProxy):
-    """ Proxy object for a directory. Obtain an instance of this class
+    """Proxy object for a directory. Obtain an instance of this class
     using filesystemProx.dir()
     """
 
@@ -194,7 +191,7 @@ class DirProxy(PathProxy):
 
 
 class FileProxy(PathProxy):
-    """ Proxy object for a file. Obtain an instance of this class
+    """Proxy object for a file. Obtain an instance of this class
     using filesystemProx.dir()
     """
 
@@ -232,7 +229,7 @@ class FileProxy(PathProxy):
 
 
 class BaseFSProxy(threading.Thread):
-    """ Abstract base class for file system proxies.
+    """Abstract base class for file system proxies.
 
     The file system proxy defines an interface that subclasses can implement
     to "become" a usable file system proxy.
@@ -293,13 +290,11 @@ class BaseFSProxy(threading.Thread):
         self.join(timeout)
 
     def dir(self, path):
-        """ Convenience function to create a new DirProxy object.
-        """
+        """Convenience function to create a new DirProxy object."""
         return DirProxy(self, path)
 
     def file(self, path):
-        """ Convenience function to create a new FileProxy object.
-        """
+        """Convenience function to create a new FileProxy object."""
         return FileProxy(self, path)
 
     def run(self):
@@ -403,8 +398,7 @@ import os
 
 
 class NativeFSProxy(BaseFSProxy):
-    """ File system proxy for the native file system.
-    """
+    """File system proxy for the native file system."""
 
     def listDirs(self, path):
         if isdir(path):

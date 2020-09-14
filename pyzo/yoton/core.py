@@ -53,11 +53,11 @@ CONTROL_BYTES = struct.unpack("<Q", "YOTON   ".encode("utf-8"))[0]
 
 
 def can_send(s, timeout=0.0):
-    """ can_send(bsd_socket, timeout=0.0)
-    
+    """can_send(bsd_socket, timeout=0.0)
+
     Given a socket, uses select() to determine whether it can be used
     for sending. This function can deal with system interrupts.
-    
+
     """
     while True:
         try:
@@ -73,11 +73,11 @@ def can_send(s, timeout=0.0):
 
 
 def can_recv(s, timeout=0.0):
-    """ can_recv(bsd_socket, timeout=0.0)
-    
+    """can_recv(bsd_socket, timeout=0.0)
+
     Given a socket, uses select() to determine whether it can be used
     for receiving. This function can deal with system interrupts.
-    
+
     """
     while True:
         try:
@@ -93,16 +93,16 @@ def can_recv(s, timeout=0.0):
 
 
 def send_all(s, text, stutdown_after_sending=True):
-    """ send_all(socket, text, stutdown_after_sending=True)
-    
+    """send_all(socket, text, stutdown_after_sending=True)
+
     Send all text to the socket. Used during handshaking and in
     the clientserver module.
-    
+
     If stutdown_after_sending, the socket is shut down. Some protocols
     rely on this.
-    
+
     It is made sure that the text ends with a CRLF double-newline code.
-    
+
     """
 
     # Ensure closing chars
@@ -127,14 +127,14 @@ def send_all(s, text, stutdown_after_sending=True):
 
 
 def recv_all(s, timeout=-1, end_at_crlf=True):
-    """ recv_all(socket, timeout=-1, end_at_crlf=True)
-    
+    """recv_all(socket, timeout=-1, end_at_crlf=True)
+
     Receive text from the socket (untill socket receiving is shut down).
     Used during handshaking and in the clientserver module.
-    
+
     If end_at_crlf, a message is also ended at a CRLF double-newline code,
     and a shutdown is not necessary. This takes a tiny bit longer.
-    
+
     """
 
     # Init parts (start with one byte, such that len(parts) is always >= 2
@@ -199,14 +199,14 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
 
 
 class Package(object):
-    """ Package(data, slot, source_id, source_seq, dest_id, dest_seq, recv_seq)
-    
+    """Package(data, slot, source_id, source_seq, dest_id, dest_seq, recv_seq)
+
     Represents a package of bytes to be send from one Context instance
     to another. A package consists of a header and the encoded message.
-    
+
     To make this class as fast as reasonably possible, its interface
     is rather minimalistic and few convenience stuff is implemented.
-    
+
     Parameters
     ----------
     data : bytes
@@ -226,17 +226,17 @@ class Package(object):
     recv_seq : long (default 0)
         The sequence number of this package counted at the receiving context.
         This is used to synchronize channels.
-    
+
     When send, the header is composed of four control bytes, the slot,
     the source_id, source_seq, dest_id and dest_seq.
-    
+
     Notes
     -----
     A package should always have content. Packages without content are only
     used for low-level communication between two ContextConnection instances.
     The source_seq is then used as the signal. All other package attributes
     are ignored.
-    
+
     """
 
     # The __slots__ makes instances of this class consume < 20% of memory
@@ -267,12 +267,12 @@ class Package(object):
         self._recv_seq = recv_seq
 
     def parts(self):
-        """ parts()
-        
+        """parts()
+
         Get list of bytes that represents this package.
         By not concatenating the header and content parts,
         we prevent unnecesary copying of data.
-        
+
         """
 
         # Obtain header
@@ -297,12 +297,12 @@ class Package(object):
 
     @classmethod
     def from_header(cls, header):
-        """ from_header(header)
-        
+        """from_header(header)
+
         Create a package (without data) from the header of a message.
         Returns (package, data_length). If the header is invalid (checked
         using the four control bytes) this method returns (None, None).
-        
+
         """
         # Unpack
         tmp = struct.unpack(HEADER_FORMAT, header)

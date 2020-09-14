@@ -6,8 +6,8 @@ from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
 
 
 class CommandHistory(QtCore.QObject):
-    """ Keep track of a (global) history of commands.
-    
+    """Keep track of a (global) history of commands.
+
     This kinda assumes Python commands, but should be easy enough to generalize.
     """
 
@@ -25,8 +25,7 @@ class CommandHistory(QtCore.QObject):
         self._load()
 
     def _load(self):
-        """ Load commands from file.
-        """
+        """Load commands from file."""
         if not self._fname:
             return
 
@@ -60,8 +59,7 @@ class CommandHistory(QtCore.QObject):
             print("An error occurred while loading the history: " + str(e))
 
     def save(self):
-        """ Save the commands to disk.
-        """
+        """Save the commands to disk."""
         if not self._fname:
             return
         filename = os.path.join(pyzo.appDataDir, self._fname)
@@ -72,13 +70,11 @@ class CommandHistory(QtCore.QObject):
             print("Could not save command history")
 
     def get_commands(self):
-        """ Get a list of all commands (latest last).
-        """
+        """Get a list of all commands (latest last)."""
         return self._commands.copy()
 
     def append(self, command):
-        """ Add a command to the list.
-        """
+        """Add a command to the list."""
         command = command.rstrip()
         if not command:
             return
@@ -109,14 +105,12 @@ class CommandHistory(QtCore.QObject):
             self.commands_reset.emit()
 
     def pop(self, index):
-        """ Remove a command by index.
-        """
+        """Remove a command by index."""
         self._commands.pop(index)
         self.command_removed.emit(index)
 
     def find_starting_with(self, firstpart, n=1):
-        """ Find the nth (1-based) command that starts with firstpart, or None.
-        """
+        """Find the nth (1-based) command that starts with firstpart, or None."""
         count = 0
         for c in reversed(self._commands):
             if c.startswith(firstpart):
@@ -126,7 +120,7 @@ class CommandHistory(QtCore.QObject):
         return None
 
     def find_all(self, needle):
-        """ Find all commands that contain the given text. In order
+        """Find all commands that contain the given text. In order
         of being used.
         """
         commands = []

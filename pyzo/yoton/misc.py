@@ -43,15 +43,15 @@ else:
 
 
 def Property(function):
-    """ Property(function)
-    
+    """Property(function)
+
     A property decorator which allows to define fget, fset and fdel
     inside the function.
-    
+
     Note that the class to which this is applied must inherit from object!
     Code based on an example posted by Walker Hale:
     http://code.activestate.com/recipes/410698/#c6
-    
+
     """
 
     # Define known keys
@@ -77,7 +77,7 @@ def Property(function):
 
 
 def getErrorMsg():
-    """ getErrorMsg()
+    """getErrorMsg()
     Return a string containing the error message. This is usefull, because
     there is no uniform way to catch exception objects in Python 2.x and
     Python 3.x.
@@ -108,14 +108,14 @@ def getErrorMsg():
 
 
 def slot_hash(name):
-    """ slot_hash(name)
-    
+    """slot_hash(name)
+
     Given a string (the slot name) returns a number between 8 and 2**64-1
     (just small enough to fit in a 64 bit unsigned integer). The number
     is used as a slot id.
-    
+
     Slots 0-7 are reseved slots.
-    
+
     """
     fac = 0xD2D84A61
     val = 0
@@ -127,15 +127,15 @@ def slot_hash(name):
 
 
 def port_hash(name):
-    """ port_hash(name)
-    
+    """port_hash(name)
+
     Given a string, returns a port number between 49152 and 65535.
     (2**14 (16384) different posibilities)
     This range is the range for dynamic and/or private ports
     (ephemeral ports) specified by iana.org.
     The algorithm is deterministic, thus providing a way to map names
     to port numbers.
-    
+
     """
     fac = 0xD2D84A61
     val = 0
@@ -146,22 +146,22 @@ def port_hash(name):
 
 
 def split_address(address):
-    """ split_address(address) -> (protocol, hostname, port)
-    
+    """split_address(address) -> (protocol, hostname, port)
+
     Split address in protocol, hostname and port. The address has the
     following format: "protocol://hostname:port". If the protocol is
     omitted, TCP is assumed.
-    
+
     The hostname is the name or ip-address of the computer to connect to.
     One can use "localhost" for a connection that bypasses some
     network layers (and is not visible from the outside). One can use
     "publichost" for a connection at the current computers IP address
     that is visible from the outside.
-    
+
     The port can be an integer, or a sting. In the latter case the integer
     port number is calculated using a hash. One can also use "portname+offset"
     to specify an integer offset for the port number.
-    
+
     """
 
     # Check
@@ -228,10 +228,10 @@ def split_address(address):
 
 
 class UID:
-    """ UID
-    
+    """UID
+
     Represents an 8-byte (64 bit) Unique Identifier.
-    
+
     """
 
     _last_timestamp = 0
@@ -251,11 +251,11 @@ class UID:
         return "<UID %s-%s>" % (h[:8], h[8:])
 
     def get_hex(self):
-        """ get_hex()
-        
+        """get_hex()
+
         Get the hexadecimal representation of this UID. The returned
         string is 16 characters long.
-        
+
         """
         h = hex(self._nr)
         h = h[2:].rstrip("L")
@@ -263,18 +263,18 @@ class UID:
         return h
 
     def get_bytes(self):
-        """ get_bytes()
-        
+        """get_bytes()
+
         Get the UID as bytes.
-        
+
         """
         return struct.pack("<Q", self._nr)
 
     def get_int(self):
-        """ get_int()
-        
+        """get_int()
+
         Get the UID as a 64 bit (long) integer.
-        
+
         """
         return self._nr
 
@@ -300,15 +300,15 @@ class UID:
 
 
 class PackageQueue(object):
-    """ PackageQueue(N, discard_mode='old')
-    
+    """PackageQueue(N, discard_mode='old')
+
     A queue implementation that can be used in blocking and non-blocking
     mode and allows peeking. The queue has a limited size. The user
     can specify whether old or new messages should be discarted.
-    
+
     Uses a deque object for the queue and a threading.Condition for
     the blocking.
-    
+
     """
 
     class Empty(Exception):
@@ -336,31 +336,31 @@ class PackageQueue(object):
             raise ValueError("Invalid discard mode.")
 
     def full(self):
-        """ full()
-        
+        """full()
+
         Returns True if the number of elements is at its maximum right now.
         Note that in theory, another thread might pop an element right
         after this function returns.
-        
+
         """
         return len(self) >= self._maxlen
 
     def empty(self):
-        """ empty()
-        
+        """empty()
+
         Returns True if the number of elements is zero right now. Note
         that in theory, another thread might add an element right
         after this function returns.
-        
+
         """
         return len(self) == 0
 
     def push(self, x):
-        """ push(item)
-        
+        """push(item)
+
         Add an item to the queue. If the queue is full, the oldest
         item in the queue, or the given item is discarted.
-        
+
         """
 
         condition = self._condition
@@ -384,13 +384,13 @@ class PackageQueue(object):
             condition.release()
 
     def insert(self, x):
-        """ insert(x)
-        
+        """insert(x)
+
         Insert an item at the front of the queue. A call to pop() will
         get this item first. This should be used in rare circumstances
         to give an item priority. This method never causes items to
         be discarted.
-        
+
         """
 
         condition = self._condition
@@ -402,8 +402,8 @@ class PackageQueue(object):
             condition.release()
 
     def pop(self, block=True):
-        """ pop(block=True)
-        
+        """pop(block=True)
+
         Pop the oldest item from the queue. If there are no items in the
         queue:
           * the calling thread is blocked until an item is available
@@ -411,7 +411,7 @@ class PackageQueue(object):
           * an PackageQueue.Empty exception is raised (if block=False);
           * the calling thread is blocked for 'block' seconds (if block
             is a float).
-        
+
         """
 
         condition = self._condition
@@ -443,15 +443,15 @@ class PackageQueue(object):
             condition.release()
 
     def peek(self, index=0):
-        """ peek(index=0)
-        
+        """peek(index=0)
+
         Get an item from the queue without popping it. index=0 gets the
         oldest item, index=-1 gets the newest item. Note that index access
         slows to O(n) time in the middle of the queue (due to the undelying
         deque object).
-        
+
         Raises an IndexError if the index is out of range.
-        
+
         """
         return self._q[index]
 
@@ -459,10 +459,10 @@ class PackageQueue(object):
         return self._q.__len__()
 
     def clear(self):
-        """ clear()
-        
+        """clear()
+
         Remove all items from the queue.
-        
+
         """
 
         self._condition.acquire()
@@ -473,20 +473,20 @@ class PackageQueue(object):
 
 
 class TinyPackageQueue(PackageQueue):
-    """ TinyPackageQueue(N1, N2, discard_mode='old', timeout=1.0)
-    
+    """TinyPackageQueue(N1, N2, discard_mode='old', timeout=1.0)
+
     A queue implementation that can be used in blocking and non-blocking
     mode and allows peeking. The queue has a tiny-size (N1). When this size
     is reached, a call to push() blocks for up to timeout seconds. The
     real size (N2) is the same as in the PackageQueue class.
-    
+
     The tinysize mechanism can be used to semi-synchronize a consumer
     and a producer, while still having a small queue and without having
     the consumer fully block.
-    
+
     Uses a deque object for the queue and a threading.Condition for
     the blocking.
-    
+
     """
 
     def __init__(self, N1, N2, discard_mode="old", timeout=1.0):
@@ -499,12 +499,12 @@ class TinyPackageQueue(PackageQueue):
         self._timeout = timeout
 
     def push(self, x):
-        """ push(item)
-        
+        """push(item)
+
         Add an item to the queue. If the queue has >= n1 values,
         this function will block timeout seconds, or until an item is
         popped from another thread.
-        
+
         """
 
         condition = self._condition
@@ -533,8 +533,8 @@ class TinyPackageQueue(PackageQueue):
             condition.release()
 
     def pop(self, block=True):
-        """ pop(block=True)
-        
+        """pop(block=True)
+
         Pop the oldest item from the queue. If there are no items in the
         queue:
           * the calling thread is blocked until an item is available
@@ -542,7 +542,7 @@ class TinyPackageQueue(PackageQueue):
           * a PackageQueue.Empty exception is raised (if block=False);
           * the calling thread is blocked for 'block' seconds (if block
             is a float).
-        
+
         """
 
         condition = self._condition
@@ -578,10 +578,10 @@ class TinyPackageQueue(PackageQueue):
             condition.release()
 
     def clear(self):
-        """ clear()
-        
+        """clear()
+
         Remove all items from the queue.
-        
+
         """
 
         self._condition.acquire()

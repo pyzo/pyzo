@@ -145,9 +145,9 @@ bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
 
 
 def copydir_smart(path1, path2):
-    """ like shutil.copytree, but ...
-      * ignores __pycache__directories
-      * ignores hg, svn and git directories
+    """like shutil.copytree, but ...
+    * ignores __pycache__directories
+    * ignores hg, svn and git directories
     """
     # Ensure destination directory does exist
     if not os.path.isdir(path2):

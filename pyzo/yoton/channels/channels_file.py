@@ -20,18 +20,18 @@ PY2 = sys.version_info[0] == 2
 
 
 class FileWrapper(object):
-    """ FileWrapper(channel, chunksize=0, echo=None)
-    
+    """FileWrapper(channel, chunksize=0, echo=None)
+
     Class that wraps a PubChannel or SubChannel instance to provide
     a file-like interface by implementing methods such as read() and
     write(), and other stuff specified in:
     [[http://docs.python.org/library/stdtypes.html#bltin-file-objects]]
-    
+
     The file wrapper also splits messages into smaller messages if they
     are above the chunksize (only if chunksize > 0).
-    
+
     On Python 2, the read methods return str (utf-8 encoded Unicode).
-    
+
     """
 
     # Our file-like objects should not implement:
@@ -54,8 +54,7 @@ class FileWrapper(object):
         self._isatty = isatty
 
     def close(self):
-        """ Close the file object.
-        """
+        """Close the file object."""
         # Deal with multiprocessing
         if self._pid != os.getpid():
             if self is sys.stdin:
@@ -70,27 +69,25 @@ class FileWrapper(object):
 
     @property
     def encoding(self):
-        """ The encoding used to encode strings to bytes and vice versa.
-        """
+        """The encoding used to encode strings to bytes and vice versa."""
         return "UTF-8"
 
     @property
     def closed(self):
-        """ Get whether the file is closed.
-        """
+        """Get whether the file is closed."""
         return self._channel._closed
 
     def flush(self):
-        """ flush()
-        
+        """flush()
+
         Wait here until all messages have been send.
-        
+
         """
         self._channel._context.flush()
 
     @property
     def newlines(self):
-        """ The type of newlines used. Returns None; we never know what the
+        """The type of newlines used. Returns None; we never know what the
         other end could be sending!
         """
         return None
@@ -105,10 +102,10 @@ class FileWrapper(object):
     softspace = property(_get_softspace, _set_softspace, None, "")
 
     def read(self, block=None):
-        """ read(block=None)
-        
+        """read(block=None)
+
         Alias for recv().
-        
+
         """
         res = self._channel.recv(block)
         if res and self._echo is not None:
@@ -119,12 +116,12 @@ class FileWrapper(object):
             return res
 
     def write(self, message):
-        """ write(message)
-        
+        """write(message)
+
         Uses channel.send() to send the message over the Yoton network.
         The message is partitioned in smaller parts if it is larger than
         the chunksize.
-        
+
         """
         # Deal with multiprocessing
         if self._pid != os.getpid():
@@ -146,24 +143,24 @@ class FileWrapper(object):
             self._channel.send(message)
 
     def writelines(self, lines):
-        """ writelines(lines)
-        
+        """writelines(lines)
+
         Write a sequence of messages to the channel.
-        
+
         """
         for line in lines:
             self._channel.send(line)
 
     def readline(self, size=0):
-        """ readline(size=0)
-        
+        """readline(size=0)
+
         Read one string that was send as one from the other end (always
         in blocking mode). A newline character is appended if it does not
         end with one.
-        
+
         If size is given, returns only up to that many characters, the rest
         of the message is thrown away.
-        
+
         """
 
         # Get line
@@ -188,6 +185,5 @@ class FileWrapper(object):
             return line
 
     def isatty(self):
-        """ Get whether this is a terminal.
-        """
+        """Get whether this is a terminal."""
         return self._isatty

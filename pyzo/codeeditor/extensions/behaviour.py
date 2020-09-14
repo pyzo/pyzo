@@ -268,19 +268,19 @@ class AutoIndent(object):
     """
 
     def autoIndent(self):
-        """ autoIndent()
-        
+        """autoIndent()
+
         Get whether auto indentation is enabled.
-        
+
         """
         return self.__autoIndent
 
     @ce_option(True)
     def setAutoIndent(self, value):
-        """ setAutoIndent(value)
-        
+        """setAutoIndent(value)
+
         Set whether to enable auto indentation.
-        
+
         """
         self.__autoIndent = bool(value)
 
@@ -338,7 +338,7 @@ class PythonAutoIndent(object):
 class SmartCopyAndPaste(object):
     """
     Smart copy and paste allows copying and pasting blocks
-    
+
     """
 
     @staticmethod
@@ -351,7 +351,7 @@ class SmartCopyAndPaste(object):
         """
         Given a cursor, modify it such that the cursor.position() is before or
         at cursor.anchor() and not the other way around.
-        
+
         Returns: anchorBeforeCursor, i.e. whether originally the anchor was
         before the cursor
         """
@@ -409,7 +409,7 @@ class SmartCopyAndPaste(object):
         """
         Cutting with smart-copy: the part that is copies is the same as self.copy(),
         but the part that is removed is only the original selection
-        
+
         see: Qt qtextcontrol.cpp, cut()
         """
         if (
@@ -489,8 +489,7 @@ class AutoCloseQuotesAndBrackets(object):
     """
 
     def _get_token_at_cursor(self, cursor=None, relpos=0):
-        """ Get token at the (current or given) cursor position. Can be None.
-        """
+        """Get token at the (current or given) cursor position. Can be None."""
         if cursor is None:
             cursor = self.textCursor()
         pos = cursor.positionInBlock() + relpos

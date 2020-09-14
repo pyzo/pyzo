@@ -12,7 +12,7 @@ from .utils import cleanpath, isdir
 
 
 class Browser(QtWidgets.QWidget):
-    """ A browser consists of an address bar, and tree view, and other
+    """A browser consists of an address bar, and tree view, and other
     widets to help browse the file system. The browser object is responsible
     for tying the different browser-components together.
 
@@ -115,18 +115,16 @@ class Browser(QtWidgets.QWidget):
 
     @property
     def expandedDirs(self):
-        """ The list of the expanded directories.
-        """
+        """The list of the expanded directories."""
         return self.parent().config.expandedDirs
 
     @property
     def starredDirs(self):
-        """ A list of the starred directories.
-        """
+        """A list of the starred directories."""
         return [d.path for d in self.parent().config.starredDirs]
 
     def dictForStarredDir(self, path):
-        """ Return the dict of the starred dir corresponding to
+        """Return the dict of the starred dir corresponding to
         the given path, or None if no starred dir was found.
         """
         if not path:
@@ -138,8 +136,7 @@ class Browser(QtWidgets.QWidget):
             return None
 
     def addStarredDir(self, path):
-        """ Add the given path to the starred directories.
-        """
+        """Add the given path to the starred directories."""
         # Create new dict
         newProject = ssdf.new()
         newProject.path = op.normcase(path)  # Normalize case!
@@ -151,7 +148,7 @@ class Browser(QtWidgets.QWidget):
         self._projects.updateProjectList()
 
     def removeStarredDir(self, path):
-        """ Remove the given path from the starred directories.
+        """Remove the given path from the starred directories.
         The path must exactlty match.
         """
         # Remove
@@ -178,14 +175,12 @@ class Browser(QtWidgets.QWidget):
             self._tree.addTopLevelItem(item)
 
     def currentProject(self):
-        """ Return the ssdf dict for the current project, or None.
-        """
+        """Return the ssdf dict for the current project, or None."""
         return self._projects.currentDict()
 
 
 class LineEditWithToolButtons(QtWidgets.QLineEdit):
-    """ Line edit to which tool buttons (with icons) can be attached.
-    """
+    """Line edit to which tool buttons (with icons) can be attached."""
 
     def __init__(self, parent):
         QtWidgets.QLineEdit.__init__(self, parent)
@@ -279,8 +274,7 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
 
 
 class PathInput(LineEditWithToolButtons):
-    """ Line edit for selecting a path.
-    """
+    """Line edit for selecting a path."""
 
     dirChanged = QtCore.Signal(
         str
@@ -314,8 +308,7 @@ class PathInput(LineEditWithToolButtons):
         # self.cursorPositionChanged.connect(self.onTextEdited)
 
     def setPath(self, path):
-        """ Set the path to display. Does nothing if this widget has focus.
-        """
+        """Set the path to display. Does nothing if this widget has focus."""
         if not self.hasFocus():
             self.setText(path)
             self.checkValid()  # Reset style if it was invalid first
@@ -353,7 +346,7 @@ class PathInput(LineEditWithToolButtons):
             self.dirChanged.emit(cleanpath(text))
 
     def focusOutEvent(self, event=None):
-        """ focusOutEvent(event)
+        """focusOutEvent(event)
         On focusing out, make sure that the set path is correct.
         """
         if event is not None:
@@ -408,8 +401,7 @@ class Projects(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
     def currentDict(self):
-        """ Return the current project-dict, or None.
-        """
+        """Return the current project-dict, or None."""
         path = self._combo.itemData(self._combo.currentIndex())
         return self.parent().dictForStarredDir(path)
 
@@ -536,8 +528,7 @@ class Projects(QtWidgets.QWidget):
 
 
 class NameFilter(LineEditWithToolButtons):
-    """ Combobox to filter by name.
-    """
+    """Combobox to filter by name."""
 
     filterChanged = QtCore.Signal()
 
@@ -573,8 +564,7 @@ class NameFilter(LineEditWithToolButtons):
         self.setText(config.nameFilter)
 
     def setText(self, value, test=False):
-        """ To initialize the name filter.
-        """
+        """To initialize the name filter."""
         QtWidgets.QLineEdit.setText(self, value)
         if test:
             self.checkFilterValue()
@@ -592,8 +582,7 @@ class NameFilter(LineEditWithToolButtons):
 
 
 class SearchFilter(LineEditWithToolButtons):
-    """ Line edit to do a search in the files.
-    """
+    """Line edit to do a search in the files."""
 
     filterChanged = QtCore.Signal()
 
@@ -621,8 +610,7 @@ class SearchFilter(LineEditWithToolButtons):
         self.returnPressed.connect(self.forceFilterChanged)
 
     def onCancelPressed(self):
-        """ Clear text or build menu.
-        """
+        """Clear text or build menu."""
         if self.text():
             QtWidgets.QLineEdit.clear(self)
             self.checkFilterValue()

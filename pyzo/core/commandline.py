@@ -26,14 +26,13 @@ ADDRESS = "localhost:pyzoserver"
 
 
 class Server(RequestServer):
-    """ Server that listens on a port for commands.
+    """Server that listens on a port for commands.
     The commands can be send by executing the Pyzo executable with
     command line arguments.
     """
 
     def handle_request(self, request):
-        """ This is where the requests enter.
-        """
+        """This is where the requests enter."""
         # Get command
         request = request.strip()
         command, _, arg = request.partition(" ")
@@ -52,7 +51,7 @@ class Server(RequestServer):
 
 
 def handle_command(command, arg):
-    """ Function that handles all pyzo commands.
+    """Function that handles all pyzo commands.
     This gets called either from the server, or from the code that
     processed command line args.
     """
@@ -104,7 +103,7 @@ def handle_command(command, arg):
 
 
 def handle_cmd_args():
-    """ Handle command line arguments by sending them to the server.
+    """Handle command line arguments by sending them to the server.
     Returns a result string if any commands were processed, and None
     otherwise.
     """
@@ -126,7 +125,7 @@ def handle_cmd_args():
 
 
 def stop_our_server():
-    """ Stop our server, for shutting down nicely.
+    """Stop our server, for shutting down nicely.
     This is faster than calling server.stop(), because in the latter
     case the server will need to timeout (0.25 s) before it sees that
     it needs to stop.
@@ -142,7 +141,7 @@ def stop_our_server():
 
 
 def is_our_server_running():
-    """ Return True if our server is running. If it is, this process
+    """Return True if our server is running. If it is, this process
     is the main Pyzo; the first Pyzo that was started. If the server is
     not running, this is probably not the first Pyzo, but there might
     also be problem with starting the server.
@@ -151,7 +150,7 @@ def is_our_server_running():
 
 
 def is_pyzo_server_running():
-    """ Test whether the Pyzo server is running *somewhere* (not
+    """Test whether the Pyzo server is running *somewhere* (not
     necesarily in this process).
     """
     try:

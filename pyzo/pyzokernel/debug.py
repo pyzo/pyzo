@@ -12,8 +12,7 @@ import traceback
 
 
 class Debugger(bdb.Bdb):
-    """ Debugger for the pyzo kernel, based on bdb.
-    """
+    """Debugger for the pyzo kernel, based on bdb."""
 
     def __init__(self):
         self._wait_for_mainpyfile = False  # from pdb, do we need this?
@@ -47,10 +46,10 @@ class Debugger(bdb.Bdb):
         return bdb.Bdb.trace_dispatch(self, frame, event, arg)
 
     def interaction(self, frame, traceback=None, pm=False):
-        """ Enter an interaction-loop for debugging. No GUI events are
+        """Enter an interaction-loop for debugging. No GUI events are
         processed here. We leave this event loop at some point, after
         which the conrol flow will proceed.
-        
+
         This is called to enter debug-mode at a breakpoint, or to enter
         post-mortem debugging.
         """
@@ -103,13 +102,11 @@ class Debugger(bdb.Bdb):
         self.writestatus()
 
     def stopinteraction(self):
-        """ Stop the interaction loop.
-        """
+        """Stop the interaction loop."""
         self._interacting = False
 
     def set_on(self):
-        """ To turn debugging on right before executing code.
-        """
+        """To turn debugging on right before executing code."""
         # Reset and set bottom frame
         self.reset()
         self.botframe = sys._getframe().f_back
@@ -127,19 +124,17 @@ class Debugger(bdb.Bdb):
             sys.settrace(None)
 
     def message(self, msg):
-        """ Alias for interpreter.write(), but appends a newline.
+        """Alias for interpreter.write(), but appends a newline.
         Writes to stderr.
         """
         sys._pyzoInterpreter.write(msg + "\n")
 
     def error(self, msg):
-        """ method used in some code that we copied from pdb.
-        """
+        """method used in some code that we copied from pdb."""
         raise self.message("*** " + msg)
 
     def writestatus(self):
-        """ Write the debug status so the IDE can take action.
-        """
+        """Write the debug status so the IDE can take action."""
 
         interpreter = sys._pyzoInterpreter
 
@@ -271,8 +266,7 @@ class Debugger(bdb.Bdb):
     ## Commands
 
     def do_help(self, arg):
-        """ Get help on debug commands.
-        """
+        """Get help on debug commands."""
         # Collect docstrings
         docs = {}
         for name in dir(self):
@@ -316,8 +310,7 @@ class Debugger(bdb.Bdb):
                 print("Unknown debug command: %s" % name)
 
     def do_start(self, arg):
-        """ Start postmortem debugging from the last uncaught exception.
-        """
+        """Start postmortem debugging from the last uncaught exception."""
 
         # Get traceback
         try:
@@ -340,8 +333,7 @@ class Debugger(bdb.Bdb):
             self.message("No debug information available.")
 
     def do_frame(self, arg):
-        """ Go to the i'th frame in the stack.
-        """
+        """Go to the i'th frame in the stack."""
         interpreter = sys._pyzoInterpreter
 
         if not self._debugmode:
@@ -361,8 +353,7 @@ class Debugger(bdb.Bdb):
             self.writestatus()
 
     def do_up(self, arg):
-        """ Go one frame up the stack.
-        """
+        """Go one frame up the stack."""
         interpreter = sys._pyzoInterpreter
 
         if not self._debugmode:
@@ -380,8 +371,7 @@ class Debugger(bdb.Bdb):
             self.writestatus()
 
     def do_down(self, arg):
-        """ Go one frame down the stack.
-        """
+        """Go one frame down the stack."""
         interpreter = sys._pyzoInterpreter
 
         if not self._debugmode:
@@ -399,8 +389,7 @@ class Debugger(bdb.Bdb):
             self.writestatus()
 
     def do_stop(self, arg):
-        """ Stop debugging, terminate process execution.
-        """
+        """Stop debugging, terminate process execution."""
         # Can be done both in postmortem and normal debugging
         if not self._debugmode:
             self.message("Not in debug mode.")
@@ -409,8 +398,7 @@ class Debugger(bdb.Bdb):
             self.stopinteraction()
 
     def do_where(self, arg):
-        """ Print the stack trace and indicate the current frame.
-        """
+        """Print the stack trace and indicate the current frame."""
         interpreter = sys._pyzoInterpreter
 
         if not self._debugmode:
@@ -433,8 +421,7 @@ class Debugger(bdb.Bdb):
             sys.stdout.write("\n".join(lines))
 
     def do_continue(self, arg):
-        """ Continue the program execution.
-        """
+        """Continue the program execution."""
         if self._debugmode == 0:
             self.message("Not in debug mode.")
         elif self._debugmode == 1:
@@ -444,8 +431,7 @@ class Debugger(bdb.Bdb):
             self.stopinteraction()
 
     def do_step(self, arg):
-        """ Execute the current line, stop ASAP (step into).
-        """
+        """Execute the current line, stop ASAP (step into)."""
         if self._debugmode == 0:
             self.message("Not in debug mode.")
         elif self._debugmode == 1:
@@ -455,8 +441,7 @@ class Debugger(bdb.Bdb):
             self.stopinteraction()
 
     def do_next(self, arg):
-        """ Continue execution until the next line (step over).
-        """
+        """Continue execution until the next line (step over)."""
         interpreter = sys._pyzoInterpreter
 
         if self._debugmode == 0:
@@ -469,8 +454,7 @@ class Debugger(bdb.Bdb):
             self.stopinteraction()
 
     def do_return(self, arg):
-        """ Continue execution until the current function returns (step out).
-        """
+        """Continue execution until the current function returns (step out)."""
         interpreter = sys._pyzoInterpreter
 
         if self._debugmode == 0:
@@ -483,7 +467,6 @@ class Debugger(bdb.Bdb):
             self.stopinteraction()
 
     def do_events(self, arg):
-        """ Process GUI events for the integrated GUI toolkit.
-        """
+        """Process GUI events for the integrated GUI toolkit."""
         interpreter = sys._pyzoInterpreter
         interpreter.guiApp.process_events()

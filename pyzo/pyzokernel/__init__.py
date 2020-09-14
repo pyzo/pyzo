@@ -15,7 +15,7 @@ See pyzokernel/start.py for more information.
 
 
 def printDirect(msg):
-    """ Small function that writes directly to the strm_out channel.
+    """Small function that writes directly to the strm_out channel.
     This means that regardless if stdout was hijacked, the message ends
     up at the Pyzo shell. This keeps any hijacked stdout clean, and gets
     the message where you want it. In most cases this is just cosmetics:

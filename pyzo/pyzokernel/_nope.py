@@ -55,7 +55,7 @@ NSActivityLatencyCritical = 0xFF00000000
 
 def beginActivityWithOptions(options, reason=""):
     """Wrapper for:
-    
+
     [ [ NSProcessInfo processInfo]
         beginActivityWithOptions: (uint64)options
                           reason: (str)reason
@@ -108,7 +108,7 @@ def nope_scope(
     options=NSActivityUserInitiatedAllowingIdleSystemSleep, reason="Because Reasons"
 ):
     """context manager for beginActivityWithOptions.
-    
+
     Within this context, App Nap will be disabled.
     """
     activity = beginActivityWithOptions(options, reason)

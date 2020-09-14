@@ -57,17 +57,16 @@ commentEndProg = re.compile(r"\*/")
 
 
 class CParser(Parser):
-    """ A C parser.
-    """
+    """A C parser."""
 
     _extensions = [".c", ".h", ".cpp", "cxx", "hxx"]
     _keywords = ["int", "const", "char", "void", "short", "long", "case"]
 
     def parseLine(self, line, previousState=0):
-        """ parseLine(line, previousState=0)
-        
+        """parseLine(line, previousState=0)
+
         Parses a line of C code, yielding tokens.
-        
+
         """
         line = text_type(line)
 
@@ -121,8 +120,7 @@ class CParser(Parser):
             pos = token.end
 
     def _findEndOfComment(self, line, token):
-        """ Find the matching comment end in the rest of the line
-        """
+        """Find the matching comment end in the rest of the line"""
 
         # Do not use the start parameter of search, since ^ does not work then
 
@@ -138,8 +136,7 @@ class CParser(Parser):
             return [token, BlockState(2)]
 
     def _findEndOfString(self, line, token):
-        """ Find the matching string end in the rest of the line
-        """
+        """Find the matching string end in the rest of the line"""
 
         # todo: distinguish between single and double quote strings
 
@@ -160,10 +157,10 @@ class CParser(Parser):
                 return [UnterminatedStringToken(line, token.start, len(line))]
 
     def _findNextToken(self, line, pos):
-        """ _findNextToken(line, pos):
-        
+        """_findNextToken(line, pos):
+
         Returns a token or None if no new tokens can be found.
-        
+
         """
 
         # Init tokens, if positing too large, stop now

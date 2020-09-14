@@ -111,9 +111,9 @@ from .style import StyleElementDescription
 
 
 class CodeEditorBase(QtWidgets.QPlainTextEdit):
-    """ The base code editor class. Implements some basic features required
+    """The base code editor class. Implements some basic features required
     by the extensions.
-    
+
     """
 
     # Style element for default text and editor background
@@ -258,7 +258,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     ## Options
 
     def __getOptionSetters(self):
-        """ Get a dict that maps (lowercase) option names to the setter
+        """Get a dict that maps (lowercase) option names to the setter
         methods.
         """
 
@@ -300,7 +300,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         return setters
 
     def __setOptions(self, setters, options):
-        """ Sets the options, given the list-of-tuples methods and an
+        """Sets the options, given the list-of-tuples methods and an
         options dict.
         """
 
@@ -326,7 +326,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             print("Warning, invalid options given: " + ", ".join(invalidKeys))
 
     def __initOptions(self, options=None):
-        """ Init the options with their default values.
+        """Init the options with their default values.
         Also applies the docstrings of one to the other.
         """
 
@@ -351,15 +351,15 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             self.__setOptions(setters, options)
 
     def setOptions(self, options=None, **kwargs):
-        """ setOptions(options=None, **kwargs)
-        
+        """setOptions(options=None, **kwargs)
+
         Set the code editor options (e.g. highlightCurrentLine) using
         a dict-like object, or using keyword arguments (options given
         in the latter overrule opions in the first).
-        
+
         The keys in the dict are case insensitive and one can use the
         option's setter or getter name.
-        
+
         """
 
         # Process options
@@ -380,11 +380,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     ## Font
 
     def setFont(self, font=None):
-        """ setFont(font=None)
-        
+        """setFont(font=None)
+
         Set the font for the editor. Should be a monospace font. If not,
         Qt will select the best matching monospace font.
-        
+
         """
 
         defaultFont = Manager.defaultFont()
@@ -421,14 +421,14 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         return font
 
     def setZoom(self, zoom):
-        """ setZoom(zoom)
-        
+        """setZoom(zoom)
+
         Set the zooming of the document. The font size is always the default
         font size + the zoom factor.
-        
+
         The final zoom is returned, this may not be the same as the given
         zoom factor if the given factor is too small.
-        
+
         """
         # Set zoom (limit such that final pointSize >= 1)
         size = Manager.defaultFont().pointSize()
@@ -442,12 +442,12 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
     @classmethod
     def getStyleElementDescriptions(cls):
-        """ getStyleElementDescriptions()
-        
+        """getStyleElementDescriptions()
+
         This classmethod returns a list of the StyleElementDescription
         instances used by this class. This includes the descriptions for
         the syntax highlighting of all parsers.
-        
+
         """
 
         # Collect members by walking the class bases
@@ -485,12 +485,12 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         return list(elements2.values())
 
     def getStyleElementFormat(self, name):
-        """ getStyleElementFormat(name)
-        
+        """getStyleElementFormat(name)
+
         Get the style format for the style element corresponding with
         the given name. The name is case insensitive and invariant to
         the use of spaces.
-        
+
         """
         key = name.replace(" ", "").lower()
         try:
@@ -499,23 +499,23 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             raise KeyError('Not a known style element name: "%s".' % name)
 
     def setStyle(self, style=None, **kwargs):
-        """ setStyle(style=None, **kwargs)
-        
+        """setStyle(style=None, **kwargs)
+
         Updates the formatting per style element.
-        
+
         The style consists of a dictionary that maps style names to
         style formats. The style names are case insensitive and invariant
         to the use of spaces.
-        
+
         For convenience, keyword arguments may also be used. In this case,
         underscores are interpreted as dots.
-        
+
         This function can also be called without arguments to force the
         editor to restyle (and rehighlight) itself.
-        
+
         Use getStyleElementDescriptions() to get information about the
         available styles and their default values.
-        
+
         Examples
         --------
         # To make the classname in underline, but keep the color and boldness:
@@ -525,7 +525,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # To set line number and indent guides colors
         setStyle({  'editor.LineNumbers':'fore:#000,back:#777',
                     'editor.indentationGuides':'#f88' })
-        
+
         """
 
         # Combine user input
@@ -570,10 +570,10 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             self.__styleChangedPending = False
 
     def __afterSetStyle(self):
-        """ _afterSetStyle()
-        
+        """_afterSetStyle()
+
         Method to call after the style has been set.
-        
+
         """
 
         # Set text style using editor style sheet
@@ -594,7 +594,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
     @ce_option(4)
     def indentWidth(self):
-        """ Get the width of a tab character, and also the amount of spaces
+        """Get the width of a tab character, and also the amount of spaces
         to use for indentation when indentUsingSpaces() is True.
         """
         return self.__indentWidth
@@ -620,20 +620,20 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     ## Misc
 
     def gotoLine(self, lineNumber):
-        """ gotoLine(lineNumber)
-        
+        """gotoLine(lineNumber)
+
         Move the cursor to the block given by the line number
         (first line is number 1) and show that line.
-        
+
         """
         return self.gotoBlock(lineNumber - 1)
 
     def gotoBlock(self, blockNumber):
-        """ gotoBlock(blockNumber)
-        
+        """gotoBlock(blockNumber)
+
         Move the cursor to the block given by the block number
         (first block is number 0) and show that line.
-        
+
         """
         # Two implementatios. I know that the latter works, so lets
         # just use that.
@@ -658,15 +658,15 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             self.centerCursor()
 
     def doForSelectedBlocks(self, function):
-        """ doForSelectedBlocks(function)
-        
+        """doForSelectedBlocks(function)
+
         Call the given function(cursor) for all blocks in the current selection
         A block is considered to be in the current selection if a part of it is in
         the current selection
-        
+
         The supplied cursor will be located at the beginning of each block. This
         cursor may be modified by the function as required
-        
+
         """
 
         # Note: a 'TextCursor' does not represent the actual on-screen cursor, so
@@ -703,15 +703,15 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             editCursor.endEditBlock()
 
     def doForVisibleBlocks(self, function):
-        """ doForVisibleBlocks(function)
-        
+        """doForVisibleBlocks(function)
+
         Call the given function(cursor) for all blocks that are currently
         visible. This is used by several appearence extensions that
         paint per block.
-        
+
         The supplied cursor will be located at the beginning of each block. This
         cursor may be modified by the function as required
-        
+
         """
 
         # Start cursor at top line.
@@ -734,14 +734,14 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             cursor.movePosition(cursor.NextBlock)
 
     def indentBlock(self, cursor, amount=1):
-        """ indentBlock(cursor, amount=1)
-        
+        """indentBlock(cursor, amount=1)
+
         Indent the block given by cursor.
-        
+
         The cursor specified is used to do the indentation; it is positioned
         at the beginning of the first non-whitespace position after completion
         May be overridden to customize indentation.
-        
+
         """
         text = ustr(cursor.block().text())
         leadingWhitespace = text[: len(text) - len(text.lstrip())]
@@ -766,43 +766,42 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             cursor.insertText("\t" * max(indent, 0))
 
     def dedentBlock(self, cursor):
-        """ dedentBlock(cursor)
-        
+        """dedentBlock(cursor)
+
         Dedent the block given by cursor.
-        
+
         Calls indentBlock with amount = -1.
         May be overridden to customize indentation.
-        
+
         """
         self.indentBlock(cursor, amount=-1)
 
     def indentSelection(self):
-        """ indentSelection()
-        
+        """indentSelection()
+
         Called when the current line/selection is to be indented.
         Calls indentLine(cursor) for each line in the selection.
         May be overridden to customize indentation.
-        
+
         See also doForSelectedBlocks and indentBlock.
-        
+
         """
         self.doForSelectedBlocks(self.indentBlock)
 
     def dedentSelection(self):
-        """ dedentSelection()
-        
+        """dedentSelection()
+
         Called when the current line/selection is to be dedented.
         Calls dedentLine(cursor) for each line in the selection.
         May be overridden to customize indentation.
-        
+
         See also doForSelectedBlocks and dedentBlock.
-        
+
         """
         self.doForSelectedBlocks(self.dedentBlock)
 
     def justifyText(self, linewidth=70):
-        """ justifyText(linewidth=70)
-        """
+        """justifyText(linewidth=70)"""
         from .textutils import TextReshaper
 
         # Get cursor
@@ -826,14 +825,14 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         cursor.insertText(newText)
 
     def addLeftMargin(self, des, func):
-        """ Add a margin to the left. Specify a description for the margin,
+        """Add a margin to the left. Specify a description for the margin,
         and a function to get that margin. For internal use.
         """
         assert des is not None
         self._leftmargins.append((des, func))
 
     def getLeftMargin(self, des=None):
-        """ Get the left margin, relative to the given description (which
+        """Get the left margin, relative to the given description (which
         should be the same as given to addLeftMargin). If des is omitted
         or None, the full left margin is returned.
         """
@@ -845,15 +844,14 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         return margin
 
     def updateMargins(self):
-        """ Force the margins to be recalculated and set the viewport
+        """Force the margins to be recalculated and set the viewport
         accordingly.
         """
         leftmargin = self.getLeftMargin()
         self.setViewportMargins(leftmargin, 0, 0, 0)
 
     def toggleCase(self):
-        """ Change selected text to lower or upper case.
-        """
+        """Change selected text to lower or upper case."""
 
         # Get cursor
         cursor = self.textCursor()

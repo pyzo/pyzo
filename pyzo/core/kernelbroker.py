@@ -31,28 +31,28 @@ if EXE_DIR.endswith(".app/Contents/MacOS"):
 
 
 class KernelInfo(ssdf.Struct):
-    """ KernelInfo
-    
+    """KernelInfo
+
     Describes all information for a kernel. This class can be used at
     the IDE as well as the kernelbroker.
-    
+
     This information goes a long way from the pyzo config file to the
     kernel. The list pyzo.config.shellConfigs2 contains the configs
     for all kernels. These objects are edited in-place by the
     shell config.
-    
+
     The shell keeps a reference of the shell config used to start the
     kernel. On each restart all information is resend. In this way,
     if a user changes a setting in the shell config, it is updated
     when the shell restarts.
-    
+
     The broker also keeps a copy of the shell config. In this way,
     the shell might send no config information (or only partially
     update the config information) on a restart. This is not so
     relevant now, but it can be when we are running multiple people
     on a single kernel, and there is only one user who has the
     original config.
-    
+
     """
 
     def __init__(self, info=None):
@@ -239,18 +239,18 @@ def getEnvFromKernelInfo(info):
 
 
 class KernelBroker:
-    """ KernelBroker(info)
-    
+    """KernelBroker(info)
+
     This class functions as a broker between a kernel process and zero or
     more IDE's (clients).
-    
+
     This class has a single context assosiated with it, that lives as long
     as this object. It is used to connect to a kernel process and to
     0 or more IDE's (clients). The kernel process can be "restarted", meaning
     that it is terminated and a new process started.
-    
+
     The broker is cleaned up if there is no kernel process AND no connections.
-    
+
     """
 
     def __init__(self, manager, info, name=""):
@@ -310,11 +310,11 @@ class KernelBroker:
         self._reqp_introspect = yoton.ReqChannel(ct, "reqp-introspect")
 
     def _reset(self, destroy=False):
-        """ _reset(destroy=False)
-        
+        """_reset(destroy=False)
+
         Reset state. if destroy, does a full clean up, closing the context
         and removing itself from the KernelManager's list.
-        
+
         """
 
         # Close connection (it might be in a wait state if the process
@@ -356,20 +356,20 @@ class KernelBroker:
             self._reqp_introspect = None
 
     def startKernelIfConnected(self, timeout=10.0):
-        """ startKernelIfConnected(timout=10.0)
-        
+        """startKernelIfConnected(timout=10.0)
+
         Start the kernel as soon as there is a connection.
-        
+
         """
         self._process = time.time() + timeout
         self._timer.start()
 
     def startKernel(self):
-        """ startKernel()
-        
+        """startKernel()
+
         Launch the kernel in a subprocess, and connect to it via the
         context and two Pypes.
-        
+
         """
 
         # Create channels
@@ -444,11 +444,11 @@ class KernelBroker:
         self._pending_restart = None
 
     def hostConnectionForIDE(self, address="localhost"):
-        """ hostConnectionForIDE()
-        
+        """hostConnectionForIDE()
+
         Host a connection for an IDE to connect to. Returns the port to which
         the ide can connect.
-        
+
         """
         c = self._context.bind(address + ":pyzo+256", max_tries=256, name="ide")
         return c.port1
@@ -456,11 +456,11 @@ class KernelBroker:
     ## Callbacks
 
     def _onKernelTimedOut(self, c, timedout):
-        """ _onKernelTimedOut(c, timeout)
-        
+        """_onKernelTimedOut(c, timeout)
+
         The kernel timed out (i.e. did not send heartbeat messages for
         a while. It is probably running extension code.
-        
+
         """
         if timedout:
             self._stat_interpreter.send("Very busy")
@@ -468,10 +468,10 @@ class KernelBroker:
             self._stat_interpreter.send("Busy")
 
     def _onKernelConnectionClose(self, c, why):
-        """ _onKernelConnectionClose(c, why)
-        
+        """_onKernelConnectionClose(c, why)
+
         Connection with kernel lost. Tell clients why.
-        
+
         """
 
         # If we receive this event while the current kernel connection
@@ -487,10 +487,10 @@ class KernelBroker:
             self.terminate("because connecton was lost", "KILL", 0.5)
 
     def _onKernelDied(self, returncode=0):
-        """ _onKernelDied()
-        
+        """_onKernelDied()
+
         Kernel process died. Clean up!
-        
+
         """
 
         # If the kernel did not start yet, probably the command is invalid
@@ -527,10 +527,10 @@ class KernelBroker:
     ## Main loop and termination
 
     def terminate(self, reason="by user", action="TERM", timeout=0.0):
-        """ terminate(reason='by user', action='TERM', timeout=0.0)
-        
+        """terminate(reason='by user', action='TERM', timeout=0.0)
+
         Initiate termination procedure for the current kernel.
-        
+
         """
 
         # The terminatation procedure is started by creating
@@ -539,19 +539,19 @@ class KernelBroker:
         self._terminator = KernelTerminator(self, reason, action, timeout)
 
     def isTerminating(self):
-        """ isTerminating()
-        
+        """isTerminating()
+
         Get whether the termination procedure has been initiated. This
         simply checks whether there is a self._terminator instance.
-        
+
         """
         return bool(self._terminator)
 
     def mainLoopIter(self):
-        """ mainLoopIter()
-        
+        """mainLoopIter()
+
         Periodically called. Kind of the main loop iteration for this kernel.
-        
+
         """
 
         # Get some important status info
@@ -648,13 +648,13 @@ class KernelBroker:
 
 
 class KernelTerminator:
-    """ KernelTerminator(broker, reason='user terminated', action='TERM', timeout=0.0)
-    
+    """KernelTerminator(broker, reason='user terminated', action='TERM', timeout=0.0)
+
     Simple class to help terminating the kernel. It has a next() method
     that should be periodically called. It keeps track whether the timeout
     has passed and will undertake increaslingly ruder actions to terminate
     the kernel.
-    
+
     """
 
     def __init__(self, broker, reason="by user", action="TERM", timeout=0.0):
@@ -731,12 +731,12 @@ class KernelTerminator:
 
 
 class StreamReader(threading.Thread):
-    """ StreamReader(process, channel)
-    
+    """StreamReader(process, channel)
+
     Reads stdout of process and send to a yoton channel.
     This needs to be done in a separate thread because reading from
     a PYPE blocks.
-    
+
     """
 
     def __init__(self, process, strm_raw, strm_broker):
@@ -770,16 +770,16 @@ class StreamReader(threading.Thread):
 
 
 class Kernelmanager:
-    """ Kernelmanager
-    
+    """Kernelmanager
+
     This class manages a set of kernels. These kernels run on the
     same machine as this broker. IDE's can ask which kernels are available
     and can connect to them via this broker.
-    
+
     The Pyzo process runs an instance of this class that connects at
     localhost. At a later stage, we may make it possible to create
     a kernel-server at a remote machine.
-    
+
     """
 
     def __init__(self, public=False):
@@ -791,11 +791,11 @@ class Kernelmanager:
         self._kernels = []
 
     def createKernel(self, info, name=None):
-        """ create_kernel(info, name=None)
-        
+        """create_kernel(info, name=None)
+
         Create a new kernel. Returns the port number to connect to the
         broker's context.
-        
+
         """
 
         # Set name if not given
@@ -830,11 +830,11 @@ class Kernelmanager:
         return infos
 
     def terminateAll(self):
-        """ terminateAll()
-        
+        """terminateAll()
+
         Terminates all kernels. Required when shutting down Pyzo.
         When this function returns, all kernels will be terminated.
-        
+
         """
         for kernel in [kernel for kernel in self._kernels]:
 

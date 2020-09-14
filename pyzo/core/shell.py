@@ -49,8 +49,7 @@ MAXBLOCKCOUNT = pyzo.config.advanced.shellMaxLines
 
 
 class YotonEmbedder(QtCore.QObject):
-    """ Embed the Yoton event loop.
-    """
+    """Embed the Yoton event loop."""
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -63,8 +62,7 @@ class YotonEmbedder(QtCore.QObject):
             pass  # If pyzo is shutting down, the app may be None
 
     def customEvent(self, event):
-        """ This is what gets called by Qt.
-        """
+        """This is what gets called by Qt."""
         yoton.process_events(False)
 
 
@@ -80,11 +78,11 @@ pyzo.localKernelManager = Kernelmanager(public=False)
 
 
 def finishKernelInfo(info, scriptFile=None):
-    """ finishKernelInfo(info, scriptFile=None)
-    
+    """finishKernelInfo(info, scriptFile=None)
+
     Get a copy of the kernel info struct, with the scriptFile
     and the projectPath set.
-    
+
     """
 
     # Make a copy, we do not want to change the original
@@ -111,7 +109,7 @@ def finishKernelInfo(info, scriptFile=None):
 
 
 class ShellHighlighter(Highlighter):
-    """ This highlighter implements highlighting for a shell;
+    """This highlighter implements highlighting for a shell;
     only the input lines are highlighted with this highlighter.
     """
 
@@ -222,8 +220,7 @@ class ShellHighlighter(Highlighter):
 
 
 class BaseShell(BaseTextCtrl):
-    """ The BaseShell implements functionality to make a generic shell.
-    """
+    """The BaseShell implements functionality to make a generic shell."""
 
     def __init__(self, parent, **kwds):
         super().__init__(
@@ -321,7 +318,7 @@ class BaseShell(BaseTextCtrl):
             setting the focus-policy to Qt::TabFocus, and we give the
             widget its focus manually from the mousePressedEvent event
             handler
-            
+
         """
 
         if not self.hasFocus():
@@ -340,7 +337,7 @@ class BaseShell(BaseTextCtrl):
         self._handleClickOnFilename(event.pos())
 
     def _handleClickOnFilename(self, mousepos):
-        """ Check whether the text that is clicked is a filename
+        """Check whether the text that is clicked is a filename
         and open the file in the editor. If a line number can also be
         detected, open the file at that line number.
         """
@@ -553,8 +550,8 @@ class BaseShell(BaseTextCtrl):
     ## Cut / Copy / Paste / Drag & Drop
 
     def cut(self):
-        """ Reimplement cut to only copy if part of the selected text
-        is not at the prompt. """
+        """Reimplement cut to only copy if part of the selected text
+        is not at the prompt."""
 
         if self.isReadOnly():
             return self.copy()
@@ -564,8 +561,8 @@ class BaseShell(BaseTextCtrl):
     # def copy(self): # no overload needed
 
     def paste(self):
-        """ Reimplement paste to paste at the end of the edit line when
-        the position is at the prompt. """
+        """Reimplement paste to paste at the end of the edit line when
+        the position is at the prompt."""
         self.ensureCursorAtEditLine()
         # Paste normally
         return BaseTextCtrl.paste(self)
@@ -621,7 +618,7 @@ class BaseShell(BaseTextCtrl):
         self.clearCommand()
 
     def clearCommand(self):
-        """ Clear the current command, move the cursor right behind
+        """Clear the current command, move the cursor right behind
         the prompt, and ensure it's visible.
         """
         # Select from prompt end to length and delete selected text.
@@ -650,13 +647,13 @@ class BaseShell(BaseTextCtrl):
         return n, text2
 
     def _handleBackspacesOnList(self, texts):
-        """ _handleBackspacesOnList(texts)
-        
+        """_handleBackspacesOnList(texts)
+
         Handle backspaces on a list of messages. When printing
         progress, many messages will simply replace each-other, which
         means we can process them much more effectively than when they're
         combined in a list.
-        
+
         """
         # Init number of backspaces at the start
         N = 0
@@ -687,10 +684,10 @@ class BaseShell(BaseTextCtrl):
         return [t for t in texts if t]
 
     def _handleBackspaces(self, text):
-        """ Apply backspaces in the string itself and if there are
+        """Apply backspaces in the string itself and if there are
         backspaces left at the start of the text, remove the appropriate
         amount of characters from the text.
-        
+
         Returns the new text.
         """
         # take care of backspaces
@@ -707,7 +704,7 @@ class BaseShell(BaseTextCtrl):
         return text
 
     def _handleCarriageReturnOnList(self, texts):
-        """ Discard messages that end with CR and that are not followed
+        """Discard messages that end with CR and that are not followed
         with LF. Also discard messages followed by a line that starts
         with CR. Assumes that each message is one line.
         """
@@ -736,7 +733,7 @@ class BaseShell(BaseTextCtrl):
         return texts
 
     def _handleCarriageReturn(self, text):
-        """ Removes the last line if it ended with CR, or if the current new
+        """Removes the last line if it ended with CR, or if the current new
         message starts with CR.
         Returns the text.
         """
@@ -759,7 +756,7 @@ class BaseShell(BaseTextCtrl):
         return text
 
     def _splitLinesForPrinting(self, text):
-        """ Given a text, split the text in lines. Lines that are extremely
+        """Given a text, split the text in lines. Lines that are extremely
         long are split in pieces of 80 characters to increase performance for
         wrapping. This is kind of a failsafe for when the user accidentally
         prints a bitmap or huge list. See issue 98.
@@ -772,16 +769,16 @@ class BaseShell(BaseTextCtrl):
                 yield line
 
     def write(self, text, prompt=0, color=None):
-        """ write(text, prompt=0, color=None)
-        
+        """write(text, prompt=0, color=None)
+
         Write to the shell. Fauto-ind
-        
+
         If prompt is 0 (default) the text is printed before the prompt. If
         prompt is 1, the text is printed after the prompt, the new prompt
         becomes null. If prompt is 2, the given text becomes the new prompt.
-        
+
         The color of the text can also be specified (as a hex-string).
-        
+
         """
 
         # From The Qt docs: Note that a cursor always moves when text is
@@ -847,7 +844,7 @@ class BaseShell(BaseTextCtrl):
             sb.setValue(sb.value() - n)
 
     def _insertText(self, cursor, text, format):
-        """ Insert text at the given cursor, and with the given format.
+        """Insert text at the given cursor, and with the given format.
         This function processes ANSI escape code for formatting and
         colorization: http://en.wikipedia.org/wiki/ANSI_escape_code
         """
@@ -936,11 +933,11 @@ class BaseShell(BaseTextCtrl):
     ## Executing stuff
 
     def processLine(self, line=None, execute=True):
-        """ processLine(self, line=None, execute=True)
-       
+        """processLine(self, line=None, execute=True)
+
         Process the given line or the current line at the prompt if not given.
         Called when the user presses enter.
-        
+
         If execute is False will not execute the command. This way
         a message can be written while other ways are used to process
         the command.
@@ -982,7 +979,7 @@ class BaseShell(BaseTextCtrl):
             self.executeCommand(command + "\n")
 
     def executeCommand(self, command):
-        """ Execute the given command.
+        """Execute the given command.
         Should be overridden.
         """
         # this is a stupid simulation version
@@ -991,7 +988,7 @@ class BaseShell(BaseTextCtrl):
 
 
 class PythonShell(BaseShell):
-    """ The PythonShell class implements the python part of the shell
+    """The PythonShell class implements the python part of the shell
     by connecting to a remote process that runs a Python interpreter.
     """
 
@@ -1070,10 +1067,10 @@ class PythonShell(BaseShell):
         self.stateChanged.emit(self)
 
     def connectToKernel(self, info):
-        """ connectToKernel()
-        
+        """connectToKernel()
+
         Create kernel and connect to it.
-        
+
         """
 
         # Create yoton context
@@ -1132,8 +1129,7 @@ class PythonShell(BaseShell):
     #             c.received.bind(self.poll)
 
     def get_kernel_cd(self):
-        """ Get current working dir of kernel.
-        """
+        """Get current working dir of kernel."""
         return self._stat_cd.recv()
 
     def _onReceivedStartupInfo(self, channel):
@@ -1171,8 +1167,7 @@ class PythonShell(BaseShell):
     ## Introspection processing methods
 
     def processCallTip(self, cto):
-        """ Processes a calltip request using a CallTipObject instance.
-        """
+        """Processes a calltip request using a CallTipObject instance."""
 
         # Try using buffer first (not if we're not the requester)
         if self is cto.textCtrl:
@@ -1190,8 +1185,7 @@ class PythonShell(BaseShell):
         future.cto = cto
 
     def _processCallTip_response(self, future):
-        """ Process response of shell to show signature.
-        """
+        """Process response of shell to show signature."""
 
         # Process future
         if future.cancelled():
@@ -1224,8 +1218,7 @@ class PythonShell(BaseShell):
             cto.setBuffer(response)
 
     def processAutoComp(self, aco):
-        """ Processes an autocomp request using an AutoCompObject instance.
-        """
+        """Processes an autocomp request using an AutoCompObject instance."""
 
         # Try using buffer first (not if we're not the requester)
         if self is aco.textCtrl:
@@ -1249,8 +1242,7 @@ class PythonShell(BaseShell):
         future.aco = aco
 
     def _processAutoComp_response(self, future):
-        """ Process the response of the shell for the auto completion.
-        """
+        """Process the response of the shell for the auto completion."""
 
         # Process future
         if future.cancelled():
@@ -1308,7 +1300,7 @@ class PythonShell(BaseShell):
     ## Methods for executing code
 
     def executeCommand(self, text):
-        """ executeCommand(text)
+        """executeCommand(text)
         Execute one-line command in the remote Python session.
         """
 
@@ -1318,13 +1310,13 @@ class PythonShell(BaseShell):
         self._ctrl_command.send(text)
 
     def executeCode(self, text, fname, lineno=None, cellName=None, changeDir=False):
-        """ executeCode(text, fname, lineno, cellName=None)
+        """executeCode(text, fname, lineno, cellName=None)
         Execute (run) a large piece of code in the remote shell.
         text: the source code to execute
         filename: the file from which the source comes
         lineno: the first lineno of the text in the file, where 0 would be
         the first line of the file...
-        
+
         The text (source code) is first pre-processed:
         - convert all line-endings to \n
         - remove all empty lines at the end
@@ -1393,15 +1385,14 @@ class PythonShell(BaseShell):
         self._ctrl_code.send(msg)
 
     def sendBreakPoints(self, breaks):
-        """ Send all breakpoints.
-        """
+        """Send all breakpoints."""
         # breaks is a dict of filenames to integers
         self._stat_breakpoints.send(breaks)
 
     ## The polling methods and terminating methods
 
     def poll(self, channel=None):
-        """ poll()
+        """poll()
         To keep the shell up-to-date.
         Call this periodically.
         """
@@ -1498,7 +1489,7 @@ class PythonShell(BaseShell):
             self.debugStateChanged.emit(self)
 
     def interrupt(self):
-        """ interrupt()
+        """interrupt()
         Send a Keyboard interrupt signal to the main thread of the
         remote process.
         """
@@ -1508,7 +1499,7 @@ class PythonShell(BaseShell):
         self._ctrl_broker.send("INT")
 
     def restart(self, scriptFile=None):
-        """ restart(scriptFile=None)
+        """restart(scriptFile=None)
         Terminate the shell, after which it is restarted.
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
@@ -1528,7 +1519,7 @@ class PythonShell(BaseShell):
         self.resetVariables()
 
     def terminate(self):
-        """ terminate()
+        """terminate()
         Terminates the python process. It will first try gently, but
         if that does not work, the process shall be killed.
         To be notified of the termination, connect to the "terminated"
@@ -1540,21 +1531,21 @@ class PythonShell(BaseShell):
         self._ctrl_broker.send("TERM")
 
     def closeShell(self):  # do not call it close(); that is a reserved method.
-        """ closeShell()
-        
+        """closeShell()
+
         Very simple. This closes the shell. If possible, we will first
         tell the broker to terminate the kernel.
-        
+
         The broker will be cleaned up if there are no clients connected
         and if there is no active kernel. In a multi-user environment,
         we should thus be able to close the shell without killing the
         kernel. But in a closed 1-to-1 environment we really want to
         prevent loose brokers and kernels dangling around.
-        
+
         In both cases however, it is the responsibility of the broker to
         terminate the kernel, and the shell will simply assume that this
         will work :)
-        
+
         """
 
         # If we can, try to tell the broker to terminate the kernel
@@ -1567,7 +1558,7 @@ class PythonShell(BaseShell):
         pyzo.shells.removeShell(self)
 
     def _onConnectionClose(self, c, why):
-        """ To be called after disconnecting.
+        """To be called after disconnecting.
         In general, the broker will not close the connection, so it can
         be considered an error-state if this function is called.
         """

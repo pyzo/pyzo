@@ -21,8 +21,7 @@ from .misc import ustr
 
 
 class BlockData(QtGui.QTextBlockUserData):
-    """ Class to represent the data for a block.
-    """
+    """Class to represent the data for a block."""
 
     def __init__(self):
         QtGui.QTextBlockUserData.__init__(self)
@@ -41,10 +40,10 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         self._codeEditor = codeEditor
 
     def getCurrentBlockUserData(self):
-        """ getCurrentBlockUserData()
-        
+        """getCurrentBlockUserData()
+
         Gets the BlockData object. Creates one if necesary.
-        
+
         """
         bd = self.currentBlockUserData()
         if not isinstance(bd, BlockData):
@@ -53,15 +52,15 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         return bd
 
     def highlightBlock(self, line):
-        """ highlightBlock(line)
-        
+        """highlightBlock(line)
+
         This method is automatically called when a line must be
         re-highlighted.
-        
+
         If the code editor has an active parser. This method will use
         it to perform syntax highlighting. If not, it will only
         check out the indentation.
-        
+
         """
 
         # Make sure this is a Unicode Python string

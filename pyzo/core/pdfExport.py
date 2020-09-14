@@ -17,7 +17,9 @@ class PdfExport(QtWidgets.QDialog):
 
         from pyzo.util.qt import QtPrintSupport
 
-        self.printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution,)
+        self.printer = QtPrintSupport.QPrinter(
+            QtPrintSupport.QPrinter.HighResolution,
+        )
 
         # To allow pdf export with color
         self.printer.setColorMode(QtPrintSupport.QPrinter.Color)

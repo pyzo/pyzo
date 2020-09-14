@@ -61,7 +61,7 @@ LANGUAGE_SYNONYMS = {
 
 
 def getLocale(languageName):
-    """ getLocale(languageName)
+    """getLocale(languageName)
     Get the QLocale object for the given language (as a string).
     """
 
@@ -89,7 +89,7 @@ def getLocale(languageName):
 
 
 def setLanguage(languageName):
-    """ setLanguage(languageName)
+    """setLanguage(languageName)
     Set the language for the app. Loads qt and pyzo translations.
     Returns the QLocale instance to pass to the main widget.
     """
@@ -139,12 +139,12 @@ def setLanguage(languageName):
 
 
 class Translation(str):
-    """ Derives from str class. The translate function returns an instance
+    """Derives from str class. The translate function returns an instance
     of this class and assigns extra atrributes:
       * original: the original text passed to the translation
       * tt: the tooltip text
       * key: the original text without tooltip (used by menus as a key)
-    
+
     We adopt a simple system to include tooltip text in the same
     translation as the label text. By including ":::" in the text,
     the text after that identifier is considered the tooltip.
@@ -167,7 +167,7 @@ def _splitMainAndTt(s):
 
 
 def translate(context, text, disambiguation=None):
-    """ translate(context, text, disambiguation=None)
+    """translate(context, text, disambiguation=None)
     The translate function used throughout pyzo.
     """
     # Get translation and split tooltip
@@ -215,14 +215,14 @@ To update a language:
 
 
 def lhelp():
-    """ lhelp()
+    """lhelp()
     Print help text on using the language tools.
     """
     print(LHELP)
 
 
 def linguist(languageName):
-    """ linguist(languageName)
+    """linguist(languageName)
     Open linguist with the language file as specified by lang. The
     languageName can be one of the fields as visible in the language
     list in the menu. This function is intended for translators.
@@ -255,8 +255,7 @@ def linguist(languageName):
 
 
 def lupdate():
-    """ For developers. From pyzo.pro create the .tr files
-    """
+    """For developers. From pyzo.pro create the .tr files"""
     # Get file to open
     fname = "pyzo.pro"
     filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
@@ -290,8 +289,7 @@ def lupdate():
 
 
 def lrelease():
-    """ For developers. From pyzo.pro and the .tr files, create the .qm files.
-    """
+    """For developers. From pyzo.pro and the .tr files, create the .qm files."""
     # Get file to open
     fname = "pyzo.pro"
     filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))

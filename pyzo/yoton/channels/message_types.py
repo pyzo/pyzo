@@ -29,21 +29,21 @@ else:
 
 
 class MessageType(object):
-    """ MessageType()
-    
+    """MessageType()
+
     Instances of this class are used to convert messages to bytes and
     bytes to messages.
-    
+
     Users can easily inherit from this class to make channels work for
     user specific message types. Three methods should be overloaded:
       * message_to_bytes()  - given a message, returns bytes
       * message_from_bytes() - given bytes, returns the message
       * message_type_name() - a string (for example 'text', 'array')
-    
+
     The message_type_name() method is used by the channel to add an
     extension to the slot name, such that only channels of the same
     message type (well, with the same message type name) can connect.
-    
+
     """
 
     def message_to_bytes(self, message):
@@ -57,11 +57,11 @@ class MessageType(object):
 
 
 class BinaryMessageType(MessageType):
-    """ BinaryMessageType()
-    
+    """BinaryMessageType()
+
     To let channels handle binary messages.
     Available as yoton.BINARY.
-    
+
     """
 
     def message_type_name(self):
@@ -77,11 +77,11 @@ class BinaryMessageType(MessageType):
 
 
 class TextMessageType(MessageType):
-    """ BinaryMessageType()
-    
+    """BinaryMessageType()
+
     To let channels handle Unicode text messages.
     Available as yoton.TEXT.
-    
+
     """
 
     def message_type_name(self):
@@ -121,12 +121,12 @@ class TextMessageType(MessageType):
 
 
 class ObjectMessageType(MessageType):
-    """ ObjectMessageType()
-    
+    """ObjectMessageType()
+
     To let channels handle messages consisting of any of the following
     Python objects: None, bool, int, float, string, list, tuple, dict.
     Available as yoton.OBJECT.
-    
+
     """
 
     def message_type_name(self):

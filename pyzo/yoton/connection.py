@@ -42,11 +42,11 @@ STOP_CLOSED_FROM_THERE = "Closed from other end."
 
 
 class ConnectionCollection(list):
-    """ ContextConnectionCollection()
-    
+    """ContextConnectionCollection()
+
     A list class that allows indexing using the name of the required
     Connection instance.
-    
+
     """
 
     def __getitem__(self, key):
@@ -63,20 +63,20 @@ class ConnectionCollection(list):
 
 
 class Connection(object):
-    """ Connection(context, name='')
-    
+    """Connection(context, name='')
+
     Abstract base class for a connection between two Context objects.
     This base class defines the full interface; subclasses only need
     to implement a few private methods.
-    
+
     The connection classes are intended as a simple interface for the
     user, for example to query port number, and be notified of timeouts
     and closing of the connection.
-    
+
     All connection instances are intended for one-time use. To make
     a new connection, instantiate a new Connection object. After
     instantiation, either _bind() or _connect() should be called.
-    
+
     """
 
     def __init__(self, context, name=""):
@@ -115,59 +115,55 @@ class Connection(object):
 
     @property
     def hostname1(self):
-        """ Get the hostname corresponding to this end of the connection.
-        """
+        """Get the hostname corresponding to this end of the connection."""
         return self._hostname1
 
     @property
     def hostname2(self):
-        """ Get the hostname for the other end of this connection.
+        """Get the hostname for the other end of this connection.
         Is empty string if not connected.
         """
         return self._hostname2
 
     @property
     def port1(self):
-        """ Get the port number corresponding to this end of the connection.
+        """Get the port number corresponding to this end of the connection.
         When binding, use this port to connect the other context.
         """
         return self._port1
 
     @property
     def port2(self):
-        """ Get the port number for the other end of the connection.
+        """Get the port number for the other end of the connection.
         Is zero when not connected.
         """
         return self._port2
 
     @property
     def id1(self):
-        """ The id of the context on this side of the connection.
-        """
+        """The id of the context on this side of the connection."""
         return self._context._id
 
     @property
     def id2(self):
-        """ The id of the context on the other side of the connection.
-        """
+        """The id of the context on the other side of the connection."""
         return self._id2
 
     @property
     def pid1(self):
-        """ The pid of the context on this side of the connection.
+        """The pid of the context on this side of the connection.
         (hint: os.getpid())
         """
         return os.getpid()
 
     @property
     def pid2(self):
-        """ The pid of the context on the other side of the connection.
-        """
+        """The pid of the context on the other side of the connection."""
         return self._pid2
 
     @property
     def is_alive(self):
-        """ Get whether this connection instance is alive (i.e. either
+        """Get whether this connection instance is alive (i.e. either
         waiting or connected, and not in the process of closing).
         """
         self._lock.acquire()
@@ -178,8 +174,7 @@ class Connection(object):
 
     @property
     def is_connected(self):
-        """ Get whether this connection instance is connected.
-        """
+        """Get whether this connection instance is connected."""
         self._lock.acquire()
         try:
             return self._status >= 3
@@ -188,7 +183,7 @@ class Connection(object):
 
     @property
     def is_waiting(self):
-        """ Get whether this connection instance is waiting for a connection.
+        """Get whether this connection instance is waiting for a connection.
         This is the state after using bind() and before another context
         connects to it.
         """
@@ -200,7 +195,7 @@ class Connection(object):
 
     @property
     def closed(self):
-        """ Signal emitted when the connection closes. The first argument
+        """Signal emitted when the connection closes. The first argument
         is the ContextConnection instance, the second argument is the
         reason for the disconnection (as a string).
         """
@@ -208,7 +203,7 @@ class Connection(object):
 
     @Property
     def timeout():
-        """ Set/get the amount of seconds that no data is received from
+        """Set/get the amount of seconds that no data is received from
         the other side after which the timedout signal is emitted.
         """
 
@@ -226,10 +221,10 @@ class Connection(object):
 
     @property
     def timedout(self):
-        """ This signal is emitted when no data has been received for
+        """This signal is emitted when no data has been received for
         over 'timeout' seconds. This can mean that the connection is unstable,
         or that the other end is running extension code.
-        
+
         Handlers are called with two arguments: the ContextConnection
         instance, and a boolean. The latter is True when the connection
         times out, and False when data is received again.
@@ -238,7 +233,7 @@ class Connection(object):
 
     @Property
     def name():
-        """ Set/get the name that this connection is known by. This name
+        """Set/get the name that this connection is known by. This name
         can be used to obtain the instance using the Context.connections
         property. The name can be used in networks in which each context
         has a particular role, to easier distinguish between the different
@@ -258,24 +253,24 @@ class Connection(object):
     ## Public methods
 
     def flush(self, timeout=3.0):
-        """ flush(timeout=3.0)
-        
+        """flush(timeout=3.0)
+
         Wait until all pending packages are send. An error
         is raised when the timeout passes while doing so.
-        
+
         """
         return self._flush(timeout)
 
     def close(self, reason=None):
-        """ close(reason=None)
-        
+        """close(reason=None)
+
         Close the connection, disconnecting the two contexts and
         stopping all trafic. If the connection was waiting for a
         connection, it stops waiting.
-        
+
         Optionally, a reason for closing can be specified. A closed
         connection cannot be reused.
-        
+
         """
 
         # No reason, user invoked close
@@ -290,17 +285,17 @@ class Connection(object):
         return self._general_close_method(reason, True)
 
     def close_on_problem(self, reason=None):
-        """ close_on_problem(reason=None)
-        
+        """close_on_problem(reason=None)
+
         Disconnect the connection, stopping all trafic. If it was
         waiting for a connection, we stop waiting.
-        
+
         Optionally, a reason for stopping can be specified. This is highly
         recommended in case the connection is closed due to a problem.
-        
+
         In contrast to the normal close() method, this method does not
         try to notify the other end of the closing.
-        
+
         """
 
         # No reason, some unspecified problem
@@ -323,8 +318,7 @@ class Connection(object):
         return self._general_close_method(reason, False)
 
     def _general_close_method(self, reason, send_stop_message):
-        """ general close method used by both close() and close_on_problem()
-        """
+        """general close method used by both close() and close_on_problem()"""
 
         # Remember current status. Set status to closing, which means that
         # the connection is still alive but cannot be closed again.
@@ -376,7 +370,7 @@ class Connection(object):
         raise NotImplementedError()
 
     def _set_status(self, status):
-        """ Used to change the status. Subclasses can reimplement this
+        """Used to change the status. Subclasses can reimplement this
         to get the desired behavior.
         """
         self._lock.acquire()
@@ -398,29 +392,29 @@ class Connection(object):
 
 
 class InterConnection(Connection):
-    """ InterConnection(context, hostname, port, name='')
-    
+    """InterConnection(context, hostname, port, name='')
+
     Not implemented.
-    
+
     Communication between two processes on the same machine can also
     be implemented via a memory mapped file or a pype. Would there
     be an advantage over the TcpConnection?
-    
-    
+
+
     """
 
     pass
 
 
 class UDPConnection(Connection):
-    """ UDPConnection(context, hostname, port, name='')
-    
+    """UDPConnection(context, hostname, port, name='')
+
     Not implemented.
-    
+
     Communication can also be done over UDP, but need protocol on top
     of UDP to make the connection robust. Is there a reason to implement
     this if we have Tcp?
-    
+
     """
 
     pass

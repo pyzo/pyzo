@@ -242,10 +242,10 @@ class SetParametersPage(QtWidgets.QWizardPage):
         Use the data in the given row to create column names. First, try the
         data in the data columns. If these are all empty, use the comments
         column, split by the given delimiter.
-        
+
         Names are fixed up to be valid Python 2 / Python 3 identifiers
         (chars a-z A-Z _ 0-9 , no Python 2 or 3 keywords, not starting with 0-9)
-        
+
         returns: list of names, exactly as many as there are data columns
         """
         names = []
@@ -417,10 +417,10 @@ class ResultPage(QtWidgets.QWizardPage):
     """
     The resultpage lets the user select wether to import the data as a single
     2D-array, or as one variable (1D-array) per column
-    
+
     Then, the code to do the import is generated (Py2 and Py3 compatible). This
     code can be executed in the current shell, or copied into the current editor
-    
+
     """
 
     def __init__(self):

@@ -24,7 +24,7 @@ _COMMAND_TO_SEARCH_PATH = []
 
 
 def get_command_to_set_search_path():
-    """ Get the command to change the RPATH of executables and dynamic
+    """Get the command to change the RPATH of executables and dynamic
     libraries. Returns None if there is no such command or if it
     cannot be found.
     """
@@ -65,7 +65,7 @@ def get_command_to_set_search_path():
 
 
 def set_search_path(fname, *args):
-    """ set_search_path(fname, *args)
+    """set_search_path(fname, *args)
     For the given library/executable, set the search path to the
     relative paths specified in args.
 
@@ -156,7 +156,7 @@ def set_search_path(fname, *args):
 
 
 def mac_add_rpath(fname, rpath):
-    """ mac_add_rpath(fname, rpath)
+    """mac_add_rpath(fname, rpath)
     Set the rpath for a Mac library or executble. If the rpath is already
     registered, it is ignored.
     """
@@ -173,7 +173,7 @@ def mac_add_rpath(fname, rpath):
 
 
 def remove_CRT_dependencies(dirname, recurse=True):
-    """ remove_CRT_dependencies(path, recurse=True)
+    """remove_CRT_dependencies(path, recurse=True)
     Check all .dll and .pyd files in the given directory (and its
     subdirectories if recurse is True), removing the dependency on the
     Windows C runtime from the embedded manifest.
@@ -188,7 +188,7 @@ def remove_CRT_dependencies(dirname, recurse=True):
 
 
 def remove_CRT_dependency(filename):
-    """ remove_CRT_dependency(filename)
+    """remove_CRT_dependency(filename)
     Modify the embedded manifest of a Windows dll (or pyd file),
     such that it no longer depends on the Windows C runtime.
     In effect, the dll will fall back to using the C runtime that

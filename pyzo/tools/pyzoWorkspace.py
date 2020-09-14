@@ -15,7 +15,7 @@ tool_summary = pyzo.translate(
 
 
 def splitName(name):
-    """ splitName(name)
+    """splitName(name)
     Split an object name in parts, taking dots and indexing into account.
     """
     name = name.replace("[", ".[")
@@ -24,7 +24,7 @@ def splitName(name):
 
 
 def joinName(parts):
-    """ joinName(parts)
+    """joinName(parts)
     Join the parts of an object name, taking dots and indexing into account.
     """
     name = ".".join(parts)
@@ -32,12 +32,12 @@ def joinName(parts):
 
 
 class WorkspaceProxy(QtCore.QObject):
-    """ WorkspaceProxy
-    
+    """WorkspaceProxy
+
     A proxy class to handle the asynchonous behaviour of getting information
     from the shell. The workspace tool asks for a certain name, and this
     class notifies when new data is available using a qt signal.
-    
+
     """
 
     haveNewData = QtCore.Signal()
@@ -59,7 +59,7 @@ class WorkspaceProxy(QtCore.QObject):
         self.onCurrentShellStateChanged()
 
     def addNamePart(self, part):
-        """ addNamePart(part)
+        """addNamePart(part)
         Add a part to the name.
         """
         parts = splitName(self._name)
@@ -67,7 +67,7 @@ class WorkspaceProxy(QtCore.QObject):
         self.setName(joinName(parts))
 
     def setName(self, name):
-        """ setName(name)
+        """setName(name)
         Set the name that we want to know more of.
         """
         self._name = name
@@ -78,7 +78,7 @@ class WorkspaceProxy(QtCore.QObject):
             future.add_done_callback(self.processResponse)
 
     def goUp(self):
-        """ goUp()
+        """goUp()
         Cut the last part off the name.
         """
         parts = splitName(self._name)
@@ -87,7 +87,7 @@ class WorkspaceProxy(QtCore.QObject):
         self.setName(joinName(parts))
 
     def onCurrentShellChanged(self):
-        """ onCurrentShellChanged()
+        """onCurrentShellChanged()
         When no shell is selected now, update this. In all other cases,
         the onCurrentShellStateChange will be fired too.
         """
@@ -97,7 +97,7 @@ class WorkspaceProxy(QtCore.QObject):
             self.haveNewData.emit()
 
     def onCurrentShellStateChanged(self):
-        """ onCurrentShellStateChanged()
+        """onCurrentShellStateChanged()
         Do a request for information!
         """
         shell = pyzo.shells.getCurrentShell()
@@ -109,7 +109,7 @@ class WorkspaceProxy(QtCore.QObject):
             future.add_done_callback(self.processResponse)
 
     def processResponse(self, future):
-        """ processResponse(response)
+        """processResponse(response)
         We got a response, update our list and notify the tree.
         """
 
@@ -139,16 +139,16 @@ class WorkspaceItem(QtWidgets.QTreeWidgetItem):
 
 
 class WorkspaceTree(QtWidgets.QTreeWidget):
-    """ WorkspaceTree
-    
+    """WorkspaceTree
+
     The tree that displays the items in the current namespace.
     I first thought about implementing this using the mode/view
     framework, but it is so much work and I can't seem to fully
     understand how it works :(
-    
+
     The QTreeWidget is so very simple and enables sorting very
     easily, so I'll stick with that ...
-    
+
     """
 
     def __init__(self, parent):
@@ -188,7 +188,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         self._startUpVariables = ["In", "Out", "exit", "get_ipython", "quit"]
 
     def contextMenuEvent(self, event):
-        """ contextMenuEvent(event)
+        """contextMenuEvent(event)
         Show the context menu.
         """
 
@@ -218,7 +218,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         self._menu.popup(QtGui.QCursor.pos() + QtCore.QPoint(3, 3))
 
     def contextMenuTriggered(self, action):
-        """ contextMenuTriggered(action)
+        """contextMenuTriggered(action)
         Process a request from the context menu.
         """
 
@@ -242,13 +242,13 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
                 shell.processLine("del " + action._objectName)
 
     def onItemExpand(self, item):
-        """ onItemExpand(item)
+        """onItemExpand(item)
         Inspect the attributes of that item.
         """
         self._proxy.addNamePart(item.text(0))
 
     def fillWorkspace(self):
-        """ fillWorkspace()
+        """fillWorkspace()
         Update the workspace tree.
         """
 
@@ -304,10 +304,10 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
 
 
 class PyzoWorkspace(QtWidgets.QWidget):
-    """ PyzoWorkspace
-    
+    """PyzoWorkspace
+
     The main widget for this tool.
-    
+
     """
 
     def __init__(self, parent):
@@ -396,8 +396,8 @@ Currently, there are none. Some of them may be hidden because of the filters you
         self._initText.setVisible(empty)
 
     def onOptionsPress(self):
-        """ Create the menu for the button, Do each time to make sure
-        the checks are right. """
+        """Create the menu for the button, Do each time to make sure
+        the checks are right."""
 
         # Get menu
         menu = self._options._menu
