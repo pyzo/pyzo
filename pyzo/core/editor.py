@@ -676,6 +676,50 @@ class PyzoEditor(BaseTextCtrl):
         # Apply this function to all blocks
         self.doForSelectedBlocks(uncommentBlock)
 
+    def toggleCommentCode(self):
+        def toggleComment(cursor):
+            """
+            Toggles comments for the seclected text in editor, most of the code is
+            taken from commentCode and uncommentCode
+            """
+            text = cursor.block().text()
+            commentStart = text.find("#")
+            indents = []
+            indentChar = " " if self.indentUsingSpaces() else "\t"
+
+            def getIndent(cursor):
+                text = cursor.block().text().rstrip()
+                if text:
+                    indents.append(len(text) - len(text.lstrip()))
+
+            self.doForSelectedBlocks(getIndent)
+            minindent = min(indents) if indents else 0
+            
+            if commentStart == -1: # No comment on this line so add them
+                blockText = cursor.block().text()
+                numMissingIndentChars = minindent - (
+                    len(blockText) - len(blockText.lstrip(indentChar))
+                )
+                if numMissingIndentChars > 0:
+                    # Prevent setPosition from leaving bounds of the current block
+                    # if there are too few indent characters (e.g. an empty line)
+                    cursor.insertText(indentChar * numMissingIndentChars)
+                cursor.setPosition(cursor.block().position() + minindent)
+                cursor.insertText("# ")
+                return
+            else:
+                if text[:commentStart].strip() != "":
+                    return  # Text before the #
+                # Move the cursor to the beginning of the comment
+                cursor.setPosition(cursor.block().position() + commentStart)
+                cursor.deleteChar()
+                if text[commentStart:].startswith("# "): # Comments on this line so remove them
+                    cursor.deleteChar()
+                return
+                
+        # Apply this function to all blocks
+        self.doForSelectedBlocks(toggleComment)
+
     def gotoDef(self):
         """
         Goto the definition for the word under the cursor
