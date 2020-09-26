@@ -725,6 +725,12 @@ class EditMenu(Menu):
             "uncommentCode",
         )
         self.addItem(
+            translate("menu", "Toggle Comment ::: Toggle comment for the selected line."),
+            None,
+            self._editItemCallback,
+            "toggleCommentCode",
+        )
+        self.addItem(
             translate(
                 "menu",
                 "Justify comment/docstring::: Reshape the selected text so it is aligned to around 70 characters.",
@@ -1614,6 +1620,12 @@ class EditorContextMenu(Menu):
             icons.comment_delete,
             self._editItemCallback,
             "uncommentCode",
+        )
+        self.addItem(
+            translate("menu", "Toggle Comment ::: Toggle comment for the selected line."),
+            None,
+            self._editItemCallback,
+            "toggleCommentCode",
         )
         self.addItem(
             translate(
