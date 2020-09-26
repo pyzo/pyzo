@@ -725,7 +725,9 @@ class EditMenu(Menu):
             "uncommentCode",
         )
         self.addItem(
-            translate("menu", "Toggle Comment ::: Toggle comment for the selected line."),
+            translate(
+                "menu", "Toggle Comment ::: Toggle comment for the selected line."
+            ),
             None,
             self._editItemCallback,
             "toggleCommentCode",
@@ -1622,7 +1624,9 @@ class EditorContextMenu(Menu):
             "uncommentCode",
         )
         self.addItem(
-            translate("menu", "Toggle Comment ::: Toggle comment for the selected line."),
+            translate(
+                "menu", "Toggle Comment ::: Toggle comment for the selected line."
+            ),
             None,
             self._editItemCallback,
             "toggleCommentCode",
