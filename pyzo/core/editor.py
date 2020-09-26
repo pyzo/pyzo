@@ -694,7 +694,7 @@ class PyzoEditor(BaseTextCtrl):
 
             self.doForSelectedBlocks(getIndent)
             minindent = min(indents) if indents else 0
-            
+
             if commentStart == -1:  # No comment on this line so add them
                 blockText = cursor.block().text()
                 numMissingIndentChars = minindent - (
@@ -713,10 +713,12 @@ class PyzoEditor(BaseTextCtrl):
                 # Move the cursor to the beginning of the comment
                 cursor.setPosition(cursor.block().position() + commentStart)
                 cursor.deleteChar()
-                if text[commentStart:].startswith("# "):  # Comments on this line so remove them
+                if text[commentStart:].startswith(
+                    "# "
+                ):  # Comments on this line so remove them
                     cursor.deleteChar()
                 return
-                
+
         # Apply this function to all blocks
         self.doForSelectedBlocks(toggleComment)
 
