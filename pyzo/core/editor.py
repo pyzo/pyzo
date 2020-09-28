@@ -826,4 +826,3 @@ if __name__ == "__main__":
     win.setPlainText(tmp)
     win.show()
     app.exec_()
-
