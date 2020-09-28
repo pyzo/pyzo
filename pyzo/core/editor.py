@@ -712,7 +712,7 @@ class PyzoEditor(BaseTextCtrl):
 
     def gotoDef(self):
         """
-        #         Goto the definition for the word under the cursor
+        Goto the definition for the word under the cursor
         """
 
         # Get name of object to go to
