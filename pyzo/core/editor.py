@@ -677,50 +677,38 @@ class PyzoEditor(BaseTextCtrl):
         self.doForSelectedBlocks(uncommentBlock)
 
     def toggleCommentCode(self):
-        def toggleComment(cursor):
+        def toggleComment():
             """
             Toggles comments for the seclected text in editor, most of the code is
             taken from commentCode and uncommentCode
             """
-            text = cursor.block().text()
-            commentStart = text.find("#")
-            indents = []
-            indentChar = " " if self.indentUsingSpaces() else "\t"
+            text_block = []
 
-            def getIndent(cursor):
-                text = cursor.block().text().rstrip()
-                if text:
-                    indents.append(len(text) - len(text.lstrip()))
+            def getBlocks(cursor):
+                text = cursor.block().text()
+                text_block.append(text)
 
-            self.doForSelectedBlocks(getIndent)
-            minindent = min(indents) if indents else 0
-
-            if commentStart == -1:  # No comment on this line so add them
-                blockText = cursor.block().text()
-                numMissingIndentChars = minindent - (
-                    len(blockText) - len(blockText.lstrip(indentChar))
-                )
-                if numMissingIndentChars > 0:
-                    # Prevent setPosition from leaving bounds of the current block
-                    # if there are too few indent characters (e.g. an empty line)
-                    cursor.insertText(indentChar * numMissingIndentChars)
-                cursor.setPosition(cursor.block().position() + minindent)
+            def commentBlock(cursor):
+                cursor.setPosition(cursor.block().position())
                 cursor.insertText("# ")
-                return
-            else:
-                if text[:commentStart].strip() != "":
-                    return  # Text before the #
-                # Move the cursor to the beginning of the comment
-                cursor.setPosition(cursor.block().position() + commentStart)
-                cursor.deleteChar()
-                if text[commentStart:].startswith(
-                    "# "
-                ):  # Comments on this line so remove them
-                    cursor.deleteChar()
-                return
 
-        # Apply this function to all blocks
-        self.doForSelectedBlocks(toggleComment)
+            def uncommentBlock(cursor):
+                """
+                Find the first # on the line; if there is just whitespace before it,
+                remove the # and if it is followed by a space remove the space, too
+                """
+                cursor.setPosition(cursor.block().position())
+                cursor.deleteChar()
+                cursor.deleteChar()
+
+            self.doForSelectedBlocks(getBlocks)
+            commented = [item for item in text_block if item.startswith("# ")]
+            if len(commented) == len(text_block):
+                self.doForSelectedBlocks(uncommentBlock)
+            else:
+                self.doForSelectedBlocks(commentBlock)
+
+        toggleComment()
 
     def gotoDef(self):
         """
