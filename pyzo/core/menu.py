@@ -1223,15 +1223,15 @@ class ShellMenu(Menu):
                 self._shellAction,
                 "restart",
             ),
-            self.addItem(
-                translate(
-                    "menu",
-                    "Terminate ::: Terminate the interpreter, leaving the shell open.",
-                ),
-                icons.application_delete,
-                self._shellAction,
-                "terminate",
-            ),
+            # self.addItem(
+            #     translate(
+            #         "menu",
+            #         "Terminate ::: Terminate the interpreter, leaving the shell open.",
+            #     ),
+            #     icons.application_delete,
+            #     self._shellAction,
+            #     "terminate",
+            # ),
             self.addItem(
                 translate(
                     "menu", "Close ::: Terminate the interpreter and close the shell."
