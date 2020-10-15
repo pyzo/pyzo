@@ -23,9 +23,14 @@ jobs:
         PY_VERSION: 3.5
         LINT: 1
         TEST: 1
-      Tester-3.8:
+      Tester-3.7:
         vmImage: ubuntu-18.04
-        PY_VERSION: 3.8
+        PY_VERSION: 3.7
+        LINT: 1
+        TEST: 1
+      Tester-3.9:
+        vmImage: ubuntu-18.04
+        PY_VERSION: 3.9
         LINT: 1
         TEST: 1
       Build-Linux-64:
