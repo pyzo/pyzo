@@ -118,7 +118,7 @@ def parseLine_signature(tokens):
 
     openBraces = []  # Positions at which braces are opened
     for token in tokens:
-        if not isinstance(token, (Tokens.NonIdentifierToken, Tokens.OpenParenToken)):
+        if not isinstance(token, (Tokens.NonIdentifierToken, Tokens.OpenParenToken, Tokens.CloseParenToken)):
             continue
         for i, c in enumerate(str(token)):
             if c == "(":
@@ -139,18 +139,8 @@ def parseLine_signature(tokens):
         name, needle = parseLine_autocomplete(tokens)
         return name, needle, (i, 0)  # TODO: implement stats
 
-    return "", "", (0, 0)
-
-
-class KeyEvent:
-    """ A simple class for easier key events. """
-
-    def __init__(self, key):
-        self.key = key
-        try:
-            self.char = chr(key)
-        except ValueError:
-            self.char = ""
+    else:
+        return "", "", (0, 0)
 
 
 def makeBytes(text):

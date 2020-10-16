@@ -246,7 +246,7 @@ class Indentation(object):
         # todo: Same for delete, I think not (what to do with the cursor?)
 
         # Auto-unindent
-        if event.key() == Qt.Key_Delete:
+        if key == Qt.Key_Delete:
             cursor = self.textCursor()
             if not cursor.hasSelection():
                 cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)

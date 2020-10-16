@@ -68,7 +68,7 @@ class CodeEditor(
     ScrollWithUpDownKeys,
     HomeKey,
     EndKey,
-    NumpadPeriodKey,
+    # NumpadPeriodKey,  -> disabled, see issue #720
     AutoIndent,
     PythonAutoIndent,
     AutoCloseQuotesAndBrackets,
