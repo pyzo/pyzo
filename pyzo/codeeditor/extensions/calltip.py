@@ -136,8 +136,10 @@ class Calltip(object):
             self.__noshow = True
             return
 
-        if event.key() in [Qt.Key_ParenLeft, Qt.Key_ParenRight]:
+        if event.text() == "(":
             self.__noshow = False
+        elif event.text() == ")":
+            self.calltipCancel()
 
         # Proceed processing the keystrike
         super(Calltip, self).keyPressEvent(event)

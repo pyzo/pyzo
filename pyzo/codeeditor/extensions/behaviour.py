@@ -246,7 +246,7 @@ class Indentation(object):
         # todo: Same for delete, I think not (what to do with the cursor?)
 
         # Auto-unindent
-        if event.key() == Qt.Key_Delete:
+        if key == Qt.Key_Delete:
             cursor = self.textCursor()
             if not cursor.hasSelection():
                 cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
@@ -514,16 +514,16 @@ class AutoCloseQuotesAndBrackets(object):
 
     def __keyPressEvent(self, event):
 
-        quotesKeys = [Qt.Key_Apostrophe, Qt.Key_QuoteDbl]
-        openBrackets = [Qt.Key_BraceLeft, Qt.Key_BracketLeft, Qt.Key_ParenLeft]
-        closeBrackets = [Qt.Key_BraceRight, Qt.Key_BracketRight, Qt.Key_ParenRight]
-        bracketKeys = openBrackets + closeBrackets
-        closeBracketsCharacters = "}])"
+        quotes = "'", '"'
+        openBrackets = "{", "[", "("
+        closeBrackets = "}", "]", ")"
+        brackets = openBrackets + closeBrackets
 
         cursor = self.textCursor()
+        char = event.text()
 
         #  brackets
-        if event.key() in bracketKeys and pyzo.config.settings.autoClose_Brackets:
+        if char in brackets and pyzo.config.settings.autoClose_Brackets:
 
             # Dont autobracket inside comments and strings
             if isinstance(
@@ -538,55 +538,45 @@ class AutoCloseQuotesAndBrackets(object):
                 super().keyPressEvent(event)
                 return
 
-            if event.key() in openBrackets:
-                idx = openBrackets.index(event.key())
-                next_character = self.__getNextCharacter()
+            if char in openBrackets:
+                idx = openBrackets.index(char)
+                next_char = self.__getNextCharacter()
                 if cursor.selectedText():
                     # Surround selection with brackets
                     new_text = (
-                        chr(openBrackets[idx])
-                        + cursor.selectedText()
-                        + chr(closeBrackets[idx])
+                        openBrackets[idx] + cursor.selectedText() + closeBrackets[idx]
                     )
                     cursor.setKeepPositionOnInsert(True)
                     cursor.insertText(new_text)
                     cursor.setKeepPositionOnInsert(False)
                     self.setTextCursor(cursor)
                 elif (
-                    next_character.strip()
-                    and next_character not in closeBracketsCharacters
+                    next_char.strip() and next_char not in closeBrackets
                 ):  # str.strip() conveniently removes all kinds of whitespace
                     # Only autoclose if the char on the right is whitespace
-                    cursor.insertText(
-                        chr(event.key())
-                    )  # == super().keyPressEvent(event)
+                    cursor.insertText(char)  # == super().keyPressEvent(event)
                 else:
                     # Auto-close bracket
-                    insert_txt = "{}{}".format(
-                        chr(openBrackets[idx]), chr(closeBrackets[idx])
-                    )
+                    insert_txt = "{}{}".format(openBrackets[idx], closeBrackets[idx])
                     cursor.insertText(insert_txt)
                     self._moveCursorLeft(1)
 
-            elif event.key() in closeBrackets:
-                idx = closeBrackets.index(event.key())
-                next_character = self.__getNextCharacter()
+            elif char in closeBrackets:
+                idx = closeBrackets.index(char)
+                next_char = self.__getNextCharacter()
                 if cursor.selectedText():
                     # Replace
-                    cursor.insertText(chr(event.key()))
-                elif next_character and ord(next_character) == event.key():
+                    cursor.insertText(char)
+                elif next_char == char:
                     # Skip
                     self._moveCursorRight(1)
                 else:
                     # Normal
-                    cursor.insertText(
-                        chr(event.key())
-                    )  # == super().keyPressEvent(event)
+                    cursor.insertText(char)  # == super().keyPressEvent(event)
 
         # quotes
-        elif event.key() in quotesKeys and pyzo.config.settings.autoClose_Quotes:
-            quote_character = chr(event.key())
-            next_character = self.__getNextCharacter()
+        elif char in quotes and pyzo.config.settings.autoClose_Quotes:
+            next_char = self.__getNextCharacter()
 
             # Dont autoquote inside comments and multiline strings
             # Only allow "doing our thing" when we're at the end of a normal string
@@ -594,7 +584,7 @@ class AutoCloseQuotesAndBrackets(object):
             if isinstance(token, (CommentToken, MultilineStringToken)):
                 super().keyPressEvent(event)
                 return
-            elif isinstance(token, StringToken) and quote_character != next_character:
+            elif isinstance(token, StringToken) and char != next_char:
                 super().keyPressEvent(event)
                 return
 
@@ -603,14 +593,14 @@ class AutoCloseQuotesAndBrackets(object):
                 self._moveCursorRight(1)
             elif cursor.selectedText():
                 # Surround selection with quotes, maybe even multi-line
-                new_text = quote_character + cursor.selectedText() + quote_character
+                new_text = char + cursor.selectedText() + char
                 if "\u2029" in new_text and "python" in self.parser().name().lower():
-                    new_text = quote_character * 2 + new_text + quote_character * 2
+                    new_text = char * 2 + new_text + char * 2
                 cursor.setKeepPositionOnInsert(True)
                 cursor.insertText(new_text)
                 cursor.setKeepPositionOnInsert(False)
                 self.setTextCursor(cursor)
-            elif next_character and next_character == quote_character:
+            elif next_char == char:
                 # Skip
                 self._moveCursorRight(1)
             else:
@@ -624,16 +614,16 @@ class AutoCloseQuotesAndBrackets(object):
                     super().keyPressEvent(event)
                     return
                 # Auto-close
-                cursor.insertText("{}{}".format(quote_character, quote_character))
+                cursor.insertText(char * 2)
                 self._moveCursorLeft(1)
                 # # Maybe handle tripple quotes (add 2 more if we now have 3 on the left)
                 # Disabled: this feature too easily gets in the way
                 # if 'python' in self.parser().name().lower():
                 #     cursor = self.textCursor()
                 #     cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor, 3)
-                #     if cursor.selectedText() == quote_character * 3:
+                #     if cursor.selectedText() == char * 3:
                 #         edit_cursor = self.textCursor()
-                #         edit_cursor.insertText(quote_character * 2)
+                #         edit_cursor.insertText(char * 2)
                 #         self._moveCursorLeft(2)
 
         # remove whole couple of brackets when hitting backspace
@@ -652,15 +642,15 @@ class AutoCloseQuotesAndBrackets(object):
                 super().keyPressEvent(event)
                 return
 
-            if event.key() == Qt.Key_Backspace:
-                previous_character = self.__getPreviousCharacter()
-                next_character = self.__getNextCharacter()
+            else:
+                prev_char = self.__getPreviousCharacter()
+                next_char = self.__getNextCharacter()
 
-                if previous_character == "(" and next_character == ")":
+                if prev_char == "(" and next_char == ")":
                     cursor.deleteChar()
-                elif previous_character == "[" and next_character == "]":
+                elif prev_char == "[" and next_char == "]":
                     cursor.deleteChar()
-                elif previous_character == "{" and next_character == "}":
+                elif prev_char == "{" and next_char == "}":
                     cursor.deleteChar()
 
                 super().keyPressEvent(event)
