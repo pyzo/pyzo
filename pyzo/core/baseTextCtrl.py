@@ -118,7 +118,10 @@ def parseLine_signature(tokens):
 
     openBraces = []  # Positions at which braces are opened
     for token in tokens:
-        if not isinstance(token, (Tokens.NonIdentifierToken, Tokens.OpenParenToken, Tokens.CloseParenToken)):
+        if not isinstance(
+            token,
+            (Tokens.NonIdentifierToken, Tokens.OpenParenToken, Tokens.CloseParenToken),
+        ):
             continue
         for i, c in enumerate(str(token)):
             if c == "(":

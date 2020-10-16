@@ -544,27 +544,20 @@ class AutoCloseQuotesAndBrackets(object):
                 if cursor.selectedText():
                     # Surround selection with brackets
                     new_text = (
-                        openBrackets[idx]
-                        + cursor.selectedText()
-                        + closeBrackets[idx]
+                        openBrackets[idx] + cursor.selectedText() + closeBrackets[idx]
                     )
                     cursor.setKeepPositionOnInsert(True)
                     cursor.insertText(new_text)
                     cursor.setKeepPositionOnInsert(False)
                     self.setTextCursor(cursor)
                 elif (
-                    next_char.strip()
-                    and next_char not in closeBrackets
+                    next_char.strip() and next_char not in closeBrackets
                 ):  # str.strip() conveniently removes all kinds of whitespace
                     # Only autoclose if the char on the right is whitespace
-                    cursor.insertText(
-                        char
-                    )  # == super().keyPressEvent(event)
+                    cursor.insertText(char)  # == super().keyPressEvent(event)
                 else:
                     # Auto-close bracket
-                    insert_txt = "{}{}".format(
-                        openBrackets[idx], closeBrackets[idx]
-                    )
+                    insert_txt = "{}{}".format(openBrackets[idx], closeBrackets[idx])
                     cursor.insertText(insert_txt)
                     self._moveCursorLeft(1)
 
