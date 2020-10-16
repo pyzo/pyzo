@@ -298,9 +298,7 @@ class Manager:
 
         """
         db = QtGui.QFontDatabase()
-        QFont, QFontInfo = QtGui.QFont, QtGui.QFontInfo
-        # fn = font_name (str)
-        return [fn for fn in db.families() if QFontInfo(QFont(fn)).fixedPitch()]
+        return [fn for fn in db.families() if db.isFixedPitch(fn)]
 
     @classmethod
     def setDefaultFontFamily(cls, name):
