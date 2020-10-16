@@ -1,6 +1,22 @@
 # Release notes
 
 
+### Version 4.11.0 (16-10-2020)
+
+- Fix broken support for non-english keyboard layouts.
+- Support for Python 3.9 (fix thread.isAlive error, thanks @stonebig).
+- Fix slow font enumeration.
+- Improve behavior on HiDPI screens.
+- Prevent errors during editing syntax styles.
+- Change the base port number that Pyzo uses to communicate with the kernels.
+- Remove button to stop kernel but leave the shell open, to reduce clutter.
+- Added support for toggling comments (Ctrl+Shift+3, thanks @l33tlinuxh4x0r).
+- Prevent segfault on PySide2.
+- Pyzo now closes faster.
+- Better handling of carriage return in shell (#705, Thanks Eelke Spaak).
+- Autocompletion is triggered a bit later to make it less anoying (thanks Yann Salmon).
+
+
 ### Version 4.10.2 (10-02-2020)
 
 - Fix that PyInstaller's changes to `LD_LIBRARY_PATH` leak through to the kernels (#665).
