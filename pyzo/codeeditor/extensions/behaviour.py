@@ -163,6 +163,8 @@ class NumpadPeriodKey(object):
     independent of localization
     """
 
+    # NOTE: THIS PLUGIN IS DISABLED, see issue #720
+
     def keyPressEvent(self, event):
         # Check for numpad comma
         if (
