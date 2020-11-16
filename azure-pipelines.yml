@@ -9,7 +9,7 @@ trigger:
 variables:
   NAME: pyzo
   PY_ARCH: x64
-  PY_VERSION: 3.7
+  PY_VERSION: 3.9
   PY_EXE: python
 
 jobs:
