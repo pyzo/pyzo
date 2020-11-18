@@ -69,6 +69,9 @@ if getattr(sys, "frozen", False):
 if "QT_AUTO_SCREEN_SCALE_FACTOR" not in os.environ:
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
+# Fix Qt now showing a window on MacOS Big Sur
+os.environ["QT_MAC_WANTS_LAYER"] = "1"
+
 # Import yoton as an absolute package
 from pyzo import yotonloader  # noqa
 from pyzo.util import paths
