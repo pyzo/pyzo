@@ -1,6 +1,11 @@
 # Release notes
 
 
+### Version 4.11.2 (19-11-2020)
+
+- Fix for MacOS Big Sur (#731).
+
+
 ### Version 4.11.0 (16-10-2020)
 
 - Fix broken support for non-english keyboard layouts.
