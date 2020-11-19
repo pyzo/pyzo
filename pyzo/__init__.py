@@ -41,7 +41,7 @@ and workspace.
 """
 
 # Set version number
-__version__ = "4.11.0"
+__version__ = "4.11.1"
 
 import os
 import sys
@@ -68,6 +68,9 @@ if getattr(sys, "frozen", False):
 # https://wiki.archlinux.org/index.php/HiDPI#Qt_5
 if "QT_AUTO_SCREEN_SCALE_FACTOR" not in os.environ:
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+
+# Fix Qt now showing a window on MacOS Big Sur
+os.environ["QT_MAC_WANTS_LAYER"] = "1"
 
 # Import yoton as an absolute package
 from pyzo import yotonloader  # noqa
