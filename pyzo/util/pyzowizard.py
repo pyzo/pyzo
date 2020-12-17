@@ -36,7 +36,7 @@ class PyzoWizard(QtWidgets.QWizard):
         self.setMinimumSize(600, 500)
         self.setWindowTitle(translate("wizard", "Getting started with Pyzo"))
         self.setWizardStyle(self.ModernStyle)
-        self.setButtonText(self.CancelButton, "Stop")
+        self.setButtonText(self.CancelButton, translate("wizard", "Stop"))
 
         # Set logo
         pm = QtGui.QPixmap()

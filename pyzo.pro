@@ -20,6 +20,7 @@ SOURCES += pyzo/tools/pyzoSourceStructure.py
 SOURCES += pyzo/tools/pyzoWorkspace.py
 SOURCES += pyzo/tools/pyzoWebBrowser.py
 SOURCES += pyzo/tools/pyzoInteractiveHelp.py
+SOURCES += pyzo/tools/pyzoLogger.py
 
 # Languages to translate to
 TRANSLATIONS  = pyzo/resources/translations/pyzo_nl_NL.tr
