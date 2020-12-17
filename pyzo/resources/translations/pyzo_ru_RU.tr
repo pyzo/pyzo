@@ -293,7 +293,7 @@
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="564"/>
         <source>Import data</source>
-        <translation>Импортирвать данные</translation>
+        <translation>Импортировать данные</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoFileBrowser/importwizard.py" line="577"/>
@@ -354,7 +354,7 @@
     <message>
         <location filename="../../core/menu.py" line="426"/>
         <source>Use tabs</source>
-        <translation>Использовать табы</translation>
+        <translation>Использовать табуляцию</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="433"/>
@@ -510,7 +510,7 @@
     <message>
         <location filename="../../core/menu.py" line="914"/>
         <source>Select shell ::: Focus the cursor on the current shell.</source>
-        <translation>Перети к оболочке ::: Отправляет курсор в текущую оболочку.</translation>
+        <translation>Перейти к оболочке ::: Отправляет курсор в текущую оболочку.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="921"/>
@@ -525,7 +525,7 @@
     <message>
         <location filename="../../core/menu.py" line="936"/>
         <source>Show whitespace ::: Show spaces and tabs.</source>
-        <translation>Показывать пробелы ::: Показывать пробелы и символя табуляции.</translation>
+        <translation>Показывать пробелы ::: Показывать пробелы и символы табуляции.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="942"/>
@@ -690,7 +690,7 @@
     <message>
         <location filename="../../core/menu.py" line="2245"/>
         <source>Pyzo website ::: Open the Pyzo website in your browser.</source>
-        <translation>Сайт Pyzo ::: Открыть web-сайт Pyzo в Вашем браузере.</translation>
+        <translation>Сайт Pyzo ::: Открыть сайт Pyzo в Вашем браузере.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="2252"/>
@@ -850,7 +850,7 @@
     <message>
         <location filename="../../core/menu.py" line="2412"/>
         <source>Auto close quotes ::: Auto close single and double quotes.</source>
-        <translation>Автоматическое закрытие ковычек ::: Автоматическое закрытие одинарных и двойных ковычек.</translation>
+        <translation>Автоматическое закрытие кавычек ::: Автоматическое закрытие одинарных и двойных кавычек.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="2422"/>
@@ -890,7 +890,7 @@
     <message>
         <location filename="../../core/menu.py" line="1626"/>
         <source>Toggle Comment ::: Toggle comment for the selected line.</source>
-        <translation>Обратить комментарий ::: Закоментировать или расскоментировть выбранные строки.</translation>
+        <translation>Обратить комментарии ::: Закоментировать или расскоментировть выбранные строки.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="955"/>
@@ -985,7 +985,7 @@
     <message>
         <location filename="../../core/menu.py" line="1785"/>
         <source>Set/Unset as MAIN file ::: The main file can be run while another file is selected.</source>
-        <translation>Выбрать/Сбросить пометку главного файла ::: Главный файл может быть выполнен, даже если в редакоре открыт другой файл.</translation>
+        <translation>Выбрать/Сбросить пометку главного файла ::: Главный файл может быть выполнен, даже если в редакторе открыт другой файл.</translation>
     </message>
     <message>
         <location filename="../../core/menu.py" line="1802"/>
@@ -1506,7 +1506,7 @@ A ``break`` statement executed in the ``body`` terminates the loop without execu
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="162"/>
         <source>Repr</source>
-        <translation>Repr</translation>
+        <translation>Строковое представление</translation>
     </message>
     <message>
         <location filename="../../tools/pyzoWorkspace.py" line="205"/>
@@ -1563,7 +1563,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
     <message>
         <location filename="../../core/editorTabs.py" line="229"/>
         <source>Hide search widget (Escape)</source>
-        <translation>Скрыть поисковый виджет (Escape)</translation>
+        <translation>Скрыть панель поиска (Escape)</translation>
     </message>
     <message>
         <location filename="../../core/editorTabs.py" line="248"/>
@@ -1681,7 +1681,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
     <message>
         <location filename="../../core/shellInfoDialog.py" line="467"/>
         <source>argv ::: The command line arguments (sys.argv).</source>
-        <translation>Аргумнты ::: Аргументы командной строки (sys.argv).</translation>
+        <translation>Аргументы ::: Аргументы командной строки (sys.argv).</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="468"/>
@@ -1691,7 +1691,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
     <message>
         <location filename="../../core/shellInfoDialog.py" line="454"/>
         <source>gui ::: The GUI toolkit to integrate (for interactive plotting, etc.).</source>
-        <translation>Библиотека GUI ::: Библиотека GUI для интеграции (для интерактивного простроения графиков, и т.д.).</translation>
+        <translation>Библиотека GUI ::: Библиотека GUI для интеграции (для интерактивного построения графиков, и т.д.).</translation>
     </message>
     <message>
         <location filename="../../core/shellInfoDialog.py" line="458"/>
@@ -1722,7 +1722,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
     <message>
         <location filename="../../core/splash.py" line="67"/>
         <source>This is &lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt;the Python IDE for scientific computing</source>
-        <translation>&lt;b&gt;Pyzo&lt;/b&gt;&lt;br /&gt; — Python IDE для научных вычислений</translation>
+        <translation>&lt;b&gt;Pyzo&lt;/b&gt; — Интерактивная среда разработки&lt;br /&gt;на Python для научных вычислений</translation>
     </message>
     <message>
         <location filename="../../core/splash.py" line="70"/>
@@ -1872,7 +1872,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
         <source>The right mouse button also enables one to make a file the
         *main file* of a project. This file can be recognized by its star
         symbol, and it enables running the file more easily.</source>
-        <translation>Щелчек правой кнопкой мыши позволяет отметить файл, как
+        <translation>Щелчок правой кнопкой мыши позволяет отметить файл, как
         *главный файл* проекта. Этот файл помечается звездочкой,
         что позволяет запускать его проще.</translation>
     </message>
@@ -1899,7 +1899,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
         <source>Pyzo can integrate the event loop of five different *GUI toolkits*,
         thus enabling interactive plotting with e.g. Visvis or Matplotlib.</source>
         <translation>Pyzo может взаимодействовать с циклом событий пяти различный *Библиотек GUI*,
-        что позволяет запускать интерактивне графики, например для Visvis или Matplotlib.</translation>
+        что позволяет запускать интерактивные графики, например для Visvis или Matplotlib.</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="324"/>
@@ -1958,14 +1958,14 @@ Currently, there are none. Some of them may be hidden because of the filters you
         <location filename="../../util/pyzowizard.py" line="378"/>
         <source>In script mode, __file__ and sys.argv[0] are set to the scripts filename,
         sys.path[0] and the working dir are set to the directory containing the script.</source>
-        <translation>В режиме Выполненить как скрипт __file__ и sys.argv[0] устанавливаются в имя файла,
-        а папка содержащая скрипт страновится текущей и записывается в переменную sys.path[0].</translation>
+        <translation>В режиме Выполнить как скрипт __file__ и sys.argv[0] устанавливаются в имя файла,
+        а папка содержащая скрипт становится текущей и записывается в переменную sys.path[0].</translation>
     </message>
     <message>
         <location filename="../../util/pyzowizard.py" line="391"/>
         <source>Via the *Tools menu*, one can select which tools to use. The tools can
         be positioned in any way you want, and can also be un-docked.</source>
-        <translation>Через меню *Инструменты*, вы можете выбрать дополнительный инстумент,
+        <translation>Через меню *Инструменты*, вы можете выбрать дополнительный инструмент,
         который может быть расположен в любой части окна или в виде отдельной панели.</translation>
     </message>
     <message>
@@ -1974,7 +1974,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
         create your own tools. Look at the online wiki for more information,
         or use one of the existing tools as an example.</source>
         <translation>Система инструментов сделана для того, чтобы Вы могли достаточно просто
-        создавать свои инструменты. Заглянить в вики для дополнительной информации,
+        создавать свои инструменты. Загляните в вики для дополнительной информации,
         или просто пользуйтесь имеющимися.</translation>
     </message>
     <message>
