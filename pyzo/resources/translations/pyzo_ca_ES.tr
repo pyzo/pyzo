@@ -1446,6 +1446,14 @@ Both mechanisms can be combined, the ``finally`` clause coming after the last ``
     </message>
 </context>
 <context>
+    <name>pyzoLogger</name>
+    <message>
+        <location filename="../../tools/pyzoLogger.py" line="14"/>
+        <source>Logger</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>pyzoSourceStructure</name>
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
@@ -1692,6 +1700,11 @@ Currently, there are none. Some of them may be hidden because of the filters you
     <message>
         <location filename="../../core/shellStack.py" line="306"/>
         <source>Click to select shell.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/main.py" line="176"/>
+        <source>Shells</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1948,6 +1961,11 @@ Currently, there are none. Some of them may be hidden because of the filters you
         When run as script, the shell is restarted to provide a clean
         environment. The shell is also initialized differently so that it
         closely resembles a normal script execution.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../util/pyzowizard.py" line="39"/>
+        <source>Stop</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

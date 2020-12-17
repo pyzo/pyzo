@@ -1496,6 +1496,14 @@ A ``break`` statement executed in the ``body`` terminates the loop without execu
     </message>
 </context>
 <context>
+    <name>pyzoLogger</name>
+    <message>
+        <location filename="../../tools/pyzoLogger.py" line="14"/>
+        <source>Logger</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>pyzoSourceStructure</name>
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
@@ -1746,6 +1754,11 @@ Actuellement, il n&apos;y en a aucune. Certaines sont peut-être cachées par le
         <location filename="../../core/shellStack.py" line="306"/>
         <source>Click to select shell.</source>
         <translation>Cliquez pour sélectionner le shell.</translation>
+    </message>
+    <message>
+        <location filename="../../core/main.py" line="176"/>
+        <source>Shells</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2024,6 +2037,11 @@ avec par exemple Visvis ou Matplotlib.</translation>
         Lors d&apos;une exécution en tant que script, le shell est redémarré pour avoir
         un environnement propre. Le shell est de plus initialisé différemment de façon
         à ressembler fortement à l&apos;exécution normale d&apos;un script.</translation>
+    </message>
+    <message>
+        <location filename="../../util/pyzowizard.py" line="39"/>
+        <source>Stop</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

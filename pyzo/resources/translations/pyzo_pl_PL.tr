@@ -1497,6 +1497,14 @@ A ``break`` statement executed in the ``body`` terminates the loop without execu
     </message>
 </context>
 <context>
+    <name>pyzoLogger</name>
+    <message>
+        <location filename="../../tools/pyzoLogger.py" line="14"/>
+        <source>Logger</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>pyzoSourceStructure</name>
     <message>
         <location filename="../../tools/pyzoSourceStructure.py" line="11"/>
@@ -1746,6 +1754,11 @@ Obecnie nie ma żadnych. Niektóre z nich mogą być ukryte ze względu na filtr
         <location filename="../../core/shellStack.py" line="306"/>
         <source>Click to select shell.</source>
         <translation>Kliknij, aby wybrać powłokę.</translation>
+    </message>
+    <message>
+        <location filename="../../core/main.py" line="176"/>
+        <source>Shells</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2023,6 +2036,11 @@ Obecnie nie ma żadnych. Niektóre z nich mogą być ukryte ze względu na filtr
         <location filename="../../util/pyzowizard.py" line="428"/>
         <source>This concludes the Pyzo wizard. Now, get coding and have fun!</source>
         <translation>To kończy pomocnika Pyzo. Teraz zacznij kodować i baw się przy tym dobrze!</translation>
+    </message>
+    <message>
+        <location filename="../../util/pyzowizard.py" line="39"/>
+        <source>Stop</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
