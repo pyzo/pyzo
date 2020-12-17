@@ -10,6 +10,7 @@ SOURCES += pyzo/core/menu.py
 SOURCES += pyzo/core/shellInfoDialog.py
 SOURCES += pyzo/core/shellStack.py
 SOURCES += pyzo/core/splash.py
+SOURCES += pyzo/core/statusbar.py
 
 SOURCES += pyzo/tools/pyzoFileBrowser/browser.py
 SOURCES += pyzo/tools/pyzoFileBrowser/importwizard.py
