@@ -54,6 +54,11 @@
         <source>Are you sure you want to close this pinned file?</source>
         <translation>您確定要關閉此鎖定檔案？</translation>
     </message>
+    <message>
+        <location filename="../../core/statusbar.py" line="39"/>
+        <source>Line: {}, Column: {} </source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>editorTabs</name>
