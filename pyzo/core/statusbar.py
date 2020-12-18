@@ -36,8 +36,8 @@ class StatusBar(QtWidgets.QStatusBar):
             ncol = editor.textCursor().positionInBlock()
             ncol += 1
 
-        position_txt = translate("editor", "Line: {}, Column: {} ") \
-                           .format(str(nrow), str(ncol))
+        position_template = translate("editor", "Line: {}, Column: {} ")
+        position_txt = position_template.format(str(nrow), str(ncol))
         self.cursor_pos.setText(position_txt)
 
     def updateFileEncodingInfo(self, editor):
