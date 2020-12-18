@@ -59,7 +59,7 @@
     <message>
         <location filename="../../core/statusbar.py" line="39"/>
         <source>Line: {}, Column: {} </source>
-        <translation>Срока: {}, Столбец: {} </translation>
+        <translation>Строка: {}, Столбец: {} </translation>
     </message>
 </context>
 <context>
