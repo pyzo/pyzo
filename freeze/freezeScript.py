@@ -38,12 +38,6 @@ sys.path.insert(0, baseDir)
 # The Qt toolkit that we use
 QT_API = "PyQt5"
 
-# A fix for pyinstaller trying to access PyQt5.__version__ and failing
-import PyQt5.QtCore
-
-if not hasattr(PyQt5, "__version__"):
-    PyQt5.__version__ = PyQt5.QtCore.PYQT_VERSION_STR
-
 # All known Qt toolkits, mainly to exclude them
 qt_kits = {"PySide", "PySide2", "PyQt4", "PyQt5"}
 
