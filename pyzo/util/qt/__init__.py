@@ -118,13 +118,9 @@ elif "PySide" in sys.modules:
 
 if API in PYQT5_API:
     try:
-        import PyQt5
         from PyQt5.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
         from PyQt5.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
 
-        # A fix for PyInstaller when installing python3-pyqt5 with apt
-        if not hasattr(PyQt5, "__version__"):
-            PyQt5.__version__ = PYQT_VERSION
         PYSIDE_VERSION = None
     except ImportError:
         API = os.environ["QT_API"] = "pyside2"
