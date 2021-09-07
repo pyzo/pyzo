@@ -118,6 +118,7 @@ elif "PySide" in sys.modules:
 
 if API in PYQT5_API:
     try:
+        import PyQt5
         from PyQt5.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
         from PyQt5.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
 
