@@ -809,7 +809,7 @@ class PyzoInterpreter:
                 return False
 
     def runlargecode(self, msg, silent=False):
-        """ To execute larger pieces of code. """
+        """To execute larger pieces of code."""
 
         # Get information
         source, fname, lineno = msg["source"], msg["fname"], msg["lineno"]
@@ -899,7 +899,7 @@ class PyzoInterpreter:
             self.write("Could not run code because it is incomplete.\n")
 
     def runfile(self, fname):
-        """  To execute the startup script. """
+        """To execute the startup script."""
 
         # Get text (make sure it ends with a newline)
         try:
@@ -1056,7 +1056,7 @@ class PyzoInterpreter:
     ## Writing and error handling
 
     def write(self, text):
-        """ Write errors. """
+        """Write errors."""
         sys.stderr.write(text)
 
     def showsyntaxerror(self, filename=None):

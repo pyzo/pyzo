@@ -58,7 +58,7 @@ class Token(object):
         return self.end - self.start
 
     def _getName(self):
-        """ Get the name of this token. """
+        """Get the name of this token."""
         nameParts = ["Syntax"]
         if "_parser" in self.__module__:
             language = self.__module__.split("_")[0]
@@ -101,25 +101,25 @@ class Token(object):
 
 
 class CommentToken(Token):
-    """ Characters representing a comment in the code. """
+    """Characters representing a comment in the code."""
 
     defaultStyle = "fore:#007F00"
 
 
 class TodoCommentToken(CommentToken):
-    """ Characters representing a comment in the code. """
+    """Characters representing a comment in the code."""
 
     defaultStyle = "fore:#E00,italic"
 
 
 class StringToken(Token):
-    """ Characters representing a textual string in the code. """
+    """Characters representing a textual string in the code."""
 
     defaultStyle = "fore:#7F007F"
 
 
 class UnterminatedStringToken(StringToken):
-    """ Characters belonging to an unterminated string. """
+    """Characters belonging to an unterminated string."""
 
     defaultStyle = "underline:dotted"
 
@@ -128,78 +128,78 @@ class UnterminatedStringToken(StringToken):
 
 
 class TextToken(Token):
-    """ Anything that is not a string or comment. """
+    """Anything that is not a string or comment."""
 
     defaultStyle = "fore:#000"
 
 
 class IdentifierToken(TextToken):
-    """ Characters representing normal text (i.e. words). """
+    """Characters representing normal text (i.e. words)."""
 
     defaultStyle = ""
 
 
 class NonIdentifierToken(TextToken):
-    """ Not a word (operators, whitespace, etc.). """
+    """Not a word (operators, whitespace, etc.)."""
 
     defaultStyle = ""
 
 
 class KeywordToken(IdentifierToken):
-    """ A keyword is a word with a special meaning to the language. """
+    """A keyword is a word with a special meaning to the language."""
 
     defaultStyle = "fore:#00007F, bold:yes"
 
 
 class BuiltinsToken(IdentifierToken):
-    """ Characters representing a builtins in the code. """
+    """Characters representing a builtins in the code."""
 
     defaultStyle = ""
 
 
 class InstanceToken(IdentifierToken):
-    """ Characters representing a instance in the code. """
+    """Characters representing a instance in the code."""
 
     defaultStyle = ""
 
 
 class NumberToken(IdentifierToken):
-    """ Characters represening a number. """
+    """Characters represening a number."""
 
     defaultStyle = "fore:#007F7F"
 
 
 class FunctionNameToken(IdentifierToken):
-    """ Characters represening the name of a function. """
+    """Characters represening the name of a function."""
 
     defaultStyle = "fore:#007F7F, bold:yes"
 
 
 class ClassNameToken(IdentifierToken):
-    """ Characters represening the name of a class. """
+    """Characters represening the name of a class."""
 
     defaultStyle = "fore:#0000FF, bold:yes"
 
 
 class ParenthesisToken(TextToken):
-    """ Parenthesis (and square and curly brackets). """
+    """Parenthesis (and square and curly brackets)."""
 
     defaultStyle = ""
 
 
 class OpenParenToken(ParenthesisToken):
-    """ Opening parenthesis (and square and curly brackets). """
+    """Opening parenthesis (and square and curly brackets)."""
 
     defaultStyle = ""
 
 
 class CloseParenToken(ParenthesisToken):
-    """ Closing parenthesis (and square and curly brackets). """
+    """Closing parenthesis (and square and curly brackets)."""
 
     defaultStyle = ""
 
 
 class IllegalToken(Token):
-    """ Illegal tokens, eg. NBSP  . """
+    """Illegal tokens, eg. NBSP  ."""
 
     defaultStyle = "back:#ffd7c7"

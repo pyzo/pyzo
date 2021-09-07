@@ -568,7 +568,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
 
 
 class ShellInfoDialog(QtWidgets.QDialog):
-    """ Dialog to edit the shell configurations. """
+    """Dialog to edit the shell configurations."""
 
     def __init__(self, *args):
         QtWidgets.QDialog.__init__(self, *args)
@@ -654,7 +654,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
         self.close()
 
     def apply(self):
-        """ Apply changes for all tabs. """
+        """Apply changes for all tabs."""
 
         # Clear
         pyzo.config.shellConfigs2 = []

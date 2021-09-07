@@ -93,7 +93,7 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         event.accept()
 
     def reload(self, toolClass):
-        """ Reload the widget with a new widget class. """
+        """Reload the widget with a new widget class."""
         old = self.widget()
         new = toolClass(pyzo.main)
         self.setWidget(new)
@@ -135,7 +135,7 @@ class ToolDescription:
 
 
 class ToolManager(QtCore.QObject):
-    """ Manages the tools. """
+    """Manages the tools."""
 
     # This signal indicates a change in the loaded tools
     toolInstanceChange = QtCore.Signal()
@@ -350,7 +350,7 @@ class ToolManager(QtCore.QObject):
         self.updateToolInstances()
 
     def reloadTools(self):
-        """ Reload all tools. """
+        """Reload all tools."""
         for id in self.getLoadedTools():
             self.loadTool(id)
 
@@ -375,7 +375,7 @@ class ToolManager(QtCore.QObject):
         self.updateToolInstances()
 
     def getLoadedTools(self):
-        """ Get a list with id's of loaded tools. """
+        """Get a list with id's of loaded tools."""
         tmp = []
         for toolDes in self.getToolInfo():
             if toolDes.id in self._activeTools:

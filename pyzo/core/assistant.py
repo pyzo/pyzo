@@ -100,7 +100,7 @@ class Settings(QtWidgets.QWidget):
 
 
 class HelpBrowser(QtWidgets.QTextBrowser):
-    """ Override textbrowser to implement load resource """
+    """Override textbrowser to implement load resource"""
 
     def __init__(self, engine):
         super().__init__()
@@ -111,7 +111,7 @@ class HelpBrowser(QtWidgets.QTextBrowser):
         self.setOpenLinks(False)
 
     def handle_url(self, url):
-        """ Open external urls not in this viewer """
+        """Open external urls not in this viewer"""
         if url.scheme() in ["http", "https"]:
             QtGui.QDesktopServices.openUrl(url)
         else:

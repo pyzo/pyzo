@@ -217,7 +217,7 @@ class StyleEdit(QtWidgets.QWidget):
         self.styleChanged.emit(self.styleKey, key + ":" + value)
 
     def setStyle(self, text):
-        """ updates every children to match the StyleFormat(text) fields"""
+        """updates every children to match the StyleFormat(text) fields"""
         style = StyleFormat(text)
         for key, setter in self.setters.items():
             setter(style[key])

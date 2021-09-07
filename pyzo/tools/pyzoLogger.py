@@ -85,7 +85,7 @@ class PyzoLoggerShell(BaseShell):
         self.write(history)
 
     def executeCommand(self, command):
-        """ Execute the command here! """
+        """Execute the command here!"""
         # Use writeErr rather than sys.stdout.write. This prevents
         # the prompts to be logged by the history. Because if they
         # are, the text does not look good due to missing newlines

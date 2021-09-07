@@ -28,7 +28,7 @@ except AttributeError:
 
 
 class DummyStd:
-    """ For when std is not available. """
+    """For when std is not available."""
 
     def __init__(self):
         self._closed = False
@@ -120,7 +120,7 @@ class OutputStreamSplitter:
         pass
 
     def write(self, text):
-        """ Write method. """
+        """Write method."""
         self._original.write(text)
         self._history.append(text)
         try:

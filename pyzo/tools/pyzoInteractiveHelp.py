@@ -501,7 +501,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             action.setChecked(i == currentSize)
 
     def onOptionMenuTiggered(self, action):
-        """  The user decides what to show in the structure. """
+        """The user decides what to show in the structure."""
 
         # Get text
         text = action._what.lower()
@@ -569,7 +569,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             self.setObjectName(self.currentHist())
 
     def printDoc(self):
-        """ Print the doc for the text in the line edit. """
+        """Print the doc for the text in the line edit."""
         # Get name
         name = self._text.text()
         # Tell shell to print doc
@@ -591,7 +591,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                 shell.processLine("print({}.__doc__)".format(name))
 
     def queryDoc(self, addToHistory=True):
-        """ Query the doc for the text in the line edit. """
+        """Query the doc for the text in the line edit."""
         # Get name
         name = self._text.text()
         if addToHistory:
@@ -612,7 +612,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                 self.setText(initText)
 
     def queryDoc_response(self, future):
-        """ Process the response from the shell. """
+        """Process the response from the shell."""
 
         # Process future
         if future.cancelled():

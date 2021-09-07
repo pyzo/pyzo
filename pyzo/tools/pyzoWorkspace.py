@@ -422,7 +422,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
             action.setChecked(checked)
 
     def onOptionMenuTiggered(self, action):
-        """  The user decides what to hide in the workspace. """
+        """The user decides what to hide in the workspace."""
 
         # What to show
         type = action._what.lower()

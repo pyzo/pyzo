@@ -429,13 +429,13 @@ pythonInstance = python2Instance | python3Instance
 
 
 class MultilineStringToken(StringToken):
-    """ Characters representing a multi-line string. """
+    """Characters representing a multi-line string."""
 
     defaultStyle = "fore:#7F0000"
 
 
 class CellCommentToken(CommentToken):
-    """ Characters representing a cell separator comment: "##". """
+    """Characters representing a cell separator comment: "##"."""
 
     defaultStyle = "bold:yes, underline:yes"
 
