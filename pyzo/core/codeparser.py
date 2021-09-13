@@ -37,7 +37,7 @@ defPattern += r"\((.*?)\)"  # The SIGNATURE
 
 
 class Job:
-    """ Simple class to represent a job. """
+    """Simple class to represent a job."""
 
     def __init__(self, text, editorId):
         self.text = text
@@ -45,7 +45,7 @@ class Job:
 
 
 class Result:
-    """ Simple class to represent a parser result. """
+    """Simple class to represent a parser result."""
 
     def __init__(self, rootItem, importList, editorId):
         self.rootItem = rootItem

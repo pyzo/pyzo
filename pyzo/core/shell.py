@@ -329,7 +329,7 @@ class BaseShell(BaseTextCtrl):
             super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
-        """ Do not show context menu. """
+        """Do not show context menu."""
         pass
 
     def mouseDoubleClickEvent(self, event):
@@ -604,7 +604,7 @@ class BaseShell(BaseTextCtrl):
     ## Basic commands to control the shell
 
     def clearScreen(self):
-        """ Clear all the previous output from the screen. """
+        """Clear all the previous output from the screen."""
         # Select from beginning of prompt to start of document
         self._cursor1.clearSelection()
         self._cursor1.movePosition(self._cursor1.Start, A_KEEP)  # Keep anchor
@@ -614,7 +614,7 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorVisible()
 
     def deleteLines(self):
-        """ Called from the menu option "delete lines", just execute self.clearCommand() """
+        """Called from the menu option "delete lines", just execute self.clearCommand()"""
         self.clearCommand()
 
     def clearCommand(self):
@@ -1046,7 +1046,7 @@ class PythonShell(BaseShell):
         self.connectToKernel(info)
 
     def resetVariables(self):
-        """ Resets some variables. """
+        """Resets some variables."""
 
         # Reset read state
         self.setReadOnly(False)

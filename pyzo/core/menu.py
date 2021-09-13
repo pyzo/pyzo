@@ -571,7 +571,7 @@ class FileMenu(Menu):
         self.setEnabled(False)
 
     def setEnabled(self, enabled):
-        """ Enable or disable all items. If disabling, also uncheck all items """
+        """Enable or disable all items. If disabling, also uncheck all items"""
         for child in self._items:
             child.setEnabled(enabled)
 
@@ -1191,7 +1191,7 @@ class ShellMenu(Menu):
         self.aboutToShow.connect(self._updateShells)
 
     def onCurrentShellChanged(self):
-        """ Enable/disable shell actions based on wether a shell is available """
+        """Enable/disable shell actions based on wether a shell is available"""
         for shellAction in self._shellActions:
             shellAction.setEnabled(bool(pyzo.shells.getCurrentShell()))
 
@@ -1287,7 +1287,7 @@ class ShellMenu(Menu):
         return pyzo.shells.getCurrentShell()
 
     def build(self):
-        """ Create the items for the shells menu """
+        """Create the items for the shells menu"""
 
         # Normal shell actions
         self._shellActions = self.buildShellActions()
@@ -1334,7 +1334,7 @@ class ShellMenu(Menu):
         self._updateShells()
 
     def _updateShells(self):
-        """ Remove, then add the items for the creation of each shell """
+        """Remove, then add the items for the creation of each shell"""
         for action in self._shellCreateActions:
             self.removeAction(action)
 
@@ -1377,7 +1377,7 @@ class ShellMenu(Menu):
             e.clearBreakPoints()
 
     def _editConfig2(self):
-        """ Edit, add and remove configurations for the shells. """
+        """Edit, add and remove configurations for the shells."""
         from pyzo.core.shellInfoDialog import ShellInfoDialog
 
         d = ShellInfoDialog()
@@ -1412,7 +1412,7 @@ class ShellButtonMenu(ShellMenu):
         self.addSeparator()
 
     def _updateShells(self):
-        """ Remove, then add the items for the creation of each shell """
+        """Remove, then add the items for the creation of each shell"""
         for action in self._shellCreateActions:
             self._newShellMenu.removeAction(action)
 
@@ -1426,14 +1426,14 @@ class ShellButtonMenu(ShellMenu):
 
 
 class ShellContextMenu(ShellMenu):
-    """ This is the context menu for the shell """
+    """This is the context menu for the shell"""
 
     def __init__(self, shell, parent=None):
         ShellMenu.__init__(self, parent or shell, name="Shellcontextmenu")
         self._shell = shell
 
     def build(self):
-        """ Build menu """
+        """Build menu"""
 
         icons = pyzo.icons
 
@@ -1499,7 +1499,7 @@ class ShellContextMenu(ShellMenu):
         )
 
     def getShell(self):
-        """ Shell actions of this menu operate on the shell specified in the constructor """
+        """Shell actions of this menu operate on the shell specified in the constructor"""
         return self._shell
 
     def _editItemCallback(self, action):
@@ -1543,7 +1543,7 @@ class ShellTabContextMenu(ShellContextMenu):
     but only has the shell actions defined in ShellMenu.buildShellActions()"""
 
     def build(self):
-        """ Build menu """
+        """Build menu"""
         self.buildShellActions()
 
     def _updateShells(self):
@@ -1551,14 +1551,14 @@ class ShellTabContextMenu(ShellContextMenu):
 
 
 class EditorContextMenu(Menu):
-    """ This is the context menu for the editor """
+    """This is the context menu for the editor"""
 
     def __init__(self, editor, name="EditorContextMenu"):
         self._editor = editor
         Menu.__init__(self, editor, name)
 
     def build(self):
-        """ Build menu """
+        """Build menu"""
         icons = pyzo.icons
 
         self.addItem(
@@ -1717,7 +1717,7 @@ class EditorTabContextMenu(Menu):
         self._index = index
 
     def build(self):
-        """ Build menu """
+        """Build menu"""
         icons = pyzo.icons
 
         # Copied (and edited) manually from the File memu
@@ -1810,7 +1810,7 @@ class EditorTabContextMenu(Menu):
         )
 
     def _fileAction(self, action):
-        """ Call the method specified by 'action' on the selected shell """
+        """Call the method specified by 'action' on the selected shell"""
 
         item = pyzo.editors._tabs.getItemAt(self._index)
 
@@ -1962,7 +1962,7 @@ class RunMenu(Menu):
         pyzo.config.settings.changeDirOnFileExec = bool(value)
 
     def _showHelp(self):
-        """ Show more information about ways to run code. """
+        """Show more information about ways to run code."""
         from pyzo.util.pyzowizard import PyzoWizard
 
         w = PyzoWizard(self)
@@ -2311,7 +2311,7 @@ class HelpMenu(Menu):
         w.show()  # Use show() instead of exec_() so the user can interact with pyzo
 
     def _checkUpdates(self):
-        """ Check whether a newer version of pyzo is available. """
+        """Check whether a newer version of pyzo is available."""
         # Get versions available
         url = "https://api.github.com/repos/pyzo/pyzo/releases"
         releases = json.loads(urlopen(url).read())
@@ -2554,7 +2554,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         self._root = None
 
     def setRootMenu(self, menu):
-        """ Call this after starting. """
+        """Call this after starting."""
         self._root = menu
 
     def data(self, index, role):
@@ -2861,7 +2861,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         self._line.setFocus()
 
     def onEdit(self):
-        """ Test if already in use. """
+        """Test if already in use."""
 
         # init
         shortcut = self._line.text()
@@ -2989,7 +2989,7 @@ class KeymappingDialog(QtWidgets.QDialog):
             self.popupItem(index.internalPointer())
 
     def popupItem(self, item, shortCutId=1):
-        """ Popup the dialog to change the shortcut. """
+        """Popup the dialog to change the shortcut."""
         if isinstance(item, QtWidgets.QAction) and item.text():
             # create prompt dialog
             dlg = KeyMapEditDialog(self)
@@ -3135,7 +3135,7 @@ class AdvancedSettings(QtWidgets.QDialog):
         self._tree.expandAll()
 
     def searchTextChanged(self):
-        """ As you type hide unmatched settings. """
+        """As you type hide unmatched settings."""
         # find all matched settings
         find = self._tree.findItems(
             self._search.text(), QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0
@@ -3172,11 +3172,11 @@ class AdvancedSettings(QtWidgets.QDialog):
                             child.setHidden(True)
 
     def backupConfig(self):
-        """ Backup settings. """
+        """Backup settings."""
         shutil.copyfile(self.conf_file, self.backup_file)
 
     def setBackupDate(self):
-        """ Show backup file name and backup date. """
+        """Show backup file name and backup date."""
         lastmodified = os.stat(self.backup_file).st_mtime
         datetime.fromtimestamp(lastmodified)
 
@@ -3186,24 +3186,24 @@ class AdvancedSettings(QtWidgets.QDialog):
         return backup_text
 
     def btnFactoryDefaultClicked(self):
-        """ Reset a IDE to its original settings. """
+        """Reset a IDE to its original settings."""
         pyzo.saveConfig()
         pyzo.resetConfig()
         pyzo.main.restart()
 
     def btnBackupClicked(self):
-        """ Make backup file of the current settings. """
+        """Make backup file of the current settings."""
         self.backupConfig()
         self._backup_label.setText(self.setBackupDate())
 
     def btnRestoreClicked(self):
-        """ Restore settings from last backup file, then restart Pyzo. """
+        """Restore settings from last backup file, then restart Pyzo."""
         pyzo.resetConfig()
         shutil.copyfile(self.backup_file, self.conf_file)
         pyzo.main.restart()
 
     def currentItemChanged(self, item, column):
-        """ Save new settings. """
+        """Save new settings."""
         parent = None
         node = None
         if column == 1:
@@ -3246,7 +3246,7 @@ class AdvancedSettings(QtWidgets.QDialog):
             pyzo.saveConfig()
 
     def fillTree(self):
-        """ Fill the tree with settings """
+        """Fill the tree with settings"""
         # fill tree
         for item in pyzo.config.keys():
             root = QtWidgets.QTreeWidgetItem(self._tree, [item])
@@ -3281,19 +3281,19 @@ class AdvancedSettings(QtWidgets.QDialog):
                         n += 1
 
     def onClickSelect(self, item, column):
-        """ Allow editing only column 1 """
+        """Allow editing only column 1"""
         if column == 1:
             item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
             self._tree.editItem(item, column)
 
     def getBackupShellSettings(self):
-        """ Extract shell settings from backup file. """
+        """Extract shell settings from backup file."""
         backup_dict = pyzo.util.zon.load(self.backup_file)
         backup_shell = backup_dict["shellConfigs2"]
         return backup_shell
 
     def replaceShellSettings(self):
-        """ Replace current shell setting with backup shell settings. """
+        """Replace current shell setting with backup shell settings."""
 
         old_shell_settings = self.getBackupShellSettings()
         pyzo.config["shellConfigs2"] = old_shell_settings

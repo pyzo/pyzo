@@ -760,7 +760,7 @@ class Tree(QtWidgets.QTreeWidget):
         self.verticalScrollBar().setValue(self._selectedScrolling)
 
     def contextMenuTriggered(self, p):
-        """ Called when context menu is clicked """
+        """Called when context menu is clicked"""
         # Get item that was clicked on
         item = self.itemAt(p)
         if item is None:

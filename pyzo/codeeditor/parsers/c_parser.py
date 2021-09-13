@@ -23,13 +23,13 @@ from .tokens import (
 
 
 class MultilineCommentToken(CommentToken):
-    """ Characters representing a multi-line comment. """
+    """Characters representing a multi-line comment."""
 
     defaultStyle = "fore:#007F00"
 
 
 class CharToken(Token):
-    """ Single-quoted char """
+    """Single-quoted char"""
 
     defaultStyle = "fore:#7F007F"
 

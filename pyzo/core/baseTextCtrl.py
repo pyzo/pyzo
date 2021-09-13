@@ -380,15 +380,15 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 self.processAutoComp(aco)
 
     def processCallTip(self, cto):
-        """ Overridden in derive class """
+        """Overridden in derive class"""
         pass
 
     def processAutoComp(self, aco):
-        """ Overridden in derive class """
+        """Overridden in derive class"""
         pass
 
     def _onDoubleClick(self):
-        """ When double clicking on a name, autocomplete it. """
+        """When double clicking on a name, autocomplete it."""
         self.processHelp(addToHist=True)
 
     def helpOnText(self, pos):

@@ -201,7 +201,7 @@ class FileItem:
 
 # todo: when this works with the new editor, put in own module.
 class FindReplaceWidget(QtWidgets.QFrame):
-    """ A widget to find and replace text. """
+    """A widget to find and replace text."""
 
     def __init__(self, *args):
         QtWidgets.QFrame.__init__(self, *args)
@@ -416,7 +416,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
                     self.hide()
 
     def hideMe(self):
-        """ Hide the find/replace widget. """
+        """Hide the find/replace widget."""
         self.hide()
         self._replaceKind.setCurrentIndex(0)  # set replace to "one"
         es = self.parent()  # editor stack
@@ -778,7 +778,7 @@ class FileTabWidget(CompactTabWidget):
             raise ValueError("item should be int, FileItem or file name.")
 
     def selectPreviousItem(self):
-        """ Select the previously selected item. """
+        """Select the previously selected item."""
 
         # make an old item history
         if len(self._itemHistory) > 1 and self._itemHistory[1] is not None:
@@ -1018,7 +1018,7 @@ class EditorTabs(QtWidgets.QWidget):
         pyzo.callLater(self.restoreEditorState)
 
     def addContextMenu(self):
-        """ Adds a context menu to the tab bar """
+        """Adds a context menu to the tab bar"""
 
         from pyzo.core.menu import EditorTabContextMenu
 
@@ -1027,7 +1027,7 @@ class EditorTabs(QtWidgets.QWidget):
         self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
 
     def contextMenuTriggered(self, p):
-        """ Called when context menu is clicked """
+        """Called when context menu is clicked"""
 
         # Get index of current tab
         index = self._tabs.tabBar().tabAt(p)
@@ -1047,7 +1047,7 @@ class EditorTabs(QtWidgets.QWidget):
         sb.updateFileEncodingInfo(editor)
 
     def getCurrentEditor(self):
-        """ Get the currently active editor. """
+        """Get the currently active editor."""
         item = self._tabs.currentItem()
         if item:
             return item.editor
@@ -1120,7 +1120,7 @@ class EditorTabs(QtWidgets.QWidget):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
-        """ Drop files in the list. """
+        """Drop files in the list."""
         for qurl in event.mimeData().urls():
             path = str(qurl.toLocalFile())
             if os.path.isfile(path):
@@ -1131,7 +1131,7 @@ class EditorTabs(QtWidgets.QWidget):
                 pass
 
     def newFile(self):
-        """ Create a new (unsaved) file. """
+        """Create a new (unsaved) file."""
 
         # create editor
         editor = createEditor(self, None)
@@ -1146,7 +1146,7 @@ class EditorTabs(QtWidgets.QWidget):
         return item
 
     def openFile(self):
-        """ Create a dialog for the user to select a file. """
+        """Create a dialog for the user to select a file."""
 
         # determine start dir
         # todo: better selection of dir, using project manager
@@ -1193,7 +1193,7 @@ class EditorTabs(QtWidgets.QWidget):
             self.loadFile(filename)
 
     def openDir(self):
-        """ Create a dialog for the user to select a directory. """
+        """Create a dialog for the user to select a directory."""
 
         # determine start dir
         editor = self.getCurrentEditor()
@@ -1406,7 +1406,7 @@ class EditorTabs(QtWidgets.QWidget):
         return True
 
     def saveAllFiles(self):
-        """ Save all files"""
+        """Save all files"""
         for editor in self:
             self.saveFile(editor)
 

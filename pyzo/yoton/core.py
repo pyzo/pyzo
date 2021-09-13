@@ -292,7 +292,7 @@ class Package(object):
         return header, self._data
 
     def __str__(self):
-        """ Representation of the package. Mainly for debugging. """
+        """Representation of the package. Mainly for debugging."""
         return "At slot %i: %s" % (self._slot, repr(self._data))
 
     @classmethod

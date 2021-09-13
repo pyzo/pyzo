@@ -228,7 +228,7 @@ class ShellStackWidget(QtWidgets.QWidget):
             return w
 
     def getShells(self):
-        """ Get all shell in stack as list """
+        """Get all shell in stack as list"""
 
         shells = []
         for i in range(self._stack.count()):
@@ -274,7 +274,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         self._toolbar.addWidget(self._dbs)
 
     def contextMenuTriggered(self, p):
-        """ Called when context menu is clicked """
+        """Called when context menu is clicked"""
 
         # Get index of shell belonging to the tab
         shell = self.getCurrentShell()

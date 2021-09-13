@@ -181,7 +181,7 @@ class Debugger(bdb.Bdb):
             )
 
     def do_clear(self, arg):
-        """"""
+        """ """
         # Clear breakpoints, we need to overload from Bdb,
         # but do not expose this command to the user.
         """cl(ear) filename:lineno\ncl(ear) [bpnumber [bpnumber...]]

@@ -532,7 +532,7 @@ class App_qt(App_base):
                 timer.singleShot(0, reEnableSysExit)
 
             def quit(self, *args, **kwargs):
-                """ Do not quit if Qt app quits. """
+                """Do not quit if Qt app quits."""
                 pass
 
         # Instantiate application object

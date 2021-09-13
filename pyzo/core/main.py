@@ -338,7 +338,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return qstyle
 
     def closeEvent(self, event):
-        """ Override close event handler. """
+        """Override close event handler."""
 
         # Are we restaring?
         restarting = time.time() - self._closeflag < 1.0
@@ -400,7 +400,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 os._exit(0)
 
     def restart(self):
-        """ Restart Pyzo. """
+        """Restart Pyzo."""
 
         self._closeflag = time.time()
 

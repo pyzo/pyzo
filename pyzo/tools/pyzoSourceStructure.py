@@ -137,7 +137,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             action.setChecked(checked)
 
     def onOptionMenuTiggered(self, action):
-        """  The user decides what to show in the structure. """
+        """The user decides what to show in the structure."""
 
         # What to show
         type = action.text().split(" ", 1)[1]
@@ -202,7 +202,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             nav.back.append(old_linenr)
 
     def onItemClick(self, item):
-        """ Go to the right line in the editor and give focus. """
+        """Go to the right line in the editor and give focus."""
 
         # If item is attribute, get parent
         if not item.linenr:

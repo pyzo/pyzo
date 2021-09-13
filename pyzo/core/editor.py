@@ -456,7 +456,7 @@ class PyzoEditor(BaseTextCtrl):
             BaseTextCtrl.dropEvent(self, event)
 
     def dropEvent(self, event):
-        """ Drop files in the list. """
+        """Drop files in the list."""
         if event.mimeData().hasUrls():
             # file: let the editorstack do the work.
             pyzo.editors.dropEvent(event)
@@ -465,7 +465,7 @@ class PyzoEditor(BaseTextCtrl):
             BaseTextCtrl.dropEvent(self, event)
 
     def showEvent(self, event=None):
-        """ Capture show event to change title. """
+        """Capture show event to change title."""
         # Act normally
         if event:
             BaseTextCtrl.showEvent(self, event)
@@ -474,7 +474,7 @@ class PyzoEditor(BaseTextCtrl):
         pyzo.parser.parseThis(self)
 
     def setTitleInMainWindow(self):
-        """ set the title  text in the main window to show filename. """
+        """set the title  text in the main window to show filename."""
 
         # compose title
         name, path = self._name, self._filename
@@ -484,7 +484,7 @@ class PyzoEditor(BaseTextCtrl):
             pyzo.main.setMainTitle(name)
 
     def save(self, filename=None):
-        """ Save the file. No checking is done. """
+        """Save the file. No checking is done."""
 
         # get filename
         if filename is None:
