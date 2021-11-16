@@ -206,7 +206,7 @@ class AutoCompletion(object):
             # Move the completer to above the current line
             position = self.cursorRect(cur).topLeft() + self.viewport().pos()
             global_position = self.mapToGlobal(position)
-            global_position -= QtCore.QPoint(0, geometry.height())
+            global_position -= QtCore.QPoint(0, int(geometry.height()))
 
         self.__completer.popup().move(global_position)
 
