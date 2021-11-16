@@ -1112,7 +1112,7 @@ class BreakPoints(object):
                 block = editor.document().findBlockByNumber(blockNumber)
                 if block.isValid():
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
-                    painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
+                    painter.drawEllipse(int(margin), int(y), int(bulletWidth), int(bulletWidth))
 
             # Draw *the* debug marker
             if debugBlockIndicator > 0:
@@ -1122,7 +1122,7 @@ class BreakPoints(object):
                 if block.isValid():
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     y += 0.25 * bulletWidth
-                    painter.drawEllipse(margin, y, bulletWidth, 0.5 * bulletWidth)
+                    painter.drawEllipse(int(margin), int(y), int(bulletWidth), int(0.5 * bulletWidth))
 
             # Draw other debug markers
             for debugLineIndicator in editor._debugLineIndicators:
@@ -1133,7 +1133,7 @@ class BreakPoints(object):
                 if block.isValid():
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     y += 0.25 * bulletWidth
-                    painter.drawEllipse(margin, y, bulletWidth, 0.5 * bulletWidth)
+                    painter.drawEllipse(int(margin), int(y), int(bulletWidth), int(0.5 * bulletWidth))
 
             # Draw virtual break point
             if virtualBreakpoint > 0:
@@ -1142,7 +1142,7 @@ class BreakPoints(object):
                 block = editor.document().findBlockByNumber(virtualBreakpoint)
                 if block.isValid():
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
-                    painter.drawEllipse(margin, y, bulletWidth, bulletWidth)
+                    painter.drawEllipse(int(margin), int(y), int(bulletWidth), int(bulletWidth))
 
             # Done
             painter.end()
