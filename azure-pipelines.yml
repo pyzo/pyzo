@@ -19,24 +19,24 @@ jobs:
   strategy:
     matrix:
       Tester-3.5:
-        vmImage: ubuntu-16.04
+        vmImage: ubuntu-latest
         PY_VERSION: 3.5
         LINT: 1
         TEST: 1
       Tester-3.8:
-        vmImage: ubuntu-18.04
+        vmImage: ubuntu-latest
         PY_VERSION: 3.8
         LINT: 1
         TEST: 1
       Build-Linux-64:
-        vmImage: ubuntu-18.04
+        vmImage: ubuntu-latest
         PY_VERSION: native
         TEST: 0
         FREEZE: 0
         #PY_EXE: python
         DOCKERIMAGE: ubuntu:18.04
       Build-MacOS-64:
-        vmImage: macOS-10.14
+        vmImage: macOS-latest
         MACOSX_DEPLOYMENT_TARGET: '10.13'
         TEST: 1
         FREEZE: 1
