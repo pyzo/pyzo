@@ -245,7 +245,10 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
             if but.isVisible():
                 sz = but.sizeHint()
                 height = max(height, sz.height())
-                but.move(1 + paddingLeft, (rect.bottom() + 1 - sz.height()) / 2)
+                but.move(
+                    int(1 + paddingLeft),
+                    int(rect.bottom() + 1 - sz.height()) // 2,
+                )
                 paddingLeft += sz.width() + 1
         #
         for but in self._rightButtons:
@@ -254,8 +257,8 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
                 paddingRight += sz.width() + 1
                 height = max(height, sz.height())
                 but.move(
-                    rect.right() - 1 - paddingRight,
-                    (rect.bottom() + 1 - sz.height()) / 2,
+                    int(rect.right() - 1 - paddingRight),
+                    int(rect.bottom() + 1 - sz.height()) // 2,
                 )
 
         # Set padding

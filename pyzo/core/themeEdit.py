@@ -113,8 +113,8 @@ class ColorLineEdit(QtWidgets.QLineEdit):
         buttonSize = self.button.sizeHint()
         frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
         self.button.move(
-            self.rect().right() - frameWidth - buttonSize.width(),
-            (self.rect().bottom() - buttonSize.height() + 1) / 2,
+            int(self.rect().right() - frameWidth - buttonSize.width()),
+            int(self.rect().bottom() - buttonSize.height() + 1) // 2,
         )
         super().resizeEvent(event)
 

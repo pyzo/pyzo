@@ -282,7 +282,7 @@ class HighlightMatchingBracket(object):
         color = self.getStyleElementFormat(colorname).back
         painter.setBrush(color)
         painter.setPen(color.darker(110))
-        painter.drawRect(QtCore.QRect(left, top, width, height))
+        painter.drawRect(QtCore.QRect(int(left), int(top), int(width), int(height)))
 
     _matchingBrackets = {"(": ")", "[": "]", "{": "}", ")": "(", "]": "[", "}": "{"}
 
@@ -482,7 +482,7 @@ class HighlightCurrentLine(object):
         painter = QtGui.QPainter()
         painter.begin(self.viewport())
         painter.fillRect(
-            QtCore.QRect(margin, top, self.viewport().width() - 2 * margin, height),
+            QtCore.QRect(int(margin), int(top), int(self.viewport().width() - 2 * margin), int(height)),
             color,
         )
         painter.end()
@@ -566,7 +566,7 @@ class IndentationGuides(object):
                     w = self.fontMetrics().width("i" * x) + offset
                     w += 1  # Put it more under the block
                     if w > 0:  # if scrolled horizontally it can become < 0
-                        painter.drawLine(QtCore.QLine(w, y3, w, y4))
+                        painter.drawLine(QtCore.QLine(int(w), int(y3), int(w), int(y4)))
 
         self.doForVisibleBlocks(paintIndentationGuides)
 
@@ -606,7 +606,7 @@ class FullUnderlines(object):
                     pen.setStyle(fullUnderlineFormat.linestyle)
                     painter.setPen(pen)
                     # Paint
-                    painter.drawLine(QtCore.QLine(margin, y, w - 2 * margin, y))
+                    painter.drawLine(QtCore.QLine(int(margin), int(y), int(w - 2 * margin), int(y)))
 
         self.doForVisibleBlocks(paintUnderline)
 
@@ -623,11 +623,11 @@ class CodeFolding(object):
         painter = QtGui.QPainter()
         painter.begin(self.viewport())
 
-        margin = self.document().documentMargin()
+        margin = int(self.document().documentMargin())
 
         def paintCodeFolders(cursor):
-            y = self.cursorRect(cursor).top()
-            h = self.cursorRect(cursor).height()
+            y = int(self.cursorRect(cursor).top())
+            h = int(self.cursorRect(cursor).height())
             rect = QtCore.QRect(margin, y, h, h)
             text = cursor.block().text()
             if text.rstrip().endswith(":"):
@@ -638,7 +638,7 @@ class CodeFolding(object):
                 # Apply pen
 
                 # Paint
-                # painter.drawLine(QtCore.QLine(margin, y, w - 2*margin, y))
+                # painter.drawLine(QtCore.QLine(int(margin), int(y), int(w - 2*margin), int(y)))
 
         self.doForVisibleBlocks(paintCodeFolders)
 
@@ -708,7 +708,7 @@ class LongLineIndicator(object):
         painter.setPen(pen)
 
         # Draw line and end painter
-        painter.drawLine(QtCore.QLine(x, 0, x, viewport.height()))
+        painter.drawLine(QtCore.QLine(int(x), 0, int(x), int(viewport.height())))
         painter.end()
 
         # Propagate event
@@ -793,8 +793,8 @@ class LineNumbers(object):
             # Get cursor and two cursors corresponding to selected blocks
             editor = self.parent()
             cursor = editor.textCursor()
-            c1 = editor.cursorForPosition(QtCore.QPoint(0, y1))
-            c2 = editor.cursorForPosition(QtCore.QPoint(0, y2))
+            c1 = editor.cursorForPosition(QtCore.QPoint(0, int(y1)))
+            c2 = editor.cursorForPosition(QtCore.QPoint(0, int(y2)))
 
             # Make these two cursors select the whole block
             c1.movePosition(c1.StartOfBlock, c1.MoveAnchor)
@@ -817,7 +817,7 @@ class LineNumbers(object):
             cursor = editor.textCursor()
             # Get (x,y) pos and apply
             x, y = self.width() + 4, editor.cursorRect(cursor).y()
-            self._lineNrChoser.move(QtCore.QPoint(x, y))
+            self._lineNrChoser.move(int(x), int(y))
             # Show/reset line number choser
             self._lineNrChoser.reset(cursor.blockNumber() + 1)
 
@@ -848,10 +848,10 @@ class LineNumbers(object):
             offset = viewport.mapFromGlobal(tmp).y()
 
             # Draw the background
-            painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
+            painter.fillRect(QtCore.QRect(0, int(y1), int(w), int(y2)), format.back)
 
             # Get cursor
-            cursor = editor.cursorForPosition(QtCore.QPoint(0, y1))
+            cursor = editor.cursorForPosition(QtCore.QPoint(0, int(y1)))
 
             # Prepare fonts
             font1 = editor.font()
@@ -1042,7 +1042,7 @@ class BreakPoints(object):
         def mouseMoveEvent(self, event):
             y = self._getY(event.pos())
             editor = self.parent()
-            c1 = editor.cursorForPosition(QtCore.QPoint(0, y))
+            c1 = editor.cursorForPosition(QtCore.QPoint(0, int(y)))
             self._virtualBreakpoint = c1.blockNumber() + 1
             self.update()
 
@@ -1053,7 +1053,7 @@ class BreakPoints(object):
         def _toggleBreakPoint(self, y):
             # Get breakpoint corresponding to pressed pos
             editor = self.parent()
-            c1 = editor.cursorForPosition(QtCore.QPoint(0, y))
+            c1 = editor.cursorForPosition(QtCore.QPoint(0, int(y)))
             linenr = c1.blockNumber() + 1
             # Toggle
             self.parent().toggleBreakpoint(linenr)
@@ -1078,7 +1078,7 @@ class BreakPoints(object):
             y1, y2 = 0, editor.height()
 
             # Draw the background
-            painter.fillRect(QtCore.QRect(0, y1, w, y2), format.back)
+            painter.fillRect(QtCore.QRect(0, int(y1), int(w), int(y2)), format.back)
 
             # Get debug indicator and list of sorted breakpoints
             debugBlockIndicator = editor._debugLineIndicator - 1
@@ -1093,7 +1093,7 @@ class BreakPoints(object):
                 return
 
             # Get cursor
-            cursor = editor.cursorForPosition(QtCore.QPoint(0, y1))
+            cursor = editor.cursorForPosition(QtCore.QPoint(0, int(y1)))
 
             # Get start block number and bullet offset in pixels
             startBlockNumber = cursor.block().blockNumber()

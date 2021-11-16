@@ -330,7 +330,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         if cornerWidget:
             pos3 = cornerWidget.pos()
         else:
-            pos3 = QtCore.QPoint(self.width(), 0)
+            pos3 = QtCore.QPoint(int(self.width()), 0)
         x1 = pos1.x()
         x2 = pos2.x()
         x3 = pos3.x()
