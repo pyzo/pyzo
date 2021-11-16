@@ -18,8 +18,8 @@ We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
   * Debugging occurs in our own debugger
   * GUI integration is all handled by pyzo
   * We need special prompts for IPython input
-  
-  
+
+
 
 """
 
@@ -497,10 +497,12 @@ class PyzoInterpreter:
                 guiName = ""
             elif guiName == "AUTO":
                 for tryName, tryApp in [
-                    ("PYQT5", guiintegration.App_pyqt5),
-                    ("PYQT4", guiintegration.App_pyqt4),
+                    ("PYSIDE6", guiintegration.App_pyside6),
+                    ("PYQT6", guiintegration.App_pyqt6),
                     ("PYSIDE2", guiintegration.App_pyside2),
+                    ("PYQT5", guiintegration.App_pyqt5),
                     ("PYSIDE", guiintegration.App_pyside),
+                    ("PYQT4", guiintegration.App_pyqt4),
                     # ('WX', guiintegration.App_wx),
                     ("ASYNCIO", guiintegration.App_asyncio),
                     ("TK", guiintegration.App_tk),
@@ -521,10 +523,14 @@ class PyzoInterpreter:
                 self.guiApp = guiintegration.App_wx()
             elif guiName == "TORNADO":
                 self.guiApp = guiintegration.App_tornado()
-            elif guiName == "PYSIDE":
-                self.guiApp = guiintegration.App_pyside()
+            elif guiName == "PYSIDE6":
+                self.guiApp = guiintegration.App_pyside6()
             elif guiName == "PYSIDE2":
                 self.guiApp = guiintegration.App_pyside2()
+            elif guiName == "PYSIDE":
+                self.guiApp = guiintegration.App_pyside()
+            elif guiName in ["PYQT6", "QT6"]:
+                self.guiApp = guiintegration.App_pyqt6()
             elif guiName in ["PYQT5", "QT5"]:
                 self.guiApp = guiintegration.App_pyqt5()
             elif guiName in ["PYQT4", "QT4"]:

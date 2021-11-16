@@ -492,6 +492,8 @@ class App_qt(App_base):
                     except Exception:
                         pass  # tough luck
 
+                setattr(theApp, "exec", theApp.exec_)
+
                 # Call init function (in case the user overloaded it)
                 theApp.__init__(*args, **kwargs)
 
@@ -573,11 +575,28 @@ class App_qt(App_base):
 
         # Enter Qt mainloop
         # self._QtGui.real_QApplication.exec_(self.app)
-        self._QtGui.real_QApplication.exec_()
+        exec_ = getattr(self._QtGui.real_QApplication, "exec")
+        if exec_ is None:
+            exec_ = self._QtGui.real_QApplication.exec_
+        try:
+            exec_(self.app)
+        except TypeError:
+            exec_()
 
     def quit(self):
         # A nicer way to quit
         self._QtGui.real_QApplication.quit()
+
+
+class App_pyqt6(App_qt):
+    """Hijack the PyQt6 mainloop."""
+
+    def importCoreAndGui(self):
+        # Try importing qt
+        import PyQt6  # noqa
+        from PyQt6 import QtGui, QtCore, QtWidgets  # noqa
+
+        return QtWidgets, QtCore  # QApp sits on QtWidgets
 
 
 class App_pyqt5(App_qt):
@@ -600,6 +619,17 @@ class App_pyqt4(App_qt):
         from PyQt4 import QtGui, QtCore
 
         return QtGui, QtCore
+
+
+class App_pyside6(App_qt):
+    """Hijack the PySide6 mainloop."""
+
+    def importCoreAndGui(self):
+        # Try importing qt
+        import PySide6  # noqa
+        from PySide6 import QtGui, QtCore, QtWidgets  # noqa
+
+        return QtWidgets, QtCore  # QApp sits on QtWidgets
 
 
 class App_pyside2(App_qt):
