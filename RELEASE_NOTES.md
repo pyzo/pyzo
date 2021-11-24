@@ -1,7 +1,7 @@
 # Release notes
 
 
-### Version 4.11.3 (24-11-2021)
+### Version 4.11.4 (24-11-2021)
 
 - Fix for using PySide6 and PyQt5 in interpreter.
 - Fix for running Pyzo with Python 3.10.
