@@ -1,6 +1,12 @@
 # Release notes
 
 
+### Version 4.11.3 (24-11-2021)
+
+- Fix for using PySide6 and PyQt5 in interpreter.
+- Fix for running Pyzo with Python 3.10.
+
+
 ### Version 4.11.2 (19-11-2020)
 
 - Fix for MacOS Big Sur (#731).
