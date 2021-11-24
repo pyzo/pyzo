@@ -579,8 +579,11 @@ class App_qt(App_base):
         if exec_ is None:
             exec_ = self._QtGui.real_QApplication.exec_
         try:
+            try_again = False
             exec_(self.app)
         except TypeError:
+            try_again = True
+        if try_again:
             exec_()
 
     def quit(self):
