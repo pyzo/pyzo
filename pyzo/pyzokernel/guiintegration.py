@@ -575,7 +575,7 @@ class App_qt(App_base):
 
         # Enter Qt mainloop
         # self._QtGui.real_QApplication.exec_(self.app)
-        exec_ = getattr(self._QtGui.real_QApplication, "exec")
+        exec_ = getattr(self._QtGui.real_QApplication, "exec", None)
         if exec_ is None:
             exec_ = self._QtGui.real_QApplication.exec_
         try:
