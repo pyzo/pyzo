@@ -562,7 +562,7 @@ class App_qt(App_base):
             return self._original_excepthook(type, value, traceback)
 
     def process_events(self):
-        self.app.flush()
+        self.app.sendPostedEvents()
         self.app.processEvents()
 
     def run(self, repl_callback, sleeptime=None):

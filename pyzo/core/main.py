@@ -88,7 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Hold the splash screen if needed
         while time.time() < splash_timeout:
-            QtWidgets.qApp.flush()
+            QtWidgets.qApp.sendPostedEvents()
             QtWidgets.qApp.processEvents()
             time.sleep(0.05)
 
@@ -137,7 +137,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._ispainted = False
         self.update()
         while not self._ispainted:
-            QtWidgets.qApp.flush()
+            QtWidgets.qApp.sendPostedEvents()
             QtWidgets.qApp.processEvents()
             time.sleep(0.01)
 

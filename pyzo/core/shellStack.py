@@ -619,7 +619,7 @@ class InterpreterHelper(QtWidgets.QWidget):
 
     def refresh(self):
         self._label.setText("Detecting interpreters ...")
-        QtWidgets.qApp.flush()
+        QtWidgets.qApp.sendPostedEvents()
         QtWidgets.qApp.processEvents()
         self.detect()
 
