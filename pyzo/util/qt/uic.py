@@ -1,20 +1,20 @@
 import os
 
-from . import PYSIDE, PYSIDE2, PYQT4, PYQT5
+from . import PYSIDE6, PYSIDE2, PYQT5, PYQT6
 from .QtWidgets import QComboBox
 
 
-if PYQT5:
+if PYQT6:
+
+    from PyQt6.uic import *
+
+elif PYQT5:
 
     from PyQt5.uic import *
 
-elif PYQT4:
-
-    from PyQt4.uic import *
-
 else:
 
-    __all__ = ["loadUi"]
+    __all__ = ['loadUi', 'loadUiType']
 
     # In PySide, loadUi does not exist, so we define it using QUiLoader, and
     # then make sure we expose that function. This is adapted from qt-helpers
@@ -78,12 +78,16 @@ else:
     # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     # DEALINGS IN THE SOFTWARE.
 
-    if PYSIDE:
-        from PySide.QtCore import QMetaObject
-        from PySide.QtUiTools import QUiLoader
+    if PYSIDE6:
+        from PySide6.QtCore import QMetaObject
+        from PySide6.QtUiTools import QUiLoader
     elif PYSIDE2:
         from PySide2.QtCore import QMetaObject
         from PySide2.QtUiTools import QUiLoader
+        try:
+            from pyside2uic import compileUi
+        except ImportError:
+            pass
 
     class UiLoader(QUiLoader):
         """
@@ -122,7 +126,7 @@ else:
             else:
                 self.customWidgets = customWidgets
 
-        def createWidget(self, class_name, parent=None, name=""):
+        def createWidget(self, class_name, parent=None, name=''):
             """
             Function that is called for each widget defined in ui file,
             overridden here to populate baseinstance instead.
@@ -137,7 +141,7 @@ else:
 
                 # For some reason, Line is not in the list of available
                 # widgets, but works fine, so we have to special case it here.
-                if class_name in self.availableWidgets() or class_name == "Line":
+                if class_name in self.availableWidgets() or class_name == 'Line':
                     # create a new widget for child widgets
                     widget = QUiLoader.createWidget(self, class_name, parent, name)
 
@@ -148,11 +152,11 @@ else:
                     # customWidgets is empty.
                     try:
                         widget = self.customWidgets[class_name](parent)
-                    except KeyError:
+                    except KeyError as error:
                         raise Exception(
-                            "No custom widget " + class_name + " "
-                            "found in customWidgets"
-                        )
+                            f'No custom widget {class_name} '
+                            'found in customWidgets'
+                            ) from error
 
                 if self.baseinstance:
                     # set an attribute for the new child widget on the base
@@ -176,17 +180,17 @@ else:
         ui = etree.parse(ui_file)
 
         # Get the customwidgets section
-        custom_widgets = ui.find("customwidgets")
+        custom_widgets = ui.find('customwidgets')
 
         if custom_widgets is None:
             return {}
 
         custom_widget_classes = {}
 
-        for custom_widget in custom_widgets.getchildren():
+        for custom_widget in list(custom_widgets):
 
-            cw_class = custom_widget.find("class").text
-            cw_header = custom_widget.find("header").text
+            cw_class = custom_widget.find('class').text
+            cw_header = custom_widget.find('header').text
 
             module = importlib.import_module(cw_header)
 
@@ -228,3 +232,41 @@ else:
         widget = loader.load(uifile)
         QMetaObject.connectSlotsByName(widget)
         return widget
+
+    def loadUiType(uifile, from_imports=False):
+        """Load a .ui file and return the generated form class and
+        the Qt base class.
+
+        The "loadUiType" command convert the ui file to py code
+        in-memory first and then execute it in a special frame to
+        retrieve the form_class.
+
+        Credit: https://stackoverflow.com/a/14195313/15954282
+        """
+
+        import sys
+        from io import StringIO
+        from xml.etree.ElementTree import ElementTree
+        from . import QtWidgets
+
+        # Parse the UI file
+        etree = ElementTree()
+        ui = etree.parse(uifile)
+
+        widget_class = ui.find('widget').get('class')
+        form_class = ui.find('class').text
+
+        with open(uifile, encoding="utf-8") as fd:
+            code_stream = StringIO()
+            frame = {}
+
+            compileUi(fd, code_stream, indent=0, from_imports=from_imports)
+            pyc = compile(code_stream.getvalue(), '<string>', 'exec')
+            exec(pyc, frame)
+
+            # Fetch the base_class and form class based on their type in the
+            # xml from designer
+            form_class = frame['Ui_%s' % form_class]
+            base_class = getattr(QtWidgets, widget_class)
+
+        return form_class, base_class

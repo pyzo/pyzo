@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright © 2014-2015 Colin Duquesnoy
 # Copyright © 2009- The Spyder Development Team
@@ -9,19 +8,67 @@
 """
 Provides QtCore classes and functions.
 """
+from . import PYQT6, PYQT5, PYSIDE2, PYSIDE6, PythonQtError
 
-from . import PYQT5, PYSIDE2, PYQT4, PYSIDE, PythonQtError
 
+if PYQT6:
+    from PyQt6 import QtCore
+    from PyQt6.QtCore import *
+    from PyQt6.QtCore import pyqtSignal as Signal
+    from PyQt6.QtCore import pyqtBoundSignal as SignalInstance
+    from PyQt6.QtCore import pyqtSlot as Slot
+    from PyQt6.QtCore import pyqtProperty as Property
+    from PyQt6.QtCore import QT_VERSION_STR as __version__
 
-if PYQT5:
+    # For issue #153
+    from PyQt6.QtCore import QDateTime
+    QDateTime.toPython = QDateTime.toPyDateTime
+
+    # Map missing methods
+    QCoreApplication.exec_ = QCoreApplication.exec
+    QEventLoop.exec_ = QEventLoop.exec
+    QThread.exec_ = QThread.exec
+    
+    QLibraryInfo.location = QLibraryInfo.path 
+
+    # Those are imported from `import *`
+    del pyqtSignal, pyqtBoundSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
+
+    # Allow unscoped access for enums inside the QtCore module
+    from .enums_compat import promote_enums
+    promote_enums(QtCore)
+    del QtCore
+elif PYQT5:
     from PyQt5.QtCore import *
     from PyQt5.QtCore import pyqtSignal as Signal
+    from PyQt5.QtCore import pyqtBoundSignal as SignalInstance
     from PyQt5.QtCore import pyqtSlot as Slot
     from PyQt5.QtCore import pyqtProperty as Property
     from PyQt5.QtCore import QT_VERSION_STR as __version__
 
+    # For issue #153
+    from PyQt5.QtCore import QDateTime
+    QDateTime.toPython = QDateTime.toPyDateTime
+
     # Those are imported from `import *`
-    del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
+    del pyqtSignal, pyqtBoundSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
+
+elif PYSIDE6:
+    from PySide6.QtCore import *
+    import PySide6.QtCore
+    __version__ = PySide6.QtCore.__version__
+
+    # obsolete in qt6
+    Qt.BackgroundColorRole = Qt.BackgroundRole
+    Qt.TextColorRole = Qt.ForegroundRole
+    Qt.MidButton = Qt.MiddleButton
+
+    # Map DeprecationWarning methods
+    QCoreApplication.exec_ = QCoreApplication.exec
+    QEventLoop.exec_ = QEventLoop.exec
+    QThread.exec_ = QThread.exec
+    QTextStreamManipulator.exec_ = QTextStreamManipulator.exec
+
 elif PYSIDE2:
     from PySide2.QtCore import *
 
@@ -29,85 +76,8 @@ elif PYSIDE2:
         from PySide2.QtGui import QStringListModel
     except Exception:
         pass
-elif PYQT4:
-    from PyQt4.QtCore import *
 
-    # Those are things we inherited from Spyder that fix crazy crashes under
-    # some specific situations. (See #34)
-    from PyQt4.QtCore import QCoreApplication
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtCore import pyqtSignal as Signal
-    from PyQt4.QtCore import pyqtSlot as Slot
-    from PyQt4.QtCore import pyqtProperty as Property
-    from PyQt4.QtGui import (
-        QItemSelection,
-        QItemSelectionModel,
-        QItemSelectionRange,
-        QSortFilterProxyModel,
-        QStringListModel,
-    )
-    from PyQt4.QtCore import QT_VERSION_STR as __version__
-    from PyQt4.QtCore import qInstallMsgHandler as qInstallMessageHandler
-
-    # QDesktopServices has has been split into (QDesktopServices and
-    # QStandardPaths) in Qt5
-    # This creates a dummy class that emulates QStandardPaths
-    from PyQt4.QtGui import QDesktopServices as _QDesktopServices
-
-    class QStandardPaths:
-        StandardLocation = _QDesktopServices.StandardLocation
-        displayName = _QDesktopServices.displayName
-        DesktopLocation = _QDesktopServices.DesktopLocation
-        DocumentsLocation = _QDesktopServices.DocumentsLocation
-        FontsLocation = _QDesktopServices.FontsLocation
-        ApplicationsLocation = _QDesktopServices.ApplicationsLocation
-        MusicLocation = _QDesktopServices.MusicLocation
-        MoviesLocation = _QDesktopServices.MoviesLocation
-        PicturesLocation = _QDesktopServices.PicturesLocation
-        TempLocation = _QDesktopServices.TempLocation
-        HomeLocation = _QDesktopServices.HomeLocation
-        DataLocation = _QDesktopServices.DataLocation
-        CacheLocation = _QDesktopServices.CacheLocation
-        writableLocation = _QDesktopServices.storageLocation
-
-    # Those are imported from `import *`
-    del pyqtSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR, qInstallMsgHandler
-elif PYSIDE:
-    from PySide.QtCore import *
-    from PySide.QtGui import (
-        QItemSelection,
-        QItemSelectionModel,
-        QItemSelectionRange,
-        QSortFilterProxyModel,
-        QStringListModel,
-    )
-    from PySide.QtCore import qInstallMsgHandler as qInstallMessageHandler
-
-    del qInstallMsgHandler
-
-    # QDesktopServices has has been split into (QDesktopServices and
-    # QStandardPaths) in Qt5
-    # This creates a dummy class that emulates QStandardPaths
-    from PySide.QtGui import QDesktopServices as _QDesktopServices
-
-    class QStandardPaths:
-        StandardLocation = _QDesktopServices.StandardLocation
-        displayName = _QDesktopServices.displayName
-        DesktopLocation = _QDesktopServices.DesktopLocation
-        DocumentsLocation = _QDesktopServices.DocumentsLocation
-        FontsLocation = _QDesktopServices.FontsLocation
-        ApplicationsLocation = _QDesktopServices.ApplicationsLocation
-        MusicLocation = _QDesktopServices.MusicLocation
-        MoviesLocation = _QDesktopServices.MoviesLocation
-        PicturesLocation = _QDesktopServices.PicturesLocation
-        TempLocation = _QDesktopServices.TempLocation
-        HomeLocation = _QDesktopServices.HomeLocation
-        DataLocation = _QDesktopServices.DataLocation
-        CacheLocation = _QDesktopServices.CacheLocation
-        writableLocation = _QDesktopServices.storageLocation
-
-    import PySide.QtCore
-
-    __version__ = PySide.QtCore.__version__
+    import PySide2.QtCore
+    __version__ = PySide2.QtCore.__version__
 else:
-    raise PythonQtError("No Qt bindings could be found")
+    raise PythonQtError('No Qt bindings could be found')
