@@ -14,7 +14,7 @@ elif PYQT5:
 
 else:
 
-    __all__ = ['loadUi', 'loadUiType']
+    __all__ = ["loadUi", "loadUiType"]
 
     # In PySide, loadUi does not exist, so we define it using QUiLoader, and
     # then make sure we expose that function. This is adapted from qt-helpers
@@ -84,6 +84,7 @@ else:
     elif PYSIDE2:
         from PySide2.QtCore import QMetaObject
         from PySide2.QtUiTools import QUiLoader
+
         try:
             from pyside2uic import compileUi
         except ImportError:
@@ -126,7 +127,7 @@ else:
             else:
                 self.customWidgets = customWidgets
 
-        def createWidget(self, class_name, parent=None, name=''):
+        def createWidget(self, class_name, parent=None, name=""):
             """
             Function that is called for each widget defined in ui file,
             overridden here to populate baseinstance instead.
@@ -141,7 +142,7 @@ else:
 
                 # For some reason, Line is not in the list of available
                 # widgets, but works fine, so we have to special case it here.
-                if class_name in self.availableWidgets() or class_name == 'Line':
+                if class_name in self.availableWidgets() or class_name == "Line":
                     # create a new widget for child widgets
                     widget = QUiLoader.createWidget(self, class_name, parent, name)
 
@@ -154,9 +155,8 @@ else:
                         widget = self.customWidgets[class_name](parent)
                     except KeyError as error:
                         raise Exception(
-                            f'No custom widget {class_name} '
-                            'found in customWidgets'
-                            ) from error
+                            f"No custom widget {class_name} " "found in customWidgets"
+                        ) from error
 
                 if self.baseinstance:
                     # set an attribute for the new child widget on the base
@@ -180,7 +180,7 @@ else:
         ui = etree.parse(ui_file)
 
         # Get the customwidgets section
-        custom_widgets = ui.find('customwidgets')
+        custom_widgets = ui.find("customwidgets")
 
         if custom_widgets is None:
             return {}
@@ -189,8 +189,8 @@ else:
 
         for custom_widget in list(custom_widgets):
 
-            cw_class = custom_widget.find('class').text
-            cw_header = custom_widget.find('header').text
+            cw_class = custom_widget.find("class").text
+            cw_header = custom_widget.find("header").text
 
             module = importlib.import_module(cw_header)
 
@@ -253,20 +253,20 @@ else:
         etree = ElementTree()
         ui = etree.parse(uifile)
 
-        widget_class = ui.find('widget').get('class')
-        form_class = ui.find('class').text
+        widget_class = ui.find("widget").get("class")
+        form_class = ui.find("class").text
 
         with open(uifile, encoding="utf-8") as fd:
             code_stream = StringIO()
             frame = {}
 
             compileUi(fd, code_stream, indent=0, from_imports=from_imports)
-            pyc = compile(code_stream.getvalue(), '<string>', 'exec')
+            pyc = compile(code_stream.getvalue(), "<string>", "exec")
             exec(pyc, frame)
 
             # Fetch the base_class and form class based on their type in the
             # xml from designer
-            form_class = frame['Ui_%s' % form_class]
+            form_class = frame["Ui_%s" % form_class]
             base_class = getattr(QtWidgets, widget_class)
 
         return form_class, base_class

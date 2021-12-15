@@ -30,6 +30,7 @@ if PYQT6:
 
     # Allow unscoped access for enums inside the QtWidgets module
     from .enums_compat import promote_enums
+
     promote_enums(QtWidgets)
     del QtWidgets
 elif PYQT5:
@@ -52,4 +53,4 @@ elif PYSIDE6:
 elif PYSIDE2:
     from PySide2.QtWidgets import *
 else:
-    raise PythonQtError('No Qt bindings could be found')
+    raise PythonQtError("No Qt bindings could be found")

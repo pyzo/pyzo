@@ -61,7 +61,7 @@ import sys
 import warnings
 
 # Version of QtPy
-__version__ = '2.0.0.dev0'
+__version__ = "2.0.0.dev0"
 
 
 class PythonQtError(RuntimeError):
@@ -73,23 +73,23 @@ class PythonQtWarning(Warning):
 
 
 # Qt API environment variable name
-QT_API = 'QT_API'
+QT_API = "QT_API"
 
 # Names of the expected PyQt5 api
-PYQT5_API = ['pyqt5']
+PYQT5_API = ["pyqt5"]
 
-PYQT6_API = ['pyqt6']
+PYQT6_API = ["pyqt6"]
 
 # Names of the expected PySide2 api
-PYSIDE2_API = ['pyside2']
+PYSIDE2_API = ["pyside2"]
 
 # Names of the expected PySide6 api
-PYSIDE6_API = ['pyside6']
+PYSIDE6_API = ["pyside6"]
 
 # Minimum supported versions of Qt and the bindings
-QT5_VERSION_MIN = PYQT5_VERSION_MIN = '5.9.0'
-PYSIDE2_VERSION_MIN = '5.12.0'
-QT6_VERSION_MIN = PYQT6_VERSION_MIN = PYSIDE6_VERSION_MIN = '6.2.0'
+QT5_VERSION_MIN = PYQT5_VERSION_MIN = "5.9.0"
+PYSIDE2_VERSION_MIN = "5.12.0"
+QT6_VERSION_MIN = PYQT6_VERSION_MIN = PYSIDE6_VERSION_MIN = "6.2.0"
 
 QT_VERSION_MIN = QT5_VERSION_MIN
 PYQT_VERSION_MIN = PYQT5_VERSION_MIN
@@ -99,7 +99,7 @@ PYSIDE_VERISION_MIN = PYSIDE2_VERSION_MIN
 binding_specified = QT_API in os.environ
 
 # Setting a default value for QT_API
-os.environ.setdefault(QT_API, 'pyqt5')
+os.environ.setdefault(QT_API, "pyqt5")
 
 API = os.environ[QT_API].lower()
 initial_api = API
@@ -114,15 +114,15 @@ PYSIDE_VERSION = None
 QT_VERSION = None
 
 # Unless `FORCE_QT_API` is set, use previously imported Qt Python bindings
-if not os.environ.get('FORCE_QT_API'):
-    if 'PyQt6' in sys.modules:
-        API = initial_api if initial_api in PYQT6_API else 'pyqt6'
-    elif 'PyQt5' in sys.modules:
-        API = initial_api if initial_api in PYQT5_API else 'pyqt5'
-    elif 'PySide6' in sys.modules:
-        API = initial_api if initial_api in PYSIDE6_API else 'pyside6'
-    elif 'PySide2' in sys.modules:
-        API = initial_api if initial_api in PYSIDE2_API else 'pyside2'
+if not os.environ.get("FORCE_QT_API"):
+    if "PyQt6" in sys.modules:
+        API = initial_api if initial_api in PYQT6_API else "pyqt6"
+    elif "PyQt5" in sys.modules:
+        API = initial_api if initial_api in PYQT5_API else "pyqt5"
+    elif "PySide6" in sys.modules:
+        API = initial_api if initial_api in PYSIDE6_API else "pyside6"
+    elif "PySide2" in sys.modules:
+        API = initial_api if initial_api in PYSIDE2_API else "pyside2"
 
 if API in PYQT5_API:
     try:
@@ -131,24 +131,28 @@ if API in PYQT5_API:
 
         QT5 = PYQT5 = True
 
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             macos_version = parse(platform.mac_ver()[0])
-            if macos_version < parse('10.10'):
-                if parse(QT_VERSION) >= parse('5.9'):
-                    raise PythonQtError("Qt 5.9 or higher only works in "
-                                        "macOS 10.10 or higher. Your "
-                                        "program will fail in this "
-                                        "system.")
-            elif macos_version < parse('10.11'):
-                if parse(QT_VERSION) >= parse('5.11'):
-                    raise PythonQtError("Qt 5.11 or higher only works in "
-                                        "macOS 10.11 or higher. Your "
-                                        "program will fail in this "
-                                        "system.")
+            if macos_version < parse("10.10"):
+                if parse(QT_VERSION) >= parse("5.9"):
+                    raise PythonQtError(
+                        "Qt 5.9 or higher only works in "
+                        "macOS 10.10 or higher. Your "
+                        "program will fail in this "
+                        "system."
+                    )
+            elif macos_version < parse("10.11"):
+                if parse(QT_VERSION) >= parse("5.11"):
+                    raise PythonQtError(
+                        "Qt 5.11 or higher only works in "
+                        "macOS 10.11 or higher. Your "
+                        "program will fail in this "
+                        "system."
+                    )
 
             del macos_version
     except ImportError:
-        API = os.environ['QT_API'] = 'pyqt6'
+        API = os.environ["QT_API"] = "pyqt6"
 
 if API in PYQT6_API:
     try:
@@ -159,7 +163,7 @@ if API in PYQT6_API:
         QT6 = PYQT6 = True
 
     except ImportError:
-        API = os.environ['QT_API'] = 'pyside2'
+        API = os.environ["QT_API"] = "pyside2"
 
 
 if API in PYSIDE2_API:
@@ -170,18 +174,20 @@ if API in PYSIDE2_API:
         PYQT5 = False
         QT5 = PYSIDE2 = True
 
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             macos_version = parse(platform.mac_ver()[0])
-            if macos_version < parse('10.11'):
-                if parse(QT_VERSION) >= parse('5.11'):
-                    raise PythonQtError("Qt 5.11 or higher only works in "
-                                        "macOS 10.11 or higher. Your "
-                                        "program will fail in this "
-                                        "system.")
+            if macos_version < parse("10.11"):
+                if parse(QT_VERSION) >= parse("5.11"):
+                    raise PythonQtError(
+                        "Qt 5.11 or higher only works in "
+                        "macOS 10.11 or higher. Your "
+                        "program will fail in this "
+                        "system."
+                    )
 
             del macos_version
     except ImportError:
-        API = os.environ['QT_API'] = 'pyside6'
+        API = os.environ["QT_API"] = "pyside6"
 
 if API in PYSIDE6_API:
     try:
@@ -192,17 +198,24 @@ if API in PYSIDE6_API:
         QT6 = PYSIDE6 = True
 
     except ImportError:
-        API = os.environ['QT_API'] = 'pyqt5'
+        API = os.environ["QT_API"] = "pyqt5"
 
 
 # If a correct API name is passed to QT_API and it could not be found,
 # switches to another and informs through the warning
 if API != initial_api and binding_specified:
-    warnings.warn('Selected binding "{}" could not be found, '
-                  'using "{}"'.format(initial_api, API), RuntimeWarning)
+    warnings.warn(
+        'Selected binding "{}" could not be found, '
+        'using "{}"'.format(initial_api, API),
+        RuntimeWarning,
+    )
 
-API_NAME = {'pyqt6': 'PyQt6', 'pyqt5': 'PyQt5',
-            'pyside2':'PySide2', 'pyside6': 'PySide6'}[API]
+API_NAME = {
+    "pyqt6": "PyQt6",
+    "pyqt5": "PyQt5",
+    "pyside2": "PySide2",
+    "pyside6": "PySide6",
+}[API]
 
 try:
     # QtDataVisualization backward compatibility (QtDataVisualization vs. QtDatavisualization)
@@ -218,24 +231,26 @@ def _warn_old_minor_version(name, old_version, min_version):
         "{name} version {old_version} is not supported by QtPy. "
         "To ensure your application works correctly with QtPy, "
         "please upgrade to {name} {min_version} or later.".format(
-            name=name, old_version=old_version, min_version=min_version))
+            name=name, old_version=old_version, min_version=min_version
+        )
+    )
     warnings.warn(warning_message, PythonQtWarning)
 
 
 # Warn if using an End of Life or unsupported Qt API/binding minor version
 if QT_VERSION:
     if QT5 and (parse(QT_VERSION) < parse(QT5_VERSION_MIN)):
-        _warn_old_minor_version('Qt5', QT_VERSION, QT5_VERSION_MIN)
+        _warn_old_minor_version("Qt5", QT_VERSION, QT5_VERSION_MIN)
     elif QT6 and (parse(QT_VERSION) < parse(QT6_VERSION_MIN)):
-        _warn_old_minor_version('Qt6', QT_VERSION, QT6_VERSION_MIN)
+        _warn_old_minor_version("Qt6", QT_VERSION, QT6_VERSION_MIN)
 
 if PYQT_VERSION:
     if PYQT5 and (parse(PYQT_VERSION) < parse(PYQT5_VERSION_MIN)):
-        _warn_old_minor_version('PyQt5', PYQT_VERSION, PYQT5_VERSION_MIN)
+        _warn_old_minor_version("PyQt5", PYQT_VERSION, PYQT5_VERSION_MIN)
     elif PYQT6 and (parse(PYQT_VERSION) < parse(PYQT6_VERSION_MIN)):
-        _warn_old_minor_version('PyQt6', PYQT_VERSION, PYQT6_VERSION_MIN)
+        _warn_old_minor_version("PyQt6", PYQT_VERSION, PYQT6_VERSION_MIN)
 elif PYSIDE_VERSION:
     if PYSIDE2 and (parse(PYSIDE_VERSION) < parse(PYSIDE2_VERSION_MIN)):
-        _warn_old_minor_version('PySide2', PYSIDE_VERSION, PYSIDE2_VERSION_MIN)
+        _warn_old_minor_version("PySide2", PYSIDE_VERSION, PYSIDE2_VERSION_MIN)
     elif PYSIDE6 and (parse(PYSIDE_VERSION) < parse(PYSIDE6_VERSION_MIN)):
-        _warn_old_minor_version('PySide6', PYSIDE_VERSION, PYSIDE6_VERSION_MIN)
+        _warn_old_minor_version("PySide6", PYSIDE_VERSION, PYSIDE6_VERSION_MIN)

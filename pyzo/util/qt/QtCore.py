@@ -22,20 +22,22 @@ if PYQT6:
 
     # For issue #153
     from PyQt6.QtCore import QDateTime
+
     QDateTime.toPython = QDateTime.toPyDateTime
 
     # Map missing methods
     QCoreApplication.exec_ = QCoreApplication.exec
     QEventLoop.exec_ = QEventLoop.exec
     QThread.exec_ = QThread.exec
-    
-    QLibraryInfo.location = QLibraryInfo.path 
+
+    QLibraryInfo.location = QLibraryInfo.path
 
     # Those are imported from `import *`
     del pyqtSignal, pyqtBoundSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
 
     # Allow unscoped access for enums inside the QtCore module
     from .enums_compat import promote_enums
+
     promote_enums(QtCore)
     del QtCore
 elif PYQT5:
@@ -48,6 +50,7 @@ elif PYQT5:
 
     # For issue #153
     from PyQt5.QtCore import QDateTime
+
     QDateTime.toPython = QDateTime.toPyDateTime
 
     # Those are imported from `import *`
@@ -56,6 +59,7 @@ elif PYQT5:
 elif PYSIDE6:
     from PySide6.QtCore import *
     import PySide6.QtCore
+
     __version__ = PySide6.QtCore.__version__
 
     # obsolete in qt6
@@ -78,6 +82,7 @@ elif PYSIDE2:
         pass
 
     import PySide2.QtCore
+
     __version__ = PySide2.QtCore.__version__
 else:
-    raise PythonQtError('No Qt bindings could be found')
+    raise PythonQtError("No Qt bindings could be found")

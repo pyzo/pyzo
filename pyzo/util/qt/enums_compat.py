@@ -21,9 +21,9 @@ if PYQT6:
         Search enums in the given module and allow unscoped access.
 
         Taken from:
-        https://github.com/pyqtgraph/pyqtgraph/blob/pyqtgraph-0.12.1/pyqtgraph/Qt.py#L331-L377 
+        https://github.com/pyqtgraph/pyqtgraph/blob/pyqtgraph-0.12.1/pyqtgraph/Qt.py#L331-L377
         """
-        class_names = [name for name in dir(module) if name.startswith('Q')]
+        class_names = [name for name in dir(module) if name.startswith("Q")]
         for class_name in class_names:
             klass = getattr(module, class_name)
             if not isinstance(klass, sip.wrappertype):

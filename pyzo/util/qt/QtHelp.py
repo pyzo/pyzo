@@ -19,4 +19,4 @@ elif PYSIDE6:
 elif PYSIDE2:
     from PySide2.QtHelp import *
 else:
-    raise PythonQtError('No Qt bindings could be found')
+    raise PythonQtError("No Qt bindings could be found")

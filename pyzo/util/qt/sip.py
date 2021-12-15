@@ -11,5 +11,4 @@ if PYQT6:
 elif PYQT5:
     from PyQt5.sip import *
 else:
-    raise PythonQtError(
-        'Currently selected Qt binding does not support this module')
+    raise PythonQtError("Currently selected Qt binding does not support this module")
