@@ -300,7 +300,7 @@ class PathInput(LineEditWithToolButtons):
         c.setCompletionMode(c.InlineCompletion)
 
         # Set dir model to completer
-        dirModel = QtWidgets.QDirModel(c)
+        dirModel = QtWidgets.QFileSystemModel(c)
         dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
         c.setModel(dirModel)
 
