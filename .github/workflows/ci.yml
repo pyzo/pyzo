@@ -98,4 +98,6 @@ jobs:
     - name: Test on repo
       run: |
           pytest -v tests
-    # todo: add a dry-run or something so we actually boot Pyzo and close it
+    - name: Run Pyzo
+      run: |
+          python pyzo --test
