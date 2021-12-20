@@ -5,7 +5,7 @@ Simplified Chinese.
 
 For the translations we make use of Qt's translation system. To update
 a translation, run Qt linguist on any of the `.tr` files
-[here](https://github.com/pyzo/pyzo/tree/master/pyzo/resources/translations).
+[here](https://github.com/pyzo/pyzo/tree/main/pyzo/resources/translations).
 Then submit the result, preferably via a Github pull request (but
 emailing it to me is fine too).
 

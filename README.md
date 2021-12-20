@@ -1,7 +1,7 @@
 # Pyzo - The Interactive editor for scientific Python
 
 [![PyPI Version](https://img.shields.io/pypi/v/pyzo.svg)](https://pypi.python.org/pypi/pyzo/)
-[![Build Status](https://dev.azure.com/pyzo/pyzo/_apis/build/status/pyzo.pyzo?branchName=master)](https://dev.azure.com/pyzo/pyzo/_build/latest?definitionId=1&branchName=master)
+[![CI](https://github.com/pyzo/pyzo/actions/workflows/ci.yml/badge.svg)](https://github.com/pyzo/pyzo/actions/workflows/ci.yml)
 
 Website: [pyzo.org](http://pyzo.org)
 

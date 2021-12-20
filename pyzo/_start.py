@@ -272,7 +272,7 @@ def start():
 
     # In test mode, we close after 5 seconds
     if "--test" in sys.argv:
-        print("Pyzo", __version__)
+        print("Pyzo", pyzo.__version__)
         pyzo.test_close_timer = t = QtCore.QTimer()
         t.setInterval(5000)
         t.setSingleShot(True)
