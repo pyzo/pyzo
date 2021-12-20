@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  lint-build:
+    name: Linting
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dev dependencies
+      run: |
+          python -m pip install --upgrade pip
+          pip install -U black flake8 flake8-black
+    - name: Flake8
+      run: |
+          flake8 .
+
+  test-builds:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Test Linux py36
+            os: ubuntu-latest
+            pyversion: '3.6'
+          - name: Test Linux py37
+            os: ubuntu-latest
+            pyversion: '3.7'
+          - name: Test Linux py38
+            os: ubuntu-latest
+            pyversion: '3.8'
+          - name: Test Linux py39
+            os: ubuntu-latest
+            pyversion: '3.9'
+            PYINSTALLER: 1
+          - name: Test Linux py310
+            os: ubuntu-latest
+            pyversion: '3.10'
+          - name: Test Linux pypy3
+            os: ubuntu-latest
+            pyversion: 'pypy3'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.pyversion }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.pyversion }}
+    - name: Install dependencies
+      run: |
+          python -m pip install --upgrade pip
+          pip install -U pytest
+          pip install -U pyside6
+    - name: Install in development mode
+      run: |
+          pip install -e .
+    - name: Test on repo
+      run: |
+          pytest -v tests
+    # todo: add a dry-run or something so we actually boot Pyzo and close it
