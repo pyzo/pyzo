@@ -77,8 +77,6 @@ jobs:
             os: ubuntu-latest
             pyversion: '3.10'
             qtlib: pyside6
-    env:
-      #DISPLAY: ':99.0'
     steps:
     - uses: actions/checkout@v2
     - name: Setup os
