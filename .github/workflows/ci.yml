@@ -34,27 +34,58 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Python versions
           - name: Test Linux py36
             os: ubuntu-latest
             pyversion: '3.6'
+            qtlib: pyside6
           - name: Test Linux py37
             os: ubuntu-latest
             pyversion: '3.7'
+            qtlib: pyside6
           - name: Test Linux py38
             os: ubuntu-latest
             pyversion: '3.8'
+            qtlib: pyside6
           - name: Test Linux py39
             os: ubuntu-latest
             pyversion: '3.9'
-            PYINSTALLER: 1
-          - name: Test Linux py310
+            qtlib: pyside6
+          # OS's
+          - name: Test Windows py310
+            os: windows-latest
+            pyversion: '3.10'
+            qtlib: pyside6
+          - name: Test MacOS py310
+            os: macos-latest
+            pyversion: '3.10'
+            qtlib: pyside6
+          # Qt libs
+          - name: Test Linux py310 PyQt5
             os: ubuntu-latest
             pyversion: '3.10'
-          - name: Test Linux pypy3
+            qtlib: pyqt5
+          - name: Test Linux py310 PyQt6
             os: ubuntu-latest
-            pyversion: 'pypy3'
+            pyversion: '3.10'
+            qtlib: pyqt6
+          - name: Test Linux py310 PySide2
+            os: ubuntu-latest
+            pyversion: '3.10'
+            qtlib: pyside2
+          - name: Test Linux py310 PySide6
+            os: ubuntu-latest
+            pyversion: '3.10'
+            qtlib: pyside6
+    env:
+      DISPLAY: ':99.0'
     steps:
     - uses: actions/checkout@v2
+    - name: Setup os
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt install libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
     - name: Set up Python ${{ matrix.pyversion }}
       uses: actions/setup-python@v2
       with:
@@ -63,7 +94,7 @@ jobs:
       run: |
           python -m pip install --upgrade pip
           pip install -U pytest
-          pip install -U pyside6
+          pip install -U ${{ matrix.qtlib }}
     - name: Install in development mode
       run: |
           pip install -e .
