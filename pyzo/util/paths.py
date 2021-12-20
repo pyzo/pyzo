@@ -20,7 +20,7 @@ This code was first part of pyzolib, and later moved to pyzo.
 # * See docstring: that's why the functions tend to not re-use each-other
 
 import sys
-from pyzo.util.qt import QtCore
+from pyzo.qt import QtCore
 
 ISWIN = sys.platform.startswith("win")
 ISMAC = sys.platform.startswith("darwin")

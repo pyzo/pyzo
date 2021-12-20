@@ -19,7 +19,7 @@ from urllib.request import urlopen
 import ast
 import json
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget

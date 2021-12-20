@@ -4,5 +4,7 @@ _feedstock/
 build/
 dist/
 frozen/
+freeze/build/
+freeze/dist/
 *.pyc
 pyzo.egg-info/*

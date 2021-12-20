@@ -12,7 +12,7 @@ Implements shell configuration dialog.
 """
 
 import os, sys
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
 from pyzo.core.pyzoLogging import print

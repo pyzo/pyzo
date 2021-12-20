@@ -6,7 +6,7 @@
 
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 
 tool_name = pyzo.translate("pyzoWorkspace", "Workspace")
 tool_summary = pyzo.translate(

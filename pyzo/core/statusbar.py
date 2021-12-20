@@ -3,7 +3,7 @@
 Functionality for status bar in pyzo.
 
 """
-from pyzo.util.qt import QtWidgets
+from pyzo.qt import QtWidgets
 
 
 class StatusBar(QtWidgets.QStatusBar):

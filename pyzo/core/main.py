@@ -20,8 +20,8 @@ import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
 from pyzo.core.statusbar import StatusBar
-from pyzo.util import qt
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo import qt
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 from pyzo.util import zon as ssdf  # zon is ssdf-light

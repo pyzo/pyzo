@@ -11,7 +11,7 @@ Module for locale stuff like language and translations.
 import os, sys, time
 
 import pyzo
-from pyzo.util.qt import QtCore, QtWidgets
+from pyzo.qt import QtCore, QtWidgets
 
 QLocale = QtCore.QLocale
 
