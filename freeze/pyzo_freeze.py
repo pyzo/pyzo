@@ -199,7 +199,7 @@ for m in includes:
 for m in excludes:
     cmd.extend(["--exclude-module", m])
 for src, dst in data.items():
-    cmd.extend(["--add-data", f"{src}:{dst}"])
+    cmd.extend(["--add-data", f"{src}{os.pathsep}{dst}"])
 
 if sys.platform.startswith("win"):
     cmd.append("--windowed")  # not a console app
