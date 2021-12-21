@@ -165,22 +165,15 @@ excludes += [f"{qt_api}.{sub}" for sub in qt_excludes]
 # Better to let PyInstaller copy it rather than copying it after the fact.
 
 data = {}
-
-pyzo_src_dir = os.path.abspath(os.path.join(this_dir, "..", "pyzo"))
-data[pyzo_src_dir] = "source/pyzo"
-data[os.path.join(this_dir, "_settings")] = "_settings"
-
-# Turn backslashes into forward slashes
-for key in list(data.keys()):
-    val = data.pop(key)
-    key = key.replace("\\", "/")
-    data[key] = val
+data["../pyzo"] = "source/pyzo"
+data["_settings"] = "_settings"
 
 # Good to first clean up
 count = 0
-for d in data.keys():
-    if os.path.isdir(d):
-        for root, dirnames, filenames in os.walk(pyzo_src_dir):
+for data_dir in data.keys():
+    data_dir = os.path.abspath(os.path.join(this_dir, data_dir))
+    if os.path.isdir(data_dir):
+        for root, dirnames, filenames in os.walk(data_dir):
             for dirname in dirnames:
                 if dirname == "__pycache__":
                     shutil.rmtree(os.path.join(root, dirname))
