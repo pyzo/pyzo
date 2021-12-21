@@ -5,7 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 tool_name = translate("pyzoSourceStructure", "Source structure")

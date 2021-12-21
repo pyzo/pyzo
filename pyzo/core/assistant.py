@@ -15,7 +15,7 @@ Copy the "docs" directory to the pyzo root!
 
 """
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import getResourceDirs
 import os
 
@@ -135,7 +135,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         When collection_file is none, it is determined from the
         appDataDir.
         """
-        from pyzo.util.qt import QtHelp
+        from pyzo.qt import QtHelp
 
         super().__init__(parent)
         self.setWindowTitle("Help")
@@ -264,7 +264,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         self._helpBrowser.setSource(QtCore.QUrl(url))
 
     def showHelpForTerm(self, name):
-        from pyzo.util.qt import QtHelp
+        from pyzo.qt import QtHelp
 
         # Cache for later use:
         self._search_term = name

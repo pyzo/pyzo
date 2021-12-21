@@ -7,7 +7,7 @@
 
 import sys, os, code
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo.core.shell import BaseShell
 from pyzo.core.pyzoLogging import splitConsole
 

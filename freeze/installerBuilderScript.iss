@@ -11,7 +11,7 @@ ArchitecturesInstallIn64BitMode = x64
 DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo
 
-SourceDir = ../frozen/pyzo
+SourceDir = dist/pyzo
 OutputDir = ..
 OutputBaseFilename = pyzo-X.Y.Z-win64
 

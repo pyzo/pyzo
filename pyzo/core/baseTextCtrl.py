@@ -17,7 +17,7 @@ import os, time
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 
 qt = QtGui
 

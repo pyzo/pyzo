@@ -108,7 +108,7 @@ def handle_cmd_args():
     otherwise.
     """
     args = sys.argv[1:]
-    request = " ".join(args)
+    request = " ".join(arg for arg in args if not arg.startswith("--"))
     if "psn_" in request and not os.path.isfile(request):
         request = " ".join(args[1:])  # An OSX thing when clicking app icon
     request = request.strip()

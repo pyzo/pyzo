@@ -14,7 +14,7 @@ import subprocess
 import urllib.request
 
 import pyzo
-from pyzo.util.qt import QtCore, QtWidgets
+from pyzo.qt import QtCore, QtWidgets
 from pyzo import translate
 
 base_url = "http://repo.continuum.io/miniconda/"

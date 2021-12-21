@@ -15,7 +15,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 """
 
 import os, time, gc
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget

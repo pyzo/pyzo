@@ -20,8 +20,8 @@ import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
 from pyzo.core.statusbar import StatusBar
-from pyzo.util import qt
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo import qt
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 from pyzo.util import zon as ssdf  # zon is ssdf-light
@@ -71,8 +71,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Init dockwidget settings
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtWidgets.QTabWidget.South)
         self.setDockOptions(
-            QtWidgets.QMainWindow.AllowNestedDocks
-            | QtWidgets.QMainWindow.AllowTabbedDocks
+            QtWidgets.QMainWindow.AllowTabbedDocks
+            | QtWidgets.QMainWindow.AllowNestedDocks
             # |  QtWidgets.QMainWindow.AnimatedDocks
         )
 
@@ -524,7 +524,7 @@ def loadFonts():
     fontDir = os.path.join(pyzo.pyzoDir, "resources", "fonts")
 
     # Get database object
-    db = QtGui.QFontDatabase()
+    db = QtGui.QFontDatabase  # static class
 
     # Set default font
     pyzo.codeeditor.Manager.setDefaultFontFamily("DejaVu Sans Mono")

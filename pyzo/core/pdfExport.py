@@ -1,4 +1,4 @@
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 import pyzo
 import os
@@ -15,7 +15,7 @@ class PdfExport(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
 
-        from pyzo.util.qt import QtPrintSupport
+        from pyzo.qt import QtPrintSupport
 
         self.printer = QtPrintSupport.QPrinter(
             QtPrintSupport.QPrinter.HighResolution,

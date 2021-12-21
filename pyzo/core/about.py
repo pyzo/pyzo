@@ -1,8 +1,8 @@
 import os
 import sys
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
-from pyzo.util import qt
+from pyzo.qt import QtCore, QtGui, QtWidgets
+from pyzo import qt
 
 import pyzo
 from pyzo.util import paths

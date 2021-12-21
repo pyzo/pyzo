@@ -14,7 +14,7 @@ and a dialog to edit the shell configurations.
 
 import time
 import webbrowser
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
 from pyzo import translate

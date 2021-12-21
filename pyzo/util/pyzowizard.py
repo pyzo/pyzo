@@ -14,7 +14,7 @@ import os
 import re
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 from pyzo.util._locale import LANGUAGES, LANGUAGE_SYNONYMS, setLanguage

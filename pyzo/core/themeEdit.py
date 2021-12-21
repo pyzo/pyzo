@@ -1,6 +1,6 @@
 import os
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets
+from pyzo.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.util import zon as ssdf

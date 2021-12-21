@@ -8,7 +8,7 @@
 import sys, re
 from functools import partial
 
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 import pyzo
 
 tool_name = pyzo.translate("pyzoInteractiveHelp", "Interactive help")

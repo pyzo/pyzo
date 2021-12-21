@@ -2,7 +2,7 @@ import os
 import datetime
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 
 
 class CommandHistory(QtCore.QObject):

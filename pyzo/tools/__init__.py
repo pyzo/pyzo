@@ -36,7 +36,7 @@ displayed in the statusbar.
 import os, sys, imp
 
 import pyzo
-from pyzo.util.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo.util import zon as ssdf
 from pyzo import translate  # noqa (we have an eval down here)
 
