@@ -58,14 +58,22 @@ jobs:
             pyversion: '3.10'
             qtlib: pyside6
           # OS's
-          - name: Test Windows py310
+          - name: Test Windows py310 pyside6
             os: windows-latest
             pyversion: '3.10'
             qtlib: pyside6
-          - name: Test MacOS py310
+          - name: Test MacOS py310 pyside6
             os: macos-latest
             pyversion: '3.10'
             qtlib: pyside6
+          - name: Test Windows py310 pyqt6
+            os: windows-latest
+            pyversion: '3.10'
+            qtlib: pyqt6
+          - name: Test MacOS py310 pyqt6
+            os: macos-latest
+            pyversion: '3.10'
+            qtlib: pyqt6
           # Qt libs
           - name: Test Linux py39 PyQt5
             os: ubuntu-latest
