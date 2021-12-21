@@ -170,6 +170,12 @@ pyzo_src_dir = os.path.abspath(os.path.join(this_dir, "..", "pyzo"))
 data[pyzo_src_dir] = "source/pyzo"
 data[os.path.join(this_dir, "_settings")] = "_settings"
 
+# Turn backslashes into forward slashes
+for key in list(data.keys):
+    val = data.pop(key)
+    key = key.replace("\\", "/")
+    data[key] = val
+
 # Good to first clean up
 count = 0
 for d in data.keys():
