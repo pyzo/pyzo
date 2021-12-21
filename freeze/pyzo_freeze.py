@@ -125,7 +125,7 @@ excludes = []
 includes += get_stdlib_modules()
 
 # Include a few 3d party packages, e.g. deps of qtpy
-includes += ["packaging", "requests"]
+includes += open(os.path.join(this_dir, "frozen_libs.txt"), "rt").read().split()
 
 # Include a subset of Qt modules
 qt_includes = [
@@ -212,7 +212,7 @@ except Exception:
 ## Add Pyzo source
 
 if sys.platform.startswith("darwin"):
-    target_dir = os.path.join(distDir, "pyzo.app", "Contents", "MacOS")
+    target_dir = os.path.join(dist_dir, "pyzo.app", "Contents", "MacOS")
 else:
     target_dir = os.path.join(dist_dir, name)
 
