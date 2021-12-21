@@ -103,7 +103,7 @@ jobs:
       run: |
           sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 \
             libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
-            libxcb-xinerama0 libxcb-xfixes0 libxcb-shape0 libqt5gui5
+            libxcb-xinerama0 libxcb-xfixes0 libxcb-shape0
           xvfb-run --auto-servernum python pyzo --test
     - name: Run Pyzo
       if: matrix.os != 'ubuntu-latest'
