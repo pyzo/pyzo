@@ -55,7 +55,7 @@ jobs:
     - name: Install dependencies
       run: |
           python -m pip install --upgrade pip
-          pip install -U %PYZO_QT_API% pyinstaller
+          pip install -U ${{ env.PYZO_QT_API }} pyinstaller
           pip install -r freeze/frozen_libs.txt
     - name: Freeze
       run: python freeze/pyzo_freeze.py
@@ -104,6 +104,9 @@ jobs:
   # running Pyzo from source anyway.
   linux_amd64:
     runs-on: ubuntu-18.04
+    env:
+      QT_API: PySide6
+      PYZO_QT_API: PySide6
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.10

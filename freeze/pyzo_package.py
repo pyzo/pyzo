@@ -100,9 +100,9 @@ def package_dmg():
     cmd.extend(["-srcfolder", app_dir])
     cmd.extend(["-volname", "pyzo"])
     cmd.extend(["-format", "UDZO"])
-    cmd.extend(["-fs", "HFS+"])
-    cmd.extend(["-uid", "99"])  # who ever is mounting
-    cmd.extend(["-gid", "99"])  # who ever is mounting
+    cmd.extend(["-fs", "HFSX"])
+    # cmd.extend(["-uid", "99"])  # who ever is mounting
+    # cmd.extend(["-gid", "99"])  # who ever is mounting
     cmd.extend(["-mode", "555"])  # readonly
     cmd.append("-noscrub")
     cmd.append(dmg_file)

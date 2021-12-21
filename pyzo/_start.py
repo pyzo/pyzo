@@ -274,7 +274,7 @@ def start():
     # We also write "Closed" to the log (if a filename is provided) which we use
     # in our tests to determine that Pyzo did a successful run.
     if "--test" in sys.argv:
-        close_signal = lambda: None
+        close_signal = lambda: print("Stopped")
         if os.getenv("PYZO_LOG", ""):
             close_signal = lambda: open(os.getenv("PYZO_LOG"), "at").write("Stopped")
         pyzo.test_close_timer = t = QtCore.QTimer()
