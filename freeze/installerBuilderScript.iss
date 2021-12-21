@@ -12,7 +12,7 @@ DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo
 
 SourceDir = dist/pyzo
-OutputDir = dist
+OutputDir = ..
 OutputBaseFilename = pyzo-X.Y.Z-win64
 
 WizardImageBackColor=$d28b26

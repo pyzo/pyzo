@@ -10,6 +10,8 @@ import subprocess
 this_dir = os.path.abspath(os.path.dirname(__file__)) + "/"
 dist_dir = this_dir + "dist/"
 
+# Run the script from the freeze dir
+os.chdir(this_dir)
 
 with open(os.path.join(this_dir, "..", "pyzo", "__init__.py")) as fh:
     __version__ = re.search(r"__version__ = \"(.*?)\"", fh.read()).group(1)
@@ -38,13 +40,9 @@ def package_tar_gz():
     print("Packing up into tar.gz ...")
 
     oridir = os.getcwd()
-    os.chdir(dist_dir)
-    try:
-        tf = tarfile.open(basename + ".tar.gz", "w|gz")
-        with tf:
-            tf.add("pyzo", arcname="pyzo-" + __version__)
-    finally:
-        os.chdir(oridir)
+    tf = tarfile.open(basename + ".tar.gz", "w|gz")
+    with tf:
+        tf.add("pyzo", arcname="pyzo-" + __version__)
 
 
 def package_zip():
