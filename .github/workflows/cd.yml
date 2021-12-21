@@ -13,6 +13,7 @@ jobs:
   # The default Windows build serving the majority of users.
   # Not needed because already installed: choco install innosetup --version=5.6.1
   win64:
+    name: Windows 64
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -42,6 +43,7 @@ jobs:
   # A 32bit windows build for people on old machines.
   # Win32 is on the brink of deprecation, so we tune down on Py and Qt versions.
   win32:
+    name: Windows 32
     runs-on: windows-latest
     env:
         PYZO_QT_API: PyQt5
@@ -73,6 +75,7 @@ jobs:
   # A MacOS build for x86_64. Via Rosetta this should work on all modern Macs,
   # but an arm64 (M1) build would be nice in the future.
   macos_amd64:
+    name: MacOS amd64
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
@@ -103,20 +106,20 @@ jobs:
   # For Linux we make a build on a somewhat older ubuntu. Most Linux users prefer (or are fine with)
   # running Pyzo from source anyway.
   linux_amd64:
+    name: Linux amd64
     runs-on: ubuntu-18.04
     env:
-      QT_API: PySide6
       PYZO_QT_API: PySide6
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.10
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: '3.10'
+        python-version: '3.9'
     - name: Install dependencies
       run: |
           python -m pip install --upgrade pip
-          pip install -U pyside6 pyinstaller
+          pip install -U ${{ env.PYZO_QT_API }} pyinstaller
           pip install -r freeze/frozen_libs.txt
           sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 \
             libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \

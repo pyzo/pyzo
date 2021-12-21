@@ -3,15 +3,15 @@ import sys
 import subprocess
 
 this_dir = os.path.abspath(os.path.dirname(__file__)) + "/"
-frozen_dir = os.path.join(this_dir, "dist", "pyzo")
+dist_dir = os.path.join(this_dir, "dist")
 
 # Get what executable to run
 if sys.platform.startswith("win"):
-    exe = os.path.join(frozen_dir, "pyzo.exe")
+    exe = os.path.join(dist_dir, "pyzo",  "pyzo.exe")
 elif sys.platform.startswith("darwin"):
     exe = os.path.join(frozen_dir, "pyzo.app", "Contents", "MacOS", "pyzo")
 else:
-    exe = os.path.join(frozen_dir, "pyzo")
+    exe = os.path.join(frozen_dir, "pyzo", "pyzo")
 
 # Prepare log file
 logfile = os.path.join(this_dir, "log.txt")
