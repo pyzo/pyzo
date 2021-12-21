@@ -9,9 +9,9 @@ dist_dir = os.path.join(this_dir, "dist")
 if sys.platform.startswith("win"):
     exe = os.path.join(dist_dir, "pyzo",  "pyzo.exe")
 elif sys.platform.startswith("darwin"):
-    exe = os.path.join(frozen_dir, "pyzo.app", "Contents", "MacOS", "pyzo")
+    exe = os.path.join(dist_dir, "pyzo.app", "Contents", "MacOS", "pyzo")
 else:
-    exe = os.path.join(frozen_dir, "pyzo", "pyzo")
+    exe = os.path.join(dist_dir, "pyzo", "pyzo")
 
 # Prepare log file
 logfile = os.path.join(this_dir, "log.txt")
