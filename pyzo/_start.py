@@ -83,7 +83,7 @@ if not sys.platform.startswith("darwin"):
 
 
 ## Install excepthook
-# In PyQt5 exceptions in Python will cuase an abort
+# In PyQt5 exceptions in Python will cause an abort
 # http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html
 
 
@@ -271,12 +271,16 @@ def start():
     MainWindow(None, appLocale)
 
     # In test mode, we close after 5 seconds
+    # We also write "Closed" to the log (if a filename is provided) which we use
+    # in our tests to determine that Pyzo did a successful run.
     if "--test" in sys.argv:
-        print("Pyzo", pyzo.__version__)
+        close_signal = lambda: None
+        if os.getenv("PYZO_LOG", ""):
+            close_signal = lambda: open(os.getenv("PYZO_LOG"), "at").write("Stopped")
         pyzo.test_close_timer = t = QtCore.QTimer()
         t.setInterval(5000)
         t.setSingleShot(True)
-        t.timeout.connect(lambda: [print("OK"), pyzo.main.close()])
+        t.timeout.connect(lambda: [close_signal(), pyzo.main.close()])
         t.start()
 
     # Enter the main loop

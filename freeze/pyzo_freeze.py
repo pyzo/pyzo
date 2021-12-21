@@ -8,8 +8,6 @@ import sys
 import shutil
 from distutils.sysconfig import get_python_lib
 
-import PyInstaller.__main__
-
 
 # Definitions
 name = "pyzo"
@@ -20,6 +18,9 @@ dist_dir = this_dir + "dist/"
 icon_file = os.path.abspath(
     os.path.join(this_dir, "..", "pyzo", "resources", "appicons", "pyzologo.ico")
 )
+
+# Run the script from the freeze dir
+os.chdir(this_dir)
 
 
 ## Utils
@@ -72,6 +73,8 @@ def get_stdlib_modules():
         "test",  # irrelevant for us
         "turtledemo",  # irrelevant for us
         "tkinter",  # not needed
+        "tk",
+        "tcl",
         "unittest",  # not needed
         "distutils",  # not needed - also must be avoided*
     }
@@ -121,6 +124,7 @@ other_qt_kits.remove(qt_api)
 includes = []
 excludes = []
 
+
 # Include almost all stdlib modules
 includes += get_stdlib_modules()
 
@@ -137,6 +141,12 @@ qt_includes = [
 ]
 includes += [f"{qt_api}.{sub}" for sub in qt_includes]
 
+
+# There is a tendency to include tk modules
+excludes += ["tkinter", "tk", "tcl"]
+
+# Also exclude other Qt toolkits just to be sure
+excludes += list(other_qt_kits)
 
 # PySide tends to include *all* qt modules, resulting in a 300MB or so folder,
 # so we mark them as unwanted, getting us at around 120MB.
@@ -177,6 +187,9 @@ excludes += [f"{qt_api}.{sub}" for sub in qt_excludes]
 
 
 ## Freeze
+
+import PyInstaller.__main__
+
 
 # Clear first
 if os.path.isdir(dist_dir):

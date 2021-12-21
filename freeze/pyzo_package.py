@@ -93,26 +93,21 @@ def package_inno_installer():
 def package_dmg():
     print("Packing up into DMG ...")
 
-    app_dir = dist_dir + "pyzo.app"
-    dmg_file = dist_dir + basename + ".dmg"
+    app_dir = "pyzo.app"
+    dmg_file = basename + ".dmg"
 
     cmd = ["hdiutil", "create"]
     cmd.extend(["-srcfolder", app_dir])
     cmd.extend(["-volname", "pyzo"])
     cmd.extend(["-format", "UDZO"])
-    cmd.extend(
-        [
-            "-fs",
-            "HFS+",
-        ]
-    )
+    cmd.extend(["-fs", "HFS+"])
     cmd.extend(["-uid", "99"])  # who ever is mounting
     cmd.extend(["-gid", "99"])  # who ever is mounting
     cmd.extend(["-mode", "555"])  # readonly
     cmd.append("-noscrub")
     cmd.append(dmg_file)
 
-    subprocess.check_call(cmd)
+    subprocess.check_call(cmd, cwd=dist_dir)
 
 
 ## Build

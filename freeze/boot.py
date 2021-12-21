@@ -13,6 +13,13 @@ TEST = "--test" in sys.argv
 # %% Utils
 
 
+def write(*msg):
+    print(*msg)
+    if TEST and os.getenv("PYZO_LOG", ""):
+        with open(os.getenv("PYZO_LOG"), "at") as f:
+            f.write(" ".join(msg) + "\n")
+
+
 class SourceImporter:
     def __init__(self, dir):
         self.module_names = set()
@@ -39,7 +46,7 @@ def error_handler(cls, err, tb, action=""):
     # Try writing traceback to stderr
     try:
         tb_info = "".join(traceback.format_list(traceback.extract_tb(tb)))
-        sys.stderr.write(f"{title}\n{msg}\n{tb_info}\n")
+        write(f"{title}\n{msg}\n{tb_info}")
     except Exception:
         pass
     # Use dialite to show error in modal window
@@ -51,7 +58,7 @@ class BootAction:
     def __init__(self, action):
         self._action = action
         try:
-            sys.stdout.write(action + "\n")
+            write(action)
         except Exception:
             pass
 
@@ -67,27 +74,29 @@ class BootAction:
 # %% Boot
 
 if TEST:
-    print("Checking Pyzo container")
-    print(platform.platform())
-    print(sys.version)
+    write("Checking Pyzo container")
+    write(platform.platform())
+    write(sys.version)
 
 
-with BootAction("setting up source importer"):
+with BootAction("Setting up source importer"):
     source_dir = os.path.join(sys._MEIPASS, "source")
     sys.path.insert(0, source_dir)
     sys.meta_path.insert(0, SourceImporter(source_dir))
 
 
-with BootAction("applying pre-import Qt tweaks"):
+with BootAction("Applying pre-import Qt tweaks"):
     importlib.import_module("pyzo.pre_qt_import")
 
 
-with BootAction("importing Qt"):
+with BootAction("Importing Qt"):
     QtCore = importlib.import_module("pyzo.qt." + "QtCore")
     QtGui = importlib.import_module("pyzo.qt." + "QtGui")
     QtWidgets = importlib.import_module("pyzo.qt." + "QtWidgets")
 
 
-with BootAction("running Pyzo"):
+with BootAction("Running Pyzo"):
     pyzo = importlib.import_module("pyzo")
+    write(f"Pyzo {pyzo.__version__}")
     pyzo.start()
+    write("Stopped")
