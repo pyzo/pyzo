@@ -7,7 +7,7 @@ dist_dir = os.path.join(this_dir, "dist")
 
 # Get what executable to run
 if sys.platform.startswith("win"):
-    exe = os.path.join(dist_dir, "pyzo",  "pyzo.exe")
+    exe = os.path.join(dist_dir, "pyzo", "pyzo.exe")
 elif sys.platform.startswith("darwin"):
     exe = os.path.join(dist_dir, "pyzo.app", "Contents", "MacOS", "pyzo")
 else:
