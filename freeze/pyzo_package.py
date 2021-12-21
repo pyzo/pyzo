@@ -22,7 +22,7 @@ if osname:
 elif sys.platform.startswith("linux"):
     osname = "linux_" + platform.machine()
 elif sys.platform.startswith("win"):
-    osname = "win_" + platform.machine()
+    osname = f"win{bitness}"
 elif sys.platform.startswith("darwin"):
     osname = "macos_" + platform.machine()
 else:
@@ -85,7 +85,7 @@ def package_inno_installer():
     with open(innoFile2, "wb") as f:
         f.write(text.encode())
     try:
-        subprocess.check_call([exe, "/Qp", innoFile2])
+        subprocess.check_call([exe, "/Qp", innoFile2], cwd=dist_dir)
     finally:
         os.remove(innoFile2)
 

@@ -11,8 +11,8 @@ ArchitecturesInstallIn64BitMode = x64
 DefaultDirName = {pf}\pyzo
 DefaultGroupName = pyzo
 
-SourceDir = ../frozen/pyzo
-OutputDir = ..
+SourceDir = .dist/pyzo
+OutputDir = .dist
 OutputBaseFilename = pyzo-X.Y.Z-win64
 
 WizardImageBackColor=$d28b26
