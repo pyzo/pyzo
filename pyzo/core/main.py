@@ -71,8 +71,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Init dockwidget settings
         self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtWidgets.QTabWidget.South)
         self.setDockOptions(
-            QtWidgets.QMainWindow.AllowNestedDocks
-            | QtWidgets.QMainWindow.AllowTabbedDocks
+            int(QtWidgets.QMainWindow.AllowNestedDocks)
+            | int(QtWidgets.QMainWindow.AllowTabbedDocks)
             # |  QtWidgets.QMainWindow.AnimatedDocks
         )
 
@@ -524,7 +524,7 @@ def loadFonts():
     fontDir = os.path.join(pyzo.pyzoDir, "resources", "fonts")
 
     # Get database object
-    db = QtGui.QFontDatabase()
+    db = QtGui.QFontDatabase  # static class
 
     # Set default font
     pyzo.codeeditor.Manager.setDefaultFontFamily("DejaVu Sans Mono")
