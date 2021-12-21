@@ -83,32 +83,6 @@ def get_stdlib_modules():
     return list(_find_modules(stdlib_path, extensions, skip))
 
 
-def copydir_smart(path1, path2):
-    """like shutil.copytree, but ...
-    * ignores __pycache__directories
-    * ignores hg, svn and git directories
-    """
-    # Ensure destination directory does exist
-    if not os.path.isdir(path2):
-        os.makedirs(path2)
-    # Itereate over elements
-    count = 0
-    for sub in os.listdir(path1):
-        fullsub1 = os.path.join(path1, sub)
-        fullsub2 = os.path.join(path2, sub)
-        if sub in ["__pycache__", ".hg", ".svn", ".git"]:
-            continue
-        elif sub.endswith(".pyc") and os.path.isfile(fullsub1[:-1]):
-            continue
-        elif os.path.isdir(fullsub1):
-            count += copydir_smart(fullsub1, fullsub2)
-        elif os.path.isfile(fullsub1):
-            shutil.copy(fullsub1, fullsub2)
-            count += 1
-    # Return number of copies files
-    return count
-
-
 # All known Qt toolkits, excluded the one we will use
 other_qt_kits = {"PySide", "PySide2", "PySide6", "PyQt4", "PyQt5", "PyQt6"}
 other_qt_kits.remove(qt_api)
@@ -185,6 +159,27 @@ qt_excludes = [
 ]
 excludes += [f"{qt_api}.{sub}" for sub in qt_excludes]
 
+## Data
+
+# Specify additional "data" that we want to copy over.
+# Better to let PyInstaller copy it rather than copying it after the fact.
+
+data = {}
+data["../pyzo"] = "source/pyzo"
+data["_settings"] = "_settings"
+
+# Good to first clean up
+count = 0
+for data_dir in data.keys():
+    data_dir = os.path.abspath(os.path.join(this_dir, data_dir))
+    if os.path.isdir(data_dir):
+        for root, dirnames, filenames in os.walk(data_dir):
+            for dirname in dirnames:
+                if dirname == "__pycache__":
+                    shutil.rmtree(os.path.join(root, dirname))
+                    count += 1
+print(f"removed {count} __pycache__ dirs")
+
 
 ## Freeze
 
@@ -203,6 +198,8 @@ for m in includes:
     cmd.extend(["--hidden-import", m])
 for m in excludes:
     cmd.extend(["--exclude-module", m])
+for src, dst in data.items():
+    cmd.extend(["--add-data", f"{src}{os.pathsep}{dst}"])
 
 if sys.platform.startswith("win"):
     cmd.append("--windowed")  # not a console app
@@ -220,42 +217,3 @@ try:
     os.remove(os.path.join(this_dir, f"{name}.spec"))
 except Exception:
     pass
-
-
-## Add Pyzo source
-
-if sys.platform.startswith("darwin"):
-    target_dir = os.path.join(dist_dir, "pyzo.app", "Contents", "MacOS")
-else:
-    target_dir = os.path.join(dist_dir, name)
-
-copydir_smart(
-    os.path.join(this_dir, "..", "pyzo"), os.path.join(target_dir, "source", "pyzo")
-)
-
-
-## Add portable settings dir
-
-SETTINGS_TEXT = """
-Portable settings folder
-------------------------
-This folder can be used to let the application and the libaries that
-it uses to store configuration files local to the executable. One use
-case is having this app on a USB drive that you use on different
-computers.
-
-This functionality is enabled if the folder is named "settings" and is
-writable by the application (i.e. should not be in "c:\program files\..."
-or "/usr/..."). This functionality can be deactivated by renaming
-it (e.g. prepending an underscore). To reset config files, clear the
-contents of the "pyzo" sub-folder (but do not remove the folder itself).
-
-Note that some libraries may ignore this functionality and use the
-normal system configuration directory instead.
-""".lstrip()
-
-# Create settings folder and put in a file
-os.mkdir(os.path.join(target_dir, "_settings"))
-os.mkdir(os.path.join(target_dir, "_settings", "pyzo"))
-with open(os.path.join(target_dir, "_settings", "README.txt"), "wb") as file:
-    file.write(SETTINGS_TEXT.encode("utf-8"))
