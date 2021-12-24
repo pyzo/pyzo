@@ -42,7 +42,7 @@ def package_tar_gz():
     try:
         tf = tarfile.open(basename + ".tar.gz", "w|gz")
         with tf:
-            tf.add("pyzo", arcname="pyzo-" + __version__)
+            tf.add("pyzo", arcname="pyzo")
     finally:
         os.chdir(oridir)
 
@@ -50,15 +50,18 @@ def package_tar_gz():
 def package_zip():
     print("Packing up into zip ...")
 
+    dirname1 = "pyzo.app" if sys.platform.startswith("darwin") else "pyzo"
+    dirname2 = dirname
+
     zf = zipfile.ZipFile(
         os.path.join(dist_dir, basename + ".zip"), "w", compression=zipfile.ZIP_DEFLATED
     )
     with zf:
-        for root, dirs, files in os.walk(os.path.join(dist_dir, "pyzo")):
+        for root, dirs, files in os.walk(os.path.join(dist_dir, dirname1)):
             for fname in files:
                 filename1 = os.path.join(root, fname)
-                filename2 = os.path.relpath(filename1, os.path.join(dist_dir, "pyzo"))
-                filename2 = os.path.join("pyzo-" + __version__, filename2)
+                filename2 = os.path.relpath(filename1, os.path.join(dist_dir, dirname1))
+                filename2 = os.path.join(dirname2, filename2)
                 zf.write(filename1, filename2)
 
 
