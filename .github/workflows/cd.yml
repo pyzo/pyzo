@@ -31,13 +31,16 @@ jobs:
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
-      run: python freeze/pyzo_test_frozen.py
+      run: |
+        python freeze/pyzo_test_frozen.py
+        python tests/check_log.py
     - name: Upload distributions
       uses: actions/upload-artifact@v2
       with:
         path: |
           freeze/dist/*.zip
           freeze/dist/*.exe
+          freeze/dist/*.msi
         name: dist
 
   # A 32bit windows build for people on old machines.
@@ -64,7 +67,9 @@ jobs:
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
-      run: python freeze/pyzo_test_frozen.py
+      run: |
+        python freeze/pyzo_test_frozen.py
+        python tests/check_log.py
     - name: Upload distributions
       uses: actions/upload-artifact@v2
       with:
@@ -94,7 +99,9 @@ jobs:
       run: python freeze/pyzo_package.py
     - name: Test frozen
       shell: bash
-      run: python freeze/pyzo_test_frozen.py
+      run: |
+        python freeze/pyzo_test_frozen.py
+        python tests/check_log.py
     - name: Upload distributions
       uses: actions/upload-artifact@v2
       with:
@@ -129,7 +136,9 @@ jobs:
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
-      run: xvfb-run --auto-servernum python freeze/pyzo_test_frozen.py
+      run: |
+        xvfb-run --auto-servernum python freeze/pyzo_test_frozen.py
+        python tests/check_log.py
     - name: Upload distributions
       uses: actions/upload-artifact@v2
       with:

@@ -341,7 +341,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Override close event handler."""
 
         # Are we restaring?
-        restarting = time.time() - self._closeflag < 1.0
+        restarting = time.time() - self._closeflag < 1.0  # noqa: F841
 
         # Save settings
         pyzo.saveConfig()
@@ -392,12 +392,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Proceed as normal
         QtWidgets.QMainWindow.closeEvent(self, event)
-
-        # Harder exit to prevent segfault. Not really a solution,
-        # but it does the job until Pyside gets fixed.
-        if sys.version_info >= (3, 3, 0) and not restarting:
-            if hasattr(os, "_exit"):
-                os._exit(0)
 
     def restart(self):
         """Restart Pyzo."""
