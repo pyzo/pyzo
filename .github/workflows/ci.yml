@@ -37,12 +37,13 @@ jobs:
       matrix:
         include:
           # Main test builds, 3 OS's times 4 Qt toolkits
+          # Actually 3 Qt toolkits because PyQt6 does not work yet
           - os: windows-latest
             pyversion: '3.10'
             qtlib: pyside6
-          - os: windows-latest
-            pyversion: '3.10'
-            qtlib: pyqt6
+          #- os: windows-latest
+          #  pyversion: '3.10'
+          #  qtlib: pyqt6
           - os: windows-latest
             pyversion: '3.9'
             qtlib: pyqt5
@@ -52,9 +53,9 @@ jobs:
           - os: ubuntu-latest
             pyversion: '3.10'
             qtlib: pyside6
-          - os: ubuntu-latest
-            pyversion: '3.10'
-            qtlib: pyqt6
+          #- os: ubuntu-latest
+          #  pyversion: '3.10'
+          #  qtlib: pyqt6
           - os: ubuntu-latest
             pyversion: '3.9'
             qtlib: pyqt5
@@ -64,9 +65,9 @@ jobs:
           - os: macos-latest
             pyversion: '3.10'
             qtlib: pyside6
-          - os: macos-latest
-            pyversion: '3.10'
-            qtlib: pyqt6
+          #- os: macos-latest
+          #  pyversion: '3.10'
+          #  qtlib: pyqt6
           - os: macos-latest
             pyversion: '3.9'
             qtlib: pyqt5
