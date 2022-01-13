@@ -76,10 +76,7 @@ jobs:
           # Older Python versions and qt libs
           - os: windows-latest
             pyversion: '3.6'
-            qtlib: pyqt4
-          - os: windows-latest
-            pyversion: '3.7'
-            qtlib: pyside
+            qtlib: pyside6
           - os: windows-latest
             pyversion: '3.8'
             qtlib: pyside6

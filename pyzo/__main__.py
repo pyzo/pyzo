@@ -40,7 +40,7 @@ def main():
 
     write(f"Pyzo {pyzo.__version__}")
     pyzo.start()
-    write("Stopped")  # may be written to log twice becaue Pyzo defers stdout
+    write("Stopped")  # may be written to log twice because Pyzo defers stdout
 
 
 if __name__ == "__main__":
