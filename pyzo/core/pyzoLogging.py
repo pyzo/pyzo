@@ -11,6 +11,7 @@ Functionality for logging in pyzo.
 
 """
 
+import os
 import sys, time
 import pyzo
 
@@ -123,6 +124,9 @@ class OutputStreamSplitter:
         """Write method."""
         self._original.write(text)
         self._history.append(text)
+        if os.getenv("PYZO_LOG", ""):
+            with open(os.getenv("PYZO_LOG"), "at") as f:
+                f.write(text)
         try:
             self._deferFunction(text)
         except Exception:

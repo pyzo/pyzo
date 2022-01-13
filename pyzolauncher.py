@@ -7,7 +7,8 @@
 
 """ pyzolauncher.py script
 
-This is a script used to startup Pyzo. Added for convenience.
+This is a script used to startup Pyzo. Added for convenience, and also
+for running a test on the source version.
 
 Pyzo can be installed as a package, but it does not have to. You can
 start Pyzo in a few different ways:
@@ -19,7 +20,10 @@ Only in the latter must Pyzo be installed.
 
 """
 
+import os
 import sys
+import subprocess
+
 
 # faulthandler helps debugging hard crashes, it is included in py3.3
 try:
@@ -32,6 +36,19 @@ except ImportError:
     pass
 
 
-import pyzo
+if "--test" in sys.argv:
 
-pyzo.start()
+    # Prepare log file
+    logfilename = os.path.abspath(os.path.join(__file__, "..", "log.txt"))
+    with open(logfilename, "wt") as f:
+        f.write("")
+
+    # Run Pyzo
+    os.environ["PYZO_LOG"] = logfilename
+    subprocess.run([sys.executable, "pyzo", "--test"])
+
+else:
+
+    import pyzo
+
+    pyzo.start()

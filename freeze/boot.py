@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import platform
 import traceback
 import importlib
@@ -7,7 +8,7 @@ import importlib
 import dialite
 
 
-TEST = "--test" in sys.argv
+TESTING = "--test" in sys.argv
 
 
 # %% Utils
@@ -15,7 +16,7 @@ TEST = "--test" in sys.argv
 
 def write(*msg):
     print(*msg)
-    if TEST and os.getenv("PYZO_LOG", ""):
+    if os.getenv("PYZO_LOG", ""):
         with open(os.getenv("PYZO_LOG"), "at") as f:
             f.write(" ".join(msg) + "\n")
 
@@ -50,7 +51,7 @@ def error_handler(cls, err, tb, action=""):
     except Exception:
         pass
     # Use dialite to show error in modal window
-    if not TEST:
+    if not TESTING:
         dialite.fail(title, msg)
 
 
@@ -73,8 +74,9 @@ class BootAction:
 
 # %% Boot
 
-if TEST:
-    write("Checking Pyzo container")
+if TESTING:
+    dt = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+    write(f"Testing Pyzo binary ({dt} UTC)")
     write(platform.platform())
     write(sys.version)
 
@@ -99,4 +101,4 @@ with BootAction("Running Pyzo"):
     pyzo = importlib.import_module("pyzo")
     write(f"Pyzo {pyzo.__version__}")
     pyzo.start()
-    write("Stopped")
+    write("Stopped")  # may be written to log twice because Pyzo defers stdout

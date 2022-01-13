@@ -30,55 +30,60 @@ jobs:
           flake8 .
 
   test-builds:
-    name: ${{ matrix.name }}
+    name: Test ${{ matrix.os }} py${{ matrix.pyversion }} ${{ matrix.qtlib }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Python versions
-          - name: Test Linux py36
-            os: ubuntu-latest
-            pyversion: '3.6'
-            qtlib: pyside6
-          - name: Test Linux py37
-            os: ubuntu-latest
-            pyversion: '3.7'
-            qtlib: pyside6
-          - name: Test Linux py38
-            os: ubuntu-latest
-            pyversion: '3.8'
-            qtlib: pyside6
-          - name: Test Linux py39
-            os: ubuntu-latest
-            pyversion: '3.9'
-            qtlib: pyside6
-          - name: Test Linux py310
-            os: ubuntu-latest
+          # Main test builds, 3 OS's times 4 Qt toolkits
+          # Actually 3 Qt toolkits because PyQt6 does not work yet
+          - os: windows-latest
             pyversion: '3.10'
             qtlib: pyside6
-          # OS's
-          - name: Test Windows py310
-            os: windows-latest
-            pyversion: '3.10'
-            qtlib: pyside6
-          - name: Test MacOS py310
-            os: macos-latest
-            pyversion: '3.10'
-            qtlib: pyside6
-          # Qt libs
-          - name: Test Linux py39 PyQt5
-            os: ubuntu-latest
+          #- os: windows-latest
+          #  pyversion: '3.10'
+          #  qtlib: pyqt6
+          - os: windows-latest
             pyversion: '3.9'
             qtlib: pyqt5
-          - name: Test Linux py39 PyQt6
-            os: ubuntu-latest
-            pyversion: '3.9'
-            qtlib: pyqt6
-          - name: Test Linux py39 PySide2
-            os: ubuntu-latest
+          - os: windows-latest
             pyversion: '3.9'
             qtlib: pyside2
+          - os: ubuntu-latest
+            pyversion: '3.10'
+            qtlib: pyside6
+          #- os: ubuntu-latest
+          #  pyversion: '3.10'
+          #  qtlib: pyqt6
+          - os: ubuntu-latest
+            pyversion: '3.9'
+            qtlib: pyqt5
+          - os: ubuntu-latest
+            pyversion: '3.9'
+            qtlib: pyside2
+          - os: macos-latest
+            pyversion: '3.10'
+            qtlib: pyside6
+          #- os: macos-latest
+          #  pyversion: '3.10'
+          #  qtlib: pyqt6
+          - os: macos-latest
+            pyversion: '3.9'
+            qtlib: pyqt5
+          - os: macos-latest
+            pyversion: '3.9'
+            qtlib: pyside2
+          # Older Python versions and qt libs
+          - os: windows-latest
+            pyversion: '3.6'
+            qtlib: pyside6
+          - os: windows-latest
+            pyversion: '3.8'
+            qtlib: pyside6
+          - os: windows-latest
+            pyversion: '3.9'
+            qtlib: pyside6
     steps:
     - uses: actions/checkout@v2
     - name: Setup os
@@ -100,14 +105,19 @@ jobs:
     - name: Test on repo
       run: |
           pytest -v tests
-    - name: Run Pyzo
+    - name: Prepare run
       if: matrix.os == 'ubuntu-latest'
       run: |
-          sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 \
+        sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 \
             libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
             libxcb-xinerama0 libxcb-xfixes0 libxcb-shape0
-          xvfb-run --auto-servernum python pyzo --test
+    - name: Run Pyzo (linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        xvfb-run --auto-servernum python pyzolauncher.py --test
+        python tests/check_log.py
     - name: Run Pyzo
       if: matrix.os != 'ubuntu-latest'
       run: |
-          python pyzo --test
+        python pyzolauncher.py --test
+        python tests/check_log.py
