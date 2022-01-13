@@ -161,9 +161,10 @@ class TcpConnection(Connection):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         # Try all ports in the specified range
-        for port2 in range(port, port + max_tries):
+        for try_count in range(1, max_tries + 1):
+            port += int(try_count ** 0.5)
             try:
-                s.bind((hostname, port2))
+                s.bind((hostname, port))
                 break
             except Exception:
                 # Raise the socket exception if we were asked to try
@@ -174,7 +175,7 @@ class TcpConnection(Connection):
         else:
             # We tried all ports without success
             tmp = str(max_tries)
-            tmp = "Could not bind to any of the " + tmp + " ports tried."
+            tmp = f"Could not bind to any of the {tmp} {port} ports tried."
             raise IOError(tmp)
 
         # Tell the socket it is a host. Backlog of at least 1 to avoid linux
