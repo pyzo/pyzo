@@ -51,7 +51,7 @@ def package_zip():
     print("Packing up into zip ...")
 
     dirname1 = "pyzo.app" if sys.platform.startswith("darwin") else "pyzo"
-    dirname2 = dirname
+    dirname2 = dirname1
 
     zf = zipfile.ZipFile(
         os.path.join(dist_dir, basename + ".zip"), "w", compression=zipfile.ZIP_DEFLATED
