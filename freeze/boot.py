@@ -82,7 +82,11 @@ if TESTING:
 
 
 with BootAction("Setting up source importer"):
-    source_dir = os.path.join(sys._MEIPASS, "source")
+    if sys._MEIPASS.strip("/").endswith(".app/Contents/MacOS"):
+        source_dir = os.path.join(sys._MEIPASS, "..", "Resources", "source")
+    else:
+        source_dir = os.path.join(sys._MEIPASS, "source")
+    source_dir = os.path.abspath(source_dir)
     sys.path.insert(0, source_dir)
     sys.meta_path.insert(0, SourceImporter(source_dir))
 
