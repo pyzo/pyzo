@@ -3,7 +3,7 @@ import sys
 import subprocess
 
 
-this_dir = os.path.abspath(os.path.dirname(__file__)) + "/"
+this_dir = os.path.abspath(os.path.dirname(__file__))
 dist_dir = os.path.join(this_dir, "dist")
 
 # Get what executable to run

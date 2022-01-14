@@ -87,6 +87,8 @@ with BootAction("Setting up source importer"):
     else:
         source_dir = os.path.join(sys._MEIPASS, "source")
     source_dir = os.path.abspath(source_dir)
+    if TESTING:
+        write(f"Source dir: {source_dir} {os.path.isdir(source_dir)}")
     sys.path.insert(0, source_dir)
     sys.meta_path.insert(0, SourceImporter(source_dir))
 
