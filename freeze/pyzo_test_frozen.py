@@ -21,4 +21,4 @@ with open(logfilename, "wt") as f:
 
 # Run Pyzo
 os.environ["PYZO_LOG"] = logfilename
-subprocess.run([exe, "--test"])
+subprocess.run([exe, "--test"], cwd=this_dir)
