@@ -2650,8 +2650,9 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             parentMenu = parent.internalPointer()
         # produce index and make menu if the action represents a menu
         childAction = parentMenu.actions()[row]
-        if childAction.menu():
-            childAction = childAction.menu()
+        childMenu = childAction.parent()
+        if childMenu is not parentMenu and childMenu.actions():
+            childAction = childMenu
         return self.createIndex(row, column, childAction)
         # This is the trick. The internal pointer is the way to establish
         # correspondence between ModelIndex and underlying data.
