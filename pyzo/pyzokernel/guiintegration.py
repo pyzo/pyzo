@@ -136,15 +136,15 @@ class App_asyncio_new(App_base):
         import asyncio
 
         self._repl_callback = repl_callback
-        self._sleeptime = 0.1
+        self._sleep_time = 0.1
 
         loop = asyncio.get_event_loop()
         self.enable(loop, True)
 
     def enable(self, loop, run=False):
-        self.swap_loops_when_new_one_starts(self._loop, loop)
-
-        loop.call_later(self._sleeptime, self._ping_repl_callback)
+        if loop is not self._loop:
+            self.swap_loops_when_new_one_starts(self._loop, loop)
+            loop.call_later(self._sleep_time, self._ping_repl_callback)
         if run:
             loop.run_forever()
 
@@ -153,7 +153,8 @@ class App_asyncio_new(App_base):
             if old_loop and old_loop.is_running():
                 old_loop.stop()
             self._loop = new_loop
-            new_loop.original_run_forever(*args, **kwargs)
+            if not new_loop.is_running():
+                new_loop.original_run_forever(*args, **kwargs)
 
         if not hasattr(new_loop, "original_run_forever"):
             new_loop.original_run_forever = new_loop.run_forever
@@ -172,7 +173,7 @@ class App_asyncio_new(App_base):
 
         # If its the same as our current loop, we want to be called again
         if loop:
-            self._loop.call_later(self._sleeptime, self._ping_repl_callback)
+            self._loop.call_later(self._sleep_time, self._ping_repl_callback)
 
     def quit(self):
         if self._loop:

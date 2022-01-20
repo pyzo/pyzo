@@ -499,7 +499,7 @@ class PyzoInterpreter:
                     ("PYSIDE", guiintegration.App_pyside),
                     ("PYQT4", guiintegration.App_pyqt4),
                     # ('WX', guiintegration.App_wx),
-                    ("ASYNCIO", guiintegration.App_asyncio),
+                    ("ASYNCIO", guiintegration.App_asyncio_new),
                     ("TK", guiintegration.App_tk),
                 ]:
                     try:
@@ -511,7 +511,7 @@ class PyzoInterpreter:
                 else:
                     guiName = ""
             elif guiName == "ASYNCIO":
-                self.guiApp = guiintegration.App_asyncio()
+                self.guiApp = guiintegration.App_asyncio_new()
             elif guiName == "TK":
                 self.guiApp = guiintegration.App_tk()
             elif guiName == "WX":
