@@ -3,7 +3,7 @@ import sys
 import subprocess
 
 
-this_dir = os.path.abspath(os.path.dirname(__file__)) + "/"
+this_dir = os.path.abspath(os.path.dirname(__file__))
 dist_dir = os.path.join(this_dir, "dist")
 
 # Get what executable to run
@@ -21,4 +21,4 @@ with open(logfilename, "wt") as f:
 
 # Run Pyzo
 os.environ["PYZO_LOG"] = logfilename
-subprocess.run([exe, "--test"])
+subprocess.run([exe, "--test"], cwd=this_dir)

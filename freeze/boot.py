@@ -82,7 +82,17 @@ if TESTING:
 
 
 with BootAction("Setting up source importer"):
-    source_dir = os.path.join(sys._MEIPASS, "source")
+    if sys._MEIPASS.strip("/").endswith(".app/Contents/MacOS"):
+        # Note: it looks like the source dir IS available just after we froze it,
+        # so the test_frozen run passes. However, the packaged versions only
+        # have the source dir in Contents/Resources.
+        # Not sure why, maybe related to symlinks?
+        source_dir = os.path.join(sys._MEIPASS, "..", "Resources", "source")
+    else:
+        source_dir = os.path.join(sys._MEIPASS, "source")
+    source_dir = os.path.abspath(source_dir)
+    if TESTING:
+        write(f"Source dir: {source_dir} {os.path.isdir(source_dir)}")
     sys.path.insert(0, source_dir)
     sys.meta_path.insert(0, SourceImporter(source_dir))
 
