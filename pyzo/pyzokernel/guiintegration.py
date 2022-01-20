@@ -577,7 +577,7 @@ class App_qt(App_base):
         # Create timer
         timer = self._timer = self._QtCore.QTimer()
         timer.setSingleShot(False)
-        timer.setInterval(int(0.05 * 1000))  # ms
+        timer.setInterval(int(0.1 * 1000))  # ms
         timer.timeout.connect(repl_callback)
         timer.start()
 
