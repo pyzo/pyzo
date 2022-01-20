@@ -118,7 +118,6 @@ class PyzoInterpreter:
       * introspector: the introspector instance (a subclassed yoton.RepChannel)
       * magician: the object that handles the magic commands
       * guiApp: a wrapper for the integrated GUI application
-      * sleeptime: the amount of time (in seconds) to sleep at each iteration
 
     """
 
@@ -158,10 +157,6 @@ class PyzoInterpreter:
 
         # Init buffer to deal with multi-line command in the shell
         self._buffer = []
-
-        # Init sleep time. 0.001 result in 0% CPU usage at my laptop (Windows),
-        # but 8% CPU usage at my older laptop (on Linux).
-        self.sleeptime = 0.01  # 100 Hz
 
         # Create compiler
         if sys.platform.startswith("java"):
@@ -221,7 +216,7 @@ class PyzoInterpreter:
 
         # Enter main
         try:
-            self.guiApp.run(self.process_commands, self.sleeptime)
+            self.guiApp.run(self.process_commands)
         except SystemExit:
             # Set self._exitException if it is not set yet
             type, value, tb = sys.exc_info()
@@ -488,7 +483,7 @@ class PyzoInterpreter:
         event loop).
         """
 
-        self.guiApp = guiintegration.App_base()
+        self.guiApp = guiintegration.App_nogui()
         self.guiName = guiName = startup_info["gui"].upper()
         guiError = ""
 
