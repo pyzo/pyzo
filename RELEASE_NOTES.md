@@ -1,6 +1,13 @@
 # Release notes
 
 
+### Version 4.12.0 (20-01-2022)
+
+- Support for PySide6.
+- Fix to prevent running out of ports to connect to kernel.
+- Refactor freezing process, fixing the MacOS binaries.
+
+
 ### Version 4.11.4 (24-11-2021)
 
 - Fix for using PySide6 and PyQt5 in interpreter.

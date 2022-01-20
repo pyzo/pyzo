@@ -41,7 +41,7 @@ and workspace.
 """
 
 # Set version number
-__version__ = "4.11.7"
+__version__ = "4.12.0"
 
 import sys
 
