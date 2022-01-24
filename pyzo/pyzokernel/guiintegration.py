@@ -123,7 +123,7 @@ class App_asyncio_new(App_base):
         self._repl_callback = repl_callback
         self._sleeptime = sleeptime
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop_policy().get_event_loop()
         self.enable(loop, True)
 
     def enable(self, loop, run=False):
@@ -186,7 +186,7 @@ class App_asyncio(App_base):
     def __init__(self):
         import asyncio
 
-        self.app = asyncio.get_event_loop()
+        self.app = asyncio.get_event_loop_policy().get_event_loop()
         self.app._in_event_loop = "Pyzo"
         self._warned_about_process_events = False
         self._blocking = False
@@ -220,7 +220,7 @@ class App_asyncio(App_base):
         import asyncio
 
         try:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_event_loop_policy().get_event_loop()
         except Exception:
             loop = None
         if loop is not self.app:
