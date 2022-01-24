@@ -564,7 +564,7 @@ class ShellIconMaker:
 
         # Create timer
         self._timer = QtCore.QTimer(None)
-        self._timer.setInterval(150)
+        self._timer.setInterval(200)
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.onTimer)
 

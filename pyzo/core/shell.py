@@ -39,7 +39,7 @@ from pyzo.core.menu import ShellContextMenu
 
 # Interval for polling messages. Timer for each kernel. I found
 # that this one does not affect performance much
-POLL_TIMER_INTERVAL = 30  # 30 ms 33Hz
+POLL_TIMER_INTERVAL = 100  # 100ms 10Hz
 
 # Maximum number of lines in the shell
 MAXBLOCKCOUNT = pyzo.config.advanced.shellMaxLines

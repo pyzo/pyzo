@@ -66,11 +66,15 @@ class App_base:
             interpreter.more = 0
             interpreter.newPrompt = True
 
-    def run(self, repl_callback, sleeptime=0.01):
+    def run(self, repl_callback, sleep_time=0.01):
         """Very simple mainloop. Subclasses can overload this to use
-        the native event loop. Attempt to process GUI events at least
-        every sleeptime seconds.
+        the native event loop. Attempt to process GUI events every so often.
         """
+
+        # The sleep_time is 100Hz by default, which seems like an ok balance
+        # between CPU strain and smooth animations. Ideally we'd run a
+        # real event loop though, that is fast when needed and just sleeps
+        # when the gui is idle, saving battery life.
 
         if hasattr(time, "perf_counter"):
             perf_counter = time.perf_counter
@@ -78,7 +82,8 @@ class App_base:
             perf_counter = time.time
         perf_counter
 
-        _sleeptime = sleeptime
+        repl_time = 0.099
+        next_repl = perf_counter() + repl_time
 
         # The toplevel while-loop is just to catch Keyboard interrupts
         # and then proceed. The inner while-loop is the actual event loop.
@@ -86,9 +91,11 @@ class App_base:
             try:
 
                 while True:
-                    time.sleep(_sleeptime)
-                    repl_callback()
+                    time.sleep(sleep_time)
                     self.process_events()
+                    if perf_counter() > next_repl:
+                        next_repl = perf_counter() + repl_time
+                        repl_callback()
 
             except KeyboardInterrupt:
                 self._keyboard_interrupt()
@@ -104,6 +111,14 @@ class App_base:
         raise SystemExit()
 
 
+class App_nogui(App_base):
+    """The app for when there is no GUI."""
+
+    def run(self, repl_callback):
+        # Move at a slow pace - there is no gui to keep running
+        super().run(repl_callback, 0.1)
+
+
 # Experimental and WIP - not used at the moment
 class App_asyncio_new(App_base):
     """Based on asyncio (standard Python) event loop.
@@ -117,27 +132,19 @@ class App_asyncio_new(App_base):
         asyncio.integrate_with_ide = self.enable
         self._loop = None
 
-    def run(self, repl_callback, sleeptime=0.01):
+    def run(self, repl_callback):
         import asyncio
 
         self._repl_callback = repl_callback
-        self._sleeptime = sleeptime
+        self._sleep_time = 0.1
 
         loop = asyncio.get_event_loop_policy().get_event_loop()
         self.enable(loop, True)
 
     def enable(self, loop, run=False):
-
-        # If using qasync, create a tiny window to prevent closing. Naah ugly
-        # if hasattr(loop, "_QEventLoop__app"):
-        #     mod = sys.modules[loop._QEventLoop__app.__module__]
-        #     self._w = mod.QWidget(None)
-        #     self._w.resize(1, 1)
-        #     self._w.show()
-
-        self.swap_loops_when_new_one_starts(self._loop, loop)
-
-        loop.call_later(self._sleeptime, self._ping_repl_callback)
+        if loop is not self._loop:
+            self.swap_loops_when_new_one_starts(self._loop, loop)
+            loop.call_later(self._sleep_time, self._ping_repl_callback)
         if run:
             loop.run_forever()
 
@@ -146,7 +153,8 @@ class App_asyncio_new(App_base):
             if old_loop and old_loop.is_running():
                 old_loop.stop()
             self._loop = new_loop
-            new_loop.original_run_forever(*args, **kwargs)
+            if not new_loop.is_running():
+                new_loop.original_run_forever(*args, **kwargs)
 
         if not hasattr(new_loop, "original_run_forever"):
             new_loop.original_run_forever = new_loop.run_forever
@@ -165,7 +173,7 @@ class App_asyncio_new(App_base):
 
         # If its the same as our current loop, we want to be called again
         if loop:
-            self._loop.call_later(self._sleeptime, self._ping_repl_callback)
+            self._loop.call_later(self._sleep_time, self._ping_repl_callback)
 
     def quit(self):
         if self._loop:
@@ -408,7 +416,7 @@ class App_tornado(App_base):
             self._warned_about_process_events = True
         # self.app.run_sync(lambda x=None: None)
 
-    def run(self, repl_callback, sleeptime=None):
+    def run(self, repl_callback):
         from tornado.ioloop import PeriodicCallback
 
         # Create timer
@@ -565,11 +573,11 @@ class App_qt(App_base):
         self.app.sendPostedEvents()
         self.app.processEvents()
 
-    def run(self, repl_callback, sleeptime=None):
+    def run(self, repl_callback):
         # Create timer
         timer = self._timer = self._QtCore.QTimer()
         timer.setSingleShot(False)
-        timer.setInterval(int(0.05 * 1000))  # ms
+        timer.setInterval(int(0.1 * 1000))  # ms
         timer.timeout.connect(repl_callback)
         timer.start()
 

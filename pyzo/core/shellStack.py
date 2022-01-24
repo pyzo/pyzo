@@ -313,7 +313,7 @@ class ShellControl(QtWidgets.QToolButton):
 
         # Create timer
         self._elapsedTimesTimer = QtCore.QTimer(self)
-        self._elapsedTimesTimer.setInterval(200)
+        self._elapsedTimesTimer.setInterval(1000)
         self._elapsedTimesTimer.setSingleShot(False)
         self._elapsedTimesTimer.timeout.connect(self.onElapsedTimesTimer)
 
