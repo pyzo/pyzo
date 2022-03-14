@@ -123,6 +123,7 @@ qt_includes = [
     "QtGui",  # Standard
     "QtWidgets",  # Standard
     "QtHelp",  # For docs
+    "QtPrintSupport",  # For PDF export
     "QtOpenGLWidgets",  # Because qtpy imports QOpenGLQWidget into QtWidgets
 ]
 includes += [f"{qt_api}.{sub}" for sub in qt_includes]
