@@ -26,6 +26,18 @@ os.chdir(this_dir)
 ## Utils
 
 
+def get_pyzo_version():
+    """Get Pyzo's version."""
+    filename = os.path.join(dist_dir, "..", "..", "pyzo", "__init__.py")
+    NS = {}
+    for line in open(filename, "rb").read().decode().splitlines():
+        if line.startswith("__version__"):
+            exec(line.strip(), NS, NS)
+    if not NS.get("__version__", 0):
+        raise RuntimeError("Could not find __version__")
+    return NS["__version__"]
+
+
 def _find_modules(root, extensions, skip, parent=""):
     """Yield all modules and packages and their submodules and subpackages found at `root`.
     Nested folders that do _not_ contain an __init__.py file are assumed to also be on sys.path.
@@ -181,9 +193,13 @@ for data_dir in data.keys():
 print(f"removed {count} __pycache__ dirs")
 
 
-## Freeze
+## Create spec
 
 import PyInstaller.__main__
+import PyInstaller.utils.cliutils.makespec
+
+entrypoint_pyinstaller = PyInstaller.__main__.run
+entrypoint_makespec = PyInstaller.utils.cliutils.makespec.run
 
 
 # Clear first
@@ -191,8 +207,8 @@ if os.path.isdir(dist_dir):
     shutil.rmtree(dist_dir)
 os.makedirs(dist_dir)
 
-
-cmd = ["--clean", "--onedir", "--name", name, "--distpath", dist_dir]
+# Build command
+cmd = ["--onedir", "--name", name]
 
 for m in includes:
     cmd.extend(["--hidden-import", m])
@@ -211,9 +227,29 @@ elif sys.platform.startswith("darwin"):
 
 cmd.append(exe_script)
 
-PyInstaller.__main__.run(cmd)
+sys.argv[1:] = cmd
+entrypoint_makespec()
 
-try:
-    os.remove(os.path.join(this_dir, f"{name}.spec"))
-except Exception:
-    pass
+
+## Fix spec
+
+specfilename = os.path.join(this_dir, f"{name}.spec")
+with open(specfilename, "rb") as f:
+    spec = f.read().decode()
+
+i = spec.find("bundle_identifier=")
+assert i > 0
+spec = spec[:i] + f"version='{get_pyzo_version()}',\n             " + spec[i:]
+
+with open(specfilename, "wb") as f:
+    f.write(spec.encode())
+
+
+## Freeze
+
+entrypoint_pyinstaller(["--clean", "--distpath", dist_dir, specfilename])
+
+# try:
+#     os.remove(specfilename)
+# except Exception:
+#     pass

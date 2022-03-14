@@ -6,5 +6,6 @@ dist/
 frozen/
 freeze/build/
 freeze/dist/
+freeze/pyzo.spec
 *.pyc
 pyzo.egg-info/*
