@@ -1,7 +1,7 @@
 # Release notes
 
 
-### Version 4.12.1 (14-03-2022)
+### Version 4.12.2 (14-03-2022)
 
 - Fix printing to PDF.
 - Include Version in MacOS app bundle.
