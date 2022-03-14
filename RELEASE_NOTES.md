@@ -1,6 +1,14 @@
 # Release notes
 
 
+### Version 4.12.1 (14-03-2022)
+
+- Fix printing to PDF.
+- Include Version in MacOS app bundle.
+- Fix support for Python 2.x.
+- Pyzo consumes less CPU/power - longer battery life!
+
+
 ### Version 4.12.0 (20-01-2022)
 
 - Support for PySide6.
