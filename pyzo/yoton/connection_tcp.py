@@ -174,9 +174,8 @@ class TcpConnection(Connection):
                 continue
         else:
             # We tried all ports without success
-            tmp = str(max_tries)
-            tmp = f"Could not bind to any of the {tmp} {port} ports tried."
-            raise IOError(tmp)
+            tmp = "Could not bind to any of the %i %i ports tried."
+            raise IOError(tmp % (max_tries, port))
 
         # Tell the socket it is a host. Backlog of at least 1 to avoid linux
         # kernel from detecting SYN flood and throttling the connection (#381)
