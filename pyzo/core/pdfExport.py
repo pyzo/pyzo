@@ -95,10 +95,8 @@ class PdfExport(QtWidgets.QDialog):
 
         # Orientation
         self.combobox_orientation = QtWidgets.QComboBox(self)
-        self.combobox_orientation.addItem("Portrait", QtPrintSupport.QPrinter.Portrait)
-        self.combobox_orientation.addItem(
-            "Landscape", QtPrintSupport.QPrinter.Landscape
-        )
+        self.combobox_orientation.addItem("Portrait", 0)
+        self.combobox_orientation.addItem("Landscape", 1)
         self.combobox_orientation.setToolTip("Orientation of the document")
 
         # Layout
@@ -117,7 +115,7 @@ class PdfExport(QtWidgets.QDialog):
         self.option_layout.addRow(self.checkbox_line_number)
         self.option_layout.addRow(self.checkbox_syntax_highlighting)
         self.option_layout.addRow(self.zoom_value_label, self.zoom_slider)
-        self.option_layout.addRow(self.combobox_orientation)
+        # self.option_layout.addRow(self.combobox_orientation)  # orientation appears to be broken
         self.bottom_layout = QtWidgets.QHBoxLayout()
         self.right_layout.addLayout(self.bottom_layout)
         self.bottom_layout.addStretch()
@@ -257,4 +255,14 @@ class PdfExport(QtWidgets.QDialog):
 
     def _change_orientation(self):
         """Set document in portrait or landscape orientation"""
-        self.printer.setOrientation(self.combobox_orientation.currentIndex())
+        index = self.combobox_orientation.currentIndex()
+        if hasattr(self.printer, "setPageLayout"):  # qt6
+            base = QtGui.QPageLayout
+            orientation = [base.Portrait, base.Landscape][index]
+            layout = QtGui.QPageLayout()
+            layout.setOrientation(orientation)
+            self.printer.setPageLayout(layout)
+        else:  # qt5
+            base = QtPrintSupport.QPrinter
+            orientation = [base.Portrait, base.Landscape][index]
+            self.printer.setOrientation(orientation)
