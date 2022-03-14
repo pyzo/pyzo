@@ -162,7 +162,7 @@ class TcpConnection(Connection):
 
         # Try all ports in the specified range
         for try_count in range(1, max_tries + 1):
-            port += int(try_count ** 0.5)
+            port += int(try_count**0.5)
             try:
                 s.bind((hostname, port))
                 break

@@ -32,8 +32,8 @@ BUF_MAX_LEN = 10000
 # Define buffer size. For recv 4096 or 8192 chunk size is recommended.
 # For sending, in principle as large as possible, but prevent too much
 # message copying.
-BUFFER_SIZE_IN = 2 ** 13
-BUFFER_SIZE_OUT = 1 * 2 ** 20
+BUFFER_SIZE_IN = 2**13
+BUFFER_SIZE_OUT = 1 * 2**20
 
 # Reserved slots (slot 0 does not exist, so we can test "if slot: ")
 # The actual slots start counting from 8.
@@ -152,7 +152,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
 
     # Set max time
     if timeout <= 0:
-        timeout = 2 ** 32
+        timeout = 2**32
     maxtime = time.time() + timeout
 
     # Receive data
