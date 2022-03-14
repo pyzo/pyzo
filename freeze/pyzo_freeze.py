@@ -237,9 +237,10 @@ specfilename = os.path.join(this_dir, f"{name}.spec")
 with open(specfilename, "rb") as f:
     spec = f.read().decode()
 
-i = spec.find("bundle_identifier=")
-assert i > 0
-spec = spec[:i] + f"version='{get_pyzo_version()}',\n             " + spec[i:]
+if sys.platform.startswith("darwin"):
+    i = spec.find("bundle_identifier=")
+    assert i > 0
+    spec = spec[:i] + f"version='{get_pyzo_version()}',\n             " + spec[i:]
 
 with open(specfilename, "wb") as f:
     f.write(spec.encode())
