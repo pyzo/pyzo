@@ -592,11 +592,13 @@ class PyzoInterpreter:
             # IPython wraps std streams just like we do below, but
             # pyreadline adds *another* wrapper, which is where it
             # goes wrong. Here we set it back to bypass pyreadline.
-            from IPython.utils import io
+            
+            if IPython.version_info < (8,): #corrects a problem with IOStream from IPython 8.x.x
+                from IPython.utils import io
 
-            io.stdin = io.IOStream(sys.stdin)
-            io.stdout = io.IOStream(sys.stdout)
-            io.stderr = io.IOStream(sys.stderr)
+                io.stdin = io.IOStream(sys.stdin)
+                io.stdout = io.IOStream(sys.stdout)
+                io.stderr = io.IOStream(sys.stderr)
 
             # Ipython uses msvcrt e.g. for pausing between pages
             # but this does not work in pyzo
