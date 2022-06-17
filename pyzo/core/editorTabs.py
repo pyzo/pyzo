@@ -1215,7 +1215,7 @@ class EditorTabs(QtWidgets.QWidget):
         # load
         self.loadDir(dirname)
 
-    def loadFile(self, filename, updateTabs=True):
+    def loadFile(self, filename, updateTabs=True, ignoreFail=False):
         """Load the specified file.
         On success returns the item of the file, also if it was
         already open."""
@@ -1248,11 +1248,12 @@ class EditorTabs(QtWidgets.QWidget):
             # Notify in logger
             print("Error loading file: ", err)
             # Make sure the user knows
-            m = QtWidgets.QMessageBox(self)
-            m.setWindowTitle("Error loading file")
-            m.setText(str(err))
-            m.setIcon(m.Warning)
-            m.exec_()
+            if not ignoreFail:
+                m = QtWidgets.QMessageBox(self)
+                m.setWindowTitle("Error loading file")
+                m.setText(str(err))
+                m.setIcon(m.Warning)
+                m.exec_()
             return None
 
         # create list item
@@ -1608,10 +1609,10 @@ class EditorTabs(QtWidgets.QWidget):
                         self._tabs.setCurrentItem(fileItems[fname])
                 elif fname:
                     # a file item, create editor-item and store
-                    itm = self.loadFile(fname)
-                    fileItems[fname] = itm
+                    itm = self.loadFile(fname, ignoreFail=True)
                     # set position
                     if itm:
+                        fileItems[fname] = itm
                         try:
                             ed = itm.editor
                             cursor = ed.textCursor()
