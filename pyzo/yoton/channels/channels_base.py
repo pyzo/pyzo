@@ -258,9 +258,9 @@ class BaseChannel(object):
             self._send_condition.acquire()
             try:
                 if sys.version_info[0] < 3.10:
-                    condition.notifyAll()
+                    self._send_condition.notifyAll()
                 else:
-                    condition.notify_all() 
+                    self._send_condition.notify_all()
             finally:
                 self._send_condition.release()
 
