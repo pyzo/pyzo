@@ -9,7 +9,7 @@
 Defines the base channel class and the MessageType class.
 
 """
-
+import sys
 import time
 import threading
 
@@ -257,7 +257,10 @@ class BaseChannel(object):
         if not value:
             self._send_condition.acquire()
             try:
-                self._send_condition.notifyAll()
+                if sys.version_info[0] < 3.10:
+                    condition.notifyAll()
+                else:
+                    condition.notify_all() 
             finally:
                 self._send_condition.release()
 
