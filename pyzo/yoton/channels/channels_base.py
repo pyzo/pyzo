@@ -257,7 +257,7 @@ class BaseChannel(object):
         if not value:
             self._send_condition.acquire()
             try:
-                if sys.version_info[0] < 3.10:
+                if sys.version_info < (2, 6):
                     self._send_condition.notifyAll()
                 else:
                     self._send_condition.notify_all()

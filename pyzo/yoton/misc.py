@@ -569,7 +569,7 @@ class TinyPackageQueue(PackageQueue):
 
             # Notify if this pop would reduce the length below the threshold
             if len(q) <= self._tinylen:
-                if sys.version_info[0] < 3.10:
+                if sys.version_info < (2, 6):
                     condition.notifyAll()  # wait() procedes
                 else:
                     condition.notify_all() 
