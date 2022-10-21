@@ -254,6 +254,7 @@ class PyzoIntrospector(yoton.RepChannel):
                         hasattr(val, "__array__")
                         and hasattr(val, "dtype")
                         and hasattr(val, "shape")
+                        and not hasattr(val, "__this_object_is_definitely_not_an_array__")
                     ):
                         kind = "array"
                     elif isinstance(val, list):
