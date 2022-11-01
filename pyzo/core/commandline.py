@@ -12,7 +12,7 @@ is started to open the file.
 
 This module is used at the very early stages of starting pyzo, and also
 in main.py to apply any command line args for the current process, and
-to closse down the server when pyzo is closed.
+to close down the server when pyzo is closed.
 """
 
 import sys

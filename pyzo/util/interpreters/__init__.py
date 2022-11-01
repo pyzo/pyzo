@@ -112,6 +112,13 @@ def _get_interpreters_win():
 def _get_interpreters_posix():
     found = []
 
+    def isPathValidPythonExe(filename):
+        fname = os.path.split(filename)[1]
+        return fname.startswith(("python", "pypy")) and \
+               not fname.count("config") and \
+               len(fname) < 16 and \
+               os.path.isfile(filename)
+
     # Look for system Python interpreters
     for searchpath in ["/usr/bin", "/usr/local/bin", "/opt/local/bin"]:
         searchpath = os.path.expanduser(searchpath)
@@ -124,14 +131,12 @@ def _get_interpreters_posix():
 
         # Search for python executables
         for fname in files:
-            if fname.startswith(("python", "pypy")) and not fname.count("config"):
-                if len(fname) < 16:
-                    # Get filename and resolve symlink
-                    filename = os.path.join(searchpath, fname)
-                    filename = os.path.realpath(filename)
-                    # Seen on OS X that was not a valid file
-                    if os.path.isfile(filename):
-                        found.append(filename)
+            # Get filename and resolve symlink
+            # Seen on OS X that was not a valid file
+            filename = os.path.join(searchpath, fname)
+            filename = os.path.realpath(filename)
+            if isPathValidPythonExe(filename):
+                found.append(filename)
 
     # Look for user-installed Python interpreters such as pypy and anaconda
     for rootname in ["~", "/usr/local"]:
@@ -144,6 +149,13 @@ def _get_interpreters_posix():
                     exename = os.path.join(rootname, dname, fname)
                     if os.path.isfile(exename):
                         found.append(exename)
+
+    # Look for Python interpreter provided by PYZO_DEFAULT_SHELL_PYTHON_EXE env-var
+    if "PYZO_DEFAULT_SHELL_PYTHON_EXE" in os.environ:
+        filename = os.environ['PYZO_DEFAULT_SHELL_PYTHON_EXE']
+        filename = os.path.realpath(filename)
+        if isPathValidPythonExe(filename):
+            found.append(filename)
 
     # Remove pythonw, pythonm and the like
     found = set(found)
