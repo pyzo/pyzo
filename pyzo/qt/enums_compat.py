@@ -9,7 +9,7 @@
 Compatibility functions for scoped and unscoped enum access.
 """
 
-from . import PYQT6
+from . import PYQT6, PYSIDE6
 
 if PYQT6:
     import enum
@@ -35,3 +35,27 @@ if PYQT6:
                     continue
                 for enum_obj in attrib:
                     setattr(klass, enum_obj.name, enum_obj)
+
+elif PYSIDE6:
+    from enum import Enum
+
+    def promote_enums(module):
+        for ob in (getattr(module, name) for name in dir(module)):
+            if isinstance(ob, type) and ob.__name__.startswith("Q"):
+                fix_enums(ob)
+
+    def new_getattr(self, key):
+        try:
+            return self.__ori_getattr__(key)
+        except AttributeError:
+            pass
+        return getattr(self.__class__, key)
+
+    def stub_getattr(self, name):
+        raise AttributeError()
+
+    def fix_enums(cls):
+        ori = getattr(cls, "__getattr__", stub_getattr)
+        if ori is not new_getattr:
+            cls.__ori_getattr__ = ori
+            cls.__getattr__ = new_getattr

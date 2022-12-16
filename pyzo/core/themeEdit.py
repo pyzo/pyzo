@@ -182,9 +182,8 @@ class StyleEdit(QtWidgets.QWidget):
         """
 
         checkBox = QtWidgets.QCheckBox()
-
         self.setters[key] = lambda val, check=checkBox: check.setCheckState(
-            val == "yes"
+            [QtCore.Qt.CheckState.Unchecked, QtCore.Qt.CheckState.Checked][val == "yes"]
         )
 
         checkBox.stateChanged.connect(

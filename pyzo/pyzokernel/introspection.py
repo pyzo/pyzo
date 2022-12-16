@@ -254,7 +254,10 @@ class PyzoIntrospector(yoton.RepChannel):
                         hasattr(val, "__array__")
                         and hasattr(val, "dtype")
                         and hasattr(val, "shape")
-                        and not hasattr(val, "if_this_is_an_attribute_then_there_are_likely_inf_attributes")
+                        and not hasattr(
+                            val,
+                            "if_this_is_an_attribute_then_there_are_likely_inf_attributes",
+                        )
                     ):
                         kind = "array"
                     elif isinstance(val, list):

@@ -34,7 +34,7 @@ class Extension:
     def __init__(self, *args, extensionParam1 = 1, extensionParam2 = 3, **kwds):
         super().__init__(*args, **kwds)
         some_extension_init_stuff()
-        
+
 Note the following points:
  - All parameters have default values
  - The use of *args passes all non-named arguments to its super(), which
@@ -82,7 +82,7 @@ FancyEditor defined above:
 - then the CodeEditorBase, with the text
 - then the extensions that draw in front of the text (i.e. call
   super().paintEvent before painting), in the order ..., Extension2, Extension1
-  
+
 OVERRIDING OTHER EVENT HANDLERS
 
 When overriding other event handlers, be sure to call the super()'s event
@@ -147,12 +147,13 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         self.__highlighter = Highlighter(self, self.document())
 
         # Set some document options
-        option = self.document().defaultTextOption()
-        option.setFlags(
-            option.flags()
-            | option.IncludeTrailingSpaces
-            | option.AddSpaceForLineAndParagraphSeparators
-        )
+        # Setting this option breaks the showWhitespace and showLineEndings options in PySyde6.4
+        option = QtGui.QTextOption()  # self.document().defaultTextOption()
+        # option.setFlags(
+        #     option.flags()
+        #     | option.IncludeTrailingSpaces
+        #     | option.AddSpaceForLineAndParagraphSeparators
+        # )
         self.document().setDefaultTextOption(option)
 
         # When the cursor position changes, invoke an update, so that

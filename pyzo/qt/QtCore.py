@@ -35,7 +35,6 @@ if PYQT6:
     # Those are imported from `import *`
     del pyqtSignal, pyqtBoundSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
 
-    # Allow unscoped access for enums inside the QtCore module
     from .enums_compat import promote_enums
 
     promote_enums(QtCore)
@@ -58,7 +57,8 @@ elif PYQT5:
 
 elif PYSIDE6:
     from PySide6.QtCore import *
-    import PySide6.QtCore
+    import PySide6
+    from PySide6 import QtCore
 
     __version__ = PySide6.QtCore.__version__
 
@@ -72,6 +72,10 @@ elif PYSIDE6:
     QEventLoop.exec_ = QEventLoop.exec
     QThread.exec_ = QThread.exec
     QTextStreamManipulator.exec_ = QTextStreamManipulator.exec
+
+    from .enums_compat import promote_enums
+
+    promote_enums(QtCore)
 
 elif PYSIDE2:
     from PySide2.QtCore import *

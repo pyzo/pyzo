@@ -28,7 +28,6 @@ if PYQT6:
     QDialog.exec_ = QDialog.exec
     QMenu.exec_ = QMenu.exec
 
-    # Allow unscoped access for enums inside the QtWidgets module
     from .enums_compat import promote_enums
 
     promote_enums(QtWidgets)
@@ -36,6 +35,7 @@ if PYQT6:
 elif PYQT5:
     from PyQt5.QtWidgets import *
 elif PYSIDE6:
+    from PySide6 import QtWidgets
     from PySide6.QtWidgets import *
     from PySide6.QtGui import QAction, QActionGroup, QShortcut
     from PySide6.QtOpenGLWidgets import QOpenGLWidget
@@ -50,6 +50,10 @@ elif PYSIDE6:
     QApplication.exec_ = QApplication.exec
     QDialog.exec_ = QDialog.exec
     QMenu.exec_ = QMenu.exec
+
+    from .enums_compat import promote_enums
+
+    promote_enums(QtWidgets)
 elif PYSIDE2:
     from PySide2.QtWidgets import *
 else:
