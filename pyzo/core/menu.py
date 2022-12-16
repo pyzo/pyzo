@@ -2641,8 +2641,8 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             return isinstance(index.internalPointer(), QtWidgets.QMenu)
 
     def index(self, row, column, parent):
-        # if not self.hasIndex(row, column, parent):
-        #     return QtCore.QModelIndex()
+        if not self.hasIndex(row, column, parent):
+            return QtCore.QModelIndex()
         # establish parent
         if not parent.isValid():
             parentMenu = self._root

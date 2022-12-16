@@ -22,7 +22,6 @@ if PYQT6:
     QGuiApplication.exec_ = QGuiApplication.exec
     QTextDocument.print_ = QTextDocument.print
 
-    # Allow unscoped access for enums inside the QtGui module
     from .enums_compat import promote_enums
 
     promote_enums(QtGui)
@@ -32,6 +31,7 @@ elif PYQT5:
 elif PYSIDE2:
     from PySide2.QtGui import *
 elif PYSIDE6:
+    from PySide6 import QtGui
     from PySide6.QtGui import *
 
     QFontMetrics.width = QFontMetrics.horizontalAdvance
@@ -39,12 +39,9 @@ elif PYSIDE6:
     # Map DeprecationWarning methods
     QDrag.exec_ = QDrag.exec
     QGuiApplication.exec_ = QGuiApplication.exec
+
+    from .enums_compat import promote_enums
+
+    promote_enums(QtGui)
 else:
     raise PythonQtError("No Qt bindings could be found")
-
-
-from .enumfixer import fix_enums
-
-for ob in list(globals().values()):
-    if isinstance(ob, type) and ob.__name__.startswith("Q"):
-        fix_enums(ob)
