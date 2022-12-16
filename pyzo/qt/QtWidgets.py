@@ -54,3 +54,10 @@ elif PYSIDE2:
     from PySide2.QtWidgets import *
 else:
     raise PythonQtError("No Qt bindings could be found")
+
+
+from .enumfixer import fix_enums
+
+for ob in list(globals().values()):
+    if isinstance(ob, type) and ob.__name__.startswith("Q"):
+        fix_enums(ob)
