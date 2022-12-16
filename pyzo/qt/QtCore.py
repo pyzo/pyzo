@@ -36,6 +36,7 @@ if PYQT6:
     del pyqtSignal, pyqtBoundSignal, pyqtSlot, pyqtProperty, QT_VERSION_STR
 
     from .enums_compat import promote_enums
+
     promote_enums(QtCore)
     del QtCore
 elif PYQT5:
