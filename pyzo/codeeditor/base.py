@@ -148,7 +148,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Set some document options
         # Setting this option breaks the showWhitespace and showLineEndings options in PySyde6.4
-        option = QtGui.QTextOption()#self.document().defaultTextOption()
+        option = QtGui.QTextOption()  # self.document().defaultTextOption()
         # option.setFlags(
         #     option.flags()
         #     | option.IncludeTrailingSpaces

@@ -730,12 +730,17 @@ class ShowWhitespace(object):
 
     @ce_option(False)
     def setShowWhitespace(self, value):
-        option = self.document().defaultTextOption()
-        if value:
-            option.setFlags(option.flags() | option.ShowTabsAndSpaces)
-        else:
-            option.setFlags(option.flags() & ~option.ShowTabsAndSpaces)
-        self.document().setDefaultTextOption(option)
+        try:
+            option = self.document().defaultTextOption()
+            if value:
+                option.setFlags(option.flags() | option.ShowTabsAndSpaces)
+            else:
+                option.setFlags(option.flags() & ~option.ShowTabsAndSpaces)
+            self.document().setDefaultTextOption(option)
+        except Exception:
+            # This can produce: 2147483617 is not a valid QTextOption.Flag
+            # and I do not know how to avoid it :/
+            pass
 
 
 class ShowLineEndings(object):
@@ -746,12 +751,17 @@ class ShowLineEndings(object):
         return bool(option.flags() & option.ShowLineAndParagraphSeparators)
 
     def setShowLineEndings(self, value):
-        option = self.document().defaultTextOption()
-        if value:
-            option.setFlags(option.flags() | option.ShowLineAndParagraphSeparators)
-        else:
-            option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
-        self.document().setDefaultTextOption(option)
+        try:
+            option = self.document().defaultTextOption()
+            if value:
+                option.setFlags(option.flags() | option.ShowLineAndParagraphSeparators)
+            else:
+                option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
+            self.document().setDefaultTextOption(option)
+        except Exception:
+            # This can produce: 2147483617 is not a valid QTextOption.Flag
+            # and I do not know how to avoid it :/
+            pass
 
 
 class LineNumbers(object):
