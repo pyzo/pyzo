@@ -148,13 +148,14 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Set some document options
         # Setting this option breaks the showWhitespace and showLineEndings options in PySyde6.4
-        # option = self.document().defaultTextOption()
+        option = self.document().defaultTextOption()
         # option.setFlags(
         #     option.flags()
         #     | option.IncludeTrailingSpaces
         #     | option.AddSpaceForLineAndParagraphSeparators
         # )
-        # self.document().setDefaultTextOption(option)
+        option.setFlags(QtCore.QFlag())
+        self.document().setDefaultTextOption(option)
 
         # When the cursor position changes, invoke an update, so that
         # the hihghlighting etc will work
