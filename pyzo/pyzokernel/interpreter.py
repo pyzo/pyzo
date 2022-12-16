@@ -592,8 +592,10 @@ class PyzoInterpreter:
             # IPython wraps std streams just like we do below, but
             # pyreadline adds *another* wrapper, which is where it
             # goes wrong. Here we set it back to bypass pyreadline.
-            
-            if IPython.version_info < (8,):  # corrects a problem with IOStream from IPython 8.x.x
+
+            if IPython.version_info < (
+                8,
+            ):  # corrects a problem with IOStream from IPython 8.x.x
                 from IPython.utils import io
 
                 io.stdin = io.IOStream(sys.stdin)
