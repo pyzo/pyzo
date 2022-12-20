@@ -177,13 +177,21 @@ excludes += [f"{qt_api}.{sub}" for sub in qt_excludes]
 # Specify additional "data" that we want to copy over.
 # Better to let PyInstaller copy it rather than copying it after the fact.
 
-data = {}
-data["../pyzo"] = "source/pyzo"
-data["_settings"] = "_settings"
+data1 = {}  # Applied via PyInstaller
+data2 = {}  # Manyally copied at the end
+
+data1["_settings"] = "_settings"
+
+# Anything that has .py files should be in data2 on MacOS,
+# see https://github.com/pyzo/pyzo/issues/830
+if sys.platform.startswith("darwin"):
+    data2["../pyzo"] = "source/pyzo"
+else:
+    data1["../pyzo"] = "source/pyzo"
 
 # Good to first clean up
 count = 0
-for data_dir in data.keys():
+for data_dir in set(data1.keys()) | set(data2.keys()):
     data_dir = os.path.abspath(os.path.join(this_dir, data_dir))
     if os.path.isdir(data_dir):
         for root, dirnames, filenames in os.walk(data_dir):
@@ -215,7 +223,7 @@ for m in includes:
     cmd.extend(["--hidden-import", m])
 for m in excludes:
     cmd.extend(["--exclude-module", m])
-for src, dst in data.items():
+for src, dst in data1.items():
     cmd.extend(["--add-data", f"{src}{os.pathsep}{dst}"])
 
 if sys.platform.startswith("win"):
@@ -255,3 +263,18 @@ entrypoint_pyinstaller(["--clean", "--distpath", dist_dir, specfilename])
 #     os.remove(specfilename)
 # except Exception:
 #     pass
+
+
+## Copy data after freezing
+
+if sys.platform.startswith("darwin"):
+    source_dir = os.path.join(dist_dir, "pyzo.app", "Contents", "Resources")
+else:
+    source_dir = os.path.join(dist_dir, "pyzo")
+
+for dir1, dir2 in data2.items():
+    shutil.copytree(
+        os.path.abspath(os.path.join(this_dir, dir1)),
+        os.path.abspath(os.path.join(source_dir, dir2)),
+    )
+    print("Copied", dir1, "->", dir2)
