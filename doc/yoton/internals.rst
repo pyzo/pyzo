@@ -80,7 +80,7 @@ connections to send/receive data. This required all queueing and io to
 be non-blocking. After changing the design the code got *much* smaller, 
 cleaner and easier to read, and is probably more robust. We could
 also get rid of several classes to buffer data, because with blocking
-threads the data can sinply be buffered at the queues and sockets. 
+threads the data can simply be buffered at the queues and sockets. 
 
 
 Message framing
