@@ -497,7 +497,7 @@ class EditorTabToolButton(TabToolButtonWithCloseButton):
         else:
             nLines = 5
         #
-        fraction = float(nBlocks) / 10**nLines
+        fraction = float(nBlocks) / 10 ** nLines
         fraction = min(fraction, 1.0)
         #
         for i in range(nLines):

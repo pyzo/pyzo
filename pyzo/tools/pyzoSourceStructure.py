@@ -252,19 +252,35 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         ln = editor.textCursor().blockNumber()
         ln += 1  # is ln as in line number area
 
-        # Define colours
-        colours = {
-            "cell": "#b58900",
-            "class": "#cb4b16",
-            "def": "#073642",
-            "attribute": "#657b83",
-            "import": "#268bd2",
-            "todo": "#d33682",
-            "nameismain": "#859900",
-        }
-        # colours = {'cell':'#007F00', 'class':'#0000FF', 'def':'#007F7F',
-        #            'attribute':'#444444', 'import':'#8800BB', 'todo':'#FF3333',
-        #            'nameismain':'#007F00'}
+        def get_color(name, sub="fore"):
+            parts = [part.partition(":") for part in theme[name].split(",")]
+            colors = {k.strip(): v.strip() for k, _, v in parts}
+            return colors[sub]
+
+        try:
+            theme = pyzo.themes[pyzo.config.settings.theme.lower()]["data"]
+            colours = {
+                "cell": get_color("syntax.python.cellcomment"),
+                "class": get_color("syntax.classname"),
+                "def": get_color("syntax.functionname"),
+                "attribute": get_color("syntax.comment"),
+                "import": get_color("syntax.keyword"),
+                "todo": get_color("syntax.todocomment"),
+                "nameismain": get_color("syntax.keyword"),
+                "background": get_color("editor.text", "back"),
+            }
+        except Exception as err:
+            print("Reverting to defaut source structure colors:", str(err))
+            colours = {
+                "cell": "#b58900",
+                "class": "#cb4b16",
+                "def": "#073642",
+                "attribute": "#657b83",
+                "import": "#268bd2",
+                "todo": "#d33682",
+                "nameismain": "#859900",
+                "background": "#fff",
+            }
 
         # Define what to show
         showTypes = self._config.showTypes
@@ -321,6 +337,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 thisItem.setExpanded(bool(level < showLevel))
 
         # Go
+        self._tree.setStyleSheet("background-color: " + colours["background"] + ";")
         self._tree.setUpdatesEnabled(False)
         self._tree.clear()
         SetItems(self._tree, result.rootItem.children, 0)
