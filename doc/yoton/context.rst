@@ -104,7 +104,7 @@ Context
   
     Setup a connection with another Context, by being the host.
     This method starts a thread that waits for incoming connections.
-    Error messages are printed when an attemped connect fails. the
+    Error messages are printed when an attempted connect fails. the
     thread keeps trying until a successful connection is made, or until
     the connection is closed.
     

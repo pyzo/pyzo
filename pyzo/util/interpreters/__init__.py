@@ -114,10 +114,12 @@ def _get_interpreters_posix():
 
     def isPathValidPythonExe(filename):
         fname = os.path.split(filename)[1]
-        return fname.startswith(("python", "pypy")) and \
-               not fname.count("config") and \
-               len(fname) < 16 and \
-               os.path.isfile(filename)
+        return (
+            fname.startswith(("python", "pypy"))
+            and not fname.count("config")
+            and len(fname) < 16
+            and os.path.isfile(filename)
+        )
 
     # Look for system Python interpreters
     for searchpath in ["/usr/bin", "/usr/local/bin", "/opt/local/bin"]:
@@ -152,7 +154,7 @@ def _get_interpreters_posix():
 
     # Look for Python interpreter provided by PYZO_DEFAULT_SHELL_PYTHON_EXE env-var
     if "PYZO_DEFAULT_SHELL_PYTHON_EXE" in os.environ:
-        filename = os.environ['PYZO_DEFAULT_SHELL_PYTHON_EXE']
+        filename = os.environ["PYZO_DEFAULT_SHELL_PYTHON_EXE"]
         filename = os.path.realpath(filename)
         if isPathValidPythonExe(filename):
             found.append(filename)
