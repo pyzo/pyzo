@@ -1,6 +1,16 @@
 # Release notes
 
 
+### Version 4.12.4 (20-12-2022)
+
+- Introduce PYZO_DEFAULT_SHELL_PYTHON_EXE env-var (#819)
+- The source structure now uses the theme colors.
+- Fix applying theme on Windows.
+- Fix support for PySide 6.4.
+- Officially support Python 3.10 and 3.11.
+- Fix Appnap for MacOS.
+
+
 ### Version 4.12.3 (14-03-2022)
 
 - Fix printing to PDF.
