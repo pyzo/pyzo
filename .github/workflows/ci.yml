@@ -39,42 +39,44 @@ jobs:
           # Main test builds, 3 OS's times 4 Qt toolkits
           # Actually 3 Qt toolkits because PyQt6 does not work yet
           - os: windows-latest
-            pyversion: '3.10'
+            pyversion: '3.11'
             qtlib: pyside6
           #- os: windows-latest
           #  pyversion: '3.10'
           #  qtlib: pyqt6
           - os: windows-latest
-            pyversion: '3.9'
+            pyversion: '3.10'
             qtlib: pyqt5
           - os: windows-latest
             pyversion: '3.9'
             qtlib: pyside2
+          # ---
           - os: ubuntu-latest
-            pyversion: '3.10'
+            pyversion: '3.11'
             qtlib: pyside6
           #- os: ubuntu-latest
           #  pyversion: '3.10'
           #  qtlib: pyqt6
           - os: ubuntu-latest
-            pyversion: '3.9'
+            pyversion: '3.10'
             qtlib: pyqt5
           - os: ubuntu-latest
             pyversion: '3.9'
             qtlib: pyside2
+          # ---
           - os: macos-latest
-            pyversion: '3.10'
+            pyversion: '3.11'
             qtlib: pyside6
           #- os: macos-latest
           #  pyversion: '3.10'
           #  qtlib: pyqt6
           - os: macos-latest
-            pyversion: '3.9'
+            pyversion: '3.10'
             qtlib: pyqt5
           - os: macos-latest
             pyversion: '3.9'
             qtlib: pyside2
-          # Older Python versions and qt libs
+          # --- Older Python versions and qt libs
           - os: windows-latest
             pyversion: '3.6'
             qtlib: pyside6
