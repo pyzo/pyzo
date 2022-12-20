@@ -30,7 +30,7 @@ ct2.connect("localhost:test")
 c2 = yoton.SubChannel(ct2, "speedTest")
 
 # Init
-minSize, maxSize = 2, 100 * 2**20
+minSize, maxSize = 2, 100 * 2 ** 20
 BPS = []
 TPM = []
 N = []
@@ -42,7 +42,7 @@ size = minSize
 while size < maxSize:
 
     # Calculate amount
-    n = int(200 * 2**20 / size)
+    n = int(200 * 2 ** 20 / size)
     n = min(yoton.core.BUF_MAX_LEN, n)
 
     t0 = time.time()
@@ -74,7 +74,7 @@ while size < maxSize:
     bps_ = "%1.2f B/s" % bps
     size_ = "%i B" % size
     #
-    D = {2**10: "KB", 2**20: "MB", 2**30: "GB"}
+    D = {2 ** 10: "KB", 2 ** 20: "MB", 2 ** 30: "GB"}
     for factor in D:
         if bps >= factor:
             bps_ = "%1.2f %s/s" % (bps / factor, D[factor])
@@ -98,7 +98,7 @@ while size < maxSize:
 
 
 def logticks10(unit="", factor=10):
-    SIZE_TICKS = [factor**i for i in range(-50, 30, 1)]
+    SIZE_TICKS = [factor ** i for i in range(-50, 30, 1)]
     D = {}
     for i in SIZE_TICKS:
         il = math.log(i, factor)
@@ -112,7 +112,7 @@ def logticks10(unit="", factor=10):
 
 
 def logticks2(unit="", factor=2):
-    SIZE_TICKS = [factor**i for i in range(-50, 30, 3)]
+    SIZE_TICKS = [factor ** i for i in range(-50, 30, 3)]
     D = {}
     for i in SIZE_TICKS:
         il = math.log(i, factor)

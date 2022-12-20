@@ -20,7 +20,7 @@ from yoton.channels import BaseChannel, OBJECT
 
 
 # For the req/rep channels to negotiate (simple load balancing)
-REQREP_SEQ_REF = 2**63
+REQREP_SEQ_REF = 2 ** 63
 
 # Define object to recognize errors
 ERROR_OBJECT = "yoton_ERROR_HANDLING_REQUEST"
