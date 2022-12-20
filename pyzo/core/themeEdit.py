@@ -436,6 +436,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
         if prev != new:
             pyzo.config.settings.theme = new
+            pyzo.saveConfig()
             # This may be better
             pyzo.main.restart()
         else:
