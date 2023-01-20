@@ -360,19 +360,20 @@ class BaseShell(BaseTextCtrl):
         after = line[pos:].split('"')[0]
         piece = before + after
 
-        # Check if it looks like a filename, quit if it does not
-        if len(piece) < 4:
-            return
-        elif not ("/" in piece or "\\" in piece):
-            return
-        #
-        if sys.platform.startswith("win"):
-            if piece[1] != ":":
+        if not re.fullmatch(r"<tmp \d+>", piece):
+            # Check if it looks like a filename, quit if it does not
+            if len(piece) < 4:
                 return
-        else:
-            if not piece.startswith("/"):
+            elif not ("/" in piece or "\\" in piece):
                 return
-        #
+
+            if sys.platform.startswith("win"):
+                if piece[1] != ":":
+                    return
+            else:
+                if not piece.startswith("/"):
+                    return
+
         filename = piece
 
         # Split in parts for getting line number
