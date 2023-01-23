@@ -1226,9 +1226,10 @@ class BreakPoints(object):
         """A list of breakpoints for this editor."""
         return list(sorted(self._breakPoints))
 
-        self._breakPoints = {}
-        self.breakPointsChanged.emit(self)
-        self.__breakPointArea.update()
+    def clearBreakPoints(self):
+        """Remove all breakpoints for this editor."""
+        for linenr in self.breakPoints():
+            self.toggleBreakpoint(linenr)
 
     def toggleBreakpoint(self, linenr=None):
         """Turn breakpoint on/off for given linenr of current line."""
