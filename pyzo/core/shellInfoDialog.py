@@ -418,30 +418,24 @@ class ShellInfo_argv(ShellInfoLineEdit):
 
 
 class ShellInfo_environ(QtWidgets.QTextEdit):
-    EXAMPLE = "EXAMPLE_VAR1=value1\nPYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1"
+    EXAMPLE = "PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1\nEXAMPLE_VAR1=value1"
 
     def __init__(self, parent):
         QtWidgets.QTextEdit.__init__(self, parent)
         self.zoomOut(1)
-        self.setText(self.EXAMPLE)
+        self.setPlaceholderText(self.EXAMPLE)
 
     def _cleanText(self, txt):
         return "\n".join([line.strip() for line in txt.splitlines()])
 
     def setTheText(self, value):
         value = self._cleanText(value)
-        if value:
-            self.setText(value)
-        else:
-            self.setText(self.EXAMPLE)
+        self.setText(value)
 
     def getTheText(self):
         value = self.toPlainText()
         value = self._cleanText(value)
-        if value == self.EXAMPLE:
-            return ""
-        else:
-            return value
+        return value
 
 
 ## The dialog class and container with tabs
