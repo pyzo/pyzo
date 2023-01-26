@@ -385,10 +385,8 @@ class PyzoEditor(BaseTextCtrl):
 
     def focusInEvent(self, event):
         """Test whether the file has been changed 'behind our back'"""
-        # Act normally to the focus event
-        BaseTextCtrl.focusInEvent(self, event)
-        # Test file change
         self.testWhetherFileWasChanged()
+        return super().focusInEvent(event)
 
     def testWhetherFileWasChanged(self):
         """testWhetherFileWasChanged()
@@ -423,7 +421,7 @@ class PyzoEditor(BaseTextCtrl):
 
             # get result and act
             result = dlg.exec_()
-            if result == QtWidgets.QMessageBox.AcceptRole:
+            if result == 0:  # in PySide6 AcceptRole != 0
                 self.reload()
             else:
                 pass  # when cancelled or explicitly said, do nothing
