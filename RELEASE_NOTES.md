@@ -1,6 +1,13 @@
 # Release notes
 
 
+### Version 4.12.5 (27-01-2023)
+
+- Fixed that pressing "reload" when a file was changed externally did not actually reload on PySide6 (#838)
+- The environment field in the shell dialog now has an actual placeholder text (#837 by @bdieterm)
+- Fixes related to debugging temp files (#833, #834, #835, #836 by @bdieterm)
+
+
 ### Version 4.12.4 (20-12-2022)
 
 - Introduce PYZO_DEFAULT_SHELL_PYTHON_EXE env-var (#819)
