@@ -878,6 +878,10 @@ class PyzoInterpreter:
             if self._ipython:
                 self._ipython.execution_count += 1
 
+        # Bring fname to the canonical form so that pdb recognizes the breakpoints,
+        # otherwise filename r"C:\..." would be different from canonical form r"c:\..."
+        fname = self.debugger.canonic(fname)
+
         # Put the line number in the filename (if necessary)
         # Note that we could store the line offset in the _codeCollection,
         # but then we cannot retrieve it for syntax errors.
