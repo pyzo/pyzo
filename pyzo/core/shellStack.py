@@ -582,8 +582,6 @@ class DebugStack(QtWidgets.QToolButton):
             return "Stack frame is <console>."
         elif filename.startswith("<ipython-input-"):
             return "Stack frame is IPython input."
-        elif filename.startswith("<"):
-            return "Stack frame is special name"
         # Go there!
         result = pyzo.editors.loadFile(filename)
         if not result:
