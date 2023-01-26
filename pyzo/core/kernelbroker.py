@@ -106,7 +106,7 @@ class KernelInfo(ssdf.Struct):
         self.argv = ""
 
         # Additional environment variables
-        self.environ = "PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1"
+        self.environ = ""
 
         # Load info from ssdf struct. Make sure they are all strings
         if info:
