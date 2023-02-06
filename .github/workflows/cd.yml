@@ -94,12 +94,12 @@ jobs:
           pip install -U pyside6 pyinstaller
           pip install -r freeze/frozen_libs.txt
     - name: Setup Codesigning
-        env:
+      env:
           MACOS_CERT: ${{ secrets.MACOS_CERT }}
           MACOS_CERT_PW: ${{ secrets.MACOS_CERT_PW }}
           MACOS_CERT_ID: ${{ secrets.MACOS_CERT_ID }}
           KEYCHAIN_PW: ${{ secrets.KEYCHAIN_PW }}
-        run: |
+      run: |
           echo $MACOS_CERT | base64 —decode > certificate.p12
           security create-keychain -p $KEYCHAIN_PW build.keychain
           security default-keychain -s build.keychain
