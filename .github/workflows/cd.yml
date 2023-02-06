@@ -112,7 +112,7 @@ jobs:
       run: |
           python freeze/pyzo_freeze.py
           # cant get it to work //// codesign -s $MACOS_CERT_ID --force --all-architectures --timestamp --deep --options=runtime freeze/dist/pyzo.app -v
-          codesign -s --force --all-architectures --timestamp --deep freeze/dist/pyzo.app
+          codesign -s - --force --all-architectures --timestamp --deep freeze/dist/pyzo.app
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
