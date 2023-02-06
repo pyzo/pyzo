@@ -278,3 +278,6 @@ for dir1, dir2 in data2.items():
         os.path.abspath(os.path.join(source_dir, dir2)),
     )
     print("Copied", dir1, "->", dir2)
+
+
+# In the GH Action we perform a sign again

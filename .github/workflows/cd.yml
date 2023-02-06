@@ -93,8 +93,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U pyside6 pyinstaller
           pip install -r freeze/frozen_libs.txt
+    - name: Setup Codesigning
+        env:
+          MACOS_CERT: ${{ secrets.MACOS_CERT }}
+          MACOS_CERT_PW: ${{ secrets.MACOS_CERT_PW }}
+          MACOS_CERT_ID: ${{ secrets.MACOS_CERT_ID }}
+          KEYCHAIN_PW: ${{ secrets.KEYCHAIN_PW }}
+        run: |
+          echo $MACOS_CERT | base64 —decode > certificate.p12
+          security create-keychain -p $KEYCHAIN_PW build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p $KEYCHAIN_PW build.keychain
+          security import certificate.p12 -k build.keychain -P $MACOS_CERT_PW -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEYCHAIN_PW build.keychain
+          security find-identity -v
     - name: Freeze
-      run: python freeze/pyzo_freeze.py
+      run: |
+          python freeze/pyzo_freeze.py
+          codesign -s $MACOS_CERT_ID --force --all-architectures --timestamp --deep --options=runtime freeze/dist/pyzo.app
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
