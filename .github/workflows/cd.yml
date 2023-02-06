@@ -97,7 +97,6 @@ jobs:
       env:
           MACOS_CERT: ${{ secrets.MACOS_CERT }}
           MACOS_CERT_PW: ${{ secrets.MACOS_CERT_PW }}
-          MACOS_CERT_ID: ${{ secrets.MACOS_CERT_ID }}
           KEYCHAIN_PW: ${{ secrets.KEYCHAIN_PW }}
       run: |
           echo $MACOS_CERT | base64 --decode > certificate.p12
@@ -108,6 +107,8 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEYCHAIN_PW build.keychain
           security find-identity -v
     - name: Freeze
+      env:
+          MACOS_CERT_ID: ${{ secrets.MACOS_CERT_ID }}
       run: |
           python freeze/pyzo_freeze.py
           codesign -s $MACOS_CERT_ID --force --all-architectures --timestamp --deep --options=runtime freeze/dist/pyzo.app
