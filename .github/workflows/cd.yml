@@ -100,7 +100,7 @@ jobs:
           MACOS_CERT_ID: ${{ secrets.MACOS_CERT_ID }}
           KEYCHAIN_PW: ${{ secrets.KEYCHAIN_PW }}
       run: |
-          echo $MACOS_CERT | base64 —decode > certificate.p12
+          echo $MACOS_CERT | base64 --decode > certificate.p12
           security create-keychain -p $KEYCHAIN_PW build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p $KEYCHAIN_PW build.keychain
