@@ -212,7 +212,7 @@ jobs:
         prerelease: false
     - name: Upload release assets
       # Move back to official action after fix https://github.com/actions/upload-release-asset/issues/4
-      uses: AButler/upload-release-assets@v2
+      uses: AButler/upload-release-assets@v2.0
       with:
         release-tag: ${{ steps.get_version.outputs.VERSION }}
         files: 'dist/*.zip;dist/*.tar.gz;dist/*.dmg;dist/*.exe;dist/*.msi'
