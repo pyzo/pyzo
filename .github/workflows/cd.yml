@@ -109,7 +109,7 @@ jobs:
         security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
         # We finally codesign our app bundle, specifying the Hardened runtime option
-        /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime freeze/dist/pyzo.app -v
+        /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --all-architectures --timestamp --deep --options runtime freeze/dist/pyzo.app -v
     - name: "Notarize app bundle"
       # Extract the secrets we defined earlier as environment variables
       env:
@@ -124,11 +124,12 @@ jobs:
         # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
         echo "Notarize app"
         xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-        xcrun notarytool log c44df8eb-3087-4a3c-a5f4-9b72caceb083 --keychain-profile "notarytool-profile"
+        # Debug
+        # xcrun notarytool log c44df8eb-3087-4a3c-a5f4-9b72caceb083 --keychain-profile "notarytool-profile"
         # Finally, we need to "attach the staple" to our executable, which will allow our app to be
         # validated by macOS even when an internet connection is not available.
         echo "Attach staple"
-        #xcrun stapler staple "freeze/dist/pyzo.app"
+        xcrun stapler staple "freeze/dist/pyzo.app"
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
