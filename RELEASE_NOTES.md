@@ -1,7 +1,7 @@
 # Release notes
 
 
-### Version 4.12.6 (07-02-2023)
+### Version 4.12.7 (07-02-2023)
 
 - Fixed singing of MacOS binary application (#839).
 
