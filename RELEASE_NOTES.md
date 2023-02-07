@@ -1,6 +1,11 @@
 # Release notes
 
 
+### Version 4.12.6 (07-02-2023)
+
+- Fixed singing of MacOS binary application (#839).
+
+
 ### Version 4.12.5 (27-01-2023)
 
 - Fixed that pressing "reload" when a file was changed externally did not actually reload on PySide6 (#838)
