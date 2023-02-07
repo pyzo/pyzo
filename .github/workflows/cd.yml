@@ -95,6 +95,38 @@ jobs:
           pip install -r freeze/frozen_libs.txt
     - name: Freeze
       run: python freeze/pyzo_freeze.py
+    - name: Codesign app bundle
+      env:
+        MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+        MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+        MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+      run: |
+        echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+        security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        # We finally codesign our app bundle, specifying the Hardened runtime option
+        /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --all-architectures --timestamp --deep --options runtime freeze/dist/pyzo.app -v
+    - name: "Notarize app bundle"
+      env:
+        PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+        PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+        PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+      run: |
+        echo "Create keychain profile"
+        xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+        echo "Creating temp notarization archive"
+        ditto -c -k --keepParent "freeze/dist/pyzo.app" "notarization.zip"
+        echo "Notarize app"
+        xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+        # Debug
+        # xcrun notarytool log c44df8eb-3087-4a3c-a5f4-9b72caceb083 --keychain-profile "notarytool-profile"
+        # Finally, we need to "attach the staple" allow our app to be validated without internet connection.
+        echo "Attach staple"
+        xcrun stapler staple "freeze/dist/pyzo.app"
     - name: Package
       run: python freeze/pyzo_package.py
     - name: Test frozen
