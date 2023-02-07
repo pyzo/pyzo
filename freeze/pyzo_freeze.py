@@ -180,14 +180,15 @@ excludes += [f"{qt_api}.{sub}" for sub in qt_excludes]
 data1 = {}  # Applied via PyInstaller
 data2 = {}  # Manyally copied at the end
 
-data1["_settings"] = "_settings"
 
 # Anything that has .py files should be in data2 on MacOS,
 # see https://github.com/pyzo/pyzo/issues/830
 if sys.platform.startswith("darwin"):
     data2["../pyzo"] = "source/pyzo"
+    data2["_settings"] = "_settings"
 else:
     data1["../pyzo"] = "source/pyzo"
+    data1["_settings"] = "_settings"
 
 # Good to first clean up
 count = 0

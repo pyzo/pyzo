@@ -130,7 +130,7 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     prefix = sys.prefix
     if getattr(sys, "frozen", None):  # See application_dir() function
         prefix = os.path.abspath(os.path.dirname(sys.executable))
-    for reldir in ("settings", "../settings"):
+    for reldir in ("settings", "../settings", "../Resources/settings"):
         localpath = os.path.abspath(os.path.join(prefix, reldir))
         if os.path.isdir(localpath):
             try:

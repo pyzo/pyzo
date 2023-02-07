@@ -62,7 +62,14 @@ def package_zip():
                 filename1 = os.path.join(root, fname)
                 filename2 = os.path.relpath(filename1, os.path.join(dist_dir, dirname1))
                 filename2 = os.path.join(dirname2, filename2)
-                zf.write(filename1, filename2)
+                if os.path.islink(filename1):
+                    zipInfo = zipfile.ZipInfo(filename2)
+                    zipInfo.create_system = 3
+                    # long type of hex val of '0xA1ED0000'
+                    zipInfo.external_attr = 2716663808
+                    zf.writestr(zipInfo, os.readlink(filename1))
+                else:
+                    zf.write(filename1, filename2)
 
 
 def package_inno_installer():
