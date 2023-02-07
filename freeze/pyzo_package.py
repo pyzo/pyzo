@@ -37,12 +37,14 @@ basename = f"pyzo-{__version__}-{osname}"
 def package_tar_gz():
     print("Packing up into tar.gz ...")
 
+    dirname = "pyzo.app" if sys.platform.startswith("darwin") else "pyzo"
+
     oridir = os.getcwd()
     os.chdir(dist_dir)
     try:
         tf = tarfile.open(basename + ".tar.gz", "w|gz")
         with tf:
-            tf.add("pyzo", arcname="pyzo")
+            tf.add(dirname, arcname=dirname)
     finally:
         os.chdir(oridir)
 
