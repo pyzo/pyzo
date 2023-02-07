@@ -139,6 +139,7 @@ jobs:
       with:
         path: |
           freeze/dist/*.zip
+          freeze/dist/*.tar.gz
           freeze/dist/*.dmg
         name: dist
 
