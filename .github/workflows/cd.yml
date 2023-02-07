@@ -111,7 +111,6 @@ jobs:
         # We finally codesign our app bundle, specifying the Hardened runtime option
         /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --all-architectures --timestamp --deep --options runtime freeze/dist/pyzo.app -v
     - name: "Notarize app bundle"
-      # Extract the secrets we defined earlier as environment variables
       env:
         PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
         PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
@@ -121,13 +120,11 @@ jobs:
         xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
         echo "Creating temp notarization archive"
         ditto -c -k --keepParent "freeze/dist/pyzo.app" "notarization.zip"
-        # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
         echo "Notarize app"
         xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
         # Debug
         # xcrun notarytool log c44df8eb-3087-4a3c-a5f4-9b72caceb083 --keychain-profile "notarytool-profile"
-        # Finally, we need to "attach the staple" to our executable, which will allow our app to be
-        # validated by macOS even when an internet connection is not available.
+        # Finally, we need to "attach the staple" allow our app to be validated without internet connection.
         echo "Attach staple"
         xcrun stapler staple "freeze/dist/pyzo.app"
     - name: Package
