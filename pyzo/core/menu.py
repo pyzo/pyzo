@@ -186,6 +186,8 @@ class Menu(QtWidgets.QMenu):
 
     """
 
+    _show_in_key_map_dialog = True
+
     def __init__(self, parent=None, name=None):
         QtWidgets.QMenu.__init__(self, parent)
 
@@ -389,6 +391,8 @@ class GeneralOptionsMenu(Menu):
 
     """
 
+    _show_in_key_map_dialog = False
+
     def __init__(self, parent=None, name=None, callback=None, options=None):
         Menu.__init__(self, parent, name)
         self._options_callback = callback
@@ -420,6 +424,8 @@ class IndentationMenu(Menu):
     tabs vs spaces and the amount of spaces.
     Part of the File menu.
     """
+
+    _show_in_key_map_dialog = False
 
     def build(self):
         self._items = [
@@ -851,6 +857,8 @@ class ZoomMenu(Menu):
 
 
 class FontMenu(Menu):
+    _show_in_key_map_dialog = False
+
     def __init__(self, parent=None, name="Font", *args, **kwds):
         Menu.__init__(self, parent, name, *args, **kwds)
         self.aboutToShow.connect(self._updateFonts)
@@ -2637,7 +2645,11 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         if index.row() < 0:
             return True
         else:
-            return isinstance(index.internalPointer(), QtWidgets.QMenu)
+            ob = index.internalPointer()
+            if isinstance(ob, QtWidgets.QMenu):
+                return getattr(ob, "_show_in_key_map_dialog", True)
+            else:
+                return False
 
     def index(self, row, column, parent):
         if not self.hasIndex(row, column, parent):
