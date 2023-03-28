@@ -261,7 +261,6 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
 
         # Add elements
         for des in self._proxy._variables:
-
             # Get parts
             parts = list(des)
             if len(parts) < 4:

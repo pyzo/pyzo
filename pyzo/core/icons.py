@@ -26,7 +26,6 @@ class IconArtist:
     """
 
     def __init__(self, icon=None):
-
         # Get pixmap from given icon (None creates empty pixmap)
         self._pm = self._getPixmap(icon)
 
@@ -42,7 +41,6 @@ class IconArtist:
         return QtGui.QIcon(self._pm)
 
     def _getPixmap(self, icon):
-
         # Get icon if given by name
         if isinstance(icon, str):
             icon = pyzo.icons[icon]
@@ -283,7 +281,6 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
         self._menuPressed = False
 
     def setIcon(self, icon=None):
-
         # Store icon if given, otherwise use buffered version
         if icon is not None:
             self._icon = icon
@@ -393,7 +390,6 @@ class TabToolButtonWithCloseButton(TabToolButton):
             self.setIcon()
 
     def setIcon(self, icon=None):
-
         # Store icon if given, otherwise use buffered version
         if icon is not None:
             self._icon = icon
@@ -471,7 +467,6 @@ class EditorTabToolButton(TabToolButtonWithCloseButton):
     """
 
     def updateIcon(self, isDirty, isMain, isPinned, nBlocks=10001):
-
         # Init drawing
         artist = IconArtist()
 
@@ -497,7 +492,7 @@ class EditorTabToolButton(TabToolButtonWithCloseButton):
         else:
             nLines = 5
         #
-        fraction = float(nBlocks) / 10 ** nLines
+        fraction = float(nBlocks) / 10**nLines
         fraction = min(fraction, 1.0)
         #
         for i in range(nLines):
@@ -550,7 +545,6 @@ class ShellIconMaker:
     MAX_ITERS_IN_LEVEL_1 = 2
 
     def __init__(self, objectWithIcon):
-
         self._objectWithIcon = objectWithIcon
 
         # Motion properties
@@ -572,7 +566,6 @@ class ShellIconMaker:
         self._objectWithIcon.setIcon(icon)
 
     def _createBlobPixmap(self):
-
         artist = IconArtist()
         artist.setPenColor((0, 150, 0, 255))
         artist.addPoint(1, 1)

@@ -150,7 +150,6 @@ class StyleFormat:
         styleParts = [p for p in format.replace("=", ":").replace(";", ",").split(",")]
 
         for stylePart in styleParts:
-
             # Make sure it consists of identifier and value pair
             # e.g. fore:#xxx, bold:yes, underline:no
             if ":" not in stylePart:

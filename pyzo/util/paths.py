@@ -164,7 +164,6 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
             except AttributeError:
                 pass
             else:
-
                 # Check if QStandardPaths succeeded to find the location, otherwise use old path
                 if standard_config_path:
                     config_path = standard_config_path

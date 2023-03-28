@@ -45,7 +45,6 @@ def determineEncoding(bb):
     encoding = "UTF-8"
 
     for line in firstTwoLines:
-
         # Try to make line a string
         try:
             line = line.decode("ASCII").strip()
@@ -54,12 +53,10 @@ def determineEncoding(bb):
 
         # Has comment?
         if line and line[0] == "#":
-
             # Matches regular expression given in PEP 0263?
             expression = r"coding[:=]\s*([-\w.]+)"
             result = re.search(expression, line)
             if result:
-
                 # Is it a known encoding? Correct name if it is
                 candidate_encoding = result.group(1)
                 try:
@@ -184,7 +181,6 @@ def createEditor(parent, filename=None):
     """
 
     if filename is None:
-
         # Increase counter
         global newFileCounter
         newFileCounter += 1
@@ -198,7 +194,6 @@ def createEditor(parent, filename=None):
         editor._name = "<tmp {}>".format(newFileCounter)
 
     else:
-
         # check and normalize
         if not os.path.isfile(filename):
             raise IOError("File does not exist '%s'." % filename)
@@ -255,7 +250,6 @@ def createEditor(parent, filename=None):
 
 
 class PyzoEditor(BaseTextCtrl):
-
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.Signal()
 
@@ -404,7 +398,6 @@ class PyzoEditor(BaseTextCtrl):
         # test the modification time...
         mtime = os.path.getmtime(path)
         if mtime != self._modifyTime:
-
             # ask user
             dlg = QtWidgets.QMessageBox(self)
             dlg.setWindowTitle("File was changed")

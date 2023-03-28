@@ -26,7 +26,6 @@ class StatusBar(QtWidgets.QStatusBar):
         self.insertPermanentWidget(1, self.cursor_pos, 0)
 
     def updateCursorInfo(self, editor):
-
         # Get current line number
         nrow = 0
         ncol = 0
@@ -40,7 +39,6 @@ class StatusBar(QtWidgets.QStatusBar):
         self.cursor_pos.setText(position_txt)
 
     def updateFileEncodingInfo(self, editor):
-
         fe_txt = ""
         if editor:
             fe_txt = editor.encoding.upper()

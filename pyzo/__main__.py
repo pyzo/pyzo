@@ -31,7 +31,6 @@ def write(*msg):
 
 
 def main():
-
     if TESTING:
         dt = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
         write(f"Testing Pyzo source ({dt} UTC)")

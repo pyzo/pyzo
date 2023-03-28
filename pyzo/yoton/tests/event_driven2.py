@@ -31,6 +31,7 @@ sub = yoton.SubChannel(ct2, "foo")
 # Connect, set channel to event driven mode
 ct2.connect("publichost:test")
 
+
 # Create message handler
 def message_handler():
     message = sub.recv(False)

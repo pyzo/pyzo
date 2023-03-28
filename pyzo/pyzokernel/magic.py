@@ -118,7 +118,6 @@ def _should_not_interpret_as_magic(line):
 
 class Magician:
     def _eval(self, command):
-
         # Get namespace
         NS1 = sys._pyzoInterpreter.locals
         NS2 = sys._pyzoInterpreter.globals
@@ -168,7 +167,6 @@ class Magician:
             return res
 
     def _convert_command(self, line):
-
         # Get interpreter
         interpreter = sys._pyzoInterpreter
         command = line.rstrip()
@@ -400,7 +398,6 @@ class Magician:
         return ""
 
     def open(self, line, command):
-
         # Get what to open
         name = line.split(" ", 1)[1].strip()
         fname = ""
@@ -466,7 +463,6 @@ class Magician:
         return ""
 
     def run(self, line, command):
-
         # Get what to open
         name = line.split(" ", 1)[1].strip()
         fname = ""
@@ -559,7 +555,6 @@ class Magician:
         return ""
 
     def conda(self, line, command):
-
         if not (command == "CONDA" or command.startswith("CONDA ")):
             return
 
@@ -650,7 +645,6 @@ class Magician:
             time.sleep(2.0)  # Give user time to realize there is a warning
 
     def pip(self, line, command):
-
         if not (command == "PIP" or command.startswith("PIP ")):
             return
 
@@ -687,7 +681,6 @@ class Magician:
         return ""
 
     def notebook(self, line, command):
-
         if not (command == "NOTEBOOK" or command.startswith("NOTEBOOK ")):
             return
 

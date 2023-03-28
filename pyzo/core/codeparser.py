@@ -323,7 +323,6 @@ class Parser(threading.Thread):
                     return
 
                 if self._job:
-
                     # Savely obtain job
                     self._lock.acquire()
                     job = self._job
@@ -394,7 +393,6 @@ class Parser(threading.Thread):
         # Find objects!
         # type can be: cell, class, def, import, var
         for i in range(len(lines)):
-
             # Obtain line
             line = lines[i]
 
@@ -744,9 +742,9 @@ def washMultilineStrings(text):
         else:
             # Make no result be very large
             if i1 == -1:
-                i1 = 2 ** 60
+                i1 = 2**60
             if i2 == -1:
-                i2 = 2 ** 60
+                i2 = 2**60
             # Find end of the multiline comment
             if i1 < i2:
                 i3 = i1 + 3
@@ -756,7 +754,7 @@ def washMultilineStrings(text):
                 i4 = text.find(s2, i3)
             # No end found -> take all text, unclosed string!
             if i4 == -1:
-                i4 = 2 ** 32
+                i4 = 2**32
             # Leave only the first two quotes of the start of the comment
             i3 -= 1
             i4 += 3

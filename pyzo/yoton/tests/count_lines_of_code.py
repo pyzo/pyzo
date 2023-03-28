@@ -2,7 +2,6 @@ import os
 
 
 def count_lines(filename):
-
     # Get text
     text = open(filename, "r").read()
 
@@ -28,7 +27,6 @@ def count_lines(filename):
 
 
 if __name__ == "__main__":
-
     # Get path of yoton
     path = os.path.dirname(os.path.abspath(__file__))
     path = os.path.split(path)[0]

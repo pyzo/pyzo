@@ -80,7 +80,6 @@ class Connection(object):
     """
 
     def __init__(self, context, name=""):
-
         # Store context and name
         self._context = context
         self._name = name
@@ -375,7 +374,6 @@ class Connection(object):
         """
         self._lock.acquire()
         try:
-
             # Store status
             self._status = status
 

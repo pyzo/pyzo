@@ -17,7 +17,6 @@ from codeeditor import CodeEditor
 
 
 if __name__ == "__main__":
-
     app = QtWidgets.QApplication([])
 
     # Create editor instance

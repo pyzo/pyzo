@@ -37,7 +37,6 @@ except ImportError:
 
 
 if "--test" in sys.argv:
-
     # Prepare log file
     logfilename = os.path.abspath(os.path.join(__file__, "..", "log.txt"))
     with open(logfilename, "wt") as f:
@@ -48,7 +47,6 @@ if "--test" in sys.argv:
     subprocess.run([sys.executable, "pyzo", "--test"])
 
 else:
-
     import pyzo
 
     pyzo.start()

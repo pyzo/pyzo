@@ -92,7 +92,6 @@ class PyzoWizard(QtWidgets.QWizard):
 
 
 class BasePyzoWizardPage(QtWidgets.QWizardPage):
-
     _prefix = translate("wizard", "Step")
 
     _title = "dummy title"
@@ -134,7 +133,6 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
         theLayout.addStretch()
 
     def initializePage(self):
-
         # Get prefix
         i = self._i
         n = self.wizard()._n - 2  # Dont count the first and last page
@@ -163,7 +161,6 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
 
 
 class IntroWizardPage(BasePyzoWizardPage):
-
     _title = translate("wizard", "Welcome to the Interactive Editor for Python!")
     _image_filename = "pyzologo128.png"
     _descriptions = [
@@ -263,7 +260,6 @@ class IntroWizardPage(BasePyzoWizardPage):
 
 
 class TwocomponentsWizardPage(BasePyzoWizardPage):
-
     _title = translate("wizard", "Pyzo consists of two main components")
     _image_filename = "pyzo_two_components.png"
     _descriptions = [
@@ -273,7 +269,6 @@ class TwocomponentsWizardPage(BasePyzoWizardPage):
 
 
 class EditorWizardPage(BasePyzoWizardPage):
-
     _title = translate("wizard", "The editor is where you write your code")
     _image_filename = "pyzo_editor.png"
     _descriptions = [
@@ -292,7 +287,6 @@ class EditorWizardPage(BasePyzoWizardPage):
 
 
 class ShellWizardPage1(BasePyzoWizardPage):
-
     _title = translate("wizard", "The shell is where your code gets executed")
     _image_filename = "pyzo_shell1.png"
     _descriptions = [
@@ -312,7 +306,6 @@ class ShellWizardPage1(BasePyzoWizardPage):
 
 
 class ShellWizardPage2(BasePyzoWizardPage):
-
     _title = translate("wizard", "Configuring shells")
     _image_filename = "pyzo_shell2.png"
     _descriptions = [
@@ -331,7 +324,6 @@ class ShellWizardPage2(BasePyzoWizardPage):
 
 
 class RuncodeWizardPage1(BasePyzoWizardPage):
-
     _title = translate("wizard", "Running code")
     _image_filename = "pyzo_run1.png"
     _descriptions = [
@@ -359,7 +351,6 @@ class RuncodeWizardPage1(BasePyzoWizardPage):
 
 
 class RuncodeWizardPage2(BasePyzoWizardPage):
-
     _title = translate("wizard", "Interactive mode vs running as script")
     _image_filename = ""
     _descriptions = [
@@ -384,7 +375,6 @@ class RuncodeWizardPage2(BasePyzoWizardPage):
 
 
 class ToolsWizardPage1(BasePyzoWizardPage):
-
     _title = translate("wizard", "Tools for your convenience")
     _image_filename = "pyzo_tools1.png"
     _descriptions = [
@@ -403,7 +393,6 @@ class ToolsWizardPage1(BasePyzoWizardPage):
 
 
 class ToolsWizardPage2(BasePyzoWizardPage):
-
     _title = translate("wizard", "Recommended tools")
     _image_filename = "pyzo_tools2.png"
     _descriptions = [
@@ -421,7 +410,6 @@ class ToolsWizardPage2(BasePyzoWizardPage):
 
 
 class FinalPage(BasePyzoWizardPage):
-
     _title = translate("wizard", "Get coding!")
     _image_filename = "pyzologo128.png"
     _descriptions = [

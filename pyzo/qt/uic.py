@@ -5,15 +5,12 @@ from .QtWidgets import QComboBox
 
 
 if PYQT6:
-
     from PyQt6.uic import *
 
 elif PYQT5:
-
     from PyQt5.uic import *
 
 else:
-
     __all__ = ["loadUi", "loadUiType"]
 
     # In PySide, loadUi does not exist, so we define it using QUiLoader, and
@@ -139,7 +136,6 @@ else:
                 return self.baseinstance
 
             else:
-
                 # For some reason, Line is not in the list of available
                 # widgets, but works fine, so we have to special case it here.
                 if class_name in self.availableWidgets() or class_name == "Line":
@@ -188,7 +184,6 @@ else:
         custom_widget_classes = {}
 
         for custom_widget in list(custom_widgets):
-
             cw_class = custom_widget.find("class").text
             cw_header = custom_widget.find("header").text
 

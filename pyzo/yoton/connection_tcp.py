@@ -55,7 +55,6 @@ class TcpConnection(Connection):
     """
 
     def __init__(self, context, name=""):
-
         # Variables to hold threads
         self._sendingThread = None
         self._receivingThread = None
@@ -95,7 +94,6 @@ class TcpConnection(Connection):
         Connection._set_status(self, status)
 
         try:
-
             if status in [STATUS_HOSTING, STATUS_CONNECTED]:
                 # Really connected
 
@@ -114,7 +112,6 @@ class TcpConnection(Connection):
                 self._receivingThread.start()
 
             if status == 0:
-
                 # Close bsd socket
                 try:
                     self._bsd_socket.shutdown()
@@ -162,7 +159,7 @@ class TcpConnection(Connection):
 
         # Try all ports in the specified range
         for try_count in range(1, max_tries + 1):
-            port += int(try_count ** 0.5)
+            port += int(try_count**0.5)
             try:
                 s.bind((hostname, port))
                 break
@@ -312,7 +309,6 @@ class HostThread(threading.Thread):
 
         # Try making a connection until success or the context is stopped
         while self._context_connection.is_waiting:
-
             # Wait for connection
             s = self._wait_for_connection()
             if not s:
@@ -388,7 +384,6 @@ class HandShaker:
     """
 
     def __init__(self, bsd_socket):
-
         # Store bsd socket
         self._bsd_socket = bsd_socket
 
@@ -528,7 +523,6 @@ class BaseIOThread(threading.Thread):
             sys.__stderr__.flush()
 
         try:
-
             # Enter mainloop
             stop_reason = self._run(context_connection, bsd_socket)
 

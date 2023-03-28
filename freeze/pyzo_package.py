@@ -14,7 +14,7 @@ dist_dir = this_dir + "dist/"
 with open(os.path.join(this_dir, "..", "pyzo", "__init__.py")) as fh:
     __version__ = re.search(r"__version__ = \"(.*?)\"", fh.read()).group(1)
 
-bitness = "32" if sys.maxsize <= 2 ** 32 else "64"
+bitness = "32" if sys.maxsize <= 2**32 else "64"
 
 osname = os.getenv("PYZO_OSNAME", "")
 if osname:

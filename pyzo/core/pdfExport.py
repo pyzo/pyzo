@@ -128,7 +128,6 @@ class PdfExport(QtWidgets.QDialog):
         """Generate the pdf for preview and export"""
 
         if self.editor is not None:
-
             cursor = self.editor.textCursor()
             cursor.movePosition(cursor.Start)
             cursor.movePosition(cursor.End, cursor.KeepAnchor)
@@ -191,7 +190,6 @@ class PdfExport(QtWidgets.QDialog):
     def _export_pdf(self):
         """Exports the code as pdf, and opens file manager"""
         if self.editor is not None:
-
             if True:
                 filename = QtWidgets.QFileDialog.getSaveFileName(
                     None, "Export PDF", os.path.expanduser("~"), "*.pdf *.ps"

@@ -88,7 +88,6 @@ class TextMessageType(MessageType):
         return "txt"
 
     def message_to_bytes(self, message):
-
         # Check
         if not isinstance(message, basestring):
             raise ValueError("Text channel requires string messages.")
@@ -163,7 +162,6 @@ _TYPE_DICT = ord("d")
 
 
 class Packer:
-
     # Note that while xdrlib uses StringIO/BytesIO, this approach using
     # a list is actually faster.
 
@@ -184,7 +182,6 @@ class Packer:
             self.write(struct.pack("<Q", n))
 
     def pack_object(self, object):
-
         if object is None:
             self.write(struct.pack(_FMT_TYPE, _TYPE_NONE))
         elif isinstance(object, bool):
@@ -253,7 +250,6 @@ class Unpacker:
             return struct.unpack(fmt, data)[0]
 
     def unpack_object(self):
-
         object_type = self.unpack(_FMT_TYPE, 1)
 
         if object_type == _TYPE_NONE:

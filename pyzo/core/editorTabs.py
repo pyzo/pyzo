@@ -155,7 +155,6 @@ class FileItem:
     """
 
     def __init__(self, editor):
-
         # Store editor
         self._editor = editor
 
@@ -236,7 +235,6 @@ class FindReplaceWidget(QtWidgets.QFrame):
         layout.addSpacing(10)
 
         if True:
-
             # Create sub layouts
             vsubLayout = QtWidgets.QVBoxLayout()
             hsubLayout = QtWidgets.QHBoxLayout()
@@ -273,7 +271,6 @@ class FindReplaceWidget(QtWidgets.QFrame):
         layout.addSpacing(10)
 
         if True:
-
             # Create sub layouts
             vsubLayout = QtWidgets.QVBoxLayout()
             hsubLayout = QtWidgets.QHBoxLayout()
@@ -306,7 +303,6 @@ class FindReplaceWidget(QtWidgets.QFrame):
         layout.addSpacing(10)
 
         if True:
-
             # Create sub layouts
             vsubLayout = QtWidgets.QVBoxLayout()
             vsubLayout.setSpacing(0)
@@ -325,7 +321,6 @@ class FindReplaceWidget(QtWidgets.QFrame):
             vsubLayout.addWidget(self._regExp, 0)
 
         if True:
-
             # Create sub layouts
             vsubLayout = QtWidgets.QVBoxLayout()
             vsubLayout.setSpacing(0)
@@ -644,7 +639,6 @@ class FindReplaceWidget(QtWidgets.QFrame):
         editor.setTextCursor(originalPosition)
 
     def replaceInAllFiles(self, event=None):
-
         for editor in pyzo.editors:
             self.replaceAll(event, editor)
 
@@ -679,7 +673,6 @@ class FileTabWidget(CompactTabWidget):
         self.setTitleInMainWindowWhenTabChanged(-1)
 
     def setTitleInMainWindowWhenTabChanged(self, index):
-
         # Valid index?
         if index < 0 or index >= self.count():
             pyzo.main.setMainTitle()  # No open file
@@ -759,7 +752,6 @@ class FileTabWidget(CompactTabWidget):
             self.setCurrentIndex(item)
 
         elif isinstance(item, FileItem):
-
             items = self.items()
             for i in range(self.count()):
                 if item is items[i]:
@@ -767,7 +759,6 @@ class FileTabWidget(CompactTabWidget):
                     break
 
         elif isinstance(item, str):
-
             items = self.items()
             for i in range(self.count()):
                 if item == items[i].filename:
@@ -841,7 +832,6 @@ class FileTabWidget(CompactTabWidget):
             )
 
         if theIndex >= 0:
-
             # Close tab
             CompactTabWidget.removeTab(self, theIndex)
 
@@ -910,7 +900,6 @@ class FileTabWidget(CompactTabWidget):
             xx.append(item)
 
         for i in range(len(items)):
-
             # Get item
             item = items[i]
             if item is None:
@@ -1443,7 +1432,6 @@ class EditorTabs(QtWidgets.QWidget):
 
         # should we ask to save the file?
         if editor.document().isModified():
-
             # Ask user what to do
             close_txt, discard_txt, cancel_txt, save_txt = self._get_action_texts()
             result = simpleDialog(
@@ -1557,7 +1545,6 @@ class EditorTabs(QtWidgets.QWidget):
 
         # Get items
         for item in self._tabs.items():
-
             # Get editor
             ed = item.editor
             if not ed._filename:

@@ -48,7 +48,6 @@ def addIconOverlays(icon, *overlays, offset=(8, 0), overlay_offset=(0, 0)):
 
 
 def _filterFileByName(basename, filters):
-
     # Init default; return True if there are no filters
     default = True
 
@@ -135,7 +134,6 @@ def createItemsFun(browser, parent):
     files.sort(key=filename2sortkey)
 
     if not searchFilter:
-
         # Create dirs
         for path in dirs:
             starred = op.normcase(path) in starredDirs
@@ -152,7 +150,6 @@ def createItemsFun(browser, parent):
             item = FileItem(parent, fsProxy.file(path))
 
     else:
-
         # If searching, inject everything in the tree
         # And every item is hidden at first
         parent = browser._tree
@@ -402,7 +399,6 @@ class FileItem(BrowserItem):
         pass
 
     def onTaskFinished(self, task):
-
         if isinstance(task, tasks.DocstringTask):
             result = task.result()
             self.clear()  # Docstring task is done *before* peek task
@@ -778,7 +774,6 @@ class PopupMenu(pyzo.core.menu.Menu):
         pyzo.core.menu.Menu.__init__(self, parent, " ")
 
     def build(self):
-
         isplat = sys.platform.startswith
 
         # The star object
@@ -924,7 +919,6 @@ class PopupMenu(pyzo.core.menu.Menu):
         self._createDirOrFile(False)
 
     def _createDirOrFile(self, file=True):
-
         # Get title and label
         if file:
             title = translate("filebrowser", "Create new file")
@@ -951,7 +945,6 @@ class PopupMenu(pyzo.core.menu.Menu):
             self._item._proxy.pushTask(task)
 
     def _duplicateOrRename(self, rename):
-
         # Get dirname and filename
         dirname, filename = op.split(self._item.path())
 

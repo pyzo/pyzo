@@ -193,7 +193,6 @@ class StyleEdit(QtWidgets.QWidget):
         self.layout.addWidget(TitledWidget(name, checkBox))
 
     def __add_comboBox(self, key, name, *items):
-
         """this is a helper method to create a comboBox
         it adds the created widget (as a TitledWidget) to the layout and
         register a setter and listen to changes

@@ -197,7 +197,6 @@ class ShellStackWidget(QtWidgets.QWidget):
         """
 
         if shell is self.getCurrentShell():
-
             # Update debug info
             if shell and shell._debugState:
                 info = shell._debugState
@@ -488,7 +487,6 @@ class DebugStack(QtWidgets.QToolButton):
         self.triggered.connect(self.onTriggered)
 
     def onTriggered(self, action):
-
         # Get shell
         shell = pyzo.shells.getCurrentShell()
         if not shell:
@@ -516,7 +514,6 @@ class DebugStack(QtWidgets.QToolButton):
             index, frames = -1, []
 
         if (not frames) or (debugmode == 0):
-
             # Remove trace
             self.setMenu(None)
             self.setText("")  # (self._baseText)
@@ -622,7 +619,6 @@ class InterpreterHelper(QtWidgets.QWidget):
         self.detect()
 
     def detect(self):
-
         python_link = '<a href="https://www.python.org/">Python</a>'
         conda_link = '<a href="https://miniconda.pyzo.org">Miniconda</a>'
         self._the_exe = None

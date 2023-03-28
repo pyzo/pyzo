@@ -102,7 +102,6 @@ class OutputStreamSplitter:
     """
 
     def __init__(self, fileObject):
-
         # Init, copy properties if it was already a splitter
         if isinstance(fileObject, OutputStreamSplitter):
             self._original = fileObject._original

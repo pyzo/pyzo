@@ -111,7 +111,6 @@ class AskToInstallConda(QtWidgets.QDialog):
 
 
 class Installer(QtWidgets.QDialog):
-
     lineFromStdOut = QtCore.Signal(str)
 
     def __init__(self, parent=None):
@@ -176,7 +175,6 @@ class Installer(QtWidgets.QDialog):
         self.setStatus(line)
 
     def go(self):
-
         # Check if we can install
         try:
             self._conda_dir = self._path.text()
@@ -191,7 +189,6 @@ class Installer(QtWidgets.QDialog):
         ok = False
 
         try:
-
             # Disable user input, get ready for installation
             self._progress.setVisible(True)
             self._button.clicked.disconnect()
@@ -260,7 +257,6 @@ class Installer(QtWidgets.QDialog):
             QtWidgets.qApp.processEvents()
 
     def download(self):
-
         # Installer already downloaded?
         if os.path.isfile(miniconda_path):
             self.addOutput("Already downloaded.")
@@ -297,7 +293,6 @@ class Installer(QtWidgets.QDialog):
             return self._run_process([miniconda_path, "-b", "-p", dest])
 
     def post_install(self):
-
         exe = py_exe(self._conda_dir)
 
         # Add Pyzo channel
@@ -318,7 +313,6 @@ class Installer(QtWidgets.QDialog):
             self.addStatus("Prepended new env to Pyzo shell configs.")
 
     def install_scipy(self):
-
         packages = [
             "numpy",
             "scipy",
@@ -357,7 +351,6 @@ class Installer(QtWidgets.QDialog):
         return p.poll()
 
     def verify(self):
-
         self._progress.setValue(1)
         if not os.path.isdir(self._conda_dir):
             return "Conda dir not created."
@@ -508,5 +501,4 @@ class StreamCatcher(threading.Thread):
 
 
 if __name__ == "__main__":
-
     check_for_conda_env()

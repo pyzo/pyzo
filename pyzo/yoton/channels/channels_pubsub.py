@@ -361,7 +361,6 @@ def select_sub_channel(*args):
 
     # For each channel ...
     for channel in args:
-
         # Check if channel is of right type
         if not isinstance(channel, SubChannel):
             raise ValueError("select_sub_channel() only accepts SUB channels.")

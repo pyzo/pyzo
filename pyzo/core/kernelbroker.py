@@ -329,7 +329,6 @@ class KernelBroker:
         self._streamReader = None
 
         if destroy:
-
             # Stop timer
             self._timer.unbind(self.mainLoopIter)
             self._timer.stop()
@@ -658,7 +657,6 @@ class KernelTerminator:
     """
 
     def __init__(self, broker, reason="by user", action="TERM", timeout=0.0):
-
         # Init/store
         self._broker = broker
         self._reason = reason
@@ -675,7 +673,6 @@ class KernelTerminator:
             self.next()
 
     def next(self):
-
         # Get action
         action = self._next_action
 
@@ -783,7 +780,6 @@ class Kernelmanager:
     """
 
     def __init__(self, public=False):
-
         # Set whether other machines in this network may connect to our kernels
         self._public = public
 
@@ -817,7 +813,6 @@ class Kernelmanager:
         return port
 
     def getKernelList(self):
-
         # Get info of each kernel as an ssdf struct
         infos = []
         for kernel in self._kernels:
@@ -837,7 +832,6 @@ class Kernelmanager:
 
         """
         for kernel in [kernel for kernel in self._kernels]:
-
             # Try closing the process gently: by closing stdin
             terminator = KernelTerminator(kernel, "for closing down")
 

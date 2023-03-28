@@ -555,7 +555,6 @@ class PythonParser(Parser):
 
         # Enter the main loop that iterates over the tokens and skips strings
         while True:
-
             # Get next tokens
             tokens = self._findNextToken(line, pos)
             if not tokens:

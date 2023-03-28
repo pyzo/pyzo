@@ -15,6 +15,7 @@ Qt = QtCore.Qt
 
 import keyword
 
+
 # TODO: use this CompletionListModel to style the completion suggestions (class names, method names, keywords etc)
 class CompletionListModel(QtCore.QStringListModel):
     def data(self, index, role):
@@ -131,7 +132,6 @@ class AutoCompletion(object):
             or startcursor.position() != self.__autocompleteStart.position()
             or not self.autocompleteVisible()
         ):
-
             self.__autocompleteStart = startcursor
             self.__autocompleteStart.setKeepPositionOnInsert(True)
 

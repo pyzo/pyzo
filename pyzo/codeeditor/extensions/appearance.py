@@ -23,7 +23,6 @@ import enum
 
 
 class HighlightMatchingOccurrences(object):
-
     # Register style element
     _styleElements = [
         (
@@ -212,7 +211,6 @@ class _MatchResult:
 
 
 class HighlightMatchingBracket(object):
-
     # Register style element
     _styleElements = [
         (
@@ -313,7 +311,7 @@ class HighlightMatchingBracket(object):
             if self.parser() is not None and self.parser().name() != ""
             else _PlainTextParenIterator
         )
-        for (paren, pos) in our_iterator(cursor, direction):
+        for paren, pos in our_iterator(cursor, direction):
             if paren in stacking:
                 stacked_paren.append((paren, pos))
             elif paren in unstacking:
@@ -500,7 +498,6 @@ class HighlightCurrentLine(object):
 
 
 class IndentationGuides(object):
-
     # Register style element
     _styleElements = [
         (
@@ -653,7 +650,6 @@ class CodeFolding(object):
 
 
 class LongLineIndicator(object):
-
     # Register style element
     _styleElements = [
         (
@@ -765,7 +761,6 @@ class ShowLineEndings(object):
 
 
 class LineNumbers(object):
-
     # Margin on both side of the line numbers
     _LineNumberAreaMargin = 3
 
@@ -1028,7 +1023,6 @@ class LineNumbers(object):
 
 
 class BreakPoints(object):
-
     _breakPointWidth = 11  # With of total bar, actual points are smaller
 
     # Register style element
