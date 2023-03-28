@@ -390,7 +390,6 @@ class CompactTabBar(QtWidgets.QTabBar):
         itemReduced = False
 
         for i in range(self.count()):
-
             # Get width
             w = self._alignWidth
 
@@ -403,7 +402,6 @@ class CompactTabBar(QtWidgets.QTabBar):
 
             # Check if we can reduce the name size, correct w if necessary
             if ((w + 1) < len(name)) and self._preventEqualTexts:
-
                 # Increase w untill there are no names that start the same
                 allNames = self._getAllNames()
                 hasSimilarNames = True
@@ -491,7 +489,6 @@ class CompactTabWidget(QtWidgets.QTabWidget):
 
 
 if __name__ == "__main__":
-
     w = CompactTabWidget()
     w.show()
 

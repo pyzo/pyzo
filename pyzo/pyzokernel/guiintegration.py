@@ -89,7 +89,6 @@ class App_base:
         # and then proceed. The inner while-loop is the actual event loop.
         while True:
             try:
-
                 while True:
                     time.sleep(sleep_time)
                     self.process_events()
@@ -268,7 +267,6 @@ class App_tk(App_base):
     """
 
     def __init__(self):
-
         # Try importing
         import sys
 
@@ -469,7 +467,6 @@ class App_qt(App_base):
             """
 
             def __new__(cls, *args, **kwargs):
-
                 # Get the singleton application instance
                 theApp = QApplication_hijacked.instance()
 
@@ -669,7 +666,6 @@ class App_wx(App_base):
     """Hijack the wxWidgets mainloop."""
 
     def __init__(self):
-
         # Try importing
         try:
             import wx

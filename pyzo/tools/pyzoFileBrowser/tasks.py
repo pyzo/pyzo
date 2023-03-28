@@ -15,7 +15,6 @@ class SearchTask(proxies.Task):
     __slots__ = []
 
     def process(self, proxy, pattern=None, matchCase=False, regExp=False, **rest):
-
         # Quick test
         if not pattern:
             return
@@ -44,7 +43,6 @@ class SearchTask(proxies.Task):
             return []
 
     def _getText(self, proxy):
-
         # Init
         path = proxy.path()
         fsProxy = proxy._fsProxy
@@ -100,7 +98,6 @@ class SearchTask(proxies.Task):
         return indices
 
     def _indicesToLines(self, text, indices):
-
         # Determine line endings
         LE = self._determineLineEnding(text)
 
@@ -177,7 +174,6 @@ class PeekTask(proxies.Task):
         return list(self._parseLines(text.splitlines()))
 
     def _parseLines(self, lines):
-
         stringEndProg = None
 
         linenr = 0

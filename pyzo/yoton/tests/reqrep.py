@@ -9,6 +9,7 @@ import yoton
 
 verbosity = 0
 
+
 # Create a replier class by subclassing RepChannel
 class Adder(yoton.RepChannel):
     def add(self, item1, item2):

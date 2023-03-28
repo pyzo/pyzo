@@ -7,7 +7,6 @@ import warnings
 
 
 def introduce_renamed_methods_qheaderview(QHeaderView):
-
     _isClickable = QHeaderView.isClickable
 
     def sectionsClickable(self):

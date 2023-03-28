@@ -86,7 +86,6 @@ class PythonInReg:
             print("Created %s." % str(self))
 
     def delete(self):
-
         # Get key for this version
         reg = self._reg()
         if not reg:
@@ -192,7 +191,6 @@ def get_interpreters_in_reg():
 
 
 def _get_interpreter_in_reg(user, wow64=False):
-
     # Get base key
     if user == PythonInReg.USER_ONE:
         HKEY = winreg.HKEY_CURRENT_USER
@@ -250,7 +248,6 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
     success = False
 
     for user in users:
-
         # Create new PythonInReg instance
         v = PythonInReg(user, version, wow64)
 
@@ -291,6 +288,5 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
 
 
 if __name__ == "__main__":
-
     for v in get_interpreters_in_reg():
         print(v)

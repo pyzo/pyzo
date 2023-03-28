@@ -311,6 +311,7 @@ pre, code {{background-color: #F2F2F2;}}
 </html>
 """
 
+
 # Define title text (font-size percentage does not seem to work sadly.)
 def get_title_text(objectName, h_class="", h_repr=""):
     title_text = "<p style='background-color:#def;'>"
@@ -522,7 +523,6 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             self.setText()
 
     def setText(self, text=None):
-
         # (Re)store text
         if text is None:
             text = self._browser_text
@@ -651,7 +651,6 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             h_text = h_text.replace(">", "&gt;")
 
             if self._config.smartNewlines:
-
                 # Make sure the signature is separated from the rest using at
                 # least two newlines
                 header = ""
@@ -706,7 +705,6 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self.setText(text)
 
     def smartFormat(self, text):
-
         # Get lines
         lines = text.splitlines(True)
 
@@ -734,7 +732,6 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Format line by line
         lines3 = []
         for line in lines2:
-
             # Get indentation
             line_ = line.lstrip()
             if line_ in ("```", "```\n"):

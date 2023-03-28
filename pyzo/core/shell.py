@@ -114,7 +114,6 @@ class ShellHighlighter(Highlighter):
     """
 
     def highlightBlock(self, line):
-
         # Make sure this is a Unicode Python string
         line = str(line)
 
@@ -449,9 +448,7 @@ class BaseShell(BaseTextCtrl):
 
     ## Key handlers
     def keyPressEvent(self, event):
-
         if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
-
             # First check if autocompletion triggered
             if self.potentiallyAutoComplete(event):
                 return
@@ -498,7 +495,6 @@ class BaseShell(BaseTextCtrl):
                 return  # Ignore the key, don't go beyond the prompt
 
         if event.key() in [Qt.Key_Up, Qt.Key_Down] and not self.autocompleteActive():
-
             # needle
             if self._historyNeedle is None:
                 # get partly-written-command
@@ -632,7 +628,6 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorVisible()
 
     def _handleBackspaces_split(self, text):
-
         # while NOT a backspace at first position, or none found
         i = 9999999999999
         while i > 0:
@@ -660,7 +655,6 @@ class BaseShell(BaseTextCtrl):
         N = 0
 
         for i in range(len(texts)):
-
             # Remove backspaces in text and how many are left
             n, text = self._handleBackspaces_split(texts[i])
             texts[i] = text
@@ -872,7 +866,6 @@ class BaseShell(BaseTextCtrl):
         i0 = 0
 
         for match in re.finditer(pattern, text):
-
             # Insert pending text with the current format
             # Also update indices
             i1, i2 = match.span()

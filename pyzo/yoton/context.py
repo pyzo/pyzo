@@ -75,7 +75,6 @@ class Context(object):
     """
 
     def __init__(self, verbose=0, queue_params=None):
-
         # Whether or not to write status information
         self._verbose = verbose
 
@@ -171,7 +170,6 @@ class Context(object):
         self._connections_lock.acquire()
 
         try:
-
             # Clean up any dead connections
             copy = ConnectionCollection()
             to_remove = []

@@ -24,7 +24,6 @@ class Tester(unittest.TestCase):
     """
 
     def setUp(self):
-
         # Create contexts
         self._context1 = c1 = yoton.Context()
         self._context2 = c2 = yoton.Context()
@@ -59,7 +58,6 @@ class Tester(unittest.TestCase):
         self._context3.close()
 
     def test_connecting(self):
-
         # Connect
         self._context1.bind("localhost:test1")
         self._context2.connect("localhost:test1")
@@ -81,7 +79,6 @@ class Tester(unittest.TestCase):
         self.assertEqual(self._context3.connection_count, 1)
 
     def test_closing_channel(self):
-
         # Connect
         self._context1.bind("localhost:test")
         self._context2.connect("localhost:test")
@@ -99,7 +96,6 @@ class Tester(unittest.TestCase):
         self.assertTrue(self._channel_sub2.closed)
 
     def test_pub_sub(self):
-
         # also test hopping
 
         # Connect
@@ -120,7 +116,6 @@ class Tester(unittest.TestCase):
         self.assertEqual(self._channel_sub3.recv(), "msg2")
 
     def test_pub_sub_select_channel(self):
-
         # Connect
         self._context1.bind("localhost:test1")
         self._context2.connect("localhost:test1")
@@ -155,7 +150,6 @@ class Tester(unittest.TestCase):
         self.assertEqual(count, len(ii))
 
     def test_pubstate_substate(self):
-
         # also test hopping
 
         # Set status before connecting
@@ -185,7 +179,6 @@ class Tester(unittest.TestCase):
         self.assertEqual(self._channel_state3.recv(), "status2")
 
     def test_req_rep1(self):
-
         # Connect
         self._context1.bind("localhost:test1")
         self._context2.connect("localhost:test1")
@@ -206,7 +199,6 @@ class Tester(unittest.TestCase):
         self.assertEqual(id2, hex(self._context3.id))
 
     def test_req_rep2(self):
-
         # Test multiple requesters and multiple repliers
 
         # Connect
@@ -281,7 +273,6 @@ class Tester(unittest.TestCase):
 
 
 if __name__ == "__main__":
-
     suite = unittest.TestLoader().loadTestsFromTestCase(Tester)
     unittest.TextTestRunner(verbosity=2).run(suite)
     print("")

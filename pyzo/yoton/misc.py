@@ -123,7 +123,7 @@ def slot_hash(name):
     for c in name:
         val += (val >> 3) + (ord(c) * fac)
     val += (val >> 3) + (len(name) * fac)
-    return offset + (val % (2 ** 64 - offset))
+    return offset + (val % (2**64 - offset))
 
 
 def port_hash(name):
@@ -142,7 +142,7 @@ def port_hash(name):
     for c in name:
         val += (val >> 3) + (ord(c) * fac)
     val += (val >> 3) + (len(name) * fac)
-    return 49152 + (val % 2 ** 14)
+    return 49152 + (val % 2**14)
 
 
 def split_address(address):
@@ -220,7 +220,7 @@ def split_address(address):
     # Check port
     # if port < 1024 or port > 2**16:
     #    raise ValueError("The port must be in the range [1024, 2^16>.")
-    if port > 2 ** 16:
+    if port > 2**16:
         raise ValueError("The port must be in the range [0, 2^16>.")
 
     # Done
@@ -318,7 +318,6 @@ class PackageQueue(object):
         pass
 
     def __init__(self, N, discard_mode="old"):
-
         # Instantiate queue and condition
         self._q = deque()
         self._condition = threading.Condition()

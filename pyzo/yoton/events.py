@@ -42,7 +42,6 @@ class CallableObject(object):
     __slots__ = ["_ob", "_func"]  # Use __slots__ to reduce memory footprint
 
     def __init__(self, c):
-
         # Check
         if not hasattr(c, "__call__"):
             raise ValueError("Error: given callback is not callable.")
@@ -312,7 +311,6 @@ class TheTimerThread(threading.Thread):
 
     def _mainloop(self):
         while not self._exit:
-
             # Set flag
             self._somethingChanged = False
 

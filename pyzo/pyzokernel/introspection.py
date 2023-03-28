@@ -124,7 +124,6 @@ class PyzoIntrospector(yoton.RepChannel):
                 sigs = ""
 
         if fun1 or fun2 or fun3 or fun4 or fun5:
-
             if fun1:
                 kind = "builtin"
             elif fun2:
@@ -357,7 +356,6 @@ class PyzoIntrospector(yoton.RepChannel):
         NS = self._getNameSpace()
 
         try:
-
             # collect docstring
             h_text = ""
             # Try using the class (for properties)

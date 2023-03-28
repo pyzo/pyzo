@@ -2358,7 +2358,6 @@ class AutocompMenu(Menu):
     """
 
     def build(self):
-
         # Part for selecting mode
         modes = [
             translate("menu", "No autocompletion"),

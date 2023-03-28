@@ -10,6 +10,7 @@ import yoton
 
 verbosity = 0
 
+
 # Create a replier class by subclassing RepChannel
 class Reducer(yoton.RepChannel):
     def reduce(self, item):
@@ -44,7 +45,6 @@ ct2.connect("publichost:test")
 
 # Create reply handler and bind it
 def reply_handler(future):
-
     # Check error, cancelled, or get number
     if future.exception():
         # Calling result() would raise the exception, so lets just

@@ -74,7 +74,6 @@ class WebView(QtWidgets.QTextBrowser):
     #         self.document().setDefaultStyleSheet(text)
 
     def back(self):
-
         # Get url and update forward history
         url = self._history.pop()
         self._history2.append(self._url)
@@ -83,7 +82,6 @@ class WebView(QtWidgets.QTextBrowser):
         url = self._load(url)
 
     def forward(self):
-
         if not self._history2:
             return
 
@@ -95,7 +93,6 @@ class WebView(QtWidgets.QTextBrowser):
         url = self._load(url)
 
     def load(self, url):
-
         # Clear forward history
         self._history2 = []
 

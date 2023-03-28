@@ -219,7 +219,6 @@ def save(file, d):
 
 class ReaderWriter(object):
     def read(self, text):
-
         indent = 0
         root = Dict()
         container_stack = [(0, root)]
@@ -287,7 +286,6 @@ class ReaderWriter(object):
         return root
 
     def save(self, d):
-
         pyver = "%i.%i.%i" % sys.version_info[:3]
         ct = time.asctime()
         lines = []
@@ -301,7 +299,6 @@ class ReaderWriter(object):
         # todo: pop toplevel dict
 
     def from_object(self, name, value, indent):
-
         # Get object's data
         if value is None:
             data = "Null"
@@ -339,7 +336,6 @@ class ReaderWriter(object):
         return data
 
     def to_object(self, data, linenr):
-
         data = data.lstrip()
 
         # Determine what type of object we're dealing with by reading

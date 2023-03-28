@@ -57,7 +57,6 @@ class ShellInfo_exe(QtWidgets.QComboBox):
             return "%s  [v%s]" % (p.path, p.version)
 
     def setTheText(self, value):
-
         # Init
         self.clear()
         self.setEditable(True)
@@ -116,7 +115,6 @@ class ShellInfo_ipython(QtWidgets.QCheckBox):
 
 
 class ShellInfo_gui(QtWidgets.QComboBox):
-
     # For (backward) compatibility
     COMPAT = {"QT4": "PYQT4"}
 
@@ -141,7 +139,6 @@ class ShellInfo_gui(QtWidgets.QComboBox):
     # GUI descriptions
 
     def setTheText(self, value):
-
         # Process value
         value = value.upper()
         value = self.COMPAT.get(value, value)
@@ -164,7 +161,6 @@ class ShellInfo_gui(QtWidgets.QComboBox):
 
 
 class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
-
     DISABLE_SYSTEM_DEFAULT = sys.platform == "darwin"
     SYSTEM_VALUE = ""
 
@@ -202,7 +198,6 @@ class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
             self.setTheText(self._bufferedValue)
 
     def setTheText(self, value):
-
         if self.DISABLE_SYSTEM_DEFAULT:
             # Just set the value
             self._edit.setReadOnly(False)
@@ -230,11 +225,9 @@ class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
 
 
 class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
-
     SYSTEM_VALUE = "$PYTHONPATH"
 
     def __init__(self, parent):
-
         # Create sub-widget
         self._edit = QtWidgets.QTextEdit(parent)
         self._edit.zoomOut(1)
@@ -286,7 +279,6 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 
 
 class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
-
     DISABLE_SYSTEM_DEFAULT = sys.platform == "darwin"
     SYSTEM_VALUE = "$PYTHONSTARTUP"
     RUN_AFTER_GUI_TEXT = "# AFTER_GUI - code below runs after integrating the GUI\n"
@@ -442,7 +434,6 @@ class ShellInfo_environ(QtWidgets.QTextEdit):
 
 
 class ShellInfoTab(QtWidgets.QScrollArea):
-
     INFO_KEYS = [
         translate("shell", "name ::: The name of this configuration."),
         translate("shell", "exe ::: The Python executable."),
@@ -547,7 +538,6 @@ class ShellInfoTab(QtWidgets.QScrollArea):
             print(info)
 
     def getInfo(self):
-
         info = self._info
 
         # Set struct values according to widgets

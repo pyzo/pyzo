@@ -298,7 +298,6 @@ class BaseFSProxy(threading.Thread):
         return FileProxy(self, path)
 
     def run(self):
-
         try:
             try:
                 self._run()
@@ -312,11 +311,9 @@ class BaseFSProxy(threading.Thread):
             pass  # Interpreter is shutting down
 
     def _run(self):
-
         last_sleep = time.time()
 
         while True:
-
             # Check and reset
             self._interrupt = False
             if self._exit:
@@ -348,7 +345,6 @@ class BaseFSProxy(threading.Thread):
             self._processItem(item)
 
     def _processItem(self, pathProxy, forceUpdate=False):
-
         # Slow down a bit
         if forceUpdate:
             time.sleep(self.QUEUE_DELAY)

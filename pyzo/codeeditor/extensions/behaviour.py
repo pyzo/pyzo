@@ -31,7 +31,6 @@ class MoveLinesUpDown(object):
             Qt.ControlModifier & event.modifiers()
             and Qt.ShiftModifier & event.modifiers()
         ):
-
             cursor = self.textCursor()
             cursor.beginEditBlock()
             try:
@@ -43,7 +42,6 @@ class MoveLinesUpDown(object):
             super().keyPressEvent(event)
 
     def _swaplines(self, cursor, key):
-
         # Get positions of selection
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
@@ -171,7 +169,6 @@ class NumpadPeriodKey(object):
             event.key() == QtCore.Qt.Key_Comma
             and event.modifiers() & QtCore.Qt.KeypadModifier
         ):
-
             # Create a new QKeyEvent to substitute the original one
             event = QtGui.QKeyEvent(
                 event.type(),
@@ -387,7 +384,6 @@ class SmartCopyAndPaste(object):
         # Use > not >= to ensure we don't count it as multi-line if the cursor
         # is just at the beginning of the next block (consistent with 'CodeEditor.doForSelectedLines')
         if end > (block.position() + block.length()):
-
             # Now check if there is only whitespace before the start of selection
             # If so, include this whitespace in the selection and update the
             # selection of the editor
@@ -417,7 +413,6 @@ class SmartCopyAndPaste(object):
         if (
             self.textInteractionFlags() & QtCore.Qt.TextEditable
         ) and self.textCursor().hasSelection():
-
             cursor = self.textCursor()
             self.copy()
             # Restore original cursor
@@ -462,7 +457,6 @@ class SmartCopyAndPaste(object):
         # is just at the beginning of the next block (consistent with
         # 'CodeEditor.doForSelectedLines')
         if cursor.selectionEnd() > block.position() + block.length():
-
             # Now, check if in front of the current selection there is only whitespace
             if len(block.text()[: cursor.positionInBlock()].strip()) == 0:
                 # Note that this 'smart pasting' will be a separate item on the
@@ -515,7 +509,6 @@ class AutoCloseQuotesAndBrackets(object):
             super().keyPressEvent(event)
 
     def __keyPressEvent(self, event):
-
         quotes = "'", '"'
         openBrackets = "{", "[", "("
         closeBrackets = "}", "]", ")"
@@ -526,7 +519,6 @@ class AutoCloseQuotesAndBrackets(object):
 
         #  brackets
         if char in brackets and pyzo.config.settings.autoClose_Brackets:
-
             # Dont autobracket inside comments and strings
             if isinstance(
                 self._get_token_at_cursor(cursor),

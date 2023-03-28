@@ -217,7 +217,6 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 nav.forward = []
 
     def _navigate_to_line(self, linenr):
-
         # Get editor
         editor = pyzo.editors.getCurrentEditor()
         if not editor:

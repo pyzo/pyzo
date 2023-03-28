@@ -11,6 +11,7 @@ import yoton
 
 verbosity = 0
 
+
 # Create custom message type. (should be defined at both ends)
 class NumberMessageType(yoton.MessageType):
     def message_from_bytes(self, bb):
@@ -37,6 +38,7 @@ pub.send(42.9)
 import yoton
 
 verbosity = 0
+
 
 # Create custom message type. (should be defined at both ends)
 class NumberMessageType(yoton.MessageType):

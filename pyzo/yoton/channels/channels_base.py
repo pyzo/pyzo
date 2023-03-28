@@ -60,7 +60,6 @@ class BaseChannel(object):
     """
 
     def __init__(self, context, slot_base, message_type=None):
-
         # Store context
         if not isinstance(context, Context):
             raise ValueError("Context not valid.")

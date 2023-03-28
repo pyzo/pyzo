@@ -20,7 +20,7 @@ from yoton.channels import BaseChannel, OBJECT
 
 
 # For the req/rep channels to negotiate (simple load balancing)
-REQREP_SEQ_REF = 2 ** 63
+REQREP_SEQ_REF = 2**63
 
 # Define object to recognize errors
 ERROR_OBJECT = "yoton_ERROR_HANDLING_REQUEST"
@@ -58,7 +58,6 @@ class Future(object):
     """
 
     def __init__(self, req_channel, req, request_id):
-
         # For being a Future object
         self._result = None
         self._status = 0  # 0:waiting, 1:running, 2:canceled, 3:error, 4:success
@@ -726,7 +725,6 @@ class RepChannel(BaseChannel):
         return func(*args, **kwargs)
 
     def _acknowledge_next_pre_request(self):
-
         # Cancel current pre-request ourselves if it takes too long.
         # Failsafe, only for if resetting by requester fails somehow.
         if time.time() - self._pre_request_time > 10.0:
@@ -734,7 +732,6 @@ class RepChannel(BaseChannel):
 
         # Send any pending pre requests
         if self._pre_requests and not self._pre_request:
-
             # Set current pre-request and its ack time
             package = self._pre_requests.pop(0)
             self._pre_request = package
@@ -885,7 +882,6 @@ class ThreadForReqChannel(threading.Thread):
         del self._channel
 
         while True:
-
             # Stop?
             if channel.closed or channel._run_mode != 2:
                 break

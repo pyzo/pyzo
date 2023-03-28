@@ -75,7 +75,6 @@ class Browser(QtWidgets.QWidget):
         try:
             return self._importWizard
         except AttributeError:
-
             from .importwizard import ImportWizard
 
             self._importWizard = ImportWizard()
@@ -360,7 +359,6 @@ class PathInput(LineEditWithToolButtons):
 
 
 class Projects(QtWidgets.QWidget):
-
     dirChanged = QtCore.Signal(str)  # Emitted when the user changes the project
 
     def __init__(self, parent):

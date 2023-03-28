@@ -131,7 +131,6 @@ class PyzoInterpreter:
     # - support for magic commands
 
     def __init__(self, locals, filename="<console>"):
-
         # Init variables for locals and globals (globals only for debugging)
         self.locals = locals
         self.globals = None
@@ -611,7 +610,6 @@ class PyzoInterpreter:
     def process_commands(self):
         """Do one iteration of processing commands (the REPL)."""
         try:
-
             self._process_commands()
 
         except SystemExit:
@@ -629,7 +627,6 @@ class PyzoInterpreter:
             self.guiApp.quit()  # Is sys.exit() by default
 
     def _process_commands(self):
-
         # Run startup code/script inside the loop (only the first time)
         # so that keyboard interrupt will work
         if self._codeToRunOnStartup:

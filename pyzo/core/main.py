@@ -142,7 +142,6 @@ class MainWindow(QtWidgets.QMainWindow):
             time.sleep(0.01)
 
     def _populate(self):
-
         # Delayed imports
         from pyzo.core.editorTabs import EditorTabs
         from pyzo.core.shellStack import ShellStackWidget
@@ -422,7 +421,6 @@ class MainWindow(QtWidgets.QMainWindow):
             os.execv(sys.executable, args)
 
     def createPopupMenu(self):
-
         # Init menu
         menu = QtWidgets.QMenu()
 
