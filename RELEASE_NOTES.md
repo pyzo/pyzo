@@ -1,6 +1,11 @@
 # Release notes
 
 
+### Version 4.12.8 (30-03-2023)
+
+- Fixed crash in key edit dialog on Linux.
+
+
 ### Version 4.12.7 (07-02-2023)
 
 - Fixed singing of MacOS binary application (#839).
