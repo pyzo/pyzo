@@ -2659,8 +2659,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         childMenu = childAction.parent()
         if childMenu is not parentMenu and childMenu.actions():
             childAction = childMenu
-        if (isinstance(childMenu, Menu) and hasattr(childMenu, '_hide_in_key_map_dialog')
-                and childMenu._hide_in_key_map_dialog):
+        if (isinstance(childMenu, Menu) and getattr(childMenu, '_hide_in_key_map_dialog', False):
             childAction = Menu._dummyActionForHiddenEntryInKeyMapDialog
         return self.createIndex(row, column, childAction)
         # This is the trick. The internal pointer is the way to establish
