@@ -186,6 +186,8 @@ class Menu(QtWidgets.QMenu):
 
     """
 
+    _dummyActionForHiddenEntryInKeyMapDialog = QtWidgets.QAction()
+
     def __init__(self, parent=None, name=None):
         QtWidgets.QMenu.__init__(self, parent)
 
@@ -851,6 +853,8 @@ class ZoomMenu(Menu):
 
 
 class FontMenu(Menu):
+    _hide_in_key_map_dialog = True
+
     def __init__(self, parent=None, name="Font", *args, **kwds):
         Menu.__init__(self, parent, name, *args, **kwds)
         self.aboutToShow.connect(self._updateFonts)
@@ -2625,6 +2629,9 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         if pitem is self._root:
             return QtCore.QModelIndex()
         else:
+            if pitem is None:
+                # menu seems to be hidden for key mapping settings dialog
+                return QtCore.QModelIndex()
             L = pitem.parent().actions()
             row = 0
             if pitem in L:
@@ -2652,6 +2659,8 @@ class KeyMapModel(QtCore.QAbstractItemModel):
         childMenu = childAction.parent()
         if childMenu is not parentMenu and childMenu.actions():
             childAction = childMenu
+        if isinstance(childMenu, Menu) and getattr(childMenu, '_hide_in_key_map_dialog', False):
+            childAction = Menu._dummyActionForHiddenEntryInKeyMapDialog
         return self.createIndex(row, column, childAction)
         # This is the trick. The internal pointer is the way to establish
         # correspondence between ModelIndex and underlying data.
