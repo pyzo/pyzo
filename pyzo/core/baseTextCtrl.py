@@ -97,7 +97,7 @@ def parseLine_autocomplete(tokens):
     for token in tokens[-2::-1]:
         if isinstance(token, Tokens.NonIdentifierToken) and str(token) == ".":
             needle = str(token) + needle
-        elif isinstance(token, (Tokens.IdentifierToken, Tokens.KeywordToken)):
+        elif isinstance(token, (Tokens.IdentifierToken, Tokens.StringToken)):
             needle = str(token) + needle
         else:
             break
