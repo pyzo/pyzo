@@ -36,6 +36,7 @@ import keyword
 import inspect  # noqa - Must be in this namespace
 import bdb
 from distutils.version import LooseVersion as LV
+import linecache
 
 import yoton
 from pyzokernel import guiintegration, printDirect
@@ -1227,22 +1228,22 @@ class ExecutedSourceCollection:
 
     def _patch(self):
         def getlines(filename, module_globals=None):
+            # !!! do not use "import" inside this function because it can
+            # cause an infinite recursion loop with the import override in
+            # module shiboken6 (PySide6) !!!
+
             # Try getting the source from our own cache,
             # otherwise fallback to linecache's own cache
             src = self._cache.get(filename, "")
             if src:
                 return [line + "\n" for line in src.splitlines()]
             else:
-                import linecache
-
                 if module_globals is None:
                     return linecache._getlines(filename)  # only valid sig in 2.4
                 else:
                     return linecache._getlines(filename, module_globals)
 
         # Monkey patch
-        import linecache
-
         linecache._getlines = linecache.getlines
         linecache.getlines = getlines
 
