@@ -126,7 +126,7 @@ class ShellInfo_gui(QtWidgets.QComboBox):
         ("PySide6", "LGPL licensed wrapper to Qt6"),
         ("PySide2", "LGPL licensed wrapper to Qt5"),
         ("PySide", "LGPL licensed wrapper to Qt4"),
-        ("PyQt6", "GPL/commercial licensed wrapper to Qt5"),
+        ("PyQt6", "GPL/commercial licensed wrapper to Qt6"),
         ("PyQt5", "GPL/commercial licensed wrapper to Qt5"),
         ("PyQt4", "GPL/commercial licensed wrapper to Qt4"),
         ("Tornado", "Tornado asynchronous networking library"),

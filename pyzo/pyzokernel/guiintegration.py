@@ -468,18 +468,15 @@ class App_qt(App_base):
 
             def __new__(cls, *args, **kwargs):
                 # Get the singleton application instance
-                theApp = QApplication_hijacked.instance()
+                theApp = cls.instance()
 
                 # Instantiate an original QApplication instance if we need to
                 if theApp is None:
                     theApp = QtGui.real_QApplication(*args, **kwargs)
                     QtGui.qApp = theApp
 
-                # Add attributes of cls to the instance to make it
-                # behave as if it were an instance of that class
-                for key in dir(cls):
-                    # Skip all magic methods except __init__
-                    if key.startswith("__") and key != "__init__":
+                for key in ['__init__', 'exec_', 'quit']:
+                    if not hasattr(cls, key):
                         continue
                     # Skip attributes that we already have
                     val = getattr(cls, key)

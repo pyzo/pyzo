@@ -33,8 +33,8 @@ if PYQT6:
                 attrib = getattr(klass, attrib_name)
                 if not isinstance(attrib, enum.EnumMeta):
                     continue
-                for enum_obj in attrib:
-                    setattr(klass, enum_obj.name, enum_obj)
+                for enum_obj_name in attrib.__members__:
+                    setattr(klass, enum_obj_name, attrib[enum_obj_name])
 
 elif PYSIDE6:
     from enum import Enum

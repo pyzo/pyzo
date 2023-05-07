@@ -15,17 +15,19 @@ if PYQT6:
     from PyQt6 import QtGui
     from PyQt6.QtGui import *
 
-    QFontMetrics.width = QFontMetrics.horizontalAdvance
+    import inspect
+    QFontMetrics.width = inspect.getattr_static(QFontMetrics, 'horizontalAdvance')
 
     # Map missing/renamed methods
-    QDrag.exec_ = QDrag.exec
-    QGuiApplication.exec_ = QGuiApplication.exec
-    QTextDocument.print_ = QTextDocument.print
+    QDrag.exec_ = inspect.getattr_static(QDrag, 'exec')
+    QGuiApplication.exec_ = inspect.getattr_static(QGuiApplication, 'exec')
+    QTextDocument.print_ = inspect.getattr_static(QTextDocument, 'print')
 
     from .enums_compat import promote_enums
 
     promote_enums(QtGui)
     del QtGui
+    del inspect
 elif PYQT5:
     from PyQt5.QtGui import *
 elif PYSIDE2:

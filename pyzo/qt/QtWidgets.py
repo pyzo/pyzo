@@ -18,20 +18,21 @@ if PYQT6:
     from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
     # Map missing/renamed methods
-    QTextEdit.setTabStopWidth = QTextEdit.setTabStopDistance
-    QTextEdit.tabStopWidth = QTextEdit.tabStopDistance
-    QTextEdit.print_ = QTextEdit.print
-    QPlainTextEdit.setTabStopWidth = QPlainTextEdit.setTabStopDistance
-    QPlainTextEdit.tabStopWidth = QPlainTextEdit.tabStopDistance
-    QPlainTextEdit.print_ = QPlainTextEdit.print
-    QApplication.exec_ = QApplication.exec
-    QDialog.exec_ = QDialog.exec
-    QMenu.exec_ = QMenu.exec
+    import inspect
+    QTextEdit.setTabStopWidth = inspect.getattr_static(QTextEdit, 'setTabStopDistance')
+    QTextEdit.tabStopWidth = inspect.getattr_static(QTextEdit, 'tabStopDistance')
+    QTextEdit.print_ = inspect.getattr_static(QTextEdit, 'print')
+    QPlainTextEdit.setTabStopWidth = inspect.getattr_static(QPlainTextEdit, 'setTabStopDistance')
+    QPlainTextEdit.tabStopWidth = inspect.getattr_static(QPlainTextEdit, 'tabStopDistance')
+    QPlainTextEdit.print_ = inspect.getattr_static(QPlainTextEdit, 'print')
+    QApplication.exec_ = inspect.getattr_static(QApplication, 'exec')
+    QDialog.exec_ = inspect.getattr_static(QDialog, 'exec')
+    QMenu.exec_ = inspect.getattr_static(QMenu, 'exec')
 
     from .enums_compat import promote_enums
-
     promote_enums(QtWidgets)
     del QtWidgets
+    del inspect
 elif PYQT5:
     from PyQt5.QtWidgets import *
 elif PYSIDE6:
@@ -52,8 +53,8 @@ elif PYSIDE6:
     QMenu.exec_ = QMenu.exec
 
     from .enums_compat import promote_enums
-
     promote_enums(QtWidgets)
+    del QtWidgets
 elif PYSIDE2:
     from PySide2.QtWidgets import *
 else:

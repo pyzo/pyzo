@@ -38,7 +38,10 @@ if PYQT6:
     from .enums_compat import promote_enums
 
     promote_enums(QtCore)
+    QtCore.Qt.MidButton = QtCore.Qt.MiddleButton
+
     del QtCore
+
 elif PYQT5:
     from PyQt5.QtCore import *
     from PyQt5.QtCore import pyqtSignal as Signal
@@ -62,11 +65,6 @@ elif PYSIDE6:
 
     __version__ = PySide6.QtCore.__version__
 
-    # obsolete in qt6
-    Qt.BackgroundColorRole = Qt.BackgroundRole
-    Qt.TextColorRole = Qt.ForegroundRole
-    Qt.MidButton = Qt.MiddleButton
-
     # Map DeprecationWarning methods
     QCoreApplication.exec_ = QCoreApplication.exec
     QEventLoop.exec_ = QEventLoop.exec
@@ -76,6 +74,9 @@ elif PYSIDE6:
     from .enums_compat import promote_enums
 
     promote_enums(QtCore)
+    QtCore.Qt.MidButton = QtCore.Qt.MiddleButton
+
+    del QtCore
 
 elif PYSIDE2:
     from PySide2.QtCore import *
