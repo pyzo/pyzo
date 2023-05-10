@@ -674,7 +674,7 @@ class Tree(QtWidgets.QTreeWidget):
         QtWidgets.QTreeWidget.clear(self)
 
     def mouseDoubleClickEvent(self, event):
-        """Bypass expanding an item when double-cliking it.
+        """Bypass expanding an item when double-clicking it.
         Only activate the item.
         """
         item = self.itemAt(event.x(), event.y())

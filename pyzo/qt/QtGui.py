@@ -12,19 +12,24 @@ from . import PYQT6, PYQT5, PYSIDE2, PYSIDE6, PythonQtError
 
 
 if PYQT6:
-    from PyQt6 import QtGui
     from PyQt6.QtGui import *
 
     import inspect
-    QFontMetrics.width = inspect.getattr_static(QFontMetrics, 'horizontalAdvance')
+    QFontMetrics.width = inspect.getattr_static(QFontMetrics, "horizontalAdvance")
 
     # Map missing/renamed methods
-    QDrag.exec_ = inspect.getattr_static(QDrag, 'exec')
-    QGuiApplication.exec_ = inspect.getattr_static(QGuiApplication, 'exec')
-    QTextDocument.print_ = inspect.getattr_static(QTextDocument, 'print')
+    QDrag.exec_ = inspect.getattr_static(QDrag, "exec")
+    QGuiApplication.exec_ = inspect.getattr_static(QGuiApplication, "exec")
+    QTextDocument.print_ = inspect.getattr_static(QTextDocument, "print")
+    QTextDocument.FindFlags = lambda: QTextDocument.FindFlag(0)
 
     from .enums_compat import promote_enums
 
+    from PyQt6 import QtGui
+    QtGui.QMouseEvent.x = lambda self: int(self.position().x())
+    QtGui.QMouseEvent.y = lambda self: int(self.position().y())
+    if not hasattr(QtGui.QMouseEvent, "pos"):
+        QtGui.QMouseEvent.pos = lambda self: self.position().toPoint()
     promote_enums(QtGui)
     del QtGui
     del inspect
