@@ -46,7 +46,7 @@ class PdfExport(QtWidgets.QDialog):
         self.button_update_preview = QtWidgets.QPushButton("Update preview", self)
         self.button_update_preview.clicked.connect(self._update_preview)
 
-        # Previw widget
+        # Preview widget
         self.preview = QtPrintSupport.QPrintPreviewWidget(self.printer)
 
         # Lines numbers option
@@ -115,7 +115,7 @@ class PdfExport(QtWidgets.QDialog):
         self.option_layout.addRow(self.checkbox_line_number)
         self.option_layout.addRow(self.checkbox_syntax_highlighting)
         self.option_layout.addRow(self.zoom_value_label, self.zoom_slider)
-        # self.option_layout.addRow(self.combobox_orientation)  # orientation appears to be broken
+        self.option_layout.addRow(self.combobox_orientation)
         self.bottom_layout = QtWidgets.QHBoxLayout()
         self.right_layout.addLayout(self.bottom_layout)
         self.bottom_layout.addStretch()
@@ -192,7 +192,7 @@ class PdfExport(QtWidgets.QDialog):
         if self.editor is not None:
             if True:
                 filename = QtWidgets.QFileDialog.getSaveFileName(
-                    None, "Export PDF", os.path.expanduser("~"), "*.pdf *.ps"
+                    None, "Export PDF", os.path.expanduser("~"), "*.pdf"
                 )
                 if isinstance(filename, tuple):  # PySide
                     filename = filename[0]
@@ -253,14 +253,15 @@ class PdfExport(QtWidgets.QDialog):
 
     def _change_orientation(self):
         """Set document in portrait or landscape orientation"""
-        index = self.combobox_orientation.currentIndex()
-        if hasattr(self.printer, "setPageLayout"):  # qt6
+        if hasattr(self.printer, "setOrientation"): # PySide5, PyQt5
+            base = pyzo.qt.QtPrintSupport.QPrinter
+            orientation = [base.Portrait, base.Landscape][index]
+            self.preview.setOrientation(orientation)
+            self.printer.setOrientation(orientation)
+        else: # PySide6, PyQt6
             base = QtGui.QPageLayout
             orientation = [base.Portrait, base.Landscape][index]
+            self.preview.setOrientation(orientation)
             layout = QtGui.QPageLayout()
             layout.setOrientation(orientation)
             self.printer.setPageLayout(layout)
-        else:  # qt5
-            base = QtPrintSupport.QPrinter
-            orientation = [base.Portrait, base.Landscape][index]
-            self.printer.setOrientation(orientation)
