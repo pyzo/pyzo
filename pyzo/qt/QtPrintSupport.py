@@ -19,6 +19,10 @@ elif PYQT6:
     QPageSetupDialog.exec_ = QPageSetupDialog.exec
     QPrintDialog.exec_ = QPrintDialog.exec
     QPrintPreviewWidget.print_ = QPrintPreviewWidget.print
+    from .enums_compat import promote_enums
+    from PyQt6 import QtPrintSupport
+    promote_enums(QtPrintSupport)
+    del QtPrintSupport
 elif PYSIDE6:
     from PySide6.QtPrintSupport import *
 

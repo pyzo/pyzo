@@ -543,7 +543,7 @@ class FileMenu(Menu):
                     "Export to PDF ::: Export current file to PDF (e.g. for printing).",
                 ),
                 None,
-                lambda: PdfExport().exec(),
+                lambda: PdfExport().exec_(),
             ),
         ]
 
