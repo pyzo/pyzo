@@ -633,7 +633,7 @@ class PyzoInterpreter:
         if self._codeToRunOnStartup:
             self.context._stat_interpreter.send("Busy")
             self._codeToRunOnStartup, tmp = None, self._codeToRunOnStartup
-            self.pushline(tmp)
+            self._runlines(tmp, filename="<startup_after_gui>", symbol="exec")
         if self._scriptToRunOnStartup:
             self.context._stat_interpreter.send("Busy")
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
