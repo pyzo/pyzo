@@ -253,12 +253,12 @@ class PdfExport(QtWidgets.QDialog):
 
     def _change_orientation(self):
         """Set document in portrait or landscape orientation"""
-        if hasattr(self.printer, "setOrientation"): # PySide5, PyQt5
+        if hasattr(self.printer, "setOrientation"):  # PySide5, PyQt5
             base = pyzo.qt.QtPrintSupport.QPrinter
             orientation = [base.Portrait, base.Landscape][index]
             self.preview.setOrientation(orientation)
             self.printer.setOrientation(orientation)
-        else: # PySide6, PyQt6
+        else:  # PySide6, PyQt6
             base = QtGui.QPageLayout
             orientation = [base.Portrait, base.Landscape][index]
             self.preview.setOrientation(orientation)
