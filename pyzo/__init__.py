@@ -52,13 +52,6 @@ if sys.version_info < (3, 6):
 
 def start():
     """Start Pyzo."""
-    try:
-        from ._start import start
-    except SystemExit as e:
-        if e.code == 0 or e.code is None:
-            # prevent SystemExit exception from showing an error message box
-            # in MS Windows when sys.exit(0) or sys.exit() is called
-            return
-        raise e
+    from ._start import start
 
     start()
