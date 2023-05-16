@@ -68,8 +68,10 @@ class BootAction:
 
     def __exit__(self, cls, err, tb):
         if err:
-            error_handler(cls, err, tb, self._action)
-            sys.exit(1)
+            if not isinstance(err, SystemExit) or err.code:
+                error_handler(cls, err, tb, self._action)
+                if not isinstance(err, SystemExit):
+                    sys.exit(1)
 
 
 # %% Boot
