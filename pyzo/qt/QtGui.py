@@ -31,6 +31,11 @@ if PYQT6:
     if not hasattr(QtGui.QMouseEvent, "pos"):
         QtGui.QMouseEvent.pos = lambda self: self.position().toPoint()
     promote_enums(QtGui)
+
+    # in Qt6 use QtGui.QFontDatabase.families() instead of QtGui.QFontDatabase().families()
+    # https://doc.qt.io/qt-6/qfontdatabase-obsolete.html#QFontDatabase
+    QtGui.QFontDatabase.__new__ = lambda cls: cls
+
     del QtGui
     del inspect
 elif PYQT5:
