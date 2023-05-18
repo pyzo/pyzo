@@ -106,7 +106,7 @@ class HighlightMatchingOccurrences(object):
                 # full lines in between
                 if numFullLines > 0:
                     width = fullLineEndX - fullLineStartX
-                    height = cursorHeight * numFullLines
+                    height = (secondLineY - startLineY) * numFullLines
                     painter.drawRect(fullLineStartX, secondLineY, width, height)
 
                 # last partial line
