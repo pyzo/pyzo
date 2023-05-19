@@ -90,23 +90,20 @@ class HighlightMatchingOccurrences(object):
             if heightDiff == 0:
                 painter.drawRect(startRect.left(), startRect.top(), width, cursorHeight)
             elif heightDiff > 0:
-                cursorSub = QtGui.QTextCursor(cursor)
-                startLineY = startRect.top()
-                cursorSub.movePosition(cursorSub.EndOfLine)
-                secondLineY = self.cursorRect(cursorSub).top()
+                cursor.movePosition(cursor.EndOfLine)
+                secondLineY = self.cursorRect(cursor).top()
                 endLineY = endRect.top()
                 fullLineStartX = 0
                 fullLineEndX = self.width()
-                numFullLines = (endLineY - secondLineY) // (secondLineY - startLineY)
 
                 # first partial line
                 width = fullLineEndX - startRect.left()
                 painter.drawRect(startRect.left(), startRect.top(), width, cursorHeight)
 
                 # full lines in between
-                if numFullLines > 0:
+                if endLineY > secondLineY:
                     width = fullLineEndX - fullLineStartX
-                    height = (secondLineY - startLineY) * numFullLines
+                    height = endLineY - secondLineY
                     painter.drawRect(fullLineStartX, secondLineY, width, height)
 
                 # last partial line
