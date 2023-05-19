@@ -70,8 +70,8 @@ class TitledWidget(QtWidgets.QWidget):
 
         self.setLayout(layout)
 
-    def setFocus(self, val):
-        self.widget.setFocus(val)
+    def setFocus(self):
+        self.widget.setFocus()
 
 
 class ColorLineEdit(QtWidgets.QLineEdit):
@@ -220,8 +220,8 @@ class StyleEdit(QtWidgets.QWidget):
         for key, setter in self.setters.items():
             setter(style[key])
 
-    def setFocus(self, val):
-        self.layout.itemAt(0).widget().setFocus(True)
+    def setFocus(self):
+        self.layout.itemAt(0).widget().setFocus()
 
 
 class ThemeEditorWidget(QtWidgets.QWidget):
@@ -447,7 +447,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
             self.createTheme()
 
     def focusOnStyle(self, key):
-        self.styleEdits[key].setFocus(True)
+        self.styleEdits[key].setFocus()
         self.scrollArea.ensureWidgetVisible(self.styleEdits[key])
 
     def updatedStyle(self, style, text):
