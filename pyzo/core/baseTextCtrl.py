@@ -16,22 +16,9 @@ import pyzo
 import os, time
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
+from pyzo.codeeditor import CodeEditor
 
 from pyzo.qt import QtCore, QtGui, QtWidgets
-
-qt = QtGui
-
-
-# Define style stuff
-subStyleStuff = {}
-
-# subStyleStuff = {   'face': Qsci.QsciScintillaBase.SCI_STYLESETFONT ,
-#                    'fore': Qsci.QsciScintillaBase.SCI_STYLESETFORE,
-#                    'back': Qsci.QsciScintillaBase.SCI_STYLESETBACK,
-#                    'size': Qsci.QsciScintillaBase.SCI_STYLESETSIZE,
-#                    'bold': Qsci.QsciScintillaBase.SCI_STYLESETBOLD,
-#                    'italic': Qsci.QsciScintillaBase.SCI_STYLESETITALIC,
-#                    'underline': Qsci.QsciScintillaBase.SCI_STYLESETUNDERLINE}
 
 
 def normalizePath(path):
@@ -67,7 +54,7 @@ def normalizePath(path):
             print("Error normalizing path: Ambiguous path names!")
             return path
         elif not options:
-            print("Invalid path (part %s) in %s" % (part, fullpath))
+            print("Invalid path (part {}) in {}".format(part, fullpath))
             return path
         fullpath = os.path.join(fullpath, options[0])
 
@@ -113,7 +100,7 @@ def parseLine_signature(tokens):
     returns a tuple (name, needle, stats).
     stats is another tuple:
     - location of end bracket
-    - amount of kommas till cursor (taking nested brackets into account)
+    - amount of commas till cursor (taking nested brackets into account)
     """
 
     openBraces = []  # Positions at which braces are opened
@@ -132,8 +119,8 @@ def parseLine_signature(tokens):
 
     if len(openBraces):
         i = openBraces[-1]
-        # Now trim the token list up to (but not inculding) position of openBraces
-        tokens = list(filter(lambda token: token.start < i, tokens))
+        # Now trim the token list up to (but not including) position of openBraces
+        tokens = [t for t in tokens if t.start < i]
 
         # Trim the last token
         if len(tokens):
@@ -146,55 +133,11 @@ def parseLine_signature(tokens):
         return "", "", (0, 0)
 
 
-def makeBytes(text):
-    """Make sure the argument is bytes, converting with UTF-8 encoding
-    if it is a string."""
-    if isinstance(text, bytes):
-        return text
-    elif isinstance(text, str):
-        return text.encode("utf-8")
-    else:
-        raise ValueError("Expected str or bytes!")
 
-
-_allScintillas = []
-
-
-def getAllScintillas():
-    """Get a list of all the scintialla editing components that
-    derive from BaseTextCtrl. Used mainly by the menu.
-    """
-    for i in reversed(range(len(_allScintillas))):
-        e = _allScintillas[i]()
-        if e is None:
-            _allScintillas.pop(i)
-        else:
-            yield e
-
-
-pyzo.getAllScintillas = getAllScintillas
-
-from pyzo import codeeditor
-
-
-class BaseTextCtrl(codeeditor.CodeEditor):
+class BaseTextCtrl(CodeEditor):
     """The base text control class.
     Inherited by the shell class and the Pyzo editor.
     The class implements autocompletion, calltips, and auto-help
-
-    Inherits from QsciScintilla. I tried to clean up the rather dirty api
-    by using more sensible names. Hereby I apply the following rules:
-    - if you set something, the method starts with "set"
-    - if you get something, the method starts with "get"
-    - a position is the integer position fron the start of the document
-    - a linenr is the number of a line, an index the position on that line
-    - all the above indices apply to the bytes (encoded utf-8) in which the
-      text is stored. If you have unicode text, they do not apply!
-    - the method name mentions explicityly what you get. getBytes() returns the
-      bytes of the document, getString() gets the unicode string that it
-      represents. This applies to the get-methods. the set-methods use the
-      term text, and automatically convert to bytes using UTF-8 encoding
-      when a string is given.
     """
 
     def __init__(self, *args, **kwds):
@@ -290,12 +233,8 @@ class BaseTextCtrl(codeeditor.CodeEditor):
 
         return (
             text,
-            list(
-                filter(
-                    lambda token: token.isToken,  # filter to remove BlockStates
-                    self.parser().parseLine(text, previousState),
-                )
-            ),
+            [t for t in self.parser().parseLine(text, previousState)
+                    if t.isToken],  # filter to remove BlockStates
         )
 
     def introspect(self, tryAutoComp=False, delay=True):
@@ -408,7 +347,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
             _, tokens = self.getTokensUpToCursor(cursor)
             nameBefore, name = parseLine_autocomplete(tokens)
             if nameBefore:
-                name = "%s.%s" % (nameBefore, name)
+                name = "{}.{}".format(nameBefore, name)
         if name != "":
             hw.setObjectName(name, True)
 
@@ -440,7 +379,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 # Obtain
                 nameBefore, name = parseLine_autocomplete(text)
                 if nameBefore:
-                    name = "%s.%s" % (nameBefore, name)
+                    name = "{}.{}".format(nameBefore, name)
 
         if name:
             hw.helpFromCompletion(name, addToHist)
@@ -454,7 +393,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
         if self._autoCompBuffer_name:
             name = self._autoCompBuffer_name + "." + name
         elif not self.completer().completionPrefix():
-            # Dont update help if there is no dot or prefix;
+            # Don't update help if there is no dot or prefix;
             # the choice would be arbitrary
             return
 
@@ -485,7 +424,7 @@ class BaseTextCtrl(codeeditor.CodeEditor):
                 return False
 
         # Default behavior
-        codeeditor.CodeEditor.event(self, event)
+        CodeEditor.event(self, event)
         return True
 
     def keyPressEvent(self, event):
