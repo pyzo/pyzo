@@ -133,7 +133,6 @@ def parseLine_signature(tokens):
         return "", "", (0, 0)
 
 
-
 class BaseTextCtrl(CodeEditor):
     """The base text control class.
     Inherited by the shell class and the Pyzo editor.
@@ -234,7 +233,7 @@ class BaseTextCtrl(CodeEditor):
         return (
             text,
             [t for t in self.parser().parseLine(text, previousState)
-                    if t.isToken],  # filter to remove BlockStates
+                if t.isToken],  # filter to remove BlockStates
         )
 
     def introspect(self, tryAutoComp=False, delay=True):
