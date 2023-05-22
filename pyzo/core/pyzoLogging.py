@@ -55,15 +55,11 @@ original_print = print
 
 
 def print(*args, **kwargs):
-    # Obtain time string
-    t = time.localtime()
-    preamble = "{:02g}-{:02g}-{:04g} {:02g}:{:02g}:{:02g}: "
-    preamble = preamble.format(
-        t.tm_mday, t.tm_mon, t.tm_year, t.tm_hour, t.tm_min, t.tm_sec
-    )
-    # Prepend to args and print
-    args = [preamble] + list(args)
-    original_print(*tuple(args), **kwargs)
+    ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    preamble = ts + ":"
+    if kwargs.get("sep", " ") != " ":
+        preamble += " "
+    original_print(preamble, *args, **kwargs)
 
 
 def splitConsole(stdoutFun=None, stderrFun=None):
@@ -129,7 +125,7 @@ class OutputStreamSplitter:
         try:
             self._deferFunction(text)
         except Exception:
-            pass  # self._original.write('error writing to deferred stream')
+            pass  # self._original.write("error writing to deferred stream")
         # Show in statusbar
         if pyzo.config.view.showStatusbar and len(text) > 1:
             if pyzo.main:
