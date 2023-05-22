@@ -53,6 +53,7 @@ class HighlightMatchingOccurrences(object):
     def _doHighlight(self, text):
         # make cursor at the beginning of the first visible block
         cursor = self.cursorForPosition(QtCore.QPoint(0, 0))
+        cursor.movePosition(cursor.StartOfWord)
         doc = self.document()
 
         color = self.getStyleElementFormat("editor.highlightMatchingOccurrences").back
@@ -75,16 +76,40 @@ class HighlightMatchingOccurrences(object):
                 continue
 
             endRect = self.cursorRect(cursor)
-            if endRect.bottom() > self.height():
+            cursor.setPosition(min(cursor.position(), cursor.anchor()))
+            startRect = self.cursorRect(cursor)
+
+            if startRect.top() > self.height():
                 # rest of document is not visible, don't bother highlighting
                 break
 
-            cursor.setPosition(min(cursor.position(), cursor.anchor()))
-            startRect = self.cursorRect(cursor)
             width = endRect.left() - startRect.left()
-            painter.drawRect(
-                startRect.left(), startRect.top(), width, startRect.height()
-            )
+            cursorHeight = startRect.height()
+
+            heightDiff = endRect.top() - startRect.top()
+            if heightDiff == 0:
+                painter.drawRect(startRect.left(), startRect.top(), width, cursorHeight)
+            elif heightDiff > 0:
+                cursor.movePosition(cursor.EndOfLine)
+                secondLineY = self.cursorRect(cursor).top()
+                endLineY = endRect.top()
+                fullLineStartX = 0
+                fullLineEndX = self.width()
+
+                # first partial line
+                width = fullLineEndX - startRect.left()
+                painter.drawRect(startRect.left(), startRect.top(), width, cursorHeight)
+
+                # full lines in between
+                if endLineY > secondLineY:
+                    width = fullLineEndX - fullLineStartX
+                    height = endLineY - secondLineY
+                    painter.drawRect(fullLineStartX, secondLineY, width, height)
+
+                # last partial line
+                width = endRect.left() - fullLineStartX
+                if width > 0:
+                    painter.drawRect(fullLineStartX, endLineY, width, cursorHeight)
 
             # move to end of word again, otherwise we never advance in the doc
             cursor.movePosition(cursor.EndOfWord)
