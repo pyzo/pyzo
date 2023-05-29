@@ -1,4 +1,5 @@
 import os
+import sys
 import pyzo
 from pyzo import translate
 from pyzo.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
@@ -185,8 +186,10 @@ class PdfExport(QtWidgets.QDialog):
             orientation = [base.Portrait, base.Landscape][index]
 
             self._preview.setOrientation(orientation)
-            self._preview.setOrientation(orientation)  # calling this a second time is a
-            # workaround, otherwise the preview in Qt6 is wrong when switching orientation
+            if sys.platform == "win32":
+                self._preview.setOrientation(orientation)  # calling this a second time is a
+                # workaround, otherwise the preview in Qt6 is wrong when switching orientation
+                # on Windows 10 with Qt 6.5.0
 
             layout = QtGui.QPageLayout()
             layout.setOrientation(orientation)
