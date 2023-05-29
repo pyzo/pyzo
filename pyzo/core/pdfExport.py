@@ -65,7 +65,6 @@ class PdfExport(QtWidgets.QDialog):
         self._btnDone = QtWidgets.QPushButton("Done", self)
         self._btnDone.clicked.connect(self.close)
 
-
         self._mainLayout = QtWidgets.QHBoxLayout()
         self.setLayout(self._mainLayout)
         self._rightLayout = QtWidgets.QVBoxLayout()
@@ -86,7 +85,6 @@ class PdfExport(QtWidgets.QDialog):
         self._bottomLayout.addWidget(self._btnUpdatePreview)
         self._bottomLayout.addWidget(self._btnExport)
         self._bottomLayout.addWidget(self._btnDone)
-
 
         self._preview.paintRequested.connect(self._editor.print_)
 
@@ -131,8 +129,9 @@ class PdfExport(QtWidgets.QDialog):
             fmt = QtGui.QTextCharFormat()
             fmt.setBackground(QtGui.QColor(240, 240, 240))
             cursor.movePosition(cursor.Start, cursor.MoveAnchor)
-            notAtLastBlock = cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor,
-                len(headerLines))
+            notAtLastBlock = cursor.movePosition(
+                cursor.NextBlock, cursor.MoveAnchor, len(headerLines)
+            )
             while notAtLastBlock:
                 cursor.movePosition(cursor.Right, cursor.KeepAnchor, numDigits)
                 cursor.setCharFormat(fmt)
