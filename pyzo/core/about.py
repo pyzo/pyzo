@@ -84,7 +84,7 @@ class AboutDialog(QtWidgets.QDialog):
         <br>
 
         <b>License</b><br>
-        Pyzo is open source, it's code is distributed under the 2-Clause BSD license.
+        Pyzo is open source, its code is distributed under the 2-Clause BSD license.
         <br><br>
 
         <b>Contributors</b><br>
