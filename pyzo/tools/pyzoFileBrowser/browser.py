@@ -299,9 +299,13 @@ class PathInput(LineEditWithToolButtons):
         c.setCompletionMode(c.InlineCompletion)
 
         # Set dir model to completer
-        dirModel = QtWidgets.QFileSystemModel(c)
-        dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
-        c.setModel(dirModel)
+        self._dirModel = QtWidgets.QFileSystemModel(c)
+        self._dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        # filter is not synchronized with NameFilter input (e.g. "!hidden")
+        c.setModel(self._dirModel)
+        if sys.platform != "win32":
+            self._dirModel.setRootPath("/")
+        # for win32 setRootPath is done self.setPath(...)
 
         # Connect signals
         # c.activated.connect(self.onActivated)
@@ -311,6 +315,11 @@ class PathInput(LineEditWithToolButtons):
 
     def setPath(self, path):
         """Set the path to display. Does nothing if this widget has focus."""
+        if sys.platform == "win32":
+            oldDrive, _ = op.splitdrive(self.text())
+            newDrive, _ = op.splitdrive(path)
+            if oldDrive != newDrive:
+                self._dirModel.setRootPath(newDrive)
         if not self.hasFocus():
             self.setText(path)
             self.checkValid()  # Reset style if it was invalid first
