@@ -71,6 +71,7 @@ advanced = dict:
     titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
     homeAndEndWorkOnDisplayedLine = 0
     find_autoHide_timeout = 10
+    useNativeFileDialogs = 1
 
 tools = dict:
     pyzologger = dict:
