@@ -1171,8 +1171,8 @@ class EditorTabs(QtWidgets.QWidget):
             # Example how to preselect files, can be used when the users
             # opens a file in a project to select all files currently not
             # loaded.
-            d = QtWidgets.QFileDialog(self, msg, startdir, filter,
-                options=self._fileDialogOptions
+            d = QtWidgets.QFileDialog(
+                self, msg, startdir, filter, options=self._fileDialogOptions
             )
             d.setFileMode(d.ExistingFiles)
             d.selectFile('"codeparser.py" "editorStack.py"')
@@ -1204,8 +1204,8 @@ class EditorTabs(QtWidgets.QWidget):
 
         # show dialog
         msg = "Select a directory to open"
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self, msg,
-            startdir, options=self._fileDialogOptions
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
+            self, msg, startdir, options=self._fileDialogOptions
         )
 
         # was a dir selected?
@@ -1340,8 +1340,8 @@ class EditorTabs(QtWidgets.QWidget):
         filter += "C (*.c *.h *.cpp);;"
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, msg, startdir,
-            filter, options=self._fileDialogOptions
+        filename = QtWidgets.QFileDialog.getSaveFileName(
+            self, msg, startdir, filter, options=self._fileDialogOptions
         )
         if isinstance(filename, tuple):  # PySide
             filename = filename[0]
