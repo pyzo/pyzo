@@ -14,7 +14,6 @@ from . import PYQT5, PYQT6, PYSIDE2, PYSIDE6, PythonQtError
 if PYQT6:
     from PyQt6.QtWidgets import *
     from PyQt6.QtGui import QAction, QActionGroup, QShortcut, QFileSystemModel
-    from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
     # Map missing/renamed methods
     import inspect
@@ -42,7 +41,6 @@ elif PYQT5:
 elif PYSIDE6:
     from PySide6.QtWidgets import *
     from PySide6.QtGui import QAction, QActionGroup, QShortcut
-    from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
     # Map missing/renamed methods
     QTextEdit.setTabStopWidth = QTextEdit.setTabStopDistance
