@@ -124,7 +124,6 @@ qt_includes = [
     "QtWidgets",  # Standard
     "QtHelp",  # For docs
     "QtPrintSupport",  # For PDF export
-    "QtOpenGLWidgets",  # Because qtpy imports QOpenGLQWidget into QtWidgets
 ]
 includes += [f"{qt_api}.{sub}" for sub in qt_includes]
 
@@ -140,6 +139,7 @@ excludes += list(other_qt_kits)
 qt_excludes = [
     "QtNetwork",
     "QtOpenGL",
+    "QtOpenGLWidgets",
     "QtXml",
     "QtTest",
     "QtSql",
