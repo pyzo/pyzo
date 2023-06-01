@@ -5,13 +5,13 @@ numpy array. The wizard containst three pages:
 
 SelectFilePage:
     - The user selects a file and previews its contents (or, the beginning of it)
-    
+
 SetParametersPage:
     - The user selects delimiters, etc. and selects which columns to import
     - A preview of the data in tabualar form is shown, with colors indicating
       how the file is parsed: yellow for header rows, green for the comments
       column and red for values that could not be parsed
-      
+
 ResultPage:
     - The wizard shows the generated code that is to be used to import the file
       according to the settings
@@ -24,6 +24,7 @@ ResultPage:
 import unicodedata
 import os.path as op
 
+import pyzo
 import pyzo.codeeditor
 from . import QtCore, QtGui, QtWidgets
 from pyzo import translate
@@ -122,10 +123,14 @@ class SelectFilePage(QtWidgets.QWizardPage):
         self._isComplete = False
 
     def onBrowseClicked(self):
+        options = QtWidgets.QFileDialog.Option(0)
+        if not pyzo.config.advanced.useNativeFileDialogs:
+            options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
         # Difference between PyQt4 and PySide: PySide returns filename, filter
         # while PyQt4 returns only the filename
         filename = QtWidgets.QFileDialog.getOpenFileName(
-            filter="Text files (*.txt *.csv);;All files (*.*)"
+            filter="Text files (*.txt *.csv);;All files (*.*)",
+            options=options
         )
         if isinstance(filename, tuple):
             filename = filename[0]

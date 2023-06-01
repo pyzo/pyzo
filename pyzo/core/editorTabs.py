@@ -1006,6 +1006,13 @@ class EditorTabs(QtWidgets.QWidget):
         # the widgets are properly sized.
         pyzo.callLater(self.restoreEditorState)
 
+    @property
+    def _fileDialogOptions(self):
+        options = QtWidgets.QFileDialog.Option(0)
+        if not pyzo.config.advanced.useNativeFileDialogs:
+            options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
+        return options
+
     def addContextMenu(self):
         """Adds a context menu to the tab bar"""
 
@@ -1156,7 +1163,7 @@ class EditorTabs(QtWidgets.QWidget):
         filter += "All (*)"
         if True:
             filenames = QtWidgets.QFileDialog.getOpenFileNames(
-                self, msg, startdir, filter
+                self, msg, startdir, filter, options=self._fileDialogOptions
             )
             if isinstance(filenames, tuple):  # PySide
                 filenames = filenames[0]
@@ -1164,7 +1171,9 @@ class EditorTabs(QtWidgets.QWidget):
             # Example how to preselect files, can be used when the users
             # opens a file in a project to select all files currently not
             # loaded.
-            d = QtWidgets.QFileDialog(self, msg, startdir, filter)
+            d = QtWidgets.QFileDialog(
+                self, msg, startdir, filter, options=self._fileDialogOptions
+            )
             d.setFileMode(d.ExistingFiles)
             d.selectFile('"codeparser.py" "editorStack.py"')
             d.exec_()
@@ -1195,7 +1204,9 @@ class EditorTabs(QtWidgets.QWidget):
 
         # show dialog
         msg = "Select a directory to open"
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self, msg, startdir)
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
+            self, msg, startdir, options=self._fileDialogOptions
+        )
 
         # was a dir selected?
         if not dirname:
@@ -1329,7 +1340,9 @@ class EditorTabs(QtWidgets.QWidget):
         filter += "C (*.c *.h *.cpp);;"
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, msg, startdir, filter)
+        filename = QtWidgets.QFileDialog.getSaveFileName(
+            self, msg, startdir, filter, options=self._fileDialogOptions
+        )
         if isinstance(filename, tuple):  # PySide
             filename = filename[0]
 

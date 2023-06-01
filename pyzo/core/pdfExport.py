@@ -147,8 +147,12 @@ class PdfExport(QtWidgets.QDialog):
 
     def _exportPdf(self):
         """Exports the code as pdf, and opens file manager"""
+        options = QtWidgets.QFileDialog.Option(0)
+        if not pyzo.config.advanced.useNativeFileDialogs:
+            options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            None, "Export PDF", os.path.expanduser("~"), "*.pdf"
+            None, "Export PDF", os.path.expanduser("~"), "*.pdf",
+            options=options
         )
         if isinstance(filename, tuple):  # PySide
             filename = filename[0]

@@ -15,6 +15,7 @@ Copy the "docs" directory to the pyzo root!
 
 """
 
+import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import getResourceDirs
 import os
@@ -72,10 +73,14 @@ class Settings(QtWidgets.QWidget):
         del_button.clicked.connect(self.del_doc)
 
     def add_doc(self):
+        options = QtWidgets.QFileDialog.Option(0)
+        if not pyzo.config.advanced.useNativeFileDialogs:
+            options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
         doc_file = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select a compressed help file",
             filter="Qt compressed help files (*.qch)",
+            options=options
         )
         if isinstance(doc_file, tuple):
             doc_file = doc_file[0]
