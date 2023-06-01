@@ -74,9 +74,10 @@ class PyzoLoggerShell(BaseShell):
         self._interpreter = code.InteractiveConsole(locals, "<logger>")
 
         # Show welcome text
+        version = sys.version.split(None, 1)[0]
         moreBanner = "This is the Pyzo logger shell."
         self.write(
-            "Python %s on %s - %s\n\n" % (sys.version[:5], sys.platform, moreBanner)
+            "Python {} on {} - {}\n\n".format(version, sys.platform, moreBanner)
         )
         self.write(str(sys.ps1), 2)
 
