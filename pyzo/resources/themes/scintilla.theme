@@ -31,3 +31,4 @@ data = dict:
     syntax_python_multilinestring='fore:#7f0000, bold:no, underline:no, italic:no'
     syntax_python_cellcomment='fore:#007f00, bold:yes, underline:yes, italic:no'
     editor_text='fore:#000, back:#fff'
+    syntax_illegal = 'fore:#ff0000, back:#ffd7c7, bold:no, underline:no, italic:no'
