@@ -21,6 +21,7 @@ data = dict:
     syntax_comment = 'fore:#b58900, bold:no, underline:no, italic:no'
     syntax_functionname = 'fore:#eee8d5, bold:yes, underline:no, italic:no'
     syntax_identifier = 'fore:#839496, bold:no, underline:no, italic:no'
+    syntax_illegal = 'fore:#ff0000, back:#ffd7c7, bold:no, underline:no, italic:no'
     syntax_instance = 'fore:#839496, bold:no, underline:no, italic:no'
     syntax_keyword = 'fore:#93a1a1, bold:yes, underline:no, italic:no'
     syntax_nonidentifier = 'fore:#93a1a1, bold:no, underline:no, italic:no'

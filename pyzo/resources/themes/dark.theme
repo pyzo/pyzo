@@ -31,3 +31,4 @@ data = dict:
     syntax_c_multilinecomment='fore:#007f00, bold:no, underline:no, italic:no'
     syntax_c_char='fore:#7f007f, bold:no, underline:no, italic:no'
     editor_text='fore:#c5d9ff, back:#272822'
+    syntax_illegal = 'fore:#ff0000, back:#ffd7c7, bold:no, underline:no, italic:no'
