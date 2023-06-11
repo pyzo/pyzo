@@ -210,6 +210,8 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # init layout
         layout = QtWidgets.QHBoxLayout(self)
         layout.setSpacing(0)
+        margin = 0
+        layout.setContentsMargins(margin, margin, margin, margin)
         self.setLayout(layout)
 
         # Create some widgets first to realize a correct tab order
