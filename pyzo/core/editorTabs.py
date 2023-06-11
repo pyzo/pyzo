@@ -1525,6 +1525,7 @@ class EditorTabs(QtWidgets.QWidget):
         pyzo.config.state.find_matchCase = fr._caseCheck.isChecked()
         pyzo.config.state.find_regExp = fr._regExp.isChecked()
         pyzo.config.state.find_wholeWord = fr._wholeWord.isChecked()
+        pyzo.config.state.find_autoHide = fr._autoHide.isChecked()
         pyzo.config.state.find_show = fr.isVisible()
         #
         pyzo.config.state.editorState2 = self._getCurrentOpenFilesAsSsdfList()
