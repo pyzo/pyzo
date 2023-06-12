@@ -18,7 +18,7 @@ from pyzo.codeeditor.parsers.tokens import (
 keywords = ('import', 'export',
             'type', 'fun', 'func', 'proc', 'return', 'end',
             'loop', 'for', 'while', 'if', 'then', 'elseif', 'else', 'with', 'do', 'done', 'continue', 'break',
-            'in', 'as',
+            'in', 'as', 'its',
             'true', 'false',
             )
 
