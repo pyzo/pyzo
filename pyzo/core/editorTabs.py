@@ -648,6 +648,9 @@ class FileTabWidget(CompactTabWidget):
 
     """
 
+    # Signal to indicate that file tabs were added, updated or removed
+    fileTabsChanged = QtCore.Signal()
+
     def __init__(self, parent):
         CompactTabWidget.__init__(self, parent, padding=(2, 1, 0, 4))
 
@@ -837,6 +840,8 @@ class FileTabWidget(CompactTabWidget):
             items[theIndex].editor.destroy()
             gc.collect()
 
+            self.fileTabsChanged.emit()
+
     def addItem(self, item, update=True):
         """addItem(item, update=True)
 
@@ -943,6 +948,8 @@ class FileTabWidget(CompactTabWidget):
             # Update appearance of icon
             but = tabBar.tabButton(i, QtWidgets.QTabBar.LeftSide)
             but.updateIcon(item.dirty, self._mainFile == item.id, item.pinned, nBlocks)
+
+        self.fileTabsChanged.emit()
 
 
 class EditorTabs(QtWidgets.QWidget):
