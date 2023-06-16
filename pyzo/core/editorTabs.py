@@ -1542,6 +1542,8 @@ class EditorTabs(QtWidgets.QWidget):
                 self.newFile()
         else:
             self.newFile()
+        self._tabs.updateItems()  # without this, a single restored editor will not have
+        # correct PINNED/MAINFILE symbols
 
         # The find/replace state is set in the corresponding class during init
 
