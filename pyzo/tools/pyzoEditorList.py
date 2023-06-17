@@ -5,12 +5,15 @@ from pyzo import translate
 tool_name = translate("pyzoEditorList", "Editor list")
 tool_summary = "Display and manage editor tabs via a list."
 
+Qt = QtCore.Qt
+
 
 class MyQListWidget(QtWidgets.QListWidget):
     listEntryDragStart = QtCore.Signal()
     listEntryDragEnd = QtCore.Signal()
     middleButtonClicked = QtCore.Signal(QtCore.QPoint)
     doubleClicked = QtCore.Signal(QtCore.QPoint)
+    keyPressed = QtCore.Signal(str)
 
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
@@ -25,20 +28,48 @@ class MyQListWidget(QtWidgets.QListWidget):
         self.doubleClicked.emit(event.pos())
 
     def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.MiddleButton:
+        if event.button() == Qt.MiddleButton:
             self.middleButtonClicked.emit(event.pos())
             return
         super().mousePressEvent(event)
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        eventName = None
+        if key in (Qt.Key_Return, Qt.Key_Enter):
+            eventName = "enter"
+        elif key == Qt.Key_Delete:
+            eventName = "delete"
+        elif key == Qt.Key_Insert:
+            eventName = "insert"
+
+        m = event.modifiers()
+        if m & Qt.ControlModifier and m & Qt.ShiftModifier:
+            if key == Qt.Key_Up:
+                eventName = "shift_up"
+            elif key == Qt.Key_Down:
+                eventName = "shift_down"
+
+        if eventName is None:
+            super().keyPressEvent(event)
+        else:
+            self.keyPressed.emit(eventName)
+
 
 class PyzoEditorList(QtWidgets.QWidget):
     """
-    The EditorList is similar to the editor's tab widget:
+    Mouse Control:
      - right click on a list entry opens the context menu
      - double click on a list entry activates the corresponding editor tab
      - double click below the last list entry opens a new editor tab
      - middle click on a list entry closes the corresponding editor tab
      - drag and drop to sort list entries, synchronized with the editor tabs
+
+    Keyboard Control:
+     - ENTER or RETURN activates the selected editor tab
+     - DELETE will close the selected editor tab
+     - INSERT opens a new editor tab
+     - CTRL+SHIFT + UP/DOWN shifts the entry up/down (and the editor tab left/right)
     """
 
     def __init__(self, parent=None):
@@ -65,13 +96,14 @@ class PyzoEditorList(QtWidgets.QWidget):
 
         # Context menu
         self._menu = pyzo.core.menu.EditorTabContextMenu(self, "EditorTabMenu")
-        self._list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._list.setContextMenuPolicy(Qt.CustomContextMenu)
         self._list.customContextMenuRequested.connect(
             self._onCustomContextMenuRequested
         )
 
         self._list.middleButtonClicked.connect(self._onMiddleButtonClicked)
         self._list.doubleClicked.connect(self._onDoubleClicked)
+        self._list.keyPressed.connect(self._onKeyPressed)
 
         pyzo.editors._tabs.tabBar().currentChanged.connect(self._onCurrentTabChanged)
         pyzo.editors._tabs.fileTabsChanged.connect(self._onFileTabsChanged)
@@ -81,7 +113,8 @@ class PyzoEditorList(QtWidgets.QWidget):
     def updateList(self):
         tabs = pyzo.editors._tabs
         tabBar = tabs.tabBar()
-        self._list.clear()
+        # the list widget is not cleared to keep its current scroll bar position
+        i = -1  # have i initialized in case the following for loop has no iterations
         for i, tabItem in enumerate(tabs.items()):
             shortName = tabBar.tabText(i)
             longName = tabItem.filename
@@ -95,9 +128,14 @@ class PyzoEditorList(QtWidgets.QWidget):
             if len(shortLongInfo) > 0:
                 shortName += " [{}]".format(", ".join(sl[0] for sl in shortLongInfo))
                 longName += " [{}]".format(", ".join(sl[1] for sl in shortLongInfo))
-            listItem = QtWidgets.QListWidgetItem(shortName)
+            listItem = self._list.item(i)
+            if listItem is None:
+                listItem = QtWidgets.QListWidgetItem()
+                self._list.addItem(listItem)
+            listItem.setText(shortName)
             listItem.setToolTip(longName)
-            self._list.addItem(listItem)
+        for _ in range(i + 1, self._list.count()):
+            self._list.takeItem(i + 1)  # delete remaining entries
         self.selectListRow(tabs.currentIndex())
 
     def selectListRow(self, index):
@@ -150,3 +188,23 @@ class PyzoEditorList(QtWidgets.QWidget):
         if item is not None:
             index = self._list.indexFromItem(item).row()
             pyzo.editors._tabs.tabCloseRequested.emit(index)
+
+    def _onKeyPressed(self, eventName):
+        index = self._list.currentRow()
+        if index >= 0:
+            if eventName == "enter":
+                pyzo.editors._tabs.setCurrentIndex(index)
+            elif eventName == "delete":
+                pyzo.editors._tabs.tabCloseRequested.emit(index)
+            elif eventName.startswith("shift_"):
+                oldIndex = index
+                newIndex = index
+                if eventName == "shift_up":
+                    newIndex = index - 1
+                elif eventName == "shift_down":
+                    newIndex = index + 1
+                if newIndex != oldIndex and 0 <= newIndex < self._list.count():
+                    pyzo.editors._tabs.tabBar().moveTab(oldIndex, newIndex)
+                    pyzo.editors._tabs.setCurrentIndex(newIndex)
+        if eventName == "insert":
+            pyzo.editors.newFile()
