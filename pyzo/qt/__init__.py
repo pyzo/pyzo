@@ -54,7 +54,7 @@ PySide6
 
 """
 
-from packaging.version import parse
+from pyzo.util import parse_version_crudely as parse
 import os
 import platform
 import sys
