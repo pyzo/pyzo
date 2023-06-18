@@ -473,7 +473,7 @@ def loadAppIcons():
         if os.path.isfile(fname):
             pyzo.icon.addFile(fname, QtCore.QSize(sze, sze))
 
-            artist = IconArtist(pyzo.icon, size=sze)  # extracts the 16x16 version
+            artist = IconArtist(pyzo.icon, size=sze)
             artist.setPenColor("#0D0")
             artist.setBrushColor("#0D0")
             a = 6 * sze // 16
