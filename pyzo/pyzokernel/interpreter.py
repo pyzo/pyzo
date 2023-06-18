@@ -35,7 +35,6 @@ import traceback
 import keyword
 import inspect  # noqa - Must be in this namespace
 import bdb
-from distutils.version import LooseVersion as LV
 import linecache
 
 import yoton
@@ -354,10 +353,23 @@ class PyzoInterpreter:
 
         # Prevent app nap on OSX 9.2 and up
         # The _nope module is taken from MINRK's appnope package
-        if sys.platform == "darwin" and LV(platform.mac_ver()[0]) >= LV("10.9"):
-            from pyzokernel import _nope
+        if sys.platform == "darwin":
 
-            _nope.nope()
+            def parse_version_crudely(version_string):
+                """extracts the leading number parts of a version string to a tuple
+                e.g.: "123.45ew6.7x.dev8" --> (123, 45, 7)
+                """
+                import re
+
+                return tuple(
+                    int(s) for s in re.findall(r"\.(\d+)", "." + version_string)
+                )
+
+            parsev = parse_version_crudely
+            if parsev(platform.mac_ver()[0]) >= parsev("10.9"):
+                from pyzokernel import _nope
+
+                _nope.nope()
 
         # Setup post-mortem debugging via appropriately logged exceptions
         class PMHandler(logging.Handler):
