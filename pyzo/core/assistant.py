@@ -17,7 +17,6 @@ Copy the "docs" directory to the pyzo root!
 
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
-from pyzo import getResourceDirs
 import os
 
 
@@ -144,10 +143,9 @@ class PyzoAssistant(QtWidgets.QWidget):
 
         super().__init__(parent)
         self.setWindowTitle("Help")
-        pyzoDir, appDataDir, appConfigDir = getResourceDirs()
         if collection_filename is None:
             # Collection file is stored in pyzo data dir:
-            collection_filename = os.path.join(appDataDir, "tools", "docs.qhc")
+            collection_filename = os.path.join(pyzo.appDataDir, "tools", "docs.qhc")
         self._engine = QtHelp.QHelpEngine(collection_filename)
 
         # Important, call setup data to load the files:
@@ -155,7 +153,7 @@ class PyzoAssistant(QtWidgets.QWidget):
 
         # If no files are loaded, register at least the pyzo docs:
         if len(self._engine.registeredDocumentations()) == 0:
-            doc_file = os.path.join(pyzoDir, "resources", "pyzo.qch")
+            doc_file = os.path.join(pyzo.pyzoDir, "resources", "pyzo.qch")
             self._engine.registerDocumentation(doc_file)
 
         # The main players:
