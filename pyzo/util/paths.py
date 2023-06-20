@@ -63,7 +63,7 @@ def prepare_appdata_appconfig_dirs():
                 python pyzolauncher.py --> 'pyzolauncher.py' or 'python'
                 via binary from frozen pyzo --> 'pyzo'
             """
-            if pyzo.qt.QtCore.QCoreApplication.applicationName() != "":
+            if QtCore.QCoreApplication.applicationName() != "":
                 data_path_base = os.path.split(data_path_base)[0]
                 config_path_base = os.path.split(config_path_base)[0]
             data_path = os.path.join(data_path_base, appname)
