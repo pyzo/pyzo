@@ -464,25 +464,31 @@ def loadAppIcons():
     # Qt somehow does not use the highest possible res on Linux/Gnome(?), even
     # the logo of qt-designer when alt-tabbing looks a bit ugly.
     pyzo.icon = QtGui.QIcon()
+
+    # Construct another icon to show when the current shell is busy
+    pyzo.iconRunning = QtGui.QIcon(pyzo.icon)
+
     for sze in [16, 32, 48, 64, 128, 256]:
         fname = os.path.join(appiconDir, fnameT.format(sze))
         if os.path.isfile(fname):
             pyzo.icon.addFile(fname, QtCore.QSize(sze, sze))
 
+            artist = IconArtist(pyzo.icon, size=sze)
+            artist.setPenColor("#0D0")
+            artist.setBrushColor("#0D0")
+            a = 6 * sze // 16
+            x2 = sze - 1
+            x1 = x2 - a + 1
+            y1 = sze - 1
+            y2 = y1 - a + 1
+            y3 = y2 - a + 1
+            artist.addPolygon([(x1, y1), (x2, y2), (x1, y3)])
+            pm = artist.finish().pixmap(sze, sze)
+            pyzo.iconRunning.addPixmap(pm)
+
     # Set as application icon. This one is used as the default for all
     # windows of the application.
     QtWidgets.qApp.setWindowIcon(pyzo.icon)
-
-    # Construct another icon to show when the current shell is busy
-    artist = IconArtist(pyzo.icon)  # extracts the 16x16 version
-    artist.setPenColor("#0B0")
-    for x in range(11, 16):
-        d = x - 11  # runs from 0 to 4
-        artist.addLine(x, 6 + d, x, 15 - d)
-    pm = artist.finish().pixmap(16, 16)
-    #
-    pyzo.iconRunning = QtGui.QIcon(pyzo.icon)
-    pyzo.iconRunning.addPixmap(pm)  # Change only 16x16 icon
 
 
 def loadIcons():

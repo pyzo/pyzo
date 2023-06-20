@@ -25,8 +25,9 @@ class IconArtist:
 
     """
 
-    def __init__(self, icon=None):
+    def __init__(self, icon=None, size=16):
         # Get pixmap from given icon (None creates empty pixmap)
+        self._wh = size
         self._pm = self._getPixmap(icon)
 
         # Instantiate painter for the pixmap
@@ -47,7 +48,7 @@ class IconArtist:
 
         # Create pixmap
         if icon is None:
-            pm = QtGui.QPixmap(16, 16)
+            pm = QtGui.QPixmap(self._wh, self._wh)
             pm.fill(QtGui.QColor(0, 0, 0, 0))
             return pm
         elif isinstance(icon, tuple):
@@ -57,9 +58,13 @@ class IconArtist:
         elif isinstance(icon, QtGui.QPixmap):
             return icon
         elif isinstance(icon, QtGui.QIcon):
-            return icon.pixmap(16, 16)
+            return icon.pixmap(self._wh, self._wh)
         else:
             raise ValueError("Icon for IconArtis should be icon, pixmap or name.")
+
+    @staticmethod
+    def _toQColor(color):
+        return QtGui.QColor(*color) if isinstance(color, tuple) else QtGui.QColor(color)
 
     def setPenColor(self, color):
         """setPenColor(color)
@@ -67,11 +72,16 @@ class IconArtist:
         Qcolor().
         """
         pen = QtGui.QPen()
-        if isinstance(color, tuple):
-            pen.setColor(QtGui.QColor(*color))
-        else:
-            pen.setColor(QtGui.QColor(color))
+        pen.setColor(self._toQColor(color))
         self._painter.setPen(pen)
+
+    def setBrushColor(self, *color):
+        """setBrushColor(color)
+        Set the color of the brush. Color can be anything that can be passed to
+        Qcolor().
+        """
+        brush = QtGui.QBrush(self._toQColor(color), QtCore.Qt.SolidPattern)
+        self._painter.setBrush(brush)
 
     def addLayer(self, overlay, x=0, y=0):
         """addOverlay(overlay, x=0, y=0)
@@ -79,6 +89,13 @@ class IconArtist:
         """
         pm = self._getPixmap(overlay)
         self._painter.drawPixmap(x, y, pm)
+
+    def addPolygon(self, pointList):
+        """addPolygon(pointList)
+        Add a filled polygon to the icon.
+        """
+        poly = QtGui.QPolygon([QtCore.QPoint(x, y) for x, y in pointList])
+        self._painter.drawPolygon(poly, QtCore.Qt.OddEvenFill)
 
     def addLine(self, x1, y1, x2, y2):
         """addLine( x1, y1, x2, y2)
@@ -97,6 +114,8 @@ class IconArtist:
         Adds a menu arrow to the icon to let the user know the icon
         is clickable.
         """
+        if self._wh != 16:
+            raise NotImplementedError()
         x, y = 0, 12
         a1, a2 = int(strength / 2), strength
         # Zeroth line of 3+2
