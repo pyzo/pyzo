@@ -115,7 +115,7 @@ class App_nogui(App_base):
 
     def run(self, repl_callback):
         # Move at a slow pace - there is no gui to keep running
-        super().run(repl_callback, 0.1)
+        App_base.run(self, repl_callback, 0.1)
 
 
 # Experimental and WIP - not used at the moment
