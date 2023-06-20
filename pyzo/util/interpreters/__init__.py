@@ -12,7 +12,6 @@ import os
 
 from .pythoninterpreter import EXE_DIR, PythonInterpreter, versionStringToTuple
 from .inwinreg import get_interpreters_in_reg
-from .. import paths
 
 
 def get_interpreters(minimumVersion=None):
