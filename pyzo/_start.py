@@ -102,28 +102,6 @@ sys.excepthook = pyzo_excepthook
 
 # todo: move some stuff out of this module ...
 
-
-def getResourceDirs():
-    """getResourceDirs()
-    Get the directories to the resources: (pyzoDir, appDataDir, appConfigDir).
-    Also makes sure that the appDataDir has a "tools" directory and
-    a style file.
-    """
-
-    pyzoDir = os.path.abspath(os.path.dirname(__file__))
-    if ".zip" in pyzoDir:
-        raise RuntimeError("The Pyzo package cannot be run from a zipfile.")
-
-    # Get where the application data is stored (use old behavior on Mac)
-    appDataDir, appConfigDir = paths.appdata_dir("pyzo", roaming=True, macAsLinux=True)
-
-    # Create tooldir if necessary
-    toolDir = os.path.join(appDataDir, "tools")
-    os.makedirs(toolDir, exist_ok=True)
-
-    return pyzoDir, appDataDir, appConfigDir
-
-
 def resetConfig(preserveState=True):
     """resetConfig()
     Deletes the config file to revert to default and prevent Pyzo from storing
@@ -216,7 +194,7 @@ def loadConfig(defaultsOnly=False):
 
 def saveConfig():
     """saveConfig()
-    Save all configureations to file.
+    Save all configurations to file.
     """
 
     # Let the editorStack save its state
@@ -232,7 +210,6 @@ def saveConfig():
         ssdf.save(os.path.join(pyzo.appConfigDir, "config.ssdf"), pyzo.config)
 
 
-pyzo.getResourceDirs = getResourceDirs
 pyzo.resetConfig = resetConfig
 pyzo.loadThemes = loadThemes
 pyzo.saveConfig = saveConfig
@@ -301,7 +278,8 @@ pyzo.parser = None  # The source parser
 pyzo.status = None  # The statusbar (or None)
 
 # Get directories of interest
-pyzo.pyzoDir, pyzo.appDataDir, pyzo.appConfigDir = getResourceDirs()
+pyzo.appDataDir, pyzo.appConfigDir = paths.prepare_appdata_appconfig_dirs()
+pyzo.pyzoDir = os.path.abspath(os.path.dirname(__file__))
 
 # Whether the config file should be saved
 pyzo._saveConfigFile = True
