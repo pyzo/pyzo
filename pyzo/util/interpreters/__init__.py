@@ -12,7 +12,6 @@ import os
 
 from .pythoninterpreter import EXE_DIR, PythonInterpreter, versionStringToTuple
 from .inwinreg import get_interpreters_in_reg
-from .. import paths
 
 
 def get_interpreters(minimumVersion=None):
@@ -35,14 +34,11 @@ def get_interpreters(minimumVersion=None):
     # Get relative interpreters
     relative = set([PythonInterpreter(p) for p in _get_interpreters_relative()])
 
-    # Get Pyzo paths
-    pyzos = set([PythonInterpreter(p) for p in _get_interpreters_pyzo()])
-
     # Get pipenv paths
     pipenvs = set([PythonInterpreter(p) for p in _get_interpreters_pipenv()])
 
     # Almost done
-    interpreters = set.union(pythons, condas, relative, pyzos, pipenvs)
+    interpreters = set.union(pythons, condas, relative, pipenvs)
     minimumVersion = minimumVersion or "0"
     return _select_interpreters(interpreters, minimumVersion)
 
@@ -167,21 +163,6 @@ def _get_interpreters_posix():
 
     # Return as set (remove duplicates)
     return set(found)
-
-
-def _get_interpreters_pyzo():
-    """Get a list of known Pyzo interpreters."""
-    pythonname = "python" + ".exe" * sys.platform.startswith("win")
-    exes = []
-    for d in paths.pyzo_dirs():
-        for fname in [
-            os.path.join(d, "bin", pythonname + "3"),
-            os.path.join(d, pythonname),
-        ]:
-            if os.path.isfile(fname):
-                exes.append(fname)
-                break
-    return exes
 
 
 def _get_interpreters_conda():
