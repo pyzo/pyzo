@@ -1,6 +1,54 @@
 # Release notes
 
 
+### Version 4.13.0 (23-06-2023)
+
+Thanks to @bdieterm for the incredible work in this release!
+
+Fixes and improvements related to Qt:
+
+- fix crash of kernel when importing PySide6 by @bdieterm in https://github.com/pyzo/pyzo/pull/851
+- added missing linux packet for PySide 6.5 by @bdieterm in https://github.com/pyzo/pyzo/pull/853
+- fix support for PyQt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/854
+- fixes for PyQt6 and PySide6 support by @bdieterm in https://github.com/pyzo/pyzo/pull/855
+- fix QFontDatabase compatibility for PyQt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/862
+- fix themeEdit focussing for PySide2, PySide6 and PyQt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/864
+- update Qt bindings in README.md and fix some typos by @bdieterm in https://github.com/pyzo/pyzo/pull/865
+- remove scintilla and little code clean-up by @bdieterm in https://github.com/pyzo/pyzo/pull/867
+- remove unused Qt compatibility files by @bdieterm in https://github.com/pyzo/pyzo/pull/872
+- remove QtOpenGLWidgets by @bdieterm in https://github.com/pyzo/pyzo/pull/874
+- fix regex search in editor for Qt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/877
+  
+  
+Fixes:
+
+- allow multiple statements in shell startup code after gui initialization by @bdieterm in https://github.com/pyzo/pyzo/pull/856
+- fix pdf export by @bdieterm in https://github.com/pyzo/pyzo/pull/858
+- prevent error message box when running a second Pyzo instance to open a file by @bdieterm in https://github.com/pyzo/pyzo/pull/860
+- fix Pyzo restart in MS Windows with spaces in paths by @bdieterm in https://github.com/pyzo/pyzo/pull/861
+- fix matching selection highlighter for line-wrapped occurrences by @bdieterm in https://github.com/pyzo/pyzo/pull/863
+- fix typo in about dialog by @bdieterm in https://github.com/pyzo/pyzo/pull/869
+- fix completer in path input textbox in File Browser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/871
+- add missing style entry for Syntax.illegal by @bdieterm in https://github.com/pyzo/pyzo/pull/878
+- python 2.7 compatibility by @bdieterm in https://github.com/pyzo/pyzo/pull/881
+- fix "running" icon with green arrow for all icon resolutions by @bdieterm in https://github.com/pyzo/pyzo/pull/885
+- fix appconfig path on MS Windows and clean up code by @bdieterm in https://github.com/pyzo/pyzo/pull/886
+
+Improvements:
+  
+- enable autocompletion for string literals by @bdieterm in https://github.com/pyzo/pyzo/pull/850
+- remove orphaned file guisupport.py by @bdieterm in https://github.com/pyzo/pyzo/pull/857
+- clean-up logging timestamp preamble by @bdieterm in https://github.com/pyzo/pyzo/pull/866
+- improve PDF export by @bdieterm in https://github.com/pyzo/pyzo/pull/868
+- add optional non-native file dialogs by @bdieterm in https://github.com/pyzo/pyzo/pull/873
+- fix truncated version info string in pyzo logger welcome message by @bdieterm in https://github.com/pyzo/pyzo/pull/876
+- save "Auto hide" value in editor search dropbox by @bdieterm in https://github.com/pyzo/pyzo/pull/879
+- reduce search dropbox margins by @bdieterm in https://github.com/pyzo/pyzo/pull/880
+- replace version string parser with own implementation by @bdieterm in https://github.com/pyzo/pyzo/pull/883
+- update required python version by @bdieterm in https://github.com/pyzo/pyzo/pull/884
+- add new tool "EditorList" by @bdieterm in https://github.com/pyzo/pyzo/pull/882
+
+
 ### Version 4.12.8 (30-03-2023)
 
 - Fixed crash in key edit dialog on Linux.
