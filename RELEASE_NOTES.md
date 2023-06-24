@@ -1,7 +1,7 @@
 # Release notes
 
 
-### Version 4.13.0 (23-06-2023)
+### Version 4.13.1 (24-06-2023)
 
 Thanks to @bdieterm for the incredible work in this release!
 
