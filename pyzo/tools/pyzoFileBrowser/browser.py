@@ -303,8 +303,8 @@ class PathInput(LineEditWithToolButtons):
         self._dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
         # filter is not synchronized with NameFilter input (e.g. "!hidden")
         c.setModel(self._dirModel)
-        if sys.platform != "win32":
-            self._dirModel.setRootPath("/")
+        # if sys.platform != "win32":
+        #     self._dirModel.setRootPath("/")
         # for win32 setRootPath is done self.setPath(...)
 
         # Connect signals

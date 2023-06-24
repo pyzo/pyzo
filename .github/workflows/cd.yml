@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
   push:
     tags: [ 'v*' ]
-    branches: [ cd ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
 
