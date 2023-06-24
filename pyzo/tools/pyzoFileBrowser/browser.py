@@ -299,10 +299,13 @@ class PathInput(LineEditWithToolButtons):
         c.setCompletionMode(c.InlineCompletion)
 
         # Set dir model to completer
-        self._dirModel = QtWidgets.QFileSystemModel(c)
-        self._dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        dirModel = QtWidgets.QFileSystemModel(c)
+        dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        c.setModel(dirModel)
+        # self._dirModel = QtWidgets.QFileSystemModel(c)
+        # self._dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
         # filter is not synchronized with NameFilter input (e.g. "!hidden")
-        c.setModel(self._dirModel)
+        # c.setModel(self._dirModel)
         # if sys.platform != "win32":
         #     self._dirModel.setRootPath("/")
         # for win32 setRootPath is done self.setPath(...)
