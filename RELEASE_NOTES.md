@@ -1,6 +1,11 @@
 # Release notes
 
 
+### Version 4.13.2 (26-06-2023)
+
+- New binary that fixes crashes on MacOS when using the file browser.
+
+
 ### Version 4.13.1 (24-06-2023)
 
 Thanks to @bdieterm for the incredible work in this release!
