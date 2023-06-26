@@ -40,14 +40,23 @@ The config consists of three fields:
   * Support for multiple browsers.
 """
 
+import sys
 import os.path as op
 
 import pyzo
 from pyzo.util import zon as ssdf
-from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets, API, PYSIDE_VERSION  # noqa
 
 from .browser import Browser
 from .utils import cleanpath, isdir
+
+
+def _check_qt_version():
+    if sys.platform == "darwin":
+        if API == "pyside6" and PYSIDE_VERSION > "6.5.0":
+            print(
+                "\nWARNING:On MacOS The file browser may be unstable with PySide6 version 6.5.1+ and up.\n"
+            )
 
 
 class PyzoFileBrowser(QtWidgets.QWidget):
@@ -58,6 +67,8 @@ class PyzoFileBrowser(QtWidgets.QWidget):
 
     def __init__(self, parent):
         QtWidgets.QWidget.__init__(self, parent)
+
+        _check_qt_version()
 
         # Get config
         toolId = self.__class__.__name__.lower() + "2"  # This is v2 of the file browser
