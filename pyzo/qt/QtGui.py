@@ -15,6 +15,7 @@ if PYQT6:
     from PyQt6.QtGui import *
 
     import inspect
+
     QFontMetrics.width = inspect.getattr_static(QFontMetrics, "horizontalAdvance")
 
     # Map missing/renamed methods
@@ -26,6 +27,7 @@ if PYQT6:
     from .enums_compat import promote_enums
 
     from PyQt6 import QtGui
+
     QtGui.QMouseEvent.x = lambda self: int(self.position().x())
     QtGui.QMouseEvent.y = lambda self: int(self.position().y())
     if not hasattr(QtGui.QMouseEvent, "pos"):

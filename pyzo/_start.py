@@ -102,6 +102,7 @@ sys.excepthook = pyzo_excepthook
 
 # todo: move some stuff out of this module ...
 
+
 def resetConfig(preserveState=True):
     """resetConfig()
     Deletes the config file to revert to default and prevent Pyzo from storing

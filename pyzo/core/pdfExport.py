@@ -136,7 +136,9 @@ class PdfExport(QtWidgets.QDialog):
             while notAtLastBlock:
                 cursor.movePosition(cursor.Right, cursor.KeepAnchor, numDigits)
                 cursor.setCharFormat(fmt)
-                notAtLastBlock = cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor)
+                notAtLastBlock = cursor.movePosition(
+                    cursor.NextBlock, cursor.MoveAnchor
+                )
 
         cursor.endEditBlock()
 
@@ -151,8 +153,7 @@ class PdfExport(QtWidgets.QDialog):
         if not pyzo.config.advanced.useNativeFileDialogs:
             options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
         filename = QtWidgets.QFileDialog.getSaveFileName(
-            None, "Export PDF", os.path.expanduser("~"), "*.pdf",
-            options=options
+            None, "Export PDF", os.path.expanduser("~"), "*.pdf", options=options
         )
         if isinstance(filename, tuple):  # PySide
             filename = filename[0]
@@ -191,7 +192,9 @@ class PdfExport(QtWidgets.QDialog):
 
             self._preview.setOrientation(orientation)
             if sys.platform == "win32":
-                self._preview.setOrientation(orientation)  # calling this a second time is a
+                self._preview.setOrientation(
+                    orientation
+                )  # calling this a second time is a
                 # workaround, otherwise the preview in Qt6 is wrong when switching orientation
                 # on Windows 10 with Qt 6.5.0
 
