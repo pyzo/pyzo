@@ -79,7 +79,7 @@ class Settings(QtWidgets.QWidget):
             self,
             "Select a compressed help file",
             filter="Qt compressed help files (*.qch)",
-            options=options
+            options=options,
         )
         if isinstance(doc_file, tuple):
             doc_file = doc_file[0]

@@ -129,8 +129,7 @@ class SelectFilePage(QtWidgets.QWizardPage):
         # Difference between PyQt4 and PySide: PySide returns filename, filter
         # while PyQt4 returns only the filename
         filename = QtWidgets.QFileDialog.getOpenFileName(
-            filter="Text files (*.txt *.csv);;All files (*.*)",
-            options=options
+            filter="Text files (*.txt *.csv);;All files (*.*)", options=options
         )
         if isinstance(filename, tuple):
             filename = filename[0]

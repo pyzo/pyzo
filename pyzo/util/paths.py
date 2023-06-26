@@ -40,7 +40,9 @@ def prepare_appdata_appconfig_dirs():
 
     if not use_portable_settings:
         appname = "pyzo"
-        path_dot = os.path.expanduser("~/." + appname)  # leading dot means hidden directory
+        path_dot = os.path.expanduser(
+            "~/." + appname
+        )  # leading dot means hidden directory
         if sys.platform == "win32":
             data_path = config_path = os.path.join(os.getenv("APPDATA"), appname)
             # typically r"C:\Users\username\AppData\Roaming\pyzo"
@@ -79,4 +81,3 @@ def prepare_appdata_appconfig_dirs():
     os.makedirs(tool_dir, exist_ok=True)
 
     return data_path, config_path
-    

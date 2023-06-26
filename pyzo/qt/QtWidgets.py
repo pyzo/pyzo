@@ -17,11 +17,16 @@ if PYQT6:
 
     # Map missing/renamed methods
     import inspect
+
     QTextEdit.setTabStopWidth = inspect.getattr_static(QTextEdit, "setTabStopDistance")
     QTextEdit.tabStopWidth = inspect.getattr_static(QTextEdit, "tabStopDistance")
     QTextEdit.print_ = inspect.getattr_static(QTextEdit, "print")
-    QPlainTextEdit.setTabStopWidth = inspect.getattr_static(QPlainTextEdit, "setTabStopDistance")
-    QPlainTextEdit.tabStopWidth = inspect.getattr_static(QPlainTextEdit, "tabStopDistance")
+    QPlainTextEdit.setTabStopWidth = inspect.getattr_static(
+        QPlainTextEdit, "setTabStopDistance"
+    )
+    QPlainTextEdit.tabStopWidth = inspect.getattr_static(
+        QPlainTextEdit, "tabStopDistance"
+    )
     QPlainTextEdit.print_ = inspect.getattr_static(QPlainTextEdit, "print")
 
     if QApplication.__name__ != "QApplication_hijacked":
@@ -33,6 +38,7 @@ if PYQT6:
 
     from PyQt6 import QtWidgets
     from .enums_compat import promote_enums
+
     promote_enums(QtWidgets)
     del QtWidgets
     del inspect
@@ -58,6 +64,7 @@ elif PYSIDE6:
 
     from PySide6 import QtWidgets
     from .enums_compat import promote_enums
+
     promote_enums(QtWidgets)
     del QtWidgets
 elif PYSIDE2:

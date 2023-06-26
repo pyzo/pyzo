@@ -475,7 +475,7 @@ class App_qt(App_base):
                     theApp = QtGui.real_QApplication(*args, **kwargs)
                     QtGui.qApp = theApp
 
-                for key in ['__init__', 'exec_', 'quit']:
+                for key in ["__init__", "exec_", "quit"]:
                     if not hasattr(cls, key):
                         continue
                     # Skip attributes that we already have

@@ -421,6 +421,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # workaround for MSVCRT issue with spaces in arguments
                 #     https://bugs.python.org/issue436259
                 from subprocess import list2cmdline
+
                 args = [list2cmdline([s]) for s in args]
 
             # Replace the process!

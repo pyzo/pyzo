@@ -530,9 +530,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             # Use regexp, because the default begaviour does not find
             # whole words correctly, see issue #276
             # it should *not* find this in this_word
-            needle = QtCore.QRegularExpression(
-                r"\b" + needle + r"\b", regexFlags
-            )
+            needle = QtCore.QRegularExpression(r"\b" + needle + r"\b", regexFlags)
 
         # establish start position
         cursor = editor.textCursor()

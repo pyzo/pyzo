@@ -76,9 +76,7 @@ class PyzoLoggerShell(BaseShell):
         # Show welcome text
         version = sys.version.split(None, 1)[0]
         moreBanner = "This is the Pyzo logger shell."
-        self.write(
-            "Python {} on {} - {}\n\n".format(version, sys.platform, moreBanner)
-        )
+        self.write("Python {} on {} - {}\n\n".format(version, sys.platform, moreBanner))
         self.write(str(sys.ps1), 2)
 
         # Split console
