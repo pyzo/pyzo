@@ -342,13 +342,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Are we restaring?
         restarting = time.time() - self._closeflag < 1.0  # noqa: F841
 
-        # Save settings
-        pyzo.saveConfig()
-        pyzo.command_history.save()
-
-        # Stop command server
-        commandline.stop_our_server()
-
         # Proceed with closing...
         result = pyzo.editors.closeAll()
         if not result:
@@ -358,6 +351,13 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self._closeflag = True
             # event.accept()  # Had to comment on Windows+py3.3 to prevent error
+
+        # Save settings
+        pyzo.saveConfig()
+        pyzo.command_history.save()
+
+        # Stop command server
+        commandline.stop_our_server()
 
         # Proceed with closing shells
         pyzo.localKernelManager.terminateAll()
