@@ -181,6 +181,7 @@ def getEnvFromKernelInfo(info):
     #
     env.pop("TK_LIBRARY", "")
     env.pop("TCL_LIBRARY", "")
+    env.pop("QT_MAC_WANTS_LAYER")
     env["PYTHONPATH"] = pythonPath
     # Jython does not use PYTHONPATH but JYTHONPATH
     env["JYTHONPATH"] = pyzo.pyzoDir + os.pathsep + os.environ.get("JYTHONPATH", "")
