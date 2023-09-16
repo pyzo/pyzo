@@ -33,7 +33,8 @@ displayed in the statusbar.
 # - file browser
 # - pythonpath editor, startupfile editor (or as part of pyzo?)
 
-import os, sys, imp
+import os, sys
+import importlib.util
 
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
@@ -272,10 +273,17 @@ class ToolManager(QtCore.QObject):
 
         # Load module
         try:
-            m_file, m_fname, m_des = imp.find_module(
-                moduleName, [os.path.dirname(modulePath)]
+            modulePyFilepath = modulePath
+            if not modulePath.endswith(".py"):
+                modulePyFilepath = os.path.join(modulePyFilepath, "__init__.py")
+
+            moduleNameFull = "pyzo.tools." + moduleName
+            spec = importlib.util.spec_from_file_location(
+                moduleNameFull, modulePyFilepath
             )
-            mod = imp.load_module("pyzo.tools." + moduleName, m_file, m_fname, m_des)
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules[moduleNameFull] = mod
+            spec.loader.exec_module(mod)
         except Exception as why:
             print("Invalid tool " + toolId + ":", why)
             return None
