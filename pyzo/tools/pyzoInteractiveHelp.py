@@ -659,7 +659,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                     name = objectName.split(".")[-1]
                     # Is the signature in the docstring?
                     docs = h_text.replace("\n", "|")
-                    tmp = re.search("[a-zA-z_\.]*?" + name + "\(.*?\)", docs)
+                    tmp = re.search(
+                        r"[a-zA-z_\.]*?" + re.escape(name) + r"\(.*?\)", docs
+                    )
                     if tmp and tmp.span(0)[0] < 5:
                         header = tmp.group(0)
                         h_text = h_text[len(header) :].lstrip(":").lstrip()
@@ -674,7 +676,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
 
                 # Parse the text as rest/numpy like docstring
                 h_text = self.smartFormat(h_text)
-                h_text = re.sub("``(.*?)``", r"<code>\1</code>", h_text)
+                h_text = re.sub(r"``(.*?)``", r"<code>\1</code>", h_text)
                 if header:
                     h_text = "<p style='color:#005;'><b>%s</b></p>\n%s" % (
                         header,
