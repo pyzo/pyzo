@@ -21,6 +21,7 @@ more information. Note that signals only work if events are processed.
 
 """
 
+import sys
 import time
 import threading
 import weakref
@@ -253,7 +254,10 @@ class TheTimerThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-        self.setDaemon(True)
+        if sys.version_info < (2, 6):
+            self.setDaemon(True)
+        else:
+            self.daemon = True
         self._exit = False
         self._timers = []
         self._somethingChanged = False

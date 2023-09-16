@@ -82,7 +82,7 @@ class Parser(threading.Thread):
         # Lock to enable save threading
         self._lock = threading.RLock()
 
-        # Set deamon
+        # Set daemon
         self.daemon = True
         self._exit = False
 

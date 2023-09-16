@@ -257,7 +257,7 @@ class BaseFSProxy(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-        self.setDaemon(True)
+        self.daemon = True
         #
         self._interrupt = False
         self._exit = False

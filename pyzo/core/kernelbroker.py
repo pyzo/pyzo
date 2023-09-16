@@ -743,7 +743,7 @@ class StreamReader(threading.Thread):
         self._process = process
         self._strm_raw = strm_raw
         self._strm_broker = strm_broker
-        self.deamon = True
+        self.daemon = True
         self._exit = False
 
     def stop(self, timeout=1.0):

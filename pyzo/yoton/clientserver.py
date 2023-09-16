@@ -33,6 +33,7 @@ servers in a single process, that listen on different ports.
 
 """
 
+import sys
 import time
 import socket
 import threading
@@ -105,8 +106,11 @@ class RequestServer(threading.Thread):
         # To stop serving
         self._stop_me = False
 
-        # Make deamon
-        self.setDaemon(True)
+        # Make daemon
+        if sys.version_info < (2, 6):
+            self.setDaemon(True)
+        else:
+            self.daemon = True
 
     def start(self):
         """start()
