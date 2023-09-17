@@ -447,11 +447,8 @@ def _fetch_file(url, file_name, progress=None):
         response = urllib.request.urlopen(url, timeout=5.0)
         # file_size = int(response.headers['Content-Length'].strip())
         # Downloading data (can be extended to resume if need be)
-        local_file = open(temp_file_name, "wb")
-        _chunk_read(response, local_file, initial_size=initial_size, progress=progress)
-        # temp file must be closed prior to the move
-        if not local_file.closed:
-            local_file.close()
+        with open(temp_file_name, "wb") as fd:
+            _chunk_read(response, fd, initial_size=initial_size, progress=progress)
         shutil.move(temp_file_name, file_name)
     except Exception as e:
         raise RuntimeError(

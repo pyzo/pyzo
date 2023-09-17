@@ -3,7 +3,8 @@ import os
 
 def count_lines(filename):
     # Get text
-    text = open(filename, "r").read()
+    with open(filename, "rt", encoding="utf-8") as fd:
+        text = fd.read()
 
     # Init counts: code, docstring, comments, whitespace
     count1, count2, count3, count4 = 0, 0, 0, 0

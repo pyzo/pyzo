@@ -195,26 +195,27 @@ class ToolManager(QtCore.QObject):
             toolSummary = ""
             # read file to find name or summary
             linecount = 0
-            for line in open(file, encoding="utf-8"):
-                linecount += 1
-                if linecount > 50:
-                    break
-                if line.startswith("tool_name"):
-                    i = line.find("=")
-                    if i < 0:
-                        continue
-                    line = line.rstrip("\n").rstrip("\r")
-                    line = line[i + 1 :].strip(" ")
-                    toolName = eval(line)  # applies translation
-                elif line.startswith("tool_summary"):
-                    i = line.find("=")
-                    if i < 0:
-                        continue
-                    line = line.rstrip("\n").rstrip("\r")
-                    line = line[i + 1 :].strip(" ")
-                    toolSummary = line.strip("'").strip('"')
-                else:
-                    pass
+            with open(file, "rt", encoding="utf-8") as fd:
+                for line in fd:
+                    linecount += 1
+                    if linecount > 50:
+                        break
+                    if line.startswith("tool_name"):
+                        i = line.find("=")
+                        if i < 0:
+                            continue
+                        line = line.rstrip("\n").rstrip("\r")
+                        line = line[i + 1 :].strip(" ")
+                        toolName = eval(line)  # applies translation
+                    elif line.startswith("tool_summary"):
+                        i = line.find("=")
+                        if i < 0:
+                            continue
+                        line = line.rstrip("\n").rstrip("\r")
+                        line = line[i + 1 :].strip(" ")
+                        toolSummary = line.strip("'").strip('"')
+                    else:
+                        pass
 
             # Add stuff
             tmp = ToolDescription(modulePath, toolName, toolSummary)

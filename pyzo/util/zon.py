@@ -185,9 +185,11 @@ def load(file):
     Load a Dict from the given file or filename.
     """
     if isinstance(file, string_types):
-        file = open(file, "rb")
-    text = file.read().decode("utf-8")
-    return loads(text)
+        with open(file, "rb") as fd:
+            data = fd.read()
+    else:
+        data = file.read()
+    return loads(data.decode("utf-8"))
 
 
 def saves(d):
