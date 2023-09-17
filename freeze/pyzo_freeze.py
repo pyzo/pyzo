@@ -6,7 +6,6 @@
 import os
 import sys
 import shutil
-from distutils.sysconfig import get_python_lib
 
 
 # Definitions
@@ -74,9 +73,23 @@ def _find_modules(root, extensions, skip, parent=""):
                     yield moduleName
 
 
+def get_python_stdlib_path():
+    stdlib_path = None
+    prefix = os.path.normpath(sys.base_prefix)
+    if os.name == "posix":
+        libdir = sys.platlibdir
+        foldername = "python{}.{}".format(*sys.version_info[:2])
+        stdlib_path = os.path.join(prefix, libdir, foldername)
+    elif os.name == "nt":
+        stdlib_path = os.path.join(prefix, "Lib")
+    else:
+        raise Exception("unknown operating system")
+    return stdlib_path
+
+
 def get_stdlib_modules():
     """Return a list of all module names that are part of the Python Standard Library."""
-    stdlib_path = get_python_lib(standard_lib=True)
+    stdlib_path = get_python_stdlib_path()
     extensions = {"py", "so", "dll", "pyd"}
     skip = {
         "site-packages",  # not stdlib
