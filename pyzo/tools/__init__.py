@@ -351,6 +351,7 @@ class ToolManager(QtCore.QObject):
 
     def reloadTools(self):
         """Reload all tools."""
+        self.loadToolInfo()
         for id in self.getLoadedTools():
             self.loadTool(id)
 
