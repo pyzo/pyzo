@@ -496,7 +496,7 @@ class DebugStack(QtWidgets.QToolButton):
         if not action._isCurrent:
             shell.executeCommand("DB FRAME {}\n".format(action._index))
         # Open file and select line
-        if True:
+        if False:  # debugFocus(...) is already called in setTrace(...)
             line = action.text().split(": ", 1)[1]
             self.debugFocus(line)
 
