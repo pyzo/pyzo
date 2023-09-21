@@ -173,6 +173,7 @@ class PyzoInterpreter:
         # code is expected.
         self.more = 0
         self.newPrompt = True
+        self._oldPromptString = None
 
         # Code and script to run on first iteration
         self._codeToRunOnStartup = None
@@ -657,10 +658,14 @@ class PyzoInterpreter:
 
         # Set status and prompt?
         # Prompt is allowed to be an object with __str__ method
-        if self.newPrompt:
+        # We also compare prompt strings because stack frame changes
+        # caused by a breakpoint while running the gui event loop
+        # would get unnotified otherwise.
+        promptString = str(sys.ps2 if self.more else sys.ps1)
+        if self.newPrompt or promptString != self._oldPromptString:
             self.newPrompt = False
-            ps = [sys.ps1, sys.ps2][bool(self.more)]
-            self.context._strm_prompt.send(str(ps))
+            self._oldPromptString = promptString
+            self.context._strm_prompt.send(promptString)
 
         if True:
             # Determine state. The message is really only send

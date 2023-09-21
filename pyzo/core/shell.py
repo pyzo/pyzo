@@ -818,8 +818,9 @@ class BaseShell(BaseTextCtrl):
             self._cursor1.removeSelectedText()
             self._cursor2.setPosition(self._cursor1.position(), A_MOVE)
         elif prompt == 2:
-            # Insert text after prompt, inserted text becomes new prompt
-            self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
+            # text becomes new prompt
+            self._cursor1.setPosition(self._cursor2.position(), A_KEEP)
+            self._cursor1.removeSelectedText()
             self._cursor1.setKeepPositionOnInsert(True)
             self._cursor2.setKeepPositionOnInsert(False)
             self._insertText(self._cursor1, text, format)
@@ -1432,6 +1433,7 @@ class PythonShell(BaseShell):
                 prompt = 1
             elif sub is self._strm_prompt:
                 prompt = 2
+                M = M[-1:]  # only use the newest prompt
             # Get color
             color = None
             if sub is self._strm_broker:
