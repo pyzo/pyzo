@@ -254,6 +254,9 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         return cursor.selectedText().translate(self._plainTextTrans)
 
     def _setHighlighter(self, highlighterClass):
+        # PySide 2 and 6 do not remove the previous highlighter automatically
+        self.__highlighter.setDocument(None)
+
         self.__highlighter = highlighterClass(self, self.document())
 
     ## Options
