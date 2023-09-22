@@ -52,6 +52,13 @@ PySide6
     >>> from qtpy import QtGui, QtWidgets, QtCore
     >>> print(QtWidgets.QWidget)
 
+
+General Hints
+=============
+Use enum names (e.g. QtGui.QFont.Bold) instead of integers for setFontWeight
+because integer values differ between Qt5 and Qt6.
+    see https://doc.qt.io/qt-5/qfont.html#Weight-enum
+    see https://doc.qt.io/qt-6/qfont.html#Weight-enum
 """
 
 from pyzo.util import parse_version_crudely as parse
