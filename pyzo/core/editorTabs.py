@@ -519,18 +519,19 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # get text to find
         needle = self._findText.text()
 
-        PatternOption = QtCore.QRegularExpression.PatternOption
+        QRE = QtCore.QRegularExpression
+        PatternOption = QRE.PatternOption
         regexFlags = PatternOption.NoPatternOption
         if not self._caseCheck.isChecked():
             regexFlags |= PatternOption.CaseInsensitiveOption
 
         if self._regExp.isChecked():
-            needle = QtCore.QRegularExpression(needle, regexFlags)
+            needle = QRE(needle, regexFlags)
         elif self._wholeWord.isChecked():
-            # Use regexp, because the default begaviour does not find
+            # Use regexp, because the default behaviour does not find
             # whole words correctly, see issue #276
             # it should *not* find this in this_word
-            needle = QtCore.QRegularExpression(r"\b" + needle + r"\b", regexFlags)
+            needle = QRE(r"\b" + QRE.escape(needle) + r"\b", regexFlags)
 
         # establish start position
         cursor = editor.textCursor()
