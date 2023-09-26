@@ -567,30 +567,43 @@ class DebugStack(QtWidgets.QToolButton):
         """debugFocus(lineFromDebugState)
         Open the file and show the linenr of the given lineFromDebugState.
         """
+        error = None
         # Get filenr and item
         try:
             tmp = lineFromDebugState.split(", in ")[0].split(", line ")
             filename = tmp[0][len("File ") :].strip('"')
             linenr = int(tmp[1].strip())
         except Exception:
-            return "Could not focus!"
-        # Cannot open <console>
-        if filename == "<console>":
-            return "Stack frame is <console>."
-        elif filename.startswith("<ipython-input-"):
-            return "Stack frame is IPython input."
-        # Go there!
-        result = pyzo.editors.loadFile(filename)
-        if not result:
-            return "Could not open file where the error occured."
+            error = "Could not focus!"
         else:
-            editor = result._editor
+            if filename in (
+                "<console>",
+                "<string>",
+                "<startup>",
+                "<startup_after_gui>",
+            ):
+                error = "Stack frame is {}.".format(filename)
+            elif filename.startswith("<ipython-input-"):
+                error = "Stack frame is IPython input."
+            else:
+                # Go there!
+                fileItem = pyzo.editors.loadFile(filename)
+                if not fileItem:
+                    error = "Could not open file where the error occured."
+        if error is None:
+            editor = fileItem._editor
             # Goto line and select it
             editor.gotoLine(linenr)
             cursor = editor.textCursor()
             cursor.movePosition(cursor.StartOfBlock)
             cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
             editor.setTextCursor(cursor)
+        else:
+            # focus on shell and not on an editor because there is no valid file
+            shell = pyzo.shells.getCurrentShell()
+            if shell:
+                shell.setFocus()
+        return error
 
 
 class InterpreterHelper(QtWidgets.QWidget):
