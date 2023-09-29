@@ -20,6 +20,7 @@ keywords = ('import', 'export',
             'loop', 'for', 'while', 'if', 'then', 'elseif', 'else', 'with', 'do', 'done', 'continue', 'break',
             'in', 'as', 'its',
             'true', 'false',
+            'trait', 'behavior', 'struct', 'impl', 'abstract',
             )
 
 
