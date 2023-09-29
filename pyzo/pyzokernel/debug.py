@@ -19,6 +19,20 @@ class Debugger(bdb.Bdb):
         bdb.Bdb.__init__(self)
         self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
         self._files_with_offset = []
+        self._original_breakpointhook = sys.breakpointhook
+        sys.breakpointhook = self.custom_breakpointhook
+
+    def custom_breakpointhook(self, *args, **kwargs):
+        """handle "breakpoint()" commands
+        see https://docs.python.org/3/library/sys.html#sys.breakpointhook
+        """
+        s = os.environ.get("PYTHONBREAKPOINT", None)
+        if s == "0":
+            pass  # deactivated
+        elif s is None or s == "":
+            self.set_trace()
+        else:
+            self._original_breakpointhook(*args, **kwargs)
 
     def clear_all_breaks(self):
         bdb.Bdb.clear_all_breaks(self)
