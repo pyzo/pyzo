@@ -470,7 +470,7 @@ class StreamCatcher(threading.Thread):
         self._lines = []
         self._line = ""
         threading.Thread.__init__(self)
-        self.setDaemon(True)  # do not let this thread hold up Python shutdown
+        self.daemon = True  # do not let this thread hold up Python shutdown
         self.start()
 
     def run(self):
