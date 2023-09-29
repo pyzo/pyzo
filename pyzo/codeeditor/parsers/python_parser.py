@@ -452,8 +452,8 @@ tokenProg = re.compile(
     + "[rR]?"  # Possibly bytes or unicode (py2.x)
     + "(\"\"\"|'''|\"|')"  # Possibly a raw string
     + ")|"  # String start (triple qoutes first, group 4)
-    + "(\(|\[|\{)|"  # End of string group
-    + "(\)|\]|\})|"  # Opening parenthesis (gr 5)
+    + r"(\(|\[|\{)|"  # End of string group
+    + r"(\)|\]|\})|"  # Opening parenthesis (gr 5)
     + "("  # Closing parenthesis (gr 6)
     + chr(160)
     + ")"  # non-breaking space (gr 7)

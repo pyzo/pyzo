@@ -230,12 +230,12 @@ class Menu(QtWidgets.QMenu):
         e.g. Interrupt current shell -> interrupt_current_shell
         """
         # hide anything between brackets
-        name = re.sub("\(.*\)", "", name)
+        name = re.sub(r"\(.*\)", r"", name)
         # replace invalid chars
         name = name.replace(" ", "_")
         if name and name[0] in "0123456789_":
             name = "_" + name
-        name = re.sub("[^a-zA-z_0-9]", "", name)
+        name = re.sub(r"[^a-zA-z_0-9]", r"", name)
         return name.lower()
 
     def _addAction(self, text, icon, selected=None):

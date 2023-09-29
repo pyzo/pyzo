@@ -252,7 +252,7 @@ class ReaderWriter(object):
                 indent = prev_indent
 
             # Split name and data using a regular expression
-            m = re.search("^\w+? *?=", line2)
+            m = re.search(r"^\w+? *?=", line2)
             if m:
                 i = m.end(0)
                 name = line2[: i - 1].strip()
@@ -391,7 +391,7 @@ class ReaderWriter(object):
         line = data.replace("\\\\", "0x07")  # temp
 
         # Find string using a regular expression
-        m = re.search("'.*?[^\\\\]'|''", line)
+        m = re.search(r"'.*?[^\\]'|''", line)
         if not m:
             print("ZON: string not ended correctly on line %i." % linenr)
             return None  # return not-a-string
