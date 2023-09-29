@@ -180,14 +180,14 @@ class ShellHighlighter(Highlighter):
                             # print(repr(nameToFormat(token.name)))
                             continue
                         # Set format
-                        # format.setFontWeight(75)
+                        # format.setFontWeight(QtGui.QFont.Bold)
                         if token.start >= pos2:
                             self.setFormat(token.start, token.end - token.start, format)
 
             # Set prompt to bold
             if atCurrentPrompt:
                 format = QtGui.QTextCharFormat()
-                format.setFontWeight(75)
+                format.setFontWeight(QtGui.QFont.Bold)
                 self.setFormat(pos1, pos2 - pos1, format)
 
         # Get the indentation setting of the editors
@@ -888,16 +888,16 @@ class BaseShell(BaseTextCtrl):
                 if param == 0:
                     format = QtGui.QTextCharFormat()
                 elif param == 1:
-                    format.setFontWeight(75)  # Bold
+                    format.setFontWeight(QtGui.QFont.Bold)
                 elif param == 2:
-                    format.setFontWeight(25)  # Faint
+                    format.setFontWeight(QtGui.QFont.Light)
                 elif param == 3:
                     format.setFontItalic(True)  # Italic
                 elif param == 4:
                     format.setFontUnderline(True)  # Underline
                 #
                 elif param == 22:
-                    format.setFontWeight(50)  # Not bold or faint
+                    format.setFontWeight(QtGui.QFont.Normal)  # Not bold or light
                 elif param == 23:
                     format.setFontItalic(False)  # Not italic
                 elif param == 24:
