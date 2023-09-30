@@ -74,6 +74,7 @@ def _find_modules(root, extensions, skip, parent=""):
 
 
 def get_python_stdlib_path():
+    # This code is extracted from distutils.sysconfig.get_python_lib (distutils is deprecated in 3.12)
     stdlib_path = None
     prefix = os.path.normpath(sys.base_prefix)
     if os.name == "posix":
