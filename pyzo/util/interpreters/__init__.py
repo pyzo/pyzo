@@ -175,7 +175,7 @@ def _get_interpreters_conda():
     exes = []
     filename = os.path.expanduser("~/.conda/environments.txt")
     if os.path.isfile(filename):
-        with open(filename, "rt") as fd:
+        with open(filename, "rt", encoding="utf-8") as fd:
             for line in fd.readlines():
                 line = line.strip()
                 exe_filename = os.path.join(line, pythonname)

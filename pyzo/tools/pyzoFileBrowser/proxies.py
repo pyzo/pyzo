@@ -417,8 +417,7 @@ class NativeFSProxy(BaseFSProxy):
     def read(self, path):
         if op.isfile(path):
             with open(path, "rb") as f:
-                data = f.read()
-            return data
+                return f.read()
 
     def write(self, path, bb):
         with open(path, "wb") as f:

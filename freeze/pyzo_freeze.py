@@ -117,8 +117,8 @@ excludes = []
 includes += get_stdlib_modules()
 
 # Include a few 3d party packages, e.g. deps of qtpy
-with open(os.path.join(this_dir, "frozen_libs.txt"), "rt") as fd:
-    includes += fd.read().split()
+with open(os.path.join(this_dir, "frozen_libs.txt"), "rb") as fd:
+    includes += fd.read().decode().split()
 
 # Include a subset of Qt modules
 qt_includes = [
