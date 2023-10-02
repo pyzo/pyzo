@@ -920,8 +920,10 @@ class BaseShell(BaseTextCtrl):
             # Process very long text more efficiently.
             # Insert per line (very long lines are split in smaller ones)
             if len(text) > 1024:
+                cursor.beginEditBlock()
                 for line in self._splitLinesForPrinting(text):
                     cursor.insertText(line, format)
+                cursor.endEditBlock()
             else:
                 cursor.insertText(text, format)
 
