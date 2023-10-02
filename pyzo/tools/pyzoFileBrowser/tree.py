@@ -349,8 +349,8 @@ class FileItem(BrowserItem):
         if not op.isfile(dummy_filename):
             if not isdir(op.dirname(dummy_filename)):
                 os.makedirs(op.dirname(dummy_filename))
-            f = open(dummy_filename, "wb")
-            f.close()
+            with open(dummy_filename, "wb"):
+                pass
         # Use that file
         if sys.platform.startswith("linux") and not QtCore.__file__.startswith("/usr/"):
             icon = iconprovider.icon(iconprovider.File)

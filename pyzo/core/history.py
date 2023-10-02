@@ -38,7 +38,8 @@ class CommandHistory(QtCore.QObject):
                     pass
 
             # Load lines and add to commands
-            lines = open(filename, "r", encoding="utf-8").read().splitlines()
+            with open(filename, "rt", encoding="utf-8") as fd:
+                lines = fd.read().splitlines()
             self._commands.extend(
                 [line.rstrip() for line in lines[-self.max_commands :]]
             )

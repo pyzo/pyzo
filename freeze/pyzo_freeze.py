@@ -30,7 +30,9 @@ def get_pyzo_version():
     """Get Pyzo's version."""
     filename = os.path.join(dist_dir, "..", "..", "pyzo", "__init__.py")
     NS = {}
-    for line in open(filename, "rb").read().decode().splitlines():
+    with open(filename, "rb").read() as fd:
+        data = fd.read()
+    for line in data.decode().splitlines():
         if line.startswith("__version__"):
             exec(line.strip(), NS, NS)
     if not NS.get("__version__", 0):
@@ -115,7 +117,8 @@ excludes = []
 includes += get_stdlib_modules()
 
 # Include a few 3d party packages, e.g. deps of qtpy
-includes += open(os.path.join(this_dir, "frozen_libs.txt"), "rt").read().split()
+with open(os.path.join(this_dir, "frozen_libs.txt"), "rb") as fd:
+    includes += fd.read().decode().split()
 
 # Include a subset of Qt modules
 qt_includes = [

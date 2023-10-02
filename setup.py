@@ -23,7 +23,9 @@ except ImportError:
 def get_version_and_doc(filename):
     NS = dict(__version__="", __doc__="")
     docStatus = 0  # Not started, in progress, done
-    for line in open(filename, "rb").read().decode().splitlines():
+    with open(filename, "rb") as fd:
+        data = fd.read()
+    for line in data.decode().splitlines():
         if line.startswith("__version__"):
             exec(line.strip(), NS, NS)
         elif line.startswith('"""'):
@@ -110,8 +112,10 @@ if sys.platform.startswith("linux") and sys.prefix.startswith("/usr"):
         filename1 = os.path.join(os.path.dirname(__file__), fname)
         filename2 = os.path.join("/usr/share/metainfo", fname)
         try:
-            bb = open(filename1, "rb").read()
-            open(filename2, "wb").write(bb)
+            with open(filename1, "rb") as fd:
+                bb = fd.read()
+            with open(filename2, "wb") as fd:
+                fd.write(bb)
         except PermissionError:
             pass  # No sudo, no need to warn
         except Exception as err:

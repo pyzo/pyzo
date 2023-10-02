@@ -927,9 +927,10 @@ class PyzoInterpreter:
 
         # Get text (make sure it ends with a newline)
         try:
-            bb = open(fname, "rb").read()
+            with open(fname, "rb") as fd:
+                bb = fd.read()
             encoding = "UTF-8"
-            firstline = bb.split("\n".encode(), 1)[0].decode("ascii", "ignore")
+            firstline = bb.split(b"\n", 1)[0].decode("ascii", "ignore")
             if firstline.startswith("#") and "coding" in firstline:
                 encoding = firstline.split("coding", 1)[-1].strip(" \t\r\n:=-*")
             source = bb.decode(encoding)

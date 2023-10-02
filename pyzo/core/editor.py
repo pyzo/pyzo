@@ -532,11 +532,8 @@ class PyzoEditor(BaseTextCtrl):
         bb = text.encode(self.encoding)
 
         # Store
-        f = open(filename, "wb")
-        try:
+        with open(filename, "wb") as f:
             f.write(bb)
-        finally:
-            f.close()
 
         # Update stats
         self._filename = normalizePath(filename)

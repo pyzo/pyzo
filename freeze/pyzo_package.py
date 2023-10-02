@@ -11,7 +11,9 @@ this_dir = os.path.abspath(os.path.dirname(__file__)) + "/"
 dist_dir = this_dir + "dist/"
 
 
-with open(os.path.join(this_dir, "..", "pyzo", "__init__.py")) as fh:
+with open(
+    os.path.join(this_dir, "..", "pyzo", "__init__.py"), "rt", encoding="utf-8"
+) as fh:
     __version__ = re.search(r"__version__ = \"(.*?)\"", fh.read()).group(1)
 
 bitness = "32" if sys.maxsize <= 2**32 else "64"
@@ -40,8 +42,7 @@ def package_tar_gz():
     oridir = os.getcwd()
     os.chdir(dist_dir)
     try:
-        tf = tarfile.open(basename + ".tar.gz", "w|gz")
-        with tf:
+        with tarfile.open(basename + ".tar.gz", "w|gz") as tf:
             tf.add("pyzo", arcname="pyzo")
     finally:
         os.chdir(oridir)
@@ -81,7 +82,8 @@ def package_inno_installer():
     # Set inno file
     innoFile1 = os.path.join(this_dir, "installerBuilderScript.iss")
     innoFile2 = os.path.join(this_dir, "installerBuilderScript2.iss")
-    text = open(innoFile1, "rb").read().decode()
+    with open(innoFile1, "rb") as f:
+        text = f.read().decode()
     text = text.replace("X.Y.Z", __version__).replace("64", bitness)
     if bitness == "32":
         text = text.replace("ArchitecturesInstallIn64BitMode = x64", "")
