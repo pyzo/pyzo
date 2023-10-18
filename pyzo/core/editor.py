@@ -605,9 +605,12 @@ class PyzoEditor(BaseTextCtrl):
         cursor.setPosition(start)
         cursor.movePosition(cursor.StartOfBlock)
         cursor.setPosition(end, cursor.KeepAnchor)
-        cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
-
-        text = cursor.selectedText()
+        notAtLastBlock = cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        if notAtLastBlock:
+            text = cursor.selectedText()
+        else:
+            cursor.movePosition(cursor.End, cursor.KeepAnchor)
+            text = cursor.selectedText() + "\u2029"
         cursor.setPosition(start)
         cursor.movePosition(cursor.StartOfBlock)
         cursor.insertText(text)
