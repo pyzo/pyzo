@@ -19,7 +19,7 @@ class Debugger(bdb.Bdb):
         bdb.Bdb.__init__(self)
         self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
         self._files_with_offset = []
-        if sys.version_info >= (3, 7):
+        if hasattr(sys, "breakpointhook"):
             self._original_breakpointhook = sys.breakpointhook
             sys.breakpointhook = self.custom_breakpointhook
 
