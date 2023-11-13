@@ -19,8 +19,9 @@ class Debugger(bdb.Bdb):
         bdb.Bdb.__init__(self)
         self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
         self._files_with_offset = []
-        self._original_breakpointhook = sys.breakpointhook
-        sys.breakpointhook = self.custom_breakpointhook
+        if hasattr(sys, "breakpointhook"):
+            self._original_breakpointhook = sys.breakpointhook
+            sys.breakpointhook = self.custom_breakpointhook
 
     def custom_breakpointhook(self, *args, **kwargs):
         """handle "breakpoint()" commands
