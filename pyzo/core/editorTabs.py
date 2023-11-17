@@ -931,13 +931,16 @@ class FileTabWidget(CompactTabWidget):
             else:
                 tabBar.setTabToolTip(i, item.filename)
 
-            # Determine text color. Is main file? Is current?
-            if self._mainFile == item.id:
-                tabBar.setTabTextColor(i, QtGui.QColor("#008"))
-            elif i == self.currentIndex():
-                tabBar.setTabTextColor(i, QtGui.QColor("#000"))
-            else:
-                tabBar.setTabTextColor(i, QtGui.QColor("#444"))
+            if False:
+                # TODO: once there is a proper solution for dark mode, text colors
+                # TODO: ... in the editor tab widget could be re-enabled
+                # Determine text color. Is main file? Is current?
+                if self._mainFile == item.id:
+                    tabBar.setTabTextColor(i, QtGui.QColor("#008"))
+                elif i == self.currentIndex():
+                    tabBar.setTabTextColor(i, QtGui.QColor("#000"))
+                else:
+                    tabBar.setTabTextColor(i, QtGui.QColor("#444"))
 
             # Get number of blocks
             nBlocks = item.editor.blockCount()
