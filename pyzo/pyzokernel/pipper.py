@@ -33,15 +33,15 @@ def subprocess_with_callback(callback, cmd, **kwargs):
     while p.poll() is None:
         time.sleep(0.001)
         # Read text and process
-        c = p.stdout.read(1).decode("utf-8", "ignore")
+        c = p.stdout.read(1)
         pending.append(c)
-        if c in ".\n":
-            callback("".join(pending))
+        if c in b".\n":
+            callback(b"".join(pending).decode("utf-8", "ignore"))
             pending = []
 
     # Process remaining text
-    pending.append(p.stdout.read().decode("utf-8"))
-    callback("".join(pending))
+    pending.append(p.stdout.read())
+    callback(b"".join(pending).decode("utf-8", "ignore"))
 
     # Done
     return p.returncode
