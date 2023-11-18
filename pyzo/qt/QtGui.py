@@ -53,6 +53,9 @@ elif PYSIDE6:
     # Map DeprecationWarning methods
     QDrag.exec_ = QDrag.exec
     QGuiApplication.exec_ = QGuiApplication.exec
+    QtGui.QMouseEvent.x = lambda self: int(self.position().x())
+    QtGui.QMouseEvent.y = lambda self: int(self.position().y())
+    QtGui.QMouseEvent.pos = lambda self: self.position().toPoint()
 
     from .enums_compat import promote_enums
 
