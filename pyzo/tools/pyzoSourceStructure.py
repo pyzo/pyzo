@@ -267,6 +267,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 "todo": get_color("syntax.todocomment"),
                 "nameismain": get_color("syntax.keyword"),
                 "background": get_color("editor.text", "back"),
+                "currentline": get_color("editor.highlightcurrentline", "back"),
             }
         except Exception as err:
             print("Reverting to defaut source structure colors:", str(err))
@@ -279,6 +280,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 "todo": "#d33682",
                 "nameismain": "#859900",
                 "background": "#fff",
+                "currentline": "#ccc",
             }
 
         # Define what to show
@@ -345,5 +347,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # Handle selected item
         selectedItem = selectedItem[0]
         if selectedItem:
-            selectedItem.setBackground(0, QtGui.QBrush(QtGui.QColor("#CCC")))
+            selectedItem.setBackground(
+                0, QtGui.QBrush(QtGui.QColor(colours["currentline"]))
+            )
             self._tree.scrollToItem(selectedItem)  # ensure visible

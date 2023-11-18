@@ -1439,11 +1439,11 @@ class PythonShell(BaseShell):
             # Get color
             color = None
             if sub is self._strm_broker:
-                color = "#000"
+                color = "#fff" if pyzo.darkSyntax else "#000"
             elif sub is self._strm_raw:
-                color = "#888888"  # Halfway
+                color = "#bbb" if pyzo.darkSyntax else "#888888"
             elif sub is self._strm_err:
-                color = "#F00"
+                color = "#f00"
             # Write
             self.write("".join(M), prompt, color)
 
