@@ -29,13 +29,14 @@ def subprocess_with_callback(callback, cmd, **kwargs):
         callback(str(err) + "\n")
         return -1
 
+    progressBarDash = [b"\xe2", b"\x94", b"\x81"]  # character "━"
     pending = []
     while p.poll() is None:
         time.sleep(0.001)
         # Read text and process
         c = p.stdout.read(1)
         pending.append(c)
-        if c in b".\n":
+        if c in b"-.\n" or pending[-len(progressBarDash) :] == progressBarDash:
             callback(b"".join(pending).decode("utf-8", "ignore"))
             pending = []
 
