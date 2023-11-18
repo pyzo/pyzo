@@ -60,8 +60,15 @@ class PyzoLoggerShell(BaseShell):
         # Change background color to make the logger look different from shell
         # Use color as if all lines are highlighted
         f1 = self.getStyleElementFormat("Editor.text")
-        f2 = self.getStyleElementFormat("Editor.Highlight current line")
-        newStyle = "back:%s, fore:%s" % (f2.back.name(), f1.fore.name())
+        fgColor = QtGui.QColor(f1.fore.name())
+        bgColor = QtGui.QColor(f1.back.name())
+        if pyzo.darkSyntax:
+            fgColor = fgColor.lighter(150)
+            bgColor = bgColor.lighter(150)
+        else:
+            fgColor = fgColor.darker(150)
+            bgColor = bgColor.darker(120)
+        newStyle = "back:%s, fore:%s" % (bgColor.name(), fgColor.name())
         self.setStyle(editor_text=newStyle)
 
         # Create namespace for logger interpreter
@@ -100,7 +107,7 @@ class PyzoLoggerShell(BaseShell):
 
     def writeErr(self, msg):
         """This is what the logger uses to write errors."""
-        self.write(msg, 0, "#C00")
+        self.write(msg, 0, "#f00")
 
     # Note that I did not (yet) implement calltips
 
