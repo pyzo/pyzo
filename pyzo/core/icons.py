@@ -432,9 +432,13 @@ class TabToolButtonWithCloseButton(TabToolButton):
         return artist.finish().pixmap(16, 16)
 
     def _createCrossPixmap(self, alpha):
+        if pyzo.darkQt:
+            r, g, b = 255, 255, 255
+        else:
+            r, g, b = 0, 0, 0
         artist = IconArtist((5, 5))
         #
-        artist.setPenColor((0, 0, 0, alpha))
+        artist.setPenColor((r, g, b, alpha))
         #
         artist.addPoint(0, 0)
         artist.addPoint(1, 1)
@@ -446,7 +450,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         artist.addPoint(3, 1)
         artist.addPoint(4, 0)
         #
-        artist.setPenColor((0, 0, 0, int(0.5 * alpha)))
+        artist.setPenColor((r, g, b, int(0.5 * alpha)))
         #
         artist.addPoint(1, 0)
         artist.addPoint(0, 1)
@@ -468,7 +472,8 @@ class TabToolButtonWithCloseButton(TabToolButton):
         if hasattr(self, "_cross1"):
             pm = self._cross1
         else:
-            pm = self._createCrossPixmap(50)
+            alpha = 150 if pyzo.darkQt else 50
+            pm = self._createCrossPixmap(alpha)
         return pm
 
     def getCrossPixmap2(self):
