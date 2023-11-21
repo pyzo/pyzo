@@ -67,7 +67,7 @@ class PyzoLoggerShell(BaseShell):
             bgColor = bgColor.lighter(150)
         else:
             fgColor = fgColor.darker(150)
-            bgColor = bgColor.darker(120)
+            bgColor = bgColor.darker(110)
         newStyle = "back:%s, fore:%s" % (bgColor.name(), fgColor.name())
         self.setStyle(editor_text=newStyle)
 
