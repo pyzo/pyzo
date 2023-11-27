@@ -1324,13 +1324,6 @@ class ShellMenu(Menu):
             pyzo.icons.application_wrench,
             self._editConfig2,
         )
-        self.addItem(
-            translate(
-                "menu", "Create new Python environment... ::: Install miniconda."
-            ),
-            pyzo.icons.application_cascade,
-            self._newPythonEnv,
-        )
 
         self.addSeparator()
 
@@ -1385,12 +1378,6 @@ class ShellMenu(Menu):
         from pyzo.core.shellInfoDialog import ShellInfoDialog
 
         d = ShellInfoDialog()
-        d.exec_()
-
-    def _newPythonEnv(self):
-        from pyzo.util.bootstrapconda import Installer
-
-        d = Installer(pyzo.main)
         d.exec_()
 
 
