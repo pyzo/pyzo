@@ -70,6 +70,7 @@ elif PYSIDE6:
     QEventLoop.exec_ = QEventLoop.exec
     QThread.exec_ = QThread.exec
     QTextStreamManipulator.exec_ = QTextStreamManipulator.exec
+    QLibraryInfo.location = QLibraryInfo.path
 
     from .enums_compat import promote_enums
 
