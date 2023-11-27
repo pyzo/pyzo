@@ -18,11 +18,11 @@ from ..misc import ustr, ce_option
 from ..parsers.tokens import (
     CommentToken,
     IdentifierToken,
+    NonIdentifierToken,
     StringToken,
     UnterminatedStringToken,
 )
 from ..parsers.python_parser import MultilineStringToken
-from ..parsers import BlockState
 
 
 class MoveLinesUpDown(object):
@@ -305,7 +305,7 @@ class PythonAutoIndent(object):
             if previousBlock.isValid():
                 line = ustr(previousBlock.text())
                 indent = line[: len(line) - len(line.lstrip())]
-                if line.endswith(":"):
+                if ":" in line:
                     # We only need to add indent if the : is not in a (multiline)
                     # string or comment. Therefore, find out what the syntax
                     # highlighter thinks of the previous line.
@@ -315,16 +315,16 @@ class PythonAutoIndent(object):
                     ppreviousState = (
                         ppreviousBlock.userState() if previousBlock.isValid() else 0
                     )
-                    lastElementToken = list(
+                    tokens = list(
                         self.parser().parseLine(previousBlock.text(), ppreviousState)
-                    )[-1]
-                    # Because there's at least a : on that line, the list is never empty
-
-                    if not isinstance(
-                        lastElementToken,
-                        (CommentToken, UnterminatedStringToken, BlockState),
-                    ):
-                        # TODO: check correct identation (no mixed space/tabs)
+                    )
+                    # because of the ":" on that line, there is at least one token
+                    t = tokens[-1]
+                    if isinstance(t, CommentToken):
+                        t = tokens[-2] if len(tokens) >= 2 else None
+                    if isinstance(t, NonIdentifierToken) and str(t).strip() == ":":
+                        # there is no need to check if the previous indent is the same
+                        # style as the added one, because we could not fix that anyways
                         if self.indentUsingSpaces():
                             indent += " " * self.indentWidth()
                         else:
