@@ -73,7 +73,7 @@ ct._stat_breakpoints = yoton.StateChannel(ct, "stat-breakpoints", yoton.OBJECT)
 # Connect (port number given as command line argument)
 # Important to do this *before* replacing the stdout etc, because if an
 # error occurs here, it will be printed in the shell.
-port = int(sys.argv[1])
+port = int(sys.argv[-1])
 ct.connect("localhost:" + str(port), timeout=1.0)
 
 # Create file objects for stdin, stdout, stderr
