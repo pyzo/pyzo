@@ -101,7 +101,10 @@ class CallableObject(object):
         try:
             return func(*args, **kwargs)
         except Exception:
-            print("Exception while handling event:")
+            funcname = self._func
+            if hasattr(funcname, "__name__"):
+                funcname = funcname.__name__
+            print("Exception while handling event (in %s):" % (funcname,))
             print(getErrorMsg())
 
 
