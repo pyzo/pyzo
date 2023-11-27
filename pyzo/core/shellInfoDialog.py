@@ -487,19 +487,28 @@ class ShellInfoTab(QtWidgets.QScrollArea):
             # Add to layout
             self._formLayout.addRow(label, instance)
 
-        # Add delete button
+        buttonsLayout = QtWidgets.QHBoxLayout()
 
+        # Add delete button
         t = translate("shell", "Delete ::: Delete this shell configuration")
-        label = QtWidgets.QLabel("", self._content)
         instance = QtWidgets.QPushButton(pyzo.icons.cancel, t, self._content)
         instance.setToolTip(t.tt)
         instance.setAutoDefault(False)
         instance.clicked.connect(self.parent().parent().onTabClose)
-        deleteLayout = QtWidgets.QHBoxLayout()
-        deleteLayout.addWidget(instance, 0)
-        deleteLayout.addStretch(1)
+        buttonsLayout.addWidget(instance, 0)
+
+        # Add copy button
+        t = translate("shell", "Copy ::: Copy this shell configuration")
+        instance = QtWidgets.QPushButton(pyzo.icons.page_white_copy, t, self._content)
+        instance.setToolTip(t.tt)
+        instance.setAutoDefault(False)
+        instance.clicked.connect(self.parent().parent().onTabCopy)
+        buttonsLayout.addWidget(instance, 0)
+
+        buttonsLayout.addStretch(1)
         # Add to layout
-        self._formLayout.addRow(label, deleteLayout)
+        label = QtWidgets.QLabel("", self._content)
+        self._formLayout.addRow(label, buttonsLayout)
 
         # Apply layout
         self._formLayout.setSpacing(15)
@@ -634,6 +643,20 @@ class ShellInfoDialog(QtWidgets.QDialog):
     def onTabClose(self):
         index = self._tabs.currentIndex()
         self._tabs.removeTab(index)
+
+    def onTabCopy(self):
+        # Get original widget
+        w0 = self._tabs.currentWidget()
+        # Build new info
+        info = w0.getInfo().copy()
+        info.name += " (2)"
+        # Create widget and add to tabs
+        w = ShellInfoTab(self._tabs)
+        self._tabs.insertTab(self._tabs.indexOf(w0) + 1, w, "---")
+        w.setInfo(info)
+        # Select
+        self._tabs.setCurrentWidget(w)
+        w.setFocus()
 
     def applyAndClose(self, event=None):
         self.apply()
