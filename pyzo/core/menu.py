@@ -2598,9 +2598,17 @@ class KeyMapModel(QtCore.QAbstractItemModel):
             if not value:
                 return None
             elif index.column() == 1:
-                return QtGui.QBrush(QtGui.QColor(200, 220, 240))
+                return QtGui.QBrush(
+                    QtGui.QColor(90, 110, 130)
+                    if pyzo.darkQt
+                    else QtGui.QColor(200, 220, 240)
+                )
             elif index.column() == 2:
-                return QtGui.QBrush(QtGui.QColor(210, 230, 250))
+                return QtGui.QBrush(
+                    QtGui.QColor(110, 130, 150)
+                    if pyzo.darkQt
+                    else QtGui.QColor(210, 230, 250)
+                )
             else:
                 return None
         else:

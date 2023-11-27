@@ -10,6 +10,7 @@ See docs of the tab widget.
 
 """
 
+import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 import sys
 
@@ -40,9 +41,9 @@ QTabWidget::tab-bar {
  it reads QTabBar _not_ QTabWidget */
 QTabBar::tab {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(220,220,220,128),
-                stop: 0.4 rgba(200,200,200,128),
-                stop: 1.0 rgba(100,100,100,128) );
+                stop: 0.0 GRADIENT_UNSEL1,
+                stop: 0.4 GRADIENT_UNSEL2,
+                stop: 1.0 GRADIENT_UNSEL3 );
     border: 1px solid #A09B90;
     border-bottom-color: #DAD5CC; /* same as the pane color */
     border-top-left-radius: 4px;
@@ -61,17 +62,17 @@ QTabBar::tab:last {
 /* Style the selected tab, hoovered tab, and other tabs. */
 QTabBar::tab:hover {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(245,250,255,128),
-                stop: 0.4 rgba(210,210,210,128),
-                stop: 1.0 rgba(200,200,200,128) );
+                stop: 0.0 GRADIENT_SEL1,
+                stop: 0.4 GRADIENT_SEL2,
+                stop: 1.0 GRADIENT_SEL3 );
 }
 QTabBar::tab:selected {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 rgba(0,0,128,128),
-                stop: 0.12 rgba(0,0,128,128),
-                stop: 0.120001 rgba(245,250,255,128),
-                stop: 0.4 rgba(210,210,210,128),
-                stop: 1.0 rgba(200,200,200,128) );
+                stop: 0.0 GRADIENT_TOP_SELECTED,
+                stop: 0.12 GRADIENT_TOP_SELECTED,
+                stop: 0.120001 GRADIENT_SEL1,
+                stop: 0.4 GRADIENT_SEL2,
+                stop: 1.0 GRADIENT_SEL3 );
 }
 
 QTabBar::tab:selected {
@@ -79,7 +80,7 @@ QTabBar::tab:selected {
     border-bottom-width: 0px;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
-    border-color: #333;
+    border-color: BORDER_COLOR_SELECTED;
 }
 
 QTabBar::tab:!selected {
@@ -87,6 +88,18 @@ QTabBar::tab:!selected {
 }
 
 """
+
+STYLESHEET_REPLACEMENTS = [  # name, dark, light
+    ("BORDER_COLOR_SELECTED", "#ddd", "#333"),
+    ("GRADIENT_TOP_SELECTED", "rgba(0,255,255,128)", "rgba(0,0,128,128)"),
+    ("GRADIENT_UNSEL1", "rgba(0,0,0,128)", "rgba(220,220,220,128)"),
+    ("GRADIENT_UNSEL2", "rgba(140,140,140,128)", "rgba(200,200,200,128)"),
+    ("GRADIENT_UNSEL3", "rgba(160,160,160,128)", "rgba(100,100,100,128)"),
+    ("GRADIENT_SEL1", "rgba(0,0,0,128)", "rgba(245,250,255,128)"),
+    ("GRADIENT_SEL2", "rgba(50,50,50,128)", "rgba(210,210,210,128)"),
+    ("GRADIENT_SEL3", "rgba(100,100,100,128)", "rgba(200,200,200,128)"),
+]
+
 
 ## Define tab widget class
 
@@ -152,6 +165,10 @@ class CompactTabBar(QtWidgets.QTabBar):
         stylesheet = stylesheet.replace("PADDING_BOTTOM", str(padding[1]))
         stylesheet = stylesheet.replace("PADDING_LEFT", str(padding[2]))
         stylesheet = stylesheet.replace("PADDING_RIGHT", str(padding[3]))
+
+        for name, dark, light in STYLESHEET_REPLACEMENTS:
+            stylesheet = stylesheet.replace(name, dark if pyzo.darkQt else light)
+
         self.setStyleSheet(stylesheet)
 
         # We do our own eliding

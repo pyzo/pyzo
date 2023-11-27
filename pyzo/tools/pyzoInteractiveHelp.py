@@ -302,7 +302,7 @@ htmlWrap = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
 <html>
 <head>
 <style type="text/css">
-pre, code {{background-color: #F2F2F2;}}
+pre, code {{background-color: BGCOLOR_CODE;}}
 </style>
 </head>
 <body style=" font-family:'Sans Serif'; font-size:{}pt; font-weight:400; font-style:normal;">
@@ -314,7 +314,8 @@ pre, code {{background-color: #F2F2F2;}}
 
 # Define title text (font-size percentage does not seem to work sadly.)
 def get_title_text(objectName, h_class="", h_repr=""):
-    title_text = "<p style='background-color:#def;'>"
+    title_bgcolor = "#468" if pyzo.darkQt else "#def"
+    title_text = "<p style='background-color:{};'>".format(title_bgcolor)
     if h_class == "~python_keyword~":
         title_text += "<b>Keyword:</b> {}".format(objectName)
     elif h_class == "~python_operator~":
@@ -531,7 +532,11 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
 
         # Set text with html header
         size = self._config.fontSize
-        self._browser.setHtml(htmlWrap.format(size, text))
+        self._browser.setHtml(
+            htmlWrap.replace(
+                "BGCOLOR_CODE", "#505050" if pyzo.darkQt else "#f2f2f2"
+            ).format(size, text)
+        )
 
     def setObjectName(self, name, addToHist=False):
         """Set the object name programatically
@@ -678,7 +683,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                 h_text = self.smartFormat(h_text)
                 h_text = re.sub(r"``(.*?)``", r"<code>\1</code>", h_text)
                 if header:
-                    h_text = "<p style='color:#005;'><b>%s</b></p>\n%s" % (
+                    h_text = "<p style='color:{};'><b>{}</b></p>\n{}".format(
+                        "#0bf" if pyzo.darkQt else "#005",
                         header,
                         h_text,
                     )

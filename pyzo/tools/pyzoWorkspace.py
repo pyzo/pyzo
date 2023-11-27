@@ -339,7 +339,9 @@ class PyzoWorkspace(QtWidgets.QWidget):
         # Create "path" line edit
         self._line = QtWidgets.QLineEdit(self)
         self._line.setReadOnly(True)
-        self._line.setStyleSheet("QLineEdit { background:#ddd; }")
+        self._line.setStyleSheet(
+            "QLineEdit {{ background:{}; }}".format("#888" if pyzo.darkQt else "#ddd")
+        )
         self._line.setFocusPolicy(QtCore.Qt.NoFocus)
 
         # Create options menu

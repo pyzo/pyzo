@@ -933,11 +933,12 @@ class FileTabWidget(CompactTabWidget):
 
             # Determine text color. Is main file? Is current?
             if self._mainFile == item.id:
-                tabBar.setTabTextColor(i, QtGui.QColor("#008"))
+                color = "#0cf" if pyzo.darkQt else "#008"
             elif i == self.currentIndex():
-                tabBar.setTabTextColor(i, QtGui.QColor("#000"))
+                color = "#fff" if pyzo.darkQt else "#000"
             else:
-                tabBar.setTabTextColor(i, QtGui.QColor("#444"))
+                color = "#ddd" if pyzo.darkQt else "#444"
+            tabBar.setTabTextColor(i, QtGui.QColor(color))
 
             # Get number of blocks
             nBlocks = item.editor.blockCount()

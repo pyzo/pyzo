@@ -83,8 +83,26 @@ class MainWindow(QtWidgets.QMainWindow):
         loadIcons()
         loadFonts()
 
-        # Set qt style and test success
+        # Set qt style, test success and detect Qt dark mode
         self.setQtStyle(None)  # None means init!
+
+        if pyzo.config.settings.theme == "":
+            # set light or dark mode when running Pyzo the first time
+            pyzo.config.settings.theme = "default_dark" if pyzo.darkQt else "default"
+
+        # detect dark syntax style (light text on dark background)
+        try:
+            theme = pyzo.themes[pyzo.config.settings.theme.lower()]["data"]
+            s = theme["editor.text"]  # e.g.: "fore:#657b83, back:#fff"
+            colors = dict(
+                [tuple(s3.strip() for s3 in s2.split(":")) for s2 in s.split(",")]
+            )
+            pyzo.darkSyntax = (
+                QtGui.QColor(colors["fore"]).lightness()
+                > QtGui.QColor(colors["back"]).lightness()
+            )
+        except KeyError:
+            pyzo.darkSyntax = False
 
         # Hold the splash screen if needed
         while time.time() < splash_timeout:
@@ -332,6 +350,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set palette
         if qstyle:
             QtWidgets.qApp.setPalette(QtWidgets.qApp.nativePalette)
+
+        # detect dark mode for widgets (might be different than dark mode for syntax)
+        pal = QtWidgets.qApp.palette()
+        pyzo.darkQt = (
+            pal.window().color().lightness() < pal.windowText().color().lightness()
+        )
 
         # Done
         return qstyle

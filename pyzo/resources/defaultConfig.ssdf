@@ -61,7 +61,7 @@ settings= dict:
     allowFloatingShell = 0
     autoClose_Quotes = 1
     autoClose_Brackets = 1
-    theme = 'default'
+    theme = '' # will be automatically initialized with "default" or "default_dark"
     qtscalefactor = ''
 
 advanced = dict:
