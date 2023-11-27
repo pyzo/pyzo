@@ -396,31 +396,37 @@ class KernelBroker:
         command = getCommandFromKernelInfo(self._info, self._kernelCon.port1)
         env = getEnvFromKernelInfo(self._info)
 
-        # Wrap command in call to 'cmd'?
-        if sys.platform.startswith("win"):
-            # as the author from Pype writes:
-            # if we don't run via a command shell, then either sometimes we
-            # don't get wx GUIs, or sometimes we can't kill the subprocesses.
-            # And I also see problems with Tk.
-            # But we only use it if we are sure that cmd is available.
-            # See pyzo issue #240
-            try:
-                subprocess.check_output('cmd /c "cd"', shell=True)
-            except (IOError, subprocess.SubprocessError):
-                pass  # Do not use cmd
-            else:
-                command = 'cmd /c "{}"'.format(command)
+        try:
+            # Wrap command in call to 'cmd'?
+            if sys.platform.startswith("win"):
+                # as the author from Pype writes:
+                # if we don't run via a command shell, then either sometimes we
+                # don't get wx GUIs, or sometimes we can't kill the subprocesses.
+                # And I also see problems with Tk.
+                # But we only use it if we are sure that cmd is available.
+                # See pyzo issue #240
+                try:
+                    subprocess.check_output('cmd /c "cd"', shell=True)
+                except (IOError, subprocess.SubprocessError):
+                    pass  # Do not use cmd
+                else:
+                    command = 'cmd /c "{}"'.format(command)
 
-        # Start process
-        self._process = subprocess.Popen(
-            command,
-            shell=True,
-            env=env,
-            cwd=cwd,
-            stdin=subprocess.PIPE,  # Fixes issue 165
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-        )
+            # Start process
+            self._process = subprocess.Popen(
+                command,
+                shell=True,
+                env=env,
+                cwd=cwd,
+                stdin=subprocess.PIPE,  # Fixes issue 165
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+        except Exception as err:
+            self._pending_restart = None
+            self._process = None
+            self._onKernelDied(str(err))
+            return
 
         # Set timeout for connection, i.e. after how much time of
         # unresponsive ness is the kernel found to be running extension code
@@ -486,7 +492,7 @@ class KernelBroker:
         if not self._terminator:
             self.terminate("because connecton was lost", "KILL", 0.5)
 
-    def _onKernelDied(self, returncode=0):
+    def _onKernelDied(self, why=None):
         """_onKernelDied()
 
         Kernel process died. Clean up!
@@ -495,7 +501,7 @@ class KernelBroker:
 
         # If the kernel did not start yet, probably the command is invalid
         if self._kernelCon and self._kernelCon.is_waiting:
-            msg = "The process failed to start (invalid command?)."
+            msg = "The process failed to start."
         elif not self.isTerminating():
             msg = "Kernel process exited."
         elif not self._terminator._prev_action:
@@ -510,8 +516,11 @@ class KernelBroker:
 
         if self._context.connection_count:
             # Notify
-            returncodeMsg = "\n%s (%s)\n\n" % (msg, str(returncode))
-            self._strm_broker.send(returncodeMsg)
+            if isinstance(why, int):
+                total_msg = "\n%s (%s)\n\n" % (msg, str(why))
+            else:
+                total_msg = "\n%s\n%s\n\n" % (msg, str(why))
+            self._strm_broker.send(total_msg)
             # Empty prompt and signal dead
             self._strm_prompt.send("\b")
             self._stat_interpreter.send("Dead")
