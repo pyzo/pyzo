@@ -170,10 +170,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Instantiate tool manager
         pyzo.toolManager = ToolManager()
 
-        # Check to install conda now ...
-        # from pyzo.util.bootstrapconda import check_for_conda_env
-        # check_for_conda_env()
-
         # Instantiate and start source-code parser
         if pyzo.parser is None:
             pyzo.parser = codeparser.Parser()
