@@ -14,13 +14,21 @@ from . import proxies
 class SearchTask(proxies.Task):
     __slots__ = []
 
-    def process(self, proxy, pattern=None, matchCase=False, regExp=False, **rest):
+    def process(
+        self,
+        proxy,
+        pattern=None,
+        matchCase=False,
+        regExp=False,
+        excludeBinary=True,
+        **rest
+    ):
         # Quick test
         if not pattern:
             return
 
         # Get text
-        text = self._getText(proxy)
+        text = self._getText(proxy, excludeBinary)
         if not text:
             return
 
@@ -42,7 +50,7 @@ class SearchTask(proxies.Task):
         else:
             return []
 
-    def _getText(self, proxy):
+    def _getText(self, proxy, excludeBinary=True):
         # Init
         path = proxy.path()
         fsProxy = proxy._fsProxy
@@ -53,12 +61,11 @@ class SearchTask(proxies.Task):
         # except NotImplementedError:
         #     size = 0
 
-        # Search all Python files. Other files need to look like text.
-        check_preamble_for_zeros = True
+        # Always search Python files.
         if path.lower().endswith(".py"):
-            check_preamble_for_zeros = False
+            excludeBinary = False
 
-        if check_preamble_for_zeros:
+        if excludeBinary:
             # Check first few bytes for presence of zero bytes.
             # Git supposedly uses the same logic to determine whether
             # a file is binary. Note that files with certain encodings
