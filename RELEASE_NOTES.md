@@ -1,6 +1,11 @@
 # Release notes
 
 
+### Version 4.14.2 (28-11-2023)
+
+* Fix binary builds.
+
+
 ### Version 4.14.1 (28-11-2023)
 
 * Fix pyzo closing cancellation by @bdieterm in https://github.com/pyzo/pyzo/pull/892
