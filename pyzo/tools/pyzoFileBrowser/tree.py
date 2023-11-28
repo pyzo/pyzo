@@ -47,22 +47,30 @@ def addIconOverlays(icon, *overlays, offset=(8, 0), overlay_offset=(0, 0)):
     return QtGui.QIcon(pm0)
 
 
-def _filterFileByName(basename, filters):
+def _filterFileByName(path, filters, base_path):
     # Init default; return True if there are no filters
     default = True
+    matchCase = False
 
     for filter in filters:
         # Process filters in order
-        if filter.startswith("!"):
-            # If the filename matches a filter starting with !, hide it
-            if fnmatch.fnmatch(basename, filter[1:]):
-                return False
-            default = True
+        if "/" in filter:
+            filename = op.relpath(path, base_path).replace("\\", "/")
+            filename = "/" + filename.lstrip("/")
         else:
-            # If the file name matches a filter not starting with!, show it
-            if fnmatch.fnmatch(basename, filter):
-                return True
-            default = False
+            filename = op.basename(path)
+        if not matchCase:
+            filter = filter.lower()
+            filename = filename.lower()
+        print(filename)
+        if filter.startswith("!"):
+            # If the filename matches an exclusive filter, hide it
+            if fnmatch.fnmatch(filename, filter[1:]):
+                return False
+        else:
+            # If the filename does not match an inclusive filter, hide it
+            if not fnmatch.fnmatch(filename, filter):
+                return False
 
     return default
 
@@ -119,7 +127,7 @@ def createItemsFun(browser, parent):
                 continue  # Skip hidden files
             if hideHidden and hasHiddenAttribute(entry):
                 continue  # Skip hidden files on Windows
-            if not _filterFileByName(op.basename(entry), nameFilters):
+            if not _filterFileByName(entry, nameFilters, browser._tree.path()):
                 continue
             files.append(entry)
 
