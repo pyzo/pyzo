@@ -38,7 +38,7 @@ jobs:
         include:
           # Main test builds, 3 OS's times 4 Qt toolkits
           - os: windows-latest
-            pyversion: '3.11'
+            pyversion: '3.12'
             qtlib: pyside6
           - os: windows-latest
             pyversion: '3.11'
@@ -51,7 +51,7 @@ jobs:
             qtlib: pyside2
           # ---
           - os: ubuntu-latest
-            pyversion: '3.11'
+            pyversion: '3.12'
             qtlib: pyside6
           - os: ubuntu-latest
             pyversion: '3.11'
@@ -64,7 +64,7 @@ jobs:
             qtlib: pyside2
           # ---
           - os: macos-latest
-            pyversion: '3.11'
+            pyversion: '3.12'
             qtlib: pyside6
           - os: macos-latest
             pyversion: '3.11'
