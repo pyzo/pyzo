@@ -1,7 +1,41 @@
 # Release notes
 
 
-### Version 4.13.2 (26-06-2023)
+### Version 4.14.1 (28-11-2023)
+
+* Fix pyzo closing cancellation by @bdieterm in https://github.com/pyzo/pyzo/pull/892
+* Prevent warnings for qt on some macos's by @almarklein in https://github.com/pyzo/pyzo/pull/894
+* Fix daemon threads by @bdieterm in https://github.com/pyzo/pyzo/pull/895
+* Upgrade from deprecated imp module to importlib by @bdieterm in https://github.com/pyzo/pyzo/pull/896
+* Fix and clean regular expressions by @bdieterm in https://github.com/pyzo/pyzo/pull/897
+* Re-scan tool directories when reloading tools by @bdieterm in https://github.com/pyzo/pyzo/pull/899
+* Require minimum version of pytest by @bdieterm in https://github.com/pyzo/pyzo/pull/903
+* Use fontWeight enum names instead of integers by @bdieterm in https://github.com/pyzo/pyzo/pull/904
+* Fix unremoved old highlighter after setting a new one by @bdieterm in https://github.com/pyzo/pyzo/pull/905
+* Fix shell prompt for debugging with stack frames by @bdieterm in https://github.com/pyzo/pyzo/pull/906
+* Escape needle when searching for whole word in editor by @bdieterm in https://github.com/pyzo/pyzo/pull/907
+* Add debugger integration for Python built-in breakpoint() function by @bdieterm in https://github.com/pyzo/pyzo/pull/908
+* Fix debug focus for special filepath values by @bdieterm in https://github.com/pyzo/pyzo/pull/909
+* Use context manager for file access by @bdieterm in https://github.com/pyzo/pyzo/pull/898
+* Replace deprecated distutils package by @bdieterm in https://github.com/pyzo/pyzo/pull/900
+* Improve shell printing performance for longer texts by @bdieterm in https://github.com/pyzo/pyzo/pull/910
+* Fix duplicate line operation in editor for last line by @bdieterm in https://github.com/pyzo/pyzo/pull/913
+* Activate breakpoint() only for Python >= v3.7 by @bdieterm in https://github.com/pyzo/pyzo/pull/912
+* Add copy button in shell config dialog by @bdieterm in https://github.com/pyzo/pyzo/pull/921
+* Improve dark mode by @bdieterm in https://github.com/pyzo/pyzo/pull/917
+* Improve python auto-indent by @bdieterm in https://github.com/pyzo/pyzo/pull/920
+* Fix pipper utf-8 handling and progress bar update by @bdieterm in https://github.com/pyzo/pyzo/pull/919
+* In pipper: use bytes object instead list for pending stdout by @almarklein in https://github.com/pyzo/pyzo/pull/922
+* Fix PySide6 deprecation warnings by @bdieterm in https://github.com/pyzo/pyzo/pull/918
+* More reliable way to use argv by @almarklein in https://github.com/pyzo/pyzo/pull/923
+* Remove bootstrapconda util by @almarklein in https://github.com/pyzo/pyzo/pull/924
+* Prevent Pyzo from hanging when starting kernel fails by @almarklein in https://github.com/pyzo/pyzo/pull/925
+* Filebrowser improvements by @almarklein in https://github.com/pyzo/pyzo/pull/926
+* Tweaks for file browser crashing by @almarklein in https://github.com/pyzo/pyzo/pull/927
+* Tweak ci and cd to use Python 3.12 by @almarklein in https://github.com/pyzo/pyzo/pull/928
+
+
+### Version 4.13.3 (26-06-2023)
 
 - New binary that fixes crashes on MacOS when using the file browser.
 
