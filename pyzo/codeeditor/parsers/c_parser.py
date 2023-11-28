@@ -39,11 +39,11 @@ class CharToken(Token):
 tokenProg = re.compile(
     "(["
     + ALPHANUM
-    + "_]+)|"
-    + "(\/\/)|"  # Identifiers/numbers (group 1) or
-    + "(\/\*)|"  # Single line comment (group 2)
-    + "('\\\\?.')|"  # Comment (group 3) or
-    + '(")'  # char (group 4)  # string (group 5)
+    + "_]+)|"  # Identifiers/numbers (group 1) or
+    + "(//)|"  # Single line comment (group 2)
+    + "(/\\*)|"  # Comment (group 3) or
+    + "('\\\\?.')|"  # char (group 4)
+    + '(")'  # string (group 5)
 )
 
 
