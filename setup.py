@@ -4,8 +4,10 @@ Notes on how to do a release. Mostly for my own convenience:
 
 * Write release notes
 * Bump `__version__`
-* `git tag vx.y.z`
-* `git push vx.y.z` (makes Azure build the binaries and push to a GH release)
+* Commit this to a new branch "bump" and push to GH. The CD freeze jobs will run.
+* In online MacOS developer page, agree to license changes. Or certs won't work.
+* Update freeze logic if necessary. Merge the pr.
+* `git tag vx.y.z` and `git push vx.y.z` (builds the binaries and pushes to a GH release)
 * Update links on Pyzo website
 * `python setup.py sdist upload`
 

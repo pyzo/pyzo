@@ -29,7 +29,7 @@ def get_pyzo_version():
     """Get Pyzo's version."""
     filename = os.path.join(dist_dir, "..", "..", "pyzo", "__init__.py")
     NS = {}
-    with open(filename, "rb").read() as fd:
+    with open(filename, "rb") as fd:
         data = fd.read()
     for line in data.decode().splitlines():
         if line.startswith("__version__"):

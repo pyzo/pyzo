@@ -84,7 +84,9 @@ if TESTING:
 
 
 with BootAction("Setting up source importer"):
-    if sys._MEIPASS.strip("/").endswith(".app/Contents/MacOS"):
+    if sys._MEIPASS.strip("/").endswith(
+        (".app/Contents/MacOS", ".app/Contents/Frameworks")
+    ):
         # Note: it looks like the source dir IS available just after we froze it,
         # so the test_frozen run passes. However, the packaged versions only
         # have the source dir in Contents/Resources.
