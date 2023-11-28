@@ -110,6 +110,7 @@ class Browser(QtWidgets.QWidget):
             "matchCase": self.config.searchMatchCase,
             "regExp": self.config.searchRegExp,
             "subDirs": self.config.searchSubDirs,
+            "excludeBinary": self.config.searchExcludeBinary,
         }
 
     @property
@@ -650,6 +651,7 @@ class SearchFilter(LineEditWithToolButtons):
             ("searchMatchCase", False, translate("filebrowser", "Match case")),
             ("searchRegExp", False, translate("filebrowser", "RegExp")),
             ("searchSubDirs", True, translate("filebrowser", "Search in subdirs")),
+            ("searchExcludeBinary", True, translate("filebrowser", "Exclude binary")),
         ]
 
         # Fill menu

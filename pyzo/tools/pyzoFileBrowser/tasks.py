@@ -14,13 +14,21 @@ from . import proxies
 class SearchTask(proxies.Task):
     __slots__ = []
 
-    def process(self, proxy, pattern=None, matchCase=False, regExp=False, **rest):
+    def process(
+        self,
+        proxy,
+        pattern=None,
+        matchCase=False,
+        regExp=False,
+        excludeBinary=True,
+        **rest
+    ):
         # Quick test
         if not pattern:
             return
 
         # Get text
-        text = self._getText(proxy)
+        text = self._getText(proxy, excludeBinary)
         if not text:
             return
 
@@ -42,33 +50,45 @@ class SearchTask(proxies.Task):
         else:
             return []
 
-    def _getText(self, proxy):
+    def _getText(self, proxy, excludeBinary=True):
         # Init
         path = proxy.path()
         fsProxy = proxy._fsProxy
 
-        # Get file size
-        try:
-            size = fsProxy.fileSize(path)
-        except NotImplementedError:
-            pass
-        size = size or 0
+        # # Get file size
+        # try:
+        #     size = fsProxy.fileSize(path) or 0
+        # except NotImplementedError:
+        #     size = 0
 
-        # Search all Python files. Other files need be < xx bytes
-        if path.lower().endswith(".py") or size < 100 * 1024:
-            pass
+        # Always search Python files.
+        if path.lower().endswith(".py"):
+            excludeBinary = False
+
+        if excludeBinary:
+            # Check first few bytes for presence of zero bytes.
+            # Git supposedly uses the same logic to determine whether
+            # a file is binary. Note that files with certain encodings
+            # other than utf-8 can be marked binary too.
+            preamble_len = 8000
+            bb_preamble = fsProxy.read(path, preamble_len)
+            if bb_preamble is None:
+                return None
+            if 0 in bb_preamble:
+                return None
+            # Ready bytes (or re-use)
+            if len(bb_preamble) < preamble_len:
+                bb = bb_preamble
+            else:
+                bb = fsProxy.read(path)
         else:
-            return None
+            bb = fsProxy.read(path)
 
-        # Get text
-        bb = fsProxy.read(path)
+        # Convert to str
         if bb is None:
-            return
-        try:
-            return bb.decode("utf-8")
-        except UnicodeDecodeError:
-            # todo: right now we only do utf-8
             return None
+        else:
+            return bb.decode("utf-8", errors="replace")
 
     def _getIndicesRegExp(self, text, pattern):
         indices = []
