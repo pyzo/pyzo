@@ -62,7 +62,6 @@ def _filterFileByName(path, filters, base_path):
         if not matchCase:
             filter = filter.lower()
             filename = filename.lower()
-        print(filename)
         if filter.startswith("!"):
             # If the filename matches an exclusive filter, hide it
             if fnmatch.fnmatch(filename, filter[1:]):
@@ -631,10 +630,19 @@ class Tree(QtWidgets.QTreeWidget):
         # Close old proxy
         if self._proxy is not None:
             self._proxy.cancel()
-            self._proxy.changed.disconnect(self.onChanged)
-            self._proxy.deleted.disconnect(self.onDeleted)
-            self._proxy.errored.disconnect(self.onErrored)
-            self.destroyed.disconnect(self._proxy.cancel)
+            failed = []
+            for signal, func in [
+                (self.destroyed, self._proxy.cancel),
+                (self._proxy.changed, self.onChanged),
+                (self._proxy.deleted, self.onDeleted),
+                (self._proxy.errored, self.onErrored),
+            ]:
+                try:
+                    signal.disconnect(func)
+                except Exception:
+                    failed.append(signal)
+            if failed:
+                pass  # print("Failed to disconnect", failed)
         # Create new proxy
         if True:
             self._proxy = self.parent()._fsProxy.dir(path)
