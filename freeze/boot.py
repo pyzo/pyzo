@@ -93,7 +93,7 @@ with BootAction("Setting up source importer"):
         # Not sure why, maybe related to symlinks?
         source_dir = os.path.join(sys._MEIPASS, "..", "Resources", "source")
     else:
-        source_dir = os.path.join(sys._MEIPASS, "source")
+        source_dir = os.path.join(sys._MEIPASS, "_internal", "source")
     source_dir = os.path.abspath(source_dir)
     if TESTING:
         write(f"Source dir: {source_dir} {os.path.isdir(source_dir)}")
