@@ -66,10 +66,12 @@ def _filterFileByName(path, filters, base_path):
             # If the filename matches an exclusive filter, hide it
             if fnmatch.fnmatch(filename, filter[1:]):
                 return False
+            default = True
         else:
-            # If the filename does not match an inclusive filter, hide it
-            if not fnmatch.fnmatch(filename, filter):
-                return False
+            # If the file name matches a filter not starting with!, show it
+            if fnmatch.fnmatch(filename, filter):
+                return True
+            default = False
 
     return default
 
