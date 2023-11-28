@@ -414,10 +414,11 @@ class NativeFSProxy(BaseFSProxy):
         if op.isfile(path):
             return op.getsize(path)
 
-    def read(self, path):
+    def read(self, path, size=None):
+        size = size or -1
         if op.isfile(path):
             with open(path, "rb") as f:
-                return f.read()
+                return f.read(size)
 
     def write(self, path, bb):
         with open(path, "wb") as f:
