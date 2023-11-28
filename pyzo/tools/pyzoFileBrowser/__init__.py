@@ -52,9 +52,9 @@ from .utils import cleanpath, isdir
 
 
 def _check_qt_version():
-    if sys.platform == "darwin":
+    if sys.platform == "darwin" and API == "pyside6":
         version = tuple(int(i) for i in PYSIDE_VERSION.split(".")[:3])
-        if API == "pyside6" and version == (6, 5, 1):
+        if version == (6, 5, 1):
             print(
                 "\nWARNING:On MacOS The file browser may be unstable with PySide6 version 6.5.1\n"
             )
