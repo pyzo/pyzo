@@ -43,6 +43,7 @@ def subprocess_with_callback(callback, cmd, **kwargs):
     # Process remaining text
     pending += p.stdout.read()
     callback(pending.decode("utf-8", "ignore"))
+    p.stdout.close()  # avoid ResourceWarning: unclosed file <_io.BufferedReader>
 
     # Done
     return p.returncode
