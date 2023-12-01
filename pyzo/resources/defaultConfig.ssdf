@@ -96,6 +96,7 @@ shortcuts2 = dict:
     edit__find_previous = 'Ctrl+Shift+G,Shift+F3'
     edit__find_selection = 'Ctrl+F3,'
     edit__find_selection_backward = 'Ctrl+Shift+F3,'
+    edit__find_via_file_browser = 'Ctrl+Shift+F,'
     edit__indent = 'Tab,'
     edit__justify_commentdocstring = 'Ctrl+J,'
     edit__paste = 'Ctrl+V,Shift+Insert'
