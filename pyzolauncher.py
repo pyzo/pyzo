@@ -29,6 +29,9 @@ import subprocess
 try:
     if sys.executable.lower().endswith("pythonw.exe"):
         raise ImportError("Dont use faulthandler in pythonw.exe")
+    if sys.platform == "win32":
+        raise ImportError("Prevent crash with QFileIconProvider")
+        # see https://github.com/pyzo/pyzo/issues/875 for details
     import faulthandler
 
     faulthandler.enable()
