@@ -819,12 +819,30 @@ class EditMenu(Menu):
             None,
             pyzo.editors._findReplace.findPrevious,
         )
+        self.addItem(
+            translate(
+                "menu",
+                "Find via File Browser ::: Find using the File Browser tool. Initialize with selected text.",
+            ),
+            icons.find,
+            self._findViaFilebrowserCallback,
+        )
 
     def _editItemCallback(self, action):
         widget = QtWidgets.qApp.focusWidget()
         # If the widget has a 'name' attribute, call it
         if hasattr(widget, action):
             getattr(widget, action)()
+
+    def _findViaFilebrowserCallback(self):
+        fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
+        if fileBrowser is not None:
+            editor = pyzo.editors.getCurrentEditor()
+            if editor is None:
+                needle = ""
+            else:
+                needle = editor.textCursor().selectedText().replace("\u2029", "\n")
+            fileBrowser.setSearchText(needle, setFocus=True)
 
 
 class ZoomMenu(Menu):

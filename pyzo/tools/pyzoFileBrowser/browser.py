@@ -113,6 +113,12 @@ class Browser(QtWidgets.QWidget):
             "excludeBinary": self.config.searchExcludeBinary,
         }
 
+    def setSearchText(self, needle, setFocus=False):
+        """Set the text in the search field."""
+        self._searchFilter.setText(needle)
+        if setFocus:
+            self._searchFilter.setFocus()
+
     @property
     def expandedDirs(self):
         """The list of the expanded directories."""

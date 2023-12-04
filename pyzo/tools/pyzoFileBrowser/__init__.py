@@ -129,6 +129,11 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         browser = self._browsers[0]
         browser._tree.setPath(path)
 
+    def setSearchText(self, needle, setFocus=False):
+        """Set the text in the search field."""
+        browser = self._browsers[0]
+        browser.setSearchText(needle, setFocus)
+
     def getAddToPythonPath(self):
         """
         Returns the path to be added to the Python path when starting a shell
