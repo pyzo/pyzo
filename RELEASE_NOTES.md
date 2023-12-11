@@ -3,9 +3,9 @@
 
 ### Versionm 4.14.4 (11-12-2023)
 
-* Disable faulthandler in pyzolauncher.py in MS Windows to prevent crash.
-* Add menu entry for search in file browser tool 
-* Tweaks to default dark theme.
+* Updated default dark theme by @TeunBartelds in https://github.com/pyzo/pyzo/pull/934
+* Add menu entry for search in file browser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/936
+* Disable faulthandler in `pyzolauncher.py` in MS Windows to prevent crash by @bdieterm in https://github.com/pyzo/pyzo/pull/937
 
 
 ### Version 4.14.3 (29-11-2023)
