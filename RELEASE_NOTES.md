@@ -1,6 +1,13 @@
 # Release notes
 
 
+### Versionm 4.14.4 (11-12-2023)
+
+* Disable faulthandler in pyzolauncher.py in MS Windows to prevent crash.
+* Add menu entry for search in file browser tool 
+* Tweaks to default dark theme.
+
+
 ### Version 4.14.3 (29-11-2023)
 
 * Fix invalid regex escape in c_parser.py by @bdieterm in https://github.com/pyzo/pyzo/pull/930
