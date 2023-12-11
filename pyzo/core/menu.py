@@ -1352,6 +1352,8 @@ class ShellMenu(Menu):
         """Remove, then add the items for the creation of each shell"""
         for action in self._shellCreateActions:
             self.removeAction(action)
+            # actions with key sequence were added in pyzo.main too
+            pyzo.main.removeAction(action)
 
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
