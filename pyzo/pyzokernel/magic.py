@@ -698,10 +698,16 @@ class Magician:
         oldargs = sys.argv
         try:
             try:
-                import notebook.notebookapp
+                import notebook  # noqa: just want to check if the module is there at all
+                from notebook._version import version_info
+
+                if version_info >= (7, 0):
+                    from notebook.app import main as run_notebook_app
+                else:
+                    from notebook.notebookapp import main as run_notebook_app
 
                 sys.argv = ["jupyter_notebook"] + list(args)
-                notebook.notebookapp.main()
+                run_notebook_app()
             except SystemExit:  # as err:
                 type, err, tb = sys.exc_info()
                 del tb
