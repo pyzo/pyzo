@@ -13,6 +13,8 @@
 * Fix invalid regex escape in c_parser.py by @bdieterm in https://github.com/pyzo/pyzo/pull/930
 * Fix filebrowser tool namefilter combination by @bdieterm in https://github.com/pyzo/pyzo/pull/931
 * Close subprocess pipe in pipper when finished by @bdieterm in https://github.com/pyzo/pyzo/pull/932
+* Fix shell keyboard shortcuts bug by @bdieterm in https://github.com/pyzo/pyzo/pull/941
+* Fix notebook command for notebook 7.0+ by @almarklein in https://github.com/pyzo/pyzo/pull/942
 
 
 ### Version 4.14.2 (28-11-2023)
