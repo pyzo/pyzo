@@ -1,7 +1,7 @@
 # Release notes
 
 
-### Versionm 4.14.4 (11-12-2023)
+### Versionm 4.14.4 (13-12-2023)
 
 * Updated default dark theme by @TeunBartelds in https://github.com/pyzo/pyzo/pull/934
 * Add menu entry for search in file browser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/936
