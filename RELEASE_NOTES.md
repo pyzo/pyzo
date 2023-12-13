@@ -1,11 +1,20 @@
 # Release notes
 
 
+### Versionm 4.14.4 (11-12-2023)
+
+* Updated default dark theme by @TeunBartelds in https://github.com/pyzo/pyzo/pull/934
+* Add menu entry for search in file browser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/936
+* Disable faulthandler in `pyzolauncher.py` in MS Windows to prevent crash by @bdieterm in https://github.com/pyzo/pyzo/pull/937
+
+
 ### Version 4.14.3 (29-11-2023)
 
 * Fix invalid regex escape in c_parser.py by @bdieterm in https://github.com/pyzo/pyzo/pull/930
 * Fix filebrowser tool namefilter combination by @bdieterm in https://github.com/pyzo/pyzo/pull/931
 * Close subprocess pipe in pipper when finished by @bdieterm in https://github.com/pyzo/pyzo/pull/932
+* Fix shell keyboard shortcuts bug by @bdieterm in https://github.com/pyzo/pyzo/pull/941
+* Fix notebook command for notebook 7.0+ by @almarklein in https://github.com/pyzo/pyzo/pull/942
 
 
 ### Version 4.14.2 (28-11-2023)
