@@ -778,6 +778,10 @@ class PyzoEditor(BaseTextCtrl):
                     if fictiveClass:
                         aco.addNames(fictiveClass.members)
                         classNames.extend(fictiveClass.supers)
+                        if className in classNames:
+                            # avoid infinite loop if the parent class is the same as the
+                            # current class, see https://github.com/pyzo/pyzo/issues/944
+                            break
                 else:
                     nameForShell = className
                     break
