@@ -97,8 +97,12 @@ class RequestServer(threading.Thread):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        # Bind (can raise error is port is not available)
-        s.bind((host, port))
+        # Bind (can raise error if port is not available)
+        try:
+            s.bind((host, port))
+        except Exception:
+            s.close()
+            raise
 
         # Store socket instance
         self._bsd_socket = s
