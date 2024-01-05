@@ -203,8 +203,8 @@ class PyzoIntrospector(yoton.RepChannel):
 
         # Obtain all attributes of the class
         try:
-            command = "dir(%s.__class__)" % (objectName)
-            d = eval(command, {}, NS)
+            command = "__pyzo_builtin_dir__(%s.__class__)" % (objectName)
+            d = eval(command, {"__pyzo_builtin_dir__": dir}, NS)
         except Exception:
             pass
         else:
@@ -222,8 +222,8 @@ class PyzoIntrospector(yoton.RepChannel):
         # That should be enough, but in case __dir__ is overloaded,
         # query that as well
         try:
-            command = "dir(%s)" % (objectName)
-            d = eval(command, {}, NS)
+            command = "__pyzo_builtin_dir__(%s)" % (objectName)
+            d = eval(command, {"__pyzo_builtin_dir__": dir}, NS)
         except Exception:
             pass
         else:
