@@ -774,6 +774,8 @@ class StreamReader(threading.Thread):
             if not msg:  # or self._process.poll() is not None:
                 break
         # self._strm_broker.send('streamreader exit\n')
+        self._process.stdout.close()
+        self._process.stdin.close()
 
 
 class Kernelmanager:
