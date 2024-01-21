@@ -1207,9 +1207,38 @@ class BreakPoints(object):
         above.
         """
         newBreakPoints = {}
+        breakPointDeleted = False
 
         for linenr in list(self._breakPoints):
             block, block_previous, block_next = self._breakPoints[linenr]
+
+            # Apparently there is a bug in Qt5 and Qt6 that can cause a segmentation fault.
+            # When there is a faulty block "block.previous()", calling methods such as
+            # "block.previous().blockNumber()" will crash Pyzo immediately.
+            # These crashes happend sometimes after Qt re-created a block and we still
+            # have the outdated block reference in our self._breakPoints dictionary.
+            # Such a block re-creation will happen for example during undo operations, but
+            # also when a block is merged with a previous empty one (by pressing backspace
+            # at the beginning of a line below an empty line).
+            # See https://github.com/pyzo/pyzo/pull/949
+            #
+            # So, to avoid crashes, we discard breakpoints that had their block re-created.
+            # To detect if the block was re-created, we check if its userData was reset
+            # to None. When adding a block to "self._breakPoints", we make sure it has
+            # userData set to something different than None.
+            #
+            # According to the Qt docs from https://doc.qt.io/qt-6/qtextblock.html:
+            # "The user data object is not stored in the undo history, so it will not be
+            # available after undoing the deletion of a text block."
+
+            if block.userData() is None:
+                # The block assigned to the breakpoint was re-created by Qt after we
+                # added it to the self._breakPoints dict.
+                # To avoid a crash we delete the breakpoint.
+                del self._breakPoints[linenr]
+                breakPointDeleted = True
+                continue
+
             block_linenr = block.blockNumber() + 1
             prev_ok = block.previous().blockNumber() == block_previous.blockNumber()
             next_ok = block.next().blockNumber() == block_next.blockNumber()
@@ -1226,17 +1255,19 @@ class BreakPoints(object):
                             block.next(),
                         )
                 else:
-                    # Update linenr - this is the only case where "move" th bp
+                    # Update linenr -- this is the only case where we "move" the breakpoint
                     newBreakPoints[block_linenr] = self._breakPoints.pop(linenr)
+                    breakPointDeleted = True
             else:
                 if block_linenr == linenr:
                     # Just update refs
                     self._breakPoints[linenr] = block, block.previous(), block.next()
                 else:
-                    # Delete breakpoint? Meh, just update refs
-                    self._breakPoints[linenr] = block, block.previous(), block.next()
+                    # unexpected --> delete breakpoint
+                    del self._breakPoints[linenr]
+                    breakPointDeleted = True
 
-        if newBreakPoints:
+        if newBreakPoints or breakPointDeleted:
             self._breakPoints.update(newBreakPoints)
             self.breakPointsChanged.emit(self)
             self.__breakPointArea.update()
@@ -1261,6 +1292,16 @@ class BreakPoints(object):
             c.movePosition(c.Start)
             c.movePosition(c.NextBlock, c.MoveAnchor, linenr - 1)
             b = c.block()
+
+            # As described in method "__onBlockCountChanged", we want to make sure that
+            # the userData of the block is set to anything but None. It is totally ok that
+            # other Pyzo modules such as the highlighter will overwrite that userData as
+            # long as it is not set back to None.
+            if b.userData() is None:
+                b.setUserData(
+                    QtGui.QTextBlockUserData()
+                )  # just something other than None
+
             self._breakPoints[linenr] = b, b.previous(), b.next()
 
         self.breakPointsChanged.emit(self)
