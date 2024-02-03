@@ -100,6 +100,13 @@ class AutoCompletion(object):
         """
         self.__popupSize = width, height
 
+    def setAutocompleteCaseSensitive(self, b):
+        """
+        Set the case sensitivity for autocompletion.
+        """
+        cs = Qt.CaseSensitive if b else Qt.CaseInsensitive
+        self.__completer.setCaseSensitivity(cs)
+
     def setAutocompleteMinChars(self, n):
         """
         Set the number of chars where we show the popup.
