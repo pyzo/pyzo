@@ -185,6 +185,9 @@ class BaseTextCtrl(CodeEditor):
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
         self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
+        self.setAutocompleteCaseSensitive(
+            pyzo.config.settings.autoComplete_caseSensitive
+        )
         self.setAutocompleteMinChars(pyzo.config.settings.autoComplete_minChars)
         self.setCancelCallback(self.restoreHelp)
 

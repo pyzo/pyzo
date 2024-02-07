@@ -52,7 +52,6 @@ settings= dict:
     autoComplete_keywords = 1
     autoComplete = 1
     autoComplete_caseSensitive = 0
-    autoComplete_fillups = '\n'
     autoComplete_acceptKeys = 'Tab'
     autoComplete_minChars = 3
     justificationWidth = 70
@@ -69,7 +68,6 @@ advanced = dict:
     fileExtensionsToLoadFromDir = 'py,pyw,pyx,txt,bat'
     autoCompDelay = 200
     titleText = '{fileName} ({fullPath}) - Interactive Editor for Python'
-    homeAndEndWorkOnDisplayedLine = 0
     find_autoHide_timeout = 10
     useNativeFileDialogs = 1
 
