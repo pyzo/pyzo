@@ -8,7 +8,6 @@
 Code editor extensions that provides autocompleter functionality
 """
 
-import pyzo
 from ..qt import QtGui, QtCore, QtWidgets
 
 Qt = QtCore.Qt
@@ -199,15 +198,17 @@ class AutoCompletion(object):
         # Initial choice for position of the completer
         position = self.cursorRect(cur).bottomLeft() + self.viewport().pos()
 
-        # Check if the completer is going to go off the screen
-        # top_geometry = QtWidgets.qApp.qApp.screens()[0].availableVirtualSize()
-        top_geometry = pyzo.main.geometry()
-        global_position = self.mapToGlobal(position)
-        if global_position.y() + geometry.height() > top_geometry.height():
+        # Check if the completer is going to go off the editor/shell widget
+        if (
+            position.y() + geometry.height()
+            > self.viewport().pos().y() + self.viewport().height()
+        ):
             # Move the completer to above the current line
             position = self.cursorRect(cur).topLeft() + self.viewport().pos()
             global_position = self.mapToGlobal(position)
             global_position -= QtCore.QPoint(0, int(geometry.height()))
+        else:
+            global_position = self.mapToGlobal(position)
 
         self.__completer.popup().move(global_position)
 
