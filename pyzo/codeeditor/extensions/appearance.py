@@ -1119,9 +1119,9 @@ class BreakPoints(object):
             # Get debug indicator and list of sorted breakpoints
             debugBlockIndicator = editor._debugLineIndicator - 1
             virtualBreakpoint = self._virtualBreakpoint - 1
-            blocknumbers = [i - 1 for i in sorted(self.parent()._breakPoints)]
+            breakpoints = self.parent()._breakPoints
             if not (
-                blocknumbers
+                len(breakpoints) > 0
                 or editor._debugLineIndicator
                 or editor._debugLineIndicators
                 or virtualBreakpoint > 0
@@ -1141,16 +1141,27 @@ class BreakPoints(object):
             painter.setRenderHint(painter.Antialiasing)
 
             # Draw breakpoints
-            for blockNumber in blocknumbers:
+            for linenr, (enabled, *_) in sorted(breakpoints.items()):
+                blockNumber = linenr - 1
                 if blockNumber < startBlockNumber:
                     continue
                 # Get block
                 block = editor.document().findBlockByNumber(blockNumber)
                 if block.isValid():
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
-                    painter.drawEllipse(
-                        int(margin), int(y), int(bulletWidth), int(bulletWidth)
-                    )
+                    if enabled:
+                        painter.drawEllipse(
+                            int(margin), int(y), int(bulletWidth), int(bulletWidth)
+                        )
+                    else:
+                        painter.drawPie(
+                            int(margin),
+                            int(y),
+                            int(bulletWidth),
+                            int(bulletWidth),
+                            90 * 16,
+                            180 * 16,
+                        )
 
             # Draw *the* debug marker
             if debugBlockIndicator > 0:
@@ -1197,7 +1208,7 @@ class BreakPoints(object):
         # Create widget that draws the breakpoints
         self.__breakPointArea = self.__BreakPointArea(self)
         self.addLeftMargin(BreakPoints, self.getBreakPointAreaWidth)
-        self._breakPoints = {}  # int -> block
+        self._breakPoints = {}  # int -> enabled, block, blockPrev, blockNext
         self._debugLineIndicator = 0
         self._debugLineIndicators = set()
         self.blockCountChanged.connect(self.__onBlockCountChanged)
@@ -1210,7 +1221,7 @@ class BreakPoints(object):
         breakPointDeleted = False
 
         for linenr in list(self._breakPoints):
-            block, block_previous, block_next = self._breakPoints[linenr]
+            enabled, block, block_previous, block_next = self._breakPoints[linenr]
 
             # Apparently there is a bug in Qt5 and Qt6 that can cause a segmentation fault.
             # When there is a faulty block "block.previous()", calling methods such as
@@ -1250,6 +1261,7 @@ class BreakPoints(object):
                     else:
                         # Update refs
                         self._breakPoints[linenr] = (
+                            enabled,
                             block,
                             block.previous(),
                             block.next(),
@@ -1261,7 +1273,12 @@ class BreakPoints(object):
             else:
                 if block_linenr == linenr:
                     # Just update refs
-                    self._breakPoints[linenr] = block, block.previous(), block.next()
+                    self._breakPoints[linenr] = (
+                        enabled,
+                        block,
+                        block.previous(),
+                        block.next(),
+                    )
                 else:
                     # unexpected --> delete breakpoint
                     del self._breakPoints[linenr]
@@ -1272,27 +1289,43 @@ class BreakPoints(object):
             self.breakPointsChanged.emit(self)
             self.__breakPointArea.update()
 
-    def breakPoints(self):
+    def breakPoints(self, triState=False):
         """A list of breakpoints for this editor."""
-        return list(sorted(self._breakPoints))
+        if triState:
+            return sorted(
+                (linenr, enabled) for linenr, (enabled, *_) in self._breakPoints.items()
+            )
+        else:
+            return sorted(
+                linenr for linenr, (enabled, *_) in self._breakPoints.items() if enabled
+            )
 
     def clearBreakPoints(self):
         """Remove all breakpoints for this editor."""
         for linenr in self.breakPoints():
-            self.toggleBreakpoint(linenr)
+            self.toggleBreakpoint(linenr, triState=False)
 
-    def toggleBreakpoint(self, linenr=None):
-        """Turn breakpoint on/off for given linenr of current line."""
+    def toggleBreakpoint(self, linenr=None, triState=True):
+        """Turn breakpoint on / half (disabled) / off (removed) for given linenr of current line."""
         if linenr is None:
             linenr = self.textCursor().blockNumber() + 1
+
         if linenr in self._breakPoints:
-            self._breakPoints.pop(linenr)
+            enabled, b, bPrev, bNext = self._breakPoints.pop(linenr)
+            if triState and enabled:
+                enabled = False
+            else:
+                b = None  # indicate to not add a new modified breakpoint
         else:
+            enabled = True
             c = self.textCursor()
             c.movePosition(c.Start)
             c.movePosition(c.NextBlock, c.MoveAnchor, linenr - 1)
             b = c.block()
+            bPrev = b.previous()
+            bNext = b.next()
 
+        if b is not None:
             # As described in method "__onBlockCountChanged", we want to make sure that
             # the userData of the block is set to anything but None. It is totally ok that
             # other Pyzo modules such as the highlighter will overwrite that userData as
@@ -1302,7 +1335,7 @@ class BreakPoints(object):
                     QtGui.QTextBlockUserData()
                 )  # just something other than None
 
-            self._breakPoints[linenr] = b, b.previous(), b.next()
+            self._breakPoints[linenr] = enabled, b, bPrev, bNext
 
         self.breakPointsChanged.emit(self)
         self.__breakPointArea.update()
