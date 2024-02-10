@@ -1340,6 +1340,24 @@ class BreakPoints(object):
         self.breakPointsChanged.emit(self)
         self.__breakPointArea.update()
 
+    def jumpPreviousBreakpoint(self):
+        currentLinenr = self.textCursor().blockNumber() + 1
+        newLinenr = max(
+            (linenr for linenr in self._breakPoints if linenr < currentLinenr),
+            default=None,
+        )
+        if newLinenr is not None:
+            self.gotoLine(newLinenr)
+
+    def jumpNextBreakpoint(self):
+        currentLinenr = self.textCursor().blockNumber() + 1
+        newLinenr = min(
+            (linenr for linenr in self._breakPoints if linenr > currentLinenr),
+            default=None,
+        )
+        if newLinenr is not None:
+            self.gotoLine(newLinenr)
+
     def setDebugLineIndicator(self, linenr, active=True):
         """Set the debug line indicator to the given line number.
         If None or 0, the indicator is hidden.

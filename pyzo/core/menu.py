@@ -770,6 +770,24 @@ class EditMenu(Menu):
             self._editItemCallback,
             "toggleBreakpoint",
         )
+        self.addItem(
+            translate(
+                "menu",
+                "Jump to previous breakpoint ::: Jump to the closest breakpoint above the current line.",
+            ),
+            None,
+            self._editItemCallback,
+            "jumpPreviousBreakpoint",
+        )
+        self.addItem(
+            translate(
+                "menu",
+                "Jump to next breakpoint ::: Jump to the closest breakpoint below the current line.",
+            ),
+            None,
+            self._editItemCallback,
+            "jumpNextBreakpoint",
+        )
         self.addSeparator()
         self.addItem(
             translate(
