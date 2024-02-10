@@ -623,30 +623,44 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
     ## Misc
 
-    def gotoLine(self, lineNumber):
-        """gotoLine(lineNumber)
+    def gotoLine(self, lineNumber, keepHorizontalPos=False):
+        """gotoLine(lineNumber, keepHorizontalPos=False)
 
-        Move the cursor to the block given by the line number
+        Move the cursor to the (beginning of the) block given by the line number
         (first line is number 1) and show that line.
 
+        Optionally, the the horizontal position of the cursor can be kept.
         """
-        return self.gotoBlock(lineNumber - 1)
+        return self.gotoBlock(lineNumber - 1, keepHorizontalPos)
 
-    def gotoBlock(self, blockNumber):
-        """gotoBlock(blockNumber)
+    def gotoBlock(self, blockNumber, keepHorizontalPos=False):
+        """gotoBlock(blockNumber, keepHorizontalPos=False)
 
-        Move the cursor to the block given by the block number
+        Move the cursor to the (beginning of the) block given by the block number
         (first block is number 0) and show that line.
 
+        Optionally, the the horizontal position of the cursor can be kept.
         """
+        cursor = self.textCursor()
+        if keepHorizontalPos:
+            hPos = cursor.verticalMovementX()
+
         # Two implementatios. I know that the latter works, so lets
         # just use that.
 
-        cursor = self.textCursor()
         # block = self.document().findBlockByNumber( blockNumber )
         # cursor.setPosition(block.position())
         cursor.movePosition(cursor.Start)  # move to begin of the document
         cursor.movePosition(cursor.NextBlock, n=blockNumber)  # n blocks down
+
+        if keepHorizontalPos:
+            if cursor.movePosition(cursor.Up):
+                backToRow = cursor.Down
+            else:
+                cursor.movePosition(cursor.Down)
+                backToRow = cursor.Up
+            cursor.setVerticalMovementX(hPos)
+            cursor.movePosition(backToRow)
 
         try:
             self.setTextCursor(cursor)

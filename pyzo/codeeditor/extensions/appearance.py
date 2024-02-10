@@ -1347,7 +1347,7 @@ class BreakPoints(object):
             default=None,
         )
         if newLinenr is not None:
-            self.gotoLine(newLinenr)
+            self.gotoLine(newLinenr, keepHorizontalPos=True)
 
     def jumpNextBreakpoint(self):
         currentLinenr = self.textCursor().blockNumber() + 1
@@ -1356,7 +1356,7 @@ class BreakPoints(object):
             default=None,
         )
         if newLinenr is not None:
-            self.gotoLine(newLinenr)
+            self.gotoLine(newLinenr, keepHorizontalPos=True)
 
     def setDebugLineIndicator(self, linenr, active=True):
         """Set the debug line indicator to the given line number.
