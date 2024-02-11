@@ -428,7 +428,8 @@ class Parser(threading.Thread):
             line, cmnt = line.rstrip(), cmnt.lower().strip()
 
             # Detect todos
-            if cmnt and (cmnt.startswith("todo:") or cmnt.startswith("2do:")):
+            firstWord = cmnt.lstrip().split(" ", 1)[0].rstrip(":")
+            if firstWord.lower() in ["todo", "2do", "fixme"]:
                 item = FictiveObject("todo", i, indent, cmnt)
                 item.linenr2 = i + 1  # a todo is active at one line only
                 leafs.append(item)
