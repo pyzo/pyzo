@@ -253,7 +253,7 @@ class BaseFSProxy(threading.Thread):
     # For testing to induce extra delay. Should normally be close to zero,
     # but not exactly zero!
     IDLE_DELAY = 0.01
-    QUEUE_DELAY = 0.01  # 0.5
+    QUEUE_DELAY = 1e-4
 
     def __init__(self):
         threading.Thread.__init__(self)
