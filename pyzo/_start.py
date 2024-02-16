@@ -69,7 +69,7 @@ class MyApp(QtWidgets.QApplication):
         if isinstance(event, QtGui.QFileOpenEvent):
             fname = str(event.file())
             if fname and fname != "pyzo":
-                sys.argv[-1:] = [fname]
+                sys.argv[1:] = [fname]
                 res = commandline.handle_cmd_args()
                 if not commandline.is_our_server_running():
                     print(res)
