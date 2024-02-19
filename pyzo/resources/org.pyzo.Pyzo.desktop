@@ -11,7 +11,7 @@ Comment=Interactive editor for scientific Python
 # e.g. 
 # /usr/share/applications/org.pyzo.Pyzo.desktop
 # or
-# ~/.local/share/org.pyzo.Pyzo.desktop
+# ~/.local/share/applications/org.pyzo.Pyzo.desktop
 # but do not change the filename "org.pyzo.Pyzo.desktop" because the Pyzo application
 # will refer to this file via QApplication.setDesktopFileName(...)
 # and make sure that this .desktop file is executable (chmod +x ...)
