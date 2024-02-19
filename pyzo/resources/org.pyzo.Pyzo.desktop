@@ -1,0 +1,42 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Pyzo
+GenericName=Integrated Development Environment
+Comment=Interactive editor for scientific Python
+
+# desktop file location
+# =====================
+# copy this file to a path specified by the freedesktop.org standards
+# e.g. 
+# /usr/share/applications/org.pyzo.Pyzo.desktop
+# or
+# ~/.local/share/org.pyzo.Pyzo.desktop
+# but do not change the filename "org.pyzo.Pyzo.desktop" because the Pyzo application
+# will refer to this file via QApplication.setDesktopFileName(...)
+# and make sure that this .desktop file is executable (chmod +x ...)
+
+# specify the executable
+# ======================
+# either have a "pyzo" binary somewhere in the global search path
+Exec=pyzo %f
+# ... or run Pyzo from source via a Python interpreter
+# Exec=env QT_API=pyside6 python3 /path/to/pyzo-source/pyzolauncher.py %f
+
+# specify the icon
+# ================
+# either copy the icon to a path specified by the freedesktop.org standards
+# e.g. /home/username/.local/share/icons/pyzologo.png
+# and only specify the filename without the extension
+Icon=pyzologo
+# ... or specify the absolute path to the icon, e.g.:
+# Icon=/path/to/pyzo-source/pyzo/resources/appicons/pyzologo128.png
+
+# uncomment and modify the following line if needed
+# TryExec=pyzo
+
+Categories=Development;Science;IDE;Qt;
+Keywords=Python;IDE;science;interactive;
+Terminal=false
+StartupNotify=true
+MimeType=text/x-python;

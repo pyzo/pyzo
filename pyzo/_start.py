@@ -48,6 +48,15 @@ try:
 except Exception:
     pass  # fail on older Qt's
 
+try:
+    QtWidgets.QApplication.setDesktopFileName("org.pyzo.Pyzo")
+    # --> this name is according to the freedesktop.org standards and
+    # will refer to a file "org.pyzo.Pyzo.desktop" in the proper directory
+    # e.g. "/usr/share/applications" or "~/.local/share/applications"
+    # an example file is located at "./resources/org.pyzo.Pyzo.desktop"
+except Exception:
+    pass  # fail on older Qt's < 5.7
+
 # Import language/translation tools
 from pyzo.util._locale import translate, setLanguage  # noqa
 
