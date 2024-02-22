@@ -480,6 +480,10 @@ endProgs = {
     '"""': re.compile(r'(^|[^\\])(\\\\)*"""'),
 }
 
+# A string can also be line-continued with a backslash at the very end of a line.
+# In that case one single or double quote sign can span more than a line.
+stringLineContinuation = re.compile(r"(^|[^\\])(\\\\)*\\$")
+
 
 class PythonParser(Parser):
     """Parser for Python in general."""
@@ -493,7 +497,7 @@ class PythonParser(Parser):
     _instance = set()
 
     def _identifierState(self, identifier=None):
-        """Given an identifier returs the identifier state:
+        """Given an identifier returns the identifier state:
         3 means the current identifier can be a function.
         4 means the current identifier can be a class.
         0 otherwise.
@@ -527,7 +531,7 @@ class PythonParser(Parser):
         """parseLine(line, previousState=0)
 
         Parse a line of Python code, yielding tokens.
-        previousstate is the state of the previous block, and is used
+        previousState is the state of the previous block, and is used
         to handle line continuation and multiline strings.
 
         """
@@ -536,12 +540,14 @@ class PythonParser(Parser):
         # Init
         pos = 0  # Position following the previous match
 
-        # identifierState and previousstate values:
+        # identifierState and previousState values:
         # 0: nothing special
         # 1: multiline comment single qoutes
         # 2: multiline comment double quotes
         # 3: a def keyword
         # 4: a class keyword
+        # 5: a single quote string literal (non-multiline) line-continued by a backslash
+        # 6: a double quote string literal (non-multiline) line-continued by a backslash
 
         # Handle line continuation after def or class
         # identifierState is 3 or 4 if the previous identifier was 3 or 4
@@ -550,9 +556,12 @@ class PythonParser(Parser):
         else:
             self._identifierState(None)
 
-        if previousState in [1, 2]:
-            token = MultilineStringToken(line, 0, 0)
-            token._style = ["", "'''", '"""'][previousState]
+        if previousState in [1, 2, 5, 6]:
+            if previousState <= 2:
+                token = MultilineStringToken(line, 0, 0)
+            else:
+                token = StringToken(line, 0, 0)
+            token._style = ["", "'''", '"""', None, None, "'", '"'][previousState]
             tokens = self._findEndOfString(line, token)
             # Process tokens
             for token in tokens:
@@ -612,6 +621,12 @@ class PythonParser(Parser):
             elif style == '"""':
                 return [MultilineStringToken(*tokenArgs), BlockState(2)]
             else:
+                lineContMatch = stringLineContinuation.search(line[token.end :])
+                if lineContMatch:
+                    return [
+                        StringToken(*tokenArgs),
+                        BlockState(5 if style == "'" else 6),
+                    ]
                 return [UnterminatedStringToken(*tokenArgs)]
 
     def _findNextToken(self, line, pos):
@@ -621,7 +636,7 @@ class PythonParser(Parser):
 
         """
 
-        # Init tokens, if pos too large, were done
+        # Init tokens, if pos too large, we are done
         if pos > len(line):
             return None
         tokens = []
