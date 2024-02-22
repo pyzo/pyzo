@@ -493,7 +493,7 @@ class AutoCloseQuotesAndBrackets(object):
         token = None
         for token in tokens:
             if hasattr(token, "start"):
-                if token.start >= pos:
+                if token.start <= pos < token.end:
                     break
             elif getattr(token, "state", 0) in (1, 2):
                 token = MultilineStringToken()  # 1 and 2 are mls, by convention, sortof
@@ -572,7 +572,7 @@ class AutoCloseQuotesAndBrackets(object):
         elif char in quotes and pyzo.config.settings.autoClose_Quotes:
             next_char = self.__getNextCharacter()
 
-            # Dont autoquote inside comments and multiline strings
+            # Don't autoquote inside comments and multiline strings
             # Only allow "doing our thing" when we're at the end of a normal string
             token = self._get_token_at_cursor(cursor)
             if isinstance(token, (CommentToken, MultilineStringToken)):
