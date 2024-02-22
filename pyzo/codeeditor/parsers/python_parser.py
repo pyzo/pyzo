@@ -451,24 +451,24 @@ class CellCommentToken(CommentToken):
 # This regexp is used to find special stuff, such as comments, numbers and
 # strings.
 tokenProg = re.compile(
-    "#|"
-    + "(["  # Comment or
-    + ALPHANUM
+    "#|"  # Comment or
+    + "(["
+    + ALPHANUM  # Identifiers/numbers (group 1) or
     + "_]+)|"
-    + "("  # Identifiers/numbers (group 1) or
-    + "([bB]|[uU])?"  # Begin of string group (group 2)
-    + "[rR]?"  # Possibly bytes or unicode (py2.x)
-    + "(\"\"\"|'''|\"|')"  # Possibly a raw string
-    + ")|"  # String start (triple qoutes first, group 4)
-    + r"(\(|\[|\{)|"  # End of string group
-    + r"(\)|\]|\})|"  # Opening parenthesis (gr 5)
-    + "("  # Closing parenthesis (gr 6)
-    + chr(160)
-    + ")"  # non-breaking space (gr 7)
+    + "("  # Begin of string group (group 2)
+    + "([bB]|[uU])?"  # Possibly bytes or unicode (py2.x)
+    + "[rR]?"  # Possibly a raw string
+    + "(\"\"\"|'''|\"|')"  # String start (triple quotes first, group 4)
+    + ")|"  # End of string group
+    + r"(\(|\[|\{)|"  # Opening parenthesis (gr 5)
+    + r"(\)|\]|\})|"  # Closing parenthesis (gr 6)
+    + "("
+    + chr(160)  # non-breaking space (gr 7)
+    + ")"
 )
 
 
-# For a given type of string ( ', " , ''' , """ ),get  the RegExp
+# For a given type of string ( ', " , ''' , """ ), get the RegExp
 # program that matches the end. (^|[^\\]) means: start of the line
 # or something that is not \ (since \ is supposed to escape the following
 # quote) (\\\\)* means: any number of two slashes \\ since each slash will
