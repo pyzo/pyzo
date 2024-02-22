@@ -67,7 +67,7 @@ python2Keywords = set(
     ]
 )
 
-# Source: import keyword; keyword.kwlist (Python 3.1.2)
+# Source: import keyword; keyword.kwlist (Python 3.12)
 python3Keywords = set(
     [
         "False",
@@ -262,7 +262,7 @@ python2Builtins = set(
     ]
 )
 
-# Source: import builtins; dir(builtins) (Python 3.5.2)
+# Source: import builtins; dir(builtins) (Python 3.12)
 # Note: Removed 'False', 'None', 'True'. They are keyword in Python 3
 python3Builtins = set(
     [
@@ -270,6 +270,7 @@ python3Builtins = set(
         "AssertionError",
         "AttributeError",
         "BaseException",
+        "BaseExceptionGroup",
         "BlockingIOError",
         "BrokenPipeError",
         "BufferError",
@@ -282,8 +283,10 @@ python3Builtins = set(
         "DeprecationWarning",
         "EOFError",
         "Ellipsis",
+        "EncodingWarning",
         "EnvironmentError",
         "Exception",
+        "ExceptionGroup",
         "FileExistsError",
         "FileNotFoundError",
         "FloatingPointError",
@@ -300,6 +303,7 @@ python3Builtins = set(
         "KeyboardInterrupt",
         "LookupError",
         "MemoryError",
+        "ModuleNotFoundError",
         "NameError",
         "NotADirectoryError",
         "NotImplemented",
@@ -333,6 +337,7 @@ python3Builtins = set(
         "ValueError",
         "Warning",
         "ZeroDivisionError",
+        "_",
         "__build_class__",
         "__debug__",
         "__doc__",
@@ -342,11 +347,14 @@ python3Builtins = set(
         "__package__",
         "__spec__",
         "abs",
+        "aiter",
         "all",
+        "anext",
         "any",
         "ascii",
         "bin",
         "bool",
+        "breakpoint",
         "bytearray",
         "bytes",
         "callable",
