@@ -447,12 +447,16 @@ class CellCommentToken(CommentToken):
     defaultStyle = "bold:yes, underline:yes"
 
 
+stringLiteralPrefixes = frozenset("u|r|b|f|rb|br|rf|fr".split("|"))
+
 # This regexp is used to find special stuff, such as comments, numbers and
 # strings.
 tokenProg = re.compile(
     "#|"  # Comment or
     + "("  # Begin of string group (group 1)
-    + "(u|r|b|f|rb|br|rf|fr)?"  # prefixes for unicode raw byte format
+    + "("
+    + "|".join(stringLiteralPrefixes)
+    + ")?"  # (group 2)
     + "(\"\"\"|'''|\"|')"  # String start (triple quotes first, group 3)
     + ")|"  # End of string group
     + "([a-z0-9_]+)|"  # Identifiers/numbers (group 4) or

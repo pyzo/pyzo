@@ -22,7 +22,7 @@ from ..parsers.tokens import (
     StringToken,
     UnterminatedStringToken,
 )
-from ..parsers.python_parser import MultilineStringToken
+from ..parsers.python_parser import MultilineStringToken, stringLiteralPrefixes
 
 
 class MoveLinesUpDown(object):
@@ -489,15 +489,21 @@ class AutoCloseQuotesAndBrackets(object):
         if cursor is None:
             cursor = self.textCursor()
         pos = cursor.positionInBlock() + relpos
-        tokens = cursor.block().userData().tokens
-        token = None
-        for token in tokens:
+        tokenAtCursor = None
+        for token in cursor.block().userData().tokens:
             if hasattr(token, "start"):
-                if token.start <= pos < token.end:
+                if token.start > pos:
                     break
-            elif getattr(token, "state", 0) in (1, 2):
-                token = MultilineStringToken()  # 1 and 2 are mls, by convention, sortof
-        return token
+                if token.start <= pos < token.end:
+                    tokenAtCursor = token
+                    break
+            if isinstance(token, MultilineStringToken):
+                # multiline string tokens can have a length
+                # of zero if the whole line is an empty comment
+                if token.start == token.end == 0:
+                    tokenAtCursor = token
+                    break
+        return tokenAtCursor
 
     def keyPressEvent(self, event):
         try:
@@ -599,11 +605,16 @@ class AutoCloseQuotesAndBrackets(object):
                 self._moveCursorRight(1)
             else:
                 # Only autoquote if we're next to whitespace, operator, quote
-                notok_token_types = (IdentifierToken,)
                 tokenL = self._get_token_at_cursor(cursor, -1)
                 tokenR = self._get_token_at_cursor(cursor, -0)
-                if isinstance(tokenL, notok_token_types) or isinstance(
-                    tokenR, notok_token_types
+
+                if (
+                    isinstance(tokenR, IdentifierToken)
+                    or isinstance(
+                        tokenL, StringToken
+                    )  # don't add a fourth " when typing " after two "
+                    or isinstance(tokenL, IdentifierToken)
+                    and str(tokenL) not in stringLiteralPrefixes
                 ):
                     super().keyPressEvent(event)
                     return
