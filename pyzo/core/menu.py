@@ -30,6 +30,8 @@ from pyzo import translate
 
 from pyzo.core.pdfExport import PdfExport
 
+from pyzo.codeeditor.parsers.python_parser import CellCommentToken
+
 
 def buildMenus(menuBar):
     """
@@ -2088,10 +2090,7 @@ class RunMenu(Menu):
         self._runCell(advance=True)
 
     def _runCell(self, advance=False):
-        """Run the code between two cell separaters ('##')."""
-        # TODO: ignore ## in multi-line strings
-        # Maybe using source-structure information?
-
+        """Run the code between two cell separators ('##' or '# %%')."""
         # Get editor and shell
         shell, editor = self._getShellAndEditor("cell")
         if not shell or not editor:
@@ -2099,23 +2098,40 @@ class RunMenu(Menu):
 
         cellName = ""
 
+        if editor.parser().name().startswith("python"):
+
+            def isCursorAtCellComment(cur):
+                # there could be a whitespace token before the cell token
+                for t in cur.block().userData().tokens[:2]:
+                    if isinstance(t, CellCommentToken):
+                        return True
+                return False
+
+        else:
+            # use this as a fallback if no Python syntax highlighter parser is selected
+            # This fallback is dumber: lines starting with "##" in a multiline string literal
+            # will be misinterpreted as cell comments.
+            def isCursorAtCellComment(cur):
+                line = cur.block().text().lstrip()
+                return (
+                    line.startswith("##")
+                    or line.startswith("#%%")
+                    or line.startswith("# %%")
+                )
+
         # Get current cell
         # Move up until the start of document
         # or right after a line starting with '##'
         runCursor = editor.textCursor()  # The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
         while True:
-            line = runCursor.block().text().lstrip()
-            if (
-                line.startswith("##")
-                or line.startswith("#%%")
-                or line.startswith("# %%")
-            ):
+            if isCursorAtCellComment(runCursor):
                 # ## line, move to the line following this one
                 if not runCursor.block().next().isValid():
                     # The user tried to execute the last line of a file which
                     # started with ##. Do nothing
                     return
+                line = runCursor.block().text().lstrip()
                 runCursor.movePosition(runCursor.NextBlock)
                 cellName = line.lstrip("#% ").strip()
                 break
@@ -2131,12 +2147,7 @@ class RunMenu(Menu):
         # Move down until a line before one starting with'##'
         # or to end of document
         while True:
-            line = runCursor.block().text().lstrip()
-            if (
-                line.startswith("##")
-                or line.startswith("#%%")
-                or line.startswith("# %%")
-            ):
+            if isCursorAtCellComment(runCursor):
                 # This line starts with ##, move to the end of the previous one
                 runCursor.movePosition(runCursor.Left, runCursor.KeepAnchor)
                 break
