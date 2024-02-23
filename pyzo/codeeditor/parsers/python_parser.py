@@ -6,7 +6,6 @@
 
 import re
 from . import Parser, BlockState, text_type
-from .tokens import ALPHANUM
 from ..misc import ustr
 
 # Import tokens in module namespace
@@ -452,19 +451,17 @@ class CellCommentToken(CommentToken):
 # strings.
 tokenProg = re.compile(
     "#|"  # Comment or
-    + "(["
-    + ALPHANUM  # Identifiers/numbers (group 1) or
-    + "_]+)|"
-    + "("  # Begin of string group (group 2)
-    + "([bB]|[uU])?"  # Possibly bytes or unicode (py2.x)
-    + "[rR]?"  # Possibly a raw string
-    + "(\"\"\"|'''|\"|')"  # String start (triple quotes first, group 4)
+    + "("  # Begin of string group (group 1)
+    + "(u|r|b|f|rb|br|rf|fr)?"  # prefixes for unicode raw byte format
+    + "(\"\"\"|'''|\"|')"  # String start (triple quotes first, group 3)
     + ")|"  # End of string group
+    + "([a-z0-9_]+)|"  # Identifiers/numbers (group 4) or
     + r"(\(|\[|\{)|"  # Opening parenthesis (gr 5)
     + r"(\)|\]|\})|"  # Closing parenthesis (gr 6)
     + "("
     + chr(160)  # non-breaking space (gr 7)
-    + ")"
+    + ")",
+    re.IGNORECASE,
 )
 
 
@@ -702,8 +699,8 @@ class PythonParser(Parser):
             self._identifierState(None)
 
         # Identifier ("a word or number") Find out whether it is a key word
-        if match.group(1) is not None:
-            identifier = match.group(1)
+        if match.group(4) is not None:
+            identifier = match.group(4)
             tokenArgs = line, match.start(), match.end()
 
             # Set identifier state
@@ -730,11 +727,11 @@ class PythonParser(Parser):
                 else:
                     tokens.append(IdentifierToken(*tokenArgs))
 
-        elif match.group(2) is not None:
+        elif match.group(3) is not None:
             # We have matched a string-start
             # Find the string style ( ' or " or ''' or """)
             token = StringToken(line, match.start(), match.end())
-            token._style = match.group(4)  # The style is in match group 4
+            token._style = match.group(3)  # The style is in match group 3
             tokens.append(token)
         elif match.group(5) is not None:
             token = OpenParenToken(line, match.start(), match.end())
