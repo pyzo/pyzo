@@ -6,7 +6,6 @@
 
 import re
 from . import Parser, BlockState, text_type
-from .tokens import ALPHANUM
 from ..misc import ustr
 
 # Import tokens in module namespace
@@ -67,7 +66,7 @@ python2Keywords = set(
     ]
 )
 
-# Source: import keyword; keyword.kwlist (Python 3.1.2)
+# Source: import keyword; keyword.kwlist (Python 3.12)
 python3Keywords = set(
     [
         "False",
@@ -262,7 +261,7 @@ python2Builtins = set(
     ]
 )
 
-# Source: import builtins; dir(builtins) (Python 3.5.2)
+# Source: import builtins; dir(builtins) (Python 3.12)
 # Note: Removed 'False', 'None', 'True'. They are keyword in Python 3
 python3Builtins = set(
     [
@@ -270,6 +269,7 @@ python3Builtins = set(
         "AssertionError",
         "AttributeError",
         "BaseException",
+        "BaseExceptionGroup",
         "BlockingIOError",
         "BrokenPipeError",
         "BufferError",
@@ -282,8 +282,10 @@ python3Builtins = set(
         "DeprecationWarning",
         "EOFError",
         "Ellipsis",
+        "EncodingWarning",
         "EnvironmentError",
         "Exception",
+        "ExceptionGroup",
         "FileExistsError",
         "FileNotFoundError",
         "FloatingPointError",
@@ -300,6 +302,7 @@ python3Builtins = set(
         "KeyboardInterrupt",
         "LookupError",
         "MemoryError",
+        "ModuleNotFoundError",
         "NameError",
         "NotADirectoryError",
         "NotImplemented",
@@ -333,6 +336,7 @@ python3Builtins = set(
         "ValueError",
         "Warning",
         "ZeroDivisionError",
+        "_",
         "__build_class__",
         "__debug__",
         "__doc__",
@@ -342,11 +346,14 @@ python3Builtins = set(
         "__package__",
         "__spec__",
         "abs",
+        "aiter",
         "all",
+        "anext",
         "any",
         "ascii",
         "bin",
         "bool",
+        "breakpoint",
         "bytearray",
         "bytes",
         "callable",
@@ -440,27 +447,29 @@ class CellCommentToken(CommentToken):
     defaultStyle = "bold:yes, underline:yes"
 
 
+stringLiteralPrefixes = frozenset("u|r|b|f|rb|br|rf|fr".split("|"))
+
 # This regexp is used to find special stuff, such as comments, numbers and
 # strings.
 tokenProg = re.compile(
-    "#|"
-    + "(["  # Comment or
-    + ALPHANUM
-    + "_]+)|"
-    + "("  # Identifiers/numbers (group 1) or
-    + "([bB]|[uU])?"  # Begin of string group (group 2)
-    + "[rR]?"  # Possibly bytes or unicode (py2.x)
-    + "(\"\"\"|'''|\"|')"  # Possibly a raw string
-    + ")|"  # String start (triple qoutes first, group 4)
-    + r"(\(|\[|\{)|"  # End of string group
-    + r"(\)|\]|\})|"  # Opening parenthesis (gr 5)
-    + "("  # Closing parenthesis (gr 6)
-    + chr(160)
-    + ")"  # non-breaking space (gr 7)
+    "#|"  # Comment or
+    + "("  # Begin of string group (group 1)
+    + "("
+    + "|".join(stringLiteralPrefixes)
+    + ")?"  # (group 2)
+    + "(\"\"\"|'''|\"|')"  # String start (triple quotes first, group 3)
+    + ")|"  # End of string group
+    + "([a-z0-9_]+)|"  # Identifiers/numbers (group 4) or
+    + r"(\(|\[|\{)|"  # Opening parenthesis (gr 5)
+    + r"(\)|\]|\})|"  # Closing parenthesis (gr 6)
+    + "("
+    + chr(160)  # non-breaking space (gr 7)
+    + ")",
+    re.IGNORECASE,
 )
 
 
-# For a given type of string ( ', " , ''' , """ ),get  the RegExp
+# For a given type of string ( ', " , ''' , """ ), get the RegExp
 # program that matches the end. (^|[^\\]) means: start of the line
 # or something that is not \ (since \ is supposed to escape the following
 # quote) (\\\\)* means: any number of two slashes \\ since each slash will
@@ -471,6 +480,10 @@ endProgs = {
     "'''": re.compile(r"(^|[^\\])(\\\\)*'''"),
     '"""': re.compile(r'(^|[^\\])(\\\\)*"""'),
 }
+
+# A string can also be line-continued with a backslash at the very end of a line.
+# In that case one single or double quote sign can span more than a line.
+stringLineContinuation = re.compile(r"(^|[^\\])(\\\\)*\\$")
 
 
 class PythonParser(Parser):
@@ -485,7 +498,7 @@ class PythonParser(Parser):
     _instance = set()
 
     def _identifierState(self, identifier=None):
-        """Given an identifier returs the identifier state:
+        """Given an identifier returns the identifier state:
         3 means the current identifier can be a function.
         4 means the current identifier can be a class.
         0 otherwise.
@@ -519,7 +532,7 @@ class PythonParser(Parser):
         """parseLine(line, previousState=0)
 
         Parse a line of Python code, yielding tokens.
-        previousstate is the state of the previous block, and is used
+        previousState is the state of the previous block, and is used
         to handle line continuation and multiline strings.
 
         """
@@ -528,12 +541,14 @@ class PythonParser(Parser):
         # Init
         pos = 0  # Position following the previous match
 
-        # identifierState and previousstate values:
+        # identifierState and previousState values:
         # 0: nothing special
         # 1: multiline comment single qoutes
         # 2: multiline comment double quotes
         # 3: a def keyword
         # 4: a class keyword
+        # 5: a single quote string literal (non-multiline) line-continued by a backslash
+        # 6: a double quote string literal (non-multiline) line-continued by a backslash
 
         # Handle line continuation after def or class
         # identifierState is 3 or 4 if the previous identifier was 3 or 4
@@ -542,9 +557,12 @@ class PythonParser(Parser):
         else:
             self._identifierState(None)
 
-        if previousState in [1, 2]:
-            token = MultilineStringToken(line, 0, 0)
-            token._style = ["", "'''", '"""'][previousState]
+        if previousState in [1, 2, 5, 6]:
+            if previousState <= 2:
+                token = MultilineStringToken(line, 0, 0)
+            else:
+                token = StringToken(line, 0, 0)
+            token._style = ["", "'''", '"""', None, None, "'", '"'][previousState]
             tokens = self._findEndOfString(line, token)
             # Process tokens
             for token in tokens:
@@ -604,6 +622,12 @@ class PythonParser(Parser):
             elif style == '"""':
                 return [MultilineStringToken(*tokenArgs), BlockState(2)]
             else:
+                lineContMatch = stringLineContinuation.search(line[token.end :])
+                if lineContMatch:
+                    return [
+                        StringToken(*tokenArgs),
+                        BlockState(5 if style == "'" else 6),
+                    ]
                 return [UnterminatedStringToken(*tokenArgs)]
 
     def _findNextToken(self, line, pos):
@@ -613,7 +637,7 @@ class PythonParser(Parser):
 
         """
 
-        # Init tokens, if pos too large, were done
+        # Init tokens, if pos too large, we are done
         if pos > len(line):
             return None
         tokens = []
@@ -679,8 +703,8 @@ class PythonParser(Parser):
             self._identifierState(None)
 
         # Identifier ("a word or number") Find out whether it is a key word
-        if match.group(1) is not None:
-            identifier = match.group(1)
+        if match.group(4) is not None:
+            identifier = match.group(4)
             tokenArgs = line, match.start(), match.end()
 
             # Set identifier state
@@ -707,11 +731,11 @@ class PythonParser(Parser):
                 else:
                     tokens.append(IdentifierToken(*tokenArgs))
 
-        elif match.group(2) is not None:
+        elif match.group(3) is not None:
             # We have matched a string-start
             # Find the string style ( ' or " or ''' or """)
             token = StringToken(line, match.start(), match.end())
-            token._style = match.group(4)  # The style is in match group 4
+            token._style = match.group(3)  # The style is in match group 3
             tokens.append(token)
         elif match.group(5) is not None:
             token = OpenParenToken(line, match.start(), match.end())
