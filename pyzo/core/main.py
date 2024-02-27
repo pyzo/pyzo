@@ -120,8 +120,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Restore window state, force updating, and restore again
         self.restoreState()
         self.paintNow()
-        pyzo.editors.restoreEditorState()
         self.restoreState()
+        pyzo.editors.restoreEditorState()
 
         # Present user with wizard if he/she is new.
         if False:  # pyzo.config.state.newUser:
