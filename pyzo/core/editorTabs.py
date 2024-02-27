@@ -1007,9 +1007,9 @@ class EditorTabs(QtWidgets.QWidget):
         # restore state (call later so that the menu module can bind to the
         # currentChanged signal first, in order to set tab/indentation
         # checkmarks appropriately)
-        # todo: Resetting the scrolling would work better if set after
-        # the widgets are properly sized.
-        pyzo.callLater(self.restoreEditorState)
+
+        # self.restoreEditorState should be called from outside after the paintNow call
+        # otherwise the horizontal scrollbar would be set for a too small widget size
 
     @property
     def _fileDialogOptions(self):
