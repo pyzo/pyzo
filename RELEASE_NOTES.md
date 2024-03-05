@@ -1,7 +1,28 @@
 # Release notes
 
 
-### Versionm 4.14.4 (13-12-2023)
+### Version 4.15.0 (05-03-2024)
+
+* Prevent autocomplete infinite loop for class lookup by @bdieterm in https://github.com/pyzo/pyzo/pull/945
+* Always use built-in dir command for autocompletion introspection by @bdieterm in https://github.com/pyzo/pyzo/pull/947
+* Properly close pipes and sockets by @bdieterm in https://github.com/pyzo/pyzo/pull/948
+* Avoid crash caused by faulty QTextBlock by @bdieterm in https://github.com/pyzo/pyzo/pull/949
+* Keep autocompletion popup within the shell/editor widget by @bdieterm in https://github.com/pyzo/pyzo/pull/953
+* Fix unused default settings by @bdieterm in https://github.com/pyzo/pyzo/pull/954
+* Fix parsing/detection of "FIXME" in comments by @bdieterm in https://github.com/pyzo/pyzo/pull/956
+* Increase search speed in File Browser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/957
+* Fix shortcut strings by @bdieterm in https://github.com/pyzo/pyzo/pull/958
+* Fix file opening via QFileOpenEvent on Macs by @bdieterm in https://github.com/pyzo/pyzo/pull/959
+* Add breakpoint disabling and breakpoint navigation by @bdieterm in https://github.com/pyzo/pyzo/pull/955
+* Update .desktop template and add awareness by Qt by @bdieterm in https://github.com/pyzo/pyzo/pull/960
+* Fix comment in desktop file by @bdieterm in https://github.com/pyzo/pyzo/pull/961
+* Fix Python syntax parser and quotes/brackets autocompletion by @bdieterm in https://github.com/pyzo/pyzo/pull/962
+* Used properly parsed cell comments for runCell by @bdieterm in https://github.com/pyzo/pyzo/pull/963
+* Fix initial horizontal scrollbar positions for editors by @bdieterm in https://github.com/pyzo/pyzo/pull/964
+* Fix for fix initial horizontal scrollbar positions for editors by @bdieterm in https://github.com/pyzo/pyzo/pull/965
+
+
+### Version 4.14.4 (13-12-2023)
 
 * Updated default dark theme by @TeunBartelds in https://github.com/pyzo/pyzo/pull/934
 * Add menu entry for search in file browser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/936
