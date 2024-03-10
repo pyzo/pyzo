@@ -64,7 +64,7 @@ def normalizePath(path):
 
 def parseLine_autocomplete(tokens):
     """Given a list of tokens (from start to cursor position)
-    returns a tuple (base, name).
+    returns a tuple (name, needle).
     autocomp_parse("eat = banan") -> "", "banan"
       ...("eat = food.fruit.ban") -> "food.fruit", "ban"
     When no match found, both elements are an empty string.
@@ -73,26 +73,26 @@ def parseLine_autocomplete(tokens):
         return "", ""
 
     if isinstance(tokens[-1], Tokens.NonIdentifierToken) and str(tokens[-1]) == ".":
-        name = ""
+        needle = ""
     elif isinstance(tokens[-1], (Tokens.IdentifierToken, Tokens.KeywordToken)):
-        name = str(tokens[-1])
+        needle = str(tokens[-1])
     else:
         return "", ""
 
-    needle = ""
+    name = ""
     # Now go through the remaining tokens in reverse order
     for token in tokens[-2::-1]:
         if isinstance(token, Tokens.NonIdentifierToken) and str(token) == ".":
-            needle = str(token) + needle
+            name = str(token) + name
         elif isinstance(token, (Tokens.IdentifierToken, Tokens.StringToken)):
-            needle = str(token) + needle
+            name = str(token) + name
         else:
             break
 
-    if needle.endswith("."):
-        needle = needle[:-1]
+    if name.endswith("."):
+        name = name[:-1]
 
-    return needle, name
+    return name, needle
 
 
 def parseLine_signature(tokens):
