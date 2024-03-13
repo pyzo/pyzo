@@ -25,41 +25,12 @@ def normalizePath(path):
     """Normalize the path given.
     All slashes will be made the same (and doubles removed)
     The real case as stored on the file system is recovered.
-    Returns None on error.
     """
 
     # normalize
     path = os.path.abspath(path)  # make sure it is defined from the drive up
     path = os.path.normpath(path)
-
-    # If does not exist, return as is.
-    # This also happens if the path's case is incorrect and the
-    # file system is case sensitive. That's ok, because the stuff we
-    # do below is intended to get the path right on case insensitive
-    # file systems.
-    if not os.path.isfile(path):
-        return path
-
-    # split drive name from the rest
-    drive, rest = os.path.splitdrive(path)
-    fullpath = drive.upper() + os.sep
-
-    # make lowercase and split in parts
-    parts = rest.lower().split(os.sep)
-    parts = [part for part in parts if part]
-
-    for part in parts:
-        options = [x for x in os.listdir(fullpath) if x.lower() == part]
-        if len(options) > 1:
-            print("Error normalizing path: Ambiguous path names!")
-            return path
-        elif not options:
-            print("Invalid path (part {}) in {}".format(part, fullpath))
-            return path
-        fullpath = os.path.join(fullpath, options[0])
-
-    # remove last sep
-    return fullpath
+    return path
 
 
 def parseLine_autocomplete(tokens):

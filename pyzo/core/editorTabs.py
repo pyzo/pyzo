@@ -1239,11 +1239,21 @@ class EditorTabs(QtWidgets.QWidget):
             if item.id == filename:
                 # id gets _filename or _name for temp files
                 break
+            if os.path.isfile(filename) and os.path.isfile(item.filename):
+                if os.path.samefile(filename, item.filename):
+                    # file is already open, but with a different filepath
+                    # this could be, for example:
+                    # - a symbolic link to the other file
+                    # - or r"\\localhost\c$\temp\abc.py" and r"C:\temp\abc.py"
+                    break
         else:
             item = None
         if item:
             self._tabs.setCurrentItem(item)
-            print("File already open: '{}'".format(filename))
+            if filename == item.filename:
+                print("File already open: '{}'".format(filename))
+            else:
+                print("File '{}' already open as '{}'".format(filename, item.filename))
             return item
 
         # create editor
