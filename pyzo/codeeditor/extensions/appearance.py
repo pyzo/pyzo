@@ -51,6 +51,10 @@ class HighlightMatchingOccurrences(object):
         self.viewport().update()
 
     def _doHighlight(self, text):
+        if text.strip() != text or "\u2029" in text:
+            # selection has leading/trailing whitespace or contains a line break
+            return
+
         # make cursor at the beginning of the first visible block
         cursor = self.cursorForPosition(QtCore.QPoint(0, 0))
         cursor.movePosition(cursor.StartOfWord)
@@ -121,18 +125,12 @@ class HighlightMatchingOccurrences(object):
     def paintEvent(self, event):
         """paintEvent(event)
 
-        If there is a current selection, and the selected text is a valid Python
-        identifier (no whitespace, starts with a letter), then highlight all the
-        matching occurrences of the selected text in the current view.
-
         Paints behinds its super().
-
         """
         cursor = self.textCursor()
         if self.__highlightMatchingOccurrences and cursor.hasSelection():
             text = cursor.selectedText()
-            if text.isidentifier():
-                self._doHighlight(text)
+            self._doHighlight(text)
 
         super(HighlightMatchingOccurrences, self).paintEvent(event)
 
