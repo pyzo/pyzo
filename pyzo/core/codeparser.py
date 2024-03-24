@@ -425,7 +425,7 @@ class Parser(threading.Thread):
 
             # Split in line and comment
             line, tmp, cmnt = line.partition("#")
-            line, cmnt = line.rstrip(), cmnt.lower().strip()
+            line, cmnt = line.rstrip(), cmnt.strip()
 
             # Detect todos
             firstWord = cmnt.lstrip().split(" ", 1)[0].rstrip(":")
