@@ -1926,6 +1926,14 @@ class RunMenu(Menu):
         self.addItem(
             translate(
                 "menu",
+                "Execute line as statement ::: Execute the whole line at the cursor position in the editor, by copying it to the shell.",
+            ),  # noqa
+            icons.run_line,
+            self._runCurrentLineAsStatement,
+        )
+        self.addItem(
+            translate(
+                "menu",
                 "Execute cell ::: Execute the current editors's cell in the current shell.",
             ),  # noqa
             icons.run_cell,
@@ -2043,8 +2051,17 @@ class RunMenu(Menu):
     def _runSelectedAdvance(self):
         self._runSelected(advance=True)
 
-    def _runSelected(self, advance=False):
-        """Run the selected whole lines in the current shell."""
+    def _runCurrentLineAsStatement(self):
+        self._runSelected(runCurrentLineAsStatement=True)
+
+    def _runSelected(self, advance=False, runCurrentLineAsStatement=False):
+        """Run the selected whole lines in the current shell.
+
+        runCurrentLineAsStatement
+            same behavior as selecting the whole single line, i.e.:
+            copies the current editor line to the shell and executes it,
+            giving output of the result and adding the command to the history
+        """
         # Get editor and shell
         shell, editor = self._getShellAndEditor("selection")
         if not shell or not editor:
@@ -2067,9 +2084,15 @@ class RunMenu(Menu):
         # Does this look like a statement?
         isStatement = lineNumber1 == lineNumber2 and screenCursor.hasSelection()
 
-        if isStatement:
+        if isStatement or runCurrentLineAsStatement:
+            selectedText = screenCursor.selectedText()
+            if runCurrentLineAsStatement:
+                if lineNumber1 != lineNumber2:
+                    return
+                selectedText = runCursor.selectedText()
+
             # Get source code of statement
-            code = screenCursor.selectedText().replace("\u2029", "\n").strip()
+            code = selectedText.replace("\u2029", "\n").strip()
             # add code to history
             pyzo.command_history.append(code)
             # Execute statement
