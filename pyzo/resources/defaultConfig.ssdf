@@ -114,6 +114,7 @@ shortcuts2 = dict:
     run__run_file_as_script = 'Ctrl+Shift+E,Ctrl+F5'
     run__run_main_file_as_script = 'Ctrl+Shift+M,Ctrl+F6'
     run__execute_selection = 'Alt+Return,F9'
+    run__execute_line_as_statement = 'F10,'
     run__execute_cell = 'Ctrl+Return,Ctrl+Enter'
     run__execute_cell_and_advance = 'Ctrl+Shift+Return,Ctrl+Shift+Enter'
     run__execute_selection_and_advance = 'Shift+F9,Shift+Alt+Return'

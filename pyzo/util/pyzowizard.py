@@ -333,19 +333,24 @@ class RuncodeWizardPage1(BasePyzoWizardPage):
         ),
         translate(
             "wizard",
-            """*Run selection:* if there is no selected text, the current line
+            """*Execute selection:* if there is no selected text, the current line
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
         run the the (complete) selected lines.""",
         ),
         translate(
             "wizard",
-            "*Run cell:* a cell is everything between two lines starting with '##'.",
+            """*Execute line as statement:* Pyzo will copy the editor's current line
+        to the shell and execute it; this will display the executed code and the result.""",
         ),
-        translate("wizard", "*Run file:* run all the code in the current file."),
         translate(
             "wizard",
-            "*Run project main file:* run the code in the current project's main file.",
+            "*Execute cell:* a cell is everything between two lines starting with '##'.",
+        ),
+        translate("wizard", "*Execute file:* run all the code in the current file."),
+        translate(
+            "wizard",
+            "*Execute main file:* run the code in the current main file.",
         ),
     ]
 
