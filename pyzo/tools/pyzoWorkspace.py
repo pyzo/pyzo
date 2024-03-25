@@ -187,6 +187,15 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
 
         self._startUpVariables = ["In", "Out", "exit", "get_ipython", "quit"]
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        item = self.currentItem()
+        if key == QtCore.Qt.Key_Delete and item is not None:
+            objectName = joinName(splitName(self._proxy._name) + [item.text(0)])
+            self.deleteObject(objectName)
+            return
+        super().keyPressEvent(event)
+
     def contextMenuEvent(self, event):
         """contextMenuEvent(event)
         Show the context menu.
@@ -237,9 +246,12 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
 
         elif "delete" in req:
             # Delete the variable
-            shell = pyzo.shells.getCurrentShell()
-            if shell:
-                shell.processLine("del " + action._objectName)
+            self.deleteObject(action._objectName)
+
+    def deleteObject(self, objectName):
+        shell = pyzo.shells.getCurrentShell()
+        if shell is not None:
+            shell.processLine("del " + objectName)
 
     def onItemExpand(self, item):
         """onItemExpand(item)
