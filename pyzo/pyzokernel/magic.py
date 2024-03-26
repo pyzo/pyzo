@@ -110,9 +110,10 @@ def _should_not_interpret_as_magic(line):
         if interpreter.globals and command in interpreter.globals:
             return True
     else:  # command is not alone ; next token should not be an operator (this includes parentheses)
-        if ltok[pos].type == token.OP and not line.endswith("?"):
-            return True
-
+        if ltok[pos].type == token.OP:
+            # this is not a magic command: "b = a > 1  # is valid?"
+            if not line.endswith("?") or "#" in line:
+                return True
     return False
 
 
