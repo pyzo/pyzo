@@ -66,11 +66,14 @@ class HighlightMatchingOccurrences(object):
         painter.setBrush(color)
         painter.setPen(color.darker(110))
 
+        # flag "FindWholeWords" in doc.find would not consider "_" as a word character
+        # therefore use a custom regular expression instead
+        QRE = QtCore.QRegularExpression
+        needle = QRE(r"\b" + QRE.escape(text) + r"\b")
+
         # find occurrences
         for i in range(500):
-            cursor = doc.find(
-                text, cursor, doc.FindCaseSensitively | doc.FindWholeWords
-            )
+            cursor = doc.find(needle, cursor, doc.FindCaseSensitively)
             if cursor is None or cursor.isNull():
                 # no more matches
                 break
