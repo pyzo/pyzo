@@ -1319,6 +1319,31 @@ class EditorTabs(QtWidgets.QWidget):
         # return lastopened item
         return item
 
+    def reloadFile(self, editor=None):
+        if editor is None:
+            editor = self.getCurrentEditor()
+            if editor is None:
+                return
+        if editor.name.startswith("<tmp"):
+            return
+
+        if editor.document().isModified():
+            dlg = QtWidgets.QMessageBox(self)
+            dlg.setWindowTitle("Reload file with unsaved changes?")
+            dlg.setText(
+                'Do you want to reload file\n"{}"\n'
+                "and lose unsaved changes?".format(editor.filename)
+            )
+            dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)
+            btn = dlg.addButton("Keep this version", QtWidgets.QMessageBox.RejectRole)
+            dlg.setDefaultButton(btn)
+            btnIndex = dlg.exec_()
+            if btnIndex != 0:
+                return  # cancel reloading
+
+        editor.reload()
+        self._tabs.updateItems()
+
     def saveFileAs(self, editor=None):
         """Create a dialog for the user to select a file.
         returns: True if succesfull, False if fails

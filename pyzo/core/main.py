@@ -539,6 +539,10 @@ def loadIcons():
                 pyzo.icons[name] = dummyIcon
                 print("Could not load icon %s: %s" % (fname, str(err)))
 
+    artist = IconArtist("folder_page")
+    artist.addLayer("arrow_refresh")
+    pyzo.icons["reload_file_from_disk"] = artist.finish()
+
 
 def loadFonts():
     """loadFonts()
