@@ -367,7 +367,7 @@ class BaseShell(BaseTextCtrl):
                 return
 
             if sys.platform.startswith("win"):
-                if piece[1] != ":":
+                if piece[1] != ":" and piece[:2] != r"\\":
                     return
             else:
                 if not piece.startswith("/"):
