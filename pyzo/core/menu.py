@@ -513,6 +513,13 @@ class FileMenu(Menu):
         #
         self._items += [
             self.addItem(
+                translate(
+                    "menu", "Reload from disk ::: Reload the current file from disk."
+                ),
+                icons.reload_file_from_disk,
+                pyzo.editors.reloadFile,
+            ),
+            self.addItem(
                 translate("menu", "Save ::: Save the current file to disk."),
                 icons.disk,
                 pyzo.editors.saveFile,
