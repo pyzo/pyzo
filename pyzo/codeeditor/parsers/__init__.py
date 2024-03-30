@@ -44,11 +44,9 @@ class BlockState(object):
     The blockstate object should be used by parsers to
     return the block state of the processed line.
 
-    This would typically be the last item to be yielded, but this
-    it may also be yielded befor the last yielded token. One can even
-    yield multiple of these items, in which case the last one considered
-    valid.
-
+    This would typically be the last token in a line, but this might also
+    be before the last token in a line. Even multiple BlockState objects
+    can be present in a line, in which case the last one is considered valid.
     """
 
     isToken = False
@@ -99,13 +97,12 @@ class Parser(object):
         is an integer, the meaning of which is only known to the
         specific parser.
 
-        This method should yield token instances. The last token can
-        be a BlockState to specify the previousState for the
-        next block.
-
+        This method should reaturn a list of token instances. The
+        last token can be a BlockState to specify the previousState
+        for the next block.
         """
 
-        yield tokens.TextToken(line, 0, len(line))
+        return [tokens.TextToken(line, 0, len(line))]
 
     def name(self):
         """name()

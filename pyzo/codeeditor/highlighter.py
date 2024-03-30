@@ -81,7 +81,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         tokens = []
         if parser:
             self.setCurrentBlockState(0)
-            tokens = list(parser.parseLine(line, previousState))
+            tokens = parser.parseLine(line, previousState)
             for token in tokens:
                 # Handle block state
                 if isinstance(token, parsers.BlockState):

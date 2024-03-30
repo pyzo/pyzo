@@ -166,7 +166,7 @@ class ShellHighlighter(Highlighter):
             if specialinput:
                 pass  # Let the kernel decide formatting
             else:
-                tokens = list(parser.parseLine(line, previousState))
+                tokens = parser.parseLine(line, previousState)
                 bd.tokens = tokens
                 for token in tokens:
                     # Handle block state
