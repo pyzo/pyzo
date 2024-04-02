@@ -315,8 +315,8 @@ class PythonAutoIndent(object):
                     ppreviousState = (
                         ppreviousBlock.userState() if previousBlock.isValid() else 0
                     )
-                    tokens = list(
-                        self.parser().parseLine(previousBlock.text(), ppreviousState)
+                    tokens = self.parser().parseLine(
+                        previousBlock.text(), ppreviousState
                     )
                     # because of the ":" on that line, there is at least one token
                     t = tokens[-1]

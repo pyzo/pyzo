@@ -65,12 +65,13 @@ class CParser(Parser):
     def parseLine(self, line, previousState=0):
         """parseLine(line, previousState=0)
 
-        Parses a line of C code, yielding tokens.
-
+        Parses a line of C code, returning a list of tokens.
         """
         line = text_type(line)
 
         pos = 0  # Position following the previous match
+
+        tokensForLine = []
 
         # identifierState and previousstate values:
         # 0: nothing special
@@ -84,18 +85,18 @@ class CParser(Parser):
             tokens = self._findEndOfString(line, token)
             # Process tokens
             for token in tokens:
-                yield token
+                tokensForLine.append(token)
                 if isinstance(token, BlockState):
-                    return
+                    return tokensForLine
             pos = token.end
         elif previousState == 2:
             token = MultilineCommentToken(line, 0, 0)
             tokens = self._findEndOfComment(line, token)
             # Process tokens
             for token in tokens:
-                yield token
+                tokensForLine.append(token)
                 if isinstance(token, BlockState):
-                    return
+                    return tokensForLine
             pos = token.end
 
         # Enter the main loop that iterates over the tokens and skips strings
@@ -103,7 +104,7 @@ class CParser(Parser):
             # Get next tokens
             tokens = self._findNextToken(line, pos)
             if not tokens:
-                return
+                return tokensForLine
             elif isinstance(tokens[-1], StringToken):
                 moreTokens = self._findEndOfString(line, tokens[-1])
                 tokens = tokens[:-1] + moreTokens
@@ -113,9 +114,9 @@ class CParser(Parser):
 
             # Process tokens
             for token in tokens:
-                yield token
+                tokensForLine.append(token)
                 if isinstance(token, BlockState):
-                    return
+                    return tokensForLine
             pos = token.end
 
     def _findEndOfComment(self, line, token):

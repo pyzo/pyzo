@@ -531,7 +531,7 @@ class PythonParser(Parser):
     def parseLine(self, line, previousState=0):
         """parseLine(line, previousState=0)
 
-        Parse a line of Python code, yielding tokens.
+        Parse a line of Python code, returning a list of tokens.
         previousState is the state of the previous block, and is used
         to handle line continuation and multiline strings.
 
@@ -540,6 +540,8 @@ class PythonParser(Parser):
 
         # Init
         pos = 0  # Position following the previous match
+
+        tokensForLine = []
 
         # identifierState and previousState values:
         # 0: nothing special
@@ -566,9 +568,9 @@ class PythonParser(Parser):
             tokens = self._findEndOfString(line, token)
             # Process tokens
             for token in tokens:
-                yield token
+                tokensForLine.append(token)
                 if isinstance(token, BlockState):
-                    return
+                    return tokensForLine
             pos = token.end
 
         # Enter the main loop that iterates over the tokens and skips strings
@@ -576,17 +578,114 @@ class PythonParser(Parser):
             # Get next tokens
             tokens = self._findNextToken(line, pos)
             if not tokens:
-                return
+                self._promoteMatchCaseSoftKeywords(tokensForLine)
+                return tokensForLine
             elif isinstance(tokens[-1], StringToken):
                 moreTokens = self._findEndOfString(line, tokens[-1])
                 tokens = tokens[:-1] + moreTokens
 
             # Process tokens
             for token in tokens:
-                yield token
+                tokensForLine.append(token)
                 if isinstance(token, BlockState):
-                    return
+                    return tokensForLine
             pos = token.end
+
+    @staticmethod
+    def _promoteMatchCaseSoftKeywords(tokens):
+        """promotes identifier tokens "match" and "case" to keyword tokens if appropriate
+
+        list "tokens" contains the tokens of the current line
+
+        A simple algorithm will be used that only knows about the tokens of the current
+        line, but not about the lines before or after.
+        If "match" or "case" is a keyword, its token in list "tokens" will be replaced by
+        a keyword token.
+
+        "match" or "case" will be considered a keyword if one of the two patterns is found:
+
+        1.
+            optional whitespace
+            identifier token "match" or "case"
+            all parenthesis like tokens ([{}]) must be properly closed
+            colon (with optional whitespace)
+            optional comment
+
+        2.
+            optional whitespace
+            identifier token "match" or "case"
+            parenthesis like tokens ([{}]) can be still open on the right side,
+                assuming that they will be closed in the following lines
+            optional comment
+
+
+        single line examples where match or case is promoted to a keyword:
+            match x:  # random comment
+            match (x):
+            match(
+            case []:
+            case {"x": x,
+            case {"x": x,  # another comment
+            case (0, 0):
+
+        single line examples where match or case is NOT promoted to a keyword:
+            match x
+            case [(]:
+            case {"x": x,}
+            case {"x": x,)
+            case (0, 0)
+
+        False positives, i.e. promoting an identifier to a keyword erroneously, are very
+        unlikely. One example is the line "match(" because it could be either followed by
+        line "x)" and make it a normal function call, or it could be followed by line
+        "x):" and make it a match statement.
+        """
+
+        indMatchCase = None
+        closingParens = {"(": ")", "[": "]", "{": "}"}
+        parensStack = []
+        for i, token in enumerate(tokens):
+            if i == 0 and isinstance(token, NonIdentifierToken):
+                if str(token).isspace():
+                    continue  # ignore whitespace before match or case identifiers
+                else:
+                    return
+            elif indMatchCase is None:
+                if isinstance(token, IdentifierToken) and str(token) in (
+                    "match",
+                    "case",
+                ):
+                    indMatchCase = i
+                else:
+                    return
+            elif isinstance(token, OpenParenToken):
+                parensStack.append(closingParens[str(token)])
+            elif isinstance(token, CloseParenToken):
+                if len(parensStack) > 0 and parensStack[-1] == str(token):
+                    parensStack.pop()
+                else:
+                    return  # invalid parentheses (or square brackets or curly brackets)
+
+        if indMatchCase is None:
+            return
+        i2 = -1  # index of the last token, not counting comment tokens
+        if isinstance(tokens[i2], CommentToken):
+            i2 = -2  # ignore the comment token at the end
+            if len(tokens) < 3:
+                return
+
+        if len(parensStack) > 0:
+            pass  # probably a match or case keyword, depending on the lines that follow
+        elif (
+            isinstance(tokens[i2], NonIdentifierToken)
+            and str(tokens[i2]).strip() == ":"
+        ):
+            pass  # very likely a match or case keyword
+        else:
+            return  # not a match or case keyword
+
+        t = tokens[indMatchCase]
+        tokens[indMatchCase] = KeywordToken(t.line, t.start, t.end)
 
     def _findEndOfString(self, line, token):
         """_findEndOfString(line, token)

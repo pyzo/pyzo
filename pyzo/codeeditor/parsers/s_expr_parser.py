@@ -30,7 +30,7 @@ class SExprParser(Parser):
     def parseLine(self, line, comment_level=0):
         """parseLine(line, comment_level=0)
 
-        Parse a line of code, yielding tokens.
+        Parse a line of code, returning a list of tokens.
         previousstate is the state of the previous block, and is used
         to handle line continuation and multiline strings.
 
@@ -43,6 +43,7 @@ class SExprParser(Parser):
             token = CommentToken(line, 0, 0)
 
         pos = 0
+        tokensForLine = []
         while pos < len(line):
             pos = self._skip_whitespace(line, pos)
             if pos >= len(line):
@@ -57,7 +58,7 @@ class SExprParser(Parser):
             elif line[pos] == ";" and pos < len(line) - 1 and line[pos + 1] == ")":
                 if comment_level == 1:
                     token.end = pos + 2
-                    yield token
+                    tokensForLine.append(token)
                 comment_level = max(0, comment_level - 1)
                 pos += 1
 
@@ -68,17 +69,17 @@ class SExprParser(Parser):
                 # Outside of block comments ...
 
                 if line[pos] == ";" and pos < len(line) - 1 and line[pos + 1] == ";":
-                    yield CommentToken(line, pos, len(line))
+                    tokensForLine.append(CommentToken(line, pos, len(line)))
                     pos = len(line)
                 elif line[pos] == "(":
                     token = OpenParenToken(line, pos, pos + 1)
                     token._style = "("
-                    yield token
+                    tokensForLine.append(token)
                     pos += 1
                 elif line[pos] == ")":
                     token = CloseParenToken(line, pos, pos + 1)
                     token._style = ")"
-                    yield token
+                    tokensForLine.append(token)
                     pos += 1
                 elif line[pos] == '"':
                     i0 = pos
@@ -86,28 +87,33 @@ class SExprParser(Parser):
                     for i in range(i0 + 1, len(line)):
                         if not esc and line[i] == '"':
                             pos = i + 1
-                            yield StringToken(line, i0, pos)
+                            tokensForLine.append(StringToken(line, i0, pos))
                             break
                         esc = line[i] == "\\"
                     else:
-                        yield UnterminatedStringToken(line, i0, len(line))
+                        tokensForLine.append(
+                            UnterminatedStringToken(line, i0, len(line))
+                        )
                         pos = len(line)
                 else:
                     # word: number, keyword or normal identifier
                     i0 = pos
                     for i in range(i0, len(line)):
                         if line[i] in " \t\r\n)":
-                            yield self._get_token_for_word(line, i0, i)
+                            tokensForLine.append(self._get_token_for_word(line, i0, i))
                             pos = i
                             break
                     else:
                         pos = len(line)
-                        yield self._get_token_for_word(line, i0, len(line))
+                        tokensForLine.append(
+                            self._get_token_for_word(line, i0, len(line))
+                        )
 
         if comment_level > 0:
             token.end = len(line)
-            yield token
-        yield BlockState(comment_level)
+            tokensForLine.append(token)
+        tokensForLine.append(BlockState(comment_level))
+        return tokensForLine
 
     def _skip_whitespace(self, line, pos):
         while pos < len(line):
