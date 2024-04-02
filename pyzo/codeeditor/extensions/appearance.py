@@ -1165,7 +1165,7 @@ class BreakPoints(object):
                         )
 
             # Draw *the* debug marker
-            if debugBlockIndicator > 0:
+            if debugBlockIndicator >= 0:
                 painter.setBrush(QtGui.QColor("#6F6"))
                 # Get block
                 block = editor.document().findBlockByNumber(debugBlockIndicator)
