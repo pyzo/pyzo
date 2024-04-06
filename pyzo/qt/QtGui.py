@@ -60,5 +60,11 @@ elif PYSIDE6:
     from .enums_compat import promote_enums
 
     promote_enums(QtGui)
+
+    # in Qt6 use QtGui.QFontDatabase.families() instead of QtGui.QFontDatabase().families()
+    # https://doc.qt.io/qt-6/qfontdatabase-obsolete.html#QFontDatabase
+    QtGui.QFontDatabase.__new__ = lambda cls: cls
+
+    del QtGui
 else:
     raise PythonQtError("No Qt bindings could be found")
