@@ -104,7 +104,11 @@ def _should_not_interpret_as_magic(line):
         return True
     pos = pos + 1
     # command is alone on the line
-    if pos >= len(ltok) or ltok[pos].type in [token.ENDMARKER, tokenize.COMMENT]:
+    if pos >= len(ltok) or ltok[pos].type in [
+        token.ENDMARKER,
+        token.NEWLINE,
+        token.COMMENT,
+    ]:
         if command in interpreter.locals:
             return True
         if interpreter.globals and command in interpreter.globals:
