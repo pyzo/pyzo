@@ -118,7 +118,7 @@ class App_nogui(App_base):
         App_base.run(self, repl_callback, 0.1)
 
 
-# Experimental and WIP - not used at the moment
+# Experimental and WIP
 class App_asyncio_new(App_base):
     """Based on asyncio (standard Python) event loop.
 
@@ -137,7 +137,14 @@ class App_asyncio_new(App_base):
         self._repl_callback = repl_callback
         self._sleep_time = 0.1
 
-        loop = asyncio.get_event_loop_policy().get_event_loop()
+        if sys.version_info < (3, 12):
+            loop = asyncio.get_event_loop_policy().get_event_loop()
+        else:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                # no running event loop
+                loop = asyncio.new_event_loop()
         self.enable(loop, True)
 
     def enable(self, loop, run=False):
