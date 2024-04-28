@@ -387,7 +387,7 @@ class PyzoInterpreter:
 
         # Warn when logging.basicConfig is used (see issue #645)
         def basicConfigDoesNothing(*args, **kwargs):
-            logging.warn(
+            logging.warning(
                 "Pyzo already added handlers to the root handler, "
                 + "so logging.basicConfig() does nothing."
             )
