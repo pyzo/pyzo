@@ -1546,6 +1546,8 @@ class PythonShell(BaseShell):
 
         """
 
+        pyzo.editors.breakPointsChanged.disconnect(self.sendBreakPoints)
+
         # If we can, try to tell the broker to terminate the kernel
         if self._context and self._context.connection_count:
             self.terminate()
