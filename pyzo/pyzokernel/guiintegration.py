@@ -200,7 +200,14 @@ class App_asyncio(App_base):
     def __init__(self):
         import asyncio
 
-        self.app = asyncio.get_event_loop_policy().get_event_loop()
+        if sys.version_info < (3, 12):
+            self.app = asyncio.get_event_loop_policy().get_event_loop()
+        else:
+            try:
+                self.app = asyncio.get_running_loop()
+            except RuntimeError:
+                # no running event loop
+                self.app = asyncio.new_event_loop()
         self.app._in_event_loop = "Pyzo"
         self._warned_about_process_events = False
         self._blocking = False
@@ -234,7 +241,10 @@ class App_asyncio(App_base):
         import asyncio
 
         try:
-            loop = asyncio.get_event_loop_policy().get_event_loop()
+            if sys.version_info < (3, 12):
+                loop = asyncio.get_event_loop_policy().get_event_loop()
+            else:
+                loop = asyncio.get_running_loop()
         except Exception:
             loop = None
         if loop is not self.app:
