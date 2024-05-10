@@ -160,8 +160,13 @@ class App_asyncio_new(App_base):
                 old_loop.stop()
             self._loop = new_loop
             if not new_loop.is_running():
-                new_loop.original_run_forever(*args, **kwargs)
-
+                while True:
+                    try:
+                        new_loop.original_run_forever(*args, **kwargs)
+                        break
+                    except KeyboardInterrupt:
+                        self._keyboard_interrupt()
+                        continue
         if not hasattr(new_loop, "original_run_forever"):
             new_loop.original_run_forever = new_loop.run_forever
         new_loop.run_forever = new_run_forever
