@@ -289,6 +289,7 @@ def do_request(address, request, timeout=-1):
     try:
         s.connect((host, port))
     except socket.error:
+        s.close()
         raise RuntimeError("No server is listening at the given port.")
 
     # Send request
