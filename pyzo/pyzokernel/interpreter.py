@@ -1096,14 +1096,16 @@ class PyzoInterpreter:
         """
 
         # Get info (do not store)
-        type, value, tb = sys.exc_info()
+        type_, value, tb = sys.exc_info()
         del tb
 
         # Work hard to stuff the correct filename in the exception
-        if filename and type is SyntaxError:
+        if filename and type_ is SyntaxError:
             try:
                 # unpack information
-                msg, (dummy_filename, lineno, offset, line) = value
+                msg = value.args[0]
+                # since Python v3.10 there are also end_lineno and end_offset
+                dummy_filename, lineno, offset, line = value.args[1][:4]
                 # correct line-number
                 fname, lineno = self.correctfilenameandlineno(filename, lineno)
             except Exception:
@@ -1115,7 +1117,7 @@ class PyzoInterpreter:
                 sys.last_value = value
 
         # Show syntax error
-        strList = traceback.format_exception_only(type, value)
+        strList = traceback.format_exception_only(type_, value)
         for s in strList:
             self.write(s)
 
