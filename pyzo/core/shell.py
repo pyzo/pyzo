@@ -907,6 +907,8 @@ class BaseShell(BaseTextCtrl):
                 elif 30 <= param <= 37:  # Set foreground color
                     clr = CLRS[param - 30]
                     format.setForeground(QtGui.QColor(clr))
+                elif param == 39:  # Reset the foreground color
+                    format.clearForeground()
                 elif 40 <= param <= 47:
                     pass  # Cannot set background text in QPlainTextEdit
                 #
