@@ -1100,7 +1100,7 @@ class PyzoInterpreter:
         del tb
 
         # Work hard to stuff the correct filename in the exception
-        if filename and type_ is SyntaxError:
+        if filename and issubclass(type_, SyntaxError):
             try:
                 # unpack information
                 msg = value.args[0]
@@ -1113,7 +1113,7 @@ class PyzoInterpreter:
                 pass
             else:
                 # Stuff in the right filename
-                value = SyntaxError(msg, (fname, lineno, offset, line))
+                value = type_(msg, (fname, lineno, offset, line))
                 sys.last_value = value
 
         # Show syntax error
