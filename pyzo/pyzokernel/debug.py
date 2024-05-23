@@ -60,13 +60,20 @@ class Debugger(bdb.Bdb):
 
         return bdb.Bdb.trace_dispatch(self, frame, event, arg)
 
-    def interaction(self, frame, traceback=None, pm=False):
+    def interaction(self, frame, traceback=None, pm=False, frameBefore=None):
         """Enter an interaction-loop for debugging. No GUI events are
         processed here. We leave this event loop at some point, after
-        which the conrol flow will proceed.
+        which the control flow will proceed.
 
         This is called to enter debug-mode at a breakpoint, or to enter
         post-mortem debugging.
+
+        Special case for a frame in a generator expression:
+            When the frame is in a generator expression, f_back is set
+            to None by CPython to prevent reference cycles.
+            For post mortem debugging we will allow to continue at the
+            frame before the generator expression.
+            see https://stackoverflow.com/a/51867843
         """
         interpreter = sys._pyzoInterpreter
 
@@ -81,7 +88,10 @@ class Debugger(bdb.Bdb):
             if "interactiveshell.py" in co_filename:
                 break  # IPython kernel
             frames.insert(0, frame)
-            frame = frame.f_back
+            if frame.f_back is None and pm and frame.f_code.co_name == "<genexpr>":
+                frame = frameBefore
+            else:
+                frame = frame.f_back
 
         # Tell interpreter our stack
         if frames:
@@ -335,7 +345,9 @@ class Debugger(bdb.Bdb):
 
         # Get top frame
         frame = None
+        frameBefore = None
         while tb:
+            frameBefore = frame
             frame = tb.tb_frame
             tb = tb.tb_next
 
@@ -343,7 +355,7 @@ class Debugger(bdb.Bdb):
         if self._debugmode:
             self.message("Already in debug mode.")
         elif frame:
-            self.interaction(frame, None, pm=True)
+            self.interaction(frame, None, pm=True, frameBefore=frameBefore)
         else:
             self.message("No debug information available.")
 
