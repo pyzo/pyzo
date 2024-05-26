@@ -113,11 +113,14 @@ class Debugger(bdb.Bdb):
         # Enter interact loop. We may hang in here for a while ...
         self._interacting = True
         while self._interacting:
-            time.sleep(0.05)
-            interpreter.process_commands()
-            pe = os.getenv("PYZO_PROCESS_EVENTS_WHILE_DEBUGGING", "").lower()
-            if pe in ("1", "true", "yes"):
-                interpreter.guiApp.process_events()
+            try:
+                time.sleep(0.05)
+                interpreter.process_commands()
+                pe = os.getenv("PYZO_PROCESS_EVENTS_WHILE_DEBUGGING", "").lower()
+                if pe in ("1", "true", "yes"):
+                    interpreter.guiApp.process_events()
+            except KeyboardInterrupt:
+                self.message("KeyboardInterrupt")
 
         # Reset
         self._debugmode = 0
