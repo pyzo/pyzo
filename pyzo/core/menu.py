@@ -1267,6 +1267,15 @@ class ShellMenu(Menu):
                 "interrupt",
             ),
             self.addItem(
+                translate(
+                    "menu",
+                    "Pause ::: Pause the current running code.",
+                ),
+                icons.application_pause,
+                self._shellAction,
+                "pause",
+            ),
+            self.addItem(
                 translate("menu", "Restart ::: Terminate and restart the interpreter."),
                 icons.application_refresh,
                 self._shellAction,

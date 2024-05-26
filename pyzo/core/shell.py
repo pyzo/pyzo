@@ -1498,6 +1498,15 @@ class PythonShell(BaseShell):
 
         self._ctrl_broker.send("INT")
 
+    def pause(self):
+        """interrupt()
+        Send a pause signal to the main thread of the remote process.
+        """
+        # Ensure edit line is selected (to reset scrolling to end)
+        self.ensureCursorAtEditLine()
+
+        self._ctrl_broker.send("PAUSE")
+
     def restart(self, scriptFile=None):
         """restart(scriptFile=None)
         Terminate the shell, after which it is restarted.
