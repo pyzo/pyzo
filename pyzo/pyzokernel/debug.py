@@ -60,7 +60,7 @@ class Debugger(bdb.Bdb):
 
         return bdb.Bdb.trace_dispatch(self, frame, event, arg)
 
-    def interaction(self, frame, traceback=None, pm=False, frameBefore=None):
+    def interaction(self, frame, traceback=None, pm=False, framesBefore=None):
         """Enter an interaction-loop for debugging. No GUI events are
         processed here. We leave this event loop at some point, after
         which the control flow will proceed.
@@ -68,14 +68,17 @@ class Debugger(bdb.Bdb):
         This is called to enter debug-mode at a breakpoint, or to enter
         post-mortem debugging.
 
-        Special case for a frame in a generator expression:
-            When the frame is in a generator expression, f_back is set
-            to None by CPython to prevent reference cycles.
+        Special case for frames where f_back is None, e.g. in a generator expression:
             For post mortem debugging we will allow to continue at the
-            frame before the generator expression.
+            frame before, e.g. before the generator expression.
             see https://stackoverflow.com/a/51867843
         """
         interpreter = sys._pyzoInterpreter
+
+        if framesBefore is None:
+            framesBefore = []
+        else:
+            framesBefore = framesBefore[:]
 
         # Collect frames
         frames = []
@@ -88,8 +91,8 @@ class Debugger(bdb.Bdb):
             if "interactiveshell.py" in co_filename:
                 break  # IPython kernel
             frames.insert(0, frame)
-            if frame.f_back is None and pm and frame.f_code.co_name == "<genexpr>":
-                frame = frameBefore
+            if frame.f_back is None and pm and len(framesBefore) > 0:
+                frame = framesBefore.pop()
             else:
                 frame = frame.f_back
 
@@ -344,9 +347,9 @@ class Debugger(bdb.Bdb):
 
         # Get top frame
         frame = None
-        frameBefore = None
+        framesBefore = []
         while tb:
-            frameBefore = frame
+            framesBefore.append(frame)
             frame = tb.tb_frame
             tb = tb.tb_next
 
@@ -354,7 +357,7 @@ class Debugger(bdb.Bdb):
         if self._debugmode:
             self.message("Already in debug mode.")
         elif frame:
-            self.interaction(frame, None, pm=True, frameBefore=frameBefore)
+            self.interaction(frame, None, pm=True, framesBefore=framesBefore)
         else:
             self.message("No debug information available.")
 
