@@ -36,6 +36,7 @@ import keyword
 import inspect  # noqa - Must be in this namespace
 import bdb
 import linecache
+import signal
 
 import yoton
 from pyzokernel import guiintegration, printDirect
@@ -185,6 +186,8 @@ class PyzoInterpreter:
         for p in [thisPath, os.path.join(thisPath, "pyzokernel")]:
             while p in sys.path:
                 sys.path.remove(p)
+
+        self._pausingPossibleNow = 0
 
     def run(self):
         """Run (start the mainloop)
@@ -397,8 +400,15 @@ class PyzoInterpreter:
         except Exception:
             pass
 
+        # Setup pausing of running code using SIGFPE
+        signal.signal(signal.SIGFPE, self._handle_sigfpe)
+
         # Update startup info
         self.context._stat_startup.send(startup_info)
+
+    def _handle_sigfpe(self, sig, frame):
+        if self._pausingPossibleNow == 1:
+            self.debugger.set_trace(frame)
 
     def _prepare_environment(self, startup_info):
         """Prepare the Python environment. There are two possibilities:
@@ -1016,13 +1026,27 @@ class PyzoInterpreter:
         try:
             if self._dbFrames:
                 self.apply_breakpoints()
-                exec(code, self.globals, self.locals)
+                glob, loc = self.globals, self.locals
             else:
                 # Turn debugger on at this point. If there are no breakpoints,
                 # the tracing is disabled for better performance.
-                self.apply_breakpoints()
                 self.debugger.set_on()
-                exec(code, self.locals)
+                self.apply_breakpoints()
+                glob, loc = self.locals, None
+            try:
+                # We want to enable pausing only while the following exec function is
+                # active. If the executed code is interrupted (by breakpoints or paused)
+                # then the user can run other commands in the shell.
+                # --> This method is reentrant and therefore we have to use counters to
+                # check if pausing is possible.
+                self._pausingPossibleNow += 1
+                # There is still a very small chance that the user pauses shortly
+                # before or after the exec, but in that case the user could continue
+                # execution of the interpreter normally.
+                exec(code, glob, loc)
+            finally:
+                self._pausingPossibleNow -= 1
+
         except bdb.BdbQuit:
             self.dbstop_handler()
         except Exception:
@@ -1038,12 +1062,12 @@ class PyzoInterpreter:
         """
         try:
             breaks = self.context._stat_breakpoints.recv()
-            if self.debugger.breaks:
-                self.debugger.clear_all_breaks()
+            self.debugger.clear_all_breaks()
             if breaks:  # Can be None
                 for fname in breaks:
                     for linenr in breaks[fname]:
                         self.debugger.set_break(fname, linenr)
+                sys.settrace(self.debugger.trace_dispatch)
         except Exception:
             type, value, tb = sys.exc_info()
             del tb

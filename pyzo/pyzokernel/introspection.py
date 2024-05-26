@@ -5,6 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 import sys
+import signal
 import yoton
 import inspect  # noqa - used in eval()
 
@@ -433,21 +434,28 @@ class PyzoIntrospector(yoton.RepChannel):
         except Exception:
             return "Error evaluating: " + command
 
-    def interrupt(self, command=None):
+    def interrupt(self, command=None, signum=signal.SIGINT):
         """interrupt()
 
         Interrupt the main thread. This does not work if the main thread
         is running extension code.
 
         A bit of a hack to do this in the introspector, but it's the
-        easeast way and prevents having to launch another thread just
-        to wait for an interrupt/terminare command.
+        easiest way and prevents having to launch another thread just
+        to wait for an interrupt/terminate command.
 
         Note that on POSIX we can send an OS INT signal, which is faster
         and maybe more effective in some situations.
 
+        signum must be signal.SIGINT for kernels running Python < 3.10
         """
-        thread.interrupt_main()
+        if signum == signal.SIGINT:
+            thread.interrupt_main()
+        else:
+            if sys.version_info < (3, 10):
+                print("This feature is not implemented for Python versions < 3.10!")
+                return
+            thread.interrupt_main(signum)
 
     def terminate(self, command=None):
         """terminate()

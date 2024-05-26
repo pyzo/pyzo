@@ -18,7 +18,7 @@ class Debugger(bdb.Bdb):
         self._wait_for_mainpyfile = False  # from pdb, do we need this?
         bdb.Bdb.__init__(self)
         self._debugmode = 0  # 0: no debug,  1: postmortem,  2: full debug
-        self._files_with_offset = []
+        self._files_with_offset = set()
         if hasattr(sys, "breakpointhook"):
             self._original_breakpointhook = sys.breakpointhook
             sys.breakpointhook = self.custom_breakpointhook
@@ -37,7 +37,7 @@ class Debugger(bdb.Bdb):
 
     def clear_all_breaks(self):
         bdb.Bdb.clear_all_breaks(self)
-        self._files_with_offset = []
+        self._files_with_offset.clear()
 
     def trace_dispatch(self, frame, event, arg):
         # Overload to deal with offset in filenames
@@ -52,7 +52,7 @@ class Debugger(bdb.Bdb):
                 offset = None
             if offset is not None:
                 # This is a cell or selected lines being executed
-                self._files_with_offset.append(ori_filename)
+                self._files_with_offset.add(ori_filename)
                 if clean_filename.startswith("<"):
                     self.fncache[ori_filename] = ori_filename
                 for i in self.breaks.get(clean_filename, []):
@@ -132,6 +132,7 @@ class Debugger(bdb.Bdb):
     def stopinteraction(self):
         """Stop the interaction loop."""
         self._interacting = False
+        sys.settrace(None)
 
     def set_on(self):
         """To turn debugging on right before executing code."""
@@ -145,11 +146,6 @@ class Debugger(bdb.Bdb):
         self.returnframe = None
         self.quitting = False
         self.stoplineno = -1
-        # Set tracing or not
-        if self.breaks:
-            sys.settrace(self.trace_dispatch)
-        else:
-            sys.settrace(None)
 
     def message(self, msg):
         """Alias for interpreter.write(), but appends a newline.

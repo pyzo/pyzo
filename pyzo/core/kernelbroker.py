@@ -602,6 +602,8 @@ class KernelBroker:
             for msg in self._ctrl_broker.recv_all():
                 if msg == "INT":
                     self._commandInterrupt()
+                elif msg == "PAUSE":
+                    self._commandPause()
                 elif msg == "TERM":
                     self._commandTerminate()
                 elif msg.startswith("RESTART"):
@@ -621,6 +623,15 @@ class KernelBroker:
             # but also does not work if running extension code
             pid = self._kernelCon.pid2
             os.kill(pid, signal.SIGINT)
+
+    def _commandPause(self):
+        if self._process is None:
+            self._strm_broker.send("Cannot interrupt: process is dead.\n")
+        elif sys.platform == "win32":
+            self._reqp_introspect.interrupt(signum=signal.SIGFPE)
+        else:
+            pid = self._kernelCon.pid2
+            os.kill(pid, signal.SIGFPE)
 
     def _commandTerminate(self):
         # Start termination procedure
