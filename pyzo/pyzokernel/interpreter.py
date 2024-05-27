@@ -187,8 +187,6 @@ class PyzoInterpreter:
             while p in sys.path:
                 sys.path.remove(p)
 
-        self._pausingPossibleNow = 0
-
     def run(self):
         """Run (start the mainloop)
 
@@ -407,8 +405,7 @@ class PyzoInterpreter:
         self.context._stat_startup.send(startup_info)
 
     def _handle_sigfpe(self, sig, frame):
-        if self._pausingPossibleNow == 1:
-            self.debugger.set_trace(frame)
+        self.debugger.set_trace(frame)
 
     def _prepare_environment(self, startup_info):
         """Prepare the Python environment. There are two possibilities:
@@ -1033,20 +1030,7 @@ class PyzoInterpreter:
                 self.debugger.set_on()
                 self.apply_breakpoints()
                 glob, loc = self.locals, None
-            try:
-                # We want to enable pausing only while the following exec function is
-                # active. If the executed code is interrupted (by breakpoints or paused)
-                # then the user can run other commands in the shell.
-                # --> This method is reentrant and therefore we have to use counters to
-                # check if pausing is possible.
-                self._pausingPossibleNow += 1
-                # There is still a very small chance that the user pauses shortly
-                # before or after the exec, but in that case the user could continue
-                # execution of the interpreter normally.
-                exec(code, glob, loc)
-            finally:
-                self._pausingPossibleNow -= 1
-
+            exec(code, glob, loc)
         except bdb.BdbQuit:
             self.dbstop_handler()
         except Exception:
