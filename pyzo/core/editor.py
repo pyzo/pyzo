@@ -405,19 +405,17 @@ class PyzoEditor(BaseTextCtrl):
                 "File has been modified outside of the editor:\n" + self._filename
             )
             dlg.setInformativeText("Do you want to reload?")
-            t = dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)  # 0
-            dlg.addButton("Keep this version", QtWidgets.QMessageBox.RejectRole)  # 1
-            dlg.setDefaultButton(t)
+            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)
+            dlg.addButton("Keep this version", QtWidgets.QMessageBox.RejectRole)
+            dlg.setDefaultButton(btnReload)
 
             # whatever the result, we will reset the modified time
             self._modifyTime = os.path.getmtime(path)
 
             # get result and act
-            result = dlg.exec_()
-            if result == 0:  # in PySide6 AcceptRole != 0
+            dlg.exec_()
+            if dlg.clickedButton() == btnReload:
                 self.reload()
-            else:
-                pass  # when cancelled or explicitly said, do nothing
 
             # Return that indeed the file was changes
             return True
