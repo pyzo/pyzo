@@ -1334,11 +1334,13 @@ class EditorTabs(QtWidgets.QWidget):
                 'Do you want to reload file\n"{}"\n'
                 "and lose unsaved changes?".format(editor.filename)
             )
-            dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)
-            btn = dlg.addButton("Keep this version", QtWidgets.QMessageBox.RejectRole)
-            dlg.setDefaultButton(btn)
-            btnIndex = dlg.exec_()
-            if btnIndex != 0:
+            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)
+            btnKeep = dlg.addButton(
+                "Keep this version", QtWidgets.QMessageBox.RejectRole
+            )
+            dlg.setDefaultButton(btnKeep)
+            dlg.exec_()
+            if dlg.clickedButton() != btnReload:
                 return  # cancel reloading
 
         editor.reload()
