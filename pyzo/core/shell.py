@@ -37,9 +37,9 @@ from pyzo.core.kernelbroker import KernelInfo, Kernelmanager
 from pyzo.core.menu import ShellContextMenu
 
 
-# Interval for polling messages. Timer for each kernel. I found
-# that this one does not affect performance much
-POLL_TIMER_INTERVAL = 100  # 100ms 10Hz
+# Interval for polling messages. Timer for each kernel.
+POLL_TIMER_INTERVAL_IDLE = 100  # in ms; energy saving mode
+POLL_TIMER_INTERVAL_BUSY = 10  # in ms; faster updates
 
 # Maximum number of lines in the shell
 MAXBLOCKCOUNT = pyzo.config.advanced.shellMaxLines
@@ -1025,7 +1025,7 @@ class PythonShell(BaseShell):
         # messages are not so much bach-processed anymore. We should decide
         # on either method.
         self._timer = QtCore.QTimer(self)
-        self._timer.setInterval(POLL_TIMER_INTERVAL)  # ms
+        self._timer.setInterval(POLL_TIMER_INTERVAL_IDLE)  # ms
         self._timer.setSingleShot(False)
         self._timer.timeout.connect(self.poll)
         self._timer.start()
@@ -1395,6 +1395,7 @@ class PythonShell(BaseShell):
         To keep the shell up-to-date.
         Call this periodically.
         """
+        idle = True
 
         if self._write_buffer:
             # There is still data in the buffer
@@ -1423,6 +1424,7 @@ class PythonShell(BaseShell):
 
         # Write all pending messages that are later than any other message
         if sub:
+            idle = False
             # Select messages to process
             N = 256
             M, buffer = M[:N], M[N:]
@@ -1452,6 +1454,7 @@ class PythonShell(BaseShell):
         # Do any actions?
         action = self._strm_action.recv(False)
         if action:
+            idle = False
             if action == "cls":
                 self.clearScreen()
             elif action.startswith("open "):
@@ -1467,9 +1470,13 @@ class PythonShell(BaseShell):
                 if editor and linenr:
                     editor._editor.gotoLine(linenr)
             else:
-                print("Unkown action: %s" % action)
+                print("Unknown action: %s" % action)
 
         # ----- status
+
+        newInterval = POLL_TIMER_INTERVAL_IDLE if idle else POLL_TIMER_INTERVAL_BUSY
+        if self._timer.interval() != newInterval:
+            self._timer.setInterval(newInterval)
 
         # Do not update status when the kernel is not really up and running
         # self._version is set when the startup info is received
