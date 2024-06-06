@@ -3,6 +3,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
@@ -16,11 +17,11 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.9
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.9
+        python-version: '3.9'
     - name: Install dev dependencies
       run: |
           python -m pip install --upgrade pip
@@ -87,14 +88,14 @@ jobs:
             pyversion: '3.9'
             qtlib: pyside6
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup os
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
         sudo apt install libegl1-mesa
     - name: Set up Python ${{ matrix.pyversion }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.pyversion }}
     - name: Install dependencies
