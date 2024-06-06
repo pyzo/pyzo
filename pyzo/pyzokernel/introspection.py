@@ -91,6 +91,7 @@ class PyzoIntrospector(yoton.RepChannel):
         objectNames = [".".join(parts[-i:]) for i in range(1, len(parts) + 1)]
 
         # find out what kind of function, or if a function at all!
+        originalObjectName = objectName
         NS = self._getNameSpace()
         fun1 = eval("inspect.isbuiltin(%s)" % (objectName), None, NS)
         fun2 = eval("inspect.isfunction(%s)" % (objectName), None, NS)
@@ -113,7 +114,14 @@ class PyzoIntrospector(yoton.RepChannel):
             tmp = eval("%s.__doc__" % (objectNames[-1]), {}, NS)
             sigs = ""
             if tmp:
-                sigs = tmp.splitlines()[0].strip()
+                # we will try joining several lines because doc strings of objects
+                # like np.array have a new line inside the signature
+                for line in tmp.splitlines()[:3]:
+                    line = line.strip()
+                    sigs += line
+                    if not line.endswith(","):
+                        break
+                    sigs += " "
             # Test if doc has signature
             hasSig = False
             for name in objectNames:  # list.append -> L.apend(objec) -- blabla
@@ -123,6 +131,16 @@ class PyzoIntrospector(yoton.RepChannel):
             # If not a valid signature, do not bother ...
             if (not hasSig) or (sigs.count("(") != sigs.count(")")):
                 sigs = ""
+            if sigs == "":
+                # try inspect.signature to also get a signature for objects like
+                #   np.sum, pd.DataFrame, ...
+                try:
+                    sigs = eval(
+                        "str(inspect.signature(%s))" % (originalObjectName), None, NS
+                    )
+                    sigs = originalObjectName + sigs
+                except Exception:
+                    pass
 
         if fun1 or fun2 or fun3 or fun4 or fun5:
             if fun1:
@@ -137,7 +155,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 kind = "callable"
 
             if not sigs:
-                # Use intospection
+                # Use introspection
 
                 funname = objectName.split(".")[-1]
 
@@ -175,7 +193,7 @@ class PyzoIntrospector(yoton.RepChannel):
                             args2.append("*" + varargs)
                         if varkw:
                             args2.append("**" + varkw)
-                        # append the lot to our  string
+                        # append the lot to our string
                         sigs = "%s(%s)" % (funname, ", ".join(args2))
 
         elif sigs:
@@ -464,3 +482,30 @@ class PyzoIntrospector(yoton.RepChannel):
 
         """
         sys.stdin._channel.close()
+
+
+##
+if False:
+    ## execute this cell to test signature extraction
+    tt = """
+    bytes
+    int
+    iter
+    min
+    import numpy as np; np.linspace; np.sum; np.array; np.linalg.norm
+    import pandas as pd; pd.DataFrame
+    import requests; requests.Request
+    """
+    for line in tt.strip().splitlines():
+        ll = line.split("; ")
+        if len(ll) == 1:
+            ll.insert(0, None)
+        if ll[0] is not None:
+            exec(ll[0].strip())
+        for s in ll[1:]:
+            sig = __pyzo__.introspector.signature(s)
+            if sig == "":
+                print("!!! could not extract the signature of", s, "!!!")
+            else:
+                print(sig)
+            print()
