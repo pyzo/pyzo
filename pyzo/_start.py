@@ -260,14 +260,37 @@ def start():
     # We also write "Closed" to the log (if a filename is provided) which we use
     # in our tests to determine that Pyzo did a successful run.
     if "--test" in sys.argv:
-        close_signal = lambda: print("Stopping")
-        if os.getenv("PYZO_LOG", ""):
-            close_signal = lambda: open(os.getenv("PYZO_LOG"), "at").write("Stopping\n")
-        pyzo.test_close_timer = t = QtCore.QTimer()
-        t.setInterval(5000)
-        t.setSingleShot(True)
-        t.timeout.connect(lambda: [close_signal(), pyzo.main.close()])
-        t.start()
+
+        # We will use a periodic timer instead of a single shot one because of strange
+        # problems with the github CI workflow.
+        # Combinations of Qt 6.7 and Microsoft Windows Server 2022 sometimes raised
+        # error "'KernelBroker' object has no attribute '_reqp_introspect'".
+        # The single shot timer callback was called way too early: a few milliseconds
+        # after starting the timer instead of the given interval of 5000 ms.
+        # This problem did not always result in an error in the CI workflow.
+        # When the error occured, re-running the failed test cases of the workflow
+        # a few times made the failed test cases finally pass.
+        # The following new approach did not have such problems so far.
+
+        import time
+
+        def testrunTimerCallback(*args):
+            dt = time.time() - startTime
+            print("*** testrunTimerCallback:", dt, "s ***")
+            if time.time() - startTime > 5.0:
+                timer.stop()
+                msg = "Stopping after {} s".format(dt)
+                print(msg)
+                if os.getenv("PYZO_LOG", ""):
+                    with open(os.getenv("PYZO_LOG"), "at") as fd:
+                        fd.write(msg + "\n")
+                pyzo.main.close()
+
+        startTime = time.time()
+        timer = QtCore.QTimer()
+        timer.setInterval(500)
+        timer.timeout.connect(testrunTimerCallback)
+        timer.start()
 
     # Enter the main loop
     if hasattr(QtWidgets.qApp, "exec"):
