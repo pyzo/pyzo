@@ -1325,6 +1325,17 @@ class ShellMenu(Menu):
                 "RETURN",
             ),
             self.addItem(
+                translate(
+                    "menu",
+                    "Debug jump: set the next line to be executed"
+                    " ::: "
+                    "Sets the next line to be executed to the current selected line in the editor.",
+                ),
+                icons.arrow_in,
+                self._debugAction,
+                "JUMP",
+            ),
+            self.addItem(
                 translate("menu", "Debug continue: proceed to next breakpoint"),
                 icons.debug_continue,
                 self._debugAction,
@@ -1423,6 +1434,19 @@ class ShellMenu(Menu):
         if shell:
             # Call the specified action
             command = action.upper()
+
+            if command == "JUMP":
+                # We assume that the correct editor tab is selected because checking if
+                # the filepaths match (editor.id() == frames[frameNum - 1][0]) would
+                # only causes troubles, for example on filesystems that are not case
+                # sensitive.
+                editor = pyzo.editors.getCurrentEditor()
+                if editor is None:
+                    lineNumber = -1
+                else:
+                    lineNumber = editor.textCursor().blockNumber() + 1
+                command = "{} {}".format(command, lineNumber)
+
             shell.executeCommand("DB %s\n" % command)
 
     def _clearBreakPoints(self, action=None):

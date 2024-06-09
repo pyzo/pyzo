@@ -299,7 +299,7 @@ class Debugger(bdb.Bdb):
         for name in dir(self):
             if name.startswith("do_"):
                 doc = getattr(self, name).__doc__
-                if doc:
+                if doc and doc != " ":
                     docs[name[3:]] = doc.strip()
 
         if not arg:
@@ -317,6 +317,7 @@ class Debugger(bdb.Bdb):
                 "continue",
                 "where",
                 "events",
+                "jump",
             ]:
                 doc = docs.pop(name)
                 name = name.rjust(10)
@@ -494,6 +495,26 @@ class Debugger(bdb.Bdb):
             frame = interpreter._dbFrames[-1]
             self.set_return(frame)
             self.stopinteraction()
+
+    def do_jump(self, arg):
+        """Jump to a specific line, not executing code in between."""
+        interpreter = sys._pyzoInterpreter
+
+        if self._debugmode == 0:
+            self.message("Not in debug mode.")
+        elif self._debugmode == 1:
+            self.message("Cannot use 'jump' in postmortem debug mode.")
+        elif interpreter._dbFrameIndex != len(interpreter._dbFrames):
+            self.message(
+                "Jumping is only possible inside the bottom frame (highest index)."
+            )
+        else:
+            frame = interpreter._dbFrames[interpreter._dbFrameIndex - 1]
+            try:
+                frame.f_lineno = int(arg)
+            except ValueError as e:
+                self.message("Error DB JUMP: " + str(e))
+            self.writestatus()
 
     def do_events(self, arg):
         """Process GUI events for the integrated GUI toolkit."""
