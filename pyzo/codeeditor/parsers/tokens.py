@@ -18,7 +18,6 @@ ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
 
 from ..style import StyleFormat, StyleElementDescription
-from ..misc import ustr
 
 
 class Token:
@@ -38,7 +37,7 @@ class Token:
     isToken = True  # For the BlockState object, which is also returned by the parsers, this is False
 
     def __init__(self, line="", start=0, end=0):
-        self.line = ustr(line)
+        self.line = line
         self.start = start
         self.end = end
         self._name = self._getName()

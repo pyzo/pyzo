@@ -4,7 +4,7 @@
 # Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
-from . import Parser, BlockState, text_type
+from . import Parser, BlockState
 
 # Import tokens in module namespace
 from .tokens import (
@@ -35,7 +35,6 @@ class SExprParser(Parser):
         to handle line continuation and multiline strings.
 
         """
-        line = text_type(line)
 
         if comment_level < 0:
             comment_level = 0

@@ -14,16 +14,6 @@ import sys
 import time
 
 
-# From six.py
-if sys.version_info[0] >= 3:
-    string_types = (str,)
-    integer_types = (int,)
-else:
-    string_types = (basestring,)  # noqa
-    integer_types = (int, long)  # noqa
-float_types = (float,)
-
-
 ## Dict class
 
 try:  # pragma: no cover
@@ -173,7 +163,7 @@ def loads(text):
 
     Load a Dict from the given Unicode) string in ZON syntax.
     """
-    if not isinstance(text, string_types):
+    if not isinstance(text, str):
         raise ValueError("zon.loads() expects a string.")
     reader = ReaderWriter()
     return reader.read(text)
@@ -184,7 +174,7 @@ def load(file):
 
     Load a Dict from the given file or filename.
     """
-    if isinstance(file, string_types):
+    if isinstance(file, str):
         with open(file, "rb") as fd:
             data = fd.read()
     else:
@@ -210,7 +200,7 @@ def save(file, d):
     Serialize the given dict to the given file or filename.
     """
     text = saves(d)
-    if isinstance(file, string_types):
+    if isinstance(file, str):
         file = open(file, "wb")
     with file:
         file.write(text.encode("utf-8"))
@@ -304,13 +294,13 @@ class ReaderWriter:
         # Get object's data
         if value is None:
             data = "Null"
-        elif isinstance(value, integer_types):
+        elif isinstance(value, int):
             data = self.from_int(value)
-        elif isinstance(value, float_types):
+        elif isinstance(value, float):
             data = self.from_float(value)
         elif isinstance(value, bool):
             data = self.from_int(int(value))
-        elif isinstance(value, string_types):
+        elif isinstance(value, str):
             data = self.from_unicode(value)
         elif isinstance(value, dict):
             data = self.from_dict(value, indent)
@@ -328,7 +318,7 @@ class ReaderWriter:
                 print("ZON: unknown object: %s" % tmp)
 
         # Finish line (or first line)
-        if isinstance(data, string_types):
+        if isinstance(data, str):
             data = [data]
         if name:
             data[0] = "%s%s = %s" % (" " * indent, name, data[0])
@@ -428,7 +418,7 @@ class ReaderWriter:
     def from_list(self, value, indent):
         # Collect subdata and check whether this is a "small list"
         isSmallList = True
-        allowedTypes = integer_types + float_types + string_types
+        allowedTypes = (int, float, str)
         subItems = []
         for element in value:
             if not isinstance(element, allowedTypes):

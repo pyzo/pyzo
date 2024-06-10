@@ -14,7 +14,7 @@ from ..qt import QtGui, QtCore
 Qt = QtCore.Qt
 
 import pyzo
-from ..misc import ustr, ce_option
+from ..misc import ce_option
 from ..parsers.tokens import (
     CommentToken,
     IdentifierToken,
@@ -116,7 +116,7 @@ class HomeKey:
             shiftDown = event.modifiers() == Qt.ShiftModifier
             moveMode = [cursor.MoveAnchor, cursor.KeepAnchor][shiftDown]
             # Get leading whitespace
-            text = ustr(cursor.block().text())
+            text = cursor.block().text()
             leadingWhitespace = text[: len(text) - len(text.lstrip())]
             # Get current position and move to start of whitespace
             i = cursor.positionInBlock()
@@ -193,7 +193,7 @@ class Indentation:
             cursor = self.textCursor()
 
         # Get the text of the current block up to the cursor
-        textBeforeCursor = ustr(cursor.block().text())[: cursor.positionInBlock()]
+        textBeforeCursor = cursor.block().text()[: cursor.positionInBlock()]
         return (
             textBeforeCursor.lstrip() == ""
         )  # If we trim it and it is empty, it's all whitespace
@@ -303,7 +303,7 @@ class PythonAutoIndent:
 
             previousBlock = cursor.block().previous()
             if previousBlock.isValid():
-                line = ustr(previousBlock.text())
+                line = previousBlock.text()
                 indent = line[: len(line) - len(line.lstrip())]
                 if ":" in line:
                     # We only need to add indent if the : is not in a (multiline)

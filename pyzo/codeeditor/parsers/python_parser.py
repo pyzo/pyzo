@@ -5,8 +5,7 @@
 # The full license can be found in 'license.txt'.
 
 import re
-from . import Parser, BlockState, text_type
-from ..misc import ustr
+from . import Parser, BlockState
 
 # Import tokens in module namespace
 from .tokens import (
@@ -536,7 +535,6 @@ class PythonParser(Parser):
         to handle line continuation and multiline strings.
 
         """
-        line = text_type(line)
 
         # Init
         pos = 0  # Position following the previous match
@@ -751,7 +749,7 @@ class PythonParser(Parser):
         # Return the Non-Identifier token if non-null
         # todo: here it goes wrong (allow returning more than one token?)
         token = NonIdentifierToken(line, pos, nonIdentifierEnd)
-        strippedNonIdentifier = ustr(token).strip()
+        strippedNonIdentifier = str(token).strip()
         if token:
             tokens.append(token)
 

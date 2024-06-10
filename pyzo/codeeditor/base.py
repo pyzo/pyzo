@@ -104,7 +104,7 @@ from .qt import QtGui, QtCore, QtWidgets
 Qt = QtCore.Qt
 
 from .misc import DEFAULT_OPTION_NAME, DEFAULT_OPTION_NONE, ce_option
-from .misc import callLater, ustr
+from .misc import callLater
 from .manager import Manager
 from .highlighter import Highlighter
 from .style import StyleElementDescription
@@ -761,7 +761,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         May be overridden to customize indentation.
 
         """
-        text = ustr(cursor.block().text())
+        text = cursor.block().text()
         leadingWhitespace = text[: len(text) - len(text.lstrip())]
 
         # Select the leading whitespace
