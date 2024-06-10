@@ -17,7 +17,6 @@ from .qt import QtGui, QtCore
 Qt = QtCore.Qt
 
 from . import parsers
-from .misc import ustr
 
 
 class BlockData(QtGui.QTextBlockUserData):
@@ -62,9 +61,6 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         check out the indentation.
 
         """
-
-        # Make sure this is a Unicode Python string
-        line = ustr(line)
 
         # Get previous state
         previousState = self.previousBlockState()

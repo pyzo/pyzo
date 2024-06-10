@@ -14,11 +14,7 @@ import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 import sys
 
-if sys.version_info[0] < 3:
-    str = unicode  # noqa
-    ELLIPSIS = unichr(8230)  # noqa
-else:
-    ELLIPSIS = chr(8230)
+ELLIPSIS = chr(8230)
 
 # Constants for the alignments of tabs
 MIN_NAME_WIDTH = 4
