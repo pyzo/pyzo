@@ -289,12 +289,10 @@ class PyzoEditor(BaseTextCtrl):
         # This timer is used to hide the marker that shows which code is executed
         self._showRunCursorTimer = QtCore.QTimer()
 
-        # Add context menu (the offset is to prevent accidental auto-clicking)
+        # Add context menu
         self._menu = EditorContextMenu(self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(
-            lambda p: self._menu.popup(self.mapToGlobal(p) + QtCore.QPoint(0, 3))
-        )
+        self.customContextMenuRequested.connect(self._onContextMenu)
 
         # Update status bar
         self.cursorPositionChanged.connect(self._updateStatusBar)
@@ -427,6 +425,20 @@ class PyzoEditor(BaseTextCtrl):
 
     def _onModified(self):
         pyzo.parser.parseThis(self)
+
+    def _onContextMenu(self, point):
+        cur = self.textCursor()
+        curFromEvent = self.cursorForPosition(point)
+        moveTextCursor = True
+        if cur.hasSelection():
+            i1 = cur.selectionStart()
+            i2 = cur.selectionEnd()
+            if i1 <= curFromEvent.position() <= i2:
+                moveTextCursor = False
+        if moveTextCursor:
+            self.setTextCursor(curFromEvent)
+        # the offset is to prevent accidental auto-clicking
+        self._menu.popup(self.mapToGlobal(point) + QtCore.QPoint(0, 3))
 
     def _updateStatusBar(self):
         editor = pyzo.editors.getCurrentEditor()
