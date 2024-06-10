@@ -38,7 +38,7 @@ else:
     text_type = unicode  # noqa
 
 
-class BlockState(object):
+class BlockState:
     """BlockState(state=0, info=None)
 
     The blockstate object should be used by parsers to
@@ -67,7 +67,7 @@ class BlockState(object):
 
 
 # Base parser class (needs to be defined before importing parser modules)
-class Parser(object):
+class Parser:
     """Base parser class.
     All parsers should inherit from this class.
     This base class generates a 'TextToken' for each line

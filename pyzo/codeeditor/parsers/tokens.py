@@ -21,7 +21,7 @@ from ..style import StyleFormat, StyleElementDescription
 from ..misc import ustr
 
 
-class Token(object):
+class Token:
     """Token(line, start, end)
 
     Base token class.

@@ -27,7 +27,7 @@ class CompletionListModel(QtCore.QStringListModel):
 
 
 # todo: use keywords from the parser
-class AutoCompletion(object):
+class AutoCompletion:
     def __init__(self, *args, **kwds):
         super(AutoCompletion, self).__init__(*args, **kwds)
         # Autocompleter

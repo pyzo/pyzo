@@ -22,7 +22,7 @@ from ..parsers.tokens import ParenthesisToken
 import enum
 
 
-class HighlightMatchingOccurrences(object):
+class HighlightMatchingOccurrences:
     # Register style element
     _styleElements = [
         (
@@ -236,7 +236,7 @@ class _MatchResult:
         self.offending = offending
 
 
-class HighlightMatchingBracket(object):
+class HighlightMatchingBracket:
     # Register style element
     _styleElements = [
         (
@@ -448,7 +448,7 @@ class HighlightMatchingBracket(object):
         super(HighlightMatchingBracket, self).paintEvent(event)
 
 
-class HighlightCurrentLine(object):
+class HighlightCurrentLine:
     """
     Highlight the current line
     """
@@ -523,7 +523,7 @@ class HighlightCurrentLine(object):
         #    print(height, event.rect().width())
 
 
-class IndentationGuides(object):
+class IndentationGuides:
     # Register style element
     _styleElements = [
         (
@@ -602,7 +602,7 @@ class IndentationGuides(object):
         painter.end()
 
 
-class FullUnderlines(object):
+class FullUnderlines:
     def paintEvent(self, event):
         """paintEvent(event)
 
@@ -643,7 +643,7 @@ class FullUnderlines(object):
         painter.end()
 
 
-class CodeFolding(object):
+class CodeFolding:
     def paintEvent(self, event):
         """paintEvent(event)"""
         super(CodeFolding, self).paintEvent(event)
@@ -675,7 +675,7 @@ class CodeFolding(object):
         painter.end()
 
 
-class LongLineIndicator(object):
+class LongLineIndicator:
     # Register style element
     _styleElements = [
         (
@@ -744,7 +744,7 @@ class LongLineIndicator(object):
         super(LongLineIndicator, self).paintEvent(event)
 
 
-class ShowWhitespace(object):
+class ShowWhitespace:
     def showWhitespace(self):
         """Show or hide whitespace markers"""
         option = self.document().defaultTextOption()
@@ -765,7 +765,7 @@ class ShowWhitespace(object):
             pass
 
 
-class ShowLineEndings(object):
+class ShowLineEndings:
     @ce_option(False)
     def showLineEndings(self):
         """Get whether line ending markers are shown."""
@@ -786,7 +786,7 @@ class ShowLineEndings(object):
             pass
 
 
-class LineNumbers(object):
+class LineNumbers:
     # Margin on both side of the line numbers
     _LineNumberAreaMargin = 3
 
@@ -1048,7 +1048,7 @@ class LineNumbers(object):
         self.__lineNumberArea.update(0, 0, w, self.height())
 
 
-class BreakPoints(object):
+class BreakPoints:
     _breakPointWidth = 11  # With of total bar, actual points are smaller
 
     # Register style element
@@ -1420,7 +1420,7 @@ class BreakPoints(object):
         self.__breakPointArea.update(0, 0, w, self.height())
 
 
-class Wrap(object):
+class Wrap:
     def wrap(self):
         """Enable or disable wrapping"""
         option = self.document().defaultTextOption()
@@ -1440,7 +1440,7 @@ class Wrap(object):
 # This functionality embedded in the highlighter and even has a designated
 # subpackage. I feel that it should be a part of the base editor.
 # Note: if we do this, remove the hasattr call in the highlighter.
-class SyntaxHighlighting(object):
+class SyntaxHighlighting:
     """Notes on syntax highlighting.
 
     The syntax highlighting/parsing is performed using three "components".
