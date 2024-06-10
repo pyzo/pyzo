@@ -135,7 +135,7 @@ class HighlightMatchingOccurrences:
             text = cursor.selectedText()
             self._doHighlight(text)
 
-        super(HighlightMatchingOccurrences, self).paintEvent(event)
+        super().paintEvent(event)
 
 
 class _ParenNotFound(Exception):
@@ -369,7 +369,7 @@ class HighlightMatchingBracket:
 
         """
         if not self.__highlightMatchingBracket:
-            super(HighlightMatchingBracket, self).paintEvent(event)
+            super().paintEvent(event)
             return
 
         cursor = QtGui.QTextCursor(self.textCursor())
@@ -445,7 +445,7 @@ class HighlightMatchingBracket:
                     # found in its line token list, meaning it is in a string literal
                     pass
 
-        super(HighlightMatchingBracket, self).paintEvent(event)
+        super().paintEvent(event)
 
 
 class HighlightCurrentLine:
@@ -489,7 +489,7 @@ class HighlightCurrentLine:
         Paints behind its super()
         """
         if not self.highlightCurrentLine():
-            super(HighlightCurrentLine, self).paintEvent(event)
+            super().paintEvent(event)
             return
 
         # Get color
@@ -516,7 +516,7 @@ class HighlightCurrentLine:
         )
         painter.end()
 
-        super(HighlightCurrentLine, self).paintEvent(event)
+        super().paintEvent(event)
 
         # for debugging paint events
         # if 'log' not in self.__class__.__name__.lower():
@@ -557,7 +557,7 @@ class IndentationGuides:
         Paint the indentation guides, using the indentation info calculated
         by the highlighter.
         """
-        super(IndentationGuides, self).paintEvent(event)
+        super().paintEvent(event)
 
         if not self.showIndentationGuides():
             return
@@ -611,7 +611,7 @@ class FullUnderlines:
         is stored at the blocks user data.
 
         """
-        super(FullUnderlines, self).paintEvent(event)
+        super().paintEvent(event)
 
         painter = QtGui.QPainter()
         painter.begin(self.viewport())
@@ -646,7 +646,7 @@ class FullUnderlines:
 class CodeFolding:
     def paintEvent(self, event):
         """paintEvent(event)"""
-        super(CodeFolding, self).paintEvent(event)
+        super().paintEvent(event)
 
         return  # Code folding code is not yet complete
 
@@ -711,7 +711,7 @@ class LongLineIndicator:
         Paint the long line indicator. Paints behind its super()
         """
         if self.longLineIndicatorPosition() <= 0:
-            super(LongLineIndicator, self).paintEvent(event)
+            super().paintEvent(event)
             return
 
         # Get doc and viewport
@@ -741,7 +741,7 @@ class LongLineIndicator:
         painter.end()
 
         # Propagate event
-        super(LongLineIndicator, self).paintEvent(event)
+        super().paintEvent(event)
 
 
 class ShowWhitespace:
@@ -803,7 +803,7 @@ class LineNumbers:
         """This is the widget reponsible for drawing the line numbers."""
 
         def __init__(self, codeEditor):
-            QtWidgets.QWidget.__init__(self, codeEditor)
+            super().__init__(codeEditor)
             self.setCursor(QtCore.Qt.PointingHandCursor)
             self._pressedY = None
             self._lineNrChoser = None
@@ -932,7 +932,7 @@ class LineNumbers:
 
     class LineNumberChoser(QtWidgets.QSpinBox):
         def __init__(self, parent):
-            QtWidgets.QSpinBox.__init__(self, parent)
+            super().__init__(parent)
             self._editor = parent
 
             ss = (
@@ -972,7 +972,7 @@ class LineNumbers:
             ]:
                 self._editor.setFocus()  # Moves focus away, thus hiding self
             else:
-                QtWidgets.QSpinBox.keyPressEvent(self, event)
+                super().keyPressEvent(event)
 
         def onValueChanged(self, nr):
             if self._ignoreSignalOnceFlag:
@@ -982,7 +982,7 @@ class LineNumbers:
 
     def __init__(self, *args, **kwds):
         self.__lineNumberArea = None
-        super(LineNumbers, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         # Create widget that draws the line numbers
         self.__lineNumberArea = self.__LineNumberArea(self)
         # Issue an update when the font or amount of line numbers changes
@@ -1033,7 +1033,7 @@ class LineNumbers:
             self.updateMargins()
 
     def resizeEvent(self, event):
-        super(LineNumbers, self).resizeEvent(event)
+        super().resizeEvent(event)
 
         # On resize, resize the lineNumberArea, too
         rect = self.contentsRect()
@@ -1042,7 +1042,7 @@ class LineNumbers:
         self.__lineNumberArea.setGeometry(rect.x() + m, rect.y(), w, rect.height())
 
     def paintEvent(self, event):
-        super(LineNumbers, self).paintEvent(event)
+        super().paintEvent(event)
         # On repaint, update the complete line number area
         w = self.getLineNumberAreaWidth()
         self.__lineNumberArea.update(0, 0, w, self.height())
@@ -1064,7 +1064,7 @@ class BreakPoints:
         """This is the widget reponsible for drawing the break points."""
 
         def __init__(self, codeEditor):
-            QtWidgets.QWidget.__init__(self, codeEditor)
+            super().__init__(codeEditor)
             self.setCursor(QtCore.Qt.PointingHandCursor)
             self.setMouseTracking(True)
             self._virtualBreakpoint = 0
@@ -1205,7 +1205,7 @@ class BreakPoints:
 
     def __init__(self, *args, **kwds):
         self.__breakPointArea = None
-        super(BreakPoints, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         # Create widget that draws the breakpoints
         self.__breakPointArea = self.__BreakPointArea(self)
         self.addLeftMargin(BreakPoints, self.getBreakPointAreaWidth)
@@ -1405,7 +1405,7 @@ class BreakPoints:
             self.updateMargins()
 
     def resizeEvent(self, event):
-        super(BreakPoints, self).resizeEvent(event)
+        super().resizeEvent(event)
 
         # On resize, resize the breakpointArea, too
         rect = self.contentsRect()
@@ -1414,7 +1414,7 @@ class BreakPoints:
         self.__breakPointArea.setGeometry(rect.x() + m, rect.y(), w, rect.height())
 
     def paintEvent(self, event):
-        super(BreakPoints, self).paintEvent(event)
+        super().paintEvent(event)
         # On repaint, update the complete breakPointArea
         w = self.getBreakPointAreaWidth()
         self.__breakPointArea.update(0, 0, w, self.height())

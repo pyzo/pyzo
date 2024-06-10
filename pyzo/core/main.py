@@ -30,7 +30,7 @@ from pyzo import translate
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None, locale=None):
-        QtWidgets.QMainWindow.__init__(self, parent)
+        super().__init__(parent)
 
         self._closeflag = 0  # Used during closing/restarting
 
@@ -146,7 +146,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # To force drawing ourselves
     def paintEvent(self, event):
-        QtWidgets.QMainWindow.paintEvent(self, event)
+        super().paintEvent(event)
         self._ispainted = True
 
     def paintNow(self):
@@ -411,7 +411,7 @@ class MainWindow(QtWidgets.QMainWindow):
         #         print('Number of threads alive:', threading.activeCount())
 
         # Proceed as normal
-        QtWidgets.QMainWindow.closeEvent(self, event)
+        super().closeEvent(event)
 
     def restart(self):
         """Restart Pyzo."""
@@ -575,7 +575,7 @@ class _CallbackEventHandler(QtCore.QObject):
     """Helper class to provide the callLater function."""
 
     def __init__(self):
-        QtCore.QObject.__init__(self)
+        super().__init__()
         self.queue = Queue()
 
     def customEvent(self, event):

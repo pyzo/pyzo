@@ -115,7 +115,7 @@ else:
             ``parent`` is the parent object of this loader.
             """
 
-            QUiLoader.__init__(self, baseinstance)
+            super().__init__(baseinstance)
 
             self.baseinstance = baseinstance
 
@@ -140,7 +140,7 @@ else:
                 # widgets, but works fine, so we have to special case it here.
                 if class_name in self.availableWidgets() or class_name == "Line":
                     # create a new widget for child widgets
-                    widget = QUiLoader.createWidget(self, class_name, parent, name)
+                    widget = super().createWidget(class_name, parent, name)
 
                 else:
                     # If not in the list of availableWidgets, must be a custom

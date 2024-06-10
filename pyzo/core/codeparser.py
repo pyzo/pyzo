@@ -71,7 +71,7 @@ class Parser(threading.Thread):
     """
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        super().__init__()
 
         # Reference current job
         self._job = None

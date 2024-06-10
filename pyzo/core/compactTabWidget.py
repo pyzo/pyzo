@@ -135,7 +135,7 @@ class CompactTabBar(QtWidgets.QTabBar):
     barDoubleClicked = QtCore.Signal()
 
     def __init__(self, *args, padding=(4, 4, 6, 6), preventEqualTexts=True):
-        QtWidgets.QTabBar.__init__(self, *args)
+        super().__init__(*args)
 
         # Put tab widget in document mode
         self.setDocumentMode(True)
@@ -201,15 +201,15 @@ class CompactTabBar(QtWidgets.QTabBar):
         """
 
         # Get current TabData instance
-        tabData = QtWidgets.QTabBar.tabData(self, i)
+        tabData = super().tabData(i)
         if (tabData is not None) and hasattr(tabData, "toPyObject"):
             tabData = tabData.toPyObject()  # Older version of Qt
 
         # If none, make it as good as we can
         if not tabData:
-            name = str(QtWidgets.QTabBar.tabText(self, i))
+            name = str(super().tabText(i))
             tabData = TabData(name)
-            QtWidgets.QTabBar.setTabData(self, i, tabData)
+            super().setTabData(i, tabData)
 
         # Done
         return tabData
@@ -281,30 +281,30 @@ class CompactTabBar(QtWidgets.QTabBar):
     ## Overload events and protected functions
 
     def tabInserted(self, i):
-        QtWidgets.QTabBar.tabInserted(self, i)
+        super().tabInserted(i)
 
         # Is called when a tab is inserted
 
         # Get given name and store
-        name = str(QtWidgets.QTabBar.tabText(self, i))
+        name = str(super().tabText(i))
         tabData = TabData(name)
-        QtWidgets.QTabBar.setTabData(self, i, tabData)
+        super().setTabData(i, tabData)
 
         # Update
         self.alignTabs()
 
     def tabRemoved(self, i):
-        QtWidgets.QTabBar.tabRemoved(self, i)
+        super().tabRemoved(i)
 
         # Update
         self.alignTabs()
 
     def resizeEvent(self, event):
-        QtWidgets.QTabBar.resizeEvent(self, event)
+        super().resizeEvent(event)
         self.alignTabs()
 
     def showEvent(self, event):
-        QtWidgets.QTabBar.showEvent(self, event)
+        super().showEvent(event)
         self.alignTabs()
 
     ## For aligning
@@ -437,7 +437,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                 itemReduced = True
 
             # Set text now
-            QtWidgets.QTabBar.setTabText(self, i, name)
+            super().setTabText(i, name)
 
         # Done
         return itemReduced
@@ -464,7 +464,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
     """
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QTabWidget.__init__(self, *args)
+        super().__init__(*args)
 
         # Set tab bar
         self.setTabBar(CompactTabBar(self, **kwargs))

@@ -20,7 +20,7 @@ class Browser(QtWidgets.QWidget):
     """
 
     def __init__(self, parent, config, path=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Store config
         self.config = config
@@ -189,7 +189,7 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
     """Line edit to which tool buttons (with icons) can be attached."""
 
     def __init__(self, parent):
-        QtWidgets.QLineEdit.__init__(self, parent)
+        super().__init__(parent)
         self._leftButtons = []
         self._rightButtons = []
 
@@ -230,11 +230,11 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         self._updateGeometry()
 
     def resizeEvent(self, event):
-        QtWidgets.QLineEdit.resizeEvent(self, event)
+        super().resizeEvent(event)
         self._updateGeometry(True)
 
     def showEvent(self, event):
-        QtWidgets.QLineEdit.showEvent(self, event)
+        super().showEvent(event)
         self._updateGeometry()
 
     def _updateGeometry(self, light=False):
@@ -291,7 +291,7 @@ class PathInput(LineEditWithToolButtons):
     dirUp = QtCore.Signal()  # Emitted when user presses the up button
 
     def __init__(self, parent):
-        LineEditWithToolButtons.__init__(self, parent)
+        super().__init__(parent)
 
         # Create up button
         self._upBut = self.addButtonLeft(pyzo.icons.folder_parent)
@@ -368,7 +368,7 @@ class PathInput(LineEditWithToolButtons):
         On focusing out, make sure that the set path is correct.
         """
         if event is not None:
-            QtWidgets.QLineEdit.focusOutEvent(self, event)
+            super().focusOutEvent(event)
 
         path = self.parent()._tree.path()
         self.setPath(path)
@@ -378,7 +378,7 @@ class Projects(QtWidgets.QWidget):
     dirChanged = QtCore.Signal(str)  # Emitted when the user changes the project
 
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Init variables
         self._path = ""
@@ -550,7 +550,7 @@ class NameFilter(LineEditWithToolButtons):
     filterChanged = QtCore.Signal()
 
     def __init__(self, parent):
-        LineEditWithToolButtons.__init__(self, parent)
+        super().__init__(parent)
 
         # Create tool button, and attach the menu
         self._menuBut = self.addButtonRight(pyzo.icons["filter"], True)
@@ -582,7 +582,7 @@ class NameFilter(LineEditWithToolButtons):
 
     def setText(self, value, test=False):
         """To initialize the name filter."""
-        QtWidgets.QLineEdit.setText(self, value)
+        super().setText(value)
         if test:
             self.checkFilterValue()
         self._lastValue = value
@@ -604,7 +604,7 @@ class SearchFilter(LineEditWithToolButtons):
     filterChanged = QtCore.Signal()
 
     def __init__(self, parent):
-        LineEditWithToolButtons.__init__(self, parent)
+        super().__init__(parent)
 
         # Create tool button, and attach the menu
         self._menuBut = self.addButtonRight(pyzo.icons["magnifier"], True)
@@ -629,7 +629,7 @@ class SearchFilter(LineEditWithToolButtons):
     def onCancelPressed(self):
         """Clear text or build menu."""
         if self.text():
-            QtWidgets.QLineEdit.clear(self)
+            super().clear()
             self.checkFilterValue()
         else:
             self.buildMenu()

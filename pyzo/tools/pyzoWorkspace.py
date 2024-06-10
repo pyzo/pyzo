@@ -43,7 +43,7 @@ class WorkspaceProxy(QtCore.QObject):
     haveNewData = QtCore.Signal()
 
     def __init__(self):
-        QtCore.QObject.__init__(self)
+        super().__init__()
 
         # Variables
         self._variables = []
@@ -152,7 +152,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
     """
 
     def __init__(self, parent):
-        QtWidgets.QTreeWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self._config = parent._config
 
@@ -322,7 +322,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
     """
 
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in

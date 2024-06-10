@@ -52,7 +52,7 @@ class YotonEmbedder(QtCore.QObject):
     """Embed the Yoton event loop."""
 
     def __init__(self):
-        QtCore.QObject.__init__(self)
+        super().__init__()
         yoton.app.embed_event_loop(self.postYotonEvent)
 
     def postYotonEvent(self):
@@ -332,7 +332,7 @@ class BaseShell(BaseTextCtrl):
         pass
 
     def mouseDoubleClickEvent(self, event):
-        BaseTextCtrl.mouseDoubleClickEvent(self, event)
+        super().mouseDoubleClickEvent(event)
         self._handleClickOnFilename(event.pos())
 
     def _handleClickOnFilename(self, mousepos):
@@ -542,7 +542,7 @@ class BaseShell(BaseTextCtrl):
             self.ensureCursorAtEditLine()
 
         # Default behaviour: BaseTextCtrl
-        BaseTextCtrl.keyPressEvent(self, event)
+        super().keyPressEvent(event)
 
     ## Cut / Copy / Paste / Drag & Drop
 
@@ -553,7 +553,7 @@ class BaseShell(BaseTextCtrl):
         if self.isReadOnly():
             return self.copy()
         else:
-            return BaseTextCtrl.cut(self)
+            return super().cut()
 
     # def copy(self): # no overload needed
 
@@ -562,7 +562,7 @@ class BaseShell(BaseTextCtrl):
         the position is at the prompt."""
         self.ensureCursorAtEditLine()
         # Paste normally
-        return BaseTextCtrl.paste(self)
+        return super().paste()
 
     def dragEnterEvent(self, event):
         """
@@ -998,7 +998,7 @@ class PythonShell(BaseShell):
     debugStateChanged = QtCore.Signal(BaseShell)
 
     def __init__(self, parent, info):
-        BaseShell.__init__(self, parent)
+        super().__init__(parent)
 
         # Get standard info if not given.
         if info is None and pyzo.config.shellConfigs2:

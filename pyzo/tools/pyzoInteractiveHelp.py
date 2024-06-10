@@ -368,7 +368,7 @@ class PyzoInteractiveHelpHistoryMenu(QtWidgets.QMenu):
 
 class PyzoInteractiveHelp(QtWidgets.QWidget):
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Create text field, checkbox, and button
         self._text = QtWidgets.QLineEdit(self)

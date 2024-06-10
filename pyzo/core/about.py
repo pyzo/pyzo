@@ -10,7 +10,7 @@ from pyzo.util import paths
 
 class AboutDialog(QtWidgets.QDialog):
     def __init__(self, parent):
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent)
         self.setWindowTitle(pyzo.translate("menu dialog", "About Pyzo"))
         self.resize(600, 500)
 

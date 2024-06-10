@@ -38,7 +38,7 @@ class WebView(QtWidgets.QTextBrowser):
     loadFinished = QtCore.Signal(bool)
 
     def __init__(self, parent):
-        QtWidgets.QTextBrowser.__init__(self, parent)
+        super().__init__(parent)
 
         # Current url
         self._url = ""
@@ -53,7 +53,7 @@ class WebView(QtWidgets.QTextBrowser):
         if QtCore.Qt.ControlModifier & QtWidgets.qApp.keyboardModifiers():
             self.parent().wheelEvent(event)
         else:
-            QtWidgets.QTextBrowser.wheelEvent(self, event)
+            super().wheelEvent(event)
 
     def url(self):
         return self._url
@@ -142,7 +142,7 @@ class PyzoWebBrowser(QtWidgets.QFrame):
     """
 
     def __init__(self, parent):
-        QtWidgets.QFrame.__init__(self, parent)
+        super().__init__(parent)
 
         # Init config
         toolId = self.__class__.__name__.lower()
@@ -264,4 +264,4 @@ class PyzoWebBrowser(QtWidgets.QFrame):
             self._config.zoomFactor = factor
         #             self._view.setZoomFactor(factor)
         else:
-            QtWidgets.QFrame.wheelEvent(self, event)
+            super().wheelEvent(event)

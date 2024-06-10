@@ -454,7 +454,7 @@ class PyzoEditor(BaseTextCtrl):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         else:
-            BaseTextCtrl.dropEvent(self, event)
+            super().dropEvent(event)
 
     def dropEvent(self, event):
         """Drop files in the list."""
@@ -463,13 +463,13 @@ class PyzoEditor(BaseTextCtrl):
             pyzo.editors.dropEvent(event)
         else:
             # text: act normal
-            BaseTextCtrl.dropEvent(self, event)
+            super().dropEvent(event)
 
     def showEvent(self, event=None):
         """Capture show event to change title."""
         # Act normally
         if event:
-            BaseTextCtrl.showEvent(self, event)
+            super().showEvent(event)
 
         # Make parser update
         pyzo.parser.parseThis(self)

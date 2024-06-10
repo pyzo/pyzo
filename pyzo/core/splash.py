@@ -41,14 +41,14 @@ splash_text = """
 
 class LogoWidget(QtWidgets.QFrame):
     def __init__(self, parent):
-        QtWidgets.QFrame.__init__(self, parent)
+        super().__init__(parent)
         self.setMinimumSize(256, 256)
         self.setMaximumSize(256, 256)
 
 
 class LabelWidget(QtWidgets.QWidget):
     def __init__(self, parent, distro=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.setMinimumSize(360, 256)  # Ensure title fits nicely
 
         # Create label widget and costumize
@@ -92,7 +92,7 @@ class SplashWidget(QtWidgets.QWidget):
     """A splash widget."""
 
     def __init__(self, parent, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self._left = LogoWidget(self)
         self._right = LabelWidget(self, **kwargs)

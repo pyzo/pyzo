@@ -137,7 +137,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
     breakPointsChanged = QtCore.Signal(object)
 
     def __init__(self, *args, **kwds):
-        super(CodeEditorBase, self).__init__(*args)
+        super().__init__(*args)
 
         # Set font (always monospace)
         self.__zoom = 0
@@ -420,7 +420,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         font = QtGui.QFont(family, size)
 
         # Set, emit and return
-        QtWidgets.QPlainTextEdit.setFont(self, font)
+        super().setFont(font)
         self.fontChanged.emit()
         return font
 
@@ -567,7 +567,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             self.__styleChangedPending = True
 
     def showEvent(self, event):
-        super(CodeEditorBase, self).showEvent(event)
+        super().showEvent(event)
         # Does the style need updating?
         if self.__styleChangedPending:
             callLater(self.styleChanged.emit)

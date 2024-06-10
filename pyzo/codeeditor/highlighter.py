@@ -24,7 +24,7 @@ class BlockData(QtGui.QTextBlockUserData):
     """Class to represent the data for a block."""
 
     def __init__(self):
-        QtGui.QTextBlockUserData.__init__(self)
+        super().__init__()
         self.indentation = None
         self.fullUnderlineFormat = None
         self.tokens = []
@@ -34,7 +34,7 @@ class BlockData(QtGui.QTextBlockUserData):
 # some extensions rely on them (e.g. the indent guuides).
 class Highlighter(QtGui.QSyntaxHighlighter):
     def __init__(self, codeEditor, *args):
-        QtGui.QSyntaxHighlighter.__init__(self, *args)
+        super().__init__(*args)
 
         # Store reference to editor
         self._codeEditor = codeEditor

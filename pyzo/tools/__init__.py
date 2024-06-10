@@ -49,7 +49,7 @@ class ToolDockWidget(QtWidgets.QDockWidget):
     """
 
     def __init__(self, parent, toolManager):
-        QtWidgets.QDockWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Store stuff
         self._toolManager = toolManager
@@ -142,7 +142,7 @@ class ToolManager(QtCore.QObject):
     toolInstanceChange = QtCore.Signal()
 
     def __init__(self, parent=None):
-        QtCore.QObject.__init__(self, parent)
+        super().__init__(parent)
 
         # list of ToolDescription instances
         self._toolInfo = None

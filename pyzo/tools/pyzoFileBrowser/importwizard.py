@@ -96,7 +96,7 @@ class SelectFilePage(QtWidgets.QWizardPage):
     """
 
     def __init__(self):
-        QtWidgets.QWizardPage.__init__(self)
+        super().__init__()
 
         self.setTitle(translate("importwizard", "Select file"))
 
@@ -174,7 +174,7 @@ class SelectFilePage(QtWidgets.QWizardPage):
 
 class SetParametersPage(QtWidgets.QWizardPage):
     def __init__(self):
-        QtWidgets.QWizardPage.__init__(self)
+        super().__init__()
 
         self.setTitle("Select parameters")
 
@@ -428,7 +428,7 @@ class ResultPage(QtWidgets.QWizardPage):
     """
 
     def __init__(self):
-        QtWidgets.QWizardPage.__init__(self)
+        super().__init__()
         self.setTitle("Execute import")
         self.setButtonText(
             QtWidgets.QWizard.FinishButton, translate("importwizard", "Close")
@@ -551,7 +551,7 @@ class ResultPage(QtWidgets.QWizardPage):
 
 class ImportWizard(QtWidgets.QWizard):
     def __init__(self):
-        QtWidgets.QWizard.__init__(self)
+        super().__init__()
         self.setMinimumSize(500, 400)
         self.resize(700, 500)
 
@@ -598,7 +598,7 @@ class ImportWizard(QtWidgets.QWizard):
         elif name == "columnnames":
             return self.setParametersPage.columnNames()
         else:
-            return QtWidgets.QWizard.field(self, name)
+            return super().field(name)
 
     def setPreviewData(self, data):
         self._previewData = data

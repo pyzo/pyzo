@@ -203,7 +203,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     """A widget to find and replace text."""
 
     def __init__(self, *args):
-        QtWidgets.QFrame.__init__(self, *args)
+        super().__init__(*args)
 
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
@@ -435,7 +435,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
                 event.accept()
                 return True
         # Otherwise ... handle in default manner
-        return QtWidgets.QFrame.event(self, event)
+        return super().event(event)
 
     def handleReplacePossible(self, state):
         """Disable replacing when using regular expressions."""
@@ -651,7 +651,7 @@ class FileTabWidget(CompactTabWidget):
     fileTabsChanged = QtCore.Signal()
 
     def __init__(self, parent):
-        CompactTabWidget.__init__(self, parent, padding=(2, 1, 0, 4))
+        super().__init__(parent, padding=(2, 1, 0, 4))
 
         # Init main file
         self._mainFile = ""
@@ -833,7 +833,7 @@ class FileTabWidget(CompactTabWidget):
 
         if theIndex >= 0:
             # Close tab
-            CompactTabWidget.removeTab(self, theIndex)
+            super().removeTab(theIndex)
 
             # Delete editor
             items[theIndex].editor.destroy()
@@ -967,7 +967,7 @@ class EditorTabs(QtWidgets.QWidget):
     parserDone = QtCore.Signal()
 
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # keep a booking of opened directories
         self._lastpath = ""

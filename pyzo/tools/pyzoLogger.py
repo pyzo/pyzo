@@ -23,7 +23,7 @@ class PyzoLogger(QtWidgets.QWidget):
     """
 
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # logger widget
         self._logger_shell = PyzoLoggerShell(self)
@@ -52,7 +52,7 @@ class PyzoLoggerShell(BaseShell):
     """
 
     def __init__(self, parent):
-        BaseShell.__init__(self, parent)
+        super().__init__(parent)
 
         # Set style to Python, or autocompletion does not work
         self.setParser("python")
