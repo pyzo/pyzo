@@ -26,7 +26,7 @@ def isidentifier(s):
     # http://stackoverflow.com/questions/2544972/
     if not isinstance(s, str):
         return False
-    return re.match(r"^\w+$", s, re.UNICODE) and re.match(r"^[0-9]", s) is None
+    return re.match(r"^\w+$", s) and re.match(r"^[0-9]", s) is None
 
 
 class Dict(_dict):
@@ -161,7 +161,7 @@ def count(object, cache=None):
 def loads(text):
     """loads(text)
 
-    Load a Dict from the given Unicode) string in ZON syntax.
+    Load a Dict from the given string in ZON syntax.
     """
     if not isinstance(text, str):
         raise ValueError("zon.loads() expects a string.")
@@ -185,7 +185,7 @@ def load(file):
 def saves(d):
     """saves(d)
 
-    Serialize the given dict to a (Unicode) string.
+    Serialize the given dict to a string.
     """
     if not (isstruct(d) or isinstance(d, dict)):
         raise ValueError("ssdf.saves() expects a dict.")

@@ -114,9 +114,6 @@ class ShellHighlighter(Highlighter):
     """
 
     def highlightBlock(self, line):
-        # Make sure this is a Unicode Python string
-        line = str(line)
-
         # Get previous state
         previousState = self.previousBlockState()
 
