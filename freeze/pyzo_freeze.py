@@ -112,7 +112,7 @@ def get_stdlib_modules():
 
 
 # All known Qt toolkits, excluded the one we will use
-other_qt_kits = {"PySide", "PySide2", "PySide6", "PyQt4", "PyQt5", "PyQt6"}
+other_qt_kits = {"PySide2", "PySide6", "PyQt5", "PyQt6"}
 other_qt_kits.remove(qt_api)
 
 

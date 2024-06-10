@@ -67,9 +67,6 @@ import platform
 import sys
 import warnings
 
-# Version of QtPy
-__version__ = "2.0.0.dev0"
-
 
 class PythonQtError(RuntimeError):
     """Error raised if no bindings could be selected."""
@@ -112,9 +109,8 @@ API = os.environ[QT_API].lower()
 initial_api = API
 assert API in (PYQT5_API + PYQT6_API + PYSIDE2_API + PYSIDE6_API)
 
-is_old_pyqt = is_pyqt46 = False
 QT5 = PYQT5 = True
-QT4 = QT6 = PYQT4 = PYQT6 = PYSIDE = PYSIDE2 = PYSIDE6 = False
+QT6 = PYQT6 = PYSIDE2 = PYSIDE6 = False
 
 PYQT_VERSION = None
 PYSIDE_VERSION = None

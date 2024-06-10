@@ -7,7 +7,7 @@ def test_api():
     assert pyzo.__version__
 
 
-qt_libs = ["PySide", "PySide2", "PySide6", "PyQt4", "PyQt5", "PyQt6"]
+qt_libs = ["PySide2", "PySide6", "PyQt5", "PyQt6"]
 
 code1 = """
 import sys

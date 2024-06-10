@@ -126,13 +126,9 @@ class SelectFilePage(QtWidgets.QWizardPage):
         options = QtWidgets.QFileDialog.Option(0)
         if not pyzo.config.advanced.useNativeFileDialogs:
             options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
-        # Difference between PyQt4 and PySide: PySide returns filename, filter
-        # while PyQt4 returns only the filename
-        filename = QtWidgets.QFileDialog.getOpenFileName(
+        filename, selectedFilter = QtWidgets.QFileDialog.getOpenFileName(
             filter="Text files (*.txt *.csv);;All files (*.*)", options=options
         )
-        if isinstance(filename, tuple):
-            filename = filename[0]
 
         filename = str(filename).replace("/", op.sep)  # Show native file separator
 

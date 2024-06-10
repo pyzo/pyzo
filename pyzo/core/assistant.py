@@ -75,14 +75,12 @@ class Settings(QtWidgets.QWidget):
         options = QtWidgets.QFileDialog.Option(0)
         if not pyzo.config.advanced.useNativeFileDialogs:
             options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
-        doc_file = QtWidgets.QFileDialog.getOpenFileName(
+        doc_file, selectedFilter = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select a compressed help file",
             filter="Qt compressed help files (*.qch)",
             options=options,
         )
-        if isinstance(doc_file, tuple):
-            doc_file = doc_file[0]
         self.add_doc_do(doc_file)
 
     def add_doc_do(self, doc_file):

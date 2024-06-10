@@ -65,8 +65,6 @@ pyzo.setLanguage = setLanguage
 
 # Set environ to let kernel know some stats about us
 os.environ["PYZO_PREFIX"] = sys.prefix
-_is_pyqt4 = hasattr(QtCore, "PYQT_VERSION_STR")
-os.environ["PYZO_QTLIB"] = "PyQt4" if _is_pyqt4 else "PySide"
 
 
 class MyApp(QtWidgets.QApplication):
