@@ -216,4 +216,4 @@ class CParser(Parser):
 if __name__ == "__main__":
     parser = CParser()
     for token in parser.parseLine("void test(int i=2) /* test "):
-        print("%s %s" % (token.name, token))
+        print(token.name, token)

@@ -296,7 +296,7 @@ class ToolManager(QtCore.QObject):
                 className = member
                 break
         else:
-            print("Invalid tool, Classname must match module name '%s'!" % toolId)
+            print("Invalid tool, Classname must match module name '{}'!".format(toolId))
             return None
 
         # Does it inherit from QWidget?

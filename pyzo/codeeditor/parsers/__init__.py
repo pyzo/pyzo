@@ -112,7 +112,7 @@ class Parser:
 
     def __repr__(self):
         """String representation of the parser."""
-        return '<Parser for "%s">' % self.name()
+        return '<Parser for "{}">'.format(self.name())
 
     def keywords(self):
         """keywords()

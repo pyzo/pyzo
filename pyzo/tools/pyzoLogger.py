@@ -68,7 +68,7 @@ class PyzoLoggerShell(BaseShell):
         else:
             fgColor = fgColor.darker(150)
             bgColor = bgColor.darker(110)
-        newStyle = "back:%s, fore:%s" % (bgColor.name(), fgColor.name())
+        newStyle = "back:{}, fore:{}".format(bgColor.name(), fgColor.name())
         self.setStyle(editor_text=newStyle)
 
         # Create namespace for logger interpreter

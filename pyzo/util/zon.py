@@ -42,16 +42,16 @@ class Dict(_dict):
         nonidentifier_items = []
         for key, val in self.items():
             if isidentifier(key):
-                identifier_items.append("%s=%r" % (key, val))
+                identifier_items.append("{}={!r}".format(key, val))
             else:
-                nonidentifier_items.append("(%r, %r)" % (key, val))
+                nonidentifier_items.append("({!r}, {!r})".format(key, val))
         if nonidentifier_items:
-            return "Dict([%s], %s)" % (
+            return "Dict([{}], {})".format(
                 ", ".join(nonidentifier_items),
                 ", ".join(identifier_items),
             )
         else:
-            return "Dict(%s)" % (", ".join(identifier_items))
+            return "Dict({})".format(", ".join(identifier_items))
 
     def __getattribute__(self, key):
         try:
@@ -70,7 +70,7 @@ class Dict(_dict):
             else:
                 raise AttributeError(
                     "Reserved name, this key can only "
-                    + "be set via ``d[%r] = X``" % key
+                    + "be set via ``d[{!r}] = X``".format(key)
                 )
         else:
             # if isinstance(val, dict): val = Dict(val) -> no, makes a copy!
@@ -235,12 +235,12 @@ class ReaderWriter:
                 while container_stack[-1][0] > indent:
                     container_stack.pop(-1)
                 if container_stack[-1][0] != indent:
-                    print("ZON: Ignoring wrong dedentation at %i" % linenr)
+                    print("ZON: Ignoring wrong dedentation at {}".format(linenr))
             elif indent > prev_indent and new_container is not None:
                 container_stack.append((indent, new_container))
                 new_container = None
             else:
-                print("ZON: Ignoring wrong indentation at %i" % linenr)
+                print("ZON: Ignoring wrong indentation at {}".format(linenr))
                 indent = prev_indent
 
             # Split name and data using a regular expression
@@ -262,14 +262,14 @@ class ReaderWriter:
                 if name:
                     current_container[name] = value
                 else:
-                    print("ZON: unnamed item in dict on line %i" % linenr)
+                    print("ZON: unnamed item in dict on line {}".format(linenr))
             elif isinstance(current_container, list):
                 if name:
-                    print("ZON: named item in list on line %i" % linenr)
+                    print("ZON: named item in list on line {}".format(linenr))
                 else:
                     current_container.append(value)
             else:
-                raise RuntimeError("Invalid container %r" % current_container)
+                raise RuntimeError("Invalid container {!r}".format(current_container))
 
             # Prepare for next round
             if isinstance(value, (dict, list)):
@@ -278,12 +278,12 @@ class ReaderWriter:
         return root
 
     def save(self, d):
-        pyver = "%i.%i.%i" % sys.version_info[:3]
+        pyver = "{}.{}.{}".format(*sys.version_info[:3])
         ct = time.asctime()
         lines = []
         lines.append("# -*- coding: utf-8 -*-")
         lines.append("# This Zoof Object Notation (ZON) file was")
-        lines.append("# created from Python %s on %s.\n" % (pyver, ct))
+        lines.append("# created from Python {} on {}.\n".format(pyver, ct))
         lines.append("")
         lines.extend(self.from_dict(d, -2)[1:])
 
@@ -313,17 +313,17 @@ class ReaderWriter:
             if len(tmp) > 64:
                 tmp = tmp[:64] + "..."
             if name is not None:
-                print("ZON: %s is unknown object: %s" % (name, tmp))
+                print("ZON: {} is unknown object: {}".format(name, tmp))
             else:
-                print("ZON: unknown object: %s" % tmp)
+                print("ZON: unknown object: {}".format(tmp))
 
         # Finish line (or first line)
         if isinstance(data, str):
             data = [data]
         if name:
-            data[0] = "%s%s = %s" % (" " * indent, name, data[0])
+            data[0] = "{}{} = {}".format(" " * indent, name, data[0])
         else:
-            data[0] = "%s%s" % (" " * indent, data[0])
+            data[0] = "{}{}".format(" " * indent, data[0])
 
         return data
 
@@ -333,7 +333,7 @@ class ReaderWriter:
         # Determine what type of object we're dealing with by reading
         # like a human.
         if not data:
-            print("ZON: no value specified at line %i." % linenr)
+            print("ZON: no value specified at line {}.".format(linenr))
         elif data[0] in "-.0123456789":
             return self.to_int_or_float(data, linenr)
         elif data[0] == "'":
@@ -345,7 +345,7 @@ class ReaderWriter:
         elif data.startswith("Null") or data.startswith("None"):
             return None
         else:
-            print("ZON: invalid type on line %i." % linenr)
+            print("ZON: invalid type on line {}.".format(linenr))
             return None
 
     def to_int_or_float(self, data, linenr):
@@ -356,7 +356,7 @@ class ReaderWriter:
             try:
                 return float(line)
             except ValueError:
-                print("ZON: could not parse number on line %i." % linenr)
+                print("ZON: could not parse number on line {}.".format(linenr))
                 return None
 
     def from_int(self, value):
@@ -368,7 +368,7 @@ class ReaderWriter:
         # should be sufficient such that any numbers saved and loaded
         # back will have the exact same value again.
         # see e.g. http://bugs.python.org/issue1580
-        return repr(float(value))  # '%0.17g' % value
+        return repr(float(value))  # '{:.17g}'.format(value)
 
     def from_unicode(self, value):
         value = value.replace("\\", "\\\\")
@@ -385,7 +385,7 @@ class ReaderWriter:
         # Find string using a regular expression
         m = re.search(r"'.*?[^\\]'|''", line)
         if not m:
-            print("ZON: string not ended correctly on line %i." % linenr)
+            print("ZON: string not ended correctly on line {}.".format(linenr))
             return None  # return not-a-string
         else:
             line = m.group(0)[1:-1]
@@ -429,7 +429,7 @@ class ReaderWriter:
 
         # Return data
         if isSmallList:
-            return "[%s]" % (", ".join(subItems))
+            return "[{}]".format(", ".join(subItems))
         else:
             data = ["list:"]
             ind = " " * (indent + 2)
@@ -470,7 +470,7 @@ class ReaderWriter:
                             pieces.append(piece)
                         break
             else:
-                print("ZON: short list not closed right on line %i." % linenr)
+                print("ZON: short list not closed right on line {}.".format(linenr))
 
             # Cut in pieces and process each piece
             value = []

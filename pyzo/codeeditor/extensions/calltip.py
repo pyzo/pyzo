@@ -47,7 +47,7 @@ class Calltip:
 
     def __afterSetStyle(self):
         format = self.getStyleElementFormat("editor.calltip")
-        ss = "QLabel { color:%s; background:%s; border:%ipx solid %s; }" % (
+        ss = "QLabel {{ color:{}; background:{}; border:{}px solid {}; }}".format(
             format["fore"],
             format["back"],
             int(format["border"]),

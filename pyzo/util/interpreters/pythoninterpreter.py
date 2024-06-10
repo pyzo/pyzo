@@ -25,9 +25,9 @@ class PythonInterpreter:
 
     def __init__(self, path):
         if not isinstance(path, str):
-            raise ValueError("Path for PythonInterpreter is not a string: %r" % path)
+            raise ValueError("Path for PythonInterpreter is not a string: {!r}".format(path))
         if not os.path.isfile(make_abs(path)):
-            raise ValueError("Path for PythonInterpreter is invalid: %r" % path)
+            raise ValueError("Path for PythonInterpreter is invalid: {!r}".format(path))
         self._path = (
             path if path.startswith(".") else os.path.normpath(os.path.abspath(path))
         )
@@ -41,7 +41,7 @@ class PythonInterpreter:
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        return "<%s version %s at %s>" % (cls_name, self.version, self.path)
+        return "<{} version {} at {}>".format(cls_name, self.version, self.path)
 
     def __hash__(self):
         return hash(self._normpath)
@@ -94,7 +94,7 @@ class PythonInterpreter:
 
         # Check if path is even a file
         if not os.path.isfile(path):
-            self._problem = "%s is not a valid file."
+            self._problem = "{!r} is not a valid file.".format(path)
             return ""
 
         # Poll Python executable (--version does not work on 2.4)

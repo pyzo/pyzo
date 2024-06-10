@@ -129,10 +129,10 @@ def setLanguage(languageName):
             if success:
                 QtWidgets.QApplication.installTranslator(trans)
                 QtCore._translators.append(trans)
-                print("loading %s %s: ok" % (what, languageName))
+                print("loading {} {}: ok".format(what, languageName))
                 break
         else:
-            print("loading %s %s: failed" % (what, languageName))
+            print("loading {} {}: failed".format(what, languageName))
 
     # Done
     return locale
@@ -283,7 +283,7 @@ def lupdate():
         time.sleep(0.1)
     output = p.stdout.read().decode("utf-8")
     if p.returncode:
-        raise RuntimeError("lupdate failed (%i): %s" % (p.returncode, output))
+        raise RuntimeError("lupdate failed ({}): {}".format(p.returncode, output))
     else:
         print(output)
 
@@ -317,7 +317,7 @@ def lrelease():
         time.sleep(0.1)
     output = p.stdout.read().decode("utf-8")
     if p.returncode:
-        raise RuntimeError("lrelease failed (%i): %s" % (p.returncode, output))
+        raise RuntimeError("lrelease failed ({}): {}".format(p.returncode, output))
     else:
         print(output)
 

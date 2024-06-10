@@ -79,10 +79,10 @@ class PyzoWizard(QtWidgets.QWizard):
                     startPage = i
                     break
             else:
-                print("Pyzo wizard: Could not find start page: %r" % startPage)
+                print("Pyzo wizard: Could not find start page: {!r}".format(startPage))
                 startPage = None
         elif startPage is not None:
-            print("Pyzo wizard: invalid start page: %r" % startPage)
+            print("Pyzo wizard: invalid start page: {!r}".format(startPage))
             startPage = None
 
         # Go to start page
@@ -138,7 +138,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
         n = self.wizard()._n - 2  # Dont count the first and last page
         prefix = ""
         if i and i <= n:
-            prefix = retranslate(self._prefix) + " %i/%i: " % (i, n)
+            prefix = retranslate(self._prefix) + " {}/{}: ".format(i, n)
 
         # Set title
         self.setTitle(prefix + retranslate(self._title))

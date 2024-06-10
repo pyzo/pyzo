@@ -207,36 +207,36 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Define style using "Solarized" colors
         S = {}
-        S["Editor.text"] = "back:%s, fore:%s" % (back1, fore1)
-        S["Syntax.identifier"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
-        S["Syntax.nonidentifier"] = "fore:%s, bold:no, italic:no, underline:no" % fore2
-        S["Syntax.keyword"] = "fore:%s, bold:yes, italic:no, underline:no" % fore2
+        S["Editor.text"] = "back:{}, fore:{}".format(back1, fore1)
+        S["Syntax.identifier"] = "fore:{}, bold:no, italic:no, underline:no".format(fore1)
+        S["Syntax.nonidentifier"] = "fore:{}, bold:no, italic:no, underline:no".format(fore2)
+        S["Syntax.keyword"] = "fore:{}, bold:yes, italic:no, underline:no".format(fore2)
 
-        S["Syntax.builtins"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
-        S["Syntax.instance"] = "fore:%s, bold:no, italic:no, underline:no" % fore1
+        S["Syntax.builtins"] = "fore:{}, bold:no, italic:no, underline:no".format(fore1)
+        S["Syntax.instance"] = "fore:{}, bold:no, italic:no, underline:no".format(fore1)
 
-        S["Syntax.functionname"] = "fore:%s, bold:yes, italic:no, underline:no" % fore3
-        S["Syntax.classname"] = "fore:%s, bold:yes, italic:no, underline:no" % orange
+        S["Syntax.functionname"] = "fore:{}, bold:yes, italic:no, underline:no".format(fore3)
+        S["Syntax.classname"] = "fore:{}, bold:yes, italic:no, underline:no".format(orange)
 
-        S["Syntax.string"] = "fore:%s, bold:no, italic:no, underline:no" % violet
+        S["Syntax.string"] = "fore:{}, bold:no, italic:no, underline:no".format(violet)
         S["Syntax.unterminatedstring"] = (
-            "fore:%s, bold:no, italic:no, underline:dotted" % violet
+            "fore:{}, bold:no, italic:no, underline:dotted".format(violet)
         )
         S["Syntax.python.multilinestring"] = (
-            "fore:%s, bold:no, italic:no, underline:no" % blue
+            "fore:{}, bold:no, italic:no, underline:no".format(blue)
         )
 
-        S["Syntax.number"] = "fore:%s, bold:no, italic:no, underline:no" % cyan
-        S["Syntax.comment"] = "fore:%s, bold:no, italic:no, underline:no" % yellow
-        S["Syntax.todocomment"] = "fore:%s, bold:no, italic:yes, underline:no" % magenta
+        S["Syntax.number"] = "fore:{}, bold:no, italic:no, underline:no".format(cyan)
+        S["Syntax.comment"] = "fore:{}, bold:no, italic:no, underline:no".format(yellow)
+        S["Syntax.todocomment"] = "fore:{}, bold:no, italic:yes, underline:no".format(magenta)
         S["Syntax.python.cellcomment"] = (
-            "fore:%s, bold:yes, italic:no, underline:full" % yellow
+            "fore:{}, bold:yes, italic:no, underline:full".format(yellow)
         )
 
-        S["Editor.Long line indicator"] = "linestyle:solid, fore:%s" % back2
-        S["Editor.Highlight current line"] = "back:%s" % back2
-        S["Editor.Indentation guides"] = "linestyle:solid, fore:%s" % back2
-        S["Editor.Line numbers"] = "back:%s, fore:%s" % (back2, back3)
+        S["Editor.Long line indicator"] = "linestyle:solid, fore:{}".format(back2)
+        S["Editor.Highlight current line"] = "back:{}".format(back2)
+        S["Editor.Indentation guides"] = "linestyle:solid, fore:{}".format(back2)
+        S["Editor.Line numbers"] = "back:{}, fore:{}".format(back2, back3)
 
         # Apply a good default style
         self.setStyle(S)
@@ -500,7 +500,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         try:
             return self.__style[key]
         except KeyError:
-            raise KeyError('Not a known style element name: "%s".' % name)
+            raise KeyError('Not a known style element name: "{}".'.format(name))
 
     def setStyle(self, style=None, **kwargs):
         """setStyle(style=None, **kwargs)
@@ -582,7 +582,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Set text style using editor style sheet
         format = self.getStyleElementFormat("editor.text")
-        ss = "QPlainTextEdit{ color:%s; background-color:%s; }" % (
+        ss = "QPlainTextEdit{{ color:{}; background-color:{}; }}".format(
             format["fore"],
             format["back"],
         )

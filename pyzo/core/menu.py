@@ -446,7 +446,7 @@ class IndentationMenu(Menu):
         spaces = translate("menu", "spaces", "plural of spacebar character")
         self._items += [
             self.addGroupItem(
-                "%d %s" % (i, spaces), None, self._setWidth, i, group="width"
+                "{} {}".format(i, spaces), None, self._setWidth, i, group="width"
             )
             for i in range(2, 9)
         ]
@@ -644,7 +644,7 @@ class FileMenu(Menu):
         for encoding in encodings:
             encodingValues.append(encoding)
             if encoding in D:
-                name = "%s (%s)" % (encoding, ", ".join(D[encoding]))
+                name = "{} ({})".format(encoding, ", ".join(D[encoding]))
                 encodingNames.append(name)
             else:
                 encodingNames.append(encoding)
@@ -910,7 +910,7 @@ class FontMenu(Menu):
         names = pyzo.codeeditor.Manager.fontNames()
         defaultName = "DejaVu Sans Mono"
         for name in sorted(names):
-            default_suffix = " (%s)" % translate("menu", "default")
+            default_suffix = " ({})".format(translate("menu", "default"))
             txt = name + default_suffix if name == defaultName else name
             self.addGroupItem(txt, None, self._selectFont, value=name)
         # Select the current one
@@ -955,7 +955,7 @@ class ViewMenu(Menu):
         styleNames = [name.lower() for name in styleNames]
         for i in range(len(titles)):
             if titles[i].lower() == pyzo.defaultQtStyleName.lower():
-                titles[i] += " (%s)" % translate("menu", "default")
+                titles[i] += " ({})".format(translate("menu", "default"))
         self._qtThemeMenu.setOptions(titles, styleNames)
         self._qtThemeMenu.setCheckedOption(None, pyzo.config.view.qtstyle.lower())
 
@@ -1404,7 +1404,7 @@ class ShellMenu(Menu):
 
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
-            name = translate("menu", "Create shell %s: (%s)") % (i + 1, config.name)
+            name = translate("menu", "Create shell {}: ({})").format(i + 1, config.name)
             action = self.addItem(
                 name, pyzo.icons.application_add, pyzo.shells.addShell, config
             )
@@ -1447,7 +1447,7 @@ class ShellMenu(Menu):
                     lineNumber = editor.textCursor().blockNumber() + 1
                 command = "{} {}".format(command, lineNumber)
 
-            shell.executeCommand("DB %s\n" % command)
+            shell.executeCommand("DB {}\n".format(command))
 
     def _clearBreakPoints(self, action=None):
         for e in pyzo.editors:
@@ -1489,7 +1489,7 @@ class ShellButtonMenu(ShellMenu):
 
         self._shellCreateActions = []
         for i, config in enumerate(pyzo.config.shellConfigs2):
-            name = translate("menu", "Create shell %s: (%s)") % (i + 1, config.name)
+            name = translate("menu", "Create shell {}: ({})").format(i + 1, config.name)
             action = self._newShellMenu.addItem(
                 name, pyzo.icons.application_add, pyzo.shells.addShell, config
             )
@@ -2291,8 +2291,8 @@ class RunMenu(Menu):
                     d = os.path.normpath(
                         os.path.normcase(os.path.dirname(editor._filename))
                     )
-                    shell._ctrl_command.send('%%cd "%s"\n' % d)
-                    shell._ctrl_command.send('%%run -i "%s"\n' % editor._filename)
+                    shell._ctrl_command.send('%cd "{}"\n'.format(d))
+                    shell._ctrl_command.send('%run -i "{}"\n'.format(editor._filename))
                 else:
                     shell.restart(editor._filename)
             else:

@@ -52,9 +52,9 @@ class ShellInfo_exe(QtWidgets.QComboBox):
 
     def _interpreterName(self, p):
         if p.is_conda:
-            return "%s  [v%s, conda]" % (p.path, p.version)
+            return "{}  [v{}, conda]".format(p.path, p.version)
         else:
-            return "%s  [v%s]" % (p.path, p.version)
+            return "{}  [v{}]".format(p.path, p.version)
 
     def setTheText(self, value):
         # Init
@@ -150,7 +150,7 @@ class ShellInfo_gui(QtWidgets.QComboBox):
             gui, des = self.GUIS[i]
             if value == gui.upper():
                 ii = i
-            self.addItem("%s  -  %s" % (gui, des))
+            self.addItem("{}  -  {}".format(gui, des))
 
         # Set current text
         self.setCurrentIndex(ii)
@@ -245,7 +245,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         if value is None:
             pp = os.environ.get("PYTHONPATH", "")
             pp = pp.replace(os.pathsep, "\n").strip()
-            value = "$PYTHONPATH:\n%s\n" % pp
+            value = "$PYTHONPATH:\n{}\n".format(pp)
         self._edit.setText(value)
 
 
@@ -271,7 +271,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 #         if value is None:
 #             pp = os.environ.get('PYTHONSTARTUP','').strip()
 #             if pp:
-#                 value = '$PYTHONSTARTUP: "%s"' % pp
+#                 value = '$PYTHONSTARTUP: "{}"'.format(pp)
 #             else:
 #                 value = '$PYTHONSTARTUP: None'
 #
@@ -362,7 +362,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
                 self._radio_system.setChecked(True)
             pp = os.environ.get("PYTHONSTARTUP", "").strip()
             if pp:
-                value = '$PYTHONSTARTUP: "%s"' % pp
+                value = '$PYTHONSTARTUP: "{}"'.format(pp)
             else:
                 value = "$PYTHONSTARTUP: None"
             #
@@ -530,7 +530,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
             # Name
             n = self.parent().parent().count()
             if n > 1:
-                info.name = "Shell config %i" % n
+                info.name = "Shell config {}".format(n)
 
         # Store info
         self._info = info

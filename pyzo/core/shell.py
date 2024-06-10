@@ -1112,7 +1112,7 @@ class PythonShell(BaseShell):
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.
         slot = pyzo.localKernelManager.createKernel(finishKernelInfo(info))
-        self._brokerConnection = ct.connect("localhost:%i" % slot)
+        self._brokerConnection = ct.connect("localhost:{}".format(slot))
         self._brokerConnection.closed.bind(self._onConnectionClose)
 
         # Force updating of breakpoints
@@ -1470,7 +1470,7 @@ class PythonShell(BaseShell):
                 if editor and linenr:
                     editor._editor.gotoLine(linenr)
             else:
-                print("Unknown action: %s" % action)
+                print("Unknown action: {}".format(action))
 
         # ----- status
 

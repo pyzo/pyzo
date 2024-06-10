@@ -41,7 +41,7 @@ class Server(RequestServer):
         try:
             reply = handle_command(command, arg)
         except Exception as err:
-            msg = "Error handling request %r:\n%s" % (request, str(err))
+            msg = "Error handling request {!r}:\n{}".format(request, err)
             pyzo.callLater(print, msg)
             return msg
         else:
@@ -69,14 +69,14 @@ def handle_command(command, arg):
 
     elif command == "echo":
         # For testing
-        return "echo %r" % arg
+        return "echo {!r}".format(arg)
 
     elif command == "open":
         # Open a file in the editor
         if not arg:
             return "The open command requires a filename."
         pyzo.callLater(pyzo.editors.loadFile, arg)
-        return "Opened file %r" % arg
+        return "Opened file {!r}".format(arg)
 
     elif command == "new":
         # Open a new (temp) file in the editor
@@ -95,7 +95,7 @@ def handle_command(command, arg):
             return "Still warming up ..."
         else:
             pyzo.callLater(pyzo.editors.loadFile, fname)
-            return "Try opening file %r" % fname
+            return "Try opening file {!r}".format(fname)
 
     # We should always return. So if we get here, it is a bug.
     # Return something so that we can be aware.
@@ -120,7 +120,7 @@ def handle_cmd_args():
         try:
             return do_request(ADDRESS, request, 0.4).rstrip()
         except Exception as err:
-            print("Could not process command line args:\n%s" % str(err))
+            print("Could not process command line args:\n{}".format(err))
             return None
 
 

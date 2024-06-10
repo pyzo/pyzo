@@ -205,8 +205,7 @@ def filename2sortkey(name):
     except Exception as err:
         # I cannot see how this could fail, but lets be safe, as it would break so badly
         print(
-            "Warning: could not filename2sortkey(%r), please report:\n%s"
-            % (name, str(err))
+            "Warning: could not filename2sortkey({!r}), please report:\n{}".format(name, err)
         )
         return (e, 999999999, name, -1)
 
@@ -441,7 +440,7 @@ class SubFileItem(QtWidgets.QTreeWidgetItem):
         super().__init__(parent)
         self._linenr = linenr
         if showlinenr:
-            self.setText(0, "Line %i: %s" % (linenr, text))
+            self.setText(0, "Line {}: {}".format(linenr, text))
         else:
             self.setText(0, text)
 
@@ -949,7 +948,7 @@ class PopupMenu(pyzo.core.menu.Menu):
         s = QtWidgets.QInputDialog.getText(
             self.parent(),
             title,
-            label + ":\n%s" % self._item.path(),
+            label + ":\n{}".format(self._item.path()),
             QtWidgets.QLineEdit.Normal,
             "new name",
         )
@@ -979,7 +978,7 @@ class PopupMenu(pyzo.core.menu.Menu):
         s = QtWidgets.QInputDialog.getText(
             self.parent(),
             title,
-            label + ":\n%s" % self._item.path(),
+            label + ":\n{}".format(self._item.path()),
             QtWidgets.QLineEdit.Normal,
             filename,
         )
@@ -998,7 +997,7 @@ class PopupMenu(pyzo.core.menu.Menu):
             self.parent(),
             translate("filebrowser", "Delete"),
             translate("filebrowser", "Are you sure that you want to delete")
-            + ":\n%s" % self._item.path(),
+            + ":\n{}".format(self._item.path()),
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel,
         )
         # Push delete task

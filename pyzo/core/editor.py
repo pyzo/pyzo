@@ -165,7 +165,7 @@ def determineIndentationAndTrailingWS(text):
     for nspaces in indents:
         if indents[nspaces] > maxvotes:
             indent, maxvotes = nspaces, indents[nspaces]
-    # print "found tabwidth %i" % indent
+    # print("found tabwidth", indent)
     return indent, trailing
 
 
@@ -196,7 +196,7 @@ def createEditor(parent, filename=None):
     else:
         # check and normalize
         if not os.path.isfile(filename):
-            raise IOError("File does not exist '%s'." % filename)
+            raise IOError("File does not exist '{}'.".format(filename))
 
         # load file (as bytes)
         with open(filename, "rb") as f:
@@ -322,7 +322,7 @@ class PyzoEditor(BaseTextCtrl):
         try:
             self._lineEndings = {"CR": "\r", "LF": "\n", "CRLF": "\r\n"}[value]
         except KeyError:
-            raise ValueError("Invalid line endings style %r" % value)
+            raise ValueError("Invalid line endings style {!r}".format(value))
 
     @property
     def lineEndingsHumanReadable(self):
@@ -726,9 +726,9 @@ class PyzoEditor(BaseTextCtrl):
         s = pyzo.shells.getCurrentShell()
         if s is not None:
             if word and word.isidentifier():
-                s.executeCommand("open %s\n" % word)
+                s.executeCommand("open {}\n".format(word))
             else:
-                s.write("Invalid identifier %r\n" % word)
+                s.write("Invalid identifier {!r}\n".format(word))
 
     ## Introspection processing methods
 
