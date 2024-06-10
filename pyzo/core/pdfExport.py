@@ -152,11 +152,9 @@ class PdfExport(QtWidgets.QDialog):
         options = QtWidgets.QFileDialog.Option(0)
         if not pyzo.config.advanced.useNativeFileDialogs:
             options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
-        filename = QtWidgets.QFileDialog.getSaveFileName(
+        filename, selectedFilter = QtWidgets.QFileDialog.getSaveFileName(
             None, "Export PDF", os.path.expanduser("~"), "*.pdf", options=options
         )
-        if isinstance(filename, tuple):  # PySide
-            filename = filename[0]
         if not filename:
             return
 

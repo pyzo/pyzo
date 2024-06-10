@@ -1167,11 +1167,9 @@ class EditorTabs(QtWidgets.QWidget):
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*)"
         if True:
-            filenames = QtWidgets.QFileDialog.getOpenFileNames(
+            filenames, selectedFilter = QtWidgets.QFileDialog.getOpenFileNames(
                 self, msg, startdir, filter, options=self._fileDialogOptions
             )
-            if isinstance(filenames, tuple):  # PySide
-                filenames = filenames[0]
         else:
             # Example how to preselect files, can be used when the users
             # opens a file in a project to select all files currently not
@@ -1382,11 +1380,9 @@ class EditorTabs(QtWidgets.QWidget):
         filter += "C (*.c *.h *.cpp);;"
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
-        filename = QtWidgets.QFileDialog.getSaveFileName(
+        filename, selectedFilter = QtWidgets.QFileDialog.getSaveFileName(
             self, msg, startdir, filter, options=self._fileDialogOptions
         )
-        if isinstance(filename, tuple):  # PySide
-            filename = filename[0]
 
         # give python extension if it has no extension
         head, tail = os.path.split(filename)

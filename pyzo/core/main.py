@@ -20,7 +20,6 @@ import pyzo
 from pyzo.core.icons import IconArtist
 from pyzo.core import commandline
 from pyzo.core.statusbar import StatusBar
-from pyzo import qt
 from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
@@ -323,10 +322,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass  # Use default style
             elif "macintosh" in pyzo.defaultQtStyleName.lower():
                 pass  # Use default style
-            elif qt.QT_VERSION > "5":
-                pyzo.defaultQtStyleName = "Fusion"
             else:
-                pyzo.defaultQtStyleName = "Cleanlooks"
+                pyzo.defaultQtStyleName = "Fusion"
 
             # Set style if there is no style yet
             if not pyzo.config.view.qtstyle:
