@@ -48,17 +48,17 @@ def shellTitle(shell, moreinfo=False):
     stateText = shell._state or ""
 
     # Build text for elapsed time
-    elapsed = time.time() - shell._start_time
+    elapsed = int(time.time() - shell._start_time)
     hh = elapsed // 3600
     mm = (elapsed - hh * 3600) // 60
     ss = elapsed - hh * 3600 - mm * 60
-    runtimeText = "runtime: %i:%02i:%02i" % (hh, mm, ss)
+    runtimeText = "runtime: {}:{:02d}:{:02d}".format(hh, mm, ss)
 
     # Build text
     if not moreinfo:
         text = nameText
     else:
-        text = "'%s' (%s %s) - %s, %s" % (
+        text = "'{}' ({} {}) - {}, {}".format(
             nameText,
             versionText,
             guiText,
@@ -458,7 +458,7 @@ class ShellControl(QtWidgets.QToolButton):
 #             command = action.cmd.upper()
 #             shell = pyzo.shells.getCurrentShell()
 #             if shell:
-#                 shell.executeCommand('DB %s\n' % command)
+#                 shell.executeCommand('DB {}\n'.format(command))
 #
 #
 #     def setTrace(self, info):
@@ -478,7 +478,7 @@ class DebugStack(QtWidgets.QToolButton):
 
         # Set text and tooltip
         self._baseText = translate("debug", "Stack")
-        self.setText("%s:" % self._baseText)
+        self.setText("{}:".format(self._baseText))
         self.setIcon(pyzo.icons.text_align_justify)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.setPopupMode(self.InstantPopup)
@@ -656,52 +656,52 @@ class InterpreterHelper(QtWidgets.QWidget):
         if conda_interpreters and conda_interpreters[0].version > "3":
             self._the_exe = conda_interpreters[0].path
             text = """Pyzo detected a conda environment in:
-                      <br />%s<br /><br />
+                      <br />{}<br /><br />
                       You can <a href='usefound'>use&nbsp;this&nbsp;environment</a>
                       (recommended), or manually specify an interpreter
                       by setting the exe in the <a href='config'>shell&nbsp;config</a>.
                       <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
-                   """ % (
+                   """.format(
                 self._the_exe,
             )
         elif interpreters and interpreters[0].version > "3":
             self._the_exe = interpreters[0].path
             text = """Pyzo detected a Python interpreter in:
-                      <br />%s<br /><br />
+                      <br />{}<br /><br />
                       You can <a href='usefound'>use&nbsp;this&nbsp;environment</a>
                       (recommended), or manually specify an interpreter
                       by setting the exe in the <a href='config'>shell&nbsp;config</a>.
                       <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
-                   """ % (
+                   """.format(
                 self._the_exe,
             )
         elif interpreters:
             text = """Pyzo detected a Python interpreter,
                       but it is Python 2. We strongly recommend using Python 3 instead.
                       <br /><br />
-                      If you installed %s or %s in a non-default location,
+                      If you installed {} or {} in a non-default location,
                       or if you want to manually specify an interpreter,
                       set the exe in the <a href='config'>shell&nbsp;config</a>.
                       <br /><br />Click one of the links above, or <a href='refresh'>refresh</a>.
-                   """ % (
+                   """.format(
                 python_link,
                 conda_link,
             )
         else:
             text = """Pyzo did not detect any Python interpreters.
-                      We recomment installing %s or %s
+                      We recomment installing {} or {}
                       (and click <a href='refresh'>refresh</a> when done).
                       <br /><br />
                       If you installed Python or Miniconda in a non-default location,
                       or if you want to manually specify the interpreter,
                       set the exe in the <a href='config'>shell&nbsp;config</a>.
-                   """ % (
+                   """.format(
                 python_link,
                 conda_link,
             )
 
         link_style = "font-weight: bold; color:#369; text-decoration:underline;"
-        self._label.setText(text.replace("<a ", '<a style="%s" ' % link_style))
+        self._label.setText(text.replace("<a ", '<a style="{}" '.format(link_style)))
 
     def handle_link(self, url):
         if url == "refresh":
@@ -713,7 +713,7 @@ class InterpreterHelper(QtWidgets.QWidget):
         elif url.startswith(("http://", "https://")):
             webbrowser.open(url)
         else:
-            raise ValueError("Unknown link in conda helper: %s" % url)
+            raise ValueError("Unknown link in conda helper: {}".format(url))
 
     def editShellConfig(self):
         from pyzo.core.shellInfoDialog import ShellInfoDialog

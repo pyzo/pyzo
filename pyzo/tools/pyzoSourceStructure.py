@@ -132,7 +132,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
 
         for type in ["class", "def", "cell", "todo", "import", "attribute"]:
             checked = type in self._config.showTypes
-            action = menu.addAction("Show %s" % type)
+            action = menu.addAction("Show {}".format(type))
             action.setCheckable(True)
             action.setChecked(checked)
 
@@ -302,7 +302,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     continue
                 # Construct text
                 if type == "import":
-                    text = "→ %s (%s)" % (object.name, object.text)
+                    text = "→ {} ({})".format(object.name, object.text)
                 elif type == "todo":
                     text = object.name
                 elif type == "nameismain":
@@ -317,7 +317,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     type = "cell"
                     text = "## " + object.name + " " * 120
                 else:
-                    text = "%s %s" % (type, object.name)
+                    text = "{} {}".format(type, object.name)
                 # Create item
                 thisItem = QtWidgets.QTreeWidgetItem(parentItem, [text])
                 color = QtGui.QColor(colours[object.type])

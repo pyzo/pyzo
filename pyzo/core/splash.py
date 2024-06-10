@@ -21,7 +21,7 @@ QWidget {
     background-color: #268bd2;
 }
 QFrame {
-    background-image: url("%s");
+    background-image: url("{IMAGE_URL}");
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -111,7 +111,7 @@ class SplashWidget(QtWidgets.QWidget):
         iconImage = "pyzologo256.png"
         iconImage = os.path.join(pyzo.pyzoDir, "resources", "appicons", iconImage)
         iconImage = iconImage.replace(os.path.sep, "/")  # Fix for Windows
-        self.setStyleSheet(STYLESHEET % iconImage)
+        self.setStyleSheet(STYLESHEET.replace("{IMAGE_URL}", iconImage))
 
 
 if __name__ == "__main__":

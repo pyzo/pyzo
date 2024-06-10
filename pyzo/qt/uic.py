@@ -261,7 +261,7 @@ else:
 
             # Fetch the base_class and form class based on their type in the
             # xml from designer
-            form_class = frame["Ui_%s" % form_class]
+            form_class = frame["Ui_{}".format(form_class)]
             base_class = getattr(QtWidgets, widget_class)
 
         return form_class, base_class

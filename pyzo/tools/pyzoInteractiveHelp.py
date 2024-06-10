@@ -496,9 +496,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         currentSize = self._config.fontSize
         for i in range(8, 15):
             action = menu.addAction(
-                pyzo.translate("pyzoInteractiveHelp", "Font size: %i") % i
+                pyzo.translate("pyzoInteractiveHelp", "Font size: {}").format(i)
             )
-            action._what = "font-size: %ipx" % i
+            action._what = "font-size: {}px".format(i)
             action.setCheckable(True)
             action.setChecked(i == currentSize)
 
@@ -688,7 +688,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                         header,
                         h_text,
                     )
-                    # h_text = "<b>%s</b><br /><br />\n%s" % (header, h_text)
+                    # h_text = "<b>{}</b><br /><br />\n{}".format(header, h_text)
             else:
                 # Make newlines html
                 h_text = h_text.replace("\n", "<br />")

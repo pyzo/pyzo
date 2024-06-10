@@ -505,7 +505,7 @@ class ResultPage(QtWidgets.QWizardPage):
         ):
             value = self.wizard().field(param)
             if value != default:
-                code += "\t%s = %r,\n" % (param, value)
+                code += "\t{} = {!r},\n".format(param, value)
         if perColumn:
             code += "\tunpack = True,\n"
         code += "\t)\n"

@@ -122,7 +122,7 @@ class Manager:
                 except Exception:
                     # We cannot get the exception object in a Python2/Python3
                     # compatible way
-                    print('Could not instantiate parser "%s".' % name)
+                    print('Could not instantiate parser "{}".'.format(name))
                     continue
 
                 # Register extensions and shebang keywords for this parser
@@ -162,7 +162,7 @@ class Manager:
         if parserName in cls._parserInstances:
             return cls._parserInstances[parserName]
         else:
-            print('Warning: no parser known by the name "%s".' % parserName)
+            print('Warning: no parser known by the name "{}".'.format(parserName))
             print("I know these: ", cls._parserInstances.keys())
             return parsers.Parser()  # Default dummy parser
 

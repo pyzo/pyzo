@@ -304,7 +304,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             self.addTopLevelItem(item)
 
             # Set tooltip
-            tt = "%s: %s" % (parts[0], parts[-1])
+            tt = "{}: {}".format(parts[0], parts[-1])
             item.setToolTip(0, tt)
             item.setToolTip(1, tt)
             item.setToolTip(2, tt)

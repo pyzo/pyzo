@@ -121,6 +121,6 @@ if sys.platform.startswith("linux") and sys.prefix.startswith("/usr"):
         except PermissionError:
             pass  # No sudo, no need to warn
         except Exception as err:
-            print("Could not install %s: %s" % (fname, str(err)))
+            print("Could not install {}: {}".format(fname, err))
         else:
-            print("Installed %s" % fname)
+            print("Installed", fname)

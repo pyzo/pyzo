@@ -537,7 +537,7 @@ def loadIcons():
                 pyzo.icons[name] = icon
             except Exception as err:
                 pyzo.icons[name] = dummyIcon
-                print("Could not load icon %s: %s" % (fname, str(err)))
+                print("Could not load icon {}: {}".format(fname, err))
 
     artist = IconArtist("folder_page")
     artist.addLayer("arrow_refresh")
@@ -568,7 +568,7 @@ def loadFonts():
                 try:
                     db.addApplicationFont(os.path.join(fontDir, fname))
                 except Exception as err:
-                    print("Could not load font %s: %s" % (fname, str(err)))
+                    print("Could not load font {}: {}".format(fname, err))
 
 
 class _CallbackEventHandler(QtCore.QObject):
@@ -657,7 +657,7 @@ def _screenshot():
     # Get name
     i = 1
     while i > 0:
-        name = "pyzo_screen_%s_%02i.png" % (sys.platform, i)
+        name = "pyzo_screen_{}_{:02d}.png".format(sys.platform, i)
         fname = os.path.join(os.path.expanduser("~"), name)
         if os.path.isfile(fname):
             i += 1

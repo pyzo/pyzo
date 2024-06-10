@@ -38,7 +38,7 @@ class StyleElementDescription:
         self._defaultFormat = StyleFormat(defaultFormat)
 
     def __repr__(self):
-        return '<"%s": "%s">' % (self.name, self.defaultFormat)
+        return '<"{}": "{}">'.format(self.name, self.defaultFormat)
 
     @property
     def name(self):
@@ -113,11 +113,11 @@ class StyleFormat:
         """Get a (cleaned up) string representation of this style format."""
         parts = []
         for key in self._parts:
-            parts.append("%s:%s" % (key, self._parts[key]))
+            parts.append("{}:{}".format(key, self._parts[key]))
         return ", ".join(parts)
 
     def __repr__(self):
-        return '<StyleFormat "%s">' % str(self)
+        return '<StyleFormat "{}">'.format(self)
 
     def __getitem__(self, key):
         try:

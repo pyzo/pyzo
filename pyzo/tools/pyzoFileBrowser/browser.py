@@ -268,8 +268,8 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
                 )
 
         # Set padding
-        ss = "QLineEdit { padding-left: %ipx; padding-right: %ipx} "
-        self.setStyleSheet(ss % (paddingLeft, paddingRight))
+        ss = "QLineEdit {{ padding-left: {}px; padding-right: {}px}} "
+        self.setStyleSheet(ss.format(paddingLeft, paddingRight))
 
         # Set minimum size
         if not light:

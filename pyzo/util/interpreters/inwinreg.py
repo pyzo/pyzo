@@ -41,15 +41,15 @@ class PythonInReg:
         installPath = self.installPath()
         reg = self._reg()
         if not reg:
-            return "<PythonInReg %s at %s (unregistered)>" % (self.version(), userstr)
+            return "<PythonInReg {} at {} (unregistered)>".format(self.version(), userstr)
         elif installPath:
-            return '<PythonInReg %s at %s in "%s">' % (
+            return '<PythonInReg {} at {} in "{}">'.format(
                 self.version(),
                 userstr,
                 installPath,
             )
         else:
-            return "<PythonInReg %s at %s>" % (self.version(), userstr)
+            return "<PythonInReg {} at {}>".format(self.version(), userstr)
 
     def _root(self):
         if self._user == PythonInReg.USER_ONE:
@@ -72,7 +72,7 @@ class PythonInReg:
 
         if reg:
             winreg.CloseKey(reg)
-            # print('Unable to create Python version %s: already exists.' % self.version())
+            # print("Unable to create Python version {}: already exists.".format(self.version()))
 
         else:
             # Try to create
@@ -81,15 +81,15 @@ class PythonInReg:
                 winreg.CloseKey(reg)
             except Exception:
                 raise RuntimeError(
-                    "Unable to create python version %s." % self.version()
+                    "Unable to create python version {}.".format(self.version())
                 )
-            print("Created %s." % str(self))
+            print("Created {}.".format(self))
 
     def delete(self):
         # Get key for this version
         reg = self._reg()
         if not reg:
-            print("Unable to delete Python version %s: does not exist.")
+            print("Unable to delete Python version {}: does not exist.".format(self.version()))
 
         # Delete attributes
         try:
@@ -105,17 +105,16 @@ class PythonInReg:
         try:
             winreg.DeleteKey(self._root(), self._key)
         except Exception:
-            print("Could not delete %s." % str(self))
+            print("Could not delete {}.".format(self))
             return
-        print("Deleted %s." % str(self))
+        print("Deleted {}.".format(self))
 
     def setInstallPath(self, installPath):
         # Get key for this version
         reg = self._reg()
         if not reg:
             raise RuntimeError(
-                "Could not set installPath for version %s: version does not exist."
-                % self.version()
+                "Could not set installPath for version {}: version does not exist.".format(self.version())
             )
 
         # Set value or raise error
@@ -124,7 +123,7 @@ class PythonInReg:
             winreg.CloseKey(reg)
         except Exception:
             winreg.CloseKey(reg)
-            raise RuntimeError("Could not set installPath for %s." % str(self))
+            raise RuntimeError("Could not set installPath for {}.".format(self))
 
     def installPath(self):
         # Get key for this version
@@ -146,8 +145,7 @@ class PythonInReg:
         reg = self._reg()
         if not reg:
             raise RuntimeError(
-                "Could not set pythonPath for version %s: version does not exist."
-                % self.version()
+                "Could not set pythonPath for version {}: version does not exist.".format(self.version())
             )
 
         # Set value or raise error
@@ -156,7 +154,7 @@ class PythonInReg:
             winreg.CloseKey(reg)
         except Exception:
             winreg.CloseKey(reg)
-            raise RuntimeError("Could not set pythonPath for %s." % str(self))
+            raise RuntimeError("Could not set pythonPath for {}.".format(self))
 
     def pythonPath(self):
         # Get key for this version
@@ -264,8 +262,7 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
             # Ok, there's a problem
             ok = False
             print(
-                'Warning: version %s is already installed in "%s".'
-                % (version, ev.installPath())
+                'Warning: version {} is already installed in "{}".'.format(version, ev.installPath())
             )
         if not ok:
             continue
@@ -283,7 +280,7 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
         return v
     else:
         raise RuntimeError(
-            "Could not register Python version %s at %s." % (version, installPath)
+            "Could not register Python version {} at {}.".format(version, installPath)
         )
 
 

@@ -92,7 +92,7 @@ class ColorLineEdit(QtWidgets.QLineEdit):
         buttonSize = self.button.sizeHint()
 
         self.setStyleSheet(
-            "QLineEdit {padding-right: %dpx; }" % (buttonSize.width() + frameWidth + 1)
+            "QLineEdit {{padding-right: {}px; }}".format(buttonSize.width() + frameWidth + 1)
         )
         # self.setMinimumSize(max(100, buttonSize.width() + frameWidth*2 + 2),
         #                     max(self.minimumSizeHint().height(), buttonSize.height() + frameWidth*2 + 2))
@@ -423,7 +423,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
         fname = os.path.join(dir, themeName + ".theme")
         ssdf.save(fname, {"name": themeName, "data": data})
-        print("Saved theme '%s' to '%s'" % (themeName, fname))
+        print("Saved theme '{}' to '{}'".format(themeName, fname))
 
     def ok(self):
         """On user click saves the cur_theme if modified

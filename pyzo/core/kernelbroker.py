@@ -117,8 +117,7 @@ class KernelInfo(ssdf.Struct):
                 s = ssdf.loads(info)
             else:
                 raise ValueError(
-                    "Kernel info should be a string or ssdf struct, not %s"
-                    % str(type(info))
+                    "Kernel info should be a string or ssdf struct, not {}".format(type(info))
                 )
             # Inject values
             for key in s:
@@ -517,9 +516,9 @@ class KernelBroker:
         if self._context.connection_count:
             # Notify
             if isinstance(why, int):
-                total_msg = "\n%s (%s)\n\n" % (msg, str(why))
+                total_msg = "\n{} ({})\n\n".format(msg, why)
             else:
-                total_msg = "\n%s\n%s\n\n" % (msg, str(why))
+                total_msg = "\n{}\n{}\n\n".format(msg, why)
             self._strm_broker.send(total_msg)
             # Empty prompt and signal dead
             self._strm_prompt.send("\b")
@@ -820,7 +819,7 @@ class Kernelmanager:
         # Set name if not given
         if not name:
             i = len(self._kernels) + 1
-            name = "kernel %i" % i
+            name = "kernel {}".format(i)
 
         # Create kernel
         kernel = KernelBroker(self, info, name)

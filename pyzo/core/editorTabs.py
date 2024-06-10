@@ -564,7 +564,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         elif i == 2:
             self.replaceInAllFiles(event)
         else:
-            raise RuntimeError("Unexpected kind of replace %s" % i)
+            raise RuntimeError("Unexpected kind of replace {}".format(i))
 
     def replaceOne(self, event=None, wrapAround=True, editor=None):
         """If the currently selected text matches the find string,
@@ -919,7 +919,7 @@ class FileTabWidget(CompactTabWidget):
                     )
                 except Exception as err:
                     # Catch this, just in case ...
-                    print("could not get unique name for:\n%r" % filenames)
+                    print("could not get unique name for:\n{!r}".format(filenames))
                     print(err)
                     display_name = item.name
 
@@ -1672,7 +1672,7 @@ class EditorTabs(QtWidgets.QWidget):
                             if "pinned" in item:
                                 itm._pinned = True
                         except Exception as err:
-                            print("Could not set position for %s" % fname, err)
+                            print("Could not set position for", fname, err)
 
         return len(fileItems) != 0
 

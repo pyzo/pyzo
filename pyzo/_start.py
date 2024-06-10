@@ -142,9 +142,9 @@ def loadThemes():
                 }
                 theme["builtin"] = isBuiltin
                 pyzo.themes[theme.name.lower()] = theme
-                print("Loaded theme %r" % theme.name)
+                print("Loaded theme", repr(theme.name))
             except Exception as ex:
-                print("Warning ! Error while reading %s: %s" % (fname, ex))
+                print("Warning! Error while reading {}: {}".format(fname, ex))
 
     loadThemesFromDir(os.path.join(pyzo.pyzoDir, "resources", "themes"), True)
     loadThemesFromDir(os.path.join(pyzo.appDataDir, "themes"))
@@ -185,8 +185,8 @@ def loadConfig(defaultsOnly=False):
             siteConfig = ssdf.load(fname)
             replaceFields(config, siteConfig)
         except Exception:
-            t = "Error while reading config file %r, maybe its corrupt?"
-            print(t % fname)
+            t = "Error while reading config file {!r}, maybe its corrupt?"
+            print(t.format(fname))
             raise
 
     # Load user config and inject in pyzo.config
@@ -196,8 +196,8 @@ def loadConfig(defaultsOnly=False):
             userConfig = ssdf.load(fname)
             replaceFields(config, userConfig)
         except Exception:
-            t = "Error while reading config file %r, maybe its corrupt?"
-            print(t % fname)
+            t = "Error while reading config file {!r}, maybe its corrupt?"
+            print(t.format(fname))
             raise
 
 
