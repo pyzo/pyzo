@@ -63,9 +63,6 @@ from pyzo.util._locale import translate, setLanguage  # noqa
 pyzo.translate = translate
 pyzo.setLanguage = setLanguage
 
-# Set environ to let kernel know some stats about us
-os.environ["PYZO_PREFIX"] = sys.prefix
-
 
 class MyApp(QtWidgets.QApplication):
     """So we an open .py files on OSX.
