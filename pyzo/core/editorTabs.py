@@ -1150,7 +1150,6 @@ class EditorTabs(QtWidgets.QWidget):
         """Create a dialog for the user to select a file."""
 
         # determine start dir
-        # todo: better selection of dir, using project manager
         editor = self.getCurrentEditor()
         if editor and editor._filename:
             startdir = os.path.split(editor._filename)[0]
@@ -1360,13 +1359,10 @@ class EditorTabs(QtWidgets.QWidget):
             startdir = os.path.dirname(editor._filename)
         else:
             startdir = self._lastpath
-            # Try the file browser or project manager to suggest a path
+            # Try the file browser to suggest a path
             fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
-            projectManager = pyzo.toolManager.getTool("pyzoprojectmanager")
             if fileBrowser:
                 startdir = fileBrowser.getDefaultSavePath()
-            if projectManager and not startdir:
-                startdir = projectManager.getDefaultSavePath()
             if not startdir:
                 startdir = os.path.expanduser("~")
 

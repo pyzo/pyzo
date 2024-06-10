@@ -20,8 +20,8 @@
     </p><p>
     It consists of two main components, the editor and the shell, and uses
     a set of pluggable tools to help the programmer in various ways. Some
-    example tools are source structure, project manager, interactive help,
-    workspace ... 
+    example tools are source structure, file browser, interactive help,
+    workspace ...
     </p><p>
     Pyzo is written in (pure) Python 3 and uses the Qt GUI toolkit. Binaries
     are provided for all major operating system. After installing Pyzo, it
