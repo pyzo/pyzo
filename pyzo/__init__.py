@@ -19,7 +19,7 @@ Linux, and Mac. For questions, there is a discussion group.
 
 Pyzo consists of two main components, the editor and the shell, and uses
 a set of pluggable tools to help the programmer in various ways. Some
-example tools are source structure, project manager, interactive help,
+example tools are source structure, file browser, interactive help,
 and workspace.
 
 **Some key features**

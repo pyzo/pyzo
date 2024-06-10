@@ -27,9 +27,6 @@ The right mouse button also enables one to make a file the MAIN FILE of
 a project. This file can be recognized by its star symbol and its blue filename,
 and it enables running the file more easily (as we will see later in this
 tutorial).
-
-For larger projects, the Project manager tool can be used to manage your files
-(also described later in this tutorial)
 """
 
 
@@ -46,7 +43,7 @@ keep coding and even run code in another shell.
 Another notable feature is that Pyzo can integrate the event loop of
 five different GUI toolkits, thus enabling interactive plotting with
 e.g., Visvis or Matplotlib.
-  
+
 Via "Shell > Edit shell configurations", you can edit and add shell
 configurations. This allows you to for example select the initial
 directory, or use a custom PYTHONPATH.
@@ -77,13 +74,13 @@ also the "Run" menu).
   * Run selected lines. If a line is partially selected, the whole
     line is executed. If there is no selection, Pyzo will run the
     current line.
-    
+
   * Run cell. A cell is everything between two commands starting
     with '##', such as the headings in this tutorial. Try running
     the code at the bottom of this cell!
 
   * Run file. This runs all the code in the current file.
-  
+
   * Run project main file. Runs the code in the current project's
     main file.
 
@@ -120,7 +117,7 @@ Settings > Advanced settings)
 
 All actions in the menu can be accessed via a shortcut. Change the
 shortcuts using the shortcut editor: Settings > Edit key mappings.
-  
+
 """
 
 
@@ -130,7 +127,7 @@ Pyzo has strong introspection capabilities. Pyzo knows about the objects
 in the shell, and parses (not runs) the source code in order to detect
 the structure of your code. This enables powerful instospection such
 as autocompletion, calltips, interactive help and source structure.
-  
+
 """
 
 
@@ -153,7 +150,7 @@ Debugging can also be controlled via magic commands, enter "?" in the
 shell for more information.
 
 Below follows an example that you can run to test the debugging.
-  
+
 """
 
 import random
@@ -180,27 +177,3 @@ def bar():
 
 
 foo()
-
-## The Project manager
-"""
-For working on projects, the Project manager tool can help you to keep
-an overview of all your files. To open up the Project manager tool,
-select it from the menu (Tools > Project manager).
-
-To add, remove, or edit your projects, click the button with the
-wrench icon. In the dialog, select 'New project' to add a project and
-select the directory where your project is located. When the project
-is added, you can change the Project description (name).
-
-You can select wether the project path is added to the Python
-sys.path. This feature allows you to import project modules from the
-shell, or from scripts which are not in the project root directory.
-Note that this feature requires a restart of the shell to take effect
-(Shell > Restart)
-
-The Project manager allows you to switch between your projects easily
-using the selection box at the top. The tree view shows the files and
-directories in your project. Files can be hidden using the filter that
-is specified at the bottom of the Project manager, e.g. !*.pyc to hide
-all files that have the extension pyc.
-"""

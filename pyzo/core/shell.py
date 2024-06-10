@@ -97,13 +97,9 @@ def finishKernelInfo(info, scriptFile=None):
     # If the file browser is active, and has the check box
     #'add path to Python path' set, set the PROJECTPATH variable
     fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
-    projectManager = pyzo.toolManager.getTool("pyzoprojectmanager")
     info.projectPath = ""
     if fileBrowser:
         info.projectPath = fileBrowser.getAddToPythonPath()
-    if projectManager and not info.projectPath:
-        # Only process project manager tool if file browser did not set a path.
-        info.projectPath = projectManager.getAddToPythonPath()
 
     return info
 
