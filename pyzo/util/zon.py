@@ -219,7 +219,7 @@ def save(file, d):
 ## The core
 
 
-class ReaderWriter(object):
+class ReaderWriter:
     def read(self, text):
         indent = 0
         root = Dict()

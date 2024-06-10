@@ -9,7 +9,7 @@ from ..qt import QtCore, QtGui, QtWidgets  # noqa
 Qt = QtCore.Qt
 
 
-class Calltip(object):
+class Calltip:
     _styleElements = [
         (
             "Editor.calltip",

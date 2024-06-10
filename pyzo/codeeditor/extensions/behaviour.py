@@ -25,7 +25,7 @@ from ..parsers.tokens import (
 from ..parsers.python_parser import MultilineStringToken, stringLiteralPrefixes
 
 
-class MoveLinesUpDown(object):
+class MoveLinesUpDown:
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Up, Qt.Key_Down) and (
             Qt.ControlModifier & event.modifiers()
@@ -87,7 +87,7 @@ class MoveLinesUpDown(object):
         self.setTextCursor(cursor)
 
 
-class ScrollWithUpDownKeys(object):
+class ScrollWithUpDownKeys:
     def keyPressEvent(self, event):
         if (
             event.key() in (Qt.Key_Up, Qt.Key_Down)
@@ -104,7 +104,7 @@ class ScrollWithUpDownKeys(object):
             super().keyPressEvent(event)
 
 
-class HomeKey(object):
+class HomeKey:
     def keyPressEvent(self, event):
         # Home or shift + home
         if event.key() == Qt.Key_Home and event.modifiers() in (
@@ -131,7 +131,7 @@ class HomeKey(object):
             super().keyPressEvent(event)
 
 
-class EndKey(object):
+class EndKey:
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_End and event.modifiers() in (
             Qt.NoModifier,
@@ -153,7 +153,7 @@ class EndKey(object):
             super().keyPressEvent(event)
 
 
-class NumpadPeriodKey(object):
+class NumpadPeriodKey:
     """
     If the numpad decimal separator key is pressed, always insert
     a period (.) even if due to localization that key is mapped to a
@@ -182,7 +182,7 @@ class NumpadPeriodKey(object):
         super().keyPressEvent(event)
 
 
-class Indentation(object):
+class Indentation:
     def __cursorIsInLeadingWhitespace(self, cursor=None):
         """
         Checks wether the given cursor is in the leading whitespace of a block, i.e.
@@ -260,7 +260,7 @@ class Indentation(object):
         super().keyPressEvent(event)
 
 
-class AutoIndent(object):
+class AutoIndent:
     """
     Auto indentation. This extension only adds the autoIndent property, for the
     actual indentation, the editor should derive from some AutoIndenter object
@@ -284,7 +284,7 @@ class AutoIndent(object):
         self.__autoIndent = bool(value)
 
 
-class PythonAutoIndent(object):
+class PythonAutoIndent:
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
         if not self.autoIndent():
@@ -334,7 +334,7 @@ class PythonAutoIndent(object):
                 self.setTextCursor(cursor)
 
 
-class SmartCopyAndPaste(object):
+class SmartCopyAndPaste:
     """
     Smart copy and paste allows copying and pasting blocks
 
@@ -478,7 +478,7 @@ class SmartCopyAndPaste(object):
             self.setTextCursor(cursor)
 
 
-class AutoCloseQuotesAndBrackets(object):
+class AutoCloseQuotesAndBrackets:
     """
     Automatic insertion of quotes, parenthesis, braces and brackets
 
