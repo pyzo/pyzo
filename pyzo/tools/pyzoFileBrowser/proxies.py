@@ -89,7 +89,7 @@ class PathProxy(QtCore.QObject):
     taskFinished = QtCore.Signal(Task)
 
     def __init__(self, fsProxy, path):
-        QtCore.QObject.__init__(self)
+        super().__init__()
         self._lock = threading.RLock()
         self._fsProxy = fsProxy
         self._path = path
@@ -160,7 +160,7 @@ class DirProxy(PathProxy):
     """
 
     def __init__(self, *args):
-        PathProxy.__init__(self, *args)
+        super().__init__(*args)
         self._dirs = set()
         self._files = set()
 
@@ -196,7 +196,7 @@ class FileProxy(PathProxy):
     """
 
     def __init__(self, *args):
-        PathProxy.__init__(self, *args)
+        super().__init__(*args)
         self._modified = 0
 
     def modified(self):
@@ -256,7 +256,7 @@ class BaseFSProxy(threading.Thread):
     QUEUE_DELAY = 1e-4
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.daemon = True
         #
         self._interrupt = False

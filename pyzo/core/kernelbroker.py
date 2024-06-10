@@ -758,7 +758,7 @@ class StreamReader(threading.Thread):
     """
 
     def __init__(self, process, strm_raw, strm_broker):
-        threading.Thread.__init__(self)
+        super().__init__()
 
         self._process = process
         self._strm_raw = strm_raw

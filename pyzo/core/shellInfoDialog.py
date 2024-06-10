@@ -33,13 +33,13 @@ class ShellInfoLineEdit(QtWidgets.QLineEdit):
 
 class ShellInfo_name(ShellInfoLineEdit):
     def __init__(self, *args, **kwargs):
-        ShellInfoLineEdit.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.editingFinished.connect(self.onValueChanged)
         t = translate("shell", "name ::: The name of this configuration.")
         self.setPlaceholderText(t.tt)
 
     def setTheText(self, value):
-        ShellInfoLineEdit.setTheText(self, value)
+        super().setTheText(value)
         self.onValueChanged()
 
     def onValueChanged(self):
@@ -48,7 +48,7 @@ class ShellInfo_name(ShellInfoLineEdit):
 
 class ShellInfo_exe(QtWidgets.QComboBox):
     def __init__(self, *args):
-        QtWidgets.QComboBox.__init__(self, *args)
+        super().__init__(*args)
 
     def _interpreterName(self, p):
         if p.is_conda:
@@ -92,7 +92,7 @@ class ShellInfo_exe(QtWidgets.QComboBox):
 
 class ShellInfo_ipython(QtWidgets.QCheckBox):
     def __init__(self, parent):
-        QtWidgets.QCheckBox.__init__(self, parent)
+        super().__init__(parent)
         t = translate("shell", "ipython ::: Use IPython shell if available.")
         self.setText(t.tt)
         self.setChecked(False)
@@ -166,7 +166,7 @@ class ShellinfoWithSystemDefault(QtWidgets.QVBoxLayout):
 
     def __init__(self, parent, widget):
         # Do not pass parent, because is a sublayout
-        QtWidgets.QVBoxLayout.__init__(self)
+        super().__init__()
 
         # Layout
         self.setSpacing(1)
@@ -236,7 +236,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
         self._edit.textChanged.connect(self.onEditChanged)
 
         # Instantiate
-        ShellinfoWithSystemDefault.__init__(self, parent, self._edit)
+        super().__init__(parent, self._edit)
 
     def getWidgetText(self):
         return self._edit.toPlainText()
@@ -260,7 +260,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 #         self._edit.textEdited.connect(self.onEditChanged)
 #
 #         # Instantiate
-#         ShellinfoWithSystemDefault.__init__(self, parent, self._edit)
+#         super().__init__(parent, self._edit)
 #
 #
 #     def getWidgetText(self):
@@ -285,7 +285,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
 
     def __init__(self, parent):
         # Do not pass parent, because is a sublayout
-        QtWidgets.QVBoxLayout.__init__(self)
+        super().__init__()
 
         # Create sub-widget
         self._edit1 = QtWidgets.QLineEdit(parent)
@@ -396,7 +396,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
 
 class ShellInfo_startDir(ShellInfoLineEdit):
     def __init__(self, parent):
-        ShellInfoLineEdit.__init__(self, parent)
+        super().__init__(parent)
         if sys.platform.startswith("win"):
             self.setPlaceholderText("C:\\path\\to\\your\\python\\modules")
         else:
@@ -405,7 +405,7 @@ class ShellInfo_startDir(ShellInfoLineEdit):
 
 class ShellInfo_argv(ShellInfoLineEdit):
     def __init__(self, parent):
-        ShellInfoLineEdit.__init__(self, parent)
+        super().__init__(parent)
         self.setPlaceholderText('arg1 arg2 "arg with spaces"')
 
 
@@ -413,7 +413,7 @@ class ShellInfo_environ(QtWidgets.QTextEdit):
     EXAMPLE = "PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1\nEXAMPLE_VAR1=value1"
 
     def __init__(self, parent):
-        QtWidgets.QTextEdit.__init__(self, parent)
+        super().__init__(parent)
         self.zoomOut(1)
         self.setPlaceholderText(self.EXAMPLE)
 
@@ -456,7 +456,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
     ]
 
     def __init__(self, parent):
-        QtWidgets.QScrollArea.__init__(self, parent)
+        super().__init__(parent)
 
         # Init the scroll area
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -566,7 +566,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
     """Dialog to edit the shell configurations."""
 
     def __init__(self, *args):
-        QtWidgets.QDialog.__init__(self, *args)
+        super().__init__(*args)
         self.setModal(True)
 
         # Set title

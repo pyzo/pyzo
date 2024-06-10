@@ -67,7 +67,7 @@ class PyzoFileBrowser(QtWidgets.QWidget):
     """
 
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         _check_qt_version()
 
@@ -163,7 +163,7 @@ class PyzoFileBrowser(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         self.cleanUp()
-        return QtWidgets.QWidget.closeEvent(self, event)
+        return super().closeEvent(event)
 
     def cleanUp(self):
         # Close all browsers so they can clean up the file system proxies

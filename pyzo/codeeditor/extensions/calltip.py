@@ -20,7 +20,7 @@ class Calltip:
 
     class __CalltipLabel(QtWidgets.QLabel):
         def __init__(self):
-            QtWidgets.QLabel.__init__(self)
+            super().__init__()
 
             # Start hidden
             self.hide()
@@ -35,7 +35,7 @@ class Calltip:
             self.hide()
 
     def __init__(self, *args, **kwds):
-        super(Calltip, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         # Create label for call tips
         self.__calltipLabel = self.__CalltipLabel()
         # Be notified of style updates
@@ -122,7 +122,7 @@ class Calltip:
         return self.__calltipLabel.isVisible()
 
     def focusOutEvent(self, event):
-        super(Calltip, self).focusOutEvent(event)
+        super().focusOutEvent(event)
         self.__calltipLabel.hide()
 
     def keyPressEvent(self, event):
@@ -142,4 +142,4 @@ class Calltip:
             self.calltipCancel()
 
         # Proceed processing the keystrike
-        super(Calltip, self).keyPressEvent(event)
+        super().keyPressEvent(event)

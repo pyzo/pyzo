@@ -69,7 +69,7 @@ class _CallbackEventHandler(QtCore.QObject):
     """Helper class to provide the callLater function."""
 
     def __init__(self):
-        QtCore.QObject.__init__(self)
+        super().__init__()
         self.queue = Queue()
 
     def customEvent(self, event):

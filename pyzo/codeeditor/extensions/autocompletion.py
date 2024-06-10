@@ -23,13 +23,13 @@ class CompletionListModel(QtCore.QStringListModel):
             # return QtGui.QBrush(Qt.red)
             return None
         else:
-            return QtCore.QStringListModel.data(self, index, role)
+            return super().data(index, role)
 
 
 # todo: use keywords from the parser
 class AutoCompletion:
     def __init__(self, *args, **kwds):
-        super(AutoCompletion, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         # Autocompleter
         self.__completerModel = QtCore.QStringListModel(keyword.kwlist)
         self.__completer = QtWidgets.QCompleter(self)
@@ -337,7 +337,7 @@ class AutoCompletion:
             self.autocompleteCancel()
 
         # Apply the key that was pressed
-        super(AutoCompletion, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
         if self.autocompleteActive():
             # While we type, the start of the autocompletion may move due to line

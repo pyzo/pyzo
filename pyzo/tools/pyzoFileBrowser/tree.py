@@ -216,7 +216,7 @@ class BrowserItem(QtWidgets.QTreeWidgetItem):
 
     def __init__(self, parent, pathProxy, *args):
         self._proxy = pathProxy
-        QtWidgets.QTreeWidgetItem.__init__(self, parent, [], *args)
+        super().__init__(parent, [], *args)
         # Set pathname to show, and icon
         strippedParentPath = parent.path().rstrip("/\\")
         if self.path().startswith(strippedParentPath):
@@ -271,7 +271,7 @@ class DriveItem(BrowserItem):
     """Tree widget item for directories."""
 
     def __init__(self, parent, pathProxy):
-        BrowserItem.__init__(self, parent, pathProxy)
+        super().__init__(parent, pathProxy)
         # Item is not expandable
 
     def setFileIcon(self):
@@ -287,7 +287,7 @@ class DirItem(BrowserItem):
 
     def __init__(self, parent, pathProxy, starred=False):
         self._starred = starred
-        BrowserItem.__init__(self, parent, pathProxy)
+        super().__init__(parent, pathProxy)
 
         # Create dummy item so that the dir is expandable
         self._createDummyItem("Loading contents ...")
@@ -342,7 +342,7 @@ class FileItem(BrowserItem):
     """Tree widget item for files."""
 
     def __init__(self, parent, pathProxy, mode="normal"):
-        BrowserItem.__init__(self, parent, pathProxy)
+        super().__init__(parent, pathProxy)
         self._mode = mode
         self._timeSinceLastDocString = 0
 
@@ -431,14 +431,14 @@ class FileItem(BrowserItem):
             else:
                 self._createDummyItem("No classes or functions found.")
         else:
-            BrowserItem.onTaskFinished(self, task)
+            super().onTaskFinished(task)
 
 
 class SubFileItem(QtWidgets.QTreeWidgetItem):
     """Tree widget item for search items."""
 
     def __init__(self, parent, linenr, text, showlinenr=False):
-        QtWidgets.QTreeWidgetItem.__init__(self, parent)
+        super().__init__(parent)
         self._linenr = linenr
         if showlinenr:
             self.setText(0, "Line %i: %s" % (linenr, text))
@@ -464,7 +464,7 @@ class DocstringItem(QtWidgets.QTreeWidgetItem):
     """Tree widget item for docstring placeholder items."""
 
     def __init__(self, parent, docstring):
-        QtWidgets.QTreeWidgetItem.__init__(self, parent)
+        super().__init__(parent)
         self._docstring = docstring
         # Get one-line version of docstring
         shortText = self._docstring.split("\n", 1)[0].strip()
@@ -489,7 +489,7 @@ class ErrorItem(QtWidgets.QTreeWidgetItem):
     """Tree widget item for errors and information."""
 
     def __init__(self, parent, info):
-        QtWidgets.QTreeWidgetItem.__init__(self, parent)
+        super().__init__(parent)
         self.setText(0, info)
         self.setFlags(QtCore.Qt.NoItemFlags)
         font = self.font(0)
@@ -501,7 +501,7 @@ class SearchInfoItem(ErrorItem):
     """Tree widget item that displays info on the search."""
 
     def __init__(self, parent):
-        ErrorItem.__init__(self, parent, "Searching ...")
+        super().__init__(parent, "Searching ...")
         self._totalCount = 0
         self._checkCount = 0
         self._hitCount = 0
@@ -593,7 +593,7 @@ class Tree(QtWidgets.QTreeWidget):
     dirChanged = QtCore.Signal(str)  # Emitted when user goes into a subdir
 
     def __init__(self, parent):
-        QtWidgets.QTreeWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Initialize
         self.setMinimumWidth(150)
@@ -689,7 +689,7 @@ class Tree(QtWidgets.QTreeWidget):
                 item.clear()
             if hasattr(item, "onDestroyed"):
                 item.onDestroyed()
-        QtWidgets.QTreeWidget.clear(self)
+        super().clear()
 
     def mouseDoubleClickEvent(self, event):
         """Bypass expanding an item when double-clicking it.
@@ -789,7 +789,7 @@ class Tree(QtWidgets.QTreeWidget):
 class PopupMenu(pyzo.core.menu.Menu):
     def __init__(self, parent, item):
         self._item = item
-        pyzo.core.menu.Menu.__init__(self, parent, " ")
+        super().__init__(parent, " ")
 
     def build(self):
         isplat = sys.platform.startswith

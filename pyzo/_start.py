@@ -83,7 +83,7 @@ class MyApp(QtWidgets.QApplication):
                 if not commandline.is_our_server_running():
                     print(res)
                     sys.exit()
-        return QtWidgets.QApplication.event(self, event)
+        return super().event(event)
 
 
 if not sys.platform.startswith("darwin"):

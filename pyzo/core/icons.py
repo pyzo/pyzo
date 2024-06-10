@@ -161,7 +161,7 @@ class TabCloseButton(QtWidgets.QToolButton):
     SIZE = 5, 8
 
     def __init__(self):
-        QtWidgets.QToolButton.__init__(self)
+        super().__init__()
 
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -178,11 +178,11 @@ class TabCloseButton(QtWidgets.QToolButton):
         tabs.tabCloseRequested.emit(index)
 
     def enterEvent(self, event):
-        QtWidgets.QToolButton.enterEvent(self, event)
+        super().enterEvent(event)
         self.setIcon(self.getCrossIcon2())
 
     def leaveEvent(self, event):
-        QtWidgets.QToolButton.leaveEvent(self, event)
+        super().leaveEvent(event)
         self.setIcon(self.getCrossIcon1())
 
     def _createCrossPixmap(self, alpha):
@@ -250,7 +250,7 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
     SIZE = 21, 16
 
     def __init__(self):
-        QtWidgets.QToolButton.__init__(self)
+        super().__init__()
 
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -274,7 +274,7 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
         self._menuPressed = event.pos()
 
     def mouseMoveEvent(self, event):
-        QtWidgets.QToolButton.mouseMoveEvent(self, event)
+        super().mouseMoveEvent(event)
         if self._menuPressed:
             dragDist = QtWidgets.QApplication.startDragDistance()
             if (event.pos() - self._menuPressed).manhattanLength() >= dragDist:
@@ -288,13 +288,13 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
             tabs.customContextMenuRequested.emit(pos)
 
     def enterEvent(self, event):
-        QtWidgets.QToolButton.enterEvent(self, event)
+        super().enterEvent(event)
         self._menuarrow = self._menuarrow2
         self.setIcon()
         self._menuPressed = False
 
     def leaveEvent(self, event):
-        QtWidgets.QToolButton.leaveEvent(self, event)
+        super().leaveEvent(event)
         self._menuarrow = self._menuarrow1
         self.setIcon()
         self._menuPressed = False
@@ -312,7 +312,7 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
         icon = artist.finish()
 
         # Set icon
-        QtWidgets.QToolButton.setIcon(self, icon)
+        super().setIcon(icon)
 
     def _createMenuArrowPixmap(self, strength):
         artist = IconArtist()
@@ -330,7 +330,7 @@ class TabToolButton(QtWidgets.QToolButton):
     SIZE = 16, 16
 
     def __init__(self, *args):
-        QtWidgets.QToolButton.__init__(self, *args)
+        super().__init__(*args)
 
         # Init
         self.setIconSize(QtCore.QSize(*self.SIZE))
@@ -353,7 +353,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
     CROSS_OFFSET = 0, 2
 
     def __init__(self, *args):
-        TabToolButton.__init__(self, *args)
+        super().__init__(*args)
 
         # Variable to keep icon
         self._icon = None
@@ -392,7 +392,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
             event.ignore()
 
     def mouseMoveEvent(self, event):
-        QtWidgets.QToolButton.mouseMoveEvent(self, event)
+        super().mouseMoveEvent(event)
         new_overCross = self._isOverCross(event.pos())
         if new_overCross != self._overCross:
             self._overCross = new_overCross
@@ -424,7 +424,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         icon = artist.finish()
 
         # Set icon
-        QtWidgets.QToolButton.setIcon(self, icon)
+        super().setIcon(icon)
 
     def _createMenuArrowPixmap(self, strength):
         artist = IconArtist()

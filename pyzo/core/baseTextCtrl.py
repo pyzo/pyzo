@@ -398,7 +398,7 @@ class BaseTextCtrl(CodeEditor):
                 return False
 
         # Default behavior
-        CodeEditor.event(self, event)
+        super().event(event)
         return True
 
     def keyPressEvent(self, event):

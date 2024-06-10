@@ -90,7 +90,7 @@ class ShellStackWidget(QtWidgets.QWidget):
     currentShellStateChanged = QtCore.Signal()
 
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # create toolbar
         self._toolbar = QtWidgets.QToolBar(self)
@@ -292,7 +292,7 @@ class ShellControl(QtWidgets.QToolButton):
     """A button that can be used to select a shell and start a new shell."""
 
     def __init__(self, parent, shellStack):
-        QtWidgets.QToolButton.__init__(self, parent)
+        super().__init__(parent)
 
         # Store reference of shell stack
         self._shellStack = shellStack
@@ -377,7 +377,7 @@ class ShellControl(QtWidgets.QToolButton):
 #     """
 #
 #     def __init__(self, parent):
-#         QtWidgets.QToolButton.__init__(self, parent)
+#         super().__init__(parent)
 #
 #         # Flag
 #         self._debugmode = False
@@ -474,7 +474,7 @@ class DebugStack(QtWidgets.QToolButton):
     """A button that shows the stack trace."""
 
     def __init__(self, parent):
-        QtWidgets.QToolButton.__init__(self, parent)
+        super().__init__(parent)
 
         # Set text and tooltip
         self._baseText = translate("debug", "Stack")

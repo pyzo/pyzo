@@ -20,7 +20,7 @@ class Navigation:
 
 class PyzoSourceStructure(QtWidgets.QWidget):
     def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Make sure there is a configuration entry for this tool
         # The pyzo tool manager makes sure that there is an entry in

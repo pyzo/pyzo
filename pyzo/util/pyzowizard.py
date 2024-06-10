@@ -30,7 +30,7 @@ def retranslate(t):
 
 class PyzoWizard(QtWidgets.QWizard):
     def __init__(self, parent):
-        QtWidgets.QWizard.__init__(self, parent)
+        super().__init__(parent)
 
         # Set some appearance stuff
         self.setMinimumSize(600, 500)
@@ -67,7 +67,7 @@ class PyzoWizard(QtWidgets.QWizard):
         that page. startPage can be an integer or a string that matches
         the classname of a page.
         """
-        QtWidgets.QWizard.show(self)
+        super().show()
 
         # Check startpage
         if isinstance(startPage, int):
@@ -99,7 +99,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
     _image_filename = ""
 
     def __init__(self, parent, i):
-        QtWidgets.QWizardPage.__init__(self, parent)
+        super().__init__(parent)
         self._i = i
 
         # Create label for description
@@ -178,7 +178,7 @@ class IntroWizardPage(BasePyzoWizardPage):
     ]
 
     def __init__(self, parent, i):
-        BasePyzoWizardPage.__init__(self, parent, i)
+        super().__init__(parent, i)
 
         # Create label and checkbox
         t1 = translate("wizard", "This wizard can be opened using 'Help > Pyzo wizard'")

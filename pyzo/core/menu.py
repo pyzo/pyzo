@@ -191,7 +191,7 @@ class Menu(QtWidgets.QMenu):
     _dummyActionForHiddenEntryInKeyMapDialog = QtWidgets.QAction()
 
     def __init__(self, parent=None, name=None):
-        QtWidgets.QMenu.__init__(self, parent)
+        super().__init__(parent)
 
         # Make sure that the menu has a title
         if name:
@@ -287,7 +287,7 @@ class Menu(QtWidgets.QMenu):
         """
 
         # Add menu in the conventional way
-        a = QtWidgets.QMenu.addMenu(self, menu)
+        a = super().addMenu(menu)
         a.menuPath = menu.menuPath
 
         # Set icon
@@ -394,7 +394,7 @@ class GeneralOptionsMenu(Menu):
     """
 
     def __init__(self, parent=None, name=None, callback=None, options=None):
-        Menu.__init__(self, parent, name)
+        super().__init__(parent, name)
         self._options_callback = callback
         if options:
             self.setOptions(options)
@@ -901,7 +901,7 @@ class FontMenu(Menu):
     _hide_in_key_map_dialog = True
 
     def __init__(self, parent=None, name="Font", *args, **kwds):
-        Menu.__init__(self, parent, name, *args, **kwds)
+        super().__init__(parent, name, *args, **kwds)
         self.aboutToShow.connect(self._updateFonts)
 
     def _updateFonts(self):
@@ -1235,7 +1235,7 @@ class ShellMenu(Menu):
     def __init__(self, parent=None, name="Shell"):
         self._shellCreateActions = []
         self._shellActions = []
-        Menu.__init__(self, parent, name)
+        super().__init__(parent, name)
         pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
         self.aboutToShow.connect(self._updateShells)
 
@@ -1500,7 +1500,7 @@ class ShellContextMenu(ShellMenu):
     """This is the context menu for the shell"""
 
     def __init__(self, shell, parent=None):
-        ShellMenu.__init__(self, parent or shell, name="Shellcontextmenu")
+        super().__init__(parent or shell, name="Shellcontextmenu")
         self._shell = shell
 
     def build(self):
@@ -1626,7 +1626,7 @@ class EditorContextMenu(Menu):
 
     def __init__(self, editor, name="EditorContextMenu"):
         self._editor = editor
-        Menu.__init__(self, editor, name)
+        super().__init__(editor, name)
 
     def build(self):
         """Build menu"""
@@ -1781,7 +1781,7 @@ class EditorContextMenu(Menu):
 
 class EditorTabContextMenu(Menu):
     def __init__(self, *args, **kwds):
-        Menu.__init__(self, *args, **kwds)
+        super().__init__(*args, **kwds)
         self._index = -1
 
     def setIndex(self, index):
@@ -2311,7 +2311,7 @@ class RunMenu(Menu):
 class ToolsMenu(Menu):
     def __init__(self, *args, **kwds):
         self._toolActions = []
-        Menu.__init__(self, *args, **kwds)
+        super().__init__(*args, **kwds)
 
     def build(self):
         self.addItem(
@@ -2652,7 +2652,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
     currently mapped."""
 
     def __init__(self, *args):
-        QtCore.QAbstractItemModel.__init__(self, *args)
+        super().__init__(*args)
         self._root = None
 
     def setRootMenu(self, menu):
@@ -2820,7 +2820,7 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
     textUpdate = QtCore.Signal()
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.clear()
 
         # keep a list of native keys, so that we can capture for example
@@ -2832,19 +2832,19 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
     # Ctrl+A, while the actually displayed value is an OS shortcut (e.g. on Mac
     # Cmd-symbol + A)
     def setText(self, text):
-        QtWidgets.QLineEdit.setText(self, translateShortcutToOSNames(text))
+        super().setText(translateShortcutToOSNames(text))
         self._shortcut = text
 
     def text(self):
         return self._shortcut
 
     def clear(self):
-        QtWidgets.QLineEdit.setText(self, "<enter key combination here>")
+        super().setText("<enter key combination here>")
         self._shortcut = ""
 
     def focusInEvent(self, event):
         # self.clear()
-        QtWidgets.QLineEdit.focusInEvent(self, event)
+        super().focusInEvent(event)
 
     def event(self, event):
         # Override event handler to enable catching the Tab key
@@ -2857,7 +2857,7 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
             self.keyReleaseEvent(event)
             return True  # Mark as handled
         # Default: handle events as usual
-        return QtWidgets.QLineEdit.event(self, event)
+        return super().event(event)
 
     def keyPressEvent(self, event):
         # get key codes
@@ -2908,7 +2908,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
     """
 
     def __init__(self, *args):
-        QtWidgets.QDialog.__init__(self, *args)
+        super().__init__(*args)
 
         # set title
         self.setWindowTitle(translate("menu dialog", "Edit shortcut mapping"))
@@ -3050,7 +3050,7 @@ class KeymappingDialog(QtWidgets.QDialog):
     On double clicking on an item, the shortcut can be edited."""
 
     def __init__(self, *args):
-        QtWidgets.QDialog.__init__(self, *args)
+        super().__init__(*args)
 
         # set title
         self.setWindowTitle(translate("menu dialog", "Shortcut mappings"))
@@ -3123,7 +3123,7 @@ class AdvancedSettings(QtWidgets.QDialog):
     """
 
     def __init__(self, *args):
-        QtWidgets.QDialog.__init__(self, *args)
+        super().__init__(*args)
 
         self.conf_file = os.path.join(pyzo.appConfigDir, "config.ssdf")
         self.backup_file = os.path.join(pyzo.appConfigDir, "config.ssdf.bak")
