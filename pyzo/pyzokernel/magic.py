@@ -613,42 +613,6 @@ class Magician:
 
         return ""
 
-    # todo: I think we can deprecate this
-    def _check_imported_modules(self):
-        KNOWN_PURE_PYHON = (
-            "conda",
-            "yaml",
-            "IPython",
-            "requests",
-            "readline",
-            "pyreadline",
-        )
-        if not sys.platform.startswith("win"):
-            return  # Only a problem on Windows
-        # Check what modules are currently imported
-        loaded_modules = set()
-        for name, mod in sys.modules.items():
-            if "site-packages" in getattr(mod, "__file__", ""):
-                name = name.split(".")[0]
-                if name.startswith("_") or name in KNOWN_PURE_PYHON:
-                    continue
-                loaded_modules.add(name)
-        # Add PySide PyQt4 from IEP if prefix is the same
-        if os.getenv("IEP_PREFIX", "") == sys.prefix:
-            loaded_modules.add(os.getenv("IEP_QTLIB", "qt"))
-        # Warn if we have any such modules
-        loaded_modules = [m.lower() for m in loaded_modules if m]
-        if loaded_modules:
-            print("WARNING! The following modules are currently loaded:\n")
-            print("  " + ", ".join(sorted(loaded_modules)))
-            print(
-                "\nUpdating or removing them may fail if they are not "
-                "pure Python.\nIf none of the listed packages is updated or "
-                'removed, it is safe\nto proceed (use "f" if necessary).\n'
-            )
-            print("-" * 80)
-            time.sleep(2.0)  # Give user time to realize there is a warning
-
     def pip(self, line, command):
         if not (command == "PIP" or command.startswith("PIP ")):
             return
