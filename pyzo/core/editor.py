@@ -118,9 +118,7 @@ def determineIndentationAndTrailingWS(text):
 
     lines = text.splitlines()
     lines.insert(0, "")  # so the lines start at 1
-    for i in range(len(lines)):
-        line = lines[i]
-
+    for i, line in enumerate(lines):
         # remove indentation
         lineA = line.lstrip()
         lineB = line.rstrip()

@@ -893,16 +893,13 @@ class FileTabWidget(CompactTabWidget):
 
         # Check whether we have name clashes, which we can try to resolve
         namecounts = {}
-        for i in range(len(items)):
-            item = items[i]
+        for i, item in enumerate(items):
             if item is None:
                 continue
             xx = namecounts.setdefault(item.name, [])
             xx.append(item)
 
-        for i in range(len(items)):
-            # Get item
-            item = items[i]
+        for i, item in enumerate(items):
             if item is None:
                 continue
 

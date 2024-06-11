@@ -623,10 +623,7 @@ class FileMenu(Menu):
             "latin_1": ("iso-8859-1", "iso8859-1", "cp819", "latin", "latin1", "L1"),
         }
         # Dict with aliases mapping to "official value"
-        Da = {}
-        for key in D:
-            for key2 in D[key]:
-                Da[key2] = key
+        Da = {alias: orig for orig, aliasTuple in D.items() for alias in aliasTuple}
 
         # Encodings to list
         encodings = ["utf-8", "ascii", "latin_1", "cp1250", "cp1251"]
@@ -950,7 +947,7 @@ class ViewMenu(Menu):
         self._qtThemeMenu = GeneralOptionsMenu(self, t, self._setQtTheme)
         styleNames = list(QtWidgets.QStyleFactory.keys())
         styleNames.sort()
-        titles = [name for name in styleNames]
+        titles = styleNames[:]
         styleNames = [name.lower() for name in styleNames]
         for i in range(len(titles)):
             if titles[i].lower() == pyzo.defaultQtStyleName.lower():

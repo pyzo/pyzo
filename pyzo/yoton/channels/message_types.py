@@ -264,14 +264,10 @@ class Unpacker:
             n = self.read_number()
             return self.read(n).decode("utf-8")
         elif object_type == _TYPE_LIST:
-            object = []
-            for i in range(self.read_number()):
-                object.append(self.unpack_object())
+            object = [self.unpack_object() for i in range(self.read_number())]
             return object
         elif object_type == _TYPE_TUPLE:
-            object = []
-            for i in range(self.read_number()):
-                object.append(self.unpack_object())
+            object = [self.unpack_object() for i in range(self.read_number())]
             return tuple(object)
         elif object_type == _TYPE_DICT:
             object = {}

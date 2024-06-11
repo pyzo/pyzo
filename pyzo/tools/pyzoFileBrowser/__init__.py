@@ -105,9 +105,7 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         self.config.expandedDirs, self.config.starredDirs = expandedDirs, starredDirs
 
         # Create browser(s).
-        self._browsers = []
-        for i in [0]:
-            self._browsers.append(Browser(self, self.config))
+        self._browsers = [Browser(self, self.config)]
 
         # Layout
         layout = QtWidgets.QVBoxLayout(self)
