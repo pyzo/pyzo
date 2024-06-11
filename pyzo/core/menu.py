@@ -2528,16 +2528,16 @@ class AutocompMenu(Menu):
                 "menu", "Auto close quotes ::: Auto close single and double quotes."
             ),
             None,
-            self._setQuotes,
-            None,
+            self._configEditor,
+            "autoClose_Quotes",
             pyzo.config.settings.autoClose_Quotes,
         )
 
         self.addCheckItem(
             translate("menu", "Auto close brackets ::: Auto close ( { [ ] } )."),
             None,
-            self._setBrackets,
-            None,
+            self._configEditor,
+            "autoClose_Brackets",
             pyzo.config.settings.autoClose_Brackets,
         )
 
@@ -2559,14 +2559,20 @@ class AutocompMenu(Menu):
     def _setCompleteKeywords(self, value):
         pyzo.config.settings.autoComplete_keywords = bool(value)
 
-    def _setQuotes(self, value):
-        # Set automatic insertion of single and double quotes
-        pyzo.config.settings.autoClose_Quotes = bool(value)
-
-    def _setBrackets(self, value):
-        # Set automatic insertion of parenthesis, braces and brackets
-        pyzo.config.settings.autoClose_Brackets = bool(value)
-
+    def _configEditor(self, state, param):
+        """
+        Callback for code editor settings
+        """
+        # Store this parameter in the config
+        setattr(pyzo.config.settings, param, state)
+        # Apply to all editors and shells and the logger tool
+        setter = "set" + param[0].upper() + param[1:]
+        codeEditorList = list(pyzo.editors) + list(pyzo.shells)
+        logger = pyzo.toolManager.getTool("pyzologger")
+        if logger is not None:
+            codeEditorList.append(logger._logger_shell)
+        for editor in codeEditorList:
+            getattr(editor, setter)(state)
 
 class SettingsMenu(Menu):
     def build(self):

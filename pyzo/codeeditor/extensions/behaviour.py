@@ -13,7 +13,6 @@ from ..qt import QtGui, QtCore
 
 Qt = QtCore.Qt
 
-import pyzo
 from ..misc import ce_option
 from ..parsers.tokens import (
     CommentToken,
@@ -484,6 +483,20 @@ class AutoCloseQuotesAndBrackets:
 
     """
 
+    def autoClose_Brackets(self):
+        return self.__autoClose_Brackets
+
+    @ce_option(False)
+    def setAutoClose_Brackets(self, value):
+        self.__autoClose_Brackets = value
+
+    def autoClose_Quotes(self):
+        return self.__autoClose_Quotes
+
+    @ce_option(False)
+    def setAutoClose_Quotes(self, value):
+        self.__autoClose_Quotes = value
+
     def _get_token_at_cursor(self, cursor=None, relpos=0):
         """Get token at the (current or given) cursor position. Can be None."""
         if cursor is None:
@@ -524,7 +537,7 @@ class AutoCloseQuotesAndBrackets:
         char = event.text()
 
         #  brackets
-        if char in brackets and pyzo.config.settings.autoClose_Brackets:
+        if char in brackets and self.__autoClose_Brackets:
             # Dont autobracket inside comments and strings
             if isinstance(
                 self._get_token_at_cursor(cursor),
@@ -575,7 +588,7 @@ class AutoCloseQuotesAndBrackets:
                     cursor.insertText(char)  # == super().keyPressEvent(event)
 
         # quotes
-        elif char in quotes and pyzo.config.settings.autoClose_Quotes:
+        elif char in quotes and self.__autoClose_Quotes:
             next_char = self.__getNextCharacter()
 
             # Don't autoquote inside comments and multiline strings
@@ -633,7 +646,7 @@ class AutoCloseQuotesAndBrackets:
 
         # remove whole couple of brackets when hitting backspace
         elif (
-            event.key() == Qt.Key_Backspace and pyzo.config.settings.autoClose_Brackets
+            event.key() == Qt.Key_Backspace and self.__autoClose_Brackets
         ):
             if isinstance(
                 self._get_token_at_cursor(cursor),
