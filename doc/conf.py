@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Pyzo documentation build configuration file, created by
 # sphinx-quickstart on Sun Jan 26 00:33:41 2014.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2016, the Pyzo development team
 # Author: Windel Bouwman
 #

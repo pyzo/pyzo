@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2016, the Pyzo development team
 #
 # Pyzo is distributed under the terms of the 2-Clause BSD License.
@@ -156,7 +155,7 @@ id est laborum.
         # Indented comments
         # should work
         # as well
-    
+
 skdb-a-very-long-word-ksdbfksasdvbassdfhjsdfbjdfbvhjdbvhjbdfhjvbdfjbvjdfbvjdfbvjdbfvj
 
    A change in indentation makes it a separate line
