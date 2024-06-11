@@ -374,9 +374,7 @@ class KernelBroker:
         self._create_channels()
 
         # Create info dict
-        info = {}
-        for key in self._info:
-            info[key] = self._info[key]
+        info = dict(self._info)
 
         # Send info stuff so that the kernel has access to the information
         self._stat_startup.send(info)

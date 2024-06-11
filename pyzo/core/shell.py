@@ -1333,9 +1333,7 @@ class PythonShell(BaseShell):
         lines = text.splitlines()
         lastLineOfCode = 0
         minIndent = 99
-        for linenr in range(len(lines)):
-            # Get line
-            line = lines[linenr]
+        for linenr, line in enumerate(lines):
             # Check if empty (can be commented, but nothing more)
             tmp = line.split("#", 1)[0]  # get part before first #
             if tmp.count(" ") == len(tmp):

@@ -145,8 +145,7 @@ class ShellInfo_gui(QtWidgets.QComboBox):
         # Set options
         ii = 0
         self.clear()
-        for i in range(len(self.GUIS)):
-            gui, des = self.GUIS[i]
+        for i, (gui, des) in enumerate(self.GUIS):
             if value == gui.upper():
                 ii = i
             self.addItem("{}  -  {}".format(gui, des))

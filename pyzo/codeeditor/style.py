@@ -110,9 +110,7 @@ class StyleFormat:
 
     def __str__(self):
         """Get a (cleaned up) string representation of this style format."""
-        parts = []
-        for key in self._parts:
-            parts.append("{}:{}".format(key, self._parts[key]))
+        parts = ["{}:{}".format(key, self._parts[key]) for key in self._parts]
         return ", ".join(parts)
 
     def __repr__(self):
@@ -126,9 +124,7 @@ class StyleFormat:
 
     def __iter__(self):
         """Yields a series of tuples (key, val)."""
-        parts = []
-        for key in self._parts:
-            parts.append((key, self._parts[key]))
+        parts = [(key, self._parts[key]) for key in self._parts]
         return parts.__iter__()
 
     def update(self, format):

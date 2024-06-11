@@ -160,9 +160,10 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         self.cursorPositionChanged.connect(self.viewport().update)
 
         # Init styles to default values
-        self.__style = {}
-        for element in self.getStyleElementDescriptions():
-            self.__style[element.key] = element.defaultFormat
+        self.__style = {
+            element.key: element.defaultFormat
+            for element in self.getStyleElementDescriptions()
+        }
 
         # Connext style update
         self.styleChanged.connect(self.__afterSetStyle)
@@ -367,9 +368,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Process options
         if options:
-            D = {}
-            for key in options:
-                D[key] = options[key]
+            D = dict(options)
             D.update(kwargs)
         else:
             D = kwargs
@@ -534,12 +533,10 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Combine user input
         D = {}
         if style:
-            for key in style:
-                D[key] = style[key]
+            D = dict(style)
         if True:
             for key in kwargs:
-                key2 = key.replace("_", ".")
-                D[key2] = kwargs[key]
+                D[key.replace("_", ".")] = kwargs[key]
 
         # List of given invalid style element names
         invalidKeys = []

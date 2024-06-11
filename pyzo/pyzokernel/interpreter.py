@@ -1190,8 +1190,7 @@ class PyzoInterpreter:
                 tb = tb.tb_next
 
             # Walk through the list
-            for i in range(len(tblist)):
-                tbInfo = tblist[i]
+            for i, tbInfo in enumerate(tblist):
                 # Get filename and line number, init example
                 fname, lineno = self.correctfilenameandlineno(tbInfo[0], tbInfo[1])
                 if not isinstance(fname, ustr):

@@ -273,11 +273,12 @@ class ReaderWriter:
     def save(self, d):
         pyver = "{}.{}.{}".format(*sys.version_info[:3])
         ct = time.asctime()
-        lines = []
-        lines.append("# -*- coding: utf-8 -*-")
-        lines.append("# This Zoof Object Notation (ZON) file was")
-        lines.append("# created from Python {} on {}.\n".format(pyver, ct))
-        lines.append("")
+        lines = [
+            "# -*- coding: utf-8 -*-",
+            "# This Zoof Object Notation (ZON) file was",
+            "# created from Python {} on {}.\n".format(pyver, ct),
+            "",
+        ]
         lines.extend(self.from_dict(d, -2)[1:])
 
         return "\r\n".join(lines)

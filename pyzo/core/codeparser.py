@@ -391,10 +391,7 @@ class Parser(threading.Thread):
 
         # Find objects!
         # type can be: cell, class, def, import, var
-        for i in range(len(lines)):
-            # Obtain line
-            line = lines[i]
-
+        for i, line in enumerate(lines):
             # Should we stop?
             if self._job or self._exit:
                 break
@@ -556,8 +553,7 @@ class Parser(threading.Thread):
             # find object after linenr
             object1, object2 = None, None  # if no items at all
             i = -1
-            for i in range(len(series)):
-                object = series[i]
+            for i, object in enumerate(series):
                 if object.type not in ["class", "def"]:
                     continue
                 if object.linenr > linenr:
