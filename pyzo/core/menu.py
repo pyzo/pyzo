@@ -1092,11 +1092,14 @@ class ViewMenu(Menu):
         setattr(pyzo.config.view, param, state)
         # Apply to all editors, translate e.g. showWhitespace to setShowWhitespace
         setter = "set" + param[0].upper() + param[1:]
-        for editor in pyzo.editors:
-            getattr(editor, setter)(state)
+        codeEditorList = list(pyzo.editors)
         if shellsToo:
-            for shell in pyzo.shells:
-                getattr(shell, setter)(state)
+            codeEditorList.extend(pyzo.shells)
+            logger = pyzo.toolManager.getTool("pyzologger")
+            if logger is not None:
+                codeEditorList.append(logger._logger_shell)
+        for editor in codeEditorList:
+            getattr(editor, setter)(state)
 
     def _selectShell(self):
         shell = pyzo.shells.getCurrentShell()
