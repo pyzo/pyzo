@@ -449,27 +449,28 @@ class MainWindow(QtWidgets.QMainWindow):
             os.execv(sys.executable, args)
 
     def createPopupMenu(self):
-        # Init menu
-        menu = QtWidgets.QMenu()
+        # This menu pops up when right clicking on the menu bar
+        # or when right clicking on the title bar of a panel.
 
-        # Insert two items
-        for item in ["Editors", "Shells"]:
-            action = menu.addAction(item)
-            action.setCheckable(True)
-            action.setChecked(True)
-            action.setEnabled(False)
+        # We have to use the initialized menu from the parent class because creating
+        # a completely new QMenu would result in a memory error.
+        menu = super().createPopupMenu()
+        menu.clear()
 
-        # Insert tools
-        for tool in pyzo.toolManager.loadToolInfo():
-            action = menu.addAction(tool.name)
-            action.setCheckable(True)
-            action.setChecked(bool(tool.instance))
-            action.menuLauncher = tool.menuLauncher
+        # The build_callback function is necessary because without that, a simple lambda
+        # would bind the argument to the latest action of the for loop via the closure.
+        def build_callback(cb, action):
+            return lambda: cb(action.isChecked())
 
-        # Show menu and process result
-        a = menu.popup(QtGui.QCursor.pos())
-        if a:
-            a.menuLauncher(not a.menuLauncher(None))
+        # Add all tools, with checkmarks for those that are active
+        for tool in pyzo.toolManager.getToolInfo():
+            a = menu.addAction(tool.name)
+            a.setCheckable(True)
+            a.setChecked(bool(tool.instance))
+            a.triggered.connect(lambda: tool.menuLauncher(a.isChecked()))
+            a.triggered.connect(build_callback(tool.menuLauncher, a))
+
+        return menu
 
 
 def loadAppIcons():
