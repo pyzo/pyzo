@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2018, the codeeditor development team
 #
 # Pyzo is distributed under the terms of the 2-Clause BSD License.

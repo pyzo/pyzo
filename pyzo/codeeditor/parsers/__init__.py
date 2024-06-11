@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2013, the codeeditor development team
 #
 # Codeeditor is distributed under the terms of the 2-Clause BSD License.
