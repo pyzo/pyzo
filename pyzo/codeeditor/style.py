@@ -8,7 +8,7 @@
 Provides basic functionaliy for styling.
 
 Styling is done using a dictionary of StyleFormat instances. Each
-such instance reprsents a certain element being styled (e.g. keywords,
+such instance represents a certain element being styled (e.g. keywords,
 line numbers, indentation guides).
 
 All possible style elements are represented using StyleElementDescription
@@ -80,7 +80,7 @@ class StyleFormat:
       * italic: (bool) whether the text should be in italic
       * underline: (int) whether an underline should be used (and which one)
       * linestyle: (int) what line style to use (e.g. for indent guides)
-      * textCharFOrmat: (QTextCharFormat) for the syntax styles
+      * textCharFormat: (QTextCharFormat) for the syntax styles
 
     The format neglects spaces and case. Parts are separated by commas
     or semicolons. If only a key is given it's value is interpreted

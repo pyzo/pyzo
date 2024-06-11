@@ -193,7 +193,7 @@ class PyzoInterpreter:
         Here we enter the main loop, which is provided by the guiApp.
         This event loop calls process_commands on a regular basis.
 
-        We may also enter the debug intereaction loop, either from a
+        We may also enter the debug interaction loop, either from a
         request for post-mortem debugging, or *during* execution by
         means of a breakpoint. When in this debug-loop, the guiApp event
         loop lays still, but the debug-loop does call process-commands
@@ -306,7 +306,7 @@ class PyzoInterpreter:
             self._ipython = None
         else:
             try:
-                self._load_ipyhon()
+                self._load_ipython()
             except Exception:
                 type, value, tb = sys.exc_info()
                 del tb
@@ -569,7 +569,7 @@ class PyzoInterpreter:
 
         return guiName, guiError
 
-    def _load_ipyhon(self):
+    def _load_ipython(self):
         """Try loading IPython shell. The result is set in self._ipython
         (can be None if IPython not available).
         """
@@ -1180,7 +1180,7 @@ class PyzoInterpreter:
                     sys.last_traceback = tb
 
             # Get traceback to correct all the line numbers
-            # tblist = list  of (filename, line-number, function-name, text)
+            # tblist = list of (filename, line-number, function-name, text)
             tblist = traceback.extract_tb(tb)
 
             # Get frames

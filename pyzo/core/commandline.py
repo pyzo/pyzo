@@ -150,7 +150,7 @@ def is_our_server_running():
 
 def is_pyzo_server_running():
     """Test whether the Pyzo server is running *somewhere* (not
-    necesarily in this process).
+    necessarily in this process).
     """
     try:
         res = do_request(ADDRESS, "echo", 0.2)
@@ -159,7 +159,7 @@ def is_pyzo_server_running():
         return False
 
 
-# Shold we start the server?
+# Should we start the server?
 _try_start_server = True
 if sys.platform.startswith("win"):
     _try_start_server = not is_pyzo_server_running()

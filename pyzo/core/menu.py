@@ -404,7 +404,7 @@ class GeneralOptionsMenu(Menu):
     def setOptions(self, options, values=None):
         """
         Set the list of options, clearing any existing options. The options
-        are added ad group items and registered to the callback given
+        are added as group items and registered to the callback given
         at initialization.
         """
         # Init
@@ -1067,7 +1067,7 @@ class ViewMenu(Menu):
 
     def addEditorItem(self, name, icon, param, shellsToo=False):
         """
-        Create a boolean item that reperesents a property of the editors,
+        Create a boolean item that represents a property of the editors,
         whose value is stored in pyzo.config.view.param
         """
         if hasattr(pyzo.config.view, param):
@@ -1595,7 +1595,7 @@ class ShellContextMenu(ShellMenu):
             if msg:
                 m = QtWidgets.QMessageBox(self)
                 m.setWindowTitle(translate("menu dialog", "Could not change dir"))
-                m.setText(translate("menu", "Could not  change dir" + ":\n\n" + msg))
+                m.setText(translate("menu", "Could not change dir" + ":\n\n" + msg))
                 m.setIcon(m.Warning)
                 m.exec_()
             else:
@@ -2364,12 +2364,12 @@ class HelpMenu(Menu):
                 "menu", "Pyzo website ::: Open the Pyzo website in your browser."
             ),
             icons.help,
-            "http://pyzo.org",
+            "https://pyzo.org",
         )
         self.addUrlItem(
             translate("menu", "Pyzo guide ::: Open the Pyzo guide in your browser."),
             icons.help,
-            "http://guide.pyzo.org",
+            "https://guide.pyzo.org",
         )
         self.addItem(
             translate("menu", "Pyzo wizard ::: Get started quickly."),
@@ -2382,15 +2382,15 @@ class HelpMenu(Menu):
         self.addUrlItem(
             translate("menu", "Ask a question ::: Need help?"),
             icons.comments,
-            "http://community.pyzo.org",
+            "https://community.pyzo.org",
         )
         self.addUrlItem(
             translate(
                 "menu",
-                "Report an issue ::: Did you found a bug in Pyzo, or do you have a feature request?",
+                "Report an issue ::: Did you find a bug in Pyzo, or do you have a feature request?",
             ),
             icons.error_add,
-            "http://issues.pyzo.org",
+            "https://issues.pyzo.org",
         )
         self.addItem(
             translate(
@@ -2455,7 +2455,7 @@ class HelpMenu(Menu):
         result = m.exec_()
         # Goto webpage if user chose to
         if result == m.Yes:
-            webbrowser.open("http://pyzo.org/start.html")
+            webbrowser.open("https://pyzo.org/start.html")
 
     def _aboutPyzo(self):
         from pyzo.core.about import AboutDialog

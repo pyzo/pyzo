@@ -342,7 +342,7 @@ class TheTimerThread(threading.Thread):
 
 
 # Instantiate and start the single timer thread
-# We can do this as long as we do not wait for the threat, and the threat
+# We can do this as long as we do not wait for the thread, and the thread
 # does not do any imports:
 # http://docs.python.org/library/threading.html#importing-in-threaded-code
 theTimerThread = TheTimerThread()

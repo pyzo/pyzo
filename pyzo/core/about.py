@@ -125,6 +125,5 @@ class AboutDialog(QtWidgets.QDialog):
 
 
 if __name__ == "__main__":
-    # pyzo.license = {'name': 'AK', 'company': ''}
     m = AboutDialog(None)
     m.show()

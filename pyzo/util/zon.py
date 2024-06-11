@@ -15,17 +15,11 @@ import time
 
 ## Dict class
 
-try:  # pragma: no cover
-    from collections import OrderedDict as _dict
-except ImportError:
-    _dict = dict
+from collections import OrderedDict as _dict
 
 
 def isidentifier(s):
-    # http://stackoverflow.com/questions/2544972/
-    if not isinstance(s, str):
-        return False
-    return re.match(r"^\w+$", s) and re.match(r"^[0-9]", s) is None
+    return isinstance(s, str) and s.isidentifier()
 
 
 class Dict(_dict):
@@ -69,7 +63,7 @@ class Dict(_dict):
             else:
                 raise AttributeError(
                     "Reserved name, this key can only "
-                    + "be set via ``d[{!r}] = X``".format(key)
+                    "be set via ``d[{!r}] = X``".format(key)
                 )
         else:
             # if isinstance(val, dict): val = Dict(val) -> no, makes a copy!
@@ -405,8 +399,8 @@ class ReaderWriter:
             if key.startswith("__"):
                 continue
             # Skip methods, or anything else we can call
-            if hasattr(val, "__call__"):
-                continue  # Note: py3.x does not have function callable
+            if callable(val):
+                continue
             # Add!
             lines.extend(self.from_object(key, val, indent + 2))
         return lines
@@ -437,9 +431,8 @@ class ReaderWriter:
             return data
 
     def to_list(self, data, linenr):
-        value = []
         if data[0] == "l":  # list:
-            return list()
+            return []
         else:
             i0 = 1
             pieces = []
@@ -471,9 +464,4 @@ class ReaderWriter:
             else:
                 print("ZON: short list not closed right on line {}.".format(linenr))
 
-            # Cut in pieces and process each piece
-            value = []
-            for piece in pieces:
-                v = self.to_object(piece, linenr)
-                value.append(v)
-            return value
+            return [self.to_object(piece, linenr) for piece in pieces]

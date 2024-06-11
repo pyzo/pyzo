@@ -124,7 +124,7 @@ class PyzoIntrospector(yoton.RepChannel):
                     sigs += " "
             # Test if doc has signature
             hasSig = False
-            for name in objectNames:  # list.append -> L.apend(objec) -- blabla
+            for name in objectNames:  # list.append -> L.append(object) -- blabla
                 name += "("
                 if name in sigs:
                     hasSig = True

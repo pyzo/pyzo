@@ -64,7 +64,7 @@ def getLocale(languageName):
     Get the QLocale object for the given language (as a string).
     """
 
-    # Try System  Language if nothing defined
+    # Try System Language if nothing defined
     if languageName == "":
         languageName = QLocale.system().name()
 
