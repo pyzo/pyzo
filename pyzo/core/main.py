@@ -650,8 +650,8 @@ def screenshot(countdown=5):
 def _screenshot():
     # Grab
     print("SNAP!")
-    pix = QtGui.QPixmap.grabWindow(pyzo.main.winId())
-    # pix = QtGui.QPixmap.grabWidget(pyzo.main)
+    screen = QtWidgets.qApp.primaryScreen()
+    pix = screen.grabWindow(pyzo.main.winId())
     # Get name
     i = 1
     while i > 0:
