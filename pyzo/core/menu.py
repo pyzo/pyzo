@@ -1819,6 +1819,12 @@ class EditorTabContextMenu(Menu):
             "close_others",
         )
         self.addItem(
+            translate("menu", "Close all after this::: Close all files after this one."),
+            None,
+            self._fileAction,
+            "close_all_after_this",
+        )
+        self.addItem(
             translate("menu", "Close all ::: Close all files."),
             icons.page_delete_all,
             self._fileAction,
@@ -1887,12 +1893,18 @@ class EditorTabContextMenu(Menu):
 
         if action in ["saveFile", "saveFileAs", "closeFile"]:
             getattr(pyzo.editors, action)(item.editor)
-        elif action == "close_others" or action == "close_all":
-            if action == "close_all":
-                item = None  # The item not to be closed is not there
+
+        elif action in ("close_others", "close_all", "close_all_after_this"):
+            numTabs = pyzo.editors._tabs.count()
+            indsToClose = list(range(numTabs))
+            if action == "close_others":
+                indsToClose = [i for i in range(numTabs) if i != self._index]
+            elif action == "close_all_after_this":
+                indsToClose = list(range(self._index + 1, numTabs))
+
             items = pyzo.editors._tabs.items()
-            for i in reversed(range(pyzo.editors._tabs.count())):
-                if items[i] is item or items[i].pinned:
+            for i in sorted(indsToClose, reverse=True):
+                if items[i].pinned:
                     continue
                 pyzo.editors._tabs.tabCloseRequested.emit(i)
 
