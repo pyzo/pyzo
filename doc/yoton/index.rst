@@ -8,10 +8,10 @@ Yoton - Inter process communication
 
 
 Yoton is a Python package that provides a simple interface
-to communicate between two or more processes. 
+to communicate between two or more processes.
 
-Yoton is independent of any other component of IEP and has
-*no dependencies* except Python itself. It runs on any Python 
+Yoton is independent of any other component of Pyzo and has
+*no dependencies* except Python itself. It runs on any Python
 version from 2.4.
 
 Yoton is ...
@@ -20,14 +20,14 @@ Yoton is ...
   * without dependencies (except Python)
   * available on Python version >= 2.4, including Python 3
   * cross-platform
-  * pretty fast 
+  * pretty fast
 .. insertdocs end::
 
 ----
 
 .. toctree::
    :maxdepth: 1
-   
+
    overview
    examples
    context
@@ -35,7 +35,7 @@ Yoton is ...
    channels
    events
    clientserver
-  
+
    internals
    experiments
 

@@ -34,7 +34,7 @@ QLabel {
 splash_text = """
 <p>{text_title}</p>
 <p>{text_version} {version}</p>
-<p>{text_os} <a href='http://pyzo.org/'>http://pyzo.org</a></p>
+<p>{text_os} <a href='https://pyzo.org/'>https://pyzo.org</a></p>
 """
 
 

@@ -21,7 +21,7 @@ def ce_option(arg1):
     """Decorator for properties of the code editor.
 
     It should be used on the setter function, with its default value
-    as an argument. The default value is then  stored on the function
+    as an argument. The default value is then stored on the function
     object.
 
     At the end of the initialization, the base codeeditor class will
@@ -45,7 +45,7 @@ def ce_option(arg1):
 
     # Handle
     default = DEFAULT_OPTION_NONE
-    if hasattr(arg1, "__call__"):
+    if callable(arg1):
         return decorator_fun(arg1)
     else:
         default = arg1

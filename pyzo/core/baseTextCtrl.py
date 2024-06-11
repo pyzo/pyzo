@@ -25,8 +25,6 @@ def normalizePath(path):
     All slashes will be made the same (and doubles removed)
     The real case as stored on the file system is recovered.
     """
-
-    # normalize
     path = os.path.abspath(path)  # make sure it is defined from the drive up
     path = os.path.normpath(path)
     return path
@@ -404,7 +402,7 @@ class BaseTextCtrl(CodeEditor):
 
     def keyPressEvent(self, event):
         """Receive qt key event.
-        From here we'l dispatch the event to perform autocompletion
+        From here we will dispatch the event to perform autocompletion
         or other stuff...
         """
 
@@ -538,7 +536,7 @@ class AutoCompObject:
         # typing a xxx.yyy, the autocompletion buffer changes and is thus
         # automatically refreshed.
         # I've once encountered a wrong autocomp list on an object, but
-        # haven' been able to reproduce it. It was probably some odity.
+        # haven't been able to reproduce it. It was probably some odity.
         if timeout is None:
             if self.bufferName:
                 timeout = 5

@@ -78,7 +78,7 @@ Context
     Get a list of the Connection instances currently
     active for this context. 
     In addition to normal list indexing, the connections objects can be
-    queried  from this list using their name.
+    queried from this list using their name.
 
   .. _insertdocs-yoton-Context-connections_all:
   

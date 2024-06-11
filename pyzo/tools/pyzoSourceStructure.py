@@ -172,7 +172,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             text = translate("pyzoSourceStructure", "Parsing ") + editor._name + " ..."
             QtWidgets.QTreeWidgetItem(self._tree, [text])
 
-            # Try getting the  structure right now
+            # Try getting the structure right now
             self.updateStructure()
 
     def _getCurrentNav(self):

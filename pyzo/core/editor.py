@@ -474,7 +474,7 @@ class PyzoEditor(BaseTextCtrl):
         pyzo.parser.parseThis(self)
 
     def setTitleInMainWindow(self):
-        """set the title  text in the main window to show filename."""
+        """set the title text in the main window to show filename."""
 
         # compose title
         name, path = self._name, self._filename

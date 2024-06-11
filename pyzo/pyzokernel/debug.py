@@ -304,7 +304,7 @@ class Debugger(bdb.Bdb):
 
         if not arg:
             print("All debug commands:")
-            # Show docs in  order
+            # Show docs in order
             for name in [
                 "start",
                 "stop",

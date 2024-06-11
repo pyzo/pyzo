@@ -215,11 +215,11 @@ class PyzoWebBrowser(QtWidgets.QFrame):
 
         # Start
         self._view.show()
-        self.go("http://docs.python.org")
+        self.go("https://docs.python.org")
 
     def parseAddress(self, address):
         if not address.startswith("http"):
-            address = "http://" + address
+            address = "https://" + address
         return address  # QtCore.QUrl(address, QtCore.QUrl.TolerantMode)
 
     def go(self, address=None):

@@ -276,14 +276,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if value is not None:
             return super().restoreGeometry(value)
 
-        # No value give, try to get it from the config
+        # No value given, try to get it from the config
         if pyzo.config.state.windowGeometry:
             try:
                 geometry = pyzo.config.state.windowGeometry
                 geometry = base64.decodebytes(geometry.encode("ascii"))
                 self.restoreGeometry(geometry)
             except Exception as err:
-                print("Could not restore window geomerty: " + str(err))
+                print("Could not restore window geometry: " + str(err))
 
     def restoreState(self, value=None):
         # Restore layout of dock widgets and toolbars
@@ -419,7 +419,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self._closeflag:
             # Get args
-            args = [arg for arg in sys.argv]
+            args = list(sys.argv)
 
             if not paths.is_frozen():
                 # Prepend the executable name (required on Linux)
@@ -525,7 +525,7 @@ def loadIcons():
             try:
                 # Short and full name
                 name = fname.split(".")[0]
-                name = name.replace("pyzo_", "")  # discart prefix
+                name = name.replace("pyzo_", "")  # discard prefix
                 ffname = os.path.join(iconDir, fname)
                 # Create icon
                 icon = QtGui.QIcon()

@@ -29,7 +29,7 @@ class BlockData(QtGui.QTextBlockUserData):
 
 
 # The highlighter should be part of the base class, because
-# some extensions rely on them (e.g. the indent guuides).
+# some extensions rely on them (e.g. the indent guides).
 class Highlighter(QtGui.QSyntaxHighlighter):
     def __init__(self, codeEditor, *args):
         super().__init__(*args)

@@ -164,7 +164,7 @@ class Context(object):
         """Get a list of the Connection instances currently
         active for this context.
         In addition to normal list indexing, the connections objects can be
-        queried  from this list using their name.
+        queried from this list using their name.
         """
         # Lock
         self._connections_lock.acquire()
@@ -492,7 +492,7 @@ class Context(object):
         if deposit_here:
             if slot == SLOT_CONTEXT:
                 # Context-to-context messaging;
-                # A slot starting with a space reprsents the context
+                # A slot starting with a space represents the context
                 self._recv_context_package(package)
             else:
                 # Give package to a channel (if applicable)

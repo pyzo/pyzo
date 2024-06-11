@@ -30,10 +30,10 @@
     </p>
  </description>
  <screenshots>
-  <screenshot type="default" width="1244" height="700">http://www.pyzo.org/_static/screenshots/screen-default-16-9.png</screenshot>
-  <screenshot width="1004" height="664">http://www.pyzo.org/_static/screenshots/screen00_win.png</screenshot>
+  <screenshot type="default" width="1244" height="700">https://www.pyzo.org/_static/screenshots/screen-default-16-9.png</screenshot>
+  <screenshot width="1004" height="664">https://www.pyzo.org/_static/screenshots/screen00_win.png</screenshot>
  </screenshots>
- <url type="homepage">http://pyzo.org</url>
+ <url type="homepage">https://pyzo.org</url>
  <url type="translate">https://github.com/pyzo/pyzo/wiki/Translations</url>
  <update_contact>almar.klein@gmail.com</update_contact>
 </component>

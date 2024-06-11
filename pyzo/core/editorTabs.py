@@ -1113,7 +1113,7 @@ class EditorTabs(QtWidgets.QWidget):
                     active = (filename, linenr) == filename_linenr[-1]
                     editor.setDebugLineIndicator(linenr, active)
 
-    ## Loading ad saving files
+    ## Loading and saving files
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

@@ -183,7 +183,7 @@ class BaseChannel(object):
 
         Sends a message of raw bytes without checking whether they're bytes.
         Optionally, dest_id and dest_seq represent the message that
-        this message  replies to. These are used for the request/reply
+        this message replies to. These are used for the request/reply
         pattern.
 
         Returns the package that will be send (or None). The context

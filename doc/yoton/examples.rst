@@ -6,8 +6,8 @@ Abstract example
 
 This example shows four connected contexts. In principal, all contexts are the same (a context is neither a client nor a server). Yet, different contexts can play different roles in the network, by using different channels:
   * The upper left context publishes a stream of messages.
-  * The upper right context employs a reply-channel, thereby taking on a server role. 
-  * The bottom left context takes on a client-like role by subscribing to the "stream" channel and by having a request-channel on "data". 
+  * The upper right context employs a reply-channel, thereby taking on a server role.
+  * The bottom left context takes on a client-like role by subscribing to the "stream" channel and by having a request-channel on "data".
   * The bottom right context has no channels and thus only serves as a means of connecting the different contexts.
 
 .. image:: images/yoton_abstract.png
@@ -40,10 +40,10 @@ This network consists of context which all take the same role; they all send cha
 IDE / kernel
 -------------
 
-This network illustrates a simplified version of what yoton was initially designed for: client-kernel communication. `IEP <http://www.iep-project.org>`_ uses 
-yoton for its kernel-client communications, 
+This network illustrates a simplified version of what yoton was initially designed for: client-kernel communication. `Pyzo <https://www.pyzo.org>`_ uses
+yoton for its kernel-client communications,
 see `here <https://bitbucket.org/iep-project/iep/src/tip/iep/iepkernel/start.py>`_
-which channels IEP uses for that. 
+which channels Pyzo uses for that.
 
 The network consists of one kernel and two clients which are connected via a broker. Both clients can control the kernel via an stdin stream and receive output on stdout. The kernel also has a reply-channel so that the IDE's can obtain introspection information (think auto-completion). The broker also publishes some status messages. The bottom kernel is apparently only interested in kernel control.
 
