@@ -160,6 +160,8 @@ class BaseTextCtrl(CodeEditor):
             pyzo.config.settings.autoComplete_caseSensitive
         )
         self.setAutocompleteMinChars(pyzo.config.settings.autoComplete_minChars)
+        self.setAutoClose_Quotes(pyzo.config.settings.autoClose_Quotes)
+        self.setAutoClose_Brackets(pyzo.config.settings.autoClose_Brackets)
         self.setCancelCallback(self.restoreHelp)
 
     def setAutoCompletionAcceptKeysFromStr(self, keys):
