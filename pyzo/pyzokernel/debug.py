@@ -22,6 +22,7 @@ class Debugger(bdb.Bdb):
         if hasattr(sys, "breakpointhook"):
             self._original_breakpointhook = sys.breakpointhook
             sys.breakpointhook = self.custom_breakpointhook
+        self._last_db_command = None
 
     def custom_breakpointhook(self, *args, **kwargs):
         """handle "breakpoint()" commands
@@ -149,6 +150,7 @@ class Debugger(bdb.Bdb):
         self.returnframe = None
         self.quitting = False
         self.stoplineno = -1
+        self._last_db_command = None
 
     def message(self, msg):
         """Alias for interpreter.write(), but appends a newline.
@@ -457,6 +459,23 @@ class Debugger(bdb.Bdb):
         elif self._debugmode == 1:
             self.message("Cannot use 'continue' in postmortem debug mode.")
         else:
+            # the following line is a workaround for a specific problem:
+            sys._pyzoInterpreter.apply_breakpoints()
+
+            # run the following code without any breakpoints:
+            """
+            [breakpoint() for _ in range(1)]
+            # [breakpoint()]  # this does not cause any problem
+            x = 1
+            y = 2  # set a breakpoint in this line once stopped in the upper breakpoint()
+            """
+            # The breakpoint at the line above would be ignored if:
+            # a) the interruption is inside a list comprehension
+            # and b) the Python interpreter version is >= 3.0 and < 3.12
+            # The problem would also occur when pausing inside a list comprehension.
+            # As a workaround we call apply_breakpoints a second time, see above.
+
+            self._last_db_command = "continue"
             self.set_continue()
             self.stopinteraction()
 
@@ -467,6 +486,7 @@ class Debugger(bdb.Bdb):
         elif self._debugmode == 1:
             self.message("Cannot use 'step' in postmortem debug mode.")
         else:
+            self._last_db_command = "step"
             self.set_step()
             self.stopinteraction()
 
@@ -480,6 +500,7 @@ class Debugger(bdb.Bdb):
             self.message("Cannot use 'next' in postmortem debug mode.")
         else:
             frame = interpreter._dbFrames[-1]
+            self._last_db_command = "next"
             self.set_next(frame)
             self.stopinteraction()
 
@@ -492,6 +513,7 @@ class Debugger(bdb.Bdb):
         elif self._debugmode == 1:
             self.message("Cannot use 'return' in postmortem debug mode.")
         else:
+            self._last_db_command = "return"
             frame = interpreter._dbFrames[-1]
             self.set_return(frame)
             self.stopinteraction()

@@ -1051,6 +1051,7 @@ class PyzoInterpreter:
                 for fname in breaks:
                     for linenr in breaks[fname]:
                         self.debugger.set_break(fname, linenr)
+            if breaks or self.debugger._last_db_command in ("step", "next", "return"):
                 sys.settrace(self.debugger.trace_dispatch)
         except Exception:
             type, value, tb = sys.exc_info()
