@@ -463,7 +463,6 @@ class MainWindow(QtWidgets.QMainWindow):
             a = menu.addAction(tool.name)
             a.setCheckable(True)
             a.setChecked(bool(tool.instance))
-            a.triggered.connect(lambda: tool.menuLauncher(a.isChecked()))
             a.triggered.connect(build_callback(tool.menuLauncher, a))
 
         return menu
