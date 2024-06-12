@@ -1415,10 +1415,9 @@ class ShellMenu(Menu):
         for e in pyzo.editors:
             bpcount += len(e.breakPoints())
         self._debug_clear.setText(self._debug_clear_text.format(bpcount))
-        # Determine state of PM and clear button
+        # Determine state of PM button
         debugmode = pyzo.shells._debugmode
         self._debug_pm.setEnabled(debugmode == 0)
-        self._debug_clear.setEnabled(debugmode == 0)
         # The _shellDebugActions are enabled/disabled by the shellStack
 
     def _shellAction(self, action):
