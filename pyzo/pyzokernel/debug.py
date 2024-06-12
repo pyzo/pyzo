@@ -533,7 +533,10 @@ class Debugger(bdb.Bdb):
         else:
             frame = interpreter._dbFrames[interpreter._dbFrameIndex - 1]
             try:
-                frame.f_lineno = int(arg)
+                lineno = int(arg)
+                f = interpreter._dbFrames[-1]
+                offset = interpreter.correctfilenameandlineno(f.f_code.co_filename, 0)[1]
+                frame.f_lineno = lineno - offset
             except ValueError as e:
                 self.message("Error DB JUMP: " + str(e))
             self.writestatus()
