@@ -1136,14 +1136,14 @@ class ViewMenu(Menu):
         self._nextTopLevelObject(type="cell")
 
     def _previousTopLevelObject(self, type=None):
-        # Get parser result
-        result = pyzo.parser._getResult()
-        if not result:
-            return
-
         # Get editor
         editor = pyzo.editors.getCurrentEditor()
         if not editor:
+            return
+
+        # Get parser result
+        result = pyzo.parser._getResult(editor)
+        if not result:
             return
 
         # Get current line number
@@ -1176,14 +1176,14 @@ class ViewMenu(Menu):
                 return
 
     def _nextTopLevelObject(self, type=None):
-        # Get parser result
-        result = pyzo.parser._getResult()
-        if not result:
-            return
-
         # Get editor
         editor = pyzo.editors.getCurrentEditor()
         if not editor:
+            return
+
+        # Get parser result
+        result = pyzo.parser._getResult(editor)
+        if not result:
             return
 
         # Get current line number

@@ -13,6 +13,7 @@ structure of a source file in for example a tree widget.
 
 # TODO: replace this module, get data from the syntax highlighter in the code editor
 
+from collections import deque
 import time, threading, re
 import pyzo
 
@@ -76,7 +77,7 @@ class Parser(threading.Thread):
         self._job = None
 
         # Reference to last result
-        self._result = None
+        self._results = deque([], 10)
 
         # Lock to enable save threading
         self._lock = threading.RLock()
@@ -111,7 +112,7 @@ class Parser(threading.Thread):
         """
 
         # Obtain result
-        result = self._getResult()
+        result = self._getResult(editor)
         if result is None or not result.isMatch(editor):
             return []
 
@@ -196,7 +197,7 @@ class Parser(threading.Thread):
         """
 
         # Obtain result
-        result = self._getResult()
+        result = self._getResult(editor)
         if result is None or not result.isMatch(editor):
             return [], []
 
@@ -208,12 +209,17 @@ class Parser(threading.Thread):
             importlines[item.name] = item.text
         return imports, importlines
 
-    def _getResult(self):
+    def _getResult(self, editor):
         """getResult()
         Savely Obtain result.
         """
+        editorId = id(editor)
+        result = None
         self._lock.acquire()
-        result = self._result
+        for res in self._results:
+            if res.editorId == editorId:
+                result = res
+                break
         self._lock.release()
         return result
 
@@ -225,7 +231,7 @@ class Parser(threading.Thread):
         """
 
         # Obtain result
-        result = self._getResult()
+        result = self._getResult(editor)
         if result is None or not result.isMatch(editor):
             return None
 
@@ -273,7 +279,7 @@ class Parser(threading.Thread):
         """
 
         # Obtain result
-        result = self._getResult()
+        result = self._getResult(editor)
         if result is None:
             return None
 
@@ -333,7 +339,7 @@ class Parser(threading.Thread):
 
                     # Savely store result
                     self._lock.acquire()
-                    self._result = result
+                    self._results.appendleft(result)
                     self._lock.release()
 
                     # Notify
