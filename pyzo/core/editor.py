@@ -250,6 +250,9 @@ class PyzoEditor(BaseTextCtrl):
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.Signal()
 
+    def __repr__(self):  # just for easier debugging
+        return "<{} - {}, {}>".format(self.__class__.__qualname__, id(self), self.name)
+
     def __init__(self, parent, **kwds):
         super().__init__(parent, showLineNumbers=True, **kwds)
 

@@ -3,6 +3,9 @@
 # Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
+import bisect
+import weakref
+
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
@@ -32,7 +35,18 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self._config.level = 2
 
         # Keep track of clicks so we can "go back"
-        self._nav = {}  # editor-id -> Navigation object
+        self._nav = {}  # editor-reference -> Navigation object
+
+        # Init color theme
+        self._colors = {}
+        self._color_theme = ''
+
+        # Init parsed code lists for line look-up
+        self._lineItemList = []
+        self._pathList = []
+
+        # Init reference to previous tree item for restoring the background color
+        self._prevSelectedItem = None
 
         # Create buttons for navigation
         self._navbut_back = QtWidgets.QToolButton(self)
@@ -52,7 +66,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # # Create icon for slider
         # self._sliderIcon = QtWidgets.QToolButton(self)
         # self._sliderIcon.setIcon(pyzo.icons.text_align_right)
-        # self._sliderIcon.setIconSize(QtCore.QSize(16,16))
+        # self._sliderIcon.setIconSize(QtCore.QSize(16, 16))
         # self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")
 
         # Create slider
@@ -66,7 +80,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
 
         # Create options button
         # self._options = QtWidgets.QPushButton(self)
-        # self._options.setText('Options'))
+        # self._options.setText("Options"))
         # self._options.setToolTip("What elements to show.")
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
@@ -105,8 +119,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         #
         self.setLayout(self._sizer1)
 
-        # Init current-file name
-        self._currentEditorId = 0
+        # Init weak reference to editor
+        self._curEditorRef = None
 
         # Bind to events
         pyzo.editors.currentChanged.connect(self.onEditorsCurrentChanged)
@@ -120,6 +134,13 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # all previous files and selected the appropriate file.
         self.onOptionsPress()  # Create menu now
         self.onEditorsCurrentChanged()
+
+    def _getCurEditorFromRef(self):
+        if self._curEditorRef is not None:
+            editor = self._curEditorRef()
+            if not pyzo.qt.qtutils.isDeleted(editor):
+                return editor
+        return None
 
     def onOptionsPress(self):
         """Create the menu for the button, Do each time to make sure
@@ -156,31 +177,38 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         sure that not the structure of a previously selected
         file is shown."""
 
+        prevEditor = self._getCurEditorFromRef()
+        if prevEditor is not None:
+            prevEditor.cursorPositionChanged.disconnect(self.callbackPosChanged)
+        self._curEditorRef = None
+
         # Get editor and clear list
         editor = pyzo.editors.getCurrentEditor()
         self._tree.clear()
 
-        if editor is None:
-            # Set editor id
-            self._currentEditorId = 0
-
         if editor is not None:
-            # Set editor id
-            self._currentEditorId = id(editor)
+            self._curEditorRef = weakref.ref(editor)
 
             # Notify
             text = translate("pyzoSourceStructure", "Parsing ") + editor._name + " ..."
-            QtWidgets.QTreeWidgetItem(self._tree, [text])
+            item = QtWidgets.QTreeWidgetItem(self._tree, [text])
+            item.linenr = 1  # avoid error in the callback when someone clicks this item
 
             # Try getting the structure right now
             self.updateStructure()
 
+            editor.cursorPositionChanged.connect(self.callbackPosChanged)
+
+    def callbackPosChanged(self, *args):
+        self.updateSelection()
+
     def _getCurrentNav(self):
-        if not self._currentEditorId:
+        editor = self._getCurEditorFromRef()
+        if editor is None:
             return None
-        if self._currentEditorId not in self._nav:
-            self._nav[self._currentEditorId] = Navigation()
-        return self._nav[self._currentEditorId]
+        if editor not in self._nav:
+            self._nav[editor] = Navigation()
+        return self._nav[editor]
 
     def onNavBack(self):
         nav = self._getCurrentNav()
@@ -228,36 +256,21 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         pyzo.callLater(editor.setFocus)
         return old_linenr
 
-    def updateStructure(self):
-        """Updates the tree."""
-
-        # Get editor
-        editor = pyzo.editors.getCurrentEditor()
-        if not editor:
-            return
-
-        # Something to show
-        result = pyzo.parser._getResult()
-        if result is None:
-            return
-
-        # Do the ids match?
-        id0, id1, id2 = self._currentEditorId, id(editor), result.editorId
-        if id0 != id1 or id0 != id2:
-            return
-
-        # Get current line number and the structure
-        ln = editor.textCursor().blockNumber()
-        ln += 1  # is ln as in line number area
-
-        def get_color(name, sub="fore"):
-            parts = [part.partition(":") for part in theme[name].split(",")]
-            colors = {k.strip(): v.strip() for k, _, v in parts}
-            return colors[sub]
-
+    def _updateColors(self):
+        """gets the colors from the color theme resp. from the cache"""
         try:
             theme = pyzo.themes[pyzo.config.settings.theme.lower()]["data"]
-            colours = {
+            if theme is self._color_theme:
+                return
+
+            self._color_theme = theme
+
+            def get_color(name, sub="fore"):
+                parts = [part.split(":", 1) for part in theme[name].split(",")]
+                colors = {k.strip(): v.strip() for k, v in parts}
+                return colors[sub]
+
+            self._colors = {
                 "cell": get_color("syntax.python.cellcomment"),
                 "class": get_color("syntax.classname"),
                 "def": get_color("syntax.functionname"),
@@ -270,7 +283,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             }
         except Exception as err:
             print("Reverting to defaut source structure colors:", str(err))
-            colours = {
+            self._colors = {
                 "cell": "#b58900",
                 "class": "#cb4b16",
                 "def": "#073642",
@@ -282,6 +295,28 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 "currentline": "#ccc",
             }
 
+    def updateStructure(self):
+        """Updates the tree."""
+
+        # Get editor
+        newEditor = pyzo.editors.getCurrentEditor()
+        if newEditor is None:
+            return
+
+        # Something to show
+        result = pyzo.parser._getResult(newEditor)
+        if result is None:
+            return
+
+        # Do the editors match?
+        curEditor = self._getCurEditorFromRef()
+        if newEditor is not curEditor or id(curEditor) != result.editorId:
+            return
+
+        # Get colors
+        self._updateColors()
+        colors = self._colors
+
         # Define what to show
         showTypes = self._config.showTypes
 
@@ -290,11 +325,13 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._config.level = showLevel
         showLevel = showLevel if showLevel < 5 else 99
 
-        # Define function to set items
-        selectedItem = [None]
+        self._lineItemList = lineItemList = []
+        self._pathList = pathList = []
+        currentPath = []
 
         def SetItems(parentItem, fictiveObjects, level):
             level += 1
+            currentPath.append(None)  # append placeholder value
             for object in fictiveObjects:
                 type = object.type
                 if type not in showTypes and type != "nameismain":
@@ -317,9 +354,10 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     text = "## " + object.name + " " * 120
                 else:
                     text = "{} {}".format(type, object.name)
+
                 # Create item
                 thisItem = QtWidgets.QTreeWidgetItem(parentItem, [text])
-                color = QtGui.QColor(colours[object.type])
+                color = QtGui.QColor(colors[object.type])
                 thisItem.setForeground(0, QtGui.QBrush(color))
                 font = thisItem.font(0)
                 font.setBold(True)
@@ -327,26 +365,76 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     font.setUnderline(True)
                 thisItem.setFont(0, font)
                 thisItem.linenr = object.linenr
-                # Is this the current item?
-                if ln and object.linenr <= ln and object.linenr2 > ln:
-                    selectedItem[0] = thisItem
+
+                currentPath[-1] = (type, text)
+                lineItemList.append((object.linenr, 0, thisItem))
+                if type in ("class", "def"):
+                    pathList.append((object.linenr, 0, tuple(currentPath)))
+
                 # Any children that we should display?
                 if object.children:
                     SetItems(thisItem, object.children, level)
                 # Set visibility
                 thisItem.setExpanded(bool(level < showLevel))
 
+            currentPath.pop()
+
         # Go
-        self._tree.setStyleSheet("background-color: " + colours["background"] + ";")
+        self._tree.setStyleSheet("background-color: " + colors["background"] + ";")
         self._tree.setUpdatesEnabled(False)
         self._tree.clear()
         SetItems(self._tree, result.rootItem.children, 0)
         self._tree.setUpdatesEnabled(True)
 
-        # Handle selected item
-        selectedItem = selectedItem[0]
-        if selectedItem:
-            selectedItem.setBackground(
-                0, QtGui.QBrush(QtGui.QColor(colours["currentline"]))
-            )
-            self._tree.scrollToItem(selectedItem)  # ensure visible
+        self.updateSelection()
+
+    def updateSelection(self):
+        # We use bisect for faster search in a sorted list.
+        # The haystack consists of tuples (lineNumber, 0, anyObject).
+        # We want to have the entry that is at the same line as needle or directly before.
+        # So we search for the value in haystack that is smaller or equal than our line number.
+        # We do not have a key function for only comparing the linenumbers while searching.
+        # Comparing tuple (lineNumNeedle,) with (lineNum, anyObject) with the same line number
+        # would always result in (lineNum, anyObject) being larger. To change the comparison,
+        # we add a second number in the tuples that is always 1 for the needle and 0 for the
+        # haystack entries.
+
+        editor = self._getCurEditorFromRef()
+
+        if editor is not None and len(self._lineItemList) > 0:
+            # Get current line number and the structure
+            lineNum = editor.textCursor().blockNumber() + 1
+            needle = (lineNum, 1)
+            selectedItem = _findNextSmallerOrEqualValue(self._lineItemList, needle, (0, 0, None))[2]
+            path = _findNextSmallerOrEqualValue(self._pathList, needle, (0, 0, None))[2]
+
+            # clear selection and restore background color of previously selected item
+            self._tree.clearSelection()
+            if self._prevSelectedItem is not None:
+                if not pyzo.qt.qtutils.isDeleted(self._prevSelectedItem):
+                    self._prevSelectedItem.setBackground(
+                        0, QtGui.QBrush(QtGui.QColor(self._colors["background"]))
+                    )
+            self._prevSelectedItem = selectedItem
+
+            # select the new item
+            if selectedItem is not None:
+                if not pyzo.qt.qtutils.isDeleted(selectedItem):
+                    selectedItem.setBackground(
+                        0, QtGui.QBrush(QtGui.QColor(self._colors["currentline"]))
+                    )
+                    # instead of changing the background color we could also change the selection
+                    # # self._tree.setCurrentItem(selectedItem)
+                    self._tree.scrollToItem(selectedItem)  # ensure that the item is visible
+
+            if path is not None:
+                s = " --> ".join("{} {}".format(type, text) for type, text in path)
+            else:
+                s = "top level"
+            pyzo.main.statusBar().showMessage("Source structure:    " + s)
+
+
+def _findNextSmallerOrEqualValue(sorted_haystack, needle, otherwise):
+    """returns the next smaller or equal value than needle in haystack"""
+    ind = bisect.bisect_right(sorted_haystack, needle)
+    return sorted_haystack[ind - 1] if ind - 1 >= 0 else otherwise
