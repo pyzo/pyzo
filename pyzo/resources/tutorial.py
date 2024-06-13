@@ -3,7 +3,7 @@
 Welcome to the tutorial for Pyzo! This tutorial should get you
 familiarized with Pyzo in just a few minutes. If you feel this tutorial
 contains errors or lacks some information, please let us know via
-pyzo@googlegroups.com.
+https://github.com/pyzo/pyzo/discussions.
 
 Pyzo is a cross-platform Python IDE focused on interactivity and
 introspection, which makes it very suitable for scientific computing.
