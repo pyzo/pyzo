@@ -639,20 +639,11 @@ class FictiveObject:
         self.sig = ""  # for functions and methods
 
 
-namechars = "abcdefghijklmnopqrstuvwxyz_0123456789"
-
-
 def IsValidName(name):
     """Given a string, checks whether it is a
     valid name (dots are not valid!)
     """
-    if not name:
-        return False
-    name = name.lower()
-    if name[0] not in namechars[0:-10]:
-        return False
-    tmp = map(lambda x: x not in namechars, name[2:])
-    return sum(tmp) == 0
+    return name.isidentifier()
 
 
 def ParseImport(names):
