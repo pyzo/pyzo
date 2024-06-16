@@ -664,7 +664,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                     # Is the signature in the docstring?
                     docs = h_text.replace("\n", "|")
                     tmp = re.search(
-                        r"[a-zA-z_\.]*?" + re.escape(name) + r"\(.*?\)", docs
+                        r"[a-zA-Z0-9_\.]*?" + re.escape(name) + r"\(.*?\)", docs
                     )
                     if tmp and tmp.span(0)[0] < 5:
                         header = tmp.group(0)
