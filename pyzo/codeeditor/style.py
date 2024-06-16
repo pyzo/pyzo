@@ -128,11 +128,7 @@ class StyleFormat:
         return parts.__iter__()
 
     def update(self, format):
-        """update(format)
-
-        Update this style format with the given format.
-
-        """
+        """Update this style format with the given format."""
 
         # Reset buffered values
         self._resetProperties()
@@ -141,8 +137,8 @@ class StyleFormat:
         if isinstance(format, StyleFormat):
             format = str(format)
 
-        # Split on ',' and ',', ignore spaces
-        styleParts = [p for p in format.replace("=", ":").replace(";", ",").split(",")]
+        # Split on ',' and ','
+        styleParts = format.replace("=", ":").replace(";", ",").split(",")
 
         for stylePart in styleParts:
             # Make sure it consists of identifier and value pair
@@ -186,19 +182,13 @@ class StyleFormat:
     @property
     def bold(self):
         if self._bold is None:
-            if self._getValueSafe("bold") in ["yes", "true"]:
-                self._bold = True
-            else:
-                self._bold = False
+            self._bold = self._getValueSafe("bold") in ["yes", "true"]
         return self._bold
 
     @property
     def italic(self):
         if self._italic is None:
-            if self._getValueSafe("italic") in ["yes", "true"]:
-                self._italic = True
-            else:
-                self._italic = False
+            self._italic = self._getValueSafe("italic") in ["yes", "true"]
         return self._italic
 
     @property

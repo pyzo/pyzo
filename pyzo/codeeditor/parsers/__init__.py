@@ -83,9 +83,7 @@ class Parser:
         return cls.getParserName()
 
     def parseLine(self, line, previousState=0):
-        """parseLine(line, previousState=0)
-
-        The method that should be implemented by the parser. The
+        """The method that should be implemented by the parser. The
         previousState argument can be used to determine how
         the previous block ended (e.g. for multiline comments). It
         is an integer, the meaning of which is only known to the
@@ -99,11 +97,7 @@ class Parser:
         return [tokens.TextToken(line, 0, len(line))]
 
     def name(self):
-        """name()
-
-        Get the name of the parser.
-
-        """
+        """Get the name of the parser."""
         name = self.__class__.__name__.lower()
         if name.endswith("parser"):
             name = name[:-6]
@@ -114,37 +108,20 @@ class Parser:
         return '<Parser for "{}">'.format(self.name())
 
     def keywords(self):
-        """keywords()
-
-        Get a list of keywords valid for this parser.
-
-        """
-        return [k for k in self._keywords]
+        """Get a list of keywords valid for this parser."""
+        return self._keywords[:]
 
     def filenameExtensions(self):
-        """filenameExtensions()
-
-        Get a list of filename extensions for which this parser
-        is appropriate.
-
-        """
+        """Get a list of filename extensions for which this parser is appropriate."""
         return ["." + e.lstrip(".").lower() for e in self._extensions]
 
     def shebangKeywords(self):
-        """shebangKeywords()
-
-        Get a list of shebang keywords for which this parser
-        is appropriate.
-
-        """
+        """Get a list of shebang keywords for which this parser is appropriate."""
         return self._shebangKeywords.copy()
 
     def getStyleElementDescriptions(cls):
-        """getStyleElementDescriptions()
-
-        This method returns a list of the StyleElementDescription
+        """This method returns a list of the StyleElementDescription
         instances used by this parser.
-
         """
         descriptions = {}
         for token in cls.getUsedTokens(cls):
@@ -153,11 +130,7 @@ class Parser:
         return list(descriptions.values())
 
     def getUsedTokens(self):
-        """getUsedTokens()
-
-        Get a a list of token instances used by this parser.
-
-        """
+        """Get a a list of token instances used by this parser."""
 
         # Get module object of the parser
         try:
@@ -177,12 +150,9 @@ class Parser:
         return [t() for t in tokenClasses]
 
     def _isTodoItem(self, text):
-        """_isTodoItem(text)
-
-        Get whether the given text (which should be a comment) represents
+        """Get whether the given text (which should be a comment) represents
         a todo item. Todo items start with "todo", "2do" or "fixme",
         optionally with a colon at the end.
-
         """
         # Get first word
         word = text.lstrip().split(" ", 1)[0].rstrip(":")
@@ -195,7 +165,7 @@ class Parser:
 
 ## Import parsers statically
 # We could load the parser dynamically from the source files in the
-# directory, but this takes quite some effort to get righ when apps
+# directory, but this takes quite some effort to get right when apps
 # are frozen. This is doable (I do it in Visvis) but it requires the
 # user to specify the parser modules by hand when freezing an app.
 #

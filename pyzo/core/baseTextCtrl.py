@@ -186,8 +186,7 @@ class BaseTextCtrl(CodeEditor):
         self.setAutoCompletionAcceptKeys(*qtKeys)
 
     def _isValidPython(self):
-        """_isValidPython()
-        Check if the code at the cursor is valid python:
+        """Check if the code at the cursor is valid python:
         - the active lexer is the python lexer
         - the style at the cursor is "default"
         """
@@ -211,9 +210,7 @@ class BaseTextCtrl(CodeEditor):
         )
 
     def introspect(self, tryAutoComp=False, delay=True):
-        """introspect(tryAutoComp=False, delay=True)
-
-        The starting point for introspection (autocompletion and calltip).
+        """The starting point for introspection (autocompletion and calltip).
         It will always try to produce a calltip. If tryAutoComp is True,
         will also try to produce an autocompletion list (which, on success,
         will hide the calltip).
@@ -380,11 +377,8 @@ class BaseTextCtrl(CodeEditor):
             hw.restoreCurrent()
 
     def event(self, event):
-        """event(event)
-
-        Overload main event handler so we can pass Ctrl-C Ctr-v etc, to the main
+        """Overload main event handler so we can pass Ctrl-C Ctr-V etc, to the main
         window.
-
         """
         if isinstance(event, QtGui.QKeyEvent):
             # Ignore CTRL+{A-Z} since those keys are handled through the menu
@@ -452,8 +446,8 @@ class CallTipObject:
         self.offset = offset
 
     def tryUsingBuffer(self):
-        """tryUsingBuffer()
-        Try performing this callTip using the buffer.
+        """Try performing this callTip using the buffer.
+
         Returns True on success.
         """
         bufferName = self.textCtrl._callTipBuffer_name
@@ -465,16 +459,15 @@ class CallTipObject:
             return False
 
     def finish(self, callTipText):
-        """finish(callTipText)
-        Finish the introspection using the given calltipText.
+        """Finish the introspection using the given calltipText.
+
         Will also automatically call setBuffer.
         """
         self.setBuffer(callTipText)
         self._finish(callTipText)
 
     def setBuffer(self, callTipText, timeout=4):
-        """setBuffer(callTipText)
-        Sets the buffer with the provided text."""
+        """Sets the buffer with the provided text."""
         self.textCtrl._callTipBuffer_name = self.bufferName
         self.textCtrl._callTipBuffer_time = time.time() + timeout
         self.textCtrl._callTipBuffer_result = callTipText
@@ -498,14 +491,12 @@ class AutoCompObject:
         self.importLines = {}
 
     def addNames(self, names):
-        """addNames(names)
-        Add a list of names to the collection.
-        Duplicates are removed."""
+        """Add a list of names to the collection. Duplicates are removed."""
         self.names.update(names)
 
     def tryUsingBuffer(self):
-        """tryUsingBuffer()
-        Try performing this auto-completion using the buffer.
+        """Try performing this auto-completion using the buffer.
+
         Returns True on success.
         """
         bufferName = self.textCtrl._autoCompBuffer_name
@@ -517,8 +508,8 @@ class AutoCompObject:
             return False
 
     def finish(self):
-        """finish()
-        Finish the introspection using the collected names.
+        """Finish the introspection using the collected names.
+
         Will automatically call setBuffer.
         """
         # Remember at the object that started this introspection
@@ -528,9 +519,10 @@ class AutoCompObject:
         self._finish(names)
 
     def setBuffer(self, names=None, timeout=None):
-        """setBuffer(names=None)
-        Sets the buffer with the provided names (or the collected names).
-        Also returns a list with the sorted names."""
+        """Sets the buffer with the provided names (or the collected names).
+
+        Also returns a list with the sorted names.
+        """
         # Determine timeout
         # Global namespaces change more often than local one, plus when
         # typing a xxx.yyy, the autocompletion buffer changes and is thus
@@ -560,8 +552,7 @@ class AutoCompObject:
         self.textCtrl.autocompleteShow(len(self.needle), names, self.name != "")
 
     def nameInImportNames(self, importNames):
-        """nameInImportNames(importNames)
-        Test whether the name, or a base part of it is present in the
+        """Test whether the name, or a base part of it is present in the
         given list of names. Returns the (part of) the name that's in
         the list, or None otherwise.
         """

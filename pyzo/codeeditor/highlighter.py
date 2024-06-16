@@ -38,11 +38,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         self._codeEditor = codeEditor
 
     def getCurrentBlockUserData(self):
-        """getCurrentBlockUserData()
-
-        Gets the BlockData object. Creates one if necesary.
-
-        """
+        """Gets the BlockData object. Creates one if necesary."""
         bd = self.currentBlockUserData()
         if not isinstance(bd, BlockData):
             bd = BlockData()
@@ -50,15 +46,11 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         return bd
 
     def highlightBlock(self, line):
-        """highlightBlock(line)
-
-        This method is automatically called when a line must be
-        re-highlighted.
+        """This method is automatically called when a line must be re-highlighted.
 
         If the code editor has an active parser. This method will use
         it to perform syntax highlighting. If not, it will only
         check out the indentation.
-
         """
 
         # Get previous state

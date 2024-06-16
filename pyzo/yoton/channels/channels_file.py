@@ -78,11 +78,7 @@ class FileWrapper(object):
         return self._channel._closed
 
     def flush(self):
-        """flush()
-
-        Wait here until all messages have been send.
-
-        """
+        """Wait here until all messages have been send."""
         self._channel._context.flush()
 
     @property
@@ -102,11 +98,7 @@ class FileWrapper(object):
     softspace = property(_get_softspace, _set_softspace, None, "")
 
     def read(self, block=None):
-        """read(block=None)
-
-        Alias for recv().
-
-        """
+        """Alias for recv()."""
         res = self._channel.recv(block)
         if res and self._echo is not None:
             self._echo.send(res)
@@ -116,12 +108,9 @@ class FileWrapper(object):
             return res
 
     def write(self, message):
-        """write(message)
-
-        Uses channel.send() to send the message over the Yoton network.
+        """Uses channel.send() to send the message over the Yoton network.
         The message is partitioned in smaller parts if it is larger than
         the chunksize.
-
         """
         # Deal with multiprocessing
         if self._pid != os.getpid():
@@ -143,24 +132,17 @@ class FileWrapper(object):
             self._channel.send(message)
 
     def writelines(self, lines):
-        """writelines(lines)
-
-        Write a sequence of messages to the channel.
-
-        """
+        """Write a sequence of messages to the channel."""
         for line in lines:
             self._channel.send(line)
 
     def readline(self, size=0):
-        """readline(size=0)
-
-        Read one string that was send as one from the other end (always
+        """Read one string that was send as one from the other end (always
         in blocking mode). A newline character is appended if it does not
         end with one.
 
         If size is given, returns only up to that many characters, the rest
         of the message is thrown away.
-
         """
 
         # Get line

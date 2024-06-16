@@ -106,8 +106,10 @@ def getShortcut(fullName):
 
 
 def translateShortcutToOSNames(shortcut):
-    """
-    Translate Qt names to OS names (e.g. Ctrl -> cmd symbol for Mac,
+    """Translate Qt names to OS names
+
+    e.g.:
+    Ctrl -> cmd symbol for Mac
     Meta -> Windows for windows
     """
 
@@ -129,7 +131,7 @@ def translateShortcutToOSNames(shortcut):
 
 class KeyMapper(QtCore.QObject):
     """
-    This class is accessable via pyzo.keyMapper
+    This class is accessible via pyzo.keyMapper
     pyzo.keyMapper.keyMappingChanged is emitted when keybindings are changed
     """
 
@@ -226,8 +228,7 @@ class Menu(QtWidgets.QMenu):
         self.build()
 
     def _createMenuPathName(self, name):
-        """
-        Convert a menu title into a menuPath component name
+        """Convert a menu title into a menuPath component name
         e.g. Interrupt current shell -> interrupt_current_shell
         """
         # hide anything between brackets
@@ -271,9 +272,7 @@ class Menu(QtWidgets.QMenu):
         return a
 
     def build(self):
-        """
-        Add all actions to the menu. To be overridden.
-        """
+        """Add all actions to the menu. To be overridden."""
         pass
 
     def popup(self, pos, action=None):
@@ -281,9 +280,7 @@ class Menu(QtWidgets.QMenu):
         super().popup(pos, action)
 
     def addMenu(self, menu, icon=None):
-        """
-        Add a (sub)menu to this menu.
-        """
+        """Add a (sub)menu to this menu."""
 
         # Add menu in the conventional way
         a = super().addMenu(menu)
@@ -296,8 +293,7 @@ class Menu(QtWidgets.QMenu):
         return menu
 
     def addItem(self, text, icon=None, callback=None, value=None):
-        """
-        Add an item to the menu. If callback is given and not None,
+        """Add an item to the menu. If callback is given and not None,
         connect triggered signal to the callback. If value is None or not
         given, callback is called without parameteres, otherwise it is called
         with value as parameter
@@ -316,8 +312,7 @@ class Menu(QtWidgets.QMenu):
         return a
 
     def addGroupItem(self, text, icon=None, callback=None, value=None, group=None):
-        """
-        Add a 'select-one' option to the menu. Items with equal group value form
+        """Add a 'select-one' option to the menu. Items with equal group value form
         a group. If callback is specified and not None, the callback is called
         for the new active item, with the value for that item as parameter
         whenever the selection is changed
@@ -352,8 +347,7 @@ class Menu(QtWidgets.QMenu):
         return a
 
     def addCheckItem(self, text, icon=None, callback=None, value=None, selected=False):
-        """
-        Add a true/false item to the menu. If callback is specified and not
+        """Add a true/false item to the menu. If callback is specified and not
         None, the callback is called when the item is changed. If value is not
         specified or None, callback is called with the new state as parameter.
         Otherwise, it is called with the new state and value as parameters
@@ -372,8 +366,7 @@ class Menu(QtWidgets.QMenu):
         return a
 
     def setCheckedOption(self, group, value):
-        """
-        Set the selected value of a group. This will also activate the
+        """Set the selected value of a group. This will also activate the
         callback function of the item that gets selected.
         if group is None the default group is used.
         """
@@ -402,10 +395,10 @@ class GeneralOptionsMenu(Menu):
         pass  # We build when the options are given
 
     def setOptions(self, options, values=None):
-        """
-        Set the list of options, clearing any existing options. The options
-        are added as group items and registered to the callback given
-        at initialization.
+        """Set the list of options, clearing any existing options.
+
+        The options are added as group items and registered to the
+        callback given at initialization.
         """
         # Init
         self.clear()
@@ -937,7 +930,7 @@ class ViewMenu(Menu):
             "Location of long line indicator ::: The location of the long-line-indicator.",
         )
         self._edgeColumMenu = GeneralOptionsMenu(self, t, self._setEdgeColumn)
-        values = [0] + [i for i in range(60, 130, 10)]
+        values = [0] + list(range(60, 130, 10))
         names = [translate("menu", "None")] + [str(i) for i in values[1:]]
         self._edgeColumMenu.setOptions(names, values)
         self._edgeColumMenu.setCheckedOption(None, pyzo.config.view.edgeColumn)
@@ -1063,8 +1056,7 @@ class ViewMenu(Menu):
         self.addMenu(self._qtThemeMenu, icons.application_view_tile)
 
     def addEditorItem(self, name, icon, param, shellsToo=False):
-        """
-        Create a boolean item that represents a property of the editors,
+        """Create a boolean item that represents a property of the editors,
         whose value is stored in pyzo.config.view.param
         """
         if hasattr(pyzo.config.view, param):
@@ -1117,22 +1109,16 @@ class ViewMenu(Menu):
         pyzo.main.setQtStyle(value)
 
     def _setStatusBar(self, value):
-        """
-        Show or hide status bar.
-        """
+        """Show or hide status bar."""
         pyzo.config.view.showStatusbar = value
         pyzo.main.statusBar().setVisible(value)
 
     def _previousCell(self):
-        """
-        Rewind the curser to the previous cell (starting with '##').
-        """
+        """Rewind the cursor to the previous cell (starting with '##')."""
         self._previousTopLevelObject(type="cell")
 
     def _nextCell(self):
-        """
-        Advance the curser to the next cell (starting with '##').
-        """
+        """Advance the cursor to the next cell (starting with '##')."""
         self._nextTopLevelObject(type="cell")
 
     def _previousTopLevelObject(self, type=None):
@@ -1153,7 +1139,7 @@ class ViewMenu(Menu):
         runCursor = editor.textCursor()  # The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
 
-        # Find the object which starts above current curser
+        # Find the object which starts above current cursor
         # position if there is any and move there
         for object in reversed(result.rootItem.children):
             # If type given, only consider objects of that type
@@ -1193,7 +1179,7 @@ class ViewMenu(Menu):
         runCursor = editor.textCursor()  # The part that should be run
         runCursor.movePosition(runCursor.StartOfBlock)
 
-        # Find the object which starts below current curser
+        # Find the object which starts below current cursor
         # position if there is any and move there
         for object in result.rootItem.children:
             # If type given, only consider objects of that type
@@ -2558,9 +2544,7 @@ class AutocompMenu(Menu):
         pyzo.config.settings.autoComplete_keywords = bool(value)
 
     def _configEditor(self, state, param):
-        """
-        Callback for code editor settings
-        """
+        """Callback for code editor settings"""
         # Store this parameter in the config
         setattr(pyzo.config.settings, param, state)
         # Apply to all editors and shells and the logger tool
@@ -2586,7 +2570,7 @@ class SettingsMenu(Menu):
         # Create language menu
         t = translate("menu", "Select language ::: The language used by Pyzo.")
         self._languageMenu = GeneralOptionsMenu(self, t, self._selectLanguage)
-        values = [key for key in sorted(LANGUAGES)]
+        values = sorted(LANGUAGES)
         self._languageMenu.setOptions(values, values)
         self._languageMenu.setCheckedOption(None, pyzo.config.settings.language)
 
@@ -2664,8 +2648,7 @@ class SettingsMenu(Menu):
 
 
 class KeyMapModel(QtCore.QAbstractItemModel):
-    """The model to view the structure of the menu and the shortcuts
-    currently mapped."""
+    """The model to view the structure of the menu and the shortcuts currently mapped."""
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -3024,8 +3007,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         shortcut = self._line.text()
 
         # remove shortcut if present elsewhere
-        keys = [key for key in pyzo.config.shortcuts2]  # copy
-        for key in keys:
+        for key in list(pyzo.config.shortcuts2):
             # get shortcut, test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
             tmp = list(shortcuts)

@@ -30,12 +30,10 @@ class StatusBar(QtWidgets.QStatusBar):
         nrow = 0
         ncol = 0
         if editor:
-            nrow = editor.textCursor().blockNumber()
-            nrow += 1  # is ln as in line number area
-            ncol = editor.textCursor().positionInBlock()
-            ncol += 1
+            nrow = editor.textCursor().blockNumber() + 1
+            ncol = editor.textCursor().positionInBlock() + 1
 
-        position_txt = "Line: {}, Column: {} ".format(str(nrow), str(ncol))
+        position_txt = "Line: {}, Column: {} ".format(nrow, ncol)
         self.cursor_pos.setText(position_txt)
 
     def updateFileEncodingInfo(self, editor):

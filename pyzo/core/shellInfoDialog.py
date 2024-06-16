@@ -97,20 +97,10 @@ class ShellInfo_ipython(QtWidgets.QCheckBox):
         self.setChecked(False)
 
     def setTheText(self, value):
-        if value.lower() in [
-            "",
-            "no",
-            "false",
-        ]:  # Also for empty string; default is False
-            self.setChecked(False)
-        else:
-            self.setChecked(True)
+        self.setChecked(value.lower() not in ("", "no", "false"))
 
     def getTheText(self):
-        if self.isChecked():
-            return "yes"
-        else:
-            return "no"
+        return "yes" if self.isChecked() else "no"
 
 
 class ShellInfo_gui(QtWidgets.QComboBox):
@@ -289,7 +279,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
         self._edit1 = QtWidgets.QLineEdit(parent)
         self._edit1.textEdited.connect(self.onEditChanged)
         if sys.platform.startswith("win"):
-            self._edit1.setPlaceholderText("C:\\path\\to\\script.py")
+            self._edit1.setPlaceholderText(r"C:\path\to\script.py")
         else:
             self._edit1.setPlaceholderText("/path/to/script.py")
         #
@@ -396,7 +386,7 @@ class ShellInfo_startDir(ShellInfoLineEdit):
     def __init__(self, parent):
         super().__init__(parent)
         if sys.platform.startswith("win"):
-            self.setPlaceholderText("C:\\path\\to\\your\\python\\modules")
+            self.setPlaceholderText(r"C:\path\to\your\python\modules")
         else:
             self.setPlaceholderText("/path/to/your/python/modules")
 
@@ -571,7 +561,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
         self.setWindowTitle(pyzo.translate("shell", "Shell configurations"))
         # Create tab widget
         self._tabs = QtWidgets.QTabWidget(self)
-        # self._tabs = CompactTabWidget(self, padding=(4,4,5,5))
+        # self._tabs = CompactTabWidget(self, padding=(4, 4, 5, 5))
         # self._tabs.setDocumentMode(False)
         self._tabs.setMovable(True)
 

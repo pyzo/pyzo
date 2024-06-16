@@ -53,8 +53,8 @@ class Result:
         self.editorId = editorId
 
     def isMatch(self, editorId):
-        """isMatch(editorId):
-        Returns whether the result matches with the given editorId.
+        """Returns whether the result matches with the given editorId.
+
         The editorId can also be an editor instance."""
         if isinstance(editorId, int):
             return self.editorId == editorId
@@ -65,7 +65,7 @@ class Result:
 class Parser(threading.Thread):
     """Parser
     Parsing sourcecode in a separate thread, this class obtains
-    introspection informarion. This class is also the interface
+    introspection information. This class is also the interface
     to the parsed information; it has methods that can be used
     to extract information from the result.
     """
@@ -91,8 +91,8 @@ class Parser(threading.Thread):
         self.join(timeout)
 
     def parseThis(self, editor):
-        """parseThis(editor)
-        Give the parser new text to parse.
+        """Give the parser new text to parse.
+
         If the parser is busy parsing text, it will stop doing that
         and start anew with the most recent version of the text.
         """
@@ -106,8 +106,8 @@ class Parser(threading.Thread):
         self._lock.release()
 
     def getFictiveNameSpace(self, editor):
-        """getFictiveNameSpace(editor)
-        Produce the fictive namespace, based on the current position.
+        """Produce the fictive namespace, based on the current position.
+
         A list of names is returned.
         """
 
@@ -153,17 +153,16 @@ class Parser(threading.Thread):
         return namespace
 
     def getFictiveClass(self, name, editor, handleSelf=False):
-        """getFictiveClass(name, editor, handleSelf=False)
-        Return the fictive class object of the given name, or None
+        """return the fictive class object of the given name, or None
         if it does not exist. If handleSelf is True, automatically
         handles "self." names.
         """
         return self._getFictiveItem(name, "class", editor, handleSelf)
 
     def getFictiveSignature(self, name, editor, handleSelf=False):
-        """getFictiveSignature(name, editor, handleSelf=False)
-        Get the signature of the fictive function or method of the
-        given name. Returns None if the given name is not a known
+        """get the signature of the fictive function or method of the given name
+
+        Returns None if the given name is not a known
         function or method. If handleSelf is True, automatically
         handles "self." names.
         """
@@ -189,8 +188,8 @@ class Parser(threading.Thread):
             return None
 
     def getFictiveImports(self, editor):
-        """getFictiveImports(editor)
-        Get the fictive imports of this source file.
+        """get the fictive imports of this source file.
+
         tuple:
         - list of names that are imported,
         - a dict with the line to import each name
@@ -210,9 +209,7 @@ class Parser(threading.Thread):
         return imports, importlines
 
     def _getResult(self, editor):
-        """getResult()
-        Savely Obtain result.
-        """
+        """safely Obtain result"""
         editorId = id(editor)
         result = None
         self._lock.acquire()
@@ -224,8 +221,8 @@ class Parser(threading.Thread):
         return result
 
     def _getFictiveItem(self, name, type, editor, handleSelf=False):
-        """_getFictiveItem(name, type, editor, handleSelf=False)
-        Obtain the fictive item of the given name and type.
+        """Obtain the fictive item of the given name and type.
+
         If handleSelf is True, will handle "self." correctly.
         Intended for internal use.
         """
@@ -272,10 +269,9 @@ class Parser(threading.Thread):
         return theItem
 
     def _getFictiveCurrentClass(self, editor, selfname):
-        """_getFictiveCurrentClass(editor, selfname)
-        Get the fictive object for the class referenced
+        """get the fictive object for the class referenced
         using selfname (usually 'self').
-        Intendef for internal use.
+        Intended for internal use.
         """
 
         # Obtain result
@@ -315,9 +311,7 @@ class Parser(threading.Thread):
         return theclass
 
     def run(self):
-        """run()
-        This is the main loop.
-        """
+        """This is the main loop."""
 
         time.sleep(0.5)
         try:
@@ -328,7 +322,7 @@ class Parser(threading.Thread):
                     return
 
                 if self._job:
-                    # Savely obtain job
+                    # Safely obtain job
                     self._lock.acquire()
                     job = self._job
                     self._job = None
@@ -337,7 +331,7 @@ class Parser(threading.Thread):
                     # Analyse job
                     result = self._analyze(job)
 
-                    # Savely store result
+                    # Safely store result
                     self._lock.acquire()
                     self._results.appendleft(result)
                     self._lock.release()
@@ -657,9 +651,10 @@ def ParseImport(names):
 
 
 def findString(text, s, i):
-    """findString(text, s)
-    Find s in text, but only if s is not in a string or commented
-    Helper function for washMultilineStrings"""
+    """find s in text, but only if s is not in a string or commented
+
+    Helper function for washMultilineStrings
+    """
 
     while True:
         i = _findString(text, s, i)
@@ -688,7 +683,7 @@ def _findString(text, s, i):
     line = text[i1:i2]
 
     # Count quotes, we're done if we found none
-    if not line.count('"') and not line.count("'") and not line.count("#"):
+    if '"' not in line and "'" not in line and "#" not in line:
         return i2
 
     # So we found quotes, now really count them ...
@@ -707,7 +702,7 @@ def _findString(text, s, i):
                 if inString == c:
                     inString = ""  # exit string
                 else:
-                    pass  # the other quote can savely be used inside this string
+                    pass  # the other quote can safely be used inside this string
         prev = c
 
     # If we are in a string, this match is false ...
@@ -718,8 +713,7 @@ def _findString(text, s, i):
 
 
 def washMultilineStrings(text):
-    """washMultilineStrings(text)
-    Replace all text within multiline strings with dummy chars
+    """Replace all text within multiline strings with dummy chars
     so that it is not parsed.
     """
     i = 0

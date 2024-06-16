@@ -101,11 +101,7 @@ class BaseChannel(object):
         self._init_slots(slot_base)
 
     def _init_slots(self, slot_base):
-        """_init_slots(slot_base)
-
-        Called from __init__ to initialize the slots and perform all checks.
-
-        """
+        """Called from __init__ to initialize the slots and perform all checks."""
 
         # Check if slot is string
         if not isinstance(slot_base, basestring):
@@ -153,18 +149,14 @@ class BaseChannel(object):
             raise ValueError("This channel does not have valid slots.")
 
     def _messaging_patterns(self):
-        """_messaging_patterns()
-
-        Implement to return a string that specifies the pattern
+        """Implement to return a string that specifies the pattern
         for sending and receiving, respecitively.
-
         """
         raise NotImplementedError()
 
     def close(self):
-        """close()
+        """Close the channel, i.e. unregisters this channel at the context.
 
-        Close the channel, i.e. unregisters this channel at the context.
         A closed channel cannot be reused.
 
         Future attempt to send() messages will result in an IOError
@@ -179,9 +171,8 @@ class BaseChannel(object):
         self._context._unregister_channel(self)
 
     def _send(self, message, dest_id=0, dest_seq=0):
-        """_send(message, dest_id=0, dest_seq=0)
+        """Sends a message of raw bytes without checking whether they're bytes.
 
-        Sends a message of raw bytes without checking whether they're bytes.
         Optionally, dest_id and dest_seq represent the message that
         this message replies to. These are used for the request/reply
         pattern.
@@ -218,11 +209,7 @@ class BaseChannel(object):
             return None
 
     def _recv(self, block):
-        """_recv(block)
-
-        Receive a package (or None).
-
-        """
+        """Receive a package (or None)."""
 
         if block is True:
             # Block for 0.25 seconds so that KeyboardInterrupt works
@@ -240,11 +227,7 @@ class BaseChannel(object):
                 return None
 
     def _set_send_lock(self, value):
-        """_set_send_lock(self, value)
-
-        Set or unset the blocking for the _send() method.
-
-        """
+        """Set or unset the blocking for the _send() method."""
         # Set send lock variable. We adopt a timeout (10s) just in case
         # the SubChannel that locks the PubChannel gets disconnected and
         # is unable to unlock it.
@@ -266,32 +249,23 @@ class BaseChannel(object):
     ## How packages are inserted in this channel for receiving
 
     def _inject_package(self, package):
-        """_inject_package(package)
+        """Same as _recv_package, but by definition do not block.
 
-        Same as _recv_package, but by definition do not block.
         _recv_package is overloaded in SubChannel. _inject_package is not.
-
         """
         self._q_in.push(package)
         self._maybe_emit_received()
 
     def _recv_package(self, package):
-        """_recv_package(package)
-
-        Put package in the queue.
-
-        """
+        """Put package in the queue."""
         self._q_in.push(package)
         self._maybe_emit_received()
 
     def _maybe_emit_received(self):
-        """_maybe_emit_received()
-
-        We want to emit a signal, but in such a way that multiple
+        """We want to emit a signal, but in such a way that multiple
         arriving packages result in a single emit. This methods
         only posts an event if it has not been done, or if the previous
         event has been handled.
-
         """
         if not self._posted_received_event:
             self._posted_received_event = True
@@ -299,12 +273,12 @@ class BaseChannel(object):
             yoton.app.post_event(event)
 
     def _emit_received(self):
-        """_emit_received()
+        """Emits the "received" signal.
 
-        Emits the "received" signal. This method is called once new data
-        has been received. However, multiple arrived messages may
-        result in a single call to this method. There is also no
-        guarantee that recv() has not been called in the mean time.
+        This method is called once new data has been received.
+        However, multiple arrived messages may result in a single call
+        to this method. There is also no guarantee that recv() has not
+        been called in the mean time.
 
         Also sets the variabele so that a new event for this may be
         created. This method is called from the event loop.

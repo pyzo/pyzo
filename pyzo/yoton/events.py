@@ -196,7 +196,7 @@ class Signal:
             self._handlers[:] = []
         else:
             cref = CallableObject(func)
-            for c in [c for c in self._handlers]:
+            for c in self._handlers[:]:
                 # remove if callable matches func or object is destroyed
                 if c.compare(cref) or c.isdead():
                     self._handlers.remove(c)

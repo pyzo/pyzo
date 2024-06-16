@@ -265,20 +265,12 @@ class AutoIndent:
     """
 
     def autoIndent(self):
-        """autoIndent()
-
-        Get whether auto indentation is enabled.
-
-        """
+        """Get whether auto indentation is enabled."""
         return self.__autoIndent
 
     @ce_option(True)
     def setAutoIndent(self, value):
-        """setAutoIndent(value)
-
-        Set whether to enable auto indentation.
-
-        """
+        """Set whether to enable auto indentation."""
         self.__autoIndent = bool(value)
 
 
@@ -363,8 +355,7 @@ class SmartCopyAndPaste:
         return anchorBeforeCursor
 
     def copy(self):
-        """
-        Smart copy: if selection is multi-line and in front of the start of the
+        """Smart copy: if selection is multi-line and in front of the start of the
         selection there is only whitespace, extend the selection to include only
         whitespace
         """
@@ -402,8 +393,7 @@ class SmartCopyAndPaste:
         super().copy()
 
     def cut(self):
-        """
-        Cutting with smart-copy: the part that is copies is the same as self.copy(),
+        """Cutting with smart-copy: the part that is copies is the same as self.copy(),
         but the part that is removed is only the original selection
 
         see: Qt qtextcontrol.cpp, cut()
@@ -418,8 +408,7 @@ class SmartCopyAndPaste:
             cursor.removeSelectedText()
 
     def paste(self):
-        """
-        Smart paste
+        """Smart paste
         If you paste on a position that has only whitespace in front of it,
         remove the whitespace before pasting. Combined with smart copy,
         this ensure indentation of the
@@ -427,8 +416,7 @@ class SmartCopyAndPaste:
         self._paste(keepSelection=False)
 
     def pasteAndSelect(self):
-        """
-        Smart paste
+        """Smart paste
         Like paste(), but keep the part that was pasted selected. This allows
         you to change the indentation after pasting using tab / shift-tab
         """
@@ -439,7 +427,7 @@ class SmartCopyAndPaste:
         cursor = self.textCursor()
 
         # Ensure that position is at start and anchor is at the end.
-        # This is required to ensure that with keepPositiobOnInsert
+        # This is required to ensure that with keepPositionOnInsert
         # set, the cursor will equal the pasted text after the pasting
         self.__ensureCursorBeforeAnchor(cursor)
 
@@ -690,17 +678,13 @@ class AutoCloseQuotesAndBrackets:
         return previous_char
 
     def _moveCursorLeft(self, n):
-        """
-        Move cursor left between eg. brackets
-        """
+        """Move cursor left between eg. brackets"""
         cursor2 = self.textCursor()
         cursor2.movePosition(cursor2.Left, cursor2.MoveAnchor, n)
         self.setTextCursor(cursor2)
 
     def _moveCursorRight(self, n):
-        """
-        Move cursor out of eg. brackets
-        """
+        """Move cursor out of eg. brackets"""
         cursor2 = self.textCursor()
         cursor2.movePosition(cursor2.Right, cursor2.MoveAnchor, n)
         self.setTextCursor(cursor2)

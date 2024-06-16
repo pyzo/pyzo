@@ -104,9 +104,7 @@ class WebView(QtWidgets.QTextBrowser):
         url = self._load(url)
 
     def _load(self, url):
-        """_load(url)
-        Convert url and load page, returns new url.
-        """
+        """Convert url and load page, returns new url."""
         # Make url a string
         if isinstance(url, QtCore.QUrl):
             url = str(url.toString())

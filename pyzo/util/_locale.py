@@ -60,9 +60,7 @@ LANGUAGE_SYNONYMS = {
 
 
 def getLocale(languageName):
-    """getLocale(languageName)
-    Get the QLocale object for the given language (as a string).
-    """
+    """Get the QLocale object for the given language (as a string)."""
 
     # Try System Language if nothing defined
     if languageName == "":
@@ -88,8 +86,8 @@ def getLocale(languageName):
 
 
 def setLanguage(languageName):
-    """setLanguage(languageName)
-    Set the language for the app. Loads qt and pyzo translations.
+    """Set the language for the app. Loads qt and pyzo translations.
+
     Returns the QLocale instance to pass to the main widget.
     """
 
@@ -166,9 +164,7 @@ def _splitMainAndTt(s):
 
 
 def translate(context, text, disambiguation=None):
-    """translate(context, text, disambiguation=None)
-    The translate function used throughout pyzo.
-    """
+    """The translate function used throughout pyzo."""
     # Get translation and split tooltip
     newtext = QtCore.QCoreApplication.translate(context, text, disambiguation)
     s, tt = _splitMainAndTt(newtext)
@@ -214,16 +210,14 @@ To update a language:
 
 
 def lhelp():
-    """lhelp()
-    Print help text on using the language tools.
-    """
+    """Print help text on using the language tools."""
     print(LHELP)
 
 
 def linguist(languageName):
-    """linguist(languageName)
-    Open linguist with the language file as specified by lang. The
-    languageName can be one of the fields as visible in the language
+    """Open linguist with the language file as specified by lang.
+
+    The languageName can be one of the fields as visible in the language
     list in the menu. This function is intended for translators.
     """
     # Get locale

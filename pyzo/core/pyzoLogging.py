@@ -62,13 +62,11 @@ def print(*args, **kwargs):
 
 
 def splitConsole(stdoutFun=None, stderrFun=None):
-    """splitConsole(stdoutFun=None, stderrFun=None)
-    Splits the stdout and stderr streams. On each call
-    to their write methods, in addition to the original
-    write method being called, will call the given
-    functions.
-    Returns the history of the console (combined stdout
-    and stderr).
+    """Splits the stdout and stderr streams.
+
+    On each call to their write methods, in addition to the original
+    write method being called, will call the given functions.
+    Returns the history of the console (combined stdout and stderr).
     Used by the logger shell.
     """
 

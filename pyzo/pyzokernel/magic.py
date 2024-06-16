@@ -136,12 +136,10 @@ class Magician:
         return eval(command, {}, NS)
 
     def convert_command(self, line):
-        """convert_command(line)
+        """Convert a given command from a magic command to Python code.
 
-        Convert a given command from a magic command to Python code.
         Returns the converted command if it was a magic command, or
         the original otherwise.
-
         """
         # Get converted command, catch and report errors
         try:

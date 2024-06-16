@@ -42,9 +42,9 @@ class Task:
         self._error = None
 
     def process(self, proxy, **params):
-        """process(pathProxy, **params):
-        This is the method that represents the task. Overload this to make
-        the task do what is intended.
+        """This is the method that represents the task.
+
+        Overload this to make the task do what is intended.
         """
         pass
 

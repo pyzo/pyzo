@@ -142,8 +142,7 @@ class ShellStackWidget(QtWidgets.QWidget):
             self._interpreterhelp.detect()
 
     def addShell(self, shellInfo=None):
-        """addShell()
-        Add a shell to the widget."""
+        """Add a shell to the widget."""
 
         # Create shell and add to stack
         shell = PythonShell(self, shellInfo)
@@ -157,9 +156,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         return shell
 
     def removeShell(self, shell):
-        """removeShell()
-        Remove an existing shell from the widget
-        """
+        """Remove an existing shell from the widget"""
         self._stack.removeWidget(shell)
 
     def onCurrentChanged(self, index):
@@ -213,9 +210,7 @@ class ShellStackWidget(QtWidgets.QWidget):
             self.currentShellStateChanged.emit()
 
     def getCurrentShell(self):
-        """getCurrentShell()
-        Get the currently active shell.
-        """
+        """Get the currently active shell."""
 
         w = None
         if self._stack.count():
@@ -238,7 +233,7 @@ class ShellStackWidget(QtWidgets.QWidget):
 
     def getShellAt(self, i):
         return
-        """ Get shell at current tab index """
+        """Get shell at current tab index"""
 
         return self._stack.widget(i)
 
@@ -500,9 +495,10 @@ class DebugStack(QtWidgets.QToolButton):
             self.debugFocus(line)
 
     def setTrace(self, info):
-        """Set the stack trace. This method is called from
-        the shell that receives the trace via its status channel
-        directly from the interpreter.
+        """Set the stack trace.
+
+        This method is called from the shell that receives the trace via its
+        status channel directly from the interpreter.
         If trace is None, removes the trace
         """
 
@@ -563,9 +559,7 @@ class DebugStack(QtWidgets.QToolButton):
             self.setEnabled(True)
 
     def debugFocus(self, lineFromDebugState):
-        """debugFocus(lineFromDebugState)
-        Open the file and show the linenr of the given lineFromDebugState.
-        """
+        """Open the file and show the linenr of the given lineFromDebugState."""
         error = None
         # Get filenr and item
         try:

@@ -175,9 +175,7 @@ class Browser(QtWidgets.QWidget):
         self._tree.clear()
 
         # items.sort(key=lambda x: x._path)
-        items = [item for item in reversed(items)]
-
-        for item in items:
+        for item in items[::-1]:
             self._tree.addTopLevelItem(item)
 
     def currentProject(self):
@@ -364,9 +362,7 @@ class PathInput(LineEditWithToolButtons):
             self.dirChanged.emit(cleanpath(text))
 
     def focusOutEvent(self, event=None):
-        """focusOutEvent(event)
-        On focusing out, make sure that the set path is correct.
-        """
+        """On focusing out, make sure that the set path is correct."""
         if event is not None:
             super().focusOutEvent(event)
 

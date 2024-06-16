@@ -121,11 +121,5 @@ class CommandHistory(QtCore.QObject):
         return None
 
     def find_all(self, needle):
-        """Find all commands that contain the given text. In order
-        of being used.
-        """
-        commands = []
-        for c in reversed(self._commands):
-            if needle in c:
-                commands.append(c)
-        return commands
+        """Find all commands that contain the given text. In order of being used."""
+        return [cmd for cmd in reversed(self._commands) if needle in cmd]
