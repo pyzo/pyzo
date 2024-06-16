@@ -65,13 +65,10 @@ class StateChannel(BaseChannel):
         return "state", "state"
 
     def send(self, message):
-        """send(message)
-
-        Set the state of this channel.
+        """Set the state of this channel.
 
         The state-message is queued and send over the socket by the IO-thread.
         Zero-length messages are ignored.
-
         """
         # Send message only if it is different from the current state
         # set current_message by unpacking the send binary. This ensures
@@ -85,29 +82,18 @@ class StateChannel(BaseChannel):
             self._current_message = self.message_from_bytes(self._current_package._data)
 
     def send_last(self):
-        """send_last()
-
-        Resend the last message.
-
-        """
+        """Resend the last message."""
         if self._current_package is not None:
             self._send(self.message_to_bytes(self._current_message))
 
     def recv(self, block=False):
-        """recv(block=False)
-
-        Get the state of the channel. Always non-blocking. Returns the
+        """Get the state of the channel. Always non-blocking. Returns the
         most up to date state.
-
         """
         return self._current_message
 
     def _recv_package(self, package):
-        """_recv_package(package)
-
-        Bypass queue and just store it in a variable.
-
-        """
+        """Bypass queue and just store it in a variable."""
         self._current_message = self.message_from_bytes(package._data)
         self._current_package = package
         #
@@ -121,10 +107,8 @@ class StateChannel(BaseChannel):
         self._maybe_emit_received()
 
     def _recv(self, block=None):
-        """_recv(block=None)
+        """Returns the last received or send set package.
 
-        Returns the last received or send set package. The package
-        may not reflect the current state.
-
+        The package may not reflect the current state.
         """
         return self._current_package

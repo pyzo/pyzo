@@ -132,8 +132,7 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         browser.setSearchText(needle, setFocus)
 
     def getAddToPythonPath(self):
-        """
-        Returns the path to be added to the Python path when starting a shell
+        """Returns the path to be added to the Python path when starting a shell
         If a project is selected, which has the addToPath checkbox selected,
         returns the path of the project. Otherwise, returns None
         """
@@ -146,8 +145,7 @@ class PyzoFileBrowser(QtWidgets.QWidget):
         return None
 
     def getDefaultSavePath(self):
-        """
-        Returns the path to be used as default when saving a new file in pyzo.
+        """Returns the path to be used as default when saving a new file in pyzo.
         Or None if the no path could be determined
         """
         # Select current browser

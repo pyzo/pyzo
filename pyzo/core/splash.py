@@ -99,14 +99,14 @@ class SplashWidget(QtWidgets.QWidget):
         # Layout
         layout = QtWidgets.QHBoxLayout(self)
         self.setLayout(layout)
-        # layout.setContentsMargins(0,0,0,0)
+        # layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(25)
         layout.addStretch(1)
         layout.addWidget(self._left, 0)
         layout.addWidget(self._right, 0)
         layout.addStretch(1)
 
-        # Change background of main window to create a splash-screen-efefct
+        # Change background of main window to create a splash-screen-effect
         iconImage = "pyzologo256.png"
         iconImage = os.path.join(pyzo.pyzoDir, "resources", "appicons", iconImage)
         iconImage = iconImage.replace(os.path.sep, "/")  # Fix for Windows

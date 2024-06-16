@@ -55,9 +55,7 @@ class Calltip:
         self.__calltipLabel.setStyleSheet(ss)
 
     def calltipShow(self, offset=0, richText="", highlightFunctionName=False):
-        """calltipShow(offset=0, richText='', highlightFunctionName=False)
-
-        Shows the given calltip.
+        """Shows the given calltip.
 
         Parameters
         ----------
@@ -68,7 +66,6 @@ class Calltip:
         highlightFunctionName : bool
             If True the text before the first opening brace is made bold.
             default False.
-
         """
 
         # Do not show the calltip if it was deliberately hidden by the
@@ -105,19 +102,11 @@ class Calltip:
             self.__calltipLabel.hide()
 
     def calltipCancel(self):
-        """calltipCancel()
-
-        Hides the calltip.
-
-        """
+        """Hides the calltip."""
         self.__calltipLabel.hide()
 
     def calltipActive(self):
-        """calltipActive()
-
-        Get whether the calltip is currently active.
-
-        """
+        """Get whether the calltip is currently active."""
         return self.__calltipLabel.isVisible()
 
     def focusOutEvent(self, event):

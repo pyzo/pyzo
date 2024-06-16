@@ -107,8 +107,7 @@ sys.excepthook = pyzo_excepthook
 
 
 def resetConfig(preserveState=True):
-    """resetConfig()
-    Deletes the config file to revert to default and prevent Pyzo from storing
+    """Deletes the config file to revert to default and prevent Pyzo from storing
     its config on the next shutdown.
     """
     # Get filenames
@@ -119,9 +118,7 @@ def resetConfig(preserveState=True):
 
 
 def loadThemes():
-    """
-    Load default and user themes (if exist)
-    """
+    """Load default and user themes (if exist)"""
 
     def loadThemesFromDir(dname, isBuiltin=False):
         if not os.path.isdir(dname):
@@ -146,8 +143,8 @@ def loadThemes():
 
 
 def loadConfig(defaultsOnly=False):
-    """loadConfig(defaultsOnly=False)
-    Load default and site-wide configuration file(s) and that of the user (if it exists).
+    """Load default and site-wide configuration file(s) and that of the user
+    (if it exists).
     Any missing fields in the user config are set to the defaults.
     """
 
@@ -197,9 +194,7 @@ def loadConfig(defaultsOnly=False):
 
 
 def saveConfig():
-    """saveConfig()
-    Save all configurations to file.
-    """
+    """Save all configurations to file."""
 
     # Let the editorStack save its state
     if pyzo.editors:

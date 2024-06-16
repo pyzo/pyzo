@@ -83,10 +83,7 @@ Struct.__is_ssdf_struct__ = True
 
 
 def isstruct(ob):  # SSDF compatibility
-    """isstruct(ob)
-
-    Returns whether the given object is an SSDF struct.
-    """
+    """Returns whether the given object is an SSDF struct."""
     if hasattr(ob, "__is_ssdf_struct__"):
         return bool(ob.__is_ssdf_struct__)
     else:
@@ -94,27 +91,20 @@ def isstruct(ob):  # SSDF compatibility
 
 
 def new():
-    """new()
-
-    Create a new Dict object. The same as "Dict()".
-    """
+    """Create a new Dict object. The same as "Dict()"."""
     return Dict()
 
 
 def clear(d):  # SSDF compatibility
-    """clear(d)
-
-    Clear all elements of the given Dict object.
-    """
+    """Clear all elements of the given Dict object."""
     d.clear()
 
 
 def copy(object):
-    """copy(objec)
+    """Return a deep copy the given object.
 
-    Return a deep copy the given object. The object and its children
-    should be dict-compatible data types. Note that dicts are converted
-    to Dict and tuples to lists.
+    The object and its children should be dict-compatible data types.
+    Note that dicts are converted to Dict and tuples to lists.
     """
     if isstruct(object) or isinstance(object, dict):
         newObject = Dict()
@@ -129,11 +119,10 @@ def copy(object):
 
 
 def count(object, cache=None):
-    """count(object):
+    """Count the number of elements in the given object.
 
-    Count the number of elements in the given object. An element is
-    defined as one of the 6 datatypes supported by ZON (dict,
-    tuple/list, string, int, float, None).
+    An element is defined as one of the 6 datatypes supported
+    by ZON (dict, tuple/list, string, int, float, None).
     """
     cache = cache or []
     if isstruct(object) or isinstance(object, (dict, list)):
@@ -152,10 +141,7 @@ def count(object, cache=None):
 
 
 def loads(text):
-    """loads(text)
-
-    Load a Dict from the given string in ZON syntax.
-    """
+    """Load a Dict from the given string in ZON syntax."""
     if not isinstance(text, str):
         raise ValueError("zon.loads() expects a string.")
     reader = ReaderWriter()
@@ -163,10 +149,7 @@ def loads(text):
 
 
 def load(file):
-    """load(filename)
-
-    Load a Dict from the given file or filename.
-    """
+    """Load a Dict from the given file or filename."""
     if isinstance(file, str):
         with open(file, "rb") as fd:
             data = fd.read()
@@ -176,10 +159,7 @@ def load(file):
 
 
 def saves(d):
-    """saves(d)
-
-    Serialize the given dict to a string.
-    """
+    """Serialize the given dict to a string."""
     if not (isstruct(d) or isinstance(d, dict)):
         raise ValueError("ssdf.saves() expects a dict.")
     writer = ReaderWriter()
@@ -188,10 +168,7 @@ def saves(d):
 
 
 def save(file, d):
-    """save(file, d)
-
-    Serialize the given dict to the given file or filename.
-    """
+    """Serialize the given dict to the given file or filename."""
     text = saves(d)
     if isinstance(file, str):
         file = open(file, "wb")

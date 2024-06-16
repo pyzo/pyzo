@@ -125,10 +125,7 @@ class HighlightMatchingOccurrences:
         painter.end()
 
     def paintEvent(self, event):
-        """paintEvent(event)
-
-        Paints behinds its super().
-        """
+        """Paints behinds its super()."""
         cursor = self.textCursor()
         if self.__highlightMatchingOccurrences and cursor.hasSelection():
             text = cursor.selectedText()
@@ -157,22 +154,15 @@ class _ParenIterator:
                 k += 1
             self.cur_pos = k
         except IndexError:
-            # If the parenthesis cannot be found, it means that it is not inluded
+            # If the parenthesis cannot be found, it means that it is not included
             # in any token, ie. it is part of a string or comment
             raise _ParenNotFound
 
     def _getParenTokens(self):
         try:
-            return list(
-                filter(
-                    lambda x: isinstance(x, ParenthesisToken),
-                    self.cur_block.userData().tokens,
-                )
-            )
+            return [x for x in self.cur_block.userData().tokens if isinstance(x, ParenthesisToken)]
         except AttributeError:
-            return (
-                []
-            )  # can be a piece of text that we do not tokenize or have not stored tokens
+            return []  # can be a piece of text that we do not tokenize or have not stored tokens
 
     def __iter__(self):
         return self
@@ -255,48 +245,34 @@ class HighlightMatchingBracket:
         ),
     ]
 
+    _BRACKS_OPEN = "([{"
+    _BRACKS_CLOSE = ")]}"
+    _BRACKS = _BRACKS_OPEN + _BRACKS_CLOSE
+    _matchingBrackets = dict(zip(_BRACKS_OPEN + _BRACKS_CLOSE, _BRACKS_CLOSE + _BRACKS_OPEN))
+
     def highlightMatchingBracket(self):
-        """highlightMatchingBracket()
-
-        Get whether to highlight matching brackets.
-
-        """
+        """Get whether to highlight matching brackets."""
         return self.__highlightMatchingBracket
 
     @ce_option(True)
     def setHighlightMatchingBracket(self, value):
-        """setHighlightMatchingBracket(value)
-
-        Set whether to highlight matching brackets.
-
-        """
+        """Set whether to highlight matching brackets."""
         self.__highlightMatchingBracket = bool(value)
         self.viewport().update()
 
     def highlightMisMatchingBracket(self):
-        """highlightMisMatchingBracket()
-
-        Get whether to highlight mismatching brackets.
-
-        """
+        """Get whether to highlight mismatching brackets."""
         return self.__highlightMisMatchingBracket
 
     @ce_option(True)
     def setHighlightMisMatchingBracket(self, value):
-        """setHighlightMisMatchingBracket(value)
-
-        Set whether to highlight mismatching brackets.
-
-        """
+        """Set whether to highlight mismatching brackets."""
         self.__highlightMisMatchingBracket = bool(value)
         self.viewport().update()
 
     def _highlightSingleChar(self, painter, cursor, width, colorname):
-        """_highlightSingleChar(painter, cursor, width, colorname)
-
-        Draws a highlighting rectangle around the single character to the
+        """Draws a highlighting rectangle around the single character to the
         left of the specified cursor.
-
         """
         cursor_rect = self.cursorRect(cursor)
         top = cursor_rect.top()
@@ -307,24 +283,19 @@ class HighlightMatchingBracket:
         painter.setPen(color.darker(110))
         painter.drawRect(QtCore.QRect(int(left), int(top), int(width), int(height)))
 
-    _matchingBrackets = {"(": ")", "[": "]", "{": "}", ")": "(", "]": "[", "}": "{"}
-
     def _findMatchingBracket(self, char, cursor):
-        """_findMatchingBracket(char, cursor)
-
-        Find a bracket that matches the specified char in the specified document.
+        """Find a bracket that matches the specified char in the specified document.
         Return a _MatchResult object indicating whether this succeded and the
         positions of the parentheses causing this result.
-
         """
-        if char in ")]}":
+        if char in self._BRACKS_CLOSE:
             direction = -1
-            stacking = ")]}"
-            unstacking = "([{"
-        elif char in "([{":
+            stacking = self._BRACKS_CLOSE
+            unstacking = self._BRACKS_OPEN
+        elif char in self._BRACKS_OPEN:
             direction = 1
-            stacking = "([{"
-            unstacking = ")]}"
+            stacking = self._BRACKS_OPEN
+            unstacking = self._BRACKS_CLOSE
         else:
             raise ValueError("invalid bracket character: " + char)
 
@@ -358,14 +329,11 @@ class HighlightMatchingBracket:
         return new_cursor
 
     def paintEvent(self, event):
-        """paintEvent(event)
+        """Paints behinds its super().
 
         If the current cursor is positioned to the right of a bracket ()[]{},
         look for a matching one, and, if found, draw a highlighting rectangle
         around both brackets of the pair.
-
-        Paints behinds its super().
-
         """
         if not self.__highlightMatchingBracket:
             super().paintEvent(event)
@@ -384,12 +352,12 @@ class HighlightMatchingBracket:
             # get the character to the left of the cursor
             char = text[pos]
 
-            if not movedRight and char not in "()[]{}" and len(text) > pos + 1:
+            if not movedRight and char not in self._BRACKS and len(text) > pos + 1:
                 # no brace to the left of cursor; try to the right
                 cursor.movePosition(cursor.Right)
                 char = text[pos + 1]
 
-            if char in "()[]{}":
+            if char in self._BRACKS:
                 doc = cursor.document()
                 try:
                     match_res = self._findMatchingBracket(char, cursor)
@@ -462,30 +430,20 @@ class HighlightCurrentLine:
     ]
 
     def highlightCurrentLine(self):
-        """highlightCurrentLine()
-
-        Get whether to highlight the current line.
-
-        """
+        """Get whether to highlight the current line."""
         return self.__highlightCurrentLine
 
     @ce_option(True)
     def setHighlightCurrentLine(self, value):
-        """setHighlightCurrentLine(value)
-
-        Set whether to highlight the current line.
-
-        """
+        """Set whether to highlight the current line."""
         self.__highlightCurrentLine = bool(value)
         self.viewport().update()
 
     def paintEvent(self, event):
-        """paintEvent(event)
+        """Paints behind its super()
 
         Paints a rectangle spanning the current block (in case of line wrapping, this
         means multiple lines)
-
-        Paints behind its super()
         """
         if not self.highlightCurrentLine():
             super().paintEvent(event)
@@ -533,27 +491,17 @@ class IndentationGuides:
     ]
 
     def showIndentationGuides(self):
-        """showIndentationGuides()
-
-        Get whether to show indentation guides.
-
-        """
+        """Get whether to show indentation guides."""
         return self.__showIndentationGuides
 
     @ce_option(True)
     def setShowIndentationGuides(self, value):
-        """setShowIndentationGuides(value)
-
-        Set whether to show indentation guides.
-
-        """
+        """Set whether to show indentation guides."""
         self.__showIndentationGuides = bool(value)
         self.viewport().update()
 
     def paintEvent(self, event):
-        """paintEvent(event)
-
-        Paint the indentation guides, using the indentation info calculated
+        """Paint the indentation guides, using the indentation info calculated
         by the highlighter.
         """
         super().paintEvent(event)
@@ -603,12 +551,9 @@ class IndentationGuides:
 
 class FullUnderlines:
     def paintEvent(self, event):
-        """paintEvent(event)
-
-        Paint a horizontal line for the blocks for which there is a
+        """Paint a horizontal line for the blocks for which there is a
         syntax format that has underline:full. Whether this is the case
         is stored at the blocks user data.
-
         """
         super().paintEvent(event)
 
@@ -620,22 +565,16 @@ class FullUnderlines:
 
         def paintUnderline(cursor):
             y = self.cursorRect(cursor).bottom()
-
-            bd = cursor.block().userData()
-            try:
-                fullUnderlineFormat = bd.fullUnderlineFormat
-            except AttributeError:
-                pass  # fullUnderlineFormat may not be an attribute
-            else:
-                if fullUnderlineFormat is not None:
-                    # Apply pen
-                    pen = QtGui.QPen(fullUnderlineFormat.fore)
-                    pen.setStyle(fullUnderlineFormat.linestyle)
-                    painter.setPen(pen)
-                    # Paint
-                    painter.drawLine(
-                        QtCore.QLine(int(margin), int(y), int(w - 2 * margin), int(y))
-                    )
+            fullUnderlineFormat = getattr(cursor.block().userData(), "fullUnderlineFormat", None)
+            if fullUnderlineFormat is not None:
+                # Apply pen
+                pen = QtGui.QPen(fullUnderlineFormat.fore)
+                pen.setStyle(fullUnderlineFormat.linestyle)
+                painter.setPen(pen)
+                # Paint
+                painter.drawLine(
+                    QtCore.QLine(int(margin), int(y), int(w - 2 * margin), int(y))
+                )
 
         self.doForVisibleBlocks(paintUnderline)
 
@@ -644,7 +583,6 @@ class FullUnderlines:
 
 class CodeFolding:
     def paintEvent(self, event):
-        """paintEvent(event)"""
         super().paintEvent(event)
 
         return  # Code folding code is not yet complete
@@ -685,30 +623,21 @@ class LongLineIndicator:
     ]
 
     def longLineIndicatorPosition(self):
-        """longLineIndicatorPosition()
-
-        Get the position of the long line indicator (aka edge column).
+        """Get the position of the long line indicator (aka edge column).
         A value of 0 or smaller means that no indicator is shown.
-
         """
         return self.__longLineIndicatorPosition
 
     @ce_option(80)
     def setLongLineIndicatorPosition(self, value):
-        """setLongLineIndicatorPosition(value)
-
-        Set the position of the long line indicator (aka edge column).
+        """Set the position of the long line indicator (aka edge column).
         A value of 0 or smaller means that no indicator is shown.
-
         """
         self.__longLineIndicatorPosition = int(value)
         self.viewport().update()
 
     def paintEvent(self, event):
-        """paintEvent(event)
-
-        Paint the long line indicator. Paints behind its super()
-        """
+        """Paint the long line indicator. Paints behind its super()"""
         if self.longLineIndicatorPosition() <= 0:
             super().paintEvent(event)
             return
@@ -725,7 +654,7 @@ class LongLineIndicator:
         x += doc.documentMargin() + self.contentOffset().x()
         x += 1  # Move it a little next to the cursor
 
-        # Prepate painter
+        # Prepare painter
         painter = QtGui.QPainter()
         painter.begin(viewport)
 
@@ -825,7 +754,8 @@ class LineNumbers:
             y1 = self._pressedY
             if y1 is None:
                 y1 = y2
-            y1, y2 = min(y1, y2), max(y1, y2)
+            if y2 < y1:
+                y1, y2 = y2, y1
 
             # Get cursor and two cursors corresponding to selected blocks
             editor = self.parent()
@@ -944,7 +874,7 @@ class LineNumbers:
             self.setButtonSymbols(self.NoButtons)
             self.setCorrectionMode(self.CorrectToNearestValue)
 
-            # Signal for when value changes, and flag to disbale it once
+            # Signal for when value changes, and flag to disable it once
             self._ignoreSignalOnceFlag = False
             self.valueChanged.connect(self.onValueChanged)
 
@@ -1465,11 +1395,8 @@ class SyntaxHighlighting:
     _styleElements = Manager.getStyleElementDescriptionsForAllParsers()
 
     def parser(self):
-        """parser()
-
-        Get the parser instance currently in use to parse the code for
+        """Get the parser instance currently in use to parse the code for
         syntax highlighting and source structure. Can be None.
-
         """
         try:
             return self.__parser
@@ -1478,11 +1405,7 @@ class SyntaxHighlighting:
 
     @ce_option(None)
     def setParser(self, parserName=""):
-        """setParser(parserName='')
-
-        Set the current parser by giving the parser name.
-
-        """
+        """Set the current parser by giving the parser name."""
         # Set parser
         self.__parser = Manager.getParserByName(parserName)
 

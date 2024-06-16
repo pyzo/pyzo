@@ -77,11 +77,7 @@ class Future(object):
         self._auto_cancel_timeout = 10.0
 
     def _send(self, msg):
-        """_send(msg)
-
-        For sending pre-request messages 'req?', 'req-'.
-
-        """
+        """For sending pre-request messages 'req?', 'req-'."""
         msg = msg.encode("utf-8")
         try:
             self._req_channel._send(msg, 0, self._request_id + REQREP_SEQ_REF)
@@ -91,13 +87,10 @@ class Future(object):
             self.cancel()
 
     def _resend_if_necessary(self):
-        """_resend_if_necessary()
-
-        Resends the pre-request message if we have not done so for the last
+        """Resends the pre-request message if we have not done so for the last
         0.5 second.
 
         This will also auto-cancel the message if it is resend over 20 times.
-
         """
         timetime = time.time()
         if self._status != 0:
@@ -109,13 +102,10 @@ class Future(object):
             self._next_send_time = timetime + 0.5
 
     def set_auto_cancel_timeout(self, timeout):
-        """set_auto_cancel_timeout(timeout):
-
-        Set the timeout after which the call is automatically cancelled
+        """Set the timeout after which the call is automatically cancelled
         if it is not done yet. By default, this value is 10 seconds.
 
         If timeout is None, there is no limit to the wait time.
-
         """
         if timeout is None:
             timeout = 999999999999999999.0
@@ -125,12 +115,9 @@ class Future(object):
             raise ValueError("A timeout cannot be negative")
 
     def cancel(self):
-        """cancel()
-
-        Attempt to cancel the call. If the call is currently being executed
+        """Attempt to cancel the call. If the call is currently being executed
         and cannot be cancelled then the method will return False, otherwise
         the call will be cancelled and the method will return True.
-
         """
 
         if self._status == 1:
@@ -148,37 +135,21 @@ class Future(object):
             return True
 
     def cancelled(self):
-        """cancelled()
-
-        Return True if the call was successfully cancelled.
-
-        """
+        """Return True if the call was successfully cancelled."""
         return self._status == 2
 
     def running(self):
-        """running()
-
-        Return True if the call is currently being executed and cannot be
-        cancelled.
-
-        """
+        """Return True if the call is currently being executed and cannot be cancelled."""
         return self._status == 1
 
     def done(self):
-        """done()
-
-        Return True if the call was successfully cancelled or finished running.
-
-        """
+        """Return True if the call was successfully cancelled or finished running."""
         return self._status in [2, 3, 4]
 
     def _wait(self, timeout):
-        """_wait(timeout)
-
-        Wait for the request to be handled for the specified amount of time.
+        """Wait for the request to be handled for the specified amount of time.
         While waiting, the ReqChannel local event loop is called so that
         pre-request messages can be exchanged.
-
         """
 
         # No timout means a veeeery long timeout
@@ -193,9 +164,7 @@ class Future(object):
             time.sleep(0.01)  # 10 ms
 
     def result(self, timeout=None):
-        """result(timeout=None)
-
-        Return the value returned by the call. If the call hasn’t yet
+        """Return the value returned by the call. If the call hasn’t yet
         completed then this method will wait up to timeout seconds. If
         the call hasn’t completed in timeout seconds, then a TimeoutError
         will be raised. timeout can be an int or float. If timeout is not
@@ -205,7 +174,6 @@ class Future(object):
         will be raised.
 
         If the call raised, this method will raise the same exception.
-
         """
 
         # Wait
@@ -222,13 +190,10 @@ class Future(object):
             return self._result
 
     def result_or_cancel(self, timeout=1.0):
-        """result_or_cancel(timeout=1.0)
-
-        Return the value returned by the call. If the call hasn’t yet
+        """Return the value returned by the call. If the call hasn’t yet
         completed then this method will wait up to timeout seconds. If
         the call hasn’t completed in timeout seconds, then the call is
         cancelled and the method will return None.
-
         """
 
         # Wait
@@ -242,9 +207,7 @@ class Future(object):
             return None
 
     def exception(self, timeout=None):
-        """exception(timeout)
-
-        Return the exception raised by the call. If the call hasn’t yet
+        """Return the exception raised by the call. If the call hasn’t yet
         completed then this method will wait up to timeout seconds. If
         the call hasn’t completed in timeout seconds, then a TimeoutError
         will be raised. timeout can be an int or float. If timeout is not
@@ -254,7 +217,6 @@ class Future(object):
         will be raised.
 
         If the call completed without raising, None is returned.
-
         """
 
         # Wait
@@ -271,9 +233,7 @@ class Future(object):
             return None  # no exception
 
     def add_done_callback(self, fn):
-        """add_done_callback(fn)
-
-        Attaches the callable fn to the future. fn will be called, with
+        """Attaches the callable fn to the future. fn will be called, with
         the future as its only argument, when the future is cancelled or
         finishes running.
 
@@ -284,7 +244,6 @@ class Future(object):
 
         If the future has already completed or been cancelled, fn will be
         called immediately.
-
         """
 
         # Check
@@ -298,9 +257,7 @@ class Future(object):
             self._callbacks.append(fn)
 
     def set_running_or_notify_cancel(self):
-        """set_running_or_notify_cancel()
-
-        This method should only be called by Executor implementations before
+        """This method should only be called by Executor implementations before
         executing the work associated with the Future and by unit tests.
 
         If the method returns False then the Future was cancelled, i.e.
@@ -312,7 +269,6 @@ class Future(object):
 
         This method can only be called once and cannot be called after
         Future.set_result() or Future.set_exception() have been called.
-
         """
 
         if self._status == 2:
@@ -326,12 +282,9 @@ class Future(object):
             )
 
     def set_result(self, result):
-        """set_result(result)
-
-        Sets the result of the work associated with the Future to result.
+        """Sets the result of the work associated with the Future to result.
         This method should only be used by Executor implementations and
         unit tests.
-
         """
 
         # Set result if indeed in running state
@@ -342,12 +295,9 @@ class Future(object):
                 yoton.call_later(fn, 0, self)
 
     def set_exception(self, exception):
-        """set_exception(exception)
-
-        Sets the result of the work associated with the Future to the
+        """Sets the result of the work associated with the Future to the
         Exception exception. This method should only be used by Executor
         implementations and unit tests.
-
         """
 
         # Check
@@ -488,14 +438,11 @@ class ReqChannel(BaseChannel):
             return proxy_function
 
     def _handle_request(self, name, *args, **kwargs):
-        """_handle_request(request, callback, **kwargs)
-
-        Post a request. This creates a Future instance and stores
+        """Post a request. This creates a Future instance and stores
         it. A message is send asking any repliers to respond.
 
         The actual request will be send when a reply to our pre-request
         is received. This all hapens in the yoton event loop.
-
         """
 
         # Create request object
@@ -518,17 +465,14 @@ class ReqChannel(BaseChannel):
         return item
 
     def _resend_requests(self):
-        """_resend_requests()
-
-        See if we should resend our older requests. Periodically calling
+        """See if we should resend our older requests. Periodically calling
         this method enables doing a request while the replier is not yet
         attached to the network.
 
         This also allows the Future objects to cancel themselves if it
         takes too long.
-
         """
-        for request_id in [key for key in self._request_items.keys()]:
+        for request_id in list(self._request_items.keys()):
             item = self._request_items[request_id]
             # Remove items that are really old
             if item.cancelled():
@@ -537,15 +481,12 @@ class ReqChannel(BaseChannel):
                 item._resend_if_necessary()
 
     def _recv_item(self):
-        """_recv_item()
-
-        Receive item. If a reply is send that is an acknowledgement
+        """Receive item. If a reply is send that is an acknowledgement
         of a replier that it wants to handle our request, the
         correpsonding request is send to that replier.
 
         This is a kind of mini-event loop thingy that should be
         called periodically to keep things going.
-
         """
 
         # Receive package
@@ -597,11 +538,7 @@ class ReqChannel(BaseChannel):
                 return item
 
     def _process_events_local(self, dummy=None):
-        """_process_events_local()
-
-        Process events only for this object. Used by _handle_now().
-
-        """
+        """Process events only for this object. Used by _handle_now()."""
 
         # Check periodically if we should resend (or clean up) old requests
         if time.time() > self._next_recheck_time:
@@ -678,15 +615,12 @@ class RepChannel(BaseChannel):
     # Node that setters for normal and event_driven mode are specified in
     # channels_base.py
     def set_mode(self, mode):
-        """set_mode(mode)
-
-        Set the replier to its operating mode, or turn it off.
+        """Set the replier to its operating mode, or turn it off.
 
         Modes:
           * 0 or 'off': do not process requests
           * 1 or 'event': use the yoton event loop to process requests
           * 2 or 'thread': process requests in a separate thread
-
         """
 
         if isinstance(mode, basestring):
@@ -706,12 +640,9 @@ class RepChannel(BaseChannel):
             raise ValueError("Invalid mode for ReqChannel instance.")
 
     def _handle_request(self, message):
-        """_handle_request(message)
-
-        This method is called for each request, and should return
+        """This method is called for each request, and should return
         a reply. The message contains the name of the method to call,
         this function calls that method.
-
         """
         # Get name and args
         name, args, kwargs = message
@@ -748,11 +679,7 @@ class RepChannel(BaseChannel):
             # print 'ack', self._context.id,  package._dest_seq-REQREP_SEQ_REF
 
     def _replier_iteration(self, package):
-        """_replier_iteration()
-
-        Do one iteration: process one request.
-
-        """
+        """Do one iteration: process one request."""
 
         # Get request id
         request_id = package._dest_seq
@@ -768,7 +695,7 @@ class RepChannel(BaseChannel):
 
             # Remove pre-request from pending requests in case of both actions:
             # Cancel pending pre-request, prevent stacking of the same request.
-            for prereq in [prereq for prereq in self._pre_requests]:
+            for prereq in self._pre_requests[:]:
                 if (
                     package._source_id == prereq._source_id
                     and package._dest_seq == prereq._dest_seq
@@ -818,11 +745,7 @@ class RepChannel(BaseChannel):
                     print(getErrorMsg())
 
     def _process_events_local(self, dummy=None):
-        """_process_events_local()
-
-        Called when a message (or more) has been received.
-
-        """
+        """Called when a message (or more) has been received."""
 
         # If closed, unregister from signal and stop the timer
         if self.closed or self._run_mode != 1:
@@ -841,11 +764,8 @@ class RepChannel(BaseChannel):
                 return
 
     def echo(self, arg1, sleep=0.0):
-        """echo(arg1, sleep=0.0)
-
-        Default procedure that can be used for testing. It returns
+        """Default procedure that can be used for testing. It returns
         a tuple (first_arg, context_id)
-
         """
         time.sleep(sleep)
         return arg1, hex(self._context.id)
@@ -875,11 +795,7 @@ class ThreadForReqChannel(threading.Thread):
             self.daemon = True
 
     def run(self):
-        """run()
-
-        The handler's main loop.
-
-        """
+        """The handler's main loop."""
 
         # Get ref to channel. Remove ref from instance
         channel = self._channel

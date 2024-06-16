@@ -14,18 +14,14 @@ tool_summary = pyzo.translate(
 
 
 def splitName(name):
-    """splitName(name)
-    Split an object name in parts, taking dots and indexing into account.
-    """
+    """Split an object name in parts, taking dots and indexing into account."""
     name = name.replace("[", ".[")
     parts = name.split(".")
     return [p for p in parts if p]
 
 
 def joinName(parts):
-    """joinName(parts)
-    Join the parts of an object name, taking dots and indexing into account.
-    """
+    """Join the parts of an object name, taking dots and indexing into account."""
     name = ".".join(parts)
     return name.replace(".[", "[")
 
@@ -58,17 +54,13 @@ class WorkspaceProxy(QtCore.QObject):
         self.onCurrentShellStateChanged()
 
     def addNamePart(self, part):
-        """addNamePart(part)
-        Add a part to the name.
-        """
+        """Add a part to the name."""
         parts = splitName(self._name)
         parts.append(part)
         self.setName(joinName(parts))
 
     def setName(self, name):
-        """setName(name)
-        Set the name that we want to know more of.
-        """
+        """Set the name that we want to know more of."""
         self._name = name
 
         shell = pyzo.shells.getCurrentShell()
@@ -77,17 +69,14 @@ class WorkspaceProxy(QtCore.QObject):
             future.add_done_callback(self.processResponse)
 
     def goUp(self):
-        """goUp()
-        Cut the last part off the name.
-        """
+        """Cut the last part off the name."""
         parts = splitName(self._name)
         if parts:
             parts.pop()
         self.setName(joinName(parts))
 
     def onCurrentShellChanged(self):
-        """onCurrentShellChanged()
-        When no shell is selected now, update this. In all other cases,
+        """When no shell is selected now, update this. In all other cases,
         the onCurrentShellStateChange will be fired too.
         """
         shell = pyzo.shells.getCurrentShell()
@@ -96,9 +85,7 @@ class WorkspaceProxy(QtCore.QObject):
             self.haveNewData.emit()
 
     def onCurrentShellStateChanged(self):
-        """onCurrentShellStateChanged()
-        Do a request for information!
-        """
+        """Do a request for information!"""
         shell = pyzo.shells.getCurrentShell()
         if not shell:
             # Should never happen I think, but just to be sure
@@ -108,9 +95,7 @@ class WorkspaceProxy(QtCore.QObject):
             future.add_done_callback(self.processResponse)
 
     def processResponse(self, future):
-        """processResponse(response)
-        We got a response, update our list and notify the tree.
-        """
+        """We got a response, update our list and notify the tree."""
 
         response = []
 
@@ -196,9 +181,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         super().keyPressEvent(event)
 
     def contextMenuEvent(self, event):
-        """contextMenuEvent(event)
-        Show the context menu.
-        """
+        """Show the context menu."""
 
         QtWidgets.QTreeView.contextMenuEvent(self, event)
 
@@ -226,9 +209,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         self._menu.popup(QtGui.QCursor.pos() + QtCore.QPoint(3, 3))
 
     def contextMenuTriggered(self, action):
-        """contextMenuTriggered(action)
-        Process a request from the context menu.
-        """
+        """Process a request from the context menu."""
 
         # Get text
         req = action._what.lower()
@@ -253,15 +234,11 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             shell.processLine("del " + objectName)
 
     def onItemExpand(self, item):
-        """onItemExpand(item)
-        Inspect the attributes of that item.
-        """
+        """Inspect the attributes of that item."""
         self._proxy.addNamePart(item.text(0))
 
     def fillWorkspace(self):
-        """fillWorkspace()
-        Update the workspace tree.
-        """
+        """Update the workspace tree."""
 
         # Clear first
         self.clear()

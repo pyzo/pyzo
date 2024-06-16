@@ -271,7 +271,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pyzo.config.state.windowState = state
 
     def restoreGeometry(self, value=None):
-        # Restore window position and whether it is maximized
+        """Restore window position and whether it is maximized"""
 
         if value is not None:
             return super().restoreGeometry(value)
@@ -286,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 print("Could not restore window geometry: " + str(err))
 
     def restoreState(self, value=None):
-        # Restore layout of dock widgets and toolbars
+        """Restore layout of dock widgets and toolbars"""
 
         if value is not None:
             return super().restoreState(value)
@@ -310,7 +310,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if stylename is None:
             # Initialize
 
-            # Get native pallette (used below)
+            # Get native palette (used below)
             QtWidgets.qApp.nativePalette = QtWidgets.qApp.palette()
 
             # Obtain default style name
@@ -469,9 +469,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def loadAppIcons():
-    """loadAppIcons()
-    Load the application iconsr.
-    """
+    """Load the application icons."""
     # Get directory containing the icons
     appiconDir = os.path.join(pyzo.pyzoDir, "resources", "appicons")
 
@@ -510,9 +508,7 @@ def loadAppIcons():
 
 
 def loadIcons():
-    """loadIcons()
-    Load all icons in the icon dir.
-    """
+    """Load all icons in the icon dir."""
     # Get directory containing the icons
     iconDir = os.path.join(pyzo.pyzoDir, "resources", "icons")
 
@@ -541,9 +537,7 @@ def loadIcons():
 
 
 def loadFonts():
-    """loadFonts()
-    Load all fonts that come with Pyzo.
-    """
+    """Load all fonts that come with Pyzo."""
     import pyzo.codeeditor  # we need pyzo and codeeditor namespace here
 
     # Get directory containing the icons
@@ -591,9 +585,7 @@ class _CallbackEventHandler(QtCore.QObject):
 
 
 def callLater(callback, *args):
-    """callLater(callback, *args)
-    Post a callback to be called in the main thread.
-    """
+    """Post a callback to be called in the main thread."""
     _callbackEventHandler.postEventWithCallback(callback, *args)
 
 

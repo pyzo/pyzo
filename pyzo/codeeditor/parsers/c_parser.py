@@ -62,10 +62,7 @@ class CParser(Parser):
     _keywords = ["int", "const", "char", "void", "short", "long", "case"]
 
     def parseLine(self, line, previousState=0):
-        """parseLine(line, previousState=0)
-
-        Parses a line of C code, returning a list of tokens.
-        """
+        """Parses a line of C code, returning a list of tokens."""
 
         pos = 0  # Position following the previous match
 
@@ -155,11 +152,7 @@ class CParser(Parser):
                 return [UnterminatedStringToken(line, token.start, len(line))]
 
     def _findNextToken(self, line, pos):
-        """_findNextToken(line, pos):
-
-        Returns a token or None if no new tokens can be found.
-
-        """
+        """Returns a token or None if no new tokens can be found."""
 
         # Init tokens, if positing too large, stop now
         if pos > len(line):

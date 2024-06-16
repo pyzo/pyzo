@@ -110,9 +110,9 @@ class TabData:
 
 
 class CompactTabBar(QtWidgets.QTabBar):
-    """CompactTabBar(parent, *args, padding=(4,4,6,6), preventEqualTexts=True)
+    """CompactTabBar(parent, *args, padding=(4, 4, 6, 6), preventEqualTexts=True)
 
-    Tab bar corresponcing to the CompactTabWidget.
+    Tab bar corresponding to the CompactTabWidget.
 
     With the "padding" argument the padding of the tabs can be chosen.
     It should be an integer, or a 4 element tuple specifying the padding
@@ -189,11 +189,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         self._alignTimer.timeout.connect(self._alignRecursive)
 
     def _compactTabBarData(self, i):
-        """_compactTabBarData(i)
-
-        Get the underlying tab data for tab i. Only for internal use.
-
-        """
+        """Get the underlying tab data for tab i. Only for internal use."""
 
         # Get current TabData instance
         tabData = super().tabData(i)
@@ -229,11 +225,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         super().mousePressEvent(event)
 
     def setTabData(self, i, data):
-        """setTabData(i, data)
-
-        Set the given object at the tab with index 1.
-
-        """
+        """set the given object at the tab with index i"""
         # Get underlying python instance
         tabData = self._compactTabBarData(i)
 
@@ -241,11 +233,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         tabData.data = data
 
     def tabData(self, i):
-        """tabData(i)
-
-        Get the tab data at item i. Always returns a Python object.
-
-        """
+        """get the tab data at item i. Always returns a Python object"""
 
         # Get underlying python instance
         tabData = self._compactTabBarData(i)
@@ -254,22 +242,14 @@ class CompactTabBar(QtWidgets.QTabBar):
         return tabData.data
 
     def setTabText(self, i, text):
-        """setTabText(i, text)
-
-        Set the text for tab i.
-
-        """
+        """set the text for tab i."""
         tabData = self._compactTabBarData(i)
         if text != tabData.name:
             tabData.name = text
             self.alignTabs()
 
     def tabText(self, i):
-        """tabText(i)
-
-        Get the title of the tab at index i.
-
-        """
+        """get the title of the tab at index i"""
         tabData = self._compactTabBarData(i)
         return tabData.name
 
@@ -305,12 +285,11 @@ class CompactTabBar(QtWidgets.QTabBar):
     ## For aligning
 
     def alignTabs(self):
-        """alignTabs()
+        """Align the tab items.
 
-        Align the tab items. Their names are ellided if required so that
+        Their names are ellided if required so that
         all tabs fit on the tab bar if possible. When there is too little
         space, the QTabBar will kick in and draw scroll arrows.
-
         """
 
         # Set name widths correct (in case new names were added)
@@ -321,11 +300,9 @@ class CompactTabBar(QtWidgets.QTabBar):
         self._alignTimer.start()
 
     def _alignRecursive(self):
-        """_alignRecursive()
+        """Recursive alignment of the items.
 
-        Recursive alignment of the items. The alignment process
-        should be initiated from alignTabs().
-
+        The alignment process should be initiated from alignTabs().
         """
 
         # Only if visible
@@ -383,19 +360,13 @@ class CompactTabBar(QtWidgets.QTabBar):
             pass  # margin is good
 
     def _getAllNames(self):
-        """_getAllNames()
-
-        Get a list of all (full) tab names.
-
-        """
+        """get a list of all (full) tab names"""
         return [self._compactTabBarData(i).name for i in range(self.count())]
 
     def _setMaxWidthOfAllItems(self):
-        """_setMaxWidthOfAllItems()
+        """sets the maximum width of all items now, by eliding the names
 
-        Sets the maximum width of all items now, by eliding the names.
         Returns whether any items were elided.
-
         """
 
         # Get whether an item was reduced in size
@@ -408,8 +379,8 @@ class CompactTabBar(QtWidgets.QTabBar):
             # Get name
             name = self._compactTabBarData(i).name
 
-            # If its too long, first make it shorter by stripping dir names
-            if (w + 1) < len(name) and "/" in name:
+            # If it's too long, first make it shorter by stripping dir names
+            if w + 1 < len(name) and "/" in name:
                 name = name.split("/")[-1]
 
             # Check if we can reduce the name size, correct w if necessary
@@ -427,7 +398,7 @@ class CompactTabBar(QtWidgets.QTabBar):
                     hasSimilarNames = len(similarnames) > 1
 
             # Check again, with corrected w
-            if (w + 1) < len(name):
+            if w + 1 < len(name):
                 name = name[:w] + ELLIPSIS
                 itemReduced = True
 
@@ -448,7 +419,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
     Further much care is taken to ellide the names in a smart way:
       * All items are allowed the same amount of characters instead of
         that the same amount of characters is removed from all names.
-      * If there are two item with the same beginning, it is made
+      * If there are two items with the same beginning, it is made
         sure that enough characters are shown such that the names
         can be distinguished.
 
@@ -468,35 +439,19 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         self.setTabPosition(QtWidgets.QTabWidget.North)
 
     def setTabData(self, i, data):
-        """setTabData(i, data)
-
-        Set the given object at the tab with index 1.
-
-        """
+        """set the given object at the tab with index i"""
         self.tabBar().setTabData(i, data)
 
     def tabData(self, i):
-        """tabData(i)
-
-        Get the tab data at item i. Always returns a Python object.
-
-        """
+        """get the tab data at item i. Always returns a Python object"""
         return self.tabBar().tabData(i)
 
     def setTabText(self, i, text):
-        """setTabText(i, text)
-
-        Set the text for tab i.
-
-        """
+        """set the text for tab i"""
         self.tabBar().setTabText(i, text)
 
     def tabText(self, i):
-        """tabText(i)
-
-        Get the title of the tab at index i.
-
-        """
+        """get the title of the tab at index i"""
         return self.tabBar().tabText(i)
 
 

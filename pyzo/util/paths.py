@@ -8,9 +8,7 @@ from pyzo.qt import QtCore
 
 
 def is_frozen():
-    """is_frozen()
-    Return whether this app is a frozen application (using e.g. cx_freeze).
-    """
+    """Return whether this app is a frozen application (using e.g. cx_freeze)."""
     return bool(getattr(sys, "frozen", None))
 
 

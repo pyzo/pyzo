@@ -251,7 +251,7 @@ class PyzoInterpreter:
             builtins = __builtins__
         if not isinstance(builtins, dict):
             builtins = builtins.__dict__
-        startup_info["builtins"] = [builtin for builtin in builtins.keys()]
+        startup_info["builtins"] = list(builtins)
         startup_info["version"] = tuple(sys.version_info)
         startup_info["keywords"] = keyword.kwlist
         # Update startup info, we update again at the end of this method

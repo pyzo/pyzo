@@ -22,11 +22,9 @@ class PyzoIntrospector(yoton.RepChannel):
     """
 
     def _getNameSpace(self, name=""):
-        """_getNameSpace(name='')
+        """Get the namespace to apply introspection in.
 
-        Get the namespace to apply introspection in.
         If name is given, will find that name. For example sys.stdin.
-
         """
 
         # Get namespace
@@ -71,13 +69,11 @@ class PyzoIntrospector(yoton.RepChannel):
                 return {}
 
     def _getSignature(self, objectName):
-        """_getSignature(objectName)
+        """Get the signature of builtin, function or method.
 
-        Get the signature of builtin, function or method.
         Returns a tuple (signature_string, kind), where kind is a string
         of one of the above. When none of the above, both elements in
         the tuple are an empty string.
-
         """
 
         # if a class, get init
@@ -204,11 +200,7 @@ class PyzoIntrospector(yoton.RepChannel):
 
     # todo: variant that also says whether it's a property/function/class/other
     def dir(self, objectName):
-        """dir(objectName)
-
-        Get list of attributes for the given name.
-
-        """
+        """Get list of attributes for the given name."""
         # sys.__stdout__.write('handling '+objectName+'\n')
         # sys.__stdout__.flush()
 
@@ -250,11 +242,9 @@ class PyzoIntrospector(yoton.RepChannel):
         return list(names)
 
     def dir2(self, objectName):
-        """dir2(objectName)
+        """Get variable names in currently active namespace plus extra information.
 
-        Get variable names in currently active namespace plus extra information.
         Returns a list of tuple of strings: name, type, kind, repr.
-
         """
         try:
             name = ""
@@ -351,11 +341,7 @@ class PyzoIntrospector(yoton.RepChannel):
             return []
 
     def signature(self, objectName):
-        """signature(objectName)
-
-        Get signature.
-
-        """
+        """Get signature."""
         try:
             text, kind = self._getSignature(objectName)
             return text
@@ -363,11 +349,7 @@ class PyzoIntrospector(yoton.RepChannel):
             return None
 
     def doc(self, objectName):
-        """doc(objectName)
-
-        Get documentation for an object.
-
-        """
+        """Get documentation for an object."""
 
         # Get namespace
         NS = self._getNameSpace()
@@ -435,11 +417,7 @@ class PyzoIntrospector(yoton.RepChannel):
         return text
 
     def eval(self, command):
-        """eval(command)
-
-        Evaluate a command and return result.
-
-        """
+        """Evaluate a command and return result."""
 
         # Get namespace
         NS = self._getNameSpace()
@@ -451,10 +429,9 @@ class PyzoIntrospector(yoton.RepChannel):
             return "Error evaluating: " + command
 
     def interrupt(self, command=None, signum=signal.SIGINT):
-        """interrupt()
+        """Interrupt the main thread.
 
-        Interrupt the main thread. This does not work if the main thread
-        is running extension code.
+        This does not work if the main thread is running extension code.
 
         A bit of a hack to do this in the introspector, but it's the
         easiest way and prevents having to launch another thread just

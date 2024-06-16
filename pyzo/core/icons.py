@@ -34,9 +34,7 @@ class IconArtist:
         self._painter.begin(self._pm)
 
     def finish(self, icon=None):
-        """finish()
-        Finish the drawing and return the resulting icon.
-        """
+        """Finish the drawing and return the resulting icon."""
         self._painter.end()
         return QtGui.QIcon(self._pm)
 
@@ -66,8 +64,7 @@ class IconArtist:
         return QtGui.QColor(*color) if isinstance(color, tuple) else QtGui.QColor(color)
 
     def setPenColor(self, color):
-        """setPenColor(color)
-        Set the color of the pen. Color can be anything that can be passed to
+        """Set the color of the pen. Color can be anything that can be passed to
         Qcolor().
         """
         pen = QtGui.QPen()
@@ -75,44 +72,32 @@ class IconArtist:
         self._painter.setPen(pen)
 
     def setBrushColor(self, *color):
-        """setBrushColor(color)
-        Set the color of the brush. Color can be anything that can be passed to
+        """Set the color of the brush. Color can be anything that can be passed to
         Qcolor().
         """
         brush = QtGui.QBrush(self._toQColor(color), QtCore.Qt.SolidPattern)
         self._painter.setBrush(brush)
 
     def addLayer(self, overlay, x=0, y=0):
-        """addOverlay(overlay, x=0, y=0)
-        Add an overlay icon to the icon (add the specified position).
-        """
+        """Add an overlay icon to the icon (add the specified position)."""
         pm = self._getPixmap(overlay)
         self._painter.drawPixmap(x, y, pm)
 
     def addPolygon(self, pointList):
-        """addPolygon(pointList)
-        Add a filled polygon to the icon.
-        """
+        """Add a filled polygon to the icon."""
         poly = QtGui.QPolygon([QtCore.QPoint(x, y) for x, y in pointList])
         self._painter.drawPolygon(poly, QtCore.Qt.OddEvenFill)
 
     def addLine(self, x1, y1, x2, y2):
-        """addLine( x1, y1, x2, y2)
-        Add a line to the icon.
-        """
+        """Add a line to the icon."""
         self._painter.drawLine(x1, y1, x2, y2)
 
     def addPoint(self, x, y):
-        """addPoint( x, y)
-        Add a point to the icon.
-        """
+        """Add a point to the icon."""
         self._painter.drawPoint(x, y)
 
     def addMenuArrow(self, strength=100):
-        """addMenuArrow()
-        Adds a menu arrow to the icon to let the user know the icon
-        is clickable.
-        """
+        """Adds a menu arrow to the icon to let the user know the icon is clickable."""
         if self._wh != 16:
             raise NotImplementedError()
         x, y = 0, 12
@@ -365,10 +350,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
     def _isOverCross(self, pos):
         x1, x2 = self.CROSS_OFFSET[0], self.CROSS_OFFSET[0] + 5 + 1
         y1, y2 = self.CROSS_OFFSET[1], self.CROSS_OFFSET[1] + 5 + 1
-        if pos.x() >= x1 and pos.x() <= x2 and pos.y() >= y1 and pos.y() <= y2:
-            return True
-        else:
-            return False
+        return x1 <= pos.x() <= x2 and y1 <= pos.y() <= y2
 
     def mousePressEvent(self, event):
         if self._isOverCross(event.pos()):
@@ -625,9 +607,7 @@ class ShellIconMaker:
         return artist.finish().pixmap(16, 16)
 
     def updateIcon(self, status="Ready"):
-        """updateIcon(status)
-        Public method to set what state the icon must show.
-        """
+        """Public method to set what state the icon must show."""
 
         # Normalize and store
         if isinstance(status, str):
@@ -671,8 +651,7 @@ class ShellIconMaker:
         return int(index)
 
     def onTimer(self):
-        """onTimer()
-        Invoked on each timer iteration. Will call the static drawing
+        """Invoked on each timer iteration. Will call the static drawing
         methods if in level 0. Otherwise will invoke drawInMotion().
         This method also checks if we should change levels and calculates
         how this is best achieved.
@@ -704,32 +683,25 @@ class ShellIconMaker:
             self._nextIndex()
 
     def drawReady(self):
-        """drawReady()
-        Draw static icon for when in ready mode.
-        """
+        """Draw static icon for when in ready mode."""
         artist = IconArtist("application")
         artist.addLayer(self._blob, *self.POSITION)
         self.setIcon(artist.finish())
 
     def drawDebug(self):
-        """drawDebug()
-        Draw static icon for when in debug mode.
-        """
+        """Draw static icon for when in debug mode."""
         artist = IconArtist("application")
         artist.addLayer(self._blob, *self.POSITION)
         artist.addLayer(self._legs)
         self.setIcon(artist.finish())
 
     def drawDead(self):
-        """drawDead()
-        Draw static empty icon for when the kernel is dead.
-        """
+        """Draw static empty icon for when the kernel is dead."""
         artist = IconArtist("application")
         self.setIcon(artist.finish())
 
     def drawInMotion(self):
-        """drawInMotion()
-        Draw one frame of the icon in motion. Position of the blobs
+        """Draw one frame of the icon in motion. Position of the blobs
         is determined from the index and the list of locations.
         """
 

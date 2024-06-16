@@ -238,8 +238,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
         self.updateHorizontalHeaderLabels()
 
     def parseColumnNames(self, row):
-        """
-        Use the data in the given row to create column names. First, try the
+        """Use the data in the given row to create column names. First, try the
         data in the data columns. If these are all empty, use the comments
         column, split by the given delimiter.
 
@@ -301,8 +300,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
         return names
 
     def selectedColumns(self):
-        """
-        Returns a tuple of the columns that are selected, or None if no columns
+        """Returns a tuple of the columns that are selected, or None if no columns
         are selected
         """
         selected = []

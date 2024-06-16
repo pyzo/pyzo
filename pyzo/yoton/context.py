@@ -134,8 +134,8 @@ class Context(object):
         """
 
         # Get all channels
-        channels1 = [c for c in self._sending_channels.values()]
-        channels2 = [c for c in self._receiving_channels.values()]
+        channels1 = list(self._sending_channels.values())
+        channels2 = list(self._receiving_channels.values())
 
         # Close all channels
         for c in set(channels1 + channels2):
@@ -407,7 +407,7 @@ class Context(object):
 
         """
         for D in [self._receiving_channels, self._sending_channels]:
-            for key in [key for key in D.keys()]:
+            for key in list(D.keys()):
                 if D[key] == channel:
                     D.pop(key)
 

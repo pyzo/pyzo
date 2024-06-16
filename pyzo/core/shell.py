@@ -77,11 +77,8 @@ pyzo.localKernelManager = Kernelmanager(public=False)
 
 
 def finishKernelInfo(info, scriptFile=None):
-    """finishKernelInfo(info, scriptFile=None)
-
-    Get a copy of the kernel info struct, with the scriptFile
+    """Get a copy of the kernel info struct, with the scriptFile
     and the projectPath set.
-
     """
 
     # Make a copy, we do not want to change the original
@@ -288,8 +285,7 @@ class BaseShell(BaseTextCtrl):
             self.setReadOnly(False)
 
     def ensureCursorAtEditLine(self):
-        """
-        If the text cursor is before the beginning of the edit line,
+        """If the text cursor is before the beginning of the edit line,
         move it to the end of the edit line
         """
         cursor = self.textCursor()
@@ -540,7 +536,8 @@ class BaseShell(BaseTextCtrl):
 
     def cut(self):
         """Reimplement cut to only copy if part of the selected text
-        is not at the prompt."""
+        is not at the prompt.
+        """
 
         if self.isReadOnly():
             return self.copy()
@@ -551,15 +548,14 @@ class BaseShell(BaseTextCtrl):
 
     def paste(self):
         """Reimplement paste to paste at the end of the edit line when
-        the position is at the prompt."""
+        the position is at the prompt.
+        """
         self.ensureCursorAtEditLine()
         # Paste normally
         return super().paste()
 
     def dragEnterEvent(self, event):
-        """
-        We only support copying of the text
-        """
+        """We only support copying of the text"""
         if event.mimeData().hasText():
             event.setDropAction(QtCore.Qt.CopyAction)
             event.accept()
@@ -568,8 +564,7 @@ class BaseShell(BaseTextCtrl):
         self.dragEnterEvent(event)
 
     def dropEvent(self, event):
-        """
-        The shell supports only a single line but the text may contain multiple
+        """The shell supports only a single line but the text may contain multiple
         lines. We insert at the editLine only the first non-empty line of the text
         """
         if event.mimeData().hasText():
@@ -635,13 +630,11 @@ class BaseShell(BaseTextCtrl):
         return n, text2
 
     def _handleBackspacesOnList(self, texts):
-        """_handleBackspacesOnList(texts)
+        """Handle backspaces on a list of messages.
 
-        Handle backspaces on a list of messages. When printing
-        progress, many messages will simply replace each-other, which
-        means we can process them much more effectively than when they're
+        When printing progress, many messages will simply replace each-other,
+        which means we can process them much more effectively than when they're
         combined in a list.
-
         """
         # Init number of backspaces at the start
         N = 0
@@ -756,16 +749,13 @@ class BaseShell(BaseTextCtrl):
                 yield line
 
     def write(self, text, prompt=0, color=None):
-        """write(text, prompt=0, color=None)
-
-        Write to the shell. Fauto-ind
+        """Write to the shell.
 
         If prompt is 0 (default) the text is printed before the prompt. If
         prompt is 1, the text is printed after the prompt, the new prompt
         becomes null. If prompt is 2, the given text becomes the new prompt.
 
         The color of the text can also be specified (as a hex-string).
-
         """
 
         # From The Qt docs: Note that a cursor always moves when text is
@@ -924,9 +914,8 @@ class BaseShell(BaseTextCtrl):
     ## Executing stuff
 
     def processLine(self, line=None, execute=True):
-        """processLine(self, line=None, execute=True)
+        """Process the given line or the current line at the prompt if not given.
 
-        Process the given line or the current line at the prompt if not given.
         Called when the user presses enter.
 
         If execute is False will not execute the command. This way
@@ -1058,11 +1047,7 @@ class PythonShell(BaseShell):
         self.stateChanged.emit(self)
 
     def connectToKernel(self, info):
-        """connectToKernel()
-
-        Create kernel and connect to it.
-
-        """
+        """Create kernel and connect to it."""
 
         # Create yoton context
         self._context = ct = yoton.Context()
@@ -1139,8 +1124,7 @@ class PythonShell(BaseShell):
                 self.setParser("python2")
             else:
                 self.setParser("python3")
-            version = [str(v) for v in version]
-            self._version = ".".join(version[:2])
+            self._version = "{}.{}".format(*version[:2])
 
         # Set keywords
         L = startup_info.get("keywords", None)
@@ -1237,7 +1221,7 @@ class PythonShell(BaseShell):
 
         # Process future
         if future.cancelled():
-            # print('Introspect cancelled') # No living kernel
+            # print('Introspect cancelled')  # No living kernel
             return
         elif future.exception():
             print("Introspect-exception: ", future.exception())
@@ -1291,9 +1275,7 @@ class PythonShell(BaseShell):
     ## Methods for executing code
 
     def executeCommand(self, text):
-        """executeCommand(text)
-        Execute one-line command in the remote Python session.
-        """
+        """Execute one-line command in the remote Python session."""
 
         # Ensure edit line is selected (to reset scrolling to end)
         self.ensureCursorAtEditLine()
@@ -1301,8 +1283,8 @@ class PythonShell(BaseShell):
         self._ctrl_command.send(text)
 
     def executeCode(self, text, fname, lineno=None, cellName=None, changeDir=False):
-        """executeCode(text, fname, lineno, cellName=None)
-        Execute (run) a large piece of code in the remote shell.
+        """Execute (run) a large piece of code in the remote shell.
+
         text: the source code to execute
         filename: the file from which the source comes
         lineno: the first lineno of the text in the file, where 0 would be
@@ -1381,10 +1363,7 @@ class PythonShell(BaseShell):
     ## The polling methods and terminating methods
 
     def poll(self, channel=None):
-        """poll()
-        To keep the shell up-to-date.
-        Call this periodically.
-        """
+        """To keep the shell up-to-date. Call this periodically."""
         idle = True
 
         if self._write_buffer:
@@ -1486,27 +1465,22 @@ class PythonShell(BaseShell):
             self.debugStateChanged.emit(self)
 
     def interrupt(self):
-        """interrupt()
-        Send a Keyboard interrupt signal to the main thread of the
-        remote process.
-        """
+        """Send a Keyboard interrupt signal to the main thread of the remote process."""
         # Ensure edit line is selected (to reset scrolling to end)
         self.ensureCursorAtEditLine()
 
         self._ctrl_broker.send("INT")
 
     def pause(self):
-        """interrupt()
-        Send a pause signal to the main thread of the remote process.
-        """
+        """Send a pause signal to the main thread of the remote process."""
         # Ensure edit line is selected (to reset scrolling to end)
         self.ensureCursorAtEditLine()
 
         self._ctrl_broker.send("PAUSE")
 
     def restart(self, scriptFile=None):
-        """restart(scriptFile=None)
-        Terminate the shell, after which it is restarted.
+        """Terminate the shell, after which it is restarted.
+
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
@@ -1525,11 +1499,11 @@ class PythonShell(BaseShell):
         self.resetVariables()
 
     def terminate(self):
-        """terminate()
-        Terminates the python process. It will first try gently, but
-        if that does not work, the process shall be killed.
-        To be notified of the termination, connect to the "terminated"
-        signal of the shell.
+        """Terminates the python process.
+
+        It will first try gently, but if that does not work, the process
+        shall be killed. To be notified of the termination, connect to the
+        "terminated" signal of the shell.
         """
         # Ensure edit line is selected (to reset scrolling to end)
         self.ensureCursorAtEditLine()
@@ -1537,10 +1511,9 @@ class PythonShell(BaseShell):
         self._ctrl_broker.send("TERM")
 
     def closeShell(self):  # do not call it close(); that is a reserved method.
-        """closeShell()
+        """This closes the shell.
 
-        Very simple. This closes the shell. If possible, we will first
-        tell the broker to terminate the kernel.
+        If possible, we will first tell the broker to terminate the kernel.
 
         The broker will be cleaned up if there are no clients connected
         and if there is no active kernel. In a multi-user environment,
@@ -1551,7 +1524,6 @@ class PythonShell(BaseShell):
         In both cases however, it is the responsibility of the broker to
         terminate the kernel, and the shell will simply assume that this
         will work :)
-
         """
 
         pyzo.editors.breakPointsChanged.disconnect(self.sendBreakPoints)
@@ -1567,6 +1539,7 @@ class PythonShell(BaseShell):
 
     def _onConnectionClose(self, c, why):
         """To be called after disconnecting.
+
         In general, the broker will not close the connection, so it can
         be considered an error-state if this function is called.
         """

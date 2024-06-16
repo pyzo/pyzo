@@ -68,8 +68,7 @@ class AutoCompletion:
 
     ## Properties
     def recentCompletionsList(self):
-        """
-        The list of recent auto-completions. This property may be set to a
+        """The list of recent auto-completions. This property may be set to a
         list that is shared among several editors, in order to share the notion
         of recent auto-completions
         """
@@ -93,27 +92,20 @@ class AutoCompletion:
     ## Autocompletion
 
     def setAutocompletPopupSize(self, width, height):
-        """
-        Set the size (width, heigth) of the automcompletion popup window.
-        """
+        """Set the size (width, heigth) of the automcompletion popup window."""
         self.__popupSize = width, height
 
     def setAutocompleteCaseSensitive(self, b):
-        """
-        Set the case sensitivity for autocompletion.
-        """
+        """Set the case sensitivity for autocompletion."""
         cs = Qt.CaseSensitive if b else Qt.CaseInsensitive
         self.__completer.setCaseSensitivity(cs)
 
     def setAutocompleteMinChars(self, n):
-        """
-        Set the number of chars where we show the popup.
-        """
+        """Set the number of chars where we show the popup."""
         self.__autocompleteMinChars = n
 
     def autocompleteShow(self, offset=0, names=None, fromObject=False):
-        """
-        Pop-up the autocompleter (if not already visible) and position it at current
+        """Pop-up the autocompleter (if not already visible) and position it at current
         cursor position minus offset. If names is given and not None, it is set
         as the list of possible completions.
         """
@@ -219,8 +211,7 @@ class AutoCompletion:
         self.__completer.popup().move(global_position)
 
     def __updateAutocompleterPrefix(self):
-        """
-        Find the autocompletion prefix (the part of the word that has been
+        """Find the autocompletion prefix (the part of the word that has been
         entered) and send it to the completer. Update the selected completion
         (out of several possiblilties) which is best suited
         """
@@ -287,8 +278,8 @@ class AutoCompletion:
                 return False
 
     def potentiallyAutoComplete(self, event):
-        """potentiallyAutoComplete(event)
-        Given a keyEvent, check if we should perform an autocompletion.
+        """Given a keyEvent, check if we should perform an autocompletion.
+
         Returns 0 if no autocompletion was performed. Return 1 if
         autocompletion was performed, but the key event should be processed
         as normal. Return 2 if the autocompletion was performed, and the key

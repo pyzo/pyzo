@@ -27,12 +27,9 @@ class SExprParser(Parser):
     _keywords = []  # can be overloaded
 
     def parseLine(self, line, comment_level=0):
-        """parseLine(line, comment_level=0)
-
-        Parse a line of code, returning a list of tokens.
+        """Parse a line of code, returning a list of tokens.
         previousstate is the state of the previous block, and is used
         to handle line continuation and multiline strings.
-
         """
 
         if comment_level < 0:

@@ -76,11 +76,7 @@ class _CallbackEventHandler(QtCore.QObject):
 
 
 def callLater(callback, *args):
-    """callLater(callback, *args)
-
-    Post a callback to be called in the main thread.
-
-    """
+    """Post a callback to be called in the main thread."""
     _callbackEventHandler.postEventWithCallback(callback, *args)
 
 

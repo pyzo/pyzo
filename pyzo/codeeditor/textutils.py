@@ -45,7 +45,7 @@ class TextReshaper:
         except StopIteration:
             self._flush()
 
-        return [line for line in self._lines2]
+        return self._lines2[:]
 
     def popText(self):
         """Get all text from the output (i.e. lines joined with newline)."""

@@ -16,8 +16,6 @@ import re, codecs
 
 from pyzo.qt import QtCore, QtGui, QtWidgets
 
-qt = QtGui
-
 from pyzo.codeeditor import Manager
 from pyzo.core.menu import EditorContextMenu
 from pyzo.core.baseTextCtrl import BaseTextCtrl, normalizePath
@@ -198,7 +196,6 @@ def createEditor(parent, filename=None):
         # load file (as bytes)
         with open(filename, "rb") as f:
             bb = f.read()
-            f.close()
 
         # convert to text, be gentle with files not encoded with utf-8
         encoding = determineEncoding(bb)
@@ -250,7 +247,7 @@ class PyzoEditor(BaseTextCtrl):
     # called when dirty changed or filename changed, etc
     somethingChanged = QtCore.Signal()
 
-    def __repr__(self):  # just for easier debugging
+    def __repr__(self):
         return "<{} - {}, {}>".format(self.__class__.__qualname__, id(self), self.name)
 
     def __init__(self, parent, **kwds):
@@ -309,8 +306,9 @@ class PyzoEditor(BaseTextCtrl):
 
     @property
     def lineEndings(self):
-        """
-        Line-endings style of this file. Setter accepts machine-readable (e.g. '\r') and human-readable (e.g. 'CR') input
+        """Line-endings style of this file.
+
+        Setter accepts machine-readable (e.g. '\r') and human-readable (e.g. 'CR') input
         """
         return self._lineEndings
 
@@ -326,9 +324,7 @@ class PyzoEditor(BaseTextCtrl):
 
     @property
     def lineEndingsHumanReadable(self):
-        """
-        Current line-endings style, human readable (e.g. 'CR')
-        """
+        """Current line-endings style, human readable (e.g. 'CR')"""
         return {"\r": "CR", "\n": "LF", "\r\n": "CRLF"}[self.lineEndings]
 
     @property
@@ -356,9 +352,7 @@ class PyzoEditor(BaseTextCtrl):
         super().justifyText(pyzo.config.settings.justificationWidth)
 
     def showRunCursor(self, cursor):
-        """
-        Momentarily highlight a piece of code to show that this is being executed
-        """
+        """Momentarily highlight a piece of code to show that this is being executed"""
 
         extraSelection = QtWidgets.QTextEdit.ExtraSelection()
         extraSelection.cursor = cursor
@@ -368,8 +362,7 @@ class PyzoEditor(BaseTextCtrl):
         self._showRunCursorTimer.singleShot(200, lambda: self.setExtraSelections([]))
 
     def id(self):
-        """Get an id of this editor. This is the filename,
-        or for tmp files, the name."""
+        """Get an id of this editor. This is the filename, or for tmp files, the name."""
         if self._filename:
             return self._filename
         else:
@@ -381,8 +374,7 @@ class PyzoEditor(BaseTextCtrl):
         return super().focusInEvent(event)
 
     def testWhetherFileWasChanged(self):
-        """testWhetherFileWasChanged()
-        Test to see whether the file was changed outside our backs,
+        """Test to see whether the file was changed outside our backs,
         and let the user decide what to do.
         Returns True if it was changed.
         """
@@ -476,13 +468,8 @@ class PyzoEditor(BaseTextCtrl):
 
     def setTitleInMainWindow(self):
         """set the title text in the main window to show filename."""
-
-        # compose title
         name, path = self._name, self._filename
-        if path:
-            pyzo.main.setMainTitle(path)
-        else:
-            pyzo.main.setMainTitle(name)
+        pyzo.main.setMainTitle(path or name)
 
     def save(self, filename=None):
         """Save the file. No checking is done."""
@@ -535,8 +522,7 @@ class PyzoEditor(BaseTextCtrl):
                 editCursor.endEditBlock()
 
         # Get text and convert line endings
-        text = self.toPlainText()
-        text = text.replace("\n", self.lineEndings)
+        text = self.toPlainText().replace("\n", self.lineEndings)
 
         # Make bytes
         bb = text.encode(self.encoding)
@@ -679,8 +665,7 @@ class PyzoEditor(BaseTextCtrl):
 
     def toggleCommentCode(self):
         def toggleComment():
-            """
-            Toggles comments for the seclected text in editor, most of the code is
+            """Toggles comments for the seclected text in editor, most of the code is
             taken from commentCode and uncommentCode
             """
             text_block = []
@@ -694,8 +679,7 @@ class PyzoEditor(BaseTextCtrl):
                 cursor.insertText("# ")
 
             def uncommentBlock(cursor):
-                """
-                Find the first # on the line; if there is just whitespace before it,
+                """Find the first # on the line; if there is just whitespace before it,
                 remove the # and if it is followed by a space remove the space, too
                 """
                 cursor.setPosition(cursor.block().position())
@@ -712,9 +696,7 @@ class PyzoEditor(BaseTextCtrl):
         toggleComment()
 
     def gotoDef(self):
-        """
-        Goto the definition for the word under the cursor
-        """
+        """Goto the definition for the word under the cursor"""
 
         # Get name of object to go to
         cursor = self.textCursor()

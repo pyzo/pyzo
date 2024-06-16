@@ -210,7 +210,7 @@ class Debugger(bdb.Bdb):
             )
 
     def do_clear(self, arg):
-        """ """
+        """ """  # this docstring is a single space on purpose
         # Clear breakpoints, we need to overload from Bdb,
         # but do not expose this command to the user.
         """cl(ear) filename:lineno\ncl(ear) [bpnumber [bpnumber...]]
@@ -316,10 +316,10 @@ class Debugger(bdb.Bdb):
                 "next",
                 "step",
                 "return",
+                "jump",
                 "continue",
                 "where",
                 "events",
-                "jump",
             ]:
                 doc = docs.pop(name)
                 name = name.rjust(10)

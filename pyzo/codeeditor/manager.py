@@ -85,11 +85,7 @@ class Manager:
 
     @classmethod
     def _collectParsers(cls):
-        """_collectParsers()
-
-        Collect all parser classes. This function is called on startup.
-
-        """
+        """Collect all parser classes. This function is called on startup."""
 
         # Prepare (use a set to prevent duplicates)
         foundParsers = set()
@@ -135,21 +131,15 @@ class Manager:
 
     @classmethod
     def getParserNames(cls):
-        """getParserNames()
-
-        Get a list of all available parsers.
-
-        """
+        """Get a list of all available parsers."""
         return list(cls._parserInstances.keys())
 
     @classmethod
     def getParserByName(cls, parserName):
-        """getParserByName(parserName)
+        """Get the parser object corresponding to the given name.
 
-        Get the parser object corresponding to the given name.
         If no parser is known by the given name, a warning message
         is printed and None is returned.
-
         """
         if not parserName:
             return parsers.Parser()  # Default dummy parser
@@ -167,14 +157,11 @@ class Manager:
 
     @classmethod
     def getStyleElementDescriptionsForAllParsers(cls):
-        """getStyleElementDescriptionsForAllParsers()
-
-        Get all style element descriptions corresponding to
+        """Get all style element descriptions corresponding to
         the tokens of all parsers.
 
         This function is used by the code editor to register all syntax
         element styles to the code editor class.
-
         """
         descriptions = {}
         for parser in cls._parserInstances.values():
@@ -188,9 +175,7 @@ class Manager:
 
     @classmethod
     def suggestParserfromFilenameExtension(cls, ext):
-        """suggestParserfromFilenameExtension(ext)
-
-        Given a filename extension, returns the name of the suggested
+        """Given a filename extension, returns the name of the suggested
         parser corresponding to the language of the file.
 
         See also registerFilenameExtension()
@@ -207,9 +192,7 @@ class Manager:
 
     @classmethod
     def suggestParserfromText(cls, text):
-        """suggestParserfromText(text)
-
-        Given a text, returns the name of the suggested
+        """Given a text, returns the name of the suggested
         parser corresponding to the language of the file.
 
         See also registerShebangKeyword()
@@ -237,9 +220,7 @@ class Manager:
 
     @classmethod
     def suggestParser(cls, ext, text):
-        """suggestParser(ext, text)
-
-        Given a filename extension and text, returns the name of the suggested
+        """Given a filename extension and text, returns the name of the suggested
         parser corresponding to the language of the file.
 
         See also registerFilenameExtension() and registerShebangKeyword()
@@ -252,9 +233,7 @@ class Manager:
 
     @classmethod
     def registerFilenameExtension(cls, ext, parser):
-        """registerFilenameExtension(ext, parser)
-
-        Registers the given filename extension to the given parser.
+        """Registers the given filename extension to the given parser.
         The parser can be a Parser instance or its name.
 
         This function can be used to register extensions to parsers
@@ -271,9 +250,7 @@ class Manager:
 
     @classmethod
     def registerShebangKeyword(cls, shebangKeyword, parser):
-        """registerShebangKeyword(shebangKeyword, parser)
-
-        Registers the given shebang keyword (interpreter) to the given parser.
+        """Registers the given shebang keyword (interpreter) to the given parser.
         The parser can be a Parser instance or its name.
 
         This function can be used to register shebang keywords to parsers
@@ -290,32 +267,21 @@ class Manager:
 
     @classmethod
     def fontNames(cls):
-        """fontNames()
-
-        Get a list of all monospace fonts available on this system.
-
-        """
+        """Get a list of all monospace fonts available on this system."""
         db = QtGui.QFontDatabase()
         return [fn for fn in db.families() if db.isFixedPitch(fn)]
 
     @classmethod
     def setDefaultFontFamily(cls, name):
-        """setDefaultFontFamily(name)
+        """Set the default (monospace) font family name for this system.
 
-        Set the default (monospace) font family name for this system.
         This should be set only once during startup.
-
         """
         cls._defaultFontFamily = name
 
     @classmethod
     def defaultFont(cls):
-        """defaultFont()
-
-        Get the default (monospace) font for this system. Returns a QFont
-        object.
-
-        """
+        """Get the default (monospace) font for this system. Returns a QFont object."""
 
         # Get font family
         f = QtGui.QFont(cls._defaultFontFamily)

@@ -84,9 +84,7 @@ class Token:
 
     @property
     def description(self):
-        """description()
-
-        Returns a StyleElementDescription instance that describes the
+        """Returns a StyleElementDescription instance that describes the
         style element that this token represents.
 
         """

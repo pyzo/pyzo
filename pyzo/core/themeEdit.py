@@ -278,7 +278,7 @@ class ThemeEditorWidget(QtWidgets.QWidget):
 
         # Basic theme I/O
 
-        curThemeLbl = QtWidgets.QLabel(text="Themes :")
+        curThemeLbl = QtWidgets.QLabel(text="Themes:")
 
         self.curThemeCmb = curThemeCmb = QtWidgets.QComboBox()
         current_index = -1

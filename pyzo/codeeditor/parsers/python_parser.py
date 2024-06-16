@@ -527,12 +527,9 @@ class PythonParser(Parser):
             return state
 
     def parseLine(self, line, previousState=0):
-        """parseLine(line, previousState=0)
-
-        Parse a line of Python code, returning a list of tokens.
+        """Parse a line of Python code, returning a list of tokens.
         previousState is the state of the previous block, and is used
         to handle line continuation and multiline strings.
-
         """
 
         # Init
@@ -685,9 +682,7 @@ class PythonParser(Parser):
         tokens[indMatchCase] = KeywordToken(t.line, t.start, t.end)
 
     def _findEndOfString(self, line, token):
-        """_findEndOfString(line, token)
-
-        Find the end of a string. Returns (token, endToken). The first
+        """Find the end of a string. Returns (token, endToken). The first
         is the given token or a replacement (UnterminatedStringToken).
         The latter is None, or the BlockState. If given, the line is
         finished.
@@ -727,11 +722,7 @@ class PythonParser(Parser):
                 return [UnterminatedStringToken(*tokenArgs)]
 
     def _findNextToken(self, line, pos):
-        """_findNextToken(line, pos):
-
-        Returns a token or None if no new tokens can be found.
-
-        """
+        """Returns a token or None if no new tokens can be found."""
 
         # Init tokens, if pos too large, we are done
         if pos > len(line):

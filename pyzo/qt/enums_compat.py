@@ -17,8 +17,7 @@ if PYQT6:
     from . import sip
 
     def promote_enums(module):
-        """
-        Search enums in the given module and allow unscoped access.
+        """Search enums in the given module and allow unscoped access.
 
         Taken from:
         https://github.com/pyqtgraph/pyqtgraph/blob/pyqtgraph-0.12.1/pyqtgraph/Qt.py#L331-L377

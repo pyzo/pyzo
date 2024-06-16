@@ -267,7 +267,7 @@ class ToolManager(QtCore.QObject):
             return None
 
         # Remove from sys.modules, to force the module to reload
-        for key in [key for key in sys.modules]:
+        for key in list(sys.modules):
             if key and key.startswith("pyzo.tools." + moduleName):
                 del sys.modules[key]
 
