@@ -232,7 +232,6 @@ class ShellStackWidget(QtWidgets.QWidget):
         return shells
 
     def getShellAt(self, i):
-        return
         """Get shell at current tab index"""
 
         return self._stack.widget(i)
