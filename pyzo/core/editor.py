@@ -639,19 +639,16 @@ class PyzoEditor(BaseTextCtrl):
             cursor.insertText("# ")
 
         self.doForSelectedBlocks(getIndent)
-        minindent = min(indents) if indents else 0
+        minindent = min(indents, default=0)
         self.doForSelectedBlocks(commentBlock)
 
     def uncommentCode(self):
-        """
-        Uncomment the lines that are currently selected
-        """
+        """Uncomment the lines that are currently selected"""
         # TODO: this should not be applied to lines that are part of a multi-line string
 
         # Define the uncomment function to be applied to all blocks
         def uncommentBlock(cursor):
-            """
-            Find the first # on the line; if there is just whitespace before it,
+            """Find the first # on the line; if there is just whitespace before it,
             remove the # and if it is followed by a space remove the space, too
             """
             text = cursor.block().text()
