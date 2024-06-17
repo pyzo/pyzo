@@ -93,7 +93,7 @@ def getShortcut(fullName):
     """Given the full name or an action, get the shortcut
     from the pyzo.config.shortcuts2 dict. A tuple is returned
     representing the two shortcuts."""
-    if isinstance(fullName, QtWidgets.QAction):
+    if isinstance(fullName, QtGui.QAction):
         fullName = fullName.menuPath  # the menuPath property is set in Menu._addAction
     shortcut = "", ""
     if fullName in pyzo.config.shortcuts2:
@@ -189,7 +189,7 @@ class Menu(QtWidgets.QMenu):
 
     """
 
-    _dummyActionForHiddenEntryInKeyMapDialog = QtWidgets.QAction()
+    _dummyActionForHiddenEntryInKeyMapDialog = QtGui.QAction()
 
     def __init__(self, parent=None, name=None):
         super().__init__(parent)
@@ -338,7 +338,7 @@ class Menu(QtWidgets.QMenu):
             group = "default"
         if group not in self._groups:
             # self._groups contains tuples (actiongroup, dict-of-actions)
-            self._groups[group] = (QtWidgets.QActionGroup(self), {})
+            self._groups[group] = (QtGui.QActionGroup(self), {})
 
         actionGroup, actions = self._groups[group]
         actionGroup.addAction(a)
@@ -544,7 +544,7 @@ class FileMenu(Menu):
                     "Export to PDF ::: Export current file to PDF (e.g. for printing).",
                 ),
                 None,
-                lambda: PdfExport().exec_(),
+                self._pdfExport,
             ),
         ]
 
@@ -646,6 +646,10 @@ class FileMenu(Menu):
         editor = pyzo.editors.getCurrentEditor()
         if editor is not None:
             editor.encoding = value
+
+    def _pdfExport(self):
+        dialog = PdfExport()
+        dialog.exec()
 
 
 # todo: move to matching brace
@@ -1137,7 +1141,7 @@ class ViewMenu(Menu):
         ln += 1  # is ln as in line number area
 
         runCursor = editor.textCursor()  # The part that should be run
-        runCursor.movePosition(runCursor.StartOfBlock)
+        runCursor.movePosition(runCursor.MoveOperation.StartOfBlock)
 
         # Find the object which starts above current cursor
         # position if there is any and move there
@@ -1152,7 +1156,7 @@ class ViewMenu(Menu):
                 while True:
                     if not runCursor.block().previous().isValid():
                         return
-                    runCursor.movePosition(runCursor.PreviousBlock)
+                    runCursor.movePosition(runCursor.MoveOperation.PreviousBlock)
                     if runCursor.blockNumber() == startLineNr - 1:
                         break
 
@@ -1177,7 +1181,7 @@ class ViewMenu(Menu):
         ln += 1  # is ln as in line number area
 
         runCursor = editor.textCursor()  # The part that should be run
-        runCursor.movePosition(runCursor.StartOfBlock)
+        runCursor.movePosition(runCursor.MoveOperation.StartOfBlock)
 
         # Find the object which starts below current cursor
         # position if there is any and move there
@@ -1193,7 +1197,7 @@ class ViewMenu(Menu):
                 while True:
                     if not runCursor.block().next().isValid():
                         return
-                    runCursor.movePosition(runCursor.NextBlock)
+                    runCursor.movePosition(runCursor.MoveOperation.NextBlock)
                     if runCursor.blockNumber() == startLineNr - 1:
                         break
 
@@ -1204,7 +1208,7 @@ class ViewMenu(Menu):
                 while True:
                     if not runCursor.block().next().isValid():
                         break
-                    runCursor.movePosition(runCursor.NextBlock)
+                    runCursor.movePosition(runCursor.MoveOperation.NextBlock)
                     if runCursor.blockNumber() == endLineNr - 1:
                         break
 
@@ -1442,7 +1446,7 @@ class ShellMenu(Menu):
         from pyzo.core.shellInfoDialog import ShellInfoDialog
 
         d = ShellInfoDialog()
-        d.exec_()
+        d.exec()
 
 
 class ShellButtonMenu(ShellMenu):
@@ -1578,8 +1582,8 @@ class ShellContextMenu(ShellMenu):
                 m = QtWidgets.QMessageBox(self)
                 m.setWindowTitle(translate("menu dialog", "Could not change dir"))
                 m.setText(translate("menu", "Could not change dir" + ":\n\n" + msg))
-                m.setIcon(m.Warning)
-                m.exec_()
+                m.setIcon(m.Icon.Warning)
+                m.exec()
             else:
                 self._shell.executeCommand(
                     "cd " + os.path.dirname(editor.filename) + "\n"
@@ -2068,8 +2072,8 @@ class RunMenu(Menu):
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run"))
             m.setText(translate("menu", "Could not run " + what + ":\n\n" + msg))
-            m.setIcon(m.Warning)
-            m.exec_()
+            m.setIcon(m.Icon.Warning)
+            m.exec()
         # Return
         return shell, editor
 
@@ -2081,7 +2085,7 @@ class RunMenu(Menu):
 
         cursor = editor.textCursor()
         cursor.setPosition(runCursor.position())
-        cursor.movePosition(cursor.NextBlock)
+        cursor.movePosition(cursor.MoveOperation.NextBlock)
         editor.setTextCursor(cursor)
 
     def _runSelectedAdvance(self):
@@ -2108,13 +2112,13 @@ class RunMenu(Menu):
         runCursor = editor.textCursor()  # The part that should be run
 
         runCursor.setPosition(screenCursor.selectionStart())
-        runCursor.movePosition(runCursor.StartOfBlock)  # This also moves the anchor
+        runCursor.movePosition(runCursor.MoveOperation.StartOfBlock)  # This also moves the anchor
         lineNumber1 = runCursor.blockNumber()
 
-        runCursor.setPosition(screenCursor.selectionEnd(), runCursor.KeepAnchor)
+        runCursor.setPosition(screenCursor.selectionEnd(), runCursor.MoveMode.KeepAnchor)
         if not (screenCursor.hasSelection() and runCursor.atBlockStart()):
             # If the end of the selection is at the beginning of a block, don't extend it
-            runCursor.movePosition(runCursor.EndOfBlock, runCursor.KeepAnchor)
+            runCursor.movePosition(runCursor.MoveOperation.EndOfBlock, runCursor.KeepAnchor)
         lineNumber2 = runCursor.blockNumber()
 
         # Does this look like a statement?
@@ -2182,7 +2186,7 @@ class RunMenu(Menu):
         # Move up until the start of document
         # or right after a line starting with '##'
         runCursor = editor.textCursor()  # The part that should be run
-        runCursor.movePosition(runCursor.StartOfBlock)
+        runCursor.movePosition(runCursor.MoveOperation.StartOfBlock)
         while True:
             if isCursorAtCellComment(runCursor):
                 # ## line, move to the line following this one
@@ -2191,12 +2195,12 @@ class RunMenu(Menu):
                     # started with ##. Do nothing
                     return
                 line = runCursor.block().text().lstrip()
-                runCursor.movePosition(runCursor.NextBlock)
+                runCursor.movePosition(runCursor.MoveOperation.NextBlock)
                 cellName = line.lstrip("#% ").strip()
                 break
             if not runCursor.block().previous().isValid():
                 break  # Start of document
-            runCursor.movePosition(runCursor.PreviousBlock)
+            runCursor.movePosition(runCursor.MoveOperation.PreviousBlock)
 
         # This is the line number of the start
         lineNumber = runCursor.blockNumber()
@@ -2208,13 +2212,19 @@ class RunMenu(Menu):
         while True:
             if isCursorAtCellComment(runCursor):
                 # This line starts with ##, move to the end of the previous one
-                runCursor.movePosition(runCursor.Left, runCursor.KeepAnchor)
+                runCursor.movePosition(runCursor.MoveOperation.Left, runCursor.MoveMode.KeepAnchor)
                 break
             if not runCursor.block().next().isValid():
                 # Last block of the document, move to the end of the line
-                runCursor.movePosition(runCursor.EndOfBlock, runCursor.KeepAnchor)
+                runCursor.movePosition(
+                    runCursor.MoveOperation.EndOfBlock,
+                    runCursor.MoveMode.KeepAnchor,
+                )
                 break
-            runCursor.movePosition(runCursor.NextBlock, runCursor.KeepAnchor)
+            runCursor.movePosition(
+                runCursor.MoveOperation.NextBlock,
+                runCursor.MoveMode.KeepAnchor,
+            )
 
         # Get source code
         code = runCursor.selectedText().replace("\u2029", "\n")
@@ -2233,8 +2243,8 @@ class RunMenu(Menu):
         # Get runCursor for whole document if not given
         if runCursor is None:
             runCursor = editor.textCursor()
-            runCursor.movePosition(runCursor.Start)
-            runCursor.movePosition(runCursor.End, runCursor.KeepAnchor)
+            runCursor.movePosition(runCursor.MoveOperation.Start)
+            runCursor.movePosition(runCursor.MoveOperation.End, runCursor.MoveMode.KeepAnchor)
 
         editor.showRunCursor(runCursor)
 
@@ -2300,8 +2310,8 @@ class RunMenu(Menu):
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run script."))
             m.setText(err)
-            m.setIcon(m.Warning)
-            m.exec_()
+            m.setIcon(m.Icon.Warning)
+            m.exec()
 
 
 class ToolsMenu(Menu):
@@ -2407,7 +2417,7 @@ class HelpMenu(Menu):
         from pyzo.util.pyzowizard import PyzoWizard
 
         w = PyzoWizard(self)
-        w.show()  # Use show() instead of exec_() so the user can interact with pyzo
+        w.show()  # Use show() instead of exec() so the user can interact with pyzo
 
     def _checkUpdates(self):
         """Check whether a newer version of pyzo is available."""
@@ -2430,20 +2440,20 @@ class HelpMenu(Menu):
         # Show message box
         m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Check for the latest version."))
-        m.setStandardButtons(m.Yes | m.Cancel)
-        m.setDefaultButton(m.Cancel)
+        m.setStandardButtons(m.StandardButton.Yes | m.StandardButton.Cancel)
+        m.setDefaultButton(m.StandardButton.Cancel)
         m.setText(text)
-        m.setIcon(m.Information)
-        result = m.exec_()
+        m.setIcon(m.Icon.Information)
+        result = m.exec()
         # Goto webpage if user chose to
-        if result == m.Yes:
+        if result == m.StandardButton.Yes:
             webbrowser.open("https://pyzo.org/start.html")
 
     def _aboutPyzo(self):
         from pyzo.core.about import AboutDialog
 
         m = AboutDialog(self)
-        m.exec_()
+        m.exec()
 
     def _showPyzoDocs(self):
         # Show widget with docs:
@@ -2597,20 +2607,20 @@ class SettingsMenu(Menu):
                 "menu", "Edit key mappings... ::: Edit the shortcuts for menu items."
             ),
             icons.keyboard,
-            lambda: KeymappingDialog().exec_(),
+            self._keymappingDialog,
         )
         self.addItem(
             translate(
                 "menu", "Edit syntax styles... ::: Change the coloring of your code."
             ),
             icons.style,
-            lambda: EditColorDialog().exec_(),
+            self._editColorDialog,
         )
         self.addMenu(self._languageMenu, icons.flag_green)
         self.addItem(
             translate("menu", "Advanced settings... ::: Configure Pyzo even further."),
             icons.cog,
-            lambda: AdvancedSettings().exec_(),
+            self._advancedSettingDialog,
         )
 
     def addBoolSetting(self, name, key, callback=None):
@@ -2640,8 +2650,20 @@ class SettingsMenu(Menu):
         m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("menu dialog", "Language changed"))
         m.setText(unwrapText(text))
-        m.setIcon(m.Information)
-        m.exec_()
+        m.setIcon(m.Icon.Information)
+        m.exec()
+
+    def _keymappingDialog(self):
+        dialog = KeymappingDialog()
+        dialog.exec()
+
+    def _editColorDialog(self):
+        dialog = EditColorDialog()
+        dialog.exec()
+
+    def _advancedSettingDialog(self):
+        dialog = AdvancedSettings()
+        dialog.exec()
 
 
 ## Classes to enable editing the key mappings
@@ -2775,7 +2797,7 @@ class KeyMapModel(QtCore.QAbstractItemModel):
 
 
 # Key to string mappings
-k = QtCore.Qt
+k = QtCore.Qt.Key
 keymap = {
     k.Key_Enter: "Enter",
     k.Key_Return: "Return",
@@ -2849,10 +2871,10 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
         # Override event handler to enable catching the Tab key
         # If the event is a KeyPress or KeyRelease, handle it with
         # self.keyPressEvent or keyReleaseEvent
-        if event.type() == event.KeyPress:
+        if event.type() == event.Type.KeyPress:
             self.keyPressEvent(event)
             return True  # Mark as handled
-        if event.type() == event.KeyRelease:
+        if event.type() == event.Type.KeyRelease:
             self.keyReleaseEvent(event)
             return True  # Mark as handled
         # Default: handle events as usual
@@ -2880,14 +2902,14 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
         # apply!
         if text:
             storeNativeKey, text0 = True, text
-            if QtWidgets.qApp.keyboardModifiers() & k.AltModifier:
+            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.AltModifier:
                 text = "Alt+" + text
-            if QtWidgets.qApp.keyboardModifiers() & k.ShiftModifier:
+            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
                 text = "Shift+" + text
                 storeNativeKey = False
-            if QtWidgets.qApp.keyboardModifiers() & k.ControlModifier:
+            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.ControlModifier:
                 text = "Ctrl+" + text
-            if QtWidgets.qApp.keyboardModifiers() & k.MetaModifier:
+            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.MetaModifier:
                 text = "Meta+" + text
             self.setText(text)
             if storeNativeKey and nativekey:
@@ -2921,7 +2943,9 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         self.setMinimumSize(*size2)
 
         self._label = QtWidgets.QLabel("", self)
-        self._label.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
+        self._label.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft
+        )
         self._label.resize(size[0] - 20, 100)
         self._label.move(10, 2)
 
@@ -3106,12 +3130,12 @@ class KeymappingDialog(QtWidgets.QDialog):
 
     def popupItem(self, item, shortCutId=1):
         """Popup the dialog to change the shortcut."""
-        if isinstance(item, QtWidgets.QAction) and item.text():
+        if isinstance(item, QtGui.QAction) and item.text():
             # create prompt dialog
             dlg = KeyMapEditDialog(self)
             dlg.setFullName(item.menuPath, shortCutId == 1)
             # show it
-            dlg.exec_()
+            dlg.exec()
 
 
 class AdvancedSettings(QtWidgets.QDialog):
@@ -3176,7 +3200,7 @@ class AdvancedSettings(QtWidgets.QDialog):
         self._tree.setColumnCount(3)
         self._tree.setHeaderLabels(["key", "value", "type"])
         self._tree.setSortingEnabled(True)
-        self._tree.sortItems(0, QtCore.Qt.AscendingOrder)
+        self._tree.sortItems(0, QtCore.Qt.SortOrder.AscendingOrder)
         self._tree.setColumnWidth(0, 300)
         self._tree.setColumnWidth(1, 300)
         # event
@@ -3254,7 +3278,9 @@ class AdvancedSettings(QtWidgets.QDialog):
         """As you type hide unmatched settings."""
         # find all matched settings
         find = self._tree.findItems(
-            self._search.text(), QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0
+            self._search.text(),
+            QtCore.Qt.MatchFlag.MatchContains | QtCore.Qt.MatchFlag.MatchRecursive,
+            0,
         )
         items = [i.text(0) for i in find]
 
@@ -3399,7 +3425,7 @@ class AdvancedSettings(QtWidgets.QDialog):
     def onClickSelect(self, item, column):
         """Allow editing only column 1"""
         if column == 1:
-            item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
+            item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable)
             self._tree.editItem(item, column)
 
     def getBackupShellSettings(self):

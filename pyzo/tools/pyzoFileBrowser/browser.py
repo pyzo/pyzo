@@ -207,11 +207,11 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         button.setStyleSheet("QToolButton { border: none; padding: 0px; }")
         # button.setStyleSheet("QToolButton { border: none; padding: 0px; background-color:red;}");
         # Set behavior
-        button.setCursor(QtCore.Qt.ArrowCursor)
-        button.setPopupMode(button.InstantPopup)
+        button.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+        button.setPopupMode(button.ToolButtonPopupMode.InstantPopup)
         # Customize alignment
         if willHaveMenu:
-            button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+            button.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
             if sys.platform.startswith("win"):
                 button.setText(" ")
         # Update self
@@ -272,7 +272,7 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         # Set minimum size
         if not light:
             fw = QtWidgets.qApp.style().pixelMetric(
-                QtWidgets.QStyle.PM_DefaultFrameWidth
+                QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth
             )
             msz = self.minimumSizeHint()
             w = max(msz.width(), paddingLeft + paddingRight + 10)
@@ -296,16 +296,16 @@ class PathInput(LineEditWithToolButtons):
         self._upBut.clicked.connect(self.dirUp)
 
         # To receive focus events
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
         # Set completion mode
         self.setCompleter(QtWidgets.QCompleter())
         c = self.completer()
-        c.setCompletionMode(c.InlineCompletion)
+        c.setCompletionMode(c.CompletionMode.InlineCompletion)
 
         # Set dir model to completer
         self._dirModel = QtWidgets.QFileSystemModel(c)
-        self._dirModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        self._dirModel.setFilter(QtCore.QDir.Filter.Dirs | QtCore.QDir.Filter.NoDotAndDotDot)
         # filter is not synchronized with NameFilter input (e.g. "!hidden")
         c.setModel(self._dirModel)
         if sys.platform != "win32":
@@ -389,8 +389,8 @@ class Projects(QtWidgets.QWidget):
         self._but.setIcon(pyzo.icons.star3)
         self._but.setStyleSheet("QToolButton { padding: 0px; }")
         self._but.setIconSize(QtCore.QSize(18, 18))
-        self._but.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self._but.setPopupMode(self._but.InstantPopup)
+        self._but.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self._but.setPopupMode(self._but.ToolButtonPopupMode.InstantPopup)
         #
         self._menu = QtWidgets.QMenu(self._but)
         self._menu.triggered.connect(self.onMenuTriggered)

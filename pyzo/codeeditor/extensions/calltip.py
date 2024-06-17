@@ -24,10 +24,10 @@ class Calltip:
             # Start hidden
             self.hide()
             # Accept rich text
-            self.setTextFormat(QtCore.Qt.RichText)
+            self.setTextFormat(QtCore.Qt.TextFormat.RichText)
             # Show as tooltip
             self.setIndent(2)
-            self.setWindowFlags(QtCore.Qt.ToolTip)
+            self.setWindowFlags(QtCore.Qt.WindowType.ToolTip)
 
         def enterEvent(self, event):
             # Act a bit like a tooltip
@@ -81,7 +81,7 @@ class Calltip:
 
         # Get a cursor to establish the position to show the calltip
         startcursor = self.textCursor()
-        startcursor.movePosition(startcursor.Left, n=offset)
+        startcursor.movePosition(startcursor.MoveOperation.Left, n=offset)
 
         # Get position in pixel coordinates
         rect = self.cursorRect(startcursor)
@@ -116,8 +116,8 @@ class Calltip:
     def keyPressEvent(self, event):
         # If the user presses Escape and the calltip is active, hide it
         if (
-            event.key() == Qt.Key_Escape
-            and event.modifiers() == Qt.NoModifier
+            event.key() == Qt.Key.Key_Escape
+            and event.modifiers() == Qt.KeyboardModifier.NoModifier
             and self.calltipActive()
         ):
             self.calltipCancel()

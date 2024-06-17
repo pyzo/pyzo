@@ -49,7 +49,7 @@ class WebView(QtWidgets.QTextBrowser):
 
     def wheelEvent(self, event):
         # Zooming does not work for this widget
-        if QtCore.Qt.ControlModifier & QtWidgets.qApp.keyboardModifiers():
+        if QtCore.Qt.KeyboardModifier.ControlModifier & QtWidgets.qApp.keyboardModifiers():
             self.parent().wheelEvent(event)
         else:
             super().wheelEvent(event)
@@ -157,18 +157,18 @@ class PyzoWebBrowser(QtWidgets.QFrame):
 
         # Create some buttons
         self._back = QtWidgets.QToolButton(self)
-        self._back.setIcon(style.standardIcon(style.SP_ArrowBack))
+        self._back.setIcon(style.standardIcon(style.StandardPixmap.SP_ArrowBack))
         self._back.setIconSize(QtCore.QSize(16, 16))
         #
         self._forward = QtWidgets.QToolButton(self)
-        self._forward.setIcon(style.standardIcon(style.SP_ArrowForward))
+        self._forward.setIcon(style.standardIcon(style.StandardPixmap.SP_ArrowForward))
         self._forward.setIconSize(QtCore.QSize(16, 16))
 
         # Create address bar
         # self._address = QtWidgets.QLineEdit(self)
         self._address = QtWidgets.QComboBox(self)
         self._address.setEditable(True)
-        self._address.setInsertPolicy(self._address.NoInsert)
+        self._address.setInsertPolicy(self._address.InsertPolicy.NoInsert)
         #
         for a in self._config.bookMarks:
             self._address.addItem(a)
@@ -247,7 +247,7 @@ class PyzoWebBrowser(QtWidgets.QFrame):
         self._view.forward()
 
     def wheelEvent(self, event):
-        if QtCore.Qt.ControlModifier & QtWidgets.qApp.keyboardModifiers():
+        if QtCore.Qt.KeyboardModifier.ControlModifier & QtWidgets.qApp.keyboardModifiers():
             # Get amount of scrolling
             degrees = event.delta() / 8.0
             steps = degrees / 15.0

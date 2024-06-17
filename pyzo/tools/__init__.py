@@ -56,11 +56,12 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         # Allow docking anywhere, othwerise restoring state wont work properly
 
         # Set other settings
+        DWF = QtWidgets.QDockWidget.DockWidgetFeature
         self.setFeatures(
-            QtWidgets.QDockWidget.DockWidgetMovable
-            | QtWidgets.QDockWidget.DockWidgetClosable
-            | QtWidgets.QDockWidget.DockWidgetFloatable
-            # QtWidgets.QDockWidget.DockWidgetVerticalTitleBar
+            DWF.DockWidgetMovable
+            | DWF.DockWidgetClosable
+            | DWF.DockWidgetFloatable
+            # DWF.DockWidgetVerticalTitleBar
         )
 
     def setTool(self, toolId, toolName, toolClass):
@@ -349,9 +350,9 @@ class ToolManager(QtCore.QObject):
 
         if splitWith and splitWith in self._activeTools:
             otherDock = self._activeTools[splitWith]
-            pyzo.main.splitDockWidget(otherDock, dock, QtCore.Qt.Horizontal)
+            pyzo.main.splitDockWidget(otherDock, dock, QtCore.Qt.Orientation.Horizontal)
         else:
-            pyzo.main.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
+            pyzo.main.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # Add to list
         self._activeTools[toolId] = dock

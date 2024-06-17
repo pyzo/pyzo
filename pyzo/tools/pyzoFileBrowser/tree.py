@@ -292,7 +292,7 @@ class DirItem(BrowserItem):
 
     def setFileIcon(self):
         # Use folder icon
-        icon = iconprovider.icon(iconprovider.Folder)
+        icon = iconprovider.icon(iconprovider.IconType.Folder)
         overlays = []
         if self._starred:
             overlays.append(pyzo.icons.bullet_yellow)
@@ -360,7 +360,7 @@ class FileItem(BrowserItem):
                 pass
         # Use that file
         if sys.platform.startswith("linux") and not QtCore.__file__.startswith("/usr/"):
-            icon = iconprovider.icon(iconprovider.File)
+            icon = iconprovider.icon(iconprovider.IconType.File)
         else:
             icon = iconprovider.icon(QtCore.QFileInfo(dummy_filename))
         icon = addIconOverlays(icon)
@@ -489,7 +489,7 @@ class ErrorItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent, info):
         super().__init__(parent)
         self.setText(0, info)
-        self.setFlags(QtCore.Qt.NoItemFlags)
+        self.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
         font = self.font(0)
         font.setItalic(True)
         self.setFont(0, font)
@@ -615,7 +615,7 @@ class Tree(QtWidgets.QTreeWidget):
         self._temporaryItems = set()
 
         # Define context menu
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenuTriggered)
 
         # Initialize proxy (this is where the path is stored)
@@ -693,7 +693,7 @@ class Tree(QtWidgets.QTreeWidget):
         """Bypass expanding an item when double-clicking it.
         Only activate the item.
         """
-        item = self.itemAt(event.x(), event.y())
+        item = self.itemAt(event.position().toPoint())
         if item is not None:
             self.onItemActivated(item)
 
@@ -758,7 +758,7 @@ class Tree(QtWidgets.QTreeWidget):
         # Restore selection
         if self._selectedPath:
             items = self.findItems(
-                op.basename(self._selectedPath), QtCore.Qt.MatchExactly, 0
+                op.basename(self._selectedPath), QtCore.Qt.MatchFlag.MatchExactly, 0
             )
             items = [
                 item
@@ -901,8 +901,8 @@ class PopupMenu(pyzo.core.menu.Menu):
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run"))
             m.setText("Could not run " + filename + ":\n\n" + msg)
-            m.setIcon(m.Warning)
-            m.exec_()
+            m.setIcon(m.Icon.Warning)
+            m.exec()
 
     def _runNotebook(self):
         filename = self._item.path()
@@ -914,8 +914,8 @@ class PopupMenu(pyzo.core.menu.Menu):
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run notebook"))
             m.setText("Could not run " + filename + ":\n\n" + msg)
-            m.setIcon(m.Warning)
-            m.exec_()
+            m.setIcon(m.Icon.Warning)
+            m.exec()
 
     def _importData(self):
         browser = self.parent().parent()
@@ -948,7 +948,7 @@ class PopupMenu(pyzo.core.menu.Menu):
             self.parent(),
             title,
             label + ":\n{}".format(self._item.path()),
-            QtWidgets.QLineEdit.Normal,
+            QtWidgets.QLineEdit.EchoMode.Normal,
             "new name",
         )
         if isinstance(s, tuple):
@@ -978,7 +978,7 @@ class PopupMenu(pyzo.core.menu.Menu):
             self.parent(),
             title,
             label + ":\n{}".format(self._item.path()),
-            QtWidgets.QLineEdit.Normal,
+            QtWidgets.QLineEdit.EchoMode.Normal,
             filename,
         )
         if isinstance(s, tuple):
@@ -991,14 +991,15 @@ class PopupMenu(pyzo.core.menu.Menu):
             self._item._proxy.pushTask(task)
 
     def onDelete(self):
+        SB = QtWidgets.QMessageBox.StandardButton
         # Ask for new filename
         b = QtWidgets.QMessageBox.question(
             self.parent(),
             translate("filebrowser", "Delete"),
             translate("filebrowser", "Are you sure that you want to delete")
             + ":\n{}".format(self._item.path()),
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel,
+            SB.Yes | SB.Cancel,
         )
         # Push delete task
-        if b == QtWidgets.QMessageBox.Yes:
+        if b == SB.Yes:
             self._item._proxy.pushTask(tasks.RemoveTask())

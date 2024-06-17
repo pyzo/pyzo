@@ -52,7 +52,7 @@ class LabelWidget(QtWidgets.QWidget):
 
         # Create label widget and costumize
         self._label = QtWidgets.QLabel(self)
-        self._label.setTextFormat(QtCore.Qt.RichText)
+        self._label.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self._label.setOpenExternalLinks(True)
         self._label.setWordWrap(True)
         self._label.setMargin(20)

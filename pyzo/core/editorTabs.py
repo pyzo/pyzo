@@ -43,26 +43,26 @@ def simpleDialog(item, action, question, options, defaultOption):
         filename = item.id()
 
     # create button map
-    mb = QtWidgets.QMessageBox
+    SB = QtWidgets.QMessageBox.StandardButton
     M = {
-        "ok": mb.Ok,
-        "open": mb.Open,
-        "save": mb.Save,
-        "cancel": mb.Cancel,
-        "close": mb.Close,
-        "discard": mb.Discard,
-        "apply": mb.Apply,
-        "reset": mb.Reset,
-        "restoredefaults": mb.RestoreDefaults,
-        "help": mb.Help,
-        "saveall": mb.SaveAll,
-        "yes": mb.Yes,
-        "yestoall": mb.YesToAll,
-        "no": mb.No,
-        "notoall": mb.NoToAll,
-        "abort": mb.Abort,
-        "retry": mb.Retry,
-        "ignore": mb.Ignore,
+        "ok": SB.Ok,
+        "open": SB.Open,
+        "save": SB.Save,
+        "cancel": SB.Cancel,
+        "close": SB.Close,
+        "discard": SB.Discard,
+        "apply": SB.Apply,
+        "reset": SB.Reset,
+        "restoredefaults": SB.RestoreDefaults,
+        "help": SB.Help,
+        "saveall": SB.SaveAll,
+        "yes": SB.Yes,
+        "yestoall": SB.YesToAll,
+        "no": SB.No,
+        "notoall": SB.NoToAll,
+        "abort": SB.Abort,
+        "retry": SB.Retry,
+        "ignore": SB.Ignore,
     }
 
     # setup dialog
@@ -86,7 +86,7 @@ def simpleDialog(item, action, question, options, defaultOption):
             dlg.setDefaultButton(button)
 
     # get result
-    dlg.exec_()
+    dlg.exec()
     button = dlg.clickedButton()
     return buttons.get(button, None)
 
@@ -195,7 +195,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     def __init__(self, *args):
         super().__init__(*args)
 
-        self.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.ClickFocus)
 
         # init layout
         layout = QtWidgets.QHBoxLayout(self)
@@ -351,7 +351,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             self._wholeWord,
             self._regExp,
         ]:
-            # but.setFocusPolicy(QtCore.Qt.ClickFocus)
+            # but.setFocusPolicy(QtCore.Qt.FocusPolicy.ClickFocus)
             but.clicked.connect(self.autoHideTimerReset)
 
         # create timer objects
@@ -417,10 +417,10 @@ class FindReplaceWidget(QtWidgets.QFrame):
         overload event instead of KeyPressEvent.
         """
         if isinstance(event, QtGui.QKeyEvent):
-            if event.key() in (QtCore.Qt.Key_Tab, QtCore.Qt.Key_Backtab):
+            if event.key() in (QtCore.Qt.Key.Key_Tab, QtCore.Qt.Key.Key_Backtab):
                 event.accept()  # focusNextPrevChild is called by Qt
                 return True
-            elif event.key() == QtCore.Qt.Key_Escape:
+            elif event.key() == QtCore.Qt.Key.Key_Escape:
                 self.hideMe()
                 event.accept()
                 return True
@@ -493,13 +493,13 @@ class FindReplaceWidget(QtWidgets.QFrame):
                 return
 
         # find flags
-        flags = QtGui.QTextDocument.FindFlags()
+        flags = QtGui.QTextDocument.FindFlag(0)
         if self._caseCheck.isChecked():
-            flags |= QtGui.QTextDocument.FindCaseSensitively
+            flags |= QtGui.QTextDocument.FindFlag.FindCaseSensitively
         if not forward:
-            flags |= QtGui.QTextDocument.FindBackward
+            flags |= QtGui.QTextDocument.FindFlag.FindBackward
         # if self._wholeWord.isChecked():
-        #    flags |= QtGui.QTextDocument.FindWholeWords
+        #    flags |= QtGui.QTextDocument.FindFlag.FindWholeWords
 
         # focus
         self.selectFindText()
@@ -531,9 +531,9 @@ class FindReplaceWidget(QtWidgets.QFrame):
             self.notifyPassBeginEnd()
             # Move cursor to start or end of document
             if forward:
-                cursor.movePosition(cursor.Start)
+                cursor.movePosition(cursor.MoveOperation.Start)
             else:
-                cursor.movePosition(cursor.End)
+                cursor.movePosition(cursor.MoveOperation.End)
             # Try again
             result = editor.document().find(needle, cursor, flags)
             if not result.isNull():
@@ -613,7 +613,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         cursor = editor.textCursor()
         cursor.beginEditBlock()
         try:
-            cursor.movePosition(cursor.Start)
+            cursor.movePosition(cursor.MoveOperation.Start)
             editor.setTextCursor(cursor)
             while self.replaceOne(wrapAround=False, editor=editor):
                 pass
@@ -821,7 +821,7 @@ class FileTabWidget(CompactTabWidget):
         # Add tab and widget
         i = self.addTab(item.editor, item.name)
         tabBut = EditorTabToolButton(self.tabBar())
-        self.tabBar().setTabButton(i, QtWidgets.QTabBar.LeftSide, tabBut)
+        self.tabBar().setTabButton(i, QtWidgets.QTabBar.ButtonPosition.LeftSide, tabBut)
 
         # Keep informed about changes
         item.editor.somethingChanged.connect(self.updateItems)
@@ -903,7 +903,7 @@ class FileTabWidget(CompactTabWidget):
                 nBlocks = 0
 
             # Update appearance of icon
-            but = tabBar.tabButton(i, QtWidgets.QTabBar.LeftSide)
+            but = tabBar.tabButton(i, QtWidgets.QTabBar.ButtonPosition.LeftSide)
             but.updateIcon(item.dirty, self._mainFile == item.id, item.pinned, nBlocks)
 
         self.fileTabsChanged.emit()
@@ -981,7 +981,7 @@ class EditorTabs(QtWidgets.QWidget):
         from pyzo.core.menu import EditorTabContextMenu
 
         self._menu = EditorTabContextMenu(self, "EditorTabMenu")
-        self._tabs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._tabs.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
 
     def contextMenuTriggered(self, p):
@@ -1136,7 +1136,7 @@ class EditorTabs(QtWidgets.QWidget):
             )
             d.setFileMode(d.ExistingFiles)
             d.selectFile('"codeparser.py" "editorStack.py"')
-            d.exec_()
+            d.exec()
             if d.result():
                 filenames = d.selectedFiles()
             else:
@@ -1223,8 +1223,8 @@ class EditorTabs(QtWidgets.QWidget):
                 m = QtWidgets.QMessageBox(self)
                 m.setWindowTitle("Error loading file")
                 m.setText(str(err))
-                m.setIcon(m.Warning)
-                m.exec_()
+                m.setIcon(m.Icon.Warning)
+                m.exec()
             return None
 
         # create list item
@@ -1295,7 +1295,7 @@ class EditorTabs(QtWidgets.QWidget):
                 "Keep this version", QtWidgets.QMessageBox.RejectRole
             )
             dlg.setDefaultButton(btnKeep)
-            dlg.exec_()
+            dlg.exec()
             if dlg.clickedButton() != btnReload:
                 return  # cancel reloading
 
@@ -1383,8 +1383,8 @@ class EditorTabs(QtWidgets.QWidget):
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle("Error saving file")
             m.setText(str(err))
-            m.setIcon(m.Warning)
-            m.exec_()
+            m.setIcon(m.Icon.Warning)
+            m.exec()
             # Return now
             return False
 

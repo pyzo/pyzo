@@ -192,7 +192,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
             QtCore.QItemSelectionModel(self.preview.model())
         )  # Work-around for reference tracking bug in PySide
         self.preview.setSelectionBehavior(self.preview.SelectColumns)
-        self.preview.setSelectionMode(self.preview.MultiSelection)
+        self.preview.setSelectionMode(self.preview.SelectionMode.MultiSelection)
 
         # Layout
 
@@ -425,7 +425,7 @@ class ResultPage(QtWidgets.QWizardPage):
         super().__init__()
         self.setTitle("Execute import")
         self.setButtonText(
-            QtWidgets.QWizard.FinishButton, translate("importwizard", "Close")
+            QtWidgets.QWizard.WizardButton.FinishButton, translate("importwizard", "Close")
         )
 
         self.rbAsArray = QtWidgets.QRadioButton(
@@ -539,7 +539,7 @@ class ResultPage(QtWidgets.QWizardPage):
 
         # insert code at start of line
         cursor = editor.textCursor()
-        cursor.movePosition(cursor.StartOfBlock)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
         cursor.insertText(code)
 
 

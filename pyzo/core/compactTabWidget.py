@@ -167,7 +167,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         self.setStyleSheet(stylesheet)
 
         # We do our own eliding
-        self.setElideMode(QtCore.Qt.ElideNone)
+        self.setElideMode(QtCore.Qt.TextElideMode.ElideNone)
 
         # Make tabs wider if there's plenty space?
         self.setExpanding(False)
@@ -176,7 +176,7 @@ class CompactTabBar(QtWidgets.QTabBar):
         self.setUsesScrollButtons(True)
 
         # When a tab is removed, select previous
-        self.setSelectionBehaviorOnRemove(self.SelectPreviousTab)
+        self.setSelectionBehaviorOnRemove(self.SelectionBehavior.SelectPreviousTab)
 
         # Init alignment parameters
         self._alignWidth = MIN_NAME_WIDTH  # Width in characters
@@ -208,7 +208,7 @@ class CompactTabBar(QtWidgets.QTabBar):
     ## Overload a few methods
 
     def mouseDoubleClickEvent(self, event):
-        i = self.tabAt(event.pos())
+        i = self.tabAt(event.position().toPoint())
         if i == -1:
             # There was no tab under the cursor
             self.barDoubleClicked.emit()
@@ -217,8 +217,8 @@ class CompactTabBar(QtWidgets.QTabBar):
             self.tabDoubleClicked.emit(i)
 
     def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.MiddleButton:
-            i = self.tabAt(event.pos())
+        if event.button() == QtCore.Qt.MouseButton.MiddleButton:
+            i = self.tabAt(event.position().toPoint())
             if i >= 0:
                 self.parent().tabCloseRequested.emit(i)
                 return
@@ -436,7 +436,7 @@ class CompactTabWidget(QtWidgets.QTabWidget):
         self.setTabBar(CompactTabBar(self, **kwargs))
 
         # Draw tabs at the top by default
-        self.setTabPosition(QtWidgets.QTabWidget.North)
+        self.setTabPosition(QtWidgets.QTabWidget.TabPosition.North)
 
     def setTabData(self, i, data):
         """set the given object at the tab with index i"""

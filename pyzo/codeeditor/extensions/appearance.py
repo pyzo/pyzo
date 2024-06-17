@@ -56,7 +56,7 @@ class HighlightMatchingOccurrences:
 
         # make cursor at the beginning of the first visible block
         cursor = self.cursorForPosition(QtCore.QPoint(0, 0))
-        cursor.movePosition(cursor.StartOfWord)
+        cursor.movePosition(cursor.MoveOperation.StartOfWord)
         doc = self.document()
 
         color = self.getStyleElementFormat("editor.highlightMatchingOccurrences").back
@@ -72,7 +72,7 @@ class HighlightMatchingOccurrences:
 
         # find occurrences
         for i in range(500):
-            cursor = doc.find(needle, cursor, doc.FindCaseSensitively)
+            cursor = doc.find(needle, cursor, doc.FindFlag.FindCaseSensitively)
             if cursor is None or cursor.isNull():
                 # no more matches
                 break
@@ -96,7 +96,7 @@ class HighlightMatchingOccurrences:
             if heightDiff == 0:
                 painter.drawRect(startRect.left(), startRect.top(), width, cursorHeight)
             elif heightDiff > 0:
-                cursor.movePosition(cursor.EndOfLine)
+                cursor.movePosition(cursor.MoveOperation.EndOfLine)
                 secondLineY = self.cursorRect(cursor).top()
                 endLineY = endRect.top()
                 fullLineStartX = 0
@@ -118,7 +118,7 @@ class HighlightMatchingOccurrences:
                     painter.drawRect(fullLineStartX, endLineY, width, cursorHeight)
 
             # move to end of word again, otherwise we never advance in the doc
-            cursor.movePosition(cursor.EndOfWord)
+            cursor.movePosition(cursor.MoveOperation.EndOfWord)
         else:
             print("Matching selection highlighting did not break")
 
@@ -341,7 +341,7 @@ class HighlightMatchingBracket:
 
         cursor = QtGui.QTextCursor(self.textCursor())
         if cursor.atBlockStart():
-            cursor.movePosition(cursor.Right)
+            cursor.movePosition(cursor.MoveOperation.Right)
             movedRight = True
         else:
             movedRight = False
@@ -354,7 +354,7 @@ class HighlightMatchingBracket:
 
             if not movedRight and char not in self._BRACKS and len(text) > pos + 1:
                 # no brace to the left of cursor; try to the right
-                cursor.movePosition(cursor.Right)
+                cursor.movePosition(cursor.MoveOperation.Right)
                 char = text[pos + 1]
 
             if char in self._BRACKS:
@@ -362,7 +362,7 @@ class HighlightMatchingBracket:
                 try:
                     match_res = self._findMatchingBracket(char, cursor)
                     fm = QtGui.QFontMetrics(doc.defaultFont())
-                    width = fm.width(
+                    width = fm.horizontalAdvance(
                         char
                     )  # assumes that both paren have the same width
                     painter = QtGui.QPainter()
@@ -454,9 +454,9 @@ class HighlightCurrentLine:
 
         # Find the top of the current block, and the height
         cursor = self.textCursor()
-        cursor.movePosition(cursor.StartOfBlock)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
         top = self.cursorRect(cursor).top()
-        cursor.movePosition(cursor.EndOfBlock)
+        cursor.movePosition(cursor.MoveOperation.EndOfBlock)
         height = self.cursorRect(cursor).bottom() - top + 1
 
         margin = self.document().documentMargin()
@@ -538,7 +538,7 @@ class IndentationGuides:
             bd = cursor.block().userData()
             if bd and hasattr(bd, "indentation") and bd.indentation:
                 for x in range(indentWidth, bd.indentation * factor, indentWidth):
-                    w = self.fontMetrics().width("i" * x) + offset
+                    w = self.fontMetrics().horizontalAdvance("i" * x) + offset
                     w += 1  # Put it more under the block
                     if w > 0:  # if scrolled horizontally it can become < 0
                         painter.drawLine(QtCore.QLine(int(w), int(y3), int(w), int(y4)))
@@ -599,9 +599,8 @@ class CodeFolding:
             text = cursor.block().text()
             if text.rstrip().endswith(":"):
                 painter.drawRect(rect)
-                painter.drawText(
-                    rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter, "-"
-                )
+                AF = QtCore.Qt.AlignmentFlag
+                painter.drawText(rect, AF.AlignVCenter | AF.AlignHCenter, "-")
                 # Apply pen
 
                 # Paint
@@ -648,9 +647,9 @@ class LongLineIndicator:
 
         # Get position of long line
         fm = self.fontMetrics()
-        # width of ('i'*length) not length * (width of 'i') b/c of
+        # horizontalAdvance of ('i'*length) not length * (horizontalAdvance of 'i') b/c of
         # font kerning and rounding
-        x = fm.width("i" * self.longLineIndicatorPosition())
+        x = fm.horizontalAdvance("i" * self.longLineIndicatorPosition())
         x += doc.documentMargin() + self.contentOffset().x()
         x += 1  # Move it a little next to the cursor
 
@@ -683,9 +682,9 @@ class ShowWhitespace:
         try:
             option = self.document().defaultTextOption()
             if value:
-                option.setFlags(option.flags() | option.ShowTabsAndSpaces)
+                option.setFlags(option.flags() | option.Flag.ShowTabsAndSpaces)
             else:
-                option.setFlags(option.flags() & ~option.ShowTabsAndSpaces)
+                option.setFlags(option.flags() & ~option.Flag.ShowTabsAndSpaces)
             self.document().setDefaultTextOption(option)
         except Exception:
             # This can produce: 2147483617 is not a valid QTextOption.Flag
@@ -704,9 +703,9 @@ class ShowLineEndings:
         try:
             option = self.document().defaultTextOption()
             if value:
-                option.setFlags(option.flags() | option.ShowLineAndParagraphSeparators)
+                option.setFlags(option.flags() | option.Flag.ShowLineAndParagraphSeparators)
             else:
-                option.setFlags(option.flags() & ~option.ShowLineAndParagraphSeparators)
+                option.setFlags(option.flags() & ~option.Flag.ShowLineAndParagraphSeparators)
             self.document().setDefaultTextOption(option)
         except Exception:
             # This can produce: 2147483617 is not a valid QTextOption.Flag
@@ -732,7 +731,7 @@ class LineNumbers:
 
         def __init__(self, codeEditor):
             super().__init__(codeEditor)
-            self.setCursor(QtCore.Qt.PointingHandCursor)
+            self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
             self._pressedY = None
             self._lineNrChoser = None
 
@@ -741,13 +740,13 @@ class LineNumbers:
             return self.parent().viewport().mapFromGlobal(tmp).y()
 
         def mousePressEvent(self, event):
-            self._pressedY = self._getY(event.pos())
+            self._pressedY = self._getY(event.position().toPoint())
 
         def mouseReleaseEvent(self, event):
-            self._handleWholeBlockSelection(self._getY(event.pos()))
+            self._handleWholeBlockSelection(self._getY(event.position().toPoint()))
 
         def mouseMoveEvent(self, event):
-            self._handleWholeBlockSelection(self._getY(event.pos()))
+            self._handleWholeBlockSelection(self._getY(event.position().toPoint()))
 
         def _handleWholeBlockSelection(self, y2):
             # Get y1 and sort (y1, y2)
@@ -764,12 +763,12 @@ class LineNumbers:
             c2 = editor.cursorForPosition(QtCore.QPoint(0, int(y2)))
 
             # Make these two cursors select the whole block
-            c1.movePosition(c1.StartOfBlock, c1.MoveAnchor)
-            c2.movePosition(c2.EndOfBlock, c2.MoveAnchor)
+            c1.movePosition(c1.MoveOperation.StartOfBlock, c1.MoveMode.MoveAnchor)
+            c2.movePosition(c2.MoveOperation.EndOfBlock, c2.MoveMode.MoveAnchor)
 
             # Apply selection
-            cursor.setPosition(c1.position(), cursor.MoveAnchor)
-            cursor.setPosition(c2.position(), cursor.KeepAnchor)
+            cursor.setPosition(c1.position(), cursor.MoveMode.MoveAnchor)
+            cursor.setPosition(c2.position(), cursor.MoveMode.KeepAnchor)
             editor.setTextCursor(cursor)
 
         def mouseDoubleClickEvent(self, event):
@@ -841,8 +840,9 @@ class LineNumbers:
                 if blockNumber == currentBlockNumber:
                     painter.setFont(font2)
 
+                AF = Qt.AlignmentFlag
                 painter.drawText(
-                    0, y - offset, w - margin, 50, Qt.AlignRight, str(blockNumber + 1)
+                    0, y - offset, w - margin, 50, AF.AlignRight, str(blockNumber + 1)
                 )
 
                 # Set font back
@@ -854,7 +854,7 @@ class LineNumbers:
                 if not cursor.block().next().isValid():
                     break  # Reached end of the text
 
-                cursor.movePosition(cursor.NextBlock)
+                cursor.movePosition(cursor.MoveOperation.NextBlock)
 
             # Done
             painter.end()
@@ -871,8 +871,8 @@ class LineNumbers:
 
             self.setPrefix("Go to line: ")
             self.setAccelerated(True)
-            self.setButtonSymbols(self.NoButtons)
-            self.setCorrectionMode(self.CorrectToNearestValue)
+            self.setButtonSymbols(self.ButtonSymbols.NoButtons)
+            self.setCorrectionMode(self.CorrectionMode.CorrectToNearestValue)
 
             # Signal for when value changes, and flag to disable it once
             self._ignoreSignalOnceFlag = False
@@ -895,9 +895,9 @@ class LineNumbers:
 
         def keyPressEvent(self, event):
             if event.key() in [
-                QtCore.Qt.Key_Escape,
-                QtCore.Qt.Key_Enter,
-                QtCore.Qt.Key_Return,
+                QtCore.Qt.Key.Key_Escape,
+                QtCore.Qt.Key.Key_Enter,
+                QtCore.Qt.Key.Key_Return,
             ]:
                 self._editor.setFocus()  # Moves focus away, thus hiding self
             else:
@@ -951,7 +951,7 @@ class LineNumbers:
             return 0
         lastLineNumber = self.blockCount()
         margin = self._LineNumberAreaMargin
-        return self.fontMetrics().width(str(lastLineNumber)) + 2 * margin
+        return self.fontMetrics().horizontalAdvance(str(lastLineNumber)) + 2 * margin
 
     def __onBlockCountChanged(self, count=None):
         """
@@ -994,7 +994,7 @@ class BreakPoints:
 
         def __init__(self, codeEditor):
             super().__init__(codeEditor)
-            self.setCursor(QtCore.Qt.PointingHandCursor)
+            self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
             self.setMouseTracking(True)
             self._virtualBreakpoint = 0
 
@@ -1003,10 +1003,10 @@ class BreakPoints:
             return self.parent().viewport().mapFromGlobal(tmp).y()
 
         def mousePressEvent(self, event):
-            self._toggleBreakPoint(self._getY(event.pos()))
+            self._toggleBreakPoint(self._getY(event.position().toPoint()))
 
         def mouseMoveEvent(self, event):
-            y = self._getY(event.pos())
+            y = self._getY(event.position().toPoint())
             editor = self.parent()
             c1 = editor.cursorForPosition(QtCore.QPoint(0, int(y)))
             self._virtualBreakpoint = c1.blockNumber() + 1
@@ -1068,7 +1068,7 @@ class BreakPoints:
             # Prepare painter
             painter.setPen(QtGui.QColor("#777"))
             painter.setBrush(format.fore)
-            painter.setRenderHint(painter.Antialiasing)
+            painter.setRenderHint(painter.RenderHint.Antialiasing)
 
             # Draw breakpoints
             for linenr, (enabled, *_) in sorted(breakpoints.items()):
@@ -1249,8 +1249,8 @@ class BreakPoints:
         else:
             enabled = True
             c = self.textCursor()
-            c.movePosition(c.Start)
-            c.movePosition(c.NextBlock, c.MoveAnchor, linenr - 1)
+            c.movePosition(c.MoveOperation.Start)
+            c.movePosition(c.MoveOperation.NextBlock, c.MoveMode.MoveAnchor, linenr - 1)
             b = c.block()
             bPrev = b.previous()
             bNext = b.next()
@@ -1353,15 +1353,15 @@ class Wrap:
     def wrap(self):
         """Enable or disable wrapping"""
         option = self.document().defaultTextOption()
-        return not bool(option.wrapMode() == option.NoWrap)
+        return not bool(option.wrapMode() == option.WrapMode.NoWrap)
 
     @ce_option(True)
     def setWrap(self, value):
         option = self.document().defaultTextOption()
         if value:
-            option.setWrapMode(option.WrapAtWordBoundaryOrAnywhere)
+            option.setWrapMode(option.WrapMode.WrapAtWordBoundaryOrAnywhere)
         else:
-            option.setWrapMode(option.NoWrap)
+            option.setWrapMode(option.WrapMode.NoWrap)
         self.document().setDefaultTextOption(option)
 
 

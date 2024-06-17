@@ -54,8 +54,8 @@ def prepare_appdata_appconfig_dirs():
             config_path = os.path.expanduser(os.path.join(config_path_base, appname))
         elif sys.platform == "darwin":
             sp = QtCore.QStandardPaths
-            data_path_base = sp.writableLocation(sp.AppDataLocation)
-            config_path_base = sp.writableLocation(sp.ConfigLocation)
+            data_path_base = sp.writableLocation(sp.StandardLocation.AppDataLocation)
+            config_path_base = sp.writableLocation(sp.StandardLocation.ConfigLocation)
             """
             The AppName added by Qt depends on how pyzo was started, e.g.:
                 import pyzo; pyzo.start() --> ''

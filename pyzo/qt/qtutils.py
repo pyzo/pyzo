@@ -1,9 +1,8 @@
-from . import PYQT6, PYQT5, PYSIDE2, PYSIDE6, PythonQtError
+from . import API
 
+if API in ("PySide2", "PySide6"):
 
-if PYSIDE2 or PYSIDE6:
-
-    if PYSIDE2:
+    if API == "PySide2":
         import shiboken2 as _shiboken
     else:
         import shiboken6 as _shiboken
@@ -14,12 +13,11 @@ if PYSIDE2 or PYSIDE6:
     def isOwnedByPython(qtObj):
         return _shiboken.isOwnedByPython(qtObj)
 
+elif API in ("PyQt5", "PyQt6"):
 
-elif PYQT5 or PYQT6:
-
-    if PYQT5:
+    if API == "PyQt5":
         import PyQt5.sip as _sip
-    elif PYQT6:
+    else:
         import PyQt6.sip as _sip
 
     def isDeleted(qtObj):

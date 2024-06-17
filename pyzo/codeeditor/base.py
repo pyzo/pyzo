@@ -150,8 +150,8 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         option = QtGui.QTextOption()  # self.document().defaultTextOption()
         # option.setFlags(
         #     option.flags()
-        #     | option.IncludeTrailingSpaces
-        #     | option.AddSpaceForLineAndParagraphSeparators
+        #     | option.Flag.IncludeTrailingSpaces
+        #     | option.Flag.AddSpaceForLineAndParagraphSeparators
         # )
         self.document().setDefaultTextOption(option)
 
@@ -250,7 +250,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
     def toPlainText(self):
         cursor = self.textCursor()
-        cursor.select(QtGui.QTextCursor.Document)
+        cursor.select(QtGui.QTextCursor.SelectionType.Document)
         return cursor.selectedText().translate(self._plainTextTrans)
 
     def _setHighlighter(self, highlighterClass):
@@ -397,7 +397,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
             raise ValueError("setFont accepts None, QFont or string.")
 
         # Hint Qt that it should be monospace
-        font.setStyleHint(font.TypeWriter, font.PreferDefault)
+        font.setStyleHint(font.StyleHint.TypeWriter, font.StyleStrategy.PreferDefault)
 
         # Get family, fall back to default if qt could not produce monospace
         fontInfo = QtGui.QFontInfo(font)
@@ -584,7 +584,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         if value <= 0:
             raise ValueError("indentWidth must be >0")
         self.__indentWidth = value
-        self.setTabStopWidth(self.fontMetrics().width("i" * self.__indentWidth))
+        self.setTabStopDistance(self.fontMetrics().horizontalAdvance("i" * self.__indentWidth))
 
     @ce_option(False)
     def indentUsingSpaces(self):
@@ -622,15 +622,15 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # block = self.document().findBlockByNumber( blockNumber )
         # cursor.setPosition(block.position())
-        cursor.movePosition(cursor.Start)  # move to begin of the document
-        cursor.movePosition(cursor.NextBlock, n=blockNumber)  # n blocks down
+        cursor.movePosition(cursor.MoveOperation.Start)  # move to begin of the document
+        cursor.movePosition(cursor.MoveOperation.NextBlock, n=blockNumber)  # n blocks down
 
         if keepHorizontalPos:
-            if cursor.movePosition(cursor.Up):
-                backToRow = cursor.Down
+            if cursor.movePosition(cursor.MoveOperation.Up):
+                backToRow = cursor.MoveOperation.Down
             else:
-                cursor.movePosition(cursor.Down)
-                backToRow = cursor.Up
+                cursor.movePosition(cursor.MoveOperation.Down)
+                backToRow = cursor.MoveOperation.Up
             cursor.setVerticalMovementX(hPos)
             cursor.movePosition(backToRow)
 
@@ -671,7 +671,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         try:
             editCursor.setPosition(screenCursor.selectionStart())
-            editCursor.movePosition(editCursor.StartOfBlock)
+            editCursor.movePosition(editCursor.MoveOperation.StartOfBlock)
             # < :if selection end is at beginning of the block, don't include that
             # one, except when the selectionStart is same as selectionEnd
             while (
@@ -685,7 +685,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
                 # Move to the next block
                 if not editCursor.block().next().isValid():
                     break  # We reached the end of the document
-                editCursor.movePosition(editCursor.NextBlock)
+                editCursor.movePosition(editCursor.MoveOperation.NextBlock)
         finally:
             editCursor.endEditBlock()
 
@@ -700,7 +700,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Start cursor at top line.
         cursor = self.cursorForPosition(QtCore.QPoint(0, 0))
-        cursor.movePosition(cursor.StartOfBlock)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
 
         if not self.isVisible():
             return
@@ -715,7 +715,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
                 break  # Reached end of the repaint area
             if not cursor.block().next().isValid():
                 break  # Reached end of the text
-            cursor.movePosition(cursor.NextBlock)
+            cursor.movePosition(cursor.MoveOperation.NextBlock)
 
     def indentBlock(self, cursor, amount=1):
         """Indent the block given by cursor.
@@ -728,8 +728,8 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         leadingWhitespace = text[: len(text) - len(text.lstrip())]
 
         # Select the leading whitespace
-        cursor.movePosition(cursor.StartOfBlock)
-        cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(leadingWhitespace))
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
+        cursor.movePosition(cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, len(leadingWhitespace))
 
         # Compute the new indentation length, expanding any existing tabs
         indent = len(leadingWhitespace.expandtabs(self.indentWidth()))
@@ -782,10 +782,10 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         pos1, pos2 = cursor.position(), cursor.anchor()
         if pos2 < pos1:
             pos1, pos2 = pos2, pos1
-        cursor.setPosition(pos1, cursor.MoveAnchor)
-        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
-        cursor.setPosition(pos2, cursor.KeepAnchor)
-        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        cursor.setPosition(pos1, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.setPosition(pos2, cursor.MoveMode.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
 
         # Use reshaper to create replacement text
         reshaper = TextReshaper(linewidth)
@@ -843,5 +843,5 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Update the selection
         cursor.insertText(newText)
         cursor.setPosition(start_pos)
-        cursor.setPosition(end_pos, QtGui.QTextCursor.KeepAnchor)
+        cursor.setPosition(end_pos, QtGui.QTextCursor.MoveMode.KeepAnchor)
         self.setTextCursor(cursor)

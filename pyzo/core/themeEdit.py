@@ -88,7 +88,7 @@ class ColorLineEdit(QtWidgets.QLineEdit):
         self.button.setStyleSheet("border: 0px; padding: 0px")
         self.button.clicked.connect(self.openColorDialog)
 
-        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
+        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
         buttonSize = self.button.sizeHint()
 
         self.setStyleSheet(
@@ -107,11 +107,11 @@ class ColorLineEdit(QtWidgets.QLineEdit):
         dlg.setCurrentColor(QtGui.QColor(self.text()))
         dlg.currentColorChanged.connect(lambda clr: self.setText(clr.name()))
         dlg.setModal(False)
-        dlg.exec_()
+        dlg.exec()
 
     def resizeEvent(self, event):
         buttonSize = self.button.sizeHint()
-        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
+        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
         self.button.move(
             int(self.rect().right() - frameWidth - buttonSize.width()),
             int(self.rect().bottom() - buttonSize.height() + 1) // 2,
@@ -163,7 +163,8 @@ class StyleEdit(QtWidgets.QWidget):
 
         self.setLayout(layout)
 
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        SP = QtWidgets.QSizePolicy.Policy
+        self.setSizePolicy(SP.Minimum, SP.Minimum)
 
     def __add_clrLineEdit(self, key, name):
         """this is a helper method to create a ColorLineEdit

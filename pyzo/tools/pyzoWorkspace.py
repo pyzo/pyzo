@@ -162,7 +162,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         self._proxy.haveNewData.connect(self.fillWorkspace)
 
         # For menu
-        self.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.DefaultContextMenu)
         self._menu = QtWidgets.QMenu()
         self._menu.triggered.connect(self.contextMenuTriggered)
 
@@ -174,7 +174,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
     def keyPressEvent(self, event):
         key = event.key()
         item = self.currentItem()
-        if key == QtCore.Qt.Key_Delete and item is not None:
+        if key == QtCore.Qt.Key.Key_Delete and item is not None:
             objectName = joinName(splitName(self._proxy._name) + [item.text(0)])
             self.deleteObject(objectName)
             return
@@ -321,7 +321,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         # Create tool button
         self._up = QtWidgets.QToolButton(self)
         style = QtWidgets.qApp.style()
-        self._up.setIcon(style.standardIcon(style.SP_ArrowLeft))
+        self._up.setIcon(style.standardIcon(style.StandardPixmap.SP_ArrowLeft))
         self._up.setIconSize(QtCore.QSize(16, 16))
 
         # Create "path" line edit
@@ -330,14 +330,14 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._line.setStyleSheet(
             "QLineEdit {{ background:{}; }}".format("#888" if pyzo.darkQt else "#ddd")
         )
-        self._line.setFocusPolicy(QtCore.Qt.NoFocus)
+        self._line.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
 
         # Create options menu
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16, 16))
-        self._options.setPopupMode(self._options.InstantPopup)
-        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self._options.setPopupMode(self._options.ToolButtonPopupMode.InstantPopup)
+        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         #
         self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)

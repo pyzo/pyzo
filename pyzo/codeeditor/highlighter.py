@@ -102,12 +102,13 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         indentUsingSpaces = self._codeEditor.indentUsingSpaces()
 
         leadingWhitespace = line[: len(line) - len(line.lstrip())]
+        US = QtGui.QTextCharFormat.UnderlineStyle
         if "\t" in leadingWhitespace and " " in leadingWhitespace:
             # Mixed whitespace
             bd.indentation = 0
             format = QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.red)
+            format.setUnderlineStyle(US.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.GlobalColor.red)
             format.setToolTip("Mixed tabs and spaces")
             self.setFormat(0, len(leadingWhitespace), format)
         elif ("\t" in leadingWhitespace and indentUsingSpaces) or (
@@ -116,8 +117,8 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             # Whitespace differs from document setting
             bd.indentation = 0
             format = QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.blue)
+            format.setUnderlineStyle(US.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.GlobalColor.blue)
             format.setToolTip("Whitespace differs from document setting")
             self.setFormat(0, len(leadingWhitespace), format)
         else:

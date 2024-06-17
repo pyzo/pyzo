@@ -33,7 +33,7 @@ class AutoCompletion:
         self.__completerModel = QtCore.QStringListModel(keyword.kwlist)
         self.__completer = QtWidgets.QCompleter(self)
         self.__completer.setModel(self.__completerModel)
-        self.__completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.__completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.__completer.setWidget(self)
         self.__completerNames = []
         self.__recentCompletions = []  # List of recently selected completions
@@ -53,7 +53,7 @@ class AutoCompletion:
 
         self.__autocompleteDebug = False
 
-        self.__autocompletionAcceptKeys = (Qt.Key_Tab,)
+        self.__autocompletionAcceptKeys = (Qt.Key.Key_Tab,)
 
         # Connect signals
         self.__highlightedCompletion = None
@@ -97,7 +97,7 @@ class AutoCompletion:
 
     def setAutocompleteCaseSensitive(self, b):
         """Set the case sensitivity for autocompletion."""
-        cs = Qt.CaseSensitive if b else Qt.CaseInsensitive
+        cs = Qt.CaseSensitive if b else Qt.CaseSensitivity.CaseInsensitive
         self.__completer.setCaseSensitivity(cs)
 
     def setAutocompleteMinChars(self, n):
@@ -111,7 +111,7 @@ class AutoCompletion:
         """
         # Pop-up the autocompleteList
         startcursor = self.textCursor()
-        startcursor.movePosition(startcursor.Left, n=offset)
+        startcursor.movePosition(startcursor.MoveOperation.Left, n=offset)
         self.__autocompleteFromObject = fromObject
 
         if self.__autocompleteDebug:
@@ -164,7 +164,7 @@ class AutoCompletion:
             text = self.__highlightedCompletion
         # Select the text from autocompleteStart until the current cursor
         cursor = self.textCursor()
-        cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
+        cursor.setPosition(self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor)
         # Replace it with the selected text
         cursor.insertText(text)
         self.autocompleteAccept()  # Reset the completer
@@ -222,7 +222,7 @@ class AutoCompletion:
 
         # Select the text from autocompleteStart until the current cursor
         cursor = self.textCursor()
-        cursor.setPosition(self.__autocompleteStart.position(), cursor.KeepAnchor)
+        cursor.setPosition(self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor)
 
         prefix = cursor.selectedText()
         if (
@@ -291,7 +291,7 @@ class AutoCompletion:
                     self.onAutoComplete()  # No arg: select last highlighted
                     event.ignore()
                     return 1  # Let key have effect as normal
-                elif event.modifiers() == Qt.NoModifier:
+                elif event.modifiers() == Qt.KeyboardModifier.NoModifier:
                     # The key
                     self.onAutoComplete()  # No arg: select last highlighted
                     return 2  # Key should be consumed
@@ -301,8 +301,8 @@ class AutoCompletion:
         key = event.key()
         modifiers = event.modifiers()
         if (
-            key == Qt.Key_Escape
-            and modifiers == Qt.NoModifier
+            key == Qt.Key.Key_Escape
+            and modifiers == Qt.KeyboardModifier.NoModifier
             and self.autocompleteActive()
         ):
             self.autocompleteCancel()
@@ -318,9 +318,9 @@ class AutoCompletion:
             self.autocompleteActive()
             and not event.text().isalnum()
             and event.text() != "_"
-            and key != Qt.Key_Shift
+            and key != Qt.Key.Key_Shift
             and not (
-                (key == Qt.Key_Backspace)
+                (key == Qt.Key.Key_Backspace)
                 and self.textCursor().position() > self.__autocompleteStart.position()
             )
         ):

@@ -376,17 +376,17 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         style = QtWidgets.qApp.style()
 
         self._backBut = QtWidgets.QToolButton(self)
-        self._backBut.setIcon(style.standardIcon(style.SP_ArrowLeft))
+        self._backBut.setIcon(style.standardIcon(style.StandardPixmap.SP_ArrowLeft))
         self._backBut.setIconSize(QtCore.QSize(16, 16))
-        self._backBut.setPopupMode(self._backBut.DelayedPopup)
+        self._backBut.setPopupMode(self._backBut.ToolButtonPopupMode.DelayedPopup)
         self._backBut.setMenu(
             PyzoInteractiveHelpHistoryMenu("Backward menu", self, False)
         )
 
         self._forwBut = QtWidgets.QToolButton(self)
-        self._forwBut.setIcon(style.standardIcon(style.SP_ArrowRight))
+        self._forwBut.setIcon(style.standardIcon(style.StandardPixmap.SP_ArrowRight))
         self._forwBut.setIconSize(QtCore.QSize(16, 16))
-        self._forwBut.setPopupMode(self._forwBut.DelayedPopup)
+        self._forwBut.setPopupMode(self._forwBut.ToolButtonPopupMode.DelayedPopup)
         self._forwBut.setMenu(
             PyzoInteractiveHelpHistoryMenu("Forward menu", self, True)
         )
@@ -395,8 +395,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.wrench)
         self._options.setIconSize(QtCore.QSize(16, 16))
-        self._options.setPopupMode(self._options.InstantPopup)
-        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self._options.setPopupMode(self._options.ToolButtonPopupMode.InstantPopup)
+        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
         # Create options menu
         self._options._menu = QtWidgets.QMenu()
@@ -405,7 +405,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Create browser
         self._browser = QtWidgets.QTextBrowser(self)
         self._browser_text = initText
-        self._browser.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._browser.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self._browser.customContextMenuRequested.connect(self.showMenu)
 
         # Create two sizers
@@ -458,18 +458,18 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
 
     def showMenu(self, pos):
         menu = self._browser.createStandardContextMenu()
-        help = QtWidgets.QAction(
+        help = QtGui.QAction(
             pyzo.icons.help, pyzo.translate("pyzoInteractiveHelp", "Help on this"), menu
         )
         help.triggered.connect(partial(self.helpOnThis, pos=pos))
         menu.insertAction(menu.actions()[0], help)
-        menu.exec(self.mapToGlobal(pos))
+        menu.exec_(self.mapToGlobal(pos))
 
     def helpOnThis(self, pos):
         name = self._browser.textCursor().selectedText().strip()
         if name == "":
             cursor = self._browser.cursorForPosition(pos)
-            cursor.select(cursor.WordUnderCursor)
+            cursor.select(cursor.SelectionType.WordUnderCursor)
             name = cursor.selectedText()
         if name != "":
             self.setObjectName(name, True)

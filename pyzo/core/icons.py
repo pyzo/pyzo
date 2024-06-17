@@ -75,7 +75,7 @@ class IconArtist:
         """Set the color of the brush. Color can be anything that can be passed to
         Qcolor().
         """
-        brush = QtGui.QBrush(self._toQColor(color), QtCore.Qt.SolidPattern)
+        brush = QtGui.QBrush(self._toQColor(color), QtCore.Qt.BrushStyle.SolidPattern)
         self._painter.setBrush(brush)
 
     def addLayer(self, overlay, x=0, y=0):
@@ -86,7 +86,7 @@ class IconArtist:
     def addPolygon(self, pointList):
         """Add a filled polygon to the icon."""
         poly = QtGui.QPolygon([QtCore.QPoint(x, y) for x, y in pointList])
-        self._painter.drawPolygon(poly, QtCore.Qt.OddEvenFill)
+        self._painter.drawPolygon(poly, QtCore.Qt.FillRule.OddEvenFill)
 
     def addLine(self, x1, y1, x2, y2):
         """Add a line to the icon."""
@@ -156,7 +156,7 @@ class TabCloseButton(QtWidgets.QToolButton):
         # Get tabs
         tabs = self.parent().parent()
         # Get index from position
-        pos = self.mapTo(tabs, event.pos())
+        pos = self.mapTo(tabs, event.position().toPoint())
         index = tabs.tabBar().tabAt(pos)
         # Close it
         tabs.tabCloseRequested.emit(index)
@@ -255,20 +255,20 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
     def mousePressEvent(self, event):
         # Ignore event so that the tabbar will change to that tab
         event.ignore()
-        self._menuPressed = event.pos()
+        self._menuPressed = event.position().toPoint()
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         if self._menuPressed:
             dragDist = QtWidgets.QApplication.startDragDistance()
-            if (event.pos() - self._menuPressed).manhattanLength() >= dragDist:
+            if (event.position().toPoint() - self._menuPressed).manhattanLength() >= dragDist:
                 self._menuPressed = False
 
     def mouseReleaseEvent(self, event):
         event.ignore()
         if self._menuPressed:
             tabs = self.parent().parent()
-            pos = self.mapTo(tabs, event.pos())
+            pos = self.mapTo(tabs, event.position().toPoint())
             tabs.customContextMenuRequested.emit(pos)
 
     def enterEvent(self, event):
@@ -353,19 +353,19 @@ class TabToolButtonWithCloseButton(TabToolButton):
         return x1 <= pos.x() <= x2 and y1 <= pos.y() <= y2
 
     def mousePressEvent(self, event):
-        if self._isOverCross(event.pos()):
+        if self._isOverCross(event.position().toPoint()):
             # Accept event so that the tabbar will NOT change to that tab
             event.accept()
         else:
             event.ignore()
 
     def mouseReleaseEvent(self, event):
-        if self._isOverCross(event.pos()):
+        if self._isOverCross(event.position().toPoint()):
             event.accept()
             # Get tabs
             tabs = self.parent().parent()
             # Get index from position
-            pos = self.mapTo(tabs, event.pos())
+            pos = self.mapTo(tabs, event.position().toPoint())
             index = tabs.tabBar().tabAt(pos)
             # Close it
             tabs.tabCloseRequested.emit(index)
@@ -374,7 +374,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        new_overCross = self._isOverCross(event.pos())
+        new_overCross = self._isOverCross(event.position().toPoint())
         if new_overCross != self._overCross:
             self._overCross = new_overCross
             if new_overCross:

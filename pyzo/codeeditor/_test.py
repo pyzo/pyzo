@@ -64,4 +64,4 @@ if __name__ == "__main__":
     s.addWidget(e)
     s.addWidget(QtWidgets.QLabel("test"))
     s.show()
-    app.exec_()
+    app.exec()

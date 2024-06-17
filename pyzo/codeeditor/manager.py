@@ -268,7 +268,7 @@ class Manager:
     @classmethod
     def fontNames(cls):
         """Get a list of all monospace fonts available on this system."""
-        db = QtGui.QFontDatabase()
+        db = QtGui.QFontDatabase
         return [fn for fn in db.families() if db.isFixedPitch(fn)]
 
     @classmethod
@@ -285,7 +285,7 @@ class Manager:
 
         # Get font family
         f = QtGui.QFont(cls._defaultFontFamily)
-        f.setStyleHint(f.TypeWriter, f.PreferDefault)
+        f.setStyleHint(f.StyleHint.TypeWriter, f.StyleStrategy.PreferDefault)
         fi = QtGui.QFontInfo(f)
         family = fi.family()
 

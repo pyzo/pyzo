@@ -214,7 +214,7 @@ class PyzoAssistant(QtWidgets.QWidget):
         self._helpBrowser.setHtml(help_help)
 
     def goSearch(self):
-        query = self._searchQueryWidget.query()
+        query = self._searchQueryWidget.searchInput()
         self._searchEngine.search(query)
 
     def onIndexingStarted(self):

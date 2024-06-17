@@ -25,29 +25,29 @@ class MyQListWidget(QtWidgets.QListWidget):
 
     def mouseDoubleClickEvent(self, event):
         super().mouseDoubleClickEvent(event)
-        self.doubleClicked.emit(event.pos())
+        self.doubleClicked.emit(event.position().toPoint())
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MiddleButton:
-            self.middleButtonClicked.emit(event.pos())
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.middleButtonClicked.emit(event.position().toPoint())
             return
         super().mousePressEvent(event)
 
     def keyPressEvent(self, event):
         key = event.key()
         eventName = None
-        if key in (Qt.Key_Return, Qt.Key_Enter):
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             eventName = "enter"
-        elif key == Qt.Key_Delete:
+        elif key == Qt.Key.Key_Delete:
             eventName = "delete"
-        elif key == Qt.Key_Insert:
+        elif key == Qt.Key.Key_Insert:
             eventName = "insert"
 
         m = event.modifiers()
-        if m & Qt.ControlModifier and m & Qt.ShiftModifier:
-            if key == Qt.Key_Up:
+        if m & Qt.KeyboardModifier.ControlModifier and m & Qt.KeyboardModifier.ShiftModifier:
+            if key == Qt.Key.Key_Up:
                 eventName = "shift_up"
-            elif key == Qt.Key_Down:
+            elif key == Qt.Key.Key_Down:
                 eventName = "shift_down"
 
         if eventName is None:
@@ -96,7 +96,7 @@ class PyzoEditorList(QtWidgets.QWidget):
 
         # Context menu
         self._menu = pyzo.core.menu.EditorTabContextMenu(self, "EditorTabMenu")
-        self._list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self._list.customContextMenuRequested.connect(
             self._onCustomContextMenuRequested
         )
