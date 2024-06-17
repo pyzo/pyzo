@@ -34,13 +34,13 @@ class PyzoWizard(QtWidgets.QWizard):
         # Set some appearance stuff
         self.setMinimumSize(600, 500)
         self.setWindowTitle(translate("wizard", "Getting started with Pyzo"))
-        self.setWizardStyle(self.ModernStyle)
-        self.setButtonText(self.CancelButton, "Stop")
+        self.setWizardStyle(self.WizardStyle.ModernStyle)
+        self.setButtonText(self.WizardButton.CancelButton, "Stop")
 
         # Set logo
         pm = QtGui.QPixmap()
         pm.load(os.path.join(pyzo.pyzoDir, "resources", "appicons", "pyzologo48.png"))
-        self.setPixmap(self.LogoPixmap, pm)
+        self.setPixmap(self.WizardPixmap.LogoPixmap, pm)
 
         # Define pages
         klasses = [
@@ -103,7 +103,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
 
         # Create label for description
         self._text_label = QtWidgets.QLabel(self)
-        self._text_label.setTextFormat(QtCore.Qt.RichText)
+        self._text_label.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self._text_label.setWordWrap(True)
 
         # Create label for image
@@ -120,7 +120,8 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
                 os.path.join(pyzo.pyzoDir, "resources", "images", self._image_filename)
             )
         self._comicLabel.setPixmap(pm)
-        self._comicLabel.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        AF = QtCore.Qt.AlignmentFlag
+        self._comicLabel.setAlignment(AF.AlignHCenter | AF.AlignVCenter)
 
         # Layout
         theLayout = QtWidgets.QVBoxLayout(self)
@@ -244,8 +245,8 @@ class IntroWizardPage(BasePyzoWizardPage):
         m = QtWidgets.QMessageBox(self)
         m.setWindowTitle(translate("wizard", "Language changed"))
         m.setText(text)
-        m.setIcon(m.Information)
-        m.exec_()
+        m.setIcon(m.Icon.Information)
+        m.exec()
 
         # Get props of current wizard
         geo = self.wizard().geometry()

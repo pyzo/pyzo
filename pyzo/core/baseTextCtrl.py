@@ -175,14 +175,14 @@ class BaseTextCtrl(CodeEditor):
         for key in keys:
             if len(key) > 1:
                 key = "Key_" + key[0].upper() + key[1:].lower()
-                qtkey = getattr(QtCore.Qt, key, None)
+                qtkey = getattr(QtCore.Qt.Key, key, None)
             else:
                 qtkey = ord(key)
             if qtkey:
                 qtKeys.append(qtkey)
 
-        if QtCore.Qt.Key_Enter in qtKeys and QtCore.Qt.Key_Return not in qtKeys:
-            qtKeys.append(QtCore.Qt.Key_Return)
+        if QtCore.Qt.Key.Key_Enter in qtKeys and QtCore.Qt.Key.Key_Return not in qtKeys:
+            qtKeys.append(QtCore.Qt.Key.Key_Return)
         self.setAutoCompletionAcceptKeys(*qtKeys)
 
     def _isValidPython(self):
@@ -313,7 +313,7 @@ class BaseTextCtrl(CodeEditor):
                 line[limit].isalnum() or line[limit] in (".", "_")
             ):
                 limit += 1
-                cursor.movePosition(cursor.Right)
+                cursor.movePosition(cursor.MoveOperation.Right)
             _, tokens = self.getTokensUpToCursor(cursor)
             nameBefore, name = parseLine_autocomplete(tokens)
             if nameBefore:
@@ -383,9 +383,9 @@ class BaseTextCtrl(CodeEditor):
         if isinstance(event, QtGui.QKeyEvent):
             # Ignore CTRL+{A-Z} since those keys are handled through the menu
             if (
-                (event.modifiers() & QtCore.Qt.ControlModifier)
-                and (event.key() >= QtCore.Qt.Key_A)
-                and (event.key() <= QtCore.Qt.Key_Z)
+                (event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier)
+                and (event.key() >= QtCore.Qt.Key.Key_A)
+                and (event.key() <= QtCore.Qt.Key.Key_Z)
             ):
                 event.ignore()
                 return False
@@ -409,7 +409,7 @@ class BaseTextCtrl(CodeEditor):
         self._delayTimer._line = ""
 
         # Invoke autocomplete via tab key?
-        if event.key() == QtCore.Qt.Key_Tab and not self.autocompleteActive():
+        if event.key() == QtCore.Qt.Key.Key_Tab and not self.autocompleteActive():
             if pyzo.config.settings.autoComplete:
                 cursor = self.textCursor()
                 if cursor.position() == cursor.anchor():
@@ -430,7 +430,7 @@ class BaseTextCtrl(CodeEditor):
             elif ordKey >= 32:
                 # Printable chars, only calltip
                 self.introspect()
-        elif event.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]:
+        elif event.key() in [QtCore.Qt.Key.Key_Left, QtCore.Qt.Key.Key_Right]:
             self.introspect()
 
 
@@ -575,4 +575,4 @@ if __name__ == "__main__":
     tmp += "a\u20acb\n"
     win.setPlainText(tmp)
     win.show()
-    app.exec_()
+    app.exec()

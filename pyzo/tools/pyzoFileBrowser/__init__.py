@@ -44,15 +44,15 @@ import os.path as op
 
 import pyzo
 from pyzo.util import zon as ssdf
-from pyzo.qt import QtCore, QtGui, QtWidgets, API, PYSIDE_VERSION  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets, API, QT_WRAPPER_VERSION_STR  # noqa
 
 from .browser import Browser
 from .utils import cleanpath, isdir
 
 
 def _check_qt_version():
-    if sys.platform == "darwin" and API == "pyside6":
-        version = tuple(int(i) for i in PYSIDE_VERSION.split(".")[:3])
+    if sys.platform == "darwin" and API == "PySide6":
+        version = tuple(int(i) for i in QT_WRAPPER_VERSION_STR.split(".")[:3])
         if version == (6, 5, 1):
             print(
                 "\nWARNING:On MacOS The file browser may be unstable with PySide6 version 6.5.1\n"

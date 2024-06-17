@@ -57,7 +57,7 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         self._search.textChanged.connect(self._on_search)
 
         # Drag/drop
-        self._list.setSelectionMode(self._list.ExtendedSelection)
+        self._list.setSelectionMode(self._list.SelectionMode.ExtendedSelection)
         self._list.setDragEnabled(True)
         self._list.doubleClicked.connect(self._onDoubleClicked)
 
@@ -82,7 +82,7 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
             "remove",
         )
 
-        self._list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._list.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self._list.customContextMenuRequested.connect(
             self._onCustomContextMenuRequested
         )

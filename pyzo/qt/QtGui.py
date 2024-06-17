@@ -1,70 +1,30 @@
-#
-# Copyright © 2014-2015 Colin Duquesnoy
-# Copyright © 2009- The Spyder Development Team
-#
-# Licensed under the terms of the MIT License
-# (see LICENSE.txt for details)
+from . import API
 
-"""
-Provides QtGui classes and functions.
-"""
-from . import PYQT6, PYQT5, PYSIDE2, PYSIDE6, PythonQtError
-
-
-if PYQT6:
-    from PyQt6.QtGui import *
-
-    import inspect
-
-    QFontMetrics.width = inspect.getattr_static(QFontMetrics, "horizontalAdvance")
-
-    # Map missing/renamed methods
-    QDrag.exec_ = inspect.getattr_static(QDrag, "exec")
-    QGuiApplication.exec_ = inspect.getattr_static(QGuiApplication, "exec")
-    QTextDocument.print_ = inspect.getattr_static(QTextDocument, "print")
-    QTextDocument.FindFlags = lambda: QTextDocument.FindFlag(0)
-
-    from .enums_compat import promote_enums
-
-    from PyQt6 import QtGui
-
-    QtGui.QMouseEvent.x = lambda self: int(self.position().x())
-    QtGui.QMouseEvent.y = lambda self: int(self.position().y())
-    if not hasattr(QtGui.QMouseEvent, "pos"):
-        QtGui.QMouseEvent.pos = lambda self: self.position().toPoint()
-    promote_enums(QtGui)
-
-    # in Qt6 use QtGui.QFontDatabase.families() instead of QtGui.QFontDatabase().families()
-    # https://doc.qt.io/qt-6/qfontdatabase-obsolete.html#QFontDatabase
-    QtGui.QFontDatabase.__new__ = lambda cls: cls
-
-    del QtGui
-    del inspect
-elif PYQT5:
-    from PyQt5.QtGui import *
-elif PYSIDE2:
-    from PySide2.QtGui import *
-elif PYSIDE6:
-    from PySide6 import QtGui
+if API == "PySide6":
     from PySide6.QtGui import *
+elif API == "PyQt6":
+    from PyQt6.QtGui import *
+elif API == "PySide2":
+    from PySide2.QtGui import *
+    from PySide2.QtWidgets import QAction, QActionGroup
+    from PySide2.QtCore import QPointF as _QPointF
+elif API == "PyQt5":
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import QAction, QActionGroup
+    from PyQt5.QtCore import QPointF as _QPointF
 
-    QFontMetrics.width = QFontMetrics.horizontalAdvance
+if API in ("PySide2", "PyQt5"):
+    QMouseEvent.position = lambda self: _QPointF(self.pos())
 
-    # Map DeprecationWarning methods
-    QDrag.exec_ = QDrag.exec
-    QGuiApplication.exec_ = QGuiApplication.exec
-    QtGui.QMouseEvent.x = lambda self: int(self.position().x())
-    QtGui.QMouseEvent.y = lambda self: int(self.position().y())
-    QtGui.QMouseEvent.pos = lambda self: self.position().toPoint()
+    # For Qt5 we need something like QFontDatabase = QFontDatabase()
+    # but with instance creation just when first accessing the class.
+    def _getFontDatabase(name):
+        if not hasattr(_QFontDatabaseWrapper, "_instance"):
+            _QFontDatabaseWrapper._instance = _QFontDatabaseWrapper._original()
+        return getattr(_QFontDatabaseWrapper._instance, name)
 
-    from .enums_compat import promote_enums
+    class _QFontDatabaseWrapper:
+        _original = QFontDatabase
+        def __getattribute__(self, name): return _getFontDatabase(name)
 
-    promote_enums(QtGui)
-
-    # in Qt6 use QtGui.QFontDatabase.families() instead of QtGui.QFontDatabase().families()
-    # https://doc.qt.io/qt-6/qfontdatabase-obsolete.html#QFontDatabase
-    QtGui.QFontDatabase.__new__ = lambda cls: cls
-
-    del QtGui
-else:
-    raise PythonQtError("No Qt bindings could be found")
+    QFontDatabase = _QFontDatabaseWrapper()

@@ -67,15 +67,18 @@ class MainWindow(QtWidgets.QMainWindow):
         pyzo.main = self
 
         # Init dockwidget settings
-        self.setTabPosition(QtCore.Qt.AllDockWidgetAreas, QtWidgets.QTabWidget.South)
+        self.setTabPosition(
+            QtCore.Qt.DockWidgetArea.AllDockWidgetAreas,
+            QtWidgets.QTabWidget.TabPosition.South,
+        )
         self.setDockOptions(
-            QtWidgets.QMainWindow.AllowTabbedDocks
-            | QtWidgets.QMainWindow.AllowNestedDocks
-            # |  QtWidgets.QMainWindow.AnimatedDocks
+            QtWidgets.QMainWindow.DockOption.AllowTabbedDocks
+            | QtWidgets.QMainWindow.DockOption.AllowNestedDocks
+            # |  QtWidgets.QMainWindow.DockOption.AnimatedDocks
         )
 
         # Set window atrributes
-        self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips, True)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_AlwaysShowToolTips, True)
 
         # Load icons and fonts
         loadIcons()
@@ -126,7 +129,7 @@ class MainWindow(QtWidgets.QMainWindow):
             from pyzo.util.pyzowizard import PyzoWizard
 
             w = PyzoWizard(self)
-            w.show()  # Use show() instead of exec_() so the user can interact with pyzo
+            w.show()  # Use show() instead of exec() so the user can interact with pyzo
 
         # Create new shell config if there is None
         if not pyzo.config.shellConfigs2:
@@ -180,13 +183,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Create floater for shell
         self._shellDock = dock = QtWidgets.QDockWidget(self)
+        DWF = dock.DockWidgetFeature
         if pyzo.config.settings.allowFloatingShell:
-            dock.setFeatures(dock.DockWidgetMovable | dock.DockWidgetFloatable)
+            dock.setFeatures(DWF.DockWidgetMovable | DWF.DockWidgetFloatable)
         else:
-            dock.setFeatures(dock.DockWidgetMovable)
+            dock.setFeatures(DWF.DockWidgetMovable)
         dock.setObjectName("shells")
         dock.setWindowTitle("Shells")
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # Create shell stack
         pyzo.shells = ShellStackWidget(self)
@@ -581,7 +585,7 @@ class _CallbackEventHandler(QtCore.QObject):
 
     def postEventWithCallback(self, callback, *args):
         self.queue.put((callback, args))
-        QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+        QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.Type.User))
 
 
 def callLater(callback, *args):

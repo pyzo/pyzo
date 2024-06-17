@@ -59,7 +59,7 @@ class ShellInfo_exe(QtWidgets.QComboBox):
         # Init
         self.clear()
         self.setEditable(True)
-        self.setInsertPolicy(self.InsertAtTop)
+        self.setInsertPolicy(self.InsertPolicy.InsertAtTop)
 
         # Get known interpreters from shellDialog (which are sorted by version)
         shellDialog = self
@@ -447,10 +447,10 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         super().__init__(parent)
 
         # Init the scroll area
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setWidgetResizable(True)
-        self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
 
         # Create widget and a layout
         self._content = QtWidgets.QWidget(parent)
@@ -587,7 +587,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
         self._add = QtWidgets.QToolButton(self)
         self._tabs.setCornerWidget(self._add)
         self._add.clicked.connect(self.onAdd)
-        self._add.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self._add.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self._add.setIcon(pyzo.icons.add)
         self._add.setText(translate("shell", "Add config"))
         #

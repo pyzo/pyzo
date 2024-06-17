@@ -18,26 +18,27 @@ QLocale = QtCore.QLocale
 # user. The value is passed to create a Locale object. From the local
 # object we obtain the name for the .tr file.
 # Chinese:
+L = QLocale.Language
 LANGUAGES = {
-    "English (US)": QLocale.C,
-    # == (QLocale.English, QLocale.UnitedStates),
-    #'English (UK)': (QLocale.English, QLocale.UnitedKingdom),
-    "Dutch": QLocale.Dutch,
-    "Spanish": QLocale.Spanish,
-    "Catalan": QLocale.Catalan,
-    "French": QLocale.French,
-    "German": QLocale.German,
-    "Russian": QLocale.Russian,  # not updated for 3.4
-    "Polish": QLocale.Polish,
-    "Portuguese": QLocale.Portuguese,
-    "Portuguese (BR)": (QLocale.Portuguese, QLocale.Brazil),
-    "Simplified Chinese": QLocale.Chinese,
+    "English (US)": L.C,
+    # == (L.English, L.UnitedStates),
+    #'English (UK)': (L.English, L.UnitedKingdom),
+    "Dutch": L.Dutch,
+    "Spanish": L.Spanish,
+    "Catalan": L.Catalan,
+    "French": L.French,
+    "German": L.German,
+    "Russian": L.Russian,  # not updated for 3.4
+    "Polish": L.Polish,
+    "Portuguese": L.Portuguese,
+    "Portuguese (BR)": (L.Portuguese, QLocale.Country.Brazil),
+    "Simplified Chinese": L.Chinese,
     "Traditional Chinese": (
-        QLocale.Chinese,
-        QLocale.Taiwan,
+        L.Chinese,
+        QLocale.Country.Taiwan,
     ),  # https://bugreports.qt.io/browse/QTBUG-1573
     # Languages for which the is a .tr file, but no translations available yet:
-    # 'Slovak': QLocale.Slovak,
+    # 'Slovak': L.Slovak,
 }
 
 
@@ -96,7 +97,7 @@ def setLanguage(languageName):
 
     # Get paths were language files are
     qtTransPath = str(
-        QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)
+        QtCore.QLibraryInfo.path(QtCore.QLibraryInfo.LibraryPath.TranslationsPath)
     )
     pyzoTransPath = os.path.join(pyzo.pyzoDir, "resources", "translations")
 

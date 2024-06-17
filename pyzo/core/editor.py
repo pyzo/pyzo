@@ -288,7 +288,7 @@ class PyzoEditor(BaseTextCtrl):
 
         # Add context menu
         self._menu = EditorContextMenu(self)
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._onContextMenu)
 
         # Update status bar
@@ -356,7 +356,7 @@ class PyzoEditor(BaseTextCtrl):
 
         extraSelection = QtWidgets.QTextEdit.ExtraSelection()
         extraSelection.cursor = cursor
-        extraSelection.format.setBackground(QtCore.Qt.gray)
+        extraSelection.format.setBackground(QtCore.Qt.GlobalColor.gray)
         self.setExtraSelections([extraSelection])
 
         self._showRunCursorTimer.singleShot(200, lambda: self.setExtraSelections([]))
@@ -403,7 +403,7 @@ class PyzoEditor(BaseTextCtrl):
             self._modifyTime = os.path.getmtime(path)
 
             # get result and act
-            dlg.exec_()
+            dlg.exec()
             if dlg.clickedButton() == btnReload:
                 self.reload()
 
@@ -493,22 +493,25 @@ class PyzoEditor(BaseTextCtrl):
             oricursor = self.textCursor()
             # Screen cursor to select document
             screenCursor = self.textCursor()
-            screenCursor.movePosition(screenCursor.Start)
-            screenCursor.movePosition(screenCursor.End, screenCursor.KeepAnchor)
+            screenCursor.movePosition(screenCursor.MoveOperation.Start)
+            screenCursor.movePosition(
+                screenCursor.MoveOperation.End,
+                screenCursor.MoveMode.KeepAnchor,
+            )
             # Cursor for doing the editor
             editCursor = self.textCursor()
             # Go!
             editCursor.beginEditBlock()
             try:
                 editCursor.setPosition(screenCursor.selectionStart())
-                editCursor.movePosition(editCursor.StartOfBlock)
+                editCursor.movePosition(editCursor.MoveOperation.StartOfBlock)
                 while (
                     editCursor.position() < screenCursor.selectionEnd()
                     or editCursor.position() <= screenCursor.selectionStart()
                 ):
-                    editCursor.movePosition(editCursor.StartOfBlock)
+                    editCursor.movePosition(editCursor.MoveOperation.StartOfBlock)
                     editCursor.movePosition(
-                        editCursor.EndOfBlock, editCursor.KeepAnchor
+                        editCursor.MoveOperation.EndOfBlock, editCursor.MoveMode.KeepAnchor
                     )
                     text1 = editCursor.selectedText()
                     text2 = text1.rstrip()
@@ -516,7 +519,7 @@ class PyzoEditor(BaseTextCtrl):
                         editCursor.insertText(text2)
                     if not editCursor.block().next().isValid():
                         break
-                    editCursor.movePosition(editCursor.NextBlock)
+                    editCursor.movePosition(editCursor.MoveOperation.NextBlock)
             finally:
                 self.setTextCursor(oricursor)
                 editCursor.endEditBlock()
@@ -583,9 +586,9 @@ class PyzoEditor(BaseTextCtrl):
         end = cursor.selectionEnd()
         # Expand selection: from start of first block to start of next block
         cursor.setPosition(start)
-        cursor.movePosition(cursor.StartOfBlock)
-        cursor.setPosition(end, cursor.KeepAnchor)
-        cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
+        cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.NextBlock, cursor.MoveMode.KeepAnchor)
 
         cursor.removeSelectedText()
 
@@ -596,16 +599,19 @@ class PyzoEditor(BaseTextCtrl):
         end = cursor.selectionEnd()
         # Expand selection: from start of first block to start of next block
         cursor.setPosition(start)
-        cursor.movePosition(cursor.StartOfBlock)
-        cursor.setPosition(end, cursor.KeepAnchor)
-        notAtLastBlock = cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
+        cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
+        notAtLastBlock = cursor.movePosition(
+            cursor.MoveOperation.NextBlock,
+            cursor.MoveMode.KeepAnchor,
+        )
         if notAtLastBlock:
             text = cursor.selectedText()
         else:
-            cursor.movePosition(cursor.End, cursor.KeepAnchor)
+            cursor.movePosition(cursor.MoveOperation.End, cursor.MoveMode.KeepAnchor)
             text = cursor.selectedText() + "\u2029"
         cursor.setPosition(start)
-        cursor.movePosition(cursor.StartOfBlock)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
         cursor.insertText(text)
 
     def commentCode(self):
@@ -701,7 +707,7 @@ class PyzoEditor(BaseTextCtrl):
         # Get name of object to go to
         cursor = self.textCursor()
         if not cursor.hasSelection():
-            cursor.select(cursor.WordUnderCursor)
+            cursor.select(cursor.SelectionType.WordUnderCursor)
         word = cursor.selection().toPlainText()
 
         # Send the open command to the shell
@@ -812,4 +818,4 @@ if __name__ == "__main__":
     tmp += "\nclass aap:\n  def monkey(self):\n    pass\n\n"
     win.setPlainText(tmp)
     win.show()
-    app.exec_()
+    app.exec()

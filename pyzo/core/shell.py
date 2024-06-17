@@ -56,7 +56,7 @@ class YotonEmbedder(QtCore.QObject):
 
     def postYotonEvent(self):
         try:
-            QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.User))
+            QtWidgets.qApp.postEvent(self, QtCore.QEvent(QtCore.QEvent.Type.User))
         except Exception:
             pass  # If pyzo is shutting down, the app may be None
 
@@ -69,8 +69,8 @@ yotonEmbedder = YotonEmbedder()
 
 
 # Short constants for cursor movement
-A_KEEP = QtGui.QTextCursor.KeepAnchor
-A_MOVE = QtGui.QTextCursor.MoveAnchor
+A_KEEP = QtGui.QTextCursor.MoveMode.KeepAnchor
+A_MOVE = QtGui.QTextCursor.MoveMode.MoveAnchor
 
 # Instantiate a local kernel broker upon loading this module
 pyzo.localKernelManager = Kernelmanager(public=False)
@@ -169,14 +169,14 @@ class ShellHighlighter(Highlighter):
                             # print(repr(nameToFormat(token.name)))
                             continue
                         # Set format
-                        # format.setFontWeight(QtGui.QFont.Bold)
+                        # format.setFontWeight(QtGui.QFont.Weight.Bold)
                         if token.start >= pos2:
                             self.setFormat(token.start, token.end - token.start, format)
 
             # Set prompt to bold
             if atCurrentPrompt:
                 format = QtGui.QTextCharFormat()
-                format.setFontWeight(QtGui.QFont.Bold)
+                format.setFontWeight(QtGui.QFont.Weight.Bold)
                 self.setFormat(pos1, pos2 - pos1, format)
 
         # Get the indentation setting of the editors
@@ -187,8 +187,8 @@ class ShellHighlighter(Highlighter):
             # Mixed whitespace
             bd.indentation = 0
             format = QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.red)
+            format.setUnderlineStyle(QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.GlobalColor.red)
             format.setToolTip("Mixed tabs and spaces")
             self.setFormat(0, len(leadingWhitespace), format)
         elif ("\t" in leadingWhitespace and indentUsingSpaces) or (
@@ -197,8 +197,8 @@ class ShellHighlighter(Highlighter):
             # Whitespace differs from document setting
             bd.indentation = 0
             format = QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
-            format.setUnderlineColor(QtCore.Qt.blue)
+            format.setUnderlineStyle(QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
+            format.setUnderlineColor(QtCore.Qt.GlobalColor.blue)
             format.setToolTip("Whitespace differs from document setting")
             self.setFormat(0, len(leadingWhitespace), format)
         else:
@@ -261,7 +261,7 @@ class BaseShell(BaseTextCtrl):
 
         # Hard wrapping. QTextEdit allows hard wrapping at a specific column.
         # Unfortunately, QPlainTextEdit does not.
-        self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
+        self.setWordWrapMode(QtGui.QTextOption.WrapMode.WrapAnywhere)
 
         # Limit number of lines
         self.setMaximumBlockCount(MAXBLOCKCOUNT)
@@ -270,7 +270,7 @@ class BaseShell(BaseTextCtrl):
         # is before the prompt
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
 
-        self.setFocusPolicy(Qt.TabFocus)  # See remark at mousePressEvent
+        self.setFocusPolicy(Qt.FocusPolicy.TabFocus)  # See remark at mousePressEvent
 
     ## Cursor stuff
 
@@ -291,7 +291,7 @@ class BaseShell(BaseTextCtrl):
         cursor = self.textCursor()
         promptpos = self._cursor2.position()
         if cursor.position() < promptpos or cursor.anchor() < promptpos:
-            cursor.movePosition(cursor.End, A_MOVE)  # Move to end of document
+            cursor.movePosition(cursor.MoveOperation.End, A_MOVE)  # Move to end of document
             self.setTextCursor(cursor)
             self.onCursorPositionChanged()
 
@@ -312,7 +312,7 @@ class BaseShell(BaseTextCtrl):
             self.setFocus()
             return
 
-        if event.button() != QtCore.Qt.MidButton:
+        if event.button() != QtCore.Qt.MouseButton.MiddleButton:
             super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
@@ -321,7 +321,7 @@ class BaseShell(BaseTextCtrl):
 
     def mouseDoubleClickEvent(self, event):
         super().mouseDoubleClickEvent(event)
-        self._handleClickOnFilename(event.pos())
+        self._handleClickOnFilename(event.position().toPoint())
 
     def _handleClickOnFilename(self, mousepos):
         """Check whether the text that is clicked is a filename
@@ -335,8 +335,8 @@ class BaseShell(BaseTextCtrl):
         pos = cursor.positionInBlock()
 
         # Get line of text for the cursor
-        cursor.movePosition(cursor.EndOfBlock, cursor.MoveAnchor)
-        cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.KeepAnchor)
         line = cursor.selectedText()
         if len(line) > 1024:
             return  # safety
@@ -384,8 +384,8 @@ class BaseShell(BaseTextCtrl):
         # IPython shows a few lines with the active line indicated by an arrow
         if linenr is None:
             for i in range(4):
-                cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor)
-                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+                cursor.movePosition(cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor)
+                cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
                 line = cursor.selectedText()
                 if len(line) > 1024:
                     continue  # safety
@@ -404,8 +404,8 @@ class BaseShell(BaseTextCtrl):
 
         # Select word here (in shell)
         cursor = ocursor
-        cursor.movePosition(cursor.Left, cursor.MoveAnchor, len(before))
-        cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(piece))
+        cursor.movePosition(cursor.MoveOperation.Left, cursor.MoveMode.MoveAnchor, len(before))
+        cursor.movePosition(cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, len(piece))
         self.setTextCursor(cursor)
 
         # For syntax errors we have the offset thingy in the file name
@@ -423,8 +423,8 @@ class BaseShell(BaseTextCtrl):
             editor = result._editor
             editor.gotoLine(linenr)
             cursor = editor.textCursor()
-            cursor.movePosition(cursor.StartOfBlock)
-            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            cursor.movePosition(cursor.MoveOperation.StartOfBlock)
+            cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
             editor.setTextCursor(cursor)
 
     ##Indentation: override code editor behaviour
@@ -436,7 +436,7 @@ class BaseShell(BaseTextCtrl):
 
     ## Key handlers
     def keyPressEvent(self, event):
-        if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
+        if event.key() in [Qt.Key.Key_Return, Qt.Key.Key_Enter]:
             # First check if autocompletion triggered
             if self.potentiallyAutoComplete(event):
                 return
@@ -453,15 +453,15 @@ class BaseShell(BaseTextCtrl):
                 self.processLine()
                 return
 
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             # Escape clears command
             if not (self.autocompleteActive() or self.calltipActive()):
                 self.clearCommand()
 
-        if event.key() == Qt.Key_Home:
+        if event.key() == Qt.Key.Key_Home:
             # Home goes to the prompt.
             cursor = self.textCursor()
-            if event.modifiers() & Qt.ShiftModifier:
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 cursor.setPosition(self._cursor2.position(), A_KEEP)
             else:
                 cursor.setPosition(self._cursor2.position(), A_MOVE)
@@ -470,19 +470,19 @@ class BaseShell(BaseTextCtrl):
             self.autocompleteCancel()
             return
 
-        if event.key() == Qt.Key_Insert:
+        if event.key() == Qt.Key.Key_Insert:
             # Don't toggle between insert mode and overwrite mode.
             return True
 
         # Ensure to not backspace / go left beyond the prompt
-        if event.key() in [Qt.Key_Backspace, Qt.Key_Left]:
+        if event.key() in [Qt.Key.Key_Backspace, Qt.Key.Key_Left]:
             self._historyNeedle = None
             if self.textCursor().position() == self._cursor2.position():
-                if event.key() == Qt.Key_Backspace:
+                if event.key() == Qt.Key.Key_Backspace:
                     self.textCursor().removeSelectedText()
                 return  # Ignore the key, don't go beyond the prompt
 
-        if event.key() in [Qt.Key_Up, Qt.Key_Down] and not self.autocompleteActive():
+        if event.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down] and not self.autocompleteActive():
             # needle
             if self._historyNeedle is None:
                 # get partly-written-command
@@ -490,13 +490,13 @@ class BaseShell(BaseTextCtrl):
                 # Select text
                 cursor = self.textCursor()
                 cursor.setPosition(self._cursor2.position(), A_MOVE)
-                cursor.movePosition(cursor.End, A_KEEP)
+                cursor.movePosition(cursor.MoveOperation.End, A_KEEP)
                 # Update needle text
                 self._historyNeedle = cursor.selectedText()
                 self._historyStep = 0
 
             # Browse through history
-            if event.key() == Qt.Key_Up:
+            if event.key() == Qt.Key.Key_Up:
                 self._historyStep += 1
             else:  # Key_Down
                 self._historyStep -= 1
@@ -515,7 +515,7 @@ class BaseShell(BaseTextCtrl):
             # Replace text
             cursor = self.textCursor()
             cursor.setPosition(self._cursor2.position(), A_MOVE)
-            cursor.movePosition(cursor.End, A_KEEP)
+            cursor.movePosition(cursor.MoveOperation.End, A_KEEP)
             cursor.insertText(c)
 
             self.ensureCursorAtEditLine()
@@ -577,7 +577,7 @@ class BaseShell(BaseTextCtrl):
 
             # Move the cursor to the position indicated by the drop location, but
             # ensure it is at the edit line
-            self.setTextCursor(self.cursorForPosition(event.pos()))
+            self.setTextCursor(self.cursorForPosition(event.position().toPoint()))
             self.ensureCursorAtEditLine()
 
             # Now insert the text
@@ -591,7 +591,7 @@ class BaseShell(BaseTextCtrl):
         """Clear all the previous output from the screen."""
         # Select from beginning of prompt to start of document
         self._cursor1.clearSelection()
-        self._cursor1.movePosition(self._cursor1.Start, A_KEEP)  # Keep anchor
+        self._cursor1.movePosition(self._cursor1.MoveOperation.Start, A_KEEP)  # Keep anchor
         self._cursor1.removeSelectedText()
         # Wrap up
         self.ensureCursorAtEditLine()
@@ -608,7 +608,7 @@ class BaseShell(BaseTextCtrl):
         # Select from prompt end to length and delete selected text.
         cursor = self.textCursor()
         cursor.setPosition(self._cursor2.position(), A_MOVE)
-        cursor.movePosition(cursor.End, A_KEEP)
+        cursor.movePosition(cursor.MoveOperation.End, A_KEEP)
         cursor.removeSelectedText()
         # Wrap up
         self.ensureCursorAtEditLine()
@@ -677,7 +677,7 @@ class BaseShell(BaseTextCtrl):
             if nb:
                 # Select what we remove and delete that
                 self._cursor1.clearSelection()
-                self._cursor1.movePosition(self._cursor1.Left, A_KEEP, nb)
+                self._cursor1.movePosition(self._cursor1.MoveOperation.Left, A_KEEP, nb)
                 self._cursor1.removeSelectedText()
 
         # Return result
@@ -726,7 +726,7 @@ class BaseShell(BaseTextCtrl):
             and not text[1:].startswith("\n")
             and not self._lastline_had_lf
         ):
-            cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor, 1)
+            cursor.movePosition(cursor.MoveOperation.StartOfLine, cursor.MoveMode.KeepAnchor, 1)
             cursor.removeSelectedText()
         # Is this new line ending in CR?
         self._lastline_had_cr = text.endswith("\r")
@@ -871,16 +871,16 @@ class BaseShell(BaseTextCtrl):
                 if param == 0:
                     format = QtGui.QTextCharFormat()
                 elif param == 1:
-                    format.setFontWeight(QtGui.QFont.Bold)
+                    format.setFontWeight(QtGui.QFont.Weight.Bold)
                 elif param == 2:
-                    format.setFontWeight(QtGui.QFont.Light)
+                    format.setFontWeight(QtGui.QFont.Weight.Light)
                 elif param == 3:
                     format.setFontItalic(True)  # Italic
                 elif param == 4:
                     format.setFontUnderline(True)  # Underline
                 #
                 elif param == 22:
-                    format.setFontWeight(QtGui.QFont.Normal)  # Not bold or light
+                    format.setFontWeight(QtGui.QFont.Weight.Normal)  # Not bold or light
                 elif param == 23:
                     format.setFontItalic(False)  # Not italic
                 elif param == 24:
@@ -934,7 +934,7 @@ class BaseShell(BaseTextCtrl):
             # Select command
             cursor = self.textCursor()
             cursor.setPosition(self._cursor2.position(), A_MOVE)
-            cursor.movePosition(cursor.End, A_KEEP)
+            cursor.movePosition(cursor.MoveOperation.End, A_KEEP)
 
             # Sample the text from the prompt and remove it
             command = cursor.selectedText().replace("\u2029", "\n").rstrip("\n")
@@ -1013,7 +1013,7 @@ class PythonShell(BaseShell):
 
         # Add context menu
         self._menu = ShellContextMenu(shell=self, parent=self)
-        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(
             lambda p: self._menu.popup(self.mapToGlobal(p + QtCore.QPoint(0, 3)))
         )
@@ -1549,8 +1549,8 @@ class PythonShell(BaseShell):
             self._context.close()
 
         # New (empty prompt)
-        self._cursor1.movePosition(self._cursor1.End, A_MOVE)
-        self._cursor2.movePosition(self._cursor2.End, A_MOVE)
+        self._cursor1.movePosition(self._cursor1.MoveOperation.End, A_MOVE)
+        self._cursor2.movePosition(self._cursor2.MoveOperation.End, A_MOVE)
 
         self.write("\n\n")
         self.write("Lost connection with broker:\n")
@@ -1562,7 +1562,7 @@ class PythonShell(BaseShell):
 
         # Goto end such that the closing message is visible
         cursor = self.textCursor()
-        cursor.movePosition(cursor.End, A_MOVE)
+        cursor.movePosition(cursor.MoveOperation.End, A_MOVE)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
 

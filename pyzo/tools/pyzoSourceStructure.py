@@ -70,8 +70,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         # self._sliderIcon.setStyleSheet("QToolButton { border: none; padding: 0px; }")
 
         # Create slider
-        self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-        self._slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self._slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal, self)
+        self._slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
         self._slider.setSingleStep(1)
         self._slider.setPageStep(1)
         self._slider.setRange(1, 5)
@@ -85,8 +85,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16, 16))
-        self._options.setPopupMode(self._options.InstantPopup)
-        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self._options.setPopupMode(self._options.ToolButtonPopupMode.InstantPopup)
+        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
         # Create options menu
         self._options._menu = QtWidgets.QMenu()

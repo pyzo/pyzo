@@ -194,15 +194,16 @@ class StyleFormat:
     @property
     def underline(self):
         if self._underline is None:
+            US = QtGui.QTextCharFormat.UnderlineStyle
             val = self._getValueSafe("underline")
             if val in ["yes", "true"]:
-                self._underline = QtGui.QTextCharFormat.SingleUnderline
+                self._underline = US.SingleUnderline
             elif val in ["dotted", "dots", "dotline"]:
-                self._underline = QtGui.QTextCharFormat.DotLine
+                self._underline = US.DotLine
             elif val in ["wave"]:
-                self._underline = QtGui.QTextCharFormat.WaveUnderline
+                self._underline = US.WaveUnderline
             else:
-                self._underline = QtGui.QTextCharFormat.NoUnderline
+                self._underline = US.NoUnderline
         return self._underline
 
     @property
@@ -210,13 +211,13 @@ class StyleFormat:
         if self._linestyle is None:
             val = self._getValueSafe("linestyle")
             if val in ["yes", "true"]:
-                self._linestyle = Qt.SolidLine
+                self._linestyle = Qt.PenStyle.SolidLine
             elif val in ["dotted", "dot", "dots", "dotline"]:
                 self._linestyle = Qt.DotLine
             elif val in ["dashed", "dash", "dashes", "dashline"]:
-                self._linestyle = Qt.DashLine
+                self._linestyle = Qt.PenStyle.DashLine
             else:
-                self._linestyle = Qt.SolidLine  # default to solid
+                self._linestyle = Qt.PenStyle.SolidLine  # default to solid
         return self._linestyle
 
     @property
@@ -230,7 +231,7 @@ class StyleFormat:
                 pass
             self._textCharFormat.setUnderlineStyle(self.underline)
             if self.bold:
-                self._textCharFormat.setFontWeight(QtGui.QFont.Bold)
+                self._textCharFormat.setFontWeight(QtGui.QFont.Weight.Bold)
             if self.italic:
                 self._textCharFormat.setFontItalic(True)
         return self._textCharFormat

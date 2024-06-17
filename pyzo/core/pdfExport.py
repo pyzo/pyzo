@@ -19,12 +19,12 @@ class PdfExport(QtWidgets.QDialog):
 
         self.resize(1000, 600)
 
-        self._printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-        self._printer.setColorMode(QtPrintSupport.QPrinter.Color)
+        self._printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.PrinterMode.HighResolution)
+        self._printer.setColorMode(QtPrintSupport.QPrinter.ColorMode.Color)
 
         self._preview = QtPrintSupport.QPrintPreviewWidget(self._printer)
         self._preview.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding
         )
 
         self._chkLineNumbers = QtWidgets.QCheckBox(
@@ -34,7 +34,7 @@ class PdfExport(QtWidgets.QDialog):
         self._currentEditor = pyzo.editors.getCurrentEditor()
         self._editor = pyzo.core.editor.PyzoEditor("")
 
-        self._sliderZoom = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self._sliderZoom = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self._sliderZoom.setMinimum(-10)
         self._sliderZoom.setMaximum(10)
         self._sliderZoom.setTickInterval(1)
@@ -129,15 +129,17 @@ class PdfExport(QtWidgets.QDialog):
         if showLineNumbers:
             fmt = QtGui.QTextCharFormat()
             fmt.setBackground(QtGui.QColor(240, 240, 240))
-            cursor.movePosition(cursor.Start, cursor.MoveAnchor)
+            cursor.movePosition(cursor.MoveOperation.Start, cursor.MoveMode.MoveAnchor)
             notAtLastBlock = cursor.movePosition(
-                cursor.NextBlock, cursor.MoveAnchor, len(headerLines)
+                cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor, len(headerLines)
             )
             while notAtLastBlock:
-                cursor.movePosition(cursor.Right, cursor.KeepAnchor, numDigits)
+                cursor.movePosition(
+                    cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, numDigits
+                )
                 cursor.setCharFormat(fmt)
                 notAtLastBlock = cursor.movePosition(
-                    cursor.NextBlock, cursor.MoveAnchor
+                    cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor
                 )
 
         cursor.endEditBlock()
@@ -162,7 +164,7 @@ class PdfExport(QtWidgets.QDialog):
         self._updateTemporaryEditor()
         self._editor.print_(self._printer)
 
-        if self._printer.printerState() == self._printer.Error:
+        if self._printer.printerState() == self._printer.PrinterState.Error:
             # Notify in logger
             msg = 'could not export PDF file to "{}"'.format(filename)
             print(msg)
@@ -170,8 +172,8 @@ class PdfExport(QtWidgets.QDialog):
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle("Error exporting PDF file")
             m.setText(msg)
-            m.setIcon(m.Warning)
-            m.exec_()
+            m.setIcon(m.Icon.Warning)
+            m.exec()
 
     def _updateZoomLabel(self):
         self._lblZoom.setText("Zoom level: {}".format(self._sliderZoom.value()))
@@ -186,7 +188,7 @@ class PdfExport(QtWidgets.QDialog):
             self._printer.setOrientation(orientation)
         else:  # PySide6, PyQt6
             base = QtGui.QPageLayout
-            orientation = [base.Portrait, base.Landscape][index]
+            orientation = [base.Orientation.Portrait, base.Orientation.Landscape][index]
 
             self._preview.setOrientation(orientation)
             if sys.platform == "win32":

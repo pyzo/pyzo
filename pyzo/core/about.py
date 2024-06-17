@@ -40,8 +40,8 @@ class AboutDialog(QtWidgets.QDialog):
 
         # Create button box
         self._butBox = QtWidgets.QDialogButtonBox(self)
-        self._butBox.setOrientation(QtCore.Qt.Horizontal)
-        self._butBox.setStandardButtons(self._butBox.Close)
+        self._butBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
+        self._butBox.setStandardButtons(self._butBox.StandardButton.Close)
         layout.addWidget(self._butBox, 0)
 
         # Signals
@@ -53,7 +53,7 @@ class AboutDialog(QtWidgets.QDialog):
     def addTab(self, title, text, rich=True):
         # Create label to show info
         label = QtWidgets.QTextEdit(self)
-        label.setLineWrapMode(label.WidgetWidth)
+        label.setLineWrapMode(label.LineWrapMode.WidgetWidth)
         label.setReadOnly(True)
         # Set text
         if rich:
@@ -100,9 +100,9 @@ class AboutDialog(QtWidgets.QDialog):
         by Mark James (http://www.famfamfam.com/lab/icons/silk/).
         """
         # Determine if this is PyQt or Pyside
-        qtWrapper = qt.API_NAME
-        qtVersion = qt.QT_VERSION
-        qtWrapperVersion = qt.PYSIDE_VERSION or qt.PYQT_VERSION
+        qtWrapper = qt.API
+        qtVersion = qt.QT_VERSION_STR
+        qtWrapperVersion = qt.QT_WRAPPER_VERSION_STR
         # Insert information texts
         if paths.is_frozen():
             versionText = pyzo.__version__ + " (binary)"

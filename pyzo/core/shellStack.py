@@ -247,7 +247,7 @@ class ShellStackWidget(QtWidgets.QWidget):
         )
 
         # Also give it a context menu
-        self._shellButton.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._shellButton.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self._shellButton.customContextMenuRequested.connect(self.contextMenuTriggered)
 
         # Add actions
@@ -296,8 +296,8 @@ class ShellControl(QtWidgets.QToolButton):
         # Set text and tooltip
         self.setText("Warming up ...")
         self.setToolTip(translate("shells", "Click to select shell."))
-        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.setPopupMode(self.InstantPopup)
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.setPopupMode(self.ToolButtonPopupMode.InstantPopup)
 
         # Set icon
         self._iconMaker = ShellIconMaker(self)
@@ -378,8 +378,8 @@ class ShellControl(QtWidgets.QToolButton):
 #         # Set text
 #         self.setText(translate('debug', 'Debug'))
 #         self.setIcon(pyzo.icons.bug)
-#         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-#         #self.setPopupMode(self.InstantPopup)
+#         self.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+#         #self.setPopupMode(self.ToolButtonPopupMode.InstantPopup)
 #
 #         # Bind to triggers
 #         self.triggered.connect(self.onTriggered)
@@ -473,8 +473,8 @@ class DebugStack(QtWidgets.QToolButton):
         self._baseText = translate("debug", "Stack")
         self.setText("{}:".format(self._baseText))
         self.setIcon(pyzo.icons.text_align_justify)
-        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.setPopupMode(self.InstantPopup)
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.setPopupMode(self.ToolButtonPopupMode.InstantPopup)
 
         # Bind to triggers
         self.triggered.connect(self.onTriggered)
@@ -587,8 +587,8 @@ class DebugStack(QtWidgets.QToolButton):
             # Goto line and select it
             editor.gotoLine(linenr)
             cursor = editor.textCursor()
-            cursor.movePosition(cursor.StartOfBlock)
-            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            cursor.movePosition(cursor.MoveOperation.StartOfBlock)
+            cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
             editor.setTextCursor(cursor)
         else:
             # focus on shell and not on an editor because there is no valid file
@@ -605,7 +605,7 @@ class InterpreterHelper(QtWidgets.QWidget):
         super().__init__(parent)
 
         self._label = QtWidgets.QLabel("hello world")
-        self._label.setTextFormat(QtCore.Qt.RichText)
+        self._label.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self._label.setWordWrap(True)
         # self._label.setOpenExternalLinks(True)
         self._label.linkActivated.connect(self.handle_link)
@@ -711,7 +711,7 @@ class InterpreterHelper(QtWidgets.QWidget):
         from pyzo.core.shellInfoDialog import ShellInfoDialog
 
         d = ShellInfoDialog()
-        d.exec_()
+        d.exec()
         self.refresh()
         self.restart_shell()
 

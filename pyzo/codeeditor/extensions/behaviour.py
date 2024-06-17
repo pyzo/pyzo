@@ -25,9 +25,9 @@ from ..parsers.python_parser import MultilineStringToken, stringLiteralPrefixes
 
 class MoveLinesUpDown:
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Up, Qt.Key_Down) and (
-            Qt.ControlModifier & event.modifiers()
-            and Qt.ShiftModifier & event.modifiers()
+        if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down) and (
+            Qt.KeyboardModifier.ControlModifier & event.modifiers()
+            and Qt.KeyboardModifier.ShiftModifier & event.modifiers()
         ):
             cursor = self.textCursor()
             cursor.beginEditBlock()
@@ -45,21 +45,24 @@ class MoveLinesUpDown:
         end = cursor.selectionEnd()
 
         # Get text of selected blocks
-        cursor.setPosition(start, cursor.MoveAnchor)
-        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
-        cursor.setPosition(end, cursor.KeepAnchor)
-        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        cursor.setPosition(start, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
         text1 = cursor.selectedText()
         cursor.removeSelectedText()
         pos1 = cursor.position()
 
         # Move up/down
-        other = [cursor.NextBlock, cursor.PreviousBlock][int(bool(key == Qt.Key_Up))]
-        cursor.movePosition(other, cursor.MoveAnchor)
+        other = [
+            cursor.MoveOperation.NextBlock,
+            cursor.MoveOperation.PreviousBlock,
+        ][key == Qt.Key.Key_Up]
+        cursor.movePosition(other, cursor.MoveMode.MoveAnchor)
 
         # Select text of other block
-        cursor.movePosition(cursor.StartOfBlock, cursor.MoveAnchor)
-        cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
         text2 = cursor.selectedText()
         cursor.removeSelectedText()
         pos2 = cursor.position()
@@ -69,10 +72,10 @@ class MoveLinesUpDown:
         pos3 = cursor.position()
 
         # Move back
-        if key == Qt.Key_Up:
-            cursor.movePosition(cursor.NextBlock, cursor.MoveAnchor)
+        if key == Qt.Key.Key_Up:
+            cursor.movePosition(cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor)
         else:
-            cursor.setPosition(pos1, cursor.MoveAnchor)
+            cursor.setPosition(pos1, cursor.MoveMode.MoveAnchor)
             pos2 += len(text2)
             pos3 += len(text2)
 
@@ -80,20 +83,20 @@ class MoveLinesUpDown:
         cursor.insertText(text2)
 
         # Leave original lines selected for continued movement
-        cursor.setPosition(pos2, cursor.MoveAnchor)
-        cursor.setPosition(pos3, cursor.KeepAnchor)
+        cursor.setPosition(pos2, cursor.MoveMode.MoveAnchor)
+        cursor.setPosition(pos3, cursor.MoveMode.KeepAnchor)
         self.setTextCursor(cursor)
 
 
 class ScrollWithUpDownKeys:
     def keyPressEvent(self, event):
         if (
-            event.key() in (Qt.Key_Up, Qt.Key_Down)
-            and Qt.ControlModifier == event.modifiers()
+            event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down)
+            and Qt.KeyboardModifier.ControlModifier == event.modifiers()
         ):
             s = self.verticalScrollBar()
             # h = self.cursorRect(self.textCursor()).height()
-            if event.key() == Qt.Key_Up:
+            if event.key() == Qt.Key.Key_Up:
                 s.setValue(s.value() + 1)
             else:
                 s.setValue(s.value() - 1)
@@ -105,24 +108,24 @@ class ScrollWithUpDownKeys:
 class HomeKey:
     def keyPressEvent(self, event):
         # Home or shift + home
-        if event.key() == Qt.Key_Home and event.modifiers() in (
-            Qt.NoModifier,
-            Qt.ShiftModifier,
+        if event.key() == Qt.Key.Key_Home and event.modifiers() in (
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
         ):
             # Prepare
             cursor = self.textCursor()
-            shiftDown = event.modifiers() == Qt.ShiftModifier
-            moveMode = [cursor.MoveAnchor, cursor.KeepAnchor][shiftDown]
+            shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][shiftDown]
             # Get leading whitespace
             text = cursor.block().text()
             leadingWhitespace = text[: len(text) - len(text.lstrip())]
             # Get current position and move to start of whitespace
             i = cursor.positionInBlock()
-            cursor.movePosition(cursor.StartOfBlock, moveMode)
-            cursor.movePosition(cursor.Right, moveMode, len(leadingWhitespace))
+            cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
+            cursor.movePosition(cursor.MoveOperation.Right, moveMode, len(leadingWhitespace))
             # If we were alread there, move to start of block
             if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.StartOfBlock, moveMode)
+                cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
             # Done
             self.setTextCursor(cursor)
         else:
@@ -131,20 +134,20 @@ class HomeKey:
 
 class EndKey:
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_End and event.modifiers() in (
-            Qt.NoModifier,
-            Qt.ShiftModifier,
+        if event.key() == Qt.Key.Key_End and event.modifiers() in (
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
         ):
             # Prepare
             cursor = self.textCursor()
-            shiftDown = event.modifiers() == Qt.ShiftModifier
-            moveMode = [cursor.MoveAnchor, cursor.KeepAnchor][shiftDown]
+            shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][shiftDown]
             # Get current position and move to end of line
             i = cursor.positionInBlock()
-            cursor.movePosition(cursor.EndOfLine, moveMode)
+            cursor.movePosition(cursor.MoveOperation.EndOfLine, moveMode)
             # If alread at end of line, move to end of block
             if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.EndOfBlock, moveMode)
+                cursor.movePosition(cursor.MoveOperation.EndOfBlock, moveMode)
             # Done
             self.setTextCursor(cursor)
         else:
@@ -164,13 +167,13 @@ class NumpadPeriodKey:
     def keyPressEvent(self, event):
         # Check for numpad comma
         if (
-            event.key() == QtCore.Qt.Key_Comma
-            and event.modifiers() & QtCore.Qt.KeypadModifier
+            event.key() == QtCore.Qt.Key.Key_Comma
+            and event.modifiers() & QtCore.Qt.KeyboardModifier.KeypadModifier
         ):
             # Create a new QKeyEvent to substitute the original one
             event = QtGui.QKeyEvent(
                 event.type(),
-                QtCore.Qt.Key_Period,
+                QtCore.Qt.Key.Key_Period,
                 event.modifiers(),
                 ".",
                 event.isAutoRepeat(),
@@ -200,8 +203,8 @@ class Indentation:
         key = event.key()
         modifiers = event.modifiers()
         # Tab key
-        if key == Qt.Key_Tab:
-            if modifiers == Qt.NoModifier:
+        if key == Qt.Key.Key_Tab:
+            if modifiers == Qt.KeyboardModifier.NoModifier:
                 if (
                     self.textCursor().hasSelection()
                 ):  # Tab pressed while some area was selected
@@ -228,8 +231,8 @@ class Indentation:
         # position of the line), and there is no selection
         # dedent that line and move cursor to end of whitespace
         if (
-            key == Qt.Key_Backspace
-            and modifiers == Qt.NoModifier
+            key == Qt.Key.Key_Backspace
+            and modifiers == Qt.KeyboardModifier.NoModifier
             and self.__cursorIsInLeadingWhitespace()
             and not self.textCursor().atBlockStart()
             and not self.textCursor().hasSelection()
@@ -243,13 +246,13 @@ class Indentation:
         # todo: Same for delete, I think not (what to do with the cursor?)
 
         # Auto-unindent
-        if key == Qt.Key_Delete:
+        if key == Qt.Key.Key_Delete:
             cursor = self.textCursor()
             if not cursor.hasSelection():
-                cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+                cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
                 if not cursor.hasSelection() and cursor.block().next().isValid():
                     cursor.beginEditBlock()
-                    cursor.movePosition(cursor.NextBlock)
+                    cursor.movePosition(cursor.MoveOperation.NextBlock)
                     self.indentBlock(cursor, -99)  # dedent as much as we can
                     cursor.deletePreviousChar()
                     cursor.endEditBlock()
@@ -282,7 +285,7 @@ class PythonAutoIndent:
 
         # This extension code is run *after* key is processed by QPlainTextEdit
 
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if event.key() in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             cursor = self.textCursor()
 
             # Prevent in-block newlines (issue #482)
@@ -333,7 +336,7 @@ class SmartCopyAndPaste:
     @staticmethod
     def __setCursorPositionAndAnchor(cursor, position, anchor):
         cursor.setPosition(anchor)
-        cursor.setPosition(position, cursor.KeepAnchor)
+        cursor.setPosition(position, cursor.MoveMode.KeepAnchor)
 
     @classmethod
     def __ensureCursorBeforeAnchor(cls, cursor):
@@ -455,7 +458,9 @@ class SmartCopyAndPaste:
 
                 # Move cursor2 to beginning of the line (selecting the whitespace)
                 # and remove the selection
-                cursor2.movePosition(cursor2.StartOfBlock, cursor2.KeepAnchor)
+                cursor2.movePosition(
+                    cursor2.MoveOperation.StartOfBlock, cursor2.MoveMode.KeepAnchor
+                )
                 cursor2.removeSelectedText()
 
         # Set the textcursor of this editor to the just-pasted selection
@@ -625,7 +630,7 @@ class AutoCloseQuotesAndBrackets:
                 # Disabled: this feature too easily gets in the way
                 # if 'python' in self.parser().name().lower():
                 #     cursor = self.textCursor()
-                #     cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor, 3)
+                #     cursor.movePosition(cursor.MoveOperation.PreviousCharacter, cursor.MoveMode.KeepAnchor, 3)
                 #     if cursor.selectedText() == char * 3:
                 #         edit_cursor = self.textCursor()
                 #         edit_cursor.insertText(char * 2)
@@ -633,7 +638,7 @@ class AutoCloseQuotesAndBrackets:
 
         # remove whole couple of brackets when hitting backspace
         elif (
-            event.key() == Qt.Key_Backspace and self.__autoClose_Brackets
+            event.key() == Qt.Key.Key_Backspace and self.__autoClose_Brackets
         ):
             if isinstance(
                 self._get_token_at_cursor(cursor),
@@ -665,26 +670,26 @@ class AutoCloseQuotesAndBrackets:
 
     def __getNextCharacter(self):
         cursor = self.textCursor()
-        cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
-        cursor.movePosition(cursor.NextCharacter, cursor.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.NoMove, cursor.MoveMode.MoveAnchor)  # rid selection
+        cursor.movePosition(cursor.MoveOperation.NextCharacter, cursor.MoveMode.KeepAnchor)
         next_char = cursor.selectedText()
         return next_char
 
     def __getPreviousCharacter(self):
         cursor = self.textCursor()
-        cursor.movePosition(cursor.NoMove, cursor.MoveAnchor)  # rid selection
-        cursor.movePosition(cursor.PreviousCharacter, cursor.KeepAnchor)
+        cursor.movePosition(cursor.MoveOperation.NoMove, cursor.MoveMode.MoveAnchor)  # rid selection
+        cursor.movePosition(cursor.MoveOperation.PreviousCharacter, cursor.MoveMode.KeepAnchor)
         previous_char = cursor.selectedText()
         return previous_char
 
     def _moveCursorLeft(self, n):
         """Move cursor left between eg. brackets"""
         cursor2 = self.textCursor()
-        cursor2.movePosition(cursor2.Left, cursor2.MoveAnchor, n)
+        cursor2.movePosition(cursor2.MoveOperation.Left, cursor2.MoveMode.MoveAnchor, n)
         self.setTextCursor(cursor2)
 
     def _moveCursorRight(self, n):
         """Move cursor out of eg. brackets"""
         cursor2 = self.textCursor()
-        cursor2.movePosition(cursor2.Right, cursor2.MoveAnchor, n)
+        cursor2.movePosition(cursor2.MoveOperation.Right, cursor2.MoveMode.MoveAnchor, n)
         self.setTextCursor(cursor2)
