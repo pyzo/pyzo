@@ -2118,7 +2118,7 @@ class RunMenu(Menu):
         runCursor.setPosition(screenCursor.selectionEnd(), runCursor.MoveMode.KeepAnchor)
         if not (screenCursor.hasSelection() and runCursor.atBlockStart()):
             # If the end of the selection is at the beginning of a block, don't extend it
-            runCursor.movePosition(runCursor.MoveOperation.EndOfBlock, runCursor.KeepAnchor)
+            runCursor.movePosition(runCursor.MoveOperation.EndOfBlock, runCursor.MoveMode.KeepAnchor)
         lineNumber2 = runCursor.blockNumber()
 
         # Does this look like a statement?
