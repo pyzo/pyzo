@@ -160,6 +160,9 @@ class PdfExport(QtWidgets.QDialog):
         if not filename:
             return
 
+        if not filename.lower().endswith(".pdf"):
+            filename += ".pdf"
+
         self._printer.setOutputFileName(filename)
         self._updateTemporaryEditor()
         self._editor.print_(self._printer)
