@@ -5,7 +5,7 @@ import importlib
 _QT_WRAPPERS = ("PySide6", "PyQt6", "PySide2", "PyQt5")
 
 
-def get_desired_api():
+def _get_desired_api():
     desired_api = None
     s = os.environ.get("QT_API", "").strip().lower()
     if len(s) > 0:
@@ -16,7 +16,7 @@ def get_desired_api():
     return desired_api
 
 
-def load_modules(desired_api):
+def _load_modules(desired_api):
     loaded_modules = [s for s in sys.modules if s in _QT_WRAPPERS]
     if desired_api in loaded_modules:
         # use the preferred qt wrapper that is already loaded
@@ -45,7 +45,7 @@ def load_modules(desired_api):
     raise ImportError("no suitable Qt wrapper found")
 
 
-API = load_modules(get_desired_api())
+API = _load_modules(_get_desired_api())
 
 def _get_versions():
     """returns the qt and wrapper version as strings"""
@@ -63,3 +63,5 @@ def _get_versions():
 QT_VERSION_STR, QT_WRAPPER_VERSION_STR = _get_versions()
 
 from . import qtutils
+
+del os, sys, importlib
