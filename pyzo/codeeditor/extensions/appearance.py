@@ -35,7 +35,6 @@ class HighlightMatchingOccurrences:
         """highlightMatchingOccurrences()
 
         Get whether to highlight matching occurrences.
-
         """
         return self.__highlightMatchingOccurrences
 
@@ -44,7 +43,6 @@ class HighlightMatchingOccurrences:
         """setHighlightMatchingOccurrences(value)
 
         Set whether to highlight matching occurrences.
-
         """
         self.__highlightMatchingOccurrences = bool(value)
         self.viewport().update()
@@ -805,7 +803,7 @@ class LineNumbers:
             painter.begin(self)
 
             # Get which part to paint. Just do all to avoid glitches
-            w = editor.getLineNumberAreaWidth()
+            w = editor._getLineNumberAreaWidth()
             y1, y2 = 0, editor.height()
             # y1, y2 = event.rect().top()-10, event.rect().bottom()+10
 
@@ -911,14 +909,17 @@ class LineNumbers:
 
     def __init__(self, *args, **kwds):
         self.__lineNumberArea = None
+        self.__leftMarginHandle = None
         super().__init__(*args, **kwds)
         # Create widget that draws the line numbers
         self.__lineNumberArea = self.__LineNumberArea(self)
         # Issue an update when the font or amount of line numbers changes
         self.blockCountChanged.connect(self.__onBlockCountChanged)
         self.fontChanged.connect(self.__onBlockCountChanged)
+        self.__leftMarginHandle = self._setLeftBarMargin(
+            self.__leftMarginHandle, self._getLineNumberAreaWidth()
+        )
         self.__onBlockCountChanged()
-        self.addLeftMargin(LineNumbers, self.getLineNumberAreaWidth)
 
     def gotoLinePopup(self):
         """Popup the little widget to quickly goto a certain line.
@@ -936,15 +937,16 @@ class LineNumbers:
         # so that the __lineNumberArea is not yet created.
         if self.__lineNumberArea:
             if self.__showLineNumbers:
-                self.__onBlockCountChanged()
                 self.__lineNumberArea.show()
             else:
                 self.__lineNumberArea.hide()
-            self.updateMargins()
+            if self.__leftMarginHandle is not None:
+                self._setLeftBarMargin(
+                    self.__leftMarginHandle, self._getLineNumberAreaWidth()
+                )
 
-    def getLineNumberAreaWidth(self):
-        """
-        Count the number of lines, compute the length of the longest line number
+    def _getLineNumberAreaWidth(self):
+        """Count the number of lines, compute the length of the longest line number
         (in pixels)
         """
         if not self.__showLineNumbers:
@@ -954,32 +956,31 @@ class LineNumbers:
         return self.fontMetrics().horizontalAdvance(str(lastLineNumber)) + 2 * margin
 
     def __onBlockCountChanged(self, count=None):
-        """
-        Update the line number area width. This requires to set the
+        """Update the line number area width. This requires to set the
         viewport margins, so there is space to draw the linenumber area
         """
         if self.__showLineNumbers:
-            self.updateMargins()
+            self.__leftMarginHandle = self._setLeftBarMargin(
+                self.__leftMarginHandle, self._getLineNumberAreaWidth()
+            )
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
         # On resize, resize the lineNumberArea, too
         rect = self.contentsRect()
-        m = self.getLeftMargin(LineNumbers)
-        w = self.getLineNumberAreaWidth()
+        m = self._getMarginBeforeLeftBar(self.__leftMarginHandle)
+        w = self._getLineNumberAreaWidth()
         self.__lineNumberArea.setGeometry(rect.x() + m, rect.y(), w, rect.height())
 
     def paintEvent(self, event):
         super().paintEvent(event)
         # On repaint, update the complete line number area
-        w = self.getLineNumberAreaWidth()
+        w = self._getLineNumberAreaWidth()
         self.__lineNumberArea.update(0, 0, w, self.height())
 
 
 class BreakPoints:
-    _breakPointWidth = 11  # With of total bar, actual points are smaller
-
     # Register style element
     _styleElements = [
         (
@@ -1032,9 +1033,9 @@ class BreakPoints:
 
             # Get format and margin
             format = editor.getStyleElementFormat("editor.breakpoints")
-            margin = 1
             w = editor._breakPointWidth
-            bulletWidth = w - 2 * margin
+            marginX = max(1, int(0.1 * w))
+            bulletWidth = w - 2 * marginX
 
             # Init painter
             painter = QtGui.QPainter()
@@ -1063,8 +1064,8 @@ class BreakPoints:
 
             # Get start block number and bullet offset in pixels
             startBlockNumber = cursor.block().blockNumber()
-            bulletOffset = editor.contentOffset().y() + bulletWidth * 0.25
-
+            marginY = int(0.5 * (editor.cursorRect(cursor).height() - bulletWidth))
+            bulletOffset = editor.contentOffset().y() + marginY
             # Prepare painter
             painter.setPen(QtGui.QColor("#777"))
             painter.setBrush(format.fore)
@@ -1081,11 +1082,11 @@ class BreakPoints:
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     if enabled:
                         painter.drawEllipse(
-                            int(margin), int(y), int(bulletWidth), int(bulletWidth)
+                            marginX, int(y), int(bulletWidth), int(bulletWidth)
                         )
                     else:
                         painter.drawPie(
-                            int(margin),
+                            marginX,
                             int(y),
                             int(bulletWidth),
                             int(bulletWidth),
@@ -1102,7 +1103,7 @@ class BreakPoints:
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     y += 0.25 * bulletWidth
                     painter.drawEllipse(
-                        int(margin), int(y), int(bulletWidth), int(0.5 * bulletWidth)
+                        marginX, int(y), int(bulletWidth), int(0.5 * bulletWidth)
                     )
 
             # Draw other debug markers
@@ -1115,7 +1116,7 @@ class BreakPoints:
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     y += 0.25 * bulletWidth
                     painter.drawEllipse(
-                        int(margin), int(y), int(bulletWidth), int(0.5 * bulletWidth)
+                        marginX, int(y), int(bulletWidth), int(0.5 * bulletWidth)
                     )
 
             # Draw virtual break point
@@ -1126,7 +1127,7 @@ class BreakPoints:
                 if block.isValid():
                     y = editor.blockBoundingGeometry(block).y() + bulletOffset
                     painter.drawEllipse(
-                        int(margin), int(y), int(bulletWidth), int(bulletWidth)
+                        marginX, int(y), int(bulletWidth), int(bulletWidth)
                     )
 
             # Done
@@ -1134,10 +1135,14 @@ class BreakPoints:
 
     def __init__(self, *args, **kwds):
         self.__breakPointArea = None
+        self.__leftMarginHandle = None
         super().__init__(*args, **kwds)
         # Create widget that draws the breakpoints
+        self._updateBreakPointWidth()
         self.__breakPointArea = self.__BreakPointArea(self)
-        self.addLeftMargin(BreakPoints, self.getBreakPointAreaWidth)
+        self.__leftMarginHandle = self._setLeftBarMargin(
+            self.__leftMarginHandle, self._getBreakPointAreaWidth()
+        )
         self._breakPoints = {}  # int -> enabled, block, blockPrev, blockNext
         self._debugLineIndicator = 0
         self._debugLineIndicators = set()
@@ -1311,7 +1316,7 @@ class BreakPoints:
                 self._debugLineIndicators.add(linenr)
                 self.__breakPointArea.update()
 
-    def getBreakPointAreaWidth(self):
+    def _getBreakPointAreaWidth(self):
         if not self.__showBreakPoints:
             return 0
         else:
@@ -1325,27 +1330,39 @@ class BreakPoints:
         self.__showBreakPoints = bool(value)
         # Note that this method is called before the __init__ is finished,
         # so that the area is not yet created.
+        self._updateBreakPointWidth()
         if self.__breakPointArea:
             if self.__showBreakPoints:
                 self.__breakPointArea.show()
             else:
                 self.__breakPointArea.hide()
                 self.clearBreakPoints()
-            self.updateMargins()
+        if self.__leftMarginHandle is not None:
+            self._setLeftBarMargin(
+                self.__leftMarginHandle, self._getBreakPointAreaWidth()
+            )
+
+    def _updateBreakPointWidth(self):
+        """set width of breakpoint bar (actual points are smaller)"""
+        self._breakPointWidth = round(0.8 * self.cursorRect(self.textCursor()).height())
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
         # On resize, resize the breakpointArea, too
+        self._updateBreakPointWidth()
         rect = self.contentsRect()
-        m = self.getLeftMargin(BreakPoints)
-        w = self.getBreakPointAreaWidth()
+        m = self._getMarginBeforeLeftBar(self.__leftMarginHandle)
+        w = self._getBreakPointAreaWidth()
         self.__breakPointArea.setGeometry(rect.x() + m, rect.y(), w, rect.height())
+        self.__leftMarginHandle = self._setLeftBarMargin(
+            self.__leftMarginHandle, self._getBreakPointAreaWidth()
+        )
 
     def paintEvent(self, event):
         super().paintEvent(event)
         # On repaint, update the complete breakPointArea
-        w = self.getBreakPointAreaWidth()
+        w = self._getBreakPointAreaWidth()
         self.__breakPointArea.update(0, 0, w, self.height())
 
 

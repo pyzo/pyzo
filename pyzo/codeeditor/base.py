@@ -796,31 +796,30 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # self.setTextCursor(cursor) for testing
         cursor.insertText(newText)
 
-    def addLeftMargin(self, des, func):
-        """Add a margin to the left. Specify a description for the margin,
-        and a function to get that margin. For internal use.
-        """
-        assert des is not None
-        self._leftmargins.append((des, func))
+    def _getMarginBeforeLeftBar(self, handle):
+        """gets the width of all bars before the bar specified by handle
 
-    def getLeftMargin(self, des=None):
-        """Get the left margin, relative to the given description (which
-        should be the same as given to addLeftMargin). If des is omitted
-        or None, the full left margin is returned.
+        to be used by extensions; see also _setLeftBarMargin
         """
-        margin = 0
-        for d, func in self._leftmargins:
-            if d == des:
-                break
-            margin += func()
-        return margin
+        return sum(self._leftmargins[:handle])
 
-    def updateMargins(self):
-        """Force the margins to be recalculated and set the viewport
-        accordingly.
+    def _setLeftBarMargin(self, handle, width):
+        """sets the margin on the left needed by extensions and updates the viewport
+
+        In the first call from the extension, pass handle=None and
+        remember the returned handle.
+        For each update of the bar width, pass that handle.
+
+        returns the handle resp. the new handle if handle was None
         """
-        leftmargin = self.getLeftMargin()
+        if handle is None:
+            handle = len(self._leftmargins)
+            self._leftmargins.append(0)
+        self._leftmargins[handle] = width
+
+        leftmargin = sum(self._leftmargins)
         self.setViewportMargins(leftmargin, 0, 0, 0)
+        return handle
 
     def toggleCase(self):
         """Change selected text to lower or upper case."""
