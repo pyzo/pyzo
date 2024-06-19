@@ -395,8 +395,8 @@ class PyzoEditor(BaseTextCtrl):
                 "File has been modified outside of the editor:\n" + self._filename
             )
             dlg.setInformativeText("Do you want to reload?")
-            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)
-            dlg.addButton("Keep this version", QtWidgets.QMessageBox.RejectRole)
+            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole)
+            dlg.addButton("Keep this version", QtWidgets.QMessageBox.ButtonRole.RejectRole)
             dlg.setDefaultButton(btnReload)
 
             # whatever the result, we will reset the modified time

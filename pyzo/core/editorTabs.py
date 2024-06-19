@@ -79,7 +79,7 @@ def simpleDialog(item, action, question, options, defaultOption):
         if option_lower in M:
             button = dlg.addButton(M[option_lower])
         else:
-            button = dlg.addButton(option, dlg.AcceptRole)
+            button = dlg.addButton(option, dlg.ButtonRole.AcceptRole)
         buttons[button] = option
         # Set as default?
         if option_lower == defaultOption.lower():
@@ -1290,9 +1290,9 @@ class EditorTabs(QtWidgets.QWidget):
                 'Do you want to reload file\n"{}"\n'
                 "and lose unsaved changes?".format(editor.filename)
             )
-            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.AcceptRole)
+            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole)
             btnKeep = dlg.addButton(
-                "Keep this version", QtWidgets.QMessageBox.RejectRole
+                "Keep this version", QtWidgets.QMessageBox.ButtonRole.RejectRole
             )
             dlg.setDefaultButton(btnKeep)
             dlg.exec()
