@@ -198,6 +198,16 @@ class PyzoIntrospector(yoton.RepChannel):
 
         return sigs, kind
 
+    def dirWithIntermediateResult(self, objectName):
+        cacheVarName = "__pyzo__autocomp"
+        try:
+            command = cacheVarName + " = " + str(objectName)
+            exec(command, sys._pyzoInterpreter.globals, sys._pyzoInterpreter.locals)
+        except Exception:
+            return []
+        else:
+            return self.dir(cacheVarName)
+
     # todo: variant that also says whether it's a property/function/class/other
     def dir(self, objectName):
         """Get list of attributes for the given name."""
@@ -240,6 +250,16 @@ class PyzoIntrospector(yoton.RepChannel):
 
         # Respond
         return list(names)
+
+    def dir2WithIntermediateResult(self, objectName):
+        cacheVarName = "__pyzo__autocomp"
+        try:
+            command = cacheVarName + " = " + str(objectName)
+            exec(command, sys._pyzoInterpreter.globals, sys._pyzoInterpreter.locals)
+        except Exception:
+            return []
+        else:
+            return self.dir2(cacheVarName)
 
     def dir2(self, objectName):
         """Get variable names in currently active namespace plus extra information.
@@ -339,6 +359,16 @@ class PyzoIntrospector(yoton.RepChannel):
 
         except Exception:
             return []
+
+    def signatureWithIntermediateResult(self, objectName):
+        cacheVarName = "__pyzo__calltip"
+        try:
+            command = cacheVarName + " = " + str(objectName)
+            exec(command, sys._pyzoInterpreter.globals, sys._pyzoInterpreter.locals)
+        except Exception:
+            return None
+        else:
+            return self.signature(cacheVarName)
 
     def signature(self, objectName):
         """Get signature."""

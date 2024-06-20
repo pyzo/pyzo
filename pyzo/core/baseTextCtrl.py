@@ -30,75 +30,281 @@ def normalizePath(path):
     return path
 
 
-def parseLine_autocomplete(tokens):
-    """Given a list of tokens (from start to cursor position)
-    returns a tuple (name, needle).
-    autocomp_parse("eat = banan") -> "", "banan"
-      ...("eat = food.fruit.ban") -> "food.fruit", "ban"
-    When no match found, both elements are an empty string.
+def isFormatStringToken(token):
+    """returns True if a StringToken is a format string literal, e.g. f'{1 + 2}' """
+    if not isinstance(token, Tokens.StringToken):
+        return False
+    s = str(token)
+    return "f" in s[:s.index(s[-1])].lower()
+
+
+def isSimpleExpression(tokens):
+    """returns True if the list of tokens is a simple expression
+
+    a "simple expression" is defined as follows:
+    - first token is either:
+        - an identifier
+        - a string token, but not a format string token
+    - further tokens are only identifier tokens, with a dot as a separator
+
+    examples for simple expressions, as stringified tokens:
+        myvar123
+        myvar.myattribute
+        "just a string"
+        '\n'.join
+        b"xyz".foo.bar.z
+
+    Simple expressions can be mostly evaluated without side effects, at least when
+    properties and attribute access dunder methods are assumed to not modify any data.
     """
-    if not len(tokens):
-        return "", ""
-
-    if isinstance(tokens[-1], Tokens.NonIdentifierToken) and str(tokens[-1]) == ".":
-        needle = ""
-    elif isinstance(tokens[-1], (Tokens.IdentifierToken, Tokens.KeywordToken)):
-        needle = str(tokens[-1])
-    else:
-        return "", ""
-
-    name = ""
-    # Now go through the remaining tokens in reverse order
-    for token in tokens[-2::-1]:
-        if isinstance(token, Tokens.NonIdentifierToken) and str(token) == ".":
-            name = str(token) + name
-        elif isinstance(token, (Tokens.IdentifierToken, Tokens.StringToken)):
-            name = str(token) + name
-        else:
-            break
-
-    if name.endswith("."):
-        name = name[:-1]
-
-    return name, needle
+    if len(tokens) == 0:
+        return True
+    if len(tokens) % 2 != 1:
+        return False
+    for i, t in enumerate(tokens):
+        if i == 0:
+            if isinstance(t, Tokens.StringToken) and not isFormatStringToken(t):
+                continue
+        if i % 2 == 0 and not isinstance(t, Tokens.IdentifierToken):
+            return False
+        elif i % 2 == 1 and str(t) != ".":
+            return False
+    return True
 
 
-def parseLine_signature(tokens):
-    """Given a list of tokens (from start to cursor position)
-    returns a tuple (name, needle, stats).
-    stats is another tuple:
-    - location of end bracket
-    - amount of commas till cursor (taking nested brackets into account)
+def skipNestedTokensRightToLeft(tokens, indClosing):
+    """finds the left end of the nested parens expression given the right end
+
+    Parens can be round parentheses, square brackets and curly braces.
+    "indClosing" is the index for list "tokens" where the closing paren is located.
+    Tokens are examinded from right to left, only testing for correct matching of
+    nested parens.
+
+    return value:
+        the index of the corresponding token that matches the closing paren
+        or None if the paren could not be found or nested parens do not match
     """
-
-    openBraces = []  # Positions at which braces are opened
-    for token in tokens:
-        if not isinstance(
-            token,
-            (Tokens.NonIdentifierToken, Tokens.OpenParenToken, Tokens.CloseParenToken),
-        ):
+    stack = []
+    openingParensDict = {")": "(", "]": "[", "}": "{"}
+    for i in range(indClosing, -1, -1):
+        t = tokens[i]
+        s = str(t)
+        if s in ")]}":
+            stack.append(s)
             continue
-        for i, c in enumerate(str(token)):
-            if c == "(":
-                openBraces.append(token.start + i)
-            elif c == ")":
-                if len(openBraces):
-                    openBraces.pop()
-
-    if len(openBraces):
-        i = openBraces[-1]
-        # Now trim the token list up to (but not including) position of openBraces
-        tokens = [t for t in tokens if t.start < i]
-
-        # Trim the last token
-        if len(tokens):
-            tokens[-1].end = i
-
-        name, needle = parseLine_autocomplete(tokens)
-        return name, needle, (i, 0)  # TODO: implement stats
-
+        if s in "([{":
+            if len(stack) == 0 or openingParensDict[stack.pop()] != s:
+                return None  # parens do not match
+            if len(stack) == 0:
+                break  # finished successfully
     else:
-        return "", "", (0, 0)
+        return None  # matching paren not found
+    indOpening = i
+    return indOpening
+
+
+def getExpressionTokensRightToLeft(tokens, indRightStart):
+    """finds the start of an "expression" in a list of tokens, starting at indRightStart
+
+    In this case, an "expression" is a list of one or more tokens that are a subsequence
+    of the given list "tokens", with the last token at given index "indRightStart", that
+    is the rightmost part of the "expression".
+
+    return value:
+        the index of the corresponding token where the "expression" ends on the left
+        or None if no expression could be found or nested parens do not match
+
+    An "expression" consists of a sequence of token groups.
+    A token group can be:
+        - an identifier
+        - a dot
+        - a string token
+        - a (nested) parens group of tokens
+    A dot is only allowed on the left of an identifier (i.e. on the left of the attribute).
+    A curly parens group can only be the first token group (on the left of the expression).
+    Dots can not be placed at the very left or very right of the expression, only in between.
+
+    examples for "expressions", as stringified tokens:
+        b"x".hex()
+        'abc'.join([])
+        (1, 2)[0].bit_length().__dir__()[0].upper()
+        f'{3 + 4}'.join
+        myvar
+        (1, 2)[0].bit_length
+        [11, 33].count
+        [11, 33].count(5)
+        (2).bit_length()
+        {'a': 1}[b]
+        {'a': 1}.get(x)
+
+    Evaluating the values of such "expressions" during introspection could trigger a
+    series of calculations and modify data during introspection, for example when
+    consuming values of an iterator, or when inspecting code like "mylist.pop()['abc']".
+    """
+    i = indRightStart + 1
+    exprTokens = []  # this will grow to the right when when decreasing the token index (reversed order)
+    containsCurly = False
+    while i > 0:
+        i -= 1
+        t = tokens[i]
+        s = str(t)
+        if s in ")]}":
+            indOpening = skipNestedTokensRightToLeft(tokens, i)
+            if indOpening is None:
+                return None  # parens do not match
+            if s == "}":
+                if containsCurly:
+                    return None  # curly braces encountered more than once
+                containsCurly = True
+            exprTokens.extend(tokens[indOpening:i+1][::-1])
+            i = indOpening
+        elif s == '.':
+            if len(exprTokens) == 0 or not isinstance(exprTokens[-1], Tokens.IdentifierToken):
+                return None  # dot is not on the left of an attribute
+            exprTokens.append(t)
+        elif isinstance(t, Tokens.IdentifierToken):
+            if len(exprTokens) > 0 and isinstance(exprTokens[-1], (Tokens.IdentifierToken, Tokens.StringToken)):
+                return None  # an identifier cannot be directly on the left of a string literal or another identifier
+            exprTokens.append(t)
+        elif isinstance(t, Tokens.StringToken):
+            if len(exprTokens) > 0 and isinstance(exprTokens[-1], Tokens.IdentifierToken):
+                return None  # a string literal cannot be directly on the left of an identifier
+            exprTokens.append(t)
+        else:
+            indLeftEnd = i + 1
+            break
+    else:
+        indLeftEnd = 0
+
+    if len(exprTokens) == 0:
+        return None  # no expression found
+
+    if containsCurly and str(exprTokens[-1]) != '{':
+        return None  # curly braces can only occur at the very left
+
+    if str(exprTokens[-1]) == '.':
+        return None  # a dot cannot occur at the very left
+
+    return indLeftEnd
+
+
+def parseLine_autocomplete(tokens):
+    """gets the name part and the attribute part of an expression in tokens
+
+    The tokens of the expression are located at the very right in the token list.
+
+    return value:
+        tuple (nameTokens, needleToken) where "needleToken" is the attribute part
+            needleToken will be None if the last token is "."
+            nameTokens will be an empty list if there is no dot in the expression
+        or tuple (None, None) if no valid expression could be found
+
+    examples with stringified input tokens and result tokens:
+        abc = (myfunc(x + ((y + 2) + otherfunc(1, 2).
+            name: otherfunc(1, 2)
+            needle: None
+
+        abc = (myfunc(x + ((y + 2) + otherfunc(1, 2).xy
+            name: otherfunc(1, 2)
+            needle: xy
+
+        myvar
+            name: [empty list]
+            needle: myvar
+
+        eat = food.fruit.ban
+            name: food.fruit
+            needle: ban
+
+        >>> enu
+            name: [empty list]
+            needle: enumerate
+    """
+    retvalInvalid = (None, None)
+    if len(tokens) == 0:
+        return retvalInvalid
+
+    needleToken = tokens[-1]
+    if str(needleToken) == ".":
+        needleToken = None
+        if len(tokens) == 1:
+            return retvalInvalid
+        indRightStart = len(tokens) - 1 - 1
+    else:
+        if not isinstance(needleToken, Tokens.IdentifierToken):
+            return retvalInvalid
+        if len(tokens) == 1 or str(tokens[-2]) != ".":
+            nameTokens = []
+            return nameTokens, needleToken
+        indRightStart = len(tokens) - 1 - 2
+
+    indLeftEnd = getExpressionTokensRightToLeft(tokens, indRightStart)
+    if indLeftEnd is None:
+        return retvalInvalid
+    nameTokens = tokens[indLeftEnd:indRightStart+1]
+    return nameTokens, needleToken
+
+
+def parseLine_signature(tokens, paren="("):
+    """gets the expression before the open paren on the right side in a token list
+
+    Processes the tokens from right to left till it finds an open paren that is
+    preceded by an "expression" consisting of one or more tokens. Also gets the index
+    of the token that is the open paren.
+    Paren groups that are encountered while moving from right to left must be properly
+    matched by the opposite paren token, also for nested paren groups.
+    Parens that are only open to the right and not preceded by an expression, are ignored.
+
+    return value:
+        tuple (fullNameTokens, indOfOpenParen)
+        or tuple (None, None) if not found or invalid parens groups encountered
+
+    examples with stringified input tokens and result tokens:
+        abc = (myfunc(x + ((y + 2) + otherfunc(1, 2) -
+            fullName: myfunc
+            indOfOpenParen: 4
+
+        abc = (getfunc('aa')(x + ((y + 2) + otherfunc(1, 2) -
+            fullName: getfunc('aa')
+            indOfOpenParen: 7
+    """
+    retvalInvalid = (None, None)
+    i = len(tokens)
+    while i > 0:
+        i -= 1
+        t = tokens[i]
+        s = str(t)
+        if s in ")]}":
+            indOpening = skipNestedTokensRightToLeft(tokens, i)
+            if indOpening is None:
+                return retvalInvalid  # nested paren group is not complete
+            i = indOpening
+            continue
+        if s == paren:
+            indLeftEnd = getExpressionTokensRightToLeft(tokens, i - 1)
+            if indLeftEnd is not None:
+                fullNameTokens, indParenToken = tokens[indLeftEnd:i], i
+                return fullNameTokens, indParenToken
+
+    return retvalInvalid  # no open paren preceded by an expression found
+
+
+## examples for running tests:
+if False:
+    ##
+    p = pyzo.shells.getCurrentShell().parser()
+
+    # tokens = p.parseLine("abc = (myfunc(x + ((y + 2) + otherfunc(1, 2).xy")
+    # res = pyzo.core.baseTextCtrl.parseLine_autocomplete(tokens)
+
+    tokens = p.parseLine("abc = (getfunc('aa')(x + ((y + 2) + otherfunc(1, 2) -")
+    res = pyzo.core.baseTextCtrl.parseLine_signature(tokens)
+
+    print(repr(res))
+    if res != (None, None):
+        print(''.join(str(t) for t in res[0]))
+        print(res[1])
+##
 
 
 class BaseTextCtrl(CodeEditor):
@@ -139,9 +345,11 @@ class BaseTextCtrl(CodeEditor):
 
         # For buffering autocompletion and calltip info
         self._callTipBuffer_name = ""
+        self._callTipBuffer_intermediateResultName = None
         self._callTipBuffer_time = 0
         self._callTipBuffer_result = ""
         self._autoCompBuffer_name = ""
+        self._autoCompBuffer_intermediateResultName = None
         self._autoCompBuffer_time = 0
         self._autoCompBuffer_result = []
 
@@ -209,11 +417,14 @@ class BaseTextCtrl(CodeEditor):
             ],  # filter to remove BlockStates
         )
 
-    def introspect(self, tryAutoComp=False, delay=True):
+    def introspect(self, tryAutoComp=False, delay=True, advanced=False):
         """The starting point for introspection (autocompletion and calltip).
         It will always try to produce a calltip. If tryAutoComp is True,
         will also try to produce an autocompletion list (which, on success,
-        will hide the calltip).
+        will hide the calltip). If advanced is True, introspection will also
+        evaluate more complexe expressions that contain function calls and/or
+        indexing operations, and this will create cache variables in the
+        shell's current scope.
 
         This method will obtain the line and (re)start a timer that will
         call _introspectNow() after a short while. This way, if the
@@ -238,7 +449,7 @@ class BaseTextCtrl(CodeEditor):
 
         # Is the char valid for auto completion?
         if tryAutoComp:
-            if not text or not (text[-1] in (Tokens.ALPHANUM + "._")):
+            if not text:
                 self.autocompleteCancel()
                 tryAutoComp = False
 
@@ -247,6 +458,8 @@ class BaseTextCtrl(CodeEditor):
         self._delayTimer._tokensUptoCursor = tokensUptoCursor
         self._delayTimer._cursor = cursor
         self._delayTimer._tryAutoComp = tryAutoComp
+        self._delayTimer._advanced = advanced
+
         if delay:
             self._delayTimer.start(pyzo.config.advanced.autoCompDelay)
         else:
@@ -259,33 +472,71 @@ class BaseTextCtrl(CodeEditor):
         """
 
         tokens = self._delayTimer._tokensUptoCursor
+        advanced = self._delayTimer._advanced
 
         if pyzo.config.settings.autoCallTip:
             # Parse the line, to get the name of the function we should calltip
             # if the name is empty/None, we should not show a signature
-            name, needle, stats = parseLine_signature(tokens)
+            fullNameTokens, indParenToken = parseLine_signature(tokens)
 
-            if needle:
+            useIntermediateResult = False
+            if advanced:
+                self._callTipBuffer_time = 0  # clear buffer
+
+            fullName = ""
+            if fullNameTokens is not None:
                 # Compose actual name
-                fullName = needle
-                if name:
-                    fullName = name + "." + needle
+                fullName = "".join([str(t) for t in fullNameTokens])
+                if not isSimpleExpression(fullNameTokens):
+                    if advanced or fullName == self._callTipBuffer_name:
+                        useIntermediateResult = True
+                    else:
+                        fullName = ""
+
+            if fullName:
                 # Process
+                indOfOpenParen = tokens[indParenToken].start
                 offset = (
-                    self._delayTimer._cursor.positionInBlock() - stats[0] + len(needle)
+                    self._delayTimer._cursor.positionInBlock() - indOfOpenParen + len(str(fullNameTokens[-1]))
                 )
-                cto = CallTipObject(self, fullName, offset)
+                cto = CallTipObject(self, fullName, offset, useIntermediateResult)
                 self.processCallTip(cto)
             else:
                 self.calltipCancel()
 
         if self._delayTimer._tryAutoComp and pyzo.config.settings.autoComplete:
-            # Parse the line, to see what (partial) name we need to complete
-            name, needle = parseLine_autocomplete(tokens)
+            # Parse the line, to see what name or attribute we need to auto-complete
+            nameTokens, needleToken = parseLine_autocomplete(tokens)
+            keyLookUp = False
+
+            if nameTokens is None:
+                # no auto-completion for a name or attribute found --> try key-auto-completion instead
+                keyLookUp = True
+                nameTokens, indParenToken = parseLine_signature(tokens, paren="[")
+                if indParenToken is not None:
+                    needleToken = "".join([str(t) for t in tokens[indParenToken + 1:]])
+                else:
+                    needleToken = None
+
+            useIntermediateResult = False
+            if advanced:
+                self._autoCompBuffer_time = 0  # clear buffer
+
+            name = ""
+            needle = str(needleToken) if needleToken is not None else ""
+            if nameTokens is not None:
+                name = "".join([str(t) for t in nameTokens])
+                if keyLookUp:
+                    name += "["
+                if not isSimpleExpression(nameTokens):
+                    if advanced or name == self._autoCompBuffer_name:
+                        useIntermediateResult = True
+                    else:
+                        name, needle = "", ""
 
             if name or needle:
                 # Try to do auto completion
-                aco = AutoCompObject(self, name, needle)
+                aco = AutoCompObject(self, name, needle, useIntermediateResult)
                 self.processAutoComp(aco)
 
     def processCallTip(self, cto):
@@ -315,9 +566,10 @@ class BaseTextCtrl(CodeEditor):
                 limit += 1
                 cursor.movePosition(cursor.MoveOperation.Right)
             _, tokens = self.getTokensUpToCursor(cursor)
-            nameBefore, name = parseLine_autocomplete(tokens)
-            if nameBefore:
-                name = "{}.{}".format(nameBefore, name)
+            nameTokens, needleToken = parseLine_autocomplete(tokens)
+            if nameTokens:
+                name = "{}.{}".format("".join([str(t) for t in nameTokens]), needleToken)
+
         if name != "":
             hw.setObjectName(name, True)
 
@@ -347,9 +599,9 @@ class BaseTextCtrl(CodeEditor):
                 line = cursor.block().text()
                 text = line[: cursor.positionInBlock()]
                 # Obtain
-                nameBefore, name = parseLine_autocomplete(text)
-                if nameBefore:
-                    name = "{}.{}".format(nameBefore, name)
+                nameTokens, needleToken = parseLine_autocomplete(text)
+                if nameTokens:
+                    name = "{}.{}".format("".join([str(t) for t in nameTokens]), needleToken)
 
         if name:
             hw.helpFromCompletion(name, addToHist)
@@ -360,8 +612,18 @@ class BaseTextCtrl(CodeEditor):
     def updateHelp(self, name):
         """A name has been highlighted, show help on that name"""
 
-        if self._autoCompBuffer_name:
-            name = self._autoCompBuffer_name + "." + name
+        if self._autoCompBuffer_intermediateResultName is not None:
+            s = self._autoCompBuffer_intermediateResultName
+            if self._autoCompBuffer_name.endswith("["):
+                name = "{}[{}]".format(s, name)  # key auto-completion
+            else:
+                name = s + "." + name  # attribute auto-completion
+        elif self._autoCompBuffer_name:
+            s = self._autoCompBuffer_name
+            if s.endswith("["):
+                name = s + name + "]"  # key auto-completion
+            else:
+                name = s + "." + name  # attribute auto-completion
         elif not self.completer().completionPrefix():
             # Don't update help if there is no dot or prefix;
             # the choice would be arbitrary
@@ -408,8 +670,18 @@ class BaseTextCtrl(CodeEditor):
         # Cancel any introspection in progress
         self._delayTimer._line = ""
 
+        # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
+        if (event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_Space):
+            cursor = self.textCursor()
+            if cursor.position() == cursor.anchor():
+                text = cursor.block().text()[: cursor.positionInBlock()]
+                if text:
+                    self.introspect(True, False, advanced=True)
+                    return
+
         # Invoke autocomplete via tab key?
-        if event.key() == QtCore.Qt.Key.Key_Tab and not self.autocompleteActive():
+        elif event.key() == QtCore.Qt.Key.Key_Tab and not self.autocompleteActive():
             if pyzo.config.settings.autoComplete:
                 cursor = self.textCursor()
                 if cursor.position() == cursor.anchor():
@@ -423,7 +695,7 @@ class BaseTextCtrl(CodeEditor):
         # Analyse character/key to determine what introspection to fire
         if ordKey:
             if (
-                ordKey >= 48 or ordKey in [8, 46]
+                ordKey >= 32 or ordKey == 8  # 8: '\b'
             ) and pyzo.config.settings.autoComplete == 1:
                 # If a char that allows completion or backspace or dot was pressed
                 self.introspect(True)
@@ -439,11 +711,12 @@ class CallTipObject:
     An instance of this class is created for each call tip action.
     """
 
-    def __init__(self, textCtrl, name, offset):
+    def __init__(self, textCtrl, name, offset, useIntermediateResult=False):
         self.textCtrl = textCtrl
         self.name = name
         self.bufferName = name
         self.offset = offset
+        self.useIntermediateResult = useIntermediateResult
 
     def tryUsingBuffer(self):
         """Try performing this callTip using the buffer.
@@ -463,17 +736,25 @@ class CallTipObject:
 
         Will also automatically call setBuffer.
         """
-        self.setBuffer(callTipText)
+        if self.useIntermediateResult:
+            self.setBuffer(callTipText, 1e10)  # almost infinite timeout for the buffer
+        else:
+            self.setBuffer(callTipText)
         self._finish(callTipText)
 
     def setBuffer(self, callTipText, timeout=4):
         """Sets the buffer with the provided text."""
         self.textCtrl._callTipBuffer_name = self.bufferName
+        self.textCtrl._callTipBuffer_intermediateResultName = (
+            "__pyzo__calltip" if self.useIntermediateResult else None
+        )
         self.textCtrl._callTipBuffer_time = time.time() + timeout
         self.textCtrl._callTipBuffer_result = callTipText
 
     def _finish(self, callTipText):
-        self.textCtrl.calltipShow(self.offset, callTipText, True)
+        highlightFunctionName = not self.useIntermediateResult
+        # ... because "foo().bar().func(" would only highlight "foo"
+        self.textCtrl.calltipShow(self.offset, callTipText, highlightFunctionName)
 
 
 class AutoCompObject:
@@ -481,14 +762,13 @@ class AutoCompObject:
     An instance of this class is created for each auto completion action.
     """
 
-    def __init__(self, textCtrl, name, needle):
+    def __init__(self, textCtrl, name, needle, useIntermediateResult=False):
         self.textCtrl = textCtrl
         self.bufferName = name  # name to identify with
         self.name = name  # object to find attributes of
         self.needle = needle  # partial name to look for
         self.names = set()  # the names (use a set to prevent duplicates)
-        self.importNames = []
-        self.importLines = {}
+        self.useIntermediateResult = useIntermediateResult
 
     def addNames(self, names):
         """Add a list of names to the collection. Duplicates are removed."""
@@ -514,7 +794,8 @@ class AutoCompObject:
         """
         # Remember at the object that started this introspection
         # and get sorted names
-        names = self.setBuffer(self.names)
+        timeout = 1e10 if self.useIntermediateResult else None  # almost infinite timeout for the buffer
+        names = self.setBuffer(self.names, timeout)
         # really finish
         self._finish(names)
 
@@ -542,6 +823,9 @@ class AutoCompObject:
         names.sort(key=str.upper)
         # Store
         self.textCtrl._autoCompBuffer_name = self.bufferName
+        self.textCtrl._autoCompBuffer_intermediateResultName = (
+            "__pyzo__autocomp" if self.useIntermediateResult else None
+        )
         self.textCtrl._autoCompBuffer_time = time.time() + timeout
         self.textCtrl._autoCompBuffer_result = names
         # Return sorted list

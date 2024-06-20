@@ -1155,7 +1155,10 @@ class PythonShell(BaseShell):
         self._currentCTO = cto
 
         # Post request
-        future = self._request.signature(cto.name)
+        if cto.useIntermediateResult:
+            future = self._request.signatureWithIntermediateResult(cto.name)
+        else:
+            future = self._request.signature(cto.name)
         future.add_done_callback(self._processCallTip_response)
         future.cto = cto
 
@@ -1182,10 +1185,13 @@ class PythonShell(BaseShell):
             return
 
         # Invalid response
-        if response is None:
+        if not response:
             cto.textCtrl.autocompleteCancel()
             return
 
+        if cto.useIntermediateResult:
+            assert response.startswith("__pyzo__calltip")
+            response = cto.name + response[len("__pyzo__calltip"):]
         # If still required, show tip, otherwise only store result
         if cto is self._currentCTO:
             cto.finish(response)
@@ -1205,6 +1211,8 @@ class PythonShell(BaseShell):
             aco.addNames(self._builtins)
             if pyzo.config.settings.autoComplete_keywords:
                 aco.addNames(self._keywords)
+        elif aco.name == "[":
+            return
 
         # Set buffer to prevent doing a second request
         # and store aco to see whether the response is still wanted.
@@ -1212,7 +1220,16 @@ class PythonShell(BaseShell):
         self._currentACO = aco
 
         # Post request
-        future = self._request.dir(aco.name)
+        if aco.useIntermediateResult:
+            if aco.name.endswith("["):  # if key auto-completion
+                future = self._request.dir2WithIntermediateResult(aco.name[:-1])
+            else:
+                future = self._request.dirWithIntermediateResult(aco.name)
+        else:
+            if aco.name.endswith("["):  # if attribute or name auto-completion
+                future = self._request.dir2(aco.name[:-1])
+            else:
+                future = self._request.dir(aco.name)
         future.add_done_callback(self._processAutoComp_response)
         future.aco = aco
 
@@ -1241,7 +1258,13 @@ class PythonShell(BaseShell):
         # Add result to the list
         foundNames = []
         if response is not None:
-            foundNames = response
+            if aco.name.endswith("["):  # if key auto-completion
+                foundNames = [name[1:-1] for name, type_, kind, repr_ in response if name[0] == "["]
+                maxKeyEntries = 200
+                if len(foundNames) > maxKeyEntries:
+                    foundNames = foundNames[:maxKeyEntries-1] + ["# ... too many entries"] + foundNames[-1:]
+            else:  # if attribute or name auto-completion
+                foundNames = response
         aco.addNames(foundNames)
 
         # Process list
