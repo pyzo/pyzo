@@ -402,7 +402,7 @@ class SmartCopyAndPaste:
         see: Qt qtextcontrol.cpp, cut()
         """
         if (
-            self.textInteractionFlags() & QtCore.Qt.TextEditable
+            self.textInteractionFlags() & QtCore.Qt.TextInteractionFlag.TextEditable
         ) and self.textCursor().hasSelection():
             cursor = self.textCursor()
             self.copy()
