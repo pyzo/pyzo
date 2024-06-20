@@ -480,7 +480,7 @@ class PyzoEditor(BaseTextCtrl):
         if not filename:
             raise ValueError("No filename specified, and no filename known.")
 
-        # Test whether it was changed without us knowing. If so, dont save now.
+        # Test whether it was changed without us knowing. If so, don't save now.
         if self.testWhetherFileWasChanged():
             return
 

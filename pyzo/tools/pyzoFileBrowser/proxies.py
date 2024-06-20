@@ -25,7 +25,7 @@ class Task:
     """Task(**params)
 
     A task object. Accepts params as keyword arguments.
-    When overloading, dont forget to set __slots__.
+    When overloading, don't forget to set __slots__.
 
     Overload and implement the 'process' method to create a task.
     Then use pushTask on a pathProxy object. Use the 'result' method to

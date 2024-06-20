@@ -598,7 +598,7 @@ class KernelBroker:
     def _commandTerminate(self):
         # Start termination procedure
         # Kernel will receive term and act (if it can).
-        # If it wont, we will act in a second or so.
+        # If it won't, we will act in a second or so.
         if self._process is None:
             self._strm_broker.send("Cannot terminate: process is dead.\n")
         elif self.isTerminating():

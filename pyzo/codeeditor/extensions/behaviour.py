@@ -396,7 +396,7 @@ class SmartCopyAndPaste:
         super().copy()
 
     def cut(self):
-        """Cutting with smart-copy: the part that is copies is the same as self.copy(),
+        """Cutting with smart-copy: the part that is copied is the same as self.copy(),
         but the part that is removed is only the original selection
 
         see: Qt qtextcontrol.cpp, cut()
@@ -530,7 +530,7 @@ class AutoCloseQuotesAndBrackets:
 
         #  brackets
         if char in brackets and self.__autoClose_Brackets:
-            # Dont autobracket inside comments and strings
+            # Don't autobracket inside comments and strings
             if isinstance(
                 self._get_token_at_cursor(cursor),
                 (
@@ -594,7 +594,7 @@ class AutoCloseQuotesAndBrackets:
                 return
 
             if cursor.selectedText() in ('"', "'"):
-                # Skip over char if its one char and a quote
+                # Skip over char if it's one char and a quote
                 self._moveCursorRight(1)
             elif cursor.selectedText():
                 # Surround selection with quotes, maybe even multi-line
@@ -626,7 +626,7 @@ class AutoCloseQuotesAndBrackets:
                 # Auto-close
                 cursor.insertText(char * 2)
                 self._moveCursorLeft(1)
-                # # Maybe handle tripple quotes (add 2 more if we now have 3 on the left)
+                # # Maybe handle triple quotes (add 2 more if we now have 3 on the left)
                 # Disabled: this feature too easily gets in the way
                 # if 'python' in self.parser().name().lower():
                 #     cursor = self.textCursor()

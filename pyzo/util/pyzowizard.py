@@ -135,7 +135,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
     def initializePage(self):
         # Get prefix
         i = self._i
-        n = self.wizard()._n - 2  # Dont count the first and last page
+        n = self.wizard()._n - 2  # Don't count the first and last page
         prefix = ""
         if i and i <= n:
             prefix = retranslate(self._prefix) + " {}/{}: ".format(i, n)

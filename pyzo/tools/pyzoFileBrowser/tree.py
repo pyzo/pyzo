@@ -752,7 +752,7 @@ class Tree(QtWidgets.QTreeWidget):
 
     def _restoreSelectionState(self):
         # First select the first item
-        # (otherwise the scrolling wont work for some reason)
+        # (otherwise the scrolling won't work for some reason)
         if self.topLevelItemCount():
             self.setCurrentItem(self.topLevelItem(0))
         # Restore selection

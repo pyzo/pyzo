@@ -182,7 +182,7 @@ class App_asyncio_new(App_base):
         except Exception:
             loop = None
 
-        # If its the same as our current loop, we want to be called again
+        # If it's the same as our current loop, we want to be called again
         if loop:
             self._loop.call_later(self._sleep_time, self._ping_repl_callback)
 

@@ -15,9 +15,9 @@ from . import pre_qt_import  # noqa: F401
 from pyzo import yotonloader  # noqa
 from pyzo.util import paths
 
-# If there already is an instance of Pyzo, and the user is trying an
+# If there already is an instance of Pyzo, and the user is trying a
 # Pyzo command, we should send the command to the other process and quit.
-# We do this here, were we have not yet loaded Qt, so we are very light.
+# We do this here, where we have not yet loaded Qt, so we are very light.
 from pyzo.core import commandline
 
 if commandline.is_our_server_running():
@@ -177,7 +177,7 @@ def loadConfig(defaultsOnly=False):
             siteConfig = ssdf.load(fname)
             replaceFields(config, siteConfig)
         except Exception:
-            t = "Error while reading config file {!r}, maybe its corrupt?"
+            t = "Error while reading config file {!r}, maybe it's corrupt?"
             print(t.format(fname))
             raise
 
@@ -188,7 +188,7 @@ def loadConfig(defaultsOnly=False):
             userConfig = ssdf.load(fname)
             replaceFields(config, userConfig)
         except Exception:
-            t = "Error while reading config file {!r}, maybe its corrupt?"
+            t = "Error while reading config file {!r}, maybe it's corrupt?"
             print(t.format(fname))
             raise
 

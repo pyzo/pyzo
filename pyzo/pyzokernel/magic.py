@@ -183,7 +183,7 @@ class Magician:
                 if _should_not_interpret_as_magic(line):
                     return
             except Exception:
-                pass  # dont break interpreter if above func has a bug ...
+                pass  # don't break interpreter if above func has a bug ...
 
         else:
             # Old, not as good check for outdated Python version

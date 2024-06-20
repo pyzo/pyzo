@@ -112,7 +112,7 @@ def pyzo_excepthook(type, value, tb):
 
 # Uncomment to detect error in the interpreter itself.
 # But better not use it by default. For instance errors in qt events
-# are also catched by this function. I think that is because it would
+# are also caught by this function. I think that is because it would
 # allow you to show such exceptions in an error dialog.
 # sys.excepthook = pyzo_excepthook
 
