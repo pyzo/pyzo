@@ -76,11 +76,7 @@ class App_base:
         # real event loop though, that is fast when needed and just sleeps
         # when the gui is idle, saving battery life.
 
-        if hasattr(time, "perf_counter"):
-            perf_counter = time.perf_counter
-        else:
-            perf_counter = time.time
-        perf_counter
+        perf_counter = getattr(time, "perf_counter", time.time)
 
         repl_time = 0.099
         next_repl = perf_counter() + repl_time

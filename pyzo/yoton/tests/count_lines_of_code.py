@@ -18,7 +18,7 @@ def count_lines(filename):
             count4 += 1
         elif inDocstring:
             count2 += 1
-        elif line.startswith("#") or line.startswith("%"):
+        elif line.startswith(("#", "%")):
             count3 += 1
         else:
             count1 += 1

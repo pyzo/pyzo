@@ -211,12 +211,12 @@ class Magician:
         elif command.startswith("INSTALL"):
             return self.install(line, command)
 
-        elif command.startswith("UPDATE") or command.startswith("UPGRADE"):
+        elif command.startswith(("UPDATE", "UPGRADE")):
             line = line.replace("upgrade", "update")
             command = command.replace("UPGRADE", "UPDATE")
             return self.update(line, command)
 
-        elif command.startswith("REMOVE") or command.startswith("UNINSTALL"):
+        elif command.startswith(("REMOVE", "UNINSTALL")):
             line = line.replace("uninstall", "remove")
             return self.remove(line, command)
 

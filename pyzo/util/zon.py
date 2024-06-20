@@ -84,10 +84,7 @@ Struct.__is_ssdf_struct__ = True
 
 def isstruct(ob):  # SSDF compatibility
     """Returns whether the given object is an SSDF struct."""
-    if hasattr(ob, "__is_ssdf_struct__"):
-        return bool(ob.__is_ssdf_struct__)
-    else:
-        return False
+    return getattr(ob, "__is_ssdf_struct__", False)
 
 
 def new():
@@ -313,7 +310,7 @@ class ReaderWriter:
             return self.to_dict(data, linenr)
         elif data.startswith("list:") or data[0] == "[":
             return self.to_list(data, linenr)
-        elif data.startswith("Null") or data.startswith("None"):
+        elif data.startswith(("Null", "None")):
             return None
         else:
             print("ZON: invalid type on line {}.".format(linenr))

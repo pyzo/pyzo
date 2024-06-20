@@ -673,7 +673,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
                         h_text = h_text[len(header) :].lstrip(":").lstrip()
                         header = header.replace("|", "")
                         # h_text = header + '\n\n' + h_text
-                    elif h_text.startswith(objectName) or h_text.startswith(name):
+                    elif h_text.startswith((objectName, name)):
                         header, sep, docs = h_text.partition("\n")
                         # h_text = header + '\n\n' + docs
                         h_text = docs
