@@ -193,8 +193,6 @@ class CompactTabBar(QtWidgets.QTabBar):
 
         # Get current TabData instance
         tabData = super().tabData(i)
-        if (tabData is not None) and hasattr(tabData, "toPyObject"):
-            tabData = tabData.toPyObject()  # Older version of Qt
 
         # If none, make it as good as we can
         if not tabData:

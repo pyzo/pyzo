@@ -2176,11 +2176,7 @@ class RunMenu(Menu):
             # will be misinterpreted as cell comments.
             def isCursorAtCellComment(cur):
                 line = cur.block().text().lstrip()
-                return (
-                    line.startswith("##")
-                    or line.startswith("#%%")
-                    or line.startswith("# %%")
-                )
+                return line.startswith(("##", "#%%", "# %%"))
 
         # Get current cell
         # Move up until the start of document

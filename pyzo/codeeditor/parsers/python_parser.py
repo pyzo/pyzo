@@ -770,9 +770,7 @@ class PythonParser(Parser):
         if match.group() == "#":
             matchStart = match.start()
             if not line[:matchStart].strip() and (
-                line[matchStart:].startswith("##")
-                or line[matchStart:].startswith("#%%")
-                or line[matchStart:].startswith("# %%")
+                line[matchStart:].startswith(("##", "#%%", "# %%"))
             ):
                 tokens.append(CellCommentToken(line, matchStart, len(line)))
             elif self._isTodoItem(line[matchStart + 1 :]):
