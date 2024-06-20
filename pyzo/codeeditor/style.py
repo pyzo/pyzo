@@ -3,9 +3,9 @@
 # Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
-""" Modyule style
+""" Module style
 
-Provides basic functionaliy for styling.
+Provides basic functionality for styling.
 
 Styling is done using a dictionary of StyleFormat instances. Each
 such instance represents a certain element being styled (e.g. keywords,
@@ -13,7 +13,7 @@ line numbers, indentation guides).
 
 All possible style elements are represented using StyleElementDescription
 instances. These have a name, description and default format, which
-makes it easy to build a UI to allow the user to change the syle.
+makes it easy to build a UI to allow the user to change the style.
 
 """
 from .qt import QtGui, QtCore

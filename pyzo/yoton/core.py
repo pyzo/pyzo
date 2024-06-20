@@ -240,7 +240,7 @@ class Package(object):
     # The __slots__ makes instances of this class consume < 20% of memory
     # Note that this only works for new style classes.
     # This is important because many packages can exist at the same time
-    # if a receiver cant keep up with a sender. Further, although Python's
+    # if a receiver can't keep up with a sender. Further, although Python's
     # garbage collector collects the objects after they're "consumed",
     # it does not release the memory, because it hopes to reuse it in
     # an efficient way later.

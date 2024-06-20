@@ -374,10 +374,10 @@ class Parser(threading.Thread):
 
         # To know when to make something new when for instance a class is defined
         # in an if statement, we keep track of the last valid node/object:
-        # Put inside a list, so we can set it from inside a subfuncion
+        # Put inside a list, so we can set it from inside a subfunction
         lastObject = [root]
 
-        # Define funcion to put an item in the structure in the right parent
+        # Define function to put an item in the structure in the right parent
         def appendToStructure(object):
             # find position in structure to insert
             node = lastObject[0]

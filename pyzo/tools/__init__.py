@@ -53,7 +53,7 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         # Store stuff
         self._toolManager = toolManager
 
-        # Allow docking anywhere, othwerise restoring state wont work properly
+        # Allow docking anywhere, othwerise restoring state won't work properly
 
         # Set other settings
         DWF = QtWidgets.QDockWidget.DockWidgetFeature

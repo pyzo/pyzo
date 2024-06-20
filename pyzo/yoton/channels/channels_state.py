@@ -54,7 +54,7 @@ class StateChannel(BaseChannel):
         BaseChannel.__init__(self, *args, **kwargs)
 
         # Variables to hold the current state. We use only the message
-        # as a reference, so we dont need a lock.
+        # as a reference, so we don't need a lock.
         # The package is used to make _recv() function more or less,
         # and to be able to determine if a state was set (because the
         # message may be set to None)

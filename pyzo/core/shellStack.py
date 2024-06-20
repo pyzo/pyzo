@@ -337,7 +337,7 @@ class ShellControl(QtWidgets.QToolButton):
                 action.setText(shellTitle(shellToUpdate, True))
 
         # Any items left in shells need a menu item
-        # Dont give them an icon, or the icon is used as checkbox thingy
+        # Don't give them an icon, or the icon is used as checkbox thingy
         for shell in shells:
             text = shellTitle(shell)
             action = menu.addItem(text, None, self._shellStack.setCurrentWidget, shell)
@@ -354,7 +354,7 @@ class ShellControl(QtWidgets.QToolButton):
             self.setText("No shell selected")
 
     def onElapsedTimesTimer(self):
-        # Automatically turn timer off is menu is hidden
+        # Automatically turn timer off if menu is hidden
         if not self.menu().isVisible():
             self._elapsedTimesTimer.stop()
             return

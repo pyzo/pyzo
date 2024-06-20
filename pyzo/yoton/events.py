@@ -47,7 +47,7 @@ class CallableObject(object):
         if not hasattr(c, "__call__"):
             raise ValueError("Error: given callback is not callable.")
 
-        # Store funcion and object
+        # Store function and object
         if hasattr(c, "__self__"):
             # Method, store object and method name
             self._ob = weakref.ref(c.__self__)
@@ -579,7 +579,7 @@ class YotonApplication(object):
 
         """
 
-        # Dont go if we are in an event loop
+        # Don't go if we are in an event loop
         if YotonApplication._in_event_loop:
             return
 

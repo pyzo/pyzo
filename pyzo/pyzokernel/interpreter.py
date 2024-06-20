@@ -239,7 +239,7 @@ class PyzoInterpreter:
         # Reset debug status
         self.debugger.writestatus()
 
-        # Get startup info (get a copy, or setting the new version wont trigger!)
+        # Get startup info (get a copy, or setting the new version won't trigger!)
         while self.context._stat_startup.recv() is None:
             time.sleep(0.02)
         self.startup_info = startup_info = self.context._stat_startup.recv().copy()
