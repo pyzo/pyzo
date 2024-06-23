@@ -199,7 +199,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
 class Package(object):
     """Package(data, slot, source_id, source_seq, dest_id, dest_seq, recv_seq)
 
-    Represents a package of bytes to be send from one Context instance
+    Represents a package of bytes to be sent from one Context instance
     to another. A package consists of a header and the encoded message.
 
     To make this class as fast as reasonably possible, its interface
