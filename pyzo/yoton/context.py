@@ -41,9 +41,9 @@ class Context(object):
     the packages are distributed to the right channels. A context queues
     packages while it is not connected to any other context.
 
-    If messages are send on a channel registered at this context while
+    If messages are sent on a channel registered at this context while
     the context is not connected, the messages are stored by the
-    context and will be send to the first connecting context.
+    context and will be sent to the first connecting context.
 
     Example 1
     ---------
@@ -353,7 +353,7 @@ class Context(object):
     def flush(self, timeout=5.0):
         """flush(timeout=5.0)
 
-        Wait until all pending messages are send. This will flush all
+        Wait until all pending messages are sent. This will flush all
         messages posted from the calling thread. However, it is not
         guaranteed that no new messages are posted from another thread.
 

@@ -441,7 +441,7 @@ class ReqChannel(BaseChannel):
         """Post a request. This creates a Future instance and stores
         it. A message is send asking any repliers to respond.
 
-        The actual request will be send when a reply to our pre-request
+        The actual request will be sent when a reply to our pre-request
         is received. This all hapens in the yoton event loop.
         """
 
@@ -565,7 +565,7 @@ class RepChannel(BaseChannel):
 
     The reply part of the request/reply messaging pattern.
     A RepChannel instance receives request and sends the corresponding
-    replies. The requests are send from a yoton.ReqChannel instance.
+    replies. The requests are sent from a yoton.ReqChannel instance.
 
     This class adopts req/rep in a remote procedure call (RPC) scheme.
 
@@ -741,7 +741,7 @@ class RepChannel(BaseChannel):
                     pass  # Channel is closed
                 except Exception:
                     # Probably wrong type of reply returned by handle_request()
-                    print("Warning: request could not be send:")
+                    print("Warning: request could not be sent:")
                     print(getErrorMsg())
 
     def _process_events_local(self, dummy=None):

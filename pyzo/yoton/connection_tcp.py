@@ -556,7 +556,7 @@ class BaseIOThread(threading.Thread):
 class SendingThread(BaseIOThread):
     """The thread that reads packages from the queue and sends them over
     the socket. It uses a timeout while reading from the queue, so it can
-    send heart beat packages if no packages are send.
+    send heart beat packages if no packages are sent.
     """
 
     def _run(self, context_connection, bsd_socket):

@@ -107,7 +107,7 @@ def pyzo_excepthook(type, value, tb):
             tb = tb.tb_next
     import time
 
-    time.sleep(0.3)  # Give some time for the message to be send
+    time.sleep(0.3)  # Give some time for the message to be sent
 
 
 # Uncomment to detect error in the interpreter itself.

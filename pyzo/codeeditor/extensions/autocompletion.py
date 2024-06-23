@@ -312,7 +312,7 @@ class AutoCompletion:
             return  # Consume
 
         # Allowed keys that do not close the autocompleteList:
-        # alphanumeric and _ ans shift
+        # alphanumeric and _ and shift
         # Backspace (until start of autocomplete word)
         if (
             self.autocompleteActive()

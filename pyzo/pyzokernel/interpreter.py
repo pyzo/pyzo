@@ -960,7 +960,7 @@ class PyzoInterpreter:
             # Compile
             code = self.compilecode(source, fname, "exec")
         except (OverflowError, SyntaxError, ValueError):
-            time.sleep(0.2)  # Give stdout time to be send
+            time.sleep(0.2)  # Give stdout time to be sent
             self.showsyntaxerror(fname)
             return
 

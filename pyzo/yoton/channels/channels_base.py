@@ -177,7 +177,7 @@ class BaseChannel(object):
         this message replies to. These are used for the request/reply
         pattern.
 
-        Returns the package that will be send (or None). The context
+        Returns the package that will be sent (or None). The context
         will set _source_id on the package right before
         sending it away.
 

@@ -26,7 +26,7 @@ ADDRESS = "localhost:pyzoserver"
 
 class Server(RequestServer):
     """Server that listens on a port for commands.
-    The commands can be send by executing the Pyzo executable with
+    The commands can be sent by executing the Pyzo executable with
     command line arguments.
     """
 

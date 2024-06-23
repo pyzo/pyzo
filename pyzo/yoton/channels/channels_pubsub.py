@@ -318,7 +318,7 @@ def select_sub_channel(*args):
     messages.
 
     This function can be used to read from SubCannels instances in the
-    order that the messages were send.
+    order that the messages were sent.
 
     After calling this function, use channel.recv_selected() to obtain
     all messages that are older than any pending messages in the other

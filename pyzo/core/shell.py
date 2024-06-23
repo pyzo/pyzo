@@ -1277,12 +1277,12 @@ class PythonShell(BaseShell):
                 line = importLines[baseName].strip()
                 if line not in self._importAttempts:
                     # Do import
-                    self.processLine(line + " # auto-import")
+                    self.processLine(line + "  # auto-import")
                     self._importAttempts.append(line)
                     # Wait a barely noticable time to increase the chances
-                    # That the import is complete when we repost the request.
+                    # that the import is complete when we repost the request.
                     time.sleep(0.2)
-                    # To be sure, decrease the experiration date on the buffer
+                    # To be sure, decrease the expiration date on the buffer
                     aco.setBuffer(timeout=1)
                     # Repost request
                     future = self._request.signature(aco.name)

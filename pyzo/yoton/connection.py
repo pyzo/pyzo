@@ -254,7 +254,7 @@ class Connection(object):
     def flush(self, timeout=3.0):
         """flush(timeout=3.0)
 
-        Wait until all pending packages are send. An error
+        Wait until all pending packages are sent. An error
         is raised when the timeout passes while doing so.
 
         """
