@@ -393,14 +393,6 @@ class BaseTextCtrl(CodeEditor):
             qtKeys.append(QtCore.Qt.Key.Key_Return)
         self.setAutoCompletionAcceptKeys(*qtKeys)
 
-    def _isValidPython(self):
-        """Check if the code at the cursor is valid python:
-        - the active lexer is the python lexer
-        - the style at the cursor is "default"
-        """
-        # TODO:
-        return True
-
     def getTokensUpToCursor(self, cursor):
         # In order to find the tokens, we need the userState from the highlighter
         if cursor.block().previous().isValid():
@@ -547,10 +539,6 @@ class BaseTextCtrl(CodeEditor):
         """Overridden in derive class"""
         pass
 
-    def _onDoubleClick(self):
-        """When double clicking on a name, autocomplete it."""
-        self.processHelp(addToHist=True)
-
     def helpOnText(self, pos):
         hw = pyzo.toolManager.getTool("pyzointeractivehelp")
         if not hw:
@@ -573,10 +561,9 @@ class BaseTextCtrl(CodeEditor):
         if name != "":
             hw.setObjectName(name, True)
 
-    def processHelp(self, name=None, showError=False, addToHist=False):
+    def processHelp(self, name, showError=False, addToHist=False):
         """Show help on the given full object name.
         - called when going up/down in the autocompletion list.
-        - called when double clicking a name
         """
         # uses parse_autocomplete() to find baseName and objectName
 
@@ -588,20 +575,6 @@ class BaseTextCtrl(CodeEditor):
         # Both should exist
         if not hw or not shell:
             return
-
-        if not name:
-            # Obtain name from current cursor position
-
-            # Is this valid python?
-            if self._isValidPython():
-                # Obtain line from text
-                cursor = self.textCursor()
-                line = cursor.block().text()
-                text = line[: cursor.positionInBlock()]
-                # Obtain
-                nameTokens, needleToken = parseLine_autocomplete(text)
-                if nameTokens:
-                    name = "{}.{}".format("".join([str(t) for t in nameTokens]), needleToken)
 
         if name:
             hw.helpFromCompletion(name, addToHist)
