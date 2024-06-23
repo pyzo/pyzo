@@ -432,7 +432,8 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             else:
                 s = "top level"
             pyzo.main.statusBar().showMessage("Source structure:    " + s)
-
+        else:
+            pyzo.main.statusBar().showMessage("")
 
 def _findNextSmallerOrEqualValue(sorted_haystack, needle, otherwise):
     """returns the next smaller or equal value than needle in haystack"""
