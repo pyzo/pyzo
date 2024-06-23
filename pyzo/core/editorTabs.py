@@ -1206,10 +1206,12 @@ class EditorTabs(QtWidgets.QWidget):
             item = None
         if item:
             self._tabs.setCurrentItem(item)
-            if filename == item.filename:
-                print("File already open: '{}'".format(filename))
-            else:
-                print("File '{}' already open as '{}'".format(filename, item.filename))
+            if filename.lower() != item.filename.lower() and item.filename != "":
+                # only print the message if something unexpected happened
+                if filename == item.filename:
+                    print("File already open: '{}'".format(filename))
+                else:
+                    print("File '{}' already open as '{}'".format(filename, item.filename))
             return item
 
         # create editor
