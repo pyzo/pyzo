@@ -45,8 +45,8 @@ class PyzoIntrospector(yoton.RepChannel):
                 ob = eval(name, None, NS)
 
                 # Get namespace for this object
-                if isinstance(ob, dict):
-                    NS = {"[" + repr(el) + "]": ob[el] for el in ob}
+                if isinstance(ob, dict) or hasattr(ob, "keys"):  # os.environ is no dict but has keys
+                    NS = {"[" + repr(el) + "]": ob[el] for el in ob.keys()}
                 elif isinstance(ob, (list, tuple)):
                     NS = {}
                     count = -1
