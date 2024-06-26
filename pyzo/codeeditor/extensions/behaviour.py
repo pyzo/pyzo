@@ -390,7 +390,14 @@ class SmartCopyAndPaste:
                 else:
                     self.__setCursorPositionAndAnchor(cursor, start, end)
 
+                # Setting the textcursor might scroll to another place
+                # (e.g. Ctrl+A, Ctrl+C would scroll to the very bottom).
+                # To prevent this, we store and then restore the position
+                # of the vertical scrollbar
+                sb = self.verticalScrollBar()
+                scrollbarPos = sb.value()
                 self.setTextCursor(cursor)
+                sb.setValue(scrollbarPos)
 
         # Call our supers copy slot to do the actual copying
         super().copy()
