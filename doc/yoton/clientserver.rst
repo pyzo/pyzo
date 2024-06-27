@@ -30,7 +30,7 @@ The client server model is implemented using one function and one class:
 
 The server implements a request/reply pattern by listening at a socket. 
 Similar to telnet, each request is handled using a connection 
-and the socket is closed after the response is send. 
+and the socket is closed after the response is sent. 
 
 The request server can setup to run in the main thread, or can be started 
 using its own thread. In the latter case, one can easily create multiple

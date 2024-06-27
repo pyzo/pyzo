@@ -427,7 +427,7 @@ class BaseShell(BaseTextCtrl):
             cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
             editor.setTextCursor(cursor)
 
-    ##Indentation: override code editor behaviour
+    ## Indentation: override code editor behaviour
     def indentSelection(self):
         pass
 
@@ -660,7 +660,7 @@ class BaseShell(BaseTextCtrl):
         if N:
             texts[0] = "\b" * N + texts[0]
 
-        # Return with empy elements popped
+        # Return with empty elements popped
         return [t for t in texts if t]
 
     def _handleBackspaces(self, text):
@@ -763,7 +763,7 @@ class BaseShell(BaseTextCtrl):
         # keeps its position when text is inserted after the current position
         # of the cursor.
 
-        # Make sure there's text and make sure its a string
+        # Make sure there's text and make sure it's a string
         if not text:
             return
         if isinstance(text, bytes):
@@ -855,8 +855,8 @@ class BaseShell(BaseTextCtrl):
             cursor.insertText(text[i0:i1], format)
             i0 = i2
 
-            # The formay that we are now going to parse should apply to
-            # the text that follow it ...
+            # The format that we are now going to parse should be applied to
+            # the text that follows it ...
 
             # Get parameters
             try:
@@ -1554,7 +1554,7 @@ class PythonShell(BaseShell):
         # If we can, try to tell the broker to terminate the kernel
         if self._context and self._context.connection_count:
             self.terminate()
-            self._context.flush()  # Important, make sure the message is send!
+            self._context.flush()  # Important, make sure the message is sent!
             self._context.close()
 
         # Adios

@@ -137,7 +137,7 @@ class FileWrapper(object):
             self._channel.send(line)
 
     def readline(self, size=0):
-        """Read one string that was send as one from the other end (always
+        """Read one string that was sent as one from the other end (always
         in blocking mode). A newline character is appended if it does not
         end with one.
 

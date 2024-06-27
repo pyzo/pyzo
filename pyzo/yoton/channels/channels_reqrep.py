@@ -363,7 +363,7 @@ class ReqChannel(BaseChannel):
     # Notes on load balancing:
     #
     # Firstly, each request has an id. Which is an integer number
-    # which is increased at each new request. The id is send via
+    # which is increased at each new request. The id is sent via
     # the dest_seq. For pre-request messages an offset is added
     # to recognize these meta-messages.
     #
@@ -439,7 +439,7 @@ class ReqChannel(BaseChannel):
 
     def _handle_request(self, name, *args, **kwargs):
         """Post a request. This creates a Future instance and stores
-        it. A message is send asking any repliers to respond.
+        it. A message is sent asking any repliers to respond.
 
         The actual request will be sent when a reply to our pre-request
         is received. This all hapens in the yoton event loop.
@@ -481,9 +481,9 @@ class ReqChannel(BaseChannel):
                 item._resend_if_necessary()
 
     def _recv_item(self):
-        """Receive item. If a reply is send that is an acknowledgement
+        """Receive item. If a reply is sent that is an acknowledgement
         of a replier that it wants to handle our request, the
-        correpsonding request is send to that replier.
+        correpsonding request is sent to that replier.
 
         This is a kind of mini-event loop thingy that should be
         called periodically to keep things going.
