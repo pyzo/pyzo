@@ -48,5 +48,5 @@ If you want to help out, create an issue or pull request on GitHub.
 
 * main website: https://pyzo.org
 * code repository: https://github.com/pyzo/pyzo
-* issues: * questions: https://github.com/pyzo/pyzo/issues
+* issues: https://github.com/pyzo/pyzo/issues
 * questions: https://github.com/pyzo/pyzo/discussions
