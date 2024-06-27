@@ -502,6 +502,7 @@ class PyzoEditor(BaseTextCtrl):
             editCursor = self.textCursor()
             # Go!
             editCursor.beginEditBlock()
+
             try:
                 editCursor.setPosition(screenCursor.selectionStart())
                 editCursor.movePosition(editCursor.MoveOperation.StartOfBlock)
@@ -521,8 +522,14 @@ class PyzoEditor(BaseTextCtrl):
                         break
                     editCursor.movePosition(editCursor.MoveOperation.NextBlock)
             finally:
+                # Setting the textcursor might scroll to another place
+                # To prevent this, we store and then restore the position
+                # of the vertical scrollbar
+                sb = self.verticalScrollBar()
+                scrollbarPos = sb.value()
                 self.setTextCursor(oricursor)
                 editCursor.endEditBlock()
+                sb.setValue(scrollbarPos)
 
         # Get text and convert line endings
         text = self.toPlainText().replace("\n", self.lineEndings)
