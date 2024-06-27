@@ -54,7 +54,7 @@ class PubChannel(BaseChannel):
         return "pub-sub", "sub-pub"
 
     def send(self, message):
-        """Send a message over the channel. What is send as one
+        """Send a message over the channel. What is sent as one
         message will also be received as one message.
 
         The message is queued and delivered to all corresponding
@@ -222,7 +222,7 @@ class SubChannel(BaseChannel):
     ## Receive methods
 
     def recv(self, block=True):
-        """Receive a message from the channel. What was send as one
+        """Receive a message from the channel. What was sent as one
         message is also received as one message.
 
         If block is False, returns empty message if no data is available.

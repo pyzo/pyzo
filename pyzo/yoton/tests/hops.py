@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This example creates three contexts that are connected in a row.
-# A message is send at the first and received at the last.
+# A message is sent at the first and received at the last.
 
 import yoton
 

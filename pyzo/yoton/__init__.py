@@ -87,7 +87,7 @@ class SimpleSocket(Context):
     def recv(self, block=None):
         """recv(block=None):
 
-        Read a text from the channel. What was send as one message is
+        Read a text from the channel. What was sent as one message is
         always received as one message.
 
         If the channel is closed and all messages are read, returns ''.
