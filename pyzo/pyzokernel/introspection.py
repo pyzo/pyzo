@@ -10,10 +10,11 @@ import yoton
 import inspect  # noqa - used in eval()
 
 
-try:
-    import thread  # Python 2
-except ImportError:
-    import _thread as thread  # Python 3
+PYTHON_VERSION = sys.version_info[0]
+if PYTHON_VERSION < 3:
+    import thread
+else:
+    import _thread as thread
 
 
 class PyzoIntrospector(yoton.RepChannel):
@@ -122,6 +123,15 @@ class PyzoIntrospector(yoton.RepChannel):
                 name += "("
                 if name in sigs:
                     hasSig = True
+            if not hasSig and PYTHON_VERSION >= 3:
+                # Also get the signature for objects where inspect.signature does not
+                # work and where the function/method has a differnt name, e.g.:
+                # import sys; myfunc = sys.getsizeof
+                # myfunc.__doc__ --> has a docstring starting with "getsizeof("
+                indOpenParen = sigs.find("(")
+                if indOpenParen > 0 and sigs[:indOpenParen].isidentifier():
+                    hasSig = True
+                    sigs = objectName + sigs[indOpenParen:]
             # If not a valid signature, do not bother ...
             if (not hasSig) or (sigs.count("(") != sigs.count(")")):
                 sigs = ""
