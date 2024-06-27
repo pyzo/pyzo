@@ -29,10 +29,6 @@ class Calltip:
             self.setIndent(2)
             self.setWindowFlags(QtCore.Qt.WindowType.ToolTip)
 
-        def enterEvent(self, event):
-            # Act a bit like a tooltip
-            self.hide()
-
     def __init__(self, *args, **kwds):
         super().__init__(*args, **kwds)
         # Create label for call tips
