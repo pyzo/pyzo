@@ -77,23 +77,21 @@ class TcpConnection(Connection):
         """
 
         # Lock the connection while we change its status
-        self._lock.acquire()
+        with self._lock:
+            # Update hostname and port number; for hosting connections the port
+            # may be different if max_tries > 0. Each client connection will be
+            # assigned a different ephemeral port number.
+            # http://www.tcpipguide.com/free/t_TCPPortsConnectionsandConnectionIdentification-2.htm
+            # Also get hostname and port for other end
+            if bsd_socket is not None:
+                if True:
+                    self._hostname1, self._port1 = bsd_socket.getsockname()
+                if status != STATUS_WAITING:
+                    self._hostname2, self._port2 = bsd_socket.getpeername()
 
-        # Update hostname and port number; for hosting connections the port
-        # may be different if max_tries > 0. Each client connection will be
-        # assigned a different ephemeral port number.
-        # http://www.tcpipguide.com/free/t_TCPPortsConnectionsandConnectionIdentification-2.htm
-        # Also get hostname and port for other end
-        if bsd_socket is not None:
-            if True:
-                self._hostname1, self._port1 = bsd_socket.getsockname()
-            if status != STATUS_WAITING:
-                self._hostname2, self._port2 = bsd_socket.getpeername()
+            # Set status as normal
+            Connection._set_status(self, status)
 
-        # Set status as normal
-        Connection._set_status(self, status)
-
-        try:
             if status in [STATUS_HOSTING, STATUS_CONNECTED]:
                 # Really connected
 
@@ -126,9 +124,6 @@ class TcpConnection(Connection):
                 # Remove references to threads
                 self._sendingThread = None
                 self._receivingThread = None
-
-        finally:
-            self._lock.release()
 
     def _bind(self, hostname, port, max_tries=1):
         """Bind the bsd socket. Launches a dedicated thread that waits

@@ -153,11 +153,8 @@ class Context(object):
         """
 
         # Lock
-        self._connections_lock.acquire()
-        try:
+        with self._connections_lock:
             return [c for c in self._connections if c.is_alive]
-        finally:
-            self._connections_lock.release()
 
     @property
     def connections(self):
@@ -167,9 +164,7 @@ class Context(object):
         queried from this list using their name.
         """
         # Lock
-        self._connections_lock.acquire()
-
-        try:
+        with self._connections_lock:
             # Clean up any dead connections
             copy = ConnectionCollection()
             to_remove = []
@@ -185,9 +180,6 @@ class Context(object):
 
             # Return copy
             return copy
-
-        finally:
-            self._connections_lock.release()
 
     @property
     def connection_count(self):
@@ -262,15 +254,12 @@ class Context(object):
         connection._bind(hostname, port, max_tries)
 
         # Save connection instance
-        self._connections_lock.acquire()
-        try:
+        with self._connections_lock:
             # Push packages from startup queue
             while len(self._startupQueue):
                 connection._inject_package(self._startupQueue.pop())
             # Add connection object to list of connections
             self._connections.append(connection)
-        finally:
-            self._connections_lock.release()
 
         # Return Connection instance
         return connection
@@ -332,15 +321,12 @@ class Context(object):
         connection._connect(hostname, port, timeout)
 
         # Save connection instance
-        self._connections_lock.acquire()
-        try:
+        with self._connections_lock:
             # Push packages from startup queue
             while self._startupQueue:
                 connection._inject_package(self._startupQueue.pop())
             # Add connection object to list of connections
             self._connections.append(connection)
-        finally:
-            self._connections_lock.release()
 
         # Send message in the network to signal a new connection
         bb = "NEW_CONNECTION".encode("utf-8")
@@ -428,8 +414,7 @@ class Context(object):
         package._source_seq = self._send_seq
 
         # Send to all connections, or queue if there are none
-        self._connections_lock.acquire()
-        try:
+        with self._connections_lock:
             ok = False
             for c in self._connections:
                 if c.is_alive:  # Waiting or connected
@@ -438,8 +423,6 @@ class Context(object):
             # Should we queue the package?
             if not ok:
                 self._startupQueue.push(package)
-        finally:
-            self._connections_lock.release()
 
     def _recv_package(self, package, connection):
         """_recv_package(package, connection)
@@ -479,14 +462,11 @@ class Context(object):
 
         # Send package to other context (over all alive connections)
         if send_further:
-            self._connections_lock.acquire()
-            try:
+            with self._connections_lock:
                 for c in self._connections:
                     if c is connection or not c.is_alive:
                         continue
                     c._send_package(package)
-            finally:
-                self._connections_lock.release()
 
         # Process package here or pass to channel
         if deposit_here:
@@ -514,13 +494,10 @@ class Context(object):
         if message == "CLOSE_CONNECTION":
             # Close the connection. Check which one of our connections is
             # connected with the context that send this message.
-            self._connections_lock.acquire()
-            try:
+            with self._connections_lock:
                 for c in self.connections:
                     if c.is_connected and c.id2 == package._source_id:
                         c.close(connection.STOP_CLOSED_FROM_THERE, False)
-            finally:
-                self._connections_lock.release()
 
         elif message == "NEW_CONNECTION":
             # Resend all status channels

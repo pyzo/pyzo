@@ -363,8 +363,7 @@ class PackageQueue(object):
         """
 
         condition = self._condition
-        condition.acquire()
-        try:
+        with condition:
             q = self._q
 
             if len(q) < self._maxlen:
@@ -379,9 +378,6 @@ class PackageQueue(object):
                 elif self._discard_mode == 2:
                     pass  # Simply do not add
 
-        finally:
-            condition.release()
-
     def insert(self, x):
         """insert(x)
 
@@ -393,12 +389,9 @@ class PackageQueue(object):
         """
 
         condition = self._condition
-        condition.acquire()
-        try:
+        with condition:
             self._q.appendleft(x)
             condition.notify()  # code at wait() procedes
-        finally:
-            condition.release()
 
     def pop(self, block=True):
         """pop(block=True)
@@ -414,8 +407,7 @@ class PackageQueue(object):
         """
 
         condition = self._condition
-        condition.acquire()
-        try:
+        with condition:
             q = self._q
 
             if not block:
@@ -437,9 +429,6 @@ class PackageQueue(object):
 
             # Return item
             return q.popleft()
-
-        finally:
-            condition.release()
 
     def peek(self, index=0):
         """peek(index=0)
@@ -463,12 +452,8 @@ class PackageQueue(object):
         Remove all items from the queue.
 
         """
-
-        self._condition.acquire()
-        try:
+        with self._condition:
             self._q.clear()
-        finally:
-            self._condition.release()
 
 
 class TinyPackageQueue(PackageQueue):
@@ -507,8 +492,7 @@ class TinyPackageQueue(PackageQueue):
         """
 
         condition = self._condition
-        condition.acquire()
-        try:
+        with condition:
             q = self._q
             lq = len(q)
 
@@ -528,9 +512,6 @@ class TinyPackageQueue(PackageQueue):
                 elif self._discard_mode == 2:
                     pass  # Simply do not add
 
-        finally:
-            condition.release()
-
     def pop(self, block=True):
         """pop(block=True)
 
@@ -545,8 +526,7 @@ class TinyPackageQueue(PackageQueue):
         """
 
         condition = self._condition
-        condition.acquire()
-        try:
+        with condition:
             q = self._q
 
             if not block:
@@ -576,9 +556,6 @@ class TinyPackageQueue(PackageQueue):
             # Return item
             return q.popleft()
 
-        finally:
-            condition.release()
-
     def clear(self):
         """clear()
 
@@ -586,11 +563,8 @@ class TinyPackageQueue(PackageQueue):
 
         """
 
-        self._condition.acquire()
-        try:
+        with self._condition:
             lq = len(self._q)
             self._q.clear()
             if lq >= self._tinylen:
                 self._condition.notify()
-        finally:
-            self._condition.release()

@@ -165,20 +165,14 @@ class Connection(object):
         """Get whether this connection instance is alive (i.e. either
         waiting or connected, and not in the process of closing).
         """
-        self._lock.acquire()
-        try:
+        with self._lock:
             return self._status >= 2
-        finally:
-            self._lock.release()
 
     @property
     def is_connected(self):
         """Get whether this connection instance is connected."""
-        self._lock.acquire()
-        try:
+        with self._lock:
             return self._status >= 3
-        finally:
-            self._lock.release()
 
     @property
     def is_waiting(self):
@@ -186,11 +180,8 @@ class Connection(object):
         This is the state after using bind() and before another context
         connects to it.
         """
-        self._lock.acquire()
-        try:
+        with self._lock:
             return self._status == 2
-        finally:
-            self._lock.release()
 
     @property
     def closed(self):
@@ -372,8 +363,7 @@ class Connection(object):
         """Used to change the status. Subclasses can reimplement this
         to get the desired behavior.
         """
-        self._lock.acquire()
-        try:
+        with self._lock:
             # Store status
             self._status = status
 
@@ -381,9 +371,6 @@ class Connection(object):
             if (status > 0) and self._context._verbose:
                 action = STATUSMAP[status]
                 print("Yoton: %s at %s:%s." % (action, self._hostname1, self._port1))
-
-        finally:
-            self._lock.release()
 
 
 ## More ideas for connections
