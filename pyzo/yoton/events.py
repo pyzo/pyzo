@@ -268,11 +268,8 @@ class TheTimerThread(threading.Thread):
 
     def stop(self, timeout=1.0):
         self._exit = True
-        self._condition.acquire()
-        try:
+        with self._condition:
             self._condition.notify()
-        finally:
-            self._condition.release()
         self.join(timeout)
 
     def add(self, timer):
@@ -285,36 +282,27 @@ class TheTimerThread(threading.Thread):
         if not (hasattr(timer, "_timeout") and hasattr(timer, "_on_timeout")):
             raise ValueError("Cannot add this object to theTimerThread.")
         # Add item
-        self._condition.acquire()
-        try:
+        with self._condition:
             if timer not in self._timers:
                 self._timers.append(timer)
                 self._sort()
                 self._somethingChanged = True
             self._condition.notify()
-        finally:
-            self._condition.release()
 
     def _sort(self):
         self._timers = sorted(self._timers, key=lambda x: x._timeout, reverse=True)
 
     def discard(self, timer):
         """Stop the timer if it hasn't finished yet"""
-        self._condition.acquire()
-        try:
+        with self._condition:
             if timer in self._timers:
                 self._timers.remove(timer)
             self._somethingChanged = True
             self._condition.notify()
-        finally:
-            self._condition.release()
 
     def run(self):
-        self._condition.acquire()
-        try:
+        with self._condition:
             self._mainloop()
-        finally:
-            self._condition.release()
 
     def _mainloop(self):
         while not self._exit:

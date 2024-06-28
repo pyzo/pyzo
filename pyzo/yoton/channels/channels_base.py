@@ -191,11 +191,10 @@ class BaseChannel(object):
         if message:
             # If send_locked, wait at most one second
             if self._is_send_locked:
-                self._send_condition.acquire()
                 try:
-                    self._send_condition.wait(1.0)  # wait for notify
+                    with self._send_condition:
+                        self._send_condition.wait(1.0)  # wait for notify
                 finally:
-                    self._send_condition.release()
                     if time.time() > self._is_send_locked:
                         self._is_send_locked = 0
             # Push it on the queue as a package
@@ -237,14 +236,11 @@ class BaseChannel(object):
             self._is_send_locked = 0
         # Notify any threads that are waiting in _send()
         if not value:
-            self._send_condition.acquire()
-            try:
+            with self._send_condition:
                 if sys.version_info < (2, 6):
                     self._send_condition.notifyAll()
                 else:
                     self._send_condition.notify_all()
-            finally:
-                self._send_condition.release()
 
     ## How packages are inserted in this channel for receiving
 
