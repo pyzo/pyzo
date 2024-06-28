@@ -42,11 +42,11 @@ SLOT_CONTEXT = 2
 SLOT_DUMMY = 1
 
 # Struct header packing
-HEADER_FORMAT = "<QQQQQQQ"
+HEADER_FORMAT = "<7Q"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 # Constant for control bytes
-CONTROL_BYTES = struct.unpack("<Q", "YOTON   ".encode("utf-8"))[0]
+CONTROL_BYTES, = struct.unpack("<Q", b"YOTON".ljust(8))
 
 
 ## Helper functions
@@ -138,9 +138,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
     """
 
     # Init parts (start with one byte, such that len(parts) is always >= 2
-    parts = [
-        " ".encode("ascii"),
-    ]
+    parts = [b" "]
 
     # Determine number of bytes to get per recv
     nbytesToGet = BUFFER_SIZE_IN
@@ -148,7 +146,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
         nbytesToGet = 1
 
     # Set end bytes
-    end_bytes = "\r\n".encode("ascii")
+    end_bytes = b"\r\n"
 
     # Set max time
     if timeout <= 0:
@@ -180,11 +178,11 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
 
             # Check time
             if time.time() > maxtime:
-                bb = bytes().join(parts[1:])
+                bb = b"".join(parts[1:])
                 return bb.decode("utf-8", "ignore")
 
     # Combine parts (discared first (dummy) part)
-    bb = bytes().join(parts[1:])
+    bb = b"".join(parts[1:])
 
     # Try returning as Unicode
     try:
@@ -225,7 +223,7 @@ class Package(object):
         The sequence number of this package counted at the receiving context.
         This is used to synchronize channels.
 
-    When send, the header is composed of four control bytes, the slot,
+    When send, the header is composed of: four control bytes, the slot,
     the source_id, source_seq, dest_id and dest_seq.
 
     Notes
@@ -274,7 +272,6 @@ class Package(object):
         """
 
         # Obtain header
-        L = len(self._data)
         header = struct.pack(
             HEADER_FORMAT,
             CONTROL_BYTES,
@@ -283,7 +280,7 @@ class Package(object):
             self._source_seq,
             self._dest_id,
             self._dest_seq,
-            L,
+            len(self._data),
         )
 
         # Return header and message

@@ -101,9 +101,7 @@ class CallableObject(object):
         try:
             return func(*args, **kwargs)
         except Exception:
-            funcname = self._func
-            if hasattr(funcname, "__name__"):
-                funcname = funcname.__name__
+            funcname = getattr(self._func, "__name__", self._func)
             print("Exception while handling event (in %s):" % (funcname,))
             print(getErrorMsg())
 
@@ -290,7 +288,7 @@ class TheTimerThread(threading.Thread):
             self._condition.notify()
 
     def _sort(self):
-        self._timers = sorted(self._timers, key=lambda x: x._timeout, reverse=True)
+        self._timers.sort(key=lambda x: x._timeout, reverse=True)
 
     def discard(self, timer):
         """Stop the timer if it hasn't finished yet"""
