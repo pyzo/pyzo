@@ -9,7 +9,6 @@ import threading
 
 import yoton
 from yoton.misc import basestring
-from yoton.misc import Property
 
 
 # Minimum timout
@@ -191,23 +190,23 @@ class Connection(object):
         """
         return self._closed_signal
 
-    @Property
-    def timeout():
-        """Set/get the amount of seconds that no data is received from
+    @property
+    def timeout(self):
+        """Gets the amount of seconds that no data is received from
         the other side after which the timedout signal is emitted.
         """
+        return self._timeout
 
-        def fget(self):
-            return self._timeout
-
-        def fset(self, value):
-            if not isinstance(value, (int, float)):
-                raise ValueError("timeout must be a number.")
-            if value < TIMEOUT_MIN:
-                raise ValueError("timeout must be at least %1.2f." % TIMEOUT_MIN)
-            self._timeout = value
-
-        return locals()
+    @timeout.setter
+    def timeout(self, timeout_secs):
+        """Sets the amount of seconds that no data is received from
+        the other side after which the timedout signal is emitted.
+        """
+        if not isinstance(timeout_secs, (int, float)):
+            raise ValueError("timeout must be a number.")
+        if timeout_secs < TIMEOUT_MIN:
+            raise ValueError("timeout must be at least %1.2f." % TIMEOUT_MIN)
+        self._timeout = timeout_secs
 
     @property
     def timedout(self):
@@ -221,24 +220,27 @@ class Connection(object):
         """
         return self._timedout_signal
 
-    @Property
-    def name():
-        """Set/get the name that this connection is known by. This name
+    @property
+    def name(self):
+        """Gets the name that this connection is known by. This name
         can be used to obtain the instance using the Context.connections
         property. The name can be used in networks in which each context
         has a particular role, to easier distinguish between the different
         connections. Other than that, the name has no function.
         """
+        return self._name
 
-        def fget(self):
-            return self._name
-
-        def fset(self, value):
-            if not isinstance(value, basestring):
-                raise ValueError("name must be a string.")
-            self._name = value
-
-        return locals()
+    @name.setter
+    def name(self, value):
+        """Sets the name that this connection is known by. This name
+        can be used to obtain the instance using the Context.connections
+        property. The name can be used in networks in which each context
+        has a particular role, to easier distinguish between the different
+        connections. Other than that, the name has no function.
+        """
+        if not isinstance(value, basestring):
+            raise ValueError("name must be a string.")
+        self._name = value
 
     ## Public methods
 
