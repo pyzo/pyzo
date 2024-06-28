@@ -135,32 +135,28 @@ def split_address(address):
         raise ValueError("Address should be a string.")
 
     # Is the protocol explicitly defined (zeromq compatibility)
-    protocol = ""
-    if "://" in address:
-        # Get protocol and stripped address
-        tmp = address.split("://", 1)
-        protocol = tmp[0].lower()
-        address = tmp[1]
-    if not protocol:
-        protocol = "tcp"
+    protocol, _, address = address.rpartition("://")
+    protocol = protocol.lower() or "tcp"
 
     # Split
     if ":" not in address:
         raise ValueError("Address should be in format 'host:port'.")
-    tmp = address.split(":", 1)
-    host, port = tuple(tmp)
+    host, port = address.split(":", 1)
 
     # Process host
     if host.lower() == "localhost":
         host = "127.0.0.1"
-    if host.lower() == "publichost":
-        host = "publichost" + "0"
-    if host.lower().startswith("publichost") and host[10:] in "0123456789":
-        index = int(host[10:])
+
+    ph = "publichost"
+    if host.lower() == ph:
+        host = ph + "0"
+
+    if host.lower().startswith(ph) and set(host[len(ph):]).issubset("0123456789"):
+        index = int(host[len(ph):])
         hostname = socket.gethostname()
-        tmp = socket.gethostbyname_ex(hostname)
+        ipaddrlist = socket.gethostbyname_ex(hostname)[2]
         try:
-            host = tmp[2][index]  # This resolves to 127.0.1.1 on some Linuxes
+            host = ipaddrlist[index]  # This resolves to 127.0.1.1 on some Linuxes
         except IndexError:
             raise ValueError("Invalid index (%i) in public host addresses." % index)
 
@@ -173,8 +169,7 @@ def split_address(address):
         # Is there an offset?
         offset = 0
         if "+" in port:
-            tmp = port.split("+", 1)
-            port, offset = tuple(tmp)
+            port, offset = port.split("+", 1)
             try:
                 offset = int(offset)
             except ValueError:
@@ -223,10 +218,7 @@ class UID:
         string is 16 characters long.
 
         """
-        h = hex(self._nr)
-        h = h[2:].rstrip("L")
-        h = h.ljust(2 * 8, "0")
-        return h
+        return format(self._nr, "016x")
 
     def get_bytes(self):
         """get_bytes()
@@ -245,7 +237,7 @@ class UID:
         return self._nr
 
     def _get_random_int(self):
-        return random.randrange(0xFFFFFFFF)
+        return random.randrange(1 << 32)
 
     def _get_time_int(self):
         # Get time stamp in steps of miliseconds
@@ -256,8 +248,8 @@ class UID:
         # Store for next time
         UID._last_timestamp = timestamp
         # Truncate to 4 bytes. If the time goes beyond the integer limit, we just
-        # restart counting. With this setup, the cycle is almost 25 days
-        timestamp = timestamp & 0xFFFFFFFF
+        # restart counting. With this setup, the cycle is almost 50 days
+        timestamp &= 0xFFFFFFFF
         # Don't allow 0
         if timestamp == 0:
             timestamp += 1
@@ -510,7 +502,7 @@ class TinyPackageQueue(PackageQueue):
                     if not len(q):
                         raise self.Empty()
             else:
-                raise ValueError("Invalid value for block in PackageQueue.pop().")
+                raise ValueError("Invalid value for block in TinyPackageQueue.pop().")
 
             # Notify if this pop would reduce the length below the threshold
             if len(q) <= self._tinylen:

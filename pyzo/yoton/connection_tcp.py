@@ -10,7 +10,7 @@ import time
 import socket
 import threading
 
-from yoton.misc import basestring, bytes, str
+from yoton.misc import basestring, str
 from yoton.misc import getErrorMsg, UID
 from yoton.misc import TinyPackageQueue
 from yoton.core import Package, PACKAGE_HEARTBEAT, PACKAGE_CLOSE, EINTR
@@ -109,7 +109,7 @@ class TcpConnection(Connection):
                 self._sendingThread.start()
                 self._receivingThread.start()
 
-            if status == 0:
+            if status == STATUS_CLOSED:
                 # Close bsd socket
                 try:
                     self._bsd_socket.shutdown()
@@ -193,7 +193,7 @@ class TcpConnection(Connection):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, SOCKET_BUFFERS_SIZE)
 
         # Refuse rediculously low timeouts
-        if timeout <= 0.01:
+        if timeout < 0.01:
             timeout = 0.01
 
         # Try to connect
@@ -203,6 +203,7 @@ class TcpConnection(Connection):
             try:
                 s.connect((hostname, port))
                 ok = True
+                break
             except socket.error:
                 pass
             except socket.timeout:
@@ -407,8 +408,7 @@ class HandShaker:
         elif request.startswith("YOTON!"):
             # Get id
             try:
-                tmp = request[6:].split(".", 1)  # partition not in Python24
-                id2_str, pid2_str = tmp[0], tmp[1]
+                id2_str, pid2_str = request[6:].split(".", 1)  # partition not in Python24
                 id2, pid2 = int(id2_str, 16), int(pid2_str, 10)
             except Exception:
                 self._send_during_handshaking("ERROR: could not parse id.")
@@ -450,8 +450,7 @@ class HandShaker:
         elif response.startswith("YOTON!"):
             # Get id
             try:
-                tmp = response[6:].split(".", 1)  # Partition not in Python24
-                id2_str, pid2_str = tmp[0], tmp[1]
+                id2_str, pid2_str = response[6:].split(".", 1)  # Partition not in Python24
                 id2, pid2 = int(id2_str, 16), int(pid2_str, 10)
             except Exception:
                 return False, STOP_HANDSHAKE_FAILED
@@ -700,4 +699,4 @@ class ReceivingThread(BaseIOThread):
             n -= len(data)
 
         # Return combined data of multiple rounds
-        return bytes().join(parts)
+        return b"".join(parts)

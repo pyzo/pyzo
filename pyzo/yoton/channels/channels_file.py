@@ -89,13 +89,13 @@ class FileWrapper(object):
         return None
 
     # this is for the print statement to keep track spacing stuff
-    def _set_softspace(self, value):
+    @property
+    def softspace(self):
+        return getattr(self, "_softspace", False)
+
+    @softspace.setter
+    def softspace(self, value):
         self._softspace = bool(value)
-
-    def _get_softspace(self):
-        return hasattr(self, "_softspace") and self._softspace
-
-    softspace = property(_get_softspace, _set_softspace, None, "")
 
     def read(self, block=None):
         """Alias for recv()."""
@@ -120,12 +120,12 @@ class FileWrapper(object):
             elif self is sys.stderr:
                 realfile = sys.__stderr__
             if realfile is not None:
-                sys.__stderr__.write(message)
-                sys.__stderr__.flush()
+                realfile.write(message)
+                realfile.flush()
             return
 
         chunkSize = self._chunksize
-        if chunkSize > 0 and chunkSize < len(message):
+        if 0 < chunkSize < len(message):
             for i in range(0, len(message), chunkSize):
                 self._channel.send(message[i : i + chunkSize])
         else:

@@ -14,7 +14,7 @@ from yoton.misc import basestring
 # Minimum timout
 TIMEOUT_MIN = 0.5
 
-# For the status
+# For the status, numbers must be ascending from closed to connected
 STATUS_CLOSED = 0
 STATUS_CLOSING = 1
 STATUS_WAITING = 2
@@ -165,13 +165,13 @@ class Connection(object):
         waiting or connected, and not in the process of closing).
         """
         with self._lock:
-            return self._status >= 2
+            return self._status >= STATUS_WAITING
 
     @property
     def is_connected(self):
         """Get whether this connection instance is connected."""
         with self._lock:
-            return self._status >= 3
+            return self._status >= STATUS_HOSTING
 
     @property
     def is_waiting(self):
@@ -180,7 +180,7 @@ class Connection(object):
         connects to it.
         """
         with self._lock:
-            return self._status == 2
+            return self._status == STATUS_WAITING
 
     @property
     def closed(self):
