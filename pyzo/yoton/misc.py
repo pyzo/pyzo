@@ -218,9 +218,9 @@ def split_address(address):
         port = port_hash(port) + offset
 
     # Check port
-    # if port < 1024 or port > 2**16:
+    # if port < 1024 or port >= 2**16:
     #    raise ValueError("The port must be in the range [1024, 2^16>.")
-    if port > 2**16:
+    if port >= 2**16:
         raise ValueError("The port must be in the range [0, 2^16>.")
 
     # Done
