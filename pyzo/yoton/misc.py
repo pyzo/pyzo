@@ -42,40 +42,6 @@ else:
     xrange = range
 
 
-def Property(function):
-    """Property(function)
-
-    A property decorator which allows to define fget, fset and fdel
-    inside the function.
-
-    Note that the class to which this is applied must inherit from object!
-    Code based on an example posted by Walker Hale:
-    http://code.activestate.com/recipes/410698/#c6
-
-    """
-
-    # Define known keys
-    known_keys = "fget", "fset", "fdel", "doc"
-
-    # Get elements for defining the property. This should return a dict
-    func_locals = function()
-    if not isinstance(func_locals, dict):
-        raise RuntimeError('Property function should "return locals()".')
-
-    # Create dict with kwargs for property(). Init doc with docstring.
-    D = {"doc": function.__doc__}
-
-    # Copy known keys. Check if there are invalid keys
-    for key in func_locals.keys():
-        if key in known_keys:
-            D[key] = func_locals[key]
-        else:
-            raise RuntimeError("Invalid Property element: %s" % key)
-
-    # Done
-    return property(**D)
-
-
 def getErrorMsg():
     """getErrorMsg()
     Return a string containing the error message. This is usefull, because

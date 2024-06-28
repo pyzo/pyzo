@@ -26,7 +26,7 @@ import time
 import threading
 import weakref
 
-from yoton.misc import Property, getErrorMsg, PackageQueue
+from yoton.misc import getErrorMsg, PackageQueue
 
 
 class CallableObject(object):
@@ -361,35 +361,29 @@ class Timer(Signal):
         #
         self._timeout = 0
 
-    @Property
-    def interval():
-        """Set/get the timer's interval in seconds."""
+    @property
+    def interval(self):
+        """Gets the timer's interval in seconds."""
+        return self._interval
 
-        def fget(self):
-            return self._interval
+    @interval.setter
+    def interval(self, timer_interval_secs):
+        """Sets the timer's interval in seconds."""
+        if not isinstance(timer_interval_secs, (int, float)):
+            raise ValueError("interval must be a float or integer.")
+        if timer_interval_secs <= 0:
+            raise ValueError("interval must be larger than 0.")
+        self._interval = float(timer_interval_secs)
 
-        def fset(self, value):
-            if not isinstance(value, (int, float)):
-                raise ValueError("interval must be a float or integer.")
-            if value <= 0:
-                raise ValueError("interval must be larger than 0.")
-            self._interval = float(value)
+    @property
+    def oneshot(self):
+        """returns whether this is a oneshot timer. If False, it runs continuously."""
+        return self._oneshot
 
-        return locals()
-
-    @Property
-    def oneshot():
-        """Set/get whether this is a oneshot timer. If not is runs
-        continuously.
-        """
-
-        def fget(self):
-            return self._oneshot
-
-        def fset(self, value):
-            self._oneshot = bool(value)
-
-        return locals()
+    @oneshot.setter
+    def oneshot(self, oneshot):
+        """sets whether this is a oneshot timer. If False, it runs continuously."""
+        self._oneshot = bool(oneshot)
 
     @property
     def running(self):

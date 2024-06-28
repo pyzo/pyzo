@@ -11,7 +11,7 @@ import time
 
 import yoton
 from yoton.misc import basestring, bytes, str
-from yoton.misc import Property, getErrorMsg, UID
+from yoton.misc import getErrorMsg, UID
 from yoton.misc import PackageQueue
 
 from yoton.connection import Connection, TIMEOUT_MIN
