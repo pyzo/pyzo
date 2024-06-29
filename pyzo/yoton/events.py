@@ -7,8 +7,8 @@
 # This code is loosely based on the event system of Visvis and on the
 # signals system of Qt.
 
-# Note: Python has a buildin module (sched) that does some of the things
-# here. Hoever, only since Python3.3 is this buildin functionality
+# Note: Python has a built-in module (sched) that does some of the things
+# here. However, only since Python3.3 is this built-in functionality
 # thread safe. And we need thread safety!
 
 """ Module yoton.events

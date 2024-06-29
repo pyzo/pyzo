@@ -57,7 +57,6 @@ class PyzoLoggerShell(BaseShell):
         self.setParser("python")
 
         # Change background color to make the logger look different from shell
-        # Use color as if all lines are highlighted
         f1 = self.getStyleElementFormat("Editor.text")
         fgColor = QtGui.QColor(f1.fore.name())
         bgColor = QtGui.QColor(f1.back.name())
@@ -117,7 +116,7 @@ class PyzoLoggerShell(BaseShell):
         if aco.tryUsingBuffer():
             return
 
-        # Include buildins?
+        # Include builtins?
         if not aco.name:
             command = "__builtins__.keys()"
             try:
