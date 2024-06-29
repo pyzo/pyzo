@@ -101,9 +101,8 @@ class Parser(threading.Thread):
         text = editor.toPlainText()
 
         # Make job
-        self._lock.acquire()
-        self._job = Job(text, id(editor))
-        self._lock.release()
+        with self._lock:
+            self._job = Job(text, id(editor))
 
     def getFictiveNameSpace(self, editor):
         """Produce the fictive namespace, based on the current position.
@@ -212,12 +211,11 @@ class Parser(threading.Thread):
         """safely Obtain result"""
         editorId = id(editor)
         result = None
-        self._lock.acquire()
-        for res in self._results:
-            if res.editorId == editorId:
-                result = res
-                break
-        self._lock.release()
+        with self._lock:
+            for res in self._results:
+                if res.editorId == editorId:
+                    result = res
+                    break
         return result
 
     def _getFictiveItem(self, name, type, editor, handleSelf=False):
@@ -323,18 +321,16 @@ class Parser(threading.Thread):
 
                 if self._job:
                     # Safely obtain job
-                    self._lock.acquire()
-                    job = self._job
-                    self._job = None
-                    self._lock.release()
+                    with self._lock:
+                        job = self._job
+                        self._job = None
 
                     # Analyse job
                     result = self._analyze(job)
 
                     # Safely store result
-                    self._lock.acquire()
-                    self._results.appendleft(result)
-                    self._lock.release()
+                    with self._lock:
+                        self._results.appendleft(result)
 
                     # Notify
                     if pyzo.editors is not None:
