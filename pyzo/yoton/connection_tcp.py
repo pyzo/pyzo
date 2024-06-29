@@ -157,9 +157,9 @@ class TcpConnection(Connection):
         if not sys.platform.startswith("win"):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        # Try all ports in the specified range
-        for try_count in range(1, max_tries + 1):
-            port += int(try_count**0.5)
+        # Bind port and try with higher ports if not available
+        port_start = port
+        for ind_try in range(max_tries):
             try:
                 s.bind((hostname, port))
                 break
@@ -168,11 +168,11 @@ class TcpConnection(Connection):
                 # just one port. Otherwise just try the next
                 if max_tries == 1:
                     raise
-                continue
+            port += int((ind_try + 1)**0.5)
         else:
             # We tried all ports without success
-            tmp = "Could not bind to any of the %i %i ports tried."
-            raise IOError(tmp % (max_tries, port))
+            tmp = "Could not bind to any of the %i ports tried, starting with %i."
+            raise IOError(tmp % (max_tries, port_start))
 
         # Tell the socket it is a host. Backlog of at least 1 to avoid linux
         # kernel from detecting SYN flood and throttling the connection (#381)
