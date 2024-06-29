@@ -70,7 +70,7 @@ class RequestServer(threading.Thread):
     -----------------
     The hostname can be:
       * The IP address, or the string hostname of this computer.
-      * 'localhost': the connections is only visible from this computer.
+      * 'localhost': the connection is only visible from this computer.
         Also some low level networking layers are bypassed, which results
         in a faster connection. The other context should also connect to
         'localhost'.
@@ -214,8 +214,8 @@ class RequestServer(threading.Thread):
         Return a reply, given the request. Overload this method to create
         a server.
 
-        De standard implementation echos the request, waits one second
-        when receiving 'wait' and stop the server when receiving 'stop'.
+        The standard implementation echos the request, waits one second
+        when receiving 'wait' and stops the server when receiving 'stop'.
 
         """
         # Special cases
@@ -257,14 +257,14 @@ def do_request(address, request, timeout=-1):
     request : string
         The request to make.
     timeout : float
-        If larger than 0, will wait that many seconds for the respons, and
+        If larger than 0, will wait that many seconds for the response, and
         return None if timed out.
 
     Notes on hostname
     -----------------
     The hostname can be:
       * The IP address, or the string hostname of this computer.
-      * 'localhost': the connections is only visible from this computer.
+      * 'localhost': the connection is only visible from this computer.
         Also some low level networking layers are bypassed, which results
         in a faster connection. The other context should also connect to
         'localhost'.

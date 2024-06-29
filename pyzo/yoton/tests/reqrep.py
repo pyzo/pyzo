@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# This example demponstrates simple req rep.
+# This example demonstrates simple req rep.
 # This example can be run in one go or in two parts running in
 # different processes.
 
@@ -21,7 +21,7 @@ ct1 = yoton.Context(verbose=verbosity)
 rep = Adder(ct1, "duplicate")
 
 # Connect and turn duplicator on
-ct1.bind("publichost:test")
+ct1.bind("localhost:test")
 rep.set_mode("thread")
 
 
@@ -36,7 +36,7 @@ ct2 = yoton.Context(verbose=verbosity)
 req = yoton.ReqChannel(ct2, "duplicate")
 
 # Connect
-ct2.connect("publichost:test")
+ct2.connect("localhost:test")
 
 # Duplicate a string
 print(req.add("foo", "bar").result(1))

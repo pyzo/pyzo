@@ -383,7 +383,7 @@ class CompactTabBar(QtWidgets.QTabBar):
 
             # Check if we can reduce the name size, correct w if necessary
             if ((w + 1) < len(name)) and self._preventEqualTexts:
-                # Increase w untill there are no names that start the same
+                # Increase w until there are no names that start the same
                 allNames = self._getAllNames()
                 hasSimilarNames = True
                 diff = 2

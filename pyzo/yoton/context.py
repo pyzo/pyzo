@@ -28,7 +28,7 @@ class Context(object):
     """Context(verbose=0, queue_params=None)
 
     A context represents a node in the network. It can connect to
-    multiple other contexts (using a yoton.Connection.
+    multiple other contexts (using a yoton.Connection).
     These other contexts can be in
     another process on the same machine, or on another machine
     connected via a network or the internet.
@@ -70,7 +70,7 @@ class Context(object):
     for every context in the network. The value of queue_params should
     be a 2-element tuple specifying queue size and discard mode. The
     latter can be 'old' (default) or 'new', meaning that if the queue
-    is full, either the oldest or newest messages are discarted.
+    is full, either the oldest or newest messages are discarded.
 
     """
 
@@ -112,9 +112,9 @@ class Context(object):
         and all channels.
 
         Closing a connection means disconnecting two contexts. Closing
-        a channel means disasociating a channel from its context.
+        a channel means disassociating a channel from its context.
         Unlike connections and channels, a Context instance can be reused
-        after closing (although this might not always the best strategy).
+        after closing (although this might not always be the best strategy).
 
         """
 
@@ -228,7 +228,7 @@ class Context(object):
         -----------------
         The hostname can be:
           * The IP address, or the string hostname of this computer.
-          * 'localhost': the connections is only visible from this computer.
+          * 'localhost': the connection is only visible from this computer.
             Also some low level networking layers are bypassed, which results
             in a faster connection. The other context should also connect to
             'localhost'.
@@ -403,8 +403,8 @@ class Context(object):
         """_send_package(package)
 
         Used by the channels to send a package into the network.
-        This method routes the package to all currentlt connected
-        connections. If there are none, the packages is queued at
+        This method routes the package to all currentlty connected
+        connections. If there are none, the package is queued at
         the context.
 
         """

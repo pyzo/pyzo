@@ -90,7 +90,7 @@ class Future(object):
         """Resends the pre-request message if we have not done so for the last
         0.5 second.
 
-        This will also auto-cancel the message if it is resend over 20 times.
+        This will also auto-cancel the message if it is resent over 20 times.
         """
         timetime = time.time()
         if self._status != 0:
@@ -152,12 +152,12 @@ class Future(object):
         pre-request messages can be exchanged.
         """
 
-        # No timout means a veeeery long timeout
+        # No timeout means a veeeery long timeout
         if timeout is None:
             timeout = 999999999999999999.0
 
-        # Receive packages untill we receive the one we want,
-        # or untill time runs out
+        # Receive packages until we receive the one we want,
+        # or until time runs out
         timestamp = time.time() + timeout
         while (self._status < 2) and (time.time() < timestamp):
             self._req_channel._process_events_local()

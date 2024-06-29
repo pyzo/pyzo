@@ -129,7 +129,7 @@ def send_all(s, text, stutdown_after_sending=True):
 def recv_all(s, timeout=-1, end_at_crlf=True):
     """recv_all(socket, timeout=-1, end_at_crlf=True)
 
-    Receive text from the socket (untill socket receiving is shut down).
+    Receive text from the socket (until socket receiving is shut down).
     Used during handshaking and in the clientserver module.
 
     If end_at_crlf, a message is also ended at a CRLF double-newline code,
@@ -181,7 +181,7 @@ def recv_all(s, timeout=-1, end_at_crlf=True):
                 bb = b"".join(parts[1:])
                 return bb.decode("utf-8", "ignore")
 
-    # Combine parts (discared first (dummy) part)
+    # Combine parts (discarded first (dummy) part)
     bb = b"".join(parts[1:])
 
     # Try returning as Unicode

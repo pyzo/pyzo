@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# This example demponstrates simple pub sub.
+# This example demonstrates simple pub sub.
 #
 # This time in event driven mode. This example only works locally, as
 # we cannot start two event loops :)

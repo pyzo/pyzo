@@ -42,13 +42,13 @@ class TcpConnection(Connection):
     """TcpConnection(context, name='')
 
     The TcpConnection class implements a connection between two
-    contexts that are in differenr processes or on different machines
+    contexts that are in different processes or on different machines
     connected via the internet.
 
     This class handles the low-level communication for the context.
     A ContextConnection instance wraps a single BSD socket for its
     communication, and uses TCP/IP as the underlying communication
-    protocol. A persisten connection is used (the BSD sockets stay
+    protocol. A persistent connection is used (the BSD sockets stay
     connected). This allows to better distinguish between connection
     problems and timeouts caused by the other side being busy.
 
@@ -192,7 +192,7 @@ class TcpConnection(Connection):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, SOCKET_BUFFERS_SIZE)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, SOCKET_BUFFERS_SIZE)
 
-        # Refuse rediculously low timeouts
+        # Refuse ridiculously low timeouts
         if timeout < 0.01:
             timeout = 0.01
 
@@ -313,7 +313,7 @@ class HostThread(threading.Thread):
             if not s:
                 continue
 
-            # Check if not closed in the mean time
+            # Check if not closed in the meantime
             if not self._context_connection.is_waiting:
                 break
 
@@ -343,7 +343,7 @@ class HostThread(threading.Thread):
         """_wait_for_connection()
 
         The thread will wait here until someone connects. When a
-        connections is made, the new socket is returned.
+        connection is made, the new socket is returned.
 
         """
 
@@ -435,7 +435,7 @@ class HandShaker:
 
         """
 
-        # Make our message with id and pif
+        # Make our message with id and pid
         message = "YOTON!%s.%i" % (UID(id).get_hex(), os.getpid())
 
         # Do request
@@ -663,7 +663,7 @@ class ReceivingThread(BaseIOThread):
 
         if size == 0:
             # A special package! (or someone sending a
-            # package with no content, which is discarted)
+            # package with no content, which is discarded)
             if package._source_seq == 0:
                 pass  # Heart beat
             elif package._source_seq == 1:

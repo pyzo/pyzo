@@ -203,7 +203,7 @@ class Signal:
         """emit(*args, **kwargs)
 
         Emit the signal, calling all bound callbacks with *args and **kwargs.
-        An event is queues for each callback registered to this signal.
+        An event is queued for each callback registered to this signal.
         Therefore it is safe to call this method from another thread.
 
         """
@@ -247,7 +247,7 @@ class TheTimerThread(threading.Thread):
     """TheTimerThread is a singleton thread that is used by all timers
     and delayed events to wait for a while (in a separate thread) and then
     post an event to the event-queue. By sharing a single thread timers
-    stay lightweight and there is no time spend on initializing or tearing
+    stay lightweight and there is no time spent on initializing or tearing
     down threads. The downside is that when there are a lot of timers running
     at the same time, adding a timer may become a bit inefficient because
     the registered objects must be sorted each time an object is added.
@@ -307,7 +307,7 @@ class TheTimerThread(threading.Thread):
             # Set flag
             self._somethingChanged = False
 
-            # Wait here, in wait() the undelying lock is released
+            # Wait here, in wait() the underlying lock is released
             if self._timers:
                 timer = self._timers[-1]
                 timeout = timer._timeout - time.time()
@@ -442,7 +442,7 @@ class YotonApplication(object):
     all operate on the same event queue and share attributes
     (because these are on the class, not on the instance).
 
-    One instance of this class is always accesible via yoton.app.
+    One instance of this class is always accessible via yoton.app.
     For convenience, several of its methods are also accessible
     directly from the yoton module namespace.
 

@@ -43,7 +43,7 @@ class BaseChannel(object):
 
     Details
     -------
-    Messages send via a channel are delivered asynchronically to the
+    Messages sent via a channel are delivered asynchronically to the
     corresponding channels.
 
     All channels are associated with a context and can be used to send
@@ -80,7 +80,7 @@ class BaseChannel(object):
         self.message_from_bytes = message_type.message_from_bytes
         self.message_to_bytes = message_type.message_to_bytes
 
-        # Queue for incoming trafic (not used for pure sending channels)
+        # Queue for incoming traffic (not used for pure sending channels)
         self._q_in = PackageQueue(*context._queue_params)
 
         # For sending channels: to lock the channel for sending
@@ -150,7 +150,7 @@ class BaseChannel(object):
 
     def _messaging_patterns(self):
         """Implement to return a string that specifies the pattern
-        for sending and receiving, respecitively.
+        for sending and receiving, respectively.
         """
         raise NotImplementedError()
 
@@ -274,9 +274,9 @@ class BaseChannel(object):
         This method is called once new data has been received.
         However, multiple arrived messages may result in a single call
         to this method. There is also no guarantee that recv() has not
-        been called in the mean time.
+        been called in the meantime.
 
-        Also sets the variabele so that a new event for this may be
+        Also sets the variable so that a new event for this may be
         created. This method is called from the event loop.
 
         """
@@ -291,7 +291,7 @@ class BaseChannel(object):
         """Signal that is emitted when new data is received. Multiple
         arrived messages may result in a single call to this method.
         There is no guarantee that recv() has not been called in the
-        mean time. The signal is emitted with the channel instance
+        meantime. The signal is emitted with the channel instance
         as argument.
         """
         return self._received_signal
