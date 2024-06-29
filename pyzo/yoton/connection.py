@@ -11,7 +11,7 @@ import yoton
 from yoton.misc import basestring
 
 
-# Minimum timout
+# Minimum timeout
 TIMEOUT_MIN = 0.5
 
 # For the status, numbers must be ascending from closed to connected
@@ -56,7 +56,7 @@ class ConnectionCollection(list):
                 if c.name == key:
                     return c
             else:
-                raise KeyError("No connection know by the name %s" % key)
+                raise KeyError("No connection known by the name %s" % key)
         else:
             return list.__getitem__(self, key)
 
@@ -257,7 +257,7 @@ class Connection(object):
         """close(reason=None)
 
         Close the connection, disconnecting the two contexts and
-        stopping all trafic. If the connection was waiting for a
+        stopping all traffic. If the connection was waiting for a
         connection, it stops waiting.
 
         Optionally, a reason for closing can be specified. A closed
@@ -279,7 +279,7 @@ class Connection(object):
     def close_on_problem(self, reason=None):
         """close_on_problem(reason=None)
 
-        Disconnect the connection, stopping all trafic. If it was
+        Disconnect the connection, stopping all traffic. If it was
         waiting for a connection, we stop waiting.
 
         Optionally, a reason for stopping can be specified. This is highly
@@ -298,7 +298,7 @@ class Connection(object):
         if self._status == STATUS_CLOSED:
             return
 
-        # If a connecion problem occurs during closing, we close the connection
+        # If a connection problem occurs during closing, we close the connection
         # so that flush will not block.
         # The closing that is now in progress will emit the event, so we
         # do not need to go into the _general_close_method().

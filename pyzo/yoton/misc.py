@@ -80,7 +80,7 @@ def slot_hash(name):
     (just small enough to fit in a 64 bit unsigned integer). The number
     is used as a slot id.
 
-    Slots 0-7 are reseved slots.
+    Slots 0-7 are reserved slots.
 
     """
     fac = 0xD2D84A61
@@ -124,7 +124,7 @@ def split_address(address):
     "publichost" for a connection at the current computers IP address
     that is visible from the outside.
 
-    The port can be an integer, or a sting. In the latter case the integer
+    The port can be an integer, or a string. In the latter case the integer
     port number is calculated using a hash. One can also use "portname+offset"
     to specify an integer offset for the port number.
 
@@ -240,7 +240,7 @@ class UID:
         return random.randrange(1 << 32)
 
     def _get_time_int(self):
-        # Get time stamp in steps of miliseconds
+        # Get time stamp in steps of milliseconds
         timestamp = int(time.time() * 1000)
         # Increase by one if the same as last time
         if timestamp <= UID._last_timestamp:
@@ -262,7 +262,7 @@ class PackageQueue(object):
 
     A queue implementation that can be used in blocking and non-blocking
     mode and allows peeking. The queue has a limited size. The user
-    can specify whether old or new messages should be discarted.
+    can specify whether old or new messages should be discarded.
 
     Uses a deque object for the queue and a threading.Condition for
     the blocking.
@@ -316,7 +316,7 @@ class PackageQueue(object):
         """push(item)
 
         Add an item to the queue. If the queue is full, the oldest
-        item in the queue, or the given item is discarted.
+        item in the queue, or the given item is discarded.
 
         """
 
@@ -342,7 +342,7 @@ class PackageQueue(object):
         Insert an item at the front of the queue. A call to pop() will
         get this item first. This should be used in rare circumstances
         to give an item priority. This method never causes items to
-        be discarted.
+        be discarded.
 
         """
 
@@ -393,7 +393,7 @@ class PackageQueue(object):
 
         Get an item from the queue without popping it. index=0 gets the
         oldest item, index=-1 gets the newest item. Note that index access
-        slows to O(n) time in the middle of the queue (due to the undelying
+        slows to O(n) time in the middle of the queue (due to the underlying
         deque object).
 
         Raises an IndexError if the index is out of range.

@@ -78,7 +78,7 @@ class SimpleSocket(Context):
     def send(self, s):
         """send(message)
 
-        Send a text message. The message is queued and send
+        Send a text message. The message is queued and sent
         over the socket by the IO-thread.
 
         """

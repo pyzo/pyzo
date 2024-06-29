@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# This example demponstrates simple req rep.
+# This example demonstrates simple req rep.
 #
 # This time in event driven mode. This example only works locally, as
 # we cannot start two event loops :)

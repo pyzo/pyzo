@@ -71,7 +71,7 @@ class PubChannel(BaseChannel):
         message = package._data.decode("utf-8")
         source_id = package._source_id
 
-        # Keep track of who's queues are full
+        # Keep track of whose queues are full
         if message == "full":
             self._source_set.add(source_id)
         else:

@@ -78,7 +78,7 @@ class FileWrapper(object):
         return self._channel._closed
 
     def flush(self):
-        """Wait here until all messages have been send."""
+        """Wait here until all messages have been sent."""
         self._channel._context.flush()
 
     @property
