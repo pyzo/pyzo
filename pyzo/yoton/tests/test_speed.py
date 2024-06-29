@@ -13,9 +13,7 @@ sys.path.insert(0, ".")
 import yoton
 
 # Normal imports
-import math
 import time
-import visvis as vv
 
 ## Run experiment with different message sizes
 
@@ -95,56 +93,39 @@ while size < maxSize:
 
 ## Visualize
 
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 
-def logticks10(unit="", factor=10):
-    SIZE_TICKS = [factor**i for i in range(-50, 30, 1)]
-    D = {}
-    for i in SIZE_TICKS:
-        il = math.log(i, factor)
-        for j, c in reversed(zip([-6, -3, 1, 3], ["\\mu", "m", "", "K"])):
-            jj = float(factor) ** j
-            if i >= jj:
-                i = "%1.0f %s%s" % (i / jj, c, unit)
-                D[il] = i
-                break
-    return D
+plt.ion()
+
+fig, (ax1, ax2) = plt.subplots(2, 1, num=10, clear=True, sharex=True)
 
 
-def logticks2(unit="", factor=2):
-    SIZE_TICKS = [factor**i for i in range(-50, 30, 3)]
-    D = {}
-    for i in SIZE_TICKS:
-        il = math.log(i, factor)
-        for j, c in reversed(zip([1, 10, 20, 30], ["", "K", "M", "G"])):
-            jj = float(factor) ** j
-            if i >= jj:
-                i = "%1.0f %s%s" % (i / jj, c, unit)
-                D[il] = i
-                break
-    return D
+def format_si(value, unit):
+    prefixes = ["µ", "m", "", "k", "M", "G"]
+    i3 = int(np.log10(value) // 3)
+    i = i3 + prefixes.index("")
+    i = max(0, min(i, len(prefixes) - 1))
+    multiplier = 10 ** (3 * i3)
+    return "{:.0f} {}{}".format(value / multiplier, prefixes[i], unit)
 
 
-SIZE_log = [math.log(i, 2) for i in SIZE]
-BPS_log = [math.log(i, 2) for i in BPS]
-TPM_log = [math.log(i, 10) for i in TPM]
+formatter = FuncFormatter(lambda val, tick_pos: format_si(val, ""))
 
-fig = vv.figure(1)
-vv.clf()
-#
-a1 = vv.subplot(211)
-vv.plot(SIZE_log, BPS_log, ms=".")
-vv.ylabel("speed [bytes/s]")
-a1.axis.yTicks = logticks2()
-#
-a2 = vv.subplot(212)
-vv.plot(SIZE_log, TPM_log, ms=".")  # 0.001 0.4
-vv.ylabel("time per message [s]")
-a2.axis.yTicks = logticks10("s")
+ax1.loglog(SIZE, BPS, ".")
+ax1.set_ylabel("speed [bytes/s]")
+ax2.loglog(SIZE, TPM, ".")
+ax2.set_ylabel("time per message [s]")
+ax2.set_xlabel("message size [bytes]")
 
+ax2.xaxis.set_major_formatter(formatter)
+ax2.tick_params('x', rotation=45)
 
-for a in [a1, a2]:
-    a.axis.xLabel = "message size"
-    a.axis.showGrid = True
-    a.axis.xTicks = logticks2("B")
+for ax in [ax1, ax2]:
+    ax.grid(True)
+    ax.yaxis.set_major_formatter(formatter)
 
-# vv.screenshot('c:/almar/projects/yoton_performance.jpg', fig)
+fig.tight_layout()
+
+# fig.savefig("yoton_performance.jpg")
