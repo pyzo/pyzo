@@ -30,6 +30,96 @@ from pyzo import translate
 from pyzo.core.pdfExport import PdfExport
 
 from pyzo.codeeditor.parsers.python_parser import CellCommentToken
+import pyzo.codeeditor.parsers.tokens as Tokens
+
+
+def skipNestedTokens(tokens, indOpening):
+    """finds the end of the nested parens expression given the opening paren
+
+    Parens can be round parentheses, square brackets and curly braces.
+    "indOpening" is the index for list "tokens" where the opening paren is located.
+    Tokens are examinded from left to right, only testing for correct matching of
+    nested parens.
+
+    return value:
+        the index of the closing paren token that matches the opening paren
+        or None if the paren could not be found or nested parens do not match
+    """
+    stack = []
+    closingParensDict = {"(": ")", "[": "]", "{": "}"}
+    for i, t in enumerate(tokens[indOpening:], start=indOpening):
+        s = str(t)
+        if s in "([{":
+            stack.append(s)
+            continue
+        if s in ")]}":
+            if len(stack) == 0 or closingParensDict[stack.pop()] != s:
+                return None  # parens do not match
+            if len(stack) == 0:
+                break  # finished successfully
+    else:
+        return None  # matching paren not found
+    indClosing = i
+    return indClosing
+
+
+def findLeftResultInTokens(tokens):
+    """finds the tokens before an assignment operator and returns them as a string
+
+    return value:
+        the tokens before the assignment operator, as a (single) string
+        or None, if no assignment operator was found
+
+    examples with stringified input tokens:
+        "(a, (b, c)) = xyz" --> "(a, (b, c))"
+        "x,=[2]" --> "x"
+        "x *= 3" --> "x"
+        "x;y=5" --> "x"
+        "a = b = c = 5" --> "a"
+        "x == y" --> None
+        "456" --> None
+    """
+    leftResult = None
+    indToken = 0
+    while indToken < len(tokens):
+        t = tokens[indToken]
+        if isinstance(t, Tokens.NonIdentifierToken):
+            s = str(t)
+            if ";" in s:
+                break
+            i = s.find("=")
+            if i >= 0:
+                if s[i : i + 2] == "==":
+                    break
+                sPre = s[:i+1]
+                assignments = (
+                    " =", ",=", "+=", "-=", "**=", "*=", "//=", "/=", "%=",
+                    "^=", "&=", "|=", "<<=", ">>=", "@=",
+                )  # have "**=" before "*=" and "//=" before "/=" !!!
+                if sPre.endswith(assignments):
+                    for needle in assignments:
+                        if sPre.endswith(needle):
+                            leftResult = (
+                                "".join(str(t) for t in tokens[:indToken])
+                                + sPre[:-len(needle)]
+                            )
+                            break
+                    break
+        elif isinstance(t, Tokens.ParenthesisToken) and str(t) in "([{":
+            indClosing = skipNestedTokens(tokens, indToken)
+            if indClosing is None:
+                break  # mismatching or missing paren
+            indToken = indClosing + 1
+            continue
+        elif isinstance(t, Tokens.ParenthesisToken) and str(t) in ")]}":
+            break  # missing opening paren
+        indToken += 1
+
+    if leftResult is not None:
+        leftResult = leftResult.strip()
+        if leftResult.endswith(","):
+            leftResult = leftResult[:-1].rstrip()
+    return leftResult
 
 
 def buildMenus(menuBar):
@@ -1966,10 +2056,10 @@ class RunMenu(Menu):
         self.addItem(
             translate(
                 "menu",
-                "Execute line as statement ::: Execute the whole line at the cursor position in the editor, by copying it to the shell.",
+                "Execute line and print result ::: Execute the whole line at the cursor position in the editor, and print the result.",
             ),  # noqa
             icons.run_line,
-            self._runCurrentLineAsStatement,
+            self._runCurrentLineAndPrintResult,
         )
         self.addItem(
             translate(
@@ -2091,16 +2181,23 @@ class RunMenu(Menu):
     def _runSelectedAdvance(self):
         self._runSelected(advance=True)
 
-    def _runCurrentLineAsStatement(self):
-        self._runSelected(runCurrentLineAsStatement=True)
+    def _runCurrentLineAndPrintResult(self):
+        self._runSelected(runCurrentLineAndPrintResult=True)
 
-    def _runSelected(self, advance=False, runCurrentLineAsStatement=False):
+    def _runSelected(self, advance=False, runCurrentLineAndPrintResult=False):
         """Run the selected whole lines in the current shell.
 
-        runCurrentLineAsStatement
-            same behavior as selecting the whole single line, i.e.:
-            copies the current editor line to the shell and executes it,
-            giving output of the result and adding the command to the history
+        runCurrentLineAndPrintResult
+            similar to selecting the whole single line and executing it, but the result
+            is always printed, not only for expressions
+
+            Printing the result for non-expressions is done by extracting the result:
+                The line "x = 4 + 6" will be executed as "x = 4 + 6; x" which then
+                prints the result. This also works for lines such as:
+                "(a, b), = [(3 + 4, 5)]" --> "(a, b), = [(3 + 4, 5)]; (a, b)"
+                "x = 3  # comment" --> "x = 3; x"
+
+            And the command is added to the history.
         """
         # Get editor and shell
         shell, editor = self._getShellAndEditor("selection")
@@ -2124,12 +2221,21 @@ class RunMenu(Menu):
         # Does this look like a statement?
         isStatement = lineNumber1 == lineNumber2 and screenCursor.hasSelection()
 
-        if isStatement or runCurrentLineAsStatement:
+        if isStatement or runCurrentLineAndPrintResult:
             selectedText = screenCursor.selectedText()
-            if runCurrentLineAsStatement:
+            if runCurrentLineAndPrintResult:
                 if lineNumber1 != lineNumber2:
                     return
                 selectedText = runCursor.selectedText()
+                if editor.parser().name().startswith("python"):
+                    tokens = runCursor.block().userData().tokens
+                    if len(tokens) > 0:
+                        if isinstance(tokens[-1], Tokens.CommentToken):
+                            tokens = tokens[:-1]
+                        leftResult = findLeftResultInTokens(tokens)
+                        selectedText = "".join(str(t) for t in tokens).strip()
+                        if leftResult is not None:
+                            selectedText += "; " + leftResult
 
             # Get source code of statement
             code = selectedText.replace("\u2029", "\n").strip()
