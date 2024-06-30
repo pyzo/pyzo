@@ -497,15 +497,13 @@ class Projects(QtWidgets.QWidget):
 
         elif action._id == "name":
             # Open dialog to ask for name
-            name = QtWidgets.QInputDialog.getText(
+            name, ok = QtWidgets.QInputDialog.getText(
                 self.parent(),
                 translate("filebrowser", "Project name"),
                 translate("filebrowser", "New project name:"),
                 text=d["name"],
             )
-            if isinstance(name, tuple):
-                name = name[0] if name[1] else ""
-            if name:
+            if name and ok:
                 d["name"] = name
             self.updateProjectList()
 

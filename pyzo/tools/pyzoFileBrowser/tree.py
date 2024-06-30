@@ -944,18 +944,16 @@ class PopupMenu(pyzo.core.menu.Menu):
             label = translate("filebrowser", "Give the name for the new directory")
 
         # Ask for new filename
-        s = QtWidgets.QInputDialog.getText(
+        name, ok = QtWidgets.QInputDialog.getText(
             self.parent(),
             title,
             label + ":\n{}".format(self._item.path()),
             QtWidgets.QLineEdit.EchoMode.Normal,
             "new name",
         )
-        if isinstance(s, tuple):
-            s = s[0] if s[1] else ""
 
-        if s:
-            newpath = op.join(self._item.path(), s)
+        if name and ok:
+            newpath = op.join(self._item.path(), name)
             if op.exists(newpath):
                 QtWidgets.QMessageBox.warning(
                     self.parent(),
@@ -982,18 +980,16 @@ class PopupMenu(pyzo.core.menu.Menu):
             filename = "Copy of " + filename
 
         # Ask for new filename
-        s = QtWidgets.QInputDialog.getText(
+        name, ok = QtWidgets.QInputDialog.getText(
             self.parent(),
             title,
             label + ":\n{}".format(self._item.path()),
             QtWidgets.QLineEdit.EchoMode.Normal,
             filename,
         )
-        if isinstance(s, tuple):
-            s = s[0] if s[1] else ""
 
-        if s:
-            newpath = op.join(dirname, s)
+        if name and ok:
+            newpath = op.join(dirname, name)
             if op.exists(newpath):
                 QtWidgets.QMessageBox.warning(
                     self.parent(),
