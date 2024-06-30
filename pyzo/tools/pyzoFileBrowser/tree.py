@@ -713,7 +713,7 @@ class Tree(QtWidgets.QTreeWidget):
         # Create sub items
         count = createItemsFun(self.parent(), parent)
         if not count and isinstance(parent, QtWidgets.QTreeWidgetItem):
-            ErrorItem(parent, "Empty directory")
+            ErrorItem(parent, "Empty / no matches")
         # Restore state
         self._restoreSelectionState()
 
