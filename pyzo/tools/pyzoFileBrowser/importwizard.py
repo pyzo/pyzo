@@ -191,7 +191,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
         self.preview.setSelectionModel(
             QtCore.QItemSelectionModel(self.preview.model())
         )  # Work-around for reference tracking bug in PySide
-        self.preview.setSelectionBehavior(self.preview.SelectColumns)
+        self.preview.setSelectionBehavior(self.preview.SelectionBehavior.SelectColumns)
         self.preview.setSelectionMode(self.preview.SelectionMode.MultiSelection)
 
         # Layout
@@ -566,9 +566,9 @@ class ImportWizard(QtWidgets.QWizard):
     def onCurrentIdChanged(self, id):
         # Hide the 'cancel' button on the last page
         if self.nextId() == -1:
-            self.button(QtWidgets.QWizard.CancelButton).hide()
+            self.button(QtWidgets.QWizard.WizardButton.CancelButton).hide()
         else:
-            self.button(QtWidgets.QWizard.CancelButton).show()
+            self.button(QtWidgets.QWizard.WizardButton.CancelButton).show()
 
     def open(self, filename):
         if self.isVisible():

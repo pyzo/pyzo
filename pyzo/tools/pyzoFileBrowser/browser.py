@@ -349,8 +349,8 @@ class PathInput(LineEditWithToolButtons):
         # invoke checking whether the current text is a valid directory.
         # Test if QtGui is not None (can happen when reloading tools)
         if QtGui and isinstance(event, QtGui.QKeyEvent):
-            qt = QtCore.Qt
-            if event.key() in [qt.Key_Tab, qt.Key_Enter, qt.Key_Return]:
+            k = QtCore.Qt.Key
+            if event.key() in [k.Key_Tab, k.Key_Enter, k.Key_Return]:
                 self.setText(self.text())  # Apply completion
                 self.onTextEdited()  # Check if this is a valid dir
                 return True
