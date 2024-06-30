@@ -51,8 +51,12 @@ class PyzoWizard(QtWidgets.QWizard):
             ShellWizardPage2,
             RuncodeWizardPage1,
             RuncodeWizardPage2,
+            DebuggingWizardPage1,
+            DebuggingWizardPage2,
             ToolsWizardPage1,
             ToolsWizardPage2,
+            AdvAutoCompWizardPage,
+            MiscellaneousWizardPage,
             FinalPage,
         ]
 
@@ -371,13 +375,111 @@ class RuncodeWizardPage2(BasePyzoWizardPage):
         ),
         translate(
             "wizard",
-            """In interactive mode, sys.path[0] is an empty string (i.e. the current dir),
-        and sys.argv is set to [''].""",
+            """In *interactive mode*, <code>sys.path[0]</code> is an empty string (i.e. the current dir),
+        <code>sys.argv</code> is set to <code>['']</code> and <code>__file__</code> is not defined.""",
         ),
         translate(
             "wizard",
-            """In script mode, __file__ and sys.argv[0] are set to the scripts filename,
-        sys.path[0] and the working dir are set to the directory containing the script.""",
+            """As a substitute for the undefined <code>__file__</code>, you can insert and run
+            something like""",
+        ),
+        """<code>import os, inspect<br />
+        __file__ = inspect.getfile(inspect.currentframe())<br />
+        __this_dir__ = os.path.abspath(os.path.dirname(__file__))
+        </code>""",
+        translate(
+            "wizard",
+            """to get it.""",
+        ),
+        translate(
+            "wizard",
+            """In *script mode*, <code>__file__</code> and <code>sys.argv[0]</code> are set
+            to the scripts filename, <code>sys.path[0]</code> and the working dir are set
+            to the directory containing the script.""",
+        ),
+    ]
+
+
+class DebuggingWizardPage1(BasePyzoWizardPage):
+    _title = translate("wizard", "Debugging code and execution control (1/2)")
+    _image_filename = ""
+    _descriptions = [
+        translate(
+            "wizard",
+            """To stop the execution of code (in an infinite loop or when calculations
+        take longer than expected, use the flash symbol, or select "Interrupt" from the
+        "Shell" menu. This will raise an exception, and you can postmortem-debug after
+        that.""",
+        ),
+        translate(
+            "wizard",
+            """Via *Postmortem* debugging, you can inspect the values of objects after
+        code execution was stopped by an unhandled exception. By switching stack frames,
+        you can see local variables in different layers of nested function calls.
+        Continuing execution is not possible in postmortem, though.""",
+        ),
+
+        translate(
+            "wizard",
+            """The *Pause* debug action (in the "Shell" menu or shell toolbar) makes it
+        possible to pause execution and activate the debug mode, and then continue, stop
+        or pause again the execution.""",
+        ),
+        translate(
+            "wizard",
+            """While in *debug mode*, there are many possibilities:
+        <ul>
+        <li>objects can be inspected and modified</li>
+        <li>stack frames can be switched (to go to different levels of nested function calls)
+        <li>custom code can be executed in the shell (also whole scripts)</li>
+        <li>code execution can be stepped</li>
+        <li>the pointer to the next line to execute can be changed via the "Debug jump" action,
+        for example to skip lines or repeat previously executed lines (some limitations
+        apply, though)</li>
+        </ul>
+        When continuing execution (and thus leaving debug mode), breakpoints will be updated
+        (see next page).""",
+        ),
+    ]
+
+
+class DebuggingWizardPage2(BasePyzoWizardPage):
+    _title = translate("wizard", "Debugging code and execution control (2/2)")
+    _image_filename = ""
+    _descriptions = [
+        translate(
+            "wizard",
+            """While the debug mode is active, the gui event loop of the Python interpreter
+        in the shell is normally not periodically called anymore. This means that, for example,
+        matplotlib figures will be frozen as if the program would have crashed.
+        By setting the environment variable <code>PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1</code>
+        in the "environ" field of the shell configuration, the gui event loop will be processed
+        even while debug mode is active. Matplotlib figures can then also be interacted with
+        normally while code execution is paused.""",
+        ),
+        translate(
+            "wizard",
+            """To (repeatedly) pause at specific code lines and enter debug mode, set a
+        *breakpoint* there, via "Toggle breakpoint" from the "Edit" menu or by clicking in
+        the bar to the right of the line number. Only a full circle is a breakpoint, whereas
+        a half circle represents a disabled breakpoint that can be used as a navigation point
+        (via "Jump to previous/next breakpoint" from the menu).
+        Breakpoints are only updated (i.e. synchronized with the debugger) when the user
+        gives the command to execute code or when continuing execution while in debug mode.
+        When executing code that has code parts still running via the event loop after
+        execution has finished, for example GUI applications with PySide6, a simple way
+        to update breakpoints is to just press RETURN in the idle command prompt of the shell.
+        Another way to update breakpoints would be to pause execution and continue it.
+        Note that, when there are breakpoints set (and synchronized), execution becomes much
+        slower than without breakpoints.""",
+        ),
+        translate(
+            "wizard",
+            """Instead of a breakpoint or pause action, code execution can also be paused
+        by executing the function *<code>breakpoint()</code>* in the Python code. This will
+        enter debug mode the same way. Compared to normal breakpoints, there is no
+        performance penalty, but with the disadvantage, that these hard-coded breakpoint
+        functions cannot be disabled while the script is executed.""",
         ),
     ]
 
@@ -411,15 +513,92 @@ class ToolsWizardPage2(BasePyzoWizardPage):
         translate("wizard", """We especially recommend the following tools:"""),
         translate(
             "wizard",
-            """The *Source structure tool* gives an outline of the source code.""",
+            """The *Source structure* tool gives an outline of the source code.""",
         ),
         translate(
             "wizard",
-            """The *File browser tool* helps keep an overview of all files
-        in a directory. To manage your projects, click the star icon.""",
+            """The *File browser* tool helps keeping an overview of all files
+            in a directory and allows for searching text across multiple files.
+            To manage your bookmarks, click the star icon.""",
+        ),
+        translate(
+            "wizard",
+            """The *Interactive help* tool shows you the documentation of objects,
+            automatically when browsing the autocompletion list,
+            or manually by selecting an expression and clicking "Help" in the context menu.""",
+        ),
+        translate(
+            "wizard",
+            """The *Editor list* tool is convenient when having more than just
+            a few editor tabs open at the same time.""",
         ),
     ]
 
+
+class AdvAutoCompWizardPage(BasePyzoWizardPage):
+    _title = translate("wizard", "Advanced Autocompletion and Calltips")
+    _image_filename = ""
+    _descriptions = [
+        translate(
+            "wizard",
+            """Auto completion for attributes and calltips can also be used for complex
+        expressions that include function calls and indexing.<br />
+        <br />
+        For example:<br />
+        <br />
+        Type "<code>locals().</code>" (with the dot at the end) and press Ctrl+Space. This will evaluate
+        <code>locals()</code> and assign the result to <code>__pyzo__autocomp</code> in the
+        local scope. Then auto-completion continues and displays the list widget with the
+        attributes.<br />
+        <br />
+        Type "<code>locals()[</code>" (with the open bracket at the end) and press Ctrl+Space.
+        This will evaluate <code>locals()</code> and assign the result to
+        <code>__pyzo__autocomp</code> in the local scope. Then auto-completion continues
+        and displays the list widget with the keys.<br />
+        <br />
+        Type "<code>locals().get(</code>" (with the open parenthesis at the end) and press
+        Ctrl+Space. This will evaluate <code>locals()</code> and assign the result to
+        <code>__pyzo__calltip</code> in the local scope. Then auto-completion continues
+        and displays the calltip for <code>dict.get(...)</code>.<br />
+        <br />
+        The Ctrl+Space hot key can also be pressed while having already entered some characters
+        of the attribute, key or arguments, in case the autocompletion list widget resp. calltip
+        should be shown again after having cancelled it."""
+        ),
+    ]
+
+class MiscellaneousWizardPage(BasePyzoWizardPage):
+    _title = translate("wizard", "Miscellaneous tips and tricks")
+    _image_filename = ""
+    _descriptions = [
+        translate(
+            "wizard",
+            """Press keys Ctrl+Shift+ArrowUp/Down to move the selected lines up/down
+        in the editor.<br />
+        <br />
+        Use magic commands to manage packets, e.g. "pip list" or "pip install numpy".<br />
+        <br />
+        When there is a printed stack trace in Python shell (usually the red error text),
+        double click the *filepath* to open the file at the specific line number.<br />
+        <br />
+        When dealing with performance critical code, avoid printing too much to the shell
+        because stream outputs directed to the Pyzo IDE will slow down the execution.<br />
+        <br />
+        You can double-click the line number to get an input field for jumping to a
+        specific line.<br />
+        <br />
+        In Pyzo's "About" dialog (Help -> About Pyzo) you can see the folder where Pyzo
+        stores the settings.<br />
+        <br />
+        Pyzo can be configured to be portable, for example to run it from a USB pen-drive
+        with encapsulated settings. To enable this, rename the folder "_settings" in Pyzo's
+        application folder to "settings".<br />
+        <br />
+        You can directly modify Pyzo's source code even in the binary distribution because
+        the binary is just a Python-Interpreter that runs the Python source code in the
+        installation directory. See the "About Pyzo" dialog for the code location."""
+        ),
+    ]
 
 class FinalPage(BasePyzoWizardPage):
     _title = translate("wizard", "Get coding!")
