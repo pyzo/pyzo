@@ -954,23 +954,31 @@ class PopupMenu(pyzo.core.menu.Menu):
         if isinstance(s, tuple):
             s = s[0] if s[1] else ""
 
-        # Push rename task
         if s:
             newpath = op.join(self._item.path(), s)
-            task = tasks.CreateTask(newpath=newpath, file=file)
-            self._item._proxy.pushTask(task)
+            if op.exists(newpath):
+                QtWidgets.QMessageBox.warning(
+                    self.parent(),
+                    title,
+                    translate(
+                        "filebrowser",
+                        "Operation aborted. A file with the same name already exists.",
+                    ),
+                    QtWidgets.QMessageBox.StandardButton.Ok,
+                )
+            else:
+                # Push create task
+                task = tasks.CreateTask(newpath=newpath, file=file)
+                self._item._proxy.pushTask(task)
 
     def _duplicateOrRename(self, rename):
         # Get dirname and filename
         dirname, filename = op.split(self._item.path())
 
         # Get title and label
-        if rename:
-            title = translate("filebrowser", "Rename")
-            label = translate("filebrowser", "Give the new name for the file")
-        else:
-            title = translate("filebrowser", "Duplicate")
-            label = translate("filebrowser", "Give the name for the new file")
+        title = translate("filebrowser", "Rename" if rename else "Duplicate")
+        label = translate("filebrowser", "Give the new name for the file")
+        if not rename:
             filename = "Copy of " + filename
 
         # Ask for new filename
@@ -984,15 +992,25 @@ class PopupMenu(pyzo.core.menu.Menu):
         if isinstance(s, tuple):
             s = s[0] if s[1] else ""
 
-        # Push rename task
         if s:
             newpath = op.join(dirname, s)
-            task = tasks.RenameTask(newpath=newpath, removeold=rename)
-            self._item._proxy.pushTask(task)
+            if op.exists(newpath):
+                QtWidgets.QMessageBox.warning(
+                    self.parent(),
+                    title,
+                    translate(
+                        "filebrowser",
+                        "Operation aborted. A file with the same name already exists.",
+                    ),
+                    QtWidgets.QMessageBox.StandardButton.Ok,
+                )
+            else:
+                # Push rename resp. duplicate task
+                task = tasks.RenameTask(newpath=newpath, removeold=rename)
+                self._item._proxy.pushTask(task)
 
     def onDelete(self):
         SB = QtWidgets.QMessageBox.StandardButton
-        # Ask for new filename
         b = QtWidgets.QMessageBox.question(
             self.parent(),
             translate("filebrowser", "Delete"),

@@ -420,10 +420,14 @@ class NativeFSProxy(BaseFSProxy):
                 return f.read(size)
 
     def write(self, path, bb):
+        if op.exists(path):
+            raise FileExistsError("file {!r} already exists".format(path))
         with open(path, "wb") as f:
             f.write(bb)
 
     def rename(self, path1, path2):
+        if op.exists(path2):
+            raise FileExistsError("file {!r} already exists".format(path))
         os.rename(path1, path2)
 
     def remove(self, path):
