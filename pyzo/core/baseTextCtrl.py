@@ -569,7 +569,6 @@ class BaseTextCtrl(CodeEditor):
 
         # Get help tool
         hw = pyzo.toolManager.getTool("pyzointeractivehelp")
-        ass = pyzo.toolManager.getTool("pyzoassistant")
         # Get the shell
         shell = pyzo.shells.getCurrentShell()
         # Both should exist
@@ -578,8 +577,6 @@ class BaseTextCtrl(CodeEditor):
 
         if name:
             hw.helpFromCompletion(name, addToHist)
-        if ass:
-            ass.showHelpForTerm(name)
 
     ## Callbacks
     def updateHelp(self, name):
