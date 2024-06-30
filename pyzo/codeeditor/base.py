@@ -603,7 +603,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         """Move the cursor to the (beginning of the) block given by the line number
         (first line is number 1) and show that line.
 
-        Optionally, the the horizontal position of the cursor can be kept.
+        Optionally, the horizontal position of the cursor can be kept.
         """
         return self.gotoBlock(lineNumber - 1, keepHorizontalPos)
 
@@ -611,7 +611,7 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         """Move the cursor to the (beginning of the) block given by the block number
         (first block is number 0) and show that line.
 
-        Optionally, the the horizontal position of the cursor can be kept.
+        Optionally, the horizontal position of the cursor can be kept.
         """
         cursor = self.textCursor()
         if keepHorizontalPos:

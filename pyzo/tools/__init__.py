@@ -28,7 +28,7 @@ displayed in the statusbar.
 # - find in files
 # - workspace
 # - source tree
-# - snipet manager
+# - snippet manager
 # - file browser
 # - pythonpath editor, startupfile editor (or as part of pyzo?)
 
