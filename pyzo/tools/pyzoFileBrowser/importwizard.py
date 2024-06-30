@@ -1,14 +1,14 @@
 """
 
 The import wizard helps the user importing CSV-like data from a file into a
-numpy array. The wizard containst three pages:
+numpy array. The wizard contains three pages:
 
 SelectFilePage:
     - The user selects a file and previews its contents (or, the beginning of it)
 
 SetParametersPage:
     - The user selects delimiters, etc. and selects which columns to import
-    - A preview of the data in tabualar form is shown, with colors indicating
+    - A preview of the data in tabular form is shown, with colors indicating
       how the file is parsed: yellow for header rows, green for the comments
       column and red for values that could not be parsed
 
@@ -33,6 +33,8 @@ from pyzo import translate
 # All keywords in Python 2 and 3. Obtained using: import keyword; keyword.kwlist
 # Merged from Py2 and 3
 keywords = [
+    "await",
+    "async",
     "False",
     "None",
     "True",
@@ -77,7 +79,7 @@ class CodeView(
     pyzo.codeeditor.Indentation,
     pyzo.codeeditor.HomeKey,
     pyzo.codeeditor.EndKey,
-    pyzo.codeeditor.NumpadPeriodKey,
+    # pyzo.codeeditor.NumpadPeriodKey,  -> disabled, see issue #720
     pyzo.codeeditor.AutoIndent,
     pyzo.codeeditor.PythonAutoIndent,
     pyzo.codeeditor.SyntaxHighlighting,
@@ -413,7 +415,7 @@ class SetParametersPage(QtWidgets.QWizardPage):
 
 class ResultPage(QtWidgets.QWizardPage):
     """
-    The resultpage lets the user select wether to import the data as a single
+    The resultpage lets the user select whether to import the data as a single
     2D-array, or as one variable (1D-array) per column
 
     Then, the code to do the import is generated (Py2 and Py3 compatible). This
@@ -486,9 +488,9 @@ class ResultPage(QtWidgets.QWizardPage):
         else:
             variables = "data"
 
-        code = "import numpy\n"
+        code = "import numpy as np\n"
 
-        code += variables + " = numpy.genfromtxt(\n"
+        code += variables + " = np.genfromtxt(\n"
         for param, default in (
             ("fname", None),
             ("skip_header", 0),
@@ -499,10 +501,10 @@ class ResultPage(QtWidgets.QWizardPage):
         ):
             value = self.wizard().field(param)
             if value != default:
-                code += "\t{} = {!r},\n".format(param, value)
+                code += "\t{}={!r},\n".format(param, value)
         if perColumn:
-            code += "\tunpack = True,\n"
-        code += "\t)\n"
+            code += "\tunpack=True,\n"
+        code += ")\n"
 
         self.codeView.setPlainText(code)
 
@@ -585,7 +587,7 @@ class ImportWizard(QtWidgets.QWizard):
         self.show()
 
     def field(self, name):
-        # Allow access to all data via field, some properties are not avaialble
+        # Allow access to all data via field, some properties are not available
         # as actual controls and therefore we have to handle them ourselves
         if name == "usecols":
             return self.setParametersPage.selectedColumns()
