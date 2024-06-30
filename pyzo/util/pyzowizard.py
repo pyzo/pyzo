@@ -341,7 +341,7 @@ class RuncodeWizardPage1(BasePyzoWizardPage):
             """*Execute selection:* if there is no selected text, the current line
         is executed; if the selection is on a single line, the selection
         is evaluated; if the selection spans multiple lines, Pyzo will
-        run the the (complete) selected lines.""",
+        run the (complete) selected lines.""",
         ),
         translate(
             "wizard",
@@ -394,7 +394,7 @@ class RuncodeWizardPage2(BasePyzoWizardPage):
         translate(
             "wizard",
             """In *script mode*, <code>__file__</code> and <code>sys.argv[0]</code> are set
-            to the scripts filename, <code>sys.path[0]</code> and the working dir are set
+            to the script's filename, <code>sys.path[0]</code> and the working dir are set
             to the directory containing the script.""",
         ),
     ]
