@@ -340,8 +340,10 @@ class RuncodeWizardPage1(BasePyzoWizardPage):
         ),
         translate(
             "wizard",
-            """*Execute line as statement:* Pyzo will copy the editor's current line
-        to the shell and execute it; this will display the executed code and the result.""",
+            """*Execute line and print result:* execute the editor's current line
+        in the shell and print the result
+        <br />
+        e.g.: line "<code>y = myfunc(x)</code>" will be executed as "<code>y = myfunc(x); y</code>" """,
         ),
         translate(
             "wizard",
