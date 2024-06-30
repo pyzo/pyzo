@@ -105,6 +105,7 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
         self._text_label = QtWidgets.QLabel(self)
         self._text_label.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self._text_label.setWordWrap(True)
+        self._text_label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
 
         # Create label for image
         self._comicLabel = QtWidgets.QLabel(self)
@@ -393,9 +394,13 @@ class ToolsWizardPage1(BasePyzoWizardPage):
         translate(
             "wizard",
             """Note that the tools system is designed such that it's easy to
-        create your own tools. Look at the online wiki for more information,
-        or use one of the existing tools as an example.""",
+        create your own tools. Look at the example tools for more information,
+        or use one of the existing tools as a more advanced example.""",
         ),
+        os.path.join(pyzo.pyzoDir, "resources", "tool_examples"),
+        os.path.join(pyzo.pyzoDir, "tools"),
+        "https://github.com/pyzo/pyzo/blob/main/pyzo/resources/tool_examples",
+        "https://github.com/pyzo/pyzo/blob/main/pyzo/tools/",
     ]
 
 
