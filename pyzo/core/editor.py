@@ -370,7 +370,7 @@ class PyzoEditor(BaseTextCtrl):
 
     def focusInEvent(self, event):
         """Test whether the file has been changed 'behind our back'"""
-        self.testWhetherFileWasChanged()
+        pyzo.callLater(self.testWhetherFileWasChanged)
         return super().focusInEvent(event)
 
     def testWhetherFileWasChanged(self):
