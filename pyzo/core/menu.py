@@ -24,7 +24,6 @@ import pyzo
 from pyzo.core.compactTabWidget import CompactTabWidget
 from pyzo.core.themeEdit import EditColorDialog
 from pyzo.core.pyzoLogging import print  # noqa
-from pyzo.core.assistant import PyzoAssistant
 from pyzo import translate
 
 from pyzo.core.pdfExport import PdfExport
@@ -2486,14 +2485,6 @@ class HelpMenu(Menu):
             icons.error_add,
             "https://issues.pyzo.org",
         )
-        self.addItem(
-            translate(
-                "menu",
-                "Local documentation ::: Documentation on Python and the Scipy Stack.",
-            ),
-            icons.help,
-            self._showPyzoDocs,
-        )
         self.addSeparator()
         # self.addItem(translate("menu", "View code license ::: Legal stuff."),
         #    icons.script, lambda: pyzo.editors.loadFile(os.path.join(pyzo.pyzoDir,"license.txt")))
@@ -2556,11 +2547,6 @@ class HelpMenu(Menu):
 
         m = AboutDialog(self)
         m.exec()
-
-    def _showPyzoDocs(self):
-        # Show widget with docs:
-        self._assistant = PyzoAssistant()
-        self._assistant.show()
 
 
 class AutocompMenu(Menu):
