@@ -644,8 +644,11 @@ class BaseTextCtrl(CodeEditor):
         self._delayTimer._line = ""
 
         # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
-        hascontrol = event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier or event.modifiers() & QtCore.Qt.KeyboardModifier.MetaModifier
-        if (hascontrol and event.key() == QtCore.Qt.Key.Key_Space):
+        has_control = (
+            event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier or
+            event.modifiers() & QtCore.Qt.KeyboardModifier.MetaModifier
+        )
+        if (has_control and event.key() == QtCore.Qt.Key.Key_Space):
             cursor = self.textCursor()
             if cursor.position() == cursor.anchor():
                 text = cursor.block().text()[: cursor.positionInBlock()]
