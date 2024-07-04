@@ -112,7 +112,11 @@ def package_dmg():
     cmd.append("-noscrub")
     cmd.append(dmg_file)
 
-    subprocess.check_call(cmd, cwd=dist_dir)
+    try:
+        subprocess.check_output(cmd, cwd=dist_dir, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as err:
+        print(err.output.decode())  # hopefully helpful
+        raise err
 
 
 ## Build
