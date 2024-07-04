@@ -1,6 +1,84 @@
 # Release notes
 
 
+### Version 4.16.0 (04-07-2024)
+
+* fix variable names in parseLine_autocomplete by @bdieterm in https://github.com/pyzo/pyzo/pull/967
+* fix detection of already opened files by @bdieterm in https://github.com/pyzo/pyzo/pull/969
+* make matching occurrences highlighter less restrictive by @bdieterm in https://github.com/pyzo/pyzo/pull/970
+* preserve case for TODO-type entries in Source Structure tool by @bdieterm in https://github.com/pyzo/pyzo/pull/971
+* add DEL shortcut to Workspace tool by @bdieterm in https://github.com/pyzo/pyzo/pull/972
+* add "Execute line as statement" to the run menu by @bdieterm in https://github.com/pyzo/pyzo/pull/973
+* fix magician confused by comment ending with question mark by @bdieterm in https://github.com/pyzo/pyzo/pull/974
+* fix opening UNC paths in MS Windows via tracebacks by @bdieterm in https://github.com/pyzo/pyzo/pull/975
+* fix matching occurrences highlighter word detection by @bdieterm in https://github.com/pyzo/pyzo/pull/976
+* add "Reload from disk" to the File menu by @bdieterm in https://github.com/pyzo/pyzo/pull/977
+* fix green debug position marker not shown for first line by @bdieterm in https://github.com/pyzo/pyzo/pull/979
+* add support for soft keywords "match" and "case" by @bdieterm in https://github.com/pyzo/pyzo/pull/980
+* fix QFontDatabase deprecation warning for PySide6 by @bdieterm in https://github.com/pyzo/pyzo/pull/981
+* fix misinterpretation of variables as magic commands by @bdieterm in https://github.com/pyzo/pyzo/pull/982
+* replace deprecated asyncio.get_event_loop() by @bdieterm in https://github.com/pyzo/pyzo/pull/983
+* Replace logging.warn usage with logging.warning by @jelly in https://github.com/pyzo/pyzo/pull/985
+* exclude broken PySide6 6.7.0 from CI and CD workflows by @bdieterm in https://github.com/pyzo/pyzo/pull/986
+* use macOS Intel image for CI with PySide2 instead of Apple Silicon by @bdieterm in https://github.com/pyzo/pyzo/pull/987
+* disconnect breakpoint-changed callback when closing shell by @bdieterm in https://github.com/pyzo/pyzo/pull/988
+* Catch keyboardinterrupt in asyncio loop by @almarklein in https://github.com/pyzo/pyzo/pull/991
+* properly close socket when aborting via an exception by @bdieterm in https://github.com/pyzo/pyzo/pull/992
+* restore shortcut Ctrl+3 for creating shell 3 by @bdieterm in https://github.com/pyzo/pyzo/pull/993
+* fix relative line number correction in showsyntaxerror by @bdieterm in https://github.com/pyzo/pyzo/pull/994
+* Fix foreground colour not resetting in the shell when using the ANSI foreground reset code by @jd-develop in https://github.com/pyzo/pyzo/pull/995
+* extend showsyntaxerror for SyntaxError subclasses by @bdieterm in https://github.com/pyzo/pyzo/pull/997
+* improve post-mortem debugging in generator expressions by @bdieterm in https://github.com/pyzo/pyzo/pull/998
+* fix keyboard interrupt for active debugger by @bdieterm in https://github.com/pyzo/pyzo/pull/999
+* add pause feature for interrupting and resuming code execution by @bdieterm in https://github.com/pyzo/pyzo/pull/1000
+* remove PySide6 restrictions in CI and CD workflows by @bdieterm in https://github.com/pyzo/pyzo/pull/1001
+* improve post-mortem debugging for unlinked frames by @bdieterm in https://github.com/pyzo/pyzo/pull/1002
+* allow pausing of code in the event loop by @bdieterm in https://github.com/pyzo/pyzo/pull/1003
+* fix reload dialogs for PySide6 by @bdieterm in https://github.com/pyzo/pyzo/pull/1004
+* add dynamic shell update intervals by @bdieterm in https://github.com/pyzo/pyzo/pull/1005
+* improve signature extraction for calltips by @bdieterm in https://github.com/pyzo/pyzo/pull/1006
+* add workaround for timer problem in test run by @bdieterm in https://github.com/pyzo/pyzo/pull/1007
+* update deprecated github workflows by @bdieterm in https://github.com/pyzo/pyzo/pull/1008
+* add jump feature to debugger by @bdieterm in https://github.com/pyzo/pyzo/pull/1009
+* fix context menu behavior in editor by @bdieterm in https://github.com/pyzo/pyzo/pull/1010
+* modernize Python2-style code to Python3 by @bdieterm in https://github.com/pyzo/pyzo/pull/1011
+* fix pop-up menu in main window by @bdieterm in https://github.com/pyzo/pyzo/pull/1012
+* add "Close all after this" entry to the tabs context menu by @bdieterm in https://github.com/pyzo/pyzo/pull/1013
+* make codeeditor autoclose settings independent of pyzo by @bdieterm in https://github.com/pyzo/pyzo/pull/1014
+* fix update of logger tool when changing editor settings by @bdieterm in https://github.com/pyzo/pyzo/pull/1015
+* clean-up code by @bdieterm in https://github.com/pyzo/pyzo/pull/1016
+* fix breakpoints and stepping after interruption in list comprehension by @bdieterm in https://github.com/pyzo/pyzo/pull/1017
+* fix jumping for code execution with line offset by @bdieterm in https://github.com/pyzo/pyzo/pull/1018
+* allow "clear all breakpoints" action also in debug mode by @bdieterm in https://github.com/pyzo/pyzo/pull/1019
+* fix pop-up menu in main window 2 by @bdieterm in https://github.com/pyzo/pyzo/pull/1020
+* refer to GH discussions rather than google groups by @almarklein in https://github.com/pyzo/pyzo/pull/1022
+* improve source structure tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1023
+* cleanup code and fix minor bugs by @bdieterm in https://github.com/pyzo/pyzo/pull/1024
+* replace the qt module and update everything from Qt5 to Qt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/1025
+* fix bug from Qt6 transition and clean-up code by @bdieterm in https://github.com/pyzo/pyzo/pull/1026
+* fix some bugs from Qt6 transition by @bdieterm in https://github.com/pyzo/pyzo/pull/1027
+* implement scaled breakpoint visualization and remove cyclic references by @bdieterm in https://github.com/pyzo/pyzo/pull/1028
+* clean-up code and fix bug from Qt6 transition by @bdieterm in https://github.com/pyzo/pyzo/pull/1029
+* improve auto-completion and call-tips, and add key-completion by @bdieterm in https://github.com/pyzo/pyzo/pull/1030
+* apply smaller fixes by @bdieterm in https://github.com/pyzo/pyzo/pull/1031
+* apply keys introspection to objects with keys method by @bdieterm in https://github.com/pyzo/pyzo/pull/1032
+* keep vertical scroll bar position when copying text by @bdieterm in https://github.com/pyzo/pyzo/pull/1033
+* improve signature inspection for aliased methods by @bdieterm in https://github.com/pyzo/pyzo/pull/1034
+* keep vertical scroll bar position when saving in the editor by @bdieterm in https://github.com/pyzo/pyzo/pull/1035
+* fix typos by @bdieterm in https://github.com/pyzo/pyzo/pull/1036
+* fix README.md by @bdieterm in https://github.com/pyzo/pyzo/pull/1037
+* do not hide calltip on mouse hover by @bdieterm in https://github.com/pyzo/pyzo/pull/1038
+* Fix yoton by @bdieterm in https://github.com/pyzo/pyzo/pull/1040
+* code cleanup by @bdieterm in https://github.com/pyzo/pyzo/pull/1041
+* fix File Browser tool (prevent silent file overwriting and various improvements) by @bdieterm in https://github.com/pyzo/pyzo/pull/1042
+* add "execute line and print result" by @bdieterm in https://github.com/pyzo/pyzo/pull/1043
+* improve docs (Pyzo Assistant) and add custom tool example by @bdieterm in https://github.com/pyzo/pyzo/pull/1044
+* Autocomp mac by @almarklein in https://github.com/pyzo/pyzo/pull/1047
+* remove PyzoAssistant by @bdieterm in https://github.com/pyzo/pyzo/pull/1045
+* Fix that app does not receive keyboard after reloading when files changed externally by @almarklein in https://github.com/pyzo/pyzo/pull/1048
+* Tweaks for MacOS builds by @almarklein in https://github.com/pyzo/pyzo/pull/1049
+
+
 ### Version 4.15.0 (05-03-2024)
 
 * Prevent autocomplete infinite loop for class lookup by @bdieterm in https://github.com/pyzo/pyzo/pull/945
