@@ -79,7 +79,6 @@ jobs:
 
   # A MacOS build for x86_64. Via Rosetta this should work on all modern Macs,
   # but an arm64 (M1) build would be nice in the future.
-  # Bound to pyside6==6.6.0 for now, since 6.6.1 seems broken on macos, see https://github.com/pyzo/pyzo/pull/943
   macos_amd64:
     name: Build MacOS amd64
     runs-on: macos-latest
@@ -92,7 +91,7 @@ jobs:
     - name: Install dependencies
       run: |
           python -m pip install --upgrade pip
-          pip install -U pyside6==6.6.0 pyinstaller
+          pip install -U pyside6 pyinstaller
           pip install -r freeze/frozen_libs.txt
     - name: Freeze
       run: python freeze/pyzo_freeze.py
