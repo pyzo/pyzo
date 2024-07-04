@@ -249,7 +249,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: [ win64, win32, macos_amd64, linux_amd64 ]
+    needs: [ win64, win32, macos_x86_64, macos_arm64, linux_amd64 ]
     if: success() && startsWith(github.ref, 'refs/tags/v')
     steps:
     - uses: actions/checkout@v4
