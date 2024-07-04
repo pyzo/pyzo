@@ -79,8 +79,8 @@ jobs:
 
   # A MacOS build for x86_64 (aka amd64). Via Rosetta this should work on all modern Macs.
   # Use macos-13 to select x86_64
-  macos_amd64:
-    name: Build MacOS amd64 (x86_64)
+  macos_x86_64:
+    name: Build MacOS x86_64
     runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
@@ -140,7 +140,7 @@ jobs:
         path: |
           freeze/dist/*.zip
           freeze/dist/*.dmg
-        name: dist-artifact-macos_amd64
+        name: dist-artifact-macos_x86_64
 
   # A MacOS build for Apple Silicon (aka arm64 or aarch64).
   # The macos-14 and up use arm64
