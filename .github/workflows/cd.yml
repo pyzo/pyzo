@@ -77,11 +77,11 @@ jobs:
           freeze/dist/*.zip
         name: dist-artifact-win32
 
-  # A MacOS build for x86_64. Via Rosetta this should work on all modern Macs,
-  # but an arm64 (M1) build would be nice in the future.
+  # A MacOS build for x86_64 (aka amd64). Via Rosetta this should work on all modern Macs.
+  # Use macos-13 to select x86_64
   macos_amd64:
-    name: Build MacOS amd64
-    runs-on: macos-latest
+    name: Build MacOS amd64 (x86_64)
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.12
@@ -141,6 +141,71 @@ jobs:
           freeze/dist/*.zip
           freeze/dist/*.dmg
         name: dist-artifact-macos_amd64
+
+  # A MacOS build for Apple Silicon (aka arm64 or aarch64).
+  # The macos-14 and up use arm64
+  macos_arm64:
+    name: Build MacOS arm64 (Apple Silicon)
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: |
+          python -m pip install --upgrade pip
+          pip install -U pyside6 pyinstaller
+          pip install -r freeze/frozen_libs.txt
+    - name: Freeze
+      run: python freeze/pyzo_freeze.py
+    - name: Codesign app bundle
+      env:
+        MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+        MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+        MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+      run: |
+        echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+        security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+        # We finally codesign our app bundle, specifying the Hardened runtime option
+        /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --all-architectures --timestamp --deep --options runtime freeze/dist/pyzo.app -v
+    - name: "Notarize app bundle"
+      env:
+        PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+        PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+        PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+      run: |
+        echo "Create keychain profile"
+        xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+        echo "Creating temp notarization archive"
+        ditto -c -k --keepParent "freeze/dist/pyzo.app" "notarization.zip"
+        echo "Notarize app"
+        xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+        # Debug
+        # xcrun notarytool log c44df8eb-3087-4a3c-a5f4-9b72caceb083 --keychain-profile "notarytool-profile"
+        # Finally, we need to "attach the staple" allow our app to be validated without internet connection.
+        echo "Attach staple"
+        xcrun stapler staple "freeze/dist/pyzo.app"
+    - name: Package
+      run: python freeze/pyzo_package.py
+    - name: Test frozen
+      shell: bash
+      run: |
+        python freeze/pyzo_test_frozen.py
+        python tests/check_log.py
+    - name: Upload distributions
+      uses: actions/upload-artifact@v4
+      with:
+        path: |
+          freeze/dist/*.zip
+          freeze/dist/*.dmg
+        name: dist-artifact-macos_arm64
 
   # For Linux we make a build on a somewhat older ubuntu. Most Linux users prefer (or are fine with)
   # running Pyzo from source anyway.
