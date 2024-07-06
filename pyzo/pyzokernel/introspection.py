@@ -317,10 +317,9 @@ class PyzoIntrospector(yoton.RepChannel):
                             values_repr,
                         )
                     elif val.size:
-                        tmp = str(float(val))
-                        if "int" in val.dtype.name:
-                            tmp = str(int(val))
-                        repres = "<array scalar %s (%s)>" % (val.dtype.name, tmp)
+                        # val can be a non-numeric or structured type as well, e.g.:
+                        #     val = np.array(['abc'], dtype=np.dtype('U3'))[0]
+                        repres = "<array scalar %s (%s)>" % (val.dtype.name, str(val))
                     else:
                         repres = "<array empty %s>" % (val.dtype.name)
                 elif kind == "list":
