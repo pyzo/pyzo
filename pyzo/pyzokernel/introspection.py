@@ -109,6 +109,10 @@ class PyzoIntrospector(yoton.RepChannel):
             tmp = eval("%s.__doc__" % (objectNames[-1]), {}, NS)
             sigs = ""
             if tmp:
+                # we need the lstrip for docstrings like the one of np.where:
+                #   np.where.__doc__[:34] == '\n    where(condition, [x, y], /)\n\n'
+                tmp = tmp.lstrip()
+
                 # we will try joining several lines because doc strings of objects
                 # like np.array have a new line inside the signature
                 for line in tmp.splitlines()[:3]:
