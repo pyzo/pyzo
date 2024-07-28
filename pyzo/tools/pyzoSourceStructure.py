@@ -3,7 +3,6 @@
 # Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
-import bisect
 import weakref
 
 import pyzo
@@ -367,9 +366,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 thisItem.linenr = object.linenr
 
                 currentPath[-1] = (type, text)
-                lineItemList.append((object.linenr, 0, thisItem))
+                lineItemList.append((object.linenr, object.linenr2, thisItem))
                 if type in ("class", "def"):
-                    pathList.append((object.linenr, 0, tuple(currentPath)))
+                    pathList.append((object.linenr, object.linenr2, tuple(currentPath)))
 
                 # Any children that we should display?
                 if object.children:
@@ -389,24 +388,13 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self.updateSelection()
 
     def updateSelection(self):
-        # We use bisect for faster search in a sorted list.
-        # The haystack consists of tuples (lineNumber, 0, anyObject).
-        # We want to have the entry that is at the same line as needle or directly before.
-        # So we search for the value in haystack that is smaller or equal than our line number.
-        # We do not have a key function for only comparing the linenumbers while searching.
-        # Comparing tuple (lineNumNeedle,) with (lineNum, anyObject) with the same line number
-        # would always result in (lineNum, anyObject) being larger. To change the comparison,
-        # we add a second number in the tuples that is always 1 for the needle and 0 for the
-        # haystack entries.
-
         editor = self._getCurEditorFromRef()
 
         if editor is not None and len(self._lineItemList) > 0:
             # Get current line number and the structure
             lineNum = editor.textCursor().blockNumber() + 1
-            needle = (lineNum, 1)
-            selectedItem = _findNextSmallerOrEqualValue(self._lineItemList, needle, (0, 0, None))[2]
-            path = _findNextSmallerOrEqualValue(self._pathList, needle, (0, 0, None))[2]
+            selectedItem = self._getObjectForLine(self._lineItemList, lineNum)
+            path = self._getObjectForLine(self._pathList, lineNum)
 
             # clear selection and restore background color of previously selected item
             self._tree.clearSelection()
@@ -435,7 +423,12 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         else:
             pyzo.main.statusBar().showMessage("")
 
-def _findNextSmallerOrEqualValue(sorted_haystack, needle, otherwise):
-    """returns the next smaller or equal value than needle in haystack"""
-    ind = bisect.bisect_right(sorted_haystack, needle)
-    return sorted_haystack[ind - 1] if ind - 1 >= 0 else otherwise
+    @staticmethod
+    def _getObjectForLine(objectList, lineNum):
+        foundObject = None
+        for start, end, payload in objectList:
+            if start > lineNum:
+                break
+            if start <= lineNum < end:
+                foundObject = payload
+        return foundObject
