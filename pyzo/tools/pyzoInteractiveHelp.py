@@ -391,6 +391,12 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             PyzoInteractiveHelpHistoryMenu("Forward menu", self, True)
         )
 
+        self._pauseBut = QtWidgets.QToolButton(self)
+        self._pauseBut.setIcon(style.standardIcon(style.StandardPixmap.SP_MediaPause))
+        self._pauseBut.setIconSize(QtCore.QSize(16, 16))
+        self._pauseBut.setCheckable(True)
+        self._pauseBut.setToolTip("Pause automatic help from autocompletion")
+
         # Create options button
         self._options = QtWidgets.QToolButton(self)
         self._options.setIcon(pyzo.icons.wrench)
@@ -415,6 +421,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Put the elements together
         self._sizer2.addWidget(self._backBut, 1)
         self._sizer2.addWidget(self._forwBut, 2)
+        self._sizer2.addWidget(self._pauseBut, 1)
         self._sizer2.addWidget(self._text, 4)
         self._sizer2.addWidget(self._printBut, 0)
         self._sizer2.addWidget(self._options, 3)
@@ -446,6 +453,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._printBut.clicked.connect(self.printDoc)
         self._backBut.clicked.connect(self.goBack)
         self._forwBut.clicked.connect(self.goForward)
+        self._pauseBut.clicked.connect(self.onTogglePause)
         #
         self._options.pressed.connect(self.onOptionsPress)
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
@@ -546,6 +554,8 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self.queryDoc(addToHist)
 
     def helpFromCompletion(self, name, addToHist=False):
+        if self._pauseBut.isChecked():
+            return
         self.setObjectName(name, addToHist)
 
     def currentHist(self):
@@ -555,13 +565,15 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             return None
 
     def addToHist(self, name):
-        if name == self.currentHist():
+        if not name or name == self.currentHist():
             return
         self._history = self._history[: self._histindex + 1]
         self._history.append(name)
         self._histindex = len(self._history) - 1
 
     def restoreCurrent(self):
+        if self._pauseBut.isChecked():
+            return
         self.setObjectName(self.currentHist())
 
     def goBack(self):
@@ -573,6 +585,10 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         if self._histindex < len(self._history) - 1:
             self._histindex += 1
             self.setObjectName(self.currentHist())
+
+    def onTogglePause(self, pauseActivated):
+        if pauseActivated:
+            self.addToHist(self._text.text())
 
     def printDoc(self):
         """Print the doc for the text in the line edit."""
