@@ -3,6 +3,7 @@
 # Pyzo is distributed under the terms of the 2-Clause BSD License.
 # The full license can be found in 'license.txt'.
 
+import re
 
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets
@@ -22,6 +23,22 @@ def splitName(name):
 def joinName(parts):
     """Join the parts of an object name, taking dots and indexing into account."""
     return ".".join(parts).replace(".[", "[")
+
+
+def wildcardsToRegExp(searchText):
+    """converts a search text with wildcards to a regular expression string
+
+    e.g.: 'ab)c*de?f??gh*' --> 'ab\\)c.*?de.f..gh.*?'
+    """
+    ll = []
+    for s in re.split(r"(\*|\?)", searchText):
+        if s == "*":
+            ll.append(".*?")
+        elif s == "?":
+            ll.append(".")
+        else:
+            ll.append(re.escape(s))
+    return "".join(ll)
 
 
 class WorkspaceProxy(QtCore.QObject):
@@ -84,6 +101,9 @@ class WorkspaceProxy(QtCore.QObject):
 
     def onCurrentShellStateChanged(self):
         """Do a request for information!"""
+        self.updateVariables()
+
+    def updateVariables(self):
         shell = pyzo.shells.getCurrentShell()
         if not shell:
             # Should never happen I think, but just to be sure
@@ -137,6 +157,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         super().__init__(parent)
 
         self._config = parent._config
+        self._compiledRegExp = re.compile(r".*")
 
         # Set header stuff
         self.setHeaderHidden(False)
@@ -169,13 +190,35 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
 
         self._startUpVariables = frozenset(("In", "Out", "exit", "get_ipython", "quit"))
 
+        self.setToolTip(
+            "keyboard shortcuts for selected variable:\n"
+            "h ... show variable info in Interactive help tool\n"
+            "p ... print(variable)\n"
+            "r ... print(repr(variable))\n"
+            "RETURN/ENTER ... show namespace\n"  # this is done via signal itemActivated
+            "BACKSPACE ... switch to parent namespace\n"
+            "DEL ... del variable"
+        )
+
     def keyPressEvent(self, event):
         key = event.key()
         item = self.currentItem()
-        if key == QtCore.Qt.Key.Key_Delete and item is not None:
-            objectName = joinName(splitName(self._proxy._name) + [item.text(0)])
-            self.deleteObject(objectName)
-            return
+        if item is not None and not event.modifiers():
+            if key == QtCore.Qt.Key.Key_Delete:
+                self._performCommand("Delete", item)
+                return
+            if key == QtCore.Qt.Key.Key_H:
+                self._performCommand("Show help", item)
+                return
+            if key == QtCore.Qt.Key.Key_P:
+                self._performCommand("str", item)
+                return
+            if key == QtCore.Qt.Key.Key_R:
+                self._performCommand("repr", item)
+                return
+            if key == QtCore.Qt.Key.Key_Backspace:
+                self._proxy.goUp()
+                return
         super().keyPressEvent(event)
 
     def contextMenuEvent(self, event):
@@ -193,14 +236,13 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         commands = [
             ("Show namespace", pyzo.translate("pyzoWorkspace", "Show namespace")),
             ("Show help", pyzo.translate("pyzoWorkspace", "Show help")),
+            ("str", "print(variable)"),
+            ("repr", "print(repr(variable))"),
             ("Delete", pyzo.translate("pyzoWorkspace", "Delete")),
         ]
         for request, display in commands:
             action = self._menu.addAction(display)
             action._what = request
-            parts = splitName(self._proxy._name)
-            parts.append(item.text(0))
-            action._objectName = joinName(parts)
             action._item = item
 
         # Show
@@ -208,42 +250,62 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
 
     def contextMenuTriggered(self, action):
         """Process a request from the context menu."""
+        self._performCommand(action._what, action._item)
 
-        # Get text
-        req = action._what
-
-        if req == "Show namespace":
+    def _performCommand(self, cmd, item):
+        objectName = joinName(splitName(self._proxy._name) + [item.text(0)])
+        if cmd == "Show namespace":
             # Go deeper
-            self.onItemExpand(action._item)
-        elif req == "Show help":
+            self.onItemExpand(item)
+        elif cmd == "Show help":
             # Show help in help tool (if loaded)
             hw = pyzo.toolManager.getTool("pyzointeractivehelp")
             if hw:
-                hw.setObjectName(action._objectName, addToHist=True)
-        elif req == "Delete":
+                hw.setObjectName(objectName, addToHist=True)
+        elif cmd in ("str", "repr"):
+            shell = pyzo.shells.getCurrentShell()
+            if shell is not None:
+                if cmd == "str":
+                    shell.executeCommand("print({})\n".format(objectName))
+                else:
+                    shell.executeCommand("print(repr({}))\n".format(objectName))
+        elif cmd == "Delete":
             # Delete the variable
-            self.deleteObject(action._objectName)
-
-    def deleteObject(self, objectName):
-        shell = pyzo.shells.getCurrentShell()
-        if shell is not None:
-            shell.processLine("del " + objectName)
+            shell = pyzo.shells.getCurrentShell()
+            if shell is not None:
+                shell.processLine("del " + objectName)
 
     def onItemExpand(self, item):
         """Inspect the attributes of that item."""
         self._proxy.addNamePart(item.text(0))
 
+    def setCompiledRegExp(self, compiledRegExp_or_errorstring):
+        """Set the name filter for variables via a compiled regular expression."""
+        self._compiledRegExp = compiledRegExp_or_errorstring
+
     def fillWorkspace(self):
         """Update the workspace tree."""
 
-        # Clear first
-        self.clear()
+        try:
+            selectedName = self.selectedItems()[0].text(0)
+        except Exception:
+            selectedName = None
+        newSelectedItem = None
+
+        if isinstance(self._compiledRegExp, str):
+            errorMessage = self._compiledRegExp
+            self.parent().displayEmptyWorkspace(True, errorMessage)
+            return
 
         # Set name
         line = self.parent()._line
         line.setText(self._proxy._name)
 
+        self.setSortingEnabled(False)
+
         # Add elements
+        # The widget is not cleared to keep its current scroll bar position.
+        i = -1
         for name, typeName, kind, repres in self._proxy._variables:
             # <kludge 2>
             # the typeTranslation dictionary contains "synonyms" for types that will be hidden
@@ -255,16 +317,37 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
                 continue
             if "startup" in self._config.hideTypes and name in self._startUpVariables:
                 continue
+            if not self._compiledRegExp.fullmatch(name):
+                continue
 
-            # Create item
-            item = WorkspaceItem((name, typeName, repres), 0)
-            self.addTopLevelItem(item)
+            i += 1
+            item = self.topLevelItem(i)
+            if item is None:
+                # Create item
+                item = WorkspaceItem((name, typeName, repres), 0)
+                self.addTopLevelItem(item)
+            else:
+                item.setText(0, name)
+                item.setText(1, typeName)
+                item.setText(2, repres)
+                item.setSelected(False)
+
+            if name == selectedName:
+                newSelectedItem = item
 
             # Set tooltip
             tt = "{}: {}".format(name, repres)
             item.setToolTip(0, tt)
             item.setToolTip(1, tt)
             item.setToolTip(2, tt)
+
+        for _ in range(i + 1, self.topLevelItemCount()):
+            self.takeTopLevelItem(i + 1)  # delete remaining entries
+
+        self.setSortingEnabled(True)
+        if newSelectedItem is not None:
+            newSelectedItem.setSelected(True)
+            self.setCurrentItem(newSelectedItem)
 
         self.parent().displayEmptyWorkspace(
             self.topLevelItemCount() == 0 and self._proxy._name == ""
@@ -295,11 +378,18 @@ class PyzoWorkspace(QtWidgets.QWidget):
             },
         )
 
-        # Create tool button
+        # Create tool buttons
+        self._refresh = QtWidgets.QToolButton(self)
+        self._refresh.setIcon(pyzo.icons.arrow_refresh)
+        self._refresh.setIconSize(QtCore.QSize(16, 16))
+        self._refresh.setToolTip(
+            "manually refresh variables (e.g. for code running in the event loop)"
+        )
+
         self._up = QtWidgets.QToolButton(self)
-        style = QtWidgets.qApp.style()
-        self._up.setIcon(style.standardIcon(style.StandardPixmap.SP_ArrowLeft))
+        self._up.setIcon(pyzo.icons.arrow_left)
         self._up.setIconSize(QtCore.QSize(16, 16))
+        self._up.setToolTip("switch to parent namespace")
 
         # Create "path" line edit
         self._line = QtWidgets.QLineEdit(self)
@@ -324,29 +414,67 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._tree = WorkspaceTree(self)
 
         # Create message for when tree is empty
-        self._initText = QtWidgets.QLabel(
-            pyzo.translate(
-                "pyzoWorkspace",
-                "Lists the variables in the current shell's namespace."
-                "\n\n"
-                "Currently, there are none. Some of them may be hidden because of the filters you configured."
-            ),
-            self,
+        self._no_results_text = pyzo.translate(
+            "pyzoWorkspace",
+            "Lists the variables in the current shell's namespace."
+            "\n\n"
+            "Currently, there are none. Some of them may be hidden because of the filters you configured."
         )
-        self._initText.setVisible(False)
-        self._initText.setWordWrap(True)
+        self._noResultsLabel = QtWidgets.QLabel(self._no_results_text, self)
+        self._noResultsLabel.setVisible(False)
+        self._noResultsLabel.setWordWrap(True)
+
+        # Create search line edit
+        self._searchText = QtWidgets.QLineEdit(self)
+
+        # Create search options button
+        self._searchOptions = QtWidgets.QToolButton(self)
+        self._searchOptions.setIcon(pyzo.icons.magnifier)
+        self._searchOptions.setIconSize(QtCore.QSize(16, 16))
+        self._searchOptions.setPopupMode(self._searchOptions.ToolButtonPopupMode.InstantPopup)
+        self._searchOptions.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        #
+        self._searchOptions._menu = QtWidgets.QMenu()
+        self._searchOptions.setMenu(self._searchOptions._menu)
+        self.onSearchOptionsPress()  # create menu now and init default config values
+        self._updateSearchPlaceHolderText()
+
+        # We put the tooltip text to the search options button instead of the
+        # search text widget to make it less annoying.
+        self._searchOptions.setToolTip(
+            "Enter one or multiple space-separated search expressions.\n"
+            "A variable name will be displayed if it matches at least one of the expressions.\n"
+            "Press RETURN while typing to immediately update the search results.\n"
+            "\n"
+            "Depending on the settings, search expressions are either\n"
+            "\n"
+            "texts with wildcards:\n"
+            "    a single question mark (?) matches exactly one character\n"
+            "    an asterisk (*) matches zero or multiple characters\n"
+            '    example: "a* b*" ... matches all variables beginning with "a" or "b"\n'
+            "\n"
+            "or regular expressions:\n"
+            '    example: "myvar[0-5].* obj\\d+ x.*"'
+        )
 
         # Set layout
         layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self._refresh, 0)
         layout.addWidget(self._up, 0)
         layout.addWidget(self._line, 1)
         layout.addWidget(self._options, 0)
         #
+        searchLayout = QtWidgets.QHBoxLayout()
+        searchLayout.addWidget(self._searchText, 1)
+        searchLayout.addWidget(self._searchOptions, 0)
+        #
         mainLayout = QtWidgets.QVBoxLayout(self)
         mainLayout.addLayout(layout, 0)
-        mainLayout.addWidget(self._initText, 1)
+        mainLayout.addWidget(self._noResultsLabel, 1)
         mainLayout.addWidget(self._tree, 2)
         mainLayout.setSpacing(2)
+        mainLayout.addLayout(searchLayout, 0)
+
         # set margins
         margin = pyzo.config.view.widgetMargin
         mainLayout.setContentsMargins(margin, margin, margin, margin)
@@ -354,12 +482,19 @@ class PyzoWorkspace(QtWidgets.QWidget):
 
         # Bind events
         self._up.pressed.connect(self._tree._proxy.goUp)
+        self._refresh.pressed.connect(self._tree._proxy.updateVariables)
         self._options.pressed.connect(self.onOptionsPress)
         self._options._menu.triggered.connect(self.onOptionMenuTiggered)
+        self._searchOptions.pressed.connect(self.onSearchOptionsPress)
+        self._searchOptions._menu.triggered.connect(self.onSearchOptionMenuTiggered)
+        self._searchText.editingFinished.connect(self.onSearchTextUpdated)
 
-    def displayEmptyWorkspace(self, empty):
+    def displayEmptyWorkspace(self, empty, customMessage=None):
+        if customMessage is None:
+            customMessage = self._no_results_text
         self._tree.setVisible(not empty)
-        self._initText.setVisible(empty)
+        self._noResultsLabel.setText(customMessage)
+        self._noResultsLabel.setVisible(empty)
 
     def onOptionsPress(self):
         """Create the menu for the button, Do each time to make sure
@@ -397,3 +532,60 @@ class PyzoWorkspace(QtWidgets.QWidget):
 
         # Update
         self._tree.fillWorkspace()
+
+    def onSearchOptionsPress(self):
+        """Create the menu for the button, Do each time to make sure
+        the checks are right."""
+
+        menu = self._searchOptions._menu
+        menu.clear()
+
+        searchOptions = [
+            ("searchMatchCase", True, pyzo.translate("pyzoWorkspace", "Match case")),
+            ("searchRegExp", False, pyzo.translate("pyzoWorkspace", "RegExp")),
+        ]
+
+        for name, default, label in searchOptions:
+            action = menu.addAction(label)
+            action._what = name
+            action.setCheckable(True)
+            action.setChecked(self._config.setdefault(name, default))
+
+    def onSearchOptionMenuTiggered(self, action):
+        name = action._what
+        self._config[name] ^= True
+
+        # Update
+        self.onSearchTextUpdated()
+        self._tree.fillWorkspace()
+        self._updateSearchPlaceHolderText()
+
+    def onSearchTextUpdated(self):
+        needles = self._searchText.text().split()
+        flags = re.IGNORECASE if not self._config.searchMatchCase else 0
+        if len(needles) == 0:
+            regExpList = [r".*"]
+        elif self._config.searchRegExp:
+            regExpList = needles
+        else:
+            regExpList = [wildcardsToRegExp(s) for s in needles]
+
+        pattern = "(?:" + ")|(?:".join(regExpList) + ")"
+        try:
+            compiledRegExp = re.compile(
+                pattern, flags
+            )
+        except Exception as e:
+            compiledRegExp = "invalid regular expression:\n" + pattern + "\n" + str(e)
+
+        self._tree.setCompiledRegExp(compiledRegExp)
+        self._tree.fillWorkspace()
+
+    def _updateSearchPlaceHolderText(self):
+        # Update
+        self._searchText.setPlaceholderText(
+            "[{} mode, case {}]".format(
+                "RegExp" if self._config.searchRegExp else "wildcards",
+                "sensitive" if self._config.searchMatchCase else "insensitive",
+            )
+        )
