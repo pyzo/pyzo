@@ -15,15 +15,13 @@ tool_summary = pyzo.translate(
 
 def splitName(name):
     """Split an object name in parts, taking dots and indexing into account."""
-    name = name.replace("[", ".[")
-    parts = name.split(".")
+    parts = name.replace("[", ".[").split(".")
     return [p for p in parts if p]
 
 
 def joinName(parts):
     """Join the parts of an object name, taking dots and indexing into account."""
-    name = ".".join(parts)
-    return name.replace(".[", "[")
+    return ".".join(parts).replace(".[", "[")
 
 
 class WorkspaceProxy(QtCore.QObject):
@@ -77,7 +75,7 @@ class WorkspaceProxy(QtCore.QObject):
 
     def onCurrentShellChanged(self):
         """When no shell is selected now, update this. In all other cases,
-        the onCurrentShellStateChange will be fired too.
+        the onCurrentShellStateChanged will be fired too.
         """
         shell = pyzo.shells.getCurrentShell()
         if not shell:
@@ -169,7 +167,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         # Bind to events
         self.itemActivated.connect(self.onItemExpand)
 
-        self._startUpVariables = ["In", "Out", "exit", "get_ipython", "quit"]
+        self._startUpVariables = frozenset(("In", "Out", "exit", "get_ipython", "quit"))
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -197,9 +195,9 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             ("Show help", pyzo.translate("pyzoWorkspace", "Show help")),
             ("Delete", pyzo.translate("pyzoWorkspace", "Delete")),
         ]
-        for a, display in commands:
+        for request, display in commands:
             action = self._menu.addAction(display)
-            action._what = a
+            action._what = request
             parts = splitName(self._proxy._name)
             parts.append(item.text(0))
             action._objectName = joinName(parts)
@@ -212,19 +210,17 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         """Process a request from the context menu."""
 
         # Get text
-        req = action._what.lower()
+        req = action._what
 
-        if "namespace" in req:
+        if req == "Show namespace":
             # Go deeper
             self.onItemExpand(action._item)
-
-        elif "help" in req:
+        elif req == "Show help":
             # Show help in help tool (if loaded)
             hw = pyzo.toolManager.getTool("pyzointeractivehelp")
             if hw:
                 hw.setObjectName(action._objectName, addToHist=True)
-
-        elif "delete" in req:
+        elif req == "Delete":
             # Delete the variable
             self.deleteObject(action._objectName)
 
@@ -248,25 +244,10 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         line.setText(self._proxy._name)
 
         # Add elements
-        for des in self._proxy._variables:
-            # Get parts
-            parts = list(des)
-            if len(parts) < 4:
-                continue
-
-            name = parts[0]
-
-            # Pop the 'kind' element
-            kind = parts.pop(2)
-
+        for name, typeName, kind, repres in self._proxy._variables:
             # <kludge 2>
             # the typeTranslation dictionary contains "synonyms" for types that will be hidden
-            # Currently only "method"->"function" is used
-            # the try:... is there to have a minimal translation dictionary.
-            try:
-                kind = self._config.typeTranslation[kind]
-            except KeyError:
-                pass
+            kind = self._config.typeTranslation.get(kind, kind)
             # </kludge 2>
             if kind in self._config.hideTypes:
                 continue
@@ -276,11 +257,11 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
                 continue
 
             # Create item
-            item = WorkspaceItem(parts, 0)
+            item = WorkspaceItem((name, typeName, repres), 0)
             self.addTopLevelItem(item)
 
             # Set tooltip
-            tt = "{}: {}".format(parts[0], parts[-1])
+            tt = "{}: {}".format(name, repres)
             item.setToolTip(0, tt)
             item.setToolTip(1, tt)
             item.setToolTip(2, tt)
@@ -305,18 +286,14 @@ class PyzoWorkspace(QtWidgets.QWidget):
         # config.tools before the tool is instantiated.
         toolId = self.__class__.__name__.lower()
         self._config = pyzo.config.tools[toolId]
-        if not hasattr(self._config, "hideTypes"):
-            self._config.hideTypes = []
-        # <kludge 2>
-        # configuring the typeTranslation dictionary
-        if not hasattr(self._config, "typeTranslation"):
-            # to prevent the exception to be raised, one could init to :
-            # {"method": "function", "function": "function", "type": "type", "private": "private", "module": "module"}
-            self._config.typeTranslation = {}
-        # Defaults
-        self._config.typeTranslation["method"] = "function"
-        self._config.typeTranslation["builtin_function_or_method"] = "function"
-        # <kludge 2>
+        self._config.setdefault("hideTypes", [])
+        self._config.setdefault(
+            "typeTranslation",
+            {
+                "method": "function",
+                "builtin_function_or_method": "function",
+            },
+        )
 
         # Create tool button
         self._up = QtWidgets.QToolButton(self)
@@ -350,9 +327,9 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._initText = QtWidgets.QLabel(
             pyzo.translate(
                 "pyzoWorkspace",
-                """Lists the variables in the current shell's namespace.
-
-Currently, there are none. Some of them may be hidden because of the filters you configured.""",
+                "Lists the variables in the current shell's namespace."
+                "\n\n"
+                "Currently, there are none. Some of them may be hidden because of the filters you configured."
             ),
             self,
         )
@@ -416,12 +393,7 @@ Currently, there are none. Some of them may be hidden because of the filters you
         # What to show
         type = action._what.lower()
 
-        # Swap
-        if type in self._config.hideTypes:
-            while type in self._config.hideTypes:
-                self._config.hideTypes.remove(type)
-        else:
-            self._config.hideTypes.append(type)
+        self._config.hideTypes = list(set(self._config.hideTypes) ^ {type})
 
         # Update
         self._tree.fillWorkspace()
