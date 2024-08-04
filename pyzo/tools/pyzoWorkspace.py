@@ -62,11 +62,11 @@ class WorkspaceProxy(QtCore.QObject):
         self._name = ""
 
         # Bind to events
-        pyzo.shells.currentShellChanged.connect(self.onCurrentShellChanged)
-        pyzo.shells.currentShellStateChanged.connect(self.onCurrentShellStateChanged)
+        pyzo.shells.currentShellChanged.connect(self._onCurrentShellChanged)
+        pyzo.shells.currentShellStateChanged.connect(self._onCurrentShellStateChanged)
 
         # Initialize
-        self.onCurrentShellStateChanged()
+        self._onCurrentShellStateChanged()
 
     def addNamePart(self, part):
         """Add a part to the name."""
@@ -81,7 +81,7 @@ class WorkspaceProxy(QtCore.QObject):
         shell = pyzo.shells.getCurrentShell()
         if shell:
             future = shell._request.dir2(self._name)
-            future.add_done_callback(self.processResponse)
+            future.add_done_callback(self._processResponse)
 
     def goUp(self):
         """Cut the last part off the name."""
@@ -90,29 +90,28 @@ class WorkspaceProxy(QtCore.QObject):
             parts.pop()
         self.setName(joinName(parts))
 
-    def onCurrentShellChanged(self):
+    def _onCurrentShellChanged(self):
         """When no shell is selected now, update this. In all other cases,
-        the onCurrentShellStateChanged will be fired too.
+        the _onCurrentShellStateChanged will be fired too.
         """
         shell = pyzo.shells.getCurrentShell()
         if not shell:
             self._variables = []
             self.haveNewData.emit()
 
-    def onCurrentShellStateChanged(self):
+    def _onCurrentShellStateChanged(self):
         """Do a request for information!"""
         self.updateVariables()
 
     def updateVariables(self):
         shell = pyzo.shells.getCurrentShell()
         if not shell:
-            # Should never happen I think, but just to be sure
             self._variables = []
         elif shell._state.lower() != "busy":
             future = shell._request.dir2(self._name)
-            future.add_done_callback(self.processResponse)
+            future.add_done_callback(self._processResponse)
 
-    def processResponse(self, future):
+    def _processResponse(self, future):
         """We got a response, update our list and notify the tree."""
 
         response = []
@@ -183,7 +182,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         # For menu
         self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.DefaultContextMenu)
         self._menu = QtWidgets.QMenu()
-        self._menu.triggered.connect(self.contextMenuTriggered)
+        self._menu.triggered.connect(self._contextMenuTriggered)
 
         # Bind to events
         self.itemActivated.connect(self.onItemExpand)
@@ -193,6 +192,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         self.setToolTip(
             "keyboard shortcuts for selected variable:\n"
             "h ... show variable info in Interactive help tool\n"
+            "v ... add variable to Expression viewer tool\n"
             "p ... print(variable)\n"
             "r ... print(repr(variable))\n"
             "RETURN/ENTER ... show namespace\n"  # this is done via signal itemActivated
@@ -209,6 +209,9 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
                 return
             if key == QtCore.Qt.Key.Key_H:
                 self._performCommand("Show help", item)
+                return
+            if key == QtCore.Qt.Key.Key_V:
+                self._performCommand("Add to Expr Viewer", item)
                 return
             if key == QtCore.Qt.Key.Key_P:
                 self._performCommand("str", item)
@@ -236,6 +239,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         commands = [
             ("Show namespace", pyzo.translate("pyzoWorkspace", "Show namespace")),
             ("Show help", pyzo.translate("pyzoWorkspace", "Show help")),
+            ("Add to Expr Viewer", pyzo.translate("pyzoWorkspace", "Add to Expression viewer tool")),
             ("str", "print(variable)"),
             ("repr", "print(repr(variable))"),
             ("Delete", pyzo.translate("pyzoWorkspace", "Delete")),
@@ -248,7 +252,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         # Show
         self._menu.popup(QtGui.QCursor.pos() + QtCore.QPoint(3, 3))
 
-    def contextMenuTriggered(self, action):
+    def _contextMenuTriggered(self, action):
         """Process a request from the context menu."""
         self._performCommand(action._what, action._item)
 
@@ -262,6 +266,8 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             hw = pyzo.toolManager.getTool("pyzointeractivehelp")
             if hw:
                 hw.setObjectName(objectName, addToHist=True)
+        elif cmd == "Add to Expr Viewer":
+            self._addExpressionToViewer(objectName)
         elif cmd in ("str", "repr"):
             shell = pyzo.shells.getCurrentShell()
             if shell is not None:
@@ -274,6 +280,13 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             shell = pyzo.shells.getCurrentShell()
             if shell is not None:
                 shell.processLine("del " + objectName)
+
+    def _addExpressionToViewer(self, expr, doRefresh=True):
+        """add an expression to Expression viewer tool (if loaded)"""
+        ev = pyzo.toolManager.getTool("pyzoexpressionviewer")
+        if ev:
+            ev.addExpression(expr)
+            ev.manualRefresh()
 
     def onItemExpand(self, item):
         """Inspect the attributes of that item."""
@@ -353,6 +366,14 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
             self.topLevelItemCount() == 0 and self._proxy._name == ""
         )
 
+    def _addAllToViewer(self):
+        """add all expressions to the Expression viewer tool (if loaded)"""
+        n = self.topLevelItemCount()
+        for i in range(n):
+            item = self.topLevelItem(i)
+            if item is not None:
+                objectName = joinName(splitName(self._proxy._name) + [item.text(0)])
+                self._addExpressionToViewer(objectName, doRefresh=(i == n - 1))
 
 class PyzoWorkspace(QtWidgets.QWidget):
     """PyzoWorkspace
@@ -383,13 +404,21 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._refresh.setIcon(pyzo.icons.arrow_refresh)
         self._refresh.setIconSize(QtCore.QSize(16, 16))
         self._refresh.setToolTip(
-            "manually refresh variables (e.g. for code running in the event loop)"
+            "manually refresh variables (e.g. for code running in the event loop)\n"
+            "this will also refresh the Expression viewer tool, if open"
         )
 
         self._up = QtWidgets.QToolButton(self)
         self._up.setIcon(pyzo.icons.arrow_left)
         self._up.setIconSize(QtCore.QSize(16, 16))
         self._up.setToolTip("switch to parent namespace")
+
+        self._btnAddAllToViewer = QtWidgets.QToolButton(self)
+        self._btnAddAllToViewer.setIcon(pyzo.icons.magnifier_zoom_in)
+        self._btnAddAllToViewer.setIconSize(QtCore.QSize(16, 16))
+        self._btnAddAllToViewer.setToolTip(
+            "add all visible entries to the Expression viewer tool"
+        )
 
         # Create "path" line edit
         self._line = QtWidgets.QLineEdit(self)
@@ -408,7 +437,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         #
         self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
-        self.onOptionsPress()  # create menu now
+        self._onOptionsPress()  # create menu now
 
         # Create tree
         self._tree = WorkspaceTree(self)
@@ -436,7 +465,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         #
         self._searchOptions._menu = QtWidgets.QMenu()
         self._searchOptions.setMenu(self._searchOptions._menu)
-        self.onSearchOptionsPress()  # create menu now and init default config values
+        self._onSearchOptionsPress()  # create menu now and init default config values
         self._updateSearchPlaceHolderText()
 
         # We put the tooltip text to the search options button instead of the
@@ -462,6 +491,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         layout.addWidget(self._refresh, 0)
         layout.addWidget(self._up, 0)
         layout.addWidget(self._line, 1)
+        layout.addWidget(self._btnAddAllToViewer, 0)
         layout.addWidget(self._options, 0)
         #
         searchLayout = QtWidgets.QHBoxLayout()
@@ -482,12 +512,13 @@ class PyzoWorkspace(QtWidgets.QWidget):
 
         # Bind events
         self._up.pressed.connect(self._tree._proxy.goUp)
-        self._refresh.pressed.connect(self._tree._proxy.updateVariables)
-        self._options.pressed.connect(self.onOptionsPress)
-        self._options._menu.triggered.connect(self.onOptionMenuTiggered)
-        self._searchOptions.pressed.connect(self.onSearchOptionsPress)
-        self._searchOptions._menu.triggered.connect(self.onSearchOptionMenuTiggered)
-        self._searchText.editingFinished.connect(self.onSearchTextUpdated)
+        self._refresh.pressed.connect(self._onButtonRefresh)
+        self._options.pressed.connect(self._onOptionsPress)
+        self._options._menu.triggered.connect(self._onOptionMenuTiggered)
+        self._searchOptions.pressed.connect(self._onSearchOptionsPress)
+        self._searchOptions._menu.triggered.connect(self._onSearchOptionMenuTiggered)
+        self._searchText.editingFinished.connect(self._onSearchTextUpdated)
+        self._btnAddAllToViewer.pressed.connect(self._tree._addAllToViewer)
 
     def displayEmptyWorkspace(self, empty, customMessage=None):
         if customMessage is None:
@@ -496,7 +527,17 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._noResultsLabel.setText(customMessage)
         self._noResultsLabel.setVisible(empty)
 
-    def onOptionsPress(self):
+    def _onButtonRefresh(self):
+        self.manualRefresh()
+        ev = pyzo.toolManager.getTool("pyzoexpressionviewer")
+        if ev:
+            ev.manualRefresh()
+
+    def manualRefresh(self):
+        """manually refresh the variables"""
+        self._tree._proxy.updateVariables()
+
+    def _onOptionsPress(self):
         """Create the menu for the button, Do each time to make sure
         the checks are right."""
 
@@ -522,7 +563,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
             action.setCheckable(True)
             action.setChecked(checked)
 
-    def onOptionMenuTiggered(self, action):
+    def _onOptionMenuTiggered(self, action):
         """The user decides what to hide in the workspace."""
 
         # What to show
@@ -533,7 +574,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         # Update
         self._tree.fillWorkspace()
 
-    def onSearchOptionsPress(self):
+    def _onSearchOptionsPress(self):
         """Create the menu for the button, Do each time to make sure
         the checks are right."""
 
@@ -551,16 +592,16 @@ class PyzoWorkspace(QtWidgets.QWidget):
             action.setCheckable(True)
             action.setChecked(self._config.setdefault(name, default))
 
-    def onSearchOptionMenuTiggered(self, action):
+    def _onSearchOptionMenuTiggered(self, action):
         name = action._what
         self._config[name] ^= True
 
         # Update
-        self.onSearchTextUpdated()
+        self._onSearchTextUpdated()
         self._tree.fillWorkspace()
         self._updateSearchPlaceHolderText()
 
-    def onSearchTextUpdated(self):
+    def _onSearchTextUpdated(self):
         needles = self._searchText.text().split()
         flags = re.IGNORECASE if not self._config.searchMatchCase else 0
         if len(needles) == 0:

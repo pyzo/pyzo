@@ -459,6 +459,33 @@ class PyzoIntrospector(yoton.RepChannel):
         # Done
         return text
 
+    def evalMultiple(self, sequenceOfExpressions):
+        """evaluate multiple expressions
+
+        The result will be converted to a string and truncated if too long.
+        In case of an error, the result will be the exception as a string.
+
+        return value:
+            [(request1, success1, result1), (request2, success2, result2), ...]
+        """
+        NS = self._getNameSpace()
+        maxChars = 150
+
+        returnValue = []
+        for expr in sequenceOfExpressions:
+            try:
+                result = str(eval(expr, None, NS))[:maxChars + 1]
+                if len(result) > maxChars:
+                    result = result[:maxChars - 1] + "…"
+                success = True
+            except Exception as e:
+                result = str(e)
+                success = False
+
+            returnValue.append((expr, success, result))
+
+        return returnValue
+
     def eval(self, command):
         """Evaluate a command and return result."""
 
