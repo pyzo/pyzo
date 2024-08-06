@@ -473,7 +473,6 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._searchOptions.setToolTip(
             "Enter one or multiple space-separated search expressions.\n"
             "A variable name will be displayed if it matches at least one of the expressions.\n"
-            "Press RETURN while typing to immediately update the search results.\n"
             "\n"
             "Depending on the settings, search expressions are either\n"
             "\n"
@@ -517,7 +516,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._options._menu.triggered.connect(self._onOptionMenuTiggered)
         self._searchOptions.pressed.connect(self._onSearchOptionsPress)
         self._searchOptions._menu.triggered.connect(self._onSearchOptionMenuTiggered)
-        self._searchText.editingFinished.connect(self._onSearchTextUpdated)
+        self._searchText.textChanged.connect(self._onSearchTextUpdated)
         self._btnAddAllToViewer.pressed.connect(self._tree._addAllToViewer)
 
     def displayEmptyWorkspace(self, empty, customMessage=None):
@@ -584,6 +583,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
         searchOptions = [
             ("searchMatchCase", True, pyzo.translate("pyzoWorkspace", "Match case")),
             ("searchRegExp", False, pyzo.translate("pyzoWorkspace", "RegExp")),
+            ("searchStartsWith", True, pyzo.translate("pyzoWorkspace", "Starts with ...")),
         ]
 
         for name, default, label in searchOptions:
@@ -607,8 +607,12 @@ class PyzoWorkspace(QtWidgets.QWidget):
         if len(needles) == 0:
             regExpList = [r".*"]
         elif self._config.searchRegExp:
+            if self._config.searchStartsWith:
+                needles = [s + ".*" for s in needles]
             regExpList = needles
         else:
+            if self._config.searchStartsWith:
+                needles = [s + "*" for s in needles]
             regExpList = [wildcardsToRegExp(s) for s in needles]
 
         pattern = "(?:" + ")|(?:".join(regExpList) + ")"
