@@ -236,9 +236,6 @@ class KeyMapper(QtCore.QObject):
             # Set shortcut so Qt can do its magic
             shortcuts = pyzo.config.shortcuts2[action.menuPath]
             action.setShortcuts(shortcuts.split(","))
-            pyzo.main.addAction(
-                action
-            )  # issue #470, http://stackoverflow.com/questions/23916623
             # Also store shortcut text (used in display of tooltip
             shortcuts = shortcuts.replace(",", ", ").replace("  ", " ")
             action._shortcutsText = shortcuts.rstrip(", ")
