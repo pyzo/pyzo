@@ -557,6 +557,8 @@ class BaseTextCtrl(CodeEditor):
             nameTokens, needleToken = parseLine_autocomplete(tokens)
             if nameTokens:
                 name = "{}.{}".format("".join([str(t) for t in nameTokens]), needleToken)
+            elif needleToken:
+                name = str(needleToken)
 
         if name != "":
             hw.setObjectName(name, True)
