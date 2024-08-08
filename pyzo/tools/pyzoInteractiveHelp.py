@@ -338,8 +338,9 @@ initText = pyzo.translate(
     "pyzoInteractiveHelp",
     """
 Help information is queried from the current shell
-when moving up/down in the autocompletion list
-and when double clicking on a name.
+automatically when moving up/down in the autocompletion list,
+or manually via the context menu in the shell and editor,
+or via the Workspace tool.
 """,
 )
 
