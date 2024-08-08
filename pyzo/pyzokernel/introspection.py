@@ -311,14 +311,18 @@ class PyzoIntrospector(yoton.RepChannel):
                         values_repr = ""
                         if hasattr(val, "flat"):
                             for el in val.flat:
-                                values_repr += ", " + repr(el)
+                                # using str instead of repr to have
+                                # "<array 3 int64: 1, 2, 3>"
+                                # instead of
+                                # "<array 3 int64: np.int64(1), np.int64(2), np.int64(3)>"
+                                values_repr += ", " + str(el)
                                 if len(values_repr) > 70:
-                                    values_repr = values_repr[:67] + ", …"
+                                    values_repr = values_repr[:69] + u"…"
                                     break
                         repres = "<array %s %s: %s>" % (
                             tmp,
                             val.dtype.name,
-                            values_repr,
+                            values_repr[2:],  # remove the leading ", "
                         )
                     elif val.size:
                         # val can be a non-numeric or structured type as well, e.g.:
@@ -331,29 +335,29 @@ class PyzoIntrospector(yoton.RepChannel):
                     for el in val:
                         values_repr += ", " + repr(el)
                         if len(values_repr) > 70:
-                            values_repr = values_repr[:67] + ", …"
+                            values_repr = values_repr[:69] + u"…"
                             break
-                    repres = "<%i-element list: %s>" % (len(val), values_repr)
+                    repres = "<%i-element list: %s>" % (len(val), values_repr[2:])
                 elif kind == "tuple":
                     values_repr = ""
                     for el in val:
                         values_repr += ", " + repr(el)
                         if len(values_repr) > 70:
-                            values_repr = values_repr[:67] + ", …"
+                            values_repr = values_repr[:69] + u"…"
                             break
-                    repres = "<%i-element tuple: %s>" % (len(val), values_repr)
+                    repres = "<%i-element tuple: %s>" % (len(val), values_repr[2:])
                 elif kind == "dict":
                     values_repr = ""
                     for k, v in val.items():
                         values_repr += ", " + repr(k) + ": " + repr(v)
                         if len(values_repr) > 70:
-                            values_repr = values_repr[:67] + ", …"
+                            values_repr = values_repr[:69] + u"…"
                             break
-                    repres = "<%i-item dict: %s>" % (len(val), values_repr)
+                    repres = "<%i-item dict: %s>" % (len(val), values_repr[2:])
                 else:
                     repres = repr(val)
                     if len(repres) > 80:
-                        repres = repres[:77] + "…"
+                        repres = repres[:79] + u"…"
                 # Store
                 tmp = (name, typeName, kind, repres)
                 names.append(tmp)
@@ -476,7 +480,7 @@ class PyzoIntrospector(yoton.RepChannel):
             try:
                 result = str(eval(expr, None, NS))[:maxChars + 1]
                 if len(result) > maxChars:
-                    result = result[:maxChars - 1] + "…"
+                    result = result[:maxChars - 1] + u"…"
                 success = True
             except Exception as e:
                 result = str(e)
