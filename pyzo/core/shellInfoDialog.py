@@ -269,7 +269,11 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
     DISABLE_SYSTEM_DEFAULT = sys.platform == "darwin"
     SYSTEM_VALUE = "$PYTHONSTARTUP"
-    RUN_AFTER_GUI_TEXT = "# AFTER_GUI - code below runs after integrating the GUI\n"
+    RUN_BEFORE_AFTER_GUI_TEXT = (
+        "... Python code to run before integrating the GUI ...\n"
+        "# AFTER_GUI\n"
+        "... Python code to run after integrating the GUI ..."
+    )
 
     def __init__(self, parent):
         # Do not pass parent, because is a sublayout
@@ -288,6 +292,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
         self._edit2.setMaximumHeight(80)
         self._edit2.setMinimumWidth(200)
         self._edit2.textChanged.connect(self.onEditChanged)
+        self._edit2.setPlaceholderText(self.RUN_BEFORE_AFTER_GUI_TEXT)
 
         # Layout
         self.setSpacing(1)
@@ -375,7 +380,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
             self._edit1.hide()
             self._edit2.show()
             if not value.strip():
-                value = self.RUN_AFTER_GUI_TEXT
+                value = ""  # this will display the placeholder text
             self._edit2.setText(value)
 
     def getTheText(self):
