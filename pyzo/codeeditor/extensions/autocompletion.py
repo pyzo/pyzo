@@ -166,6 +166,16 @@ class AutoCompletion:
         cursor = self.textCursor()
         cursor.setPosition(self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor)
         # Replace it with the selected text
+
+        # get the character that would be on the right of the cursor after auto completion
+        i = cursor.positionInBlock() + len(cursor.selectedText())
+        charAfterAutoCompText = cursor.block().text()[i : i + 1]
+
+        if text[-1] in "'\")" and text[-1] == charAfterAutoCompText:
+            # remove the duplicated closing quote resp. closing parenthesis
+            # ... during key autocompletion with a string literal or tuple
+            text = text[:-1]
+
         cursor.insertText(text)
         self.autocompleteAccept()  # Reset the completer
 
