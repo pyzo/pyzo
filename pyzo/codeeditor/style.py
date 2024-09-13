@@ -213,7 +213,7 @@ class StyleFormat:
             if val in ["yes", "true"]:
                 self._linestyle = Qt.PenStyle.SolidLine
             elif val in ["dotted", "dot", "dots", "dotline"]:
-                self._linestyle = Qt.DotLine
+                self._linestyle = Qt.PenStyle.DotLine
             elif val in ["dashed", "dash", "dashes", "dashline"]:
                 self._linestyle = Qt.PenStyle.DashLine
             else:
