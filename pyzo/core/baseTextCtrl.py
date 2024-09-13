@@ -501,6 +501,10 @@ class BaseTextCtrl(CodeEditor):
             nameTokens, needleToken = parseLine_autocomplete(tokens)
             keyLookUp = False
 
+            if not nameTokens and not str(needleToken).isidentifier():
+                # nameTokens could be None or []
+                nameTokens = None  # force key-auto-completion (for indices, and numeric keys)
+
             if nameTokens is None:
                 # no auto-completion for a name or attribute found --> try key-auto-completion instead
                 keyLookUp = True

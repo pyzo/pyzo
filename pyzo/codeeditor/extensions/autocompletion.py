@@ -208,7 +208,7 @@ class AutoCompletion:
                 i += 1
                 charRight = line[i : i + 1]
 
-        if text.isdecimal():
+        if not text.isidentifier():
             # e.g. key autocompletion with list index
             isKeyAutocompletion = True
 
