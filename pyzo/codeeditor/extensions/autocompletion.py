@@ -166,18 +166,34 @@ class AutoCompletion:
         cursor = self.textCursor()
         cursor.setPosition(self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor)
         # Replace it with the selected text
-
-        # get the character that would be on the right of the cursor after auto completion
-        i = cursor.positionInBlock() + len(cursor.selectedText())
-        charAfterAutoCompText = cursor.block().text()[i : i + 1]
-
-        if text[-1] in "'\")" and text[-1] == charAfterAutoCompText:
-            # remove the duplicated closing quote resp. closing parenthesis
-            # ... during key autocompletion with a string literal or tuple
-            text = text[:-1]
-
         cursor.insertText(text)
         self.autocompleteAccept()  # Reset the completer
+
+        # get the characters to the left and right of the cursor after autocompletion
+        line = cursor.block().text()
+        i = cursor.positionInBlock()
+        charLeft = line[i - 1 : i]
+        charRight = line[i : i + 1]
+
+        isKeyAutocompletion = False
+        if charLeft in "'\")":
+            isKeyAutocompletion = True
+            # key autocompletion with string literal or tuple
+            if charLeft == charRight:
+                # remove the duplicated closing quote resp. closing parenthesis
+                # ... during key autocompletion with a string literal or tuple
+                cursor.deleteChar()
+                i += 1
+                charRight = line[i : i + 1]
+
+        if text.isdecimal():
+            # e.g. key autocompletion with list index
+            isKeyAutocompletion = True
+
+        if isKeyAutocompletion and charRight == "]":
+            # move the cursor after the closing bracket after key autocompletion
+            cursor.movePosition(cursor.MoveOperation.Right)
+            self.setTextCursor(cursor)
 
         # Update the recent completions list
         if text in self.__recentCompletions:
