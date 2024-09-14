@@ -13,6 +13,25 @@ Qt = QtCore.Qt
 
 import keyword
 
+import os
+
+"""
+On a Ubuntu 22.04 like Linux distribution with Wayland, gdm3 and Qt6, Pyzo crashes
+when using the autocompletion popup list, sometimes immediately, other times when
+rapidly opening and cancelling the popup list several times in a row.
+After the crash the following error message is displayed in the terminal:
+"The Wayland connection experienced a fatal error: Protocol error"
+
+The following workaround was elaborated via educated guesses and trial & error:
+Setting the Qt window type of the autocompletion list to ToolTip avoids the crash.
+But Key_Up and Key_Down will not move the list selection anymore, so we have to catch
+these key events and decrement/increment the selected index in our own event handler.
+To avoid any side effects for other operating systems and environments (for example X11),
+we only use this workaround on Linux computers with Wayland. We can detect this by
+checking environment variable "XDG_SESSION_TYPE".
+"""
+USE_WAYLAND_WORKAROUND = os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
+
 
 # TODO: use this CompletionListModel to style the completion suggestions (class names, method names, keywords etc)
 class CompletionListModel(QtCore.QStringListModel):
@@ -37,6 +56,9 @@ class AutoCompletion:
         self.__completer.setWidget(self)
         self.__completerNames = []
         self.__recentCompletions = []  # List of recently selected completions
+        self.__completerWindow = self.__completer.popup()
+        if USE_WAYLAND_WORKAROUND:
+            self.__completerWindow.setWindowFlags(QtCore.Qt.WindowType.ToolTip)
 
         self.__cancelCallback = None
 
@@ -137,20 +159,20 @@ class AutoCompletion:
             self.__positionAutocompleter()
             if self.__updateAutocompleterPrefix():
                 self.__autocompleteVisible = True
-                self.__completer.popup().show()
+                self.__completerWindow.show()
             if self.__autocompleteDebug:
-                print("self.__completer.popup().show() called")
+                print("self.__completerWindow.show() called")
 
         else:
             self.__updateAutocompleterPrefix()
 
     def autocompleteAccept(self):
-        self.__completer.popup().hide()
+        self.__completerWindow.hide()
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
 
     def autocompleteCancel(self):
-        self.__completer.popup().hide()
+        self.__completerWindow.hide()
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
         if self.__cancelCallback is not None:
@@ -214,10 +236,10 @@ class AutoCompletion:
         cur = QtGui.QTextCursor(self.__autocompleteStart)  # Copy __autocompleteStart
 
         # Set size
-        geometry = self.__completer.popup().geometry()
+        geometry = self.__completerWindow.geometry()
         geometry.setWidth(self.__popupSize[0])
         geometry.setHeight(self.__popupSize[1])
-        self.__completer.popup().setGeometry(geometry)
+        self.__completerWindow.setGeometry(geometry)
 
         # Initial choice for position of the completer
         position = self.cursorRect(cur).bottomLeft() + self.viewport().pos()
@@ -234,7 +256,7 @@ class AutoCompletion:
         else:
             global_position = self.mapToGlobal(position)
 
-        self.__completer.popup().move(global_position)
+        self.__completerWindow.move(global_position)
 
     def __updateAutocompleterPrefix(self):
         """Find the autocompletion prefix (the part of the word that has been
@@ -242,7 +264,7 @@ class AutoCompletion:
         (out of several possiblilties) which is best suited
         """
         if not self.autocompleteActive():
-            self.__completer.popup().hide()  # TODO: why is this required?
+            self.__completerWindow.hide()  # TODO: why is this required?
             self.__autocompleteVisible = False
             return False
 
@@ -294,7 +316,7 @@ class AutoCompletion:
 
                 # apply the best match
                 bestMatchRow = completions[0][0]
-                self.__completer.popup().setCurrentIndex(model.index(bestMatchRow, 0))
+                self.__completerWindow.setCurrentIndex(model.index(bestMatchRow, 0))
 
                 return True
 
@@ -336,6 +358,18 @@ class AutoCompletion:
 
         if self.potentiallyAutoComplete(event) > 1:
             return  # Consume
+
+        if USE_WAYLAND_WORKAROUND and self.autocompleteActive():
+            deltaRow = 0
+            if key == Qt.Key.Key_Up:
+                deltaRow = -1
+            elif key == Qt.Key.Key_Down:
+                deltaRow = 1
+            if deltaRow != 0:
+                row = self.__completerWindow.currentIndex().row() + deltaRow
+                model = self.__completerWindow.model()
+                self.__completerWindow.setCurrentIndex(model.index(row % model.rowCount(), 0))
+                return  # consume the key
 
         # Allowed keys that do not close the autocompleteList:
         # alphanumeric and _ and shift
