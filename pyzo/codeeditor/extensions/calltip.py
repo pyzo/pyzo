@@ -18,8 +18,8 @@ class Calltip:
     ]
 
     class __CalltipLabel(QtWidgets.QLabel):
-        def __init__(self):
-            super().__init__()
+        def __init__(self, parent):
+            super().__init__(parent)
 
             # Start hidden
             self.hide()
@@ -31,8 +31,8 @@ class Calltip:
 
     def __init__(self, *args, **kwds):
         super().__init__(*args, **kwds)
-        # Create label for call tips
-        self.__calltipLabel = self.__CalltipLabel()
+        # Create label for call tips  -- it needs a parent, otherwise it will cause a crash on Linux with Wayland
+        self.__calltipLabel = self.__CalltipLabel(self)
         # Be notified of style updates
         self.styleChanged.connect(self.__afterSetStyle)
 
