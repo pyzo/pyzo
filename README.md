@@ -26,12 +26,46 @@ system (Python 2.4 - 3.x, including PyPy).
 
 ### Installation
 
-Pyzo runs on Python3 and needs one of the following Qt bindings:
-PySide2, PySide6, PyQt5, PyQt6.
-On a modern OS these should be easy to obtain. One can then install
-Pyzo with `python3 -m pip install pyzo`
 
-We also provide [binaries](https://github.com/pyzo/pyzo/releases) for Windows, Linux and MacOS.
+#### Running Pyzo from pre-built binaries
+
+We provide [binaries](https://github.com/pyzo/pyzo/releases) for Windows, Linux and MacOS.  
+Linux users are recommended to run Pyzo from source because of possible Qt library incompatibilities.
+
+#### Running Pyzo from source
+
+To run Pyzo from source, you need a Python interpreter with one of the following Qt bindings:  
+PySide2, PySide6, PyQt5, PyQt6.  
+If you do not have such a Qt wrapper then install one from https://pypi.org
+via the Python package manager, e.g.:  
+`python3 -m pip install pyside6`
+
+Linux users might do this via their Linux package manager, e.g.:  
+`sudo apt-get install python3-pyqt5`
+
+Download the source code archive from the [releases page](https://github.com/pyzo/pyzo/releases) or the
+[newest development version](https://github.com/pyzo/pyzo/archive/refs/heads/main.zip) and extract the
+contents into a folder.  
+Pyzo can then be run from source by executing
+the [pyzolauncher.py](https://github.com/pyzo/pyzo/blob/main/pyzolauncher.py) script inside that folder,
+for example:  
+`python3 /path/to/pyzo-source/pyzolauncher.py`
+
+To use a specific Qt wrapper, set the environment variable `QT_API` to the name of the wrapper package,
+e.g. `pyqt6`.  
+Linux users can add Pyzo to the desktop environment by copying and customizing the
+[desktop-file](https://github.com/pyzo/pyzo/blob/main/pyzo/resources/org.pyzo.Pyzo.desktop).
+
+#### Running Pyzo as a module
+
+Running Pyzo as a Python module is similar to running Pyzo from source, as described in the
+previous chapter.  
+Instead of downloading the source code archive from GitHub, it can be installed from https://pypi.org
+via the Python package manager, e.g.:  
+`python3 -m pip install pyzo`
+
+To run Pyzo, execute:  
+`python3 -m pyzo`
 
 
 ### License
