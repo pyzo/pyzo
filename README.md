@@ -67,6 +67,15 @@ via the Python package manager, e.g.:
 To run Pyzo, execute:  
 `python3 -m pyzo`
 
+#### Building your own binary executable of Pyzo
+
+If you prefer a binary version of Pyzo instead of running Pyzo directly from soure or downloading a release then you can
+build your own Pyzo executable:  
+Download the [source code](https://github.com/pyzo/pyzo/archive/refs/heads/main.zip) and follow the
+instructions in the comment block on top of [pyzo_freeze.py](https://github.com/pyzo/pyzo/blob/main/freeze/pyzo_freeze.py).
+Basically, this is just  
+`pip install --upgrade pip pyside6 pyinstaller dialite` and executing pyzo_freeze.py.
+
 
 ### License
 
