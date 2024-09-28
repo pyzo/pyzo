@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
 
 """ PyInstaller script
+
+You can build a binary executable of Pyzo yourself:
+
+* Install the dependencies, for example by typing the following line in a shell in Pyzo:
+pip install --upgrade pip pyside6 pyinstaller dialite
+
+* Run this script.
+
+* The result is in the "dist" folder, in the same directory as this script.
+
 """
 
 import os
 import sys
 import shutil
-
+import inspect
 
 # Definitions
 name = "pyzo"
 qt_api = os.getenv("PYZO_QT_API", "PySide6")
-this_dir = os.path.abspath(os.path.dirname(__file__)) + "/"
-exe_script = this_dir + "boot.py"
-dist_dir = this_dir + "dist/"
+this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+exe_script = os.path.join(this_dir, "boot.py")
+dist_dir = os.path.join(this_dir, "dist")
 icon_file = os.path.abspath(
     os.path.join(this_dir, "..", "pyzo", "resources", "appicons", "pyzologo.ico")
 )
