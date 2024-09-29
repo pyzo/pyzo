@@ -15,6 +15,7 @@ elif API == "PyQt5":
 
 if API in ("PySide2", "PyQt5"):
     QMouseEvent.position = lambda self: _QPointF(self.pos())
+    QDropEvent.position = QDropEvent.posF
 
     # For Qt5 we need something like QFontDatabase = QFontDatabase()
     # but with instance creation just when first accessing the class.

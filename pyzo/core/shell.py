@@ -557,7 +557,7 @@ class BaseShell(BaseTextCtrl):
     def dragEnterEvent(self, event):
         """We only support copying of the text"""
         if event.mimeData().hasText():
-            event.setDropAction(QtCore.Qt.CopyAction)
+            event.setDropAction(QtCore.Qt.DropAction.CopyAction)
             event.accept()
 
     def dragMoveEvent(self, event):
