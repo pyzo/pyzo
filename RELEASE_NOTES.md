@@ -1,5 +1,30 @@
 # Release notes
 
+### Version 4.17.0 (07-10-2024)
+
+
+## What's Changed
+* fix introspection of non-numeric numpy elements by @bdieterm in https://github.com/pyzo/pyzo/pull/1052
+* improve signature extraction for calltips by @bdieterm in https://github.com/pyzo/pyzo/pull/1054
+* fix source structure tool for nested elements by @bdieterm in https://github.com/pyzo/pyzo/pull/1055
+* add pause button to "Interactive help" tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1056
+* add search text filters and refresh button to the workspace tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1057
+* add expression viewer tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1058
+* add "starts-with" and live-update to the workspace tool's search by @bdieterm in https://github.com/pyzo/pyzo/pull/1060
+* remove old workaround for shortcuts now causing issues by @e-d-n-a in https://github.com/pyzo/pyzo/pull/1061
+* improve introspection for better object representation by @bdieterm in https://github.com/pyzo/pyzo/pull/1062
+* fix interactive help via context menu, and fix inital text by @bdieterm in https://github.com/pyzo/pyzo/pull/1063
+* add placeholder text to startup-code textbox in shell configuration dialog by @bdieterm in https://github.com/pyzo/pyzo/pull/1065
+* avoid duplicated closing quote or paren on key autocompletion by @bdieterm in https://github.com/pyzo/pyzo/pull/1066
+* move cursor past the closing bracket on key autocompletion by @bdieterm in https://github.com/pyzo/pyzo/pull/1067
+* fix wrong enum for Qt6 in styles.py by @bdieterm in https://github.com/pyzo/pyzo/pull/1069
+* fix calltips and autocompletion crash with Qt6 on Wayland by @bdieterm in https://github.com/pyzo/pyzo/pull/1071
+* fix autocompletion for numeric keys by @bdieterm in https://github.com/pyzo/pyzo/pull/1072
+* enhance installation instructions in README.md by @bdieterm in https://github.com/pyzo/pyzo/pull/1073
+* improve freeze instructions by @bdieterm in https://github.com/pyzo/pyzo/pull/1082
+* fix errors that occurred when dropping text in the shell by @bdieterm in https://github.com/pyzo/pyzo/pull/1084
+* fix drop event for PyQt5 by @bdieterm in https://github.com/pyzo/pyzo/pull/1085
+
 
 ### Version 4.16.0 (04-07-2024)
 
@@ -177,8 +202,8 @@ Fixes and improvements related to Qt:
 - remove unused Qt compatibility files by @bdieterm in https://github.com/pyzo/pyzo/pull/872
 - remove QtOpenGLWidgets by @bdieterm in https://github.com/pyzo/pyzo/pull/874
 - fix regex search in editor for Qt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/877
-  
-  
+
+
 Fixes:
 
 - allow multiple statements in shell startup code after gui initialization by @bdieterm in https://github.com/pyzo/pyzo/pull/856
@@ -194,7 +219,7 @@ Fixes:
 - fix appconfig path on MS Windows and clean up code by @bdieterm in https://github.com/pyzo/pyzo/pull/886
 
 Improvements:
-  
+
 - enable autocompletion for string literals by @bdieterm in https://github.com/pyzo/pyzo/pull/850
 - remove orphaned file guisupport.py by @bdieterm in https://github.com/pyzo/pyzo/pull/857
 - clean-up logging timestamp preamble by @bdieterm in https://github.com/pyzo/pyzo/pull/866
@@ -319,7 +344,7 @@ Improvements:
 ### Version 4.8.0 (27-08-2019)
 
 - Fix block commenting when having empty lines (Thanks adddvent)
-- Improve automatic insertion of braces and brackets 
+- Improve automatic insertion of braces and brackets
 - Improvements to advanced Settings (thanks Kelsi-Pi and Yann Salmon)
 - The Python 3 parser does not show Python 2 specifics (like print as a keyword) anymore (Thanks Yann Salmon)
 - Unified margins between widgets (thanks Kelsi-Pi)
@@ -438,7 +463,7 @@ Small improvements:
 This release represents a large amount of new features and improvements:
 
 Editor and shell:
-    
+
 * Tab titles also show part of the filename path if multiple files with the same name are present.
 * The command history is now shared between all shells, and saved between sessions.
 * Running selection will add to command history, also more options for command history tool.
@@ -546,7 +571,7 @@ Other improvements:
 
 * Support for Jython! (issue #323)
 * New tool: command history
-* Smarter copying and pasting 
+* Smarter copying and pasting
 * Experimental support for integrating the Tornado event loop
 * IEP is available in Debian! (issue #337) Thanks Ghis!
 * issue #311: Zoom level of code text is inconsistent between architectures
@@ -558,8 +583,8 @@ Other improvements:
 * issue #332: Cannot save file when File browser shows drives list on Windows
 * issue #325: multiprocessing.pool doesn't work
 * issue #322: Cannot run IEP form IEP
-* issue #318: Line ending removed from last line upon save Editor 
-* issue #306: Easier to modify syntax style Menu / settings 
+* issue #318: Line ending removed from last line upon save Editor
+* issue #306: Easier to modify syntax style Menu / settings
 * issue #305: cursor jumping to file beginning upon save
 
 * pr #16: Fix the import wizard on PyQt4 (Scott Logan)
@@ -601,10 +626,10 @@ Improvements/fixes related to the shell and kernel:
 * issue #268: Allow specifying extra environment arguments in shell config
 * issue #239: Enable passing command line arguments (sys.argv)
 * issue #262: Clicking in shell to focus to it causes scrolling to last line to stop
-* issue #250: Prevent early exit for programs entering PySide event loop 
+* issue #250: Prevent early exit for programs entering PySide event loop
 * issue #240: On Windows allow kernel to start also if 'cmd' is not recognized.
 * issue #275: Paths in shell output (e.g. tracebacks) can be clicked on to open the file at the corresponding file number.
-* issue #278: Fixed that on OSX Maverick, App Nap made the IEP kernel slow 
+* issue #278: Fixed that on OSX Maverick, App Nap made the IEP kernel slow
 
 Other notable improvements:
 
@@ -613,7 +638,7 @@ Other notable improvements:
 * issue #266: Editor should auto-scroll to breakpoint when it becomes active
 * issue #252: Fix that cursor is gone after dragging in a file (Linux)
 * issue #267: Improved terminology for different RUN actions
-* issue #285: Print/export code to pdf 
+* issue #285: Print/export code to pdf
 * Webbrowser tool used QWebkit if available (Thanks to David Salter)
 
 Other fixes issues: #161, #188, #201, #209, #245, #255, #251, #265, #270, #271, #276, #242, #229, #260, #259, #227, #254, #253, #243, #244
@@ -632,7 +657,7 @@ During the beta period we also fixed: #286, #283, #277, #281
 
 ### Version 3.3 (29-10-2013)
 
-Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints! 
+Since last release we have a new website, a new logo, and this release introduces our experimental libre license model. In terms of functionality, the biggest change is that IEP now supports debugging with breakpoints!
 
 The binaries for Linux are now build without -gtkstyle, making them look better or worse, depending on your OS. There is an experimental feature that tries to load PySide from the system libraries. The Python version on your system must be 3.3. E.g. on Ubuntu 13.10 you can do `sudo apt-get install python3-pyside`. To enable this feature, check the `qt.conf` file.
 
@@ -672,7 +697,7 @@ List of issues that are fixed in this release:
   * issue #156: Popup window for autocompletion can now be resized (via the config)
   * issue #157: Ctrl+Shift+Enter execute cell and go to next cell (as in Matlab)
   * issue #159: Exit code of Python process was incorrect
-  * issue #163, issue #164, issue #165: Fixed problems running on Python 3.3 and Pyside. 
+  * issue #163, issue #164, issue #165: Fixed problems running on Python 3.3 and Pyside.
   * issue #166: smart handling of indentation when deleting text.
   * issue #178: The font can now be chosen in the menu, and IEP ships with a good default font.
   * Further: issue #14, issue #138, issue #139, issue #144, issue #147, issue #158, issue #186
@@ -683,7 +708,7 @@ Other changes:
   * Fault handler module is used on Python 3.3 to debug hard crashes.
   * When IEP closes, it takes better care of stopping daemon threads.
   * Some cosmetic enhancements of the tools.
-  * The keys to accept autocompletion can now be configured (e.g. use Enter instead of Tab), see issue #134. 
+  * The keys to accept autocompletion can now be configured (e.g. use Enter instead of Tab), see issue #134.
 
 During the beta period, a few more issues were fixed:
 
@@ -729,8 +754,8 @@ About 14 months after releasing 2.3, we finally got version 3.0 out. The main re
 
 The core things that were changed:
 
-  * We have rewritten the code that does the communication between the kernel and the IEP. This code is organized separately in a package we've called [Yoton(http://code.google.com/p/yoton/). We've designed it in such a way that it will allow us to run a kernel on a different machine (remote computing) and to connect multiple users to the same kernel (collaborative computing). You might expect these features in one of the coming releases. Further, it paves the way for parallel computing (but that's for the further future). 
-  * Another big change is the editing component. We've gotten rid of Scintilla (which is an old library with an inconsistent API, with bad support for Unicode, and was very buggy on Mac). We have designed our own editing component using pure Qt components. We've designed that part too to be independent of IEP, so it might be reused in other projects. 
+  * We have rewritten the code that does the communication between the kernel and the IEP. This code is organized separately in a package we've called [Yoton(http://code.google.com/p/yoton/). We've designed it in such a way that it will allow us to run a kernel on a different machine (remote computing) and to connect multiple users to the same kernel (collaborative computing). You might expect these features in one of the coming releases. Further, it paves the way for parallel computing (but that's for the further future).
+  * Another big change is the editing component. We've gotten rid of Scintilla (which is an old library with an inconsistent API, with bad support for Unicode, and was very buggy on Mac). We have designed our own editing component using pure Qt components. We've designed that part too to be independent of IEP, so it might be reused in other projects.
   * The code for the menu has been completely redone, allowing for easier incorporation of icons, and using (contex) menus in other places.
   * The editorstack has been gotten rid of. In its place is the project manager and a more classic tab bar, custom-made to make the tabs more compact and provide information about the open documents in a subtle and non-intrusive manner.
 
@@ -772,12 +797,12 @@ For this release we implemented many improvements and bug-fixes. Further, we imp
 
 A few beta tester played around with the first version and gave me list of things to improve. Special thanks to Stef for his suggestions.
 
-  
+
   * Better distinction between running code interactively or as a script. Also significantly improved the shell configuration dialog.
   * Append '' to sys.path in interactive mode. In Script mode, add the directory of the script.
   * Allow enter and other chars to complete the autocompletion.
   * Better detection of classes and defs in the code parser (also for cython code).
-  * Let user change the PythonPath in shell configs.  
+  * Let user change the PythonPath in shell configs.
   * Shell always fits 80 colums set to default False.
   * Shells can also be set not to wrap to 80 columns.
   * The code parser handles multiline strings in the code also if they dedent.
@@ -809,7 +834,7 @@ I intended to release alpha release while I was developing Iep, but only release
 
 A bit of history ...
 
-When I started working with Python, I used IPython and Pype, which I both really liked, but I felt that the two should be combined in one application. Since I could not find a free IDE that did this (Spyder did not exist yet) I set out to make my own. 
+When I started working with Python, I used IPython and Pype, which I both really liked, but I felt that the two should be combined in one application. Since I could not find a free IDE that did this (Spyder did not exist yet) I set out to make my own.
 
 I wrote a first version of IEP in Python 2.5 using the wx GUI toolkit. When I thought it was at a stage that it was suitable for a public release, I tested in on Linux, and it looked like `cr*p`. I could (and should) have expected this, because I used some widgets on a rather low-level, and some widgets behave rather differently on different OS's (since wx wraps the native widgets to the os).
 
