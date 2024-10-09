@@ -553,6 +553,14 @@ class PyzoEditor(BaseTextCtrl):
         # allow item to update its texts (no need: onModifiedChanged does this)
         # self.somethingChanged.emit()
 
+    def saveCopy(self, filepath):
+        """Creates a backup of the current editor's contents. No checking is done."""
+
+        text = self.toPlainText().replace("\n", self.lineEndings)
+        bb = text.encode(self.encoding)
+        with open(filepath, "wb") as f:
+            f.write(bb)
+
     def reload(self):
         """Reload text using the self._filename.
         We do not have a load method; we first try to load the file
