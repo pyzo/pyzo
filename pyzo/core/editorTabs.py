@@ -1304,8 +1304,9 @@ class EditorTabs(QtWidgets.QWidget):
         editor.reload()
         self._tabs.updateItems()
 
-    def saveFileAs(self, editor=None):
+    def saveFileAs(self, editor=None, saveCopyAs=False):
         """Create a dialog for the user to select a file.
+        If saveCopyAs is True, only a backup of the editor's contents will be saved.
         returns: True if succesfull, False if fails
         """
 
@@ -1317,9 +1318,9 @@ class EditorTabs(QtWidgets.QWidget):
 
         # get startdir
         if editor._filename:
-            startdir = os.path.dirname(editor._filename)
+            startdir, startfilename = os.path.split(editor._filename)
         else:
-            startdir = self._lastpath
+            startdir, startfilename = self._lastpath, None
             # Try the file browser to suggest a path
             fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
             if fileBrowser:
@@ -1337,8 +1338,12 @@ class EditorTabs(QtWidgets.QWidget):
         filter += "C (*.c *.h *.cpp);;"
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
+        if startfilename is None:
+            startfilepath = startdir
+        else:
+            startfilepath = os.path.join(startdir, startfilename)
         filename, selectedFilter = QtWidgets.QFileDialog.getSaveFileName(
-            self, msg, startdir, filter, options=self._fileDialogOptions
+            self, msg, startfilepath, filter, options=self._fileDialogOptions
         )
 
         # give python extension if it has no extension
@@ -1348,6 +1353,8 @@ class EditorTabs(QtWidgets.QWidget):
 
         # proceed or cancel
         if filename:
+            if saveCopyAs:
+                return self.saveFileCopy(editor, filename)
             return self.saveFile(editor, filename)
         else:
             return False  # Cancel was pressed
@@ -1399,6 +1406,31 @@ class EditorTabs(QtWidgets.QWidget):
         self._tabs.updateItems()
 
         # todo: this is where we once detected whether the file being saved was a style file.
+
+        # Notify done
+        return True
+
+    def saveFileCopy(self, editor, filename):
+        """Save the contents of the editor to a file, as a backup.
+        returns: True if succesfull, False if fails
+        """
+
+        # let the editor do the low level stuff...
+        try:
+            editor.saveCopy(filename)
+        except Exception as err:
+            # Notify in logger
+            print("Error saving file:", err)
+            # Make sure the user knows
+            m = QtWidgets.QMessageBox(self)
+            m.setWindowTitle("Error saving file")
+            m.setText(str(err))
+            m.setIcon(m.Icon.Warning)
+            m.exec()
+            # Return now
+            return False
+
+        print("saved file: {} ({})".format(filename, editor.lineEndingsHumanReadable))
 
         # Notify done
         return True

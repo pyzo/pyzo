@@ -539,6 +539,10 @@ def loadIcons():
     artist.addLayer("arrow_refresh")
     pyzo.icons["reload_file_from_disk"] = artist.finish()
 
+    artist = IconArtist("page_white_copy")
+    artist.addLayer("overlay_disk")
+    pyzo.icons["save_copy_as"] = artist.finish()
+
 
 def loadFonts():
     """Load all fonts that come with Pyzo."""

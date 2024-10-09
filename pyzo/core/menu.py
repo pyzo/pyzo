@@ -610,6 +610,13 @@ class FileMenu(Menu):
                 pyzo.editors.saveFileAs,
             ),
             self.addItem(
+                translate(
+                    "menu", "Save a copy as... ::: Create a backup of the current editor's contents."
+                ),
+                icons.save_copy_as,
+                lambda: pyzo.editors.saveFileAs(saveCopyAs=True),
+            ),
+            self.addItem(
                 translate("menu", "Save all ::: Save all open files."),
                 icons.disk_multiple,
                 pyzo.editors.saveAllFiles,
