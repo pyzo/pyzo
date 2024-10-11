@@ -64,4 +64,65 @@ QT_VERSION_STR, QT_WRAPPER_VERSION_STR = _get_versions()
 
 from . import qtutils
 
-del os, sys, importlib
+del os, sys, _get_versions, _load_modules, _get_desired_api
+
+
+## Qt components
+
+QtCore = importlib.import_module(API + '.QtCore')
+QtGui = importlib.import_module(API + '.QtGui')
+QtWidgets = importlib.import_module(API + '.QtWidgets')
+QtHelp = importlib.import_module(API + '.QtHelp')
+QtPrintSupport = importlib.import_module(API + '.QtPrintSupport')
+
+del importlib
+
+## QtCore fixes
+
+if API in ("PyQt5", "PyQt6"):
+    QtCore.Signal = QtCore.pyqtSignal
+    QtCore.SignalInstance = QtCore.pyqtBoundSignal
+    QtCore.Slot = QtCore.pyqtSlot
+    QtCore.Property = QtCore.pyqtProperty
+
+if API in ("PySide2", "PyQt5"):
+    QtCore.QLibraryInfo.path = QtCore.QLibraryInfo.location
+    QtCore.QLibraryInfo.LibraryPath = QtCore.QLibraryInfo
+
+## QtGui fixes
+
+if API in ("PySide2", "PyQt5"):
+    QtGui.QAction = QtWidgets.QAction
+    QtGui.QActionGroup = QtWidgets.QActionGroup
+
+    _QPointF = QtCore.QPointF
+    QtGui.QMouseEvent.position = lambda self: _QPointF(self.pos())
+    QtGui.QDropEvent.position = lambda self: _QPointF(self.posF())
+
+    # For Qt5 we need something like QFontDatabase = QFontDatabase()
+    # but with instance creation just when first accessing the class.
+    def _getFontDatabase(name):
+        if not hasattr(_QFontDatabaseWrapper, "_instance"):
+            _QFontDatabaseWrapper._instance = _QFontDatabaseWrapper._original()
+        return getattr(_QFontDatabaseWrapper._instance, name)
+
+    class _QFontDatabaseWrapper:
+        _original = QtGui.QFontDatabase
+        def __getattribute__(self, name): return _getFontDatabase(name)
+
+    QtGui.QFontDatabase = _QFontDatabaseWrapper()
+
+## QtWidgets fixes
+
+if API == "PyQt6":
+    QtWidgets.QFileSystemModel = QtGui.QFileSystemModel
+
+    import inspect
+    QtWidgets.QPlainTextEdit.print_ = inspect.getattr_static(QtWidgets.QPlainTextEdit, "print")
+    QtWidgets.QMenu.exec_ = inspect.getattr_static(QtWidgets.QMenu, "exec")
+    del inspect
+
+## QtPrintSupport fixes
+
+if API == "PyQt6":
+    QtPrintSupport.QPrintPreviewWidget.print_ = QtPrintSupport.QPrintPreviewWidget.print
