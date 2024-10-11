@@ -594,39 +594,55 @@ class PyzoEditor(BaseTextCtrl):
         # Go where we were (approximately)
         self.gotoLine(linenr)
 
-    def deleteLines(self):
+    def _expandSelectionToWholeBlocks(self):
+        """expands the selection of the current text cursor to whole blocks
+
+        The selection will be expanded so that it starts at the beginning of the block
+        and so that it ends at the beginning of the next block, including the new-block
+        special character.
+        If there is no new block after the end of the expanded selection, which can only
+        occur at the end of the document, then "endsAtNextBlock" will be set to False.
+
+        If no text is selected, the whole block will be selected.
+
+        return value:
+            cursor, endsAtNextBlock
+        """
         cursor = self.textCursor()
         # Find start and end of selection
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        # Expand selection: from start of first block to start of next block
+        # Expand selection to the start of the first block
         cursor.setPosition(start)
         cursor.movePosition(cursor.MoveOperation.StartOfBlock)
-        cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
-        cursor.movePosition(cursor.MoveOperation.NextBlock, cursor.MoveMode.KeepAnchor)
 
+        # Expand selection to the start of the next block if there is no selection at all
+        # or if there is at least one character selected in the last selected block.
+        cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
+        if not cursor.atBlockStart() or not cursor.hasSelection():
+            endsAtNextBlock = cursor.movePosition(
+                cursor.MoveOperation.NextBlock,
+                cursor.MoveMode.KeepAnchor,
+            )
+            if not endsAtNextBlock:
+                # Could not move to the beginning of the next block because the end of the
+                # document was reached. Therefore move till the end of the document.
+                cursor.movePosition(cursor.MoveOperation.End, cursor.MoveMode.KeepAnchor)
+        else:
+            # There is selected text and the cursor is at the beginning of the block.
+            endsAtNextBlock = True
+        return cursor, endsAtNextBlock
+
+    def deleteLines(self):
+        cursor, endsAtNextBlock = self._expandSelectionToWholeBlocks()
         cursor.removeSelectedText()
 
     def duplicateLines(self):
-        cursor = self.textCursor()
-        # Find start and end of selection
-        start = cursor.selectionStart()
-        end = cursor.selectionEnd()
-        # Expand selection: from start of first block to start of next block
-        cursor.setPosition(start)
-        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
-        cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
-        notAtLastBlock = cursor.movePosition(
-            cursor.MoveOperation.NextBlock,
-            cursor.MoveMode.KeepAnchor,
-        )
-        if notAtLastBlock:
-            text = cursor.selectedText()
-        else:
-            cursor.movePosition(cursor.MoveOperation.End, cursor.MoveMode.KeepAnchor)
-            text = cursor.selectedText() + "\u2029"
-        cursor.setPosition(start)
-        cursor.movePosition(cursor.MoveOperation.StartOfBlock)
+        cursor, endsAtNextBlock = self._expandSelectionToWholeBlocks()
+        text = cursor.selectedText()
+        if not endsAtNextBlock:
+            text += "\u2029"
+        cursor.setPosition(cursor.selectionStart())
         cursor.insertText(text)
 
     def commentCode(self):
