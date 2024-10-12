@@ -105,10 +105,9 @@ with BootAction("Applying pre-import Qt tweaks"):
     importlib.import_module("pyzo.pre_qt_import")
 
 
+# let Pyzo fail early if there are problems with Qt
 with BootAction("Importing Qt"):
-    QtCore = importlib.import_module("pyzo.qt." + "QtCore")
-    QtGui = importlib.import_module("pyzo.qt." + "QtGui")
-    QtWidgets = importlib.import_module("pyzo.qt." + "QtWidgets")
+    importlib.import_module("pyzo.qt")
 
 
 with BootAction("Running Pyzo"):
