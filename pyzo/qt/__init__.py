@@ -72,7 +72,6 @@ del os, sys, _get_versions, _load_modules, _get_desired_api
 QtCore = importlib.import_module(API + '.QtCore')
 QtGui = importlib.import_module(API + '.QtGui')
 QtWidgets = importlib.import_module(API + '.QtWidgets')
-QtHelp = importlib.import_module(API + '.QtHelp')
 QtPrintSupport = importlib.import_module(API + '.QtPrintSupport')
 
 del importlib
