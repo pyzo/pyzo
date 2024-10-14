@@ -149,7 +149,6 @@ qt_includes = [
     "QtCore",  # Standard
     "QtGui",  # Standard
     "QtWidgets",  # Standard
-    "QtHelp",  # For docs
     "QtPrintSupport",  # For PDF export
 ]
 includes += [f"{qt_api}.{sub}" for sub in qt_includes]
@@ -196,6 +195,7 @@ qt_excludes = [
     "QtWebChannel",
     "QtWebKitWidgets",
     "QtWebSockets",
+    "QtHelp",
 ]
 excludes += [f"{qt_api}.{sub}" for sub in qt_excludes]
 
