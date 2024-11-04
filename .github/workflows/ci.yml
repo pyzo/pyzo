@@ -74,7 +74,7 @@ jobs:
             pyversion: '3.10'
             qtlib: pyqt5
           # --- PySide2 requires macOS with Intel CPU
-          - os: macos-12  # ... has Intel instead of Apple Silicon
+          - os: macos-13  # ... has Intel instead of Apple Silicon
             pyversion: '3.9'
             qtlib: pyside2
           # --- Older Python versions and qt libs
