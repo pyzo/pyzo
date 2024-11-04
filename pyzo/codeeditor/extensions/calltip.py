@@ -86,16 +86,26 @@ class Calltip:
         pos.setX(pos.x() - 3)  # Correct for border and indent
         pos = self.viewport().mapToGlobal(pos)
 
+        label = self.__calltipLabel
+        textChanged = richText != label.text()
+
         # Set text and update font
-        self.__calltipLabel.setText(richText)
-        self.__calltipLabel.setFont(self.font())
+        label.setText(richText)
+        label.setFont(self.font())
 
         # Use a qt tooltip to show the calltip
         if richText:
-            self.__calltipLabel.move(pos)
-            self.__calltipLabel.show()
+            if textChanged and label.isVisible():
+                # When the tooltip label is still shown and we update the text, the
+                # rectangle of the label is not updated. This leads to truncated text
+                # or to empty space on the right of the label.
+                # As a workaround, we hide and then show the label again.
+                label.hide()
+
+            label.move(pos)
+            label.show()
         else:
-            self.__calltipLabel.hide()
+            label.hide()
 
     def calltipCancel(self):
         """Hides the calltip."""
