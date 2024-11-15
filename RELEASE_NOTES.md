@@ -1,5 +1,18 @@
 # Release notes
 
+
+### Version 4.18.0 (15-11-2024)
+
+* add "Save a copy as..." menu entry for creating file backups by @bdieterm in https://github.com/pyzo/pyzo/pull/1087
+* exclude broken PySide6 6.8.0 from CI workflow by @bdieterm in https://github.com/pyzo/pyzo/pull/1089
+* rework the Qt wrapper to work around a bug in PySide6 6.8.0 by @bdieterm in https://github.com/pyzo/pyzo/pull/1091
+* fix boot.py for new qt wrapper by @bdieterm in https://github.com/pyzo/pyzo/pull/1092
+* fix line duplication and deletion behavior by @bdieterm in https://github.com/pyzo/pyzo/pull/1090
+* remove unused QtHelp dependency by @bdieterm in https://github.com/pyzo/pyzo/pull/1094
+* update macOS version in CI workflow to macos-13 by @bdieterm in https://github.com/pyzo/pyzo/pull/1098
+* fix wrong size of calltip label size after updating calltip text by @bdieterm in https://github.com/pyzo/pyzo/pull/1097
+
+
 ### Version 4.17.0 (07-10-2024)
 
 
