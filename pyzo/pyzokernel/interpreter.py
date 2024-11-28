@@ -1062,8 +1062,8 @@ class PyzoInterpreter:
 
     def ipython_pre_run_cell_hook(self, ipython=None):
         """Hook that IPython calls right before executing code."""
-        self.apply_breakpoints()
         self.debugger.set_on()
+        self.apply_breakpoints()
 
     def ipython_editor_hook(self, ipython, filename, linenum=None, wait=True):
         # Correct line number for cell offset
