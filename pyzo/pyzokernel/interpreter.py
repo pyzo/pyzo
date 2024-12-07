@@ -373,36 +373,60 @@ class PyzoInterpreter:
 
                 _nope.nope()
 
-        # Setup post-mortem debugging via appropriately logged exceptions
-        class PMHandler(logging.Handler):
-            def emit(self, record):
-                if record.exc_info:
-                    sys.last_type, sys.last_value, sys.last_traceback = record.exc_info
-                return record
-
-        # Setup logging
-        root_logger = logging.getLogger()
-        if not root_logger.handlers:
-            root_logger.addHandler(logging.StreamHandler())
-        root_logger.addHandler(PMHandler())
-
-        # Warn when logging.basicConfig is used (see issue #645)
-        def basicConfigDoesNothing(*args, **kwargs):
-            logging.warning(
-                "Pyzo already added handlers to the root handler, "
-                + "so logging.basicConfig() does nothing."
-            )
-
-        try:
-            logging.basicConfig = basicConfigDoesNothing
-        except Exception:
-            pass
+        if guiName in ("ASYNCIO", "TORNADO"):
+            # The "TORNADO" entry is just for older versions of the tornado package.
+            # Newer tornado versions use Python's asyncio.
+            self._add_postmortem_for_logged_exceptions()
 
         # Setup pausing of running code using SIGFPE
         signal.signal(signal.SIGFPE, self._handle_sigfpe)
 
         # Update startup info
         self.context._stat_startup.send(startup_info)
+
+    def _add_postmortem_for_logged_exceptions(self):
+        # Setup post-mortem debugging via appropriately logged exceptions
+
+        class PMHandler(logging.Handler):
+            def emit(self, record):
+                if record.exc_info:
+                    sys.last_type, sys.last_value, sys.last_traceback = record.exc_info
+                return record
+
+        # Setup logging so that we can do post-mortem debugging in async code.
+        root_logger = logging.getLogger()
+        if not root_logger.handlers:
+            root_logger.addHandler(logging.StreamHandler())
+
+        def addLoggerPostMortemHandler():
+            root_logger = logging.getLogger()
+            root_logger.addHandler(PMHandler())
+
+        addLoggerPostMortemHandler()
+
+        def basicConfigPatched(*args, **kwargs):
+            if "force" in kwargs and self._original_logging_basicConfig is not None:
+                self._original_logging_basicConfig(*args, **kwargs)
+                addLoggerPostMortemHandler()
+            else:
+                # Warn when logging.basicConfig is used (see issue #645)
+                msgList = [
+                    "Pyzo already added handlers to the root handler, ",
+                    "so logging.basicConfig() does nothing.",
+                ]
+                if sys.version_info >= (3, 8):
+                    msgList.extend([
+                        " But you can reconfigure the logging configuration by setting ",
+                        "the force argument: logging.basicConfig(..., force=True).",
+                    ])
+                logging.warning("".join(msgList))
+
+        self._original_logging_basicConfig = None
+        try:
+            self._original_logging_basicConfig = logging.basicConfig
+            logging.basicConfig = basicConfigPatched
+        except Exception:
+            pass
 
     def _handle_sigfpe(self, sig, frame):
         self.debugger.set_trace(frame)
