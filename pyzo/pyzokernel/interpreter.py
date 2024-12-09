@@ -404,8 +404,12 @@ class PyzoInterpreter:
                 sys.last_type, sys.last_value, sys.last_traceback = record.exc_info
             return callHandlers_ori(self, record)
 
-        callHandlers_ori = logging.Logger.callHandlers
-        logging.Logger.callHandlers = callHandlers_patched
+        try:
+            callHandlers_ori = logging.Logger.callHandlers
+            logging.Logger.callHandlers = callHandlers_patched
+        except Exception:
+            pass
+
 
     def _handle_sigfpe(self, sig, frame):
         self.debugger.set_trace(frame)
