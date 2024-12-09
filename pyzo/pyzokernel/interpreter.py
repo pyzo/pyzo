@@ -24,6 +24,7 @@ We integrate IPython via the IPython.core.interactiveshell.InteractiveShell.
 """
 
 import os
+import re
 import sys
 import time
 import logging
@@ -57,6 +58,9 @@ if PYTHON_VERSION < 3:
 else:
     ustr = str
     bstr = bytes
+
+
+file_linenr_pattern = re.compile(r"\.py(\+\d+)['\",]+ line (\d+)")
 
 
 class PS1:
@@ -361,8 +365,6 @@ class PyzoInterpreter:
                 """extracts the leading number parts of a version string to a tuple
                 e.g.: "123.45ew6.7x.dev8" --> (123, 45, 7)
                 """
-                import re
-
                 return tuple(
                     int(s) for s in re.findall(r"\.(\d+)", "." + version_string)
                 )
@@ -1204,39 +1206,11 @@ class PyzoInterpreter:
                     sys.last_value = value
                     sys.last_traceback = tb
 
-            # Get traceback to correct all the line numbers
-            # tblist = list of (filename, line-number, function-name, text)
-            tblist = traceback.extract_tb(tb)
+            strList = traceback.format_exception(value)
 
-            # Get frames
-            frames = []
-            while tb:
-                frames.append(tb.tb_frame)
-                tb = tb.tb_next
-
-            # Walk through the list
-            for i, tbInfo in enumerate(tblist):
-                # Get filename and line number, init example
-                fname, lineno = self.correctfilenameandlineno(tbInfo[0], tbInfo[1])
-                if not isinstance(fname, ustr):
-                    fname = fname.decode("utf-8")
-                example = tbInfo[3]
-                # Reset info
-                tblist[i] = (fname, lineno, tbInfo[2], example)
-
-            # Format list
-            strList = traceback.format_list(tblist)
-            if strList:
-                strList.insert(0, "Traceback (most recent call last):\n")
-            strList.extend(traceback.format_exception_only(type, value))
-
-            # Write traceback
-            for s in strList:
-                self.write(s)
-
-            # Clean up (we cannot combine except and finally in Python <2.5
-            tb = None
-            frames = None
+            for line in strList:
+                line = self.correctfilenameandlineno_on_line(line)
+                self.write(line)
 
         except Exception:
             type, value, tb = sys.exc_info()
@@ -1261,6 +1235,16 @@ class PyzoInterpreter:
                 pass
         return fname, lineno
 
+    def correctfilenameandlineno_on_line(self, line):
+        match = re.search(file_linenr_pattern, line)
+        if match:
+            i1, i2 = match.start(1), match.end(1)
+            i3, i4 = match.start(2), match.end(2)
+            offset = int(line[i1:i2].lstrip("+"))
+            old_nr = int(line[i3:i4])
+            new_nr = old_nr + offset
+            return line[:i1] + line[i2:i3] + str(new_nr) + line[i4:]
+        return line
 
 class ExecutedSourceCollection:
     """Stores the source of executed pieces of code, so that the right
