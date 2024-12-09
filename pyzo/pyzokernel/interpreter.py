@@ -1215,7 +1215,6 @@ class PyzoInterpreter:
         except Exception:
             type, value, tb = sys.exc_info()
             tb = None
-            frames = None
             t = "An error occured, but then another one when trying to write the traceback: "
             t += str(value) + "\n"
             self.write(t)
