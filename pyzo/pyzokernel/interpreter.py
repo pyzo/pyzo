@@ -1187,6 +1187,7 @@ class PyzoInterpreter:
                     sys.last_traceback = tb
 
             strList = traceback.format_exception(value)
+            strList[1:2] = []  # remove exec() call in interpreter.py"
 
             for line in strList:
                 line = self.correctfilenameandlineno_on_line(line)
