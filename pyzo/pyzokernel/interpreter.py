@@ -392,7 +392,7 @@ class PyzoInterpreter:
         #
         # Adding a handler to the root logger (as we did earlier) seems like
         # an elegant approach, but it gets complicated as to whether Pyzo should
-        # take responsibility for pinting the message. The fact that a handler
+        # take responsibility for printing the message. The fact that a handler
         # is present, will stop the logging module from printing the message,
         # because it considers it handled. We can detect whether our handler
         # is the only one and print if it is, but the log action may be
@@ -409,7 +409,6 @@ class PyzoInterpreter:
             logging.Logger.callHandlers = callHandlers_patched
         except Exception:
             pass
-
 
     def _handle_sigfpe(self, sig, frame):
         self.debugger.set_trace(frame)
