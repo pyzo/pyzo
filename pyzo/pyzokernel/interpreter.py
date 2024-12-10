@@ -1186,9 +1186,15 @@ class PyzoInterpreter:
                     sys.last_value = value
                     sys.last_traceback = tb
 
-            strList = traceback.format_exception(value)
+            lines = traceback.format_exception(value)
 
-            for line in strList:
+            # Remove exec() call in interpreter.py"
+            for i in range(max(len(lines), 5)):
+                if "pyzo" in lines[i] and "interpreter.py" in lines[i] and "exec(" in lines[i]:
+                    lines.pop(i)
+                    break
+
+            for line in lines:
                 line = self.correctfilenameandlineno_on_line(line)
                 self.write(line)
 
