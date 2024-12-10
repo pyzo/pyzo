@@ -427,7 +427,7 @@ class NativeFSProxy(BaseFSProxy):
 
     def rename(self, path1, path2):
         if op.exists(path2):
-            raise FileExistsError("file {!r} already exists".format(path))
+            raise FileExistsError("file {!r} already exists".format(path2))
         os.rename(path1, path2)
 
     def remove(self, path):
