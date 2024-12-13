@@ -1172,34 +1172,28 @@ class PyzoInterpreter:
         try:
             if useLastTraceback:
                 # Get traceback info from buffered
-                type = sys.last_type
+                etype = sys.last_type
                 value = sys.last_value
                 tb = sys.last_traceback
             else:
                 # Get exception information and remove first, since that's us
-                type, value, tb = sys.exc_info()
+                etype, value, tb = sys.exc_info()
                 tb = tb.tb_next
 
                 # Store for debugging, but only store if not in debug mode
                 if not self._dbFrames:
-                    sys.last_type = type
+                    sys.last_type = etype
                     sys.last_value = value
                     sys.last_traceback = tb
 
-            lines = traceback.format_exception(value)
-
-            # Remove exec() call in interpreter.py"
-            for i in range(max(len(lines), 5)):
-                if "pyzo" in lines[i] and "interpreter.py" in lines[i] and "exec(" in lines[i]:
-                    lines.pop(i)
-                    break
+            lines = traceback.format_exception(etype, value, tb)
 
             for line in lines:
                 line = self.correctfilenameandlineno_on_line(line)
                 self.write(line)
 
         except Exception:
-            type, value, tb = sys.exc_info()
+            etype, value, tb = sys.exc_info()
             tb = None
             t = "An error occured, but then another one when trying to write the traceback: "
             t += str(value) + "\n"
