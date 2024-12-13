@@ -60,7 +60,7 @@ else:
     bstr = bytes
 
 
-file_linenr_pattern = re.compile(r"\.py(\+\d+)['\",]+ line (\d+)")
+file_linenr_pattern = re.compile(r"(?:\.py|<tmp \d+>)(\+\d+)['\",]+ line (\d+)")
 
 
 class PS1:
