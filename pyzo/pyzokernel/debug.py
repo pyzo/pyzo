@@ -339,14 +339,132 @@ class Debugger(bdb.Bdb):
             else:
                 print("Unknown debug command: %s" % name)
 
-    def do_start(self, arg):
-        """Start postmortem debugging from the last uncaught exception."""
+    def _get_traceback_combinations(self):
+        """get all possible combinations for tracebacks
 
-        # Get traceback
+        If the exception is an ExceptionGroup, it can consist of sub-exeptions
+        and even nested ExceptionGroup objects. We identify a branch via the
+        sub-exception numbers that are printed in the traceback ("---- 1 ----" etc.).
+
+        A tuple (3, 2) addresses the ValueError sub-sub-exception in the following example.
+        ExceptionGroup  --> ()
+            ---- 1 ----  --> (1,)
+            ZeroDivisionError
+            ---- 2 ----  --> (2,)
+            KeyError
+            ---- 3 ----  --> (3,)
+            ExceptionGroup
+                ---- 1 ----  --> (3, 1)
+                TypeError
+                ---- 2 ----  --> (3, 2)
+                ValueError
+
+        return value: tb_combs, first_nongroup
+            tb_combs ... a dictionary of kv-pairs
+                key: the tuple branch-identifier
+                value: the traceback of that (sub-)exception
+            first_nongroup ... the key to the tb_combs dict to the first traceback of an
+                non-ExceptionGroup -- useful as a default selection
+        """
+        tb_combs = {}
+        first_nongroup = None
         try:
+            value = sys.last_value
+            # Python 2.7 exceptions have no __traceback__ attribute
             tb = sys.last_traceback
         except AttributeError:
             tb = None
+
+        if tb is not None:
+            # add all combinations for nested exception groups
+            p = ()
+            stack = [(value, p)]
+            nongroup_exceptions = []
+            tb_combs[p] = tb
+            while len(stack) > 0:
+                e, p = stack.pop()
+                if e.__class__.__name__ == "ExceptionGroup":
+                    for num, e2 in enumerate(e.exceptions, 1):
+                        p2 = p + (num,)
+                        stack.append((e2, p2))
+                        tb_combs[p2] = e2.__traceback__
+                else:
+                    nongroup_exceptions.append(p)
+            if nongroup_exceptions:
+                first_nongroup = min(nongroup_exceptions)
+        return tb_combs, first_nongroup
+
+    def _get_selected_traceback(self, arg):
+        """get the current traceback, and in case of ExceptionGroup, select one of many"""
+        tb_combs, first_nongroup = self._get_traceback_combinations()
+        tb = tb_combs.get((), None)
+        if len(tb_combs) > 1:
+            # there is at least one ExceptionGroup
+            user_selected_comb = None
+            selected_comb = None
+            if arg != "":
+                try:
+                    user_selected_comb = tuple([int(s) for s in arg.split()])
+                    # Selecting the root-ExceptionGroup would normally be done with
+                    # an empty tuple. But we want the empty tuple, which is args == "",
+                    # to be the "automatic" selection option.
+                    # So we use "DB START 0" to get the root-ExceptionGroup
+                    # and "DB START" to automatically select the traceback.
+                    if user_selected_comb == (0,):
+                        user_selected_comb = ()
+                    if user_selected_comb not in tb_combs:
+                        user_selected_comb = None
+                except Exception:
+                    user_selected_comb = None
+
+                if user_selected_comb is None:
+                    self.message("invalid parameter " + repr(arg) + " -- will be ignored")
+                else:
+                    selected_comb = user_selected_comb
+
+            if selected_comb is None:
+                # automatically select the traceback
+                if first_nongroup is not None:
+                    selected_comb = first_nongroup
+                else:
+                    selected_comb = ()
+
+            tb = tb_combs[selected_comb]
+
+            if user_selected_comb is None:
+                cw = 16
+                msg_lines = [
+                    "There is at least one ExceptionGroup. To select the traceback of a specific group,",
+                    "stop the debugger and type the magic command DB START with (nested) group numbers.",
+                    "Possible commands for the last traceback are:",
+                    "db stop".ljust(cw) + "<-- stops the debugger",
+                    "db traceback".ljust(cw) + "<-- prints the last traceback again",
+                    "db start".ljust(cw) + "<-- this will automatically choose the first non-ExceptionGroup",
+                ]
+                for comb in sorted(tb_combs.keys()):
+                    comment = ""
+                    if comb == selected_comb:
+                        if selected_comb == first_nongroup:
+                            comment = "<-- currently used (automatically chosen -- first non-exc-group)"
+                        else:
+                            comment = "<-- currently used (automatically chosen -- fallback)"
+
+                    if comb == ():
+                        comb_string = "0"
+                        if comment == "":
+                            comment = "<-- zero means: explicitly choose the root ExceptionGroup"
+                    else:
+                        comb_string = " ".join([str(a) for a in comb])
+                    msg_lines.append(("db start " + comb_string).ljust(cw) + comment)
+                self.message("\n".join(msg_lines))
+        return tb
+
+    def do_start(self, arg):
+        """Start postmortem debugging from the last uncaught exception."""
+
+        # Since the introduction of ExceptionGroup, there could be multiple tracebacks
+        # of interest. A specific one can be selected using the "arg" parameter.
+        tb = self._get_selected_traceback(arg)
 
         # Get top frame
         frame = None
@@ -545,3 +663,8 @@ class Debugger(bdb.Bdb):
         """Process GUI events for the integrated GUI toolkit."""
         interpreter = sys._pyzoInterpreter
         interpreter.guiApp.process_events()
+
+    def do_traceback(self, arg):
+        """Print the last traceback (again)."""
+        interpreter = sys._pyzoInterpreter
+        interpreter.showtraceback(True)
