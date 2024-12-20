@@ -379,7 +379,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             currentPath.pop()
 
         # Go
-        self._tree.setStyleSheet("background-color: " + colors["background"] + ";")
+        self._tree.setStyleSheet("QTreeWidget {background-color: " + colors["background"] + ";}")
         self._tree.setUpdatesEnabled(False)
         self._tree.clear()
         SetItems(self._tree, result.rootItem.children, 0)
