@@ -228,11 +228,20 @@ class PyzoInterpreter:
             del tb
             if self._exitException is None:
                 self._exitException = value
+        finally:
+            self._cleanup()
 
         # Exit
         if self._exitException is None:
             self._exitException = SystemExit()
         raise self._exitException
+
+    def _cleanup(self):
+        # restore prompts
+        if self._original_ps1 is not None:
+            # sys.ps1 and sys.ps2 are only defined in interactive mode
+            sys.ps1 = self._original_ps1
+            sys.ps2 = self._original_ps2
 
     def _prepare(self):
         """Prepare for running the main loop.
@@ -321,6 +330,8 @@ class PyzoInterpreter:
                 startup_info["ipython"] = "no"
 
         # Set prompts
+        self._original_ps1 = getattr(sys, "ps1", None)
+        self._original_ps2 = getattr(sys, "ps2", None)
         sys.ps1 = PS1(self)
         sys.ps2 = PS2(self)
 
@@ -1259,8 +1270,12 @@ class ExecutedSourceCollection:
                     return linecache._getlines(filename, module_globals)
 
         # Monkey patch
-        linecache._getlines = linecache.getlines
-        linecache.getlines = getlines
+        if not hasattr(linecache, "_getlines"):
+            # Normally, the linecache module is not patched yet.
+            # But when starting the Pyzo kernel in an external shell twice in a row,
+            # we must not patch the module again to prevent infinite recursion.
+            linecache._getlines = linecache.getlines
+            linecache.getlines = getlines
 
         # I hoped this would remove the +lineno for IPython tracebacks,
         # but it doesn't

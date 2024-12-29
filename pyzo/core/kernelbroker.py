@@ -382,6 +382,8 @@ class KernelBroker:
         command = getCommandFromKernelInfo(self._info, self._kernelCon.port1)
         env = getEnvFromKernelInfo(self._info)
 
+        externalshell_callbackport = info.get("externalshell_callbackport")
+
         try:
             # Wrap command in call to 'cmd'?
             if sys.platform.startswith("win"):
@@ -398,16 +400,29 @@ class KernelBroker:
                 else:
                     command = 'cmd /c "{}"'.format(command)
 
-            # Start process
-            self._process = subprocess.Popen(
-                command,
-                shell=True,
-                env=env,
-                cwd=cwd,
-                stdin=subprocess.PIPE,  # Fixes issue 165
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-            )
+            if externalshell_callbackport is None:
+                # Start process
+                self._process = subprocess.Popen(
+                    command,
+                    shell=True,
+                    env=env,
+                    cwd=cwd,
+                    stdin=subprocess.PIPE,  # Fixes issue 165
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                )
+            else:
+                # TCP client
+                import socket
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                    sock.settimeout(1.0)
+                    sock.connect(("127.0.0.1", externalshell_callbackport))
+                    startScript = os.path.join(pyzo.pyzoDir, "pyzokernel", "start.py")
+                    kernelPort = self._kernelCon.port1
+                    sock.sendall("{} {!r}\n".format(kernelPort, startScript).encode("utf-8"))
+
+                self._process = "EXTERNAL_SHELL"
+
         except Exception as err:
             self._pending_restart = None
             self._process = None
@@ -423,13 +438,15 @@ class KernelBroker:
         self._kernelCon.closed.bind(self._onKernelConnectionClose)
         self._kernelCon.timedout.bind(self._onKernelTimedOut)
 
-        # Create reader for stream
-        self._streamReader = StreamReader(
-            self._process, self._strm_raw, self._strm_broker
-        )
+        if self._process != "EXTERNAL_SHELL":
+            # Create reader for stream
+            self._streamReader = StreamReader(
+                self._process, self._strm_raw, self._strm_broker
+            )
 
-        # Start streamreader and timer
-        self._streamReader.start()
+            # Start streamreader and timer
+            self._streamReader.start()
+
         self._timer.start()
 
         # Reset some variables
@@ -546,7 +563,9 @@ class KernelBroker:
             return
 
         # If we have a process ...
-        if self._process:
+        if self._process == "EXTERNAL_SHELL":
+            pass
+        elif self._process:
             # Test if process is dead
             process_returncode = self._process.poll()
             if process_returncode is not None:
@@ -623,6 +642,8 @@ class KernelBroker:
         # Restart now, wait, or initiate termination procedure?
         if self._process is None:
             self.startKernel()
+        elif self._process == "EXTERNAL_SHELL":
+            self._strm_broker.send("Cannot restart an external shell.\n")
         elif self.isTerminating():
             pass  # Already terminating
         else:
@@ -817,6 +838,7 @@ class Kernelmanager:
                 kernel._kernelCon
                 and kernel._kernelCon.is_connected
                 and kernel._process
+                and kernel._process != "EXTERNAL_SHELL"
                 and (kernel._process.poll() is None)
             ):
                 terminator.next()

@@ -87,6 +87,19 @@ def handle_command(command, arg):
         pyzo.callLater(pyzo.main.close)
         return "Closing Pyzo"
 
+    elif command == "startexternalshell":
+        import ast
+        try:
+            shell_config = ast.literal_eval(arg)
+            if "externalshell_callbackport" not in shell_config:
+                raise KeyError()
+        except Exception:
+            answer = "invalid arguments"
+        else:
+            pyzo.callLater(pyzo.shells.addShell, pyzo.util.zon.Dict(shell_config))
+            answer = "ok"
+        return answer
+
     else:
         # Assume the user wanted to open a file
         fname = (command + " " + arg).rstrip()
