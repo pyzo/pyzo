@@ -1560,6 +1560,12 @@ class PythonShell(BaseShell):
         # Adios
         pyzo.shells.removeShell(self)
 
+        # This object (self) still stays in memory after closing the shell (memory leak).
+        # At least, we try to clean up as much as possible.
+        self._timer.stop()
+        self._timer.timeout.disconnect()
+        self.customContextMenuRequested.disconnect()
+
     def _onConnectionClose(self, c, why):
         """To be called after disconnecting.
 
