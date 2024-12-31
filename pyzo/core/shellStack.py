@@ -11,6 +11,7 @@ and a dialog to edit the shell configurations.
 
 """
 
+import re
 import time
 import webbrowser
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
@@ -363,6 +364,19 @@ class ShellControl(QtWidgets.QToolButton):
         for action in self._shellActions:
             action.setText(shellTitle(action._shell, True))
 
+    def wheelEvent(self, event):
+        degrees = event.angleDelta().y() / 8.0
+        deltaShell = -1 if degrees > 0 else (1 if degrees < 0 else 0)
+        if deltaShell == 0:
+            return
+
+        currentShell = self._shellStack.currentWidget()
+        if currentShell is not None:
+            shells = [self._shellStack.widget(i) for i in range(self._shellStack.count())]
+            indShellNew = shells.index(currentShell) + deltaShell
+            if 0 <= indShellNew < len(shells):
+                self._shellStack.setCurrentIndex(indShellNew)
+
 
 # todo: remove this?
 # class DebugControl(QtWidgets.QToolButton):
@@ -492,6 +506,21 @@ class DebugStack(QtWidgets.QToolButton):
         if True:
             line = action.text().split(": ", 1)[1]
             self.debugFocus(line)
+
+    def wheelEvent(self, event):
+        if not self.isEnabled():
+            return
+        degrees = event.angleDelta().y() / 8.0
+        deltaFrame = -1 if degrees > 0 else (1 if degrees < 0 else 0)
+        if deltaFrame == 0:
+            return
+        mo = re.fullmatch(r".*?\((\d+)/(\d+)\):\s*", self.text())
+        if mo:
+            f = int(mo[1]) + deltaFrame
+            fmax = int(mo[2])
+            if 1 <= f <= fmax:
+                shell = pyzo.shells.getCurrentShell()
+                shell.executeCommand("DB FRAME {}\n".format(f))
 
     def setTrace(self, info):
         """Set the stack trace.
