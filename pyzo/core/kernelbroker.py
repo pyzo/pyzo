@@ -483,7 +483,7 @@ class KernelBroker:
         # crashed or was stopped somehow. In both cases, we lost control,
         # and should put it down!
         if not self._terminator:
-            self.terminate("because connecton was lost", "KILL", 0.5)
+            self.terminate("because connection was lost", "KILL", 0.5)
 
     def _onKernelDied(self, why=None):
         """Kernel process died. Clean up!"""
