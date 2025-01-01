@@ -3360,6 +3360,8 @@ class AdvancedSettings(QtWidgets.QDialog):
         self.fillTree()
         self._tree.expandAll()
 
+        self._search.setFocus()
+
     def btnFoldClicked(self):
         self._tree.collapseAll()
 
