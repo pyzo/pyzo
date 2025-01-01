@@ -44,7 +44,7 @@ else:
 
 def getErrorMsg():
     """getErrorMsg()
-    Return a string containing the error message. This is usefull, because
+    Return a string containing the error message. This is useful, because
     there is no uniform way to catch exception objects in Python 2.x and
     Python 3.x.
     """

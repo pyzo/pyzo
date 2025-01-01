@@ -804,7 +804,7 @@ class PopupMenu(pyzo.core.menu.Menu):
                 )
             self.addSeparator()
 
-        # The pyzo related functions
+        # Pyzo related functions
         if isinstance(self._item, FileItem):
             self.addItem(translate("filebrowser", "Open"), None, self._item.onActivated)
             if self._item.path().endswith(".py"):

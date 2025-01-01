@@ -572,7 +572,7 @@ class PyzoInterpreter:
             elif guiName == "GTK":
                 self.guiApp = guiintegration.App_gtk()
             else:
-                guiError = "Unkown gui: %s" % guiName
+                guiError = "Unknown gui: %s" % guiName
                 guiName = ""
         except Exception:  # Catch any error
             # Get exception info (we do it using sys.exc_info() because

@@ -1327,7 +1327,7 @@ class ShellMenu(Menu):
             shellAction.setEnabled(bool(pyzo.shells.getCurrentShell()))
 
     def buildShellActions(self):
-        """Create the menu items which are also avaliable in the
+        """Create the menu items which are also available in the
         ShellTabContextMenu
 
         Returns a list of all items added"""

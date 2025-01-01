@@ -1061,7 +1061,7 @@ class PythonShell(BaseShell):
         self._strm_broker = yoton.SubChannel(ct, "strm-broker")
         self._strm_action = yoton.SubChannel(ct, "strm-action", yoton.OBJECT)
 
-        # Set channels to sync mode. This means that if the pyzo cannot process
+        # Set channels to sync mode. This means that if Pyzo cannot process
         # the messages fast enough, the sending side is blocked for a short
         # while. We don't want our users to miss any messages.
         for c in [self._strm_out, self._strm_err]:
