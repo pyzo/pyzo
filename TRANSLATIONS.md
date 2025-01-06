@@ -1,7 +1,7 @@
 Many texts in Pyzo are translatable to other languages. Currently, we
 have translations for Dutch, German, French, Spanish, Catalan,
 Portuguese, Brazilian Portuguese, Russian, Traditional Chinese,
-Simplified Chinese.
+Simplified Chinese, Italian.
 
 For the translations we make use of Qt's translation system. To update
 a translation, run Qt linguist on any of the `.tr` files

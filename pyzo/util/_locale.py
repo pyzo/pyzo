@@ -28,12 +28,13 @@ LANGUAGES = {
     "Catalan": L.Catalan,
     "French": L.French,
     "German": L.German,
+    "Italian": L.Italian,
     "Russian": L.Russian,  # not updated for 3.4
     "Polish": L.Polish,
     "Portuguese": L.Portuguese,
     "Portuguese (BR)": (L.Portuguese, QLocale.Country.Brazil),
-    "Simplified Chinese": L.Chinese,
-    "Traditional Chinese": (
+    "Chinese (simplified)": L.Chinese,
+    "Chinese (traditional)": (
         L.Chinese,
         QLocale.Country.Taiwan,
     ),  # https://bugreports.qt.io/browse/QTBUG-1573
