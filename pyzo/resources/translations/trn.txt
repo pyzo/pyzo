@@ -1,0 +1,13 @@
+pyzo_it_IT.tr.ts
+pyzo_ca_ES.tr.ts
+pyzo_de_DE.tr.ts
+pyzo_es_ES.tr.ts
+pyzo_fr_FR.tr.ts
+pyzo_nl_NL.tr.ts
+pyzo_pl_PL.tr.ts
+pyzo_pt_BR.tr.ts
+pyzo_pt_PT.tr.ts
+pyzo_ru_RU.tr.ts
+pyzo_sk_SK.tr.ts
+pyzo_zh_CN.tr.ts
+pyzo_zh_TW.tr.ts
