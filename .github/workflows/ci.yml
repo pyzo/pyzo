@@ -93,7 +93,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install libegl1-mesa
+        sudo apt install libegl1 libegl-mesa0
     - name: Set up Python ${{ matrix.pyversion }}
       uses: actions/setup-python@v5
       with:
