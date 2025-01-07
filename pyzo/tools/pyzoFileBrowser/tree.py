@@ -5,6 +5,7 @@ Defines the tree widget to display the contents of a selected directory.
 """
 
 
+import re
 import os
 import sys
 import subprocess
@@ -98,6 +99,13 @@ def createItemsFun(browser, parent):
     searchFilter = searchFilter if searchFilter["pattern"] else None
     expandedDirs = browser.expandedDirs
     starredDirs = browser.starredDirs
+
+    if searchFilter and searchFilter["regExp"]:
+        try:
+            re.compile(searchFilter["pattern"], re.MULTILINE)
+        except re.error as err:
+            ErrorItem(parent, "Error in regular expression:\n{}".format(err))
+            return
 
     # Prepare name filter info
     nameFilters = browser.nameFilter().replace(",", " ").split()
