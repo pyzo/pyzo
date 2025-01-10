@@ -76,7 +76,6 @@ QtGui = importlib.import_module(API + ".QtGui")
 QtWidgets = importlib.import_module(API + ".QtWidgets")
 QtPrintSupport = importlib.import_module(API + ".QtPrintSupport")
 
-del importlib
 
 ## QtCore fixes
 

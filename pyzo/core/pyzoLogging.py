@@ -13,11 +13,11 @@ import pyzo
 
 # Define prompts
 try:
-    sys.ps1
+    sys.ps1  # noqa: B018
 except AttributeError:
     sys.ps1 = ">>> "
 try:
-    sys.ps2
+    sys.ps2  # noqa: B018
 except AttributeError:
     sys.ps2 = "... "
 

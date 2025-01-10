@@ -548,7 +548,7 @@ if False:
         if ll[0] is not None:
             exec(ll[0].strip())
         for s in ll[1:]:
-            sig = __pyzo__.introspector.signature(s)
+            sig = __pyzo__.introspector.signature(s)  # noqa: F821
             if sig == "":
                 print("!!! could not extract the signature of", s, "!!!")
             else:

@@ -72,6 +72,7 @@ include = ["README.md", "LICENSE.md", "pyzo.appdata.xml", "pyzolauncher.py"]
 
 [tool.ruff]
 line-length = 88
+exclude = ["pyzo/resources/tutorial.py"]
 
 [tool.ruff.lint]
 select = ["F", "E", "W", "B", "RUF"]
