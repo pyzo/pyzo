@@ -1,4 +1,4 @@
-""" Module main
+"""Module main
 
 This module contains the main frame. Implements the main window.
 Also adds some variables to the pyzo namespace, such as the callLater
@@ -6,7 +6,9 @@ function which is also defined here.
 
 """
 
-import os, sys, time
+import os
+import sys
+import time
 import base64
 from queue import Queue, Empty
 

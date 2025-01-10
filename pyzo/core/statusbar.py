@@ -1,8 +1,9 @@
-""" Module statusbar
+"""Module statusbar
 
 Functionality for status bar in pyzo.
 
 """
+
 from pyzo.qt import QtWidgets
 
 

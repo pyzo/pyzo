@@ -1,2 +1,1 @@
-""" Package core - the core of Pyzo.
-"""
+"""Package core - the core of Pyzo."""

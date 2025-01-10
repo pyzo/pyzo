@@ -1,10 +1,12 @@
-""" _utest.py
+"""_utest.py
 
 Unit tests for yoton.
 
 """
 
-import sys, os, time
+import sys
+import os
+import time
 import unittest
 
 # Go up one directory and then import the yoton package

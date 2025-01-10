@@ -19,12 +19,15 @@ class PdfExport(QtWidgets.QDialog):
 
         self.resize(1000, 600)
 
-        self._printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.PrinterMode.HighResolution)
+        self._printer = QtPrintSupport.QPrinter(
+            QtPrintSupport.QPrinter.PrinterMode.HighResolution
+        )
         self._printer.setColorMode(QtPrintSupport.QPrinter.ColorMode.Color)
 
         self._preview = QtPrintSupport.QPrintPreviewWidget(self._printer)
         self._preview.setSizePolicy(
-            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
         )
 
         self._chkLineNumbers = QtWidgets.QCheckBox(
@@ -131,7 +134,9 @@ class PdfExport(QtWidgets.QDialog):
             fmt.setBackground(QtGui.QColor(240, 240, 240))
             cursor.movePosition(cursor.MoveOperation.Start, cursor.MoveMode.MoveAnchor)
             notAtLastBlock = cursor.movePosition(
-                cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor, len(headerLines)
+                cursor.MoveOperation.NextBlock,
+                cursor.MoveMode.MoveAnchor,
+                len(headerLines),
             )
             while notAtLastBlock:
                 cursor.movePosition(

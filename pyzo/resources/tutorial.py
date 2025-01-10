@@ -14,7 +14,6 @@ uses a set of pluggable tools to help the programmer in various ways.
 
 """
 
-
 ## The editor
 """
 The editor (this window) is where your code is located; it is the central

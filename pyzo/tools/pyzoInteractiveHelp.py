@@ -1,7 +1,8 @@
-import sys, re
+import sys
+import re
 from functools import partial
 
-from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets
 import pyzo
 
 tool_name = pyzo.translate("pyzoInteractiveHelp", "Interactive help")
@@ -397,7 +398,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._options.setIcon(pyzo.icons.wrench)
         self._options.setIconSize(QtCore.QSize(16, 16))
         self._options.setPopupMode(self._options.ToolButtonPopupMode.InstantPopup)
-        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self._options.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
 
         # Create options menu
         self._options._menu = QtWidgets.QMenu()
@@ -406,7 +409,9 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         # Create browser
         self._browser = QtWidgets.QTextBrowser(self)
         self._browser_text = initText
-        self._browser.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self._browser.setContextMenuPolicy(
+            QtCore.Qt.ContextMenuPolicy.CustomContextMenu
+        )
         self._browser.customContextMenuRequested.connect(self.showMenu)
 
         # Create two sizers

@@ -1,4 +1,4 @@
-""" Icons module
+"""Icons module
 
 Defines functionality for creating icons by composing different overlays
 and also by directly drawing into the pixmap. This allows making icons
@@ -256,7 +256,9 @@ class ToolButtonWithMenuIndication(QtWidgets.QToolButton):
         super().mouseMoveEvent(event)
         if self._menuPressed:
             dragDist = QtWidgets.QApplication.startDragDistance()
-            if (event.position().toPoint() - self._menuPressed).manhattanLength() >= dragDist:
+            if (
+                event.position().toPoint() - self._menuPressed
+            ).manhattanLength() >= dragDist:
                 self._menuPressed = False
 
     def mouseReleaseEvent(self, event):

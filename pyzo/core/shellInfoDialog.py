@@ -1,10 +1,11 @@
-""" Module shellInfoDialog
+"""Module shellInfoDialog
 
 Implements shell configuration dialog.
 
 """
 
-import os, sys
+import os
+import sys
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 
 import pyzo
@@ -432,7 +433,7 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         translate(
             "shell",
             "pythonPath ::: A list of directories to search for modules and packages. Write each path on a new line, or separate with the default seperator for this OS.",
-        ),  # noqa
+        ),
         translate(
             "shell",
             "startupScript ::: The script to run at startup (not in script mode).",

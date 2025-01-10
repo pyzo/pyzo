@@ -12,6 +12,8 @@ Yoton is ...
 
 """
 
+# ruff: noqa: F401
+
 # Import stuff from misc and events
 from yoton.misc import UID, str, bytes
 from yoton.events import Signal, Timer, app
@@ -29,7 +31,8 @@ from yoton.connection import Connection, ConnectionCollection
 from yoton.connection_tcp import TcpConnection
 from yoton.context import Context
 from yoton.clientserver import RequestServer, do_request
-from yoton.channels import *
+from yoton.channels import PubChannel, SubChannel
+from yoton.channels import *  # noqa: F403
 
 
 # Set yoton version

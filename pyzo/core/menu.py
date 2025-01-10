@@ -1,4 +1,4 @@
-""" Module menu
+"""Module menu
 
 Implements a menu that can be edited very easily. Every menu item is
 represented by a class. Also implements a dialog to change keyboard
@@ -6,7 +6,10 @@ shortcuts.
 
 """
 
-import os, sys, shutil, re
+import os
+import sys
+import shutil
+import re
 import webbrowser
 from datetime import datetime
 from urllib.request import urlopen
@@ -85,17 +88,30 @@ def findLeftResultInTokens(tokens):
             if i >= 0:
                 if s[i : i + 2] == "==":
                     break
-                sPre = s[:i+1]
+                sPre = s[: i + 1]
                 assignments = (
-                    " =", ",=", "+=", "-=", "**=", "*=", "//=", "/=", "%=",
-                    "^=", "&=", "|=", "<<=", ">>=", "@=",
+                    " =",
+                    ",=",
+                    "+=",
+                    "-=",
+                    "**=",
+                    "*=",
+                    "//=",
+                    "/=",
+                    "%=",
+                    "^=",
+                    "&=",
+                    "|=",
+                    "<<=",
+                    ">>=",
+                    "@=",
                 )  # have "**=" before "*=" and "//=" before "/=" !!!
                 if sPre.endswith(assignments):
                     for needle in assignments:
                         if sPre.endswith(needle):
                             leftResult = (
                                 "".join(str(t) for t in tokens[:indToken])
-                                + sPre[:-len(needle)]
+                                + sPre[: -len(needle)]
                             )
                             break
                     break
@@ -200,7 +216,7 @@ def translateShortcutToOSNames(shortcut):
     if sys.platform == "darwin":
         replace = (
             ("Ctrl+", "\u2318"),
-            ("Shift+", "\u21E7"),
+            ("Shift+", "\u21e7"),
             ("Alt+", "\u2325"),
             ("Meta+", "^"),
         )
@@ -606,7 +622,8 @@ class FileMenu(Menu):
             ),
             self.addItem(
                 translate(
-                    "menu", "Save a copy as... ::: Create a backup of the current editor's contents."
+                    "menu",
+                    "Save a copy as... ::: Create a backup of the current editor's contents.",
                 ),
                 icons.save_copy_as,
                 lambda: pyzo.editors.saveFileAs(saveCopyAs=True),
@@ -780,7 +797,7 @@ class EditMenu(Menu):
             translate(
                 "menu",
                 "Paste and select ::: Paste the text that is now on the clipboard and keep it selected in order to change its indentation.",
-            ),  # noqa
+            ),
             icons.paste_plain,
             self._editItemCallback,
             "pasteAndSelect",
@@ -1834,7 +1851,7 @@ class EditorContextMenu(Menu):
             translate(
                 "menu",
                 "Run selection ::: Run the current editor's selected lines, selected words on the current line, or current line if there is no selection.",
-            ),  # noqa
+            ),
             icons.run_lines,
             self._runSelected,
         )
@@ -1895,7 +1912,9 @@ class EditorTabContextMenu(Menu):
             "close_others",
         )
         self.addItem(
-            translate("menu", "Close all after this::: Close all files after this one."),
+            translate(
+                "menu", "Close all after this::: Close all files after this one."
+            ),
             None,
             self._fileAction,
             "close_all_after_this",
@@ -2026,7 +2045,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Run file as script ::: Restart and run the current file as a script.",
-            ),  # noqa
+            ),
             icons.run_file_script,
             self._runFile,
             (True, False),
@@ -2035,7 +2054,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Run main file as script ::: Restart and run the main file as a script.",
-            ),  # noqa
+            ),
             icons.run_mainfile_script,
             self._runFile,
             (True, True),
@@ -2047,7 +2066,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Execute selection ::: Execute the current editor's selected lines, selected words on the current line, or current line if there is no selection.",
-            ),  # noqa
+            ),
             icons.run_lines,
             self._runSelected,
         )
@@ -2055,7 +2074,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Execute line and print result ::: Execute the whole line at the cursor position in the editor, and print the result.",
-            ),  # noqa
+            ),
             icons.run_line,
             self._runCurrentLineAndPrintResult,
         )
@@ -2063,7 +2082,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Execute cell ::: Execute the current editors's cell in the current shell.",
-            ),  # noqa
+            ),
             icons.run_cell,
             self._runCell,
         )
@@ -2207,13 +2226,19 @@ class RunMenu(Menu):
         runCursor = editor.textCursor()  # The part that should be run
 
         runCursor.setPosition(screenCursor.selectionStart())
-        runCursor.movePosition(runCursor.MoveOperation.StartOfBlock)  # This also moves the anchor
+        runCursor.movePosition(
+            runCursor.MoveOperation.StartOfBlock
+        )  # This also moves the anchor
         lineNumber1 = runCursor.blockNumber()
 
-        runCursor.setPosition(screenCursor.selectionEnd(), runCursor.MoveMode.KeepAnchor)
+        runCursor.setPosition(
+            screenCursor.selectionEnd(), runCursor.MoveMode.KeepAnchor
+        )
         if not (screenCursor.hasSelection() and runCursor.atBlockStart()):
             # If the end of the selection is at the beginning of a block, don't extend it
-            runCursor.movePosition(runCursor.MoveOperation.EndOfBlock, runCursor.MoveMode.KeepAnchor)
+            runCursor.movePosition(
+                runCursor.MoveOperation.EndOfBlock, runCursor.MoveMode.KeepAnchor
+            )
         lineNumber2 = runCursor.blockNumber()
 
         # Does this look like a statement?
@@ -2312,7 +2337,9 @@ class RunMenu(Menu):
         while True:
             if isCursorAtCellComment(runCursor):
                 # This line starts with ##, move to the end of the previous one
-                runCursor.movePosition(runCursor.MoveOperation.Left, runCursor.MoveMode.KeepAnchor)
+                runCursor.movePosition(
+                    runCursor.MoveOperation.Left, runCursor.MoveMode.KeepAnchor
+                )
                 break
             if not runCursor.block().next().isValid():
                 # Last block of the document, move to the end of the line
@@ -2344,7 +2371,9 @@ class RunMenu(Menu):
         if runCursor is None:
             runCursor = editor.textCursor()
             runCursor.movePosition(runCursor.MoveOperation.Start)
-            runCursor.movePosition(runCursor.MoveOperation.End, runCursor.MoveMode.KeepAnchor)
+            runCursor.movePosition(
+                runCursor.MoveOperation.End, runCursor.MoveMode.KeepAnchor
+            )
 
         editor.showRunCursor(runCursor)
 
@@ -2652,6 +2681,7 @@ class AutocompMenu(Menu):
             codeEditorList.append(logger._logger_shell)
         for editor in codeEditorList:
             getattr(editor, setter)(state)
+
 
 class SettingsMenu(Menu):
     def build(self):
@@ -2989,14 +3019,26 @@ class KeyMapLineEdit(QtWidgets.QLineEdit):
         # apply!
         if text:
             storeNativeKey, text0 = True, text
-            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.AltModifier:
+            if (
+                QtWidgets.qApp.keyboardModifiers()
+                & QtCore.Qt.KeyboardModifier.AltModifier
+            ):
                 text = "Alt+" + text
-            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
+            if (
+                QtWidgets.qApp.keyboardModifiers()
+                & QtCore.Qt.KeyboardModifier.ShiftModifier
+            ):
                 text = "Shift+" + text
                 storeNativeKey = False
-            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.ControlModifier:
+            if (
+                QtWidgets.qApp.keyboardModifiers()
+                & QtCore.Qt.KeyboardModifier.ControlModifier
+            ):
                 text = "Ctrl+" + text
-            if QtWidgets.qApp.keyboardModifiers() & QtCore.Qt.KeyboardModifier.MetaModifier:
+            if (
+                QtWidgets.qApp.keyboardModifiers()
+                & QtCore.Qt.KeyboardModifier.MetaModifier
+            ):
                 text = "Meta+" + text
             self.setText(text)
             if storeNativeKey and nativekey:

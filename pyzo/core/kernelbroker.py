@@ -1,10 +1,12 @@
-""" Module kernelBroker
+"""Module kernelBroker
 
 This module implements the interface between Pyzo and the kernel.
 
 """
 
-import os, sys, time
+import os
+import sys
+import time
 import subprocess
 import signal
 import threading
@@ -111,7 +113,9 @@ class KernelInfo(ssdf.Struct):
                 s = ssdf.loads(info)
             else:
                 raise ValueError(
-                    "Kernel info should be a string or ssdf struct, not {}".format(type(info))
+                    "Kernel info should be a string or ssdf struct, not {}".format(
+                        type(info)
+                    )
                 )
             # Inject values
             for key in s:
@@ -409,12 +413,15 @@ class KernelBroker:
             else:
                 # TCP client
                 import socket
+
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     sock.settimeout(1.0)
                     sock.connect(("127.0.0.1", externalshell_callbackport))
                     startScript = os.path.join(pyzo.pyzoDir, "pyzokernel", "start.py")
                     kernelPort = self._kernelCon.port1
-                    sock.sendall("{} {!r}\n".format(kernelPort, startScript).encode("utf-8"))
+                    sock.sendall(
+                        "{} {!r}\n".format(kernelPort, startScript).encode("utf-8")
+                    )
 
                 self._process = "EXTERNAL_SHELL"
 

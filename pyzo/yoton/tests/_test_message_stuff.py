@@ -39,7 +39,8 @@ t0 = time.time()
 for i in range(0, len(L2), 10):
     if L2[i]._seq > 9999999999999:
         break
-for i in range(i - 10, i):
+j = i
+for i in range(j - 10, j):
     if L2[i]._seq > 9999999999999:
         break
 print("i =", i, "  ", time.time() - t0, "seconds to check _seq attr")

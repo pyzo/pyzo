@@ -1,8 +1,9 @@
-""" Module yoton.channels.channels_base
+"""Module yoton.channels.channels_base
 
 Defines the base channel class and the MessageType class.
 
 """
+
 import sys
 import time
 import threading

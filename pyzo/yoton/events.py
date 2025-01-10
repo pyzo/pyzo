@@ -5,7 +5,7 @@
 # here. However, only since Python3.3 is this built-in functionality
 # thread safe. And we need thread safety!
 
-""" Module yoton.events
+"""Module yoton.events
 
 Yoton comes with a simple event system to enable event-driven applications.
 
@@ -34,11 +34,11 @@ class CallableObject(object):
 
     """
 
-    __slots__ = ["_ob", "_func"]  # Use __slots__ to reduce memory footprint
+    __slots__ = ["_func", "_ob"]  # Use __slots__ to reduce memory footprint
 
     def __init__(self, c):
         # Check
-        if not hasattr(c, "__call__"):
+        if not callable(c):
             raise ValueError("Error: given callback is not callable.")
 
         # Store function and object
@@ -110,7 +110,7 @@ class Event(object):
 
     """
 
-    __slots__ = ["_callable", "_args", "_kwargs", "_timeout"]
+    __slots__ = ["_args", "_callable", "_kwargs", "_timeout"]
 
     def __init__(self, callable, *args, **kwargs):
         if isinstance(callable, CallableObject):

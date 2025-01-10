@@ -1,4 +1,4 @@
-""" Module highlighter
+"""Module highlighter
 
 Defines the highlighter class for the base code editor class. It will do
 the styling when syntax highlighting is enabled. If it is not, will only

@@ -33,7 +33,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
 
         # Init color theme
         self._colors = {}
-        self._color_theme = ''
+        self._color_theme = ""
 
         # Init parsed code lists for line look-up
         self._lineItemList = []
@@ -80,7 +80,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16, 16))
         self._options.setPopupMode(self._options.ToolButtonPopupMode.InstantPopup)
-        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self._options.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
 
         # Create options menu
         self._options._menu = QtWidgets.QMenu()
@@ -374,7 +376,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             currentPath.pop()
 
         # Go
-        self._tree.setStyleSheet("QTreeWidget {background-color: " + colors["background"] + ";}")
+        self._tree.setStyleSheet(
+            "QTreeWidget {background-color: " + colors["background"] + ";}"
+        )
         self._tree.setUpdatesEnabled(False)
         self._tree.clear()
         SetItems(self._tree, result.rootItem.children, 0)
@@ -408,7 +412,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     )
                     # instead of changing the background color we could also change the selection
                     # # self._tree.setCurrentItem(selectedItem)
-                    self._tree.scrollToItem(selectedItem)  # ensure that the item is visible
+                    self._tree.scrollToItem(
+                        selectedItem
+                    )  # ensure that the item is visible
 
             if path is not None:
                 s = " --> ".join("{} {}".format(type, text) for type, text in path)

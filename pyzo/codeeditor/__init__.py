@@ -1,8 +1,10 @@
-""" CodeEditor
+"""CodeEditor
 
 A full featured code editor component based on QPlainTextEdit.
 
 """
+
+# ruff: noqa: F401
 
 from .manager import Manager
 from .base import CodeEditorBase

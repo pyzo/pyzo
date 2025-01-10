@@ -1,4 +1,4 @@
-""" Module yoton.misc
+"""Module yoton.misc
 
 Defines a few basic constants, classes and functions.
 
@@ -7,7 +7,8 @@ are used for the low-level messaging.
 
 """
 
-import sys, time
+import sys
+import time
 import struct
 import socket
 import threading
@@ -145,8 +146,8 @@ def split_address(address):
     if host.lower() == ph:
         host = ph + "0"
 
-    if host.lower().startswith(ph) and set(host[len(ph):]).issubset("0123456789"):
-        index = int(host[len(ph):])
+    if host.lower().startswith(ph) and set(host[len(ph) :]).issubset("0123456789"):
+        index = int(host[len(ph) :])
         hostname = socket.gethostname()
         ipaddrlist = socket.gethostbyname_ex(hostname)[2]
         try:

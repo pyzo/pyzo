@@ -1,22 +1,23 @@
-""" Module logging
+"""Module logging
 
 Functionality for logging in pyzo.
 
 """
 
 import os
-import sys, time
+import sys
+import time
 import pyzo
 
 # todo: enable logging to a file?
 
 # Define prompts
 try:
-    sys.ps1
+    sys.ps1  # noqa: B018
 except AttributeError:
     sys.ps1 = ">>> "
 try:
-    sys.ps2
+    sys.ps2  # noqa: B018
 except AttributeError:
     sys.ps2 = "... "
 

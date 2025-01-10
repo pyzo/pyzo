@@ -1,4 +1,4 @@
-""" Module style
+"""Module style
 
 Provides basic functionality for styling.
 
@@ -11,6 +11,7 @@ instances. These have a name, description and default format, which
 makes it easy to build a UI to allow the user to change the style.
 
 """
+
 from .qt import QtGui, QtCore
 
 Qt = QtCore.Qt

@@ -1,4 +1,4 @@
-""" Module yoton.channels.file
+"""Module yoton.channels.file
 
 Defines a class that can be used to wrap a channel to give it
 a file like interface.

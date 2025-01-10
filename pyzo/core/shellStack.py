@@ -1,4 +1,4 @@
-""" Module shellStack
+"""Module shellStack
 
 Implements the stack of shells. Also implements the nifty debug button
 and a dialog to edit the shell configurations.
@@ -242,7 +242,9 @@ class ShellStackWidget(QtWidgets.QWidget):
         )
 
         # Also give it a context menu
-        self._shellButton.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self._shellButton.setContextMenuPolicy(
+            QtCore.Qt.ContextMenuPolicy.CustomContextMenu
+        )
         self._shellButton.customContextMenuRequested.connect(self.contextMenuTriggered)
 
         # Add actions
@@ -366,7 +368,9 @@ class ShellControl(QtWidgets.QToolButton):
 
         currentShell = self._shellStack.currentWidget()
         if currentShell is not None:
-            shells = [self._shellStack.widget(i) for i in range(self._shellStack.count())]
+            shells = [
+                self._shellStack.widget(i) for i in range(self._shellStack.count())
+            ]
             indShellNew = shells.index(currentShell) + deltaShell
             if 0 <= indShellNew < len(shells):
                 self._shellStack.setCurrentIndex(indShellNew)
@@ -611,7 +615,9 @@ class DebugStack(QtWidgets.QToolButton):
             editor.gotoLine(linenr)
             cursor = editor.textCursor()
             cursor.movePosition(cursor.MoveOperation.StartOfBlock)
-            cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
+            cursor.movePosition(
+                cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor
+            )
             editor.setTextCursor(cursor)
         else:
             # focus on shell and not on an editor because there is no valid file

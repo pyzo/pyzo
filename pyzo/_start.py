@@ -58,7 +58,7 @@ except Exception:
     pass  # fail on older Qt's < 5.7
 
 # Import language/translation tools
-from pyzo.util._locale import translate, setLanguage  # noqa
+from pyzo.util._locale import translate, setLanguage
 
 pyzo.translate = translate
 pyzo.setLanguage = setLanguage
@@ -82,7 +82,7 @@ class MyApp(QtWidgets.QApplication):
 
 
 if not sys.platform.startswith("darwin"):
-    MyApp = QtWidgets.QApplication  # noqa
+    MyApp = QtWidgets.QApplication
 
 
 ## Install excepthook
@@ -126,9 +126,9 @@ def loadThemes():
         for fname in [fname for fname in os.listdir(dname) if fname.endswith(".theme")]:
             try:
                 theme = ssdf.load(os.path.join(dname, fname))
-                assert (
-                    theme.name.lower() == fname.lower().split(".")[0]
-                ), "Theme name does not match filename"
+                assert theme.name.lower() == fname.lower().split(".")[0], (
+                    "Theme name does not match filename"
+                )
                 theme.data = {
                     key.replace("_", "."): val for key, val in theme.data.items()
                 }
@@ -250,7 +250,6 @@ def start():
     # We also write "Closed" to the log (if a filename is provided) which we use
     # in our tests to determine that Pyzo did a successful run.
     if "--test" in sys.argv:
-
         # We will use a periodic timer instead of a single shot one because of strange
         # problems with the github CI workflow.
         # Combinations of Qt 6.7 and Microsoft Windows Server 2022 sometimes raised

@@ -10,8 +10,8 @@ from yoton.misc import TinyPackageQueue
 from yoton.core import Package, PACKAGE_HEARTBEAT, PACKAGE_CLOSE, EINTR
 from yoton.core import can_recv, send_all, recv_all, HEADER_SIZE
 
-from yoton.connection import Connection, TIMEOUT_MIN  # noqa
-from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING  # noqa
+from yoton.connection import Connection, TIMEOUT_MIN
+from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING
 from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING  # noqa
 
 # Note that time.sleep(0) yields the current thread's timeslice to any
@@ -157,7 +157,7 @@ class TcpConnection(Connection):
                 # just one port. Otherwise just try the next
                 if max_tries == 1:
                     raise
-            port += int((ind_try + 1)**0.5)
+            port += int((ind_try + 1) ** 0.5)
         else:
             # We tried all ports without success
             tmp = "Could not bind to any of the %i ports tried, starting with %i."
@@ -402,7 +402,9 @@ class HandShaker:
         elif request.startswith("YOTON!"):
             # Get id
             try:
-                id2_str, pid2_str = request[6:].split(".", 1)  # partition not in Python24
+                id2_str, pid2_str = request[6:].split(
+                    ".", 1
+                )  # partition not in Python24
                 id2, pid2 = int(id2_str, 16), int(pid2_str, 10)
             except Exception:
                 self._send_during_handshaking("ERROR: could not parse id.")
@@ -444,7 +446,9 @@ class HandShaker:
         elif response.startswith("YOTON!"):
             # Get id
             try:
-                id2_str, pid2_str = response[6:].split(".", 1)  # Partition not in Python24
+                id2_str, pid2_str = response[6:].split(
+                    ".", 1
+                )  # Partition not in Python24
                 id2, pid2 = int(id2_str, 16), int(pid2_str, 10)
             except Exception:
                 return False, STOP_HANDSHAKE_FAILED

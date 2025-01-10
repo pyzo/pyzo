@@ -31,14 +31,16 @@ class PythonInReg:
 
     def __init__(self, user, version, wow64=False):
         self._user = user
-        self._key = (wow64 and PYTHON_KEY_WOW64 or PYTHON_KEY) + "\\" + version
+        self._key = ((wow64 and PYTHON_KEY_WOW64) or PYTHON_KEY) + "\\" + version
 
     def __repr__(self):
         userstr = [None, "USER_ONE", "USER_ALL"][self._user]
         installPath = self.installPath()
         reg = self._reg()
         if not reg:
-            return "<PythonInReg {} at {} (unregistered)>".format(self.version(), userstr)
+            return "<PythonInReg {} at {} (unregistered)>".format(
+                self.version(), userstr
+            )
         elif installPath:
             return '<PythonInReg {} at {} in "{}">'.format(
                 self.version(),
@@ -86,7 +88,11 @@ class PythonInReg:
         # Get key for this version
         reg = self._reg()
         if not reg:
-            print("Unable to delete Python version {}: does not exist.".format(self.version()))
+            print(
+                "Unable to delete Python version {}: does not exist.".format(
+                    self.version()
+                )
+            )
 
         # Delete attributes
         try:
@@ -111,7 +117,9 @@ class PythonInReg:
         reg = self._reg()
         if not reg:
             raise RuntimeError(
-                "Could not set installPath for version {}: version does not exist.".format(self.version())
+                "Could not set installPath for version {}: version does not exist.".format(
+                    self.version()
+                )
             )
 
         # Set value or raise error
@@ -142,7 +150,9 @@ class PythonInReg:
         reg = self._reg()
         if not reg:
             raise RuntimeError(
-                "Could not set pythonPath for version {}: version does not exist.".format(self.version())
+                "Could not set pythonPath for version {}: version does not exist.".format(
+                    self.version()
+                )
             )
 
         # Set value or raise error
@@ -259,7 +269,9 @@ def register_interpreter(version=None, installPath=None, user=None, wow64=False)
             # Ok, there's a problem
             ok = False
             print(
-                'Warning: version {} is already installed in "{}".'.format(version, ev.installPath())
+                'Warning: version {} is already installed in "{}".'.format(
+                    version, ev.installPath()
+                )
             )
         if not ok:
             continue

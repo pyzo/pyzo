@@ -1,4 +1,4 @@
-""" Module to deal with command line arguments.
+"""Module to deal with command line arguments.
 
 In specific, this allows doing "pyzo some_file.py" and the file will be
 opened in an existing pyzo window (if available) or a new pyzo process
@@ -84,6 +84,7 @@ def handle_command(command, arg):
 
     elif command == "startexternalshell":
         import ast
+
         try:
             shell_config = ast.literal_eval(arg)
             if "externalshell_callbackport" not in shell_config:

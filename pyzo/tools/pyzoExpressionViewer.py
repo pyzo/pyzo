@@ -1,5 +1,5 @@
 import pyzo
-from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 tool_name = translate("pyzoExpressionViewer", "Expression viewer")
@@ -87,10 +87,18 @@ class ExpressionManager:
             # using len splitlines because checking for \r and \n is not enough:
             #   'xx\u2028yy'.splitlines() --> ['xx', 'yy']
             valid = False
-            print("WARNING: expression", repr(expression), "contains new-line like characters")
+            print(
+                "WARNING: expression",
+                repr(expression),
+                "contains new-line like characters",
+            )
         elif expression.startswith("#"):
             valid = False
-            print("WARNING: expression", repr(expression), "starts with a comment character")
+            print(
+                "WARNING: expression",
+                repr(expression),
+                "starts with a comment character",
+            )
         return valid, expression
 
     def clear(self):
@@ -114,7 +122,9 @@ class ExpressionManager:
         success = valid
         return success
 
-    def modifyExpression(self, expression, newExpression=None, newEnabled=None, newValue=None):
+    def modifyExpression(
+        self, expression, newExpression=None, newEnabled=None, newValue=None
+    ):
         success = True
         if newExpression is None:
             if expression in self._expressions:
@@ -266,8 +276,8 @@ class PyzoExpressionViewer(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
         # add example entries
-        self._em.addExpression('1 + 1', False)
-        self._em.addExpression('len(dir())', False)
+        self._em.addExpression("1 + 1", False)
+        self._em.addExpression("len(dir())", False)
         self._em.addExpression("repr('\\n'.join(globals())[:30])", False)
         self._textEdit.setPlainText(self._em.toString())
 
@@ -306,7 +316,7 @@ class PyzoExpressionViewer(QtWidgets.QWidget):
         if cmd == "ToggleRepr":
             prefix, postfix = "repr(", ")"
             if expr.startswith(prefix) and expr.endswith(postfix):
-                expr = expr[len(prefix):len(expr)-len(postfix)]
+                expr = expr[len(prefix) : len(expr) - len(postfix)]
             else:
                 expr = prefix + expr + postfix
             item.setText(0, expr)
@@ -376,7 +386,11 @@ class PyzoExpressionViewer(QtWidgets.QWidget):
 
     def _sendExpressionsToProxy(self):
         self._proxy.setExpressions(
-            [expr for expr, (enabled, v) in self._em.getExpressions().items() if enabled]
+            [
+                expr
+                for expr, (enabled, v) in self._em.getExpressions().items()
+                if enabled
+            ]
         )
 
     def _onButtonEditToggled(self, enabled):

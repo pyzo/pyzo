@@ -2,7 +2,6 @@
 Defines the tree widget to display the contents of a selected directory.
 """
 
-
 import re
 import os
 import sys
@@ -183,7 +182,7 @@ def createItemsFun(browser, parent):
         # Create temporary dir items
         if searchFilter["subDirs"]:
             for path in dirs:
-                if not os.path.basename(path) in (".git", ".hg"):
+                if os.path.basename(path) not in (".git", ".hg"):
                     item = TemporaryDirItem(parent, fsProxy.dir(path))
 
     # Return number of files added
@@ -210,7 +209,9 @@ def filename2sortkey(name):
     except Exception as err:
         # I cannot see how this could fail, but lets be safe, as it would break so badly
         print(
-            "Warning: could not filename2sortkey({!r}), please report:\n{}".format(name, err)
+            "Warning: could not filename2sortkey({!r}), please report:\n{}".format(
+                name, err
+            )
         )
         return (e, 999999999, name, -1)
 
@@ -531,7 +532,7 @@ class TemporaryDirItem:
     which are then processed, after which this object disbands itself.
     """
 
-    __slots__ = ["_tree", "_proxy", "__weakref__"]
+    __slots__ = ["__weakref__", "_proxy", "_tree"]
 
     def __init__(self, tree, pathProxy):
         self._tree = tree
@@ -559,7 +560,7 @@ class TemporaryFileItem:
     search had results.
     """
 
-    __slots__ = ["_tree", "_proxy", "__weakref__"]
+    __slots__ = ["__weakref__", "_proxy", "_tree"]
 
     def __init__(self, tree, pathProxy):
         self._tree = tree

@@ -181,7 +181,9 @@ class AutoCompletion:
             text = self.__highlightedCompletion
         # Select the text from autocompleteStart until the current cursor
         cursor = self.textCursor()
-        cursor.setPosition(self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor)
+        cursor.setPosition(
+            self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor
+        )
         # Replace it with the selected text
         cursor.insertText(text)
         self.autocompleteAccept()  # Reset the completer
@@ -265,7 +267,9 @@ class AutoCompletion:
 
         # Select the text from autocompleteStart until the current cursor
         cursor = self.textCursor()
-        cursor.setPosition(self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor)
+        cursor.setPosition(
+            self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor
+        )
 
         prefix = cursor.selectedText()
         if (
@@ -363,7 +367,9 @@ class AutoCompletion:
             if deltaRow != 0:
                 row = self.__completerWindow.currentIndex().row() + deltaRow
                 model = self.__completerWindow.model()
-                self.__completerWindow.setCurrentIndex(model.index(row % model.rowCount(), 0))
+                self.__completerWindow.setCurrentIndex(
+                    model.index(row % model.rowCount(), 0)
+                )
                 return  # consume the key
 
         # Allowed keys that do not close the autocompleteList:

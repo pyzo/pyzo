@@ -1,4 +1,4 @@
-""" Module tokens
+"""Module tokens
 
 Defines the base Token class and a few generic tokens.
 Tokens are used by parsers to identify for groups of characters

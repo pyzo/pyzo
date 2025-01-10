@@ -1,4 +1,4 @@
-""" yoton.clientserver.py
+"""yoton.clientserver.py
 
 Yoton comes with a small framework to setup a request-reply pattern
 using a client-server model (over a non-persistent connection),

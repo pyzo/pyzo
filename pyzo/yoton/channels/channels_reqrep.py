@@ -1,4 +1,4 @@
-""" Module yoton.channels.channels_reqprep
+"""Module yoton.channels.channels_reqprep
 
 Defines the channel classes for the req/rep pattern.
 
@@ -241,7 +241,7 @@ class Future(object):
         """
 
         # Check
-        if not hasattr(fn, "__call__"):
+        if not callable(fn):
             raise ValueError("add_done_callback expects a callable.")
 
         # Add

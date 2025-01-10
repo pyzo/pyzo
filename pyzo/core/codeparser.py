@@ -1,4 +1,4 @@
-""" Module codeparser
+"""Module codeparser
 
 Analyses the source code to get the structure of a module/script.
 This can be used for fictive introspection, and to display the
@@ -9,7 +9,9 @@ structure of a source file in for example a tree widget.
 # TODO: replace this module, get data from the syntax highlighter in the code editor
 
 from collections import deque
-import time, threading, re
+import time
+import threading
+import re
 import pyzo
 
 
@@ -397,7 +399,7 @@ class Parser(threading.Thread):
             if line.startswith(cellPrefixes):
                 for s in cellPrefixes:
                     if line.startswith(s):
-                        name = line[len(s):].lstrip()
+                        name = line[len(s) :].lstrip()
                         break
                 item = FictiveObject("cell", i, indent, name)
                 leafs.append(item)

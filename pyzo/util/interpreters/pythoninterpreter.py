@@ -25,7 +25,9 @@ class PythonInterpreter:
 
     def __init__(self, path):
         if not isinstance(path, str):
-            raise ValueError("Path for PythonInterpreter is not a string: {!r}".format(path))
+            raise ValueError(
+                "Path for PythonInterpreter is not a string: {!r}".format(path)
+            )
         if not os.path.isfile(make_abs(path)):
             raise ValueError("Path for PythonInterpreter is invalid: {!r}".format(path))
         self._path = (

@@ -1,4 +1,4 @@
-""" Module misc
+"""Module misc
 
 Define the option property decorator.
 

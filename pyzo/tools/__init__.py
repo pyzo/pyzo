@@ -1,4 +1,4 @@
-""" Package tools of pyzo
+"""Package tools of pyzo
 
 A tool consists of a module which contains a class. The id of
 a tool is its module name made lower case. The module should
@@ -26,7 +26,8 @@ displayed in the statusbar.
 # - file browser
 # - pythonpath editor, startupfile editor (or as part of pyzo?)
 
-import os, sys
+import os
+import sys
 import importlib.util
 
 import pyzo
@@ -52,9 +53,7 @@ class ToolDockWidget(QtWidgets.QDockWidget):
         # Set other settings
         DWF = QtWidgets.QDockWidget.DockWidgetFeature
         self.setFeatures(
-            DWF.DockWidgetMovable
-            | DWF.DockWidgetClosable
-            | DWF.DockWidgetFloatable
+            DWF.DockWidgetMovable | DWF.DockWidgetClosable | DWF.DockWidgetFloatable
             # DWF.DockWidgetVerticalTitleBar
         )
 

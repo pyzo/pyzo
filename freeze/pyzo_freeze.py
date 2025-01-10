@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" PyInstaller script
+"""PyInstaller script
 
 You can build a binary executable of Pyzo yourself:
 

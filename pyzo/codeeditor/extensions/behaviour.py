@@ -2,7 +2,6 @@
 Code editor extensions that change its behaviour (i.e. how it reacts to keys)
 """
 
-
 from ..qt import QtGui, QtCore
 
 Qt = QtCore.Qt
@@ -41,7 +40,9 @@ class MoveLinesUpDown:
 
         # Get text of selected blocks
         cursor.setPosition(start, cursor.MoveMode.MoveAnchor)
-        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(
+            cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor
+        )
         cursor.setPosition(end, cursor.MoveMode.KeepAnchor)
         cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
         text1 = cursor.selectedText()
@@ -56,7 +57,9 @@ class MoveLinesUpDown:
         cursor.movePosition(other, cursor.MoveMode.MoveAnchor)
 
         # Select text of other block
-        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(
+            cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor
+        )
         cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
         text2 = cursor.selectedText()
         cursor.removeSelectedText()
@@ -68,7 +71,9 @@ class MoveLinesUpDown:
 
         # Move back
         if key == Qt.Key.Key_Up:
-            cursor.movePosition(cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor)
+            cursor.movePosition(
+                cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor
+            )
         else:
             cursor.setPosition(pos1, cursor.MoveMode.MoveAnchor)
             pos2 += len(text2)
@@ -110,14 +115,18 @@ class HomeKey:
             # Prepare
             cursor = self.textCursor()
             shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
-            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][shiftDown]
+            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][
+                shiftDown
+            ]
             # Get leading whitespace
             text = cursor.block().text()
             leadingWhitespace = text[: len(text) - len(text.lstrip())]
             # Get current position and move to start of whitespace
             i = cursor.positionInBlock()
             cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
-            cursor.movePosition(cursor.MoveOperation.Right, moveMode, len(leadingWhitespace))
+            cursor.movePosition(
+                cursor.MoveOperation.Right, moveMode, len(leadingWhitespace)
+            )
             # If we were alread there, move to start of block
             if cursor.positionInBlock() == i:
                 cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
@@ -136,7 +145,9 @@ class EndKey:
             # Prepare
             cursor = self.textCursor()
             shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
-            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][shiftDown]
+            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][
+                shiftDown
+            ]
             # Get current position and move to end of line
             i = cursor.positionInBlock()
             cursor.movePosition(cursor.MoveOperation.EndOfLine, moveMode)
@@ -244,7 +255,9 @@ class Indentation:
         if key == Qt.Key.Key_Delete:
             cursor = self.textCursor()
             if not cursor.hasSelection():
-                cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
+                cursor.movePosition(
+                    cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor
+                )
                 if not cursor.hasSelection() and cursor.block().next().isValid():
                     cursor.beginEditBlock()
                     cursor.movePosition(cursor.MoveOperation.NextBlock)
@@ -620,8 +633,10 @@ class AutoCloseQuotesAndBrackets:
                     or isinstance(
                         tokenL, StringToken
                     )  # don't add a fourth " when typing " after two "
-                    or isinstance(tokenL, IdentifierToken)
-                    and str(tokenL) not in stringLiteralPrefixes
+                    or (
+                        isinstance(tokenL, IdentifierToken)
+                        and str(tokenL) not in stringLiteralPrefixes
+                    )
                 ):
                     super().keyPressEvent(event)
                     return
@@ -639,9 +654,7 @@ class AutoCloseQuotesAndBrackets:
                 #         self._moveCursorLeft(2)
 
         # remove whole couple of brackets when hitting backspace
-        elif (
-            event.key() == Qt.Key.Key_Backspace and self.__autoClose_Brackets
-        ):
+        elif event.key() == Qt.Key.Key_Backspace and self.__autoClose_Brackets:
             if isinstance(
                 self._get_token_at_cursor(cursor),
                 (
@@ -672,15 +685,23 @@ class AutoCloseQuotesAndBrackets:
 
     def __getNextCharacter(self):
         cursor = self.textCursor()
-        cursor.movePosition(cursor.MoveOperation.NoMove, cursor.MoveMode.MoveAnchor)  # rid selection
-        cursor.movePosition(cursor.MoveOperation.NextCharacter, cursor.MoveMode.KeepAnchor)
+        cursor.movePosition(
+            cursor.MoveOperation.NoMove, cursor.MoveMode.MoveAnchor
+        )  # rid selection
+        cursor.movePosition(
+            cursor.MoveOperation.NextCharacter, cursor.MoveMode.KeepAnchor
+        )
         next_char = cursor.selectedText()
         return next_char
 
     def __getPreviousCharacter(self):
         cursor = self.textCursor()
-        cursor.movePosition(cursor.MoveOperation.NoMove, cursor.MoveMode.MoveAnchor)  # rid selection
-        cursor.movePosition(cursor.MoveOperation.PreviousCharacter, cursor.MoveMode.KeepAnchor)
+        cursor.movePosition(
+            cursor.MoveOperation.NoMove, cursor.MoveMode.MoveAnchor
+        )  # rid selection
+        cursor.movePosition(
+            cursor.MoveOperation.PreviousCharacter, cursor.MoveMode.KeepAnchor
+        )
         previous_char = cursor.selectedText()
         return previous_char
 
@@ -693,5 +714,7 @@ class AutoCloseQuotesAndBrackets:
     def _moveCursorRight(self, n):
         """Move cursor out of eg. brackets"""
         cursor2 = self.textCursor()
-        cursor2.movePosition(cursor2.MoveOperation.Right, cursor2.MoveMode.MoveAnchor, n)
+        cursor2.movePosition(
+            cursor2.MoveOperation.Right, cursor2.MoveMode.MoveAnchor, n
+        )
         self.setTextCursor(cursor2)

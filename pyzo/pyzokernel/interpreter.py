@@ -1,4 +1,4 @@
-""" Module pyzokernel.interpreter
+"""Module pyzokernel.interpreter
 
 Implements the Pyzo interpreter.
 
@@ -1228,6 +1228,7 @@ class PyzoInterpreter:
             new_nr = old_nr + offset
             return line[:i1] + line[i2:i3] + str(new_nr) + line[i4:]
         return line
+
 
 class ExecutedSourceCollection:
     """Stores the source of executed pieces of code, so that the right

@@ -9,7 +9,9 @@ import os
 import re
 import time
 import inspect
-import tokenize, token, keyword
+import tokenize
+import token
+import keyword
 import itertools
 
 try:
@@ -300,7 +302,7 @@ class Magician:
         return ""
 
     def cd(self, line, command):
-        if command == "CD" or command.startswith("CD ") and "=" not in command:
+        if command == "CD" or (command.startswith("CD ") and "=" not in command):
             path = line[3:].strip()
             if path:
                 try:
@@ -316,7 +318,7 @@ class Magician:
             return ""
 
     def ls(self, line, command):
-        if command == "LS" or command.startswith("LS ") and "=" not in command:
+        if command == "LS" or (command.startswith("LS ") and "=" not in command):
             path = line[3:].strip()
             if not path:
                 path = os.getcwd()
@@ -659,7 +661,6 @@ class Magician:
         oldargs = sys.argv
         try:
             try:
-                import notebook  # noqa: just want to check if the module is there at all
                 from notebook._version import version_info
 
                 if version_info >= (7, 0):

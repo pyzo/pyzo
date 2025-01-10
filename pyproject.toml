@@ -20,9 +20,7 @@ license = { file = "LICENSE.md" }
 
 
 authors = [{ name = "the Pyzo development team" }]
-keywords = [
-    "interactive", "IDE", "Qt", "science", "computing",
-]
+keywords = ["interactive", "IDE", "Qt", "science", "computing"]
 requires-python = ">= 3.6"
 dependencies = []
 [project.optional-dependencies]
@@ -74,11 +72,18 @@ include = ["README.md", "LICENSE.md", "pyzo.appdata.xml", "pyzolauncher.py"]
 
 [tool.ruff]
 line-length = 88
+exclude = ["pyzo/resources/tutorial.py"]
 
 [tool.ruff.lint]
-select = ["F", "E", "W", "N", "B", "RUF"]
+select = ["F", "E", "W", "B", "RUF"]
 ignore = [
     "E501",   # Line too long
     "E731",   # Do not assign a `lambda` expression, use a `def`
-    "N806",   # Variable in function should be lowercase
+    "B007",   # Loop control variable not used within loop body
+    "E402",   # Module level import not at top of file
+    "B904",   # Within an `except` clause, raise exceptions with from
+    "RUF001", # String contains ambiguous RIGHT SINGLE QUOTATION MARK
+    "RUF002", # Docstring contains ambiguous RIGHT SINGLE QUOTATION MARK
+    "RUF005", # Consider `[1, *bb]` instead of `[1] + bb`
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
 ]

@@ -1,4 +1,4 @@
-""" Module yoton.channels.message_types
+"""Module yoton.channels.message_types
 
 Defines a few basic message_types for the channels. A MessageType object
 defines how a message of that type should be converted to bytes and

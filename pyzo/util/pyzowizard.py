@@ -1,4 +1,4 @@
-""" pyzowizard module
+"""pyzowizard module
 
 Implements a wizard to help new users get familiar with pyzo.
 
@@ -104,7 +104,9 @@ class BasePyzoWizardPage(QtWidgets.QWizardPage):
         self._text_label = QtWidgets.QLabel(self)
         self._text_label.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self._text_label.setWordWrap(True)
-        self._text_label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
+        self._text_label.setTextInteractionFlags(
+            QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
+        )
 
         # Create label for image
         self._comicLabel = QtWidgets.QLabel(self)
@@ -413,7 +415,6 @@ class DebuggingWizardPage1(BasePyzoWizardPage):
         you can see local variables in different layers of nested function calls.
         Continuing execution is not possible in postmortem, though.""",
         ),
-
         translate(
             "wizard",
             """The *Pause* debug action (in the "Shell" menu or shell toolbar) makes it
@@ -558,9 +559,10 @@ class AdvAutoCompWizardPage(BasePyzoWizardPage):
         <br />
         The Ctrl+Space hot key can also be pressed while having already entered some characters
         of the attribute, key or arguments, in case the autocompletion list widget resp. calltip
-        should be shown again after having cancelled it."""
+        should be shown again after having cancelled it.""",
         ),
     ]
+
 
 class MiscellaneousWizardPage(BasePyzoWizardPage):
     _title = translate("wizard", "Miscellaneous tips and tricks")
@@ -591,9 +593,10 @@ class MiscellaneousWizardPage(BasePyzoWizardPage):
         <br />
         You can directly modify Pyzo's source code even in the binary distribution because
         the binary is just a Python-Interpreter that runs the Python source code in the
-        installation directory. See the "About Pyzo" dialog for the code location."""
+        installation directory. See the "About Pyzo" dialog for the code location.""",
         ),
     ]
+
 
 class FinalPage(BasePyzoWizardPage):
     _title = translate("wizard", "Get coding!")

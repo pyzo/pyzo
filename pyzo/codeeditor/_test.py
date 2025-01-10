@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-""" This script runs a test for the code editor component.
-"""
+"""This script runs a test for the code editor component."""
 
-import os, sys
+import os
+import sys
 from qt import QtGui, QtCore, QtWidgets
 
 Qt = QtCore.Qt

@@ -1,4 +1,3 @@
-
 class TextReshaper:
     """Object to reshape a piece of text, taking indentation, paragraphs,
     comments and bulletpoints into account.
