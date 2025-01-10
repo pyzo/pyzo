@@ -515,9 +515,9 @@ whatever messages he/she likes.
   
   .. py:method:: yoton.Future.exception(timeout)
   
-    Return the exception raised by the call. If the call hasn’t yet
+    Return the exception raised by the call. If the call hasn't yet
     completed then this method will wait up to timeout seconds. If 
-    the call hasn’t completed in timeout seconds, then a TimeoutError 
+    the call hasn't completed in timeout seconds, then a TimeoutError 
     will be raised. timeout can be an int or float. If timeout is not 
     specified or None, there is no limit to the wait time.
     
@@ -531,9 +531,9 @@ whatever messages he/she likes.
   
   .. py:method:: yoton.Future.result(timeout=None)
   
-    Return the value returned by the call. If the call hasn’t yet 
+    Return the value returned by the call. If the call hasn't yet 
     completed then this method will wait up to timeout seconds. If 
-    the call hasn’t completed in timeout seconds, then a TimeoutError 
+    the call hasn't completed in timeout seconds, then a TimeoutError 
     will be raised. timeout can be an int or float. If timeout is not 
     specified or None, there is no limit to the wait time.
     
@@ -547,9 +547,9 @@ whatever messages he/she likes.
   
   .. py:method:: yoton.Future.result_or_cancel(timeout=1.0)
   
-    Return the value returned by the call. If the call hasn’t yet 
+    Return the value returned by the call. If the call hasn't yet 
     completed then this method will wait up to timeout seconds. If 
-    the call hasn’t completed in timeout seconds, then the call is
+    the call hasn't completed in timeout seconds, then the call is
     cancelled and the method will return None.
     
 

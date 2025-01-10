@@ -12,6 +12,8 @@ Yoton is ...
 
 """
 
+# ruff: noqa: F401
+
 # Import stuff from misc and events
 from yoton.misc import UID, str, bytes
 from yoton.events import Signal, Timer, app

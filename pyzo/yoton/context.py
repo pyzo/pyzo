@@ -233,7 +233,7 @@ class Context(object):
         """
 
         # Trigger cleanup of closed connections
-        self.connections
+        self.connections  # noqa
 
         # Split address in protocol, real hostname and port number
         protocol, hostname, port = split_address(address)
@@ -300,7 +300,7 @@ class Context(object):
         """
 
         # Trigger cleanup of closed connections
-        self.connections
+        self.connections  # noqa
 
         # Split address in protocol, real hostname and port number
         protocol, hostname, port = split_address(address)

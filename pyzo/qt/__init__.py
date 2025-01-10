@@ -1,6 +1,9 @@
+# ruff: noqa: F401
+
 import os
 import sys
 import importlib
+
 
 _QT_WRAPPERS = ("PySide6", "PyQt6", "PySide2", "PyQt5")
 
@@ -64,8 +67,6 @@ def _get_versions():
 QT_VERSION_STR, QT_WRAPPER_VERSION_STR = _get_versions()
 
 from . import qtutils
-
-del os, sys, _get_versions, _load_modules, _get_desired_api
 
 
 ## Qt components
