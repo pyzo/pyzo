@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2013, the Pyzo development team
-#
-# Yoton is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 """ Module yoton.channels.file
 
 Defines a class that can be used to wrap a channel to give it

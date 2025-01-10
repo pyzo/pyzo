@@ -1,8 +1,3 @@
-# Copyright (C) 2016, the Pyzo development team
-#
-# Pyzo is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 
 class TextReshaper:
     """Object to reshape a piece of text, taking indentation, paragraphs,

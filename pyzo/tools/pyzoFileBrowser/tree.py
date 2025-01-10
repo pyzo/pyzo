@@ -1,5 +1,3 @@
-# Copyright (C) 2013 Almar Klein
-
 """
 Defines the tree widget to display the contents of a selected directory.
 """

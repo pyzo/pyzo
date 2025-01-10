@@ -1,9 +1,3 @@
-# Copyright (C) 2016, the Pyzo development team
-#
-# Pyzo is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
-
 import sys, os, code
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa

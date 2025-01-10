@@ -1,8 +1,3 @@
-# Copyright (C) 2014, the Pyzo development team
-#
-# Pyzo is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 """ Module to deal with command line arguments.
 
 In specific, this allows doing "pyzo some_file.py" and the file will be

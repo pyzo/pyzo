@@ -1,8 +1,3 @@
-# Copyright (C) 2018, the codeeditor development team
-#
-# Pyzo is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 from . import Parser, BlockState
 
 # Import tokens in module namespace

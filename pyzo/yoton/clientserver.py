@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2013, the Pyzo development team
-#
-# Yoton is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 """ yoton.clientserver.py
 
 Yoton comes with a small framework to setup a request-reply pattern
