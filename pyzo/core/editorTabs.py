@@ -1288,7 +1288,7 @@ class EditorTabs(QtWidgets.QWidget):
             dlg = QtWidgets.QMessageBox(self)
             dlg.setWindowTitle("Reload file with unsaved changes?")
             dlg.setText(
-                'Do you want to reload file\n"{}"\n' "and lose unsaved changes?".format(
+                'Do you want to reload file\n"{}"\nand lose unsaved changes?'.format(
                     editor.filename
                 )
             )

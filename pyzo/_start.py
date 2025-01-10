@@ -126,9 +126,9 @@ def loadThemes():
         for fname in [fname for fname in os.listdir(dname) if fname.endswith(".theme")]:
             try:
                 theme = ssdf.load(os.path.join(dname, fname))
-                assert (
-                    theme.name.lower() == fname.lower().split(".")[0]
-                ), "Theme name does not match filename"
+                assert theme.name.lower() == fname.lower().split(".")[0], (
+                    "Theme name does not match filename"
+                )
                 theme.data = {
                     key.replace("_", "."): val for key, val in theme.data.items()
                 }
