@@ -1,4 +1,4 @@
-""" Module baseTextCtrl
+"""Module baseTextCtrl
 
 Defines the base text control to be inherited by the shell and editor
 classes. Implements styling, introspection and a bit of other stuff that
@@ -26,11 +26,11 @@ def normalizePath(path):
 
 
 def isFormatStringToken(token):
-    """returns True if a StringToken is a format string literal, e.g. f'{1 + 2}' """
+    """returns True if a StringToken is a format string literal, e.g. f'{1 + 2}'"""
     if not isinstance(token, Tokens.StringToken):
         return False
     s = str(token)
-    return "f" in s[:s.index(s[-1])].lower()
+    return "f" in s[: s.index(s[-1])].lower()
 
 
 def isSimpleExpression(tokens):
@@ -151,18 +151,24 @@ def getExpressionTokensRightToLeft(tokens, indRightStart):
                 if containsCurly:
                     return None  # curly braces encountered more than once
                 containsCurly = True
-            exprTokens.extend(tokens[indOpening:i+1][::-1])
+            exprTokens.extend(tokens[indOpening : i + 1][::-1])
             i = indOpening
-        elif s == '.':
-            if len(exprTokens) == 0 or not isinstance(exprTokens[-1], Tokens.IdentifierToken):
+        elif s == ".":
+            if len(exprTokens) == 0 or not isinstance(
+                exprTokens[-1], Tokens.IdentifierToken
+            ):
                 return None  # dot is not on the left of an attribute
             exprTokens.append(t)
         elif isinstance(t, Tokens.IdentifierToken):
-            if len(exprTokens) > 0 and isinstance(exprTokens[-1], (Tokens.IdentifierToken, Tokens.StringToken)):
+            if len(exprTokens) > 0 and isinstance(
+                exprTokens[-1], (Tokens.IdentifierToken, Tokens.StringToken)
+            ):
                 return None  # an identifier cannot be directly on the left of a string literal or another identifier
             exprTokens.append(t)
         elif isinstance(t, Tokens.StringToken):
-            if len(exprTokens) > 0 and isinstance(exprTokens[-1], Tokens.IdentifierToken):
+            if len(exprTokens) > 0 and isinstance(
+                exprTokens[-1], Tokens.IdentifierToken
+            ):
                 return None  # a string literal cannot be directly on the left of an identifier
             exprTokens.append(t)
         else:
@@ -174,10 +180,10 @@ def getExpressionTokensRightToLeft(tokens, indRightStart):
     if len(exprTokens) == 0:
         return None  # no expression found
 
-    if containsCurly and str(exprTokens[-1]) != '{':
+    if containsCurly and str(exprTokens[-1]) != "{":
         return None  # curly braces can only occur at the very left
 
-    if str(exprTokens[-1]) == '.':
+    if str(exprTokens[-1]) == ".":
         return None  # a dot cannot occur at the very left
 
     return indLeftEnd
@@ -236,7 +242,7 @@ def parseLine_autocomplete(tokens):
     indLeftEnd = getExpressionTokensRightToLeft(tokens, indRightStart)
     if indLeftEnd is None:
         return retvalInvalid
-    nameTokens = tokens[indLeftEnd:indRightStart+1]
+    nameTokens = tokens[indLeftEnd : indRightStart + 1]
     return nameTokens, needleToken
 
 
@@ -297,7 +303,7 @@ if False:
 
     print(repr(res))
     if res != (None, None):
-        print(''.join(str(t) for t in res[0]))
+        print("".join(str(t) for t in res[0]))
         print(res[1])
 ##
 
@@ -484,7 +490,9 @@ class BaseTextCtrl(CodeEditor):
                 # Process
                 indOfOpenParen = tokens[indParenToken].start
                 offset = (
-                    self._delayTimer._cursor.positionInBlock() - indOfOpenParen + len(str(fullNameTokens[-1]))
+                    self._delayTimer._cursor.positionInBlock()
+                    - indOfOpenParen
+                    + len(str(fullNameTokens[-1]))
                 )
                 cto = CallTipObject(self, fullName, offset, useIntermediateResult)
                 self.processCallTip(cto)
@@ -498,14 +506,16 @@ class BaseTextCtrl(CodeEditor):
 
             if not nameTokens and not str(needleToken).isidentifier():
                 # nameTokens could be None or []
-                nameTokens = None  # force key-auto-completion (for indices, and numeric keys)
+                nameTokens = (
+                    None  # force key-auto-completion (for indices, and numeric keys)
+                )
 
             if nameTokens is None:
                 # no auto-completion for a name or attribute found --> try key-auto-completion instead
                 keyLookUp = True
                 nameTokens, indParenToken = parseLine_signature(tokens, paren="[")
                 if indParenToken is not None:
-                    needleToken = "".join([str(t) for t in tokens[indParenToken + 1:]])
+                    needleToken = "".join([str(t) for t in tokens[indParenToken + 1 :]])
                 else:
                     needleToken = None
 
@@ -555,7 +565,9 @@ class BaseTextCtrl(CodeEditor):
             _, tokens = self.getTokensUpToCursor(cursor)
             nameTokens, needleToken = parseLine_autocomplete(tokens)
             if nameTokens:
-                name = "{}.{}".format("".join([str(t) for t in nameTokens]), needleToken)
+                name = "{}.{}".format(
+                    "".join([str(t) for t in nameTokens]), needleToken
+                )
             elif needleToken:
                 name = str(needleToken)
 
@@ -643,10 +655,10 @@ class BaseTextCtrl(CodeEditor):
 
         # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
         has_control = (
-            event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier or
-            event.modifiers() & QtCore.Qt.KeyboardModifier.MetaModifier
+            event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
+            or event.modifiers() & QtCore.Qt.KeyboardModifier.MetaModifier
         )
-        if (has_control and event.key() == QtCore.Qt.Key.Key_Space):
+        if has_control and event.key() == QtCore.Qt.Key.Key_Space:
             cursor = self.textCursor()
             if cursor.position() == cursor.anchor():
                 text = cursor.block().text()[: cursor.positionInBlock()]
@@ -768,7 +780,9 @@ class AutoCompObject:
         """
         # Remember at the object that started this introspection
         # and get sorted names
-        timeout = 1e10 if self.useIntermediateResult else None  # almost infinite timeout for the buffer
+        timeout = (
+            1e10 if self.useIntermediateResult else None
+        )  # almost infinite timeout for the buffer
         names = self.setBuffer(self.names, timeout)
         # really finish
         self._finish(names)

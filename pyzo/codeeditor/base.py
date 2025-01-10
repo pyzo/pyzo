@@ -203,15 +203,23 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Define style using "Solarized" colors
         S = {}
         S["Editor.text"] = "back:{}, fore:{}".format(back1, fore1)
-        S["Syntax.identifier"] = "fore:{}, bold:no, italic:no, underline:no".format(fore1)
-        S["Syntax.nonidentifier"] = "fore:{}, bold:no, italic:no, underline:no".format(fore2)
+        S["Syntax.identifier"] = "fore:{}, bold:no, italic:no, underline:no".format(
+            fore1
+        )
+        S["Syntax.nonidentifier"] = "fore:{}, bold:no, italic:no, underline:no".format(
+            fore2
+        )
         S["Syntax.keyword"] = "fore:{}, bold:yes, italic:no, underline:no".format(fore2)
 
         S["Syntax.builtins"] = "fore:{}, bold:no, italic:no, underline:no".format(fore1)
         S["Syntax.instance"] = "fore:{}, bold:no, italic:no, underline:no".format(fore1)
 
-        S["Syntax.functionname"] = "fore:{}, bold:yes, italic:no, underline:no".format(fore3)
-        S["Syntax.classname"] = "fore:{}, bold:yes, italic:no, underline:no".format(orange)
+        S["Syntax.functionname"] = "fore:{}, bold:yes, italic:no, underline:no".format(
+            fore3
+        )
+        S["Syntax.classname"] = "fore:{}, bold:yes, italic:no, underline:no".format(
+            orange
+        )
 
         S["Syntax.string"] = "fore:{}, bold:no, italic:no, underline:no".format(violet)
         S["Syntax.unterminatedstring"] = (
@@ -223,7 +231,9 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         S["Syntax.number"] = "fore:{}, bold:no, italic:no, underline:no".format(cyan)
         S["Syntax.comment"] = "fore:{}, bold:no, italic:no, underline:no".format(yellow)
-        S["Syntax.todocomment"] = "fore:{}, bold:no, italic:yes, underline:no".format(magenta)
+        S["Syntax.todocomment"] = "fore:{}, bold:no, italic:yes, underline:no".format(
+            magenta
+        )
         S["Syntax.python.cellcomment"] = (
             "fore:{}, bold:yes, italic:no, underline:full".format(yellow)
         )
@@ -579,7 +589,9 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         if value <= 0:
             raise ValueError("indentWidth must be >0")
         self.__indentWidth = value
-        self.setTabStopDistance(self.fontMetrics().horizontalAdvance("i" * self.__indentWidth))
+        self.setTabStopDistance(
+            self.fontMetrics().horizontalAdvance("i" * self.__indentWidth)
+        )
 
     @ce_option(False)
     def indentUsingSpaces(self):
@@ -618,7 +630,9 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # block = self.document().findBlockByNumber( blockNumber )
         # cursor.setPosition(block.position())
         cursor.movePosition(cursor.MoveOperation.Start)  # move to begin of the document
-        cursor.movePosition(cursor.MoveOperation.NextBlock, n=blockNumber)  # n blocks down
+        cursor.movePosition(
+            cursor.MoveOperation.NextBlock, n=blockNumber
+        )  # n blocks down
 
         if keepHorizontalPos:
             if cursor.movePosition(cursor.MoveOperation.Up):
@@ -724,7 +738,11 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
 
         # Select the leading whitespace
         cursor.movePosition(cursor.MoveOperation.StartOfBlock)
-        cursor.movePosition(cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, len(leadingWhitespace))
+        cursor.movePosition(
+            cursor.MoveOperation.Right,
+            cursor.MoveMode.KeepAnchor,
+            len(leadingWhitespace),
+        )
 
         # Compute the new indentation length, expanding any existing tabs
         indent = len(leadingWhitespace.expandtabs(self.indentWidth()))
@@ -778,7 +796,9 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         if pos2 < pos1:
             pos1, pos2 = pos2, pos1
         cursor.setPosition(pos1, cursor.MoveMode.MoveAnchor)
-        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor)
+        cursor.movePosition(
+            cursor.MoveOperation.StartOfBlock, cursor.MoveMode.MoveAnchor
+        )
         cursor.setPosition(pos2, cursor.MoveMode.KeepAnchor)
         cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
 

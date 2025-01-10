@@ -1,4 +1,4 @@
-""" Module editor
+"""Module editor
 
 Defines the PyzoEditor class which is used to edit documents.
 This module/class also implements all the relatively low level
@@ -390,8 +390,12 @@ class PyzoEditor(BaseTextCtrl):
                 "File has been modified outside of the editor:\n" + self._filename
             )
             dlg.setInformativeText("Do you want to reload?")
-            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole)
-            dlg.addButton("Keep this version", QtWidgets.QMessageBox.ButtonRole.RejectRole)
+            btnReload = dlg.addButton(
+                "Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole
+            )
+            dlg.addButton(
+                "Keep this version", QtWidgets.QMessageBox.ButtonRole.RejectRole
+            )
             dlg.setDefaultButton(btnReload)
 
             # whatever the result, we will reset the modified time
@@ -507,7 +511,8 @@ class PyzoEditor(BaseTextCtrl):
                 ):
                     editCursor.movePosition(editCursor.MoveOperation.StartOfBlock)
                     editCursor.movePosition(
-                        editCursor.MoveOperation.EndOfBlock, editCursor.MoveMode.KeepAnchor
+                        editCursor.MoveOperation.EndOfBlock,
+                        editCursor.MoveMode.KeepAnchor,
                     )
                     text1 = editCursor.selectedText()
                     text2 = text1.rstrip()
@@ -622,7 +627,9 @@ class PyzoEditor(BaseTextCtrl):
             if not endsAtNextBlock:
                 # Could not move to the beginning of the next block because the end of the
                 # document was reached. Therefore move till the end of the document.
-                cursor.movePosition(cursor.MoveOperation.End, cursor.MoveMode.KeepAnchor)
+                cursor.movePosition(
+                    cursor.MoveOperation.End, cursor.MoveMode.KeepAnchor
+                )
         else:
             # There is selected text and the cursor is at the beginning of the block.
             endsAtNextBlock = True

@@ -44,7 +44,10 @@ class MyQListWidget(QtWidgets.QListWidget):
             eventName = "insert"
 
         m = event.modifiers()
-        if m & Qt.KeyboardModifier.ControlModifier and m & Qt.KeyboardModifier.ShiftModifier:
+        if (
+            m & Qt.KeyboardModifier.ControlModifier
+            and m & Qt.KeyboardModifier.ShiftModifier
+        ):
             if key == Qt.Key.Key_Up:
                 eventName = "shift_up"
             elif key == Qt.Key.Key_Down:

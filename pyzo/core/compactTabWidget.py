@@ -1,4 +1,4 @@
-""" compact tab widget class
+"""compact tab widget class
 
 See docs of the tab widget.
 

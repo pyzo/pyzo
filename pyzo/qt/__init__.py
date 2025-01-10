@@ -47,10 +47,11 @@ def _load_modules(desired_api):
 
 API = _load_modules(_get_desired_api())
 
+
 def _get_versions():
     """returns the qt and wrapper version as strings"""
     mod = importlib.import_module(API)
-    importlib.import_module(API + '.QtCore')
+    importlib.import_module(API + ".QtCore")
     if API.startswith("PySide"):
         qt_version = mod.QtCore.__version__
         wrapper_version = mod.__version__
@@ -69,10 +70,10 @@ del os, sys, _get_versions, _load_modules, _get_desired_api
 
 ## Qt components
 
-QtCore = importlib.import_module(API + '.QtCore')
-QtGui = importlib.import_module(API + '.QtGui')
-QtWidgets = importlib.import_module(API + '.QtWidgets')
-QtPrintSupport = importlib.import_module(API + '.QtPrintSupport')
+QtCore = importlib.import_module(API + ".QtCore")
+QtGui = importlib.import_module(API + ".QtGui")
+QtWidgets = importlib.import_module(API + ".QtWidgets")
+QtPrintSupport = importlib.import_module(API + ".QtPrintSupport")
 
 del importlib
 
@@ -107,7 +108,9 @@ if API in ("PySide2", "PyQt5"):
 
     class _QFontDatabaseWrapper:
         _original = QtGui.QFontDatabase
-        def __getattribute__(self, name): return _getFontDatabase(name)
+
+        def __getattribute__(self, name):
+            return _getFontDatabase(name)
 
     QtGui.QFontDatabase = _QFontDatabaseWrapper()
 
@@ -117,7 +120,10 @@ if API == "PyQt6":
     QtWidgets.QFileSystemModel = QtGui.QFileSystemModel
 
     import inspect
-    QtWidgets.QPlainTextEdit.print_ = inspect.getattr_static(QtWidgets.QPlainTextEdit, "print")
+
+    QtWidgets.QPlainTextEdit.print_ = inspect.getattr_static(
+        QtWidgets.QPlainTextEdit, "print"
+    )
     QtWidgets.QMenu.exec_ = inspect.getattr_static(QtWidgets.QMenu, "exec")
     del inspect
 

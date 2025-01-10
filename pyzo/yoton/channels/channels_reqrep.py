@@ -1,4 +1,4 @@
-""" Module yoton.channels.channels_reqprep
+"""Module yoton.channels.channels_reqprep
 
 Defines the channel classes for the req/rep pattern.
 

@@ -1,7 +1,6 @@
-""" Simple script to make a performance plot of the speed for sending
+"""Simple script to make a performance plot of the speed for sending
 different package sizes.
 """
-
 
 # Go up one directory and then import the codeeditor package
 import os, sys
@@ -120,7 +119,7 @@ ax2.set_ylabel("time per message [s]")
 ax2.set_xlabel("message size [bytes]")
 
 ax2.xaxis.set_major_formatter(formatter)
-ax2.tick_params('x', rotation=45)
+ax2.tick_params("x", rotation=45)
 
 for ax in [ax1, ax2]:
     ax.grid(True)

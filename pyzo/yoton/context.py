@@ -1,4 +1,4 @@
-""" Module yoton.context
+"""Module yoton.context
 
 Defines the context class.
 

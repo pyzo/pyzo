@@ -1,4 +1,4 @@
-""" Module yoton.channels.channels_pubsub
+"""Module yoton.channels.channels_pubsub
 
 Defines the channel classes for the pub/sub pattern.
 

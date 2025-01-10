@@ -1,4 +1,4 @@
-""" Module yoton.channels.channels_state
+"""Module yoton.channels.channels_state
 
 Defines the channel class for state.
 

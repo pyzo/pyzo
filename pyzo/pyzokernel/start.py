@@ -1,4 +1,4 @@
-""" pyzokernel/start.py
+"""pyzokernel/start.py
 
 Starting script for remote processes in pyzo.
 This script connects to the pyzo ide using the yoton interface

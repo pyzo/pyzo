@@ -153,7 +153,11 @@ class _ParenIterator:
 
     def _getParenTokens(self):
         try:
-            return [x for x in self.cur_block.userData().tokens if isinstance(x, ParenthesisToken)]
+            return [
+                x
+                for x in self.cur_block.userData().tokens
+                if isinstance(x, ParenthesisToken)
+            ]
         except AttributeError:
             return []  # can be a piece of text that we do not tokenize or have not stored tokens
 
@@ -241,7 +245,9 @@ class HighlightMatchingBracket:
     _BRACKS_OPEN = "([{"
     _BRACKS_CLOSE = ")]}"
     _BRACKS = _BRACKS_OPEN + _BRACKS_CLOSE
-    _matchingBrackets = dict(zip(_BRACKS_OPEN + _BRACKS_CLOSE, _BRACKS_CLOSE + _BRACKS_OPEN))
+    _matchingBrackets = dict(
+        zip(_BRACKS_OPEN + _BRACKS_CLOSE, _BRACKS_CLOSE + _BRACKS_OPEN)
+    )
 
     def highlightMatchingBracket(self):
         """Get whether to highlight matching brackets."""
@@ -558,7 +564,9 @@ class FullUnderlines:
 
         def paintUnderline(cursor):
             y = self.cursorRect(cursor).bottom()
-            fullUnderlineFormat = getattr(cursor.block().userData(), "fullUnderlineFormat", None)
+            fullUnderlineFormat = getattr(
+                cursor.block().userData(), "fullUnderlineFormat", None
+            )
             if fullUnderlineFormat is not None:
                 # Apply pen
                 pen = QtGui.QPen(fullUnderlineFormat.fore)
@@ -696,9 +704,13 @@ class ShowLineEndings:
         try:
             option = self.document().defaultTextOption()
             if value:
-                option.setFlags(option.flags() | option.Flag.ShowLineAndParagraphSeparators)
+                option.setFlags(
+                    option.flags() | option.Flag.ShowLineAndParagraphSeparators
+                )
             else:
-                option.setFlags(option.flags() & ~option.Flag.ShowLineAndParagraphSeparators)
+                option.setFlags(
+                    option.flags() & ~option.Flag.ShowLineAndParagraphSeparators
+                )
             self.document().setDefaultTextOption(option)
         except Exception:
             # This can produce: 2147483617 is not a valid QTextOption.Flag

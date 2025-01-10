@@ -1,4 +1,4 @@
-""" Module shellInfoDialog
+"""Module shellInfoDialog
 
 Implements shell configuration dialog.
 

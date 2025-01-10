@@ -2,7 +2,6 @@
 Defines the tree widget to display the contents of a selected directory.
 """
 
-
 import re
 import os
 import sys
@@ -210,7 +209,9 @@ def filename2sortkey(name):
     except Exception as err:
         # I cannot see how this could fail, but lets be safe, as it would break so badly
         print(
-            "Warning: could not filename2sortkey({!r}), please report:\n{}".format(name, err)
+            "Warning: could not filename2sortkey({!r}), please report:\n{}".format(
+                name, err
+            )
         )
         return (e, 999999999, name, -1)
 

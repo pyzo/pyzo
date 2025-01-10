@@ -43,7 +43,10 @@ class WebView(QtWidgets.QTextBrowser):
 
     def wheelEvent(self, event):
         # Zooming does not work for this widget
-        if QtCore.Qt.KeyboardModifier.ControlModifier & QtWidgets.qApp.keyboardModifiers():
+        if (
+            QtCore.Qt.KeyboardModifier.ControlModifier
+            & QtWidgets.qApp.keyboardModifiers()
+        ):
             self.parent().wheelEvent(event)
         else:
             super().wheelEvent(event)
@@ -241,7 +244,10 @@ class PyzoWebBrowser(QtWidgets.QFrame):
         self._view.forward()
 
     def wheelEvent(self, event):
-        if QtCore.Qt.KeyboardModifier.ControlModifier & QtWidgets.qApp.keyboardModifiers():
+        if (
+            QtCore.Qt.KeyboardModifier.ControlModifier
+            & QtWidgets.qApp.keyboardModifiers()
+        ):
             # Get amount of scrolling
             degrees = event.delta() / 8.0
             steps = degrees / 15.0

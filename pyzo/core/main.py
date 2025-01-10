@@ -1,4 +1,4 @@
-""" Module main
+"""Module main
 
 This module contains the main frame. Implements the main window.
 Also adds some variables to the pyzo namespace, such as the callLater

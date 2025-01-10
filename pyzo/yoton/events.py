@@ -5,7 +5,7 @@
 # here. However, only since Python3.3 is this built-in functionality
 # thread safe. And we need thread safety!
 
-""" Module yoton.events
+"""Module yoton.events
 
 Yoton comes with a simple event system to enable event-driven applications.
 

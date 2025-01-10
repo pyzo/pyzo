@@ -1,4 +1,4 @@
-""" CodeEditor
+"""CodeEditor
 
 A full featured code editor component based on QPlainTextEdit.
 

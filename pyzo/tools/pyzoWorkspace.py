@@ -234,7 +234,10 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
         commands = [
             ("Show namespace", pyzo.translate("pyzoWorkspace", "Show namespace")),
             ("Show help", pyzo.translate("pyzoWorkspace", "Show help")),
-            ("Add to Expr Viewer", pyzo.translate("pyzoWorkspace", "Add to Expression viewer tool")),
+            (
+                "Add to Expr Viewer",
+                pyzo.translate("pyzoWorkspace", "Add to Expression viewer tool"),
+            ),
             ("str", "print(variable)"),
             ("repr", "print(repr(variable))"),
             ("Delete", pyzo.translate("pyzoWorkspace", "Delete")),
@@ -370,6 +373,7 @@ class WorkspaceTree(QtWidgets.QTreeWidget):
                 objectName = joinName(splitName(self._proxy._name) + [item.text(0)])
                 self._addExpressionToViewer(objectName, doRefresh=(i == n - 1))
 
+
 class PyzoWorkspace(QtWidgets.QWidget):
     """PyzoWorkspace
 
@@ -428,7 +432,9 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._options.setIcon(pyzo.icons.filter)
         self._options.setIconSize(QtCore.QSize(16, 16))
         self._options.setPopupMode(self._options.ToolButtonPopupMode.InstantPopup)
-        self._options.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self._options.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
         #
         self._options._menu = QtWidgets.QMenu()
         self._options.setMenu(self._options._menu)
@@ -442,7 +448,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
             "pyzoWorkspace",
             "Lists the variables in the current shell's namespace."
             "\n\n"
-            "Currently, there are none. Some of them may be hidden because of the filters you configured."
+            "Currently, there are none. Some of them may be hidden because of the filters you configured.",
         )
         self._noResultsLabel = QtWidgets.QLabel(self._no_results_text, self)
         self._noResultsLabel.setVisible(False)
@@ -455,8 +461,12 @@ class PyzoWorkspace(QtWidgets.QWidget):
         self._searchOptions = QtWidgets.QToolButton(self)
         self._searchOptions.setIcon(pyzo.icons.magnifier)
         self._searchOptions.setIconSize(QtCore.QSize(16, 16))
-        self._searchOptions.setPopupMode(self._searchOptions.ToolButtonPopupMode.InstantPopup)
-        self._searchOptions.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self._searchOptions.setPopupMode(
+            self._searchOptions.ToolButtonPopupMode.InstantPopup
+        )
+        self._searchOptions.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
         #
         self._searchOptions._menu = QtWidgets.QMenu()
         self._searchOptions.setMenu(self._searchOptions._menu)
@@ -578,7 +588,11 @@ class PyzoWorkspace(QtWidgets.QWidget):
         searchOptions = [
             ("searchMatchCase", True, pyzo.translate("pyzoWorkspace", "Match case")),
             ("searchRegExp", False, pyzo.translate("pyzoWorkspace", "RegExp")),
-            ("searchStartsWith", True, pyzo.translate("pyzoWorkspace", "Starts with ...")),
+            (
+                "searchStartsWith",
+                True,
+                pyzo.translate("pyzoWorkspace", "Starts with ..."),
+            ),
         ]
 
         for name, default, label in searchOptions:
@@ -612,9 +626,7 @@ class PyzoWorkspace(QtWidgets.QWidget):
 
         pattern = "(?:" + ")|(?:".join(regExpList) + ")"
         try:
-            compiledRegExp = re.compile(
-                pattern, flags
-            )
+            compiledRegExp = re.compile(pattern, flags)
         except Exception as e:
             compiledRegExp = "invalid regular expression:\n" + pattern + "\n" + str(e)
 

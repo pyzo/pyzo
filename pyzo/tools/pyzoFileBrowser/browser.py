@@ -211,7 +211,9 @@ class LineEditWithToolButtons(QtWidgets.QLineEdit):
         button.setPopupMode(button.ToolButtonPopupMode.InstantPopup)
         # Customize alignment
         if willHaveMenu:
-            button.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+            button.setToolButtonStyle(
+                QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+            )
             if sys.platform.startswith("win"):
                 button.setText(" ")
         # Update self
@@ -305,7 +307,9 @@ class PathInput(LineEditWithToolButtons):
 
         # Set dir model to completer
         self._dirModel = QtWidgets.QFileSystemModel(c)
-        self._dirModel.setFilter(QtCore.QDir.Filter.Dirs | QtCore.QDir.Filter.NoDotAndDotDot)
+        self._dirModel.setFilter(
+            QtCore.QDir.Filter.Dirs | QtCore.QDir.Filter.NoDotAndDotDot
+        )
         # filter is not synchronized with NameFilter input (e.g. "!hidden")
         c.setModel(self._dirModel)
         if sys.platform != "win32":

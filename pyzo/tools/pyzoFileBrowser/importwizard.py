@@ -427,7 +427,8 @@ class ResultPage(QtWidgets.QWizardPage):
         super().__init__()
         self.setTitle("Execute import")
         self.setButtonText(
-            QtWidgets.QWizard.WizardButton.FinishButton, translate("importwizard", "Close")
+            QtWidgets.QWizard.WizardButton.FinishButton,
+            translate("importwizard", "Close"),
         )
 
         self.rbAsArray = QtWidgets.QRadioButton(

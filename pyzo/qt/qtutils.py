@@ -1,7 +1,6 @@
 from . import API
 
 if API in ("PySide2", "PySide6"):
-
     if API == "PySide2":
         import shiboken2 as _shiboken
     else:
@@ -14,7 +13,6 @@ if API in ("PySide2", "PySide6"):
         return _shiboken.isOwnedByPython(qtObj)
 
 elif API in ("PyQt5", "PyQt6"):
-
     if API == "PyQt5":
         import PyQt5.sip as _sip
     else:

@@ -1,4 +1,4 @@
-""" Module splash
+"""Module splash
 
 Defines splash window shown during startup.
 

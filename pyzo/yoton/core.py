@@ -40,7 +40,7 @@ HEADER_FORMAT = "<7Q"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 # Constant for control bytes
-CONTROL_BYTES, = struct.unpack("<Q", b"YOTON".ljust(8))
+(CONTROL_BYTES,) = struct.unpack("<Q", b"YOTON".ljust(8))
 
 
 ## Helper functions

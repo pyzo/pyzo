@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" pyzolauncher.py script
+"""pyzolauncher.py script
 
 This is a script used to startup Pyzo. Added for convenience, and also
 for running a test on the source version.

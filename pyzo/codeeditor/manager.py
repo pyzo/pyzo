@@ -1,4 +1,4 @@
-""" Module manager
+"""Module manager
 
 This module contains a static class that can be used for some
 management tasks.

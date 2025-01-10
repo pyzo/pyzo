@@ -157,6 +157,7 @@ class App_asyncio_new(App_base):
                     except KeyboardInterrupt:
                         self._keyboard_interrupt()
                         continue
+
         if not hasattr(new_loop, "original_run_forever"):
             new_loop.original_run_forever = new_loop.run_forever
         new_loop.run_forever = new_run_forever

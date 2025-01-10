@@ -1,10 +1,9 @@
-""" Subpackage parsers
+"""Subpackage parsers
 
 This subpackage contains all the syntax parsers for the
 different languages.
 
 """
-
 
 """ CREATING PARSERS
 

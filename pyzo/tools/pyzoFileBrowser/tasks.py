@@ -18,7 +18,7 @@ class SearchTask(proxies.Task):
         matchCase=False,
         regExp=False,
         excludeBinary=True,
-        **rest
+        **rest,
     ):
         # Quick test
         if not pattern:

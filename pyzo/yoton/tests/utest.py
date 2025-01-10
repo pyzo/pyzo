@@ -1,4 +1,4 @@
-""" _utest.py
+"""_utest.py
 
 Unit tests for yoton.
 

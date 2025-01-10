@@ -1,4 +1,4 @@
-""" pyzo.util._locale
+"""pyzo.util._locale
 Module for locale stuff like language and translations.
 """
 

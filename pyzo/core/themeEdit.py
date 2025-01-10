@@ -18,9 +18,7 @@ class Foo:
         def baz(self, arg1):
             return max(arg1, 42)
     bar = "Hello wor
-""" + chr(
-    160
-)
+""" + chr(160)
 
 
 class FakeEditor(pyzo.core.baseTextCtrl.BaseTextCtrl):
@@ -88,11 +86,15 @@ class ColorLineEdit(QtWidgets.QLineEdit):
         self.button.setStyleSheet("border: 0px; padding: 0px")
         self.button.clicked.connect(self.openColorDialog)
 
-        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
+        frameWidth = self.style().pixelMetric(
+            QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth
+        )
         buttonSize = self.button.sizeHint()
 
         self.setStyleSheet(
-            "QLineEdit {{padding-right: {}px; }}".format(buttonSize.width() + frameWidth + 1)
+            "QLineEdit {{padding-right: {}px; }}".format(
+                buttonSize.width() + frameWidth + 1
+            )
         )
         # self.setMinimumSize(max(100, buttonSize.width() + frameWidth*2 + 2),
         #                     max(self.minimumSizeHint().height(), buttonSize.height() + frameWidth*2 + 2))
@@ -111,7 +113,9 @@ class ColorLineEdit(QtWidgets.QLineEdit):
 
     def resizeEvent(self, event):
         buttonSize = self.button.sizeHint()
-        frameWidth = self.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
+        frameWidth = self.style().pixelMetric(
+            QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth
+        )
         self.button.move(
             int(self.rect().right() - frameWidth - buttonSize.width()),
             int(self.rect().bottom() - buttonSize.height() + 1) // 2,

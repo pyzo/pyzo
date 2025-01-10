@@ -412,7 +412,9 @@ class Debugger(bdb.Bdb):
                     user_selected_comb = None
 
                 if user_selected_comb is None:
-                    self.message("invalid parameter " + repr(arg) + " -- will be ignored")
+                    self.message(
+                        "invalid parameter " + repr(arg) + " -- will be ignored"
+                    )
                 else:
                     selected_comb = user_selected_comb
 
@@ -433,7 +435,8 @@ class Debugger(bdb.Bdb):
                     "Possible commands for the last traceback are:",
                     "db stop".ljust(cw) + "<-- stops the debugger",
                     "db traceback".ljust(cw) + "<-- prints the last traceback again",
-                    "db start".ljust(cw) + "<-- this will automatically choose the first non-ExceptionGroup",
+                    "db start".ljust(cw)
+                    + "<-- this will automatically choose the first non-ExceptionGroup",
                 ]
                 for comb in sorted(tb_combs.keys()):
                     comment = ""
@@ -441,7 +444,9 @@ class Debugger(bdb.Bdb):
                         if selected_comb == first_nongroup:
                             comment = "<-- currently used (automatically chosen -- first non-exc-group)"
                         else:
-                            comment = "<-- currently used (automatically chosen -- fallback)"
+                            comment = (
+                                "<-- currently used (automatically chosen -- fallback)"
+                            )
 
                     if comb == ():
                         comb_string = "0"
@@ -647,7 +652,9 @@ class Debugger(bdb.Bdb):
             try:
                 lineno = int(arg)
                 f = interpreter._dbFrames[-1]
-                offset = interpreter.correctfilenameandlineno(f.f_code.co_filename, 0)[1]
+                offset = interpreter.correctfilenameandlineno(f.f_code.co_filename, 0)[
+                    1
+                ]
                 frame.f_lineno = lineno - offset
             except ValueError as e:
                 self.message("Error DB JUMP: " + str(e))

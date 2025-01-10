@@ -1,4 +1,4 @@
-""" This is a bit awkward, but yoton is a package that is designed to
+"""This is a bit awkward, but yoton is a package that is designed to
 work from Python 2.4 to Python 3.x. As such, it does not have relative
 imports and must be imported as an absolute package. That is what this
 module does...

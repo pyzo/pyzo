@@ -1,4 +1,4 @@
-""" Module shell
+"""Module shell
 
 Defines the shell to be used in pyzo.
 This is done in a few inheritance steps:
@@ -8,7 +8,6 @@ This module also implements ways to communicate with the shell and to run
 code in it.
 
 """
-
 
 import sys, time
 import re
@@ -181,7 +180,9 @@ class ShellHighlighter(Highlighter):
             # Mixed whitespace
             bd.indentation = 0
             format = QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
+            format.setUnderlineStyle(
+                QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline
+            )
             format.setUnderlineColor(QtCore.Qt.GlobalColor.red)
             format.setToolTip("Mixed tabs and spaces")
             self.setFormat(0, len(leadingWhitespace), format)
@@ -191,7 +192,9 @@ class ShellHighlighter(Highlighter):
             # Whitespace differs from document setting
             bd.indentation = 0
             format = QtGui.QTextCharFormat()
-            format.setUnderlineStyle(QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
+            format.setUnderlineStyle(
+                QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline
+            )
             format.setUnderlineColor(QtCore.Qt.GlobalColor.blue)
             format.setToolTip("Whitespace differs from document setting")
             self.setFormat(0, len(leadingWhitespace), format)
@@ -212,7 +215,7 @@ class BaseShell(BaseTextCtrl):
             showBreakPoints=False,
             highlightCurrentLine=False,
             parser="python",
-            **kwds
+            **kwds,
         )
 
         # Use a special highlighter that only highlights the input.
@@ -285,7 +288,9 @@ class BaseShell(BaseTextCtrl):
         cursor = self.textCursor()
         promptpos = self._cursor2.position()
         if cursor.position() < promptpos or cursor.anchor() < promptpos:
-            cursor.movePosition(cursor.MoveOperation.End, A_MOVE)  # Move to end of document
+            cursor.movePosition(
+                cursor.MoveOperation.End, A_MOVE
+            )  # Move to end of document
             self.setTextCursor(cursor)
             self.onCursorPositionChanged()
 
@@ -330,7 +335,9 @@ class BaseShell(BaseTextCtrl):
 
         # Get line of text for the cursor
         cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.MoveAnchor)
-        cursor.movePosition(cursor.MoveOperation.StartOfBlock, cursor.MoveMode.KeepAnchor)
+        cursor.movePosition(
+            cursor.MoveOperation.StartOfBlock, cursor.MoveMode.KeepAnchor
+        )
         line = cursor.selectedText()
         if len(line) > 1024:
             return  # safety
@@ -378,8 +385,12 @@ class BaseShell(BaseTextCtrl):
         # IPython shows a few lines with the active line indicated by an arrow
         if linenr is None:
             for i in range(4):
-                cursor.movePosition(cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor)
-                cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
+                cursor.movePosition(
+                    cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor
+                )
+                cursor.movePosition(
+                    cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor
+                )
                 line = cursor.selectedText()
                 if len(line) > 1024:
                     continue  # safety
@@ -398,8 +409,12 @@ class BaseShell(BaseTextCtrl):
 
         # Select word here (in shell)
         cursor = ocursor
-        cursor.movePosition(cursor.MoveOperation.Left, cursor.MoveMode.MoveAnchor, len(before))
-        cursor.movePosition(cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, len(piece))
+        cursor.movePosition(
+            cursor.MoveOperation.Left, cursor.MoveMode.MoveAnchor, len(before)
+        )
+        cursor.movePosition(
+            cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, len(piece)
+        )
         self.setTextCursor(cursor)
 
         # For syntax errors we have the offset thingy in the file name
@@ -418,7 +433,9 @@ class BaseShell(BaseTextCtrl):
             editor.gotoLine(linenr)
             cursor = editor.textCursor()
             cursor.movePosition(cursor.MoveOperation.StartOfBlock)
-            cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor)
+            cursor.movePosition(
+                cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor
+            )
             editor.setTextCursor(cursor)
 
     ## Indentation: override code editor behaviour
@@ -476,7 +493,10 @@ class BaseShell(BaseTextCtrl):
                     self.textCursor().removeSelectedText()
                 return  # Ignore the key, don't go beyond the prompt
 
-        if event.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down] and not self.autocompleteActive():
+        if (
+            event.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down]
+            and not self.autocompleteActive()
+        ):
             # needle
             if self._historyNeedle is None:
                 # get partly-written-command
@@ -585,7 +605,9 @@ class BaseShell(BaseTextCtrl):
         """Clear all the previous output from the screen."""
         # Select from beginning of prompt to start of document
         self._cursor1.clearSelection()
-        self._cursor1.movePosition(self._cursor1.MoveOperation.Start, A_KEEP)  # Keep anchor
+        self._cursor1.movePosition(
+            self._cursor1.MoveOperation.Start, A_KEEP
+        )  # Keep anchor
         self._cursor1.removeSelectedText()
         # Wrap up
         self.ensureCursorAtEditLine()
@@ -720,7 +742,9 @@ class BaseShell(BaseTextCtrl):
             and not text[1:].startswith("\n")
             and not self._lastline_had_lf
         ):
-            cursor.movePosition(cursor.MoveOperation.StartOfLine, cursor.MoveMode.KeepAnchor, 1)
+            cursor.movePosition(
+                cursor.MoveOperation.StartOfLine, cursor.MoveMode.KeepAnchor, 1
+            )
             cursor.removeSelectedText()
         # Is this new line ending in CR?
         self._lastline_had_cr = text.endswith("\r")
@@ -1185,7 +1209,7 @@ class PythonShell(BaseShell):
 
         if cto.useIntermediateResult:
             assert response.startswith("__pyzo__calltip")
-            response = cto.name + response[len("__pyzo__calltip"):]
+            response = cto.name + response[len("__pyzo__calltip") :]
         # If still required, show tip, otherwise only store result
         if cto is self._currentCTO:
             cto.finish(response)
@@ -1253,10 +1277,18 @@ class PythonShell(BaseShell):
         foundNames = []
         if response is not None:
             if aco.name.endswith("["):  # if key auto-completion
-                foundNames = [name[1:-1] for name, type_, kind, repr_ in response if name[0] == "["]
+                foundNames = [
+                    name[1:-1]
+                    for name, type_, kind, repr_ in response
+                    if name[0] == "["
+                ]
                 maxKeyEntries = 200
                 if len(foundNames) > maxKeyEntries:
-                    foundNames = foundNames[:maxKeyEntries-1] + ["# ... too many entries"] + foundNames[-1:]
+                    foundNames = (
+                        foundNames[: maxKeyEntries - 1]
+                        + ["# ... too many entries"]
+                        + foundNames[-1:]
+                    )
             else:  # if attribute or name auto-completion
                 foundNames = response
         aco.addNames(foundNames)

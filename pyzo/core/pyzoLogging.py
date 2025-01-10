@@ -1,4 +1,4 @@
-""" Module logging
+"""Module logging
 
 Functionality for logging in pyzo.
 

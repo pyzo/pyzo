@@ -250,7 +250,6 @@ def start():
     # We also write "Closed" to the log (if a filename is provided) which we use
     # in our tests to determine that Pyzo did a successful run.
     if "--test" in sys.argv:
-
         # We will use a periodic timer instead of a single shot one because of strange
         # problems with the github CI workflow.
         # Combinations of Qt 6.7 and Microsoft Windows Server 2022 sometimes raised

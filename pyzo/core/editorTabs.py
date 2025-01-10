@@ -1,4 +1,4 @@
-""" EditorTabs class
+"""EditorTabs class
 
 Replaces the earlier EditorStack class.
 
@@ -1206,7 +1206,9 @@ class EditorTabs(QtWidgets.QWidget):
                 if filename == item.filename:
                     print("File already open: '{}'".format(filename))
                 else:
-                    print("File '{}' already open as '{}'".format(filename, item.filename))
+                    print(
+                        "File '{}' already open as '{}'".format(filename, item.filename)
+                    )
             return item
 
         # create editor
@@ -1284,10 +1286,13 @@ class EditorTabs(QtWidgets.QWidget):
             dlg = QtWidgets.QMessageBox(self)
             dlg.setWindowTitle("Reload file with unsaved changes?")
             dlg.setText(
-                'Do you want to reload file\n"{}"\n'
-                "and lose unsaved changes?".format(editor.filename)
+                'Do you want to reload file\n"{}"\n' "and lose unsaved changes?".format(
+                    editor.filename
+                )
             )
-            btnReload = dlg.addButton("Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole)
+            btnReload = dlg.addButton(
+                "Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole
+            )
             btnKeep = dlg.addButton(
                 "Keep this version", QtWidgets.QMessageBox.ButtonRole.RejectRole
             )
