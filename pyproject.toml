@@ -26,22 +26,16 @@ keywords = [
 requires-python = ">= 3.6"
 dependencies = []
 [project.optional-dependencies]
-# For users
-jupyter = ["jupyter_rfb>=0.4.2"]
-glfw = ["glfw>=1.9"]
-# For devs / ci
-lint = ["ruff", "pre-commit"]
-examples = ["numpy", "wgpu", "glfw", "pyside6", "imageio", "pytest"]
-docs = ["sphinx>7.2", "sphinx_rtd_theme", "sphinx-gallery", "numpy", "wgpu"]
-tests = ["pytest", "numpy", "wgpu", "glfw", "trio"]
-dev = ["pyzo[lint,tests,examples,docs]"]
+lint = ["ruff"]
+tests = ["pytest"]
+dev = ["pyzo[lint,tests]"]
 
 [project.urls]
 Homepage = "https://pyzo.org"
 Documentation = "https://pyzo.org"
 Repository = "https://github.com/pyzo/pyzo"
 
-[project.scripts]
+[project.gui-scripts]
 pyzo = "pyzo.__main__:main"
 
 
