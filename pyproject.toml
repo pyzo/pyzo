@@ -1,0 +1,90 @@
+# Notes on how to do a release. Mostly for my own convenience:
+#
+# * Write release notes
+# * Bump `__version__`
+# * Commit this to a new branch "bump" and push to GH. The CD freeze jobs will run.
+# * In online MacOS developer page, agree to license changes. Or certs won't work.
+# * Update freeze logic if necessary. Merge the pr.
+# * `git tag vx.y.z` and `git push vx.y.z` (builds the binaries and pushes to a GH release)
+# * Update links on Pyzo website
+# * `flit publish`
+
+# ===== Project info
+
+[project]
+dynamic = ["version"]
+name = "Pyzo"
+description = "the Python IDE for scientific computing"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+
+
+authors = [{ name = "the Pyzo development team" }]
+keywords = [
+    "interactive", "IDE", "Qt", "science", "computing",
+]
+requires-python = ">= 3.6"
+dependencies = []
+[project.optional-dependencies]
+# For users
+jupyter = ["jupyter_rfb>=0.4.2"]
+glfw = ["glfw>=1.9"]
+# For devs / ci
+lint = ["ruff", "pre-commit"]
+examples = ["numpy", "wgpu", "glfw", "pyside6", "imageio", "pytest"]
+docs = ["sphinx>7.2", "sphinx_rtd_theme", "sphinx-gallery", "numpy", "wgpu"]
+tests = ["pytest", "numpy", "wgpu", "glfw", "trio"]
+dev = ["pyzo[lint,tests,examples,docs]"]
+
+[project.urls]
+Homepage = "https://pyzo.org"
+Documentation = "https://pyzo.org"
+Repository = "https://github.com/pyzo/pyzo"
+
+[project.scripts]
+pyzo = "pyzo.__main__:main"
+
+
+# ===== Building
+
+# Flit is great solution for simple pure-Python projects.
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.sdist]
+include = ["README.md", "LICENSE.md", "pyzo.appdata.xml", "pyzolauncher.py"]
+
+# We did this in setup.py, not sure if we want to try and replicate it.
+# Install appdata.xml on Linux if we are installing in the system Python
+#
+# if sys.platform.startswith("linux") and sys.prefix.startswith("/usr"):
+#     if len(sys.argv) >= 2 and sys.argv[1] == "install":
+#         fname = "pyzo.appdata.xml"
+#         filename1 = os.path.join(os.path.dirname(__file__), fname)
+#         filename2 = os.path.join("/usr/share/metainfo", fname)
+#         try:
+#             with open(filename1, "rb") as fd:
+#                 bb = fd.read()
+#             with open(filename2, "wb") as fd:
+#                 fd.write(bb)
+#         except PermissionError:
+#             pass  # No sudo, no need to warn
+#         except Exception as err:
+#             print("Could not install {}: {}".format(fname, err))
+#         else:
+#             print("Installed", fname)
+
+
+# ===== Tooling
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "N", "B", "RUF"]
+ignore = [
+    "E501",   # Line too long
+    "E731",   # Do not assign a `lambda` expression, use a `def`
+    "N806",   # Variable in function should be lowercase
+]
