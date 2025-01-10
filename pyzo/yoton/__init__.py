@@ -32,6 +32,7 @@ from yoton.connection_tcp import TcpConnection
 from yoton.context import Context
 from yoton.clientserver import RequestServer, do_request
 from yoton.channels import PubChannel, SubChannel
+from yoton.channels import *  # noqa: F403
 
 
 # Set yoton version
