@@ -36,7 +36,7 @@ Documentation = "https://pyzo.org"
 Repository = "https://github.com/pyzo/pyzo"
 
 [project.gui-scripts]
-pyzo = "pyzo.__main__:main"
+pyzo = "pyzo:start"
 
 
 # ===== Building
