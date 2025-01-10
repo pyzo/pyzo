@@ -5,7 +5,8 @@ management tasks.
 
 """
 
-import os, sys
+import os
+import sys
 
 from .qt import QtGui, QtCore, QtWidgets  # noqa
 

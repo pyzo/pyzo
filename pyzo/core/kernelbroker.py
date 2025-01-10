@@ -4,7 +4,9 @@ This module implements the interface between Pyzo and the kernel.
 
 """
 
-import os, sys, time
+import os
+import sys
+import time
 import subprocess
 import signal
 import threading

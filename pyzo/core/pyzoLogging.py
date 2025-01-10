@@ -5,7 +5,8 @@ Functionality for logging in pyzo.
 """
 
 import os
-import sys, time
+import sys
+import time
 import pyzo
 
 # todo: enable logging to a file?

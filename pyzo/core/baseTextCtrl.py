@@ -7,7 +7,8 @@ is common for both shells and editors.
 """
 
 import pyzo
-import os, time
+import os
+import time
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 from pyzo.codeeditor import CodeEditor

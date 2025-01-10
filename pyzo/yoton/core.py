@@ -238,12 +238,12 @@ class Package(object):
     # an efficient way later.
     __slots__ = [
         "_data",
-        "_slot",
-        "_source_id",
-        "_source_seq",
         "_dest_id",
         "_dest_seq",
         "_recv_seq",
+        "_slot",
+        "_source_id",
+        "_source_seq",
     ]
 
     def __init__(self, data, slot, source_id, source_seq, dest_id, dest_seq, recv_seq):

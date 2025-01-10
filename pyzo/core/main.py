@@ -6,7 +6,9 @@ function which is also defined here.
 
 """
 
-import os, sys, time
+import os
+import sys
+import time
 import base64
 from queue import Queue, Empty
 

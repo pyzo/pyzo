@@ -2,7 +2,8 @@
 
 """This script runs a test for the code editor component."""
 
-import os, sys
+import os
+import sys
 from qt import QtGui, QtCore, QtWidgets
 
 Qt = QtCore.Qt

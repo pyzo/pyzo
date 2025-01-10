@@ -6,7 +6,10 @@ shortcuts.
 
 """
 
-import os, sys, shutil, re
+import os
+import sys
+import shutil
+import re
 import webbrowser
 from datetime import datetime
 from urllib.request import urlopen
@@ -794,7 +797,7 @@ class EditMenu(Menu):
             translate(
                 "menu",
                 "Paste and select ::: Paste the text that is now on the clipboard and keep it selected in order to change its indentation.",
-            ),  # noqa
+            ),
             icons.paste_plain,
             self._editItemCallback,
             "pasteAndSelect",
@@ -1848,7 +1851,7 @@ class EditorContextMenu(Menu):
             translate(
                 "menu",
                 "Run selection ::: Run the current editor's selected lines, selected words on the current line, or current line if there is no selection.",
-            ),  # noqa
+            ),
             icons.run_lines,
             self._runSelected,
         )
@@ -2042,7 +2045,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Run file as script ::: Restart and run the current file as a script.",
-            ),  # noqa
+            ),
             icons.run_file_script,
             self._runFile,
             (True, False),
@@ -2051,7 +2054,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Run main file as script ::: Restart and run the main file as a script.",
-            ),  # noqa
+            ),
             icons.run_mainfile_script,
             self._runFile,
             (True, True),
@@ -2063,7 +2066,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Execute selection ::: Execute the current editor's selected lines, selected words on the current line, or current line if there is no selection.",
-            ),  # noqa
+            ),
             icons.run_lines,
             self._runSelected,
         )
@@ -2071,7 +2074,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Execute line and print result ::: Execute the whole line at the cursor position in the editor, and print the result.",
-            ),  # noqa
+            ),
             icons.run_line,
             self._runCurrentLineAndPrintResult,
         )
@@ -2079,7 +2082,7 @@ class RunMenu(Menu):
             translate(
                 "menu",
                 "Execute cell ::: Execute the current editors's cell in the current shell.",
-            ),  # noqa
+            ),
             icons.run_cell,
             self._runCell,
         )

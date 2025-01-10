@@ -1,4 +1,5 @@
-import urllib.request, urllib.parse
+import urllib.request
+import urllib.parse
 
 from pyzo.qt import QtCore, QtWidgets
 

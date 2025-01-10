@@ -1,14 +1,6 @@
-import sys
-import time
 
-import yoton
-from yoton.misc import basestring, bytes, str
-from yoton.misc import getErrorMsg, UID
-from yoton.misc import PackageQueue
 
-from yoton.connection import Connection, TIMEOUT_MIN
-from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING
-from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING
+from yoton.connection import Connection
 
 
 class ItcConnection(Connection):

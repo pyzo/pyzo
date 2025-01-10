@@ -7,7 +7,8 @@ are used for the low-level messaging.
 
 """
 
-import sys, time
+import sys
+import time
 import struct
 import socket
 import threading

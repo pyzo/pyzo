@@ -10,8 +10,8 @@ from yoton.misc import TinyPackageQueue
 from yoton.core import Package, PACKAGE_HEARTBEAT, PACKAGE_CLOSE, EINTR
 from yoton.core import can_recv, send_all, recv_all, HEADER_SIZE
 
-from yoton.connection import Connection, TIMEOUT_MIN  # noqa
-from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING  # noqa
+from yoton.connection import Connection, TIMEOUT_MIN
+from yoton.connection import STATUS_CLOSED, STATUS_WAITING, STATUS_HOSTING
 from yoton.connection import STATUS_CONNECTED, STATUS_CLOSING  # noqa
 
 # Note that time.sleep(0) yields the current thread's timeslice to any

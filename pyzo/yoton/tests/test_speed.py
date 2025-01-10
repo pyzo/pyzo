@@ -3,7 +3,8 @@ different package sizes.
 """
 
 # Go up one directory and then import the codeeditor package
-import os, sys
+import os
+import sys
 
 os.chdir("../..")
 sys.path.insert(0, ".")

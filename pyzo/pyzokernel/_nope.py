@@ -127,18 +127,18 @@ def nope_scope(
 
 
 __all__ = [
+    "NSActivityAutomaticTerminationDisabled",
+    "NSActivityBackground",
     "NSActivityIdleDisplaySleepDisabled",
     "NSActivityIdleSystemSleepDisabled",
+    "NSActivityLatencyCritical",
     "NSActivitySuddenTerminationDisabled",
-    "NSActivityAutomaticTerminationDisabled",
     "NSActivityUserInitiated",
     "NSActivityUserInitiatedAllowingIdleSystemSleep",
-    "NSActivityBackground",
-    "NSActivityLatencyCritical",
     "beginActivityWithOptions",
     "endActivity",
-    "nope",
     "nap",
     "napping_allowed",
+    "nope",
     "nope_scope",
 ]

@@ -8,7 +8,9 @@ It also has a find/replace widget that is at the bottom of the editor.
 
 """
 
-import os, time, gc
+import os
+import time
+import gc
 from pyzo.qt import QtCore, QtGui, QtWidgets
 
 import pyzo

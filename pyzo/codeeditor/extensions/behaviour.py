@@ -633,8 +633,8 @@ class AutoCloseQuotesAndBrackets:
                     or isinstance(
                         tokenL, StringToken
                     )  # don't add a fourth " when typing " after two "
-                    or isinstance(tokenL, IdentifierToken)
-                    and str(tokenL) not in stringLiteralPrefixes
+                    or (isinstance(tokenL, IdentifierToken)
+                    and str(tokenL) not in stringLiteralPrefixes)
                 ):
                     super().keyPressEvent(event)
                     return

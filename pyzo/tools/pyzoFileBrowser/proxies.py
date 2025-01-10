@@ -30,7 +30,7 @@ class Task:
     obtain the result (or raise an error).
     """
 
-    __slots__ = ["_params", "_result", "_error"]
+    __slots__ = ["_error", "_params", "_result"]
 
     def __init__(self, **params):
         if not params:

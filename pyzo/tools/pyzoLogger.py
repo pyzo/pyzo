@@ -1,4 +1,6 @@
-import sys, os, code
+import sys
+import os
+import code
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo.core.shell import BaseShell

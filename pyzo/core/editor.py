@@ -6,8 +6,10 @@ file loading/saving /reloading stuff.
 
 """
 
-import os, sys
-import re, codecs
+import os
+import sys
+import re
+import codecs
 
 from pyzo.qt import QtCore, QtGui, QtWidgets
 
@@ -832,7 +834,7 @@ if __name__ == "__main__":
             pass
 
     pyzo.parser = DummyParser()
-    EditorContextMenu = QtWidgets.QMenu  # noqa
+    EditorContextMenu = QtWidgets.QMenu
     app = QtWidgets.QApplication([])
     win = PyzoEditor(None)
     QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+C"), win).activated.connect(win.copy)

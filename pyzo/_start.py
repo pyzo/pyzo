@@ -58,7 +58,7 @@ except Exception:
     pass  # fail on older Qt's < 5.7
 
 # Import language/translation tools
-from pyzo.util._locale import translate, setLanguage  # noqa
+from pyzo.util._locale import translate, setLanguage
 
 pyzo.translate = translate
 pyzo.setLanguage = setLanguage
@@ -82,7 +82,7 @@ class MyApp(QtWidgets.QApplication):
 
 
 if not sys.platform.startswith("darwin"):
-    MyApp = QtWidgets.QApplication  # noqa
+    MyApp = QtWidgets.QApplication
 
 
 ## Install excepthook

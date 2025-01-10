@@ -2,7 +2,9 @@
 Module for locale stuff like language and translations.
 """
 
-import os, sys, time
+import os
+import sys
+import time
 
 import pyzo
 from pyzo.qt import QtCore, QtWidgets

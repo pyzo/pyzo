@@ -9,7 +9,8 @@ code in it.
 
 """
 
-import sys, time
+import sys
+import time
 import re
 
 import yoton

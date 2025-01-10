@@ -31,7 +31,7 @@ class PythonInReg:
 
     def __init__(self, user, version, wow64=False):
         self._user = user
-        self._key = (wow64 and PYTHON_KEY_WOW64 or PYTHON_KEY) + "\\" + version
+        self._key = ((wow64 and PYTHON_KEY_WOW64) or PYTHON_KEY) + "\\" + version
 
     def __repr__(self):
         userstr = [None, "USER_ONE", "USER_ALL"][self._user]

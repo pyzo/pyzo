@@ -182,7 +182,7 @@ def createItemsFun(browser, parent):
         # Create temporary dir items
         if searchFilter["subDirs"]:
             for path in dirs:
-                if not os.path.basename(path) in (".git", ".hg"):
+                if os.path.basename(path) not in (".git", ".hg"):
                     item = TemporaryDirItem(parent, fsProxy.dir(path))
 
     # Return number of files added
@@ -532,7 +532,7 @@ class TemporaryDirItem:
     which are then processed, after which this object disbands itself.
     """
 
-    __slots__ = ["_tree", "_proxy", "__weakref__"]
+    __slots__ = ["__weakref__", "_proxy", "_tree"]
 
     def __init__(self, tree, pathProxy):
         self._tree = tree
@@ -560,7 +560,7 @@ class TemporaryFileItem:
     search had results.
     """
 
-    __slots__ = ["_tree", "_proxy", "__weakref__"]
+    __slots__ = ["__weakref__", "_proxy", "_tree"]
 
     def __init__(self, tree, pathProxy):
         self._tree = tree

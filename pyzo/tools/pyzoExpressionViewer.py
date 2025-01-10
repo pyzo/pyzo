@@ -1,5 +1,5 @@
 import pyzo
-from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
+from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo import translate
 
 tool_name = translate("pyzoExpressionViewer", "Expression viewer")

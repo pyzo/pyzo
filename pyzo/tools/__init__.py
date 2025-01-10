@@ -26,7 +26,8 @@ displayed in the statusbar.
 # - file browser
 # - pythonpath editor, startupfile editor (or as part of pyzo?)
 
-import os, sys
+import os
+import sys
 import importlib.util
 
 import pyzo

@@ -487,7 +487,7 @@ class App_qt(App_base):
                         if hash(val) == hash(getattr(theApp.__class__, key)):
                             continue
                     # Make method?
-                    if hasattr(val, "__call__"):
+                    if callable(val):
                         if hasattr(val, "im_func"):
                             val = val.im_func  # Python 2.x
                         val = types.MethodType(val, theApp.__class__)
@@ -497,7 +497,7 @@ class App_qt(App_base):
                     except Exception:
                         pass  # tough luck
 
-                setattr(theApp, "exec", theApp.exec_)
+                theApp.exec = theApp.exec_
 
                 # Call init function (in case the user overloaded it)
                 theApp.__init__(*args, **kwargs)
@@ -519,7 +519,8 @@ class App_qt(App_base):
                 # Store local namespaces (scopes) of any functions that
                 # precede this call. It might have a widget or application
                 # object that should not be deleted ...
-                import inspect, __main__
+                import inspect
+                import __main__
 
                 for caller in inspect.stack()[1:]:
                     frame, name = caller[0], caller[3]
@@ -682,9 +683,9 @@ class App_wx(App_base):
         orig_mainloop = None
         if ver[:3] >= "2.5":
             if hasattr(wx, "_core_"):
-                core = getattr(wx, "_core_")
+                core = wx._core_
             elif hasattr(wx, "_core"):
-                core = getattr(wx, "_core")
+                core = wx._core
             else:
                 raise ImportError
             orig_mainloop = core.PyApp_MainLoop

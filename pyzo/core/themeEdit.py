@@ -4,7 +4,7 @@ from pyzo.qt import QtCore, QtGui, QtWidgets
 
 import pyzo
 from pyzo.util import zon as ssdf
-from pyzo.core.pyzoLogging import print  # noqa
+from pyzo.core.pyzoLogging import print
 import pyzo.core.baseTextCtrl
 from pyzo.codeeditor.style import StyleFormat
 
