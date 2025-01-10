@@ -1,5 +1,3 @@
-# Copyright (C) 2013 Almar Klein
-
 """
 Define tasks that can be executed by the file browser.
 These inherit from proxies.Task and implement that specific interface.

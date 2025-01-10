@@ -1,8 +1,3 @@
-# Copyright (C) 2013, the codeeditor development team
-#
-# Codeeditor is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 """ Module manager
 
 This module contains a static class that can be used for some

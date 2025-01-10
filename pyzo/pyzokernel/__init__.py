@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2016, the Pyzo development team
-#
-# Pyzo is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 """
 The pyzokernel package contains the code for the Pyzo kernel process.
 This kernel is designed to be relatively lightweight; i.e. most of

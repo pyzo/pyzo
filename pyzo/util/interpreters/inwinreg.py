@@ -1,5 +1,3 @@
-# Copyright (c) 2016, Almar Klein
-
 """
 This module implements functionality to obtain registered
 Python interpreters and to register a Python interpreter in the Windows

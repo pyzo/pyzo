@@ -1,5 +1,3 @@
-# Copyright (c) 2016, Almar Klein
-
 """
 This module implements functionality to detect available Python
 interpreters. This is done by looking at common locations, the Windows

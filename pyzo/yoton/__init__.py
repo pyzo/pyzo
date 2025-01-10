@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-# flake8: noqa
-# Copyright (C) 2013, the Pyzo development team
-#
-# Yoton is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
-
 """
 Yoton is a Python package that provides a simple interface
 to communicate between two or more processes.

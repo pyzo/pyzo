@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2013, the Pyzo development team
-#
-# Yoton is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 # This code is loosely based on the event system of Visvis and on the
 # signals system of Qt.
 

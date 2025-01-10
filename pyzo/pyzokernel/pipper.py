@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2013, Almar Klein
-
-# From pyzo/pyzokernel
-
 import sys
 import time
 import subprocess

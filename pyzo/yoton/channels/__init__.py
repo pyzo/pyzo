@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-# flake8: noqa
-# Copyright (C) 2013, the Pyzo development team
-#
-# Yoton is distributed under the terms of the 2-Clause BSD License.
-# The full license can be found in 'license.txt'.
-
 """
 
 The channel classes represent the mechanism for the user to send

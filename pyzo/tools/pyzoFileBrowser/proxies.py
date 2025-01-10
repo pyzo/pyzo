@@ -1,5 +1,3 @@
-# Copyright (C) 2013 Almar Klein
-
 """
 This module defines file system proxies to be used for the file browser.
 For now, there is only one: the native file system. But in time,
