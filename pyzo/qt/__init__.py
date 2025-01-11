@@ -1,14 +1,12 @@
-# ruff: noqa: F401
-
-import os
-import sys
-import importlib
+import importlib as _importlib
 
 
 _QT_WRAPPERS = ("PySide6", "PyQt6", "PySide2", "PyQt5")
 
 
 def _get_desired_api():
+    import os
+
     desired_api = None
     s = os.environ.get("QT_API", "").strip().lower()
     if len(s) > 0:
@@ -20,6 +18,8 @@ def _get_desired_api():
 
 
 def _load_modules(desired_api):
+    import sys
+
     loaded_modules = [s for s in sys.modules if s in _QT_WRAPPERS]
     if desired_api in loaded_modules:
         # use the preferred qt wrapper that is already loaded
@@ -38,7 +38,7 @@ def _load_modules(desired_api):
 
     for api in order_to_try:
         try:
-            importlib.import_module(api)
+            _importlib.import_module(api)
         except ModuleNotFoundError:
             pass
         else:
@@ -53,8 +53,8 @@ API = _load_modules(_get_desired_api())
 
 def _get_versions():
     """returns the qt and wrapper version as strings"""
-    mod = importlib.import_module(API)
-    importlib.import_module(API + ".QtCore")
+    mod = _importlib.import_module(API)
+    _importlib.import_module(API + ".QtCore")
     if API.startswith("PySide"):
         qt_version = mod.QtCore.__version__
         wrapper_version = mod.__version__
@@ -66,15 +66,17 @@ def _get_versions():
 
 QT_VERSION_STR, QT_WRAPPER_VERSION_STR = _get_versions()
 
-from . import qtutils
+from . import qtutils as qtutils  # we have to write it like this to satisfy ruff
+
+del _get_versions, _load_modules, _get_desired_api
 
 
 ## Qt components
 
-QtCore = importlib.import_module(API + ".QtCore")
-QtGui = importlib.import_module(API + ".QtGui")
-QtWidgets = importlib.import_module(API + ".QtWidgets")
-QtPrintSupport = importlib.import_module(API + ".QtPrintSupport")
+QtCore = _importlib.import_module(API + ".QtCore")
+QtGui = _importlib.import_module(API + ".QtGui")
+QtWidgets = _importlib.import_module(API + ".QtWidgets")
+QtPrintSupport = _importlib.import_module(API + ".QtPrintSupport")
 
 
 ## QtCore fixes
