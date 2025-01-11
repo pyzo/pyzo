@@ -158,9 +158,9 @@ class Future(object):
             time.sleep(0.01)  # 10 ms
 
     def result(self, timeout=None):
-        """Return the value returned by the call. If the call hasn’t yet
+        """Return the value returned by the call. If the call hasn't yet
         completed then this method will wait up to timeout seconds. If
-        the call hasn’t completed in timeout seconds, then a TimeoutError
+        the call hasn't completed in timeout seconds, then a TimeoutError
         will be raised. timeout can be an int or float. If timeout is not
         specified or None, there is no limit to the wait time.
 
@@ -184,9 +184,9 @@ class Future(object):
             return self._result
 
     def result_or_cancel(self, timeout=1.0):
-        """Return the value returned by the call. If the call hasn’t yet
+        """Return the value returned by the call. If the call hasn't yet
         completed then this method will wait up to timeout seconds. If
-        the call hasn’t completed in timeout seconds, then the call is
+        the call hasn't completed in timeout seconds, then the call is
         cancelled and the method will return None.
         """
 
@@ -201,9 +201,9 @@ class Future(object):
             return None
 
     def exception(self, timeout=None):
-        """Return the exception raised by the call. If the call hasn’t yet
+        """Return the exception raised by the call. If the call hasn't yet
         completed then this method will wait up to timeout seconds. If
-        the call hasn’t completed in timeout seconds, then a TimeoutError
+        the call hasn't completed in timeout seconds, then a TimeoutError
         will be raised. timeout can be an int or float. If timeout is not
         specified or None, there is no limit to the wait time.
 

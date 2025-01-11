@@ -24,7 +24,7 @@ def subprocess_with_callback(callback, cmd, **kwargs):
         callback(str(err) + "\n")
         return -1
 
-    progressBarDash = b"\xe2\x94\x81"  # character "━"
+    progressBarDash = b"\xe2\x94\x81"  # U+2501, a thick horizontal line character
     pending = b""
     while p.poll() is None:
         time.sleep(0.001)
