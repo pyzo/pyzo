@@ -103,7 +103,7 @@ fig, (ax1, ax2) = plt.subplots(2, 1, num=10, clear=True, sharex=True)
 
 
 def format_si(value, unit):
-    prefixes = ["µ", "m", "", "k", "M", "G"]
+    prefixes = ["micro", "m", "", "k", "M", "G"]
     i3 = int(np.log10(value) // 3)
     i = i3 + prefixes.index("")
     i = max(0, min(i, len(prefixes) - 1))

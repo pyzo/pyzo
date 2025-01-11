@@ -497,7 +497,10 @@ class App_qt(App_base):
                     except Exception:
                         pass  # tough luck
 
-                theApp.exec = theApp.exec_
+                # "exec" as an attribute would cause a syntax error in Python 2.7
+                # because it is a keyword.
+                # So we have to use setattr instead of assigning theApp.exec
+                setattr(theApp, "exec", theApp.exec_)  # noqa: B010
 
                 # Call init function (in case the user overloaded it)
                 theApp.__init__(*args, **kwargs)

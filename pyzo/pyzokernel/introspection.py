@@ -11,6 +11,10 @@ else:
     import _thread as thread
 
 
+# we keep this file in ascii encoding to stay compatible with Python 2.7 kernels
+THREE_DOTS_CHAR = b"\xe2\x80\xa6".decode("utf-8")
+
+
 class PyzoIntrospector(yoton.RepChannel):
     """This is a RepChannel object that runs a thread to respond to
     requests from the IDE.
@@ -313,7 +317,7 @@ class PyzoIntrospector(yoton.RepChannel):
                                 # "<array 3 int64: np.int64(1), np.int64(2), np.int64(3)>"
                                 values_repr += ", " + str(el)
                                 if len(values_repr) > 70:
-                                    values_repr = values_repr[:69] + "…"
+                                    values_repr = values_repr[:69] + THREE_DOTS_CHAR
                                     break
                         repres = "<array %s %s: %s>" % (
                             tmp,
@@ -331,7 +335,7 @@ class PyzoIntrospector(yoton.RepChannel):
                     for el in val:
                         values_repr += ", " + repr(el)
                         if len(values_repr) > 70:
-                            values_repr = values_repr[:69] + "…"
+                            values_repr = values_repr[:69] + THREE_DOTS_CHAR
                             break
                     repres = "<%i-element list: %s>" % (len(val), values_repr[2:])
                 elif kind == "tuple":
@@ -339,7 +343,7 @@ class PyzoIntrospector(yoton.RepChannel):
                     for el in val:
                         values_repr += ", " + repr(el)
                         if len(values_repr) > 70:
-                            values_repr = values_repr[:69] + "…"
+                            values_repr = values_repr[:69] + THREE_DOTS_CHAR
                             break
                     repres = "<%i-element tuple: %s>" % (len(val), values_repr[2:])
                 elif kind == "dict":
@@ -347,13 +351,13 @@ class PyzoIntrospector(yoton.RepChannel):
                     for k, v in val.items():
                         values_repr += ", " + repr(k) + ": " + repr(v)
                         if len(values_repr) > 70:
-                            values_repr = values_repr[:69] + "…"
+                            values_repr = values_repr[:69] + THREE_DOTS_CHAR
                             break
                     repres = "<%i-item dict: %s>" % (len(val), values_repr[2:])
                 else:
                     repres = repr(val)
                     if len(repres) > 80:
-                        repres = repres[:79] + "…"
+                        repres = repres[:79] + THREE_DOTS_CHAR
                 # Store
                 tmp = (name, typeName, kind, repres)
                 names.append(tmp)
@@ -476,7 +480,7 @@ class PyzoIntrospector(yoton.RepChannel):
             try:
                 result = str(eval(expr, None, NS))[: maxChars + 1]
                 if len(result) > maxChars:
-                    result = result[: maxChars - 1] + "…"
+                    result = result[: maxChars - 1] + THREE_DOTS_CHAR
                 success = True
             except Exception as e:
                 result = str(e)

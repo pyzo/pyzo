@@ -69,7 +69,7 @@ Outside such constructs, ``in`` is an operator and its precise meaning depends o
     ),
     "is": pyzo.translate(
         "pyzoInteractiveHelp",
-        """This operator tests for an object’s identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
+        """This operator tests for an object's identity: ``x is y`` is true if and only if ``x`` and ``y`` are the same object.
 
 See also: ``id``""",
     ),
@@ -101,7 +101,7 @@ else:       # optional
 ```
 The expression ``iterable`` is evaluated once; its value should be an iterable object. An iterator is created for the result of that expression. The ``body`` is then executed once for each item provided by the iterator, in the order returned by the iterator: each item in turn is assigned to the ``variable`` and then the ``body`` is executed. When the items are exhausted (which is immediately when the ``iterable`` is empty), the ``suite`` in the ``else`` clause, if present, is executed, and the loop terminates.
 
-A ``break`` statement executed in the first suite terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the first suite skips the rest of the ``body`` and continues with the next item, or with the ``else`` clause if there is no next item.
+A ``break`` statement executed in the first suite terminates the loop without executing the ``else`` clause's ``suite``. A ``continue`` statement executed in the first suite skips the rest of the ``body`` and continues with the next item, or with the ``else`` clause if there is no next item.
 
 The for-loop makes assignments to the ``variable``. This overwrites all previous assignments to that variable including those made in the ``body`` of the for-loop:
 ```
@@ -151,7 +151,7 @@ try:
 finally:
     suite
 ```
-If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed ‘on the way out.’ A ``continue`` statement is illegal in the ``finally`` clause.
+If ``critical_section`` raises an exception, the ``suite`` will be executed before aborting the program. The ``suite`` is also executed when no exception is raised. When a ``return``, ``break`` or ``continue`` statement is executed in the ``critical_section``, the ``finally`` clause is also executed 'on the way out.' A ``continue`` statement is illegal in the ``finally`` clause.
 
 Both mechanisms can be combined, the ``finally`` clause coming after the last ``except`` clause or after the optional ``else`` clause.""",
     ),
@@ -184,7 +184,7 @@ else:           # optional
 ```
 This repeatedly tests the ``expression`` and, if it is true, executes the ``body``; if the ``expression`` is false (which may be the first time it is tested) the ``suite`` of the ``else`` clause, if present, is executed and the loop terminates.
 
-A ``break`` statement executed in the ``body`` terminates the loop without executing the ``else`` clause’s ``suite``. A ``continue`` statement executed in the ``body`` skips the rest of the ``body`` and goes back to testing the ``expression``.""",
+A ``break`` statement executed in the ``body`` terminates the loop without executing the ``else`` clause's ``suite``. A ``continue`` statement executed in the ``body`` skips the rest of the ``body`` and goes back to testing the ``expression``.""",
     ),
     "assert": pyzo.translate(
         "pyzoInteractiveHelp",
@@ -258,7 +258,7 @@ See also: ``and``, ``not``, ``True``, ``False``""",
     ),
     "yield": pyzo.translate(
         "pyzoInteractiveHelp",
-        """The ``yield`` expression is used when defining a generator function or an asynchronous generator function and thus can only be used in the body of a function definition. Using a yield expression in a function’s body causes that function to be a generator, and using it in an ``async def`` function’s body causes that coroutine function to be an asynchronous generator.""",
+        """The ``yield`` expression is used when defining a generator function or an asynchronous generator function and thus can only be used in the body of a function definition. Using a yield expression in a function's body causes that function to be a generator, and using it in an ``async def`` function's body causes that coroutine function to be an asynchronous generator.""",
     ),
 }
 
