@@ -1,6 +1,34 @@
 # Release notes
 
 
+### Version 4.19.0 (13-01-2024)
+
+* fix debugger for ipython shells by @bdieterm in https://github.com/pyzo/pyzo/pull/1102
+* remove limitations for usage of Python's logging module by @bdieterm in https://github.com/pyzo/pyzo/pull/1103
+* More rubust tracebacks by @almarklein in https://github.com/pyzo/pyzo/pull/1104
+* Enable pm for logging again by @almarklein in https://github.com/pyzo/pyzo/pull/1105
+* Fix traceback by @almarklein in https://github.com/pyzo/pyzo/pull/1106
+* fix error message in filebrowser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1107
+* fix traceback for Python < v3.10 and for temporary files by @bdieterm in https://github.com/pyzo/pyzo/pull/1108
+* add post-mortem debugging for individual sub-exceptions in ExceptionGroups by @bdieterm in https://github.com/pyzo/pyzo/pull/1109
+* fix style of scrollbar in source structure tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1111
+* stop polling-timer when closing the shell by @bdieterm in https://github.com/pyzo/pyzo/pull/1113
+* add support for externally started shells by @bdieterm in https://github.com/pyzo/pyzo/pull/1114
+* add shell switching and debug frame switching via mouse wheel by @bdieterm in https://github.com/pyzo/pyzo/pull/1115
+* fix various typos by @bdieterm in https://github.com/pyzo/pyzo/pull/1116
+* set focus to search field when opening Advanced Settings dialog by @bdieterm in https://github.com/pyzo/pyzo/pull/1117
+* Add italian by @almarklein in httpis://github.com/pyzo/pyzo/pull/1118
+* fix ci workflow for Ubuntu 24.04 by @bdieterm in https://github.com/pyzo/pyzo/pull/1120
+* prevent crash on invalid regexp in filebrowser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1119
+* Tweak copyright notices by @almarklein in https://github.com/pyzo/pyzo/pull/1121
+* Replace pyproject.toml by @almarklein in https://github.com/pyzo/pyzo/pull/1122
+* Ruff by @almarklein in https://github.com/pyzo/pyzo/pull/1123
+* restore compatibility with Python 2.7 shells by @bdieterm in https://github.com/pyzo/pyzo/pull/1124
+* cleanup qt wrapper by @bdieterm in https://github.com/pyzo/pyzo/pull/1125
+* fix text insertion with middle mouse button in shell on Linux by @bdieterm in https://github.com/pyzo/pyzo/pull/1126
+* Support py13 by @almarklein in https://github.com/pyzo/pyzo/pull/1127
+
+
 ### Version 4.18.0 (15-11-2024)
 
 * add "Save a copy as..." menu entry for creating file backups by @bdieterm in https://github.com/pyzo/pyzo/pull/1087
