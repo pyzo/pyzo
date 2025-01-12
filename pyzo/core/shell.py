@@ -297,7 +297,6 @@ class BaseShell(BaseTextCtrl):
 
     def mousePressEvent(self, event):
         """
-        - Disable right MB and middle MB (which pastes by default).
         - Focus policy
             If a user clicks this shell, while it has no focus, we do
             not want the cursor position to change (since generally the
@@ -305,15 +304,33 @@ class BaseShell(BaseTextCtrl):
             setting the focus-policy to Qt::TabFocus, and we give the
             widget its focus manually from the mousePressedEvent event
             handler
-
         """
-
         if not self.hasFocus():
             self.setFocus()
             return
+        super().mousePressEvent(event)
 
-        if event.button() != QtCore.Qt.MouseButton.MiddleButton:
-            super().mousePressEvent(event)
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.MouseButton.MiddleButton:
+            if sys.platform == "linux":
+                # On Linux, pasting with the middle button would insert text at the
+                # clicked position, even if this is before the prompt (if readOnly is False
+                # when the current text cursor is at the edit line).
+                # We will ignore the pasting if the click position is not after the prompt.
+                cursor = self.cursorForPosition(event.position().toPoint())
+                promptpos = self._cursor2.position()
+                if cursor.position() < promptpos:
+                    return
+                else:
+                    # The current text cursor might be before the end of the prompt.
+                    # But the text is inserted after the prompt (mouse event position).
+                    # Therefore we move the text cursor to the edit line so that we are
+                    # not in read-only mode.
+                    # The text will be inserted at the event's position, no matter where
+                    # the text cursor is.
+                    self.setTextCursor(cursor)
+                    self.onCursorPositionChanged()
+        super().mouseReleaseEvent(event)
 
     def contextMenuEvent(self, event):
         """Do not show context menu."""
