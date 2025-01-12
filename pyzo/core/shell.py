@@ -250,6 +250,8 @@ class BaseShell(BaseTextCtrl):
         # Similarly, we use the _lastCommandCursor cursor really for pointing.
         self._lastCommandCursor.setKeepPositionOnInsert(True)
 
+        self.resetShellWriters()
+
         # Variables to keep track of the command history usage
         self._historyNeedle = None  # None means none, "" means look in all
         self._historyStep = 0
@@ -630,6 +632,7 @@ class BaseShell(BaseTextCtrl):
         # Wrap up
         self.ensureCursorAtEditLine()
         self.ensureCursorVisible()
+        self._cursor1_lastStreamStart = None
 
     def deleteLines(self):
         """Called from the menu option "delete lines", just execute self.clearCommand()"""
@@ -648,143 +651,7 @@ class BaseShell(BaseTextCtrl):
         self.ensureCursorAtEditLine()
         self.ensureCursorVisible()
 
-    def _handleBackspaces_split(self, text):
-        # while NOT a backspace at first position, or none found
-        i = 9999999999999
-        while i > 0:
-            i = text.rfind("\b", 0, i)
-            if i > 0 and text[i - 1] != "\b":
-                text = text[0 : i - 1] + text[i + 1 :]
-
-        # Strip the backspaces at the start
-        text2 = text.lstrip("\b")
-        n = len(text) - len(text2)
-
-        # Done
-        return n, text2
-
-    def _handleBackspacesOnList(self, texts):
-        """Handle backspaces on a list of messages.
-
-        When printing progress, many messages will simply replace each-other,
-        which means we can process them much more effectively than when they're
-        combined in a list.
-        """
-        # Init number of backspaces at the start
-        N = 0
-
-        for i in range(len(texts)):
-            # Remove backspaces in text and how many are left
-            n, text = self._handleBackspaces_split(texts[i])
-            texts[i] = text
-
-            # Use remaining backspaces to remove backspaces in earlier texts
-            while n and i > 0:
-                i -= 1
-                text = texts[i]
-                if len(text) > n:
-                    texts[i] = text[:-n]
-                    n = 0
-                else:
-                    texts[i] = ""
-                    n -= len(text)
-            N += n
-
-        # Insert tabs for start
-        if N:
-            texts[0] = "\b" * N + texts[0]
-
-        # Return with empty elements popped
-        return [t for t in texts if t]
-
-    def _handleBackspaces(self, text):
-        """Apply backspaces in the string itself and if there are
-        backspaces left at the start of the text, remove the appropriate
-        amount of characters from the text.
-
-        Returns the new text.
-        """
-        # take care of backspaces
-        if "\b" in text:
-            # Remove backspaces and get how many were at the beginning
-            nb, text = self._handleBackspaces_split(text)
-            if nb:
-                # Select what we remove and delete that
-                self._cursor1.clearSelection()
-                self._cursor1.movePosition(self._cursor1.MoveOperation.Left, A_KEEP, nb)
-                self._cursor1.removeSelectedText()
-
-        # Return result
-        return text
-
-    def _handleCarriageReturnOnList(self, texts):
-        """Discard messages that end with CR and that are not followed
-        with LF. Also discard messages followed by a line that starts
-        with CR. Assumes that each message is one line.
-        """
-        if len(texts) < 3:
-            # Don't touch texts that might be a single line,
-            #  e.g. texts = ['msg', '\r']
-            return texts
-        for i in range(len(texts) - 1):
-            if (
-                texts[i].endswith("\r")
-                and not texts[i + 1].startswith("\n")
-                and not (i > 0 and texts[i - 1].endswith("\n"))
-            ) or (
-                texts[i + 1].startswith("\r")
-                and not texts[i + 1][1:].startswith("\n")
-                and not texts[i].endswith("\n")
-            ):
-                texts[i] = ""
-
-        texts = [t for t in texts if t]
-
-        if len(texts) == 1 and texts[0] == "\r":
-            # Never return an isolated carriage return
-            texts = []
-
-        return texts
-
-    def _handleCarriageReturn(self, text):
-        """Removes the last line if it ended with CR, or if the current new
-        message starts with CR.
-        Returns the text.
-        """
-        if "logger" in self.__class__.__name__.lower():
-            return text
-        # Remove last line if it ended with CR
-        cursor = self._cursor1
-        if (self._lastline_had_cr and not text.startswith("\n")) or (
-            text.startswith("\r")
-            and not text[1:].startswith("\n")
-            and not self._lastline_had_lf
-        ):
-            cursor.movePosition(
-                cursor.MoveOperation.StartOfLine, cursor.MoveMode.KeepAnchor, 1
-            )
-            cursor.removeSelectedText()
-        # Is this new line ending in CR?
-        self._lastline_had_cr = text.endswith("\r")
-        # Is this new line ending in LF?
-        self._lastline_had_lf = text.endswith("\n")
-        text = text.replace("\r", "")
-        return text
-
-    def _splitLinesForPrinting(self, text):
-        """Given a text, split the text in lines. Lines that are extremely
-        long are split in pieces of 80 characters to increase performance for
-        wrapping. This is kind of a failsafe for when the user accidentally
-        prints a bitmap or huge list. See issue 98.
-        """
-        for line in text.splitlines(True):
-            if len(line) > 1024:  # about 12 lines of 80 chars
-                parts = [line[i : i + 80] for i in range(0, len(line), 80)]
-                yield "\n".join(parts)
-            else:
-                yield line
-
-    def write(self, text, prompt=0, color=None):
+    def write(self, text, prompt=0, color=None, streamIdentifier=None):
         """Write to the shell.
 
         If prompt is 0 (default) the text is printed before the prompt. If
@@ -792,6 +659,17 @@ class BaseShell(BaseTextCtrl):
         becomes null. If prompt is 2, the given text becomes the new prompt.
 
         The color of the text can also be specified (as a hex-string).
+
+        The streamIdentifier is a hash-able value that serves to recognize the
+        stream, especially when we are writing before the prompt. For example:
+        When we print 'SOMETEXT' to stream stdout it might be split into
+        smaller fragments, e.g. 'SOME' and 'TEXT'. Between writing these two
+        fragments to the shell widget, some other text 'error' might be printed
+        to stream stderr. So the final output could be 'SOMEerrorTEXT'.
+        When writing these three strings we have to know if they are from the
+        same stream or not. This is important when a format escape segment is
+        split into two fragments or when a backspace character wants to delete
+        a character from the previous fragment of the same stream.
         """
 
         # From The Qt docs: Note that a cursor always moves when text is
@@ -817,19 +695,30 @@ class BaseShell(BaseTextCtrl):
         self._cursor2.clearSelection()
 
         if prompt == 0:
-            # Insert text behind prompt (normal streams)
+            # Insert text before prompt (normal streams)
             self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
-            text = self._handleCarriageReturn(text)
-            text = self._handleBackspaces(text)
-            self._insertText(self._cursor1, text, format)
+
+            # We want to know if we are allowed to remove some characters from the
+            # current line (left to the cursor), and if yes, till which column.
+            # If the current line started with a different stream, we cannot delete
+            # from that.
+            leftLimit = None
+            if self._cursor1_lastStreamStart is not None:
+                if self._cursor1_lastStreamStart[0] == streamIdentifier:
+                    leftLimit = self._cursor1_lastStreamStart[1]
+
+            shellWriter = self._shellWriters.setdefault(streamIdentifier, ShellWriter())
+            newLeftLimit = shellWriter.writeText(self._cursor1, leftLimit, text, format)
+            self._cursor1_lastStreamStart = (streamIdentifier, newLeftLimit)
         elif prompt == 1:
             # Insert command text after prompt, prompt becomes null (input)
             self._lastCommandCursor.setPosition(self._cursor2.position())
             self._cursor1.setKeepPositionOnInsert(False)
             self._cursor2.setKeepPositionOnInsert(False)
-            self._insertText(self._cursor2, text, format)
+            ShellWriter().writeText(self._cursor2, None, text, format)
             self._cursor1.setPosition(self._cursor2.position(), A_MOVE)
+            self._cursor1_lastStreamStart = None
         elif prompt == 2 and text == "\b":
             # Remove prompt (used when closing the kernel)
             self._cursor1.setPosition(self._cursor2.position(), A_KEEP)
@@ -841,7 +730,7 @@ class BaseShell(BaseTextCtrl):
             self._cursor1.removeSelectedText()
             self._cursor1.setKeepPositionOnInsert(True)
             self._cursor2.setKeepPositionOnInsert(False)
-            self._insertText(self._cursor1, text, format)
+            ShellWriter().writeText(self._cursor1, None, text, format)
 
         # Reset cursor states for the user to type his/her commands
         self._cursor1.setKeepPositionOnInsert(True)
@@ -856,96 +745,6 @@ class BaseShell(BaseTextCtrl):
             n = text.count("\n")
             sb = self.verticalScrollBar()
             sb.setValue(sb.value() - n)
-
-    def _insertText(self, cursor, text, format):
-        """Insert text at the given cursor, and with the given format.
-        This function processes ANSI escape code for formatting and
-        colorization: http://en.wikipedia.org/wiki/ANSI_escape_code
-        """
-
-        # If necessary, make a new cursor that moves along. We insert
-        # the text in pieces, so we need to move along with the text!
-        if cursor.keepPositionOnInsert():
-            cursor = QtGui.QTextCursor(cursor)
-            cursor.setKeepPositionOnInsert(False)
-
-        # Init. We use the solarised color theme
-        pattern = r"\x1b\[(.*?)m"
-        # CLRS = ['#000', '#F00', '#0F0', '#FF0', '#00F', '#F0F', '#0FF', '#FFF']
-        CLRS = [
-            "#657b83",
-            "#dc322f",
-            "#859900",
-            "#b58900",
-            "#268bd2",
-            "#d33682",
-            "#2aa198",
-            "#eee8d5",
-        ]
-        i0 = 0
-
-        for match in re.finditer(pattern, text):
-            # Insert pending text with the current format
-            # Also update indices
-            i1, i2 = match.span()
-            cursor.insertText(text[i0:i1], format)
-            i0 = i2
-
-            # The format that we are now going to parse should be applied to
-            # the text that follows it ...
-
-            # Get parameters
-            try:
-                params = [int(i) for i in match.group(1).split(";")]
-            except ValueError:
-                params = []
-            if not params:
-                params = [0]
-
-            # Process
-            for param in params:
-                if param == 0:
-                    format = QtGui.QTextCharFormat()
-                elif param == 1:
-                    format.setFontWeight(QtGui.QFont.Weight.Bold)
-                elif param == 2:
-                    format.setFontWeight(QtGui.QFont.Weight.Light)
-                elif param == 3:
-                    format.setFontItalic(True)  # Italic
-                elif param == 4:
-                    format.setFontUnderline(True)  # Underline
-                #
-                elif param == 22:
-                    format.setFontWeight(QtGui.QFont.Weight.Normal)  # Not bold or light
-                elif param == 23:
-                    format.setFontItalic(False)  # Not italic
-                elif param == 24:
-                    format.setFontUnderline(False)  # Not underline
-                #
-                elif 30 <= param <= 37:  # Set foreground color
-                    clr = CLRS[param - 30]
-                    format.setForeground(QtGui.QColor(clr))
-                elif param == 39:  # Reset the foreground color
-                    format.clearForeground()
-                elif 40 <= param <= 47:
-                    pass  # Cannot set background text in QPlainTextEdit
-                #
-                else:
-                    pass  # Not supported
-
-        else:
-            # At the end, process the remaining text
-            text = text[i0:]
-
-            # Process very long text more efficiently.
-            # Insert per line (very long lines are split in smaller ones)
-            if len(text) > 1024:
-                cursor.beginEditBlock()
-                for line in self._splitLinesForPrinting(text):
-                    cursor.insertText(line, format)
-                cursor.endEditBlock()
-            else:
-                cursor.insertText(text, format)
 
     ## Executing stuff
 
@@ -1001,6 +800,321 @@ class BaseShell(BaseTextCtrl):
         # this is a stupid simulation version
         self.write("you executed: " + command + "\n")
         self.write(">>> ", prompt=2)
+
+    def resetShellWriters(self):
+        # init shell writer objects (for handling terminal escape sequences etc.)
+        self._shellWriters = {}
+        self._cursor1_lastStreamStart = None
+
+
+class ShellWriter:
+    # normal colors:
+    # COLORS = "#000 #F00 #0F0 #FF0 #00F #F0F #0FF #FFF".split()
+
+    # solarised color theme:
+    COLORS = "#657b83 #dc322f #859900 #b58900 #268bd2 #d33682 #2aa198 #eee8d5".split()
+
+    _linebreaks = "\n\u2028\u2029\ufdd0\ufdd1"
+    _reSplit = re.compile("([" + _linebreaks + "\t\x1b]|\v+|\r+|\b+)")
+    _reFormatPattern = re.compile(r"(\x1b\[(\d+(?:;\d+)*)m)")
+
+    def __init__(self):
+        self._currentFormat = None
+        self._unfinishedTail = ""  # either "" or "\r" or "\x1b"+...
+        self._lineShorteningActive = False
+
+    def writeText(self, cursor, leftLimitFirstRow, text, defaultFormat):
+        if leftLimitFirstRow is None:
+            leftLimitFirstRow = cursor.positionInBlock()
+            self._lineShorteningActive = False
+
+        assert cursor.positionInBlock() >= leftLimitFirstRow
+
+        leftLimit = leftLimitFirstRow
+        posInBlock = cursor.positionInBlock()
+        lowestPosInFirstBlock = posInBlock
+        unfinishedTailNew = ""
+
+        text2 = text
+        if self._unfinishedTail.startswith("\x1b"):
+            posInBlock = max(0, posInBlock - len(self._unfinishedTail))
+            lowestPosInFirstBlock = posInBlock
+            text2 = self._unfinishedTail + text
+
+        if self._currentFormat is None:
+            self._currentFormat = defaultFormat
+        currentFormat = self._currentFormat
+
+        finishedLines = []
+        # each element in finishedLines is a list like this for each line:
+        #   [*elems, startPos, endPos]
+        #   0 to n elems ... either of type str or QTextCharFormat
+        #   endPos ... end column (0-based), after the last character
+        #
+        #   Format elems have length zero.
+        #   The last elem (before endPos) can be a '\n'.
+        #   There is no other '\n' anywhere else in the line.
+
+        ll = []
+        splitText = [s for s in self._reSplit.split(text2) if s != ""]
+        if self._unfinishedTail == "\r" and splitText[:1] != ["\n"]:
+            # the last text ended with '\r', and it is not a '\r\n'
+            # --> clear this line
+            splitText.insert(0, "\r")
+        lenSplit = len(splitText)
+        for i, s in enumerate(splitText):
+            c = s[:1]
+            if c == "":
+                continue
+            elif c in self._linebreaks:  # new line
+                s = "\n"
+                ll.append(s)
+                posInBlock += len(s)
+                ll.append(posInBlock)
+                finishedLines.append(ll)
+                ll = []
+                leftLimit = 0
+                posInBlock = leftLimit
+            elif c == "\t":  # horizontal tab --> moves to next multiple of tabwidth
+                tabwidth = 8
+                numSpaces = tabwidth - posInBlock % tabwidth
+                s = " " * numSpaces
+                posInBlock += len(s)
+                ll.append(s)
+            elif c == "\v":  # vertical tab --> moves to next line, but same column
+                n = len(s)
+                ll.append("\n")
+                ll.append(posInBlock + 1)
+                finishedLines.append(ll)
+                leftLimit = 0
+                finishedLines.extend(["\n", leftLimit + 1] * (n - 1))
+                ll = [" " * posInBlock]
+            elif c == "\r":
+                if i == lenSplit - 1:
+                    # we don't know yet if this is a CR LF or a CR to delete the line
+                    unfinishedTailNew = c
+                    continue
+                elif splitText[i + 1] == "\n":
+                    # we have a CR LF sequence --> ignore the CR
+                    continue
+                else:
+                    # delete the current line
+                    ll = []
+                    posInBlock = leftLimit
+                    if len(finishedLines) == 0:
+                        lowestPosInFirstBlock = leftLimit
+            elif c == "\b":  # backspace
+                # Backspace normally would move the cursor one character left without
+                # deleting anything. In our implementation, backspace removes the
+                # previous character, even if it was from a text fragment of the same
+                # stream that was already written before. We can only delete till the
+                # start of the current line, and we cannot move further left than
+                # column leftLimit.
+                n = len(s)
+                for i, v in list(enumerate(ll))[::-1]:
+                    if isinstance(v, str):
+                        numBackspace = min(n, len(v))
+                        ll[i] = v[: len(v) - numBackspace]
+                        n -= numBackspace
+                        posInBlock -= numBackspace
+                        if n == 0:
+                            break
+                posInBlock = max(leftLimit, posInBlock - n)
+                if len(finishedLines) == 0 and posInBlock < lowestPosInFirstBlock:
+                    lowestPosInFirstBlock = posInBlock
+            elif c == "\x1b":  # could be the start of an ANSI-like escape sequence
+                # to format the text, see http://en.wikipedia.org/wiki/ANSI_escape_code
+                # A full escape sequence consists of the start elem '\x1b' and the
+                # remaining string elem, which might be incomplete in this fragment.
+                if i + 1 < lenSplit:
+                    textAndNext = s + splitText[i + 1]
+                    format, matchLen = self.parseFormat(
+                        textAndNext, currentFormat, defaultFormat
+                    )
+                    if format is not None:
+                        # escape sequence is complete and correct
+                        splitText[i + 1] = splitText[i + 1][matchLen - 1 :]
+                        ll.append(format)
+                        currentFormat = format
+                    else:
+                        # escape sequence is incomplete or invalid
+                        if i == lenSplit - 2:
+                            # check if the split text ends with an incomplete format
+                            for s2 in ("m", "0m", "[0m"):
+                                if self._reFormatPattern.match(textAndNext + s2):
+                                    unfinishedTailNew = textAndNext
+                                    break
+                        ll.append(s)
+                        posInBlock += len(s)
+                elif i == lenSplit - 1:
+                    # escape sequence is incomplete or invalid
+                    unfinishedTailNew = s
+                    ll.append(s)
+                    posInBlock += len(s)
+            else:
+                ll.append(s)
+                posInBlock += len(s)
+
+        self._unfinishedTail = unfinishedTailNew
+        ll.append(posInBlock)
+        finishedLines.append(ll)
+        # the last line in finishedLines does not end with "\n"
+
+        numCharsToRemove = cursor.positionInBlock() - lowestPosInFirstBlock
+
+        # If necessary, make a new cursor that moves along. We insert
+        # the text in pieces, so we need to move along with the text!
+        if cursor.keepPositionOnInsert():
+            cursor = QtGui.QTextCursor(cursor)
+            cursor.setKeepPositionOnInsert(False)
+
+        # delete characters from the previous fragment
+        cursor.beginEditBlock()
+        if numCharsToRemove > 0:
+            cursor.movePosition(cursor.MoveOperation.Left, A_KEEP, numCharsToRemove)
+            cursor.removeSelectedText()
+
+        # shorten very long lines
+        finishedLines = self._shortenLines(finishedLines, cursor)
+
+        # write the text with proper formatting to the shell widget
+        format = self._currentFormat
+        for line in finishedLines:
+            # lastPosInBlock = line[-1]
+            for elem in line[:-1]:
+                if isinstance(elem, str):
+                    cursor.insertText(elem, format)
+                elif isinstance(elem, QtGui.QTextCharFormat):
+                    format = elem
+        cursor.endEditBlock()
+
+        self._currentFormat = currentFormat
+        newLeftLimit = leftLimit
+        return newLeftLimit
+
+    @staticmethod
+    def _splitStringIntoChunks(s, offset, chunkSize):
+        n = len(s)
+        numChunks, rem = divmod(n - offset, chunkSize)
+        tillOffset = s[:offset]
+        chunkList = [
+            s[offset + i * chunkSize : offset + (i + 1) * chunkSize]
+            for i in range(numChunks)
+        ]
+        remnant = s[offset + numChunks * chunkSize :]
+        return tillOffset, chunkList, remnant
+
+    def _shortenLines(self, finishedLines, cursor):
+        posInBlock = cursor.positionInBlock()
+        finishedLinesShortened = []
+        shortLineLength = 80  # length is without the newline char
+        for indLine, line in enumerate(finishedLines):
+            lastPosInBlock = line[-1]
+
+            # hysteresis for line shortening
+            if lastPosInBlock > 1024:
+                self._lineShorteningActive = True
+            elif lastPosInBlock <= shortLineLength + 1:  # +1 means including newline
+                if indLine < len(finishedLines) - 1:
+                    self._lineShorteningActive = False
+
+            if self._lineShorteningActive:
+                # Given a text, split the text in lines. Lines that are extremely
+                # long are split in pieces of 80 characters to increase performance for
+                # wrapping. This is kind of a failsafe for when the user accidentally
+                # prints a bitmap or huge list. See https://github.com/pyzo/pyzo/issues/98
+
+                if indLine == 0:
+                    charsRightOfCursor = posInBlock
+                    if posInBlock > shortLineLength:
+                        # we also shorten the existing line
+                        cursor.movePosition(
+                            cursor.MoveOperation.Left, A_MOVE, posInBlock
+                        )
+                        multiples, rem = divmod(charsRightOfCursor, shortLineLength)
+                        for i in range(multiples):
+                            cursor.movePosition(
+                                cursor.MoveOperation.Right, A_MOVE, shortLineLength
+                            )
+                            cursor.insertText("\n")
+                        cursor.movePosition(cursor.MoveOperation.Right, A_MOVE, rem)
+                        posInBlock = rem
+                else:
+                    posInBlock = 0
+
+                lineNew = []
+                for elem in line[:-1]:
+                    if isinstance(elem, str):
+                        n = len(elem)
+                        if posInBlock + n > shortLineLength:
+                            i = shortLineLength - posInBlock
+                            tillOffset, chunkList, remnant = (
+                                self._splitStringIntoChunks(elem, i, shortLineLength)
+                            )
+                            lineNew.append(tillOffset)
+                            lineNew.append("\n")
+                            lineNew.append(posInBlock + len(tillOffset) + 1)
+                            posInBlock = 0
+                            finishedLinesShortened.append(lineNew)
+
+                            for chunk in chunkList:
+                                finishedLinesShortened.append(
+                                    [chunk, "\n", shortLineLength + 1]
+                                )
+
+                            lineNew = [remnant]
+                            posInBlock = len(remnant)
+                        else:
+                            lineNew.append(elem)
+                            posInBlock += n
+                    else:
+                        lineNew.append(elem)  # this elem is a QTextCharFormat
+                lineNew.append(posInBlock)
+                finishedLinesShortened.append(lineNew)
+            else:
+                finishedLinesShortened.append(line)
+
+        return finishedLinesShortened
+
+    def parseFormat(self, text, currentFormat, defaultFormat):
+        """process ANSI escape codes for text formatting
+
+        We only support a small subset of:
+        http://en.wikipedia.org/wiki/ANSI_escape_code
+        """
+        mo = self._reFormatPattern.match(text)
+        if not mo:
+            return None, None
+        format = QtGui.QTextCharFormat(currentFormat)
+        params = [int(i) for i in mo[2].split(";")]
+        matchLen = len(mo[1])
+        for param in params:
+            if param == 0:
+                format = QtGui.QTextCharFormat(defaultFormat)
+            elif param == 1:
+                format.setFontWeight(QtGui.QFont.Weight.Bold)
+            elif param == 2:
+                format.setFontWeight(QtGui.QFont.Weight.Light)
+            elif param == 3:
+                format.setFontItalic(True)  # italic
+            elif param == 4:
+                format.setFontUnderline(True)  # underline
+            elif param == 22:
+                format.setFontWeight(QtGui.QFont.Weight.Normal)  # not bold or light
+            elif param == 23:
+                format.setFontItalic(False)  # not italic
+            elif param == 24:
+                format.setFontUnderline(False)  # not underline
+            elif 30 <= param <= 37:  # set foreground color
+                clr = self.COLORS[param - 30]
+                format.setForeground(QtGui.QColor(clr))
+            elif param == 39:  # reset the foreground color
+                format.setForeground(defaultFormat.foreground().color())
+            elif 40 <= param <= 47:
+                pass  # cannot set background text in QPlainTextEdit
+            else:
+                pass  # not supported
+        return format, matchLen
 
 
 class PythonShell(BaseShell):
@@ -1450,10 +1564,6 @@ class PythonShell(BaseShell):
             if sub:
                 M = sub.recv_selected()
                 # M = [sub.recv()] # Slow version (for testing)
-                # Optimization: handle backspaces on stack of messages
-                if sub is self._strm_out:
-                    M = self._handleCarriageReturnOnList(M)
-                    M = self._handleBackspacesOnList(M)
             # New prompt?
             if sub is self._strm_prompt:
                 self.stateChanged.emit(self)
@@ -1485,7 +1595,7 @@ class PythonShell(BaseShell):
             elif sub is self._strm_err:
                 color = "#f00"
             # Write
-            self.write("".join(M), prompt, color)
+            self.write("".join(M), prompt, color, sub)
 
         # Do any actions?
         action = self._strm_action.recv(False)
@@ -1551,6 +1661,7 @@ class PythonShell(BaseShell):
         Args can be a filename, to execute as a script as soon as the
         shell is back up.
         """
+        self.resetShellWriters()
 
         # Ensure edit line is selected (to reset scrolling to end)
         self.ensureCursorAtEditLine()
