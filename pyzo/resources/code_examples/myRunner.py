@@ -27,7 +27,6 @@ tool_summary = "Run custom actions."
 
 Qt = QtCore.Qt
 
-
 class MyRunner(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -37,52 +36,50 @@ class MyRunner(QtWidgets.QWidget):
         self.setLayout(self._layout)
 
         # Widgets
-        btn = QtWidgets.QPushButton(icon=pyzo.icons.script, text="abc")
-        btn.clicked.connect(lambda: self.onButtonClicked("btn1"))
-        btn.setShortcut("Ctrl+Shift+1")
-        btn.setToolTip("insert some text in the editor")
+        btn = QtWidgets.QPushButton(icon=pyzo.icons.script, text='abc')
+        btn.clicked.connect(lambda: self.onButtonClicked('btn1'))
+        btn.setShortcut('Ctrl+Shift+1')
+        btn.setToolTip('insert some text in the editor')
         self._layout.addWidget(btn)
         self._btn1 = btn
 
-        btn = QtWidgets.QPushButton(icon=pyzo.icons.monitor, text="def")
-        btn.clicked.connect(lambda: self.onButtonClicked("btn2"))
-        btn.setShortcut("Ctrl+Shift+2")
-        btn.setToolTip("run some command in the shell")
+        btn = QtWidgets.QPushButton(icon=pyzo.icons.monitor, text='def')
+        btn.clicked.connect(lambda: self.onButtonClicked('btn2'))
+        btn.setShortcut('Ctrl+Shift+2')
+        btn.setToolTip('run some command in the shell')
         self._layout.addWidget(btn)
         self._btn2 = btn
 
-        btn = QtWidgets.QPushButton(icon=pyzo.icons.wand, text="test")
-        btn.clicked.connect(lambda: self.onButtonClicked("btn3"))
-        btn.setShortcut("Ctrl+Shift+3")
-        btn.setToolTip("show a message box")
+        btn = QtWidgets.QPushButton(icon=pyzo.icons.wand, text='test')
+        btn.clicked.connect(lambda: self.onButtonClicked('btn3'))
+        btn.setShortcut('Ctrl+Shift+3')
+        btn.setToolTip('show a message box')
         self._layout.addWidget(btn)
         self._btn3 = btn
 
-        btn = QtWidgets.QPushButton(icon=pyzo.icons.wrench_orange, text="")
-        btn.clicked.connect(lambda: self.onButtonClicked("btn4"))
-        btn.setShortcut("Ctrl+Shift+4")
-        btn.setToolTip("show a message box")
+        btn = QtWidgets.QPushButton(icon=pyzo.icons.wrench_orange, text='')
+        btn.clicked.connect(lambda: self.onButtonClicked('btn4'))
+        btn.setShortcut('Ctrl+Shift+4')
+        btn.setToolTip('show a message box')
         self._layout.addWidget(btn)
         self._btn4 = btn
 
         self._layout.addStretch()
 
     def onButtonClicked(self, s):
-        print(self.__class__.__name__, "onButtonClicked", s)
-        if s == "btn1":
+        print(self.__class__.__name__, 'onButtonClicked', s)
+        if s == 'btn1':
             # manipulate the text of the current editor
             editor = pyzo.editors.getCurrentEditor()
             editor.insertPlainText(
-                "This text will be inserted\nat the cursor pos of the current editor\n"
+                'This text will be inserted\nat the cursor pos of the current editor\n'
             )
-        elif s == "btn2":
+        elif s == 'btn2':
             # run a command in the current Python shell
             shell = pyzo.shells.getCurrentShell()
-            shell.executeCode("myvar = 123\nprint(myvar + 4)", "<myrunner>")
+            shell.executeCode('myvar = 123\nprint(myvar + 4)', '<myrunner>')
         else:
-            QtWidgets.QMessageBox.information(
-                self, tool_name, 'button "{}" clicked'.format(s)
-            )
+            QtWidgets.QMessageBox.information(self, tool_name,'button "{}" clicked'.format(s))
 
     def close(self):
         pass  # do some clean-up here if necessary
