@@ -260,6 +260,7 @@ class PyzoInterpreter:
         startup_info["builtins"] = list(builtins)
         startup_info["version"] = tuple(sys.version_info)
         startup_info["keywords"] = keyword.kwlist
+        startup_info["softkeywords"] = getattr(keyword, "softkwlist", [])
         # Update startup info, we update again at the end of this method
         self.context._stat_startup.send(startup_info.copy())
 

@@ -1187,6 +1187,7 @@ class PythonShell(BaseShell):
         self._version = ""
         self._builtins = []
         self._keywords = []
+        self._softKeywords = []
         self._startup_info = {}
         self._start_time = 0
 
@@ -1281,6 +1282,11 @@ class PythonShell(BaseShell):
         if isinstance(L, list):
             self._keywords = L
 
+        # Set soft keywords
+        L = startup_info.get("softkeywords", None)
+        if isinstance(L, list):
+            self._softKeywords = L
+
         # Set builtins
         L = startup_info.get("builtins", None)
         if isinstance(L, list):
@@ -1361,6 +1367,7 @@ class PythonShell(BaseShell):
             aco.addNames(self._builtins)
             if pyzo.config.settings.autoComplete_keywords:
                 aco.addNames(self._keywords)
+                aco.addNames(self._softKeywords)
         elif aco.name == "[":
             return
 
