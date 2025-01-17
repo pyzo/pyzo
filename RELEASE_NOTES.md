@@ -1,7 +1,7 @@
 # Release notes
 
 
-### Version 4.19.0 (13-01-2024)
+### Version 4.19.0 (17-01-2024)
 
 * fix debugger for ipython shells by @bdieterm in https://github.com/pyzo/pyzo/pull/1102
 * remove limitations for usage of Python's logging module by @bdieterm in https://github.com/pyzo/pyzo/pull/1103
@@ -17,7 +17,7 @@
 * add shell switching and debug frame switching via mouse wheel by @bdieterm in https://github.com/pyzo/pyzo/pull/1115
 * fix various typos by @bdieterm in https://github.com/pyzo/pyzo/pull/1116
 * set focus to search field when opening Advanced Settings dialog by @bdieterm in https://github.com/pyzo/pyzo/pull/1117
-* Add italian by @almarklein in httpis://github.com/pyzo/pyzo/pull/1118
+* Add italian by @almarklein in https://github.com/pyzo/pyzo/pull/1118
 * fix ci workflow for Ubuntu 24.04 by @bdieterm in https://github.com/pyzo/pyzo/pull/1120
 * prevent crash on invalid regexp in filebrowser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1119
 * Tweak copyright notices by @almarklein in https://github.com/pyzo/pyzo/pull/1121
@@ -27,6 +27,8 @@
 * cleanup qt wrapper by @bdieterm in https://github.com/pyzo/pyzo/pull/1125
 * fix text insertion with middle mouse button in shell on Linux by @bdieterm in https://github.com/pyzo/pyzo/pull/1126
 * Support py13 by @almarklein in https://github.com/pyzo/pyzo/pull/1127
+* improve terminal emulation in Pyzo's shell widget by @bdieterm in https://github.com/pyzo/pyzo/pull/1129
+* clean up code examples by @bdieterm in https://github.com/pyzo/pyzo/pull/1130
 
 
 ### Version 4.18.0 (15-11-2024)
