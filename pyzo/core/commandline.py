@@ -116,11 +116,16 @@ def handle_cmd_args():
     otherwise.
     """
     args = sys.argv[1:]
-    request = " ".join(arg for arg in args if not arg.startswith("--"))
-    if "psn_" in request and not os.path.isfile(request):
-        request = " ".join(args[1:])  # An OSX thing when clicking app icon
-    request = request.strip()
-    #
+    args = [s for s in args if not s.startswith("--")]
+    if sys.platform == "darwin" and len(args) > 0 and args[0].startswith("-psn_"):
+        del args[0]  # An OSX thing when clicking app icon
+
+    # support relative paths, e.g. with command line "pyzo ./myfile.py"
+    if len(args) == 1 and args[0].startswith(".") and os.path.isfile(args[0]):
+        args = [os.path.abspath(args[0])]
+
+    request = " ".join(args).strip()
+
     if not request:
         return None
     else:
