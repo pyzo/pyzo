@@ -662,7 +662,6 @@ class FileTabWidget(CompactTabWidget):
         if not (0 <= index < self.count()):
             pyzo.main.setMainTitle()  # No open file
 
-        # Remove current item from history
         currentItem = self.currentItem()
         if currentItem:
             currentItem.editor.setTitleInMainWindow()
@@ -684,8 +683,7 @@ class FileTabWidget(CompactTabWidget):
     def currentItem(self):
         """Get the item corresponding to the currently active tab."""
         i = self.currentIndex()
-        if i >= 0:
-            return self.tabBar().tabData(i)
+        return self.tabBar().tabData(i) if i >= 0 else None
 
     def getItemAt(self, i):
         return self.tabBar().tabData(i)
@@ -700,23 +698,28 @@ class FileTabWidget(CompactTabWidget):
                 return item
         return None
 
+    def tabRemoved(self, i):
+        super().tabRemoved(i)
+        self.trackHistory(None)
+
     def trackHistory(self, index):
         """Called when a tab is changed. Puts the current item on top of the history."""
 
-        # Valid index?
-        if not (0 <= index < self.count()):
-            return
+        # remove closed editors from history
+        existingItems = {self.getItemAt(i) for i in range(self.count())}
+        self._itemHistory = [
+            item for item in self._itemHistory if item in existingItems
+        ]
 
-        # Remove current item from history
-        currentItem = self.currentItem()
-        while currentItem in self._itemHistory:
-            self._itemHistory.remove(currentItem)
-
-        # Add current item to history
-        self._itemHistory.insert(0, currentItem)
-
-        # Limit history size
-        self._itemHistory[10:] = []
+        # add/move current editor to the start of the history
+        hist = self._itemHistory
+        curItem = self.currentItem()
+        if curItem is not None and hist[:1] != [curItem]:
+            try:
+                hist.remove(curItem)
+            except ValueError:
+                pass
+            hist.insert(0, curItem)
 
     def setCurrentItem(self, item):
         """Set a FileItem instance to be the current.
@@ -748,14 +751,8 @@ class FileTabWidget(CompactTabWidget):
     def selectPreviousItem(self):
         """Select the previously selected item."""
 
-        # make an old item history
-        if len(self._itemHistory) > 1 and self._itemHistory[1] is not None:
-            item = self._itemHistory[1]
-            self.setCurrentItem(item)
-
-        # just select first one then ...
-        elif self.count():
-            item = 0
+        if len(self._itemHistory) > 1:
+            item = list(self._itemHistory)[1]
             self.setCurrentItem(item)
 
     ## Closing, adding and updating
@@ -1610,11 +1607,12 @@ class EditorTabs(QtWidgets.QWidget):
             # Add to state
             state.append(tuple(info))
 
+        # assert self._tabs.count() == len(self._tabs._itemHistory)
         for item in self._tabs._itemHistory[::-1]:
-            if isinstance(item, FileItem):
-                ed = item._editor
-                if ed._filename:
-                    state.append((ed._filename, "hist"))
+            # assert isinstance(item, FileItem)
+            ed = item._editor
+            if ed._filename:
+                state.append((ed._filename, "hist"))
 
         # Done
         return state
