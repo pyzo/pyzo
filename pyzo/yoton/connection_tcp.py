@@ -402,9 +402,7 @@ class HandShaker:
         elif request.startswith("YOTON!"):
             # Get id
             try:
-                id2_str, pid2_str = request[6:].split(
-                    ".", 1
-                )  # partition not in Python24
+                id2_str, pid2_str = request[6:].split(".", 1)
                 id2, pid2 = int(id2_str, 16), int(pid2_str, 10)
             except Exception:
                 self._send_during_handshaking("ERROR: could not parse id.")
@@ -446,9 +444,7 @@ class HandShaker:
         elif response.startswith("YOTON!"):
             # Get id
             try:
-                id2_str, pid2_str = response[6:].split(
-                    ".", 1
-                )  # Partition not in Python24
+                id2_str, pid2_str = response[6:].split(".", 1)
                 id2, pid2 = int(id2_str, 16), int(pid2_str, 10)
             except Exception:
                 return False, STOP_HANDSHAKE_FAILED

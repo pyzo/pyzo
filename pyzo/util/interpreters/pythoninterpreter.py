@@ -99,7 +99,6 @@ class PythonInterpreter:
             self._problem = "{!r} is not a valid file.".format(path)
             return ""
 
-        # Poll Python executable (--version does not work on 2.4)
         # shell=True prevents loads of command windows popping up on Windows,
         # but if used on Linux it would enter interpreter mode
         cmd = [path, "-V"]

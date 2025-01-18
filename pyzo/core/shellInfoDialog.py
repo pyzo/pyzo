@@ -569,7 +569,7 @@ class ShellInfoDialog(QtWidgets.QDialog):
         # Do this here so we only need to do it once ...
         from pyzo.util.interpreters import get_interpreters
 
-        self.interpreters = list(reversed(get_interpreters("2.4")))
+        self.interpreters = list(reversed(get_interpreters("2.7")))
 
         # Introduce an entry if there's none
         if not pyzo.config.shellConfigs2:
