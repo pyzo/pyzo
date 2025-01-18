@@ -62,7 +62,7 @@ class KernelInfo(ssdf.Struct):
         self.name = "Python"
 
         # The executable. This can be '/usr/bin/python3.1' or
-        # 'c:/program files/python2.6/python.exe', etc.
+        # 'c:/program files/python2.7/python.exe', etc.
         self.exe = ""
 
         # The GUI toolkit to embed the event loop of.

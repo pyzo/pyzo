@@ -1259,10 +1259,7 @@ class ExecutedSourceCollection:
             if src:
                 return [line + "\n" for line in src.splitlines()]
             else:
-                if module_globals is None:
-                    return linecache._getlines(filename)  # only valid sig in 2.4
-                else:
-                    return linecache._getlines(filename, module_globals)
+                return linecache._getlines(filename, module_globals)
 
         # Monkey patch
         if not hasattr(linecache, "_getlines"):

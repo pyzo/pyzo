@@ -22,7 +22,7 @@ from .tokens import (
 
 # Keywords sets
 
-# Source: import keyword; keyword.kwlist (Python 2.6.6)
+# Source: import keyword; keyword.kwlist (Python 2.7)
 python2Keywords = set(
     [
         "and",

@@ -174,10 +174,9 @@ class PyzoIntrospector(yoton.RepChannel):
                     sigs = funname + str(tmp)
                 except Exception:
                     try:
-                        tmp = eval(
-                            "inspect.getargspec(%s)" % (objectName), None, NS
-                        )  # py2
-                    except Exception:  # the above fails on 2.4 (+?) for builtins
+                        # for Python < v3.3
+                        tmp = eval("inspect.getargspec(%s)" % (objectName), None, NS)
+                    except Exception:  # the above fails for builtins
                         tmp = None
                         kind = ""
 

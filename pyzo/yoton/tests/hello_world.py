@@ -7,7 +7,7 @@
 
 import yoton
 
-verbosity = 0  # Python 2.4 can crash with verbosity on
+verbosity = 1
 
 # Create one context and a pub channel
 ct1 = yoton.Context(verbose=verbosity)

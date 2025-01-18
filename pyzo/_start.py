@@ -11,8 +11,12 @@ import pyzo
 # can import before checking the qt import.
 from . import pre_qt_import  # noqa: F401
 
-# Import yoton as an absolute package
-from pyzo import yotonloader  # noqa
+# Import yoton (absolute import instead of a relative import)
+sys.path.insert(0, os.path.dirname(__file__))
+import yoton  # noqa
+
+del sys.path[0]
+
 from pyzo.util import paths
 
 # If there already is an instance of Pyzo, and the user is trying a

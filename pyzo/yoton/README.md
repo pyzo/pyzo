@@ -1,14 +1,14 @@
 Yoton is a Python package that provides a simple interface
-to communicate between two or more processes. 
+to communicate between two or more processes.
 
 **Yoton is ...**
 
   * lightweight
   * written in pure Python
   * without dependencies (except Python)
-  * available on Python version >= 2.4, including Python 3
+  * available on Python version >= 2.7
   * cross-platform
-  * pretty fast 
+  * pretty fast
 
 Read [the docs](http://yoton.readthedocs.org)!
 

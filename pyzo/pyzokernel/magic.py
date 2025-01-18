@@ -7,6 +7,7 @@ commands, in the sense that they print something etc.
 import sys
 import os
 import re
+import io
 import time
 import inspect
 import tokenize
@@ -14,10 +15,6 @@ import token
 import keyword
 import itertools
 
-try:
-    import io
-except ImportError:  # Not on Python 2.4
-    pass
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
@@ -573,34 +570,30 @@ class Magician:
             channel_list = ["-c", "conda-forge", "-c", "pyzo"]
 
         def write_no_dots(x):
-            if x.strip() == ".":  # note, no "x if y else z" in Python 2.4
-                return 0
-            return stderr_write(x)
+            return 0 if x.strip() == "." else stderr_write(x)
 
         # Go!
-        # Weird double-try, to make work on Python 2.4
         oldargs = sys.argv
         stderr_write = sys.stderr.write
         try:
-            try:
-                # older version of conda would spew dots to stderr during downloading
-                sys.stderr.write = write_no_dots
-                import conda  # noqa
-                from conda.cli import main
+            # older version of conda would spew dots to stderr during downloading
+            sys.stderr.write = write_no_dots
+            import conda  # noqa
+            from conda.cli import main
 
-                sys.argv = ["conda"] + list(args) + channel_list
-                main()
-            except SystemExit:  # as err:
-                type, err, tb = sys.exc_info()
-                del tb
-                err = str(err)
-                if len(err) > 4:  # Only print if looks like a message
-                    print(err)
-            except Exception:  # as err:
-                type, err, tb = sys.exc_info()
-                del tb
-                print("Error in conda command:")
+            sys.argv = ["conda"] + list(args) + channel_list
+            main()
+        except SystemExit:  # as err:
+            type, err, tb = sys.exc_info()
+            del tb
+            err = str(err)
+            if len(err) > 4:  # Only print if looks like a message
                 print(err)
+        except Exception:  # as err:
+            type, err, tb = sys.exc_info()
+            del tb
+            print("Error in conda command:")
+            print(err)
         finally:
             sys.argv = oldargs
             sys.stderr.write = stderr_write
@@ -657,30 +650,28 @@ class Magician:
             return
 
         # Go!
-        # Weird double-try, to make work on Python 2.4
         oldargs = sys.argv
         try:
-            try:
-                from notebook._version import version_info
+            from notebook._version import version_info
 
-                if version_info >= (7, 0):
-                    from notebook.app import main as run_notebook_app
-                else:
-                    from notebook.notebookapp import main as run_notebook_app
+            if version_info >= (7, 0):
+                from notebook.app import main as run_notebook_app
+            else:
+                from notebook.notebookapp import main as run_notebook_app
 
-                sys.argv = ["jupyter_notebook"] + list(args)
-                run_notebook_app()
-            except SystemExit:  # as err:
-                type, err, tb = sys.exc_info()
-                del tb
-                err = str(err)
-                if len(err) > 4:  # Only print if looks like a message
-                    print(err)
-            except Exception:  # as err:
-                type, err, tb = sys.exc_info()
-                del tb
-                print("Error in notebook command:")
+            sys.argv = ["jupyter_notebook"] + list(args)
+            run_notebook_app()
+        except SystemExit:  # as err:
+            type, err, tb = sys.exc_info()
+            del tb
+            err = str(err)
+            if len(err) > 4:  # Only print if looks like a message
                 print(err)
+        except Exception:  # as err:
+            type, err, tb = sys.exc_info()
+            del tb
+            print("Error in notebook command:")
+            print(err)
         finally:
             sys.argv = oldargs
 

@@ -667,7 +667,7 @@ class InterpreterHelper(QtWidgets.QWidget):
         # Try to find an interpreter
         from pyzo.util.interpreters import get_interpreters
 
-        interpreters = list(reversed(get_interpreters("2.4")))
+        interpreters = list(reversed(get_interpreters("2.7")))
         conda_interpreters = [i for i in interpreters if i.is_conda]
         conda_interpreters.sort(key=lambda x: len(x.path.replace("pyzo", "pyzo" * 10)))
 

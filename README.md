@@ -21,7 +21,7 @@ workspace ...
 Pyzo is written in (pure) Python 3 and uses the Qt GUI toolkit. Binaries
 are provided for all major operating systems. After installing Pyzo, it
 can be used to execute code on any Python version available on your
-system (Python 2.4 - 3.x, including PyPy).
+system (Python 2.7 - 3.x, including PyPy).
 
 
 ### Installation
