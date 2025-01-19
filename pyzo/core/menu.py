@@ -1072,13 +1072,6 @@ class ViewMenu(Menu):
             icons.application_edit,
             self._selectEditor,
         )
-        self.addItem(
-            translate(
-                "menu", "Select previous file ::: Select the previously selected file."
-            ),
-            icons.application_double,
-            pyzo.editors._tabs.selectPreviousItem,
-        )
         self.addSeparator()
         self.addEditorItem(
             translate("menu", "Show whitespace ::: Show spaces and tabs."),

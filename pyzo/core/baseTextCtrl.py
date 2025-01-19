@@ -646,6 +646,8 @@ class BaseTextCtrl(CodeEditor):
         or other stuff...
         """
 
+        KM = QtCore.Qt.KeyboardModifier
+
         # Get ordinal key
         ordKey = -1
         if event.text():
@@ -656,8 +658,8 @@ class BaseTextCtrl(CodeEditor):
 
         # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
         has_control = (
-            event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
-            or event.modifiers() & QtCore.Qt.KeyboardModifier.MetaModifier
+            event.modifiers() & KM.ControlModifier
+            or event.modifiers() & KM.MetaModifier
         )
         if has_control and event.key() == QtCore.Qt.Key.Key_Space:
             cursor = self.textCursor()
@@ -668,8 +670,10 @@ class BaseTextCtrl(CodeEditor):
                     return
 
         # Invoke autocomplete via tab key?
-        elif event.key() == QtCore.Qt.Key.Key_Tab and not self.autocompleteActive():
-            if pyzo.config.settings.autoComplete:
+        elif (
+            event.modifiers() == KM.NoModifier and event.key() == QtCore.Qt.Key.Key_Tab
+        ):
+            if pyzo.config.settings.autoComplete and not self.autocompleteActive():
                 cursor = self.textCursor()
                 if cursor.position() == cursor.anchor():
                     text = cursor.block().text()[: cursor.positionInBlock()]
