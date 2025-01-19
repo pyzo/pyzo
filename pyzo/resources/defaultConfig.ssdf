@@ -135,7 +135,6 @@ shortcuts2 = dict:
     shell__terminate = 'Ctrl+Shift+K,'
     shell__postmortem_debug_from_last_traceback = 'Ctrl+P,'
     view__select_editor = 'Ctrl+9,F2'
-    view__select_previous_file = 'Ctrl+Tab,' # On Mac, this is replaced by Alt+Tab in pyzo.py
     view__select_shell = 'Ctrl+0,F1'
     view__zooming__zoom_in = 'Ctrl+=,Ctrl++'
     view__zooming__zoom_out = 'Ctrl+-,'

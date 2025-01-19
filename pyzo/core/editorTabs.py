@@ -721,6 +721,9 @@ class FileTabWidget(CompactTabWidget):
                 pass
             hist.insert(0, curItem)
 
+    def getItemHistory(self):
+        return tuple(self._itemHistory)
+
     def setCurrentItem(self, item):
         """Set a FileItem instance to be the current.
 
@@ -747,13 +750,6 @@ class FileTabWidget(CompactTabWidget):
 
         else:
             raise ValueError("item should be int, FileItem or file name.")
-
-    def selectPreviousItem(self):
-        """Select the previously selected item."""
-
-        if len(self._itemHistory) > 1:
-            item = list(self._itemHistory)[1]
-            self.setCurrentItem(item)
 
     ## Closing, adding and updating
 
@@ -901,6 +897,13 @@ class FileTabWidget(CompactTabWidget):
             but.updateIcon(item.dirty, self._mainFile == item.id, item.pinned, nBlocks)
 
         self.fileTabsChanged.emit()
+
+    def event(self, event):
+        if event.type() == event.Type.KeyPress:
+            # prevent the QTabBar widget from consuming keypress events
+            return False
+        else:
+            return super().event(event)
 
 
 class EditorTabs(QtWidgets.QWidget):
@@ -1676,3 +1679,107 @@ class EditorTabs(QtWidgets.QWidget):
 
         # we're good to go closing
         return True
+
+    def keyPressEvent(self, event):
+        if HistList.processKeyPress(event):
+            histList = HistList(self, self._tabs, event)
+            if histList.valid:
+                histList.exec()
+
+
+class HistList(QtWidgets.QDialog):
+    def __init__(self, parent, tabs, startEvent):
+        super().__init__(parent)
+
+        lw = QtWidgets.QListWidget()
+        self._lw = lw
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+        layout.addWidget(lw)
+
+        self._margin = m = 0
+        self.setContentsMargins(m, m, m, m)
+        layout.setContentsMargins(m, m, m, m)
+
+        self._tabs = tabs
+        self._entries = None
+        self.setWindowTitle("Editor tab history")
+        self.valid = True
+
+        self._entries = self._tabs.getItemHistory()
+        if len(self._entries) <= 1:
+            self.valid = False
+            return
+
+        lw = self._lw
+        lw.clear()
+        for item in self._entries:
+            flags = []
+            if item.dirty:
+                flags.append("MOD.")
+            if item.pinned:
+                flags.append("PIN.")
+            if item.id == self._tabs._mainFile:
+                flags.append("MAINF.")
+            if flags:
+                label = "[{}] {}".format(", ".join(flags), item.id)
+            else:
+                label = item.id
+
+            lw.addItem(QtWidgets.QListWidgetItem(label))
+
+        w = (
+            lw.sizeHintForColumn(0)
+            + lw.frameWidth() * 2
+            + lw.verticalScrollBar().sizeHint().width()
+        )
+        h = (
+            lw.sizeHintForRow(0) * lw.count()
+            + 2 * lw.frameWidth()
+            + lw.horizontalScrollBar().sizeHint().height()
+        )
+        w = max(w, 400)
+        self.resize(w, h)
+        self.keyPressEvent(startEvent)
+
+    def _finishSelection(self):
+        lw = self._lw
+        if self._entries is not None:
+            ind = lw.currentRow()
+            if 0 <= ind < len(self._entries):
+                self._tabs.setCurrentItem(self._entries[ind])
+        self._entries = None
+        self.close()
+
+    @staticmethod
+    def processKeyPress(event):
+        key = event.key()
+        modifiers = event.modifiers()
+        tab_pressed = key == QtCore.Qt.Key.Key_Tab
+        backtab_pressed = key == QtCore.Qt.Key.Key_Backtab
+        KM = QtCore.Qt.KeyboardModifier
+        fwd = modifiers == KM.ControlModifier
+        bwd = modifiers == KM.ControlModifier | KM.ShiftModifier
+        if (tab_pressed and fwd) or (backtab_pressed and bwd):
+            k = -1 if bwd else 1
+            return k
+        return None
+
+    def keyPressEvent(self, event):
+        k = self.processKeyPress(event)
+        if k is not None:
+            lw = self._lw
+            row = lw.currentRow()
+            if row == -1:
+                row = 0
+            lw.setCurrentRow((row + k) % lw.count())
+            return  # consume event
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        KM = QtCore.Qt.KeyboardModifier
+        modifiers = event.modifiers()
+        if modifiers & KM.ControlModifier == KM.NoModifier:
+            self._finishSelection()
+            return  # consume event
+        super().keyReleaseEvent(event)

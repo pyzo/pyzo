@@ -229,14 +229,11 @@ class Indentation:
                     w = self.indentWidth()
                     cursor.insertText(" " * (w - ((cursor.positionInBlock() + w) % w)))
                     return
-                # else: default behaviour, insert tab character
-            else:  # Some other modifiers + Tab: ignore
-                return
 
         # If backspace is pressed in the leading whitespace, (except for at the first
         # position of the line), and there is no selection
         # dedent that line and move cursor to end of whitespace
-        if (
+        elif (
             key == Qt.Key.Key_Backspace
             and modifiers == Qt.KeyboardModifier.NoModifier
             and self.__cursorIsInLeadingWhitespace()
@@ -252,7 +249,7 @@ class Indentation:
         # todo: Same for delete, I think not (what to do with the cursor?)
 
         # Auto-unindent
-        if key == Qt.Key.Key_Delete:
+        elif key == Qt.Key.Key_Delete:
             cursor = self.textCursor()
             if not cursor.hasSelection():
                 cursor.movePosition(
