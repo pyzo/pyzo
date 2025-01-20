@@ -1757,8 +1757,6 @@ class HistList(QtWidgets.QDialog):
 
     @staticmethod
     def processKeyPress(event):
-        if event.isAutoRepeat():
-            return None
         key = event.key()
         modifiers = event.modifiers()
         tab_pressed = key == QtCore.Qt.Key.Key_Tab
