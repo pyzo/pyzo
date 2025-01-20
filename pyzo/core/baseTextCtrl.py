@@ -8,12 +8,16 @@ is common for both shells and editors.
 
 import pyzo
 import os
+import sys
 import time
 from pyzo.core.pyzoLogging import print
 import pyzo.codeeditor.parsers.tokens as Tokens
 from pyzo.codeeditor import CodeEditor
 
 from pyzo.qt import QtCore, QtGui, QtWidgets
+
+
+ismacos = sys.platform.startswith("darwin")
 
 
 def normalizePath(path):
@@ -627,9 +631,12 @@ class BaseTextCtrl(CodeEditor):
         window.
         """
         if isinstance(event, QtGui.QKeyEvent):
+            # AltModifier maps to the option key on MacOS, and an alternative to control in some cases
+            has_control = event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
+            has_alt = event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier
             # Ignore CTRL+{A-Z} since those keys are handled through the menu
             if (
-                (event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier)
+                (has_control or has_alt)
                 and (event.key() >= QtCore.Qt.Key.Key_A)
                 and (event.key() <= QtCore.Qt.Key.Key_Z)
             ):
@@ -656,18 +663,30 @@ class BaseTextCtrl(CodeEditor):
         # Cancel any introspection in progress
         self._delayTimer._line = ""
 
-        # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
-        has_control = (
-            event.modifiers() & KM.ControlModifier
-            or event.modifiers() & KM.MetaModifier
+        # Detect "control". This is awkward:
+        # Command Key ⌘ -> ControlModifier -> mostly what Windows uses Control for.
+        # Option key ⌥  -> AltModifier     -> For stuff that we cannot use Command key for.
+        # Control key ^ -> MetaModifier    -> I guess most uses maps to what Windows uses Alt for.
+        has_control_like = event.modifiers() & (
+            KM.AltModifier if ismacos else KM.ControlModifier
         )
-        if has_control and event.key() == QtCore.Qt.Key.Key_Space:
+
+        # Leave tab events to editor tabs
+        if has_control_like and event.key() in (
+            QtCore.Qt.Key.Key_Tab,
+            QtCore.Qt.Key.Key_Backtab,
+        ):
+            event.ignore()
+            return False
+
+        # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
+        if has_control_like and event.key() == QtCore.Qt.Key.Key_Space:
             cursor = self.textCursor()
             if cursor.position() == cursor.anchor():
                 text = cursor.block().text()[: cursor.positionInBlock()]
                 if text:
                     self.introspect(True, False, advanced=True)
-                    return
+            return
 
         # Invoke autocomplete via tab key?
         elif (
