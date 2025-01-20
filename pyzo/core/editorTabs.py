@@ -1684,11 +1684,17 @@ class EditorTabs(QtWidgets.QWidget):
         # we're good to go closing
         return True
 
-    def keyPressEvent(self, event):
+    def processKeyPressFromMainWindow(self, event):
+        consumed = False
         if HistList.processKeyPress(event):
             histList = HistList(self, self._tabs, event)
             if histList.valid:
                 histList.exec()
+            ed = self.getCurrentEditor()
+            if ed:
+                ed.setFocus()
+            consumed = True
+        return consumed
 
 
 class HistList(QtWidgets.QDialog):
