@@ -684,7 +684,7 @@ class BaseTextCtrl(CodeEditor):
             )
         ):
             event.ignore()
-            return False
+            return
 
         # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
         if has_control_like and event.key() == QtCore.Qt.Key.Key_Space:
