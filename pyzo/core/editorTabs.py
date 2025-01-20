@@ -9,6 +9,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 """
 
 import os
+import sys
 import time
 import gc
 from pyzo.qt import QtCore, QtGui, QtWidgets
@@ -20,6 +21,9 @@ from pyzo.core.baseTextCtrl import normalizePath
 from pyzo.core.pyzoLogging import print
 from pyzo.core.icons import EditorTabToolButton
 from pyzo import translate
+
+
+ismacos = sys.platform.startswith("darwin")
 
 
 def simpleDialog(item, action, question, options, defaultOption):
@@ -1753,13 +1757,17 @@ class HistList(QtWidgets.QDialog):
 
     @staticmethod
     def processKeyPress(event):
+        if event.isAutoRepeat():
+            return None
         key = event.key()
         modifiers = event.modifiers()
         tab_pressed = key == QtCore.Qt.Key.Key_Tab
         backtab_pressed = key == QtCore.Qt.Key.Key_Backtab
         KM = QtCore.Qt.KeyboardModifier
-        fwd = modifiers == KM.ControlModifier
-        bwd = modifiers == KM.ControlModifier | KM.ShiftModifier
+        control_like_modifier = KM.AltModifier if ismacos else KM.ControlModifier
+        fwd = modifiers == control_like_modifier
+        bwd = modifiers == control_like_modifier | KM.ShiftModifier
+        print("tab pressed", tab_pressed, fwd, bwd)
         if (tab_pressed and fwd) or (backtab_pressed and bwd):
             k = -1 if bwd else 1
             return k
@@ -1779,7 +1787,8 @@ class HistList(QtWidgets.QDialog):
     def keyReleaseEvent(self, event):
         KM = QtCore.Qt.KeyboardModifier
         modifiers = event.modifiers()
-        if modifiers & KM.ControlModifier == KM.NoModifier:
+        control_like_modifier = KM.AltModifier if ismacos else KM.ControlModifier
+        if not (modifiers & control_like_modifier):
             self._finishSelection()
             return  # consume event
         super().keyReleaseEvent(event)
