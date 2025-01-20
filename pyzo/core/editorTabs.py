@@ -1765,7 +1765,6 @@ class HistList(QtWidgets.QDialog):
         control_like_modifier = KM.AltModifier if ismacos else KM.ControlModifier
         fwd = modifiers == control_like_modifier
         bwd = modifiers == control_like_modifier | KM.ShiftModifier
-        print("tab pressed", tab_pressed, fwd, bwd)
         if (tab_pressed and fwd) or (backtab_pressed and bwd):
             k = -1 if bwd else 1
             return k
