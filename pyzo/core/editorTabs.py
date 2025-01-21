@@ -902,12 +902,9 @@ class FileTabWidget(CompactTabWidget):
 
         self.fileTabsChanged.emit()
 
-    def event(self, event):
-        if event.type() == event.Type.KeyPress:
-            # prevent the QTabBar widget from consuming keypress events
-            return False
-        else:
-            return super().event(event)
+    def keyPressEvent(self, event):
+        # prevent the QTabBar widget from consuming keypress events
+        event.ignore()
 
 
 class EditorTabs(QtWidgets.QWidget):
@@ -1684,11 +1681,17 @@ class EditorTabs(QtWidgets.QWidget):
         # we're good to go closing
         return True
 
-    def keyPressEvent(self, event):
+    def processKeyPressFromMainWindow(self, event):
+        consumed = False
         if HistList.processKeyPress(event):
             histList = HistList(self, self._tabs, event)
             if histList.valid:
                 histList.exec()
+            ed = self.getCurrentEditor()
+            if ed:
+                ed.setFocus()
+            consumed = True
+        return consumed
 
 
 class HistList(QtWidgets.QDialog):
@@ -1757,8 +1760,6 @@ class HistList(QtWidgets.QDialog):
 
     @staticmethod
     def processKeyPress(event):
-        if event.isAutoRepeat():
-            return None
         key = event.key()
         modifiers = event.modifiers()
         tab_pressed = key == QtCore.Qt.Key.Key_Tab
@@ -1767,7 +1768,6 @@ class HistList(QtWidgets.QDialog):
         control_like_modifier = KM.AltModifier if ismacos else KM.ControlModifier
         fwd = modifiers == control_like_modifier
         bwd = modifiers == control_like_modifier | KM.ShiftModifier
-        print("tab pressed", tab_pressed, fwd, bwd)
         if (tab_pressed and fwd) or (backtab_pressed and bwd):
             k = -1 if bwd else 1
             return k

@@ -672,12 +672,19 @@ class BaseTextCtrl(CodeEditor):
         )
 
         # Leave tab events to editor tabs
-        if has_control_like and event.key() in (
-            QtCore.Qt.Key.Key_Tab,
-            QtCore.Qt.Key.Key_Backtab,
+        # FIXME: this is probably just a workaround for another problem
+        # FIXME: ... somewhere in a keyPressEvent in a codeeditor extension
+        if (
+            ismacos
+            and has_control_like
+            and event.key()
+            in (
+                QtCore.Qt.Key.Key_Tab,
+                QtCore.Qt.Key.Key_Backtab,
+            )
         ):
             event.ignore()
-            return False
+            return
 
         # Invoke advanced autocomplete/calltips Ctrl+Space key combination?
         if has_control_like and event.key() == QtCore.Qt.Key.Key_Space:
@@ -686,7 +693,7 @@ class BaseTextCtrl(CodeEditor):
                 text = cursor.block().text()[: cursor.positionInBlock()]
                 if text:
                     self.introspect(True, False, advanced=True)
-            return
+                    return
 
         # Invoke autocomplete via tab key?
         elif (
