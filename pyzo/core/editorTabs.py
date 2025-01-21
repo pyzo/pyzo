@@ -902,12 +902,9 @@ class FileTabWidget(CompactTabWidget):
 
         self.fileTabsChanged.emit()
 
-    def event(self, event):
-        if event.type() == event.Type.KeyPress:
-            # prevent the QTabBar widget from consuming keypress events
-            return False
-        else:
-            return super().event(event)
+    def keyPressEvent(self, event):
+        # prevent the QTabBar widget from consuming keypress events
+        event.ignore()
 
 
 class EditorTabs(QtWidgets.QWidget):
