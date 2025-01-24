@@ -10,6 +10,11 @@ if API in ("PySide2", "PySide6"):
         return not _shiboken.isValid(qtObj)
 
     def isOwnedByPython(qtObj):
+        try:
+            # for shiboken6 >= 6.8.0 and shiboken2 5.15.2.1
+            return _shiboken.ownedByPython(qtObj)
+        except AttributeError:
+            pass
         return _shiboken.isOwnedByPython(qtObj)
 
 elif API in ("PyQt5", "PyQt6"):
