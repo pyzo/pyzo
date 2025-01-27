@@ -45,6 +45,9 @@ class Calltip:
         )
         self.__calltipLabel.setStyleSheet(ss)
 
+    def setCalltipFinishedCallback(self, cb):
+        self.__finishedCallback = cb
+
     def calltipShow(self, offset=0, richText="", highlightFunctionName=False):
         """Shows the given calltip.
 
@@ -105,6 +108,8 @@ class Calltip:
     def calltipCancel(self):
         """Hides the calltip."""
         self.__calltipLabel.hide()
+        if self.__finishedCallback is not None:
+            self.__finishedCallback()
 
     def calltipActive(self):
         """Get whether the calltip is currently active."""

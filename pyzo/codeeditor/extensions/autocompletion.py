@@ -55,7 +55,7 @@ class AutoCompletion:
         if USE_WAYLAND_WORKAROUND:
             self.__completerWindow.setWindowFlags(QtCore.Qt.WindowType.ToolTip)
 
-        self.__cancelCallback = None
+        self.__finishedCallback = None
 
         # geometry
         self.__popupSize = 300, 100
@@ -103,8 +103,8 @@ class AutoCompletion:
         """
         self.__autocompletionAcceptKeys = keys
 
-    def setCancelCallback(self, cb):
-        self.__cancelCallback = cb
+    def setAutocompleteFinishedCallback(self, cb):
+        self.__finishedCallback = cb
 
     ## Autocompletion
 
@@ -165,16 +165,15 @@ class AutoCompletion:
         self.__completerWindow.hide()
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
+        if self.__finishedCallback is not None:
+            self.__finishedCallback()
 
     def autocompleteCancel(self):
         self.__completerWindow.hide()
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
-        if self.__cancelCallback is not None:
-            try:
-                self.__cancelCallback()
-            except Exception as err:
-                print("Exception in autocomp cancel callback: " + str(err))
+        if self.__finishedCallback is not None:
+            self.__finishedCallback()
 
     def onAutoComplete(self, text=None):
         if text is None:
