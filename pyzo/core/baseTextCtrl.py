@@ -363,7 +363,7 @@ class BaseTextCtrl(CodeEditor):
             pyzo.config.settings.autoComplete_acceptKeys
         )
 
-        self.completer().highlighted.connect(self.updateHelp)
+        self.completer().highlighted.connect(self.updateHelpFromAutocomplete)
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
         self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
@@ -373,7 +373,8 @@ class BaseTextCtrl(CodeEditor):
         self.setAutocompleteMinChars(pyzo.config.settings.autoComplete_minChars)
         self.setAutoClose_Quotes(pyzo.config.settings.autoClose_Quotes)
         self.setAutoClose_Brackets(pyzo.config.settings.autoClose_Brackets)
-        self.setCancelCallback(self.restoreHelp)
+        self.setAutocompleteFinishedCallback(lambda: self.restoreHelp("autocomplete"))
+        self.setCalltipFinishedCallback(lambda: self.restoreHelp("calltip"))
 
     def setAutoCompletionAcceptKeysFromStr(self, keys):
         """Set the keys that can accept an autocompletion from a comma delimited string."""
@@ -579,10 +580,12 @@ class BaseTextCtrl(CodeEditor):
         if name != "":
             hw.setObjectName(name, True)
 
-    def processHelp(self, name, showError=False, addToHist=False):
+    @staticmethod
+    def processHelp(name, source, addToHist=False):
         """Show help on the given full object name.
-        - called when going up/down in the autocompletion list.
+        - called when going up/down in the autocompletion list or showing calltips.
         """
+        assert source in ("autocomplete", "calltip")
         # uses parse_autocomplete() to find baseName and objectName
 
         # Get help tool
@@ -594,10 +597,10 @@ class BaseTextCtrl(CodeEditor):
             return
 
         if name:
-            hw.helpFromCompletion(name, addToHist)
+            hw.helpFromExtension(name, source, addToHist)
 
     ## Callbacks
-    def updateHelp(self, name):
+    def updateHelpFromAutocomplete(self, name):
         """A name has been highlighted, show help on that name"""
 
         if self._autoCompBuffer_intermediateResultName is not None:
@@ -618,13 +621,14 @@ class BaseTextCtrl(CodeEditor):
             return
 
         # Apply
-        self.processHelp(name, True)
+        self.processHelp(name, "autocomplete")
 
     @staticmethod
-    def restoreHelp():
+    def restoreHelp(source):
+        assert source in ("autocomplete", "calltip")
         hw = pyzo.toolManager.getTool("pyzointeractivehelp")
         if hw:
-            hw.restoreCurrent()
+            hw.helpFromExtension(None, source)
 
     def event(self, event):
         """Overload main event handler so we can pass Ctrl-C Ctr-V etc, to the main
@@ -772,6 +776,7 @@ class CallTipObject:
         highlightFunctionName = not self.useIntermediateResult
         # ... because "foo().bar().func(" would only highlight "foo"
         self.textCtrl.calltipShow(self.offset, callTipText, highlightFunctionName)
+        BaseTextCtrl.processHelp(self.name, "calltip")
 
 
 class AutoCompObject:

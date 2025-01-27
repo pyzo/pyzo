@@ -464,6 +464,10 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self.setText()  # Set default text
         self.onOptionsPress()  # Fill menu
 
+        # Set temporary lookup texts from editor/shell extensions.
+        # The order of the entries is also the priority (first found will be displayed).
+        self._extensionLookups = {s: None for s in ["autocomplete", "calltip"]}
+
     def showMenu(self, pos):
         menu = self._browser.createStandardContextMenu()
         help = QtGui.QAction(
@@ -553,9 +557,20 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._text.setText(name)
         self.queryDoc(addToHist)
 
-    def helpFromCompletion(self, name, addToHist=False):
+    def helpFromExtension(self, requestedName, source, addToHist=False):
+        assert source in self._extensionLookups
+        self._extensionLookups[source] = requestedName
+
         if self._pauseBut.isChecked():
             return
+
+        for s in self._extensionLookups.values():
+            if s is not None:
+                name = s
+                break
+        else:
+            name = self.currentHist()
+            addToHist = False
         self.setObjectName(name, addToHist)
 
     def currentHist(self):
@@ -570,11 +585,6 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         self._history = self._history[: self._histindex + 1]
         self._history.append(name)
         self._histindex = len(self._history) - 1
-
-    def restoreCurrent(self):
-        if self._pauseBut.isChecked():
-            return
-        self.setObjectName(self.currentHist())
 
     def goBack(self):
         if self._histindex > 0 and self._history != []:
