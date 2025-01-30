@@ -1,3 +1,4 @@
+import re
 import sys
 import os.path as op
 
@@ -116,6 +117,8 @@ class Browser(QtWidgets.QWidget):
 
     def setSearchText(self, needle, setFocus=False):
         """Set the text in the search field."""
+        if self.config.searchRegExp:
+            needle = re.escape(needle)
         self._searchFilter.setText(needle)
         if setFocus:
             self._searchFilter.setFocus()
