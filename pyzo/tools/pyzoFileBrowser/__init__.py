@@ -20,7 +20,7 @@ The config consists of three fields:
       * str path, the directory that is starred
       * str name, the name of the project (op.basename(path) by default)
       * bool addToPythonpath
-  * searchMatchCase, searchRegExp, searchSubDirs, searchExcludeBinary
+  * searchMatchCase, searchRegExp, wholeWords, searchSubDirs, searchExcludeBinary
   * nameFilter
 
 """

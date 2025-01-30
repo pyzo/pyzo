@@ -109,6 +109,7 @@ class Browser(QtWidgets.QWidget):
             "pattern": self._searchFilter.text(),
             "matchCase": self.config.searchMatchCase,
             "regExp": self.config.searchRegExp,
+            "wholeWords": self.config.wholeWords,
             "subDirs": self.config.searchSubDirs,
             "excludeBinary": self.config.searchExcludeBinary,
         }
@@ -654,6 +655,7 @@ class SearchFilter(LineEditWithToolButtons):
         map = [
             ("searchMatchCase", False, translate("filebrowser", "Match case")),
             ("searchRegExp", False, translate("filebrowser", "RegExp")),
+            ("wholeWords", False, translate("filebrowser", "Whole words")),
             ("searchSubDirs", True, translate("filebrowser", "Search in subdirs")),
             ("searchExcludeBinary", True, translate("filebrowser", "Exclude binary")),
         ]
