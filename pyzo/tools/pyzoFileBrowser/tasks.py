@@ -17,6 +17,7 @@ class SearchTask(proxies.Task):
         pattern=None,
         matchCase=False,
         regExp=False,
+        wholeWords=False,
         excludeBinary=True,
         **rest,
     ):
@@ -25,25 +26,25 @@ class SearchTask(proxies.Task):
             return
 
         # Get text
-        text = self._getText(proxy, excludeBinary)
-        if not text:
+        haystack = self._getText(proxy, excludeBinary)
+        if not haystack:
             return
 
-        # Get search text. Deal with case sensitivity
-        searchText = text
+        flags = re.MULTILINE
         if not matchCase:
-            searchText = searchText.lower()
-            pattern = pattern.lower()
+            flags |= re.IGNORECASE
 
-        # Search indices
-        if regExp:
-            indices = self._getIndicesRegExp(searchText, pattern)
-        else:
-            indices = self._getIndicesNormal1(searchText, pattern)
+        if not regExp:
+            pattern = re.escape(pattern)
+
+        if wholeWords:
+            pattern = r"\b" + pattern + r"\b"
+
+        indices = self._getIndicesRegExp(haystack, pattern, flags)
 
         # Return as lines
         if indices:
-            return self._indicesToLines(text, indices)
+            return self._indicesToLines(haystack, indices)
         else:
             return []
 
@@ -87,31 +88,10 @@ class SearchTask(proxies.Task):
         else:
             return bb.decode("utf-8", errors="replace")
 
-    def _getIndicesRegExp(self, text, pattern):
+    def _getIndicesRegExp(self, text, pattern, flags):
         indices = []
-        for match in re.finditer(pattern, text, re.MULTILINE):
+        for match in re.finditer(pattern, text, flags):
             indices.append(match.start())
-        return indices
-
-    def _getIndicesNormal1(self, text, pattern):
-        indices = []
-        i = -1
-        while True:
-            i = text.find(pattern, i + 1)
-            if i >= 0:
-                indices.append(i)
-            else:
-                break
-        return indices
-
-    def _getIndicesNormal2(self, text, pattern):
-        indices = []
-        i = 0
-        for line in text.splitlines(True):
-            i2 = line.find(pattern)
-            if i2 >= 0:
-                indices.append(i + i2)
-            i += len(line)
         return indices
 
     def _indicesToLines(self, text, indices):
