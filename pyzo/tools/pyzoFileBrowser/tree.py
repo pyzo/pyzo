@@ -556,7 +556,7 @@ class TemporaryDirItem:
 class TemporaryFileItem:
     """Created when searching. This object posts a requests to search
     its contents which are then processed, after which this object
-    disbands itself, passin the proxy object to a real FileItem if the
+    disbands itself, passing the proxy object to a real FileItem if the
     search had results.
     """
 
@@ -608,7 +608,7 @@ class Tree(QtWidgets.QTreeWidget):
         self.setHeaderHidden(True)
         self.setIconSize(QtCore.QSize(24, 16))
 
-        # Connecy signals
+        # Connect signals
         self.itemExpanded.connect(self.onItemExpanded)
         self.itemCollapsed.connect(self.onItemCollapsed)
         self.itemClicked.connect(self.onItemClicked)
@@ -681,7 +681,7 @@ class Tree(QtWidgets.QTreeWidget):
 
     def clear(self):
         """Overload the clear method to remove the items in a nice
-        way, alowing the pathProxy instance to be closed correctly.
+        way, allowing the pathProxy instance to be closed correctly.
         """
         # Clear temporary (invisible) items
         for item in self._temporaryItems:

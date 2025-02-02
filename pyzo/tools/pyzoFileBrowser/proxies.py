@@ -239,7 +239,7 @@ class BaseFSProxy(threading.Thread):
 
     This class has methods to use the file system (list files and
     directories, etc.). These can be used directly, but may be slow.
-    Therefor it is recommended to use the FileProxy and DirProxy objects
+    Therefore it is recommended to use the FileProxy and DirProxy objects
     instead.
 
     """
