@@ -68,7 +68,7 @@ class Browser(QtWidgets.QWidget):
 
         # Set and sync path ...
         if path is not None:
-            self._tree.SetPath(path)
+            self._tree.setPath(path)
         self._tree.dirChanged.emit(self._tree.path())
 
     def getImportWizard(self):
