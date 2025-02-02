@@ -146,7 +146,7 @@ class PeekTask(proxies.Task):
         '"""': re.compile(r'(^|[^\\])(\\\\)*"""'),
     }
 
-    definition = re.compile(r"^(def|class)\s*(\w*)")
+    definition = re.compile(r"^(def|class)\s+(\w+)")
 
     def process(self, proxy):
         path = proxy.path()
