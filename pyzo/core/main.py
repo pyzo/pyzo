@@ -469,9 +469,10 @@ class MainWindow(QtWidgets.QMainWindow):
         return menu
 
     def keyPressEvent(self, event):
-        # Here we forwared the key press events to the editor widget so that tab switching
+        # Here we forward the key press events to the editor widget so that tab switching
         # will also be possible when the focus is outside the editor widget.
-        pyzo.editors.processKeyPressFromMainWindow(event)
+        if pyzo.editors:  # check for None to avoid crash during Pyzo startup
+            pyzo.editors.processKeyPressFromMainWindow(event)
 
 
 def loadAppIcons():
