@@ -99,9 +99,6 @@ class ShellInfo_ipython(QtWidgets.QCheckBox):
 
 
 class ShellInfo_gui(QtWidgets.QComboBox):
-    # For (backward) compatibility
-    COMPAT = {"QT4": "PYQT4"}
-
     # GUI names
     GUIS = [
         ("None", "no GUI support"),
@@ -109,10 +106,8 @@ class ShellInfo_gui(QtWidgets.QComboBox):
         ("Asyncio", "Python's builtin event loop"),
         ("PySide6", "LGPL licensed wrapper to Qt6"),
         ("PySide2", "LGPL licensed wrapper to Qt5"),
-        ("PySide", "LGPL licensed wrapper to Qt4"),
         ("PyQt6", "GPL/commercial licensed wrapper to Qt6"),
         ("PyQt5", "GPL/commercial licensed wrapper to Qt5"),
-        ("PyQt4", "GPL/commercial licensed wrapper to Qt4"),
         ("Tornado", "Tornado asynchronous networking library"),
         ("Tk", "Tk widget toolkit"),
         ("WX", "wxPython"),
@@ -125,7 +120,6 @@ class ShellInfo_gui(QtWidgets.QComboBox):
     def setTheText(self, value):
         # Process value
         value = value.upper()
-        value = self.COMPAT.get(value, value)
 
         # Set options
         ii = 0
