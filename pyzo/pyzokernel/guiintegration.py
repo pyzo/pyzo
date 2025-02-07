@@ -579,6 +579,32 @@ class App_qt(App_base):
         self.app.sendPostedEvents()
         self.app.processEvents()
 
+    def _workaroundWindowsInBackground(self):
+        """prevent windows/dialogs from spawning in the background
+
+        In MS Windows 10/11, Qt windows most times do not appear at the front.
+        For example the command "QtWidgets.QMessageBox().exec()" will create a
+        message box window, but this will not be active and might even be covered
+        by the Pyzo GUI's window.
+        On the one hand, MS Windows does this to prevent focus stealing.
+        On the other hand, people get confused when they do not see a plot window
+        appear on the screen after a plot command. Such Qt windows are grouped
+        together with the Pyzo IDE in the operating system's taskbar, making it
+        more difficult to see that there is a dialog waiting for user input.
+
+        As a workaround, we create a first dummy window that we show minimized,
+        then in normal state before closing it again. All subsequent commands to
+        display a dialog, window, etc. will then create the window in the foreground
+        because of this initial focus.
+        """
+        if sys.platform == "win32":
+            QtCore, QtWidgets = self._QtCore, self._QtWidgets
+            w = QtWidgets.QWidget()
+            w.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+            w.showMinimized()
+            w.setWindowState(QtCore.Qt.WindowState.WindowActive)
+            w.close()
+
     def run(self, repl_callback):
         # Create timer
         timer = self._timer = self._QtCore.QTimer()
@@ -586,6 +612,8 @@ class App_qt(App_base):
         timer.setInterval(int(0.1 * 1000))  # ms
         timer.timeout.connect(repl_callback)
         timer.start()
+
+        self._workaroundWindowsInBackground()
 
         # Enter Qt mainloop
         # self._QtWidgets.real_QApplication.exec_(self.app)
