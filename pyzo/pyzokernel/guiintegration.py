@@ -4,12 +4,13 @@ Module to integrate GUI event loops in the Pyzo interpreter.
 This specifies classes that all have the same interface. Each class
 wraps one GUI toolkit.
 
-Support for PyQt4, WxPython, FLTK, GTK, TK.
+Support for PySide2/6, PyQt5/6, WxPython, FLTK, GTK, TK.
 
 """
 
 import sys
 import time
+import importlib
 
 from pyzokernel import printDirect
 
@@ -442,26 +443,30 @@ class App_tornado(App_base):
 class App_qt(App_base):
     """Common functionality for pyqt and pyside"""
 
+    _API = None  # this will be overridden in the derived class
+
     def __init__(self):
         import types
 
         # Try importing qt
-        QtGui, QtCore = self.importCoreAndGui()
-        self._QtGui, self._QtCore = QtGui, QtCore
+        QtCore = importlib.import_module(self._API + ".QtCore")
+        # QtGui = importlib.import_module(self._API + ".QtGui")
+        QtWidgets = importlib.import_module(self._API + ".QtWidgets")
+        self._QtWidgets, self._QtCore = QtWidgets, QtCore
 
         # Store the real application class
-        if not hasattr(QtGui, "real_QApplication"):
-            QtGui.real_QApplication = QtGui.QApplication
+        if not hasattr(QtWidgets, "real_QApplication"):
+            QtWidgets.real_QApplication = QtWidgets.QApplication
 
-        class QApplication_hijacked(QtGui.QApplication):
+        class QApplication_hijacked(QtWidgets.QApplication):
             """QApplication_hijacked(*args, **kwargs)
 
             Hijacked QApplication class. This class has a __new__()
             method that always returns the global application
-            instance, i.e. QtGui.qApp.
+            instance, i.e. QtWidgets.qApp.
 
-            The QtGui.qApp instance is an instance of the original
-            QtGui.QApplication, but with its __init__() and exec_()
+            The QtWidgets.qApp instance is an instance of the original
+            QtWidgets.QApplication, but with its __init__() and exec_()
             methods replaced.
 
             You can subclass this class; the global application instance
@@ -475,8 +480,8 @@ class App_qt(App_base):
 
                 # Instantiate an original QApplication instance if we need to
                 if theApp is None:
-                    theApp = QtGui.real_QApplication(*args, **kwargs)
-                    QtGui.qApp = theApp
+                    theApp = QtWidgets.real_QApplication(*args, **kwargs)
+                    QtWidgets.qApp = theApp
 
                 for key in ["__init__", "exec_", "quit"]:
                     if not hasattr(cls, key):
@@ -553,14 +558,14 @@ class App_qt(App_base):
         self.app.setQuitOnLastWindowClosed(False)
 
         # Replace app class
-        QtGui.QApplication = QApplication_hijacked
+        QtWidgets.QApplication = QApplication_hijacked
 
         # Notify that we integrated the event loop
         self.app._in_event_loop = "Pyzo"
-        QtGui._in_event_loop = "Pyzo"
+        QtWidgets._in_event_loop = "Pyzo"
 
         # Use sys.excepthook to catch keyboard interrupts that occur
-        # in event handlers. We also want to call the curren hook
+        # in event handlers. We also want to call the current hook
         self._original_excepthook = sys.excepthook
         sys.excepthook = self._excepthook
 
@@ -583,10 +588,10 @@ class App_qt(App_base):
         timer.start()
 
         # Enter Qt mainloop
-        # self._QtGui.real_QApplication.exec_(self.app)
-        exec_ = getattr(self._QtGui.real_QApplication, "exec", None)
+        # self._QtWidgets.real_QApplication.exec_(self.app)
+        exec_ = getattr(self._QtWidgets.real_QApplication, "exec", None)
         if exec_ is None:
-            exec_ = self._QtGui.real_QApplication.exec_
+            exec_ = self._QtWidgets.real_QApplication.exec_
         try:
             try_again = False
             exec_(self.app)
@@ -597,73 +602,31 @@ class App_qt(App_base):
 
     def quit(self):
         # A nicer way to quit
-        self._QtGui.real_QApplication.quit()
+        self._QtWidgets.real_QApplication.quit()
 
 
 class App_pyqt6(App_qt):
     """Hijack the PyQt6 mainloop."""
 
-    def importCoreAndGui(self):
-        # Try importing qt
-        import PyQt6  # noqa
-        from PyQt6 import QtGui, QtCore, QtWidgets  # noqa
-
-        return QtWidgets, QtCore  # QApp sits on QtWidgets
+    _API = "PyQt6"
 
 
 class App_pyqt5(App_qt):
     """Hijack the PyQt5 mainloop."""
 
-    def importCoreAndGui(self):
-        # Try importing qt
-        import PyQt5  # noqa
-        from PyQt5 import QtGui, QtCore, QtWidgets  # noqa
-
-        return QtWidgets, QtCore  # QApp sits on QtWidgets
-
-
-class App_pyqt4(App_qt):
-    """Hijack the PyQt4 mainloop."""
-
-    def importCoreAndGui(self):
-        # Try importing qt
-        import PyQt4  # noqa
-        from PyQt4 import QtGui, QtCore
-
-        return QtGui, QtCore
+    _API = "PyQt5"
 
 
 class App_pyside6(App_qt):
     """Hijack the PySide6 mainloop."""
 
-    def importCoreAndGui(self):
-        # Try importing qt
-        import PySide6  # noqa
-        from PySide6 import QtGui, QtCore, QtWidgets  # noqa
-
-        return QtWidgets, QtCore  # QApp sits on QtWidgets
+    _API = "PySide6"
 
 
 class App_pyside2(App_qt):
     """Hijack the PySide2 mainloop."""
 
-    def importCoreAndGui(self):
-        # Try importing qt
-        import PySide2  # noqa
-        from PySide2 import QtGui, QtCore, QtWidgets  # noqa
-
-        return QtWidgets, QtCore  # QApp sits on QtWidgets
-
-
-class App_pyside(App_qt):
-    """Hijack the PySide mainloop."""
-
-    def importCoreAndGui(self):
-        # Try importing qt
-        import PySide  # noqa
-        from PySide import QtGui, QtCore
-
-        return QtGui, QtCore
+    _API = "PySide2"
 
 
 class App_wx(App_base):

@@ -24,7 +24,7 @@ and workspace.
 * *Multiple shells* can be used at the same time, and can be of different
   Python versions (from v2.7 to 3.x, including PyPy)
 * Support for using several *GUI toolkits* interactively:
-  asyncio, PySide, PySide2, PyQt4, PyQt5, wx, fltk, GTK, Tk, Tornado.
+  asyncio, PySide2/6, PyQt5/6, wx, fltk, GTK, Tk, Tornado.
 * Run IPython shell or native shell.
 * *Full Unicode support* in both editor and shell.
 * Various handy *tools*, plus the ability to make your own.
