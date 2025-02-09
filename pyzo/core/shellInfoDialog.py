@@ -37,7 +37,7 @@ class ShellInfo_name(ShellInfoLineEdit):
         self.onValueChanged()
 
     def onValueChanged(self):
-        self.parent().parent().parent().setTabTitle(self.getTheText())
+        self.parent().parent().parent().setShellconfigTitle(self.getTheText())
 
 
 class ShellInfo_exe(QtWidgets.QComboBox):
@@ -206,9 +206,9 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
 
     def __init__(self, parent):
         # Create sub-widget
-        self._edit = QtWidgets.QTextEdit(parent)
+        self._edit = QtWidgets.QPlainTextEdit(parent)
         self._edit.zoomOut(1)
-        self._edit.setMaximumHeight(80)
+        self._edit.setMaximumHeight(60)
         self._edit.setMinimumWidth(200)
         self._edit.textChanged.connect(self.onEditChanged)
 
@@ -223,36 +223,7 @@ class ShellInfo_pythonPath(ShellinfoWithSystemDefault):
             pp = os.environ.get("PYTHONPATH", "")
             pp = pp.replace(os.pathsep, "\n").strip()
             value = "$PYTHONPATH:\n{}\n".format(pp)
-        self._edit.setText(value)
-
-
-# class ShellInfo_startupScript(ShellinfoWithSystemDefault):
-#
-#     SYSTEM_VALUE = '$PYTHONSTARTUP'
-#
-#     def __init__(self, parent):
-#
-#         # Create sub-widget
-#         self._edit = QtWidgets.QLineEdit(parent)
-#         self._edit.textEdited.connect(self.onEditChanged)
-#
-#         # Instantiate
-#         super().__init__(parent, self._edit)
-#
-#
-#     def getWidgetText(self):
-#         return self._edit.text()
-#
-#
-#     def setWidgetText(self, value=None):
-#         if value is None:
-#             pp = os.environ.get('PYTHONSTARTUP','').strip()
-#             if pp:
-#                 value = '$PYTHONSTARTUP: "{}"'.format(pp)
-#             else:
-#                 value = '$PYTHONSTARTUP: None'
-#
-#         self._edit.setText(value)
+        self._edit.setPlainText(value)
 
 
 class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
@@ -276,9 +247,8 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
         else:
             self._edit1.setPlaceholderText("/path/to/script.py")
         #
-        self._edit2 = QtWidgets.QTextEdit(parent)
+        self._edit2 = QtWidgets.QPlainTextEdit(parent)
         self._edit2.zoomOut(1)
-        self._edit2.setMaximumHeight(80)
         self._edit2.setMinimumWidth(200)
         self._edit2.textChanged.connect(self.onEditChanged)
         self._edit2.setPlaceholderText(self.RUN_BEFORE_AFTER_GUI_TEXT)
@@ -370,7 +340,7 @@ class ShellInfo_startupScript(QtWidgets.QVBoxLayout):
             self._edit2.show()
             if not value.strip():
                 value = ""  # this will display the placeholder text
-            self._edit2.setText(value)
+            self._edit2.setPlainText(value)
 
     def getTheText(self):
         return self._value
@@ -391,7 +361,7 @@ class ShellInfo_argv(ShellInfoLineEdit):
         self.setPlaceholderText('arg1 arg2 "arg with spaces"')
 
 
-class ShellInfo_environ(QtWidgets.QTextEdit):
+class ShellInfo_environ(QtWidgets.QPlainTextEdit):
     EXAMPLE = "PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1\nEXAMPLE_VAR1=value1"
 
     def __init__(self, parent):
@@ -404,7 +374,7 @@ class ShellInfo_environ(QtWidgets.QTextEdit):
 
     def setTheText(self, value):
         value = self._cleanText(value)
-        self.setText(value)
+        self.setPlainText(value)
 
     def getTheText(self):
         value = self.toPlainText()
@@ -412,10 +382,10 @@ class ShellInfo_environ(QtWidgets.QTextEdit):
         return value
 
 
-## The dialog class and container with tabs
+## The dialog class and container with pages
 
 
-class ShellInfoTab(QtWidgets.QScrollArea):
+class ShellInfoPage(QtWidgets.QScrollArea):
     INFO_KEYS = [
         translate("shell", "name ::: The name of this configuration."),
         translate("shell", "exe ::: The Python executable."),
@@ -469,48 +439,31 @@ class ShellInfoTab(QtWidgets.QScrollArea):
             # Add to layout
             self._formLayout.addRow(label, instance)
 
-        buttonsLayout = QtWidgets.QHBoxLayout()
-
-        # Add delete button
-        t = translate("shell", "Delete ::: Delete this shell configuration")
-        instance = QtWidgets.QPushButton(pyzo.icons.cancel, t, self._content)
-        instance.setToolTip(t.tt)
-        instance.setAutoDefault(False)
-        instance.clicked.connect(self.parent().parent().onTabClose)
-        buttonsLayout.addWidget(instance, 0)
-
-        # Add copy button
-        t = translate("shell", "Copy ::: Copy this shell configuration")
-        instance = QtWidgets.QPushButton(pyzo.icons.page_white_copy, t, self._content)
-        instance.setToolTip(t.tt)
-        instance.setAutoDefault(False)
-        instance.clicked.connect(self.parent().parent().onTabCopy)
-        buttonsLayout.addWidget(instance, 0)
-
-        buttonsLayout.addStretch(1)
-        # Add to layout
-        label = QtWidgets.QLabel("", self._content)
-        self._formLayout.addRow(label, buttonsLayout)
-
         # Apply layout
         self._formLayout.setSpacing(15)
         self._content.setLayout(self._formLayout)
         self.setWidget(self._content)
 
-    def setTabTitle(self, name):
-        tabWidget = self.parent().parent()
-        tabWidget.setTabText(tabWidget.indexOf(self), name)
+        # Create a list item for switching pages via a QListWidget
+        self._listItem = QtWidgets.QListWidgetItem()
+
+    @property
+    def listItem(self):
+        return self._listItem
+
+    def setShellconfigTitle(self, name):
+        self._listItem.setText(name)
 
     def setInfo(self, info=None):
         """Set the shell info struct, and use it to update the widgets.
-        Not via init, because this function also sets the tab name.
+        Not via init, because this function also sets the page name.
         """
 
         # If info not given, use default as specified by the KernelInfo struct
         if info is None:
             info = KernelInfo()
             # Name
-            n = self.parent().parent().count()
+            n = self.parent().count()
             if n > 1:
                 info.name = "Shell config {}".format(n)
 
@@ -544,6 +497,55 @@ class ShellInfoTab(QtWidgets.QScrollArea):
         return info
 
 
+class MyQListWidgetDragDropCopy(QtWidgets.QListWidget):
+    """
+    This derived class is only necessary to make drag'n'drop
+    copying of list entries with signalling of original and new
+    items possible.
+    """
+
+    dragDropRowCopied = QtCore.Signal(int, int)
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        # Setup drag'n'drop for the list
+        self.setDragEnabled(True)
+        self.setDefaultDropAction(QtCore.Qt.DropAction.MoveAction)
+        self.setDragDropMode(self.DragDropMode.DragDrop)
+        self._indexDragStart = None
+        self._itemsAtDragStart = None
+
+    def dragEnterEvent(self, event):
+        if event.source() is self:
+            self._indexDragStart = self.row(self.currentItem())
+            self._itemsAtDragStart = [self.item(i) for i in range(self.count())]
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.source() is self:
+            super().dropEvent(event)
+        else:
+            event.ignore()
+        self._indexDragStart = None
+        self._itemsAtDragStart = None
+
+    def rowsInserted(self, parentIndex, start, end):
+        """find out which item was copied and where the new item was inserted"""
+        super().rowsInserted(parentIndex, start, end)
+        indsOfNewItems = [
+            i for i in range(self.count()) if self.item(i) not in self._itemsAtDragStart
+        ]
+        if len(indsOfNewItems) == 1:
+            (indNewRow,) = indsOfNewItems
+            indOriginalRow = self._indexDragStart
+            if indNewRow <= indOriginalRow:
+                indOriginalRow += 1
+            self.dragDropRowCopied.emit(indOriginalRow, indNewRow)
+
+
 class ShellInfoDialog(QtWidgets.QDialog):
     """Dialog to edit the shell configurations."""
 
@@ -553,11 +555,12 @@ class ShellInfoDialog(QtWidgets.QDialog):
 
         # Set title
         self.setWindowTitle(pyzo.translate("shell", "Shell configurations"))
-        # Create tab widget
-        self._tabs = QtWidgets.QTabWidget(self)
-        # self._tabs = CompactTabWidget(self, padding=(4, 4, 5, 5))
-        # self._tabs.setDocumentMode(False)
-        self._tabs.setMovable(True)
+
+        # Create a page-stack for all configs and a list for switching pages
+        self._stack = QtWidgets.QStackedWidget()
+        self._list = MyQListWidgetDragDropCopy()
+        self._list.currentItemChanged.connect(self._onListItemChanged)
+        self._list.dragDropRowCopied.connect(self._onDragDropRowCopied)
 
         # Get known interpreters (sorted them by version)
         # Do this here so we only need to do it once ...
@@ -565,35 +568,36 @@ class ShellInfoDialog(QtWidgets.QDialog):
 
         self.interpreters = list(reversed(get_interpreters("2.7")))
 
-        # Introduce an entry if there's none
-        if not pyzo.config.shellConfigs2:
-            w = ShellInfoTab(self._tabs)
-            self._tabs.addTab(w, "---")
-            w.setInfo()
+        cfgSelLayout = QtWidgets.QVBoxLayout()
+        cfgSelLayout.addWidget(self._list)
 
-        # Fill tabs
-        for item in pyzo.config.shellConfigs2:
-            w = ShellInfoTab(self._tabs)
-            self._tabs.addTab(w, "---")
-            w.setInfo(item)
+        # Add add-config button
+        t = translate("shell", "Add config ::: Add a new shell configuration")
+        btn = QtWidgets.QPushButton(pyzo.icons.add, t)
+        btn.setToolTip(t.tt)
+        btn.clicked.connect(self._onBtnAddConfigPressed)
+        cfgSelLayout.addWidget(btn)
 
-        # Enable making new tabs and closing tabs
-        self._add = QtWidgets.QToolButton(self)
-        self._tabs.setCornerWidget(self._add)
-        self._add.clicked.connect(self.onAdd)
-        self._add.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        self._add.setIcon(pyzo.icons.add)
-        self._add.setText(translate("shell", "Add config"))
-        #
-        # self._tabs.setTabsClosable(True)
-        self._tabs.tabCloseRequested.connect(self.onTabClose)
+        # Add duplicate button
+        t = translate("shell", "Duplicate ::: Duplicate this shell configuration")
+        btn = QtWidgets.QPushButton(pyzo.icons.page_white_copy, t)
+        btn.setToolTip(t.tt)
+        btn.clicked.connect(self._onBtnCopyConfigPressed)
+        cfgSelLayout.addWidget(btn)
 
-        # Create buttons
+        # Add delete button
+        t = translate("shell", "Delete ::: Delete this shell configuration")
+        btn = QtWidgets.QPushButton(pyzo.icons.cancel, t)
+        btn.setToolTip(t.tt)
+        btn.clicked.connect(self._deleteConfig)
+        cfgSelLayout.addWidget(btn)
+
+        # Create dialog buttons
         cancelBut = QtWidgets.QPushButton("Cancel", self)
         okBut = QtWidgets.QPushButton("Done", self)
         cancelBut.clicked.connect(self.close)
-        okBut.clicked.connect(self.applyAndClose)
-        # Layout for buttons
+        okBut.clicked.connect(self._applyAndClose)
+        # Layout for dialog buttons
         buttonLayout = QtWidgets.QHBoxLayout()
         buttonLayout.addStretch(1)
         buttonLayout.addWidget(cancelBut)
@@ -601,51 +605,109 @@ class ShellInfoDialog(QtWidgets.QDialog):
         buttonLayout.addWidget(okBut)
 
         # Layout the widgets
+        configLayout = QtWidgets.QHBoxLayout()
+        configLayout.addLayout(cfgSelLayout, 1)
+        configLayout.addWidget(self._stack, 4)
+
         mainLayout = QtWidgets.QVBoxLayout(self)
         mainLayout.addSpacing(8)
-        mainLayout.addWidget(self._tabs, 0)
+        mainLayout.addLayout(configLayout)
         mainLayout.addLayout(buttonLayout, 0)
         self.setLayout(mainLayout)
 
-        # Prevent resizing
+        self.setMinimumSize(800, 600)
+        self.resize(1024, 768)
+
+        # Add an entry if there's none
+        if not pyzo.config.shellConfigs2:
+            self._addConfig()
+
+        # Fill config pages
+        for item in pyzo.config.shellConfigs2:
+            self._addConfig(item)
+
+        self._list.setCurrentRow(0)
+
         self.show()
-        self.setMinimumSize(500, 400)
-        self.resize(640, 500)
-        # self.setMaximumHeight(500)
 
-    def onAdd(self):
-        # Create widget and add to tabs
-        w = ShellInfoTab(self._tabs)
-        self._tabs.addTab(w, "---")
-        w.setInfo()
-        # Select
-        self._tabs.setCurrentWidget(w)
-        w.setFocus()
+    def _addConfig(self, shellConfig=None, atIndex=-1, select=False):
+        if atIndex == -1:
+            atIndex = self._list.count()
+        w = ShellInfoPage(self._stack)
+        self._stack.addWidget(w)
 
-    def onTabClose(self):
-        index = self._tabs.currentIndex()
-        self._tabs.removeTab(index)
+        # QSignalBlocker has a context manager, but not in old PySide2
+        try:
+            blocker = QtCore.QSignalBlocker(self._list.model())
+            self._list.insertItem(atIndex, w.listItem)
+        finally:
+            blocker.unblock()
+        w.setInfo(shellConfig)
+        if select:
+            self._list.setCurrentItem(w.listItem)
+            w.setFocus()
 
-    def onTabCopy(self):
-        # Get original widget
-        w0 = self._tabs.currentWidget()
+    def _getPageWidget(self, listItem):
+        for i in range(self._stack.count()):
+            w = self._stack.widget(i)
+            if w.listItem is listItem:
+                return w
+        else:
+            raise ValueError("item not found: " + repr(listItem))
+
+    def _onListItemChanged(self, curItem, prevItem):
+        if curItem is None:
+            # last remaining item was deleted
+            return
+        w = self._getPageWidget(curItem)
+        self._stack.setCurrentWidget(w)
+
+    def _onBtnAddConfigPressed(self):
+        self._addConfig(select=True)
+
+    def _deleteConfig(self):
+        w = self._stack.currentWidget()
+        self._stack.removeWidget(w)
+        self._list.takeItem(self._list.row(w.listItem))
+
+        # make sure that there is at least one config
+        if self._stack.count() == 0:
+            self._addConfig(select=True)
+
+    def _onBtnCopyConfigPressed(self):
+        self._copyConfig()
+
+    def _copyConfig(self, w0=None, index=None):
+        if w0 is None:
+            # Get original widget
+            w0 = self._stack.currentWidget()
         # Build new info
         info = w0.getInfo().copy()
         info.name += " (2)"
-        # Create widget and add to tabs
-        w = ShellInfoTab(self._tabs)
-        self._tabs.insertTab(self._tabs.indexOf(w0) + 1, w, "---")
-        w.setInfo(info)
-        # Select
-        self._tabs.setCurrentWidget(w)
-        w.setFocus()
+        if index is None:
+            index = self._list.row(w0.listItem) + 1
+        self._addConfig(info, index, select=True)
 
-    def applyAndClose(self, event=None):
-        self.apply()
+    def _onDragDropRowCopied(self, indOriginalRow, indNewRow, later=False):
+        if not later:
+            # This is called when we are still in the "rowsInserted" event.
+            # We need to let the insertion process finish before we modify anything.
+            # Otherwise our change to the list entry text would be overwritten.
+            pyzo.callLater(self._onDragDropRowCopied, indOriginalRow, indNewRow, True)
+            return
+
+        w0 = self._getPageWidget(self._list.item(indOriginalRow))
+
+        # remove the item that was added via drag'n'drop copy and do our own copy
+        self._list.takeItem(indNewRow)
+        self._copyConfig(w0, indNewRow)
+
+    def _applyAndClose(self, event=None):
+        self._apply()
         self.close()
 
-    def apply(self):
-        """Apply changes for all tabs."""
+    def _apply(self):
+        """Apply changes for all configs."""
 
         # Clear
         pyzo.config.shellConfigs2 = []
@@ -654,6 +716,6 @@ class ShellInfoDialog(QtWidgets.QDialog):
         # the list is filled with the orignal structs, so having a
         # reference to such a struct (as the shell has) will enable
         # you to keep track of any made changes.
-        for i in range(self._tabs.count()):
-            w = self._tabs.widget(i)
+        for i in range(self._list.count()):
+            w = self._getPageWidget(self._list.item(i))
             pyzo.config.shellConfigs2.append(w.getInfo())
