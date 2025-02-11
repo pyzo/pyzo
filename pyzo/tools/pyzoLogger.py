@@ -93,11 +93,12 @@ class PyzoLoggerShell(BaseShell):
 
         # "Echo" stdin
         self.write(command, 1)
-        more = self._interpreter.push(command.rstrip("\n"))
-        if more:
-            self.write(str(sys.ps2), 2)
-        else:
-            self.write(str(sys.ps1), 2)
+        for line in command.splitlines():
+            more = self._interpreter.push(line)
+            if more:
+                self.write(str(sys.ps2), 2)
+            else:
+                self.write(str(sys.ps1), 2)
 
     def writeErr(self, msg):
         """This is what the logger uses to write errors."""
