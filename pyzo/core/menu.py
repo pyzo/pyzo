@@ -962,11 +962,26 @@ class EditMenu(Menu):
     def _findViaFilebrowserCallback(self):
         fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
         if fileBrowser is not None:
-            editor = pyzo.editors.getCurrentEditor()
-            if editor is None:
-                needle = ""
+            textWidgets = [
+                pyzo.editors.getCurrentEditor(),
+                pyzo.shells.getCurrentShell(),
+            ]
+
+            t = pyzo.toolManager.getTool("pyzologger")
+            if t:
+                textWidgets.append(t._logger_shell)
+
+            t = pyzo.toolManager.getTool("pyzointeractivehelp")
+            if t:
+                textWidgets.append(t._browser)
+
+            for w in textWidgets:
+                if w and w.hasFocus():
+                    needle = w.textCursor().selectedText().replace("\u2029", "\n")
+                    break
             else:
-                needle = editor.textCursor().selectedText().replace("\u2029", "\n")
+                needle = ""
+
             fileBrowser.setSearchText(needle, setFocus=True)
 
 
