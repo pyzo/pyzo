@@ -1000,7 +1000,6 @@ class EditorTabs(QtWidgets.QWidget):
         editor = pyzo.editors.getCurrentEditor()
         sb = pyzo.main.statusBar()
         sb.updateCursorInfo(editor)
-        sb.updateFileEncodingInfo(editor)
 
     def getCurrentEditor(self):
         """Get the currently active editor."""
@@ -1403,14 +1402,10 @@ class EditorTabs(QtWidgets.QWidget):
         # get actual normalized filename
         filename = editor._filename
 
-        # notify
-        # TODO: message concerning line endings
-        print("saved file: {} ({})".format(filename, editor.lineEndingsHumanReadable))
         self._tabs.updateItems()
 
         # todo: this is where we once detected whether the file being saved was a style file.
 
-        # Notify done
         return True
 
     def saveFileCopy(self, editor, filename):
@@ -1433,9 +1428,6 @@ class EditorTabs(QtWidgets.QWidget):
             # Return now
             return False
 
-        print("saved file: {} ({})".format(filename, editor.lineEndingsHumanReadable))
-
-        # Notify done
         return True
 
     def saveAllFiles(self):

@@ -579,12 +579,6 @@ class FileMenu(Menu):
         self._lineEndingMenu = GeneralOptionsMenu(self, t, self._setLineEndings)
         self._lineEndingMenu.setOptions(["LF", "CR", "CRLF"])
 
-        # Create encoding menu
-        t = translate(
-            "menu", "Encoding ::: The character encoding of the current file."
-        )
-        self._encodingMenu = GeneralOptionsMenu(self, t, self._setEncoding)
-
         # Bind to signal
         pyzo.editors.currentChanged.connect(self.onEditorsCurrentChanged)
 
@@ -659,7 +653,6 @@ class FileMenu(Menu):
             self.addMenu(self._indentMenu, icons.page_white_gear),
             self.addMenu(self._parserMenu, icons.page_white_gear),
             self.addMenu(self._lineEndingMenu, icons.page_white_gear),
-            self.addMenu(self._encodingMenu, icons.page_white_gear),
         ]
 
         # Closing of app
@@ -699,8 +692,6 @@ class FileMenu(Menu):
             self._parserMenu.setCheckedOption(None, parserName)
             # Update line ending
             self._lineEndingMenu.setCheckedOption(None, editor.lineEndingsHumanReadable)
-            # Update encoding
-            self._updateEncoding(editor)
 
     def _setParser(self, value):
         editor = pyzo.editors.getCurrentEditor()
@@ -712,45 +703,6 @@ class FileMenu(Menu):
     def _setLineEndings(self, value):
         editor = pyzo.editors.getCurrentEditor()
         editor.lineEndings = value
-
-    def _updateEncoding(self, editor):
-        # Dict with encoding aliases (official to aliases)
-        D = {
-            "cp1250": ("windows-1252",),
-            "cp1251": ("windows-1251",),
-            "latin_1": ("iso-8859-1", "iso8859-1", "cp819", "latin", "latin1", "L1"),
-        }
-        # Dict with aliases mapping to "official value"
-        Da = {alias: orig for orig, aliasTuple in D.items() for alias in aliasTuple}
-
-        # Encodings to list
-        encodings = ["utf-8", "ascii", "latin_1", "cp1250", "cp1251"]
-
-        # Get current encoding (add if not present)
-        editorEncoding = editor.encoding
-        if editorEncoding in Da:
-            editorEncoding = Da[editorEncoding]
-        if editorEncoding not in encodings:
-            encodings.append(editorEncoding)
-
-        # Handle aliases
-        encodingNames, encodingValues = [], []
-        for encoding in encodings:
-            encodingValues.append(encoding)
-            if encoding in D:
-                name = "{} ({})".format(encoding, ", ".join(D[encoding]))
-                encodingNames.append(name)
-            else:
-                encodingNames.append(encoding)
-
-        # Update
-        self._encodingMenu.setOptions(encodingNames, encodingValues)
-        self._encodingMenu.setCheckedOption(None, editorEncoding)
-
-    def _setEncoding(self, value):
-        editor = pyzo.editors.getCurrentEditor()
-        if editor is not None:
-            editor.encoding = value
 
     def _pdfExport(self):
         dialog = PdfExport()
