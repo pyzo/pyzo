@@ -22,7 +22,7 @@ def prepare_appdata_appconfig_dirs():
     use_portable_settings = False
     if is_frozen():
         exec_dir = os.path.abspath(os.path.dirname(sys.executable))
-        for reldir in ("settings", "../settings"):
+        for reldir in ("_internal/settings", "settings", "../settings"):
             localpath = os.path.abspath(os.path.join(exec_dir, reldir))
             if os.path.isdir(localpath):
                 try:
