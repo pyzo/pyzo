@@ -16,8 +16,70 @@ from pyzo.qt import QtCore, QtGui, QtWidgets
 from pyzo.codeeditor import Manager
 from pyzo.core.menu import EditorContextMenu
 from pyzo.core.baseTextCtrl import BaseTextCtrl, normalizePath
-from pyzo.core.pyzoLogging import print  # noqa
+from pyzo.core.pyzoLogging import print
 import pyzo
+
+
+"""
+Handling of encodings and byte-order-marks
+==========================================
+
+When loading text from a file, the encoding is determined as follows, similar to PEP 263:
+    1) If there is a known BOM, the encoding is defined by the BOM.
+    2) Otherwise, if there is a magic comment with a known encoding name,
+       then this encoding name will be used.  e.g.: "# -*- coding: latin-1 -*-"
+    3) Otherwise utf-8 will be used.
+
+    If decoding fails, other encoding candidates from 2) or 3) will be tried as well.
+    If decoding still fails, ascii with backslashreplace will be used, a warning will
+    be displayed, and the document will be marked as modified after loading.
+
+And when saving text to a file:
+    1) If there is a magic comment with a known encoding name in the unsaved text,
+       that encoding will be used for saving the file.
+    2) Otherwise utf-8 encoding will be used.
+
+    If there was a BOM_UTF8 present when originally loading the file, that BOM will
+    only be written to the file if the encoding for saving is utf-8 or utf-8-sig.
+    Other BOMs, such as BOM_UTF16_LE, will always be discarded when writing a file.
+
+"""
+
+
+def getEncodingFromMagic(text):
+    """reads the encoding name from the file header
+    according to https://peps.python.org/pep-0263/
+    returns 'utf-8' if no or an unknown encoding name was found
+    """
+    encoding = "utf-8"
+    for line in text.splitlines()[:2]:
+        mo = re.match(r"^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)", line)
+        if mo:
+            try:
+                encoding = codecs.lookup(mo[1]).name
+            except LookupError:
+                pass
+            break
+        if line.split("#", 1)[0].lstrip():
+            break  # line is not just whitespace and/or comment
+    return encoding
+
+
+def getEncodingFromBom(databytes):
+    """detects the byte order mark and returns the encoding name or None"""
+    bom2enc = {
+        codecs.BOM_UTF8: "utf-8-sig",
+        codecs.BOM_UTF16_BE: "utf-16-be",
+        codecs.BOM_UTF16_LE: "utf-16-le",
+        codecs.BOM_UTF32_BE: "utf-32-be",
+        codecs.BOM_UTF32_LE: "utf-32-le",
+    }
+    for bom, encoding in bom2enc.items():
+        if databytes[:4].startswith(bom):
+            break
+    else:
+        encoding = None
+    return encoding
 
 
 # Set default line ending (if not set)
@@ -26,43 +88,6 @@ if not pyzo.config.settings.defaultLineEndings:
         pyzo.config.settings.defaultLineEndings = "CRLF"
     else:
         pyzo.config.settings.defaultLineEndings = "LF"
-
-
-def determineEncoding(bb):
-    """Get the encoding used to encode a file.
-    Accepts the bytes of the file. Returns the codec name. If the
-    codec could not be determined, uses UTF-8.
-    """
-
-    # Init
-    firstTwoLines = bb.split(b"\n", 2)[:2]
-    encoding = "UTF-8"
-
-    for line in firstTwoLines:
-        # Try to make line a string
-        try:
-            line = line.decode("ASCII").strip()
-        except Exception:
-            continue
-
-        # Has comment?
-        if line and line[0] == "#":
-            # Matches regular expression given in PEP 0263?
-            expression = r"coding[:=]\s*([-\w.]+)"
-            result = re.search(expression, line)
-            if result:
-                # Is it a known encoding? Correct name if it is
-                candidate_encoding = result.group(1)
-                try:
-                    c = codecs.lookup(candidate_encoding)
-                    candidate_encoding = c.name
-                except Exception:
-                    pass
-                else:
-                    encoding = candidate_encoding
-
-    # Done
-    return encoding
 
 
 def determineLineEnding(text):
@@ -190,39 +215,14 @@ def createEditor(parent, filename=None):
         if not os.path.isfile(filename):
             raise IOError("File does not exist '{}'.".format(filename))
 
-        # load file (as bytes)
-        with open(filename, "rb") as f:
-            bb = f.read()
-
-        # convert to text, be gentle with files not encoded with utf-8
-        encoding = determineEncoding(bb)
-        text = bb.decode(encoding, "replace")
-
-        # process line endings
-        lineEndings = determineLineEnding(text)
-
-        # if we got here safely ...
-
-        # create editor and set text
+        # create editor
         editor = PyzoEditor(parent)
-        editor.setPlainText(text)
-        editor.lineEndings = lineEndings
-        editor.encoding = encoding
-        editor.document().setModified(False)
+
+        text = editor._loadTextFromFile(filename)
 
         # store name and filename
         editor._filename = filename
         editor._name = os.path.split(filename)[1]
-
-        # process indentation and trailing
-        indentWidth, trailing = determineIndentationAndTrailingWS(text)
-        editor.removeTrailingWS = trailing < 10  # not too much for ugly diffs
-        if indentWidth == -1:  # Tabs
-            editor.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
-            editor.setIndentUsingSpaces(False)
-        elif indentWidth:
-            editor.setIndentWidth(indentWidth)
-            editor.setIndentUsingSpaces(True)
 
     if editor._filename:
         editor._modifyTime = os.path.getmtime(editor._filename)
@@ -269,8 +269,8 @@ class PyzoEditor(BaseTextCtrl):
         # Set line endings to default
         self.lineEndings = pyzo.config.settings.defaultLineEndings
 
-        # Set encoding to default
-        self.encoding = "UTF-8"
+        # Do not use utf-8-sig byte order mark as a default
+        self.useBom = False
 
         # Modification time to test file change
         self._modifyTime = 0
@@ -324,21 +324,93 @@ class PyzoEditor(BaseTextCtrl):
         """Current line-endings style, human readable (e.g. 'CR')"""
         return {"\r": "CR", "\n": "LF", "\r\n": "CRLF"}[self.lineEndings]
 
-    @property
-    def encoding(self):
-        """Encoding used to convert the text of this file to bytes."""
-        return self._encoding
+    ##
 
-    @encoding.setter
-    def encoding(self, value):
-        # Test given value, correct name if it exists
-        try:
-            c = codecs.lookup(value)
-            value = c.name
-        except Exception:
-            value = codecs.lookup("UTF-8").name
-        # Store
-        self._encoding = value
+    def _loadTextFromFile(self, filepath):
+        with open(filepath, "rb") as f:
+            bb = f.read()
+
+        # determine encoding from byte order mark and PEP 263 magic comment
+        encBom = getEncodingFromBom(bb)
+        encMagic = getEncodingFromMagic(bb[:200].decode("ascii", "replace"))
+
+        self.useBom = encBom == "utf-8-sig" and encMagic.startswith("utf-8")
+
+        encMagic2 = encMagic
+        if encMagic2 == "utf-8":
+            encMagic2 = "utf-8-sig"  # utf-8-sig also works for utf-8 encoded text
+
+        encodingsToTry = []
+        if encBom:
+            encodingsToTry.append(encBom)
+        if encMagic2 not in encodingsToTry:
+            encodingsToTry.append(encMagic2)
+        if "utf-8-sig" not in encodingsToTry:
+            encodingsToTry.append("utf-8-sig")
+
+        ok = False
+        for encoding in encodingsToTry:
+            try:
+                text = bb.decode(encoding)
+                ok = True
+                break
+            except ValueError:
+                pass
+
+        if not ok:
+            text = bb.decode("ascii", "backslashreplace")
+
+            msg = (
+                'Error decoding contents of file "{}". '
+                "Already tried {} without success. "
+                "--> now using ascii with backslashreplace".format(
+                    filepath, encodingsToTry
+                )
+            )
+
+            print(msg)
+            m = QtWidgets.QMessageBox(self)
+            m.setWindowTitle("Error while loading text")
+            m.setText(msg)
+            m.setIcon(m.Icon.Warning)
+            m.exec()
+
+        # process line endings
+        self.lineEndings = determineLineEnding(text)
+
+        # process indentation and trailing
+        indentWidth, trailing = determineIndentationAndTrailingWS(text)
+        self.removeTrailingWS = trailing < 10  # not too much for ugly diffs
+        if indentWidth == -1:  # Tabs
+            self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
+            self.setIndentUsingSpaces(False)
+        elif indentWidth:
+            self.setIndentWidth(indentWidth)
+            self.setIndentUsingSpaces(True)
+
+        # set text
+        self.setPlainText(text)
+        self.document().setModified(not ok)
+        return text
+
+    def _saveTextToFile(self, filepath):
+        text = self.toPlainText().replace("\n", self.lineEndings)
+        encoding = getEncodingFromMagic(text[:200])
+        if encoding == "utf-8" and self.useBom:
+            encoding = "utf-8-sig"
+
+        bb = text.encode(encoding)
+        with open(filepath, "wb") as f:
+            f.write(bb)
+
+        if not encoding.startswith("utf-8"):
+            self.useBom = False
+
+        print(
+            "saved file: {} ({}, {})".format(
+                filepath, encoding, self.lineEndingsHumanReadable
+            )
+        )
 
     ##
 
@@ -437,7 +509,6 @@ class PyzoEditor(BaseTextCtrl):
         editor = pyzo.editors.getCurrentEditor()
         sb = pyzo.main.statusBar()
         sb.updateCursorInfo(editor)
-        sb.updateFileEncodingInfo(editor)
 
     def dragMoveEvent(self, event):
         """Otherwise cursor can get stuck.
@@ -533,15 +604,7 @@ class PyzoEditor(BaseTextCtrl):
                 editCursor.endEditBlock()
                 sb.setValue(scrollbarPos)
 
-        # Get text and convert line endings
-        text = self.toPlainText().replace("\n", self.lineEndings)
-
-        # Make bytes
-        bb = text.encode(self.encoding)
-
-        # Store
-        with open(filename, "wb") as f:
-            f.write(bb)
+        self._saveTextToFile(filename)
 
         # Update stats
         self._filename = normalizePath(filename)
@@ -557,11 +620,7 @@ class PyzoEditor(BaseTextCtrl):
 
     def saveCopy(self, filepath):
         """Creates a backup of the current editor's contents. No checking is done."""
-
-        text = self.toPlainText().replace("\n", self.lineEndings)
-        bb = text.encode(self.encoding)
-        with open(filepath, "wb") as f:
-            f.write(bb)
+        self._saveTextToFile(filepath)
 
     def reload(self):
         """Reload text using the self._filename.
@@ -579,22 +638,13 @@ class PyzoEditor(BaseTextCtrl):
         cursor = self.textCursor()
         linenr = cursor.blockNumber() + 1
 
-        # Load file (as bytes)
-        with open(filename, "rb") as f:
-            bb = f.read()
-
-        # Convert to text
-        text = bb.decode("UTF-8")
-
-        # Process line endings (before setting the text)
-        self.lineEndings = determineLineEnding(text)
-
-        # Set text
-        self.setPlainText(text)
-        self.document().setModified(False)
+        self._loadTextFromFile(filename)
 
         # Go where we were (approximately)
         self.gotoLine(linenr)
+
+        # Trigger update of indentation and line ending in the "File" menu
+        pyzo.editors.onCurrentChanged()
 
     def _expandSelectionToWholeBlocks(self):
         """expands the selection of the current text cursor to whole blocks
