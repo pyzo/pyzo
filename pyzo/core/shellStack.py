@@ -5,7 +5,6 @@ and a dialog to edit the shell configurations.
 
 """
 
-import re
 import time
 import webbrowser
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
@@ -488,6 +487,9 @@ class DebugStack(QtWidgets.QToolButton):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.setPopupMode(self.ToolButtonPopupMode.InstantPopup)
 
+        self._lastIndex = -1
+        self._lastFrames = []
+
         # Bind to triggers
         self.triggered.connect(self.onTriggered)
 
@@ -512,13 +514,16 @@ class DebugStack(QtWidgets.QToolButton):
         deltaFrame = -1 if degrees > 0 else (1 if degrees < 0 else 0)
         if deltaFrame == 0:
             return
-        mo = re.fullmatch(r".*?\((\d+)/(\d+)\):\s*", self.text())
-        if mo:
-            f = int(mo[1]) + deltaFrame
-            fmax = int(mo[2])
-            if 1 <= f <= fmax:
-                shell = pyzo.shells.getCurrentShell()
-                shell.executeCommand("DB FRAME {}\n".format(f))
+        if self._lastIndex != -1:
+            f = self._lastIndex
+            fmax = len(self._lastFrames)
+            while 1 <= f + deltaFrame <= fmax:
+                f += deltaFrame
+                file = self._lastFrames[f - 1][0]
+                if not file.startswith("<frozen "):
+                    shell = pyzo.shells.getCurrentShell()
+                    shell.executeCommand("DB FRAME {}\n".format(f))
+                    break
 
     def setTrace(self, info):
         """Set the stack trace.
@@ -533,6 +538,9 @@ class DebugStack(QtWidgets.QToolButton):
             index, frames, debugmode = info["index"], info["frames"], info["debugmode"]
         else:
             index, frames = -1, []
+
+        self._lastIndex = index
+        self._lastFrames = frames[:]
 
         if (not frames) or (debugmode == 0):
             # Remove trace
