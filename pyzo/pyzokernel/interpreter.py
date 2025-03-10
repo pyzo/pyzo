@@ -31,6 +31,7 @@ import inspect  # noqa - Must be in this namespace
 import bdb
 import linecache
 import signal
+import tokenize
 
 import yoton
 from pyzokernel import guiintegration, printDirect
@@ -939,12 +940,16 @@ class PyzoInterpreter:
 
         # Get text (make sure it ends with a newline)
         try:
+            encoding = "utf-8-sig"
             with open(fname, "rb") as fd:
                 bb = fd.read()
-            encoding = "UTF-8"
-            firstline = bb.split(b"\n", 1)[0].decode("ascii", "ignore")
-            if firstline.startswith("#") and "coding" in firstline:
-                encoding = firstline.split("coding", 1)[-1].strip(" \t\r\n:=-*")
+                if PYTHON_VERSION >= 3:
+                    fd.seek(0)
+                    encoding = tokenize.detect_encoding(fd.readline)[0]
+            if PYTHON_VERSION < 3:
+                firstline = bb.split(b"\n", 1)[0].decode("ascii", "ignore")
+                if firstline.startswith("#") and "coding" in firstline:
+                    encoding = firstline.split("coding", 1)[-1].strip(" \t\r\n:=-*")
             source = bb.decode(encoding)
         except Exception:
             printDirect(
