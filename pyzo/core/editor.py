@@ -274,6 +274,7 @@ class PyzoEditor(BaseTextCtrl):
 
         # Modification time to test file change
         self._modifyTime = 0
+        self._binaryDataFromFile = None  # the binary data as it was loaded or saved
 
         self.modificationChanged.connect(self._onModificationChanged)
 
@@ -290,6 +291,10 @@ class PyzoEditor(BaseTextCtrl):
 
         # Update status bar
         self.cursorPositionChanged.connect(self._updateStatusBar)
+
+    def closeEvent(self, event):
+        # free some memory to mitigate memory leak losses
+        del self._binaryDataFromFile
 
     ## Properties
 
@@ -391,6 +396,7 @@ class PyzoEditor(BaseTextCtrl):
         # set text
         self.setPlainText(text)
         self.document().setModified(not ok)
+        self._binaryDataFromFile = bb
         return text
 
     def _saveTextToFile(self, filepath):
@@ -405,6 +411,8 @@ class PyzoEditor(BaseTextCtrl):
 
         if not encoding.startswith("utf-8"):
             self.useBom = False
+
+        self._binaryDataFromFile = bb
 
         print(
             "saved file: {} ({}, {})".format(
@@ -439,29 +447,19 @@ class PyzoEditor(BaseTextCtrl):
 
     def focusInEvent(self, event):
         """Test whether the file has been changed 'behind our back'"""
-        pyzo.callLater(self.testWhetherFileWasChanged)
+        pyzo.callLater(self._checkAndHandleExternalFileModifications)
         return super().focusInEvent(event)
 
-    def testWhetherFileWasChanged(self):
-        """Test to see whether the file was changed outside our backs,
-        and let the user decide what to do.
-        Returns True if it was changed.
-        """
-
-        # get the path
-        path = self._filename
-        if not os.path.isfile(path):
-            # file is deleted from the outside
+    def _checkAndHandleExternalFileModifications(self):
+        if not self._checkFileModified():
             return
 
-        # test the modification time...
-        mtime = os.path.getmtime(path)
-        if mtime != self._modifyTime:
+        if self.document().isModified():
             # ask user
             dlg = QtWidgets.QMessageBox(self)
             dlg.setWindowTitle("File was changed")
             dlg.setText(
-                "File has been modified outside of the editor:\n" + self._filename
+                "File has also been modified outside of the editor:\n" + self._filename
             )
             dlg.setInformativeText("Do you want to reload?")
             btnReload = dlg.addButton(
@@ -472,16 +470,88 @@ class PyzoEditor(BaseTextCtrl):
             )
             dlg.setDefaultButton(btnReload)
 
-            # whatever the result, we will reset the modified time
-            self._modifyTime = os.path.getmtime(path)
-
-            # get result and act
+            # get user's decision
             dlg.exec()
-            if dlg.clickedButton() == btnReload:
-                self.reload()
+            doReload = dlg.clickedButton() == btnReload
+        else:
+            if pyzo.config.advanced.autoReloadFilesInEditor:
+                doReload = True
+                print("auto-reloading file", self._filename)
+            else:
+                # ask user
+                dlg = QtWidgets.QMessageBox(self)
+                dlg.setWindowTitle("File was changed")
+                dlg.setText(
+                    "File has been modified outside of the editor:\n" + self._filename
+                )
+                dlg.setInformativeText("Do you want to reload?")
+                btnAlwaysReload = dlg.addButton(
+                    "Always reload", QtWidgets.QMessageBox.ButtonRole.NoRole
+                )
+                btnReloadThisTime = dlg.addButton(
+                    "Reload", QtWidgets.QMessageBox.ButtonRole.AcceptRole
+                )
+                dlg.addButton(
+                    "Keep this version", QtWidgets.QMessageBox.ButtonRole.RejectRole
+                )
+                dlg.setDefaultButton(btnReloadThisTime)
 
-            # Return that indeed the file was changes
-            return True
+                # get user's decision
+                dlg.exec()
+                if dlg.clickedButton() == btnReloadThisTime:
+                    doReload = True
+                elif dlg.clickedButton() == btnAlwaysReload:
+                    doReload = True
+                    pyzo.config.advanced.autoReloadFilesInEditor = 1
+
+                    QtWidgets.QMessageBox.information(
+                        self,
+                        "Always reload",
+                        'Files that are marked as "unchanged" in the editor will now '
+                        "always be reloaded automatically. You can change this setting "
+                        '"autoReloadFilesInEditor" in the "Advanced settings" dialog.',
+                    )
+                else:
+                    doReload = False
+
+        if doReload:
+            self.reload()
+        else:
+            self.document().setModified(True)
+
+    def _checkFileModified(self):
+        """Test if the file was externally changed since it was last loaded/saved by Pyzo.
+        Returns True if it was changed, False if not changed or unknown.
+        """
+
+        filepath = self._filename
+        if not os.path.isfile(filepath):
+            # file is deleted from the outside
+            return False
+
+        # test the modification time...
+        mtime = os.path.getmtime(filepath)
+
+        if mtime == self._modifyTime:
+            return False
+
+        # whatever the user will decide, we will reset the modified time
+        self._modifyTime = mtime
+
+        try:
+            with open(filepath, "rb") as f:
+                bb = f.read()
+            if bb == self._binaryDataFromFile:
+                print(
+                    "modification time of file {} changed, but content is the same".format(
+                        filepath
+                    )
+                )
+                return False
+        except Exception:
+            pass
+
+        return True
 
     def _onModificationChanged(self, changed):
         """Handler for the modificationChanged signal. Emit somethingChanged
@@ -553,8 +623,29 @@ class PyzoEditor(BaseTextCtrl):
             raise ValueError("No filename specified, and no filename known.")
 
         # Test whether it was changed without us knowing. If so, don't save now.
-        if self.testWhetherFileWasChanged():
-            return
+        if self._checkFileModified():
+            # ask user
+            dlg = QtWidgets.QMessageBox(self)
+            dlg.setWindowTitle("File was changed")
+            dlg.setText(
+                "File has also been modified outside of the Pyzo editor:\n"
+                + self._filename
+            )
+            dlg.setInformativeText("Do you want to reload?")
+            btnOverwrite = dlg.addButton(
+                "Overwrite file", QtWidgets.QMessageBox.ButtonRole.AcceptRole
+            )
+            btnCancel = dlg.addButton(
+                "Cancel saving", QtWidgets.QMessageBox.ButtonRole.RejectRole
+            )
+            dlg.setDefaultButton(btnCancel)
+
+            # get user's decision
+            dlg.exec()
+            if dlg.clickedButton() != btnOverwrite:
+                # cancel saving
+                self.document().setModified(True)
+                return
 
         # Remove whitespace in a single undo-able action
         if (

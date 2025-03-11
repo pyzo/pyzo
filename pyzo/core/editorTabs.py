@@ -1533,6 +1533,7 @@ class EditorTabs(QtWidgets.QWidget):
                         break
             else:
                 self._tabs.removeTab(editor)
+            editor.close()  # close event of the editor will do some clean-up
 
         # Clear any breakpoints that it may have had
         self.updateBreakPoints()
