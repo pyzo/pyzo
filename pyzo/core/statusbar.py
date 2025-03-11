@@ -25,9 +25,12 @@ class StatusBar(QtWidgets.QStatusBar):
         # Get current line number
         nrow = 0
         ncol = 0
+        sel = 0
         if editor:
-            nrow = editor.textCursor().blockNumber() + 1
-            ncol = editor.textCursor().positionInBlock() + 1
+            cur = editor.textCursor()
+            nrow = cur.blockNumber() + 1
+            ncol = cur.positionInBlock() + 1
+            sel = cur.selectionEnd() - cur.selectionStart()
 
-        position_txt = "Line: {}, Column: {} ".format(nrow, ncol)
+        position_txt = "Line: {}, Column: {}, Sel.: {} ".format(nrow, ncol, sel)
         self.cursor_pos.setText(position_txt)
