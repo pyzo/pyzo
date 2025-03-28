@@ -19,7 +19,7 @@ class StatusBar(QtWidgets.QStatusBar):
         # Cursor position
         self.cursor_pos = QtWidgets.QLabel(self)
         self.cursor_pos.setFixedWidth(190)
-        self.insertPermanentWidget(1, self.cursor_pos, 0)
+        self.addPermanentWidget(self.cursor_pos)
 
     def updateCursorInfo(self, editor):
         # Get current line number
