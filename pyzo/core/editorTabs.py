@@ -1172,6 +1172,48 @@ class EditorTabs(QtWidgets.QWidget):
         # load
         self.loadDir(dirname)
 
+    def _findEditorOfFile(self, filepath):
+        """returns the editor of file 'filepath' or None if not opened (yet)
+
+        filepath can also be '<tmp 1>' etc.
+        """
+
+        def getFileStats(fp):
+            if fp and not fp.startswith("<"):
+                try:
+                    return os.stat(fp)
+                except (OSError, ValueError):
+                    pass
+            return None
+
+        s1 = getFileStats(filepath)
+        for item in self._tabs.items():
+            if item.id == filepath:
+                # id gets _filename or _name for temp files
+                return item
+
+            if not s1:
+                continue
+
+            s2 = getFileStats(item.filename)
+            if s2 and os.path.samestat(s1, s2):
+                # both filepaths refer to the same file (like os.path.samefile(...))
+
+                # mapped WebDAV drives do not support os.path.samefile and os.path.samestat
+                #   see https://github.com/python/cpython/issues/74665
+                if sys.platform == "win32" and (s1.st_dev, s1.st_ino) == (0, 0):
+                    # the file is probably located in a mapped WebDAV drive
+                    if os.path.normcase(filepath) != os.path.normcase(item.filename):
+                        # probably not the same file, even if os.path.samefile says so
+                        continue
+
+                # file is already open, but with a different filepath
+                # this could be, for example:
+                # - a symbolic link to the other file
+                # - or r"\\localhost\c$\temp\abc.py" and r"C:\temp\abc.py"
+                return item
+        return None  # file is not opened in any of the editor tabs
+
     def loadFile(self, filename, updateTabs=True, ignoreFail=False):
         """Load the specified file.
         On success returns the item of the file, also if it was
@@ -1187,20 +1229,7 @@ class EditorTabs(QtWidgets.QWidget):
         if not filename:
             return None
 
-        # if the file is already open...
-        for item in self._tabs.items():
-            if item.id == filename:
-                # id gets _filename or _name for temp files
-                break
-            if os.path.isfile(filename) and os.path.isfile(item.filename):
-                if os.path.samefile(filename, item.filename):
-                    # file is already open, but with a different filepath
-                    # this could be, for example:
-                    # - a symbolic link to the other file
-                    # - or r"\\localhost\c$\temp\abc.py" and r"C:\temp\abc.py"
-                    break
-        else:
-            item = None
+        item = self._findEditorOfFile(filename)
         if item:
             self._tabs.setCurrentItem(item)
             if filename.lower() != item.filename.lower() and item.filename != "":
