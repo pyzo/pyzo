@@ -358,12 +358,12 @@ class BaseShell(BaseTextCtrl):
         cursor.movePosition(
             cursor.MoveOperation.StartOfBlock, cursor.MoveMode.KeepAnchor
         )
-        line = cursor.selectedText()
-        if len(line) > 1024:
+        originalLine = cursor.selectedText()
+        if len(originalLine) > 1024:
             return  # safety
 
         # Get the thing that is clicked, assuming it is delimited with quotes
-        line = line.replace("'", '"')
+        line = originalLine.replace("'", '"')
         before = line[:pos].split('"')[-1]
         after = line[pos:].split('"')[0]
         piece = before + after
@@ -426,6 +426,28 @@ class BaseShell(BaseTextCtrl):
                         pass  # not an integer
                     else:
                         break
+
+        if linenr is None:
+            # check if line is a warning exception
+            # e.g.:
+            # /tmp/aa.py+5:4: SyntaxWarning: invalid escape sequence '\s'
+            line = originalLine
+            if sys.platform == "win32":
+                patternFilepath = r"(?:\\\\|[a-zA-Z]:[\\/]).+"  # e.g. "C:\somefile" or "\\abc" or "c:/abc"
+            else:
+                patternFilepath = r"/.+"
+            pattern = r"(" + patternFilepath + r"|<tmp \d+>):(\d+): [a-zA-Z]+Warning: "
+            mo = re.match(pattern, line)
+            if mo:
+                i1, i2 = mo.span(1)
+                if i1 <= pos < i2:
+                    filename = mo[1]
+                    linenr = int(mo[2])
+                    before = line[i1:pos]
+                    piece = line[i1:i2]
+                else:
+                    # the pattern matches, but the double click was outside the filepath
+                    return
 
         # Select word here (in shell)
         cursor = ocursor
