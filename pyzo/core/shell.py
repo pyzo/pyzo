@@ -353,132 +353,94 @@ class BaseShell(BaseTextCtrl):
         ocursor = QtGui.QTextCursor(cursor)  # Make a copy to use below
         pos = cursor.positionInBlock()
 
-        # Get line of text for the cursor
-        cursor.movePosition(cursor.MoveOperation.EndOfBlock, cursor.MoveMode.MoveAnchor)
-        cursor.movePosition(
-            cursor.MoveOperation.StartOfBlock, cursor.MoveMode.KeepAnchor
-        )
-        originalLine = cursor.selectedText()
-        if len(originalLine) > 1024:
+        # Define some abbreviations for movePosition arguments
+        MO = cursor.MoveOperation
+        MM = cursor.MoveMode
+
+        # Get the whole line where the double click occurred
+        cursor.movePosition(MO.EndOfBlock, MM.MoveAnchor)
+        cursor.movePosition(MO.StartOfBlock, MM.KeepAnchor)
+        line = cursor.selectedText()
+        if len(line) > 1024:
             return  # safety
 
-        # Get the thing that is clicked, assuming it is delimited with quotes
-        line = originalLine.replace("'", '"')
-        before = line[:pos].split('"')[-1]
-        after = line[pos:].split('"')[0]
-        piece = before + after
+        if sys.platform == "win32":
+            # e.g. "C:\somefile" or "\\abc" or "c:/abc"
+            patFile = r"(?:\\\\|[a-zA-Z]:[\\/]).+?"
+        else:
+            patFile = r"/.+?"
 
-        if not re.fullmatch(r"<tmp \d+>", piece):
-            # Check if it looks like a filename, quit if it does not
-            if len(piece) < 4:
-                return
-            elif not ("/" in piece or "\\" in piece):
-                return
+        patFileOrTmp = r"(" + patFile + r"|<tmp \d+>)"
 
-            if sys.platform.startswith("win"):
-                if piece[1] != ":" and piece[:2] != r"\\":
-                    return
-            else:
-                if not piece.startswith("/"):
-                    return
+        # There could be a line offset after the filename, e.g.:
+        # <tmp 3>+2:3: SyntaxWarning: invalid escape sequence '\s'
+        patFileOrTmpWithOffset = patFileOrTmp + r"(\+\d+)?"  # groups: filepath, offset
 
-        filename = piece
-
-        # Split in parts for getting line number
-        line = line[pos + len(after) :]
-        line = line.replace(",", " ")
-        parts = [p for p in line.split(" ") if p]
-        # Iterate over parts
+        filename = None
+        offset = None
         linenr = None
-        for i, part in enumerate(parts):
-            if part in ("line", "linenr", "lineno"):
-                try:
-                    linenr = int(parts[i + 1])
-                except IndexError:
-                    pass  # no more parts
-                except ValueError:
-                    pass  # not an integer
-                else:
-                    break
 
-        # Try again IPython style
-        # IPython shows a few lines with the active line indicated by an arrow
-        if linenr is None:
-            for i in range(4):
-                cursor.movePosition(
-                    cursor.MoveOperation.NextBlock, cursor.MoveMode.MoveAnchor
-                )
-                cursor.movePosition(
-                    cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor
-                )
-                line = cursor.selectedText()
-                if len(line) > 1024:
-                    continue  # safety
-                if not line.startswith("-"):
-                    continue
-                parts = line.split(" ", 2)
-                if parts[0] in ("->", "-->", "--->", "---->", "----->"):
-                    try:
-                        linenr = int(parts[1].strip())
-                    except IndexError:
-                        pass  # too few parts
-                    except ValueError:
-                        pass  # not an integer
-                    else:
-                        break
+        patWarning = patFileOrTmpWithOffset + r":(\d+): [a-zA-Z]+Warning: .*"
+        # /tmp/aa.py+5:4: SyntaxWarning: invalid escape sequence '\s'
 
-        if linenr is None:
-            # check if line is a warning exception
-            # e.g.:
-            # /tmp/aa.py+5:4: SyntaxWarning: invalid escape sequence '\s'
-            line = originalLine
-            if sys.platform == "win32":
-                patternFilepath = r"(?:\\\\|[a-zA-Z]:[\\/]).+"  # e.g. "C:\somefile" or "\\abc" or "c:/abc"
-            else:
-                patternFilepath = r"/.+"
-            pattern = r"(" + patternFilepath + r"|<tmp \d+>):(\d+): [a-zA-Z]+Warning: "
-            mo = re.match(pattern, line)
+        patIPython = r"\s*File " + patFileOrTmpWithOffset + r":(\d+)(?:, in .*)?"
+        # IPython examples (leading spaces occur when running file as script):
+        # File /tmp/aa.py:12
+        # File /tmp/aa.py:4, in myfunc1()
+        #   File /tmp/aa.py:14
+
+        for pattern in [patWarning, patIPython]:
+            mo = re.fullmatch(pattern, line)
             if mo:
                 i1, i2 = mo.span(1)
                 if i1 <= pos < i2:
                     filename = mo[1]
-                    linenr = int(mo[2])
-                    before = line[i1:pos]
-                    piece = line[i1:i2]
+                    offset = mo[2]
+                    linenr = int(mo[3])
+                    break
                 else:
                     # the pattern matches, but the double click was outside the filepath
                     return
 
-        # Select word here (in shell)
-        cursor = ocursor
-        cursor.movePosition(
-            cursor.MoveOperation.Left, cursor.MoveMode.MoveAnchor, len(before)
-        )
-        cursor.movePosition(
-            cursor.MoveOperation.Right, cursor.MoveMode.KeepAnchor, len(piece)
-        )
-        self.setTextCursor(cursor)
+        if filename is None:
+            # Expand string to left and right, starting at the clicked position, and
+            # stopping only when reaching the ends or encountering a (single) quote.
+            line2 = line.replace("'", '"')
+            i1 = line2.rfind('"', 0, pos) + 1
+            i2 = line2.find('"', pos)
+            if i2 == -1:
+                i2 = len(line)
 
-        # For syntax errors we have the offset thingy in the file name
-        if ".py+" in filename[-9:]:
-            filename, _, offset = filename.rpartition("+")
-            if linenr is not None:
-                try:
-                    linenr += int(offset)
-                except ValueError:
-                    pass
+            mo = re.fullmatch(patFileOrTmpWithOffset, line[i1:i2])
+            if mo:
+                filename, offset = mo.groups()
 
-        # Try opening the file (at the line number if we have one)
-        result = pyzo.editors.loadFile(filename)
-        if result and linenr is not None:
-            editor = result._editor
-            editor.gotoLine(linenr)
-            cursor = editor.textCursor()
-            cursor.movePosition(cursor.MoveOperation.StartOfBlock)
-            cursor.movePosition(
-                cursor.MoveOperation.EndOfBlock, cursor.MoveMode.KeepAnchor
-            )
-            editor.setTextCursor(cursor)
+                # Split in parts for getting line number
+                mo = re.search(r"\b(?:line|linenr|lineno)\b\s+(\d+)", line[i2:])
+                if mo:
+                    linenr = int(mo[1])
+
+        if filename:
+            if offset and offset.startswith("+") and linenr is not None:
+                linenr += int(offset[1:])
+
+            # Select the whole filename in the shell
+            cursor = ocursor
+            cursor.movePosition(MO.Left, MM.MoveAnchor, pos - i1)
+            cursor.movePosition(MO.Right, MM.KeepAnchor, len(filename))
+            self.setTextCursor(cursor)
+
+            # Try opening the file (at the line number if we have one)
+            result = pyzo.editors.loadFile(filename)
+            if result:
+                editor = result._editor
+                if linenr is not None:
+                    editor.gotoLine(linenr)
+                    cursor = editor.textCursor()
+                    cursor.movePosition(MO.StartOfBlock)
+                    cursor.movePosition(MO.EndOfBlock, MM.KeepAnchor)
+                    editor.setTextCursor(cursor)
+                editor.setFocus()
 
     ## Indentation: override code editor behaviour
     def indentSelection(self):
