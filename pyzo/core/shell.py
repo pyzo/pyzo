@@ -1434,10 +1434,9 @@ class PythonShell(BaseShell):
                     time.sleep(0.2)
                     # To be sure, decrease the expiration date on the buffer
                     aco.setBuffer(timeout=1)
-                    # Repost request
-                    future = self._request.signature(aco.name)
-                    future.add_done_callback(self._processAutoComp_response)
-                    future.aco = aco
+
+                    # repost request; self._importAttempts will prevent infinite loop
+                    self.processAutoComp(aco)
         else:
             # If still required, show list, otherwise only store result
             if self._currentACO is aco:
