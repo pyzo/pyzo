@@ -1417,9 +1417,10 @@ class PythonShell(BaseShell):
         aco.addNames(foundNames)
 
         # Process list
-        if aco.name and not foundNames:
-            # No names found for the requested name. This means
-            # it does not exist, let's try to import it
+        if aco.name and not foundNames and not aco.names:
+            # No names found for the requested name, and no names from
+            # fictive class members (via code parser in the editor).
+            # Let's try to import it.
             importNames, importLines = pyzo.parser.getFictiveImports(editor1)
             baseName = aco.nameInImportNames(importNames)
             if baseName:
