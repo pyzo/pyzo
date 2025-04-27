@@ -917,9 +917,6 @@ class PyzoEditor(BaseTextCtrl):
         if aco.tryUsingBuffer():
             return
 
-        # Init name to poll by remote process (can be changed!)
-        nameForShell = aco.name
-
         # Get normal fictive namespace
         fictiveNS = pyzo.parser.getFictiveNameSpace(self)
         fictiveNS = set(fictiveNS)
@@ -954,13 +951,11 @@ class PyzoEditor(BaseTextCtrl):
                             # current class, see https://github.com/pyzo/pyzo/issues/944
                             break
                 else:
-                    nameForShell = className
                     break
 
         # If there's a shell, let it finish the autocompletion
         shell = pyzo.shells.getCurrentShell()
         if shell:
-            aco.name = nameForShell  # might be the same or a base class
             shell.processAutoComp(aco)
         else:
             # Otherwise we finish it ourselves
