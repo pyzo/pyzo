@@ -160,6 +160,23 @@ yellow = build_fmt(Fmt.yellow)
 print(f'Hello {underline}world {bold_red}via {blue_italic}Py{yellow}thon{normal}!')
 
 
+## resetting only the text color via escape code 39
+
+print(
+    '\x1b[3m'
+    'italic'  # --> default color, italic
+    '  '
+    '\x1b[31m'
+    'italic red'  # --> as before, but with red text
+    '  '
+    '\x1b[39m'  # --> reset text color, but keep italic
+    'normal color'
+    '  '
+    '\x1b[0m'  # --> reset whole format (use color, and remove italic)
+    'normal'
+)
+
+
 ## progress bar example
 
 import time

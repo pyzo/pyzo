@@ -1093,7 +1093,9 @@ class ShellWriter:
                 clr = self.COLORS[param - 30]
                 format.setForeground(QtGui.QColor(clr))
             elif param == 39:  # reset the foreground color
-                format.setForeground(defaultFormat.foreground().color())
+                fg = defaultFormat.foreground()
+                # we also need to set the brush style because it could be BrushStyle.NoBrush
+                format.setForeground(QtGui.QBrush(fg.color(), fg.style()))
             elif 40 <= param <= 47:
                 pass  # cannot set background text in QPlainTextEdit
             else:
