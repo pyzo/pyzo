@@ -31,9 +31,13 @@ class Calltip:
         # Be notified of style updates
         self.styleChanged.connect(self.__afterSetStyle)
 
+        self.cursorPositionChanged.connect(self.__onCursorPositionChanged)
+
         # Prevents calltips from being shown immediately after pressing
         # the escape key.
         self.__noshow = False
+
+        self.__startcursor = None
 
     def __afterSetStyle(self):
         format = self.getStyleElementFormat("editor.calltip")
@@ -76,6 +80,7 @@ class Calltip:
         # Get a cursor to establish the position to show the calltip
         startcursor = self.textCursor()
         startcursor.movePosition(startcursor.MoveOperation.Left, n=offset)
+        self.__startcursor = startcursor
 
         # Get position in pixel coordinates
         rect = self.cursorRect(startcursor)
@@ -108,6 +113,8 @@ class Calltip:
     def calltipCancel(self):
         """Hides the calltip."""
         self.__calltipLabel.hide()
+        self.__startcursor = None
+
         if self.__finishedCallback is not None:
             self.__finishedCallback()
 
@@ -137,3 +144,9 @@ class Calltip:
 
         # Proceed processing the keystrike
         super().keyPressEvent(event)
+
+    def __onCursorPositionChanged(self, *args):
+        if self.calltipActive():
+            if self.__startcursor is not None:
+                if self.__startcursor.blockNumber() != self.textCursor().blockNumber():
+                    self.calltipCancel()
