@@ -60,8 +60,12 @@ class AutoCompletion:
         # geometry
         self.__popupSize = 300, 100
 
-        # Text position corresponding to first charcter of the word being completed
+        # Text position corresponding to first character of the word being completed
         self.__autocompleteStart = None
+
+        # text position where the last update of the completion list was performed
+        # (after typing a new character)
+        self.__autocompleteCursorLastUpdate = None
 
         # We show the popup when this many chars have been input
         self.__autocompleteMinChars = 3
@@ -76,6 +80,7 @@ class AutoCompletion:
         self.__highlightedCompletion = None
         self.__completer.activated.connect(self.onAutoComplete)
         self.__completer.highlighted.connect(self._setHighlightedCompletion)
+        self.cursorPositionChanged.connect(self.__onCursorPositionChanged)
 
     def _setHighlightedCompletion(self, value):
         """Keeping track of the highlighted item allows us
@@ -172,6 +177,7 @@ class AutoCompletion:
         self.__completerWindow.hide()
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
+        self.__autocompleteCursorLastUpdate = None
         if self.__finishedCallback is not None:
             self.__finishedCallback()
 
@@ -269,6 +275,8 @@ class AutoCompletion:
         cursor.setPosition(
             self.__autocompleteStart.position(), cursor.MoveMode.KeepAnchor
         )
+
+        self.__autocompleteCursorLastUpdate = self.textCursor()
 
         prefix = cursor.selectedText()
         if (
@@ -394,3 +402,14 @@ class AutoCompletion:
             # wrapping, so reposition after every key stroke
             self.__positionAutocompleter()
             self.__updateAutocompleterPrefix()
+
+    def __onCursorPositionChanged(self, *args):
+        if self.autocompleteActive():
+            # If the user moves the cursor using the mouse and sets the cursor
+            # outside the word/attribute to be autocompleted, then cancel autocompletion.
+            if (
+                not self._AutoCompletion__autocompleteStart.position()
+                < self.textCursor().position()
+                <= self.__autocompleteCursorLastUpdate.position()
+            ):
+                self.autocompleteCancel()
