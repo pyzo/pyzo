@@ -339,6 +339,11 @@ class HighlightMatchingBracket:
             return
 
         cursor = QtGui.QTextCursor(self.textCursor())
+
+        # We need to clear the selection because otherwise movePosition(MoveOperation.Right)
+        # moves the cursor to the right end of the selection instead of advancing by one step.
+        cursor.clearSelection()
+
         if cursor.atBlockStart():
             cursor.movePosition(cursor.MoveOperation.Right)
             movedRight = True
