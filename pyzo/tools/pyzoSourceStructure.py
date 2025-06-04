@@ -176,6 +176,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
         prevEditor = self._getCurEditorFromRef()
         if prevEditor is not None:
             prevEditor.cursorPositionChanged.disconnect(self.callbackPosChanged)
+            prevEditor.fontChanged.disconnect(self.updateStructure)
         self._curEditorRef = None
 
         # Get editor and clear list
@@ -194,6 +195,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self.updateStructure()
 
             editor.cursorPositionChanged.connect(self.callbackPosChanged)
+
+            # Update when code editor font changes
+            editor.fontChanged.connect(self.updateStructure)
 
     def callbackPosChanged(self, *args):
         self.updateSelection()
@@ -347,7 +351,9 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                     text = "- " + object.name
                 elif type in ("cell", "##", "#%%", "# %%"):
                     type = "cell"
-                    text = "## " + object.name + " " * 120
+                    # pad to length 120 with whitespaces so that the
+                    # whole line is underlined
+                    text = "## {:<120}".format(object.name)
                 else:
                     text = "{} {}".format(type, object.name)
 
@@ -355,7 +361,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
                 thisItem = QtWidgets.QTreeWidgetItem(parentItem, [text])
                 color = QtGui.QColor(colors[object.type])
                 thisItem.setForeground(0, QtGui.QBrush(color))
-                font = thisItem.font(0)
+                font = curEditor.font()  # Same font as code editor
                 font.setBold(True)
                 if type == "cell":
                     font.setUnderline(True)
