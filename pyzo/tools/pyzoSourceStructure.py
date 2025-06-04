@@ -194,7 +194,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
             self.updateStructure()
 
             editor.cursorPositionChanged.connect(self.callbackPosChanged)
-            
+
             # Update when code editor font changes
             editor.fontChanged.connect(self.updateStructure)
 
