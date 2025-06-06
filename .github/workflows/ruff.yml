@@ -1,5 +1,5 @@
 name: Ruff
-on: [ push, pull_request ]
+on: [ push ]
 jobs:
   ruff:
     runs-on: ubuntu-latest
