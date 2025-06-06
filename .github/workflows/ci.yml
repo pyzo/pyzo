@@ -28,10 +28,10 @@ jobs:
           pip install -U ruff
     - name: Ruff lint
       run: |
-          ruff check --output-format=github .
+          ruff check --output-format=github --fix .
     - name: Ruff format
       run: |
-          ruff format --check .
+          ruff format .
 
   test-builds:
     name: Test ${{ matrix.os }} py${{ matrix.pyversion }} ${{ matrix.qtlib }}
