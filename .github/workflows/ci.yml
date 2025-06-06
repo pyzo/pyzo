@@ -1,5 +1,12 @@
 # GH Actions script to test Pyzo.
 
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
   test-builds:
     name: Test ${{ matrix.os }} py${{ matrix.pyversion }} ${{ matrix.qtlib }}
     runs-on: ${{ matrix.os }}
