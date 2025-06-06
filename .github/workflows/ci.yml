@@ -1,38 +1,5 @@
 # GH Actions script to test Pyzo.
 
-name: CI
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-
-  lint-build:
-    name: Test linting
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
-    - name: Install dev dependencies
-      run: |
-          python -m pip install --upgrade pip
-          pip install -U ruff
-    - name: Ruff lint
-      run: |
-          ruff check --output-format=github --fix .
-    - name: Ruff format
-      run: |
-          ruff format .
-
   test-builds:
     name: Test ${{ matrix.os }} py${{ matrix.pyversion }} ${{ matrix.qtlib }}
     runs-on: ${{ matrix.os }}
