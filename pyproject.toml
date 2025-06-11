@@ -26,7 +26,7 @@ dependencies = []
 [project.optional-dependencies]
 lint = ["ruff"]
 tests = ["pytest"]
-dev = ["pyzo[lint,tests]", "pre-commit"]
+dev = ["pyzo[lint,tests]"]
 
 [project.urls]
 Homepage = "https://pyzo.org"

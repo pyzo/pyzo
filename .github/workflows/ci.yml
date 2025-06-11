@@ -3,11 +3,23 @@
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest 
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - run: pip install ruff
+    - run: | 
+      ruff check .
+      ruff fix .
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: 'style fixes by ruff'
+
   test-builds:
     name: Test ${{ matrix.os }} py${{ matrix.pyversion }} ${{ matrix.qtlib }}
     runs-on: ${{ matrix.os }}
