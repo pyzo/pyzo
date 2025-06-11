@@ -18,10 +18,9 @@ jobs:
       with:
         python-version: '3.13'
     
-    - name: Setup ruff, format and fix
-      run: pip install ruff
-      run: ruff check --fix .
-      run: ruff format .
+    - run: pip install ruff
+    - run: ruff check --fix .
+    - run: ruff format .
     
     - name: Commit any changes
       uses: stefanzweifel/git-auto-commit-action@v5
