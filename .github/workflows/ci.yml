@@ -8,10 +8,14 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
+
+    permissions:
+      content: write
+
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
     - run: pip install ruff
     - run: | 
       ruff check .
