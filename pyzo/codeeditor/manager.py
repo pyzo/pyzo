@@ -29,12 +29,9 @@ class Manager:
     _defaultFontFamily = "dummy_font_family_name"
 
     # Static dict of all parsers
-    _parserInstances = {
-
-
-    }
-    _fileExtensions =       {}
-    _shebangKeywords = {           }
+    _parserInstances = {}
+    _fileExtensions = {}
+    _shebangKeywords = {}
 
     ## Parsers
 
