@@ -7,16 +7,24 @@ on:
     branches: [ main ]
 
 jobs:
-  lint:
+  auto-ruff:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-    - run: pip install ruff
-    - run: ruff format .
-    - run: ruff check --fix .
-    - uses: stefanzweifel/git-auto-commit-action@v5
+
+    - name: Setup python (v3.13)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    
+    - name: Setup ruff, format and fix
+      run: pip install ruff
+      run: ruff check --fix .
+      run: ruff format .
+    
+    - name: Commit any changes
+      uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: 'style fixes by ruff'
 
