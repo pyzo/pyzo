@@ -86,13 +86,13 @@ def can_recv(s, timeout=0.0):
     return bool(can_recv)
 
 
-def send_all(s, text, stutdown_after_sending=True):
-    """send_all(socket, text, stutdown_after_sending=True)
+def send_all(s, text, shutdown_after_sending=True):
+    """send_all(socket, text, shutdown_after_sending=True)
 
     Send all text to the socket. Used during handshaking and in
     the clientserver module.
 
-    If stutdown_after_sending, the socket is shut down. Some protocols
+    If shutdown_after_sending, the socket is shut down. Some protocols
     rely on this.
 
     It is made sure that the text ends with a CRLF double-newline code.
@@ -113,7 +113,7 @@ def send_all(s, text, stutdown_after_sending=True):
         return -1  # Socket closed down badly
 
     # Shutdown connection nicely from here
-    if stutdown_after_sending:
+    if shutdown_after_sending:
         try:
             s.shutdown(socket.SHUT_WR)
         except socket.error:
