@@ -5,29 +5,46 @@ name: CI
 on:
   workflow_dispatch:
   push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  auto-ruff:
+
+  lint-build:
+    name: Fix linting and format errors
     runs-on: ubuntu-latest
 
+    permissions:
+      # add write permissions for auto-commit after ruff changes
+      # added or changed files to the repository.
+      contents: write
+
+    strategy:
+      fail-fast: false
     steps:
     - uses: actions/checkout@v4
-
-    - name: Setup python (v3.13)
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
-    
-    - run: pip install ruff
-    - run: ruff check --fix .
-    - run: ruff format .
-    
+    - name: Install dev dependencies
+      run: |
+          python -m pip install --upgrade pip
+          pip install -U ruff
+    - name: Ruff lint
+      run: |
+          ruff check --fix --output-format=github .
+    - name: Ruff format
+      run: |
+          ruff format .
+
     - name: Commit any changes
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: 'style fixes by ruff'
+        commit_message: 'linting and style fixes by ruff'
 
   test-builds:
     name: Test ${{ matrix.os }} py${{ matrix.pyversion }} ${{ matrix.qtlib }}
