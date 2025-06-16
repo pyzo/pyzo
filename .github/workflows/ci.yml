@@ -1,5 +1,7 @@
 # GH Actions script to test Pyzo.
 
+name: CI
+
 on:
   workflow_dispatch:
   push:
