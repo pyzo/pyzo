@@ -23,6 +23,8 @@ Making a parser requires these things:
 
 import sys
 
+from dataclasses import dataclass
+
 from . import tokens
 
 
@@ -155,6 +157,161 @@ class Parser:
             return True
         else:
             return False
+
+# Utils for regex parser
+def bygroups(*args):
+    return tuple(args)
+
+
+@dataclass
+class from_list:
+    list: list[str]
+    ttype: tokens.Token
+    prefix: str = ""
+    suffix: str = ""
+
+    def to_pattern(self):
+        return [
+            (self.prefix + word + self.suffix, self.ttype, None) for word in self.list
+        ]
+
+
+@dataclass
+class include:
+    state_name: str
+
+
+def combination(*states):
+    name = "-".join(states)
+    return {name: [include(state) for state in states]}
+
+
+def default(next_state):
+    # Always matches, doesn't yield a token and go to next_state
+    return ("", tuple(), next_state)
+
+
+class RegexParser(Parser):
+    # Must be defined in class inherited from this one. Default is a
+    # TextToken per line.
+    states = {}
+
+    def parseLine(self, line, previousState=["root"]):
+
+        # Initialize
+        pos = 0
+        stack = list(previousState) # ensure stack is a list
+        tokens = []
+
+        # While the end of the line isn't reached:
+        while pos < len(line):
+
+            # Find a match in the possible matches
+            match, token_type, next_state = self.find_match(line, stack[-1], pos)
+
+            # If no match, go to next char
+            if match is None:
+                pos += 1
+
+            # If match, process match:
+            else:
+                # If a token exists for the match,
+                if token_type is not None:
+
+                    # Process the case where multiple groups are in the
+                    # regex:
+                    if isinstance(token_type, tuple):
+                        for i, ttype in enumerate(token_type):
+                            if match.group(i + 1) != "":
+                                tokens.append(ttype(line, pos, pos+match.end(i+1)))
+
+                    # Only one group:
+                    else:
+                        if match.group(0) != "":
+                            tokens.append(ttype(line, pos, pos+match.end(0)))
+
+                # In any case, go to the next state if provided
+                if next_state is not None:
+                    if next_state == "#pop":
+                        # Remove last state from the stack
+                        stack.pop()
+                    elif next_state == "#push":
+                        # Add current state to the stack again
+                        stack.append(stack[-1])
+                    else:
+                        stack.append(next_state)
+
+                # Go the the end of the match, since everything until
+                # there is processed.
+                pos += match.end(0)
+        return (tokens, stack)
+
+    def find_match(self, line, current_state, pos):
+        """Return first match in current state as well as the
+        corresponding token. If no match occures, return None.
+        """
+        for pattern, token_type, next_state in self.processed_states[current_state]:
+            match = re.match(pattern, line[pos:])
+            if match is not None:
+                return (match, token_type, next_state)
+        return (None, None, None)
+
+    def process_states(self):
+        """Prepare raw states into usable states by the parser:
+        - pad each case to len 3 using None,
+        - process lists of words,
+        - process includes.
+        """
+        temp = defaultdict(list)
+        includes = set()
+        state_needs_include = set()
+        for state in self.states.keys():
+            for case in self.states[state]:
+                # Inludes are memorized to be dealt with at the end
+                if isinstance(case, include):
+                    temp[state].append(case)
+
+                # Create from lists of possible words
+                elif isinstance(case, from_list):
+                    temp[state].extend(case.to_pattern())
+
+                # Pad states to len 3 with None
+                else:
+                    if len(case) == 1:
+                        temp[state].append(
+                            (re.compile(case[0], flags=re.MULTILINE), None, None)
+                        )
+                    elif len(case) == 2:
+                        temp[state].append(
+                            (re.compile(case[0], flags=re.MULTILINE), case[1], None)
+                        )
+                    elif len(case) == 3:
+                        temp[state].append(
+                            (
+                                re.compile(case[0], flags=re.MULTILINE),
+                                case[1],
+                                case[2],
+                            )
+                        )
+                    else:
+                        raise ValueError()
+
+        # Process includes at the end, to prevent partial copies
+        self.processed_states = {}
+        for state in temp:
+            self.processed_states[state] = process_includes(state, temp)
+
+def process_includes(state, d):
+    L = []
+    for case in d[state]:
+        if isinstance(case, include):
+            if case.state_name in d:
+                L.extend(process_includes(case.state_name, d))
+            else:
+                raise KeyError("Unknown included state")
+        else:
+            L.append(case)
+    return L
 
 
 ## Import parsers statically
