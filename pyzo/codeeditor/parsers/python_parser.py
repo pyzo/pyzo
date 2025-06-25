@@ -440,7 +440,7 @@ class CellCommentToken(CommentToken):
     defaultStyle = "bold:yes, underline:yes"
 
 
-stringLiteralPrefixes = frozenset("u|r|b|f|rb|br|rf|fr".split("|"))
+stringLiteralPrefixes = frozenset("u|r|b|f|rb|br|rf|fr|t|rt|tr".split("|"))
 
 # This regexp is used to find special stuff, such as comments, numbers and
 # strings.
