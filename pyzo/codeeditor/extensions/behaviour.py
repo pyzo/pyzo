@@ -632,7 +632,7 @@ class AutoCloseQuotesAndBrackets:
                     )  # don't add a fourth " when typing " after two "
                     or (
                         isinstance(tokenL, IdentifierToken)
-                        and str(tokenL) not in stringLiteralPrefixes
+                        and str(tokenL).lower() not in stringLiteralPrefixes
                     )
                 ):
                     super().keyPressEvent(event)
