@@ -3020,39 +3020,32 @@ class KeyMapEditDialog(QtWidgets.QDialog):
     def __init__(self, *args):
         super().__init__(*args)
 
-        # set title
         self.setWindowTitle(translate("menu dialog", "Edit shortcut mapping"))
+        self.setMinimumSize(400, 150)
 
-        # set size
-        size = 400, 140
-        offset = 5
-        size2 = size[0], size[1] + offset
-        self.resize(*size2)
-        self.setMaximumSize(*size2)
-        self.setMinimumSize(*size2)
-
+        vlayout = QtWidgets.QVBoxLayout()
+        self.setLayout(vlayout)
         self._label = QtWidgets.QLabel("", self)
-        self._label.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft
-        )
-        self._label.resize(size[0] - 20, 100)
-        self._label.move(10, 2)
+        vlayout.addWidget(self._label)
+
+        hlayout = QtWidgets.QHBoxLayout()
+        vlayout.addLayout(hlayout)
 
         self._line = KeyMapLineEdit("", self)
-        self._line.resize(size[0] - 80, 20)
-        self._line.move(10, 90)
+        hlayout.addWidget(self._line)
 
         self._clear = QtWidgets.QPushButton("Clear", self)
-        self._clear.resize(50, 20)
-        self._clear.move(size[0] - 60, 90)
+        hlayout.addWidget(self._clear)
+
+        hlayout2 = QtWidgets.QHBoxLayout()
+        vlayout.addLayout(hlayout2)
+        hlayout2.addStretch()
 
         self._apply = QtWidgets.QPushButton("Apply", self)
-        self._apply.resize(50, 20)
-        self._apply.move(size[0] - 120, 120)
+        hlayout2.addWidget(self._apply)
 
         self._cancel = QtWidgets.QPushButton("Cancel", self)
-        self._cancel.resize(50, 20)
-        self._cancel.move(size[0] - 60, 120)
+        hlayout2.addWidget(self._cancel)
 
         # callbacks
         self._line.textUpdate.connect(self.onEdit)
@@ -3064,6 +3057,11 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         self._fullname = ""
         self._intro = ""
         self._isprimary = True
+
+    def _updateLabel(self, warning=None):
+        if warning is None:
+            warning = "\n"
+        self._label.setText(self._intro + "\n\n" + warning)
 
     def setFullName(self, fullname, isprimary):
         """To be called right after initialization to let the user
@@ -3077,7 +3075,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         tmp = fullname.replace("__", " -> ").replace("_", " ")
         primSec = ["secondary", "primary"][int(isprimary)]
         self._intro = "Set the {} shortcut for:\n{}".format(primSec, tmp)
-        self._label.setText(self._intro)
+        self._updateLabel()
         # set initial value
         if fullname in pyzo.config.shortcuts2:
             current = pyzo.config.shortcuts2[fullname]
@@ -3096,9 +3094,10 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         # init
         shortcut = self._line.text()
         if not shortcut:
-            self._label.setText(self._intro)
+            self._updateLabel()
             return
 
+        warning = None
         for key in pyzo.config.shortcuts2:
             # get shortcut and test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
@@ -3109,12 +3108,11 @@ class KeyMapEditDialog(QtWidgets.QDialog):
                 primSec = "secondary"
             # if a correspondence, let the user know
             if primSec and key != self._fullname:
-                tmp = "Warning: shortcut already in use for:\n"
-                tmp += key.replace("__", " -> ").replace("_", " ")
-                self._label.setText(self._intro + "\n\n" + tmp + "\n")
+                warning = "Warning: shortcut already in use for:\n"
+                warning += key.replace("__", " -> ").replace("_", " ")
                 break
-        else:
-            self._label.setText(self._intro)
+
+        self._updateLabel(warning)
 
     def onAccept(self):
         shortcut = self._line.text()
