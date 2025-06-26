@@ -3039,6 +3039,26 @@ class KeyMapEditDialog(QtWidgets.QDialog):
 
         hlayout2 = QtWidgets.QHBoxLayout()
         vlayout.addLayout(hlayout2)
+
+        if sys.platform == "linux":
+            # On a US keyboard layout, pressing Shift+2 yields character @.
+            # When recording the key combination Ctrl+Shift+2 we get Ctrl+Shift+@ instead.
+            # But this shortcut does not work. It must be either Ctrl+Shift+2 or Ctrl+@.
+            # There is no reasonable way in Linux to convert '@' back to '2'.
+            # Therefore we let the user record the key combination Ctrl+2 instead (without
+            # the pressed Shift key) and add the Shift modifier manually by clicking the
+            # "Shift+" button.
+            self._addShift = QtWidgets.QPushButton("Shift+", self)
+            self._addShift.setToolTip(
+                "Some shortcuts such as Ctrl+Shift+2 cannot be detected automatically "
+                "because they would appear as Ctrl+Shift+@ on a US keyboard, for example."
+                "\n"
+                "As a workaround, press the shortcut without the Shift key and click this "
+                "button afterwards to add the Shift."
+            )
+            hlayout2.addWidget(self._addShift)
+            self._addShift.clicked.connect(self.onAddShift)
+
         hlayout2.addStretch()
 
         self._apply = QtWidgets.QPushButton("Apply", self)
@@ -3086,6 +3106,27 @@ class KeyMapEditDialog(QtWidgets.QDialog):
 
     def onClear(self):
         self._line.clear()
+        self._line.setFocus()
+
+    def onAddShift(self):
+        shortcut = self._line.text()
+        if shortcut:
+            # modifier key order in shortcut texts is: Meta+Ctrl+Shift+Alt+
+            # We want to add the "Shift+" at the correct position.
+            modifiers = []
+            for s in ["Meta+", "Ctrl+", "Shift+"]:
+                s2 = translateShortcutToOSNames(s)
+                if shortcut.startswith(s2):
+                    shortcut = shortcut[len(s2) :]
+                    modifiers.append(s2)
+                elif s == "Shift+":
+                    # add the "Shift+" if it was not there before
+                    modifiers.append(s2)
+
+            for s2 in modifiers[::-1]:
+                shortcut = s2 + shortcut
+            self._line.setText(shortcut)
+            self.onEdit()
         self._line.setFocus()
 
     def onEdit(self):
