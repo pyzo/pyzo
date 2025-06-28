@@ -2004,7 +2004,7 @@ class RunMenu(Menu):
         self.addItem(
             translate(
                 "menu",
-                "Run file as script ::: Restart and run the current file as a script.",
+                "Run file as script ::: Save and run the current file as a script in a restarted shell.",
             ),
             icons.run_file_script,
             self._runFile,
@@ -2013,7 +2013,7 @@ class RunMenu(Menu):
         self.addItem(
             translate(
                 "menu",
-                "Run main file as script ::: Restart and run the main file as a script.",
+                "Run main file as script ::: Save and run the main file as a script in a restarted shell.",
             ),
             icons.run_mainfile_script,
             self._runFile,
@@ -2374,31 +2374,25 @@ class RunMenu(Menu):
             )
 
     def _runScript(self, editor, shell):
-        # Obtain fname and try running
-        err = ""
-        if editor._filename:
-            saveOk = pyzo.editors.saveFile(editor)  # Always try to save
-            if saveOk or not editor.document().isModified():
-                self._showWhatToExecute(editor)
-                if shell._startup_info.get("ipython", "") == "yes":
-                    # If we have a ipython shell we use %run -i instead
-                    # This works better when python autoreload is used
-                    d = os.path.normpath(
-                        os.path.normcase(os.path.dirname(editor._filename))
-                    )
-                    shell._ctrl_command.send('%cd "{}"\n'.format(d))
-                    shell._ctrl_command.send('%run -i "{}"\n'.format(editor._filename))
-                else:
-                    shell.restart(editor._filename)
+        saveOk = pyzo.editors.saveFile(editor)
+        # We also check if the document is not modified after saving just in case the
+        # file was modified outside Pyzo and the user then decided to cancel saving when asked.
+        if saveOk and not editor.document().isModified():
+            self._showWhatToExecute(editor)
+            if shell._startup_info.get("ipython", "") == "yes":
+                # If we have an ipython shell we use %run -i instead
+                # This works better when python autoreload is used
+                d = os.path.normpath(
+                    os.path.normcase(os.path.dirname(editor._filename))
+                )
+                shell._ctrl_command.send('%cd "{}"\n'.format(d))
+                shell._ctrl_command.send('%run -i "{}"\n'.format(editor._filename))
             else:
-                err = translate("menu", "Could not save the file.")
+                shell.restart(editor._filename)
         else:
-            err = translate("menu", "Can only run scripts that are in the file system.")
-        # If not success, notify
-        if err:
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run script."))
-            m.setText(err)
+            m.setText(translate("menu", "Could not save the file."))
             m.setIcon(m.Icon.Warning)
             m.exec()
 
