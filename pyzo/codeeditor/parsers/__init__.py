@@ -24,6 +24,8 @@ Making a parser requires these things:
 import sys
 
 from dataclasses import dataclass
+from collections import defaultdict
+import re
 
 from . import tokens
 
@@ -158,6 +160,7 @@ class Parser:
         else:
             return False
 
+
 # Utils for regex parser
 def bygroups(*args):
     return tuple(args)
@@ -192,19 +195,62 @@ def default(next_state):
 
 
 class RegexParser(Parser):
-    # Must be defined in class inherited from this one. Default is a
-    # TextToken per line.
-    states = {}
+    # states must be defined in class inheriting from this one. Default
+    # is a TextToken per line.
+    # Must be ordered. Since
+    states = {"root": ("$.*\n", None)}
 
-    def parseLine(self, line, previousState=["root"]):
+    def __init__(self):
+        self.process_states()
 
+    def _stack_from_blockstate(self, block_state_val):
+        """Get the parser stack from a given block_state's value. This is
+        basically just a number in base N, where N is the number of
+        states of the parser.
+
+        For instance, if a parser has 2 states ("root" and "other") and
+        the block state is 5 = 0b101, then the stack is:
+        stack = [
+            "root", # Always starts with root
+            "other", # Since 5 = 0b101
+            "root", # Since 5 = Ob101
+            "other, # Since 5 = Ob101
+        ]
+        """
+        if block_state_val == -1:
+            return ["root"]
+
+        N = len(self.states)
+        stack = ["root"]  # stack is always root first
+
+        while block_state_val != 0:
+            n = block_state_val % N
+            stack.append(self._state_names[n])
+            block_state_val //= N
+        return stack
+
+    def _blockstate_from_stack(self, stack):
+        """See _stack_from_blockstate's docstring"""
+
+        N = len(self.states)
+        block_state_val = 0
+        # Ignore first element since it is "root"
+        for state in reversed(stack[1:]):
+            n = self._state_names.index(state)
+            block_state_val = block_state_val * N + n
+        return BlockState(block_state_val)
+
+    def parseLine(self, line, previousState):
         # Initialize
         pos = 0
-        stack = list(previousState) # ensure stack is a list
-        tokens = []
+        stack = self._stack_from_blockstate(previousState)
+        toks = []
 
         # While the end of the line isn't reached:
         while pos < len(line):
+
+            if stack[-1].startswith("string") and line[pos:pos+3] == '"""':
+                pass
 
             # Find a match in the possible matches
             match, token_type, next_state = self.find_match(line, stack[-1], pos)
@@ -217,18 +263,18 @@ class RegexParser(Parser):
             else:
                 # If a token exists for the match,
                 if token_type is not None:
-
                     # Process the case where multiple groups are in the
                     # regex:
+
                     if isinstance(token_type, tuple):
                         for i, ttype in enumerate(token_type):
                             if match.group(i + 1) != "":
-                                tokens.append(ttype(line, pos, pos+match.end(i+1)))
+                                toks.append(ttype(line, pos+match.start(i+1), pos + match.end(i + 1)))
 
                     # Only one group:
                     else:
                         if match.group(0) != "":
-                            tokens.append(ttype(line, pos, pos+match.end(0)))
+                            toks.append(token_type(line, pos, pos + match.end(0)))
 
                 # In any case, go to the next state if provided
                 if next_state is not None:
@@ -244,7 +290,7 @@ class RegexParser(Parser):
                 # Go the the end of the match, since everything until
                 # there is processed.
                 pos += match.end(0)
-        return (tokens, stack)
+        return toks + [self._blockstate_from_stack(stack)]
 
     def find_match(self, line, current_state, pos):
         """Return first match in current state as well as the
@@ -278,17 +324,13 @@ class RegexParser(Parser):
                 # Pad states to len 3 with None
                 else:
                     if len(case) == 1:
-                        temp[state].append(
-                            (re.compile(case[0], flags=re.MULTILINE), None, None)
-                        )
+                        temp[state].append((re.compile(case[0]), None, None))
                     elif len(case) == 2:
-                        temp[state].append(
-                            (re.compile(case[0], flags=re.MULTILINE), case[1], None)
-                        )
+                        temp[state].append((re.compile(case[0]), case[1], None))
                     elif len(case) == 3:
                         temp[state].append(
                             (
-                                re.compile(case[0], flags=re.MULTILINE),
+                                re.compile(case[0]),
                                 case[1],
                                 case[2],
                             )
@@ -300,6 +342,10 @@ class RegexParser(Parser):
         self.processed_states = {}
         for state in temp:
             self.processed_states[state] = process_includes(state, temp)
+
+        # keep a list of state names in memory
+        self._state_names = list(self.processed_states)
+
 
 def process_includes(state, d):
     L = []
