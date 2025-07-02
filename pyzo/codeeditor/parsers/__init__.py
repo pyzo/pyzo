@@ -249,9 +249,6 @@ class RegexParser(Parser):
         # While the end of the line isn't reached:
         while pos < len(line):
 
-            if stack[-1].startswith("string") and line[pos:pos+3] == '"""':
-                pass
-
             # Find a match in the possible matches
             match, token_type, next_state = self.find_match(line, stack[-1], pos)
 
@@ -269,7 +266,13 @@ class RegexParser(Parser):
                     if isinstance(token_type, tuple):
                         for i, ttype in enumerate(token_type):
                             if match.group(i + 1) != "":
-                                toks.append(ttype(line, pos+match.start(i+1), pos + match.end(i + 1)))
+                                toks.append(
+                                    ttype(
+                                        line,
+                                        pos + match.start(i + 1),
+                                        pos + match.end(i + 1),
+                                    )
+                                )
 
                     # Only one group:
                     else:
@@ -289,7 +292,25 @@ class RegexParser(Parser):
 
                 # Go the the end of the match, since everything until
                 # there is processed.
+                # Increment pos at minimum
                 pos += match.end(0)
+
+
+        # Process empty line: nothing to tokenize, but stack might change
+        if line == "":
+            _, _, next_state = self.find_match(line, stack[-1], pos)
+
+            if next_state is not None:
+                if next_state == "#pop":
+                    # Remove last state from the stack
+                    stack.pop()
+                elif next_state == "#push":
+                    # Add current state to the stack again
+                    stack.append(stack[-1])
+                else:
+                    stack.append(next_state)
+
+
         return toks + [self._blockstate_from_stack(stack)]
 
     def find_match(self, line, current_state, pos):

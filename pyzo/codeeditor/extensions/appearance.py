@@ -178,8 +178,9 @@ class _ParenIterator:
                 self.cur_pos = 0
             else:
                 self.cur_pos = len(self.cur_tokens) - 1
+
         return (
-            self.cur_tokens[self.cur_pos]._style,
+            str(self.cur_tokens[self.cur_pos]),
             self.cur_block.position() + self.cur_tokens[self.cur_pos].end,
         )
 
