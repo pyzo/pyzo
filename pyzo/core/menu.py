@@ -2004,7 +2004,7 @@ class RunMenu(Menu):
         self.addItem(
             translate(
                 "menu",
-                "Run file as script ::: Restart and run the current file as a script.",
+                "Run file as script ::: Save and run the current file as a script in a restarted shell.",
             ),
             icons.run_file_script,
             self._runFile,
@@ -2013,7 +2013,7 @@ class RunMenu(Menu):
         self.addItem(
             translate(
                 "menu",
-                "Run main file as script ::: Restart and run the main file as a script.",
+                "Run main file as script ::: Save and run the main file as a script in a restarted shell.",
             ),
             icons.run_mainfile_script,
             self._runFile,
@@ -2374,31 +2374,25 @@ class RunMenu(Menu):
             )
 
     def _runScript(self, editor, shell):
-        # Obtain fname and try running
-        err = ""
-        if editor._filename:
-            saveOk = pyzo.editors.saveFile(editor)  # Always try to save
-            if saveOk or not editor.document().isModified():
-                self._showWhatToExecute(editor)
-                if shell._startup_info.get("ipython", "") == "yes":
-                    # If we have a ipython shell we use %run -i instead
-                    # This works better when python autoreload is used
-                    d = os.path.normpath(
-                        os.path.normcase(os.path.dirname(editor._filename))
-                    )
-                    shell._ctrl_command.send('%cd "{}"\n'.format(d))
-                    shell._ctrl_command.send('%run -i "{}"\n'.format(editor._filename))
-                else:
-                    shell.restart(editor._filename)
+        saveOk = pyzo.editors.saveFile(editor)
+        # We also check if the document is not modified after saving just in case the
+        # file was modified outside Pyzo and the user then decided to cancel saving when asked.
+        if saveOk and not editor.document().isModified():
+            self._showWhatToExecute(editor)
+            if shell._startup_info.get("ipython", "") == "yes":
+                # If we have an ipython shell we use %run -i instead
+                # This works better when python autoreload is used
+                d = os.path.normpath(
+                    os.path.normcase(os.path.dirname(editor._filename))
+                )
+                shell._ctrl_command.send('%cd "{}"\n'.format(d))
+                shell._ctrl_command.send('%run -i "{}"\n'.format(editor._filename))
             else:
-                err = translate("menu", "Could not save the file.")
+                shell.restart(editor._filename)
         else:
-            err = translate("menu", "Can only run scripts that are in the file system.")
-        # If not success, notify
-        if err:
             m = QtWidgets.QMessageBox(self)
             m.setWindowTitle(translate("menu dialog", "Could not run script."))
-            m.setText(err)
+            m.setText(translate("menu", "Could not save the file."))
             m.setIcon(m.Icon.Warning)
             m.exec()
 
@@ -3020,39 +3014,52 @@ class KeyMapEditDialog(QtWidgets.QDialog):
     def __init__(self, *args):
         super().__init__(*args)
 
-        # set title
         self.setWindowTitle(translate("menu dialog", "Edit shortcut mapping"))
+        self.setMinimumSize(400, 150)
 
-        # set size
-        size = 400, 140
-        offset = 5
-        size2 = size[0], size[1] + offset
-        self.resize(*size2)
-        self.setMaximumSize(*size2)
-        self.setMinimumSize(*size2)
-
+        vlayout = QtWidgets.QVBoxLayout()
+        self.setLayout(vlayout)
         self._label = QtWidgets.QLabel("", self)
-        self._label.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft
-        )
-        self._label.resize(size[0] - 20, 100)
-        self._label.move(10, 2)
+        vlayout.addWidget(self._label)
+
+        hlayout = QtWidgets.QHBoxLayout()
+        vlayout.addLayout(hlayout)
 
         self._line = KeyMapLineEdit("", self)
-        self._line.resize(size[0] - 80, 20)
-        self._line.move(10, 90)
+        hlayout.addWidget(self._line)
 
         self._clear = QtWidgets.QPushButton("Clear", self)
-        self._clear.resize(50, 20)
-        self._clear.move(size[0] - 60, 90)
+        hlayout.addWidget(self._clear)
+
+        hlayout2 = QtWidgets.QHBoxLayout()
+        vlayout.addLayout(hlayout2)
+
+        if sys.platform == "linux":
+            # On a US keyboard layout, pressing Shift+2 yields character @.
+            # When recording the key combination Ctrl+Shift+2 we get Ctrl+Shift+@ instead.
+            # But this shortcut does not work. It must be either Ctrl+Shift+2 or Ctrl+@.
+            # There is no reasonable way in Linux to convert '@' back to '2'.
+            # Therefore we let the user record the key combination Ctrl+2 instead (without
+            # the pressed Shift key) and add the Shift modifier manually by clicking the
+            # "Shift+" button.
+            self._addShift = QtWidgets.QPushButton("Shift+", self)
+            self._addShift.setToolTip(
+                "Some shortcuts such as Ctrl+Shift+2 cannot be detected automatically "
+                "because they would appear as Ctrl+Shift+@ on a US keyboard, for example."
+                "\n"
+                "As a workaround, press the shortcut without the Shift key and click this "
+                "button afterwards to add the Shift."
+            )
+            hlayout2.addWidget(self._addShift)
+            self._addShift.clicked.connect(self.onAddShift)
+
+        hlayout2.addStretch()
 
         self._apply = QtWidgets.QPushButton("Apply", self)
-        self._apply.resize(50, 20)
-        self._apply.move(size[0] - 120, 120)
+        hlayout2.addWidget(self._apply)
 
         self._cancel = QtWidgets.QPushButton("Cancel", self)
-        self._cancel.resize(50, 20)
-        self._cancel.move(size[0] - 60, 120)
+        hlayout2.addWidget(self._cancel)
 
         # callbacks
         self._line.textUpdate.connect(self.onEdit)
@@ -3064,6 +3071,11 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         self._fullname = ""
         self._intro = ""
         self._isprimary = True
+
+    def _updateLabel(self, warning=None):
+        if warning is None:
+            warning = "\n"
+        self._label.setText(self._intro + "\n\n" + warning)
 
     def setFullName(self, fullname, isprimary):
         """To be called right after initialization to let the user
@@ -3077,7 +3089,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         tmp = fullname.replace("__", " -> ").replace("_", " ")
         primSec = ["secondary", "primary"][int(isprimary)]
         self._intro = "Set the {} shortcut for:\n{}".format(primSec, tmp)
-        self._label.setText(self._intro)
+        self._updateLabel()
         # set initial value
         if fullname in pyzo.config.shortcuts2:
             current = pyzo.config.shortcuts2[fullname]
@@ -3090,15 +3102,37 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         self._line.clear()
         self._line.setFocus()
 
+    def onAddShift(self):
+        shortcut = self._line.text()
+        if shortcut:
+            # modifier key order in shortcut texts is: Meta+Ctrl+Shift+Alt+
+            # We want to add the "Shift+" at the correct position.
+            modifiers = []
+            for s in ["Meta+", "Ctrl+", "Shift+"]:
+                s2 = translateShortcutToOSNames(s)
+                if shortcut.startswith(s2):
+                    shortcut = shortcut[len(s2) :]
+                    modifiers.append(s2)
+                elif s == "Shift+":
+                    # add the "Shift+" if it was not there before
+                    modifiers.append(s2)
+
+            for s2 in modifiers[::-1]:
+                shortcut = s2 + shortcut
+            self._line.setText(shortcut)
+            self.onEdit()
+        self._line.setFocus()
+
     def onEdit(self):
         """Test if already in use."""
 
         # init
         shortcut = self._line.text()
         if not shortcut:
-            self._label.setText(self._intro)
+            self._updateLabel()
             return
 
+        warning = None
         for key in pyzo.config.shortcuts2:
             # get shortcut and test whether it corresponds with what's pressed
             shortcuts = getShortcut(key)
@@ -3109,12 +3143,11 @@ class KeyMapEditDialog(QtWidgets.QDialog):
                 primSec = "secondary"
             # if a correspondence, let the user know
             if primSec and key != self._fullname:
-                tmp = "Warning: shortcut already in use for:\n"
-                tmp += key.replace("__", " -> ").replace("_", " ")
-                self._label.setText(self._intro + "\n\n" + tmp + "\n")
+                warning = "Warning: shortcut already in use for:\n"
+                warning += key.replace("__", " -> ").replace("_", " ")
                 break
-        else:
-            self._label.setText(self._intro)
+
+        self._updateLabel(warning)
 
     def onAccept(self):
         shortcut = self._line.text()
