@@ -23,7 +23,6 @@ Making a parser requires these things:
 
 import sys
 
-from dataclasses import dataclass
 from collections import defaultdict
 import re
 
@@ -167,11 +166,6 @@ def bygroups(*args):
 
 
 class from_list:
-    word_list: list[str]
-    ttype: tokens.Token
-    prefix: str = ""
-    suffix: str = ""
-
     def __init__(self, word_list, ttype, prefix="", suffix=""):
         self.word_list = word_list
         self.ttype = ttype
@@ -185,9 +179,9 @@ class from_list:
         ]
 
 
-@dataclass
 class include:
-    state_name: str
+    def __init__(self, state_name):
+        self.state_name = state_name
 
 
 def combination(*states):
