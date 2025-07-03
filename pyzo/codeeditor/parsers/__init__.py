@@ -166,16 +166,22 @@ def bygroups(*args):
     return tuple(args)
 
 
-@dataclass
 class from_list:
-    list: list[str]
+    word_list: list[str]
     ttype: tokens.Token
     prefix: str = ""
     suffix: str = ""
 
+    def __init__(self, word_list, ttype, prefix="", suffix=""):
+        self.word_list = word_list
+        self.ttype = ttype
+        self.prefix = prefix
+        self.suffix = suffix
+
     def to_pattern(self):
         return [
-            (self.prefix + word + self.suffix, self.ttype, None) for word in self.list
+            (self.prefix + word + self.suffix, self.ttype, None)
+            for word in self.word_list
         ]
 
 
