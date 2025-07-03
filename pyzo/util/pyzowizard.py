@@ -366,9 +366,10 @@ class RuncodeWizardPage2(BasePyzoWizardPage):
         translate(
             "wizard",
             """You can run the current file or the main file normally, or as a script.
-        When run as script, the shell is restarted to provide a clean
-        environment. The shell is also initialized differently so that it
-        closely resembles a normal script execution.""",
+        When run as script, the file is saved first. Then the shell is restarted to provide
+        a clean environment before executing the file.
+        The shell is also initialized differently so that it closely resembles a normal
+        script execution.""",
         ),
         translate(
             "wizard",

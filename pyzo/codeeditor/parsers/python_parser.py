@@ -458,7 +458,6 @@ class CellCommentToken(CommentToken):
 
     defaultStyle = "bold:yes, underline:yes"
 
-
 stringLiteralPrefixes = "u|r|b|f|t|rb|br|rf|fr|tr|rt".split("|")
 stringLiteralPrefixesNoF = [
     p for p in stringLiteralPrefixes if ("f" not in p and "t" not in p)
