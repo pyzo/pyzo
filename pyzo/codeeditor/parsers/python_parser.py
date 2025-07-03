@@ -483,7 +483,7 @@ class Python3Parser(RegexParser):
     states = {
         "root": [
             # for speed: immediate match on empty lines
-            (r"\Z", WhitespaceToken),
+            (r"\Z",),
             (r"\A#!.+$", CommentToken),  # Shebang
             (r"^[ \t]*##.*$", CellCommentToken),  # Comment cell
             (
@@ -495,8 +495,8 @@ class Python3Parser(RegexParser):
                 bygroups(KeywordToken, WhitespaceToken, ClassNameToken),
             ),
             (
-                rf"(@)({uni_name})",
-                bygroups(NonIdentifierToken, IdentifierToken),
+                rf"(@)([ \t]+)({uni_name})",
+                bygroups(NonIdentifierToken, WhitespaceToken, IdentifierToken),
             ),  # Decorator
             include("expression"),
         ],
@@ -538,10 +538,10 @@ class Python3Parser(RegexParser):
             # Punctuation
             (re.escape("..."), NonIdentifierToken),  # Elipsis
             (rf"(\.)({uni_name})", bygroups(NonIdentifierToken, IdentifierToken)),
-            (r"[;:,\\\.]", NonIdentifierToken), # Random symbols
+            (r"[;:,\\\.]", NonIdentifierToken),  # Random symbols
             (r"[ \t]+", WhitespaceToken),
             # Invalid specifiers
-            (r".+?", IllegalToken),  # Default in case nothing else matches
+            (r".+?\b", IllegalToken),  # Default in case nothing else matches
         ],
         "todo-comment-inner": [
             (r"[ \t]*#.*", TodoCommentToken),
@@ -642,8 +642,8 @@ class Python3Parser(RegexParser):
         "string-double-oneline": [
             # Same as string-single-oneline
             (r'.*?"', StringToken, "#pop"),
-            (r'.*?\\', StringToken),
-            (r'.*?\Z', UnterminatedStringToken, "#pop"),
+            (r".*?\\", StringToken),
+            (r".*?\Z", UnterminatedStringToken, "#pop"),
         ],
         "expression-fstring": [
             (r"![ars]", NonIdentifierToken),  # !r !s or !a
@@ -679,8 +679,6 @@ class Python3Parser(RegexParser):
             (r"'((?!').)*?\{", FStringToken, "expression-fstring"),
             # In case of multiple formatting cells
             (r"\}((?!').)*?\{", FStringToken, "expression-fstring"),
-            # Search for begining and end of string
-            (r"'.*?'", FStringToken, "#pop"),
             # Search for end of string
             (r".*?'", FStringToken, "#pop"),
             # Search for line continuation
@@ -690,369 +688,13 @@ class Python3Parser(RegexParser):
         ],
         "fstring-double-oneline": [
             # Same as fstring-single-oneline
-            (r'"((?!").)*?\{', FStringToken, "expression-fstring"),
+            (r'((?!").)*?\{', FStringToken, "expression-fstring"),
             (r'\}((?!").)*?\{', FStringToken, "expression-fstring"),
             (r'.*?"', FStringToken, "#pop"),
             (r".*?\\[ \t]*\Z", FStringToken),
-            (r".*?\Z", FStringToken, "#pop"),
+            (r".*?\Z", UnterminatedStringToken, "#pop"),
         ],
     }
-
-
-# class PythonParser(Parser):
-#     """Parser for Python in general."""
-#
-#     _extensions = []
-#     _shebangKeywords = []
-#     # The list of keywords is overridden by the Python2/3 specific parsers
-#     _keywords = set()
-#     # The list of builtins and instances is overridden by the Python2/3 specific parsers
-#     _builtins = set()
-#     _instance = set()
-#
-#     def _identifierState(self, identifier=None):
-#         """Given an identifier returns the identifier state:
-#         3 means the current identifier can be a function.
-#         4 means the current identifier can be a class.
-#         0 otherwise.
-#
-#         This method enables storing the state during the line,
-#         and helps the Cython parser to reuse the Python parser's code.
-#         """
-#         if identifier is None:
-#             # Explicit get/reset
-#             try:
-#                 state = self._idsState
-#             except Exception:
-#                 state = 0
-#             self._idsState = 0
-#             return state
-#         elif identifier == "def":
-#             # Set function state
-#             self._idsState = 3
-#             return 3
-#         elif identifier == "class":
-#             # Set class state
-#             self._idsState = 4
-#             return 4
-#         else:
-#             # This one can be func or class, next one can't
-#             state = self._idsState
-#             self._idsState = 0
-#             return state
-#
-#     def parseLine(self, line, previousState=0):
-#         """Parse a line of Python code, returning a list of tokens.
-#         previousState is the state of the previous block, and is used
-#         to handle line continuation and multiline strings.
-#         """
-#
-#         # Init
-#         pos = 0  # Position following the previous match
-#
-#         tokensForLine = []
-#
-#         # identifierState and previousState values:
-#         # 0: nothing special
-#         # 1: multiline comment single qoutes
-#         # 2: multiline comment double quotes
-#         # 3: a def keyword
-#         # 4: a class keyword
-#         # 5: a single quote string literal (non-multiline) line-continued by a backslash
-#         # 6: a double quote string literal (non-multiline) line-continued by a backslash
-#
-#         # Handle line continuation after def or class
-#         # identifierState is 3 or 4 if the previous identifier was 3 or 4
-#         if previousState == 3 or previousState == 4:
-#             self._identifierState({3: "def", 4: "class"}[previousState])
-#         else:
-#             self._identifierState(None)
-#
-#         if previousState in [1, 2, 5, 6]:
-#             if previousState <= 2:
-#                 token = MultilineStringToken(line, 0, 0)
-#             else:
-#                 token = StringToken(line, 0, 0)
-#             token._style = ["", "'''", '"""', None, None, "'", '"'][previousState]
-#             tokens = self._findEndOfString(line, token)
-#             # Process tokens
-#             for token in tokens:
-#                 tokensForLine.append(token)
-#                 if isinstance(token, BlockState):
-#                     return tokensForLine
-#             pos = token.end
-#
-#         # Enter the main loop that iterates over the tokens and skips strings
-#         while True:
-#             # Get next tokens
-#             tokens = self._findNextToken(line, pos)
-#             if not tokens:
-#                 self._promoteMatchCaseSoftKeywords(tokensForLine)
-#                 return tokensForLine
-#             elif isinstance(tokens[-1], StringToken):
-#                 moreTokens = self._findEndOfString(line, tokens[-1])
-#                 tokens = tokens[:-1] + moreTokens
-#
-#             # Process tokens
-#             for token in tokens:
-#                 tokensForLine.append(token)
-#                 if isinstance(token, BlockState):
-#                     return tokensForLine
-#             pos = token.end
-#
-#     @staticmethod
-#     def _promoteMatchCaseSoftKeywords(tokens):
-#         """promotes identifier tokens "match" and "case" to keyword tokens if appropriate
-#
-#         list "tokens" contains the tokens of the current line
-#
-#         A simple algorithm will be used that only knows about the tokens of the current
-#         line, but not about the lines before or after.
-#         If "match" or "case" is a keyword, its token in list "tokens" will be replaced by
-#         a keyword token.
-#
-#         "match" or "case" will be considered a keyword if one of the two patterns is found:
-#
-#         1.
-#             optional whitespace
-#             identifier token "match" or "case"
-#             all parenthesis like tokens ([{}]) must be properly closed
-#             colon (with optional whitespace)
-#             optional comment
-#
-#         2.
-#             optional whitespace
-#             identifier token "match" or "case"
-#             parenthesis like tokens ([{}]) can be still open on the right side,
-#                 assuming that they will be closed in the following lines
-#             optional comment
-#
-#
-#         single line examples where match or case is promoted to a keyword:
-#             match x:  # random comment
-#             match (x):
-#             match(
-#             case []:
-#             case {"x": x,
-#             case {"x": x,  # another comment
-#             case (0, 0):
-#
-#         single line examples where match or case is NOT promoted to a keyword:
-#             match x
-#             case [(]:
-#             case {"x": x,}
-#             case {"x": x,)
-#             case (0, 0)
-#
-#         False positives, i.e. promoting an identifier to a keyword erroneously, are very
-#         unlikely. One example is the line "match(" because it could be either followed by
-#         line "x)" and make it a normal function call, or it could be followed by line
-#         "x):" and make it a match statement.
-#         """
-#
-#         indMatchCase = None
-#         closingParens = {"(": ")", "[": "]", "{": "}"}
-#         parensStack = []
-#         for i, token in enumerate(tokens):
-#             if i == 0 and isinstance(token, NonIdentifierToken):
-#                 if str(token).isspace():
-#                     continue  # ignore whitespace before match or case identifiers
-#                 else:
-#                     return
-#             elif indMatchCase is None:
-#                 if isinstance(token, IdentifierToken) and str(token) in (
-#                     "match",
-#                     "case",
-#                 ):
-#                     indMatchCase = i
-#                 else:
-#                     return
-#             elif isinstance(token, OpenParenToken):
-#                 parensStack.append(closingParens[str(token)])
-#             elif isinstance(token, CloseParenToken):
-#                 if len(parensStack) > 0 and parensStack[-1] == str(token):
-#                     parensStack.pop()
-#                 else:
-#                     return  # invalid parentheses (or square brackets or curly brackets)
-#
-#         if indMatchCase is None:
-#             return
-#         i2 = -1  # index of the last token, not counting comment tokens
-#         if isinstance(tokens[i2], CommentToken):
-#             i2 = -2  # ignore the comment token at the end
-#             if len(tokens) < 3:
-#                 return
-#
-#         if len(parensStack) > 0:
-#             pass  # probably a match or case keyword, depending on the lines that follow
-#         elif (
-#             isinstance(tokens[i2], NonIdentifierToken)
-#             and str(tokens[i2]).strip() == ":"
-#         ):
-#             pass  # very likely a match or case keyword
-#         else:
-#             return  # not a match or case keyword
-#
-#         t = tokens[indMatchCase]
-#         tokens[indMatchCase] = KeywordToken(t.line, t.start, t.end)
-#
-#     def _findEndOfString(self, line, token):
-#         """Find the end of a string. Returns (token, endToken). The first
-#         is the given token or a replacement (UnterminatedStringToken).
-#         The latter is None, or the BlockState. If given, the line is
-#         finished.
-#
-#         """
-#
-#         # Set state
-#         self._identifierState(None)
-#
-#         # Find the matching end in the rest of the line
-#         # Do not use the start parameter of search, since ^ does not work then
-#         style = token._style
-#         endMatch = endProgs[style].search(line[token.end :])
-#
-#         if endMatch:
-#             # The string does end on this line
-#             tokenArgs = line, token.start, token.end + endMatch.end()
-#             if style in ['"""', "'''"]:
-#                 token = MultilineStringToken(*tokenArgs)
-#             else:
-#                 token.end = token.end + endMatch.end()
-#             return [token]
-#         else:
-#             # The string does not end on this line
-#             tokenArgs = line, token.start, token.end + len(line)
-#             if style == "'''":
-#                 return [MultilineStringToken(*tokenArgs), BlockState(1)]
-#             elif style == '"""':
-#                 return [MultilineStringToken(*tokenArgs), BlockState(2)]
-#             else:
-#                 lineContMatch = stringLineContinuation.search(line[token.end :])
-#                 if lineContMatch:
-#                     return [
-#                         StringToken(*tokenArgs),
-#                         BlockState(5 if style == "'" else 6),
-#                     ]
-#                 return [UnterminatedStringToken(*tokenArgs)]
-#
-#     def _findNextToken(self, line, pos):
-#         """Returns a token or None if no new tokens can be found."""
-#
-#         # Init tokens, if pos too large, we are done
-#         if pos > len(line):
-#             return None
-#         tokens = []
-#
-#         # Find the start of the next string or comment
-#         match = tokenProg.search(line, pos)
-#
-#         # Process the Non-Identifier between pos and match.start()
-#         # or end of line
-#         nonIdentifierEnd = match.start() if match else len(line)
-#
-#         # Return the Non-Identifier token if non-null
-#         # todo: here it goes wrong (allow returning more than one token?)
-#         token = NonIdentifierToken(line, pos, nonIdentifierEnd)
-#         strippedNonIdentifier = str(token).strip()
-#         if token:
-#             tokens.append(token)
-#
-#         # Do checks for line continuation and identifierState
-#         # Is the last non-whitespace a line-continuation character?
-#         if strippedNonIdentifier.endswith("\\"):
-#             lineContinuation = True
-#             # If there are non-whitespace characters after def or class,
-#             # cancel the identifierState
-#             if strippedNonIdentifier != "\\":
-#                 self._identifierState(None)
-#         else:
-#             lineContinuation = False
-#             # If there are non-whitespace characters after def or class,
-#             # cancel the identifierState
-#             if strippedNonIdentifier != "":
-#                 self._identifierState(None)
-#
-#         # If no match, we are done processing the line
-#         if not match:
-#             if lineContinuation:
-#                 tokens.append(BlockState(self._identifierState()))
-#             return tokens
-#
-#         # The rest is to establish what identifier we are dealing with
-#
-#         # Comment
-#         if match.group() == "#":
-#             matchStart = match.start()
-#             if not line[:matchStart].strip() and (
-#                 line[matchStart:].startswith(("##", "#%%", "# %%"))
-#             ):
-#                 tokens.append(CellCommentToken(line, matchStart, len(line)))
-#             elif self._isTodoItem(line[matchStart + 1 :]):
-#                 tokens.append(TodoCommentToken(line, matchStart, len(line)))
-#             else:
-#                 tokens.append(CommentToken(line, matchStart, len(line)))
-#             if lineContinuation:
-#                 tokens.append(BlockState(self._identifierState()))
-#             return tokens
-#
-#         # If there are non-whitespace characters after def or class,
-#         # cancel the identifierState (this time, also if there is just a \
-#         # since apparently it was not on the end of a line)
-#         if strippedNonIdentifier != "":
-#             self._identifierState(None)
-#
-#         # Identifier ("a word or number") Find out whether it is a key word
-#         if match.group(4) is not None:
-#             identifier = match.group(4)
-#             tokenArgs = line, match.start(), match.end()
-#
-#             # Set identifier state
-#             identifierState = self._identifierState(identifier)
-#
-#             if identifier in self._keywords:
-#                 tokens.append(KeywordToken(*tokenArgs))
-#             elif identifier in self._builtins and (
-#                 "." + identifier not in line and "def " + identifier not in line
-#             ):
-#                 tokens.append(BuiltinsToken(*tokenArgs))
-#             elif identifier in self._instance:
-#                 tokens.append(InstanceToken(*tokenArgs))
-#             elif identifier[0] in "0123456789":
-#                 self._identifierState(None)
-#                 tokens.append(NumberToken(*tokenArgs))
-#             else:
-#                 if identifierState == 3 and line[match.end() :].lstrip().startswith(
-#                     "("
-#                 ):
-#                     tokens.append(FunctionNameToken(*tokenArgs))
-#                 elif identifierState == 4:
-#                     tokens.append(ClassNameToken(*tokenArgs))
-#                 else:
-#                     tokens.append(IdentifierToken(*tokenArgs))
-#
-#         elif match.group(3) is not None:
-#             # We have matched a string-start
-#             # Find the string style ( ' or " or ''' or """)
-#             token = StringToken(line, match.start(), match.end())
-#             token._style = match.group(3)  # The style is in match group 3
-#             tokens.append(token)
-#         elif match.group(5) is not None:
-#             token = OpenParenToken(line, match.start(), match.end())
-#             token._style = match.group(5)
-#             tokens.append(token)
-#         elif match.group(6) is not None:
-#             token = CloseParenToken(line, match.start(), match.end())
-#             token._style = match.group(6)
-#             tokens.append(token)
-#         elif match.group(7) is not None:
-#             token = IllegalToken(line, match.start(), match.end())
-#             token._style = match.group(7)
-#             tokens.append(token)
-#         # Done
-#         return tokens
-#
-#
 
 
 class PythonParser(Python3Parser):
@@ -1076,16 +718,14 @@ class Python2Parser(RegexParser):
     _builtins = python2Builtins
     _instance = python2Instance
 
-    # Same as for python3, but use proper builtins / keywords and remove
-    # fstring parts
+    # Mostly the same as for python3, but uses specified builtins /
+    # keywords and remove fstring  and match/case parts
 
     states = {
         "root": [
             # for speed: immediate match on empty lines
-            (r"\Z", WhitespaceToken),
-            (r"\A#!.+$", CommentToken),  # Hashbang
-            (r"#[ \t]*(?i:todo|2do|fixme).*$", TodoCommentToken),
-            (r"#.*$", CommentToken),  # Simple comment
+            (r"\Z",),
+            (r"\A#!.+$", CommentToken),  # Shebang
             (r"^[ \t]*##.*$", CellCommentToken),  # Comment cell
             (
                 rf"(def)([ \t]+)({uni_name})",
@@ -1096,12 +736,15 @@ class Python2Parser(RegexParser):
                 bygroups(KeywordToken, WhitespaceToken, ClassNameToken),
             ),
             (
-                rf"(@)({uni_name})",
-                bygroups(NonIdentifierToken, IdentifierToken),
+                rf"(@)([ \t]+)({uni_name})",
+                bygroups(NonIdentifierToken, WhitespaceToken, IdentifierToken),
             ),  # Decorator
             include("expression"),
         ],
         "expression": [
+            # Comment
+            (r"#[ \t]*(?i:todo|2do|fixme).*$", TodoCommentToken, "todo-comment-inner"),
+            (r"#.*$", CommentToken),  # Simple comment
             # Parenthesis
             (r"[\(\{\[]", OpenParenToken),
             (r"[\)\}\]]", CloseParenToken),
@@ -1134,10 +777,14 @@ class Python2Parser(RegexParser):
             # Punctuation
             (re.escape("..."), NonIdentifierToken),  # Elipsis
             (rf"(\.)({uni_name})", bygroups(NonIdentifierToken, IdentifierToken)),
-            (r"[;\.:,\\]", NonIdentifierToken),
+            (r"[;:,\\\.]", NonIdentifierToken),  # Random symbols
             (r"[ \t]+", WhitespaceToken),
             # Invalid specifiers
-            (r".+?", IllegalToken),  # Default in case nothing else matches
+            (r".+?\b", IllegalToken),  # Default in case nothing else matches
+        ],
+        "todo-comment-inner": [
+            (r"[ \t]*#.*", TodoCommentToken),
+            default("#pop"),
         ],
         "string": [
             include("string-multiline-dispatcher"),
@@ -1145,63 +792,51 @@ class Python2Parser(RegexParser):
         ],
         "string-multiline-dispatcher": [
             (
-                r"([uUrRbB]{,2})(?=''')",
-                NonIdentifierToken,
+                rf"({'|'.join(stringLiteralPrefixesNoF)})?(''')",
+                bygroups(NonIdentifierToken, MultilineStringToken),
                 "string-single-multiline",
             ),  # String literal
             (
-                r'([uUrRbB]{,2})(?=""")',
-                NonIdentifierToken,
+                rf'({"|".join(stringLiteralPrefixesNoF)})?(""")',
+                bygroups(NonIdentifierToken, MultilineStringToken),
                 "string-double-multiline",
             ),  # string literal
         ],
         "string-oneline-dispatcher": [
             (
-                r"([uUrRbB]{,2})(?=')",
-                NonIdentifierToken,
+                rf"({'|'.join(stringLiteralPrefixesNoF)})?(')",
+                bygroups(NonIdentifierToken, StringToken),
                 "string-single-oneline",
             ),  # String literal
             (
-                r'([uUrRbB]{,2})(?=")',
-                NonIdentifierToken,
+                rf'({"|".join(stringLiteralPrefixesNoF)})?(")',
+                bygroups(NonIdentifierToken, StringToken),
                 "string-double-oneline",
             ),  # String literal
         ],
         "string-single-multiline": [
-            # Search for begining and end of string
-            (r"'''.*?'''", MultilineStringToken, "#pop"),
-            # Search for begining and end of line
-            (r"'''.*?\Z", MultilineStringToken),
             # Search for end of string
             (r".*?'''", MultilineStringToken, "#pop"),
             # If previous do not match, whole line is string. Keep going.
             (r".*?\Z", MultilineStringToken),
         ],
         "string-double-multiline": [
-            # Same as string-single-multiline
-            (r'""".*?"""', MultilineStringToken, "#pop"),
-            (r'""".*?\Z', MultilineStringToken),
+            # # Same as string-single-multiline
             (r'.*?"""', MultilineStringToken, "#pop"),
             (r".*?\Z", MultilineStringToken),
         ],
         "string-single-oneline": [
-            # Search for begining and end of string
-            (r"'.*?'", StringToken, "#pop"),
-            # Search for begining and end of line with line continuation \
-            (r"'.*?\\[ \t]*\Z", StringToken),
-            # Search for begining and end of line without line continuation
-            (r"'.*?\Z", UnterminatedStringToken, "#pop"),
-            # Search for end of string (continue from line continuation)
+            # Search for end of string on the same line
             (r".*?'", StringToken, "#pop"),
+            # Search for lien continuation on the same line
+            (r".*?\\", StringToken),
             # If previous do not match, unterminated string.
             (r".*?\Z", UnterminatedStringToken, "#pop"),
         ],
         "string-double-oneline": [
             # Same as string-single-oneline
-            (r'".*?"', StringToken, "#pop"),
-            (r'".*?\\[ \t]*\Z', StringToken),
-            (r'".*?\Z', UnterminatedStringToken, "#pop"),
             (r'.*?"', StringToken, "#pop"),
+            (r".*?\\", StringToken),
             (r".*?\Z", UnterminatedStringToken, "#pop"),
         ],
     }

@@ -29,6 +29,7 @@ def write(*msg):
         with open(os.getenv("PYZO_LOG"), "at") as f:
             f.write(" ".join(msg) + "\n")
 
+
 def main():
     if TESTING:
         dt = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())

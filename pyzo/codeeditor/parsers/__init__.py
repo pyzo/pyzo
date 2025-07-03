@@ -195,10 +195,15 @@ def default(next_state):
 
 
 class RegexParser(Parser):
+    """A base parser that uses defined states and corresponding regex
+    patterns to tokenize any given code.
+
+    A tutorial"""
+
     # states must be defined in class inheriting from this one. Default
     # is a TextToken per line.
     # Must be ordered. Since
-    states = {"root": ("$.*\n", None)}
+    states = {"root": [(r"$.*\Z", tokens.TextToken)]}
 
     def __init__(self):
         self.process_states()
@@ -240,15 +245,15 @@ class RegexParser(Parser):
             block_state_val = block_state_val * N + n
         return BlockState(block_state_val)
 
-    def parseLine(self, line, previousState):
+    def parseLine(self, line, previousState=0):
         # Initialize
         pos = 0
         stack = self._stack_from_blockstate(previousState)
         toks = []
 
         # While the end of the line isn't reached:
-        while pos < len(line):
-
+        once = True
+        while pos < len(line) or once:
             # Find a match in the possible matches
             match, token_type, next_state = self.find_match(line, stack[-1], pos)
 
@@ -265,7 +270,7 @@ class RegexParser(Parser):
 
                     if isinstance(token_type, tuple):
                         for i, ttype in enumerate(token_type):
-                            if match.group(i + 1) != "":
+                            if match.group(i + 1) is not None:
                                 toks.append(
                                     ttype(
                                         line,
@@ -276,8 +281,7 @@ class RegexParser(Parser):
 
                     # Only one group:
                     else:
-                        if match.group(0) != "":
-                            toks.append(token_type(line, pos, pos + match.end(0)))
+                        toks.append(token_type(line, pos, pos + match.end(0)))
 
                 # In any case, go to the next state if provided
                 if next_state is not None:
@@ -292,24 +296,9 @@ class RegexParser(Parser):
 
                 # Go the the end of the match, since everything until
                 # there is processed.
-                # Increment pos at minimum
                 pos += match.end(0)
 
-
-        # Process empty line: nothing to tokenize, but stack might change
-        if line == "":
-            _, _, next_state = self.find_match(line, stack[-1], pos)
-
-            if next_state is not None:
-                if next_state == "#pop":
-                    # Remove last state from the stack
-                    stack.pop()
-                elif next_state == "#push":
-                    # Add current state to the stack again
-                    stack.append(stack[-1])
-                else:
-                    stack.append(next_state)
-
+                once = False  # Ensures the while loop runs at least once
 
         return toks + [self._blockstate_from_stack(stack)]
 
