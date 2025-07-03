@@ -1,6 +1,6 @@
 import re
 
-from . import RegexParser, BlockState, from_list, default, include, bygroups
+from . import RegexParser, from_list, default, include, bygroups
 
 # Import tokens in module namespace
 from .tokens import (

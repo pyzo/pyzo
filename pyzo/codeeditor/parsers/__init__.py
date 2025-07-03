@@ -319,8 +319,6 @@ class RegexParser(Parser):
         - process includes.
         """
         temp = defaultdict(list)
-        includes = set()
-        state_needs_include = set()
         for state in self.states.keys():
             for case in self.states[state]:
                 # Inludes are memorized to be dealt with at the end
