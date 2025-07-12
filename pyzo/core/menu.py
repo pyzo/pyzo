@@ -10,6 +10,7 @@ import os
 import sys
 import shutil
 import re
+import subprocess
 import webbrowser
 from datetime import datetime
 from urllib.request import urlopen
@@ -1905,6 +1906,12 @@ class EditorTabContextMenu(Menu):
             self._fileAction,
             "opendir",
         )
+        self.addItem(
+            translate("menu", "Open directory outside Pyzo"),
+            None,
+            self._fileAction,
+            "open_dir_outside_pyzo",
+        )
 
         self.addSeparator()
         # todo: remove feature to pin files?
@@ -1978,6 +1985,21 @@ class EditorTabContextMenu(Menu):
             fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
             if fileBrowser:
                 fileBrowser.setPath(os.path.dirname(item.filename))
+        elif action == "open_dir_outside_pyzo":
+            # Open the directory that contains the editor file in the
+            # operating system's file browser. In MS Windows, also select
+            # the file (which cannot be done with xdg-open).
+            filepath = item.filename
+            dirpath = os.path.dirname(filepath)
+            if sys.platform.startswith("darwin"):
+                if os.path.isdir(dirpath):
+                    subprocess.call(("open", dirpath))
+            elif sys.platform.startswith("win"):
+                if os.path.isfile(filepath):
+                    subprocess.call('explorer.exe /select,"{}"'.format(filepath))
+            elif sys.platform.startswith("linux"):
+                if os.path.isdir(dirpath):
+                    subprocess.call(("xdg-open", dirpath))
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":
