@@ -18,7 +18,6 @@ class StatusBar(QtWidgets.QStatusBar):
 
         # Cursor position
         self.cursor_pos = QtWidgets.QLabel(self)
-        self.cursor_pos.setFixedWidth(190)
         self.addPermanentWidget(self.cursor_pos)
 
     def updateCursorInfo(self, editor):
