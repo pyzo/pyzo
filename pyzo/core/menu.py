@@ -10,7 +10,6 @@ import os
 import sys
 import shutil
 import re
-import subprocess
 import webbrowser
 from datetime import datetime
 from urllib.request import urlopen
@@ -1989,17 +1988,8 @@ class EditorTabContextMenu(Menu):
             # Open the directory that contains the editor file in the
             # operating system's file browser. In MS Windows, also select
             # the file (which cannot be done with xdg-open).
-            filepath = item.filename
-            dirpath = os.path.dirname(filepath)
-            if sys.platform.startswith("darwin"):
-                if os.path.isdir(dirpath):
-                    subprocess.call(("open", dirpath))
-            elif sys.platform.startswith("win"):
-                if os.path.isfile(filepath):
-                    subprocess.call('explorer.exe /select,"{}"'.format(filepath))
-            elif sys.platform.startswith("linux"):
-                if os.path.isdir(dirpath):
-                    subprocess.call(("xdg-open", dirpath))
+            dirpath, filename = os.path.split(item.filename)
+            pyzo.util.open_directory_outside_pyzo(dirpath, filename)
         elif action == "pin":
             item._pinned = not item._pinned
         elif action == "main":

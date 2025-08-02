@@ -104,6 +104,11 @@ class AutoCompletion:
         self.__autocompletionAcceptKeys = keys
 
     def setAutocompleteFinishedCallback(self, cb):
+        """set the callback function
+
+        the callback function will be called with arguments:
+            completionPerformed: bool
+        """
         self.__finishedCallback = cb
 
     ## Autocompletion
@@ -166,14 +171,14 @@ class AutoCompletion:
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
         if self.__finishedCallback is not None:
-            self.__finishedCallback()
+            self.__finishedCallback(True)
 
     def autocompleteCancel(self):
         self.__completerWindow.hide()
         self.__autocompleteStart = None
         self.__autocompleteVisible = False
         if self.__finishedCallback is not None:
-            self.__finishedCallback()
+            self.__finishedCallback(False)
 
     def onAutoComplete(self, text=None):
         if text is None:

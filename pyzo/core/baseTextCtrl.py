@@ -363,7 +363,7 @@ class BaseTextCtrl(CodeEditor):
             pyzo.config.settings.autoComplete_acceptKeys
         )
 
-        self.completer().highlighted.connect(self.updateHelpFromAutocomplete)
+        self.completer().highlighted.connect(self._onAutocompleteSelectionChanged)
         self.setIndentUsingSpaces(pyzo.config.settings.defaultIndentUsingSpaces)
         self.setIndentWidth(pyzo.config.settings.defaultIndentWidth)
         self.setAutocompletPopupSize(*pyzo.config.view.autoComplete_popupSize)
@@ -373,8 +373,16 @@ class BaseTextCtrl(CodeEditor):
         self.setAutocompleteMinChars(pyzo.config.settings.autoComplete_minChars)
         self.setAutoClose_Quotes(pyzo.config.settings.autoClose_Quotes)
         self.setAutoClose_Brackets(pyzo.config.settings.autoClose_Brackets)
-        self.setAutocompleteFinishedCallback(lambda: self.restoreHelp("autocomplete"))
+        self.setAutocompleteFinishedCallback(self._onAutocompleteFinished)
         self.setCalltipFinishedCallback(lambda: self.restoreHelp("calltip"))
+
+    def _onAutocompleteFinished(self, completionPerformed):
+        # overridden in the editor (PyzoEditor class)
+        self.restoreHelp("autocomplete")
+
+    def _onAutocompleteSelectionChanged(self, name):
+        # overridden in the editor (PyzoEditor class)
+        self.updateHelpFromAutocomplete(name)
 
     def setAutoCompletionAcceptKeysFromStr(self, keys):
         """Set the keys that can accept an autocompletion from a comma delimited string."""
@@ -599,10 +607,7 @@ class BaseTextCtrl(CodeEditor):
         if name:
             hw.helpFromExtension(name, source, addToHist)
 
-    ## Callbacks
-    def updateHelpFromAutocomplete(self, name):
-        """A name has been highlighted, show help on that name"""
-
+    def _getFullAutocompleteName(self, name):
         if self._autoCompBuffer_intermediateResultName is not None:
             s = self._autoCompBuffer_intermediateResultName
             if self._autoCompBuffer_name.endswith("["):
@@ -618,10 +623,15 @@ class BaseTextCtrl(CodeEditor):
         elif not self.completer().completionPrefix():
             # Don't update help if there is no dot or prefix;
             # the choice would be arbitrary
-            return
+            name = None
+        return name
 
-        # Apply
-        self.processHelp(name, "autocomplete")
+    ## Callbacks
+    def updateHelpFromAutocomplete(self, name):
+        """A name has been highlighted, show help on that name"""
+        fullName = self._getFullAutocompleteName(name)
+        if fullName is not None:
+            self.processHelp(fullName, "autocomplete")
 
     @staticmethod
     def restoreHelp(source):

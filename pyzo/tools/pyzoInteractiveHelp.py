@@ -1,5 +1,6 @@
 import sys
 import re
+import html
 from functools import partial
 
 from pyzo.qt import QtCore, QtGui, QtWidgets
@@ -572,6 +573,30 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
             name = self.currentHist()
             addToHist = False
         self.setObjectName(name, addToHist)
+
+    def _escapeHtml(self, text):
+        return html.escape(text).replace("\n", "<br />")
+
+    def helpForCodeSnippet(self, snippet):
+        if self._pauseBut.isChecked():
+            return
+
+        if snippet is None:
+            self.setObjectName(self.currentHist() or "")
+            return
+
+        descriptionAsHtml = self._escapeHtml(snippet["description"])
+        codeAsHtml = self._escapeHtml(snippet["code"])
+        self._text.setText(snippet["name"])
+        title_bgcolor = "#468" if pyzo.darkQt else "#def"
+        text = (
+            f"<p style='background-color:{title_bgcolor};'>"
+            f"<b>Code snippet filepath:</b> {html.escape(snippet['filepath'])}"
+            "</p>\n"
+            f"{descriptionAsHtml}"
+            f"<pre>{codeAsHtml}</pre>"
+        )
+        self.setText(text)
 
     def currentHist(self):
         try:

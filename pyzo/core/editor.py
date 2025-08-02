@@ -891,7 +891,7 @@ class PyzoEditor(BaseTextCtrl):
             else:
                 s.write("Invalid identifier {!r}\n".format(word))
 
-    ## Introspection processing methods
+    ## Introspection processing and autocompletion methods
 
     def processCallTip(self, cto):
         """Processes a calltip request using a CallTipObject instance."""
@@ -921,6 +921,8 @@ class PyzoEditor(BaseTextCtrl):
         fictiveNS = pyzo.parser.getFictiveNameSpace(self)
         fictiveNS = set(fictiveNS)
 
+        snipTool = pyzo.toolManager.getTool("pyzosnippets")
+
         # Add names
         if not aco.name:
             # "root" names
@@ -928,7 +930,17 @@ class PyzoEditor(BaseTextCtrl):
             # imports
             importNames, importLines = pyzo.parser.getFictiveImports(self)
             aco.addNames(importNames)
+            if snipTool:
+                aco.addNames(["SNIP"])
         else:
+            if snipTool:
+                names = snipTool.getAutocompleteNames(aco.name)
+                if names is not None:
+                    # aco.name is "SNIP" or "SNIP.something"
+                    aco.addNames(names)
+                    aco.finish()
+                    return
+
             # Prepare list of class names to check out
             classNames = [aco.name]
             handleSelf = True
@@ -960,6 +972,24 @@ class PyzoEditor(BaseTextCtrl):
         else:
             # Otherwise we finish it ourselves
             aco.finish()
+
+    def _onAutocompleteFinished(self, completionPerformed):
+        if completionPerformed:
+            snipTool = pyzo.toolManager.getTool("pyzosnippets")
+            if snipTool:
+                snipTool.applyAutoCompletion(self.textCursor())
+
+        super()._onAutocompleteFinished(completionPerformed)
+
+    def _onAutocompleteSelectionChanged(self, name):
+        snipTool = pyzo.toolManager.getTool("pyzosnippets")
+        if snipTool:
+            fullName = self._getFullAutocompleteName(name)
+            if fullName is not None and snipTool.isSnipName(fullName):
+                snipTool.showHelpForSnip(fullName)
+                return
+        else:
+            super()._onAutocompleteSelectionChanged(name)
 
 
 if __name__ == "__main__":
