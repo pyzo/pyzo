@@ -212,7 +212,7 @@ jobs:
   # running Pyzo from source anyway.
   linux_amd64:
     name: Build Linux amd64
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       PYZO_QT_API: PyQt5
     steps:
