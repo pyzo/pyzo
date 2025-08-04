@@ -1,7 +1,55 @@
 # Release notes
 
 
-### Version 4.19.0 (17-01-2024)
+### Version 4.20.0 (04-08-2025)
+
+* add soft keywords to autocompletion list by @bdieterm in https://github.com/pyzo/pyzo/pull/1132
+* support relative filepaths in Pyzo's command line arguments to open files by @bdieterm in https://github.com/pyzo/pyzo/pull/1133
+* remove remnants from Python <= v2.6 by @bdieterm in https://github.com/pyzo/pyzo/pull/1134
+* implement proper editor tab switching with history by @bdieterm in https://github.com/pyzo/pyzo/pull/1135
+* Fix new tab selector for MacOS by @almarklein in https://github.com/pyzo/pyzo/pull/1137
+* fix tabswitching by @bdieterm in https://github.com/pyzo/pyzo/pull/1139
+* update shiboken attributes in qt wrapper by @bdieterm in https://github.com/pyzo/pyzo/pull/1141
+* show interactive help for active calltip by @bdieterm in https://github.com/pyzo/pyzo/pull/1144
+* fix filebrowser regexp search and add "whole words" option by @bdieterm in https://github.com/pyzo/pyzo/pull/1146
+* fix minor issues in filebrowser tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1148
+* harmonize line endings by @bdieterm in https://github.com/pyzo/pyzo/pull/1149
+* prevent crash on key press during Pyzo startup by @bdieterm in https://github.com/pyzo/pyzo/pull/1150
+* remove support for Qt4 GUI event loops by @bdieterm in https://github.com/pyzo/pyzo/pull/1152
+* prevent windows/dialogs from spawning in the background in MS Windows by @bdieterm in https://github.com/pyzo/pyzo/pull/1153
+* rework shell configuration dialog by @bdieterm in https://github.com/pyzo/pyzo/pull/1154
+* allow execution of multiple lines in the Logger tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1156
+* enhance "Find via File Browser" to use selection from widget with focus by @bdieterm in https://github.com/pyzo/pyzo/pull/1157
+* fix search path for portable settings by @bdieterm in https://github.com/pyzo/pyzo/pull/1158
+* skip frozen frames when switching stack frames with mousewheel by @bdieterm in https://github.com/pyzo/pyzo/pull/1160
+* use file encoding information according to PEP 263 by @bdieterm in https://github.com/pyzo/pyzo/pull/1159
+* support encodings and BOM in files when run as script by @bdieterm in https://github.com/pyzo/pyzo/pull/1161
+* add selection length indicator to status bar by @bdieterm in https://github.com/pyzo/pyzo/pull/1162
+* improve editor file reloading and add automatic reloading by @bdieterm in https://github.com/pyzo/pyzo/pull/1163
+* fix statusbar by @bdieterm in https://github.com/pyzo/pyzo/pull/1165
+* add workaround for WebDAV mapped drives in opened-file-detection by @bdieterm in https://github.com/pyzo/pyzo/pull/1166
+* implement file opening on doubleclick in shell for warnings by @bdieterm in https://github.com/pyzo/pyzo/pull/1167
+* rework file opening on doubleclick in shell on filepath by @bdieterm in https://github.com/pyzo/pyzo/pull/1170
+* fix autocompletion for parsed class members (without introspection) by @bdieterm in https://github.com/pyzo/pyzo/pull/1173
+* fix autocompletion with auto-import by @bdieterm in https://github.com/pyzo/pyzo/pull/1174
+* improve autocompletion for derived classes via introspection (e.g. enum.Enum) by @bdieterm in https://github.com/pyzo/pyzo/pull/1175
+* fix resetting color in terminal emulation by @bdieterm in https://github.com/pyzo/pyzo/pull/1177
+* close autocompletion when clicking textcursor away by @bdieterm in https://github.com/pyzo/pyzo/pull/1180
+* close calltip when moving the textcursor to another line by @bdieterm in https://github.com/pyzo/pyzo/pull/1181
+* always close autocompletion pop-up when clicking in the editor resp. shell by @bdieterm in https://github.com/pyzo/pyzo/pull/1182
+* fix parenthesis highlighter for cursors with text selection by @bdieterm in https://github.com/pyzo/pyzo/pull/1184
+* SourceSctructure font change and comment cell display by @MrXerios in https://github.com/pyzo/pyzo/pull/1185
+* fix typo in variable name by @bdieterm in https://github.com/pyzo/pyzo/pull/1188
+* Fix auto-closing quotes for upper case string literal prefixes by @MrXerios in https://github.com/pyzo/pyzo/pull/1189
+* add parser support for template string literals (t prefix) by @bdieterm in https://github.com/pyzo/pyzo/pull/1190
+* support more key shortcuts with Shift modifier in Linux by @bdieterm in https://github.com/pyzo/pyzo/pull/1191
+* ask to save when running temporary file as script by @bdieterm in https://github.com/pyzo/pyzo/pull/1194
+* add "Open directory outside Pyzo" to editor tab context menu by @bdieterm in https://github.com/pyzo/pyzo/pull/1197
+* set cursor info text in status bar to dynamic width by @bdieterm in https://github.com/pyzo/pyzo/pull/1198
+* fix typo in README.md by @bdieterm in https://github.com/pyzo/pyzo/pull/1199
+
+
+### Version 4.19.0 (17-01-2025)
 
 * fix debugger for ipython shells by @bdieterm in https://github.com/pyzo/pyzo/pull/1102
 * remove limitations for usage of Python's logging module by @bdieterm in https://github.com/pyzo/pyzo/pull/1103
