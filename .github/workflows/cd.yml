@@ -128,7 +128,8 @@ jobs:
         echo "Attach staple"
         xcrun stapler staple "freeze/dist/pyzo.app"
     - name: Package
-      run: python freeze/pyzo_package.py
+      # need sudo to avoid hdiutil: create failed - Resource busy, see https://github.com/actions/runner-images/issues/7522
+      run: sudo python freeze/pyzo_package.py
     - name: Test frozen
       shell: bash
       run: |
