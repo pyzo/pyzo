@@ -988,8 +988,7 @@ class PyzoEditor(BaseTextCtrl):
             if fullName is not None and snipTool.isSnipName(fullName):
                 snipTool.showHelpForSnip(fullName)
                 return
-        else:
-            super()._onAutocompleteSelectionChanged(name)
+        super()._onAutocompleteSelectionChanged(name)
 
 
 if __name__ == "__main__":
