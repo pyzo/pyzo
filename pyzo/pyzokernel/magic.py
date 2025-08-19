@@ -170,7 +170,7 @@ class Magician:
         if interpreter._ipython and _detect_equalbang(line):
             return self.equalbang_quirk(line, command)
 
-        have_hard_chars = "cd ", "?"
+        have_hard_chars = "cd ", "?", "pip install "
         if PYTHON_VERSION >= 3 and not command.lower().startswith(have_hard_chars):
             try:
                 if _should_not_interpret_as_magic(line):
