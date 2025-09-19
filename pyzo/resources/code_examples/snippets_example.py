@@ -79,3 +79,15 @@ import scipy.signal
 filter_b_a = scipy.signal.bessel(2, fc/(fs/2), 'lowpass')
 sig_f = scipy.signal.lfilter(*filter_b_a, sig)
 
+
+## SNIP: time_elapsed
+from time import perf_counter as _get_time
+# from time import time as _get_time
+t_start = _get_time()
+...
+print('elapsed:', t_delta := _get_time() - t_start, 's')
+
+
+## SNIP: Qt_import_PySide6
+from PySide6 import QtCore, QtGui, QtWidgets
+

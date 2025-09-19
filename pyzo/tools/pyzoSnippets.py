@@ -31,13 +31,13 @@ class PyzoSnippets(QtWidgets.QWidget):
         self._loadSnippets()
 
         # setup layout
-        self._layout = QtWidgets.QVBoxLayout(self)
+        self._layout = QtWidgets.QVBoxLayout()
         self.setLayout(self._layout)
-        self._hlayout = QtWidgets.QHBoxLayout(self)
+        self._hlayout = QtWidgets.QHBoxLayout()
         self._layout.addLayout(self._hlayout)
 
         # create tree widget
-        self._tree = QtWidgets.QTreeWidget(self)
+        self._tree = QtWidgets.QTreeWidget()
         self._tree.setHeaderHidden(True)
         self._tree.itemSelectionChanged.connect(self._onSelectionChanged)
         self._tree.itemDoubleClicked.connect(self._onItemDoubleClicked)
@@ -66,12 +66,12 @@ class PyzoSnippets(QtWidgets.QWidget):
         )
 
         # create search line edit
-        self._searchText = QtWidgets.QLineEdit(self)
+        self._searchText = QtWidgets.QLineEdit()
         self._searchText.textChanged.connect(self._updateTreeWidget)
         self._hlayout.addWidget(self._searchText)
 
         # create menu button
-        btn = QtWidgets.QToolButton(self)
+        btn = QtWidgets.QToolButton()
         self._menuButton = btn
         self._hlayout.addWidget(btn)
         btn.setIcon(pyzo.icons.application_view_list)
