@@ -616,7 +616,6 @@ class ShellInfoDialog(QtWidgets.QDialog):
         self.setLayout(mainLayout)
 
         self.setMinimumSize(800, 600)
-        self.resize(1024, 768)
 
         # Add an entry if there's none
         if not pyzo.config.shellConfigs2:
@@ -629,6 +628,11 @@ class ShellInfoDialog(QtWidgets.QDialog):
         self._list.setCurrentRow(0)
 
         self.show()
+
+    def sizeHint(self):
+        # We use this instead of self.resize(1024, 768) to avoid
+        # a too large dialog window on smaller screens.
+        return QtCore.QSize(1024, 768)
 
     def _addConfig(self, shellConfig=None, atIndex=-1, select=False):
         if atIndex == -1:
