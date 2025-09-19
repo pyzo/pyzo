@@ -86,4 +86,5 @@ ignore = [
     "RUF002", # Docstring contains ambiguous RIGHT SINGLE QUOTATION MARK
     "RUF005", # Consider `[1, *bb]` instead of `[1] + bb`
     "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "RUF059", # RUF059 Unpacked variable `...` is never used
 ]
