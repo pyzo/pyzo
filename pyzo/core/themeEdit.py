@@ -473,10 +473,6 @@ class EditColorDialog(QtWidgets.QDialog):
         super().__init__(*args, **kwargs)
 
         self.setWindowTitle("Color scheme")
-        size = 1200, 800
-        offset = 0
-        size2 = size[0], size[1] + offset
-        self.resize(*size2)
 
         # Make a deep copy
         themes = {}
@@ -492,3 +488,8 @@ class EditColorDialog(QtWidgets.QDialog):
         layout.addWidget(self.editor, 1)
         layout.addWidget(self.editColor, 2)
         self.setLayout(layout)
+
+    def sizeHint(self):
+        # We use this instead of self.resize(1200, 800) to avoid
+        # a too large dialog window on smaller screens.
+        return QtCore.QSize(1200, 800)
