@@ -1386,7 +1386,14 @@ class EditorTabs(QtWidgets.QWidget):
         if filename:
             if saveCopyAs:
                 return self.saveFileCopy(editor, filename)
-            return self.saveFile(editor, filename)
+
+            oldId = editor.id()
+            saveOk = self.saveFile(editor, filename)
+            if editor.id() != oldId:
+                # We update all editors instead of only the current editor because otherwise
+                # breakpoints with the old filename (or <tmp x>) would not be removed.
+                self.updateBreakPoints()
+            return saveOk
         else:
             return False  # Cancel was pressed
 
@@ -1427,9 +1434,6 @@ class EditorTabs(QtWidgets.QWidget):
             m.exec()
             # Return now
             return False
-
-        # get actual normalized filename
-        filename = editor._filename
 
         self._tabs.updateItems()
 
