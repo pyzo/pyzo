@@ -307,9 +307,13 @@ class Magician:
                 except Exception:
                     print('Could not change to directory "%s".' % path)
                     return ""
+            try:
                 newPath = os.getcwd()
-            else:
-                newPath = os.getcwd()
+            except Exception:
+                # On Linux, if the current working directory has been deleted,
+                # then a FileNotFoundError Exception is raised.
+                print("Could not determine the current working directory.")
+                return ""
             # Done
             print(repr(newPath))
             return ""
