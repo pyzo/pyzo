@@ -1242,7 +1242,10 @@ class PythonShell(BaseShell):
     #             c.received.bind(self.poll)
 
     def get_kernel_cd(self):
-        """Get current working dir of kernel."""
+        """Get current working dir of kernel.
+
+        Returns the working directory, or "?" if it could not be determined.
+        """
         return self._stat_cd.recv()
 
     def _onReceivedStartupInfo(self, channel):

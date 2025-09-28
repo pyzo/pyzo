@@ -690,7 +690,14 @@ class PyzoInterpreter:
                 self.context._stat_interpreter.send("More")
             else:
                 self.context._stat_interpreter.send("Ready")
-            self.context._stat_cd.send(os.getcwd())
+            try:
+                cwd = os.getcwd()
+            except Exception:
+                # On Linux, if the current working directory has been deleted,
+                # then a FileNotFoundError Exception is raised.
+                # We cannot send an empty string, so we send a "?" to indicate the error.
+                cwd = "?"
+            self.context._stat_cd.send(cwd)
 
         # Are we still connected?
         if sys.stdin.closed or not self.context.connection_count:

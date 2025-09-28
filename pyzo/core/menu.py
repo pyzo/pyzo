@@ -1627,28 +1627,26 @@ class ShellContextMenu(ShellMenu):
         return self._shell
 
     def _editItemCallback(self, action):
-        # If the widget has a 'name' attribute, call it
+        msg = ""
         if action == "opendir":
             curdir = self._shell.get_kernel_cd()
-            fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
-            if curdir and fileBrowser:
-                fileBrowser.setPath(curdir)
+            # Show error dialog
+            if curdir == "?":
+                msg = translate(
+                    "menu", "Could not determine the current working directory."
+                )
+            else:
+                fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
+                if curdir and fileBrowser:
+                    fileBrowser.setPath(curdir)
         elif action == "changedir":
             fileBrowser = pyzo.toolManager.getTool("pyzofilebrowser")
             if fileBrowser:
                 self._shell.executeCommand("cd " + fileBrowser.path() + "\n")
         elif action == "changedirtoeditor":
-            msg = ""
             editor = pyzo.editors.getCurrentEditor()
-            if editor is None:
-                msg += translate("menu", "No editor selected.")
-            # Show error dialog
-            if msg:
-                m = QtWidgets.QMessageBox(self)
-                m.setWindowTitle(translate("menu dialog", "Could not change dir"))
-                m.setText(translate("menu", "Could not change dir" + ":\n\n" + msg))
-                m.setIcon(m.Icon.Warning)
-                m.exec()
+            if editor is not None:
+                msg = translate("menu", "No editor selected.")
             else:
                 self._shell.executeCommand(
                     "cd " + os.path.dirname(editor.filename) + "\n"
@@ -1657,6 +1655,14 @@ class ShellContextMenu(ShellMenu):
             self._shell.helpOnText(self._pos)
         else:
             getattr(self._shell, action)()
+
+        if msg:
+            # Show error dialog
+            m = QtWidgets.QMessageBox(self)
+            m.setWindowTitle(translate("menu dialog", "Could not change dir"))
+            m.setText(translate("menu", "Could not change dir" + ":\n\n" + msg))
+            m.setIcon(m.Icon.Warning)
+            m.exec()
 
     def _updateShells(self):
         pass
