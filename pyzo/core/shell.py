@@ -208,6 +208,8 @@ class ShellHighlighter(Highlighter):
 class BaseShell(BaseTextCtrl):
     """The BaseShell implements functionality to make a generic shell."""
 
+    SHORTENED_LINE_MARKER = "\u200b"  # '\u200b' ... zero width space
+
     def __init__(self, parent, **kwds):
         super().__init__(
             parent,
@@ -603,6 +605,22 @@ class BaseShell(BaseTextCtrl):
             cursor.insertText(insertText)
             self.setFocus()
 
+    def createMimeDataFromSelection(self):
+        SLM = self.SHORTENED_LINE_MARKER
+        mime = QtCore.QMimeData()
+        # We keep this code simple because it is executed every time the text selection
+        # in the widget is changed.
+        t = (
+            self.textCursor()
+            .selectedText()
+            .replace("\u2029", "\n")
+            .replace(SLM + "\n", "")
+        )
+        if t.endswith(SLM):
+            t = t[: -len(SLM)]
+        mime.setText(t)
+        return mime
+
     ## Basic commands to control the shell
 
     def clearScreen(self):
@@ -831,12 +849,12 @@ class ShellWriter:
 
         finishedLines = []
         # each element in finishedLines is a list like this for each line:
-        #   [*elems, startPos, endPos]
+        #   [*elems, endPos]
         #   0 to n elems ... either of type str or QTextCharFormat
         #   endPos ... end column (0-based), after the last character
         #
         #   Format elems have length zero.
-        #   The last elem (before endPos) can be a '\n'.
+        #   The last elem (before endPos) can be a str that ends with a '\n'.
         #   There is no other '\n' anywhere else in the line.
 
         ll = []
@@ -989,6 +1007,7 @@ class ShellWriter:
         return tillOffset, chunkList, remnant
 
     def _shortenLines(self, finishedLines, cursor):
+        SLM_NL = BaseShell.SHORTENED_LINE_MARKER + "\n"
         posInBlock = cursor.positionInBlock()
         finishedLinesShortened = []
         shortLineLength = 80  # length is without the newline char
@@ -1003,24 +1022,23 @@ class ShellWriter:
                     self._lineShorteningActive = False
 
             if self._lineShorteningActive:
-                # Given a text, split the text in lines. Lines that are extremely
+                # Given a text, split the text into lines. Lines that are extremely
                 # long are split in pieces of 80 characters to increase performance for
                 # wrapping. This is kind of a failsafe for when the user accidentally
                 # prints a bitmap or huge list. See https://github.com/pyzo/pyzo/issues/98
 
                 if indLine == 0:
-                    charsRightOfCursor = posInBlock
                     if posInBlock > shortLineLength:
                         # we also shorten the existing line
                         cursor.movePosition(
                             cursor.MoveOperation.Left, A_MOVE, posInBlock
                         )
-                        multiples, rem = divmod(charsRightOfCursor, shortLineLength)
+                        multiples, rem = divmod(posInBlock, shortLineLength)
                         for i in range(multiples):
                             cursor.movePosition(
                                 cursor.MoveOperation.Right, A_MOVE, shortLineLength
                             )
-                            cursor.insertText("\n")
+                            cursor.insertText(SLM_NL)
                         cursor.movePosition(cursor.MoveOperation.Right, A_MOVE, rem)
                         posInBlock = rem
                 else:
@@ -1036,14 +1054,14 @@ class ShellWriter:
                                 self._splitStringIntoChunks(elem, i, shortLineLength)
                             )
                             lineNew.append(tillOffset)
-                            lineNew.append("\n")
-                            lineNew.append(posInBlock + len(tillOffset) + 1)
+                            lineNew.append(SLM_NL)
+                            lineNew.append(posInBlock + len(tillOffset) + len(SLM_NL))
                             posInBlock = 0
                             finishedLinesShortened.append(lineNew)
 
                             for chunk in chunkList:
                                 finishedLinesShortened.append(
-                                    [chunk, "\n", shortLineLength + 1]
+                                    [chunk, SLM_NL, shortLineLength + len(SLM_NL)]
                                 )
 
                             lineNew = [remnant]
