@@ -1040,6 +1040,17 @@ class ViewMenu(Menu):
             self._selectEditor,
         )
         self.addSeparator()
+        pyzo.core.views.ViewManagerDialog.registerMenuAction(
+            self.addItem(
+                translate(
+                    "menu",
+                    "Views ::: Switch between defined window and panel geometries",
+                ),
+                icons.application_cascade,
+                self._viewManager,
+            )
+        )
+        self.addSeparator()
         self.addEditorItem(
             translate("menu", "Show whitespace ::: Show spaces and tabs."),
             None,
@@ -1167,6 +1178,10 @@ class ViewMenu(Menu):
         editor = pyzo.editors.getCurrentEditor()
         if editor:
             editor.setFocus()
+
+    def _viewManager(self):
+        d = pyzo.core.views.ViewManagerDialog(pyzo.main)
+        d.exec()
 
     def _setEdgeColumn(self, value):
         pyzo.config.view.edgeColumn = value
