@@ -205,7 +205,7 @@ def saveConfig():
         pyzo.editors.saveEditorState()
 
     # Let the main window save its state
-    if pyzo.main:
+    if pyzo.main and pyzo.viewManager.isNormalViewActive():
         pyzo.main.saveWindowState()
 
     # Store config

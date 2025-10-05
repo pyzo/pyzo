@@ -21,6 +21,7 @@ from pyzo.core.splash import SplashWidget
 from pyzo.util import paths
 from pyzo.util import zon as ssdf  # zon is ssdf-light
 from pyzo import translate
+from pyzo.core.views import ViewManager
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -121,6 +122,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.restoreState()
         pyzo.editors.restoreEditorState()
 
+        # Instantiate view manager
+        pyzo.viewManager = ViewManager()
+
         # Present user with wizard if he/she is new.
         if False:  # pyzo.config.state.newUser:
             from pyzo.util.pyzowizard import PyzoWizard
@@ -219,8 +223,7 @@ class MainWindow(QtWidgets.QMainWindow):
             pyzo.toolManager.loadTool("pyzosourcestructure")
             pyzo.toolManager.loadTool("pyzofilebrowser", "pyzosourcestructure")
         elif pyzo.config.state.loadedTools:
-            for toolId in pyzo.config.state.loadedTools:
-                pyzo.toolManager.loadTool(toolId)
+            self.restoreTools()
 
     def setMainTitle(self, path=None):
         """Set the title of the main window, by giving a file path."""
@@ -250,26 +253,39 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set
         self.setWindowTitle(title)
 
+    def getWindowState(self):
+        return {
+            # list of tools which are loaded
+            "loadedTools": pyzo.toolManager.getLoadedTools(),
+            # geometry of the top level window
+            "windowGeometry": base64.encodebytes(self.saveGeometry().data()).decode(
+                "ascii"
+            ),
+            # layout of dockwidgets and toolbars
+            "windowState": base64.encodebytes(self.saveState().data()).decode("ascii"),
+        }
+
     def saveWindowState(self):
         """Save:
         * which tools are loaded
         * geometry of the top level windows
         * layout of dockwidgets and toolbars
         """
+        pyzo.config.state.update(self.getWindowState())
 
-        # Save tool list
-        tools = pyzo.toolManager.getLoadedTools()
-        pyzo.config.state.loadedTools = tools
+    def restoreTools(self, value=None):
+        """Restore loaded tools"""
 
-        # Store window geometry
-        geometry = self.saveGeometry()
-        geometry = base64.encodebytes(geometry.data()).decode("ascii")
-        pyzo.config.state.windowGeometry = geometry
+        if value is None:
+            # No value given, try to get it from the config
+            value = pyzo.config.state.loadedTools
 
-        # Store window state
-        state = self.saveState()
-        state = base64.encodebytes(state.data()).decode("ascii")
-        pyzo.config.state.windowState = state
+        toolsTarget = set(value)
+        toolsLoaded = set(pyzo.toolManager.getLoadedTools())
+        for t in toolsLoaded - toolsTarget:
+            pyzo.toolManager.closeTool(t)
+        for t in toolsTarget - toolsLoaded:
+            pyzo.toolManager.loadTool(t)
 
     def restoreGeometry(self, value=None):
         """Restore window position and whether it is maximized"""
@@ -292,7 +308,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if value is not None:
             return super().restoreState(value)
 
-        # No value give, try to get it from the config
+        # No value given, try to get it from the config
         if pyzo.config.state.windowState:
             try:
                 state = pyzo.config.state.windowState
