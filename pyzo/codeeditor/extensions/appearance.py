@@ -246,7 +246,7 @@ class HighlightMatchingBracket:
     _BRACKS_CLOSE = ")]}"
     _BRACKS = _BRACKS_OPEN + _BRACKS_CLOSE
     _matchingBrackets = dict(
-        zip(_BRACKS_OPEN + _BRACKS_CLOSE, _BRACKS_CLOSE + _BRACKS_OPEN)
+        zip(_BRACKS_OPEN + _BRACKS_CLOSE, _BRACKS_CLOSE + _BRACKS_OPEN)  # noqa: B905
     )
 
     def highlightMatchingBracket(self):

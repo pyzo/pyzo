@@ -59,7 +59,7 @@ def _detect_equalbang(line):
         # iteration on two successive elements, https://docs.python.org/3/library/itertools.html#itertools-recipes
         first, second = itertools.tee(gtoks)
         next(second, None)
-        for tok1, tok2 in zip(first, second):
+        for tok1, tok2 in zip(first, second):  # noqa: B905
             if (
                 tok1.type == token.OP
                 and tok1.string == "="
