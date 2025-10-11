@@ -503,7 +503,7 @@ class GeneralOptionsMenu(Menu):
         # Get values
         if values is None:
             values = options
-        for option, value in zip(options, values):
+        for option, value in zip(options, values):  # noqa: B905
             self.addGroupItem(option, None, cb, value)
 
 
