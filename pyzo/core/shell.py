@@ -889,7 +889,7 @@ class ShellWriter:
                 ll.append(posInBlock + 1)
                 finishedLines.append(ll)
                 leftLimit = 0
-                finishedLines.extend(["\n", leftLimit + 1] * (n - 1))
+                finishedLines.extend([["\n", leftLimit + 1]] * (n - 1))
                 ll = [" " * posInBlock]
             elif c == "\r":
                 if i == lenSplit - 1:
