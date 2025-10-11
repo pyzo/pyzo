@@ -1693,7 +1693,7 @@ class EditorTabs(QtWidgets.QWidget):
         """Close all files
 
         Well technically, we don't really close them, so that they
-        are all stil there when the user presses cancel.
+        are all still there when the user presses cancel.
         Returns False if the user pressed cancel when asked for
         saving an unsaved file.
         """

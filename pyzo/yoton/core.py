@@ -261,7 +261,7 @@ class Package(object):
 
         Get list of bytes that represents this package.
         By not concatenating the header and content parts,
-        we prevent unnecesary copying of data.
+        we prevent unnecessary copying of data.
 
         """
 

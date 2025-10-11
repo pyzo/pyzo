@@ -33,7 +33,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         self._codeEditor = codeEditor
 
     def getCurrentBlockUserData(self):
-        """Gets the BlockData object. Creates one if necesary."""
+        """Gets the BlockData object. Creates one if necessary."""
         bd = self.currentBlockUserData()
         if not isinstance(bd, BlockData):
             bd = BlockData()
