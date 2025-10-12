@@ -49,6 +49,18 @@ more information about pip:
 """
 
 
+def datasize_to_string(size_bytes):
+    size_bytes = float(size_bytes)  # only needed for Python 2.7
+    prefixes = ["", "k", "M", "G", "T"]
+    k = 1000
+    precision = 0 if size_bytes < k else 1
+    for i, prefix in enumerate(prefixes):
+        v = size_bytes / k**i
+        if v < k:
+            break
+    return "{:.{}f} {}B".format(v, precision, prefix)
+
+
 def build_progress_line(current, total, fill_char):
     bar_length = 40
     if total > 0 and current >= 0:
@@ -57,7 +69,9 @@ def build_progress_line(current, total, fill_char):
         percent = 0
     filled_length = round(percent / 100 * bar_length)
     bar = fill_char * filled_length + " " * (bar_length - filled_length)
-    line = "[{}] {:3d} %   ({} of {})".format(bar, round(percent), current, total)
+    line = "[{}] {:3d} %   {} of {}".format(
+        bar, round(percent), datasize_to_string(current), datasize_to_string(total)
+    )
     return line
 
 
@@ -93,7 +107,12 @@ def subprocess_with_callback(callback, cmd, use_raw_progress_bar, **kwargs):
 
         if use_raw_progress_bar:
             if c == b"\n":
-                mo = re.fullmatch(rb"Progress (\d+) of (\d+)\r?\n", pending)
+                # instead of
+                # mo = re.fullmatch(rb"Progress (\d+) of (\d+)\r?\n", pending)
+                # we use
+                mo = re.match(b"^Progress (\\d+) of (\\d+)\\r?\\n$", pending)
+                # because of Python 2.7
+
                 if mo:
                     current = int(mo[1])
                     total = int(mo[2])
