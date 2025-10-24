@@ -7,6 +7,7 @@ from ..qt import QtGui, QtCore
 Qt = QtCore.Qt
 
 from ..misc import ce_option
+from ..parsers import BlockState
 from ..parsers.tokens import (
     CommentToken,
     IdentifierToken,
@@ -14,7 +15,12 @@ from ..parsers.tokens import (
     StringToken,
     UnterminatedStringToken,
 )
-from ..parsers.python_parser import MultilineStringToken, stringLiteralPrefixes
+from ..parsers.python_parser import (
+    FStringToken,
+    MultilineStringToken,
+    MultilineFStringToken,
+    stringLiteralPrefixes,
+)
 
 
 class MoveLinesUpDown:
@@ -317,9 +323,13 @@ class PythonAutoIndent:
                         previousBlock.text(), ppreviousState
                     )
                     # because of the ":" on that line, there is at least one token
-                    t = tokens[-1]
+                    t = tokens.pop()
+                    if isinstance(t, BlockState):
+                        t = tokens.pop()  # if last is a blockstate, get previous one
                     if isinstance(t, CommentToken):
-                        t = tokens[-2] if len(tokens) >= 2 else None
+                        t = (
+                            None if len(tokens) == 0 else tokens.pop()
+                        )  # tokens[-2] if len(tokens) >= 2 else None
                     if isinstance(t, NonIdentifierToken) and str(t).strip() == ":":
                         # there is no need to check if the previous indent is the same
                         # style as the added one, because we could not fix that anyways
@@ -514,7 +524,9 @@ class AutoCloseQuotesAndBrackets:
                 if token.start <= pos < token.end:
                     tokenAtCursor = token
                     break
-            if isinstance(token, MultilineStringToken):
+            if isinstance(token, MultilineStringToken) or isinstance(
+                token, MultilineFStringToken
+            ):
                 # multiline string tokens can have a length
                 # of zero if the whole line is an empty comment
                 if token.start == token.end == 0:
@@ -532,9 +544,9 @@ class AutoCloseQuotesAndBrackets:
             super().keyPressEvent(event)
 
     def __keyPressEvent(self, event):
-        quotes = "'", '"'
-        openBrackets = "{", "[", "("
-        closeBrackets = "}", "]", ")"
+        quotes = ["'", '"']
+        openBrackets = ["{", "[", "("]
+        closeBrackets = ["}", "]", ")"]
         brackets = openBrackets + closeBrackets
 
         cursor = self.textCursor()
@@ -548,7 +560,9 @@ class AutoCloseQuotesAndBrackets:
                 (
                     CommentToken,
                     StringToken,
+                    FStringToken,
                     MultilineStringToken,
+                    MultilineFStringToken,
                     UnterminatedStringToken,
                 ),
             ):
