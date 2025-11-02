@@ -8,7 +8,6 @@ structure of a source file in for example a tree widget.
 
 # TODO: replace this module, get data from the syntax highlighter in the code editor
 
-from collections import deque
 import time
 import threading
 import re
@@ -70,11 +69,11 @@ class Parser(threading.Thread):
     def __init__(self):
         super().__init__()
 
-        # Reference current job
-        self._job = None
+        # job request dict -- always sorted by priority, lowest first
+        self._requests = {}  # key: editorId; value: Job
 
-        # Reference to last result
-        self._results = deque([], 10)
+        # results dict
+        self._results = {}  # key: editorId; value: Result
 
         # Lock to enable save threading
         self._lock = threading.RLock()
@@ -98,8 +97,13 @@ class Parser(threading.Thread):
         text = editor.toPlainText()
 
         # Make job
+
+        editorId = editor.id()
         with self._lock:
-            self._job = Job(text, editor.id())
+            job = Job(text, editorId)
+            self._requests.pop(editorId, None)  # discard old request, if present
+            # add new job to end of dict (highest priority)
+            self._requests[editorId] = job
 
     def getFictiveNameSpace(self, editor):
         """Produce the fictive namespace, based on the current position.
@@ -205,14 +209,10 @@ class Parser(threading.Thread):
         return imports, importlines
 
     def _getResult(self, editor):
-        """safely Obtain result"""
+        """safely obtain result"""
         editorId = editor.id()
-        result = None
         with self._lock:
-            for res in self._results:
-                if res.editorId == editorId:
-                    result = res
-                    break
+            result = self._results.get(editorId, None)
         return result
 
     def _getFictiveItem(self, name, type, editor, handleSelf=False):
@@ -316,18 +316,20 @@ class Parser(threading.Thread):
                 if self._exit:
                     return
 
-                if self._job:
-                    # Safely obtain job
-                    with self._lock:
-                        job = self._job
-                        self._job = None
+                # safely obtain next job
+                job = None
+                with self._lock:
+                    if self._requests:
+                        editorId, job = self._requests.popitem()
+                        assert editorId == job.editorId
 
+                if job:
                     # Analyse job
                     result = self._analyze(job)
 
                     # Safely store result
                     with self._lock:
-                        self._results.appendleft(result)
+                        self._results[result.editorId] = result
 
                     # Notify
                     if pyzo.editors is not None:
@@ -386,7 +388,7 @@ class Parser(threading.Thread):
         # type can be: cell, class, def, import, var
         for i, line in enumerate(lines):
             # Should we stop?
-            if self._job or self._exit:
+            if self._exit:
                 break
 
             # Remove indentation
