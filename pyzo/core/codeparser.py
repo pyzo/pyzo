@@ -53,10 +53,10 @@ class Result:
         """Returns whether the result matches with the given editorId.
 
         The editorId can also be an editor instance."""
-        if isinstance(editorId, int):
+        if isinstance(editorId, str):
             return self.editorId == editorId
         else:
-            return self.editorId == id(editorId)
+            return self.editorId == editorId.id()
 
 
 class Parser(threading.Thread):
@@ -99,7 +99,7 @@ class Parser(threading.Thread):
 
         # Make job
         with self._lock:
-            self._job = Job(text, id(editor))
+            self._job = Job(text, editor.id())
 
     def getFictiveNameSpace(self, editor):
         """Produce the fictive namespace, based on the current position.
@@ -206,7 +206,7 @@ class Parser(threading.Thread):
 
     def _getResult(self, editor):
         """safely Obtain result"""
-        editorId = id(editor)
+        editorId = editor.id()
         result = None
         with self._lock:
             for res in self._results:
