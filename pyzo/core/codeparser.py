@@ -15,21 +15,25 @@ import pyzo
 
 
 # Define regular expression patterns
-classPattern = r"^\s*"  # Optional whitespace
-classPattern += r"(cp?def\s+)?"  # Cython preamble + whitespace
-classPattern += r"class\s+"  # The class keyword + whitespace
-classPattern += r"([a-zA-Z_][a-zA-Z_0-9]*)\s*"  # The NAME + optional whitespace
-classPattern += r"(\(.*?\))?"  # The superclass(es)
-classPattern += r"\s*:"  # Optional whitespace and the colon
-#
-defPattern = r"^\s*"  # Optional whitespace
-defPattern += r"(async )?"  # Optional async keyword
-defPattern += r"(cp?)?def\s+"  # The Cython preamble, def keyword and whitespace
-defPattern += r"([a-zA-Z_][\*a-zA-Z_0-9]*\s+)?"  # Optional Cython return type
-defPattern += r"([a-zA-Z_][a-zA-Z_0-9]*)\s*"  # The NAME + optional whitespace
-defPattern += r"\((.*?)\)"  # The SIGNATURE
-# defPattern += r'\s*:' # Optional whitespace and the colon
-# Leave the colon, easier for cython
+classPattern = re.compile(
+    r"^\s*"  # Optional whitespace
+    r"(cp?def\s+)?"  # Cython preamble + whitespace
+    r"class\s+"  # The class keyword + whitespace
+    r"([a-zA-Z_][a-zA-Z_0-9]*)\s*"  # The NAME + optional whitespace
+    r"(\(.*?\))?"  # The superclass(es)
+    r"\s*:"  # Optional whitespace and the colon
+)
+
+defPattern = re.compile(
+    r"^\s*"  # Optional whitespace
+    r"(async )?"  # Optional async keyword
+    r"(cp?)?def\s+"  # The Cython preamble, def keyword and whitespace
+    r"([a-zA-Z_][\*a-zA-Z_0-9]*\s+)?"  # Optional Cython return type
+    r"([a-zA-Z_][a-zA-Z_0-9]*)\s*"  # The NAME + optional whitespace
+    r"\((.*?)\)"  # The SIGNATURE
+    # r'\s*:' # Optional whitespace and the colon
+    # Leave the colon, easier for cython
+)
 
 
 class Job:
@@ -435,7 +439,7 @@ class Parser(threading.Thread):
 
             # Detect classes
             if not foundSomething:
-                classResult = re.search(classPattern, line)
+                classResult = classPattern.search(line)
 
                 if classResult:
                     foundSomething = True
@@ -460,7 +464,7 @@ class Parser(threading.Thread):
                     if i + ii < len(lines):
                         multiLine += " " + lines[i + ii].strip()
                 # Get result
-                defResult = re.search(defPattern, multiLine)
+                defResult = defPattern.search(multiLine)
                 if defResult:
                     # Get name
                     name = defResult.group(4)
