@@ -310,7 +310,7 @@ class PyzoSourceStructure(QtWidgets.QWidget):
 
         # Do the editors match?
         curEditor = self._getCurEditorFromRef()
-        if newEditor is not curEditor or id(curEditor) != result.editorId:
+        if newEditor is not curEditor or curEditor.id() != result.editorId:
             return
 
         # Get colors
