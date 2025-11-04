@@ -78,10 +78,10 @@ jobs:
         name: dist-artifact-win32
 
   # A MacOS build for x86_64 (aka amd64). Via Rosetta this should work on all modern Macs.
-  # Use macos-13 to select x86_64
+  # Use macos-15-intel to select x86_64
   macos_x86_64:
     name: Build MacOS x86_64
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.13
