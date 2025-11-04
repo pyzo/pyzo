@@ -15,7 +15,7 @@ and to debug the application from a new shell inside the Pyzo IDE.
 import os
 import time
 
-print('example Pyhon application')
+print('example Python application')
 print('this process has PID', os.getpid())
 cnt = 0
 while True:

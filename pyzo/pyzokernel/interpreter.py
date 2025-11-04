@@ -812,7 +812,7 @@ class PyzoInterpreter:
         use_ipython = self._ipython and not self._dbFrames
 
         # Try compiling.
-        # The IPython kernel does not handle incomple lines, so we check
+        # The IPython kernel does not handle incomplete lines, so we check
         # that ourselves ...
         error = None
         try:
