@@ -70,6 +70,7 @@ port = int(sys.argv[-1])
 ct.connect("localhost:" + str(port), timeout=1.0)
 
 # Create file objects for stdin, stdout, stderr
+sys._original_std_before_pyzo = (sys.stdin, sys.stdout, sys.stderr)
 sys.stdin = yoton.FileWrapper(ct._ctrl_command, echo=ct._strm_echo, isatty=True)
 sys.stdout = yoton.FileWrapper(ct._strm_out, 256, isatty=True)
 sys.stderr = yoton.FileWrapper(ct._strm_err, 256, isatty=True)
@@ -156,7 +157,8 @@ finally:
     import sys
 
     try:
-        sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+        sys.stdin, sys.stdout, sys.stderr = sys._original_std_before_pyzo
+        del sys._original_std_before_pyzo
     except Exception:
         pass
     # Flush pending messages (raises exception if times out)
