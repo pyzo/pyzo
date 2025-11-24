@@ -6,18 +6,6 @@ os.chdir(__this_dir__)
 
 ##
 
-WIDTH = HEIGHT = 256
-
-svg_contents = []
-svg_contents.append('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
-svg_contents.append(f'<svg width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">')
-svg_contents.append(f'<!-- created via a Python script - do not edit this SVG file directly -->')
-
-# add filled background, only for debugging
-# svg_contents.append(f'<rect fill="#777" stroke="#000" x="0" y="0" width="{WIDTH}" height="{HEIGHT}"/>')
-
-# https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorials/SVG_from_scratch/Paths
-
 
 def make_path_rounded_rect(x_left, y_top, w, h, r):
     return ' '.join([
@@ -68,28 +56,46 @@ def make_path_textline(x, y, thickness, length):
     ])
 
 
-for shadow in [True, False]:
-    sx = sy = 0
-    sc = ''
-    if shadow:
-        sx = sy = 4
-        sc = '#' + 'b0' * 3  # fixed color shadow, without transparency
+def make_pyzologo(target_size=256):
+    svg_contents = []
+    svg_contents.append('<?xml version="1.0" encoding="UTF-8" standalone="no"?>')
+    svg_contents.append(f'<svg width="{target_size}" height="{target_size}" viewBox="0 0 {target_size} {target_size}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">')
+    svg_contents.append(f'<!-- created via a Python script - do not edit this SVG file directly -->')
 
-    svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(12 + sx, 45 + sy, 104, 168, 8), sc or '#268bd2'))
-    svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(124 + sx, 45 + sy, 120, 88, 8), sc or '#dc322f'))
-    svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(124 + sx, 141 + sy, 56, 72, 8), sc or '#859900'))
-    svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(188 + sx, 141 + sy, 56, 72, 8), sc or '#859900'))
+    # add filled background, only for debugging
+    # svg_contents.append(f'<rect fill="#777" stroke="#000" x="0" y="0" width="{target_size}" height="{target_size}"/>')
 
-for i in range(3):
-    svg_contents.append('<path d="{}" fill="#a52523" />'.format(make_path_gtsign(154 + i * 32, 80, 8, 3, 19)))
+    # https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorials/SVG_from_scratch/Paths
 
-for i in range(4):
-    svg_contents.append('<path d="{}" fill="#1c689d" />'.format(make_path_textline(27, 80 + i * 32, 8, 73 if i != 3 else 57)))
+    def scale_args(*args):
+        return [v / 256 * target_size for v in args]
 
-svg_contents.append('</svg>')
+    for shadow in [True, False]:
+        sx = sy = 0
+        sc = ''
+        if shadow:
+            sx = sy = 4
+            sc = '#' + 'b0' * 3  # fixed color shadow, without transparency
+
+        svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(*scale_args(12 + sx, 45 + sy, 104, 168, 8)), sc or '#268bd2'))
+        svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(*scale_args(124 + sx, 45 + sy, 120, 88, 8)), sc or '#dc322f'))
+        svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(*scale_args(124 + sx, 141 + sy, 56, 72, 8)), sc or '#859900'))
+        svg_contents.append('<path d="{}" fill="{}" />'.format(make_path_rounded_rect(*scale_args(188 + sx, 141 + sy, 56, 72, 8)), sc or '#859900'))
+
+    for i in range(3):
+        svg_contents.append('<path d="{}" fill="#a52523" />'.format(make_path_gtsign(*scale_args(154 + i * 32, 80, 8, 3, 19))))
+
+    for i in range(4):
+        svg_contents.append('<path d="{}" fill="#1c689d" />'.format(make_path_textline(*scale_args(27, 80 + i * 32, 8, 73 if i != 3 else 57))))
+
+    svg_contents.append('</svg>')
+
+    return svg_contents
 
 
-with open('pyzologo256.svg', 'wt') as fd:
-    fd.write('\n'.join(svg_contents))
-
+if __name__ == '__main__':
+    target_size = 256
+    svg_contents = make_pyzologo(target_size)
+    with open('pyzologo{}.svg'.format(target_size), 'wt') as fd:
+        fd.write('\n'.join(svg_contents))
 
