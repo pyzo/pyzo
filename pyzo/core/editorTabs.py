@@ -526,9 +526,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         cursor = editor.textCursor()
         result = editor.document().find(needle, cursor, flags)
 
-        if not result.isNull():
-            editor.setTextCursor(result)
-        elif wrapAround:
+        if result.isNull() and wrapAround:
             self.notifyPassBeginEnd()
             # Move cursor to start or end of document
             if forward:
@@ -537,8 +535,10 @@ class FindReplaceWidget(QtWidgets.QFrame):
                 cursor.movePosition(cursor.MoveOperation.End)
             # Try again
             result = editor.document().find(needle, cursor, flags)
-            if not result.isNull():
-                editor.setTextCursor(result)
+
+        if not result.isNull():
+            editor.gotoBlock(result.block().blockNumber(), avoidScrolling=True)
+            editor.setTextCursor(result)
 
         # done
         editor.setFocus()
