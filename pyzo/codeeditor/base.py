@@ -614,15 +614,21 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         """
         return self.gotoBlock(lineNumber - 1, keepHorizontalPos)
 
-    def gotoBlock(self, blockNumber, keepHorizontalPos=False):
+    def gotoBlock(self, blockNumber, keepHorizontalPos=False, avoidScrolling=False):
         """Move the cursor to the (beginning of the) block given by the block number
         (first block is number 0) and show that line.
 
         Optionally, the horizontal position of the cursor can be kept.
+
+        If avoidScrolling is True, scrolling will only be performed if the block
+        is not visible on the current page.
         """
         cursor = self.textCursor()
         if keepHorizontalPos:
             hPos = cursor.verticalMovementX()
+
+        if avoidScrolling:
+            scrollValueBefore = self.verticalScrollBar().value()
 
         # Two implementatios. I know that the latter works, so lets
         # just use that.
@@ -651,10 +657,20 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # TODO make this user configurable (setting relativeMargin to anything above
         # 0.5 will cause cursor to center on each move)
         relativeMargin = 0.2  # 20% margin on both sides of the window
-        margin = self.height() * relativeMargin
-        cursorRect = self.cursorRect(cursor)
-        if cursorRect.top() < margin or cursorRect.bottom() + margin > self.height():
-            self.centerCursor()
+
+        if avoidScrolling:
+            if self.verticalScrollBar().value() == scrollValueBefore:
+                # no need to enforce any margins that would cause scrolling
+                relativeMargin = 0
+
+        if relativeMargin > 0:
+            margin = self.height() * relativeMargin
+            cursorRect = self.cursorRect(cursor)
+            if (
+                cursorRect.top() < margin
+                or cursorRect.bottom() + margin > self.height()
+            ):
+                self.centerCursor()
 
     def doForSelectedBlocks(self, function):
         """Call the given function(cursor) for all blocks in the current selection
