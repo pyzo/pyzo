@@ -121,15 +121,27 @@ if API in ("PySide2", "PyQt5"):
 if API == "PyQt6":
     QtWidgets.QFileSystemModel = QtGui.QFileSystemModel
 
-    import inspect
 
-    QtWidgets.QPlainTextEdit.print_ = inspect.getattr_static(
-        QtWidgets.QPlainTextEdit, "print"
-    )
-    QtWidgets.QMenu.exec_ = inspect.getattr_static(QtWidgets.QMenu, "exec")
-    del inspect
+@property
+def old_exec(self):
+    return self.exec_
 
-## QtPrintSupport fixes
 
-if API == "PyQt6":
-    QtPrintSupport.QPrintPreviewWidget.print_ = QtPrintSupport.QPrintPreviewWidget.print
+@property
+def old_print(self):
+    return self.print_
+
+
+if API in ("PySide2", "PyQt5"):
+    QtWidgets.QMenu.exec = old_exec
+    QtWidgets.QApplication.exec = old_exec
+    QtWidgets.QPlainTextEdit.print = old_print
+
+if API == "PySide6":
+    # In PySide6 v6.10.1 QPlainTextEdit still has "print_" but no "print" method.
+    # We check that before in case that it will be added in a future version.
+    if not hasattr(QtWidgets.QPlainTextEdit, "print"):
+        QtWidgets.QPlainTextEdit.print = old_print
+
+del old_exec
+del old_print

@@ -90,7 +90,7 @@ class PdfExport(QtWidgets.QDialog):
         self._bottomLayout.addWidget(self._btnExport)
         self._bottomLayout.addWidget(self._btnDone)
 
-        self._preview.paintRequested.connect(self._editor.print_)
+        self._preview.paintRequested.connect(self._editor.print)
 
         self._updatePreview()
 
@@ -170,7 +170,7 @@ class PdfExport(QtWidgets.QDialog):
 
         self._printer.setOutputFileName(filename)
         self._updateTemporaryEditor()
-        self._editor.print_(self._printer)
+        self._editor.print(self._printer)
 
         if self._printer.printerState() == self._printer.PrinterState.Error:
             # Notify in logger
