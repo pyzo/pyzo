@@ -476,7 +476,7 @@ class PyzoInteractiveHelp(QtWidgets.QWidget):
         )
         help.triggered.connect(partial(self.helpOnThis, pos=pos))
         menu.insertAction(menu.actions()[0], help)
-        menu.exec_(self.mapToGlobal(pos))
+        menu.exec(self.mapToGlobal(pos))
 
     def helpOnThis(self, pos):
         name = self._browser.textCursor().selectedText().strip()

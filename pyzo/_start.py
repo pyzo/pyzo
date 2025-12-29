@@ -286,10 +286,7 @@ def start():
         timer.start()
 
     # Enter the main loop
-    if hasattr(QtWidgets.qApp, "exec"):
-        QtWidgets.qApp.exec()
-    else:
-        QtWidgets.qApp.exec_()
+    QtWidgets.qApp.exec()
 
 
 ## Init
