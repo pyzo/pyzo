@@ -6,6 +6,7 @@ History class, which is a Qt model, and the PyzoHistoryViewer, which is a Qt vie
 
 """
 
+import types
 import pyzo
 from pyzo.qt import QtCore, QtGui, QtWidgets  # noqa
 from pyzo import translate
@@ -13,6 +14,10 @@ from pyzo.core.menu import Menu
 
 tool_name = translate("pyzoHistoryViewer", "History viewer")
 tool_summary = "Shows the last used commands."
+
+
+def copyForListWidget(self):
+    self.parent().copy()  # call the copy method of class PyzoHistoryViewer
 
 
 class PyzoHistoryViewer(QtWidgets.QWidget):
@@ -95,6 +100,12 @@ class PyzoHistoryViewer(QtWidgets.QWidget):
         pyzo.command_history.command_added.connect(self._on_command_added)
         pyzo.command_history.command_removed.connect(self._on_command_removed)
         pyzo.command_history.commands_reset.connect(self._on_commands_reset)
+
+        # Patch a copy method to the list widget. We need this because the Ctrl+C
+        # shortcut triggers the "Edit -> Copy" menu action. And in _editItemCallback
+        # the "copy" method of the widget with the focus is called.
+        # Otherwise Ctrl+C does not work to copy selected lines in the widget.
+        self._list.copy = types.MethodType(copyForListWidget, self._list)
 
     def _on_search(self):
         needle = self._search.text()
