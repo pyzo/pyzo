@@ -50,7 +50,7 @@ class PyzoLoggerShell(BaseShell):
         super().__init__(parent)
 
         # Set style to Python, or autocompletion does not work
-        self.setParser("python")
+        self.setParser("python3")
 
         # Change background color to make the logger look different from shell
         f1 = self.getStyleElementFormat("Editor.text")
