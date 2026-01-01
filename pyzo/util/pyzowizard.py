@@ -493,12 +493,12 @@ class ToolsWizardPage1(BasePyzoWizardPage):
         translate(
             "wizard",
             """Note that the tools system is designed such that it's easy to
-        create your own tools. Look at the example tools for more information,
+        create your own tools. Look at the example tool for more information,
         or use one of the existing tools as a more advanced example.""",
         ),
-        os.path.join(pyzo.pyzoDir, "resources", "tool_examples"),
+        os.path.join(pyzo.pyzoDir, "resources", "code_examples", "myRunner.py"),
         os.path.join(pyzo.pyzoDir, "tools"),
-        "https://github.com/pyzo/pyzo/blob/main/pyzo/resources/tool_examples",
+        "https://github.com/pyzo/pyzo/blob/main/pyzo/resources/code_examples/myRunner.py",
         "https://github.com/pyzo/pyzo/blob/main/pyzo/tools/",
     ]
 
