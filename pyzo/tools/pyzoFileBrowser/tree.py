@@ -140,11 +140,11 @@ def createItemsFun(browser, parent):
         ErrorItem(parent, str(err))
         return
 
-    # Sort dirs (case insensitive)
-    dirs.sort(key=filename2sortkey)
+    # Sort dirs (case insensitive, number aware)
+    dirs.sort(key=dirpathSplitName2sortkey)
 
-    # Sort files (first by type, then by name, logically)
-    files.sort(key=filename2sortkey)
+    # Sort files (case insensitive, first by type, then by name, number aware)
+    files.sort(key=filepathSplitName2sortkey)
 
     if not searchFilter:
         # Create dirs
@@ -189,31 +189,32 @@ def createItemsFun(browser, parent):
     return len(dirs) + len(files)
 
 
-def filename2sortkey(name):
-    """Convert a file or dir name to a tuple that can be used to
-    logically sort them. Sorting first by extension.
+def filename2sortkey(s):
+    """converts a filename string to a tuple of strings and ints which can
+    be used as a key for sorting
+
+    example:
+    'image009_part4.png' --> ('image', 9, '_part', 4, '.png')
     """
-    # Normalize name
-    name = os.path.basename(name).lower()
-    name, e = os.path.splitext(name)
-    # Split the name in logical parts
-    try:
-        numbers = "0123456789"
-        name1 = name.lstrip(numbers)
-        name2 = name1.rstrip(numbers)
-        n_pre = len(name) - len(name1)
-        n_post = len(name1) - len(name2)
-        pre = int(name[:n_pre]) if n_pre else 999999999
-        post = int(name[-n_post:]) if n_post else -1
-        return e, pre, name2, post
-    except Exception as err:
-        # I cannot see how this could fail, but lets be safe, as it would break so badly
-        print(
-            "Warning: could not filename2sortkey({!r}), please report:\n{}".format(
-                name, err
-            )
-        )
-        return (e, 999999999, name, -1)
+    parts = re.split(r"(\d+)", s)
+    return tuple(int(s) if s.isdecimal() else s for s in parts)
+
+
+def filepathSplitName2sortkey(filepath):
+    """converts the filename of a filepath to a tuple that can be used to
+    logically sort them. Sorting first by extension and case-insensitive.
+    """
+    name = os.path.basename(filepath).lower()
+    name, ext = os.path.splitext(name)
+    return (ext,) + filename2sortkey(name)
+
+
+def dirpathSplitName2sortkey(dirpath):
+    """converts the dirname of a dirpath to a tuple that can be used to
+    logically sort them. Sorting is case-insensitive.
+    """
+    name = os.path.basename(dirpath).lower()
+    return filename2sortkey(name)
 
 
 class BrowserItem(QtWidgets.QTreeWidgetItem):
