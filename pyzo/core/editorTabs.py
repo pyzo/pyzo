@@ -11,6 +11,7 @@ It also has a find/replace widget that is at the bottom of the editor.
 import os
 import sys
 import time
+import re
 import gc
 from pyzo.qt import QtCore, QtGui, QtWidgets
 
@@ -189,6 +190,16 @@ class FileItem:
         return self._pinned
 
 
+class ToolButtonWithShiftClick(QtWidgets.QToolButton):
+    clickedWithShift = QtCore.Signal()
+
+    def mousePressEvent(self, event):
+        if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
+            self.clickedWithShift.emit()
+            return
+        super().mousePressEvent(event)
+
+
 # todo: when this works with the new editor, put in own module.
 class FindReplaceWidget(QtWidgets.QFrame):
     """A widget to find and replace text."""
@@ -236,30 +247,35 @@ class FindReplaceWidget(QtWidgets.QFrame):
             layout.addLayout(vsubLayout, 0)
 
             # Add find text
-            self._findText.setToolTip(translate("search", "Find pattern"))
+            t = translate("search", "Find pattern")
+            self._findText.setToolTip(t)
+            self._findText.setPlaceholderText(t)
             vsubLayout.addWidget(self._findText, 0)
 
             vsubLayout.addLayout(hsubLayout)
 
             # Add previous button
-            self._findPrev = QtWidgets.QToolButton(self)
+            self._findPrev = ToolButtonWithShiftClick(self)
             t = translate(
                 "search", "Previous ::: Find previous occurrence of the pattern."
             )
-            self._findPrev.setText(t)
+            self._findPrev.setText(" <- ")
             self._findPrev.setToolTip(t.tt)
 
             hsubLayout.addWidget(self._findPrev, 0)
 
-            hsubLayout.addStretch(1)
-
             # Add next button
-            self._findNext = QtWidgets.QToolButton(self)
+            self._findNext = ToolButtonWithShiftClick(self)
             t = translate("search", "Next ::: Find next occurrence of the pattern.")
-            self._findNext.setText(t)
+            self._findNext.setText(" -> ")
             self._findNext.setToolTip(t.tt)
-            # self._findNext.setDefault(True) # Not possible with tool buttons
             hsubLayout.addWidget(self._findNext, 0)
+
+            hsubLayout.addSpacing(10)
+
+            self._lblResCount = QtWidgets.QLabel(self)
+            hsubLayout.addWidget(self._lblResCount, 0)
+            hsubLayout.addStretch(1)
 
         layout.addSpacing(10)
 
@@ -272,7 +288,9 @@ class FindReplaceWidget(QtWidgets.QFrame):
             layout.addLayout(vsubLayout, 0)
 
             # Add replace text
-            self._replaceText.setToolTip(translate("search", "Replace pattern"))
+            t = translate("search", "Replace pattern")
+            self._replaceText.setToolTip(t)
+            self._replaceText.setPlaceholderText(t)
             vsubLayout.addWidget(self._replaceText, 0)
 
             vsubLayout.addLayout(hsubLayout)
@@ -308,7 +326,9 @@ class FindReplaceWidget(QtWidgets.QFrame):
             vsubLayout.addWidget(self._caseCheck, 0)
 
             # Add regexp checkbox
-            t = translate("search", "RegExp ::: Find using regular expressions.")
+            t = translate(
+                "search", "RegExp ::: Find/Replace using regular expressions."
+            )
             self._regExp = QtWidgets.QCheckBox(t, self)
             self._regExp.setToolTip(t.tt)
             vsubLayout.addWidget(self._regExp, 0)
@@ -337,10 +357,10 @@ class FindReplaceWidget(QtWidgets.QFrame):
 
         layout.addStretch(1)
 
-        # Set placeholder texts
+        self._curEditor = None
+        self.resetSearchResults()
+
         for lineEdit in [self._findText, self._replaceText]:
-            if hasattr(lineEdit, "setPlaceholderText"):
-                lineEdit.setPlaceholderText(lineEdit.toolTip())
             lineEdit.textChanged.connect(self.autoHideTimerReset)
 
         # Set focus policy
@@ -371,10 +391,14 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._findText.returnPressed.connect(self.findNext)
         self._hidebut.clicked.connect(self.hideMe)
         self._findNext.clicked.connect(self.findNext)
+        self._findNext.clickedWithShift.connect(self.findPrevious)
         self._findPrev.clicked.connect(self.findPrevious)
+        self._findPrev.clickedWithShift.connect(self.findNext)
         self._replaceBut.clicked.connect(self.replace)
         #
-        self._regExp.stateChanged.connect(self.handleReplacePossible)
+        self._findText.textChanged.connect(self.resetSearchResults)
+        for w in [self._caseCheck, self._regExp, self._wholeWord]:
+            w.stateChanged.connect(self.resetSearchResults)
 
         # init case and regexp
         self._caseCheck.setChecked(bool(pyzo.config.state.find_matchCase))
@@ -428,12 +452,24 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # Otherwise ... handle in default manner
         return super().event(event)
 
-    def handleReplacePossible(self, state):
-        """Disable replacing when using regular expressions."""
-        for w in [self._replaceText, self._replaceBut, self._replaceKind]:
-            w.setEnabled(not state)
+    def _setSearchResults(self, editor, labelText):
+        self._curEditor = editor
+        self._curEditor.cursorPositionChanged.connect(self.resetSearchResults)
+        self._lblResCount.setText(labelText)
+
+    def resetSearchResults(self):
+        if self._curEditor is not None:
+            self._curEditor.cursorPositionChanged.disconnect(self.resetSearchResults)
+            self._curEditor = None
+        self._lblResCount.setText("")
 
     def startFind(self, event=None):
+        self._prepareFindText()
+        # If there is text selected in the editor, and the user presses Ctrl+F,
+        # then we already start a search using that selection but only count the results.
+        self._find(onlyCount=True)
+
+    def _prepareFindText(self):
         """Use this rather than show(). It will check if anything is
         selected in the current editor, and if so, will set that as the
         initial search string
@@ -466,27 +502,173 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._findText.setFocus()
 
     def findNext(self, event=None):
-        self.find()
+        self._find()
         # self._findText.setFocus()
 
     def findPrevious(self, event=None):
-        self.find(False)
+        self._find(False)
         # self._findText.setFocus()
 
     def findSelection(self, event=None):
-        self.startFind()
+        self._prepareFindText()
         self.findNext()
 
     def findSelectionBw(self, event=None):
-        self.startFind()
+        self._prepareFindText()
         self.findPrevious()
 
-    def find(self, forward=True, wrapAround=True, editor=None):
-        """The main find method. Returns True if a match was found."""
+    def _find(self, forward=True, editor=None, onlyCount=False, includeSelection=False):
+        """The main find method. Returns the match object."""
 
         # Reset timer
         self.autoHideTimerReset()
 
+        self.resetSearchResults()
+
+        # get editor
+        if not editor:
+            editor = self.parent().getCurrentEditor()
+            if not editor:
+                return None
+
+        # find flags
+        flags = re.MULTILINE
+        if not self._caseCheck.isChecked():
+            flags |= re.IGNORECASE
+
+        # focus
+        self.selectFindText()
+
+        # get text to find
+        needle = self._findText.text()
+        if not needle:
+            return None
+
+        if not self._regExp.isChecked():
+            needle = re.escape(needle)
+
+        if self._wholeWord.isChecked():
+            needle = r"\b" + needle + r"\b"
+
+        # establish start position
+        cursor = editor.textCursor()
+        if cursor.hasSelection():
+            if includeSelection or onlyCount:
+                # if the current selection matches, this is already the result
+                if forward:
+                    pos = cursor.selectionStart()
+                else:
+                    pos = cursor.selectionEnd()
+            elif forward:
+                pos = cursor.selectionEnd()
+            else:
+                pos = cursor.selectionStart()
+        else:
+            pos = cursor.position()
+
+        haystack = editor.toPlainText()
+        cntMatches = 0
+        result = None
+        resultWrapped = None
+        try:
+            for mo in re.finditer(needle, haystack, flags):
+                cntMatches += 1
+                if forward:
+                    if not resultWrapped:
+                        resultWrapped = cntMatches, mo
+                    if not result:
+                        if mo.start() >= pos:
+                            result = cntMatches, mo
+                else:
+                    resultWrapped = cntMatches, mo
+                    if mo.end() <= pos:
+                        result = cntMatches, mo
+        except re.error as err:
+            print("Error in RegExp: {}".format(err))
+            return None
+
+        if not result:
+            result = resultWrapped
+            if resultWrapped:
+                self.notifyPassBeginEnd()
+
+        if result:
+            matchNum, mo = result
+            if onlyCount:
+                if not cursor.hasSelection() or pos != mo.start():
+                    matchNum = "-"
+                    # This can happen when the user selects part of a word
+                    # and then presses Ctrl+F, but "Whole words" is activated.
+                    # The cursor position in not changed in "onlyCount" mode,
+                    # so we do not have a current match number.
+            else:
+                cursor.setPosition(mo.start(), cursor.MoveMode.MoveAnchor)
+                cursor.setPosition(mo.end(), cursor.MoveMode.KeepAnchor)
+                editor.gotoBlock(cursor.block().blockNumber(), avoidScrolling=True)
+                editor.setTextCursor(cursor)
+            resultMatchObject = mo
+
+            labelText = "{} / {}".format(matchNum, cntMatches)
+            self._setSearchResults(editor, labelText)
+
+            if not onlyCount:
+                editor.setFocus()
+        else:
+            resultMatchObject = None
+
+        return resultMatchObject
+
+    def replace(self, event=None):
+        i = self._replaceKind.currentIndex()
+        if i == 0:
+            self._replaceOne()
+        elif i == 1:
+            self._replaceAll()
+        elif i == 2:
+            self._replaceInAllFiles()
+        else:
+            raise RuntimeError("Unexpected kind of replace {}".format(i))
+
+    def _replaceOne(self):
+        """If the currently selected text matches the find string,
+        replaces that text. Then it finds and selects the next match.
+        """
+
+        # get editor
+        editor = self.parent().getCurrentEditor()
+        if not editor:
+            return
+
+        # Create a cursor to do the editing
+        cursor = editor.textCursor()
+        selBefore = (None, None)
+        if cursor.hasSelection():
+            selBefore = cursor.selectionStart(), cursor.selectionEnd()
+
+        mo = self._find(editor=editor, includeSelection=True)
+        if not mo:
+            return
+
+        cursor = editor.textCursor()
+        if mo.span() != selBefore:
+            # We only moved to the first match and selected it
+            # because the initially selected text did not match.
+            return
+
+        # get replacement
+        replacement = self._replaceText.text()
+
+        if self._regExp.isChecked():
+            try:
+                replacement = mo.expand(replacement)
+            except re.error as err:
+                print("Error in RegExp replacement: {}".format(err))
+                return
+
+        cursor.insertText(replacement)  # replaces selection
+        self._find(editor=editor)  # find and select next
+
+    def _replaceAll(self, editor=None):
         # get editor
         if not editor:
             editor = self.parent().getCurrentEditor()
@@ -494,139 +676,64 @@ class FindReplaceWidget(QtWidgets.QFrame):
                 return
 
         # find flags
-        flags = QtGui.QTextDocument.FindFlag(0)
-        if self._caseCheck.isChecked():
-            flags |= QtGui.QTextDocument.FindFlag.FindCaseSensitively
-        if not forward:
-            flags |= QtGui.QTextDocument.FindFlag.FindBackward
-        # if self._wholeWord.isChecked():
-        #    flags |= QtGui.QTextDocument.FindFlag.FindWholeWords
-
-        # focus
-        self.selectFindText()
-
-        # get text to find
-        needle = self._findText.text()
-
-        QRE = QtCore.QRegularExpression
-        PatternOption = QRE.PatternOption
-        regexFlags = PatternOption.NoPatternOption
+        flags = re.MULTILINE
         if not self._caseCheck.isChecked():
-            regexFlags |= PatternOption.CaseInsensitiveOption
-
-        if self._regExp.isChecked():
-            needle = QRE(needle, regexFlags)
-        elif self._wholeWord.isChecked():
-            # Use regexp, because the default behaviour does not find
-            # whole words correctly, see issue #276
-            # it should *not* find this in this_word
-            needle = QRE(r"\b" + QRE.escape(needle) + r"\b", regexFlags)
-
-        # establish start position
-        cursor = editor.textCursor()
-        result = editor.document().find(needle, cursor, flags)
-
-        if result.isNull() and wrapAround:
-            self.notifyPassBeginEnd()
-            # Move cursor to start or end of document
-            if forward:
-                cursor.movePosition(cursor.MoveOperation.Start)
-            else:
-                cursor.movePosition(cursor.MoveOperation.End)
-            # Try again
-            result = editor.document().find(needle, cursor, flags)
-
-        if not result.isNull():
-            editor.gotoBlock(result.block().blockNumber(), avoidScrolling=True)
-            editor.setTextCursor(result)
-
-        # done
-        editor.setFocus()
-        return not result.isNull()
-
-    def replace(self, event=None):
-        i = self._replaceKind.currentIndex()
-        if i == 0:
-            self.replaceOne(event)
-        elif i == 1:
-            self.replaceAll(event)
-        elif i == 2:
-            self.replaceInAllFiles(event)
-        else:
-            raise RuntimeError("Unexpected kind of replace {}".format(i))
-
-    def replaceOne(self, event=None, wrapAround=True, editor=None):
-        """If the currently selected text matches the find string,
-        replaces that text. Then it finds and selects the next match.
-        Returns True if a next match was found.
-        """
-
-        # get editor
-        if not editor:
-            editor = self.parent().getCurrentEditor()
-            if not editor:
-                return
-
-        # Create a cursor to do the editing
-        cursor = editor.textCursor()
-
-        # matchCase
-        matchCase = self._caseCheck.isChecked()
+            flags |= re.IGNORECASE
 
         # get text to find
         needle = self._findText.text()
-        if not matchCase:
-            needle = needle.lower()
+        if not needle:
+            return
+
+        if not self._regExp.isChecked():
+            needle = re.escape(needle)
+
+        if self._wholeWord.isChecked():
+            needle = r"\b" + needle + r"\b"
+
+        haystack = editor.toPlainText()
 
         # get replacement
         replacement = self._replaceText.text()
+        useRegExp = self._regExp.isChecked()
 
-        # get original text
-        original = cursor.selectedText().replace("\u2029", "\n")
-        if not original:
-            original = ""
-        if not matchCase:
-            original = original.lower()
-
-        # replace
-        # TODO: < line does not work for regexp-search!
-        if original and original == needle:
-            cursor.insertText(replacement)
-
-        # next!
-        return self.find(wrapAround=wrapAround, editor=editor)
-
-    def replaceAll(self, event=None, editor=None):
-        # TODO: share a cursor between all replaces, in order to
-        # make this one undo/redo-step
-
-        # get editor
-        if not editor:
-            editor = self.parent().getCurrentEditor()
-            if not editor:
-                return
-
-        # get current position
-        originalPosition = editor.textCursor()
-
-        # Move to beginning of text and replace all
-        # Make this a single undo operation
+        originalCursor = editor.textCursor()
         cursor = editor.textCursor()
         cursor.beginEditBlock()
+        cntExtraChars = 0
+        cntMatches = 0
         try:
-            cursor.movePosition(cursor.MoveOperation.Start)
-            editor.setTextCursor(cursor)
-            while self.replaceOne(wrapAround=False, editor=editor):
-                pass
+            for mo in re.finditer(needle, haystack, flags):
+                cntMatches += 1
+                if useRegExp:
+                    try:
+                        r = mo.expand(replacement)
+                    except re.error as err:
+                        print("Error in RegExp replacement: {}".format(err))
+                        return
+                else:
+                    r = replacement
+
+                cursor.setPosition(
+                    cntExtraChars + mo.start(), cursor.MoveMode.MoveAnchor
+                )
+                cursor.setPosition(cntExtraChars + mo.end(), cursor.MoveMode.KeepAnchor)
+                cursor.insertText(r)  # replaces selection
+                delta = len(r) - (mo.end() - mo.start())
+                cntExtraChars += delta
+
+            editor.setTextCursor(originalCursor)  # reset position
+            editor.setFocus()
+            print("replaced {} occurrences in {}".format(cntMatches, editor.id()))
+
+        except re.error as err:
+            print("Error in RegExp in editor {}:\n{}".format(editor.id(), err))
         finally:
             cursor.endEditBlock()
 
-        # reset position
-        editor.setTextCursor(originalPosition)
-
-    def replaceInAllFiles(self, event=None):
+    def _replaceInAllFiles(self):
         for editor in pyzo.editors:
-            self.replaceAll(event, editor)
+            self._replaceAll(editor)
 
 
 class FileTabWidget(CompactTabWidget):
@@ -1000,6 +1107,7 @@ class EditorTabs(QtWidgets.QWidget):
         editor = pyzo.editors.getCurrentEditor()
         sb = pyzo.main.statusBar()
         sb.updateCursorInfo(editor)
+        self._findReplace.resetSearchResults()
 
     def getCurrentEditor(self):
         """Get the currently active editor."""
