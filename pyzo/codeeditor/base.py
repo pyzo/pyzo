@@ -246,17 +246,23 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         # Apply a good default style
         self.setStyle(S)
 
-    # see https://bugreports.qt.io/browse/QTBUG-57552?focusedCommentId=469402&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-469402
-    # and https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/qtextdocument.cpp#n1183
-    # and https://doc.qt.io/qt-5/qchar.html
     _plainTextTrans = str.maketrans(
-        {"\u2029": "\n", "\u2028": "\n", "\ufdd0": "\n", "\ufdd1": "\n"}
+        {
+            "\u2029": "\n",  # paragraph separator
+            "\u2028": "\n",  # line separator
+            "\ufdd0": "\n",  # QTextBeginningOfFrame
+            "\ufdd1": "\n",  # QTextEndOfFrame
+        }
     )
+    # fdd0 to fdef are designated noncharacters for internal use
 
     def toPlainText(self):
-        cursor = self.textCursor()
-        cursor.select(QtGui.QTextCursor.SelectionType.Document)
-        return cursor.selectedText().translate(self._plainTextTrans)
+        """like Qt's toPlainText, but "no-break spaces" are not converted to spaces
+
+        see function definitions of "toRawText()" and "toPlainText()" in
+        https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/qtextdocument.cpp
+        """
+        return self.document().toRawText().translate(self._plainTextTrans)
 
     def _setHighlighter(self, highlighterClass):
         # PySide 2 and 6 do not remove the previous highlighter automatically
