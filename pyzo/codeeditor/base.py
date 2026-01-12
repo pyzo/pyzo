@@ -636,15 +636,8 @@ class CodeEditorBase(QtWidgets.QPlainTextEdit):
         if avoidScrolling:
             scrollValueBefore = self.verticalScrollBar().value()
 
-        # Two implementatios. I know that the latter works, so lets
-        # just use that.
-
-        # block = self.document().findBlockByNumber( blockNumber )
-        # cursor.setPosition(block.position())
-        cursor.movePosition(cursor.MoveOperation.Start)  # move to begin of the document
-        cursor.movePosition(
-            cursor.MoveOperation.NextBlock, n=blockNumber
-        )  # n blocks down
+        block = self.document().findBlockByNumber(blockNumber)
+        cursor.setPosition(block.position())
 
         if keepHorizontalPos:
             if cursor.movePosition(cursor.MoveOperation.Up):
