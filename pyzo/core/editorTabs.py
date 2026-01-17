@@ -23,6 +23,7 @@ from pyzo.core.pyzoLogging import print
 from pyzo.core.icons import EditorTabToolButton
 from pyzo import translate
 
+Qt = QtCore.Qt
 
 ismacos = sys.platform.startswith("darwin")
 
@@ -194,10 +195,22 @@ class ToolButtonWithShiftClick(QtWidgets.QToolButton):
     clickedWithShift = QtCore.Signal()
 
     def mousePressEvent(self, event):
-        if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
+        if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
             self.clickedWithShift.emit()
             return
         super().mousePressEvent(event)
+
+
+class LineEditWithShiftReturn(QtWidgets.QLineEdit):
+    returnPressedWithShift = QtCore.Signal()
+
+    def keyPressEvent(self, event):
+        if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+            if event.key() in [Qt.Key.Key_Return, Qt.Key.Key_Enter]:
+                self.returnPressedWithShift.emit()
+                return
+
+        super().keyPressEvent(event)
 
 
 # todo: when this works with the new editor, put in own module.
@@ -207,7 +220,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
     def __init__(self, *args):
         super().__init__(*args)
 
-        self.setFocusPolicy(QtCore.Qt.FocusPolicy.ClickFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         # init layout
         layout = QtWidgets.QHBoxLayout(self)
@@ -219,7 +232,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
         # Create some widgets first to realize a correct tab order
         self._hidebut = QtWidgets.QToolButton(self)
         self._findText = QtWidgets.QLineEdit(self)
-        self._replaceText = QtWidgets.QLineEdit(self)
+        self._replaceText = LineEditWithShiftReturn(self)
 
         if True:
             # Create sub layouts
@@ -297,7 +310,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
 
             # Add replace button
             t = translate("search", "Replace ::: Replace this match.")
-            self._replaceBut = QtWidgets.QToolButton(self)
+            self._replaceBut = ToolButtonWithShiftClick(self)
             self._replaceBut.setText(t)
             self._replaceBut.setToolTip(t.tt)
             hsubLayout.addWidget(self._replaceBut, 0)
@@ -372,7 +385,7 @@ class FindReplaceWidget(QtWidgets.QFrame):
             self._wholeWord,
             self._regExp,
         ]:
-            # but.setFocusPolicy(QtCore.Qt.FocusPolicy.ClickFocus)
+            # but.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
             but.clicked.connect(self.autoHideTimerReset)
 
         # create timer objects
@@ -394,7 +407,10 @@ class FindReplaceWidget(QtWidgets.QFrame):
         self._findNext.clickedWithShift.connect(self.findPrevious)
         self._findPrev.clicked.connect(self.findPrevious)
         self._findPrev.clickedWithShift.connect(self.findNext)
-        self._replaceBut.clicked.connect(self.replace)
+        self._replaceBut.clicked.connect(self._replaceCallback)
+        self._replaceBut.clickedWithShift.connect(self._replaceWithShiftCallback)
+        self._replaceText.returnPressed.connect(self._replaceCallback)
+        self._replaceText.returnPressedWithShift.connect(self._replaceWithShiftCallback)
         #
         self._findText.textChanged.connect(self.resetSearchResults)
         for w in [self._caseCheck, self._regExp, self._wholeWord]:
@@ -442,15 +458,29 @@ class FindReplaceWidget(QtWidgets.QFrame):
         overload event instead of KeyPressEvent.
         """
         if isinstance(event, QtGui.QKeyEvent):
-            if event.key() in (QtCore.Qt.Key.Key_Tab, QtCore.Qt.Key.Key_Backtab):
+            if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
                 event.accept()  # focusNextPrevChild is called by Qt
                 return True
-            elif event.key() == QtCore.Qt.Key.Key_Escape:
+            elif event.key() == Qt.Key.Key_Escape:
                 self.hideMe()
                 event.accept()
                 return True
         # Otherwise ... handle in default manner
         return super().event(event)
+
+    def _replaceCallback(self):
+        textHadFocus = self._replaceText.hasFocus()
+        self.replace()
+        if textHadFocus:
+            self._replaceText.setFocus()
+
+    def _replaceWithShiftCallback(self):
+        if self._replaceKind.currentIndex() == 0:  # "replace one"
+            # instead of replacing, find the next match
+            textHadFocus = self._replaceText.hasFocus()
+            self.findNext()
+            if textHadFocus:
+                self._replaceText.setFocus()
 
     def _setSearchResults(self, editor, labelText):
         self._curEditor = editor
@@ -1061,7 +1091,7 @@ class EditorTabs(QtWidgets.QWidget):
         # apply
         self.setLayout(self._boxLayout)
 
-        # self.setAttribute(QtCore.Qt.WA_AlwaysShowToolTips,True)
+        # self.setAttribute(Qt.WA_AlwaysShowToolTips,True)
 
         # accept drops
         self.setAcceptDrops(True)
@@ -1086,7 +1116,7 @@ class EditorTabs(QtWidgets.QWidget):
         from pyzo.core.menu import EditorTabContextMenu
 
         self._menu = EditorTabContextMenu(self, "EditorTabMenu")
-        self._tabs.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self._tabs.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self._tabs.customContextMenuRequested.connect(self.contextMenuTriggered)
 
     def contextMenuTriggered(self, p):
@@ -1896,9 +1926,9 @@ class HistList(QtWidgets.QDialog):
     def processKeyPress(event):
         key = event.key()
         modifiers = event.modifiers()
-        tab_pressed = key == QtCore.Qt.Key.Key_Tab
-        backtab_pressed = key == QtCore.Qt.Key.Key_Backtab
-        KM = QtCore.Qt.KeyboardModifier
+        tab_pressed = key == Qt.Key.Key_Tab
+        backtab_pressed = key == Qt.Key.Key_Backtab
+        KM = Qt.KeyboardModifier
         control_like_modifier = KM.AltModifier if ismacos else KM.ControlModifier
         fwd = modifiers == control_like_modifier
         bwd = modifiers == control_like_modifier | KM.ShiftModifier
@@ -1919,7 +1949,7 @@ class HistList(QtWidgets.QDialog):
         super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
-        KM = QtCore.Qt.KeyboardModifier
+        KM = Qt.KeyboardModifier
         modifiers = event.modifiers()
         control_like_modifier = KM.AltModifier if ismacos else KM.ControlModifier
         if not (modifiers & control_like_modifier):
