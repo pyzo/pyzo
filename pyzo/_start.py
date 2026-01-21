@@ -214,34 +214,39 @@ def saveConfig():
 
 
 def fixVisualQuirks():
-    pal = QtWidgets.qApp.palette()
-    CG = QtGui.QPalette.ColorGroup
-    CR = QtGui.QPalette.ColorRole
+    if sys.platform.startswith("win"):
+        # In MS Windows 11, with a normal bright theme, when selecting text in the editor,
+        # the selection has white font color on a dark blue background. But when moving the
+        # focus/cursor to the shell widget, the selected text in the editor is painted with
+        # an almost black text on an almost white background. This makes inactive selected
+        # text hard to spot, especially when the selection is in the highlighted current line.
+        # This is annoying when doing text replacements where the focus is automatically
+        # moved to the replacement text widget after selecting the next match.
+        # The change applies to all widgets, for example the selected list entry in the
+        # "Editor list" tool.
 
-    # In MS Windows 11, with a normal bright theme, when selecting text in the editor,
-    # the selection has white font color on a dark blue background. But when moving the
-    # focus/cursor to the shell widget, the selected text in the editor is painted with
-    # an almost black text on an almost white background. This makes inactive selected
-    # text hard to spot, especially when the selection is in the highlighted current line.
-    # This is annoying when doing text replacements where the focus is automatically
-    # moved to the replacement text widget after selecting the next match.
-    # Linux with KDE Plasma and GNOME does not have separate styles for active and
-    # inactive text selections, and it is ok, to have slightly different colors via this
-    # fix. The change applies to all widgets, for example the selected list entry in the
-    # "Editor list" tool.
+        pal = QtWidgets.qApp.palette()
+        CG = QtGui.QPalette.ColorGroup
+        CR = QtGui.QPalette.ColorRole
 
-    c = pal.color(CG.Active, CR.Highlight)
-    c.setAlphaF(c.alphaF() * 0.6)
-    pal.setColor(CG.Inactive, CR.Highlight, c)
+        c = pal.color(CG.Active, CR.Highlight)
+        c.setAlphaF(c.alphaF() * 0.7)
+        pal.setColor(CG.Inactive, CR.Highlight, c)
 
-    c = pal.color(CG.Active, CR.HighlightedText)
-    pal.setColor(CG.Inactive, CR.HighlightedText, c)
+        c = pal.color(CG.Active, CR.HighlightedText)
+        pal.setColor(CG.Inactive, CR.HighlightedText, c)
 
-    # Re-assigning the palette colors, no matter which group and role, also is a
-    # work-around for almost invisible placeholder texts in Qt v6.10.x. So, there is no
-    # need for an extra fix. See https://qt-project.atlassian.net/browse/QTBUG-143114
+        QtWidgets.qApp.setPalette(pal)
 
-    QtWidgets.qApp.setPalette(pal)
+    if sys.platform == "linux" and pyzo.qt.QT_VERSION_STR.startswith("6.10."):
+        # There is a bug in Qt v6.10.x that makes the placeholder text color too bright
+        # in a light theme with white background.
+        # A work-around for that is re-assigning the palette colors, no matter which group
+        # and role. See https://qt-project.atlassian.net/browse/QTBUG-143114
+        pal = QtWidgets.qApp.palette()
+        ROLE = QtGui.QPalette.ColorRole.LinkVisited  # use any role here
+        pal.setColor(ROLE, pal.color(ROLE))
+        QtWidgets.qApp.setPalette(pal)
 
 
 pyzo.resetConfig = resetConfig
@@ -275,9 +280,7 @@ def start():
     # Instantiate the application
     QtWidgets.qApp = MyApp(sys.argv)  # QtWidgets.QApplication([])
 
-    if not sys.platform.startswith("darwin"):
-        # not doing this in macOS because I cannot test the fixes there
-        fixVisualQuirks()
+    fixVisualQuirks()
 
     # Choose language, get locale
     appLocale = setLanguage(pyzo.config.settings.language)
