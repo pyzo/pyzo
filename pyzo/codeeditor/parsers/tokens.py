@@ -112,7 +112,8 @@ class UnterminatedStringToken(StringToken):
     defaultStyle = "underline:dotted"
 
 
-# todo: request from user: whitespace token
+class WhitespaceToken(Token):
+    """Whitespace characters"""
 
 
 class TextToken(Token):
