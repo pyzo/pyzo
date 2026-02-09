@@ -1,6 +1,42 @@
 # Release notes
 
 
+### Version 4.21.0 (09-02-2026)
+
+* add Snippets tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1202
+* fix interactive help for autocompletion when Snippets tool active by @bdieterm in https://github.com/pyzo/pyzo/pull/1204
+* fix "pip install" magic for filepaths by @bdieterm in https://github.com/pyzo/pyzo/pull/1205
+* ignore newly introduced rule RUF059 in ruff linter by @bdieterm in https://github.com/pyzo/pyzo/pull/1209
+* prevent too large dialog windows on smaller screens by @bdieterm in https://github.com/pyzo/pyzo/pull/1208
+* fix Qt warning in Snippets tool and add more snippets by @bdieterm in https://github.com/pyzo/pyzo/pull/1210
+* fix update of breakpoints after changing filepath in editor by @bdieterm in https://github.com/pyzo/pyzo/pull/1211
+* rework pip magic progress bar updates for newer pip versions by @bdieterm in https://github.com/pyzo/pyzo/pull/1212
+* prevent flood of exceptions when the shell's working directory is deleted by @bdieterm in https://github.com/pyzo/pyzo/pull/1214
+* join broken lines in shell when copying them by @bdieterm in https://github.com/pyzo/pyzo/pull/1215
+* fix code for new ruff linter rule B905 by @bdieterm in https://github.com/pyzo/pyzo/pull/1216
+* add feature to manage and switch views by @bdieterm in https://github.com/pyzo/pyzo/pull/1217
+* fix handling of vertical tab characters in the shell by @bdieterm in https://github.com/pyzo/pyzo/pull/1218
+* fix typos in source code by @bdieterm in https://github.com/pyzo/pyzo/pull/1219
+* improve pip magic progress bar by @bdieterm in https://github.com/pyzo/pyzo/pull/1220
+* improve codeparser (for SourceStructure tool etc.) by @bdieterm in https://github.com/pyzo/pyzo/pull/1222
+* add example code for external debugger interface by @bdieterm in https://github.com/pyzo/pyzo/pull/1223
+* upgrade CI/CD workflows from macOS 13 to 15 for Intel CPUs by @bdieterm in https://github.com/pyzo/pyzo/pull/1225
+* fix typos by @bdieterm in https://github.com/pyzo/pyzo/pull/1224
+* fix restoring std streams after exiting Pyzo kernel by @bdieterm in https://github.com/pyzo/pyzo/pull/1226
+* add script to create the Pyzo logo as a vector graphics by @bdieterm in https://github.com/pyzo/pyzo/pull/1230
+* improve Pyzo logo generator by @bdieterm in https://github.com/pyzo/pyzo/pull/1231
+* improve vertical scrolling for search results in editor by @bdieterm in https://github.com/pyzo/pyzo/pull/1232
+* improve Qt wrapper for legacy exec_ and print_ methods by @bdieterm in https://github.com/pyzo/pyzo/pull/1234
+* update syntax parser in Logger tool to Python3 by @bdieterm in https://github.com/pyzo/pyzo/pull/1235
+* allow copying in "History viewer" tool via Ctrl+C or menu Edit->Copy by @bdieterm in https://github.com/pyzo/pyzo/pull/1236
+* fix folder sorting in "File browser" tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1237
+* fix path of example tool in the "Pyzo wizard" by @bdieterm in https://github.com/pyzo/pyzo/pull/1238
+* improve the search/replace panel of the editor by @bdieterm in https://github.com/pyzo/pyzo/pull/1239
+* improve text replacement in editor search-replace panel by @bdieterm in https://github.com/pyzo/pyzo/pull/1240
+* fix visual quirks: inactive selection color, and placeholder text color by @bdieterm in https://github.com/pyzo/pyzo/pull/1242
+* keep original colors for highlighted text in Linux by @bdieterm in https://github.com/pyzo/pyzo/pull/1243
+
+
 ### Version 4.20.0 (04-08-2025)
 
 * add soft keywords to autocompletion list by @bdieterm in https://github.com/pyzo/pyzo/pull/1132
