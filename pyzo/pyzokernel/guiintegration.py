@@ -616,17 +616,12 @@ class App_qt(App_base):
         self._workaroundWindowsInBackground()
 
         # Enter Qt mainloop
-        # self._QtWidgets.real_QApplication.exec_(self.app)
+
+        # Qt5 still has "exec_" because of the "exec" keyword in Python 2
         exec_ = getattr(self._QtWidgets.real_QApplication, "exec", None)
         if exec_ is None:
             exec_ = self._QtWidgets.real_QApplication.exec_
-        try:
-            try_again = False
-            exec_(self.app)
-        except TypeError:
-            try_again = True
-        if try_again:
-            exec_()
+        exec_()
 
     def quit(self):
         # A nicer way to quit
