@@ -511,7 +511,10 @@ class AutoCloseQuotesAndBrackets:
             if hasattr(token, "start"):
                 if token.start > pos:
                     break
-                if token.start <= pos < token.end:
+                if pos < token.end or isinstance(token, CommentToken):
+                    # When the cursor is at the end of a comment line,
+                    # then "pos" is equal to "token.end", but we are still inside the
+                    # comment token.
                     tokenAtCursor = token
                     break
             if isinstance(token, MultilineStringToken):
