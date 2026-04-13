@@ -17,6 +17,12 @@ def prepare_appdata_appconfig_dirs():
     folders are created if not present
     """
 
+    # Select platform
+    platform = sys.platform
+    if platform == "android":
+        if os.getenv("SHELL") or os.getenv("PREFIX"):
+            platform = 'linux'
+
     # check for a "settings" folder next to the Pyzo executable or one level above,
     # which is typically used for portable applications
     use_portable_settings = False
@@ -40,19 +46,19 @@ def prepare_appdata_appconfig_dirs():
         path_dot = os.path.expanduser(
             "~/." + appname
         )  # leading dot means hidden directory
-        if sys.platform == "win32":
+        if platform == "win32":
             data_path = config_path = os.path.join(os.getenv("APPDATA"), appname)
             # typically r"C:\Users\username\AppData\Roaming\pyzo"
         elif os.path.isdir(path_dot):
             # existing legacy data and config directory in Linux or macOS
             data_path = config_path = path_dot
-        elif sys.platform == "linux":
+        elif platform == "linux":
             # see https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
             data_path_base = os.getenv("XDG_DATA_HOME", "") or "~/.local/share"
             config_path_base = os.getenv("XDG_CONFIG_HOME", "") or "~/.config"
             data_path = os.path.expanduser(os.path.join(data_path_base, appname))
             config_path = os.path.expanduser(os.path.join(config_path_base, appname))
-        elif sys.platform == "darwin":
+        elif platform == "darwin":
             sp = QtCore.QStandardPaths
             data_path_base = sp.writableLocation(sp.StandardLocation.AppDataLocation)
             config_path_base = sp.writableLocation(sp.StandardLocation.ConfigLocation)
@@ -68,7 +74,7 @@ def prepare_appdata_appconfig_dirs():
             data_path = os.path.join(data_path_base, appname)
             config_path = os.path.join(config_path_base, appname)
         else:
-            raise NotImplementedError("unsupported operating system: " + sys.platform)
+            raise NotImplementedError("unsupported operating system: " + platform)
 
         os.makedirs(data_path, exist_ok=True)
         os.makedirs(config_path, exist_ok=True)
