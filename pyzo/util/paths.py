@@ -21,7 +21,7 @@ def prepare_appdata_appconfig_dirs():
     platform = sys.platform
     if platform == "android":
         if os.getenv("SHELL") or os.getenv("PREFIX"):
-            platform = 'linux'
+            platform = "linux"
 
     # check for a "settings" folder next to the Pyzo executable or one level above,
     # which is typically used for portable applications
