@@ -649,7 +649,7 @@ class Magician:
         args = [w.replace("%20", " ") for w in args if w]
         args.pop(0)  # remove 'notebook'
 
-        # Stop if user does "conda = ..."
+        # Stop if user does "notebook = ..."
         if args and "=" in args[0]:
             return
 

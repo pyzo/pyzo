@@ -47,7 +47,7 @@ ct2.connect("publichost:test")
 def reply_handler(future):
     # Check error, cancelled, or get number
     if future.exception():
-        # Calling result() would raise the exception, so lets just
+        # Calling result() would raise the exception, so let's just
         # print it and make up our own number
         print("oops: " + str(future.exception()))
         number = 1
