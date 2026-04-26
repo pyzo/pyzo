@@ -135,6 +135,7 @@ shortcuts2 = dict:
     shell__restart = 'Ctrl+K,'
     shell__terminate = 'Ctrl+Shift+K,'
     shell__postmortem_debug_from_last_traceback = 'Ctrl+P,'
+    shell__stop_debugging = 'Ctrl+Shift+P,'
     view__select_editor = 'Ctrl+9,F2'
     view__select_shell = 'Ctrl+0,F1'
     view__views = 'Ctrl+Shift+A,'
