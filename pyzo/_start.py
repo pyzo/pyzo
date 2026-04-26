@@ -6,6 +6,12 @@ import traceback
 
 import pyzo
 
+# Work-around for running Pyzo on Android in Termux
+# Before Python 3.13, sys.platform was 'linux' on Android.
+if sys.platform == "android":
+    print("Changing sys.platform from 'android' to 'linux'.")
+    sys.platform = "linux"
+
 # Import this module that applies some tweaks that need to be applied
 # before import qt. This is a separate module, so that the frozen app
 # can import before checking the qt import.
