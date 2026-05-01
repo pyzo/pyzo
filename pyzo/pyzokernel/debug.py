@@ -55,28 +55,24 @@ class Debugger(bdb.Bdb):
 
         return bdb.Bdb.trace_dispatch(self, frame, event, arg)
 
-    def interaction(self, frame, traceback=None, pm=False, framesBefore=None):
+    def interaction(self, frame, traceback_=None, pm=False, pm_exc=None):
         """Enter an interaction-loop for debugging. No GUI events are
         processed here. We leave this event loop at some point, after
         which the control flow will proceed.
 
         This is called to enter debug-mode at a breakpoint, or to enter
         post-mortem debugging.
-
-        Special case for frames where f_back is None, e.g. in a generator expression:
-            For post mortem debugging we will allow to continue at the
-            frame before, e.g. before the generator expression.
-            see https://stackoverflow.com/a/51867843
         """
         interpreter = sys._pyzoInterpreter
 
-        if framesBefore is None:
-            framesBefore = []
-        else:
-            framesBefore = framesBefore[:]
-
         # Collect frames
         frames = []
+
+        if pm:
+            assert frame is None
+            frame = traceback_.tb_frame
+
+        # starting at the frame "frame", we add frames towards the callers:
         while frame:
             if frame is self.botframe:
                 break
@@ -85,11 +81,51 @@ class Debugger(bdb.Bdb):
                 break  # pyzo kernel
             if "interactiveshell.py" in co_filename:
                 break  # IPython kernel
-            frames.insert(0, frame)
-            if frame.f_back is None and pm and len(framesBefore) > 0:
-                frame = framesBefore.pop()
-            else:
-                frame = frame.f_back
+            frames.append(frame)
+            frame = frame.f_back
+        frames.reverse()
+
+        if pm:
+            # For post-mortem, we also go towards the frame that caused the exception.
+            # Some frames can have f_back set to None, like generator expressions
+            # (see see https://stackoverflow.com/a/51867843), but we only go forward here.
+
+            exc = pm_exc
+            tb = traceback_
+            while True:
+                while tb:
+                    frame = tb.tb_frame
+
+                    # Same frames for different traceback entries can occur for example
+                    # in nested try-except blocks. The traceback has entries for the same
+                    # frame, but on different lines (e.g. one in the try-clause, one in the
+                    # except clause).
+                    if frames and frames[-1] is not frame:
+                        frames.append(frame)
+                    tb = tb.tb_next
+
+                # "cause" vs "context" in exceptions that trigger other exceptions:
+                #
+                # try:
+                #     something()
+                # except Exception as e:
+                #     raise TypeError('abc') from e  # --> e was the cause
+                #     # raise TypeError('abc')  # --> e was the context
+
+                chained_exc = getattr(exc, "__cause__", None)
+
+                # We could also check for context exceptions, but this might add more
+                # stack frames than what is useful:
+                #
+                # if not chained_exc:
+                #     chained_exc = getattr(exc, "__context__", None)
+
+                if not chained_exc:
+                    break
+                # Older Python versions that have no exc.__traceback__ never reach this,
+                # because they also have no __cause__ or __context__ attribute.
+                exc = chained_exc
+                tb = exc.__traceback__
 
         # Tell interpreter our stack
         if frames:
@@ -324,10 +360,10 @@ class Debugger(bdb.Bdb):
             else:
                 print("Unknown debug command: %s" % name)
 
-    def _get_traceback_combinations(self):
-        """get all possible combinations for tracebacks
+    def _get_exception_combinations(self, exc):
+        """get all possible combinations for exceptions
 
-        If the exception is an ExceptionGroup, it can consist of sub-exeptions
+        If the exception is an ExceptionGroup, it can consist of sub-exceptions
         and even nested ExceptionGroup objects. We identify a branch via the
         sub-exception numbers that are printed in the traceback ("---- 1 ----" etc.).
 
@@ -344,46 +380,40 @@ class Debugger(bdb.Bdb):
                 ---- 2 ----  --> (3, 2)
                 ValueError
 
-        return value: tb_combs, first_nongroup
-            tb_combs ... a dictionary of kv-pairs
+        return value: exc_combs, first_nongroup
+            exc_combs ... a dictionary of kv-pairs
                 key: the tuple branch-identifier
-                value: the traceback of that (sub-)exception
-            first_nongroup ... the key to the tb_combs dict to the first traceback of an
-                non-ExceptionGroup -- useful as a default selection
+                value: the (sub-)exception
+            first_nongroup ... the key to the exc_combs dict to the first exception
+                that is not an ExceptionGroup -- useful as a default selection
         """
-        tb_combs = {}
+        exc_combs = {}
         first_nongroup = None
-        try:
-            value = sys.last_value
-            # Python 2.7 exceptions have no __traceback__ attribute
-            tb = sys.last_traceback
-        except AttributeError:
-            tb = None
 
-        if tb is not None:
+        if exc is not None:
             # add all combinations for nested exception groups
             p = ()
-            stack = [(value, p)]
+            stack = [(exc, p)]
             nongroup_exceptions = []
-            tb_combs[p] = tb
+            exc_combs[p] = exc
             while len(stack) > 0:
                 e, p = stack.pop()
                 if e.__class__.__name__ == "ExceptionGroup":
                     for num, e2 in enumerate(e.exceptions, 1):
                         p2 = p + (num,)
                         stack.append((e2, p2))
-                        tb_combs[p2] = e2.__traceback__
+                        exc_combs[p2] = e2
                 else:
                     nongroup_exceptions.append(p)
             if nongroup_exceptions:
                 first_nongroup = min(nongroup_exceptions)
-        return tb_combs, first_nongroup
+        return exc_combs, first_nongroup
 
-    def _get_selected_traceback(self, arg):
-        """get the current traceback, and in case of ExceptionGroup, select one of many"""
-        tb_combs, first_nongroup = self._get_traceback_combinations()
-        tb = tb_combs.get((), None)
-        if len(tb_combs) > 1:
+    def _get_selected_exception(self, exc, tb, arg):
+        """get the selected exception of an ExceptionGroup"""
+        exc_combs, first_nongroup = self._get_exception_combinations(exc)
+        exc = exc_combs.get((), None)
+        if len(exc_combs) > 1:
             # there is at least one ExceptionGroup
             user_selected_comb = None
             selected_comb = None
@@ -397,7 +427,7 @@ class Debugger(bdb.Bdb):
                     # and "DB START" to automatically select the traceback.
                     if user_selected_comb == (0,):
                         user_selected_comb = ()
-                    if user_selected_comb not in tb_combs:
+                    if user_selected_comb not in exc_combs:
                         user_selected_comb = None
                 except Exception:
                     user_selected_comb = None
@@ -416,7 +446,8 @@ class Debugger(bdb.Bdb):
                 else:
                     selected_comb = ()
 
-            tb = tb_combs[selected_comb]
+            exc = exc_combs[selected_comb]
+            tb = exc.__traceback__
 
             if user_selected_comb is None:
                 cw = 16
@@ -429,7 +460,7 @@ class Debugger(bdb.Bdb):
                     "db start".ljust(cw)
                     + "<-- this will automatically choose the first non-ExceptionGroup",
                 ]
-                for comb in sorted(tb_combs.keys()):
+                for comb in sorted(exc_combs.keys()):
                     comment = ""
                     if comb == selected_comb:
                         if selected_comb == first_nongroup:
@@ -447,28 +478,25 @@ class Debugger(bdb.Bdb):
                         comb_string = " ".join([str(a) for a in comb])
                     msg_lines.append(("db start " + comb_string).ljust(cw) + comment)
                 self.message("\n".join(msg_lines))
-        return tb
+        return exc, tb
 
     def do_start(self, arg):
         """Start postmortem debugging from the last uncaught exception."""
 
+        exc = sys.last_value
+
+        # Python 2.7 exceptions have no __traceback__ attribute
+        tb = sys.last_traceback
+
         # Since the introduction of ExceptionGroup, there could be multiple tracebacks
         # of interest. A specific one can be selected using the "arg" parameter.
-        tb = self._get_selected_traceback(arg)
-
-        # Get top frame
-        frame = None
-        framesBefore = []
-        while tb:
-            framesBefore.append(frame)
-            frame = tb.tb_frame
-            tb = tb.tb_next
+        exc, tb = self._get_selected_exception(exc, tb, arg)
 
         # Interact, or not
         if self._debugmode:
             self.message("Already in debug mode.")
-        elif frame:
-            self.interaction(frame, None, pm=True, framesBefore=framesBefore)
+        elif tb:
+            self.interaction(None, tb, pm=True, pm_exc=exc)
         else:
             self.message("No debug information available.")
 
