@@ -5,6 +5,17 @@ import bdb
 import traceback
 
 
+# Patch bdb so that "stop debugging" stops code execution even when using
+# "except Exception:" clauses, which catch the BdbQuit error.
+# see https://github.com/python/cpython/issues/149309
+if issubclass(bdb.BdbQuit, Exception):
+
+    class BdbQuit(BaseException):
+        pass
+
+    bdb.BdbQuit = BdbQuit
+
+
 class Debugger(bdb.Bdb):
     """Debugger for the pyzo kernel, based on bdb."""
 
