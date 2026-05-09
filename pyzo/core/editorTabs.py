@@ -458,13 +458,15 @@ class FindReplaceWidget(QtWidgets.QFrame):
         overload event instead of KeyPressEvent.
         """
         if isinstance(event, QtGui.QKeyEvent):
-            if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
-                event.accept()  # focusNextPrevChild is called by Qt
-                return True
-            elif event.key() == Qt.Key.Key_Escape:
-                self.hideMe()
-                event.accept()
-                return True
+            KM = Qt.KeyboardModifier
+            if event.modifiers() in (KM.NoModifier, KM.ShiftModifier):
+                if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
+                    event.accept()  # focusNextPrevChild is called by Qt
+                    return True
+                elif event.key() == Qt.Key.Key_Escape:
+                    self.hideMe()
+                    event.accept()
+                    return True
         # Otherwise ... handle in default manner
         return super().event(event)
 
