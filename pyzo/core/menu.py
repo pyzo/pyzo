@@ -1660,7 +1660,7 @@ class ShellContextMenu(ShellMenu):
                 self._shell.executeCommand("cd " + fileBrowser.path() + "\n")
         elif action == "changedirtoeditor":
             editor = pyzo.editors.getCurrentEditor()
-            if editor is not None:
+            if editor is None:
                 msg = translate("menu", "No editor selected.")
             else:
                 self._shell.executeCommand(
