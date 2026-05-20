@@ -736,8 +736,9 @@ class BaseTextCtrl(CodeEditor):
             if (
                 ordKey >= 32 or ordKey == 8  # 8: '\b'
             ) and pyzo.config.settings.autoComplete == 1:
+                delay = ordKey != 46  # 46: '.'
                 # If a char that allows completion or backspace or dot was pressed
-                self.introspect(True)
+                self.introspect(True, delay)
             elif ordKey >= 32:
                 # Printable chars, only calltip
                 self.introspect()
