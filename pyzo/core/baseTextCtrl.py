@@ -15,7 +15,7 @@ import pyzo.codeeditor.parsers.tokens as Tokens
 from pyzo.codeeditor import CodeEditor
 
 from pyzo.qt import QtCore, QtGui, QtWidgets
-
+from pyzo.util import CalmedFunc
 
 ismacos = sys.platform.startswith("darwin")
 
@@ -344,10 +344,10 @@ class BaseTextCtrl(CodeEditor):
         self.setShowWhitespace(pyzo.config.view.showWhitespace)
         self.setHighlightMatchingBracket(pyzo.config.view.highlightMatchingBracket)
 
-        # Create timer for autocompletion delay
-        self._delayTimer = QtCore.QTimer(self)
-        self._delayTimer.setSingleShot(True)
-        self._delayTimer.timeout.connect(self._introspectNow)
+        # Create calmed function for autocompletion delay
+        self._calmedIntrospectNow = CalmedFunc(
+            self._introspectNow, pyzo.config.advanced.autoCompDelay
+        )
 
         # For buffering autocompletion and calltip info
         self._callTipBuffer_name = ""
@@ -460,26 +460,22 @@ class BaseTextCtrl(CodeEditor):
                 self.autocompleteCancel()
                 tryAutoComp = False
 
-        # Store line and (re)start timer
         cursor.setKeepPositionOnInsert(True)
-        self._delayTimer._tokensUptoCursor = tokensUptoCursor
-        self._delayTimer._cursor = cursor
-        self._delayTimer._tryAutoComp = tryAutoComp
-        self._delayTimer._advanced = advanced
 
-        if delay:
-            self._delayTimer.start(pyzo.config.advanced.autoCompDelay)
-        else:
-            self._delayTimer.start(1)  # self._introspectNow()
+        # Update the delay just in case the user changed the value.
+        # Otherwise the user would have to restart Pyzo for the changes to take effect.
+        self._calmedIntrospectNow.set_delay(pyzo.config.advanced.autoCompDelay)
 
-    def _introspectNow(self):
+        if not delay:
+            self._calmedIntrospectNow.clear_pending()
+        self._calmedIntrospectNow(tokensUptoCursor, cursor, tryAutoComp, advanced)
+
+    def _introspectNow(self, tokensUptoCursor, cursor, tryAutoComp, advanced):
         """This method is called a short while after introspect()
         by the timer. It parses the line and calls the specific methods
         to process the callTip and autoComp.
         """
-
-        tokens = self._delayTimer._tokensUptoCursor
-        advanced = self._delayTimer._advanced
+        tokens = tokensUptoCursor
 
         if pyzo.config.settings.autoCallTip:
             # Parse the line, to get the name of the function we should calltip
@@ -504,7 +500,7 @@ class BaseTextCtrl(CodeEditor):
                 # Process
                 indOfOpenParen = tokens[indParenToken].start
                 offset = (
-                    self._delayTimer._cursor.positionInBlock()
+                    cursor.positionInBlock()
                     - indOfOpenParen
                     + len(str(fullNameTokens[-1]))
                 )
@@ -513,7 +509,7 @@ class BaseTextCtrl(CodeEditor):
             else:
                 self.calltipCancel()
 
-        if self._delayTimer._tryAutoComp and pyzo.config.settings.autoComplete:
+        if tryAutoComp and pyzo.config.settings.autoComplete:
             # Parse the line, to see what name or attribute we need to auto-complete
             nameTokens, needleToken = parseLine_autocomplete(tokens)
             keyLookUp = False
@@ -673,9 +669,6 @@ class BaseTextCtrl(CodeEditor):
         ordKey = -1
         if event.text():
             ordKey = ord(event.text()[0])
-
-        # Cancel any introspection in progress
-        self._delayTimer._line = ""
 
         # Detect "control". This is awkward:
         # Command Key ⌘ -> ControlModifier -> mostly what Windows uses Control for.
