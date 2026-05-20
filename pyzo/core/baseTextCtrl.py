@@ -344,9 +344,17 @@ class BaseTextCtrl(CodeEditor):
         self.setShowWhitespace(pyzo.config.view.showWhitespace)
         self.setHighlightMatchingBracket(pyzo.config.view.highlightMatchingBracket)
 
-        # Create calmed function for autocompletion delay
+        # Create calmed functions to avoid unnecessary updates during a quick sequence of
+        # keystrokes.
         self._calmedIntrospectNow = CalmedFunc(
             self._introspectNow, pyzo.config.advanced.autoCompDelay
+        )
+
+        # Avoid unnecessary introspections while quickly navigating the autocompletion list
+        # via arrow keys. For now, we use the same delay parameter as for updating the
+        # autocompletion list.
+        self._calmedUpdateHelpFromAutocomplete = CalmedFunc(
+            self.updateHelpFromAutocomplete, pyzo.config.advanced.autoCompDelay
         )
 
         # For buffering autocompletion and calltip info
@@ -382,7 +390,14 @@ class BaseTextCtrl(CodeEditor):
 
     def _onAutocompleteSelectionChanged(self, name):
         # overridden in the editor (PyzoEditor class)
-        self.updateHelpFromAutocomplete(name)
+
+        # Update the delay just in case the user changed the value.
+        # Otherwise the user would have to restart Pyzo for the changes to take effect.
+        self._calmedUpdateHelpFromAutocomplete.set_delay(
+            pyzo.config.advanced.autoCompDelay
+        )
+
+        self._calmedUpdateHelpFromAutocomplete(name)
 
     def setAutoCompletionAcceptKeysFromStr(self, keys):
         """Set the keys that can accept an autocompletion from a comma delimited string."""
