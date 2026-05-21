@@ -11,6 +11,7 @@ Support for PySide2/6, PyQt5/6, WxPython, FLTK, GTK, TK.
 import sys
 import time
 import importlib
+import functools
 
 from pyzokernel import printDirect
 
@@ -263,21 +264,47 @@ class App_asyncio(App_base):
 
 
 class App_tk(App_base):
-    """Tries to import tkinter and returns a withdrawn tkinter root
-    window.  If tkinter is already imported or not available, this
-    returns None.
-    Modifies tkinter's mainloop with a dummy so when a module calls
-    mainloop, it does not block.
+    """Replaces tkinter's mainloop with a dummy so when a module calls mainloop, it does
+    not block.
+
+    Instead of the blocking mainloop, tk events are processed by calling the "update"
+    method of the tk root object.
+    In order to obtain the (newest) tk root object, the "__init__" method of the "Tk"
+    class is wrapped by our function "hijacked_tk_init".
+
+    If the user executes "root = tkinter.Tk()" multiple times, older root objects will
+    be destroyed by Pyzo. This way it is more comfortable, e.g. wenn re-executing the
+    code of a file or of a code cell.
     """
 
     def __init__(self):
-        # Try importing
-        import sys
-
-        if sys.version[0] == "3":
+        if sys.version_info[0] == 3:
             import tkinter
         else:
             import Tkinter as tkinter
+
+        self._original_tk_init = tkinter.Tk.__init__
+        self._tk_root = None
+
+        def hijacked_tk_init(tk_self, *args, **kwargs):
+            if self._tk_root is not None:
+                # tkinter.Tk() is already called the second time or more often
+                try:
+                    # this might fail if _tk_root was already destroyed
+                    self._tk_root.destroy()
+                    print("Note: Pyzo GUI integration destroyed the old Tk root.")
+                except Exception:
+                    pass
+            self._tk_root = tk_self
+
+            # Notify that we integrated the event loop
+            self._tk_root._in_event_loop = "Pyzo"
+            tkinter._in_event_loop = "Pyzo"
+
+            return self._original_tk_init(tk_self, *args, **kwargs)
+
+        # update docstring etc.
+        tkinter.Tk.__init__ = functools.wraps(self._original_tk_init)(hijacked_tk_init)
 
         # Replace mainloop. Note that a root object obtained with
         # tkinter.Tk() has a mainloop method, which will simply call
@@ -288,21 +315,17 @@ class App_tk(App_base):
         tkinter.Misc.mainloop = dummy_mainloop
         tkinter.mainloop = dummy_mainloop
 
-        # Create tk "main window" that has a Tcl interpreter.
-        # Withdraw so it's not shown. This object can be used to
-        # process events for any other windows.
-        r = tkinter.Tk()
-        r.withdraw()
-
-        # Store the app instance to process events
-        self.app = r
-
-        # Notify that we integrated the event loop
-        self.app._in_event_loop = "Pyzo"
-        tkinter._in_event_loop = "Pyzo"
+        self._tkinter = tkinter
 
     def process_events(self):
-        self.app.update()
+        if self._tk_root is not None:
+            # In older tkinter versions (e.g. the one of Python 2.7), calling "update"
+            # on a destroyed tk root object throws an exception which would terminate
+            # the shell if not caught.
+            try:
+                self._tk_root.update()
+            except Exception:
+                pass
 
 
 class App_fltk(App_base):
