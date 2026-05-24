@@ -109,6 +109,8 @@ class Manager:
             if name:
                 # Try instantiating the parser
                 try:
+                    if name.startswith("python"):
+                        pass
                     parserInstances[name] = parserInstance = parserClass()
                 except Exception:
                     # We cannot get the exception object in a Python2/Python3

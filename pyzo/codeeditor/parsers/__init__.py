@@ -23,6 +23,9 @@ Making a parser requires these things:
 
 import sys
 
+from collections import defaultdict
+import re
+
 from . import tokens
 
 
@@ -155,6 +158,214 @@ class Parser:
             return True
         else:
             return False
+
+
+# Utils for regex parser
+def bygroups(*args):
+    return tuple(args)
+
+
+class from_list:
+    def __init__(self, word_list, ttype, prefix="", suffix=""):
+        self.word_list = word_list
+        self.ttype = ttype
+        self.prefix = prefix
+        self.suffix = suffix
+
+    def to_pattern(self):
+        return [
+            (self.prefix + word + self.suffix, self.ttype, None)
+            for word in self.word_list
+        ]
+
+
+class include:
+    def __init__(self, state_name):
+        self.state_name = state_name
+
+
+def combination(*states):
+    name = "-".join(states)
+    return {name: [include(state) for state in states]}
+
+
+def default(next_state):
+    # Always matches, doesn't yield a token and go to next_state
+    return ("", tuple(), next_state)
+
+
+class RegexParser(Parser):
+    """A base parser that uses defined states and corresponding regex
+    patterns to tokenize any given code.
+
+    A tutorial"""
+
+    # states must be defined in class inheriting from this one. Default
+    # is a TextToken per line.
+    # Must be ordered. Since
+    states = {"root": [(r"$.*\Z", tokens.TextToken)]}
+
+    def __init__(self):
+        self.process_states()
+
+    def _stack_from_blockstate(self, block_state_val):
+        """Get the parser stack from a given block_state's value. This is
+        basically just a number in base N, where N is the number of
+        states of the parser.
+
+        For instance, if a parser has 2 states ("root" and "other") and
+        the block state is 5 = 0b101, then the stack is:
+        stack = [
+            "root", # Always starts with root
+            "other", # Since 5 = 0b101
+            "root", # Since 5 = Ob101
+            "other, # Since 5 = Ob101
+        ]
+        """
+        if block_state_val == -1:
+            return ["root"]
+
+        N = len(self.states)
+        stack = ["root"]  # stack is always root first
+
+        while block_state_val != 0:
+            n = block_state_val % N
+            stack.append(self._state_names[n])
+            block_state_val //= N
+        return stack
+
+    def _blockstate_from_stack(self, stack):
+        """See _stack_from_blockstate's docstring"""
+
+        N = len(self.states)
+        block_state_val = 0
+        # Ignore first element since it is "root"
+        for state in reversed(stack[1:]):
+            n = self._state_names.index(state)
+            block_state_val = block_state_val * N + n
+        return BlockState(block_state_val)
+
+    def parseLine(self, line, previousState=0):
+        # Initialize
+        pos = 0
+        stack = self._stack_from_blockstate(previousState)
+        toks = []
+
+        # While the end of the line isn't reached:
+        once = True
+        while pos < len(line) or once:
+            # Find a match in the possible matches
+            match, token_type, next_state = self.find_match(line, stack[-1], pos)
+
+            # If no match, go to next char
+            if match is None:
+                pos += 1
+
+            # If match, process match:
+            else:
+                # If a token exists for the match,
+                if token_type is not None:
+                    # Process the case where multiple groups are in the
+                    # regex:
+
+                    if isinstance(token_type, tuple):
+                        for i, ttype in enumerate(token_type):
+                            if match.group(i + 1) is not None:
+                                toks.append(
+                                    ttype(
+                                        line,
+                                        pos + match.start(i + 1),
+                                        pos + match.end(i + 1),
+                                    )
+                                )
+
+                    # Only one group:
+                    else:
+                        toks.append(token_type(line, pos, pos + match.end(0)))
+
+                # In any case, go to the next state if provided
+                if next_state is not None:
+                    if next_state == "#pop":
+                        # Remove last state from the stack
+                        stack.pop()
+                    elif next_state == "#push":
+                        # Add current state to the stack again
+                        stack.append(stack[-1])
+                    else:
+                        stack.append(next_state)
+
+                # Go the the end of the match, since everything until
+                # there is processed.
+                pos += match.end(0)
+
+                once = False  # Ensures the while loop runs at least once
+
+        return toks + [self._blockstate_from_stack(stack)]
+
+    def find_match(self, line, current_state, pos):
+        """Return first match in current state as well as the
+        corresponding token. If no match occures, return None.
+        """
+        for pattern, token_type, next_state in self.processed_states[current_state]:
+            match = re.match(pattern, line[pos:])
+            if match is not None:
+                return (match, token_type, next_state)
+        return (None, None, None)
+
+    def process_states(self):
+        """Prepare raw states into usable states by the parser:
+        - pad each case to len 3 using None,
+        - process lists of words,
+        - process includes.
+        """
+        temp = defaultdict(list)
+        for state in self.states.keys():
+            for case in self.states[state]:
+                # Inludes are memorized to be dealt with at the end
+                if isinstance(case, include):
+                    temp[state].append(case)
+
+                # Create from lists of possible words
+                elif isinstance(case, from_list):
+                    temp[state].extend(case.to_pattern())
+
+                # Pad states to len 3 with None
+                else:
+                    if len(case) == 1:
+                        temp[state].append((re.compile(case[0]), None, None))
+                    elif len(case) == 2:
+                        temp[state].append((re.compile(case[0]), case[1], None))
+                    elif len(case) == 3:
+                        temp[state].append(
+                            (
+                                re.compile(case[0]),
+                                case[1],
+                                case[2],
+                            )
+                        )
+                    else:
+                        raise ValueError()
+
+        # Process includes at the end, to prevent partial copies
+        self.processed_states = {}
+        for state in temp:
+            self.processed_states[state] = process_includes(state, temp)
+
+        # keep a list of state names in memory
+        self._state_names = list(self.processed_states)
+
+
+def process_includes(state, d):
+    L = []
+    for case in d[state]:
+        if isinstance(case, include):
+            if case.state_name in d:
+                L.extend(process_includes(case.state_name, d))
+            else:
+                raise KeyError("Unknown included state")
+        else:
+            L.append(case)
+    return L
 
 
 ## Import parsers statically
