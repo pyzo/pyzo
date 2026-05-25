@@ -8,7 +8,11 @@ import sys
 import os
 
 from .pythoninterpreter import EXE_DIR, PythonInterpreter, versionStringToTuple
-from .inwinreg import get_interpreters_in_reg
+
+try:
+    import winreg
+except ImportError:
+    pass
 
 
 def get_interpreters(minimumVersion=None):
@@ -58,12 +62,36 @@ def _select_interpreters(interpreters, minimumVersion):
     return sorted(interpreters, key=lambda x: x.version_info)
 
 
+def _get_interpreters_in_reg():
+    """gets install paths of Python interpreters from the MS Windows registry
+
+    registry paths are defined in PEP-514
+
+    returns a list of Python installation directory paths
+    """
+    PYTHON_KEY = "SOFTWARE\\Python\\PythonCore"
+    PYTHON_KEY_WOW64 = "SOFTWARE\\Wow6432Node\\Python\\PythonCore"
+    install_paths = []
+    for hkey in [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]:
+        for pkey in [PYTHON_KEY, PYTHON_KEY_WOW64]:
+            try:
+                with winreg.OpenKey(hkey, pkey, access=winreg.KEY_READ) as reg:
+                    nsub, nval, modified = winreg.QueryInfoKey(reg)
+                    for i in range(nsub):
+                        version = winreg.EnumKey(reg, i)
+                        install_path = winreg.QueryValue(reg, version + "\\InstallPath")
+                        install_paths.append(install_path)
+            except Exception:
+                pass
+
+    return install_paths
+
+
 def _get_interpreters_win():
     found = []
 
     # Query from registry
-    for v in get_interpreters_in_reg():
-        found.append(v.installPath())
+    found.extend(_get_interpreters_in_reg())
 
     # Check common locations
     for rootname in [
