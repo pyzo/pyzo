@@ -2,8 +2,6 @@ import os
 import sys
 import subprocess
 
-from .inwinreg import register_interpreter
-
 EXE_DIR = os.path.abspath(os.path.dirname(sys.executable))
 if EXE_DIR.endswith(".app/Contents/MacOS"):
     EXE_DIR = os.path.dirname(EXE_DIR.rsplit(".app")[0])
@@ -82,14 +80,6 @@ class PythonInterpreter:
     def version_info(self):
         """The version number as a tuple of integers. For comparing."""
         return versionStringToTuple(self.version)
-
-    def register(self):
-        """Register this Python intepreter. On Windows this modifies
-        the CURRENT_USER. On All other OS's this is a no-op.
-        """
-        if sys.platform.startswith("win"):
-            path = os.path.split(make_abs(self.path))[0]  # Remove "python.exe"
-            register_interpreter(self.version[:3], path)
 
     def _getversion(self):
         path = make_abs(self._path)
