@@ -287,10 +287,7 @@ class HostThread(threading.Thread):
         self._bsd_host_socket = bsd_socket
 
         # Make daemon
-        if sys.version_info < (2, 6):
-            self.setDaemon(True)
-        else:
-            self.daemon = True
+        self.daemon = True
 
     def run(self):
         """run()
@@ -471,10 +468,7 @@ class BaseIOThread(threading.Thread):
         threading.Thread.__init__(self)
 
         # Thread will "destruct" when the interpreter shuts down
-        if sys.version_info < (2, 6):
-            self.setDaemon(True)
-        else:
-            self.daemon = True
+        self.daemon = True
 
         # Store (temporarily) the ref to the context connection
         # Also of bsd_socket, because it might be removed before the

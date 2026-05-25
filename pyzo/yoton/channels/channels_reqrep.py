@@ -4,7 +4,6 @@ Defines the channel classes for the req/rep pattern.
 
 """
 
-import sys
 import time
 import threading
 
@@ -783,10 +782,7 @@ class ThreadForReqChannel(threading.Thread):
         self._channel = channel
 
         # Make daemon
-        if sys.version_info < (2, 6):
-            self.setDaemon(True)
-        else:
-            self.daemon = True
+        self.daemon = True
 
     def run(self):
         """The handler's main loop."""

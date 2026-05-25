@@ -4,7 +4,6 @@ Defines the base channel class and the MessageType class.
 
 """
 
-import sys
 import time
 import threading
 
@@ -232,10 +231,7 @@ class BaseChannel(object):
         # Notify any threads that are waiting in _send()
         if not value:
             with self._send_condition:
-                if sys.version_info < (2, 6):
-                    self._send_condition.notifyAll()
-                else:
-                    self._send_condition.notify_all()
+                self._send_condition.notify_all()
 
     ## How packages are inserted in this channel for receiving
 

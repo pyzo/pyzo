@@ -27,7 +27,6 @@ servers in a single process, that listen on different ports.
 
 """
 
-import sys
 import time
 import socket
 import threading
@@ -105,10 +104,7 @@ class RequestServer(threading.Thread):
         self._stop_me = False
 
         # Make daemon
-        if sys.version_info < (2, 6):
-            self.setDaemon(True)
-        else:
-            self.daemon = True
+        self.daemon = True
 
     def start(self):
         """start()
