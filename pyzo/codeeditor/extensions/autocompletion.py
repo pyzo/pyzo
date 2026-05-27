@@ -119,7 +119,8 @@ class AutoCompletion:
 
     def setAutocompleteCaseSensitive(self, b):
         """Set the case sensitivity for autocompletion."""
-        cs = Qt.CaseSensitive if b else Qt.CaseSensitivity.CaseInsensitive
+        CS = Qt.CaseSensitivity
+        cs = CS.CaseSensitive if b else CS.CaseInsensitive
         self.__completer.setCaseSensitivity(cs)
 
     def setAutocompleteMinChars(self, n):
