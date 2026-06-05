@@ -29,6 +29,7 @@ from pyzo.core.pyzoLogging import print
 from pyzo.core.kernelbroker import KernelInfo, Kernelmanager
 from pyzo.core.menu import ShellContextMenu
 
+ismacos = sys.platform.startswith("darwin")
 
 # Interval for polling messages. Timer for each kernel.
 POLL_TIMER_INTERVAL_IDLE = 100  # in ms; energy saving mode
@@ -492,12 +493,54 @@ class BaseShell(BaseTextCtrl):
             return True
 
         # Ensure to not backspace / go left beyond the prompt
-        if event.key() in [Qt.Key.Key_Backspace, Qt.Key.Key_Left]:
+        if event.key() == Qt.Key.Key_Left:
             self._historyNeedle = None
             if self.textCursor().position() == self._cursor2.position():
-                if event.key() == Qt.Key.Key_Backspace:
-                    self.textCursor().removeSelectedText()
                 return  # Ignore the key, don't go beyond the prompt
+
+        # handle backspace
+        if event.key() == Qt.Key.Key_Backspace:
+            cursor = self.textCursor()
+            self._historyNeedle = None
+            if cursor.hasSelection():
+                if cursor.selectionStart() < self._cursor2.position():
+                    # The selection contains read-only text before or including the prompt.
+                    # We do not want to delete that.
+                    return  # ignore the key
+            elif cursor.position() <= self._cursor2.position():
+                return  # Ignore the key, don't go beyond the prompt
+            else:
+                KM = Qt.KeyboardModifier
+                controlPressed = event.modifiers() == (
+                    KM.AltModifier if ismacos else KM.ControlModifier
+                )
+                if controlPressed:
+                    self._historyNeedle = None
+                    cursor = self.textCursor()
+                    text = cursor.block().text()[
+                        self._cursor2.positionInBlock() : cursor.positionInBlock()
+                    ]
+                    # Ctrl+Backspace should not delete our prompt. This would happen if
+                    # someone presses Ctrl+Backspace after only entering whitespace at
+                    # the prompt.
+                    if False:
+                        # this works for any prompt, even without any whitespace at the end:
+                        mo = re.match(r"(\s*([^\s\W]+|[^\s\w]+|))", text[::-1])
+                        numDelete = len(mo[1])
+                        cursor.movePosition(
+                            cursor.MoveOperation.Left, A_KEEP, numDelete
+                        )
+                        cursor.removeSelectedText()
+                        return
+                    else:
+                        # a bit simpler, but requires a space at the end of the prompt:
+                        if text.strip() == "":
+                            numDelete = len(text)
+                            cursor.movePosition(
+                                cursor.MoveOperation.Left, A_KEEP, numDelete
+                            )
+                            cursor.removeSelectedText()
+                            return
 
         if (
             event.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down]
