@@ -1,14 +1,6 @@
 import sys
-import signal
 import yoton
 import inspect  # noqa - used in eval()
-
-
-PYTHON_VERSION = sys.version_info[0]
-if PYTHON_VERSION < 3:
-    import thread
-else:
-    import _thread as thread
 
 
 # we keep this file in ascii encoding to stay compatible with Python 2.7 kernels
@@ -16,9 +8,7 @@ THREE_DOTS_CHAR = b"\xe2\x80\xa6".decode("utf-8")
 
 
 class PyzoIntrospector(yoton.RepChannel):
-    """This is a RepChannel object that runs a thread to respond to
-    requests from the IDE.
-    """
+    """This is a RepChannel object to respond to requests from the IDE."""
 
     def _getNameSpace(self, name=""):
         """Get the namespace to apply introspection in.
@@ -127,7 +117,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 name += "("
                 if name in sigs:
                     hasSig = True
-            if not hasSig and PYTHON_VERSION >= 3:
+            if not hasSig and sys.version_info[0] >= 3:
                 # Also get the signature for objects where inspect.signature does not
                 # work and where the function/method has a differnt name, e.g.:
                 # import sys; myfunc = sys.getsizeof
@@ -500,36 +490,6 @@ class PyzoIntrospector(yoton.RepChannel):
             return eval(command, None, NS)
         except Exception:
             return "Error evaluating: " + command
-
-    def interrupt(self, command=None, signum=signal.SIGINT):
-        """Interrupt the main thread.
-
-        This does not work if the main thread is running extension code.
-
-        A bit of a hack to do this in the introspector, but it's the
-        easiest way and prevents having to launch another thread just
-        to wait for an interrupt/terminate command.
-
-        Note that on POSIX we can send an OS INT signal, which is faster
-        and maybe more effective in some situations.
-
-        signum must be signal.SIGINT for kernels running Python < 3.10
-        """
-        if signum == signal.SIGINT:
-            thread.interrupt_main()
-        else:
-            if sys.version_info < (3, 10):
-                print("This feature is not implemented for Python versions < 3.10!")
-                return
-            thread.interrupt_main(signum)
-
-    def terminate(self, command=None):
-        """terminate()
-
-        Ask the kernel to terminate by closing the stdin.
-
-        """
-        sys.stdin._channel.close()
 
 
 ##

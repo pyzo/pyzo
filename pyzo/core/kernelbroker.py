@@ -304,8 +304,8 @@ class KernelBroker:
         # We use the stat-interpreter to set the status to dead when kernel dies
         self._stat_interpreter = yoton.StateChannel(ct, "stat-interpreter")
 
-        # Create introspect channel so we can interrupt and terminate
-        self._reqp_introspect = yoton.ReqChannel(ct, "reqp-introspect")
+        # Create control channel so we can interrupt and terminate the kernel
+        self._reqp_control = yoton.ReqChannel(ct, "reqp-control")
 
     def _reset(self, destroy=False):
         """Reset state.
@@ -349,7 +349,7 @@ class KernelBroker:
             self._strm_prompt = None
             #
             self._ctrl_broker = None
-            self._reqp_introspect = None
+            self._reqp_control = None
 
     def startKernelIfConnected(self, timeout=10.0):
         """Start the kernel as soon as there is a connection."""
@@ -599,7 +599,7 @@ class KernelBroker:
             self._strm_broker.send("Cannot interrupt: process is dead.\n")
         # Kernel receives and acts
         elif sys.platform.startswith("win"):
-            self._reqp_introspect.interrupt()
+            self._reqp_control.interrupt()
         else:
             # Use POSIX to interrupt, which is more reliable
             # (the introspect thread might not get a chance)
@@ -611,7 +611,7 @@ class KernelBroker:
         if self._process is None:
             self._strm_broker.send("Cannot interrupt: process is dead.\n")
         elif sys.platform == "win32":
-            self._reqp_introspect.interrupt(signum=signal.SIGFPE)
+            self._reqp_control.interrupt(signum=signal.SIGFPE)
         else:
             pid = self._kernelCon.pid2
             os.kill(pid, signal.SIGFPE)
@@ -686,7 +686,7 @@ class KernelTerminator:
             pass
 
         elif action == "TERM":
-            self._broker._reqp_introspect.terminate()
+            self._broker._reqp_control.terminate()
             self._do("INT", 0.5)
 
         elif action == "INT":
@@ -696,7 +696,7 @@ class KernelTerminator:
             self._count += 1
             # Handle
             if self._count < 5:
-                self._broker._reqp_introspect.interrupt()
+                self._broker._reqp_control.interrupt()
                 self._do("INT", 0.1)
             else:
                 self._do("KILL", 0)

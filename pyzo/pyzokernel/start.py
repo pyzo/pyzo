@@ -25,9 +25,10 @@ strm-action: for the kernel to push actions to the ide
 
 stat-interpreter): status of the interpreter (ready, busy, very busy, more, etc)
 stat-debug (OBJECT): debug status
-stat-startup (OBJECT): Used to pass startup parameters to the kernel
+stat-startup (OBJECT): used to pass startup parameters to the kernel
 
-reqp-introspect (OBJECT): To query information from the kernel (and for interruping)
+reqp-introspect (OBJECT): used to query information from the kernel
+reqp-control (OBJECT): used to control the kernel from the shell (Pyzo-GUI), e.g. interrupting
 
 """
 
@@ -116,6 +117,7 @@ def pyzo_excepthook(type, value, tb):
 # Delay import, so we can detect syntax errors using the except hook
 from pyzokernel.interpreter import PyzoInterpreter
 from pyzokernel.introspection import PyzoIntrospector
+from pyzokernel.control import PyzoKernelControl
 
 # Create interpreter instance and give dict in which to run all code
 __pyzo__ = PyzoInterpreter(__main__.__dict__, "<console>")
@@ -127,6 +129,8 @@ __pyzo__.context = ct
 # Create introspection req channel (store at interpreter instance)
 __pyzo__.introspector = PyzoIntrospector(ct, "reqp-introspect")
 
+# Create introspection req channel (store at interpreter instance)
+__pyzo__.control = PyzoKernelControl(ct, "reqp-control")
 
 ## Clean up
 
@@ -146,9 +150,11 @@ del name
 
 ## Start and stop
 
-# Start introspector and enter the interpreter
+# Start introspector and kernel controller
 __pyzo__.introspector.set_mode("thread")
+__pyzo__.control.set_mode("thread")
 
+# Run the interpreter
 try:
     __pyzo__.run()
 
@@ -170,6 +176,7 @@ finally:
     # not do this on Python 3.2 (at least Windows) the exit delays 10s. (issue 79)
     try:
         __pyzo__.introspector.set_mode(0)
+        __pyzo__.control.set_mode(0)
         __pyzo__.context.close()
     except Exception:
         pass
