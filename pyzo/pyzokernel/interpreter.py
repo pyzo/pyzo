@@ -669,6 +669,11 @@ class PyzoInterpreter:
         sys.__stdout__.flush()
         sys.__stderr__.flush()
 
+        if self.introspector._run_mode == 0:
+            # Introspection was set up without its own thread or event loop (see start.py).
+            # So we have to regularly process introspection requests here.
+            self.introspector._process_events_local()
+
         # Set status and prompt?
         # Prompt is allowed to be an object with __str__ method
         # We also compare prompt strings because stack frame changes

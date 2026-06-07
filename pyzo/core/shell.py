@@ -1282,7 +1282,8 @@ class PythonShell(BaseShell):
         self._stat_startup.received.bind(self._onReceivedStartupInfo)
 
         # Create introspection request channel
-        self._request = yoton.ReqChannel(ct, "reqp-introspect")
+        default_future_timeout = 0.5  # default timeout for returned Future objects
+        self._request = yoton.ReqChannel(ct, "reqp-introspect", default_future_timeout)
 
         # Connect! The broker will only start the kernel AFTER
         # we connect, so we do not miss out on anything.

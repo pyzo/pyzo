@@ -362,7 +362,11 @@ class ShellInfo_argv(ShellInfoLineEdit):
 
 
 class ShellInfo_environ(QtWidgets.QPlainTextEdit):
-    EXAMPLE = "PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1\nEXAMPLE_VAR1=value1"
+    EXAMPLE = (
+        "PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1\n"
+        "PYZO_INTROSPECT_IN_MAIN_THREAD=1\n"
+        "EXAMPLE_VAR1=value1"
+    )
 
     def __init__(self, parent):
         super().__init__(parent)

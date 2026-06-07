@@ -51,7 +51,7 @@ class Future(object):
 
     """
 
-    def __init__(self, req_channel, req, request_id):
+    def __init__(self, req_channel, req, request_id, timeout=10.0):
         # For being a Future object
         self._result = None
         self._status = 0  # 0:waiting, 1:running, 2:canceled, 3:error, 4:success
@@ -67,7 +67,7 @@ class Future(object):
         # For resending
         self._first_send_time = time.time()
         self._next_send_time = self._first_send_time + 0.5
-        self._auto_cancel_timeout = 10.0
+        self._auto_cancel_timeout = timeout
 
     def _send(self, msg):
         """For sending pre-request messages 'req?', 'req-'."""
@@ -392,7 +392,7 @@ class ReqChannel(BaseChannel):
     # Each item has an attribute specifying whether a replier has
     # acknowledged it (and which one).
 
-    def __init__(self, context, slot_base):
+    def __init__(self, context, slot_base, default_future_timeout=10.0):
         BaseChannel.__init__(self, context, slot_base, OBJECT)
 
         # Queue with pending requests
@@ -414,6 +414,10 @@ class ReqChannel(BaseChannel):
         self._timer = yoton.events.Timer(0.5, False)
         self._timer.bind(self._process_events_local)
         self._timer.start()
+
+        # Set the default timeout for Future objects.
+        # (The timeout of each Future object can later be re-adjusted.)
+        self._default_future_timeout = default_future_timeout
 
     def _messaging_patterns(self):
         return "req-rep", "rep-req"
@@ -448,7 +452,7 @@ class ReqChannel(BaseChannel):
         request_id = self._request_counter = self._request_counter + 1
 
         # Create new item for this request and store under the request id
-        item = Future(self, bb, request_id)
+        item = Future(self, bb, request_id, self._default_future_timeout)
         self._request_items[request_id] = item
 
         # Send pre-request (ask repliers who want to reply to a request)

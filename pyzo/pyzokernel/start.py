@@ -137,7 +137,7 @@ __pyzo__.control = PyzoKernelControl(ct, "reqp-control")
 # Delete local variables
 del yoton, PyzoInterpreter, PyzoIntrospector, pyzo_excepthook
 del ct, port
-del os, sys, time
+del sys, time
 
 # Delete stuff we do not want
 for name in [
@@ -151,7 +151,13 @@ del name
 ## Start and stop
 
 # Start introspector and kernel controller
-__pyzo__.introspector.set_mode("thread")
+
+if os.getenv("PYZO_INTROSPECT_IN_MAIN_THREAD", "") == "1":
+    __pyzo__.introspector.set_mode(0)  # process channel events in main thread
+else:
+    __pyzo__.introspector.set_mode("thread")  # starts the thread
+del os
+
 __pyzo__.control.set_mode("thread")
 
 # Run the interpreter
