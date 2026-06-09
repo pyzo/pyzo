@@ -135,7 +135,7 @@ __pyzo__.control = PyzoKernelControl(ct, "reqp-control")
 ## Clean up
 
 # Delete local variables
-del yoton, PyzoInterpreter, PyzoIntrospector, pyzo_excepthook
+del yoton, PyzoInterpreter, PyzoIntrospector, PyzoKernelControl, pyzo_excepthook
 del ct, port
 del sys, time
 
