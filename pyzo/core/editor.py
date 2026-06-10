@@ -704,7 +704,10 @@ class PyzoEditor(BaseTextCtrl):
         self._modifyTime = os.path.getmtime(self._filename)
 
         # update title (in case of a rename)
-        self.setTitleInMainWindow()
+        # Saving could be triggered for a non-active editor, e.g. when running the
+        # main file as a script.
+        if self is pyzo.editors.getCurrentEditor():
+            self.setTitleInMainWindow()
 
         # allow item to update its texts (no need: onModifiedChanged does this)
         # self.somethingChanged.emit()
