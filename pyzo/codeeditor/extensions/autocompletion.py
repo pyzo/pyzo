@@ -395,7 +395,7 @@ class AutoCompletion:
         # Apply the key that was pressed
         super().keyPressEvent(event)
 
-        if self.autocompleteActive():
+        if self.autocompleteActive() and key != Qt.Key.Key_Shift:
             # While we type, the start of the autocompletion may move due to line
             # wrapping, so reposition after every key stroke
             self.__positionAutocompleter()
