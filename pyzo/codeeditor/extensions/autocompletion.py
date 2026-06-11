@@ -352,8 +352,9 @@ class AutoCompletion:
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()
+        K = Qt.Key
         if (
-            key == Qt.Key.Key_Escape
+            key == K.Key_Escape
             and modifiers == Qt.KeyboardModifier.NoModifier
             and self.autocompleteActive()
         ):
@@ -363,17 +364,26 @@ class AutoCompletion:
         if self.potentiallyAutoComplete(event) > 1:
             return  # Consume
 
-        if USE_WAYLAND_WORKAROUND and self.autocompleteActive():
-            deltaRow = 0
-            if key == Qt.Key.Key_Up:
-                deltaRow = -1
-            elif key == Qt.Key.Key_Down:
-                deltaRow = 1
-            if deltaRow != 0:
-                row = self.__completerWindow.currentIndex().row() + deltaRow
+        if self.autocompleteActive() and modifiers == Qt.KeyboardModifier.NoModifier:
+            if key in (K.Key_PageUp, K.Key_PageDown):
+                QtWidgets.qApp.sendEvent(self.__completerWindow, event)
+                return True
+
+            row = self.__completerWindow.currentIndex().row()
+            newRow = None
+            if key == K.Key_Up:
+                newRow = row - 1
+            elif key == K.Key_Down:
+                newRow = row + 1
+            elif key == K.Key_Home:
+                newRow = 0
+            elif key == K.Key_End:
+                newRow = -1  # last element (after modulo operation)
+
+            if newRow is not None:
                 model = self.__completerWindow.model()
                 self.__completerWindow.setCurrentIndex(
-                    model.index(row % model.rowCount(), 0)
+                    model.index(newRow % model.rowCount(), 0)
                 )
                 return  # consume the key
 
@@ -384,9 +394,9 @@ class AutoCompletion:
             self.autocompleteActive()
             and not event.text().isalnum()
             and event.text() != "_"
-            and key != Qt.Key.Key_Shift
+            and key != K.Key_Shift
             and not (
-                (key == Qt.Key.Key_Backspace)
+                (key == K.Key_Backspace)
                 and self.textCursor().position() > self.__autocompleteStart.position()
             )
         ):
@@ -395,7 +405,7 @@ class AutoCompletion:
         # Apply the key that was pressed
         super().keyPressEvent(event)
 
-        if self.autocompleteActive() and key != Qt.Key.Key_Shift:
+        if self.autocompleteActive() and key != K.Key_Shift:
             # While we type, the start of the autocompletion may move due to line
             # wrapping, so reposition after every key stroke
             self.__positionAutocompleter()

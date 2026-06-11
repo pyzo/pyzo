@@ -476,7 +476,9 @@ class BaseShell(BaseTextCtrl):
             if not (self.autocompleteActive() or self.calltipActive()):
                 self.clearCommand()
 
-        if event.key() == Qt.Key.Key_Home:
+        if event.key() == Qt.Key.Key_Home and not (
+            self.autocompleteActive() and not event.modifiers()
+        ):
             # Home goes to the prompt.
             cursor = self.textCursor()
             if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
