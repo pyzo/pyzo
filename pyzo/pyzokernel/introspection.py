@@ -6,6 +6,26 @@ import inspect  # noqa - used in eval()
 # we keep this file in ascii encoding to stay compatible with Python 2.7 kernels
 THREE_DOTS_CHAR = b"\xe2\x80\xa6".decode("utf-8")
 
+# Functions/objects like "dir" could be redefined in the namespace of the user's code.
+# To use our known "dir", we assign it to a rather unique variable name that is only
+# visible in a global namespace used for introspection, e.g.:
+#   dir --> __pyzo_internalNS_dir__
+
+INTERNAL_OBJECT_NAMES = [
+    "inspect",
+    "hasattr",
+    "dir",
+    "str",
+    "repr",
+]
+
+internalNS = {}  # namespace for eval/exec (look-up table for unique_name to object)
+inames = {}  # look-up table for name to unique_name
+for name in INTERNAL_OBJECT_NAMES:
+    uniqueName = "__pyzo_internalNS_{}__".format(name)
+    internalNS[uniqueName] = eval(name)
+    inames[name] = uniqueName
+
 
 class PyzoIntrospector(yoton.RepChannel):
     """This is a RepChannel object to respond to requests from the IDE."""
@@ -78,20 +98,30 @@ class PyzoIntrospector(yoton.RepChannel):
         # find out what kind of function, or if a function at all!
         originalObjectName = objectName
         NS = self._getNameSpace()
-        fun1 = eval("inspect.isbuiltin(%s)" % (objectName), None, NS)
-        fun2 = eval("inspect.isfunction(%s)" % (objectName), None, NS)
-        fun3 = eval("inspect.ismethod(%s)" % (objectName), None, NS)
+        fun1 = eval(inames["inspect"] + ".isbuiltin(%s)" % (objectName), internalNS, NS)
+        fun2 = eval(
+            inames["inspect"] + ".isfunction(%s)" % (objectName), internalNS, NS
+        )
+        fun3 = eval(inames["inspect"] + ".ismethod(%s)" % (objectName), internalNS, NS)
         fun4 = False
         fun5 = False
         if not (fun1 or fun2 or fun3):
             # Maybe it's a class with an init?
-            if eval("hasattr(%s,'__init__')" % (objectName), None, NS):
+            if eval(
+                inames["hasattr"] + "(%s, '__init__')" % (objectName), internalNS, NS
+            ):
                 objectName += ".__init__"
-                fun4 = eval("inspect.ismethod(%s)" % (objectName), None, NS)
+                fun4 = eval(
+                    inames["inspect"] + ".ismethod(%s)" % (objectName), internalNS, NS
+                )
             #  Or a callable object?
-            elif eval("hasattr(%s,'__call__')" % (objectName), None, NS):
+            elif eval(
+                inames["hasattr"] + "(%s, '__call__')" % (objectName), internalNS, NS
+            ):
                 objectName += ".__call__"
-                fun5 = eval("inspect.ismethod(%s)" % (objectName), None, NS)
+                fun5 = eval(
+                    inames["inspect"] + ".ismethod(%s)" % (objectName), internalNS, NS
+                )
 
         sigs = ""
         if True:
@@ -134,7 +164,12 @@ class PyzoIntrospector(yoton.RepChannel):
                 #   np.sum, pd.DataFrame, ...
                 try:
                     sigs = eval(
-                        "str(inspect.signature(%s))" % (originalObjectName), None, NS
+                        inames["str"]
+                        + "("
+                        + inames["inspect"]
+                        + ".signature(%s))" % (originalObjectName),
+                        internalNS,
+                        NS,
                     )
                     sigs = originalObjectName + sigs
                 except Exception:
@@ -159,13 +194,19 @@ class PyzoIntrospector(yoton.RepChannel):
 
                 try:
                     tmp = eval(
-                        "inspect.signature(%s)" % (objectName), None, NS
+                        inames["inspect"] + ".signature(%s)" % (objectName),
+                        internalNS,
+                        NS,
                     )  # py3.3
                     sigs = funname + str(tmp)
                 except Exception:
                     try:
                         # for Python < v3.3
-                        tmp = eval("inspect.getargspec(%s)" % (objectName), None, NS)
+                        tmp = eval(
+                            inames["inspect"] + ".getargspec(%s)" % (objectName),
+                            internalNS,
+                            NS,
+                        )
                     except Exception:  # the above fails for builtins
                         tmp = None
                         kind = ""
@@ -225,8 +266,8 @@ class PyzoIntrospector(yoton.RepChannel):
 
         # Obtain all attributes of the class
         try:
-            command = "__pyzo_builtin_dir__(%s.__class__)" % (objectName)
-            d = eval(command, {"__pyzo_builtin_dir__": dir}, NS)
+            command = inames["dir"] + "(%s.__class__)" % (objectName)
+            d = eval(command, internalNS, NS)
         except Exception:
             pass
         else:
@@ -244,8 +285,8 @@ class PyzoIntrospector(yoton.RepChannel):
         # That should be enough, but in case __dir__ is overloaded,
         # query that as well
         try:
-            command = "__pyzo_builtin_dir__(%s)" % (objectName)
-            d = eval(command, {"__pyzo_builtin_dir__": dir}, NS)
+            command = inames["dir"] + "(%s)" % (objectName)
+            d = eval(command, internalNS, NS)
         except Exception:
             pass
         else:
@@ -417,7 +458,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 h_text = eval("%s.__doc__" % (objectName), {}, NS)
 
             # collect more data
-            h_repr = eval("repr(%s)" % (objectName), {}, NS)
+            h_repr = eval(inames["repr"] + "(%s)" % (objectName), internalNS, NS)
             try:
                 h_class = eval("%s.__class__.__name__" % (objectName), {}, NS)
             except Exception:
