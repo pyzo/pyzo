@@ -6,6 +6,63 @@ import inspect  # noqa - used in eval()
 # we keep this file in ascii encoding to stay compatible with Python 2.7 kernels
 THREE_DOTS_CHAR = b"\xe2\x80\xa6".decode("utf-8")
 
+_getReprPrefixPostfix = {
+    "list": ("[", "]"),
+    "tuple": ("(", ")"),
+    "dict": ("{", "}"),
+    "frozendict": ("frozendict(", ")"),
+    "set": ("{", "}"),  # only for non-empty sets
+    "frozenset": ("frozenset(", ")"),
+}
+
+
+def getRepr(obj, maxChars, _path=(), _sList=None):
+    """like repr(obj)[:maxChars], but more efficient for large objects"""
+
+    if _sList is None:
+        # the first list element is the total string length of all elements
+        _sList = [0]
+    tn = obj.__class__.__name__
+    if tn in _getReprPrefixPostfix:
+        prefix, postfix = _getReprPrefixPostfix[tn]
+        if tn == "set" and not obj:
+            prefix, postfix = "set(", ")"
+
+        _sList.append(prefix)
+        _sList[0] += len(prefix)
+        _pathSub = _path + (obj,)
+        if obj in _path:
+            _sList.append("...")
+            _sList[0] += 3
+        else:
+            for i, subObj in enumerate(obj):
+                if i > 0:
+                    _sList.append(", ")
+                    _sList[0] += 2
+                if _sList[0] >= maxChars:
+                    break
+
+                getRepr(subObj, maxChars, _pathSub, _sList)
+                if tn in ("dict", "frozendict"):
+                    _sList.append(": ")
+                    _sList[0] += 2
+                    getRepr(obj[subObj], maxChars, _pathSub, _sList)
+        _sList.append(postfix)
+        _sList[0] += len(postfix)
+    elif hasattr(obj, "__len__"):
+        # e.g.: str, bytes, bytearray
+        s = repr(obj[:maxChars])
+        _sList.append(s)
+        _sList[0] += len(s)
+    else:
+        s = repr(obj)
+        _sList.append(s)
+        _sList[0] += len(s)
+
+    if not _path:
+        return "".join(_sList[1:])[:maxChars]
+
+
 # Functions/objects like "dir" could be redefined in the namespace of the user's code.
 # To use our known "dir", we assign it to a rather unique variable name that is only
 # visible in a global namespace used for introspection, e.g.:
@@ -16,7 +73,7 @@ INTERNAL_OBJECT_NAMES = [
     "hasattr",
     "dir",
     "str",
-    "repr",
+    "getRepr",
 ]
 
 internalNS = {}  # namespace for eval/exec (look-up table for unique_name to object)
@@ -360,34 +417,35 @@ class PyzoIntrospector(yoton.RepChannel):
                         repres = "<array scalar %s (%s)>" % (val.dtype.name, str(val))
                     else:
                         repres = "<array empty %s>" % (val.dtype.name)
-                elif kind == "list":
-                    values_repr = ""
-                    for el in val:
-                        values_repr += ", " + repr(el)
-                        if len(values_repr) > 70:
-                            values_repr = values_repr[:69] + THREE_DOTS_CHAR
-                            break
-                    repres = "<%i-element list: %s>" % (len(val), values_repr[2:])
-                elif kind == "tuple":
-                    values_repr = ""
-                    for el in val:
-                        values_repr += ", " + repr(el)
-                        if len(values_repr) > 70:
-                            values_repr = values_repr[:69] + THREE_DOTS_CHAR
-                            break
-                    repres = "<%i-element tuple: %s>" % (len(val), values_repr[2:])
-                elif kind == "dict":
-                    values_repr = ""
-                    for k, v in val.items():
-                        values_repr += ", " + repr(k) + ": " + repr(v)
-                        if len(values_repr) > 70:
-                            values_repr = values_repr[:69] + THREE_DOTS_CHAR
-                            break
-                    repres = "<%i-item dict: %s>" % (len(val), values_repr[2:])
+                elif kind in (
+                    "list",
+                    "tuple",
+                    "dict",
+                    "frozendict",
+                    "set",
+                    "frozenset",
+                ):
+                    maxChars = 70
+                    values_repr = getRepr(val, maxChars + 1)
+                    if len(values_repr) > maxChars:
+                        values_repr = values_repr[: maxChars - 1] + THREE_DOTS_CHAR
+
+                    if kind in ("frozendict", "frozenset"):
+                        values_repr = values_repr[len(kind + "({") : -1]
+                    else:
+                        values_repr = values_repr[1:-1]
+
+                    if kind in ("dict", "frozendict"):
+                        elem = "item"
+                    else:
+                        elem = "element"
+
+                    repres = "<{}-{} {}: {}>".format(len(val), elem, kind, values_repr)
                 else:
-                    repres = repr(val)
-                    if len(repres) > 80:
-                        repres = repres[:79] + THREE_DOTS_CHAR
+                    maxChars = 80
+                    repres = getRepr(val, maxChars + 1)
+                    if len(repres) > maxChars:
+                        repres = repres[: maxChars - 1] + THREE_DOTS_CHAR
                 # Store
                 tmp = (name, typeName, kind, repres)
                 names.append(tmp)
@@ -458,7 +516,15 @@ class PyzoIntrospector(yoton.RepChannel):
                 h_text = eval("%s.__doc__" % (objectName), {}, NS)
 
             # collect more data
-            h_repr = eval(inames["repr"] + "(%s)" % (objectName), internalNS, NS)
+            maxChars = 200
+            h_repr = eval(
+                "{}({}, {})".format(inames["getRepr"], objectName, maxChars + 1),
+                internalNS,
+                NS,
+            )
+            if len(h_repr) > maxChars:
+                h_repr = h_repr[: maxChars - 1] + THREE_DOTS_CHAR
+
             try:
                 h_class = eval("%s.__class__.__name__" % (objectName), {}, NS)
             except Exception:
@@ -474,9 +540,6 @@ class PyzoIntrospector(yoton.RepChannel):
             if not h_fun:
                 h_fun = ""  # signature not available
 
-            # cut repr if too long
-            if len(h_repr) > 200:
-                h_repr = h_repr[:200] + "..."
             # replace newlines so we can separates the different parts
             h_repr = h_repr.replace("\n", "\r")
 
@@ -504,11 +567,13 @@ class PyzoIntrospector(yoton.RepChannel):
         """
         NS = self._getNameSpace()
         maxChars = 150
-
         returnValue = []
         for expr in sequenceOfExpressions:
+            exprOrig = expr
+            if expr.startswith("repr(") and expr.endswith(")"):
+                expr = "{}({}, {})".format(inames["getRepr"], expr[5:-1], maxChars + 1)
             try:
-                result = str(eval(expr, None, NS))[: maxChars + 1]
+                result = str(eval(expr, internalNS, NS))
                 if len(result) > maxChars:
                     result = result[: maxChars - 1] + THREE_DOTS_CHAR
                 success = True
@@ -516,7 +581,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 result = str(e)
                 success = False
 
-            returnValue.append((expr, success, result))
+            returnValue.append((exprOrig, success, result))
 
         return returnValue
 
