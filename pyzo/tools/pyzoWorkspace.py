@@ -102,7 +102,7 @@ class WorkspaceProxy(QtCore.QObject):
         shell = pyzo.shells.getCurrentShell()
         if not shell:
             self._variables = []
-        elif shell._state.lower() != "busy":
+        elif shell._state not in ("Busy", "Very busy"):
             future = shell._request.dir2(self._name)
             future.add_done_callback(self._processResponse)
 

@@ -39,7 +39,7 @@ class ExpressionProxy(QtCore.QObject):
         when finished, signal "haveNewData" will be emitted
         """
         shell = pyzo.shells.getCurrentShell()
-        if self._expressions and shell and shell._state.lower() != "busy":
+        if self._expressions and shell and shell._state not in ("Busy", "Very busy"):
             future = shell._request.evalMultiple(self._expressions)
             future.add_done_callback(self._processResponse)
 

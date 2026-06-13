@@ -1624,9 +1624,6 @@ class PythonShell(BaseShell):
             if sub:
                 M = sub.recv_selected()
                 # M = [sub.recv()] # Slow version (for testing)
-            # New prompt?
-            if sub is self._strm_prompt:
-                self.stateChanged.emit(self)
 
         # Write all pending messages that are later than any other message
         if sub:
