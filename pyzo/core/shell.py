@@ -1474,13 +1474,8 @@ class PythonShell(BaseShell):
                     for name, type_, kind, repr_ in response
                     if name[0] == "["
                 ]
-                maxKeyEntries = 200
-                if len(foundNames) > maxKeyEntries:
-                    foundNames = (
-                        foundNames[: maxKeyEntries - 1]
-                        + ["# ... too many entries"]
-                        + foundNames[-1:]
-                    )
+                if response and response[-1][0] == "# ... too many entries":
+                    foundNames.append(response[-1][0])
             else:  # if attribute or name auto-completion
                 foundNames = response
         aco.addNames(foundNames)

@@ -117,10 +117,12 @@ class PyzoIntrospector(yoton.RepChannel):
                     NS = {"[" + repr(el) + "]": ob[el] for el in ob.keys()}
                 elif isinstance(ob, (list, tuple)):
                     NS = {}
-                    count = -1
-                    for el in ob:
-                        count += 1
-                        NS["[%i]" % count] = el
+                    for i, el in enumerate(ob):
+                        if i >= 1000:
+                            NS["[{}]".format(len(ob) - 1)] = ob[-1]  # add last object
+                            NS["# ... too many entries"] = None
+                            break
+                        NS["[{}]".format(i)] = el
                 else:
                     keys = dir(ob)
                     NS = {}
@@ -143,6 +145,18 @@ class PyzoIntrospector(yoton.RepChannel):
         of one of the above. When none of the above, both elements in
         the tuple are an empty string.
         """
+
+        if not callable(objectName):
+            # Return early if the object not is callable.
+            # With this we avoid unnecessary delays and CPU and memory usage.
+            #
+            # For example, when executing
+            #   inspect.signature(obj)
+            # where obj is a very long list, an exception
+            #   f"TypeError: {repr(obj)} is not a callable object'
+            # will be raised, and executing "repr(obj)" of a very long list could take a
+            # few seconds and consume a lot of memory.
+            return "", ""
 
         # if a class, get init
         # not if an instance! -> try __call__ instead
@@ -490,6 +504,8 @@ class PyzoIntrospector(yoton.RepChannel):
         NS = self._getNameSpace()
 
         try:
+            if objectName.endswith("[# ... too many entries]"):
+                raise IndexError()
             # collect docstring
             h_text = ""
             # Try using the class (for properties)
