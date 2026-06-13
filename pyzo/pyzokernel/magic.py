@@ -15,6 +15,8 @@ import token
 import keyword
 import itertools
 
+from pyzokernel.introspection import getRepr
+
 
 # Set Python version and get some names
 PYTHON_VERSION = sys.version_info[0]
@@ -386,9 +388,10 @@ class Magician:
             cls = ""
             if hasattr(ob, "__class__"):
                 cls = ob.__class__.__name__
-            rep = repr(ob)
             text += self._justify(name, 20, 2) + self._justify(cls, 20, 2)
-            text += self._justify(rep, 40, 2) + "\n"
+            reprlen = 40
+            rep = getRepr(ob, reprlen + 1)
+            text += self._justify(rep, reprlen, 2) + "\n"
         # Done
         print(text)
         return ""
