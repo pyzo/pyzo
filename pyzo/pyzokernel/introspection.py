@@ -146,18 +146,6 @@ class PyzoIntrospector(yoton.RepChannel):
         the tuple are an empty string.
         """
 
-        if not callable(objectName):
-            # Return early if the object not is callable.
-            # With this we avoid unnecessary delays and CPU and memory usage.
-            #
-            # For example, when executing
-            #   inspect.signature(obj)
-            # where obj is a very long list, an exception
-            #   f"TypeError: {repr(obj)} is not a callable object'
-            # will be raised, and executing "repr(obj)" of a very long list could take a
-            # few seconds and consume a lot of memory.
-            return "", ""
-
         # if a class, get init
         # not if an instance! -> try __call__ instead
         # what about self?
@@ -169,6 +157,21 @@ class PyzoIntrospector(yoton.RepChannel):
         # find out what kind of function, or if a function at all!
         originalObjectName = objectName
         NS = self._getNameSpace()
+
+        if not eval(
+            "{}({}, '__call__')".format(inames["hasattr"], objectName), internalNS, NS
+        ):
+            # Return early if the object not is callable.
+            # With this we avoid unnecessary delays and CPU and memory usage.
+            #
+            # For example, when executing
+            #   inspect.signature(obj)
+            # where obj is a very long list, an exception
+            #   f"TypeError: {repr(obj)} is not a callable object'
+            # will be raised, and executing "repr(obj)" of a very long list could take a
+            # few seconds and consume a lot of memory.
+            return "", ""
+
         fun1 = eval(inames["inspect"] + ".isbuiltin(%s)" % (objectName), internalNS, NS)
         fun2 = eval(
             inames["inspect"] + ".isfunction(%s)" % (objectName), internalNS, NS
@@ -185,10 +188,7 @@ class PyzoIntrospector(yoton.RepChannel):
                 fun4 = eval(
                     inames["inspect"] + ".ismethod(%s)" % (objectName), internalNS, NS
                 )
-            #  Or a callable object?
-            elif eval(
-                inames["hasattr"] + "(%s, '__call__')" % (objectName), internalNS, NS
-            ):
+            else:
                 objectName += ".__call__"
                 fun5 = eval(
                     inames["inspect"] + ".ismethod(%s)" % (objectName), internalNS, NS
