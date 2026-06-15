@@ -487,3 +487,11 @@ class PyzoExpressionViewer(QtWidgets.QWidget):
 
         if not self._inEditMode():
             self._updateTree()
+
+    def keyPressEvent(self, event):
+        # leave "edit" mode if ESC key is pressed
+        if event.key() == QtCore.Qt.Key.Key_Escape and not event.modifiers():
+            if self._inEditMode():
+                self._btnEdit.click()
+                return
+        super().keyPressEvent(event)
