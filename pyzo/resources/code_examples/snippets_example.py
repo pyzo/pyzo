@@ -91,3 +91,16 @@ print('elapsed:', t_delta := _get_time() - t_start, 's')
 ## SNIP: Qt_import_PySide6
 from PySide6 import QtCore, QtGui, QtWidgets
 
+
+## SNIP: walk_files
+import os
+
+basepath = r''
+for dirpath, dirnames, filenames in os.walk(basepath):
+    dirnames[:] = [dn for dn in dirnames if not dn.startswith('.')]
+    for fn in filenames:
+        if fn.endswith('.txt'):
+            fp = os.path.join(dirpath, fn)
+            print(fp)
+            ...
+
