@@ -17,7 +17,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   codeeditor/index
    yoton/index
 
 
