@@ -23,17 +23,13 @@ state = dict:
 view = dict:
     showWhitespace = 0
     showLineEndings = 0
-    showWrapSymbols = 0
     showIndentationGuides = 1
     showStatusbar = 0
     #
     wrap = 1
     highlightCurrentLine = 1
     highlightMatchingBracket = 1
-    doBraceMatch = 1  # Both in editor and shell
-    codeFolding = 0
     autoComplete_popupSize = [300, 100]
-    autoComplete_theme = 0
     #
     qtstyle = ''
     edgeColumn = 80
@@ -133,7 +129,6 @@ shortcuts2 = dict:
     shell__create_shell_8_ = 'Ctrl+8,'
     shell__interrupt = 'Ctrl+I,Meta+C'
     shell__restart = 'Ctrl+K,'
-    shell__terminate = 'Ctrl+Shift+K,'
     shell__postmortem_debug_from_last_traceback = 'Ctrl+P,'
     shell__stop_debugging = 'Ctrl+Shift+P,'
     view__select_editor = 'Ctrl+9,F2'
