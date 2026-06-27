@@ -169,7 +169,7 @@ def getEnvFromKernelInfo(info):
     # Add entry to Pythonpath, so that we can import yoton
     # Note: an empty entry might cause trouble if the start-directory is
     # somehow overriden (see issue 128).
-    pythonPath = pyzo.pyzoDir + os.pathsep + pythonPath
+    pythonPath = (pyzo.pyzoDir + os.pathsep + pythonPath).strip(os.pathsep)
 
     # Prepare environment, remove references to tk libraries,
     # since they're wrong when frozen. Python will insert the
