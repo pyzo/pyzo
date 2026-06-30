@@ -32,6 +32,7 @@ from .extensions.behaviour import (
     AutoIndent,
     PythonAutoIndent,
     SmartCopyAndPaste,
+    DeflectUpDown,
     MoveLinesUpDown,
     ScrollWithUpDownKeys,
     AutoCloseQuotesAndBrackets,
@@ -59,6 +60,7 @@ class CodeEditor(
     AutoCompletion,  # Escape: first remove autocompletion,
     Calltip,  # then calltip
     Indentation,
+    DeflectUpDown,
     MoveLinesUpDown,
     ScrollWithUpDownKeys,
     HomeKey,
