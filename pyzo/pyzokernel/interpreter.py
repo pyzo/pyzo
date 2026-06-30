@@ -129,15 +129,17 @@ class PyzoInterpreter:
     # - support post mortem debugging
     # - support for magic commands
 
-    def __init__(self, locals, filename="<console>"):
+    def __init__(self, globals, locals, filename="<console>"):
         # Init variables for locals and globals (globals only for debugging)
+        self.globals = globals
         self.locals = locals
-        self.globals = None
 
         # Store filename
         self._filename = filename
 
-        # Store ref of locals that is our main
+        # Store ref of globals and locals so that we can restore them
+        # after a debugging session with different frames.
+        self._main_globals = globals
         self._main_locals = locals
 
         # Flag to ignore sys exit, to allow running some scripts
@@ -1051,7 +1053,7 @@ class PyzoInterpreter:
                 # the tracing is disabled for better performance.
                 self.debugger.set_on()
                 self.apply_breakpoints()
-                glob, loc = self.locals, None
+                glob, loc = self.globals, self.locals
             exec(code, glob, loc)
         except bdb.BdbQuit:
             self.dbstop_handler()
@@ -1240,6 +1242,53 @@ class PyzoInterpreter:
             new_nr = old_nr + offset
             return line[:i1] + line[i2:i3] + str(new_nr) + line[i4:]
         return line
+
+    ## Advanced methods
+
+    def switchframe(self, frameindex=-1):
+        """switches the globals and locals for the shell to the selected frame
+
+        frameindex -1 is the outermost frame (and index 0 the innermost one)
+
+        For normally started shells, this makes no sense, because the interpreter
+        already uses the outermost frame, and all inner frames are only the ones of
+        the Pyzo kernel.
+
+        But when running an externally started shell, there could be more frames between
+        the outermost frame and the first frame of the Pyzo kernel.
+        It could be useful to switch to another frame to inspect or modify variables
+        there. To switch the globals/locals to the second outermost frame, for example,
+        execute the line
+            import sys; sys._pyzoInterpreter.switchframe(-2)
+        in the shell. Note that the switch will be performed only after the execution
+        of that line has finished.
+        """
+        f = sys._getframe()
+
+        frames = [f]
+        while f.f_back:
+            f = f.f_back
+            frames.append(f)
+
+        if self._dbFrames:
+            printDirect("cannot switch frame because debugging is active\n")
+            return
+
+        try:
+            f = frames[frameindex]
+        except IndexError:
+            printDirect("cannot switch frame because frameindex is invalid\n")
+            return
+
+        fname, lineno = self.correctfilenameandlineno(f.f_code.co_filename, f.f_lineno)
+
+        printDirect("setting new base frame for the Pyzo interpreter:\n")
+        printDirect(
+            '    File "{}", line {}, in {}\n'.format(fname, lineno, f.f_code.co_name)
+        )
+
+        self._main_locals = self.locals = f.f_locals
+        self._main_globals = self.globals = f.f_globals
 
 
 class ExecutedSourceCollection:

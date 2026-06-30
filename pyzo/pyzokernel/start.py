@@ -119,9 +119,12 @@ from pyzokernel.interpreter import PyzoInterpreter
 from pyzokernel.introspection import PyzoIntrospector
 from pyzokernel.control import PyzoKernelControl
 
-# Create interpreter instance and give dict in which to run all code
-__pyzo__ = PyzoInterpreter(__main__.__dict__, "<console>")
+# Create interpreter instance and give namespace in which to run all code
+_locals = __main__.__dict__
+_globals = _locals
+__pyzo__ = PyzoInterpreter(_globals, _locals, "<console>")
 sys._pyzoInterpreter = __pyzo__
+del _locals, _globals
 
 # Store context
 __pyzo__.context = ct
