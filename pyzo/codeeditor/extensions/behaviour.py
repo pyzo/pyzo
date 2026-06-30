@@ -17,6 +17,50 @@ from ..parsers.tokens import (
 from ..parsers.python_parser import MultilineStringToken, stringLiteralPrefixes
 
 
+class DeflectUpDown:
+    """
+    When pressing the Up key in the very first line, the cursor should move to the
+    beginning of the line (resp. beginning of the indentation).
+    And when pressing the Down key in the very last line, the cursor should move to the
+    end of the line.
+    """
+
+    def keyPressEvent(self, event):
+        if event.modifiers() in (
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
+        ):
+            if event.key() == Qt.Key.Key_Up:
+                cursor = self.textCursor()
+                if (
+                    cursor.blockNumber() == 0
+                    and cursor.columnNumber() == cursor.positionInBlock()
+                ):
+                    # at first line (and not after a line wrapping)
+                    HomeKey.moveHome(self, event, keepX=True)
+                    return
+            if event.key() == Qt.Key.Key_Down:
+                cursor = self.textCursor()
+                hPos = cursor.verticalMovementX()
+                if cursor.blockNumber() == self.blockCount() - 1:
+                    # The cursor is at the last block, but is it also in the last line if
+                    # the last block consists of multiple wrapped lines?
+                    shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+                    moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][
+                        shiftDown
+                    ]
+                    if cursor.block().lineCount() == 1 or not cursor.movePosition(
+                        cursor.MoveOperation.Down, moveMode
+                    ):
+                        # cursor is definitely at the last line
+                        # --> move cursor to the end of the line/block
+                        cursor.movePosition(cursor.MoveOperation.EndOfBlock, moveMode)
+                        cursor.setVerticalMovementX(hPos)
+                        self.setTextCursor(cursor)
+                        return
+        super().keyPressEvent(event)
+
+
 class MoveLinesUpDown:
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down) and (
@@ -106,32 +150,43 @@ class ScrollWithUpDownKeys:
 
 
 class HomeKey:
+    @staticmethod
+    def moveHome(editor, event, keepX=False):
+        # static method to avoid code duplication
+
+        # Prepare
+        cursor = editor.textCursor()
+        if keepX:
+            hPos = cursor.verticalMovementX()
+
+        shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+        moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][shiftDown]
+        # Get leading whitespace
+        text = cursor.block().text()
+        leadingWhitespace = text[: len(text) - len(text.lstrip())]
+        # Get current position and move to start of whitespace
+        i = cursor.positionInBlock()
+        cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
+        cursor.movePosition(
+            cursor.MoveOperation.Right, moveMode, len(leadingWhitespace)
+        )
+        # If we were already there, move to start of block
+        if cursor.positionInBlock() == i:
+            cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
+
+        if keepX:
+            cursor.setVerticalMovementX(hPos)
+
+        # Done
+        editor.setTextCursor(cursor)
+
     def keyPressEvent(self, event):
         # Home or shift + home
         if event.key() == Qt.Key.Key_Home and event.modifiers() in (
             Qt.KeyboardModifier.NoModifier,
             Qt.KeyboardModifier.ShiftModifier,
         ):
-            # Prepare
-            cursor = self.textCursor()
-            shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
-            moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][
-                shiftDown
-            ]
-            # Get leading whitespace
-            text = cursor.block().text()
-            leadingWhitespace = text[: len(text) - len(text.lstrip())]
-            # Get current position and move to start of whitespace
-            i = cursor.positionInBlock()
-            cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
-            cursor.movePosition(
-                cursor.MoveOperation.Right, moveMode, len(leadingWhitespace)
-            )
-            # If we were alread there, move to start of block
-            if cursor.positionInBlock() == i:
-                cursor.movePosition(cursor.MoveOperation.StartOfBlock, moveMode)
-            # Done
-            self.setTextCursor(cursor)
+            self.moveHome(self, event)
         else:
             super().keyPressEvent(event)
 
@@ -151,7 +206,7 @@ class EndKey:
             # Get current position and move to end of line
             i = cursor.positionInBlock()
             cursor.movePosition(cursor.MoveOperation.EndOfLine, moveMode)
-            # If alread at end of line, move to end of block
+            # If already at end of line, move to end of block
             if cursor.positionInBlock() == i:
                 cursor.movePosition(cursor.MoveOperation.EndOfBlock, moveMode)
             # Done
