@@ -67,12 +67,12 @@ if False:
     # likely happen inside myfunc1 or myfunc2.
     # You can switch (from the outermost scope) to the scope of myfunc1 by executing
     # the following line in the shell:
-    #     import sys; sys._pyzoInterpreter.switchframe(-2)
+    #     import sys; sys._pyzoInterpreter.switchframe(1)
     # Then you can inspect/modify variable "cnt1".
     # For example, execute "cnt1 = -1234" in the shell.
     # If the start of the external shell happend inside myfunc2, then you can also
     # inspect the values there (cnt2). To switch to that frame, execute the line:
-    #     import sys; sys._pyzoInterpreter.switchframe(-3)
+    #     import sys; sys._pyzoInterpreter.switchframe(2)
 
     # Finally terminate the shell (e.g. via "Shell -> Close" in Pyzo's menu).
     # The external Python application is now running again, but with the modified cnt1 value.
