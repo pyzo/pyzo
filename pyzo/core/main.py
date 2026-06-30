@@ -507,7 +507,7 @@ def loadAppIcons():
     # Construct another icon to show when the current shell is busy
     pyzo.iconRunning = QtGui.QIcon(pyzo.icon)
 
-    for sze in [16, 32, 48, 64, 128, 256]:
+    for sze in reversed([16, 32, 48, 64, 128, 256]):
         fname = os.path.join(appiconDir, fnameT.format(sze))
         if os.path.isfile(fname):
             pyzo.icon.addFile(fname, QtCore.QSize(sze, sze))
