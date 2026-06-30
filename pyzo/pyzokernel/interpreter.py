@@ -1245,10 +1245,10 @@ class PyzoInterpreter:
 
     ## Advanced methods
 
-    def switchframe(self, frameindex=-1):
+    def switchframe(self, frameindex=0):
         """switches the globals and locals for the shell to the selected frame
 
-        frameindex -1 is the outermost frame (and index 0 the innermost one)
+        frameindex 0 is the outermost frame
 
         For normally started shells, this makes no sense, because the interpreter
         already uses the outermost frame, and all inner frames are only the ones of
@@ -1259,7 +1259,7 @@ class PyzoInterpreter:
         It could be useful to switch to another frame to inspect or modify variables
         there. To switch the globals/locals to the second outermost frame, for example,
         execute the line
-            import sys; sys._pyzoInterpreter.switchframe(-2)
+            import sys; sys._pyzoInterpreter.switchframe(1)
         in the shell. Note that the switch will be performed only after the execution
         of that line has finished.
         """
@@ -1269,6 +1269,7 @@ class PyzoInterpreter:
         while f.f_back:
             f = f.f_back
             frames.append(f)
+        frames.reverse()
 
         if self._dbFrames:
             printDirect("cannot switch frame because debugging is active\n")
