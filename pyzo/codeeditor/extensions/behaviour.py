@@ -23,6 +23,10 @@ class DeflectUpDown:
     beginning of the line (resp. beginning of the indentation).
     And when pressing the Down key in the very last line, the cursor should move to the
     end of the line.
+
+    When pressing the PageUp or PageDown key, but the cursor does not move, then
+    the cursor is moved to the beginning resp. end of the block which in that cases is
+    the beginning resp. end of the document.
     """
 
     def keyPressEvent(self, event):
@@ -39,7 +43,7 @@ class DeflectUpDown:
                     # at first line (and not after a line wrapping)
                     HomeKey.moveHome(self, event, keepX=True)
                     return
-            if event.key() == Qt.Key.Key_Down:
+            elif event.key() == Qt.Key.Key_Down:
                 cursor = self.textCursor()
                 hPos = cursor.verticalMovementX()
                 if cursor.blockNumber() == self.blockCount() - 1:
@@ -58,6 +62,32 @@ class DeflectUpDown:
                         cursor.setVerticalMovementX(hPos)
                         self.setTextCursor(cursor)
                         return
+
+            elif event.key() in (Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
+                posBefore = self.textCursor().position()
+                super().keyPressEvent(event)
+                cursor = self.textCursor()
+                posAfter = cursor.position()
+
+                if posAfter == posBefore:
+                    hPos = cursor.verticalMovementX()
+
+                    shiftDown = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+                    moveMode = [cursor.MoveMode.MoveAnchor, cursor.MoveMode.KeepAnchor][
+                        shiftDown
+                    ]
+
+                    if event.key() == Qt.Key.Key_PageUp:
+                        moveOp = cursor.MoveOperation.StartOfBlock
+                    else:
+                        moveOp = cursor.MoveOperation.EndOfBlock
+
+                    cursor.movePosition(moveOp, moveMode)
+                    cursor.setVerticalMovementX(hPos)
+                    self.setTextCursor(cursor)
+
+                return
+
         super().keyPressEvent(event)
 
 
