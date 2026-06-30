@@ -27,6 +27,12 @@ freeze till the shell is closed again. But you can re-enter the kernel anytime.
 bpy.ops.mesh.primitive_cube_add(size=3, location=(0, 0, 0))
 bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 # https://docs.blender.org/api/current/info_gotcha.html#can-i-redraw-during-script-execution
+
+The global and local variables of the new shell are the ones of the outermost frame.
+But they can be switched to other frames, for example to frames between the outmost frame
+and the Pyzo kernel's first frame. To do this, execute for example the line
+    import sys; sys._pyzoInterpreter.switchframe(-2)
+which switches globals and locals to the second outermost frame (index -2).
 """
 
 

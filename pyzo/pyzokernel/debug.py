@@ -166,7 +166,7 @@ class Debugger(bdb.Bdb):
         # Reset
         self._debugmode = 0
         interpreter.locals = interpreter._main_locals
-        interpreter.globals = None
+        interpreter.globals = interpreter._main_globals
         interpreter._dbFrames = []
         self.writestatus()
 
