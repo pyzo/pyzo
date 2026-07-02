@@ -364,21 +364,28 @@ class AutoCompletion:
         if self.potentiallyAutoComplete(event) > 1:
             return  # Consume
 
-        if self.autocompleteActive() and modifiers == Qt.KeyboardModifier.NoModifier:
-            if key in (K.Key_PageUp, K.Key_PageDown):
-                QtWidgets.qApp.sendEvent(self.__completerWindow, event)
-                return True
-
+        if self.autocompleteActive():
             row = self.__completerWindow.currentIndex().row()
             newRow = None
-            if key == K.Key_Up:
-                newRow = row - 1
-            elif key == K.Key_Down:
-                newRow = row + 1
-            elif key == K.Key_Home:
-                newRow = 0
-            elif key == K.Key_End:
-                newRow = -1  # last element (after modulo operation)
+
+            if key in (K.Key_PageUp, K.Key_PageDown):
+                # PageUp and PageDown are forwarded to the list widget
+                if modifiers == Qt.KeyboardModifier.NoModifier:
+                    QtWidgets.qApp.sendEvent(self.__completerWindow, event)
+                    return True
+
+                # Shift+PageUp and Shift+PageDown will select the first resp. last entry
+                if modifiers == Qt.KeyboardModifier.ShiftModifier:
+                    if key == K.Key_PageUp:
+                        newRow = 0
+                    elif key == K.Key_PageDown:
+                        newRow = -1  # last element (after modulo operation)
+
+            elif modifiers == Qt.KeyboardModifier.NoModifier:
+                if key == K.Key_Up:
+                    newRow = row - 1
+                elif key == K.Key_Down:
+                    newRow = row + 1
 
             if newRow is not None:
                 model = self.__completerWindow.model()
