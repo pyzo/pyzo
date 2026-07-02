@@ -476,7 +476,10 @@ class BaseShell(BaseTextCtrl):
             if not (self.autocompleteActive() or self.calltipActive()):
                 self.clearCommand()
 
-        if event.key() in (Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
+        if (
+            event.key() in (Qt.Key.Key_PageUp, Qt.Key.Key_PageDown)
+            and not self.autocompleteActive()
+        ):
             # The cursor should not move. So we have to ignore the event.
             # But we still want to be able to scroll the shell.
             # --> We send the event directly to the base class so
@@ -484,9 +487,7 @@ class BaseShell(BaseTextCtrl):
             pyzo.codeeditor.CodeEditorBase.keyPressEvent(self, event)
             return
 
-        if event.key() == Qt.Key.Key_Home and not (
-            self.autocompleteActive() and not event.modifiers()
-        ):
+        if event.key() == Qt.Key.Key_Home:
             # Home goes to the prompt.
             cursor = self.textCursor()
             if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
