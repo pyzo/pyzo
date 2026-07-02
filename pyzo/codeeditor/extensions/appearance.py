@@ -1423,6 +1423,10 @@ class SyntaxHighlighting:
     # Register all syntax style elements
     _styleElements = Manager.getStyleElementDescriptionsForAllParsers()
 
+    def __init__(self, *args, **kwargs):
+        self.__parser = None
+        super().__init__(*args, **kwargs)
+
     def parser(self):
         """Get the parser instance currently in use to parse the code for
         syntax highlighting and source structure. Can be None.
@@ -1436,7 +1440,12 @@ class SyntaxHighlighting:
     def setParser(self, parserName=""):
         """Set the current parser by giving the parser name."""
         # Set parser
-        self.__parser = Manager.getParserByName(parserName)
+        parser = Manager.getParserByName(parserName)
+        if self.__parser is not parser:
+            self.__parser = parser
 
-        # Restyle, use setStyle for lazy updating
-        self.setStyle()
+            # We only call setStyle if the parser has changed.
+            # Otherwise older shell prompts would lose some formatting.
+
+            # Restyle, use setStyle for lazy updating
+            self.setStyle()
