@@ -39,6 +39,26 @@ class CompletionListModel(QtCore.QStringListModel):
             return super().data(index, role)
 
 
+class MyCompletionList(QtWidgets.QListView):
+    def keyPressEvent(self, event):
+        key = event.key()
+        modifiers = event.modifiers()
+        K = Qt.Key
+
+        if modifiers == Qt.KeyboardModifier.ShiftModifier:
+            newRow = None
+            if key == K.Key_PageUp:
+                newRow = 0
+            elif key == K.Key_PageDown:
+                newRow = -1  # last element (after modulo operation)
+
+            if newRow is not None:
+                model = self.model()
+                self.setCurrentIndex(model.index(newRow % model.rowCount(), 0))
+
+        super().keyPressEvent(event)
+
+
 # todo: use keywords from the parser
 class AutoCompletion:
     def __init__(self, *args, **kwds):
@@ -46,6 +66,8 @@ class AutoCompletion:
         # Autocompleter
         self.__completerModel = QtCore.QStringListModel(keyword.kwlist)
         self.__completer = QtWidgets.QCompleter(self)
+        self.__listView = MyCompletionList()
+        self.__completer.setPopup(self.__listView)
         self.__completer.setModel(self.__completerModel)
         self.__completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.__completer.setWidget(self)
@@ -364,35 +386,9 @@ class AutoCompletion:
         if self.potentiallyAutoComplete(event) > 1:
             return  # Consume
 
-        if self.autocompleteActive():
-            row = self.__completerWindow.currentIndex().row()
-            newRow = None
-
-            if key in (K.Key_PageUp, K.Key_PageDown):
-                # PageUp and PageDown are forwarded to the list widget
-                if modifiers == Qt.KeyboardModifier.NoModifier:
-                    QtWidgets.qApp.sendEvent(self.__completerWindow, event)
-                    return True
-
-                # Shift+PageUp and Shift+PageDown will select the first resp. last entry
-                if modifiers == Qt.KeyboardModifier.ShiftModifier:
-                    if key == K.Key_PageUp:
-                        newRow = 0
-                    elif key == K.Key_PageDown:
-                        newRow = -1  # last element (after modulo operation)
-
-            elif modifiers == Qt.KeyboardModifier.NoModifier:
-                if key == K.Key_Up:
-                    newRow = row - 1
-                elif key == K.Key_Down:
-                    newRow = row + 1
-
-            if newRow is not None:
-                model = self.__completerWindow.model()
-                self.__completerWindow.setCurrentIndex(
-                    model.index(newRow % model.rowCount(), 0)
-                )
-                return  # consume the key
+        if USE_WAYLAND_WORKAROUND and self.autocompleteActive():
+            if key in (K.Key_PageUp, K.Key_PageDown, K.Key_Up, K.Key_Down):
+                return self.__listView.keyPressEvent(event)
 
         # Allowed keys that do not close the autocompleteList:
         # alphanumeric and _ and shift
@@ -422,3 +418,15 @@ class AutoCompletion:
         if self.autocompleteActive():
             self.autocompleteCancel()
         super().mousePressEvent(event)
+
+    def event(self, event):
+        if USE_WAYLAND_WORKAROUND:
+            if event.type() == event.Type.FocusAboutToChange:
+                # Because of the "ToolTip" window type, we have to close the
+                # autocompletion widget ourselves when it is losing focus.
+                # Actually, focusOutEvent would be more logical, but this does not work
+                # with this workaround, so we use FocusAboutToChange instead.
+                if self.autocompleteActive():
+                    self.autocompleteCancel()
+        super().event(event)
+        return True
