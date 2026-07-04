@@ -1860,11 +1860,21 @@ class EditorTabs(QtWidgets.QWidget):
         return consumed
 
 
+class _MyQListWidget(QtWidgets.QListWidget):
+    middleButtonClicked = QtCore.Signal(QtCore.QPoint)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.middleButtonClicked.emit(event.position().toPoint())
+            return
+        super().mousePressEvent(event)
+
+
 class HistList(QtWidgets.QDialog):
     def __init__(self, parent, tabs, startEvent):
         super().__init__(parent)
 
-        lw = QtWidgets.QListWidget()
+        lw = _MyQListWidget()
         self._lw = lw
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -1913,6 +1923,9 @@ class HistList(QtWidgets.QDialog):
         )
         w = max(w, 400)
         self.resize(w, h)
+
+        lw.middleButtonClicked.connect(self._onMiddleButtonClicked)
+
         self.keyPressEvent(startEvent)
 
     def _finishSelection(self):
@@ -1923,6 +1936,16 @@ class HistList(QtWidgets.QDialog):
                 self._tabs.setCurrentItem(self._entries[ind])
         self._entries = None
         self.close()
+
+    def _closeEditorByHistIndex(self, ind):
+        closed = False
+        if 0 <= ind < len(self._entries):
+            ed = self._entries[ind].editor
+            if self.parent().closeFile(ed):
+                self._lw.takeItem(ind)
+                self._entries = self._tabs.getItemHistory()
+                closed = True
+        return closed
 
     @staticmethod
     def processKeyPress(event):
@@ -1948,6 +1971,14 @@ class HistList(QtWidgets.QDialog):
                 row = 0
             lw.setCurrentRow((row + k) % lw.count())
             return  # consume event
+
+        key = event.key()
+        if key == Qt.Key.Key_Delete:
+            if self._entries is not None:
+                ind = self._lw.currentRow()
+                self._closeEditorByHistIndex(ind)
+            return
+
         super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
@@ -1958,3 +1989,9 @@ class HistList(QtWidgets.QDialog):
             self._finishSelection()
             return  # consume event
         super().keyReleaseEvent(event)
+
+    def _onMiddleButtonClicked(self, pos):
+        item = self._lw.itemAt(pos)
+        if item is not None:
+            ind = self._lw.indexFromItem(item).row()
+            self._closeEditorByHistIndex(ind)
