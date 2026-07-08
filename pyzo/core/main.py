@@ -376,6 +376,32 @@ class MainWindow(QtWidgets.QMainWindow):
         # Are we restaring?
         restarting = time.time() - self._closeflag < 1.0  # noqa: F841
 
+        if pyzo.config.advanced.alwaysAskWhenClosingPyzo:
+            dlg = QtWidgets.QMessageBox(pyzo.main)
+            dlg.setWindowTitle("Pyzo")
+            dlg.setText(translate("main", "Do you really want to close Pyzo?"))
+
+            infoTexts = []
+            busyStates = ("Busy", "Very busy", "Debug")
+            if any(shell._state in busyStates for shell in pyzo.shells):
+                infoTexts.append(
+                    translate("main", "At least one shell is still executing code.")
+                )
+            if any(ed.document().isModified() for ed in pyzo.editors):
+                infoTexts.append(
+                    translate("main", "At least one editor has unsaved changes.")
+                )
+            dlg.setInformativeText("\n".join(infoTexts))
+
+            btnClose = dlg.addButton(QtWidgets.QMessageBox.StandardButton.Close)
+            btnCancel = dlg.addButton(QtWidgets.QMessageBox.StandardButton.Cancel)
+            dlg.setDefaultButton(btnCancel)
+            dlg.exec()
+            if dlg.clickedButton() is not btnClose:
+                self._closeflag = False
+                event.ignore()
+                return
+
         # Proceed with closing...
         result = pyzo.editors.closeAll()
         if not result:
